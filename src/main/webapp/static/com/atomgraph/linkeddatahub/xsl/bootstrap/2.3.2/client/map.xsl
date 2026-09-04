@@ -6,6 +6,7 @@
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY geo    "http://www.w3.org/2003/01/geo/wgs84_pos#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
+    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
     <!ENTITY gs     "http://www.opengis.net/ont/geosparql#">
 ]>
 <xsl:stylesheet version="3.0"
@@ -21,6 +22,7 @@ xmlns:json="http://www.w3.org/2005/xpath-functions"
 xmlns:array="http://www.w3.org/2005/xpath-functions/array"
 xmlns:ac="&ac;"
 xmlns:ldh="&ldh;"
+xmlns:lapp="&lapp;"
 xmlns:rdf="&rdf;"
 xmlns:geo="&geo;"
 xmlns:ldt="&ldt;"
@@ -145,10 +147,13 @@ exclude-result-prefixes="#all"
             'map': $map,
             'initial-load': $initial-load
           }"/>
+        <!-- the busy cursor is raised by ldh:RenderViewMode, which calls this template; the finally that lowers it
+             belongs here, on the chain that actually does the loading -->
         <ixsl:promise select="ixsl:http-request($context('request')) =>
             ixsl:then(ldh:rethread-response($context, ?)) =>
             ixsl:then(ldh:handle-response#1) =>
-            ixsl:then(ldh:geo-results-response#1)"
+            ixsl:then(ldh:geo-results-response#1) =>
+            ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     
@@ -333,8 +338,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="map" select="$context('map')" as="item()"/> <!-- OpenLayers map object -->
         <xsl:variable name="initial-load" select="$context('initial-load')" as="xs:boolean"/>
 
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-        
         <xsl:for-each select="$response">
             <xsl:choose>
                 <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
@@ -350,16 +353,10 @@ exclude-result-prefixes="#all"
                 </xsl:when>
                 <xsl:otherwise>
                     <!-- error response - could not load query results -->
-                    <xsl:call-template name="render-container-error">
-                        <xsl:with-param name="container" select="$container"/>
-                        <xsl:with-param name="message" select="?message"/>
-                    </xsl:call-template>
+                    <xsl:sequence select="ldh:render-block-error($container, 'block-query-failed', ldh:http-error-key($response?status), (), $response)"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
-        
-        <!-- loading is done - restore the default mouse cursor -->
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
         
         <xsl:sequence select="$context"/>
     </xsl:function>
@@ -384,51 +381,62 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="uri" select="xs:anyURI($id)" as="xs:anyURI"/>
                 <xsl:variable name="request-uri" select="ldh:href(ac:absolute-path($uri), map{})" as="xs:anyURI"/>
 
-                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+                <xsl:sequence select="ldh:busy-cursor()"/>
 
-                <xsl:variable name="request" as="item()*">
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                        <xsl:call-template name="onFeatureDescriptionLoad">
-                            <xsl:with-param name="event" select="$event"/>
-                            <xsl:with-param name="map" select="$map"/>
-                            <xsl:with-param name="feature" select="$feature"/>
-                            <xsl:with-param name="uri" select="$uri"/>
-                        </xsl:call-template>
-                    </ixsl:schedule-action>
-                </xsl:variable>
-                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:variable name="context" as="map(*)" select="
+                  map{
+                    'request': map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } },
+                    'event': $event,
+                    'map': $map,
+                    'feature': $feature,
+                    'uri': $uri
+                  }"/>
+                <!-- no ldh:handle-response in the chain: a failed fetch is reported here rather than raised, so it must reach the callback -->
+                <ixsl:promise select="ixsl:http-request($context('request')) =>
+                    ixsl:then(ldh:rethread-response($context, ?)) =>
+                    ixsl:then(ldh:feature-description-response#1) =>
+                    ixsl:finally(ldh:reset-cursor#0)"
+                    on-failure="ldh:promise-failure#1"/>
             </xsl:if>
         </xsl:if>
     </xsl:template>
     
-    <xsl:template name="onFeatureDescriptionLoad">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="event"/>
-        <xsl:param name="map"/>
-        <xsl:param name="feature"/>
-        <xsl:param name="uri" as="xs:anyURI"/>
-        
+    <xsl:function name="ldh:feature-description-response" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="event" select="$context('event')"/>
+        <xsl:variable name="map" select="$context('map')"/>
+        <xsl:variable name="uri" select="$context('uri')" as="xs:anyURI"/>
+
         <xsl:choose>
-            <xsl:when test="?status = 200 and starts-with(?media-type, 'application/rdf+xml')">
-                <xsl:for-each select="?body">
+            <xsl:when test="$response?status = 200 and starts-with($response?media-type, 'application/rdf+xml')">
+                <xsl:for-each select="$response?body">
+                    <!-- info windows are the only overlays this map carries, and they read one at a time the way popups
+                         do elsewhere: the one being opened replaces whatever is already up, rather than stacking over it -->
+                    <xsl:sequence select="ixsl:call(ixsl:call($map, 'getOverlays', []), 'clear', [])[current-date() lt xs:date('2000-01-01')]"/>
+
                     <xsl:variable name="info-window-options" select="ldh:new-object()"/>
                     <xsl:variable name="info-window-html" as="element()">
                         <xsl:apply-templates select="key('resources', $uri)">
+                            <!-- the design-system property-list CSS is scoped to .ldh-block, which the bs2:Row card wrapper provides elsewhere;
+                                 is-quiet drops the card chrome that would otherwise paint a second bordered surface inside the info window panel -->
+                            <xsl:with-param name="class" select="'ldh-block is-quiet'"/>
                             <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:variable>
                     <xsl:variable name="coord" select="ixsl:get($event, 'coordinate')"/>
                     <xsl:variable name="container" select="ixsl:call(ixsl:page(), 'createElement', [ 'div' ])" as="element()"/>
                     <xsl:sequence select="ixsl:call(ixsl:call($map, 'getOverlayContainerStopEvent', []), 'appendChild', [ $container ])[current-date() lt xs:date('2000-01-01')]"/>
-                    <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
+                    <xsl:variable name="uuid" select="ac:uuid()" as="xs:string"/>
                     <ixsl:set-attribute name="id" select="'id' || $uuid" object="$container"/>
 
                     <xsl:variable name="overlay-options" select="ldh:new-object()"/>
                     <ixsl:set-property name="element" select="$container" object="$overlay-options"/>
-                    <ixsl:set-property name="autoPan" select="true()" object="$overlay-options"/>
+                    <!-- no autoPan: it fires while the overlay joins the map, before the panel's own size is known here,
+                         and it can only move the map - which is not enough on its own. The pan and the fitting that has
+                         to finish it are done together below. -->
                     <ixsl:set-property name="positioning" select="'bottom-center'" object="$overlay-options"/>
                     <!--<ixsl:set-property name="className" select="'ol-overlay-container ol-selectable'" object="$overlay-options"/>-->
-                    <!--<ixsl:set-property name="autoPanAnimation" select="" object="$overlay-options"/>-->
                     <xsl:variable name="overlay" select="ixsl:new('ol.Overlay', [ $overlay-options ])"/>
                     <xsl:sequence select="ixsl:call($overlay, 'setPosition', [ $coord ])[current-date() lt xs:date('2000-01-01')]"/>
 
@@ -438,7 +446,7 @@ exclude-result-prefixes="#all"
                     <xsl:for-each select="$container">
                         <xsl:result-document href="?." method="ixsl:replace-content">
                             <div class="modal-header">
-                                <button type="button" class="close">&#215;</button>
+                                <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
                             </div>
                             
                             <div class="modal-body">
@@ -448,16 +456,53 @@ exclude-result-prefixes="#all"
                     </xsl:for-each>
                 
                     <xsl:sequence select="ixsl:call($map, 'addOverlay', [ $overlay ])[current-date() lt xs:date('2000-01-01')]"/>
+
+                    <!-- the popup only takes on the panel's width and max-height once ol has wrapped it, so where it can
+                         sit is settled here rather than in the options above. The map's overflow is hidden, so anything
+                         hanging over an edge is cut off - under the view controls at the top - and the popup is worked
+                         back into the viewport, inset by the same margin ol's own autoPan would have left it. -->
+                    <xsl:variable name="map-box" select="ixsl:call(ixsl:call($map, 'getTargetElement', []), 'getBoundingClientRect', [])"/>
+                    <!-- ol builds its own .ol-overlay-container around $container, and that wrapper is what the panel CSS sizes -->
+                    <xsl:variable name="popup-box" select="ixsl:call($container/.., 'getBoundingClientRect', [])"/>
+                    <xsl:variable name="margin" select="20" as="xs:double"/>
+                    <xsl:variable name="map-width" select="xs:double(ixsl:get($map-box, 'width'))" as="xs:double"/>
+                    <xsl:variable name="map-height" select="xs:double(ixsl:get($map-box, 'height'))" as="xs:double"/>
+                    <xsl:variable name="popup-width" select="xs:double(ixsl:get($popup-box, 'width'))" as="xs:double"/>
+                    <xsl:variable name="popup-height" select="xs:double(ixsl:get($popup-box, 'height'))" as="xs:double"/>
+                    <!-- the overlay is already rendered bottom-centred on the marker, so its own box locates the marker -->
+                    <xsl:variable name="natural-left" select="xs:double(ixsl:get($popup-box, 'left')) - xs:double(ixsl:get($map-box, 'left'))" as="xs:double"/>
+                    <xsl:variable name="marker-y" select="xs:double(ixsl:get($popup-box, 'top')) - xs:double(ixsl:get($map-box, 'top')) + $popup-height" as="xs:double"/>
+                    <!-- stay above the marker while there is room for that, drop below it when only that side has room -->
+                    <xsl:variable name="positioning" select="if ($popup-height + $margin le $marker-y or $popup-height + $margin gt $map-height - $marker-y) then 'bottom-center' else 'top-center'" as="xs:string"/>
+                    <xsl:variable name="natural-top" select="if ($positioning = 'bottom-center') then $marker-y - $popup-height else $marker-y" as="xs:double"/>
+                    <xsl:variable name="shift-x" select="max(($margin, min(($natural-left, $map-width - $popup-width - $margin)))) - $natural-left" as="xs:double"/>
+                    <xsl:variable name="shift-y" select="max(($margin, min(($natural-top, $map-height - $popup-height - $margin)))) - $natural-top" as="xs:double"/>
+                    <xsl:sequence select="ixsl:call($overlay, 'setPositioning', [ $positioning ])[current-date() lt xs:date('2000-01-01')]"/>
+
+                    <!-- the shift is offered to the map first, the way every popup implementation moves the least it can
+                         to reveal itself, so the panel keeps its foot on the marker. The view constrains its centre to
+                         the projection extent, so ask it which centre it can actually reach and read that back through
+                         the frame the measurements above came from: at the edge of the world the pan stops short, and
+                         only what it could not absorb becomes the overlay's own offset. -->
+                    <xsl:variable name="view" select="ixsl:call($map, 'getView', [])"/>
+                    <xsl:variable name="target-center" select="ixsl:call($map, 'getCoordinateFromPixel', [ [ $map-width div 2 - $shift-x, $map-height div 2 - $shift-y ] ])"/>
+                    <xsl:variable name="center" select="ixsl:call($view, 'getConstrainedCenter', [ $target-center ])"/>
+                    <!-- ol's coordinates and pixels arrive as sequences of two doubles rather than arrays, so they are
+                         indexed, not read with ixsl:get; asking for one as array(*) hangs the renderer rather than failing -->
+                    <xsl:variable name="center-pixel" select="ixsl:call($map, 'getPixelFromCoordinate', [ $center ])" as="xs:double*"/>
+                    <xsl:variable name="panned-x" select="$map-width div 2 - $center-pixel[1]" as="xs:double"/>
+                    <xsl:variable name="panned-y" select="$map-height div 2 - $center-pixel[2]" as="xs:double"/>
+                    <xsl:sequence select="ixsl:call($view, 'setCenter', [ $center ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:call($overlay, 'setOffset', [ [ $shift-x - $panned-x, $shift-y - $panned-y ] ])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ $response?message ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
-        
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-    </xsl:template>
+
+        <xsl:sequence select="$context"/>
+    </xsl:function>
     
     <!-- close popup overlay (info window) -->
     

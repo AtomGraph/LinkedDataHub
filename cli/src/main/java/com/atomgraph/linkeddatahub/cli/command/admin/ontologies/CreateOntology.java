@@ -39,7 +39,7 @@ import picocli.CommandLine.Option;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "create-ontology", description = "Creates a new ontology.")
+@Command(name = "ontology", description = "Creates a new ontology.")
 public class CreateOntology extends BaseCommand
 {
 

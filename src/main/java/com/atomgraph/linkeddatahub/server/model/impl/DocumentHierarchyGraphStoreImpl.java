@@ -746,7 +746,10 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
                 getWritableMediaTypes(Model.class),
                 getLanguages(),
                 getEncodings(),
-                new HTMLMediaTypePredicate());
+                new HTMLMediaTypePredicate(),
+                // the HTML rendering negotiates over the whole accepted-language list, so two requests selecting the same
+                // variant can still differ; passing it makes the entity tag tell those representations apart
+                getHttpHeaders().getAcceptableLanguages());
     }
     
     /**

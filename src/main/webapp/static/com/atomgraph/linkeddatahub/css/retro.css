@@ -1,0 +1,1436 @@
+/* =========================================================================
+   LinkedDataHub — RETRO 80s theme layer  (reversible fork)
+   ---------------------------------------------------------------------------
+   Keeps the Material bones of the system intact — this file ONLY remaps the
+   token primitives + adds a few additive flourishes, gated on
+   `data-retro` on <html>. Set data-retro="off" (or remove it) to return to
+   the modern system with zero residue.
+
+   Three directions:
+     · dusk   — Terminal Dusk   (Halt & Catch Fire: navy/teal/coral/amber, dark)
+     · corsa  — Rosso Corsa     (Italian classic car: cream/red/green/gold, light)
+     · neon   — Neon Grid       (synthwave Miami: purple/magenta/cyan, dark)
+
+   Because the app funnels nearly everything through these primitives, remapping
+   them recolours buttons, links, charts, graph nodes, grid cards and chrome in
+   one move. The accent (action) colour is intentionally the hot retro hue —
+   the "blue is the only action colour" rule is suspended inside a retro theme.
+   ========================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400..800&family=Audiowide&family=Antonio:wght@300..700&family=Share+Tech+Mono&family=Space+Mono:wght@400;700&display=swap');
+
+/* =========================================================================
+   1 · TERMINAL DUSK  (Halt & Catch Fire)
+   ========================================================================= */
+:root[data-retro="dusk"] {
+  /* Neutrals — cool teal-navy with warm cream ink */
+  --ink-1:  #ece3d2;
+  --ink-2:  #c2cdc9;
+  --ink-3:  #8b9d9b;
+  --ink-4:  #5f726f;
+  --ink-5:  #44524e;
+
+  --surface-0: #122231;   /* card / dialog */
+  --surface-1: #0b161f;   /* page */
+  --surface-2: #182a39;   /* recessed / hover */
+  --surface-3: #21384a;   /* pressed / dividers */
+  --line-1:    #1d3344;
+  --line-2:    #2c4759;
+
+  /* Accent = CORAL. The blue ramp is the interaction colour, so remap it. */
+  --ldh-blue-50:   #251714;
+  --ldh-blue-100:  #35201c;
+  --ldh-blue-200:  #4a2b25;
+  --ldh-blue-300:  #ff8170;
+  --ldh-blue-400:  #ff8170;
+  --ldh-blue-500:  #ff6b5b;   /* primitive accent — dots, chart line, focus glints */
+  --ldh-blue-600:  #ff9a8a;   /* link / accent TEXT (AA on dark) */
+  --ldh-blue-700:  #ffb3a6;
+
+  /* Violet ramp → TEAL (2nd chart series, secondary accents, named graphs) */
+  --ldh-violet-50:  #0c2826;
+  --ldh-violet-100: #103b37;
+  --ldh-violet-400: #36cbbe;
+  --ldh-violet-500: #00b4a6;
+  --ldh-violet-600: #36cbbe;
+  --ldh-violet-700: #6dded4;
+
+  /* Semantic */
+  --success-500: #34c79a;  --success-50: #0d2a22;
+  --warning-500: #ffb347;  --warning-50: #2e2210;
+  --danger-500:  #ff6b6b;  --danger-600: #e35555;  --danger-50:  #2e1414;
+  --fg-on-danger: #2b0d0d;
+
+  /* RDF data-encoding — retro hues */
+  --rdf-class:    #ffb347;  /* amber  */
+  --rdf-resource: #00b4a6;  /* teal   */
+  --rdf-literal:  #9bd455;  /* lime   */
+  --rdf-blank:    #ff6b5b;  /* coral  */
+  --rdf-named:    #c08bff;  /* violet */
+
+  /* Pastel surfaces → dark retro tints (category-card icon chips, image fills) */
+  --surf-lavender: #1e2336;
+  --surf-mint:     #0e2a22;
+  --surf-peach:    #2e1d16;
+  --surf-sky:      #11283a;
+  --surf-blush:    #2c1722;
+  --surf-sand:     #2a2412;
+
+  /* Gradients — header + dark hero + mesh fills */
+  --grad-deep:   linear-gradient(135deg, #0b161f 0%, #143038 55%, #1a2c3a 100%); /* @kind color */
+  --grad-aurora: linear-gradient(135deg, #122231 0%, #143a3a 50%, #1c2e3c 100%); /* @kind color */
+
+  /* Semantic re-derivations that point at literals (not the primitive) */
+  --bg-accent:       #ff6b5b;
+  --bg-accent-hover: #ff8473;
+  --bg-accent-quiet: #251714;
+  --fg-on-accent:    #0b161f;   /* dark ink on the bright coral fill */
+  --fg-hint:         #8a9b98;
+  --fg-link:         #ff9a8a;
+
+  /* Retro type */
+  --font-display: 'Orbitron', var(--font-sans);
+  --font-mono:    'Share Tech Mono', ui-monospace, monospace;
+
+  --grid-line: rgba(0,180,166,0.18);   /* @kind color */
+
+  /* Heavier shadows for the dark canvas */
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.4);
+  --shadow-md: 0 8px 24px -8px rgba(0,0,0,0.6), 0 2px 4px rgba(0,0,0,0.4);
+  --shadow-lg: 0 24px 48px -16px rgba(0,0,0,0.66), 0 4px 12px rgba(0,0,0,0.5);
+  --shadow-glow-blue: 0 0 0 3px rgba(255,107,91,0.35);
+  --inset-hairline: inset 0 1px 0 rgba(255,255,255,0.06);
+}
+
+/* =========================================================================
+   2 · ROSSO CORSA  (Italian classic car — light cream)
+   ========================================================================= */
+:root[data-retro="corsa"] {
+  /* Neutrals — warm ivory / cream surfaces, near-black warm ink */
+  --ink-1:  #1a1714;
+  --ink-2:  #3a332c;
+  --ink-3:  #6b6055;
+  --ink-4:  #978b7c;
+  --ink-5:  #c4baa9;
+
+  --surface-0: #fcf7ec;   /* card ivory */
+  --surface-1: #f4ecd8;   /* page cream */
+  --surface-2: #ece1c7;   /* recessed */
+  --surface-3: #e0d2b2;   /* pressed / dividers */
+  --line-1:    #ddd0b2;
+  --line-2:    #c9b993;
+
+  /* Accent = ROSSO CORSA red */
+  --ldh-blue-50:   #f7e4d9;
+  --ldh-blue-100:  #f0d2c5;
+  --ldh-blue-200:  #e6bcab;
+  --ldh-blue-300:  #e03b35;
+  --ldh-blue-400:  #e03b35;
+  --ldh-blue-500:  #d11a1f;   /* primitive accent */
+  --ldh-blue-600:  #b3151b;   /* link / accent TEXT (AA on cream) */
+  --ldh-blue-700:  #8f0d14;
+
+  /* Violet ramp → RACING GREEN */
+  --ldh-violet-50:  #e2efe5;
+  --ldh-violet-100: #cfe4d4;
+  --ldh-violet-400: #2c8a63;
+  --ldh-violet-500: #0a5c3e;
+  --ldh-violet-600: #0a5c3e;
+  --ldh-violet-700: #073f2c;
+
+  /* Semantic */
+  --success-500: #0a7d4f;  --success-50: #e2efe5;
+  --warning-500: #b8860b;  --warning-50: #f6ecc9;
+  --danger-500:  #c8161d;  --danger-600: #a41117;  --danger-50:  #f7e3d8;
+
+  /* RDF data-encoding — Italian palette */
+  --rdf-class:    #0a5c3e;  /* racing green */
+  --rdf-resource: #c8161d;  /* rosso        */
+  --rdf-literal:  #b8860b;  /* ochre / gold */
+  --rdf-blank:    #5b6770;  /* chrome grey  */
+  --rdf-named:    #7a4a2a;  /* tan leather  */
+
+  /* Pastel surfaces → warm period tints */
+  --surf-lavender: #efe7da;
+  --surf-mint:     #e2efe5;
+  --surf-peach:    #f6e3d2;
+  --surf-sky:      #e7eef0;
+  --surf-blush:    #f7e0d6;
+  --surf-sand:     #f3e7c8;
+
+  /* Gradients — header stays a dark "engine bay"; light hero is a cream wash */
+  --grad-deep:   linear-gradient(135deg, #14110e 0%, #0a2a1c 100%); /* @kind color */
+  --grad-aurora: linear-gradient(135deg, #f4ecd8 0%, #fcf7ec 50%, #f0e0c6 100%); /* @kind color */
+
+  --bg-accent:       #c8161d;
+  --bg-accent-hover: #a5101a;
+  --bg-accent-quiet: #f7e4d9;
+  --fg-on-accent:    #fcf7ec;   /* cream text on rosso fill */
+  --fg-hint:         #6b6055;
+  --fg-link:         #b3151b;
+
+  /* Retro type — condensed automotive display + period mono */
+  --font-display: 'Antonio', var(--font-sans);
+  --font-mono:    'Space Mono', ui-monospace, monospace;
+}
+
+/* =========================================================================
+   3 · NEON GRID  (synthwave Miami — dark purple)
+   ========================================================================= */
+:root[data-retro="neon"] {
+  /* Neutrals — deep violet-black */
+  --ink-1:  #f3ecff;
+  --ink-2:  #d2c6ee;
+  --ink-3:  #a193c9;
+  --ink-4:  #75689a;
+  --ink-5:  #4f4570;
+
+  --surface-0: #1c1140;   /* card */
+  --surface-1: #140a2e;   /* page */
+  --surface-2: #261850;   /* recessed / hover */
+  --surface-3: #33215f;   /* pressed / dividers */
+  --line-1:    #2e1d5c;
+  --line-2:    #432a78;
+
+  /* Accent = HOT MAGENTA */
+  --ldh-blue-50:   #2a1340;
+  --ldh-blue-100:  #3a1a52;
+  --ldh-blue-200:  #50206e;
+  --ldh-blue-300:  #ff6fb5;
+  --ldh-blue-400:  #ff6fb5;
+  --ldh-blue-500:  #ff4fa3;   /* primitive accent */
+  --ldh-blue-600:  #ff7ab8;   /* link / accent TEXT */
+  --ldh-blue-700:  #ff9ccb;
+
+  /* Violet ramp → CYAN (2nd series, secondary accent) */
+  --ldh-violet-50:  #0a2e3a;
+  --ldh-violet-100: #0d3e4d;
+  --ldh-violet-400: #4ff0ff;
+  --ldh-violet-500: #00e5ff;
+  --ldh-violet-600: #4ff0ff;
+  --ldh-violet-700: #8af6ff;
+
+  /* Semantic */
+  --success-500: #2ee6b0;  --success-50: #07261f;
+  --warning-500: #ffe14f;  --warning-50: #2e2a0c;
+  --danger-500:  #ff5a7a;  --danger-600: #e34364;  --danger-50:  #2e0f18;
+  --fg-on-danger: #2b0812;
+
+  /* RDF data-encoding — full neon */
+  --rdf-class:    #b14fff;  /* violet */
+  --rdf-resource: #00e5ff;  /* cyan   */
+  --rdf-literal:  #2ee6b0;  /* green  */
+  --rdf-blank:    #ffe14f;  /* yellow */
+  --rdf-named:    #ff4fa3;  /* pink   */
+
+  /* Pastel surfaces → dark neon tints */
+  --surf-lavender: #241546;
+  --surf-mint:     #07261f;
+  --surf-peach:    #2e1530;
+  --surf-sky:      #0a2536;
+  --surf-blush:    #2e0f24;
+  --surf-sand:     #2a2410;
+
+  /* Gradients — header + hero sunset */
+  --grad-deep:   linear-gradient(135deg, #1a0b3e 0%, #3a1066 55%, #5a1a6e 100%); /* @kind color */
+  --grad-aurora: linear-gradient(135deg, #2a1346 0%, #1a0b3e 50%, #0a2536 100%); /* @kind color */
+
+  --bg-accent:       #ff4fa3;
+  --bg-accent-hover: #ff6fb5;
+  --bg-accent-quiet: #2a1340;
+  --fg-on-accent:    #140a2e;   /* dark ink on the magenta fill */
+  --fg-hint:         #a193c9;
+  --fg-link:         #ff7ab8;
+
+  --font-display: 'Audiowide', var(--font-sans);
+  --font-mono:    'Share Tech Mono', ui-monospace, monospace;
+
+  --grid-line: rgba(255,79,163,0.20);  /* @kind color */
+
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.55), 0 0 0 1px rgba(123,79,255,0.10);
+  --shadow-md: 0 8px 24px -8px rgba(0,0,0,0.62), 0 2px 4px rgba(0,0,0,0.45);
+  --shadow-lg: 0 24px 48px -16px rgba(0,0,0,0.7), 0 4px 12px rgba(0,0,0,0.5);
+  --shadow-glow-blue: 0 0 0 3px rgba(255,79,163,0.38);
+}
+
+/* =========================================================================
+   FLOURISHES — additive, gated on [data-retro]. Material structure preserved;
+   these add the period texture (display type, chrome, scanlines, grids).
+   ========================================================================= */
+
+/* ---- Display type on the hero moments (mono swap already covers IRIs) ---- */
+:root[data-retro] .ldh-wordmark,
+:root[data-retro] .ldh-hero h1,
+:root[data-retro] .ldh-section h2,
+:root[data-retro] .ldh-display {
+  font-family: var(--font-display);
+  letter-spacing: 0.012em;
+}
+:root[data-retro] .ldh-hero h1 { letter-spacing: 0.006em; }
+/* Block titles carry the display face too, so the retro type reads on every
+   screen (this dashboard has no .ldh-section headings). The wide faces
+   (Orbitron/Audiowide) are sized down a step so titles never overflow;
+   Antonio is condensed and can stay large. */
+:root[data-retro] .ldh-block-head .ttl { font-family: var(--font-display); }
+:root[data-retro="dusk"] .ldh-block-head .ttl,
+:root[data-retro="neon"] .ldh-block-head .ttl {
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+:root[data-retro="corsa"] .ldh-block-head .ttl {
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+:root[data-retro="corsa"] .ldh-hero h1,
+:root[data-retro="corsa"] .ldh-section h2 { font-weight: 700; }
+/* Orbitron/Audiowide carry weight on their own — dial back the size a touch */
+:root[data-retro="dusk"] .ldh-section h2,
+:root[data-retro="neon"] .ldh-section h2 { font-size: var(--fs-2xl); font-weight: 600; }
+:root[data-retro="neon"] .ldh-wordmark,
+:root[data-retro="neon"] .ldh-hero h1 { text-shadow: 0 0 18px rgba(255,79,163,0.45); }
+:root[data-retro="dusk"] .ldh-hero h1 { text-shadow: 0 0 18px rgba(0,180,166,0.30); }
+/* ---- Chrome / beveled primary buttons (machined-metal edge) ---- */
+:root[data-retro] .ldhc-btn.ap-solid {
+  background-image: linear-gradient(180deg, rgba(255,255,255,0.22), rgba(0,0,0,0.10));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.45),
+    inset 0 -1px 0 rgba(0,0,0,0.28),
+    0 1px 2px rgba(0,0,0,0.35);
+}
+:root[data-retro] .ldhc-btn.ap-solid:active {
+  background-image: linear-gradient(180deg, rgba(0,0,0,0.12), rgba(255,255,255,0.12));
+}
+/* Mode switcher + tabs get a thin inset chrome line too */
+:root[data-retro] .ldh-mode { box-shadow: var(--inset-hairline); }
+
+/* ---- Hero texture: scanlines (dark) / cream guilloché (light) + grid ---- */
+:root[data-retro] .ldh-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+/* Dark themes: CRT scanlines + a perspective neon grid fading up from the floor */
+:root[data-retro="dusk"] .ldh-hero::after,
+:root[data-retro="neon"] .ldh-hero::after {
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.045) 0 1px, transparent 1px 3px),
+    linear-gradient(transparent 58%, rgba(0,0,0,0.18) 100%),
+    repeating-linear-gradient(90deg, var(--grid-line, rgba(0,180,166,0.16)) 0 1px, transparent 1px 44px),
+    repeating-linear-gradient(0deg,  var(--grid-line, rgba(0,180,166,0.16)) 0 1px, transparent 1px 44px);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%;
+  background-position: 0 0, 0 0, 0 100%, 0 100%;
+  mask-image: linear-gradient(transparent 50%, #000 100%);
+  -webkit-mask-image: linear-gradient(transparent 50%, #000 100%);
+  opacity: 0.9;
+}
+/* Neon: add the rising-sun glow behind the headline */
+:root[data-retro="neon"] .ldh-hero {
+  background-image:
+    radial-gradient(120% 80% at 80% 120%, rgba(255,79,163,0.38) 0%, transparent 55%),
+    radial-gradient(90% 70% at 18% -10%, rgba(0,229,255,0.20) 0%, transparent 55%),
+    var(--grad-deep);
+}
+/* Light corsa: no scanlines — a restrained cream wash with a hairline gold + rosso rule */
+:root[data-retro="corsa"] .ldh-hero::after {
+  background-image:
+    radial-gradient(60% 60% at 88% 12%, rgba(200,22,29,0.06) 0%, transparent 60%),
+    repeating-linear-gradient(135deg, rgba(184,134,11,0.05) 0 2px, transparent 2px 12px);
+  opacity: 1;
+}
+:root[data-retro="corsa"] .ldh-hero { border-top: 3px solid var(--bg-accent); }
+:root[data-retro] .ldh-hero > * { position: relative; z-index: 1; }
+
+/* Keep the modern dot-grid overlay subtle under the new texture */
+:root[data-retro] .ldh-hero::before { opacity: 0.35; }
+
+/* ---- Eyebrows / section labels pick up the hot accent automatically via
+        --ldh-blue-600; nudge the wide tracking for an authentic readout feel */
+:root[data-retro] .ldh-section .eyebrow,
+:root[data-retro] .ldh-eyebrow { letter-spacing: var(--tracking-widest); }
+
+/* ---- Page-level CRT atmosphere (dark themes) ----
+   The dashboard intro is a plain text block, not .ldh-hero, so the period
+   texture lives at the page level: a faint fixed scanline + vignette overlay
+   on top of everything (pointer-events:none, below modals), and for Neon a
+   perspective floor-grid glow behind the content. Sells the arcade/CRT feel
+   on every screen without touching legibility. */
+:root[data-retro="dusk"] .app,
+:root[data-retro="neon"] .app { position: relative; }
+
+:root[data-retro="dusk"] .app::after,
+:root[data-retro="neon"] .app::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 40;
+  background:
+    repeating-linear-gradient(0deg, rgba(0,0,0,0.11) 0 1px, transparent 1px 3px),
+    radial-gradient(125% 95% at 50% 0%, transparent 58%, rgba(0,0,0,0.26) 100%);
+  opacity: 0.55;
+}
+
+/* Neon: glowing perspective floor-grid rising from the bottom edge */
+:root[data-retro="neon"] .app::before {
+  content: "";
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  height: 46vh;
+  pointer-events: none;
+  z-index: -1;
+  background:
+    linear-gradient(transparent 0%, rgba(255,79,163,0.10) 100%),
+    repeating-linear-gradient(90deg, rgba(0,229,255,0.18) 0 1px, transparent 1px 46px),
+    repeating-linear-gradient(0deg,  rgba(0,229,255,0.11) 0 2px, transparent 2px 46px);
+  -webkit-mask-image: linear-gradient(transparent 0%, #000 90%);
+  mask-image: linear-gradient(transparent 0%, #000 90%);
+}
+
+/* =========================================================================
+   4 · LIQUID GLASS  (Apple-style frosted material — light base)
+   ---------------------------------------------------------------------------
+   Not 80s — rides the same `data-retro` switch as a 4th skin. Keeps BLUE as
+   the single action colour (so the system's core rule holds), rides the LIGHT
+   base so dark ink stays legible behind the frost, and layers real
+   backdrop-filter blur + Apple-scale radii + specular highlights onto the
+   Material surfaces. Surfaces are deliberately TRANSLUCENT so the colourful
+   page wallpaper refracts through every panel.
+   ========================================================================= */
+:root[data-retro="glass"] {
+  /* Neutrals — dark slate ink on luminous frosted-white surfaces */
+  --ink-1:  #0b1524;
+  --ink-2:  #243245;
+  --ink-3:  #4a5a70;
+  --ink-4:  #8a97a8;
+  --ink-5:  #b9c4d2;
+
+  /* Translucent surfaces — the heart of the glass look. Real blur is added in
+     the flourishes below; these give the milky tint the blur works on. */
+  --surface-0: rgba(255,255,255,0.55);   /* card / dialog frost */
+  --surface-1: #eef2fb;                   /* page (the wallpaper paints over this) */
+  --surface-2: rgba(255,255,255,0.42);   /* recessed / hover */
+  --surface-3: rgba(255,255,255,0.66);   /* pressed / dividers */
+  --line-1:    rgba(255,255,255,0.60);   /* luminous hairline */
+  --line-2:    rgba(255,255,255,0.85);
+
+  /* Accent = APPLE SYSTEM BLUE — keeps "blue is the only action colour" */
+  --ldh-blue-50:   rgba(10,132,255,0.12);
+  --ldh-blue-100:  rgba(10,132,255,0.18);
+  --ldh-blue-200:  rgba(10,132,255,0.26);
+  --ldh-blue-300:  #4aa9ff;
+  --ldh-blue-400:  #2a96ff;
+  --ldh-blue-500:  #0a84ff;   /* primitive accent — dots, focus glints, chart line */
+  --ldh-blue-600:  #0a6fd8;   /* link / accent TEXT (AA on frost) */
+  --ldh-blue-700:  #0a5fc0;   /* stronger accent text (titles) */
+
+  /* Violet ramp → APPLE INDIGO (2nd chart series, named graphs, secondary) */
+  --ldh-violet-50:  rgba(94,92,230,0.12);
+  --ldh-violet-100: rgba(94,92,230,0.18);
+  --ldh-violet-400: #8482f0;
+  --ldh-violet-500: #5e5ce6;
+  --ldh-violet-600: #4b49d6;
+  --ldh-violet-700: #3a38b8;
+
+  /* Semantic — Apple system colours */
+  --success-500: #34c759;  --success-50: rgba(52,199,89,0.14);
+  --warning-500: #ff9f0a;  --warning-50: rgba(255,159,10,0.16);
+  --danger-500:  #e02b21;  --danger-600: #c22219;  --danger-50:  rgba(255,59,48,0.14);
+  --fg-on-danger: #ffffff;
+
+  /* RDF data-encoding — Apple system palette */
+  --rdf-class:    #ff9f0a;  /* orange */
+  --rdf-resource: #0a84ff;  /* blue   */
+  --rdf-literal:  #34c759;  /* green  */
+  --rdf-blank:    #8e8e93;  /* gray   */
+  --rdf-named:    #bf5af0;  /* purple */
+
+  /* Pastel surfaces (icon chips, image fills) → translucent Apple tints */
+  --surf-lavender: rgba(94,92,230,0.16);
+  --surf-mint:     rgba(52,199,89,0.16);
+  --surf-peach:    rgba(255,159,10,0.16);
+  --surf-sky:      rgba(10,132,255,0.16);
+  --surf-blush:    rgba(255,59,48,0.14);
+  --surf-sand:     rgba(255,214,10,0.18);
+
+  /* Gradients — header is smoked dark glass (white text stays); hero is a
+     colourful light frost (see flourishes). */
+  --grad-deep:   linear-gradient(135deg, rgba(22,28,45,0.62) 0%, rgba(30,40,66,0.55) 100%); /* @kind color */
+  --grad-aurora: linear-gradient(135deg, rgba(10,132,255,0.14) 0%, rgba(191,90,242,0.12) 50%, rgba(48,209,180,0.13) 100%); /* @kind color */
+
+  /* Semantic re-derivations */
+  --bg-accent:       #0a84ff;
+  --bg-accent-hover: #0a74e6;
+  --bg-accent-quiet: rgba(10,132,255,0.12);
+  --fg-on-accent:    #ffffff;
+  --fg-hint:         #5a6a80;
+  --fg-link:         #0a6fd8;
+
+  /* Type — clean system grotesque, NOT a retro display face. Keep Geist;
+     neutralise the wide-display flourish below. */
+  --font-display: var(--font-sans);
+
+  /* Soft, cool, colour-tinted shadows (Apple depth) */
+  --shadow-sm: 0 2px 10px rgba(31,38,80,0.10), 0 1px 2px rgba(31,38,80,0.06);
+  --shadow-md: 0 12px 32px -10px rgba(31,38,80,0.22), 0 2px 6px rgba(31,38,80,0.10);
+  --shadow-lg: 0 28px 60px -18px rgba(31,38,80,0.30), 0 6px 16px rgba(31,38,80,0.14);
+  --shadow-glow-blue: 0 0 0 4px rgba(10,132,255,0.28);
+  --inset-hairline: inset 0 1px 0 rgba(255,255,255,0.8);
+}
+
+/* ---- Page wallpaper: a soft colourful mesh so frost has something to refract.
+        Fixed so panels slide over it like glass over a desktop picture. ---- */
+:root[data-retro="glass"] body,
+:root[data-retro="glass"] .app {
+  background:
+    radial-gradient(42% 52% at 12% 10%, rgba(10,132,255,0.30), transparent 60%),
+    radial-gradient(38% 46% at 90% 6%,  rgba(191,90,242,0.26), transparent 60%),
+    radial-gradient(46% 56% at 84% 90%, rgba(48,209,180,0.24), transparent 62%),
+    radial-gradient(42% 52% at 16% 94%, rgba(255,159,10,0.20), transparent 60%),
+    linear-gradient(135deg, #eef2fb 0%, #f6f0fb 48%, #eaf7fb 100%);
+  background-attachment: fixed;
+}
+
+/* ---- The frost mixin: real backdrop blur + saturation on every surface that
+        is a discrete "pane". Big Apple radii + luminous edge + specular top. -- */
+:root[data-retro="glass"] .ldh-block,
+:root[data-retro="glass"] .ldh-panel,
+:root[data-retro="glass"] .ldh-drawer,
+:root[data-retro="glass"] .ldh-modal,
+:root[data-retro="glass"] .ldh-add-menu,
+:root[data-retro="glass"] .ldh-form-actions-menu,
+:root[data-retro="glass"] .ldh-mode .modes-pop {
+  -webkit-backdrop-filter: blur(26px) saturate(180%);
+  backdrop-filter: blur(26px) saturate(180%);
+  border: 1px solid var(--line-1);
+  border-radius: 20px;
+  box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255,255,255,0.85);
+}
+:root[data-retro="glass"] .ldh-block:hover { box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,0.9); }
+:root[data-retro="glass"] .ldh-block.is-quiet { border: 0; background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; }
+
+/* Grid cards + their image headers go glassy too */
+:root[data-retro="glass"] .ldh-grid-block .card {
+  -webkit-backdrop-filter: blur(18px) saturate(170%);
+  backdrop-filter: blur(18px) saturate(170%);
+  border: 1px solid var(--line-1);
+  border-radius: 18px;
+  box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255,255,255,0.8);
+  overflow: hidden;
+}
+
+/* ---- Header: smoked dark glass so the white wordmark/icons stay readable -- */
+:root[data-retro="glass"] .ldh-header {
+  background: rgba(22,28,45,0.55);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  backdrop-filter: blur(28px) saturate(180%);
+  border-bottom: 1px solid rgba(255,255,255,0.14);
+}
+:root[data-retro="glass"] .ldh-header::before { opacity: 0.16; }
+
+/* ---- Hero: colourful light frost with a diagonal specular sweep ---- */
+:root[data-retro="glass"] .ldh-hero {
+  background:
+    linear-gradient(135deg, rgba(10,132,255,0.16) 0%, rgba(191,90,242,0.13) 50%, rgba(48,209,180,0.14) 100%),
+    rgba(255,255,255,0.40);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  backdrop-filter: blur(30px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.65);
+  border-radius: 28px;
+}
+:root[data-retro="glass"] .ldh-hero::after {
+  content: "";
+  position: absolute; inset: 0;
+  pointer-events: none; z-index: 0;
+  background: linear-gradient(118deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 32%);
+  mix-blend-mode: screen;
+}
+:root[data-retro="glass"] .ldh-hero > * { position: relative; z-index: 1; }
+/* ---- Liquid buttons: pill,
+glossy white sheen,
+blue glow — overrides the
+        generic retro "machined chrome" bevel for this skin only ---- */
+:root[data-retro="glass"] .ldhc-btn.ap-solid {
+  border-radius: 999px;
+  background-image: linear-gradient(180deg, rgba(255,255,255,0.30), rgba(255,255,255,0.0));
+  -webkit-backdrop-filter: blur(8px) saturate(160%);
+  backdrop-filter: blur(8px) saturate(160%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 4px 16px rgba(10,132,255,0.30);
+}
+:root[data-retro="glass"] .ldhc-btn.ap-solid:active {
+  background-image: linear-gradient(180deg, rgba(0,0,0,0.07), rgba(255,255,255,0.10));
+}
+:root[data-retro="glass"] .ldhc-iconbtn,
+:root[data-retro="glass"] .ldhc-btn.ap-outline,
+:root[data-retro="glass"] .ldhc-btn.ap-ghost { border-radius: 999px; }
+
+/* ---- Type: clean, tight, no glow. Undo the wide-display retro flourish ---- */
+:root[data-retro="glass"] .ldh-wordmark,
+:root[data-retro="glass"] .ldh-hero h1,
+:root[data-retro="glass"] .ldh-section h2,
+:root[data-retro="glass"] .ldh-block-head .ttl {
+  font-family: var(--font-sans);
+  letter-spacing: var(--tracking-snug);
+  text-shadow: none;
+}
+:root[data-retro="glass"] .ldh-block-head .ttl { font-size: var(--fs-xl); font-weight: var(--fw-semibold); }
+
+/* =========================================================================
+   5 · GLASS PRO  (the readable default candidate)
+   ---------------------------------------------------------------------------
+   Inherits the Liquid Glass identity — colourful mesh wallpaper, Apple system
+   blue as the single action colour, big radii, floating depth — but splits
+   surfaces by JOB:
+     · FLOATING CHROME (header, hero, modals, drawers, menus) = frosted glass.
+       These genuinely float above the document, so translucency narrates depth
+       and the modal-over-content rule from CLAUDE.md.
+     · DATA SURFACES (blocks, grid cards, property editor) = SOLID, opaque,
+       high-contrast white panes. No backdrop-filter behind dense mono/RDF text,
+       so long IRIs, SPARQL and statement lists stay razor-legible — and the
+       GPU isn't blurring a wall of stacked panes.
+   Result: stands out as futuristic, stays functional where the work happens.
+   ========================================================================= */
+:root[data-retro="glasspro"] {
+  /* Slate ink on bright surfaces */
+  --ink-1:  #0b1524;
+  --ink-2:  #243245;
+  --ink-3:  #4a5a70;
+  --ink-4:  #8a97a8;
+  --ink-5:  #b9c4d2;
+
+  /* SOLID data surfaces — opaque, high-contrast. This is the whole point. */
+  --surface-0: #ffffff;     /* card / block / dialog body */
+  --surface-1: #f3f6fc;     /* page / hover wash */
+  --surface-2: #eaf0fa;     /* recessed / row hover */
+  --surface-3: #e0e8f5;     /* pressed / dividers */
+  --line-1:    #dde6f2;     /* crisp hairline (opaque) */
+  --line-2:    #ccd8e8;
+
+  /* Accent = Apple system blue (single action colour) */
+  --ldh-blue-50:   #e9f2ff;
+  --ldh-blue-100:  #d4e6ff;
+  --ldh-blue-200:  #aacfff;
+  --ldh-blue-300:  #4aa9ff;
+  --ldh-blue-400:  #2a96ff;
+  --ldh-blue-500:  #0a84ff;
+  --ldh-blue-600:  #0a6fd8;   /* link / accent text (AA on white) */
+  --ldh-blue-700:  #0a5fc0;
+
+  /* Violet → Apple indigo (2nd series / named graphs) */
+  --ldh-violet-50:  #ecebfd;
+  --ldh-violet-100: #dcdbfb;
+  --ldh-violet-400: #8482f0;
+  --ldh-violet-500: #5e5ce6;
+  --ldh-violet-600: #4b49d6;
+  --ldh-violet-700: #3a38b8;
+
+  /* Semantic — Apple system */
+  --success-500: #2ca84a;  --success-50: #e3f7e8;
+  --warning-500: #e08600;  --warning-50: #fdf0d8;
+  /* #e0352b measured 4.46:1 against white — just under AA for the 13px button
+     label; darkened to clear it (4.73:1). --danger-600 stays darker still. */
+  --danger-500:  #d93227;  --danger-600: #bd2a22;  --danger-50:  #fde4e2;
+  --fg-on-danger: #ffffff;
+
+  /* RDF data-encoding */
+  --rdf-class:    #e08600;
+  --rdf-resource: #0a84ff;
+  --rdf-literal:  #2ca84a;
+  --rdf-blank:    #8e8e93;
+  --rdf-named:    #a23bd6;
+
+  /* Pastel chips — solid Apple tints */
+  --surf-lavender: #ecebfd;
+  --surf-mint:     #e3f7e8;
+  --surf-peach:    #fdf0d8;
+  --surf-sky:      #e9f2ff;
+  --surf-blush:    #fde4e2;
+  --surf-sand:     #fdf6d8;
+
+  /* Gradients — header smoked dark glass; hero colourful frost */
+  --grad-deep:   linear-gradient(135deg, rgba(22,28,45,0.62) 0%, rgba(30,40,66,0.55) 100%); /* @kind color */
+  --grad-aurora: linear-gradient(135deg, rgba(10,132,255,0.14) 0%, rgba(191,90,242,0.12) 50%, rgba(48,209,180,0.13) 100%); /* @kind color */
+
+  --bg-accent:       #0a84ff;
+  --bg-accent-hover: #0a74e6;
+  --bg-accent-quiet: #e9f2ff;
+  --fg-on-accent:    #ffffff;
+  --fg-hint:         #5a6a80;
+  --fg-link:         #0a6fd8;
+
+  /* Type — clean system grotesque, no retro display */
+  --font-display: var(--font-sans);
+
+  /* Cool, soft, colour-tinted depth */
+  --shadow-sm: 0 1px 3px rgba(31,38,80,0.08), 0 1px 2px rgba(31,38,80,0.05);
+  --shadow-md: 0 10px 28px -12px rgba(31,38,80,0.22), 0 2px 6px rgba(31,38,80,0.10);
+  --shadow-lg: 0 26px 56px -18px rgba(31,38,80,0.30), 0 6px 16px rgba(31,38,80,0.14);
+  --shadow-glow-blue: 0 0 0 4px rgba(10,132,255,0.28);
+  --inset-hairline: inset 0 1px 0 rgba(255,255,255,0.9);
+}
+
+/* ---- Page wallpaper: same colourful fixed mesh as Glass ---- */
+:root[data-retro="glasspro"] body,
+:root[data-retro="glasspro"] .app {
+  background:
+    radial-gradient(42% 52% at 12% 10%, rgba(10,132,255,0.28), transparent 60%),
+    radial-gradient(38% 46% at 90% 6%,  rgba(191,90,242,0.22), transparent 60%),
+    radial-gradient(46% 56% at 84% 90%, rgba(48,209,180,0.20), transparent 62%),
+    radial-gradient(42% 52% at 16% 94%, rgba(255,159,10,0.16), transparent 60%),
+    linear-gradient(135deg, #eef2fb 0%, #f6f0fb 48%, #eaf7fb 100%);
+  background-attachment: fixed;
+}
+
+/* ---- DATA SURFACES: solid, opaque, crisp. NO backdrop-filter. ---- */
+:root[data-retro="glasspro"] .ldh-block,
+:root[data-retro="glasspro"] .ldh-grid-block .card {
+  background: var(--surface-0);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border: 1px solid var(--line-1);
+  border-radius: 18px;
+  box-shadow: var(--shadow-sm);
+}
+:root[data-retro="glasspro"] .ldh-block:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+:root[data-retro="glasspro"] .ldh-block.is-quiet { border: 0; background: transparent; box-shadow: none; }
+:root[data-retro="glasspro"] .ldh-grid-block .card { overflow: hidden; }
+/* Keep the property editor / statement list flat-white for max legibility */
+:root[data-retro="glasspro"] .ldh-prop-form,
+:root[data-retro="glasspro"] .ldh-block-body { background: transparent; }
+
+/* ---- FLOATING CHROME: real frosted glass (these float above the document) ---- */
+:root[data-retro="glasspro"] .ldh-modal,
+:root[data-retro="glasspro"] .ldh-drawer,
+:root[data-retro="glasspro"] .ldh-add-menu,
+:root[data-retro="glasspro"] .ldh-form-actions-menu,
+:root[data-retro="glasspro"] .ldh-mode .modes-pop {
+  background: rgba(255,255,255,0.72);
+  -webkit-backdrop-filter: blur(26px) saturate(180%);
+  backdrop-filter: blur(26px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.6);
+  border-radius: 20px;
+  box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,0.85);
+}
+
+/* Header — smoked dark glass; white wordmark stays readable */
+:root[data-retro="glasspro"] .ldh-header {
+  background: rgba(22,28,45,0.55);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  backdrop-filter: blur(28px) saturate(180%);
+  border-bottom: 1px solid rgba(255,255,255,0.14);
+}
+:root[data-retro="glasspro"] .ldh-header::before { opacity: 0.16; }
+
+/* Hero — colourful light frost with a specular sweep (it floats too) */
+:root[data-retro="glasspro"] .ldh-hero {
+  background:
+    linear-gradient(135deg, rgba(10,132,255,0.16) 0%, rgba(191,90,242,0.13) 50%, rgba(48,209,180,0.14) 100%),
+    rgba(255,255,255,0.55);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  backdrop-filter: blur(30px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.65);
+  border-radius: 26px;
+}
+:root[data-retro="glasspro"] .ldh-hero::after {
+  content: "";
+  position: absolute; inset: 0;
+  pointer-events: none; z-index: 0;
+  background: linear-gradient(118deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 32%);
+  mix-blend-mode: screen;
+}
+:root[data-retro="glasspro"] .ldh-hero > * { position: relative; z-index: 1; }
+/* ---- Buttons: glossy blue pills (match Glass),
+but a touch more solid ---- */
+:root[data-retro="glasspro"] .ldhc-btn.ap-solid {
+  border-radius: 999px;
+  background-image: linear-gradient(180deg, rgba(255,255,255,0.28), rgba(255,255,255,0));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 3px 12px rgba(10,132,255,0.26);
+}
+:root[data-retro="glasspro"] .ldhc-btn.ap-solid:active {
+  background-image: linear-gradient(180deg, rgba(0,0,0,0.06), rgba(255,255,255,0.08));
+}
+:root[data-retro="glasspro"] .ldhc-iconbtn,
+:root[data-retro="glasspro"] .ldhc-btn.ap-outline,
+:root[data-retro="glasspro"] .ldhc-btn.ap-ghost { border-radius: 999px; }
+
+/* ---- Type: clean, tight, no glow ---- */
+:root[data-retro="glasspro"] .ldh-wordmark,
+:root[data-retro="glasspro"] .ldh-hero h1,
+:root[data-retro="glasspro"] .ldh-section h2,
+:root[data-retro="glasspro"] .ldh-block-head .ttl {
+  font-family: var(--font-sans);
+  letter-spacing: var(--tracking-snug);
+  text-shadow: none;
+}
+:root[data-retro="glasspro"] .ldh-block-head .ttl { font-size: var(--fs-xl); font-weight: var(--fw-semibold); }
+
+/* =========================================================================
+   6 · MODERN AURORA  (the modern default, on a glassy gradient floor)
+   ---------------------------------------------------------------------------
+   NOT a recolour. Every modern token is left untouched — same ink, same white
+   block surfaces, same blue accent. The ONLY change is the page FLOOR behind
+   the content: a soft on-brand pastel mesh (the system's own --surf-* hues)
+   painted fixed, so the solid white blocks read as glass floating above a
+   coloured surface. Content-block backgrounds are deliberately not touched.
+   ========================================================================= */
+:root[data-retro="aurora"] body,
+:root[data-retro="aurora"] .app {
+  background:
+    radial-gradient(46% 50% at 10% 8%,  #efeaff 0%, transparent 58%),   /* lavender */
+    radial-gradient(40% 46% at 92% 4%,  #e3f1ff 0%, transparent 56%),   /* sky */
+    radial-gradient(50% 56% at 86% 92%, #e6f6ee 0%, transparent 60%),   /* mint */
+    radial-gradient(44% 52% at 14% 96%, #ffece1 0%, transparent 58%),   /* peach */
+    radial-gradient(36% 40% at 50% 50%, #ffe6ee 0%, transparent 70%),   /* blush, faint centre */
+    var(--surface-1);
+  background-attachment: fixed;
+}
+
+/* The blocks already float; nudge their depth a touch cooler/softer so the
+   "glass over colour" read is unmistakable — surfaces themselves stay solid. */
+:root[data-retro="aurora"] .ldh-block {
+  box-shadow: 0 10px 30px -14px rgba(40,46,92,0.20), 0 1px 2px rgba(40,46,92,0.06);
+}
+:root[data-retro="aurora"] .ldh-block:hover {
+  box-shadow: 0 18px 44px -16px rgba(40,46,92,0.28), 0 2px 6px rgba(40,46,92,0.10);
+}
+
+/* =========================================================================
+   7 · M3  —  MATERIAL DESIGN 3 FOUNDATIONS  (feeler theme)
+   ---------------------------------------------------------------------------
+   A genuine M3 skin expressed as a token-remap + the small amount of component
+   CSS that M3 needs but tokens can't carry (state layers, pill buttons, shape).
+   Adopted here:
+     · COLOR ROLES — M3 light scheme, seeded from the LDH blue (primary) with
+       the AtomGraph violet reused as M3 tertiary. Full role set: primary /
+       on-primary / primary-container, secondary, tertiary, error, surface +
+       surface-container ramp, on-surface, outline, outline-variant.
+     · SHAPE SCALE — radius tokens snapped to M3 (4 / 8 / 12 / 16 / 28); buttons
+       become full pills, cards 12, dialogs 28.
+     · ELEVATION — our shadow tokens remapped to M3 elevation levels 1-5.
+     · STATE LAYERS — hover 8% / pressed 10% on-colour overlays via inset shadow
+       (no structural change to the markup).
+     · TYPE — keeps Geist (M3 permits a brand face) but sets M3 "Label large"
+       on buttons (14 / 500 / +0.1px).
+   NOT covered (these are architecture, not a theme — phase 2 if we go full M3):
+     adaptive window-size classes, canonical layouts, HCT dynamic-colour gen.
+   ========================================================================= */
+:root[data-retro="m3"] {
+  /* ===== M3 tonalSpot LIGHT scheme — generated from seed #0061a4 (OKLab tonal palettes, tone = CIE L*) ===== */
+  --md-primary: #0061a4;
+  --md-on-primary: #ffffff;
+  --md-primary-container: #cde6ff;
+  --md-on-primary-container: #001d37;
+  --md-secondary: #48617a;
+  --md-on-secondary: #ffffff;
+  --md-secondary-container: #cde6ff;
+  --md-on-secondary-container: #061d32;
+  --md-tertiary: #704b8d;
+  --md-on-tertiary: #ffffff;
+  --md-tertiary-container: #edd9ff;
+  --md-on-tertiary-container: #2a0241;
+  --md-error: #b30011;
+  --md-on-error: #ffffff;
+  --md-error-container: #ffd8d3;
+  --md-on-error-container: #3c0002;
+  --md-surface: #f5faff;
+  --md-surface-dim: #d4dbe2;
+  --md-surface-bright: #f5faff;
+  --md-surface-container-lowest: #ffffff;
+  --md-surface-container-low: #eef5fc;
+  --md-surface-container: #e8eff6;
+  --md-surface-container-high: #e2e9f0;
+  --md-surface-container-highest: #dde3ea;
+  --md-on-surface: #171c21;
+  --md-on-surface-variant: #3e4852;
+  --md-outline: #6d7884;
+  --md-outline-variant: #bcc8d5;
+  --md-inverse-surface: #2c3136;
+  --md-inverse-on-surface: #ebf2f9;
+  --md-inverse-primary: #98ccff;
+
+  /* ---- Full tonal palettes (HCT-style, generated from the seed) ---- */
+  --md-primary-0: #000001;
+  --md-primary-10: #001d37;
+  --md-primary-20: #003259;
+  --md-primary-30: #00497e;
+  --md-primary-40: #0061a4;
+  --md-primary-50: #107bca;
+  --md-primary-60: #3796e7;
+  --md-primary-70: #5db1ff;
+  --md-primary-80: #98ccff;
+  --md-primary-90: #cde6ff;
+  --md-primary-95: #e6f2ff;
+  --md-primary-99: #fafdff;
+  --md-primary-100: #ffffff;
+  --md-secondary-0: #000001;
+  --md-secondary-10: #061d32;
+  --md-secondary-20: #1b3249;
+  --md-secondary-30: #314961;
+  --md-secondary-40: #48617a;
+  --md-secondary-50: #607a94;
+  --md-secondary-60: #7994ae;
+  --md-secondary-70: #93afca;
+  --md-secondary-80: #aecae6;
+  --md-secondary-90: #cde6ff;
+  --md-secondary-95: #e6f2ff;
+  --md-secondary-99: #fafdff;
+  --md-secondary-100: #ffffff;
+  --md-tertiary-0: #000001;
+  --md-tertiary-10: #2a0241;
+  --md-tertiary-20: #401b5a;
+  --md-tertiary-30: #583373;
+  --md-tertiary-40: #704b8d;
+  --md-tertiary-50: #8a64a8;
+  --md-tertiary-60: #a47ec4;
+  --md-tertiary-70: #bf98e0;
+  --md-tertiary-80: #dbb3fd;
+  --md-tertiary-90: #edd9ff;
+  --md-tertiary-95: #f6ecff;
+  --md-tertiary-99: #fdfbff;
+  --md-tertiary-100: #ffffff;
+  --md-neutral-0: #000000;
+  --md-neutral-10: #171c21;
+  --md-neutral-20: #2c3136;
+  --md-neutral-30: #42474d;
+  --md-neutral-40: #595f65;
+  --md-neutral-50: #72787e;
+  --md-neutral-60: #8b9198;
+  --md-neutral-70: #a6acb3;
+  --md-neutral-80: #c1c7ce;
+  --md-neutral-90: #dde3ea;
+  --md-neutral-95: #ebf2f9;
+  --md-neutral-99: #fafdff;
+  --md-neutral-100: #ffffff;
+  --md-neutral-variant-0: #000000;
+  --md-neutral-variant-10: #131d25;
+  --md-neutral-variant-20: #28323b;
+  --md-neutral-variant-30: #3e4852;
+  --md-neutral-variant-40: #55606b;
+  --md-neutral-variant-50: #6d7884;
+  --md-neutral-variant-60: #87929e;
+  --md-neutral-variant-70: #a1adb9;
+  --md-neutral-variant-80: #bcc8d5;
+  --md-neutral-variant-90: #d8e4f1;
+  --md-neutral-variant-95: #e6f2ff;
+  --md-neutral-variant-99: #fafdff;
+  --md-neutral-variant-100: #ffffff;
+
+  /* ---- Map the system's semantic primitives onto M3 roles so EVERY
+          component inherits the scheme without per-component CSS. ---- */
+  --ink-1:  var(--md-on-surface);
+  --ink-2:  var(--md-on-surface-variant);
+  --ink-3:  var(--md-on-surface-variant);
+  --ink-4:  var(--md-outline);
+  --ink-5:  var(--md-outline-variant);
+
+  --surface-0: var(--md-surface-container-lowest);  /* card body */
+  --surface-1: #e4e7ef;                              /* page floor — clearly greyer so white cards separate */
+  --surface-2: var(--md-surface-container-high);     /* recessed / hover well */
+  --surface-3: var(--md-surface-container-highest);  /* pressed / dividers */
+  --line-1:    var(--md-outline-variant);
+  --line-2:    var(--md-outline);
+
+  /* Accent ramp → primary role */
+  --ldh-blue-50:   var(--md-primary-container);
+  --ldh-blue-100:  #b8d6fb;
+  --ldh-blue-200:  #9ecaff;
+  --ldh-blue-300:  #5b9ee0;
+  --ldh-blue-400:  #2a7fc4;
+  --ldh-blue-500:  #0a6cae;
+  --ldh-blue-600:  var(--md-primary);
+  --ldh-blue-700:  #00497d;
+
+  /* Violet ramp → tertiary role */
+  --ldh-violet-50:  var(--md-tertiary-container);
+  --ldh-violet-100: #ecccff;
+  --ldh-violet-400: #9a73b5;
+  --ldh-violet-500: var(--md-tertiary);
+  --ldh-violet-600: #5d3e77;
+  --ldh-violet-700: #472a60;
+
+  /* Semantic → M3 system colours */
+  --success-500: #2e6c4a;  --success-50: #b6f2c9;
+  --warning-500: #7d5800;  --warning-50: #ffdea8;
+  --danger-500:  var(--md-error);  --danger-600: color-mix(in srgb, var(--md-error) 82%, black);  --danger-50: var(--md-error-container);
+  --fg-on-danger: var(--md-on-error);
+
+  /* RDF node coding → M3 key colours */
+  --rdf-class:    var(--md-tertiary);   /* tertiary  */
+  --rdf-resource: var(--md-primary);    /* primary   */
+  --rdf-literal:  #2e6c4a;              /* green     */
+  --rdf-blank:    var(--md-outline);    /* outline   */
+  --rdf-named:    #8e4ec2;              /* purple    */
+
+  /* Pastel chips → M3 container tints */
+  --surf-lavender: var(--md-primary-container);
+  --surf-mint:     #b6f2c9;
+  --surf-peach:    #ffdea8;
+  --surf-sky:      var(--md-secondary-container);
+  --surf-blush:    var(--md-error-container);
+  --surf-sand:     #f2daff;
+
+  /* No mesh gradients in M3 — flatten heroes/dark surfaces to tonal fills. */
+  --grad-aurora: var(--md-primary-container);   /* @kind color */
+  --grad-dawn:   var(--md-secondary-container);  /* @kind color */
+  --grad-noon:   var(--md-surface-container);    /* @kind color */
+  --grad-deep:   var(--md-inverse-surface);      /* @kind color */
+
+  /* Semantic re-derivations */
+  --bg-accent:       var(--md-primary);
+  --bg-accent-hover: #00558f;
+  --bg-accent-quiet: var(--md-primary-container);
+  --fg-on-accent:    var(--md-on-primary);
+  --fg-hint:         var(--md-on-surface-variant);
+  --fg-link:         var(--md-primary);
+  --bg-selected:     var(--md-secondary-container);
+  --fg-selected:     var(--md-on-secondary-container);
+
+  /* Type — keep Geist, no retro display */
+  --font-display: var(--font-sans);
+
+  /* ---- M3 SHAPE SCALE on the radius tokens (4 / 8 / 12 / 16 / 28) ---- */
+  --r-xs:  4px;
+  --r-sm:  8px;
+  --r-md:  12px;
+  --r-lg:  16px;
+  --r-xl:  28px;
+  --r-2xl: 28px;
+
+  /* ---- M3 ELEVATION (levels 1-5) mapped onto the shadow tokens ---- */
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.30), 0 1px 3px 1px rgba(0,0,0,0.15);          /* level 1 */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.30), 0 1px 3px 1px rgba(0,0,0,0.15);          /* level 1 */
+  --shadow-md: 0 1px 2px rgba(0,0,0,0.30), 0 2px 6px 2px rgba(0,0,0,0.15);          /* level 2 */
+  --shadow-lg: 0 4px 8px 3px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.30);          /* level 3 */
+  --shadow-xl: 0 6px 10px 4px rgba(0,0,0,0.15), 0 2px 3px rgba(0,0,0,0.30);         /* level 4 */
+  --shadow-glow-blue:   0 0 0 3px rgba(0,97,164,0.40);
+  --shadow-glow-violet: 0 0 0 3px rgba(116,84,143,0.40);
+  --inset-hairline: none;
+
+  /* ---- M3 MOTION: easing + duration system (M3 Expressive curves) ---- */
+  --md-easing-emphasized:            cubic-bezier(0.2, 0.0, 0, 1.0); /* @kind other */
+  --md-easing-emphasized-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1.0); /* @kind other */
+  --md-easing-emphasized-accelerate: cubic-bezier(0.3, 0.0, 0.8, 0.15); /* @kind other */
+  --md-easing-standard:              cubic-bezier(0.2, 0.0, 0, 1.0); /* @kind other */
+  --md-easing-standard-decelerate:   cubic-bezier(0, 0, 0, 1); /* @kind other */
+  --md-easing-standard-accelerate:   cubic-bezier(0.3, 0, 1, 1); /* @kind other */
+  --md-duration-short:  150ms; /* @kind other */
+  --md-duration-medium: 300ms; /* @kind other */
+  --md-duration-long:   500ms; /* @kind other */
+  /* Remap the system's motion tokens onto M3 curves/durations */
+  --ease-out-soft: var(--md-easing-emphasized-decelerate); /* @kind other */
+  --ease-in-out:   var(--md-easing-emphasized); /* @kind other */
+  --ease-spring:   var(--md-easing-emphasized); /* @kind other */
+  --dur-fast:  150ms; /* @kind other */
+  --dur-base:  200ms; /* @kind other */
+  --dur-slow:  350ms; /* @kind other */
+  --dur-xslow: 500ms; /* @kind other */
+}
+
+/* ---- Page floor: a soft, tonal M3 gradient built from the scheme's own
+        container colours (primary / tertiary / secondary container). Subtle and
+        on-palette — M3 Expressive permits richer surfaces; cards stay white. ---- */
+:root[data-retro^="m3"] body,
+:root[data-retro^="m3"] .app {
+  background:
+    radial-gradient(62% 72% at 8% 4%,   #c2dcff 0%, transparent 62%),
+    radial-gradient(56% 64% at 95% 2%,  #e6d4ff 0%, transparent 62%),
+    radial-gradient(64% 74% at 88% 98%, #cfe0f7 0%, transparent 64%),
+    radial-gradient(50% 60% at 40% 60%, #d8e6ff 0%, transparent 70%),
+    #dfe6f2;
+  background-attachment: fixed;
+}
+
+/* ---- Cards / blocks = M3 elevated cards: surface-container-low, radius 12,
+        elevation level 1; hover lifts to level 2 + 8% on-surface state layer. ---- */
+:root[data-retro^="m3"] .ldh-block,
+:root[data-retro^="m3"] .ldh-grid-block .card {
+  background: var(--md-surface-container-lowest);
+  border: 0;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.30), 0 1px 3px 1px rgba(0,0,0,0.15);
+  transition: box-shadow var(--md-duration-medium) var(--md-easing-emphasized),
+              transform var(--md-duration-medium) var(--md-easing-emphasized);
+}
+:root[data-retro^="m3"] .ldh-block:hover {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.18), 0 8px 18px 1px rgba(0,0,0,0.14);
+  transform: translateY(-1px);
+}
+
+/* Flow block style under M3: dissolve the elevated-card treatment so blocks
+   read as document sections (the inner grid cards / chart plots keep theirs). */
+:root[data-retro^="m3"][data-tweak-block-edges="flow"] .ldh-block {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+}
+:root[data-retro^="m3"][data-tweak-block-edges="flow"] .ldh-block:hover {
+  box-shadow: none;
+  transform: none;
+}
+/* …but resource blocks (statement list / media-header blocks) keep the M3
+   elevated card in flow mode — they're data surfaces, like the grid cards and
+   chart plots that already retain theirs. */
+:root[data-retro^="m3"][data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
+  background: var(--md-surface-container-lowest);
+  border: 0;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.30), 0 1px 3px 1px rgba(0,0,0,0.15);
+  overflow: hidden;
+}
+:root[data-retro^="m3"] .ldh-block.is-quiet { background: transparent; box-shadow: none; }
+:root[data-retro^="m3"] .ldh-grid-block .card { overflow: hidden; }
+
+/* ---- Top app bar (M3): surface-container, on-surface text, hairline divider,
+        NO shadow at rest. Force the header's white chrome back to on-surface. ---- */
+/* ---- Top app bar (M3): a DARK neutral bar (inverse-surface) with light text —
+        keeps the strong header the product is known for. Dark scheme overrides
+        below to an elevated dark surface so it doesn't vanish into the floor. ---- */
+:root[data-retro^="m3"] .ldh-header {
+  background: var(--md-inverse-surface);
+  border-bottom: 1px solid rgba(0,0,0,0.22);
+}
+/* Chrome ink: set on the bar and INHERITED by chrome-level elements. Deliberately
+   not `.ldh-header *` — a forced literal on every descendant cannot tell chrome
+   text on the dark bar from the content of a light panel anchored in the header
+   (the account menu), and its specificity forces every consumer to out-specific
+   it. `color: inherit` on the elements that would otherwise lose to base rules
+   (link colour, UA button styles) keeps the win; any panel that pins its own
+   colour now beats it naturally, because its descendants inherit from the panel. */
+:root[data-retro^="m3"] .ldh-header { color: var(--md-inverse-on-surface); }
+:root[data-retro^="m3"] .ldh-header :is(a, button, input, .msi) { color: inherit; }
+:root[data-retro^="m3"] .ldh-header::before { opacity: 0.10; }
+
+/* ---- Hero → primary-container surface, on-primary-container text, 28 radius,
+        flat (no mesh, no specular). ---- */
+:root[data-retro^="m3"] .ldh-hero {
+  background: var(--md-primary-container);
+  border: 0;
+  border-radius: 28px;
+}
+:root[data-retro^="m3"] .ldh-hero,
+:root[data-retro^="m3"] .ldh-hero h1,
+:root[data-retro^="m3"] .ldh-hero p { color: var(--md-on-primary-container); }
+
+/* ---- Dialogs / drawers / menus. The dialog uses the SAME surface as cards
+        (surface-container-lowest = white in light) so the embedded ResourceEditForm
+        reads identically whether inline in a card or inside the modal. ---- */
+:root[data-retro^="m3"] .ldh-modal { background: var(--md-surface-container-lowest); border-radius: 28px; }
+:root[data-retro^="m3"] .ldh-add-menu,
+:root[data-retro^="m3"] .ldh-form-actions-menu,
+:root[data-retro^="m3"] .ldh-mode .modes-pop {
+  background: var(--md-surface-container);
+  border: 1px solid var(--md-outline-variant);
+  border-radius: 12px;
+}
+/* The block drawer is edge-anchored, not a floating menu — square it off with a
+   hairline left border so it reads as a quiet panel matching the flow blocks. */
+:root[data-retro^="m3"] .ldh-drawer {
+  background: var(--md-surface-container);
+  border: 0;
+  border-left: 1px solid var(--md-outline-variant);
+  border-radius: 0;
+}
+/* ---- Buttons: full pill,
+M3 "Label large" type,
+flat at rest (filled = level 0),
+STATE LAYERS via inset shadow (hover 8%,
+pressed 10%). ---- */
+:root[data-retro^="m3"] .ldhc-btn {
+  border-radius: 999px;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  letter-spacing: 0.1px;
+}
+/* Filled (primary) button — on-primary state layer (white). */
+:root[data-retro^="m3"] .ldhc-btn.ap-solid { box-shadow: none; }
+:root[data-retro^="m3"] .ldhc-btn.ap-solid:hover {
+  box-shadow: 0 1px 2px rgba(0,0,0,0.30), 0 1px 3px 1px rgba(0,0,0,0.15),
+              inset 0 0 0 999px rgba(255,255,255,0.10);
+}
+:root[data-retro^="m3"] .ldhc-btn.ap-solid:active {
+  box-shadow: inset 0 0 0 999px rgba(255,255,255,0.14);
+}
+/* Text / ghost button — primary state layer. */
+:root[data-retro^="m3"] .ldhc-btn.ap-outline,
+:root[data-retro^="m3"] .ldhc-btn.ap-ghost { border-radius: 999px; }
+:root[data-retro^="m3"] .ldhc-btn.ap-outline:hover,
+:root[data-retro^="m3"] .ldhc-btn.ap-ghost:hover { box-shadow: inset 0 0 0 999px rgba(0,97,164,0.08); }
+:root[data-retro^="m3"] .ldhc-btn.ap-outline:active,
+:root[data-retro^="m3"] .ldhc-btn.ap-ghost:active { box-shadow: inset 0 0 0 999px rgba(0,97,164,0.12); }
+/* Icon buttons — circular, on-surface-variant state layer. */
+:root[data-retro^="m3"] .ldhc-iconbtn,
+:root[data-retro^="m3"] .ldh-toolbar .tb { border-radius: 999px; }
+:root[data-retro^="m3"] .ldhc-iconbtn:hover,
+:root[data-retro^="m3"] .ldh-toolbar .tb:hover { box-shadow: inset 0 0 0 999px rgba(67,71,78,0.08); }
+/* Mode-switcher trigger is a button-like control — give it the M3 pill shape so
+   it shares the shape language of the Create button instead of a 12px chip. */
+:root[data-retro^="m3"] .ldh-mode { border-radius: 999px; }
+
+/* ---- Resource media header (depiction placeholder): an explicit M3
+        primary→tertiary key-colour gradient. Deep enough that the scrim +
+        white title text stay legible; dark scheme drops to the container
+        tones so it doesn't glare. ---- */
+:root[data-retro^="m3"] .ldh-media-head {
+  background: linear-gradient(135deg, var(--md-primary) 0%, var(--md-tertiary) 100%);
+}
+:root[data-retro="m3-dark"] .ldh-media-head {
+  background: linear-gradient(135deg, var(--md-primary-container) 0%, var(--md-tertiary-container) 100%);
+}
+
+/* ---- Inline value editor → M3 filled text field: a distinct grey container
+        (surface-container-highest) with a primary underline indicator and
+        rounded top corners — never white-on-white, and no glow ring. ---- */
+:root[data-retro^="m3"] .ldh-prop-row.is-editing .value,
+:root[data-retro^="m3"] .ldh-prop-row.is-interactive .value:focus-visible {
+  background: var(--md-surface-container-highest);
+  border: 0;
+  border-bottom: 2px solid var(--md-primary);
+  border-radius: var(--r-xs) var(--r-xs) 0 0;
+  box-shadow: none;
+}
+
+/* ---- Chips: M3 small (8) radius, outline-variant border ---- */
+:root[data-retro^="m3"] .ldh-chip,
+:root[data-retro^="m3"] .ldh-tag { border-radius: 8px; }
+
+/* ---- Type: clean M3, no glow/retro flourish on headings ---- */
+:root[data-retro^="m3"] .ldh-wordmark,
+:root[data-retro^="m3"] .ldh-section h2,
+:root[data-retro^="m3"] .ldh-block-head .ttl {
+  font-family: var(--font-sans);
+  letter-spacing: 0;
+  text-shadow: none;
+}
+
+/* ---- M3 TYPE SCALE — the system's heading/body classes remapped onto the 15
+        Material 3 type roles. Faces stay Geist (M3 permits a brand typeface);
+        sizes, weights, line-heights and tracking follow the M3 spec. M3 keeps
+        headlines at weight 400 — that lightness is intentional, not a bug. ---- */
+:root[data-retro^="m3"] .ldh-display {            /* Display Large 57/64 */
+  font-family: var(--font-sans); font-style: normal;
+  font-weight: 400; font-size: 57px; line-height: 64px; letter-spacing: -0.25px;
+}
+:root[data-retro^="m3"] .ldh-h1 {                 /* Display Small 36/44 */
+  font-weight: 400; font-size: 36px; line-height: 44px; letter-spacing: 0;
+}
+:root[data-retro^="m3"] .ldh-h2 {                 /* Headline Large 32/40 */
+  font-weight: 400; font-size: 32px; line-height: 40px; letter-spacing: 0;
+}
+:root[data-retro^="m3"] .ldh-h3 {                 /* Headline Medium 28/36 */
+  font-weight: 400; font-size: 28px; line-height: 36px; letter-spacing: 0;
+}
+:root[data-retro^="m3"] .ldh-h4 {                 /* Headline Small 24/32 */
+  font-weight: 400; font-size: 24px; line-height: 32px; letter-spacing: 0;
+}
+:root[data-retro^="m3"] .ldh-h5 {                 /* Title Large 22/28 */
+  font-weight: 400; font-size: 22px; line-height: 28px; letter-spacing: 0;
+}
+:root[data-retro^="m3"] .ldh-block-head .ttl {    /* Title Large 22/28 */
+  font-weight: 400; font-size: 22px; line-height: 28px; letter-spacing: 0;
+}
+/* Hero text block → M3 Headline Medium (28/36, weight 400 per M3) so the lead
+   title outranks sibling block headings under the default M3 skin. */
+:root[data-retro^="m3"] .ldh-block-head .ttl--hero {
+  font-weight: 400; font-size: 28px; line-height: 36px; letter-spacing: 0;
+}
+:root[data-retro^="m3"] .ldh-body-lg {            /* Body Large 16/24 */
+  font-weight: 400; font-size: 16px; line-height: 24px; letter-spacing: 0.5px;
+}
+:root[data-retro^="m3"] .ldh-body {               /* Body Medium 14/20 */
+  font-weight: 400; font-size: 14px; line-height: 20px; letter-spacing: 0.25px;
+}
+:root[data-retro^="m3"] .ldh-small {              /* Body Small 12/16 */
+  font-weight: 400; font-size: 12px; line-height: 16px; letter-spacing: 0.4px;
+}
+:root[data-retro^="m3"] .ldh-meta {               /* Label Medium 12/16 */
+  font-weight: 500; font-size: 12px; line-height: 16px; letter-spacing: 0.5px;
+}
+
+/* =========================================================================
+   M3 — DARK SCHEME  (equal-citizen counterpart; honours the light/dark tweak)
+   Same primary seed; tonal palettes shifted to the M3 dark roles. Because every
+   component above reads the md role vars and the remapped surface/ink tokens,
+   redefining the roles here re-themes the whole app with no extra component CSS.
+   A self-contained scope, applied when the light/dark tweak is dark under M3.
+   ========================================================================= */
+:root[data-retro="m3-dark"] {
+  /* ===== M3 tonalSpot DARK scheme — generated from the same seed ===== */
+  --md-primary: #98ccff;
+  --md-on-primary: #003259;
+  --md-primary-container: #00497e;
+  --md-on-primary-container: #cde6ff;
+  --md-secondary: #aecae6;
+  --md-on-secondary: #1b3249;
+  --md-secondary-container: #314961;
+  --md-on-secondary-container: #cde6ff;
+  --md-tertiary: #dbb3fd;
+  --md-on-tertiary: #401b5a;
+  --md-tertiary-container: #583373;
+  --md-on-tertiary-container: #edd9ff;
+  --md-error: #ffafa5;
+  --md-on-error: #610005;
+  --md-error-container: #89000a;
+  --md-on-error-container: #ffd8d3;
+  --md-surface: #0f1419;
+  --md-surface-dim: #0f1419;
+  --md-surface-bright: #343a3f;
+  --md-surface-container-lowest: #0a0f13;
+  --md-surface-container-low: #171c21;
+  --md-surface-container: #1b2025;
+  --md-surface-container-high: #252b30;
+  --md-surface-container-highest: #30353b;
+  --md-on-surface: #dde3ea;
+  --md-on-surface-variant: #bcc8d5;
+  --md-outline: #87929e;
+  --md-outline-variant: #3e4852;
+  --md-inverse-surface: #dde3ea;
+  --md-inverse-on-surface: #2c3136;
+  --md-inverse-primary: #0061a4;
+
+  /* ---- Same role→system remaps as the light scheme (self-contained) ---- */
+  --ink-1:  var(--md-on-surface);
+  --ink-2:  var(--md-on-surface-variant);
+  --ink-3:  var(--md-on-surface-variant);
+  --ink-4:  var(--md-outline);
+  --ink-5:  var(--md-outline-variant);
+
+  --surface-0: var(--md-surface-container-low);     /* card body (dark elevated) */
+  --surface-1: var(--md-surface);                    /* page floor */
+  --surface-2: var(--md-surface-container-high);
+  --surface-3: var(--md-surface-container-highest);
+  --line-1:    var(--md-outline-variant);
+  --line-2:    var(--md-outline);
+
+  --ldh-blue-50:   var(--md-primary-container);
+  --ldh-blue-100:  #1d3a57;
+  --ldh-blue-200:  #00497d;
+  --ldh-blue-300:  #5b9ee0;
+  --ldh-blue-400:  #7fb4ee;
+  --ldh-blue-500:  #9ecaff;
+  --ldh-blue-600:  var(--md-primary);
+  --ldh-blue-700:  #c7e0ff;
+
+  --ldh-violet-50:  var(--md-tertiary-container);
+  --ldh-violet-100: #4a2d63;
+  --ldh-violet-400: #c79bdf;
+  --ldh-violet-500: var(--md-tertiary);
+  --ldh-violet-600: #cfa3e8;
+  --ldh-violet-700: #e0b6ff;
+
+  --success-500: #7fd99a;  --success-50: #0c3a22;
+  --warning-500: #f4bd6a;  --warning-50: #3a2a00;
+  --danger-500:  var(--md-error);  --danger-600: color-mix(in srgb, var(--md-error) 82%, black);  --danger-50: var(--md-error-container);
+  --fg-on-danger: var(--md-on-error);
+
+  --rdf-class:    var(--md-tertiary);
+  --rdf-resource: var(--md-primary);
+  --rdf-literal:  #7fd99a;
+  --rdf-blank:    var(--md-outline);
+  --rdf-named:    #d6a4ff;
+
+  --surf-lavender: var(--md-primary-container);
+  --surf-mint:     #0c3a22;
+  --surf-peach:    #3a2a00;
+  --surf-sky:      var(--md-secondary-container);
+  --surf-blush:    var(--md-error-container);
+  --surf-sand:     #5b3b76;
+
+  --grad-aurora: var(--md-primary-container);   /* @kind color */
+  --grad-dawn:   var(--md-secondary-container);  /* @kind color */
+  --grad-noon:   var(--md-surface-container);    /* @kind color */
+  --grad-deep:   var(--md-inverse-surface);      /* @kind color */
+
+  --bg-accent:       var(--md-primary);
+  --bg-accent-hover: #b6d8ff;
+  --bg-accent-quiet: var(--md-primary-container);
+  --fg-on-accent:    var(--md-on-primary);
+  --fg-hint:         var(--md-on-surface-variant);
+  --fg-link:         var(--md-primary);
+  --bg-selected:     var(--md-secondary-container);
+  --fg-selected:     var(--md-on-secondary-container);
+
+  --font-display: var(--font-sans);
+
+  --r-xs:  4px;
+  --r-sm:  8px;
+  --r-md:  12px;
+  --r-lg:  16px;
+  --r-xl:  28px;
+  --r-2xl: 28px;
+
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.30), 0 1px 3px 1px rgba(0,0,0,0.15);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.30), 0 1px 3px 1px rgba(0,0,0,0.15);
+  --shadow-md: 0 1px 2px rgba(0,0,0,0.30), 0 2px 6px 2px rgba(0,0,0,0.15);
+  --shadow-lg: 0 4px 8px 3px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.30);
+  --shadow-xl: 0 6px 10px 4px rgba(0,0,0,0.15), 0 2px 3px rgba(0,0,0,0.30);
+  --shadow-glow-blue:   0 0 0 3px rgba(158,202,255,0.40);
+  --shadow-glow-violet: 0 0 0 3px rgba(224,182,255,0.40);
+  --inset-hairline: none;
+
+  /* ---- M3 MOTION (same curves/durations as light — motion is scheme-independent) ---- */
+  --md-easing-emphasized:            cubic-bezier(0.2, 0.0, 0, 1.0); /* @kind other */
+  --md-easing-emphasized-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1.0); /* @kind other */
+  --md-easing-emphasized-accelerate: cubic-bezier(0.3, 0.0, 0.8, 0.15); /* @kind other */
+  --md-easing-standard:              cubic-bezier(0.2, 0.0, 0, 1.0); /* @kind other */
+  --md-easing-standard-decelerate:   cubic-bezier(0, 0, 0, 1); /* @kind other */
+  --md-easing-standard-accelerate:   cubic-bezier(0.3, 0, 1, 1); /* @kind other */
+  --md-duration-short:  150ms; /* @kind other */
+  --md-duration-medium: 300ms; /* @kind other */
+  --md-duration-long:   500ms; /* @kind other */
+  --ease-out-soft: var(--md-easing-emphasized-decelerate); /* @kind other */
+  --ease-in-out:   var(--md-easing-emphasized); /* @kind other */
+  --ease-spring:   var(--md-easing-emphasized); /* @kind other */
+  --dur-fast:  150ms; /* @kind other */
+  --dur-base:  200ms; /* @kind other */
+  --dur-slow:  350ms; /* @kind other */
+  --dur-xslow: 500ms; /* @kind other */
+}
+/* Dark page floor — subtle tonal gradient from the dark container tones */
+:root[data-retro="m3-dark"] body,
+:root[data-retro="m3-dark"] .app {
+  background:
+    radial-gradient(58% 68% at 10% 6%,  #14283f 0%, transparent 60%),
+    radial-gradient(52% 60% at 92% 4%,  #221a33 0%, transparent 60%),
+    radial-gradient(60% 70% at 86% 96%, #15202c 0%, transparent 62%),
+    #111418;
+  background-attachment: fixed;
+}
+
+/* Dark scheme: cards = elevated dark surface (lighter than the floor) */
+:root[data-retro="m3-dark"] .ldh-block,
+:root[data-retro="m3-dark"] .ldh-grid-block .card,
+:root[data-retro="m3-dark"] .ldh-modal { background: var(--md-surface-container-low); }
+
+/* Dark scheme app bar: an elevated dark surface with light text + hairline,
+   so it reads as a distinct bar instead of an inverse (light) one. */
+:root[data-retro="m3-dark"] .ldh-header {
+  background: var(--md-surface-container-high);
+  border-bottom: 1px solid var(--md-outline-variant);
+}
+:root[data-retro="m3-dark"] .ldh-header { color: var(--md-on-surface); }
+:root[data-retro="m3-dark"] .ldh-header :is(a, button, input, .msi) { color: inherit; }
+:root[data-retro="m3-dark"] .ldh-header::before { opacity: 0.06; }
+
+/* State layers flip to LIGHT overlays in dark (state layer = on-colour) */
+:root[data-retro="m3-dark"] .ldh-block:hover {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.40), 0 8px 18px 1px rgba(0,0,0,0.34);
+  transform: translateY(-1px);
+}
+:root[data-retro="m3-dark"] .ldhc-btn.ap-outline:hover,
+:root[data-retro="m3-dark"] .ldhc-btn.ap-ghost:hover { box-shadow: inset 0 0 0 999px rgba(158,202,255,0.08); }
+:root[data-retro="m3-dark"] .ldhc-btn.ap-outline:active,
+:root[data-retro="m3-dark"] .ldhc-btn.ap-ghost:active { box-shadow: inset 0 0 0 999px rgba(158,202,255,0.12); }
+:root[data-retro="m3-dark"] .ldhc-iconbtn:hover { box-shadow: inset 0 0 0 999px rgba(195,198,207,0.08); }
+/* Filled button in dark: on-primary is dark,
+so its state layer is a dark overlay */
+so its state layer is a dark overlay */
+:root[data-retro="m3-dark"] .ldhc-btn.ap-solid:hover {
+  box-shadow: 0 1px 2px rgba(0,0,0,0.30), 0 1px 3px 1px rgba(0,0,0,0.15),
+              inset 0 0 0 999px rgba(0,0,0,0.08);
+}
+:root[data-retro="m3-dark"] .ldhc-btn.ap-solid:active {
+  box-shadow: inset 0 0 0 999px rgba(0,0,0,0.12);
+}

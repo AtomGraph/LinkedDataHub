@@ -63,27 +63,34 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="sp:text/text() | sp:text/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:FormControl">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
-        <xsl:param name="class" select="'sparql-query-string'" as="xs:string?"/>
+        <xsl:param name="class" select="'ldhc-cf-area sparql-query-string'" as="xs:string?"/>
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         <xsl:param name="name" select="'ol'" as="xs:string"/>
-        <xsl:param name="rows" select="10" as="xs:integer"/>
-        <xsl:param name="style" select="'font-family: monospace;'" as="xs:string"/>
+        <xsl:param name="rows" select="3" as="xs:integer"/>
+        <xsl:param name="gutter-rows" select="max(($rows, count(tokenize(string(self::text()), '\n'))))" as="xs:integer"/>
 
-        <textarea name="{$name}" id="{generate-id()}" rows="{$rows}">
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-            <xsl:if test="$style">
-                <xsl:attribute name="style" select="$style"/>
-            </xsl:if>
-            
-            <xsl:if test="self::text()">
-                <xsl:value-of select="."/>
-            </xsl:if>
-        </textarea>
+        <div class="ldhc-codefield">
+            <div class="ldhc-cf-gutter" aria-hidden="true">
+                <xsl:for-each select="1 to $gutter-rows">
+                    <div>
+                        <xsl:value-of select="."/>
+                    </div>
+                </xsl:for-each>
+            </div>
+
+            <textarea name="{$name}" id="{generate-id()}" rows="{$rows}" spellcheck="false">
+                <xsl:if test="$id">
+                    <xsl:attribute name="id" select="$id"/>
+                </xsl:if>
+                <xsl:if test="$class">
+                    <xsl:attribute name="class" select="$class"/>
+                </xsl:if>
+
+                <xsl:if test="self::text()">
+                    <xsl:value-of select="."/>
+                </xsl:if>
+            </textarea>
+        </div>
 
         <xsl:if test="$type-label">
             <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel"/>
@@ -94,7 +101,11 @@ exclude-result-prefixes="#all">
         <xsl:param name="type" as="xs:string?"/>
 
         <xsl:if test="not($type = 'hidden')">
-            <span class="help-inline">Literal</span>
+            <div class="ldh-annot">
+                <span class="ldhc-tag sz-sm em-quiet an-term is-literal">
+                    <xsl:apply-templates select="key('resources', 'literal', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                </span>
+            </div>
         </xsl:if>
     </xsl:template>
     

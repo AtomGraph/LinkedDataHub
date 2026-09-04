@@ -94,8 +94,6 @@ public final class LDT
 
     public static final Property cacheControl = m_model.createDataProperty( NS + "cacheControl" );
     
-    public static final Property lang = m_model.createObjectProperty( NS + "lang" );
-
     public static final Property template = m_model.createObjectProperty( NS + "template" );
 
 }

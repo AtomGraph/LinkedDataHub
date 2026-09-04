@@ -29,7 +29,7 @@ exclude-result-prefixes="#all">
     
     <xsl:template match="dct:description/text()" mode="bs2:FormControl">
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
-        <xsl:param name="rows" select="10" as="xs:integer"/>
+        <xsl:param name="rows" select="3" as="xs:integer"/>
         
         <textarea name="ol" id="{generate-id()}" rows="{$rows}">
             <xsl:value-of select="."/>
@@ -47,6 +47,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         
         <!-- the form will submit a literal value but the SkolemizingModelProvider will convert it to a URI resource -->
+        <span class="ldhc-select sz-sm">
         <select name="ol">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
@@ -108,6 +109,8 @@ exclude-result-prefixes="#all">
                 </option>
             </optgroup>
         </select>
+        <span class="msi sm ldhc-select-caret" aria-hidden="true">unfold_more</span>
+        </span>
 
         <xsl:if test="$type-label">
             <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel"/>

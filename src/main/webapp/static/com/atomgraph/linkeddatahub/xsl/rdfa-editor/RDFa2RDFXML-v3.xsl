@@ -49,7 +49,8 @@
         'dct': 'http://purl.org/dc/terms/'
     }"/>
 
-    <xsl:template match="/" name="extract-rdfa">
+    <!-- named entry only — an unnamed-mode match="/" here would intercept every default-mode dispatch against a document node in the host stylesheet (see be7c4ebc8 for the normalize-rdfxml instance of the same bug) -->
+    <xsl:template name="rdfax:extract-rdfa">
         <xsl:param name="doc" as="document-node()" select="."/>
         <xsl:param name="base" as="xs:string" select="($base-uri, string(base-uri($doc)))[1]"/>
         <xsl:variable name="effective-base" as="xs:string"

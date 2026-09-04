@@ -40,7 +40,7 @@ import picocli.CommandLine.Parameters;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "add-xhtml-block", description = "Appends an XHTML content block to a document.")
+@Command(name = "xhtml-block", description = "Appends an XHTML content block to a document.")
 public class AddXHTMLBlock extends BaseCommand
 {
 

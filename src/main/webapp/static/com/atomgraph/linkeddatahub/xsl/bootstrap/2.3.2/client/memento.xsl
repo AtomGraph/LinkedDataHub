@@ -35,7 +35,7 @@ version="3.0"
         <xsl:variable name="timemap-uri" select="xs:anyURI(resolve-uri(@href, ldh:base-uri(.)))" as="xs:anyURI"/>
         <xsl:variable name="container" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $timemap-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <!-- ac:absolute-path() drops the ?version= that distinguishes a memento from the document it specializes -->
@@ -45,7 +45,8 @@ version="3.0"
             => ixsl:then(ldh:rethread-response($context, ?))
             => ixsl:then(ldh:handle-response#1)
             => ixsl:then(ldh:load-document-modes#1)
-            => ixsl:then(ldh:timemap-response#1)
+            => ixsl:then(ldh:timemap-response#1) =>
+            ixsl:finally(ldh:reset-cursor#0)
         " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
@@ -68,29 +69,35 @@ version="3.0"
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
         <!-- same Link header parse as client.xsl uses to seed acl:mode(), but against the live document's response -->
-        <xsl:variable name="acl-modes" select="tokenize($context('doc-response')?headers?link, ',')[contains(., '&acl;mode')] ! xs:anyURI(substring-before(substring-after(substring-before(., ';'), '&lt;'), '&gt;'))" as="xs:anyURI*"/>
+        <xsl:variable name="acl-modes" select="ldh:link-targets($context('doc-response')?headers?link, '&acl;mode')" as="xs:anyURI*"/>
         <xsl:variable name="writable" select="$acl-modes = '&acl;Write'" as="xs:boolean"/>
 
         <xsl:for-each select="$response">
-            <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-
             <xsl:for-each select="$container">
+
+                <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
+                <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseDropdown"/>
                 <xsl:result-document href="?." method="ixsl:append-content">
-                    <div class="modal modal-constructor fade in" id="document-history-modal">
-                        <div class="modal-header">
-                            <button type="button" class="close">&#215;</button>
-                            <legend>
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'history', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                </xsl:value-of>
-                            </legend>
-                            <p class="text-info">
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'history-description', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                </xsl:value-of>
-                            </p>
+                    <div class="ldhc-backdrop pos-top modal modal-constructor" id="document-history-modal">
+                        <div class="ldhc-modal sz-xl" role="dialog" aria-modal="true" aria-labelledby="modal-title-{generate-id()}">
+                        <div class="ldhc-modal-head">
+                            <div class="ldhc-modal-titles">
+                                <h2 class="ldhc-modal-title" id="modal-title-{generate-id()}">
+                                    <xsl:value-of>
+                                        <xsl:apply-templates select="key('resources', 'history', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                    </xsl:value-of>
+                                </h2>
+                                <span class="ldhc-modal-sub">
+                                    <xsl:value-of>
+                                        <xsl:apply-templates select="key('resources', 'history-description', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                    </xsl:value-of>
+                                </span>
+                            </div>
+                            <span class="ldhc-modal-x">
+                                <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
+                            </span>
                         </div>
-                        <div class="modal-body">
+                        <div class="ldhc-modal-body">
                             <xsl:choose>
                                 <xsl:when test="$response?status = 200 and $response?media-type = 'application/rdf+xml'">
                                     <xsl:variable name="mementos" select="$response?body//*[@rdf:about][prov:specializationOf/@rdf:resource]" as="element()*"/>
@@ -101,7 +108,7 @@ version="3.0"
                                     <!-- preselect the viewed version as the diff target and its predecessor as the diff source (the viewed version itself when there is none) -->
                                     <xsl:variable name="from-memento" select="(xs:anyURI($sorted-mementos[$current-index - 1]/@rdf:about), $current-memento)[1]" as="xs:anyURI?"/>
                                     <form id="form-version-diff">
-                                        <table class="table table-striped">
+                                        <table class="table">
                                             <colgroup>
                                                 <col style="width: 38%;"/>
                                                 <col style="width: 22%;"/>
@@ -146,26 +153,26 @@ version="3.0"
                                                 </xsl:apply-templates>
                                             </tbody>
                                         </table>
-                                        <div class="form-actions modal-footer">
-                                            <button type="submit" class="btn btn-primary">
-                                                <xsl:value-of>
-                                                    <xsl:apply-templates select="key('resources', 'compare', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                                </xsl:value-of>
-                                            </button>
-                                            <button type="button" class="btn btn-close">
+                                        <div class="ldh-block-foot">
+                                            <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-close">
                                                 <xsl:value-of>
                                                     <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                                </xsl:value-of>
+                                            </button>
+                                            <button type="submit" class="ldhc-btn in-primary ap-solid sz-md">
+                                                <span class="msi sm" aria-hidden="true">compare_arrows</span>
+                                                <xsl:value-of>
+                                                    <xsl:apply-templates select="key('resources', 'compare', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                                                 </xsl:value-of>
                                             </button>
                                         </div>
                                     </form>
                                 </xsl:when>
                                 <xsl:otherwise>
-                                    <div class="alert alert-error">
-                                        <xsl:text>Could not load the version history</xsl:text>
-                                    </div>
+                                    <xsl:sequence select="ldh:error-alert('version-history-not-loaded', ldh:http-error-key($response?status), ())"/>
                                 </xsl:otherwise>
                             </xsl:choose>
+                        </div>
                         </div>
                     </div>
                 </xsl:result-document>
@@ -206,7 +213,7 @@ version="3.0"
         <xsl:variable name="modal" select="ancestor::div[contains-token(@class, 'modal')]" as="element()?"/>
 
         <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))) ])">
-            <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+            <xsl:sequence select="ldh:busy-cursor()"/>
 
             <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $memento-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
             <xsl:variable name="context" select="map{ 'request': $request, 'doc-uri': $doc-uri, 'modal': $modal }" as="map(*)"/>
@@ -214,7 +221,8 @@ version="3.0"
               ixsl:http-request($context('request'))
                 => ixsl:then(ldh:rethread-response($context, ?))
                 => ixsl:then(ldh:handle-response#1)
-                => ixsl:then(ldh:restore-version#1)
+                => ixsl:then(ldh:restore-version#1) =>
+                ixsl:finally(ldh:reset-cursor#0)
             " on-failure="ldh:promise-failure#1"/>
         </xsl:if>
     </xsl:template>
@@ -234,8 +242,7 @@ version="3.0"
                     => ixsl:then(ldh:restored-version#1)"/>
             </xsl:when>
             <xsl:otherwise>
-                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-                <xsl:sequence select="ldh:restore-failed($context, 'Could not read the selected version')"/>
+                <xsl:sequence select="ldh:restore-failed($context, 'version-not-read')"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -259,7 +266,7 @@ version="3.0"
                 </xsl:call-template>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ldh:restore-failed($context, 'Could not restore this version')"/>
+                <xsl:sequence select="ldh:restore-failed($context, 'version-not-restored')"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -267,13 +274,11 @@ version="3.0"
     <!-- reports a failed restore inside the modal, so the agent keeps the version list they were working from -->
     <xsl:function name="ldh:restore-failed" as="item()?" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:param name="message" as="xs:string"/>
+        <xsl:param name="title-key" as="xs:string"/> <!-- translations.rdf nodeID naming which step of the restore failed -->
 
-        <xsl:for-each select="$context('modal')/div[contains-token(@class, 'modal-body')]">
+        <xsl:for-each select="($context('modal')//div[contains-token(@class, 'ldhc-modal-body')])[1]">
             <xsl:result-document href="?." method="ixsl:prepend-content">
-                <div class="alert alert-error">
-                    <xsl:value-of select="$message || ' (HTTP ' || $context('response')?status || ')'"/>
-                </div>
+                <xsl:sequence select="ldh:error-alert($title-key, ldh:http-error-key($context('response')?status), ())"/>
             </xsl:result-document>
         </xsl:for-each>
     </xsl:function>

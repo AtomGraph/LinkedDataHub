@@ -11,7 +11,7 @@ pwd=$(realpath "$PWD")
 
 # add agent to the writers group
 
-ldh admin acl add-agent-to-group \
+ldh admin add agent \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
@@ -27,7 +27,7 @@ echo "4,5,6" >> "$test_file"
 slug=$(uuidgen | tr '[:upper:]' '[:lower:]')
 
 # Create an item document to hold the file
-file_doc=$(ldh create-item \
+file_doc=$(ldh create item \
   -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
@@ -36,7 +36,7 @@ file_doc=$(ldh create-item \
   --slug "$slug")
 
 # upload file WITHOUT explicit media type (rely on browser detection via `file -b --mime-type`)
-ldh add-file \
+ldh add file \
   -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
@@ -65,7 +65,7 @@ initial_format=$(echo "$file_doc_ntriples" | sed -rn "s/<${file_uri//\//\\/}> <h
 # re-upload the same file but WITH explicit media type: text/csv
 # this simulates editing and uploading with a corrected format after browser auto-detection was wrong
 
-ldh add-file \
+ldh add file \
   -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \

@@ -9,7 +9,7 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 # add agent to the writers group
 
-ldh admin acl add-agent-to-group \
+ldh admin add agent \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
@@ -32,7 +32,6 @@ EOF
 )
 
 if [ "$status" != "$STATUS_CREATED" ]; then
-  echo "DEBUG: Expected $STATUS_CREATED from the PUT, got: $status"
   exit 1
 fi
 
@@ -52,8 +51,6 @@ for triple in \
   "<${item}named-subject-put> <http://example.com/default-predicate> \"named object PUT\" ."
 do
   if ! grep -qF "$triple" <<< "$response"; then
-    echo "DEBUG: Expected triple: $triple"
-    echo "DEBUG: Got: $response"
     exit 1
   fi
 done

@@ -1,0 +1,142 @@
+/* only the main navbar is fixed-top now; tab bar + action bar are sticky inside #tab-body;
+   the tab skin itself lives in ldh-bridge.css on the design tokens */
+#tab-bar { position: sticky; top: var(--ldh-header-height); z-index: 88; height: var(--ldh-tabbar-height); }
+/* Override Bootstrap's overflow:auto which would make action-bar sticky relative to #tab-content instead of the viewport */
+#tab-content { overflow: visible; }
+#tab-bar-list > li { position: relative; }
+#tab-bar-list.nav-tabs > li > a { padding-right: 22px; }
+#tab-bar-list .tab-close { position: absolute; top: 6px; right: 6px; line-height: 1; font-size: 11px; color: var(--fg-hint); cursor: pointer; padding: 1px 3px; }
+#tab-bar-list .tab-close:hover { color: var(--fg-1); }
+ul.dropdown-menu { max-height: 26em; overflow-x: hidden; overflow-y: auto; }
+ul.dropdown-menu ul { margin: 0; }
+.dropdown-menu li form { margin-bottom: 0; }
+.dropdown-menu li form button { width: 100%; text-align: left; }
+.search-form, .search-form-modal { display: flex; width: 100%; align-items: stretch; }
+.search-form .search-query, .search-form-modal .search-query { flex: 1 1 auto; min-width: 0; height: 36px; box-sizing: border-box; margin: 0; }
+.search-form-modal .btn-search { flex: 0 0 36px; margin: 0; }
+.action-bar { position: sticky; top: var(--action-bar-top); z-index: 86; padding: 0; box-shadow: none; }
+.action-bar form { margin-bottom: 0; }
+.action-bar .add-constructor, .dropdown-menu .add-constructor { background-color: inherit; display: block; text-align: left; width: 100%; }
+.action-bar .add-constructor:hover { color: #ffffff; background-color: #007af5; }
+.action-bar p.alert { margin-bottom: 0; }
+body:has(#edit-toolbar) .action-bar { border-bottom: 1px solid var(--border-default); }
+a.external::after { content: "⤴"; padding-left: 0.2em; }
+li button.btn-edit-constructors, li button.btn-add-data, li button.btn-add-ontology, li button.btn-generate-containers { text-align: left; width: 100%; background-color: inherit; }
+.left-sidebar { display: none; width: 15%; position: fixed; left: 0; top: var(--action-bar-top); height: calc(100% - var(--action-bar-top)); overflow-y: auto; z-index: 95; }
+@media (max-width: 979px)
+{
+    body { padding-top: 0; }
+    .left-sidebar { display: block; width: auto; position: unset; top: unset; height: auto; z-index: auto; }
+    .left-sidebar .nav { max-height: 20em; overflow: auto; }
+}
+/* the tree gets half the sidebar's height (the sidebar is fixed-positioned, so the percentage
+   resolves); the outer ul is the sole scroll container - nested uls stay uncapped so a deep
+   subtree scrolls the whole tree instead of growing its own scrollbar */
+.left-sidebar .document-tree { max-height: 50%; }
+.left-sidebar .document-tree > ul { overflow: auto; min-height: 0; }
+.left-sidebar .class-list ul, .left-sidebar .other-views ul { max-height: 22em; overflow: auto; }
+.left-sidebar li > a { display: inline-block; }
+.left-nav .nav, .right-nav .nav { max-height: 20em; overflow: auto; }
+.left-nav, .right-nav { position: sticky; top: 0; }
+.faceted-nav input[type=checkbox]:checked + span { font-weight: bold; }
+.parallax-nav a { cursor: pointer; }
+/* Drop marker: the dragged block will be inserted after the block it is dropped on. A pseudo-element
+   in the inter-block gap rather than border-bottom: the skins reset the card's border shorthand at
+   equal specificity, and a border would shift layout while dragging. */
+.content-body > [about].block.drag-over::after { content: ""; position: absolute; left: 0; right: 0; bottom: -10px; border-top: 4px dotted var(--bg-accent); pointer-events: none; }
+/* Block drag handle: a dotted grip strip in the gutter left of the block (inside .content-body's
+   side padding), revealed while its block is hovered. Only rendered draggable under acl:Write,
+   so the [draggable] gate doubles as the authorization gate. */
+.block .drag-handle { display: none; }
+.content-body > .block { position: relative; }
+.content-body > .block > .row-main > .drag-handle[draggable="true"] { display: block; position: absolute; top: 0; bottom: 0; left: -18px; width: 12px; border-radius: var(--r-sm); background-image: radial-gradient(circle at 2px 2px, var(--fg-hint) 1px, transparent 1.5px); background-size: 6px 6px; cursor: grab; opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft), background-color var(--dur-fast) var(--ease-out-soft); }
+.content-body > .block:hover > .row-main > .drag-handle[draggable="true"] { opacity: 1; }
+.content-body > .block > .row-main > .drag-handle[draggable="true"]:hover { background-color: var(--bg-hover); }
+.content-body > .block > .row-main > .drag-handle[draggable="true"]:active { cursor: grabbing; }
+.hero-unit { background-color: #0f82f530; box-shadow: 5px 5px 3px 0px rgb(192,192,192); }
+.modal .dropdown-menu { z-index: 1100; }
+/* Annotation overlay: point-positioned by rdfae:show-at; carries its own card chrome
+   (it borrows .modal-header/.modal-body layout from ldh-bridge.css but is not a dialog) */
+#rdfa-editor-overlay { position: absolute; min-width: 360px; max-width: 520px; z-index: 10001; background: var(--surface-0); border-radius: var(--r-lg); box-shadow: var(--shadow-xl); display: flex; flex-direction: column; overflow: hidden; }
+.control-group.endpoint-classes ul { max-height: 20em; overflow: auto; }
+.nav-tabs > li > a { cursor: pointer; }
+.container-results { max-height: 80em; overflow: auto; }
+.map-canvas { height: 45em; width: 100%; }
+fieldset { border: 1px outset #999; /* padding-top: 3%; */ }
+fieldset fieldset { margin-left: 3%; margin-bottom: 3%; }
+#uri { height: 24px; width: 100%; }
+.control-group.required .control-label { font-weight: bold; }
+.description { display: none; }
+div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main { font-size: larger; line-height: 25px; overflow-x: auto; }
+/* preformatted prose (code samples, Turtle listings) sits on the design system's code surface - the
+   recessed well the inline .ldh-code chip and the error-detail listing (.ldh-block-detail pre) already use,
+   so it tints with the theme instead of a literal white that would invert wrong in dark mode. Long IRIs
+   scroll the block rather than wrap, keeping a listing's line structure readable */
+div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main pre { margin: var(--sp-4) 0; padding: var(--sp-3) var(--sp-4); background: var(--surface-2); border-radius: var(--r-sm); font-family: var(--font-mono); font-size: 0.92em; line-height: var(--lh-base); color: var(--ink-2); overflow-x: auto; }
+/* click-to-edit affordance only when the pane's document grants acl:Write (mirrors the ixsl:onclick guard in block.xsl) */
+div[data-acl-modes~="http://www.w3.org/ns/auth/acl#Write"] div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"]:not(:has(form)) .main { cursor: pointer; }
+div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .btn-edit { display: none; }
+/* collapse the property grid in the XHTML block's edit form: the region spans the block as a document
+   surface, not a "value" form row - the predicate label goes, and group/row/value become plain flow */
+div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .ldh-edit-form .ldh-prop-group > .label { display: none; }
+div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .ldh-edit-form .ldh-prop-form, div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .ldh-edit-form .ldh-prop-group, div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .ldh-edit-form .ldh-prop-row, div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .ldh-edit-form .ldh-prop-row > .value, div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .ldh-edit-form .val-main { display: block; padding-left: 0; padding-right: 0; }
+div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] form fieldset { border: none; }
+object { display: block; margin: auto; max-height: 400px; overflow: hidden; width: 100%; }
+.chart-canvas { width: 100%; height: 400px; }
+/* an empty result set replaces the plot with the block empty state, which would otherwise sit stranded above 400px of nothing; its own padding supplies the inset the canvas would add */
+.chart-canvas:has(> .ldh-block-blank) { height: auto; padding: 0; }
+/* Google Charts Table specific (the ac:Table chart type renders as HTML, skinned here rather than via draw options) */
+.chart-canvas .google-visualization-table-table { font-family: var(--font-sans); font-size: var(--fs-sm); color: var(--fg-1); }
+.chart-canvas .google-visualization-table-table th { background: var(--surface-1); color: var(--fg-muted); font-weight: var(--fw-semibold); border-color: var(--border-default); }
+.chart-canvas .google-visualization-table-table td { border-color: var(--border-default); }
+.chart-canvas .google-visualization-table-tr-even, .chart-canvas .google-visualization-table-tr-odd { background: var(--surface-0); }
+.chart-canvas .google-visualization-table-tr-over td { background: var(--bg-hover); }
+.chart-canvas .google-visualization-table-tr-sel td { background: var(--bg-accent-quiet); }
+.graph-3d-canvas { width: 100%; height: 600px; overflow: hidden; background: #141414; position: relative; }
+.graph-3d-tooltip { display: none; position: absolute; background: rgba(0,0,0,0.75); color: #fff; padding: 4px 8px; border-radius: 4px; pointer-events: none; font-size: 12px; z-index: 10; }
+.graph-3d-info-panel { position: absolute; top: 10px; right: 10px; z-index: 10; background: rgba(0,0,0,0.7); color: #fff; padding: 8px 12px; border-radius: 4px; max-width: 280px; font-size: 12px; }
+.graph-3d-info-panel h4 { margin: 0 0 4px; font-size: 13px; }
+.graph-3d-info-panel dl { margin: 0; }
+.graph-3d-info-panel dt { font-weight: bold; margin-top: 4px; }
+.graph-3d-info-panel dd { margin: 0; word-break: break-all; }
+.graph-3d-info-panel a { color: #8cf; }
+.graph-3d-show-panel { position: absolute; bottom: 30px; left: 10px; z-index: 10; background: rgba(0,0,0,0.7); color: #fff; padding: 8px 12px; border-radius: 4px; font-size: 12px; }
+.graph-3d-show-panel label { display: block; cursor: pointer; }
+.graph-3d-show-panel label.sub-option { margin-left: 16px; }
+.graph-3d-zoom { position: absolute; top: 10px; left: 10px; z-index: 10; }
+.graph-3d-fullscreen { position: absolute; bottom: 10px; right: 10px; z-index: 10; }
+.graph-3d-canvas.graph-3d-maximized { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; }
+/* OpenLayers specific */
+/* the marker info window borrows the modal's chrome (modal-header + modal-body) but its host is
+   ol.Overlay's own wrapper, not .modal - so the panel treatment lands here: the overlay IS the card,
+   which is why the resource inside renders as a quiet block. overflow (already the scroll container)
+   clips the property-list hover's sp-6 bleed at the rounded edge */
+.ol-overlay-container { width: 60%; max-height: 75%; background: var(--bg-card); border: 1px solid var(--border-default); border-radius: var(--r-lg); box-shadow: var(--shadow-lg); overflow: auto; }
+.ol-overlay-container img { max-width: 100%; }
+/* the block has no .ldh-block-body wrapper here (the default resource template emits head + property
+   list only), so the modal-body inset is the only one: drop the head's own side padding or the title
+   sits sp-6 right of the labels below it, and its top padding stacks on the body's */
+.ol-overlay-container .ldh-block-head { padding: 0 0 var(--sp-3); }
+/* SVG graph specific */
+circle { cursor: move; }
+/* RDFa editor specific */
+.editor-bar { position: sticky; top: calc(var(--action-bar-top, 51px) + var(--ldh-actionbar-height, 50px)); z-index: 84; background: var(--bg-recess); padding: 0; box-shadow: none; display: flex; align-items: center; }
+#edit-toolbar { order: -1; margin-right: auto; display: flex; gap: var(--sp-1); align-items: center; }
+#edit-toolbar button, #edit-toolbar select { padding: 4px 8px; border: 0; border-radius: var(--r-sm); background: transparent; color: var(--fg-2); font-size: var(--fs-sm); font-family: inherit; cursor: pointer; margin-top: auto; margin-bottom: auto; transition: background var(--dur-fast) var(--ease-out-soft), color var(--dur-fast) var(--ease-out-soft); }
+#edit-toolbar button:disabled { opacity: 0.4; cursor: default; }
+#edit-toolbar button:hover, #edit-toolbar select:hover { background: var(--bg-hover); color: var(--fg-1); }
+#edit-toolbar button[aria-pressed="true"] { background: var(--bg-selected); color: var(--fg-selected); }
+#edit-toolbar .tb-group { display: flex; gap: var(--sp-1); align-items: center; }
+#edit-toolbar .tb-group + .tb-group { border-left: 1px solid var(--border-default); padding-left: var(--sp-2); }
+#edit-toolbar .tb-group.table-ops.active { background: var(--bg-selected); border-radius: var(--r-sm); }
+.edit-dialog { background: white; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,.2); padding: 12px; min-width: 280px; z-index: 10000; }
+.edit-dialog .rdfa-editor-ui .action-buttons { margin-top: 10px; }
+.edit-dialog .rdfa-editor-ui .checkbox-label { display: inline-flex; gap: 6px; align-items: center; font-weight: 400; margin-top: 8px; }
+.editor-bar:not(:has(#edit-toolbar)), .tab-pane:not(:has(.rdfa-editor-content)) .editor-bar, body:not(:has(.tab-pane.active .rdfa-editor-content)) #rdfa-editor-breadcrumb { display: none; }
+/* Host-page gutter for the block drag handles (rendered at left:-1.5em, outside each block's box).
+   The editor documents this as a host requirement (padding-left >= 2.5em); LDH must reserve it since
+   the .rdfa-editor-content div is generated bare by the XMLLiteral form control. */
+.rdfa-editor-content { padding-left: 2.5em; }
+/* While a region is edited, every tab panel stacks visibly and editably: the editor presents the
+   structure; one-pane-visible is ReadMode's rendering of it. hidden reasserts itself on restore. */
+.rdfa-editor-content [role="tabpanel"][hidden] { display: block; }

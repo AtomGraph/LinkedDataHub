@@ -122,12 +122,13 @@ WHERE
                         'graph-state': $graph-state
                     }" as="map(*)"/>
 
-                    <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+                    <xsl:sequence select="ldh:busy-cursor()"/>
 
                     <ixsl:promise select="
                         ixsl:http-request($request)
-                            => ixsl:then(ldh:handle-graph3d-rdf-response($context, ?))
-                    " on-failure="ldh:promise-failure#1"/>
+                            => ixsl:then(ldh:handle-graph3d-rdf-response($context, ?)) =>
+                            ixsl:finally(ldh:reset-cursor#0)
+                        " on-failure="ldh:promise-failure#1"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:if>
@@ -162,12 +163,13 @@ WHERE
                     'graph-state': $graph-state
                 }" as="map(*)"/>
 
-                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+                <xsl:sequence select="ldh:busy-cursor()"/>
 
                 <ixsl:promise select="
                     ixsl:http-request($request)
-                        => ixsl:then(ldh:handle-graph3d-backlinks-response($context, ?))
-                " on-failure="ldh:promise-failure#1"/>
+                        => ixsl:then(ldh:handle-graph3d-backlinks-response($context, ?)) =>
+                        ixsl:finally(ldh:reset-cursor#0)
+                    " on-failure="ldh:promise-failure#1"/>
             </xsl:if>
         </xsl:if>
     </xsl:template>
@@ -282,7 +284,7 @@ WHERE
         <xsl:variable name="show-literals" select="if (exists($show-literals-cb)) then xs:boolean(ixsl:get($show-literals-cb, 'checked')) else false()" as="xs:boolean"/>
 
         <xsl:variable name="locale-cb" select="id('show-locale-literals-' || $canvas-id, ixsl:page())"/>
-        <xsl:variable name="locale-filter" select="if ($show-literals and exists($locale-cb) and xs:boolean(ixsl:get($locale-cb, 'checked'))) then tokenize($ac:lang, '-')[1] else ()" as="xs:string?"/>
+        <xsl:variable name="locale-filter" select="if ($show-literals and exists($locale-cb) and xs:boolean(ixsl:get($locale-cb, 'checked'))) then tokenize(ac:langs()[1], '-')[1] else ()" as="xs:string?"/>
 
         <xsl:variable name="rdf-doc" select="ixsl:get($graph-state, 'document')" as="document-node()"/>
         <xsl:variable name="graph-data" as="item()">
@@ -476,8 +478,8 @@ WHERE
                         <label class="sub-option"><input type="checkbox" id="show-locale-literals-{$canvas-id}" data-canvas-id="{$canvas-id}" class="graph-3d-filter" disabled="disabled"/> Matching locale only</label>
                     </label>
                 </div>
-                <button data-canvas-id="{$canvas-id}" class="graph-3d-zoom btn btn-small">Zoom to fit</button>
-                <button data-canvas-id="{$canvas-id}" class="graph-3d-fullscreen btn btn-small">Fullscreen</button>
+                <button data-canvas-id="{$canvas-id}" class="graph-3d-zoom ldhc-btn in-neutral ap-solid sz-sm"><span class="msi sm" aria-hidden="true">fit_screen</span>Zoom to fit</button>
+                <button data-canvas-id="{$canvas-id}" class="graph-3d-fullscreen ldhc-btn in-neutral ap-solid sz-sm"><span class="msi sm" aria-hidden="true">fullscreen</span>Fullscreen</button>
             </xsl:result-document>
         </xsl:for-each>
     </xsl:template>
@@ -496,7 +498,7 @@ WHERE
                 <xsl:with-param name="container" select="$canvas"/>
                 <xsl:with-param name="builder" select="ixsl:apply(ixsl:get(ixsl:window(), 'ForceGraph3D'), [])"/>
                 <xsl:with-param name="graph-width" select="xs:double(ixsl:get($canvas, 'offsetWidth'))"/>
-                <xsl:with-param name="graph-height" select="xs:double(600)"/>
+                <xsl:with-param name="graph-height" select="xs:double(ixsl:get($canvas, 'offsetHeight'))"/>
                 <xsl:with-param name="node-rel-size" select="xs:double(4)"/>
                 <xsl:with-param name="link-width" select="xs:double(1.5)"/>
                 <xsl:with-param name="node-label-color" select="'white'"/>

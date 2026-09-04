@@ -99,18 +99,27 @@ version="3.0">
     <xsl:template name="rdfae:replace-rendering">
         <xsl:param name="island" as="element()"/>
         <xsl:param name="content" as="node()*"/>
-        <xsl:for-each select="$island/*[@data-role = 'rendering']">
-            <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-        <xsl:variable name="rendering" as="element()" select="rdfae:element('div')"/>
-        <xsl:for-each select="$rendering">
-            <ixsl:set-attribute name="data-role" select="'rendering'"/>
-        </xsl:for-each>
-        <!-- html method: XML's self-closing tags read as OPEN tags to the HTML
-             fragment parser and swallow following siblings -->
-        <ixsl:set-property name="innerHTML"
-            select="serialize($content, map{ 'method': 'html' })" object="$rendering"/>
-        <xsl:sequence select="ixsl:call($island, 'appendChild', [ $rendering ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:variable name="rendering" as="element()">
+            <div data-role="rendering">
+                <xsl:copy-of select="$content"/>
+            </div>
+        </xsl:variable>
+        <xsl:choose>
+            <xsl:when test="$island/*[@data-role = 'rendering']">
+                <xsl:for-each select="($island/*[@data-role = 'rendering'])[1]">
+                    <xsl:result-document href="?." method="ixsl:replace-element">
+                        <xsl:copy-of select="$rendering"/>
+                    </xsl:result-document>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:for-each select="$island">
+                    <xsl:result-document href="?." method="ixsl:append-content">
+                        <xsl:copy-of select="$rendering"/>
+                    </xsl:result-document>
+                </xsl:for-each>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
     <!-- ............................ extension hooks ............................ -->

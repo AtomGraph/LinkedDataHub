@@ -27,6 +27,5 @@ echo "$results" | grep -q "https://w3id.org/atomgraph/linkeddatahub#TitleConstru
 # the constructor texts are returned (CONSTRUCT templates the client instantiates)
 count=$(echo "$results" | xmllint --xpath "count(//*[local-name() = 'binding'][@name = 'text']/*[local-name() = 'literal'][contains(., 'CONSTRUCT')])" -)
 if [ "$count" -lt 3 ]; then
-  echo "DEBUG: Expected at least 3 constructor texts, got: $count"
   exit 1
 fi

@@ -52,7 +52,7 @@ import picocli.CommandLine.Option;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "import-ontology", description = "Derives class constructors from an external ontology and appends them, with an owl:imports of the source, to a document.")
+@Command(name = "ontology", description = "Derives class constructors from an external ontology and appends them, with an owl:imports of the source, to a document.")
 public class ImportOntology extends BaseCommand
 {
 

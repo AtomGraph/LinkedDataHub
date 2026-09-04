@@ -38,6 +38,7 @@ xmlns:sd="&sd;"
 xmlns:sp="&sp;"
 xmlns:spin="&spin;"
 xmlns:foaf="&foaf;"
+xmlns:dct="&dct;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
@@ -70,6 +71,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="mode" select="descendant::*[@property = '&ac;mode']/@resource" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="query-uri" select="descendant::*[@property = '&spin;query']/@resource" as="xs:anyURI"/>
+        <!-- footer emitted below the results by ldh:RenderViewResults, the same slot bs2:Chart offers charts.
+             Empty for a saved view block; the query block fills it with its Create button -->
+        <xsl:param name="form-actions" as="element()?"/>
 
         <!-- create cache entry for the block -->
         <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block/@about || '`'))">
@@ -94,6 +98,7 @@ exclude-result-prefixes="#all"
             'mode': $mode,
             'refresh-content': $refresh-content,
             'query-uri': $query-uri,
+            'form-actions': $form-actions,
             'cache': ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block/@about || '`')
           }"/>
 
@@ -183,16 +188,7 @@ exclude-result-prefixes="#all"
                     <xsl:sequence select="$context"/>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:for-each select="$container">
-                        <xsl:result-document href="?." method="ixsl:replace-content">
-                            <div class="alert alert-block">
-                                <strong>Could not load query results from <a href="{$endpoint}"><xsl:value-of select="$endpoint"/></a></strong>
-                                <pre>
-                                    <xsl:value-of select="$response?message"/>
-                                </pre>
-                            </div>
-                        </xsl:result-document>
-                    </xsl:for-each>
+                    <xsl:sequence select="ldh:render-block-error($container, 'block-query-failed', ldh:http-error-key($response?status), $endpoint, $response)"/>
 
                     <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
 
@@ -287,10 +283,10 @@ exclude-result-prefixes="#all"
         </li>
     </xsl:template>
     
-    <!-- facet predicate block -->
+    <!-- facet predicate block: a toolbar dropdown — the pill button opens a popover of value checkboxes -->
     <xsl:template match="rdf:Description[@rdf:about]" mode="bs2:FilterIn">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'sidebar-nav faceted-nav'" as="xs:string?"/>
+        <xsl:param name="class" select="'facet faceted-nav'" as="xs:string?"/>
         <xsl:param name="subject-var-name" as="xs:string"/>
         <xsl:param name="object-var-name" as="xs:string"/>
 
@@ -302,16 +298,18 @@ exclude-result-prefixes="#all"
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
-            <h2 class="nav-header btn" title="{@rdf:about}">
-                <xsl:value-of>
-                    <xsl:apply-templates select="." mode="ac:label"/>
-                </xsl:value-of>
+            <button type="button" class="facet-pill nav-header" title="{@rdf:about}">
+                <span>
+                    <xsl:value-of>
+                        <xsl:apply-templates select="." mode="ac:label"/>
+                    </xsl:value-of>
+                </span>
 
-                <span class="caret caret-reversed pull-right"></span>
+                <span class="caret"></span>
                 <input type="hidden" name="subject" value="{$subject-var-name}"/>
                 <input type="hidden" name="predicate" value="{@rdf:about}"/>
                 <input type="hidden" name="object" value="{$object-var-name}"/>
-            </h2>
+            </button>
 
             <!-- facet values will be loaded into an <ul> here -->
         </div>
@@ -321,6 +319,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="ldh:ResultCount">
         <xsl:context-item as="element()" use="required"/>
+        <xsl:param name="container-id" as="xs:string?"/>
         <xsl:param name="count-var-name" select="'count'" as="xs:string"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
@@ -359,6 +358,7 @@ exclude-result-prefixes="#all"
           map {
             'request': $request,
             'container': .,
+            'container-id': $container-id,
             'count-var-name': $count-var-name,
             'cache': $cache
           }"/>
@@ -372,43 +372,134 @@ exclude-result-prefixes="#all"
     
     <!-- pager -->
 
-    <xsl:template name="bs2:PagerList">
+    <xsl:template name="bs2:Pager">
+        <xsl:param name="container-id" as="xs:string?"/>
         <xsl:param name="result-count" as="xs:integer?"/>
         <xsl:param name="select-xml" as="document-node()"/>
+        <xsl:param name="total-count" as="xs:integer?"/>
         <xsl:variable name="offset" select="if ($select-xml/json:map/json:number[@key = 'offset']) then xs:integer($select-xml/json:map/json:number[@key = 'offset']) else 0" as="xs:integer"/>
         <xsl:variable name="limit" select="if ($select-xml/json:map/json:number[@key = 'limit']) then xs:integer($select-xml/json:map/json:number[@key = 'limit']) else 0" as="xs:integer"/>
-        <xsl:variable name="show" select="($offset - $limit) &gt;= 0 or $result-count &gt;= $limit" as="xs:boolean"/>
+        <xsl:variable name="show" select="$limit gt 0 and (($offset - $limit) ge 0 or $result-count ge $limit)" as="xs:boolean"/>
 
         <!-- do not show pagination if the children document count is less than the page limit -->
         <xsl:if test="$show">
-            <ul class="pager">
-                <li class="previous">
-                    <xsl:choose>
-                        <xsl:when test="($offset - $limit) &gt;= 0">
-                            <a class="active">
-                                <!-- event listener will handle the click -->
-                            </a>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:attribute name="class" select="'previous disabled'"/>
-                            <a></a>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </li>
-                <li class="next">
-                    <xsl:choose>
-                        <xsl:when test="$result-count &gt;= $limit">
-                            <a class="active">
-                                <!-- event listener will handle the click -->
-                            </a>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:attribute name="class" select="'next disabled'"/>
-                            <a></a>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </li>
-            </ul>
+            <div class="ldh-pager" role="navigation">
+                <xsl:call-template name="bs2:PagerControls">
+                    <xsl:with-param name="container-id" select="$container-id"/>
+                    <xsl:with-param name="result-count" select="$result-count"/>
+                    <xsl:with-param name="select-xml" select="$select-xml"/>
+                    <xsl:with-param name="total-count" select="$total-count"/>
+                </xsl:call-template>
+            </div>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- the three pager zones (page-size selector · prev/status/next · page count), re-rendered by ldh:result-count-response once the COUNT total arrives -->
+    <xsl:template name="bs2:PagerControls">
+        <xsl:param name="container-id" as="xs:string?"/>
+        <xsl:param name="result-count" as="xs:integer?"/>
+        <xsl:param name="select-xml" as="document-node()"/>
+        <xsl:param name="total-count" as="xs:integer?"/>
+        <xsl:variable name="offset" select="if ($select-xml/json:map/json:number[@key = 'offset']) then xs:integer($select-xml/json:map/json:number[@key = 'offset']) else 0" as="xs:integer"/>
+        <xsl:variable name="limit" select="if ($select-xml/json:map/json:number[@key = 'limit']) then xs:integer($select-xml/json:map/json:number[@key = 'limit']) else 0" as="xs:integer"/>
+        <xsl:variable name="select-id" select="$container-id ! (. || '-pager-size')" as="xs:string?"/>
+
+        <div class="ldh-pager-size">
+            <label>
+                <xsl:if test="$select-id">
+                    <xsl:attribute name="for" select="$select-id"/>
+                </xsl:if>
+
+                <xsl:apply-templates select="key('resources', 'rows-per-page', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+            </label>
+            <div class="ldh-pager-select">
+                <select class="pager-size" title="{ac:label(key('resources', 'rows-per-page', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
+                    <xsl:if test="$select-id">
+                        <xsl:attribute name="id" select="$select-id"/>
+                    </xsl:if>
+
+                    <xsl:for-each select="distinct-values(((20, 50, 100), $limit[. gt 0]))">
+                        <xsl:sort select="." data-type="number"/>
+
+                        <option value="{.}">
+                            <xsl:if test=". = $limit">
+                                <xsl:attribute name="selected">selected</xsl:attribute>
+                            </xsl:if>
+
+                            <xsl:value-of select="."/>
+                        </option>
+                    </xsl:for-each>
+                </select>
+                <span class="msi sm caret" aria-hidden="true">unfold_more</span>
+            </div>
+        </div>
+
+        <div class="ldh-pager-nav">
+            <xsl:choose>
+                <xsl:when test="($offset - $limit) ge 0">
+                    <a class="ldhc-btn in-neutral ap-outline sz-sm pager-prev">
+                        <span class="msi outline sm" aria-hidden="true">chevron_left</span>
+                        <span>
+                            <xsl:apply-templates select="key('resources', 'previous', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </span>
+                    </a>
+                </xsl:when>
+                <xsl:otherwise>
+                    <button type="button" class="ldhc-btn in-neutral ap-outline sz-sm" disabled="disabled" aria-disabled="true">
+                        <span class="msi outline sm" aria-hidden="true">chevron_left</span>
+                        <span>
+                            <xsl:apply-templates select="key('resources', 'previous', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </span>
+                    </button>
+                </xsl:otherwise>
+            </xsl:choose>
+
+            <span class="ldh-pager-status">
+                <b>
+                    <xsl:value-of select="$offset + 1"/>
+                    <xsl:text>&#8211;</xsl:text>
+                    <xsl:value-of select="$offset + ($result-count, 0)[1]"/>
+                </b>
+                <xsl:if test="exists($total-count)">
+                    <span class="of">
+                        <xsl:apply-templates select="key('resources', 'of', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        <xsl:text> </xsl:text>
+                        <xsl:value-of select="$total-count"/>
+                    </span>
+                </xsl:if>
+            </span>
+
+            <!-- next stays active while the current page is full and, when the total is known, rows remain beyond it -->
+            <xsl:choose>
+                <xsl:when test="$result-count ge $limit and (empty($total-count) or ($offset + $limit) lt $total-count)">
+                    <a class="ldhc-btn in-neutral ap-outline sz-sm pager-next">
+                        <span>
+                            <xsl:apply-templates select="key('resources', 'next', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </span>
+                        <span class="msi outline sm" aria-hidden="true">chevron_right</span>
+                    </a>
+                </xsl:when>
+                <xsl:otherwise>
+                    <button type="button" class="ldhc-btn in-neutral ap-outline sz-sm" disabled="disabled" aria-disabled="true">
+                        <span>
+                            <xsl:apply-templates select="key('resources', 'next', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </span>
+                        <span class="msi outline sm" aria-hidden="true">chevron_right</span>
+                    </button>
+                </xsl:otherwise>
+            </xsl:choose>
+        </div>
+
+        <xsl:if test="exists($total-count) and $limit gt 0">
+            <div class="ldh-pager-page">
+                <xsl:apply-templates select="key('resources', 'page', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                <xsl:text> </xsl:text>
+                <b>
+                    <xsl:value-of select="$offset idiv $limit + 1"/>
+                </b>
+                <xsl:text> / </xsl:text>
+                <xsl:value-of select="max((xs:integer(ceiling($total-count div $limit)), 1))"/>
+            </div>
         </xsl:if>
     </xsl:template>
 
@@ -429,19 +520,19 @@ exclude-result-prefixes="#all"
             </xsl:map>
         </xsl:param>
 
-        <div class="btn-group pull-right">
+        <div class="ldh-mode btn-group">
             <button type="button" title="{ac:label(key('resources', '&ac;Mode', document(ac:document-uri('&ac;'))))}">
                 <xsl:if test="$id">
                     <xsl:attribute name="id" select="$id"/>
                 </xsl:if>
 
-                <xsl:attribute name="class" select="'btn dropdown-toggle ' || (map:get($mode-button-classes, string($active-mode)), 'btn-read')[1]"/>
+                <xsl:attribute name="class" select="'dropdown-toggle ' || (map:get($mode-button-classes, string($active-mode)), 'btn-read')[1]"/>
 
-                <xsl:text> </xsl:text>
-                <span class="caret"></span>
+                <span class="msi sm" aria-hidden="true"><xsl:value-of select="(map:get($ldh:mode-icons, string($active-mode)), 'view_list')[1]"/></span>
+                <span class="msi caret" aria-hidden="true">expand_more</span>
             </button>
 
-            <ul class="dropdown-menu view-mode-list">
+            <div class="modes-pop view-mode-list">
                 <xsl:for-each select="('&ac;ReadMode', '&ac;ListMode', '&ac;TableMode', '&ac;GridMode', '&ac;ChartMode', '&ac;MapMode', '&ac;GraphMode')">
                     <xsl:for-each select="key('resources', ., document(ac:document-uri('&ac;')))">
                         <xsl:apply-templates select="." mode="bs2:ModeListItem">
@@ -450,10 +541,10 @@ exclude-result-prefixes="#all"
                         </xsl:apply-templates>
                     </xsl:for-each>
                 </xsl:for-each>
-            </ul>
+            </div>
         </div>
     </xsl:template>
-    
+
     <!-- render view -->
     
     <xsl:template name="ldh:RenderView">
@@ -466,6 +557,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="cache" as="item()"/>
+        <!-- carried into the returned context so it survives to ldh:RenderViewResults. Only the initial load
+             emits it, so the re-render call sites (paging, sort, facets) leave it empty and lose nothing -->
+        <xsl:param name="form-actions" as="element()?"/>
 
         <!-- wrap SELECT into a DESCRIBE -->
         <xsl:variable name="query-xml" as="element()">
@@ -496,6 +590,7 @@ exclude-result-prefixes="#all"
             'initial-var-name': $initial-var-name,
             'focus-var-name': $focus-var-name,
             'endpoint': $endpoint,
+            'form-actions': $form-actions,
             'cache': $cache
           }"/>
     </xsl:template>
@@ -504,13 +599,32 @@ exclude-result-prefixes="#all"
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="direction" as="xs:string"/> <!-- 'previous' or 'next' -->
 
+        <!-- step by the query's own LIMIT so paging stays aligned after the page size is changed -->
+        <xsl:variable name="limit" select="if ($select-xml/json:map/json:number[@key = 'limit']) then xs:integer($select-xml/json:map/json:number[@key = 'limit']) else $page-size" as="xs:integer"/>
         <xsl:variable name="offset" select="if ($select-xml/json:map/json:number[@key = 'offset']) then xs:integer($select-xml/json:map/json:number[@key = 'offset']) else 0" as="xs:integer"/>
-        <xsl:variable name="offset" select="if ($direction = 'previous') then $offset - $page-size else $offset + $page-size" as="xs:integer"/>
+        <xsl:variable name="offset" select="if ($direction = 'previous') then $offset - $limit else $offset + $limit" as="xs:integer"/>
 
         <xsl:document>
             <xsl:apply-templates select="$select-xml" mode="ldh:replace-offset">
                 <xsl:with-param name="offset" select="$offset" tunnel="yes"/>
             </xsl:apply-templates>
+        </xsl:document>
+    </xsl:template>
+
+    <xsl:template name="ldh:ViewLimit">
+        <xsl:param name="select-xml" as="document-node()"/>
+        <xsl:param name="limit" as="xs:integer"/>
+
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="$select-xml" mode="ldh:replace-limit">
+                    <xsl:with-param name="limit" select="$limit" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
+        <!-- a new page size restarts paging from the first page (no tunneled $offset removes OFFSET) -->
+        <xsl:document>
+            <xsl:apply-templates select="$select-xml" mode="ldh:replace-offset"/>
         </xsl:document>
     </xsl:template>
 
@@ -536,6 +650,45 @@ exclude-result-prefixes="#all"
         </xsl:document>
     </xsl:template>
 
+    <xsl:template name="ldh:ViewFilter">
+        <xsl:param name="select-xml" as="document-node()"/>
+        <xsl:param name="var-name" as="xs:string"/>
+        <xsl:param name="values" as="array(map(xs:string, xs:string))"/>
+
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="$select-xml" mode="ldh:filter-in">
+                    <xsl:with-param name="var-name" select="$var-name" tunnel="yes"/>
+                    <xsl:with-param name="values" select="$values" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
+        <!-- a changed filter changes the result set, so paging restarts from the first page (no tunneled $offset removes OFFSET) -->
+        <xsl:document>
+            <xsl:apply-templates select="$select-xml" mode="ldh:replace-offset"/>
+        </xsl:document>
+    </xsl:template>
+
+    <xsl:template name="ldh:ViewParallax">
+        <xsl:param name="select-xml" as="document-node()"/>
+        <xsl:param name="predicate" as="xs:anyURI"/>
+        <!-- an inverse step pivots onto the subjects pointing at the current results, rather than onto their objects -->
+        <xsl:param name="inverse" select="false()" as="xs:boolean"/>
+
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="$select-xml" mode="ldh:add-parallax-step">
+                    <xsl:with-param name="predicate" select="$predicate" tunnel="yes"/>
+                    <xsl:with-param name="inverse" select="$inverse" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
+        <!-- a parallax step changes the result set, so paging restarts from the first page (no tunneled $offset removes OFFSET) -->
+        <xsl:document>
+            <xsl:apply-templates select="$select-xml" mode="ldh:replace-offset"/>
+        </xsl:document>
+    </xsl:template>
+
     <!-- $container here is the inner result container, not the content container! -->
     <xsl:template name="ldh:RenderViewMode">
         <xsl:param name="container" as="element()"/>
@@ -545,10 +698,16 @@ exclude-result-prefixes="#all"
         <xsl:param name="object-metadata" as="document-node()?"/>
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
+        <xsl:param name="var-predicates" as="map(xs:string, xs:anyURI*)?"/>
+        <xsl:param name="order-by-var-name" select="$select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:string[@key = 'expression']/substring-after(., '?')" as="xs:string?"/>
+        <xsl:param name="order-by-desc" select="$select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:boolean[@key = 'descending']" as="xs:boolean?"/>
         <xsl:param name="cache" as="item()"/>
 
         <!-- Skip ViewModeChoice replace-content for GraphMode: its canvas lives in the persistent graph-host (sibling of $container), not in container-results, so re-rendering this area would only churn unused DOM. -->
         <xsl:if test="not($active-mode = '&ac;GraphMode')">
+            <!-- total cached by ldh:result-count-response (or the exact-count short-circuit); empty until the first COUNT response arrives -->
+            <xsl:variable name="total-count" select="if (ixsl:contains($cache, 'result-count')) then xs:integer(ixsl:get($cache, 'result-count')) else ()" as="xs:integer?"/>
+
             <xsl:for-each select="$container">
                 <xsl:result-document href="?." method="ixsl:replace-content">
                     <xsl:call-template name="ldh:ViewModeChoice">
@@ -558,6 +717,10 @@ exclude-result-prefixes="#all"
                         <xsl:with-param name="results" select="$results"/>
                         <xsl:with-param name="active-mode" select="$active-mode"/>
                         <xsl:with-param name="object-metadata" select="$object-metadata"/>
+                        <xsl:with-param name="total-count" select="$total-count"/>
+                        <xsl:with-param name="var-predicates" select="$var-predicates"/>
+                        <xsl:with-param name="order-by-var-name" select="$order-by-var-name"/>
+                        <xsl:with-param name="order-by-desc" select="$order-by-desc"/>
                     </xsl:call-template>
                 </xsl:result-document>
             </xsl:for-each>
@@ -592,7 +755,7 @@ exclude-result-prefixes="#all"
                 </xsl:document>
             </xsl:variable>
 
-            <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+            <xsl:sequence select="ldh:busy-cursor()"/>
 
             <xsl:variable name="canvas-id" select="$container-id || '-map-canvas'" as="xs:string"/>
             <xsl:variable name="initial-load" select="not(ixsl:contains($cache, 'map'))" as="xs:boolean"/>
@@ -698,22 +861,6 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
     
-    <xsl:template name="render-container-error">
-        <xsl:param name="container" as="element()"/>
-        <xsl:param name="message" as="xs:string"/>
-
-        <xsl:for-each select="$container">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <div class="alert alert-block">
-                    <strong>Error during query execution:</strong>
-                    <pre>
-                        <xsl:value-of select="$message"/>
-                    </pre>
-                </div>
-            </xsl:result-document>
-        </xsl:for-each>
-    </xsl:template>
-    
     <!-- view mode choice -->
     
     <xsl:template name="ldh:ViewModeChoice">
@@ -723,42 +870,60 @@ exclude-result-prefixes="#all"
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="object-metadata" as="document-node()?"/>
         <xsl:param name="active-mode" as="xs:anyURI"/>
+        <xsl:param name="total-count" as="xs:integer?"/>
+        <xsl:param name="var-predicates" as="map(xs:string, xs:anyURI*)?"/>
+        <xsl:param name="order-by-var-name" select="$select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:string[@key = 'expression']/substring-after(., '?')" as="xs:string?"/>
+        <xsl:param name="order-by-desc" select="$select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:boolean[@key = 'descending']" as="xs:boolean?"/>
 
         <xsl:choose>
             <xsl:when test="$active-mode = '&ac;ListMode'">
                 <xsl:apply-templates select="$results" mode="bs2:ContainerBlockList">
+                    <xsl:with-param name="container-id" select="$container-id"/>
                     <xsl:with-param name="select-xml" select="$select-xml"/>
+                    <xsl:with-param name="total-count" select="$total-count"/>
                     <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
                     <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:when test="$active-mode = '&ac;TableMode'">
                 <xsl:apply-templates select="$results" mode="bs2:ContainerTable">
+                    <xsl:with-param name="container-id" select="$container-id"/>
                     <xsl:with-param name="select-xml" select="$select-xml"/>
+                    <xsl:with-param name="total-count" select="$total-count"/>
+                    <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
                     <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                     <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
+                    <xsl:with-param name="var-predicates" select="$var-predicates" tunnel="yes"/>
+                    <xsl:with-param name="order-by-var-name" select="$order-by-var-name" tunnel="yes"/>
+                    <xsl:with-param name="order-by-desc" select="$order-by-desc" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:when test="$active-mode = '&ac;GridMode'">
                 <xsl:apply-templates select="$results" mode="bs2:ContainerGrid">
+                    <xsl:with-param name="container-id" select="$container-id"/>
                     <xsl:with-param name="select-xml" select="$select-xml"/>
+                    <xsl:with-param name="total-count" select="$total-count"/>
+                    <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
                     <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:when test="$active-mode = '&ac;ChartMode'">
                 <xsl:apply-templates select="$results" mode="bs2:Chart">
+                    <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
                     <xsl:with-param name="canvas-id" select="$container-id || '-chart-canvas'"/>
                     <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:when test="$active-mode = '&ac;MapMode'">
                 <xsl:apply-templates select="$results" mode="bs2:Map">
+                    <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
                     <xsl:with-param name="id" select="$container-id || '-map-canvas'"/>
                     <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:when test="$active-mode = '&ac;GraphMode'">
                 <xsl:apply-templates select="$results" mode="bs2:Graph">
+                    <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
                     <xsl:with-param name="canvas-id" select="$container-id || '-graph-canvas'"/>
                     <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
                 </xsl:apply-templates>
@@ -791,6 +956,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="object-metadata" as="document-node()?"/>
         <xsl:param name="property-metadata" as="document-node()?"/>
         <xsl:param name="cache" as="item()"/>
+        <xsl:param name="form-actions" as="element()?"/>
         <!-- if  the container is full-width row (.row-fluid), render results in the middle column (.main) -->
         <xsl:variable name="order-by-container-id" select="$container-id || '-container-order'" as="xs:string"/>
         <xsl:variable name="container-results-id" select="$container-id || '-container-results'" as="xs:string"/>
@@ -810,98 +976,132 @@ exclude-result-prefixes="#all"
                     </h2>
                 </xsl:where-populated>
 
-                <xsl:call-template name="bs2:ViewModeList">
-                    <xsl:with-param name="active-mode" select="$active-mode"/>
-                </xsl:call-template>
+                <div class="ldh-view-toolbar">
+                    <div class="left">
+                        <span class="facet-lead">
+                            <xsl:attribute name="title">
+                                <xsl:apply-templates select="key('resources', 'filter-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            </xsl:attribute>
 
-                <div class="pull-right">
-                    <form class="form-inline">
-                        <label for="{$order-by-container-id}">
-                            <!-- currently no space for the label in the layout -->
-                            <!--<xsl:text>Order by </xsl:text>-->
+                            <span class="msi sm" aria-hidden="true">filter_alt</span>
+                        </span>
+                        <!-- applied parallax steps render here as removable chips (ldh:RenderParallaxSteps) -->
+                        <span class="parallax-steps"></span>
+                        <!-- facet pills are appended here by ldh:RenderFacets -->
+                    </div>
+                    <div class="right">
+                        <!-- inline creation: Create button for views carrying ldh:container metadata (stamped as data-* attributes by ldh:ontology-view-insert, RDFa as fallback for hand-authored view blocks). PUT into the container requires acl:Write there (checked on the parent URI for new documents); forward views additionally PATCH the linking triple into the current document, hence acl:Write here too -->
+                        <xsl:variable name="view-block" select="$container/ancestor::div[contains-token(@class, 'block')][1]" as="element()?"/>
+                        <xsl:variable name="create-container" select="($view-block/@data-container, $container/descendant::*[@property = '&ldh;container']/@resource)[1]" as="xs:string?"/>
+                        <xsl:variable name="create-for-class" select="$view-block/@data-for-class" as="xs:string?"/>
+                        <xsl:if test="exists($create-container) and exists($create-for-class) and tokenize($view-block/@data-acl-modes, ' ') = '&acl;Write' and (exists($view-block/@data-inverse) or acl:mode() = '&acl;Write')">
+                            <button type="button" class="ldhc-btn in-primary ap-solid sz-sm add-instance" data-for-class="{$create-for-class}" data-container="{$create-container}" title="{ac:label(key('resources', 'create-instance-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </button>
+                        </xsl:if>
 
-                            <select id="{$order-by-container-id}" name="order-by" class="input-medium container-order">
-                                <!-- show the default option if the container query does not have an ORDER BY -->
-                                <xsl:if test="not($select-xml/json:map/json:array[@key = 'order'])">
-                                    <option>
-                                        <xsl:value-of>
-                                            <xsl:text>[</xsl:text>
-                                            <xsl:apply-templates select="key('resources', 'none', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                            <xsl:text>]</xsl:text>
-                                        </xsl:value-of>
-                                    </option>
-                                </xsl:if>
-                                <!-- emit all order-by options synchronously: a single-predicate var takes its label from the /ns property-metadata (falling back to the predicate's local name), an alt-path-bound var uses the var name (no single canonical predicate URI) -->
-                                <xsl:for-each select="map:keys($var-predicates)">
-                                    <xsl:sort select="."/>
-                                    <xsl:variable name="var-name" select="." as="xs:string"/>
-                                    <xsl:variable name="predicates" select="$var-predicates(.)" as="xs:anyURI*"/>
-                                    <option value="{$var-name}">
-                                        <xsl:if test="$var-name = $order-by-var-name">
-                                            <xsl:attribute name="selected">selected</xsl:attribute>
+                        <p id="{$result-count-container-id}" class="result-count count"/>
+
+                        <!-- no sortable variables means an empty order-by dropdown, so the sort controls stay out of the toolbar altogether -->
+                        <xsl:if test="map:size($var-predicates) gt 0">
+                            <form class="form-inline">
+                                <label for="{$order-by-container-id}">
+                                    <!-- currently no space for the label in the layout -->
+                                    <!--<xsl:text>Order by </xsl:text>-->
+
+                                    <select id="{$order-by-container-id}" name="order-by" class="container-order">
+                                        <!-- show the default option if the container query does not have an ORDER BY -->
+                                        <xsl:if test="not($select-xml/json:map/json:array[@key = 'order'])">
+                                            <option>
+                                                <xsl:value-of>
+                                                    <xsl:text>[</xsl:text>
+                                                    <xsl:apply-templates select="key('resources', 'none', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                                    <xsl:text>]</xsl:text>
+                                                </xsl:value-of>
+                                            </option>
                                         </xsl:if>
-                                        <xsl:choose>
-                                            <xsl:when test="count($predicates) eq 1">
-                                                <xsl:variable name="predicate" select="$predicates[1]" as="xs:anyURI"/>
-                                                <xsl:variable name="predicate-desc" select="$property-metadata!key('resources', $predicate, .)" as="element()?"/>
+                                        <!-- emit all order-by options synchronously: a single-predicate var takes its label from the /ns property-metadata (falling back to the predicate's local name), an alt-path-bound var uses the var name (no single canonical predicate URI) -->
+                                        <xsl:for-each select="map:keys($var-predicates)">
+                                            <xsl:sort select="."/>
+                                            <xsl:variable name="var-name" select="." as="xs:string"/>
+                                            <xsl:variable name="predicates" select="$var-predicates(.)" as="xs:anyURI*"/>
+                                            <option value="{$var-name}">
+                                                <xsl:if test="$var-name = $order-by-var-name">
+                                                    <xsl:attribute name="selected">selected</xsl:attribute>
+                                                </xsl:if>
                                                 <xsl:choose>
-                                                    <xsl:when test="exists($predicate-desc)">
-                                                        <xsl:apply-templates select="$predicate-desc" mode="ac:label"/>
+                                                    <xsl:when test="count($predicates) eq 1">
+                                                        <xsl:variable name="predicate" select="$predicates[1]" as="xs:anyURI"/>
+                                                        <xsl:variable name="predicate-desc" select="$property-metadata!key('resources', $predicate, .)" as="element()?"/>
+                                                        <xsl:choose>
+                                                            <xsl:when test="exists($predicate-desc)">
+                                                                <xsl:apply-templates select="$predicate-desc" mode="ac:label"/>
+                                                            </xsl:when>
+                                                            <xsl:otherwise>
+                                                                <xsl:value-of select="tokenize($predicate, '[/#]')[last()]"/>
+                                                            </xsl:otherwise>
+                                                        </xsl:choose>
                                                     </xsl:when>
                                                     <xsl:otherwise>
-                                                        <xsl:value-of select="tokenize($predicate, '[/#]')[last()]"/>
+                                                        <xsl:value-of select="$var-name"/>
                                                     </xsl:otherwise>
                                                 </xsl:choose>
-                                            </xsl:when>
-                                            <xsl:otherwise>
-                                                <xsl:value-of select="$var-name"/>
-                                            </xsl:otherwise>
-                                        </xsl:choose>
-                                    </option>
-                                </xsl:for-each>
-                            </select>
+                                            </option>
+                                        </xsl:for-each>
+                                    </select>
 
-                            <xsl:choose>
-                                <xsl:when test="not($desc)">
-                                    <button type="button" class="btn btn-order-by">
-                                        <xsl:value-of>
-                                            <xsl:apply-templates select="key('resources', 'ascending', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                        </xsl:value-of>
+                                    <!-- both direction labels are baked in and an empty arrow span mirrors the column headers; the CSR handlers only flip btn-order-by-desc, so CSS keyed on that class picks the visible label and the ::before glyph -->
+                                    <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm btn-order-by{if ($desc) then ' btn-order-by-desc' else ()}">
+                                        <span class="dir-asc">
+                                            <xsl:value-of>
+                                                <xsl:apply-templates select="key('resources', 'ascending', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                            </xsl:value-of>
+                                        </span>
+                                        <span class="dir-desc">
+                                            <xsl:value-of>
+                                                <xsl:apply-templates select="key('resources', 'descending', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                            </xsl:value-of>
+                                        </span>
+                                        <span class="msi sm sort-arrow" aria-hidden="true"></span>
                                     </button>
-                                </xsl:when>
-                                <xsl:otherwise>
-                                    <button type="button" class="btn btn-order-by btn-order-by-desc">
-                                        <xsl:value-of>
-                                            <xsl:apply-templates select="key('resources', 'descending', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                        </xsl:value-of>
-                                    </button>
-                                </xsl:otherwise>
-                            </xsl:choose>
-                        </label>
-                    </form>
+                                </label>
+                            </form>
+                        </xsl:if>
+
+                        <xsl:call-template name="bs2:ViewModeList">
+                            <xsl:with-param name="active-mode" select="$active-mode"/>
+                        </xsl:call-template>
+
+                        <xsl:apply-templates select="." mode="ldh:BlockLinksPopover"/>
+
+                        <xsl:apply-templates select="." mode="ldh:CopyUriButton"/>
+                    </div>
                 </div>
 
-                <!-- inline creation: Create button for views carrying ldh:container metadata (stamped as data-* attributes by ldh:ontology-view-insert, RDFa as fallback for hand-authored view blocks). Floated last so it lines up left of the mandatory order-by/mode controls, which keep their position across views. PUT into the container requires acl:Write there (checked on the parent URI for new documents); forward views additionally PATCH the linking triple into the current document, hence acl:Write here too -->
-                <xsl:variable name="view-block" select="$container/ancestor::div[contains-token(@class, 'block')][1]" as="element()?"/>
-                <xsl:variable name="create-container" select="($view-block/@data-container, $container/descendant::*[@property = '&ldh;container']/@resource)[1]" as="xs:string?"/>
-                <xsl:variable name="create-for-class" select="$view-block/@data-for-class" as="xs:string?"/>
-                <xsl:if test="exists($create-container) and exists($create-for-class) and tokenize($view-block/@data-acl-modes, ' ') = '&acl;Write' and (exists($view-block/@data-inverse) or acl:mode() = '&acl;Write')">
-                    <div class="pull-right">
-                        <button type="button" class="btn btn-primary add-instance" data-for-class="{$create-for-class}" data-container="{$create-container}" title="{ac:label(key('resources', 'create-instance-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                    </div>
-                </xsl:if>
+                <!-- parallax row: the second row of the view's control header. Query inputs (filters, sort, modes) stay in the toolbar above; onward pivots derived from the current result set land here, filled by bs2:ParallaxNav after every results render. Hidden by CSS while it has no chips. -->
+                <div class="parallax-nav">
+                    <span class="plabel">
+                        <!-- the chips carry their own direction arrows, so the row's own glyph stays neutral -->
+                        <span class="msi sm" aria-hidden="true">alt_route</span>
+                        <span class="ldhc-vh">
+                            <xsl:apply-templates select="key('resources', 'related-results', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </span>
+                    </span>
+
+                    <div id="{$container-id}-parallax-properties" class="pchips"></div>
+                </div>
 
                 <div>
-                    <p id="{$result-count-container-id}" class="result-count"/>
-
                     <!-- persistent host for the 3d-force-graph canvas; lives for the lifetime of this view block so the WebGL context + simulation state survive re-renders. Hidden when active-mode is not GraphMode. -->
                     <div id="{$container-id}-graph-host" class="graph-3d-host" style="display: none;"></div>
                     <div id="{$container-results-id}" class="container-results"></div>
                 </div>
+
+                <!-- outside .container-results on purpose: ldh:RenderViewMode replaces that div's content on
+                     every mode, facet, sort and page change, which would take the footer with it -->
+                <xsl:sequence select="$form-actions"/>
             </xsl:result-document>
         </xsl:if>
 
@@ -923,6 +1123,9 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <xsl:when test="$offset = 0 and ($limit = 0 or $exact-count lt $limit)">
+                <!-- the whole result set fits on one page, so its size is the total -->
+                <ixsl:set-property name="result-count" select="$exact-count" object="$cache"/>
+
                 <xsl:for-each select="id($result-count-container-id, ixsl:page())">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <strong>
@@ -937,6 +1140,7 @@ exclude-result-prefixes="#all"
             <xsl:otherwise>
                 <xsl:for-each select="id($result-count-container-id, ixsl:page())">
                     <xsl:call-template name="ldh:ResultCount">
+                        <xsl:with-param name="container-id" select="$container-id"/>
                         <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                         <xsl:with-param name="endpoint" select="$endpoint"/>
                         <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -954,6 +1158,9 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="object-metadata" select="$object-metadata"/>
             <xsl:with-param name="active-mode" select="$active-mode"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
+            <xsl:with-param name="var-predicates" select="$var-predicates"/>
+            <xsl:with-param name="order-by-var-name" select="$order-by-var-name"/>
+            <xsl:with-param name="order-by-desc" select="$desc"/>
             <xsl:with-param name="cache" select="$cache"/>
         </xsl:call-template>
     </xsl:template>
@@ -979,6 +1186,7 @@ exclude-result-prefixes="#all"
             <xsl:result-document href="?." method="ixsl:append-content">
                 <xsl:apply-templates select="." mode="ldh:RenderFacets">
                     <xsl:with-param name="id" select="$sub-container-id"/>
+                    <xsl:with-param name="class" select="'facets'"/>
                 </xsl:apply-templates>
             </xsl:result-document>
 
@@ -1020,7 +1228,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="*" mode="ldh:RenderFacets">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'well well-small'" as="xs:string?"/>
+        <xsl:param name="class" select="()" as="xs:string?"/>
                 
         <div>
             <xsl:if test="$id">
@@ -1035,124 +1243,242 @@ exclude-result-prefixes="#all"
     <!-- block list -->
 
     <xsl:template match="rdf:RDF" mode="bs2:ContainerBlockList" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
+        <xsl:param name="container-id" as="xs:string?"/>
         <xsl:param name="select-xml" as="document-node()"/>
+        <xsl:param name="total-count" as="xs:integer?"/>
         <xsl:variable name="result-count" select="count(rdf:Description)" as="xs:integer"/>
 
-        <xsl:call-template name="bs2:PagerList">
-            <xsl:with-param name="result-count" select="$result-count"/>
-            <xsl:with-param name="select-xml" select="$select-xml"/>
-        </xsl:call-template>
-
-        <xsl:apply-templates select="." mode="bs2:List"/>
-
-        <xsl:call-template name="bs2:PagerList">
-            <xsl:with-param name="result-count" select="$result-count"/>
-            <xsl:with-param name="select-xml" select="$select-xml"/>
-        </xsl:call-template>
-    </xsl:template>
-
-    <xsl:template match="*[key('resources', foaf:primaryTopic/@rdf:resource)]" mode="bs2:List" priority="1">
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'well'" as="xs:string?"/>
-
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-
-            <xsl:apply-templates select="." mode="ldh:logo">
-                <xsl:with-param name="class" select="'well'"/>
-            </xsl:apply-templates>
-            
-            <!-- don't show actions on a document that wraps a thing -->
-            <!--<xsl:apply-templates select="." mode="bs2:Actions"/>-->
-
-            <xsl:apply-templates select="." mode="bs2:TypeList"/>
-
-            <xsl:apply-templates select="." mode="bs2:Timestamp"/>
-            <xsl:text> </xsl:text>
-            <xsl:apply-templates select="@rdf:about | @rdf:nodeID" mode="xhtml:Anchor"/>
-
-            <xsl:apply-templates select="key('resources', foaf:primaryTopic/@rdf:resource)" mode="bs2:Header">
-                <xsl:with-param name="class" select="'well well-small'"/>
-            </xsl:apply-templates>
+        <div class="ldh-list-block">
+            <xsl:apply-templates select="." mode="bs2:List"/>
         </div>
+
+        <xsl:call-template name="bs2:Pager">
+            <xsl:with-param name="container-id" select="$container-id"/>
+            <xsl:with-param name="result-count" select="$result-count"/>
+            <xsl:with-param name="select-xml" select="$select-xml"/>
+            <xsl:with-param name="total-count" select="$total-count"/>
+        </xsl:call-template>
     </xsl:template>
 
     <!-- hide resources that will be shown paired/nested with a document -->
     <xsl:template match="*[key('resources-by-primary-topic', @rdf:about)]" mode="bs2:List" priority="1"/>
-    
-    <xsl:template match="*[*][@rdf:*[local-name() = ('about', 'nodeID')]]" mode="bs2:List" priority="0.8">
-        <xsl:apply-templates select="." mode="bs2:Header"/>
+
+    <!-- a document paired with its primary topic renders as one row carrying the topic's label, description and type -->
+    <xsl:template match="*[*][@rdf:about]" mode="bs2:List" priority="0.8">
+        <xsl:variable name="subject" select="(key('resources', foaf:primaryTopic/@rdf:resource), .)[1]" as="element()"/>
+
+        <a class="row" href="{ldh:href(ac:document-uri(xs:anyURI(@rdf:about)), map{})}" title="{@rdf:about}">
+            <span class="ic">
+                <span class="msi sm" aria-hidden="true">
+                    <xsl:value-of select="(rdf:type/@rdf:resource ! map:get($ldh:class-icons, string(.)), 'description')[1]"/>
+                </span>
+            </span>
+            <span class="ti">
+                <xsl:apply-templates select="$subject" mode="ac:label"/>
+
+                <xsl:where-populated>
+                    <span class="desc">
+                        <xsl:apply-templates select="$subject" mode="ac:description"/>
+                    </span>
+                </xsl:where-populated>
+            </span>
+
+            <xsl:apply-templates select="." mode="ldh:ListRowTimestamp"/>
+            <xsl:apply-templates select="$subject" mode="ldh:ListRowType"/>
+        </a>
+    </xsl:template>
+
+    <xsl:template match="*[*][@rdf:nodeID]" mode="bs2:List" priority="0.8">
+        <div class="row">
+            <span class="ic">
+                <span class="msi sm" aria-hidden="true">
+                    <xsl:value-of select="(rdf:type/@rdf:resource ! map:get($ldh:class-icons, string(.)), 'description')[1]"/>
+                </span>
+            </span>
+            <span class="ti">
+                <xsl:apply-templates select="." mode="ac:label"/>
+
+                <xsl:where-populated>
+                    <span class="desc">
+                        <xsl:apply-templates select="." mode="ac:description"/>
+                    </span>
+                </xsl:where-populated>
+            </span>
+
+            <xsl:apply-templates select="." mode="ldh:ListRowTimestamp"/>
+            <xsl:apply-templates select="." mode="ldh:ListRowType"/>
+        </div>
+    </xsl:template>
+
+    <!-- .ts cell: the latest of dct:created/dct:modified as a short date -->
+    <xsl:template match="*" mode="ldh:ListRowTimestamp">
+        <xsl:variable name="sorted-date-time-properties" as="element()*">
+            <xsl:perform-sort select="(dct:created, dct:modified)[exists(ldh:date-time(string(.)))]">
+                <xsl:sort select="ldh:date-time(string(.))" order="ascending"/>
+            </xsl:perform-sort>
+        </xsl:variable>
+
+        <xsl:for-each select="$sorted-date-time-properties[last()]">
+            <span class="ts">
+                <xsl:value-of select="format-date(xs:date(ldh:date-time(string(.))), '[D] [MNn] [Y]', ac:langs()[1], (), ())"/>
+            </span>
+        </xsl:for-each>
+    </xsl:template>
+
+    <!-- .type cell: the first type by label -->
+    <xsl:template match="*" mode="ldh:ListRowType">
+        <xsl:for-each select="rdf:type/@rdf:resource">
+            <xsl:sort select="ac:object-label(.)" order="ascending" lang="{ac:langs()[1]}"/>
+
+            <xsl:if test="position() = 1">
+                <span class="type">
+                    <xsl:value-of select="ac:object-label(.)"/>
+                </span>
+            </xsl:if>
+        </xsl:for-each>
     </xsl:template>
 
     <!-- grid -->
 
-    <!-- override Web-Client's template to avoid sort by ac:label() -->
+    <!-- override Web-Client's template to avoid sort by ac:label(); the design-system grid lays items out itself, so no row chunking -->
     <xsl:template match="rdf:RDF" mode="bs2:Grid">
-        <xsl:param name="thumbnails-per-row" select="2" as="xs:integer"/>
-        <xsl:param name="sort-property" as="xs:anyURI?"/>
-
-        <xsl:variable name="prelim-items" as="item()*">
-            <xsl:apply-templates mode="#current">
-                <xsl:with-param name="thumbnails-per-row" select="$thumbnails-per-row" tunnel="yes"/>
-            </xsl:apply-templates>
-        </xsl:variable>
-        <xsl:variable name="items" select="$prelim-items/self::*" as="element()*"/>
-        
-        <xsl:for-each-group select="$items" group-adjacent="(position() - 1) idiv $thumbnails-per-row">
-            <div class="row-fluid">
-                <ul class="thumbnails">
-                    <xsl:copy-of select="current-group()"/>
-                </ul>
-            </div>
-        </xsl:for-each-group>
+        <xsl:apply-templates select="*" mode="#current"/>
     </xsl:template>
-    
+
+    <!-- hide resources that will be shown paired/nested with a document -->
+    <xsl:template match="*[key('resources-by-primary-topic', @rdf:about)]" mode="bs2:Grid" priority="1"/>
+
+    <!-- a document paired with its primary topic renders as one card carrying the topic's label and description -->
+    <xsl:template match="*[*][@rdf:about]" mode="bs2:Grid" priority="0.8">
+        <xsl:variable name="subject" select="(key('resources', foaf:primaryTopic/@rdf:resource), .)[1]" as="element()"/>
+        <xsl:variable name="pos" select="position()" as="xs:integer"/>
+
+        <a class="card" href="{ldh:href(ac:document-uri(xs:anyURI(@rdf:about)), map{})}" title="{@rdf:about}">
+            <xsl:choose>
+                <xsl:when test="ac:image($subject)">
+                    <div class="img">
+                        <img src="{ac:image($subject)[1]}" alt="{ac:label($subject)}"/>
+                    </div>
+                </xsl:when>
+                <xsl:otherwise>
+                    <div class="img {('img-sky', 'img-mint', 'img-peach', 'img-lavender', 'img-blush', 'img-sand')[($pos - 1) mod 6 + 1]}">
+                        <span class="msi" aria-hidden="true">
+                            <xsl:value-of select="(rdf:type/@rdf:resource ! map:get($ldh:class-icons, string(.)), 'description')[1]"/>
+                        </span>
+                    </div>
+                </xsl:otherwise>
+            </xsl:choose>
+            <div class="card-body">
+                <span class="ti">
+                    <xsl:apply-templates select="$subject" mode="ac:label"/>
+                </span>
+
+                <xsl:where-populated>
+                    <span class="meta">
+                        <xsl:apply-templates select="$subject" mode="ac:description"/>
+                    </span>
+                </xsl:where-populated>
+            </div>
+        </a>
+    </xsl:template>
+
+    <xsl:template match="*[*][@rdf:nodeID]" mode="bs2:Grid" priority="0.8">
+        <xsl:variable name="pos" select="position()" as="xs:integer"/>
+
+        <div class="card">
+            <xsl:choose>
+                <xsl:when test="ac:image(.)">
+                    <div class="img">
+                        <img src="{ac:image(.)[1]}" alt="{ac:label(.)}"/>
+                    </div>
+                </xsl:when>
+                <xsl:otherwise>
+                    <div class="img {('img-sky', 'img-mint', 'img-peach', 'img-lavender', 'img-blush', 'img-sand')[($pos - 1) mod 6 + 1]}">
+                        <span class="msi" aria-hidden="true">
+                            <xsl:value-of select="(rdf:type/@rdf:resource ! map:get($ldh:class-icons, string(.)), 'description')[1]"/>
+                        </span>
+                    </div>
+                </xsl:otherwise>
+            </xsl:choose>
+            <div class="card-body">
+                <span class="ti">
+                    <xsl:apply-templates select="." mode="ac:label"/>
+                </span>
+
+                <xsl:where-populated>
+                    <span class="meta">
+                        <xsl:apply-templates select="." mode="ac:description"/>
+                    </span>
+                </xsl:where-populated>
+            </div>
+        </div>
+    </xsl:template>
+
     <xsl:template match="rdf:RDF" mode="bs2:ContainerGrid" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
+        <xsl:param name="container-id" as="xs:string?"/>
         <xsl:param name="select-xml" as="document-node()"/>
+        <xsl:param name="total-count" as="xs:integer?"/>
         <xsl:variable name="result-count" select="count(rdf:Description)" as="xs:integer"/>
 
-        <xsl:call-template name="bs2:PagerList">
+        <div class="ldh-grid-block">
+            <xsl:apply-templates select="." mode="bs2:Grid"/>
+        </div>
+
+        <xsl:call-template name="bs2:Pager">
+            <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="result-count" select="$result-count"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
-        </xsl:call-template>
-
-        <xsl:apply-templates select="." mode="bs2:Grid"/>
-
-        <xsl:call-template name="bs2:PagerList">
-            <xsl:with-param name="result-count" select="$result-count"/>
-            <xsl:with-param name="select-xml" select="$select-xml"/>
+            <xsl:with-param name="total-count" select="$total-count"/>
         </xsl:call-template>
     </xsl:template>
-
-    <!-- hide documents that are paired with resources -->
-    <xsl:template match="*[key('resources', foaf:primaryTopic/@rdf:resource)]" mode="bs2:Grid"/>
 
     <!-- table -->
 
     <xsl:template match="rdf:RDF" mode="bs2:ContainerTable" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
+        <xsl:param name="container-id" as="xs:string?"/>
         <xsl:param name="select-xml" as="document-node()"/>
+        <xsl:param name="total-count" as="xs:integer?"/>
         <xsl:variable name="result-count" select="count(rdf:Description)" as="xs:integer"/>
-
-        <xsl:call-template name="bs2:PagerList">
-            <xsl:with-param name="result-count" select="$result-count"/>
-            <xsl:with-param name="select-xml" select="$select-xml"/>
-        </xsl:call-template>
 
         <xsl:apply-templates select="." mode="xhtml:Table"/>
 
-        <xsl:call-template name="bs2:PagerList">
+        <xsl:call-template name="bs2:Pager">
+            <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="result-count" select="$result-count"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
+            <xsl:with-param name="total-count" select="$total-count"/>
         </xsl:call-template>
     </xsl:template>
 
     <!-- hide documents that are paired with resources -->
     <xsl:template match="*[key('resources', foaf:primaryTopic/@rdf:resource)]" mode="xhtml:Table"/>
+
+    <!-- sortable column header: in view tables the column's predicate reverse-maps to a SELECT variable via $var-predicates, so the th carries the var name for the onclick sort. Columns outside the query's BGP (and non-view tables, where no $var-predicates is tunneled) fall through to the plain th -->
+    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*" mode="xhtml:TableHeaderCell">
+        <xsl:param name="var-predicates" as="map(xs:string, xs:anyURI*)?" tunnel="yes"/>
+        <xsl:param name="order-by-var-name" as="xs:string?" tunnel="yes"/>
+        <xsl:param name="order-by-desc" as="xs:boolean?" tunnel="yes"/>
+        <xsl:variable name="predicate" select="concat(namespace-uri(), local-name())" as="xs:string"/>
+        <xsl:variable name="var-name" select="if (exists($var-predicates)) then sort(map:keys($var-predicates))[$predicate = $var-predicates(.)][1] else ()" as="xs:string?"/>
+
+        <xsl:choose>
+            <xsl:when test="exists($var-name)">
+                <th class="sortable" data-var-name="{$var-name}">
+                    <xsl:if test="$var-name = $order-by-var-name">
+                        <xsl:attribute name="aria-sort" select="if ($order-by-desc) then 'descending' else 'ascending'"/>
+                    </xsl:if>
+
+                    <xsl:apply-templates select="."/>
+                    <span class="msi sm sort-arrow" aria-hidden="true">
+                        <xsl:value-of select="if ($var-name = $order-by-var-name and $order-by-desc) then 'arrow_downward' else 'arrow_upward'"/>
+                    </span>
+                </th>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:next-match/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
 
     <!-- graph -->
 
@@ -1164,164 +1490,135 @@ exclude-result-prefixes="#all"
     
     <!-- parallax -->
     
+    <!-- Loads the chips for the parallax row: the predicates linking the result set to the rest of
+         the graph, both outgoing and incoming. Discovery asks the endpoint over the whole result
+         set (LIMIT/OFFSET/ORDER stripped off the subquery) rather than reading the loaded page, so
+         properties held only by resources on other pages are found too, and objects that are dead
+         ends - never subjects themselves - are excluded by the query. -->
     <xsl:template name="bs2:ParallaxNav">
-        <xsl:context-item as="element()" use="required"/>
-        <xsl:param name="sub-container-id" as="xs:string"/>
-        <xsl:param name="results" as="document-node()"/>
-        <xsl:param name="select-xml" as="document-node()"/>
-        <xsl:param name="endpoint" select="xs:anyURI"/>
-        <xsl:param name="properties-container-id" select="$sub-container-id || '-parallax-properties'" as="xs:string"/>
-        <xsl:param name="focus-var-name" as="xs:string"/>
-        
-         <!-- create a container for parallax controls in the right-nav, if it doesn't exist yet -->
-        <xsl:if test="not(id($sub-container-id, ixsl:page()))">
-            <xsl:result-document href="?." method="ixsl:append-content">
-                <xsl:apply-templates select="." mode="bs2:ParallaxNav">
-                    <xsl:with-param name="id" select="$sub-container-id"/>
-                    <xsl:with-param name="properties-container-id" select="$properties-container-id"/>
-                </xsl:apply-templates>
-            </xsl:result-document>
-        </xsl:if>
-        <!-- clear existing properties in the list -->
-        <xsl:for-each select="id($properties-container-id, ixsl:page())">
-            <xsl:result-document href="?." method="ixsl:replace-content"/>
-        </xsl:for-each>
-
-        <!-- only render parallax if the RDF result contains object resources -->
-        <xsl:if test="$results/rdf:RDF/*/*[@rdf:resource]">
-            <xsl:variable name="query-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
-            <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
-            <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
-            <xsl:variable name="request-uri" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
-            <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
-            <xsl:variable name="context" as="map(*)" select="
-              map{
-                'request': $request,
-                'container': id($properties-container-id, ixsl:page()),
-                'var-name': $focus-var-name,
-                'results': $results
-              }"/>
-            <ixsl:promise select="ixsl:http-request($context('request')) =>
-                ixsl:then(ldh:rethread-response($context, ?)) =>
-                ixsl:then(ldh:handle-response#1) =>
-                ixsl:then(ldh:parallax-response#1)"
-                on-failure="ldh:promise-failure#1"/>
-        </xsl:if>
-    </xsl:template>
-
-    <xsl:template match="*" mode="bs2:ParallaxNav">
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'well well-small sidebar-nav parallax-nav'" as="xs:string?"/>
         <xsl:param name="properties-container-id" as="xs:string"/>
+        <xsl:param name="empty-results" as="xs:boolean"/>
+        <xsl:param name="select-xml" as="document-node()"/>
+        <xsl:param name="endpoint" as="xs:anyURI"/>
+        <xsl:param name="focus-var-name" as="xs:string"/>
+        <xsl:param name="property-metadata" as="document-node()?"/>
+        <xsl:param name="cache" as="item()"/>
 
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-            
-            <h2 class="nav-header btn">
-                <xsl:apply-templates select="key('resources', 'related-results', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-            </h2>
+        <!-- the chips container is emitted with the parallax row by ldh:RenderViewResults' initial markup -->
+        <xsl:for-each select="id($properties-container-id, ixsl:page())">
+            <!-- a SELECT * view has no named focus variable to pivot on -->
+            <xsl:if test="not($empty-results) and $focus-var-name != ''">
+                <xsl:variable name="select-xml" as="document-node()">
+                    <xsl:document>
+                        <xsl:apply-templates select="$select-xml" mode="ldh:replace-limit"/>
+                    </xsl:document>
+                </xsl:variable>
+                <xsl:variable name="select-xml" as="document-node()">
+                    <xsl:document>
+                        <xsl:apply-templates select="$select-xml" mode="ldh:replace-offset"/>
+                    </xsl:document>
+                </xsl:variable>
+                <!-- an ordered subquery has to be materialized in full and defeats the outer LIMIT -->
+                <xsl:variable name="select-xml" as="document-node()">
+                    <xsl:document>
+                        <xsl:apply-templates select="$select-xml" mode="ldh:strip-order-by"/>
+                    </xsl:document>
+                </xsl:variable>
+                <!-- deduplicate the focus resources before the property fan-out, unless the query aggregates (re-projecting a GROUP BY query onto a non-grouping variable is invalid SPARQL) -->
+                <xsl:variable name="select-xml" as="document-node()">
+                    <xsl:choose>
+                        <xsl:when test="$select-xml/json:map/json:array[@key = 'group'] or $select-xml/json:map/json:array[@key = 'variables']/json:map">
+                            <xsl:sequence select="$select-xml"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:document>
+                                <xsl:apply-templates select="$select-xml" mode="ldh:replace-variables">
+                                    <xsl:with-param name="var-names" select="$focus-var-name" tunnel="yes"/>
+                                </xsl:apply-templates>
+                            </xsl:document>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:variable>
 
-            <ul id="{$properties-container-id}" class="well well-small nav nav-list">
-                <!-- <li> with properties will go here -->
-            </ul>
-        </div>
+                <!-- paging, sorting and mode switches re-render the view without changing the result set - only re-discover when the stripped query actually differs -->
+                <xsl:variable name="parallax-key" select="serialize($select-xml)" as="xs:string"/>
+                <xsl:if test="not(ixsl:contains($cache, 'parallax-key') and ixsl:get($cache, 'parallax-key') = $parallax-key)">
+                    <ixsl:set-property name="parallax-key" select="$parallax-key" object="$cache"/>
+
+                    <!-- clear chips from the previous result set -->
+                    <xsl:result-document href="?." method="ixsl:replace-content"/>
+
+                    <xsl:variable name="uuid" select="ac:uuid()" as="xs:string"/>
+                    <xsl:variable name="query-xml" as="document-node()">
+                        <xsl:document>
+                            <xsl:apply-templates select="$select-xml" mode="ldh:link-predicates">
+                                <xsl:with-param name="uuid" select="$uuid" tunnel="yes"/>
+                            </xsl:apply-templates>
+                        </xsl:document>
+                    </xsl:variable>
+                    <xsl:variable name="query-json-string" select="xml-to-json($query-xml)" as="xs:string"/>
+                    <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
+                    <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
+                    <xsl:variable name="request-uri" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
+                    <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
+                    <xsl:variable name="context" as="map(*)" select="
+                      map{
+                        'request': $request,
+                        'container': .,
+                        'predicate-var-name': 'predicate' || translate($uuid, '-', '_'),
+                        'inverse-var-name': 'inverse' || translate($uuid, '-', '_'),
+                        'property-metadata': $property-metadata
+                      }"/>
+                    <ixsl:promise select="ixsl:http-request($context('request')) =>
+                        ixsl:then(ldh:rethread-response($context, ?)) =>
+                        ixsl:then(ldh:handle-response#1) =>
+                        ixsl:then(ldh:parallax-response#1)"
+                        on-failure="ldh:promise-failure#1"/>
+                </xsl:if>
+            </xsl:if>
+        </xsl:for-each>
     </xsl:template>
     
+    <!-- resolves the view's client-side cache entry: block-hosted views are keyed by the host block's @about, modal-hosted views (geo/latest/search/class instances) by the container's @id -->
+    <xsl:function name="ldh:view-cache" as="item()">
+        <xsl:param name="container" as="element()"/>
+
+        <xsl:variable name="key" select="($container/ancestor::div[@about][contains-token(@class, 'block')][1]/@about, $container/@id)[1]" as="xs:string"/>
+        <xsl:sequence select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $key || '`')"/>
+    </xsl:function>
+
     <!-- EVENT LISTENERS -->
 
-    <!-- view mode dropdown -->
+    <!-- create view onclick: inserts a row form for a new view block after the query block, bound to the same
+         query resource. Its chart counterpart is the btn-create-chart handler in chart.xsl; both hand off to
+         ldh:CreateBlock (client/block.xsl), which is the document-level create-instance chain. Unlike the
+         chart, a view has no presentation settings to read off the results, so the query is all it carries. -->
 
-    <xsl:template match="div[@about][contains-token(@class, 'block')]//div[@typeof = '&ldh;View']//ul[contains-token(@class, 'view-mode-list')]/li[not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick" priority="1">
-        <xsl:message>BLOCK DELEGATION: view-mode handler triggered</xsl:message>
-        <xsl:variable name="block" select="ancestor::div[@about][contains-token(@class, 'block')][1]" as="element()"/>
-        <xsl:variable name="block-uri" select="xs:anyURI($block/@about)" as="xs:anyURI"/>
-        <xsl:message>BLOCK DELEGATION: block URI = <xsl:value-of select="$block-uri"/></xsl:message>
-        <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')" as="item()"/>
-        <xsl:message>BLOCK DELEGATION: cache found: <xsl:value-of select="exists($cache)"/></xsl:message>
+    <xsl:template match="div[contains-token(@class, 'block')][@about]//button[contains-token(@class, 'btn-create-view')]" mode="ixsl:onclick">
+        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
+        <xsl:variable name="forClass" select="xs:anyURI('&ldh;View')" as="xs:anyURI"/>
 
-        <xsl:next-match>
-            <xsl:with-param name="cache" select="$cache"/>
-        </xsl:next-match>
-    </xsl:template>
-
-    <!-- pager prev links -->
-
-    <xsl:template match="div[@about][contains-token(@class, 'block')]//div[@typeof = '&ldh;View']//ul[@class = 'pager']/li[@class = 'previous']/a[@class = 'active']" mode="ixsl:onclick" priority="1">
-        <xsl:message>BLOCK DELEGATION: pager previous triggered</xsl:message>
-        <xsl:variable name="block" select="ancestor::div[@about][contains-token(@class, 'block')][1]" as="element()"/>
-        <xsl:variable name="block-uri" select="xs:anyURI($block/@about)" as="xs:anyURI"/>
-        <xsl:message>BLOCK DELEGATION: block URI = <xsl:value-of select="$block-uri"/></xsl:message>
-        <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')" as="item()"/>
-        <xsl:message>BLOCK DELEGATION: cache found: <xsl:value-of select="exists($cache)"/></xsl:message>
-
-        <xsl:next-match>
-            <xsl:with-param name="cache" select="$cache"/>
-        </xsl:next-match>
-    </xsl:template>
-
-    <!-- pager next links -->
-
-    <xsl:template match="div[@about][contains-token(@class, 'block')]//div[@typeof = '&ldh;View']//ul[@class = 'pager']/li[@class = 'next']/a[@class = 'active']" mode="ixsl:onclick" priority="1">
-        <xsl:message>BLOCK DELEGATION: pager next triggered</xsl:message>
-        <xsl:variable name="block" select="ancestor::div[@about][contains-token(@class, 'block')][1]" as="element()"/>
-        <xsl:variable name="block-uri" select="xs:anyURI($block/@about)" as="xs:anyURI"/>
-        <xsl:message>BLOCK DELEGATION: block URI = <xsl:value-of select="$block-uri"/></xsl:message>
-        <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')" as="item()"/>
-        <xsl:message>BLOCK DELEGATION: cache found: <xsl:value-of select="exists($cache)"/></xsl:message>
-
-        <xsl:next-match>
-            <xsl:with-param name="cache" select="$cache"/>
-        </xsl:next-match>
-    </xsl:template>
-
-    <!-- order by onchange -->
-
-    <xsl:template match="div[@about][contains-token(@class, 'block')]//div[@typeof = '&ldh;View']//select[contains-token(@class, 'container-order')]" mode="ixsl:onchange" priority="1">
-        <xsl:message>BLOCK DELEGATION: container-order triggered</xsl:message>
-        <xsl:variable name="block" select="ancestor::div[@about][contains-token(@class, 'block')][1]" as="element()"/>
-        <xsl:variable name="block-uri" select="xs:anyURI($block/@about)" as="xs:anyURI"/>
-        <xsl:message>BLOCK DELEGATION: block URI = <xsl:value-of select="$block-uri"/></xsl:message>
-        <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')" as="item()"/>
-        <xsl:message>BLOCK DELEGATION: cache found: <xsl:value-of select="exists($cache)"/></xsl:message>
-
-        <xsl:next-match>
-            <xsl:with-param name="cache" select="$cache"/>
-        </xsl:next-match>
-    </xsl:template>
-
-    <!-- ascending/descending onclick -->
-    
-    <!-- TO-DO: unify with container ORDER BY onchange -->
-    <xsl:template match="div[@about][contains-token(@class, 'block')]//div[@typeof = '&ldh;View']//button[contains-token(@class, 'btn-order-by')]" mode="ixsl:onclick" priority="1">
-        <xsl:message>BLOCK DELEGATION: btn-order-by triggered</xsl:message>
-        <xsl:variable name="block" select="ancestor::div[@about][contains-token(@class, 'block')][1]" as="element()"/>
-        <xsl:variable name="block-uri" select="xs:anyURI($block/@about)" as="xs:anyURI"/>
-        <xsl:message>BLOCK DELEGATION: block URI = <xsl:value-of select="$block-uri"/></xsl:message>
-        <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')" as="item()"/>
-        <xsl:message>BLOCK DELEGATION: cache found: <xsl:value-of select="exists($cache)"/></xsl:message>
-
-        <xsl:next-match>
-            <xsl:with-param name="cache" select="$cache"/>
-        </xsl:next-match>
+        <xsl:call-template name="ldh:CreateBlock">
+            <xsl:with-param name="block" select="$block"/>
+            <xsl:with-param name="forClass" select="$forClass"/>
+            <xsl:with-param name="properties" as="element()*">
+                <spin:query rdf:resource="{$block/@about}"/>
+            </xsl:with-param>
+        </xsl:call-template>
     </xsl:template>
 
     <!-- View pagination - previous page (generic handler for all Views) -->
-    <xsl:template match="div[@typeof = '&ldh;View']//ul[@class = 'pager']/li[@class = 'previous']/a[@class = 'active']" mode="ixsl:onclick">
+    <xsl:template match="div[@typeof = '&ldh;View']//div[contains-token(@class, 'ldh-pager')]//a[contains-token(@class, 'pager-prev')]" mode="ixsl:onclick">
         <xsl:param name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
-        <xsl:param name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $container/@id || '`')" as="item()"/>
+        <xsl:param name="cache" select="ldh:view-cache($container)" as="item()"/>
         <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
         <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
         <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
         <xsl:variable name="endpoint" select="ixsl:get($cache, 'endpoint')" as="xs:anyURI"/>
-        <xsl:variable name="active-class" select="tokenize($container//ul[contains-token(@class, 'view-mode-list')]/li[contains-token(@class, 'active')]/@class, ' ')[not(. = 'active')]" as="xs:string"/>
+        <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/a[contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string"/>
         <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:call-template name="ldh:ViewPage">
@@ -1347,23 +1644,23 @@ exclude-result-prefixes="#all"
 
         <ixsl:promise select="
             ixsl:resolve($context) =>
-                ixsl:then(ldh:view-results-thunk#1)
-            "
+                ixsl:then(ldh:view-results-thunk#1) =>
+                ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
     <!-- View pagination - next page (generic handler for all Views) -->
-    <xsl:template match="div[@typeof = '&ldh;View']//ul[@class = 'pager']/li[@class = 'next']/a[@class = 'active']" mode="ixsl:onclick">
+    <xsl:template match="div[@typeof = '&ldh;View']//div[contains-token(@class, 'ldh-pager')]//a[contains-token(@class, 'pager-next')]" mode="ixsl:onclick">
         <xsl:param name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
-        <xsl:param name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $container/@id || '`')" as="item()"/>
+        <xsl:param name="cache" select="ldh:view-cache($container)" as="item()"/>
         <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
         <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
         <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
         <xsl:variable name="endpoint" select="ixsl:get($cache, 'endpoint')" as="xs:anyURI"/>
-        <xsl:variable name="active-class" select="tokenize($container//ul[contains-token(@class, 'view-mode-list')]/li[contains-token(@class, 'active')]/@class, ' ')[not(. = 'active')]" as="xs:string"/>
+        <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/a[contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string"/>
         <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:call-template name="ldh:ViewPage">
@@ -1389,24 +1686,67 @@ exclude-result-prefixes="#all"
 
         <ixsl:promise select="
             ixsl:resolve($context) =>
-                ixsl:then(ldh:view-results-thunk#1)
-            "
+                ixsl:then(ldh:view-results-thunk#1) =>
+                ixsl:finally(ldh:reset-cursor#0)"
+            on-failure="ldh:promise-failure#1"/>
+    </xsl:template>
+
+    <!-- View page size - rows per page (generic handler for all Views) -->
+    <xsl:template match="div[@typeof = '&ldh;View']//select[contains-token(@class, 'pager-size')]" mode="ixsl:onchange">
+        <xsl:param name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
+        <xsl:param name="cache" select="ldh:view-cache($container)" as="item()"/>
+        <xsl:variable name="limit" select="xs:integer(ixsl:get(., 'value'))" as="xs:integer"/>
+        <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
+        <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
+        <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
+        <xsl:variable name="endpoint" select="ixsl:get($cache, 'endpoint')" as="xs:anyURI"/>
+        <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/a[contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string"/>
+        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
+
+        <xsl:sequence select="ldh:busy-cursor()"/>
+
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:call-template name="ldh:ViewLimit">
+                <xsl:with-param name="select-xml" select="$select-xml"/>
+                <xsl:with-param name="limit" select="$limit"/>
+            </xsl:call-template>
+        </xsl:variable>
+
+        <ixsl:set-property name="select-xml" select="$select-xml" object="$cache"/>
+
+        <xsl:variable name="view-context" as="map(*)">
+            <xsl:call-template name="ldh:RenderView">
+                <xsl:with-param name="container" select="$container"/>
+                <xsl:with-param name="active-mode" select="$active-mode"/>
+                <xsl:with-param name="select-string" select="$select-string"/>
+                <xsl:with-param name="select-xml" select="$select-xml"/>
+                <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
+                <xsl:with-param name="endpoint" select="$endpoint"/>
+                <xsl:with-param name="cache" select="$cache"/>
+            </xsl:call-template>
+        </xsl:variable>
+        <xsl:variable name="context" select="map:merge((map{ 'block': $container }, $view-context))" as="map(*)"/>
+
+        <ixsl:promise select="
+            ixsl:resolve($context) =>
+                ixsl:then(ldh:view-results-thunk#1) =>
+                ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
     <!-- View container-order handler (generic handler for all Views) -->
     <xsl:template match="div[@typeof = '&ldh;View']//select[contains-token(@class, 'container-order')]" mode="ixsl:onchange">
         <xsl:param name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
-        <xsl:param name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $container/@id || '`')" as="item()"/>
+        <xsl:param name="cache" select="ldh:view-cache($container)" as="item()"/>
         <xsl:variable name="var-name" select="ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
         <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
         <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
         <xsl:variable name="endpoint" select="ixsl:get($cache, 'endpoint')" as="xs:anyURI"/>
-        <xsl:variable name="active-class" select="tokenize($container//ul[contains-token(@class, 'view-mode-list')]/li[contains-token(@class, 'active')]/@class, ' ')[not(. = 'active')]" as="xs:string"/>
+        <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/a[contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string"/>
         <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:call-template name="ldh:ViewOrder">
@@ -1432,24 +1772,24 @@ exclude-result-prefixes="#all"
 
         <ixsl:promise select="
             ixsl:resolve($context) =>
-                ixsl:then(ldh:view-results-thunk#1)
-            "
+                ixsl:then(ldh:view-results-thunk#1) =>
+                ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
     <!-- View order-by button handler (generic handler for all Views) -->
     <xsl:template match="div[@typeof = '&ldh;View']//button[contains-token(@class, 'btn-order-by')]" mode="ixsl:onclick">
         <xsl:param name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
-        <xsl:param name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $container/@id || '`')" as="item()"/>
+        <xsl:param name="cache" select="ldh:view-cache($container)" as="item()"/>
         <xsl:variable name="desc" select="contains(@class, 'btn-order-by-desc')" as="xs:boolean"/>
         <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
         <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
         <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
         <xsl:variable name="endpoint" select="ixsl:get($cache, 'endpoint')" as="xs:anyURI"/>
-        <xsl:variable name="active-class" select="tokenize($container//ul[contains-token(@class, 'view-mode-list')]/li[contains-token(@class, 'active')]/@class, ' ')[not(. = 'active')]" as="xs:string"/>
+        <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/a[contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string"/>
         <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:call-template name="ldh:ViewOrderDirection">
@@ -1475,34 +1815,56 @@ exclude-result-prefixes="#all"
 
         <ixsl:promise select="
             ixsl:resolve($context) =>
-                ixsl:then(ldh:view-results-thunk#1)
-            "
+                ixsl:then(ldh:view-results-thunk#1) =>
+                ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
 
         <!-- toggle the arrow direction -->
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-order-by-desc' ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
-    <!-- View mode handler (generic handler for all Views) -->
-    <xsl:template match="div[@typeof = '&ldh;View']//ul[contains-token(@class, 'view-mode-list')]/li[not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
+    <!-- View sortable column header handler (generic handler for all Views): the active column toggles direction, any other column becomes the sort key -->
+    <xsl:template match="div[@typeof = '&ldh;View']//th[contains-token(@class, 'sortable')]" mode="ixsl:onclick">
         <xsl:param name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
-        <xsl:param name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $container/@id || '`')" as="item()"/>
-        <xsl:variable name="active-class" select="../@class" as="xs:string"/>
-        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
+        <xsl:param name="cache" select="ldh:view-cache($container)" as="item()"/>
+        <xsl:variable name="var-name" select="@data-var-name" as="xs:string"/>
         <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
         <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
         <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
         <xsl:variable name="endpoint" select="ixsl:get($cache, 'endpoint')" as="xs:anyURI"/>
+        <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/a[contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string"/>
+        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
+        <xsl:variable name="order-by-var-name" select="$select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:string[@key = 'expression']/substring-after(., '?')" as="xs:string?"/>
+        <xsl:variable name="desc" select="boolean($select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:boolean[@key = 'descending'][. = 'true'])" as="xs:boolean"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
-        <!-- deactivate other tabs -->
-        <xsl:for-each select="../../li">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:choose>
+                <xsl:when test="$var-name = $order-by-var-name">
+                    <xsl:call-template name="ldh:ViewOrderDirection">
+                        <xsl:with-param name="select-xml" select="$select-xml"/>
+                        <xsl:with-param name="desc" select="$desc"/>
+                    </xsl:call-template>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:call-template name="ldh:ViewOrder">
+                        <xsl:with-param name="select-xml" select="$select-xml"/>
+                        <xsl:with-param name="var-name" select="$var-name"/>
+                    </xsl:call-template>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+
+        <ixsl:set-property name="select-xml" select="$select-xml" object="$cache"/>
+
+        <!-- keep the toolbar sort controls in agreement with the column-driven state -->
+        <xsl:variable name="new-desc" select="boolean($select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:boolean[@key = 'descending'][. = 'true'])" as="xs:boolean"/>
+        <xsl:for-each select="$container//select[contains-token(@class, 'container-order')]">
+            <ixsl:set-property name="value" select="$var-name" object="."/>
         </xsl:for-each>
-        <!-- activate this tab -->
-        <xsl:for-each select="..">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:for-each select="$container//button[contains-token(@class, 'btn-order-by')]">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-order-by-desc', $new-desc ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
 
         <xsl:variable name="view-context" as="map(*)">
@@ -1520,33 +1882,100 @@ exclude-result-prefixes="#all"
 
         <ixsl:promise select="
             ixsl:resolve($context) =>
-                ixsl:then(ldh:view-results-thunk#1)
-            "
+                ixsl:then(ldh:view-results-thunk#1) =>
+                ixsl:finally(ldh:reset-cursor#0)"
+            on-failure="ldh:promise-failure#1"/>
+    </xsl:template>
+
+    <!-- View mode handler (generic handler for all Views) -->
+    <xsl:template match="div[@typeof = '&ldh;View']//*[contains-token(@class, 'view-mode-list')]/a[not(contains-token(@class, 'is-active'))]" mode="ixsl:onclick">
+        <xsl:param name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
+        <xsl:param name="cache" select="ldh:view-cache($container)" as="item()"/>
+        <xsl:variable name="active-class" select="tokenize(@class, ' ')[. = map:keys($class-modes)]" as="xs:string"/>
+        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
+        <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
+        <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
+        <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
+        <xsl:variable name="endpoint" select="ixsl:get($cache, 'endpoint')" as="xs:anyURI"/>
+
+        <xsl:sequence select="ldh:busy-cursor()"/>
+
+        <!-- deactivate the other mode items -->
+        <xsl:for-each select="../a">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+        <!-- activate this mode item -->
+        <xsl:for-each select=".">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+
+        <xsl:variable name="view-context" as="map(*)">
+            <xsl:call-template name="ldh:RenderView">
+                <xsl:with-param name="container" select="$container"/>
+                <xsl:with-param name="active-mode" select="$active-mode"/>
+                <xsl:with-param name="select-string" select="$select-string"/>
+                <xsl:with-param name="select-xml" select="$select-xml"/>
+                <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
+                <xsl:with-param name="endpoint" select="$endpoint"/>
+                <xsl:with-param name="cache" select="$cache"/>
+            </xsl:call-template>
+        </xsl:variable>
+        <xsl:variable name="context" select="map:merge((map{ 'block': $container }, $view-context))" as="map(*)"/>
+
+        <ixsl:promise select="
+            ixsl:resolve($context) =>
+                ixsl:then(ldh:view-results-thunk#1) =>
+                ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
     <!-- facet header onclick -->
     
     <xsl:template match="div[@typeof = '&ldh;View']//div[contains-token(@class, 'faceted-nav')]//*[contains-token(@class, 'nav-header')]" mode="ixsl:onclick">
-        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
-        <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
-        <xsl:variable name="block-uri" select="xs:anyURI($block/@about)" as="xs:anyURI"/>
+        <xsl:param name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
+        <xsl:param name="cache" select="ldh:view-cache($container)" as="item()"/>
         <xsl:variable name="facet-container" select="ancestor::div[contains-token(@class, 'faceted-nav')]" as="element()"/>
         <xsl:variable name="subject-var-name" select="input[@name = 'subject']/@value" as="xs:string"/>
         <xsl:variable name="predicate" select="input[@name = 'predicate']/@value" as="xs:anyURI"/>
         <xsl:variable name="object-var-name" select="input[@name = 'object']/@value" as="xs:string"/>
-        <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')" as="item()"/>
-        <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
+        <!-- load facet values using the initial (not the current transformed) SELECT query, so that one facet's selection does not constrain another facet's value list -->
+        <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
+        <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
+        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
+        <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
         <!-- TO-DO: can we get multiple BGPs here with the same ?s/p/?o ? -->
         <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $subject-var-name][json:string[@key = 'predicate'] = $predicate][json:string[@key = 'object'] = '?' || $object-var-name]" as="element()"/>
+
+        <!-- opening one facet closes the others in the same toolbar -->
+        <xsl:apply-templates select="$facet-container/../div[contains-token(@class, 'faceted-nav')][not(. is $facet-container)]/ul[contains-token(@class, 'facet-pop')][not(ixsl:style(.)?display = 'none')]" mode="ldh:CloseFacetPopover"/>
 
         <!-- is the current facet loaded? -->
         <xsl:variable name="loaded" select="exists(following-sibling::ul)" as="xs:boolean"/>
         <xsl:choose>
             <!-- if not, load and render its values -->
             <xsl:when test="not($loaded)">
+                <!-- toggle the caret direction -->
+                <xsl:for-each select="span[contains-token(@class, 'caret')]">
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'caret-reversed' ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
+
+                <!-- open the popover immediately with a loading state; the response replaces it with the value list.
+                     'is-open' elevates the host .ldh-block (app.css :has() rule) so the popover paints above subsequent blocks -->
+                <xsl:for-each select="$facet-container">
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:result-document href="?." method="ixsl:append-content">
+                        <ul class="nav facet-pop">
+                            <li class="facet-loading">
+                                <div class="progress progress-indeterminate">
+                                    <div class="bar"></div>
+                                </div>
+                            </li>
+                        </ul>
+                    </xsl:result-document>
+                </xsl:for-each>
+
                 <xsl:for-each select="$container">
-                    <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+                    <xsl:sequence select="ldh:busy-cursor()"/>
 
                     <!-- the subject is a variable - trim the leading question mark -->
                     <xsl:variable name="subject-var-name" select="substring-after($bgp-triples-map/json:string[@key = 'subject'], '?')" as="xs:string"/>
@@ -1604,7 +2033,8 @@ exclude-result-prefixes="#all"
                     <ixsl:promise select="ixsl:http-request($context('request')) =>
                         ixsl:then(ldh:rethread-response($context, ?)) =>
                         ixsl:then(ldh:handle-response#1) =>
-                        ixsl:then(ldh:facet-value-response#1)"
+                        ixsl:then(ldh:facet-value-response#1) =>
+                        ixsl:finally(ldh:reset-cursor#0)"
                         on-failure="ldh:promise-failure#1"/>
                 </xsl:for-each>
             </xsl:when>
@@ -1617,7 +2047,7 @@ exclude-result-prefixes="#all"
                     <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'caret-reversed' ])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
 
-                <!-- toggle the value list visibility -->
+                <!-- toggle the value list visibility, mirroring it as the container's 'is-open' state -->
                 <xsl:choose>
                     <xsl:when test="$hidden">
                         <ixsl:set-style name="display" select="'block'" object="following-sibling::*[contains-token(@class, 'nav')]"/>
@@ -1626,37 +2056,58 @@ exclude-result-prefixes="#all"
                         <ixsl:set-style name="display" select="'none'" object="following-sibling::*[contains-token(@class, 'nav')]"/>
                     </xsl:otherwise>
                 </xsl:choose>
+                <xsl:sequence select="ixsl:call(ixsl:get($facet-container, 'classList'), 'toggle', [ 'is-open', $hidden ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
     
+    <!-- closes a facet popover: hides the value list, drops the container's 'is-open' state and resets its pill's caret -->
+
+    <xsl:template match="ul[contains-token(@class, 'facet-pop')]" mode="ldh:CloseFacetPopover">
+        <ixsl:set-style name="display" select="'none'" object="."/>
+        <xsl:sequence select="ixsl:call(ixsl:get(.., 'classList'), 'remove', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:for-each select="preceding-sibling::*[contains-token(@class, 'nav-header')]/span[contains-token(@class, 'caret')]">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'caret-reversed', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+    </xsl:template>
+
+    <!-- clicks that no other handler claims bubble up to body: dismiss any open facet and block links popovers.
+         Drop-downs are not dismissed here - the pointerdown rule in client.xsl reaches every press, including
+         the ones a specific handler takes, so this rule never saw a case it had left to close -->
+
+    <xsl:template match="body" mode="ixsl:onclick">
+        <xsl:apply-templates select="ixsl:page()//div[contains-token(@class, 'faceted-nav')]/ul[contains-token(@class, 'facet-pop')][not(ixsl:style(.)?display = 'none')]" mode="ldh:CloseFacetPopover"/>
+        <xsl:apply-templates select="ixsl:page()//div[contains-token(@class, 'links-nav')][contains-token(@class, 'is-open')]" mode="ldh:CloseLinksPopover"/>
+    </xsl:template>
+
+    <!-- clicks inside the popover (value checkboxes) stop here instead of bubbling to body and dismissing it -->
+
+    <xsl:template match="div[contains-token(@class, 'faceted-nav')]/ul[contains-token(@class, 'facet-pop')]" mode="ixsl:onclick"/>
+
     <!-- facet onchange -->
 
     <xsl:template match="div[@typeof = '&ldh;View']//div[contains-token(@class, 'faceted-nav')]//input[@type = 'checkbox']" mode="ixsl:onchange">
-        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
-        <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
-        <xsl:variable name="block-uri" select="xs:anyURI($block/@about)" as="xs:anyURI"/>
-        <xsl:variable name="active-class" select="tokenize($container//ul[contains-token(@class, 'view-mode-list')]/li[contains-token(@class, 'active')]/@class, ' ')[not(. = 'active')]" as="xs:string"/>
+        <xsl:param name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
+        <xsl:param name="cache" select="ldh:view-cache($container)" as="item()"/>
+        <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/a[contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string"/>
         <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
         <xsl:variable name="var-name" select="@name" as="xs:string"/>
         <!-- collect the values/types/datatypes of all checked inputs within this facet and build an array of maps -->
         <xsl:variable name="labels" select="ancestor::ul//label[input[@type = 'checkbox'][ixsl:get(., 'checked')]]" as="element()*"/>
         <xsl:variable name="values" select="array { for $label in $labels return map { 'value' : string($label/input[@type = 'checkbox']/@value), 'type': string($label/input[@name = 'type']/@value), 'datatype': string($label/input[@name = 'datatype']/@value) } }" as="array(map(xs:string, xs:string))"/>
-        <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')" as="item()"/>
         <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
         <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
         <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
         <xsl:variable name="endpoint" select="ixsl:get($cache, 'endpoint')" as="xs:anyURI"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="select-xml" as="document-node()">
-            <xsl:document>
-                <xsl:apply-templates select="$select-xml" mode="ldh:filter-in">
-                    <xsl:with-param name="var-name" select="$var-name" tunnel="yes"/>
-                    <xsl:with-param name="values" select="$values" tunnel="yes"/>
-                </xsl:apply-templates>
-            </xsl:document>
+            <xsl:call-template name="ldh:ViewFilter">
+                <xsl:with-param name="select-xml" select="$select-xml"/>
+                <xsl:with-param name="var-name" select="$var-name"/>
+                <xsl:with-param name="values" select="$values"/>
+            </xsl:call-template>
         </xsl:variable>
         <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="$cache"/>
@@ -1672,42 +2123,50 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="cache" select="$cache"/>
             </xsl:call-template>
         </xsl:variable>
-        <xsl:variable name="context" select="map:merge((map{ 'block': $block }, $view-context))" as="map(*)"/>
+        <xsl:variable name="context" select="map:merge((map{ 'block': $container }, $view-context))" as="map(*)"/>
 
         <ixsl:promise select="
             ixsl:resolve($context) =>
-                ixsl:then(ldh:view-results-thunk#1)
-            "
+                ixsl:then(ldh:view-results-thunk#1) =>
+                ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
     <!-- parallax onclick -->
-    
-    <xsl:template match="div[@typeof = '&ldh;View']//div[contains-token(@class, 'parallax-nav')]/ul/li/a" mode="ixsl:onclick">
-        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
-        <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
-        <xsl:variable name="block-uri" select="xs:anyURI($block/@about)" as="xs:anyURI"/>
-        <xsl:variable name="active-class" select="tokenize($container//ul[contains-token(@class, 'view-mode-list')]/li[contains-token(@class, 'active')]/@class, ' ')[not(. = 'active')]" as="xs:string"/>
+
+    <xsl:template match="div[@typeof = '&ldh;View']//div[contains-token(@class, 'parallax-nav')]//a[contains-token(@class, 'pchip')]" mode="ixsl:onclick">
+        <xsl:param name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
+        <xsl:param name="cache" select="ldh:view-cache($container)" as="item()"/>
+        <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/a[contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string"/>
         <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
         <xsl:variable name="predicate" select="input/@value" as="xs:anyURI"/>
-        <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')" as="item()"/>
+        <xsl:variable name="label" select="string(span[contains-token(@class, 'lbl')])" as="xs:string"/>
+        <xsl:variable name="inverse" select="@data-dir = 'in'" as="xs:boolean"/>
         <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
         <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
         <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
         <xsl:variable name="endpoint" select="ixsl:get($cache, 'endpoint')" as="xs:anyURI"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="select-xml" as="document-node()">
-            <xsl:document>
-                <xsl:apply-templates select="$select-xml" mode="ldh:add-parallax-step">
-                    <xsl:with-param name="predicate" select="$predicate" tunnel="yes"/>
-                </xsl:apply-templates>
-            </xsl:document>
+            <xsl:call-template name="ldh:ViewParallax">
+                <xsl:with-param name="select-xml" select="$select-xml"/>
+                <xsl:with-param name="predicate" select="$predicate"/>
+                <xsl:with-param name="inverse" select="$inverse"/>
+            </xsl:call-template>
         </xsl:variable>
 
         <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="$cache"/>
+
+        <!-- record the applied step and re-render the toolbar's step chips -->
+        <xsl:variable name="steps-json" select="if (ixsl:contains($cache, 'parallax-steps')) then string(ixsl:get($cache, 'parallax-steps')) else '[]'" as="xs:string"/>
+        <xsl:variable name="steps" select="array:append(parse-json($steps-json), map{ 'predicate': string($predicate), 'label': $label, 'inverse': $inverse })" as="array(*)"/>
+        <ixsl:set-property name="parallax-steps" select="serialize($steps, map{ 'method': 'json' })" object="$cache"/>
+        <xsl:apply-templates select="$container" mode="ldh:RenderParallaxSteps">
+            <xsl:with-param name="steps" select="$steps"/>
+        </xsl:apply-templates>
 
         <xsl:variable name="view-context" as="map(*)">
             <xsl:call-template name="ldh:RenderView">
@@ -1720,13 +2179,125 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="cache" select="$cache"/>
             </xsl:call-template>
         </xsl:variable>
-        <xsl:variable name="context" select="map:merge((map{ 'block': $block }, $view-context))" as="map(*)"/>
+        <xsl:variable name="context" select="map:merge((map{ 'block': $container }, $view-context))" as="map(*)"/>
 
         <ixsl:promise select="
             ixsl:resolve($context) =>
-                ixsl:then(ldh:view-results-thunk#1)
-            "
+                ixsl:then(ldh:view-results-thunk#1) =>
+                ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
+    </xsl:template>
+
+    <!-- applied parallax steps render as removable chips in the toolbar, next to the facet pills -->
+
+    <xsl:template match="*" mode="ldh:RenderParallaxSteps">
+        <xsl:param name="steps" as="array(*)"/>
+
+        <xsl:for-each select="descendant::span[contains-token(@class, 'parallax-steps')][1]">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:for-each select="1 to array:size($steps)">
+                    <xsl:variable name="step" select="array:get($steps, .)" as="map(*)"/>
+                    <xsl:variable name="inverse" select="($step('inverse'), false())[1]" as="xs:boolean"/>
+
+                    <button type="button" class="facet-pill parallax-step" title="{$step('predicate')}">
+                        <input name="ou" type="hidden" value="{$step('predicate')}"/>
+                        <!-- the arrow is what distinguishes a step taken backwards from the same predicate followed forwards -->
+                        <span class="msi xs" aria-hidden="true">
+                            <xsl:value-of select="if ($inverse) then 'arrow_back' else 'arrow_forward'"/>
+                        </span>
+                        <span class="pred">
+                            <xsl:apply-templates select="key('resources', if ($inverse) then 'via-incoming' else 'via', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </span>
+                        <span class="val">
+                            <xsl:value-of select="$step('label')"/>
+                        </span>
+                        <span class="x">
+                            <span class="msi xs" aria-hidden="true">close</span>
+                        </span>
+                    </button>
+                </xsl:for-each>
+            </xsl:result-document>
+        </xsl:for-each>
+    </xsl:template>
+
+    <!-- removing an applied step rewinds the view: the query is rebuilt from the initial SELECT string and the steps before the removed one are replayed -->
+
+    <xsl:template match="div[@typeof = '&ldh;View']//span[contains-token(@class, 'parallax-steps')]/button[contains-token(@class, 'parallax-step')]" mode="ixsl:onclick">
+        <xsl:param name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
+        <xsl:param name="cache" select="ldh:view-cache($container)" as="item()"/>
+        <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/a[contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string"/>
+        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
+        <xsl:variable name="position" select="count(preceding-sibling::button[contains-token(@class, 'parallax-step')]) + 1" as="xs:integer"/>
+        <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
+        <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
+        <xsl:variable name="endpoint" select="ixsl:get($cache, 'endpoint')" as="xs:anyURI"/>
+        <xsl:variable name="steps" select="parse-json(string(ixsl:get($cache, 'parallax-steps')))" as="array(*)"/>
+        <xsl:variable name="kept" select="array:subarray($steps, 1, $position - 1)" as="array(*)"/>
+
+        <xsl:sequence select="ldh:busy-cursor()"/>
+
+        <!-- rebuild the initial query XML from the cached SELECT string -->
+        <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
+        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:call-template name="ldh:ReplayParallaxSteps">
+                <xsl:with-param name="select-xml" select="json-to-xml($select-json-string)"/>
+                <xsl:with-param name="steps" select="$kept"/>
+            </xsl:call-template>
+        </xsl:variable>
+
+        <ixsl:set-property name="select-xml" select="$select-xml" object="$cache"/>
+        <ixsl:set-property name="parallax-steps" select="serialize($kept, map{ 'method': 'json' })" object="$cache"/>
+        <xsl:apply-templates select="$container" mode="ldh:RenderParallaxSteps">
+            <xsl:with-param name="steps" select="$kept"/>
+        </xsl:apply-templates>
+
+        <xsl:variable name="view-context" as="map(*)">
+            <xsl:call-template name="ldh:RenderView">
+                <xsl:with-param name="container" select="$container"/>
+                <xsl:with-param name="active-mode" select="$active-mode"/>
+                <xsl:with-param name="select-string" select="$select-string"/>
+                <xsl:with-param name="select-xml" select="$select-xml"/>
+                <xsl:with-param name="initial-var-name" select="$initial-var-name"/>
+                <xsl:with-param name="endpoint" select="$endpoint"/>
+                <xsl:with-param name="cache" select="$cache"/>
+            </xsl:call-template>
+        </xsl:variable>
+        <xsl:variable name="context" select="map:merge((map{ 'block': $container }, $view-context))" as="map(*)"/>
+
+        <ixsl:promise select="
+            ixsl:resolve($context) =>
+                ixsl:then(ldh:view-results-thunk#1) =>
+                ixsl:finally(ldh:reset-cursor#0)"
+            on-failure="ldh:promise-failure#1"/>
+    </xsl:template>
+
+    <!-- re-applies parallax steps to the query XML one at a time, each in its recorded direction -->
+
+    <xsl:template name="ldh:ReplayParallaxSteps">
+        <xsl:param name="select-xml" as="document-node()"/>
+        <xsl:param name="steps" as="array(*)"/>
+
+        <xsl:choose>
+            <xsl:when test="array:size($steps) = 0">
+                <xsl:sequence select="$select-xml"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="step" select="array:head($steps)" as="map(*)"/>
+                <xsl:variable name="stepped" as="document-node()">
+                    <xsl:call-template name="ldh:ViewParallax">
+                        <xsl:with-param name="select-xml" select="$select-xml"/>
+                        <xsl:with-param name="predicate" select="xs:anyURI($step('predicate'))"/>
+                        <xsl:with-param name="inverse" select="($step('inverse'), false())[1]"/>
+                    </xsl:call-template>
+                </xsl:variable>
+
+                <xsl:call-template name="ldh:ReplayParallaxSteps">
+                    <xsl:with-param name="select-xml" select="$stepped"/>
+                    <xsl:with-param name="steps" select="array:tail($steps)"/>
+                </xsl:call-template>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
     <!-- CALLBACKS -->
@@ -1814,6 +2385,7 @@ exclude-result-prefixes="#all"
                                         <xsl:with-param name="active-mode" select="if ($mode) then $mode else xs:anyURI('&ac;ListMode')"/>
                                         <xsl:with-param name="refresh-content" select="$refresh-content"/>
                                         <xsl:with-param name="cache" select="$cache"/>
+                                        <xsl:with-param name="form-actions" select="$context('form-actions')"/>
                                     </xsl:call-template>
                                 </xsl:variable>
                                 <!-- Mark query response as complete -->
@@ -1822,16 +2394,9 @@ exclude-result-prefixes="#all"
                                 <xsl:sequence select="map:merge((map{ 'block': $block }, $view-context))"/>
                             </xsl:when>
                             <xsl:otherwise>
-                                <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
-                                    <xsl:result-document href="?." method="ixsl:replace-content">
-                                        <div class="alert alert-block">
-                                            <strong>Could not load service resource: <a href="{$service-uri}"><xsl:value-of select="$service-uri"/></a></strong>
-                                            <pre>
-                                                <xsl:value-of select="$response?message"/>
-                                            </pre>
-                                        </div>
-                                    </xsl:result-document>
-                                </xsl:for-each>
+                                <!-- the query document loaded (200); the service resource is simply absent from it, so there is no
+                                     HTTP failure to report and passing $response here would head the detail with a misleading 'HTTP 200' -->
+                                <xsl:sequence select="ldh:render-block-error($container//div[contains-token(@class, 'main')], 'block-service-not-loaded', 'block-resource-not-described-explanation', $service-uri, ())"/>
 
                                 <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
                             </xsl:otherwise>
@@ -1839,16 +2404,7 @@ exclude-result-prefixes="#all"
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
-                        <xsl:result-document href="?." method="ixsl:replace-content">
-                            <div class="alert alert-block">
-                                <strong>Could not load query resource: <a href="{$query-uri}"><xsl:value-of select="$query-uri"/></a></strong>
-                                <pre>
-                                    <xsl:value-of select="$response?message"/>
-                                </pre>
-                            </div>
-                        </xsl:result-document>
-                    </xsl:for-each>
+                    <xsl:sequence select="ldh:render-block-error($container//div[contains-token(@class, 'main')], 'block-query-not-loaded', ldh:http-error-key($response?status), $query-uri, $response)"/>
 
                     <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
 
@@ -1864,6 +2420,72 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:function>
     
+    <!-- the lexical sort key of a result: COALESCEs across $predicates in path order, preferring values whose @xml:lang primary subtag matches the reader's first accepted language -->
+
+    <xsl:function name="ldh:sort-key-lexical" as="xs:string?">
+        <xsl:param name="resource" as="element()"/>
+        <xsl:param name="predicates" as="xs:anyURI*"/>
+
+        <xsl:variable name="children" select="for $p in $predicates return $resource/*[concat(namespace-uri(), local-name()) = $p]" as="element()*"/>
+        <xsl:sequence select="(($children[tokenize(@xml:lang, '-')[1] = tokenize(ac:langs()[1], '-')[1]]/string(text()))[1], ($children[not(@xml:lang)]/string(text()))[1], ($children/string((text(), @rdf:resource, @rdf:nodeID)[1]))[1])[. ne ''][1]"/>
+    </xsl:function>
+
+    <!-- the RDF datatype shared by a sort column's literals, or () when the column carries none (plain or language-tagged literals, resources) or mixes several. The wrapped DESCRIBE returns an unordered graph, so the view re-sorts the page client-side; keying off the datatype is what keeps that order agreeing with the SPARQL ORDER BY that chose the page's members. -->
+
+    <xsl:function name="ldh:sort-datatype" as="xs:anyURI?">
+        <xsl:param name="resources" as="element()*"/>
+        <xsl:param name="predicates" as="xs:anyURI*"/>
+
+        <xsl:variable name="datatypes" select="distinct-values(for $p in $predicates return $resources/*[concat(namespace-uri(), local-name()) = $p]/@rdf:datatype/string(.))" as="xs:string*"/>
+        <xsl:sequence select="if (count($datatypes) eq 1) then xs:anyURI($datatypes) else ()"/>
+    </xsl:function>
+
+    <!-- casts a lexical sort key to the XSD type that orders it. Returns () for datatypes XPath does not order (strings and their subtypes, xs:anyURI, binaries, gregorians, QNames) and for values that fail to cast - those tie here and are ordered by the lexical key instead. -->
+
+    <xsl:function name="ldh:sort-key" as="xs:anyAtomicType?">
+        <xsl:param name="key" as="xs:string?"/>
+        <xsl:param name="datatype" as="xs:anyURI?"/>
+
+        <xsl:choose>
+            <!-- exact rather than promoted to xs:double, so integers beyond double's 2^53 keep their order -->
+            <xsl:when test="ldh:datatype-family($datatype) = 'integer'">
+                <xsl:sequence select="if ($key castable as xs:integer) then xs:integer($key) else ()"/>
+            </xsl:when>
+            <xsl:when test="ldh:datatype-family($datatype) = 'decimal'">
+                <xsl:sequence select="if ($key castable as xs:decimal) then xs:decimal($key) else ()"/>
+            </xsl:when>
+            <!-- 'NaN' is a valid xs:double lexical form, and a NaN sort key freezes SaxonJS's comparison outright - the remaining keys are never consulted and the results fall back to document order - so it is filtered back out to () here -->
+            <xsl:when test="ldh:datatype-family($datatype) = 'double'">
+                <xsl:sequence select="if ($key castable as xs:double) then xs:double($key)[. eq .] else ()"/>
+            </xsl:when>
+            <xsl:when test="ldh:datatype-family($datatype) = 'dateTime'">
+                <xsl:sequence select="if ($key castable as xs:dateTime) then xs:dateTime($key) else ()"/>
+            </xsl:when>
+            <xsl:when test="ldh:datatype-family($datatype) = 'date'">
+                <xsl:sequence select="if ($key castable as xs:date) then xs:date($key) else ()"/>
+            </xsl:when>
+            <xsl:when test="ldh:datatype-family($datatype) = 'time'">
+                <xsl:sequence select="if ($key castable as xs:time) then xs:time($key) else ()"/>
+            </xsl:when>
+            <xsl:when test="ldh:datatype-family($datatype) = 'yearMonthDuration'">
+                <xsl:sequence select="if ($key castable as xs:yearMonthDuration) then xs:yearMonthDuration($key) else ()"/>
+            </xsl:when>
+            <xsl:when test="ldh:datatype-family($datatype) = 'dayTimeDuration'">
+                <xsl:sequence select="if ($key castable as xs:dayTimeDuration) then xs:dayTimeDuration($key) else ()"/>
+            </xsl:when>
+            <!-- xs:duration is only partially ordered (P1M and P30D do not compare), so only its two ordered subtypes get a typed key -->
+            <xsl:when test="ldh:datatype-family($datatype) = 'duration'">
+                <xsl:sequence select="if ($key castable as xs:yearMonthDuration) then xs:yearMonthDuration($key) else if ($key castable as xs:dayTimeDuration) then xs:dayTimeDuration($key) else ()"/>
+            </xsl:when>
+            <xsl:when test="ldh:datatype-family($datatype) = 'boolean'">
+                <xsl:sequence select="if ($key castable as xs:boolean) then xs:boolean($key) else ()"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="()"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
     <!-- when view RDF/XML results load, render them -->
     <xsl:function name="ldh:render-view" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
@@ -1880,6 +2502,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="object-metadata" select="$context('object-metadata')" as="document-node()?"/>
         <xsl:variable name="property-metadata" select="$context('property-metadata')" as="document-node()?"/>
         <xsl:variable name="cache" select="$context('cache')" as="item()"/>
+        <xsl:variable name="form-actions" select="$context('form-actions')" as="element()?"/>
         <xsl:variable name="result-count-container-id" select="$container-id || '-result-count'" as="xs:string"/>
 
         <xsl:message>ldh:render-view</xsl:message>
@@ -1905,33 +2528,22 @@ exclude-result-prefixes="#all"
             <xsl:variable name="order-by-predicates" select="if ($order-by-var-name and map:contains($var-predicates, $order-by-var-name)) then $var-predicates($order-by-var-name) else ()" as="xs:anyURI*"/>
             <xsl:variable name="desc" select="$select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:boolean[@key = 'descending']" as="xs:boolean?"/>
             <xsl:variable name="default-order-by-var-name" select="$select-xml/json:map/json:array[@key = 'order']/json:map[2]/json:string[@key = 'expression']/substring-after(., '?')" as="xs:string?"/>
-            <xsl:variable name="default-order-by-predicates" select="if ($default-order-by-var-name and map:contains($var-predicates, $default-order-by-var-name)) then $var-predicates($default-order-by-var-name) else ()" as="xs:anyURI*"/>
+            <!-- empty unless distinct from the primary, so the secondary keys below collapse to () when both ORDER BY conditions resolve to the same predicates -->
+            <xsl:variable name="default-order-by-predicates" select="if ($default-order-by-var-name and map:contains($var-predicates, $default-order-by-var-name) and not(deep-equal($order-by-predicates, $var-predicates($default-order-by-var-name)))) then $var-predicates($default-order-by-var-name) else ()" as="xs:anyURI*"/>
             <xsl:variable name="default-desc" select="$select-xml/json:map/json:array[@key = 'order']/json:map[2]/json:boolean[@key = 'descending']" as="xs:boolean?"/>
+            <!-- each column's datatype is resolved once over the whole result set, not per row: xsl:sort requires every key to be mutually comparable, so the type has to be a property of the column rather than of the value -->
+            <xsl:variable name="order-by-datatype" select="ldh:sort-datatype(/rdf:RDF/*, $order-by-predicates)" as="xs:anyURI?"/>
+            <xsl:variable name="default-order-by-datatype" select="ldh:sort-datatype(/rdf:RDF/*, $default-order-by-predicates)" as="xs:anyURI?"/>
             <xsl:variable name="sorted-results" as="document-node()">
                 <xsl:document>
                     <xsl:for-each select="/rdf:RDF">
                         <xsl:copy>
+                            <!-- the typed key orders the column by its XSD datatype and the lexical key breaks its ties, which is also where untyped columns and values that fail to cast are ordered -->
                             <xsl:perform-sort select="*">
-                                <!-- sort key COALESCEs across $order-by-predicates in path order, preferring values whose @xml:lang primary subtag matches $ac:lang. Inlined rather than calling ldh:sort-key() because SaxonJS xsl:sort doesn't appear to thread the user-function return value back into the comparison even though the function executes. -->
-                                <xsl:sort select="
-                                    (let $children := for $p in $order-by-predicates return *[concat(namespace-uri(), local-name()) = $p]
-                                     return (
-                                       ($children[tokenize(@xml:lang, '-')[1] = tokenize($ac:lang, '-')[1]]/string(text()))[1],
-                                       ($children[not(@xml:lang)]/string(text()))[1],
-                                       ($children/string((text(), @rdf:resource, @rdf:nodeID)[1]))[1]
-                                     )[. ne ''][1])
-                                " order="{if ($desc) then 'descending' else 'ascending'}"/>
-                                <!-- secondary sort by $default-order-by-predicates if distinct from the primary -->
-                                <xsl:sort select="
-                                    if (exists($default-order-by-predicates) and not(deep-equal($order-by-predicates, $default-order-by-predicates))) then
-                                        (let $children := for $p in $default-order-by-predicates return *[concat(namespace-uri(), local-name()) = $p]
-                                         return (
-                                           ($children[tokenize(@xml:lang, '-')[1] = tokenize($ac:lang, '-')[1]]/string(text()))[1],
-                                           ($children[not(@xml:lang)]/string(text()))[1],
-                                           ($children/string((text(), @rdf:resource, @rdf:nodeID)[1]))[1]
-                                         )[. ne ''][1])
-                                    else ()
-                                " order="{if ($default-desc) then 'descending' else 'ascending'}"/>
+                                <xsl:sort select="ldh:sort-key(ldh:sort-key-lexical(., $order-by-predicates), $order-by-datatype)" order="{if ($desc) then 'descending' else 'ascending'}"/>
+                                <xsl:sort select="ldh:sort-key-lexical(., $order-by-predicates)" order="{if ($desc) then 'descending' else 'ascending'}"/>
+                                <xsl:sort select="ldh:sort-key(ldh:sort-key-lexical(., $default-order-by-predicates), $default-order-by-datatype)" order="{if ($default-desc) then 'descending' else 'ascending'}"/>
+                                <xsl:sort select="ldh:sort-key-lexical(., $default-order-by-predicates)" order="{if ($default-desc) then 'descending' else 'ascending'}"/>
                                 <!-- soft by URI/bnode ID otherwise -->
                                 <xsl:sort select="if (@rdf:about) then @rdf:about else @rdf:nodeID" order="{if ($default-desc) then 'descending' else 'ascending'}"/>
                             </xsl:perform-sort>
@@ -1956,27 +2568,28 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="object-metadata" select="$object-metadata"/>
                     <xsl:with-param name="property-metadata" select="$property-metadata"/>
                     <xsl:with-param name="cache" select="$cache"/>
+                    <xsl:with-param name="form-actions" select="$form-actions"/>
                 </xsl:call-template>
             </xsl:for-each>
 
-            <!-- use the initial (not the current transformed) SELECT query and focus var name for facet rendering -->
-            <xsl:for-each select="$container/div[contains-token(@class, 'left-nav')]">
+            <!-- use the initial (not the current transformed) SELECT query and focus var name for facet rendering. Facets render as dropdown pills in the view toolbar's left zone -->
+            <xsl:for-each select="$container/descendant::div[contains-token(@class, 'ldh-view-toolbar')][1]/div[contains-token(@class, 'left')]">
                 <xsl:call-template name="ldh:RenderFacets">
                     <xsl:with-param name="select-string" select="$select-string"/>
-                    <xsl:with-param name="sub-container-id" select="$container-id || '-left-nav'"/>
+                    <xsl:with-param name="sub-container-id" select="$container-id || '-facets'"/>
                     <xsl:with-param name="property-metadata" select="$property-metadata"/>
                 </xsl:call-template>
             </xsl:for-each>
 
-            <xsl:for-each select="$container/div[contains-token(@class, 'right-nav')]">
-                <xsl:call-template name="bs2:ParallaxNav">
-                    <xsl:with-param name="results" select="$sorted-results"/>
-                    <xsl:with-param name="select-xml" select="$select-xml"/>
-                    <xsl:with-param name="endpoint" select="$endpoint"/>
-                    <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
-                    <xsl:with-param name="sub-container-id" select="$container-id || '-right-nav'"/>
-                </xsl:call-template>
-            </xsl:for-each>
+            <xsl:call-template name="bs2:ParallaxNav">
+                <xsl:with-param name="empty-results" select="empty($sorted-results/rdf:RDF/*)"/>
+                <xsl:with-param name="select-xml" select="$select-xml"/>
+                <xsl:with-param name="endpoint" select="$endpoint"/>
+                <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
+                <xsl:with-param name="property-metadata" select="$property-metadata"/>
+                <xsl:with-param name="cache" select="$cache"/>
+                <xsl:with-param name="properties-container-id" select="$container-id || '-parallax-properties'"/>
+            </xsl:call-template>
 
             <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
         </xsl:for-each>
@@ -1990,32 +2603,41 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$context"/>
     </xsl:function>
 
+    <!-- the discovered predicates arrive as (predicate, direction) pairs - one chip each, so a predicate
+         used both ways yields two. Their labels live in the ontology rather than the end-user dataset,
+         so they are fetched from the /ns endpoint in a single batched request. -->
     <xsl:function name="ldh:parallax-response" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
-        <xsl:variable name="var-name" select="$context('var-name')" as="xs:string"/>       
-        <xsl:variable name="results" select="$context('results')" as="document-node()"/>
-        
+        <xsl:variable name="predicate-var-name" select="$context('predicate-var-name')" as="xs:string"/>
+        <xsl:variable name="inverse-var-name" select="$context('inverse-var-name')" as="xs:string"/>
+
         <xsl:message>ldh:parallax-response</xsl:message>
 
         <xsl:for-each select="$response">
             <xsl:choose>
                 <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
                     <xsl:for-each select="?body">
-                        <xsl:variable name="var-name-resources" select="//srx:binding[@name = $var-name]/srx:uri" as="xs:anyURI*"/>
+                        <xsl:variable name="links" as="map(*)*">
+                            <xsl:for-each select="//srx:result[srx:binding[@name = $predicate-var-name]/srx:uri]">
+                                <xsl:sequence select="map{ 'predicate': xs:anyURI(srx:binding[@name = $predicate-var-name]/srx:uri), 'inverse': xs:boolean(srx:binding[@name = $inverse-var-name]/srx:literal) }"/>
+                            </xsl:for-each>
+                        </xsl:variable>
 
-                        <xsl:for-each-group select="$results/rdf:RDF/*[@rdf:about = $var-name-resources]/*[@rdf:resource or @rdf:nodeID]" group-by="concat(namespace-uri(), local-name())">
-                            <xsl:variable name="predicate" select="xs:anyURI(namespace-uri() || local-name())" as="xs:anyURI"/>
-                            <!-- DESCRIBE the predicate over the application's /ns ontology endpoint (ACL-enforced) instead of proxying its vocab document -->
-                            <xsl:variable name="query-string" select="$property-metadata-query || ' VALUES $Type { &lt;' || $predicate || '&gt; }'" as="xs:string"/>
+                        <xsl:if test="exists($links)">
+                            <!-- render synchronously with whatever labels are already known, then re-render when the batch arrives -->
+                            <xsl:sequence select="ldh:render-parallax-chips($container, $links, $context('property-metadata'))"/>
+
+                            <xsl:variable name="values" select="' VALUES $this { ' || string-join(distinct-values($links ! ('&lt;' || ?predicate || '&gt;')), ' ') || ' }'" as="xs:string"/>
+                            <xsl:variable name="query-string" select="$object-metadata-ns-query || $values" as="xs:string"/>
                             <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', ldt:base())), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                             <xsl:variable name="context" select="map:merge((
                               $context,
                               map{
                                 'request': $request,
                                 'container': $container,
-                                'predicate': $predicate
+                                'links': $links
                               }
                             ), map{ 'duplicates': 'use-last' })"/>
                             <ixsl:promise select="ixsl:http-request($context('request')) =>
@@ -2023,7 +2645,7 @@ exclude-result-prefixes="#all"
                                 ixsl:then(ldh:handle-response#1) =>
                                 ixsl:then(ldh:parallax-property-response#1)"
                                 on-failure="ldh:promise-failure#1"/>
-                        </xsl:for-each-group>
+                        </xsl:if>
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>
@@ -2031,12 +2653,9 @@ exclude-result-prefixes="#all"
                     <!-- error response - could not load parallax results -->
                     <xsl:for-each select="$container">
                         <xsl:result-document href="?." method="ixsl:append-content">
-                            <div class="alert alert-block">
-                                <strong>Error during query execution:</strong>
-                                <pre>
-                                    <xsl:value-of select="$response?message"/>
-                                </pre>
-                            </div>
+                            <!-- appended beside the parallax rows rather than filling a block body, so the bare alert
+                                 without the ldh-block-error wrapper - it must not ring the view card it sits in -->
+                            <xsl:sequence select="ldh:error-alert('block-query-failed', ldh:http-error-key($response?status), ())"/>
                         </xsl:result-document>
                     </xsl:for-each>
 
@@ -2048,63 +2667,76 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$context"/>
     </xsl:function>
 
+    <!-- re-renders the chip strip once the batched labels arrive -->
     <xsl:function name="ldh:parallax-property-response" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
-        <xsl:variable name="class" select="$context('class')" as="xs:string?"/>
-        <xsl:variable name="id" select="$context('id')" as="xs:string?"/>
-        <xsl:variable name="predicate" select="$context('predicate')" as="xs:anyURI"/>
-        
+        <xsl:variable name="links" select="$context('links')" as="map(*)*"/>
+
         <xsl:message>ldh:parallax-property-response</xsl:message>
 
         <xsl:for-each select="$response">
-            <xsl:variable name="results" select="if (?status = 200 and ?media-type = 'application/rdf+xml') then ?body else ()" as="document-node()?"/>
-            <xsl:variable name="existing-items" select="$container/li" as="element()*"/>
-            <xsl:variable name="new-item" as="element()">
-                <li>
-                    <a title="{$predicate}">
-                        <input name="ou" type="hidden" value="{$predicate}"/>
-                        <xsl:variable name="resource" select="if ($results) then key('resources', $predicate, $results) else ()" as="element()?"/>
+            <xsl:variable name="metadata" select="if (?status = 200 and ?media-type = 'application/rdf+xml') then ?body else ()" as="document-node()?"/>
 
-                        <xsl:choose>
-                            <xsl:when test="$resource">
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="$resource" mode="ac:label"/>
-                                </xsl:value-of>
-                            </xsl:when>
-                            <!-- attempt to use the fragment as label -->
-                            <xsl:when test="contains($predicate, '#') and not(ends-with($predicate, '#'))">
-                                <xsl:value-of select="substring-after($predicate, '#')"/>
-                            </xsl:when>
-                            <!-- attempt to use the last path segment as label -->
-                            <xsl:when test="string-length(tokenize($predicate, '/')[last()]) &gt; 0">
-                                <xsl:value-of select="translate(tokenize($predicate, '/')[last()], '_', ' ')"/>
-                            </xsl:when>
-                            <!-- fallback to simply displaying the full URI -->
-                            <xsl:otherwise>
-                                <xsl:value-of select="$predicate"/>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                    </a>
-                </li>
-            </xsl:variable>
-            <xsl:variable name="items" as="element()*">
-                <!-- sort the existing <li> items together with the new item -->
-                <xsl:perform-sort select="($existing-items, $new-item)">
-                    <!-- sort by the link text content (property label) -->
-                    <xsl:sort select="a/text()" lang="{$ac:lang}"/>
-                </xsl:perform-sort>
-            </xsl:variable>
-
-            <xsl:for-each select="$container">
-                <xsl:result-document href="?." method="ixsl:replace-content">
-                    <xsl:sequence select="$items"/>
-                </xsl:result-document>
-            </xsl:for-each>
+            <xsl:sequence select="ldh:render-parallax-chips($container, $links, $metadata)"/>
         </xsl:for-each>
-        
+
         <xsl:sequence select="$context"/>
+    </xsl:function>
+
+    <!-- the whole strip renders at once from the complete link list: outgoing chips first, then incoming, each group by label -->
+    <xsl:function name="ldh:render-parallax-chips" ixsl:updating="yes">
+        <xsl:param name="container" as="element()"/>
+        <xsl:param name="links" as="map(*)*"/>
+        <xsl:param name="metadata" as="document-node()?"/>
+
+        <xsl:variable name="chips" as="element()*">
+            <xsl:for-each select="$links">
+                <xsl:sort select="number(?inverse)"/>
+                <xsl:sort select="ldh:predicate-label(?predicate, $metadata)" lang="{ac:langs()[1]}"/>
+
+                <a class="pchip{if (?inverse) then ' pchip-in' else ()}" title="{?predicate}" data-dir="{if (?inverse) then 'in' else 'out'}">
+                    <input name="ou" type="hidden" value="{?predicate}"/>
+                    <span class="msi sm" aria-hidden="true">
+                        <xsl:value-of select="if (?inverse) then 'arrow_back' else 'arrow_forward'"/>
+                    </span>
+                    <span class="lbl">
+                        <xsl:value-of select="ldh:predicate-label(?predicate, $metadata)"/>
+                    </span>
+                </a>
+            </xsl:for-each>
+        </xsl:variable>
+
+        <xsl:for-each select="$container">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:sequence select="$chips"/>
+            </xsl:result-document>
+        </xsl:for-each>
+    </xsl:function>
+
+    <!-- the ontology's label for a predicate, falling back to its fragment, then its last path segment, then the URI itself -->
+    <xsl:function name="ldh:predicate-label" as="xs:string">
+        <xsl:param name="predicate" as="xs:anyURI"/>
+        <xsl:param name="metadata" as="document-node()?"/>
+        <xsl:variable name="resource" select="if ($metadata) then key('resources', $predicate, $metadata) else ()" as="element()?"/>
+
+        <xsl:choose>
+            <xsl:when test="$resource">
+                <xsl:value-of>
+                    <xsl:apply-templates select="$resource" mode="ac:label"/>
+                </xsl:value-of>
+            </xsl:when>
+            <xsl:when test="contains($predicate, '#') and not(ends-with($predicate, '#'))">
+                <xsl:value-of select="substring-after($predicate, '#')"/>
+            </xsl:when>
+            <xsl:when test="string-length(tokenize($predicate, '/')[last()]) &gt; 0">
+                <xsl:value-of select="translate(tokenize($predicate, '/')[last()], '_', ' ')"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="$predicate"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
     
     <xsl:function name="ldh:facet-value-response" as="map(*)" ixsl:updating="yes">
@@ -2124,47 +2756,37 @@ exclude-result-prefixes="#all"
                 <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
                     <xsl:for-each select="?body">
                         <xsl:variable name="results" select="." as="document-node()"/>
-                        <xsl:if test="$results//srx:result[srx:binding[@name = $object-var-name]]">
-                            <xsl:choose>
-                                <!-- special case for rdf:type - we expect its values to be in the ontology (classes), not in the instance data -->
-                                <xsl:when test="$predicate = '&rdf;type'">
-                                    <xsl:for-each select="$container">
-                                        <xsl:result-document href="?." method="ixsl:append-content">
-                                            <ul class="well well-small nav nav-list"></ul>
-                                        </xsl:result-document>
-                                    </xsl:for-each>
-
-                                    <xsl:for-each select="$results//srx:result[srx:binding[@name = $object-var-name]]">
-                                        <xsl:variable name="object-type" select="srx:binding[@name = $object-var-name]/srx:uri" as="xs:anyURI"/>
-                                        <xsl:variable name="value-result" select="." as="element()"/>
-                                        <!-- DESCRIBE the class over the application's /ns ontology endpoint (ACL-enforced) instead of proxying its vocab document -->
-                                        <xsl:variable name="query-string" select="$property-metadata-query || ' VALUES $Type { &lt;' || $object-type || '&gt; }'" as="xs:string"/>
-                                        <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', ldt:base())), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-                                        <xsl:variable name="context" as="map(*)" select="
-                                          map{
-                                            'request': $request,
-                                            'container': $container,
-                                            'object-var-name': $object-var-name,
-                                            'count-var-name': $count-var-name,
-                                            'object-type': $object-type,
-                                            'value-result': $value-result
-                                          }"/>
-                                        <ixsl:promise select="ixsl:http-request($context('request')) =>
-                                            ixsl:then(ldh:rethread-response($context, ?)) =>
-                                            ixsl:then(ldh:handle-response#1) =>
-                                            ixsl:then(ldh:facet-value-type-response#1)"
-                                            on-failure="ldh:promise-failure#1"/>
-                                    </xsl:for-each>
-                                </xsl:when>
-                                <xsl:otherwise>
-                                    <!-- toggle the caret direction -->
-                                    <xsl:for-each select="$container/h2/span[contains-token(@class, 'caret')]">
-                                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'caret-reversed' ])[current-date() lt xs:date('2000-01-01')]"/>
-                                    </xsl:for-each>
-
-                                    <xsl:for-each select="$container">
-                                        <xsl:result-document href="?." method="ixsl:append-content">
-                                            <ul class="well well-small nav nav-list">
+                        <xsl:choose>
+                            <xsl:when test="$results//srx:result[srx:binding[@name = $object-var-name]]">
+                                <xsl:choose>
+                                    <!-- special case for rdf:type - we expect its values to be in the ontology (classes), not in the instance data -->
+                                    <xsl:when test="$predicate = '&rdf;type'">
+                                        <xsl:for-each select="$results//srx:result[srx:binding[@name = $object-var-name]]">
+                                            <xsl:variable name="object-type" select="srx:binding[@name = $object-var-name]/srx:uri" as="xs:anyURI"/>
+                                            <xsl:variable name="value-result" select="." as="element()"/>
+                                            <!-- DESCRIBE the class over the application's /ns ontology endpoint (ACL-enforced) instead of proxying its vocab document -->
+                                            <xsl:variable name="query-string" select="$property-metadata-query || ' VALUES $Type { &lt;' || $object-type || '&gt; }'" as="xs:string"/>
+                                            <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', ldt:base())), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                                            <xsl:variable name="context" as="map(*)" select="
+                                              map{
+                                                'request': $request,
+                                                'container': $container,
+                                                'object-var-name': $object-var-name,
+                                                'count-var-name': $count-var-name,
+                                                'object-type': $object-type,
+                                                'value-result': $value-result
+                                              }"/>
+                                            <ixsl:promise select="ixsl:http-request($context('request')) =>
+                                                ixsl:then(ldh:rethread-response($context, ?)) =>
+                                                ixsl:then(ldh:handle-response#1) =>
+                                                ixsl:then(ldh:facet-value-type-response#1)"
+                                                on-failure="ldh:promise-failure#1"/>
+                                        </xsl:for-each>
+                                    </xsl:when>
+                                    <xsl:otherwise>
+                                        <!-- replace the loading state with the value list -->
+                                        <xsl:for-each select="$container/ul[contains-token(@class, 'facet-pop')]">
+                                            <xsl:result-document href="?." method="ixsl:replace-content">
                                                 <xsl:apply-templates select="$results//srx:result[srx:binding[@name = $object-var-name]]" mode="bs2:FacetValueItem">
                                                     <!-- order by count first -->
                                                     <xsl:sort select="xs:integer(srx:binding[@name = $count-var-name]/srx:literal)" order="descending"/>
@@ -2176,31 +2798,36 @@ exclude-result-prefixes="#all"
                                                     <xsl:with-param name="count-var-name" select="$count-var-name"/>
                                                     <xsl:with-param name="label-sample-var-name" select="$label-sample-var-name"/>
                                                 </xsl:apply-templates>
-                                            </ul>
-                                        </xsl:result-document>
-                                    </xsl:for-each>
-                                </xsl:otherwise>
-                            </xsl:choose>
-                        </xsl:if>
+                                            </xsl:result-document>
+                                        </xsl:for-each>
+                                    </xsl:otherwise>
+                                </xsl:choose>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <!-- no values - replace the loading state with the empty state -->
+                                <xsl:for-each select="$container/ul[contains-token(@class, 'facet-pop')]">
+                                    <xsl:result-document href="?." method="ixsl:replace-content">
+                                        <li class="facet-empty">
+                                            <xsl:apply-templates select="key('resources', 'no-values', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                        </li>
+                                    </xsl:result-document>
+                                </xsl:for-each>
+                            </xsl:otherwise>
+                        </xsl:choose>
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>
                     <!-- error response - could not load facet results -->
-                    <xsl:for-each select="$container">
-                        <xsl:result-document href="?." method="ixsl:append-content">
-                            <div class="alert alert-block">
-                                <strong>Error during query execution:</strong>
-                                <pre>
-                                    <xsl:value-of select="$response?message"/>
-                                </pre>
-                            </div>
+                    <xsl:for-each select="$container/ul[contains-token(@class, 'facet-pop')]">
+                        <xsl:result-document href="?." method="ixsl:replace-content">
+                            <li>
+                                <xsl:sequence select="ldh:error-alert('block-values-failed', ldh:http-error-key($response?status), ())"/>
+                            </li>
                         </xsl:result-document>
                     </xsl:for-each>
                 </xsl:otherwise>
             </xsl:choose>
 
-            <!-- done loading, restore normal cursor -->
-            <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
         </xsl:for-each>
         
         <xsl:sequence select="$context"/>
@@ -2219,7 +2846,7 @@ exclude-result-prefixes="#all"
 
         <xsl:for-each select="$response">
             <xsl:variable name="results" select="if (?status = 200 and ?media-type = 'application/rdf+xml') then ?body else ()" as="document-node()?"/>
-            <xsl:variable name="existing-items" select="$container/ul/li" as="element()*"/>
+            <xsl:variable name="existing-items" select="$container/ul/li[not(contains-token(@class, 'facet-loading'))]" as="element()*"/>
             <xsl:variable name="new-item" as="element()">
                 <xsl:apply-templates select="$value-result" mode="bs2:FacetValueItem">
                     <xsl:with-param name="object-var-name" select="$object-var-name"/>
@@ -2242,7 +2869,7 @@ exclude-result-prefixes="#all"
                     <!-- sort by count in a hidden input first -->
                     <xsl:sort select="xs:integer(input[@name = 'count']/@value)" order="descending"/>
                     <!-- sort by the link text content (value label) -->
-                    <xsl:sort select="a/text()" lang="{$ac:lang}"/>
+                    <xsl:sort select="a/text()" lang="{ac:langs()[1]}"/>
                 </xsl:perform-sort>
             </xsl:variable>
 
@@ -2279,12 +2906,40 @@ exclude-result-prefixes="#all"
                                 </xsl:apply-templates>
                             </xsl:result-document>
                         </xsl:for-each>
+
+                        <!-- cache the total so pagers rendered on later page flips know it immediately, and refresh the pager already on the page with it -->
+                        <xsl:variable name="total-count" select="xs:integer(($results//srx:binding[@name = $count-var-name]/srx:literal)[1])" as="xs:integer?"/>
+                        <xsl:variable name="container-id" select="$context('container-id')" as="xs:string?"/>
+                        <xsl:if test="exists($total-count)">
+                            <ixsl:set-property name="result-count" select="$total-count" object="$context('cache')"/>
+
+                            <xsl:if test="$container-id">
+                                <xsl:variable name="view-results" select="if (ixsl:contains($context('cache'), 'results')) then ixsl:get($context('cache'), 'results') else ()" as="document-node()?"/>
+                                <xsl:for-each select="id($container-id || '-container-results', ixsl:page())//div[contains-token(@class, 'ldh-pager')]">
+                                    <xsl:result-document href="?." method="ixsl:replace-content">
+                                        <xsl:call-template name="bs2:PagerControls">
+                                            <xsl:with-param name="container-id" select="$container-id"/>
+                                            <xsl:with-param name="result-count" select="count($view-results/rdf:RDF/rdf:Description)"/>
+                                            <xsl:with-param name="select-xml" select="ixsl:get($context('cache'), 'select-xml')"/>
+                                            <xsl:with-param name="total-count" select="$total-count"/>
+                                        </xsl:call-template>
+                                    </xsl:result-document>
+                                </xsl:for-each>
+                            </xsl:if>
+                        </xsl:if>
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:for-each select="$container">
                         <xsl:result-document href="?." method="ixsl:replace-content">
-                            <span class="alert">Error loading result count</span>
+                            <!-- the count sits inline in the view toolbar, where a full alert would outweigh the row it
+                                 reports on - the design system's compact negative tag is the status marker at this size -->
+                            <span class="ldhc-tag em-quiet co-negative sz-sm">
+                                <span class="msi outline" aria-hidden="true">error</span>
+                                <span class="ldhc-tag-lbl">
+                                    <xsl:apply-templates select="key('resources', 'block-count-failed', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                </span>
+                            </span>
                         </xsl:result-document>
                     </xsl:for-each>
                 </xsl:otherwise>
@@ -2316,7 +2971,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="doc-uri" select="resolve-uri(ac:uuid() || '/', $container-uri)" as="xs:anyURI"/> <!-- build a relative URI for the container's child document -->
         <xsl:variable name="this" select="xs:anyURI($doc-uri || '#id' || ac:uuid())" as="xs:anyURI"/> <!-- the instance is a fragment resource within the new document, same minting as the type-typeahead flow -->
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <!-- 'types' is initially set to ($forClass) so the shape fetch targets the right class, same as the type-typeahead flow; 'view-*' keys carry the linkage metadata through the chain -->
         <xsl:variable name="context" as="map(*)" select="map{
@@ -2372,7 +3027,8 @@ exclude-result-prefixes="#all"
                 <xsl:apply-templates select="$instance-doc" mode="bs2:Form">
                     <xsl:with-param name="method" select="'put'"/>
                     <xsl:with-param name="action" select="ldh:href($doc-uri)" as="xs:anyURI" tunnel="yes"/>
-                    <xsl:with-param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
+                    <xsl:with-param name="form-actions-class" select="'ldh-form-bar'" as="xs:string?"/>
+                    <xsl:with-param name="show-close-button" select="true()"/>
                     <xsl:with-param name="classes" select="$classes"/>
                     <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                     <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
@@ -2384,17 +3040,21 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
             </xsl:variable>
 
+
+            <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
+            <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseDropdown"/>
             <xsl:result-document href="?." method="ixsl:append-content">
-                <div class="modal modal-constructor fade in" about="{$doc-uri}" typeof="{$forClass}"> <!-- @about identifies the new document URL (uniform with the other modals so submit handlers can read $block/@about); the instance URI travels on @data-instance -->
-                    <div class="modal-header">
-                        <button type="button" class="close">&#215;</button>
+                <div class="ldhc-backdrop pos-top modal modal-constructor" about="{$doc-uri}" typeof="{$forClass}"> <!-- @about identifies the new document URL (uniform with the other modals so submit handlers can read $block/@about); the instance URI travels on @data-instance -->
+                    <div class="ldhc-modal sz-lg" role="dialog" aria-modal="true">
+                        <div class="ldhc-modal-head">
+                            <span class="ldhc-modal-x">
+                                <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
+                            </span>
+                        </div>
 
-                        <legend>
-                        </legend>
-                    </div>
-
-                    <div class="modal-body">
-                        <xsl:copy-of select="$form"/>
+                        <div class="ldhc-modal-body">
+                            <xsl:copy-of select="$form"/>
+                        </div>
                     </div>
                 </div>
             </xsl:result-document>
@@ -2417,24 +3077,20 @@ exclude-result-prefixes="#all"
     </xsl:function>
 
     <!-- submit inline creation modal form: forward view — the linking triple <about> <property> <new> is PATCHed into the current document by the response callback -->
-    <xsl:template match="div[contains-token(@class, 'modal-constructor')][@data-property][not(@data-inverse)]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PUT']" mode="ixsl:onsubmit" priority="3"> <!-- prioritize over modal.xsl -->
+    <xsl:template match="div[contains-token(@class, 'modal-constructor')][@data-property][not(@data-inverse)]//form[tokenize(@class, ' ') = ('ldh-prop-form', 'ldh-edit-form')][upper-case(@method) = 'PUT']" mode="ixsl:onsubmit" priority="3"> <!-- prioritize over modal.xsl -->
         <xsl:next-match>
             <xsl:with-param name="callback" select="ldh:view-instance-form-response#1"/>
         </xsl:next-match>
     </xsl:template>
 
     <!-- submit inline creation modal form: inverse view — the linking triple <new> <property> <about> belongs in the new document's graph, so it ships inside the PUT body -->
-    <xsl:template match="div[contains-token(@class, 'modal-constructor')][@data-property][@data-inverse]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PUT']" mode="ixsl:onsubmit" priority="3"> <!-- prioritize over modal.xsl -->
+    <xsl:template match="div[contains-token(@class, 'modal-constructor')][@data-property][@data-inverse]//form[tokenize(@class, ' ') = ('ldh-prop-form', 'ldh-edit-form')][upper-case(@method) = 'PUT']" mode="ixsl:onsubmit" priority="3"> <!-- prioritize over modal.xsl -->
         <xsl:param name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="modal" select="ancestor::div[contains-token(@class, 'modal-constructor')][1]" as="element()"/>
         <!-- pre-process form before submitting it: syncs input values, so it must precede ldh:parse-rdf-post -->
         <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/>
         <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
-        <!-- canonicalize XML in rdf:XMLLiterals -->
-        <xsl:variable name="triples" as="element()*">
-            <xsl:apply-templates select="$triples" mode="ldh:CanonicalizeXML"/>
-        </xsl:variable>
         <xsl:variable name="link-triple" as="element()">
             <json:map>
                 <json:string key="subject"><xsl:sequence select="string($modal/@data-instance)"/></json:string>
@@ -2539,18 +3195,17 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:refresh-view" as="item()*" ixsl:updating="yes">
         <xsl:param name="block-id" as="xs:string"/>
 
-        <xsl:message>ldh:refresh-view block-id: '<xsl:value-of select="$block-id"/>' matched views: <xsl:value-of select="count(id($block-id, ixsl:page())/div[contains-token(@class, 'span12')]/div[@typeof = '&ldh;View'])"/></xsl:message>
+        <xsl:message>ldh:refresh-view block-id: '<xsl:value-of select="$block-id"/>' matched views: <xsl:value-of select="count(id($block-id, ixsl:page())/div[contains-token(@class, 'row-main')]/div[@typeof = '&ldh;View'])"/></xsl:message>
 
-        <xsl:for-each select="id($block-id, ixsl:page())/div[contains-token(@class, 'span12')]/div[@typeof = '&ldh;View']">
+        <xsl:for-each select="id($block-id, ixsl:page())/div[contains-token(@class, 'row-main')]/div[@typeof = '&ldh;View']">
             <xsl:variable name="container" select="." as="element()"/>
-            <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
-            <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block/@about || '`')" as="item()"/>
-            <xsl:message>ldh:refresh-view block URI: <xsl:value-of select="$block/@about"/> cache found: <xsl:value-of select="exists($cache)"/></xsl:message>
+            <xsl:variable name="cache" select="ldh:view-cache($container)" as="item()"/>
+            <xsl:message>ldh:refresh-view cache found: <xsl:value-of select="exists($cache)"/></xsl:message>
             <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
             <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
             <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
             <xsl:variable name="endpoint" select="ixsl:get($cache, 'endpoint')" as="xs:anyURI"/>
-            <xsl:variable name="active-class" select="tokenize($container//ul[contains-token(@class, 'view-mode-list')]/li[contains-token(@class, 'active')]/@class, ' ')[not(. = 'active')]" as="xs:string"/>
+            <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/a[contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string"/>
             <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
 
             <xsl:variable name="view-context" as="map(*)">
@@ -2569,8 +3224,8 @@ exclude-result-prefixes="#all"
 
             <ixsl:promise select="
                 ixsl:resolve($context) =>
-                    ixsl:then(ldh:view-results-thunk#1)
-                "
+                    ixsl:then(ldh:view-results-thunk#1) =>
+                    ixsl:finally(ldh:reset-cursor#0)"
                 on-failure="ldh:promise-failure#1"/>
         </xsl:for-each>
     </xsl:function>

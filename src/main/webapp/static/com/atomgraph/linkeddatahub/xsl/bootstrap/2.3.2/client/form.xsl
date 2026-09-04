@@ -42,12 +42,14 @@ xmlns:dct="&dct;"
 xmlns:typeahead="&typeahead;"
 xmlns:ldt="&ldt;"
 xmlns:acl="&acl;"
+xmlns:foaf="&foaf;"
 xmlns:sd="&sd;"
 xmlns:sh="&sh;"
 xmlns:sioc="&sioc;"
 xmlns:spin="&spin;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 xmlns:rdfae="https://w3id.org/atomgraph/rdfa-editor#"
+xmlns:cm="https://w3id.org/atomgraph/rdfa-editor/content-model#"
 extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
@@ -112,27 +114,13 @@ WHERE
     <!-- suppress constraint violations and HTTP responses in the form - they are displayed as errors on the edited resources -->
     <xsl:template match="*[rdf:type/@rdf:resource = $system-types]" mode="bs2:Form" priority="3"/>
 
+    <!-- suppress the constraint descriptions the exception mapper includes for kind discrimination - they are referenced via spin:violationSource/sh:sourceShape and their types are open-ended (ldh:MissingPropertyValue, per-app templates), so the $system-types list cannot enumerate them -->
+    <xsl:template match="*[key('predicates-by-object', (@rdf:nodeID, @rdf:about))[self::spin:violationSource or self::sh:sourceShape]]" mode="bs2:RowForm" priority="3"/>
+
+    <xsl:template match="*[key('predicates-by-object', (@rdf:nodeID, @rdf:about))[self::spin:violationSource or self::sh:sourceShape]]" mode="bs2:Form" priority="3"/>
+
     <!-- suppress the system properties of document resources (they are set automatically by LinkedDataHub) -->
     <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:created | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:modified | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/sioc:has_container | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/sioc:has_parent | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:creator | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/acl:owner | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container')]/*[namespace-uri() = '&rdf;'][starts-with(local-name(), '_')][@rdf:resource] | *[rdf:type/@rdf:resource = '&dh;Item']/*[namespace-uri() = '&rdf;'][starts-with(local-name(), '_')]" mode="bs2:FormControl" priority="1"/>
-    
-    <!-- canonicalize XML in rdf:XMLLiterals -->
-    <xsl:template match="json:string[@key = 'object'][ends-with(., '^^&rdf;XMLLiteral')]" mode="ldh:CanonicalizeXML" priority="1">
-        <xsl:copy>
-            <xsl:apply-templates select="@*" mode="#current"/>
-
-            <xsl:variable name="xml-string" select="substring-before(substring-after(., '&quot;'), '&quot;^^')" as="xs:string"/>
-            <xsl:variable name="xml-literal" select="parse-xml($xml-string)" as="document-node()"/>
-            <xsl:variable name="xml-c14n-string" select="ldh:canonicalize-xml($xml-literal)" as="xs:string"/>
-            <xsl:sequence select="'&quot;' || $xml-c14n-string || '&quot;^^&rdf;XMLLiteral'"/>
-        </xsl:copy>
-    </xsl:template>
-    
-    <!-- identity transform -->
-    <xsl:template match="@* | node()" mode="ldh:CanonicalizeXML">
-        <xsl:copy>
-            <xsl:apply-templates select="@* | node()" mode="#current"/>
-        </xsl:copy>
-    </xsl:template>
     
     <xsl:template match="*" mode="ldh:RenderRowForm">
         <xsl:apply-templates mode="#current"/>
@@ -140,19 +128,69 @@ WHERE
     
     <xsl:template match="text()" mode="ldh:RenderRowForm"/>
 
-    <!-- subject type change -->
-    <xsl:template match="select[contains-token(@class, 'subject-type')]" mode="ldh:RenderRowForm" priority="1">
-        <xsl:sequence select="ixsl:call(., 'addEventListener', [ 'change', ixsl:get(ixsl:window(), 'onSubjectTypeChange') ])[current-date() lt xs:date('2000-01-01')]"/>
+    <!-- flip the RDF/POST input names when the subject type changes between URI ("su") and blank node ("sb"), restoring the values last stored for the new type -->
+    <xsl:template match="select[contains-token(@class, 'subject-type')]" mode="ixsl:onchange">
+        <xsl:variable name="new-type" select="string(ixsl:get(., 'value'))" as="xs:string"/>
+        <xsl:variable name="subject-row" select="ancestor::div[contains-token(@class, 'ldh-subject')][1]" as="element()"/>
+        <xsl:variable name="old-subject-type" select="$subject-row//input[contains-token(@class, 'subject-type')][contains-token(@class, 'old')]" as="element()"/> <!-- old value in a hidden input -->
+        <xsl:variable name="old-type" select="string(ixsl:get($old-subject-type, 'value'))" as="xs:string"/>
+        <xsl:variable name="value" select="string(ixsl:get($subject-row//input[contains-token(@class, 'subject')], 'value'))" as="xs:string"/>
+        <xsl:variable name="new-type-old-subject" select="$subject-row//input[contains-token(@class, 'old')][contains-token(@class, $new-type)]" as="element()"/> <!-- old value (of the new type) in a hidden input -->
+        <xsl:variable name="new-type-old-value" select="string(ixsl:get($new-type-old-subject, 'value'))" as="xs:string"/>
+        <xsl:variable name="object-type" select="map{ 'su': 'ou', 'sb': 'ob' }" as="map(xs:string, xs:string)"/>
+
+        <!-- the subject and object names are disjoint, so a single pass over their union cannot re-match an input it has just renamed -->
+        <xsl:for-each select="ancestor::form[1]//input[@name = ($old-type, $object-type($old-type))][ixsl:get(., 'value') = $value]">
+            <ixsl:set-attribute name="name" select="if (@name = $old-type) then $new-type else $object-type($new-type)" object="."/>
+            <ixsl:set-property name="value" select="$new-type-old-value" object="."/>
+        </xsl:for-each>
+
+        <!-- store the current subject type and value which will be the old ones next time -->
+        <ixsl:set-property name="value" select="$new-type" object="$old-subject-type"/>
+        <ixsl:set-property name="value" select="$new-type-old-value" object="$new-type-old-subject"/>
     </xsl:template>
-    
+
+    <!-- propagate a changed subject URI/bnode value to every RDF/POST input that carried the old one -->
+    <xsl:template match="fieldset//input[contains-token(@class, 'subject')]" mode="ixsl:onchange">
+        <xsl:variable name="new-value" select="string(ixsl:get(., 'value'))" as="xs:string"/>
+        <xsl:variable name="subject-row" select="ancestor::div[contains-token(@class, 'ldh-subject')][1]" as="element()"/>
+        <xsl:variable name="subject-type" select="string(ixsl:get($subject-row//select[contains-token(@class, 'subject-type')], 'value'))" as="xs:string"/> <!-- "su" (URI) or "sb" (bnode) -->
+        <xsl:variable name="old-subject" select="$subject-row//input[contains-token(@class, 'old')][contains-token(@class, $subject-type)]" as="element()"/>
+        <xsl:variable name="old-value" select="string(ixsl:get($old-subject, 'value'))" as="xs:string"/>
+        <xsl:variable name="object-type" select="map{ 'su': 'ou', 'sb': 'ob' }" as="map(xs:string, xs:string)"/>
+
+        <xsl:for-each select="ancestor::form[1]//input[@name = ($subject-type, $object-type($subject-type))][ixsl:get(., 'value') = $old-value]">
+            <ixsl:set-property name="value" select="$new-value" object="."/>
+        </xsl:for-each>
+
+        <!-- store the value in the hidden input -->
+        <ixsl:set-property name="value" select="$new-value" object="$old-subject"/>
+    </xsl:template>
+
     <!-- the RDFa editor toolbar mounts in the active document's editor-bar, below the action bar (LDH pages have no nav element) -->
     <xsl:function name="rdfae:toolbar-host" as="element()*">
-        <xsl:sequence select="(id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]//div[contains-token(@class, 'editor-bar')]/div[contains-token(@class, 'container-fluid')])[1]"/>
+        <xsl:sequence select="(id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]//div[contains-token(@class, 'editor-bar')]/div[contains-token(@class, 'content-body')])[1]"/>
+    </xsl:function>
+
+    <!-- the region's canonical lexical form: the single canonicalization point for rdf:XMLLiteral values
+         (cm:canonical, canonical-xhtml.xsl, serialized by Saxon). Shared by the ol-input serialization,
+         the activation baseline and the autosave dirty check, so their verdicts can't drift -->
+    <xsl:function name="ldh:canonical-content" as="xs:string">
+        <xsl:param name="region" as="element()"/>
+
+        <xsl:variable name="canonical" as="node()*">
+            <xsl:apply-templates select="$region/node()" mode="cm:canonical"/>
+        </xsl:variable>
+        <xsl:sequence select="serialize($canonical, map{ 'method': 'xml' })"/>
     </xsl:function>
 
     <!-- first editable region on the page: full editor bring-up (chrome, dialogs, drawers, all regions) -->
     <xsl:template match="div[contains-token(@class, 'rdfa-editor-content')][empty(id('edit-toolbar', ixsl:page()))]" mode="ldh:RenderRowForm" priority="2">
         <xsl:call-template name="rdfae:init-editor"/>
+        <!-- canonical form at activation: the autosave compares against it and skips the no-op save.
+             Stashed after init, which seeds an empty region with a caret paragraph - a baseline taken
+             before it would leave an untouched fresh block permanently dirty -->
+        <ixsl:set-property name="canonicalBaseline" select="ldh:canonical-content(.)" object="."/>
         <xsl:call-template name="ldh:focus-editable">
             <xsl:with-param name="region" select="."/>
         </xsl:call-template>
@@ -167,6 +205,8 @@ WHERE
         <xsl:call-template name="rdfae:init-region">
             <xsl:with-param name="region" select="."/>
         </xsl:call-template>
+        <!-- the activation baseline follows init here too, for the same seeded-paragraph reason -->
+        <ixsl:set-property name="canonicalBaseline" select="ldh:canonical-content(.)" object="."/>
         <xsl:call-template name="ldh:focus-editable">
             <xsl:with-param name="region" select="."/>
         </xsl:call-template>
@@ -280,13 +320,13 @@ WHERE
 
     <!-- Bootstrap-styled annotation overlay (replaces rdfa-editor's custom HTML structure) -->
     <xsl:template name="rdfae:render-overlay">
-        <div id="{$rdfae:overlay-id}" class="modal rdfa-editor-ui" role="dialog" aria-modal="true" aria-label="RDFa annotation" style="display: none;">
+        <div id="{$rdfae:overlay-id}" class="rdfa-editor-ui" role="dialog" aria-modal="true" aria-label="RDFa annotation" style="display: none;">
             <div class="modal-header">
                 <button type="button" class="close cancel-action">&#215;</button>
                 <legend>RDFa Annotation</legend>
             </div>
             <div class="modal-body">
-                <form id="annotation-form" class="form-horizontal">
+                <form id="annotation-form" class="ldh-prop-form">
                     <div class="control-group">
                         <label class="control-label" for="stmt-subject">Subject</label>
                         <div class="controls">
@@ -302,8 +342,8 @@ WHERE
                     <div class="control-group">
                         <label class="control-label" for="annotation-value">Value</label>
                         <div class="controls">
-                            <input type="text" id="annotation-value" name="value" class="input-xlarge" placeholder="Literal value"/>
-                            <span class="help-block">The selected text; change to emit a machine-readable content value</span>
+                            <input type="text" id="annotation-value" name="value" placeholder="Literal value"/>
+                            <span class="help-inline">The selected text; change to emit a machine-readable content value</span>
                         </div>
                     </div>
                     <fieldset>
@@ -311,15 +351,15 @@ WHERE
                         <div class="control-group">
                             <label class="control-label" for="annotation-subject">Subject (about)</label>
                             <div class="controls">
-                                <input type="text" id="annotation-subject" name="subject" class="input-xlarge" placeholder="Overrides the subject in scope"/>
-                                <span class="help-block">IRI or _:blank-node identifier</span>
+                                <input type="text" id="annotation-subject" name="subject" placeholder="Overrides the subject in scope"/>
+                                <span class="help-inline">IRI or _:blank-node identifier</span>
                             </div>
                         </div>
                         <div class="control-group">
                             <label class="control-label" for="annotation-typeof">Type (typeof)</label>
                             <div class="controls">
                                 <xsl:sequence select="rdfae:typeahead-field('typeof')"/>
-                                <span class="help-block">Types the annotated resource; without a subject the typed resource becomes the object of the property (chaining)</span>
+                                <span class="help-inline">Types the annotated resource; without a subject the typed resource becomes the object of the property (chaining)</span>
                             </div>
                         </div>
                     </fieldset>
@@ -328,8 +368,8 @@ WHERE
                         <div class="control-group">
                             <label class="control-label" for="annotation-object">Object (resource)</label>
                             <div class="controls">
-                                <input type="text" id="annotation-object" name="object" class="input-xlarge" placeholder="Object IRI"/>
-                                <span class="help-block">Makes the object a resource instead of the literal value</span>
+                                <input type="text" id="annotation-object" name="object" placeholder="Object IRI"/>
+                                <span class="help-inline">Makes the object a resource instead of the literal value</span>
                             </div>
                         </div>
                         <div class="control-group">
@@ -343,22 +383,22 @@ WHERE
                                     </xsl:for-each>
                                     <option value="{$rdfae:custom}">-- Custom datatype --</option>
                                 </select>
-                                <input type="text" name="custom-datatype" class="input-xlarge" placeholder="Datatype IRI" style="display: none;"/>
-                                <span class="help-block">Types the literal; mutually exclusive with a language tag</span>
+                                <input type="text" name="custom-datatype" placeholder="Datatype IRI" style="display: none;"/>
+                                <span class="help-inline">Types the literal; mutually exclusive with a language tag</span>
                             </div>
                         </div>
                         <div class="control-group">
                             <label class="control-label" for="annotation-lang">Language</label>
                             <div class="controls">
-                                <input type="text" id="annotation-lang" name="lang" class="input-small" placeholder="e.g. en, fr-CA"/>
-                                <span class="help-block">Language tag for the literal; ignored when a datatype is set</span>
+                                <input type="text" id="annotation-lang" name="lang" placeholder="e.g. en, fr-CA"/>
+                                <span class="help-inline">Language tag for the literal; ignored when a datatype is set</span>
                             </div>
                         </div>
                     </fieldset>
-                    <div class="form-actions modal-footer">
-                        <button type="button" class="btn btn-danger remove-action" style="display: none;">Remove</button>
-                        <button type="button" class="btn btn-primary spo-action">Annotate</button>
-                        <button type="button" class="btn cancel-action">Cancel</button>
+                    <div class="ldh-block-foot">
+                        <button type="button" class="ldhc-btn in-negative ap-solid sz-sm remove-action" style="display: none;"><xsl:value-of select="ac:label(key('resources', 'remove', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))"/></button>
+                        <button type="button" class="ldhc-btn in-neutral ap-outline sz-md cancel-action">Cancel</button>
+                        <button type="button" class="ldhc-btn in-primary ap-solid sz-md spo-action">Annotate</button>
                     </div>
                 </form>
             </div>
@@ -377,8 +417,8 @@ WHERE
             <label for="table-caption">Caption</label>
             <input type="text" id="table-caption" name="caption"/>
             <div class="action-buttons">
-                <button type="button" class="btn btn-primary table-save">Insert</button>
-                <button type="button" class="btn table-cancel">Cancel</button>
+                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm table-save">Insert</button>
+                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm table-cancel">Cancel</button>
             </div>
         </div>
     </xsl:template>
@@ -388,9 +428,9 @@ WHERE
             <label for="link-href">Link target (href)</label>
             <input type="text" id="link-href" name="href" placeholder="https://..."/>
             <div class="action-buttons">
-                <button type="button" class="btn btn-danger link-remove" style="display: none;">Remove link</button>
-                <button type="button" class="btn btn-primary link-save">Save</button>
-                <button type="button" class="btn link-cancel">Cancel</button>
+                <button type="button" class="ldhc-btn in-negative ap-solid sz-sm link-remove" style="display: none;"><xsl:value-of select="ac:label(key('resources', 'remove-link', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))"/></button>
+                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm link-save">Save</button>
+                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm link-cancel">Cancel</button>
             </div>
         </div>
     </xsl:template>
@@ -404,8 +444,8 @@ WHERE
             <label for="figure-caption">Caption</label>
             <input type="text" id="figure-caption" name="caption"/>
             <div class="action-buttons">
-                <button type="button" class="btn btn-primary figure-save">Insert</button>
-                <button type="button" class="btn figure-cancel">Cancel</button>
+                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm figure-save">Insert</button>
+                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm figure-cancel">Cancel</button>
             </div>
         </div>
     </xsl:template>
@@ -418,12 +458,12 @@ WHERE
             <input type="text" id="find-replace" name="replace"/>
             <label class="checkbox"><input type="checkbox" name="match-case"/> Match case</label>
             <div class="action-buttons">
-                <button type="button" class="btn btn-primary find-next">Find next</button>
-                <button type="button" class="btn replace-current">Replace</button>
-                <button type="button" class="btn replace-all">Replace all</button>
-                <button type="button" class="btn find-close">Close</button>
+                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm find-next">Find next</button>
+                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm replace-current">Replace</button>
+                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm replace-all">Replace all</button>
+                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm find-close">Close</button>
             </div>
-            <span id="find-status" class="help-block"/>
+            <span id="find-status" class="help-inline"/>
         </div>
     </xsl:template>
 
@@ -465,25 +505,33 @@ WHERE
                 <input type="text" id="ldh-chart-series" name="chart-series"/>
             </div>
             <div class="action-buttons">
-                <button type="button" class="btn btn-primary ldh-block-save">Insert</button>
-                <button type="button" class="btn ldh-block-cancel">Cancel</button>
+                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm ldh-block-save">Insert</button>
+                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm ldh-block-cancel">Cancel</button>
             </div>
         </div>
     </xsl:template>
 
-    <!-- TO-DO: phase out as regular ixsl: event templates -->
     <xsl:template match="fieldset//input" mode="ldh:RenderRowForm" priority="1">
-        <!-- subject value change -->
-        <xsl:if test="contains-token(@class, 'subject')">
-            <xsl:sequence select="ixsl:call(., 'addEventListener', [ 'change', ixsl:get(ixsl:window(), 'onSubjectValueChange') ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:if>
-        
         <!-- TO-DO: move to a better place. Does not take effect if typeahead is reset -->
         <ixsl:set-property object="." name="autocomplete" select="'off'"/>
     </xsl:template>
 
-    <!-- set focus on the first required input -->
-    <xsl:template match="fieldset//div[contains-token(@class, 'required')][1]//input" mode="ldh:RenderRowForm" priority="1">
+    <!-- The control a user would fill in first. Hidden RDF/POST inputs are skipped - focus() on them is a no-op - and a typeahead whose value already resolves renders as a button rather than an input. -->
+    <xsl:function name="ldh:focusable-control" as="element()?">
+        <xsl:param name="container" as="element()"/>
+
+        <xsl:sequence select="($container//*[self::input[not(@type = 'hidden')] or self::textarea or self::select or self::button[contains-token(@class, 'add-typeahead')]])[1]"/>
+    </xsl:function>
+
+    <!-- Focus the control-group the form opens on: the first required one, or - for a class that constrains nothing, a bare owl:NamedIndividual - the type control, since choosing the class is then the only thing left to do. Matching the group rather than the control itself keeps the focus out of the way of the templates that turn a control into a widget: block/query.xsl replaces the query textarea with a YASQE editor in this same mode, and two priority-1 rules on the same textarea would leave only the later-included one running. The group's own children go first, so by the time ldh:FocusControl is dispatched the widget exists. -->
+    <xsl:template match="fieldset//div[contains-token(@class, 'required')][1] | fieldset[not(.//div[contains-token(@class, 'required')])]//div[contains-token(@class, 'ldh-prop-group')][input[@name = 'pu'][@value = '&rdf;type']]" mode="ldh:RenderRowForm" priority="1">
+        <xsl:apply-templates mode="#current"/>
+
+        <xsl:apply-templates select="ldh:focusable-control(.)" mode="ldh:FocusControl"/>
+    </xsl:template>
+
+    <!-- focus a form control; overridden where a widget stands in for the control -->
+    <xsl:template match="*" mode="ldh:FocusControl">
         <xsl:sequence select="ixsl:call(., 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
@@ -493,15 +541,28 @@ WHERE
     
     <xsl:template match="text()" mode="ldh:FormPreSubmit"/>
     
-    <!-- serialize canonicalized editor content into the hidden ol input before form submission -->
+    <!-- serialize canonicalized editor content into the hidden ol input before form submission
+         (ldh:canonical-content is the canonical lexical form of the stored rdf:XMLLiteral) -->
     <xsl:template match="div[contains-token(@class, 'rdfa-editor-content')]" mode="ldh:FormPreSubmit" priority="1">
-        <xsl:variable name="canonical" as="node()*">
-            <xsl:apply-templates select="node()" mode="canonical"/>
-        </xsl:variable>
-        <xsl:variable name="value" select="serialize($canonical, map{ 'method': 'xml' })" as="xs:string"/>
+        <xsl:variable name="value" select="ldh:canonical-content(.)" as="xs:string"/>
         <xsl:for-each select="following-sibling::input[@name = 'ol'][1]">
             <ixsl:set-property name="value" select="$value" object="."/>
         </xsl:for-each>
+    </xsl:template>
+
+    <!-- view source (overrides edit.xsl): an LDH region is chrome around an XMLLiteral fragment, not the
+         RDFa document root the standalone editor serializes - canonicalize the region's children (the same
+         payload ldh:FormPreSubmit stores in the ol input), not the region element, which rule C7b unwraps -->
+    <xsl:template match="button[@id = 'view-source']" mode="ixsl:onclick">
+        <xsl:variable name="canonical" as="node()*">
+            <xsl:apply-templates select="rdfae:active-root()/node()" mode="cm:canonical"/>
+        </xsl:variable>
+        <xsl:call-template name="rdfae:show-output">
+            <xsl:with-param name="title" select="'Canonical XHTML+RDFa'"/>
+            <xsl:with-param name="text" select="serialize($canonical, map{ 'method': 'xml' })"/>
+            <xsl:with-param name="filename" select="'content.xhtml'"/>
+            <xsl:with-param name="media-type" select="'application/xhtml+xml'"/>
+        </xsl:call-template>
     </xsl:template>
 
     <!-- trim whitespace in bnode/URI values -->
@@ -529,13 +590,13 @@ WHERE
 
         <xsl:for-each select="$content-body">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <div class="row-fluid">
-                    <div class="main offset2 span7">
-                        <div class="alert alert-success row-fluid">
-                            <div class="span1">
-                                <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', $lapp:origin)}" alt="Signup complete"/>
+                <div class="block-row">
+                    <div class="main">
+                        <div class="alert block-row">
+                            <div>
+                                <span class="msi" aria-label="Signup complete">check_circle</span>
                             </div>
-                            <div class="span11">
+                            <div>
                                 <p>Congratulations! Your WebID profile has been created. You can see its data below.</p>
                                 <p>
                                     <strong>Authentication details have been sent to your email address.</strong>
@@ -563,7 +624,7 @@ WHERE
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
 
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
         
         <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $about || '`'))">
             <ixsl:set-property name="{'`' || $about || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
@@ -596,8 +657,8 @@ WHERE
                  [ ldh:load-object-metadata#1,                  'ns-metadata-request',       'ns-metadata-response',       ldh:set-object-metadata-ns#1 ]
                ]))
             => ixsl:then(ldh:merge-object-metadata#1)
-            => ixsl:then(ldh:render-row-form#1)
-            => ixsl:finally(ldh:reset-cursor#0)
+            => ixsl:then(ldh:render-row-form#1) =>
+            ixsl:finally(ldh:reset-cursor#0)
         " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
@@ -649,7 +710,10 @@ WHERE
                     <xsl:variable name="etag" select="?headers?etag" as="xs:string?"/>
 
                     <xsl:for-each select="?body">
-                        <ixsl:set-property name="{'`' || ac:absolute-path(ldh:base-uri(.)) || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+                        <!-- reuse the existing per-URI object: replacing it would wipe the 'block-html' snapshot stored by the btn-edit handler when $about equals the document URI (proxied external resources) -->
+                        <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'))">
+                            <ixsl:set-property name="{'`' || ac:absolute-path(ldh:base-uri(.)) || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+                        </xsl:if>
                         <!-- store document under window.LinkedDataHub.contents[$base-uri].results -->
                         <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`')"/>
                         <!-- store ETag header value under window.LinkedDataHub.contents[$base-uri].etag -->
@@ -770,14 +834,18 @@ WHERE
         }), map{ 'duplicates': 'use-last' })"/>
     </xsl:function>
 
-    <!-- Terminal callback for the create-new-instance chain (row-fluid add-constructor onclick).
-         Reads context('constructed-doc'/'resource'/'types'/'constructors'/'shapes'/'method'/'container'/'doc-uri'),
-         does the remaining (still-sync) type-metadata/property-metadata/constraints fetches inline,
-         and inserts the rendered row-form before context('container'). -->
+    <!-- Terminal callback for every create-instance chain: the document-level add-constructor onclick here,
+         and the chart/view block creation in client/block.xsl. Reads
+         context('constructed-doc'/'resource'/'types'/'constructors'/'shapes'/'method'/'doc-uri'), does the
+         remaining (still-sync) type-metadata/property-metadata/constraints fetches inline, and inserts the
+         rendered row-form relative to context('insert-anchor'). Each flow stamps its own anchor and the
+         ixsl output method it wants - the dock inserts before its own container, a block after itself. -->
     <xsl:function name="ldh:render-add-row-form" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="method" select="$context('method')" as="xs:string"/>
-        <xsl:variable name="container" select="$context('container')" as="element()"/>
+        <xsl:variable name="anchor" select="$context('insert-anchor')" as="element()"/>
+        <!-- not $method: that is the form's HTTP method, and shadowing it here sends the row form's save as IXSL:INSERT-AFTER -->
+        <xsl:variable name="insert-method" select="$context('insert-method')" as="xs:string"/>
         <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
         <xsl:variable name="base-uri" select="$context('base-uri')" as="xs:anyURI"/>
         <xsl:variable name="constructed-doc" select="$context('constructed-doc')" as="document-node()"/>
@@ -816,13 +884,16 @@ WHERE
             </xsl:apply-templates>
         </xsl:variable>
 
-        <!-- insert $row-form before the .add-constructor container TO-DO: replace with <xsl:result-document href="?." method="ixsl:insert-after"> when SaxonJS 3 is available https://saxonica.plan.io/issues/5543 -->
-        <xsl:sequence select="ixsl:call($container, 'before', [ $row-form ])[current-date() lt xs:date('2000-01-01')]"/>
+        <!-- insert $row-form relative to the anchor; each flow stamps the method it wants -->
+        <xsl:for-each select="$anchor">
+            <xsl:result-document href="?." method="{$insert-method}">
+                <xsl:sequence select="$row-form"/>
+            </xsl:result-document>
+        </xsl:for-each>
 
-        <!-- apply client-side templates on the appended row form (now preceding sibling of the $container) -->
-        <xsl:apply-templates select="$container/preceding-sibling::*[1]" mode="ldh:RenderRowForm"/>
+        <!-- apply client-side templates on the row form, now the anchor's sibling on whichever side it landed -->
+        <xsl:apply-templates select="if ($insert-method = 'ixsl:insert-before') then $anchor/preceding-sibling::*[1] else $anchor/following-sibling::*[1]" mode="ldh:RenderRowForm"/>
 
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:function>
     
     <xsl:function name="ldh:render-row-form" as="item()*" ixsl:updating="yes">
@@ -841,70 +912,73 @@ WHERE
         <!-- Fold SHACL shape-instance and SPIN constructed-doc into the pure, bnode-prototyped constructor consumed by bs2:FormControl. Skips instantiation — EDIT already has $resource with its real URI from the server fetch, so nothing to mint. forClass is the resource's primary rdf:type. Shared helper with ldh:render-row-form-violation so the merge lives in one place. -->
         <xsl:variable name="constructor" select="ldh:build-merged-constructor($shapes, $constructed-doc, $types[1])" as="document-node()?"/>
 
+        <xsl:variable name="row" as="element()">
+            <xsl:apply-templates select="$resource" mode="bs2:RowForm">
+                <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
+                <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
+                <xsl:with-param name="constructor" select="$constructor" tunnel="yes"/>
+                <xsl:with-param name="constructors" select="$constructors" tunnel="yes"/>
+                <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
+                <xsl:with-param name="shapes" select="$shapes" tunnel="yes"/>
+                <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
+            </xsl:apply-templates>
+        </xsl:variable>
+
+        <xsl:sequence select="ldh:replace-block-element($block, $row)"/>
+    </xsl:function>
+
+    <!-- Replaces the host block element with the rendered element, then form listeners are initialized. The replacement detaches $block, so the inserted node is re-resolved by the rendered element's id. Shared DOM-update tail of the inline (ldh:render-row-form) and modal (ldh:render-form) flows so both transplant the rendered form's block root the same way. -->
+    <xsl:function name="ldh:replace-block-element" as="item()*" ixsl:updating="yes">
+        <xsl:param name="block" as="element()"/>
+        <xsl:param name="element" as="element()"/>
+
         <xsl:for-each select="$block">
-            <xsl:variable name="row" as="node()*">
-                <xsl:apply-templates select="$resource" mode="bs2:RowForm">
-                    <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
-                    <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
-                    <xsl:with-param name="constructor" select="$constructor" tunnel="yes"/>
-                    <xsl:with-param name="constructors" select="$constructors" tunnel="yes"/>
-                    <xsl:with-param name="constraints" select="$constraints" tunnel="yes"/>
-                    <xsl:with-param name="shapes" select="$shapes" tunnel="yes"/>
-                    <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
-                </xsl:apply-templates>
-            </xsl:variable>
-
-            <!-- replace block element attributes TO-DO: shouldn't be necessary in SaxonJS 3 using method="ixsl:replace-element": https://saxonica.plan.io/issues/6303#note-2 -->
-            <xsl:for-each select="@*">
-                <ixsl:remove-attribute object="$block" name="{name()}"/>
-            </xsl:for-each>
-            <xsl:for-each select="$row/@*">
-                <ixsl:set-attribute object="$block" name="{name()}" select="."/>
-            </xsl:for-each>
-
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:copy-of select="$row/*"/> <!-- inject the content of div.row-fluid -->
+            <xsl:result-document href="?." method="ixsl:replace-element">
+                <xsl:copy-of select="$element"/>
             </xsl:result-document>
         </xsl:for-each>
 
         <!-- initialize event listeners -->
-        <xsl:apply-templates select="$block" mode="ldh:RenderRowForm"/>
+        <xsl:apply-templates select="id($element/@id, ixsl:page())" mode="ldh:RenderRowForm"/>
     </xsl:function>
 
     <xsl:function name="ldh:render-form" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="block" select="$context('block')" as="element()"/>
         <xsl:variable name="document" select="$context('document')" as="document-node()"/>
+        <xsl:variable name="form" select="ldh:render-document-form($document, $context)" as="element()"/>
 
-        <xsl:for-each select="$block">
-            <xsl:variable name="form" select="ldh:render-document-form($document, $context)" as="element()*"/>
+        <xsl:sequence select="ldh:replace-block-element($block, $form)"/>
 
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:copy-of select="$form"/>
-            </xsl:result-document>
-        </xsl:for-each>
-
-        <!-- initialize event listeners -->
-        <xsl:apply-templates select="$block" mode="ldh:RenderRowForm"/>
-
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:function>
 
     <!-- ldh:DocumentForm: form-flavor mode that reuses the bs2:Form shell but replaces its body with a match-template-driven Description iteration. Only the Description at @rdf:about = $about is rendered as a fieldset; everything else in the response graph is suppressed declaratively. Used by both the initial document-edit/settings/add-instance render paths and their constraint-violation re-render paths. -->
     <xsl:template match="rdf:RDF" mode="ldh:DocumentForm">
         <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
+        <xsl:param name="form-actions-class" select="'ldh-form-bar'" as="xs:string?"/>
+        <xsl:param name="about" as="xs:anyURI" tunnel="yes"/>
+        <xsl:variable name="types" select="distinct-values(key('resources', $about)/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
         <!-- tunnel params (about, action, base-uri, required, constructors, constraints,
              shapes, type-metadata, property-metadata, object-metadata) propagate through
              to bs2:Form and to the per-Description templates automatically -->
-        <xsl:call-template name="bs2:Form">
-            <xsl:with-param name="method" select="$method"/>
-            <xsl:with-param name="form-actions-class" select="$form-actions-class"/>
-            <xsl:with-param name="body" as="node()*">
-                <xsl:apply-templates mode="bs2:Exception"/>
-                <xsl:apply-templates mode="#current"/>
-            </xsl:with-param>
-        </xsl:call-template>
+        <!-- the block shell (div[@about][@typeof] with the 'block' anchor token) unifies the modal form with the inline row forms: the generic handlers (add-value property picker, constructor sync, type typeahead) key on it. @id is read back by ldh:render-modal-form-violation to initialize listeners on the re-rendered form -->
+        <div id="block-{generate-id()}" class="block ldh-block" about="{$about}">
+            <xsl:if test="exists($types)">
+                <xsl:attribute name="typeof" select="string-join($types, ' ')"/>
+            </xsl:if>
+
+            <div class="main ldh-block-body">
+                <xsl:call-template name="bs2:Form">
+                    <xsl:with-param name="method" select="$method"/>
+                    <xsl:with-param name="form-actions-class" select="$form-actions-class"/>
+                    <xsl:with-param name="show-close-button" select="true()"/>
+                    <xsl:with-param name="body" as="node()*">
+                        <xsl:apply-templates mode="bs2:Exception"/>
+                        <xsl:apply-templates mode="#current"/>
+                    </xsl:with-param>
+                </xsl:call-template>
+            </div>
+        </div>
     </xsl:template>
 
     <!-- per-Description dispatch: keep the editable subject, suppress every other Description in the response graph. The discriminator $about is a tunnel param because XSLT 3.0 patterns cannot reference template-local params; the keep-or-suppress test lives in the body via xsl:if. Dispatches to bs2:Form mode so the bs2:Form mode template at resource.xsl:1182 handles the bs2:FormControl entry with the right $inline / $required params and the shell's default merged-properties iteration (resource props + constructor template props, sorted by constraints, with the violations/constructor/type-constraints/type-shapes with-params required by per-property templates). -->
@@ -917,7 +991,7 @@ WHERE
         </xsl:if>
     </xsl:template>
 
-    <!-- thin dispatcher: function-item invoked by the initial-render and violation handlers via ldh:render-document-form($body, $ctx). Named (not an inline XPath function literal) because xsl:apply-templates is an XSLT instruction. base-uri falls back to the editable subject URI when the caller hasn't set it, so bs2:Form's xs:anyURI typecheck doesn't see an empty value when the body is a freshly constructed doc with no associated URI. -->
+    <!-- thin dispatcher: function-item invoked by the initial-render and violation handlers via ldh:render-document-form($body, $ctx). Named (not an inline XPath function literal) because xsl:apply-templates is an XSLT instruction. base-uri falls back to the editable subject URI when the caller hasn't set it, so bs2:Form's xs:anyURI typecheck doesn't see an empty value when the body is a freshly constructed doc with no associated URI. The 'constructor' tunnel folds ctx('shapes') + ctx('constructed-doc') via ldh:build-merged-constructor — same pure-constructor input to bs2:FormControl as the inline row-form renders, so the property picker offers the classes' constructor properties. -->
     <xsl:function name="ldh:render-document-form" as="element()*">
         <xsl:param name="body" as="document-node()"/>
         <xsl:param name="ctx"  as="map(*)"/>
@@ -928,6 +1002,7 @@ WHERE
             <xsl:with-param name="base-uri"          select="if (map:contains($ctx, 'base-uri')) then $ctx('base-uri') else $ctx('about')" tunnel="yes"/>
             <xsl:with-param name="type-metadata"     select="$ctx('type-metadata')"     tunnel="yes"/>
             <xsl:with-param name="property-metadata" select="$ctx('property-metadata')" tunnel="yes"/>
+            <xsl:with-param name="constructor"       select="ldh:build-merged-constructor($ctx('shapes'), $ctx('constructed-doc'), $ctx('types')[1])" tunnel="yes"/>
             <xsl:with-param name="constructors"      select="$ctx('constructors')"      tunnel="yes"/>
             <xsl:with-param name="constraints"       select="$ctx('constraints')"       tunnel="yes"/>
             <xsl:with-param name="shapes"            select="$ctx('shapes')"            tunnel="yes"/>
@@ -951,7 +1026,8 @@ WHERE
             <xsl:with-param name="shapes"            select="$ctx('shapes')"            tunnel="yes"/>
             <xsl:with-param name="object-metadata"   select="$ctx('object-metadata')"   tunnel="yes"/>
             <xsl:with-param name="required"          select="$ctx('required')"          tunnel="yes"/>
-            <xsl:with-param name="form-actions-class" select="'form-actions modal-footer'" as="xs:string?"/>
+            <xsl:with-param name="form-actions-class" select="'ldh-form-bar'" as="xs:string?"/>
+            <xsl:with-param name="show-close-button" select="true()"/>
         </xsl:apply-templates>
     </xsl:function>
 
@@ -972,7 +1048,6 @@ WHERE
         <!-- initialize event listeners -->
         <xsl:apply-templates select="$block" mode="ldh:RenderRowForm"/>
 
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:function>
 
     <!-- thin dispatcher parallel to ldh:render-document-form#2, but mode="ldh:AppSettingsForm". Same tunnel-param set so violation re-renders work identically. -->
@@ -998,21 +1073,33 @@ WHERE
     <!-- TO-DO: unify -->
     <xsl:template match="div[ancestor::div[contains-token(@class, 'block')]]//button[contains-token(@class, 'btn-cancel')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
-        <xsl:variable name="about" select="$block/@about" as="xs:anyURI"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-        
+        <xsl:apply-templates select="ancestor::div[contains-token(@class, 'block')][1]" mode="ldh:CancelEditing"/>
+    </xsl:template>
+
+    <!-- a block that has never been saved has no @about, no server-side resource and no pre-editing
+         snapshot to restore: cancelling discards the block itself -->
+    <xsl:template match="div[contains-token(@class, 'block')][not(@about)]" mode="ldh:CancelEditing">
+        <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+
+    <!-- restores the block's pre-editing snapshot (stashed by the btn-edit handler) and drops it: the edit
+         form is replaced by the read-mode content without a save. Shared by the Cancel button and the
+         clean-focusout path of the XMLLiteral autosave (block.xsl) -->
+    <xsl:template match="div[contains-token(@class, 'block')][@about]" mode="ldh:CancelEditing">
+        <xsl:variable name="about" select="@about" as="xs:anyURI"/>
+
+        <xsl:sequence select="ldh:busy-cursor()"/>
+
         <!-- retrieve HTML stored before editing mode was enabled -->
         <xsl:variable name="block-html" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $about || '`'), 'block-html')" as="element()"/>
 
-        <!-- restore snapshot of block HTML that was captured before entering editing mode -->
-        <xsl:for-each select="$block">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:sequence select="$block-html/*"/>
-            </xsl:result-document>
-        </xsl:for-each>
+        <!-- restore the whole snapshot element, not just its children: the edit-mode render replaces the
+             block wrapper itself, and its class differs from the read-mode wrapper's (an XHTML block is
+             quiet prose in read mode but carded while editing) -->
+        <xsl:result-document href="?." method="ixsl:replace-element">
+            <xsl:sequence select="$block-html"/>
+        </xsl:result-document>
 
         <!-- remove the $block-html value -->
         <ixsl:remove-property name="block-html" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $about || '`')"/>
@@ -1022,7 +1109,7 @@ WHERE
     
     <!-- submit instance creation row-form using POST -->
     
-    <xsl:template match="form[ancestor::div[@typeof]][contains-token(@class, 'form-horizontal')]" mode="ixsl:onsubmit">
+    <xsl:template match="form[ancestor::div[@typeof]][tokenize(@class, ' ') = ('ldh-prop-form', 'ldh-edit-form')]" mode="ixsl:onsubmit">
         <xsl:param name="block" select="ancestor::div[@typeof][1]" as="element()"/> <!-- block has no @about at this stage (before saving it) -->
         <xsl:param name="form" select="." as="element()"/>
         <xsl:param name="method" select="upper-case(@method)" as="xs:string"/>
@@ -1036,7 +1123,7 @@ WHERE
         <xsl:variable name="accept" select="'application/rdf+xml'" as="xs:string"/>
         <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <!-- pre-process form before submitting it: syncs input values, so it must precede ldh:parse-rdf-post.
              A wrapping handler that supplied $request-body has already run the pass -->
@@ -1045,10 +1132,6 @@ WHERE
         </xsl:if>
 
         <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
-        <!-- canonicalize XML in rdf:XMLLiterals -->
-        <xsl:variable name="triples" as="element()*">
-            <xsl:apply-templates select="$triples" mode="ldh:CanonicalizeXML"/>
-        </xsl:variable>
         <xsl:variable name="resources" as="document-node()">
             <xsl:document>
                 <rdf:RDF>
@@ -1089,7 +1172,8 @@ WHERE
                   ixsl:http-request($context('request'))
                     => ixsl:then(ldh:rethread-response($context, ?))
                     => ixsl:then(ldh:handle-response#1)
-                    => ixsl:then($callback)
+                    => ixsl:then($callback) =>
+                    ixsl:finally(ldh:reset-cursor#0)
                 " on-failure="ldh:promise-failure#1"/>
             </xsl:otherwise>
         </xsl:choose>
@@ -1097,7 +1181,7 @@ WHERE
 
     <!-- submit instance update row-form using PATCH -->
 
-    <xsl:template match="div[contains-token(@class, 'block')]//form[contains-token(@class, 'form-horizontal')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="1">
+    <xsl:template match="div[contains-token(@class, 'block')]//form[tokenize(@class, ' ') = ('ldh-prop-form', 'ldh-edit-form')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="1">
         <xsl:param name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="form" select="." as="element()"/>
@@ -1108,17 +1192,13 @@ WHERE
         <xsl:variable name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
         
         <!-- pre-process form before submitting it -->
         <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/>
 
         <xsl:variable name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
         <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
-        <!-- canonicalize XML in rdf:XMLLiterals -->
-        <xsl:variable name="triples" as="element()*">
-            <xsl:apply-templates select="$triples" mode="ldh:CanonicalizeXML"/>
-        </xsl:variable>
 
         <xsl:variable name="update-string" select="ldh:insertdelete-update(ldh:triples-to-bgp(ldh:uri-po-pattern($about)), ldh:triples-to-bgp($triples), ldh:triples-to-bgp(ldh:uri-po-pattern($about)))" as="xs:string"/>
         <xsl:variable name="resources" as="document-node()">
@@ -1143,27 +1223,28 @@ WHERE
           ixsl:http-request($context('request'))
             => ixsl:then(ldh:rethread-response($context, ?))
             => ixsl:then(ldh:handle-response#1)
-            => ixsl:then(ldh:row-form-response#1)
+            => ixsl:then(ldh:row-form-response#1) =>
+            ixsl:finally(ldh:reset-cursor#0)
         " on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     
     <!-- add new property to form -->
     
-    <!-- Terminal callback for the add-value onclick promise chain. Reads context('constructed-doc')
-         and uses the matched property to render either a bs2:TypeControl or bs2:FormControl into the fieldset. -->
+    <!-- Terminal callback for the add-value onclick promise chain. Folds context('shapes') + context('constructed-doc') via ldh:build-merged-constructor — the same pure-constructor source the property picker was rendered from, so SHACL-defined properties resolve the same as SPIN-defined ones — and uses the matched property to render either a bs2:TypeControl or bs2:FormControl into the fieldset. -->
     <xsl:function name="ldh:render-add-value" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="property-control-group" select="$context('property-control-group')" as="element()"/>
-        <xsl:variable name="fieldset" select="$context('fieldset')" as="element()"/>
         <xsl:variable name="property-uri" select="$context('property-uri')" as="xs:anyURI"/>
         <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI*"/>
         <xsl:variable name="constructed-doc" select="$context('constructed-doc')" as="document-node()"/>
+        <xsl:variable name="shapes" select="$context('shapes')" as="document-node()?"/>
+        <xsl:variable name="constructor" select="ldh:build-merged-constructor($shapes, $constructed-doc, $forClass[1])" as="document-node()"/>
 
         <xsl:variable name="resource" as="element()">
             <xsl:choose>
                 <!-- $forClass constructor found -->
-                <xsl:when test="key('resources-by-type', $forClass, $constructed-doc)[not(key('predicates-by-object', @rdf:nodeID))]">
-                    <xsl:sequence select="key('resources-by-type', $forClass, $constructed-doc)[not(key('predicates-by-object', @rdf:nodeID))]"/>
+                <xsl:when test="key('resources-by-type', $forClass, $constructor)[not(key('predicates-by-object', @rdf:nodeID))]">
+                    <xsl:sequence select="key('resources-by-type', $forClass, $constructor)[not(key('predicates-by-object', @rdf:nodeID))]"/>
                 </xsl:when>
                 <!-- $forClass constructor not found -->
                 <xsl:otherwise>
@@ -1175,10 +1256,9 @@ WHERE
         </xsl:variable>
         <xsl:variable name="property" select="$resource/*[concat(namespace-uri(), local-name()) = $property-uri]" as="element()"/>
 
-        <!-- remove the current property control group from the current position -->
-        <xsl:sequence select="ixsl:call($property-control-group, 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-
-        <xsl:for-each select="$fieldset">
+        <!-- append the new group to the row container; the add-statement row stays below it as the fieldset's trailer -->
+        <xsl:variable name="prop-form" select="$property-control-group/preceding-sibling::div[contains-token(@class, 'ldh-prop-form')][1]" as="element()"/>
+        <xsl:for-each select="$prop-form">
             <xsl:result-document href="?." method="ixsl:append-content">
                 <xsl:choose>
                     <!-- TO-DO: unify bs2:TypeControl and bs2:FormControl? -->
@@ -1196,39 +1276,36 @@ WHERE
                         </xsl:apply-templates>
                     </xsl:otherwise>
                 </xsl:choose>
-
-                <!-- append the property control group at the end of the fieldset -->
-                <xsl:copy-of select="$property-control-group"/>
             </xsl:result-document>
 
-            <!-- initialize the last property control group after it's appended -->
-            <xsl:apply-templates select="(./div[contains-token(@class, 'control-group')][input/@name = 'pu'])[last()]" mode="ldh:RenderRowForm"/>
+            <!-- initialize the new group after it's appended -->
+            <xsl:apply-templates select="*[last()]" mode="ldh:RenderRowForm"/>
         </xsl:for-each>
 
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:function>
 
     <xsl:template match="div[@typeof]//form//button[contains-token(@class, 'add-value')]" mode="ixsl:onclick">
-        <xsl:variable name="property-control-group" select="../.." as="element()"/>
-        <xsl:variable name="fieldset" select="$property-control-group/.." as="element()"/>
-        <xsl:variable name="property-uri" select="../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
-        <xsl:variable name="forClass" select="for $type in tokenize(ancestor::div[@typeof][contains-token(@class, 'row-fluid')]/@typeof) return xs:anyURI($type)" as="xs:anyURI*"/>
+        <xsl:variable name="property-control-group" select="ancestor::div[contains-token(@class, 'ldh-prop-addrow')][1]" as="element()"/>
+        <xsl:variable name="property-uri" select="preceding-sibling::span[contains-token(@class, 'ldhc-select')]/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
+        <xsl:variable name="forClass" select="for $type in tokenize(ancestor::div[@typeof][contains-token(@class, 'block')][1]/@typeof) return xs:anyURI($type)" as="xs:anyURI*"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="context" as="map(*)" select="map{
             'property-control-group': $property-control-group,
-            'fieldset': $fieldset,
             'property-uri': $property-uri,
-            'forClass': $forClass
+            'forClass': $forClass,
+            'types': $forClass
         }"/>
 
+        <!-- constructed-doc + shapes fetched in parallel and folded by ldh:render-add-value — the same merged-constructor input the picker was rendered from -->
         <ixsl:promise select="ixsl:resolve($context) =>
-            ixsl:then(ldh:load-constructed-doc#1) =>
-            ixsl:then(ldh:http-request-threaded(?, 'constructed-doc-request', 'constructed-doc-response')) =>
-            ixsl:then(ldh:handle-response(?, 'constructed-doc-response')) =>
-            ixsl:then(ldh:set-constructed-doc#1) =>
-            ixsl:then(ldh:render-add-value#1)"
+            ixsl:then(ldh:fire-load-set-parallel(?, [
+                [ ldh:load-constructed-doc#1, 'constructed-doc-request', 'constructed-doc-response', ldh:set-constructed-doc#1 ],
+                [ ldh:load-shapes#1,          'shapes-request',          'shapes-response',          ldh:set-shapes#1 ]
+            ])) =>
+            ixsl:then(ldh:render-add-value#1) =>
+            ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
@@ -1237,23 +1314,25 @@ WHERE
     <!-- Fans out over the open editing forms after a constructor edit: every fieldset with property
          control groups re-fetches its type set's constructor and reconciles its controls with it. -->
     <xsl:template name="ldh:SyncFormsWithConstructor">
-        <xsl:apply-templates select="ixsl:page()//fieldset[./div[contains-token(@class, 'control-group')]/input[@name = 'pu']][ancestor::div[@typeof][contains-token(@class, 'row-fluid')]]" mode="ldh:SyncFormWithConstructor"/>
+        <xsl:apply-templates select="ixsl:page()//fieldset[./div[contains-token(@class, 'ldh-prop-form')]/div[contains-token(@class, 'ldh-prop-group')]/input[@name = 'pu']][ancestor::div[@typeof][contains-token(@class, 'block')]]" mode="ldh:SyncFormWithConstructor"/>
     </xsl:template>
 
     <xsl:template match="fieldset" mode="ldh:SyncFormWithConstructor">
-        <xsl:variable name="forClass" select="for $type in tokenize(ancestor::div[@typeof][contains-token(@class, 'row-fluid')][1]/@typeof) return xs:anyURI($type)" as="xs:anyURI*"/>
-        <xsl:variable name="context" as="map(*)" select="map{ 'fieldset': ., 'forClass': $forClass }"/>
+        <xsl:variable name="forClass" select="for $type in tokenize(ancestor::div[@typeof][contains-token(@class, 'block')][1]/@typeof) return xs:anyURI($type)" as="xs:anyURI*"/>
+        <xsl:variable name="context" as="map(*)" select="map{ 'fieldset': ., 'forClass': $forClass, 'types': $forClass }"/>
 
+        <!-- constructed-doc + shapes fetched in parallel and folded by ldh:sync-form-with-constructor, so SHACL-defined properties survive the reconciliation the same as SPIN-defined ones -->
         <ixsl:promise select="ixsl:resolve($context) =>
-            ixsl:then(ldh:load-constructed-doc#1) =>
-            ixsl:then(ldh:http-request-threaded(?, 'constructed-doc-request', 'constructed-doc-response')) =>
-            ixsl:then(ldh:handle-response(?, 'constructed-doc-response')) =>
-            ixsl:then(ldh:set-constructed-doc#1) =>
+            ixsl:then(ldh:fire-load-set-parallel(?, [
+                [ ldh:load-constructed-doc#1, 'constructed-doc-request', 'constructed-doc-response', ldh:set-constructed-doc#1 ],
+                [ ldh:load-shapes#1,          'shapes-request',          'shapes-response',          ldh:set-shapes#1 ]
+            ])) =>
             ixsl:then(ldh:sync-form-with-constructor#1)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
-    <!-- Terminal callback for the constructor-sync promise chain. Diffs the fresh constructor prototype
+    <!-- Terminal callback for the constructor-sync promise chain. Folds context('shapes') + context('constructed-doc')
+         via ldh:build-merged-constructor and diffs the merged constructor prototype
          against the fieldset's property control groups: properties the form is missing get controls
          appended at the end (before the re-appended property picker), value-less controls for properties
          the constructor no longer asserts are removed. Controls holding entered values and rdf:type
@@ -1265,37 +1344,39 @@ WHERE
 
         <xsl:if test="map:contains($context, 'constructed-doc')">
             <xsl:variable name="constructed-doc" select="$context('constructed-doc')" as="document-node()"/>
-            <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructed-doc)[not(key('predicates-by-object', @rdf:nodeID))]" as="element()*"/>
+            <xsl:variable name="shapes" select="$context('shapes')" as="document-node()?"/>
+            <xsl:variable name="constructor" select="ldh:build-merged-constructor($shapes, $constructed-doc, $forClass[1])" as="document-node()"/>
+            <xsl:variable name="resource" select="key('resources-by-type', $forClass, $constructor)[not(key('predicates-by-object', @rdf:nodeID))]" as="element()*"/>
             <xsl:variable name="arcs" select="$resource/*[not(concat(namespace-uri(), local-name()) = '&rdf;type')]" as="element()*"/>
             <xsl:variable name="arc-uris" select="distinct-values(for $arc in $arcs return concat(namespace-uri($arc), local-name($arc)))" as="xs:string*"/>
-            <xsl:variable name="existing-uris" select="$fieldset/div[contains-token(@class, 'control-group')]/input[@name = 'pu']/@value" as="xs:string*"/>
+            <xsl:variable name="prop-form" select="$fieldset/div[contains-token(@class, 'ldh-prop-form')]" as="element()"/>
+            <xsl:variable name="existing-uris" select="$prop-form/div[contains-token(@class, 'ldh-prop-group')]/input[@name = 'pu']/@value" as="xs:string*"/>
             <xsl:variable name="new-arcs" select="$arcs[not(concat(namespace-uri(), local-name()) = $existing-uris)]" as="element()*"/>
 
-            <!-- remove value-less control groups whose property the constructor no longer asserts -->
-            <xsl:for-each select="$fieldset/div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value[not(. = ($arc-uris, '&rdf;type'))]][empty(descendant::*[self::input or self::textarea][@name = ('ou', 'ol', 'ob')][ixsl:get(., 'value') ne ''])]">
+            <!-- remove value-less groups whose property the constructor no longer asserts -->
+            <xsl:for-each select="$prop-form/div[contains-token(@class, 'ldh-prop-group')][input[@name = 'pu']/@value[not(. = ($arc-uris, '&rdf;type'))]][empty(descendant::*[self::input or self::textarea][@name = ('ou', 'ol', 'ob')][ixsl:get(., 'value') ne ''])]">
                 <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:for-each>
 
             <xsl:if test="exists($new-arcs)">
-                <xsl:variable name="property-control-group" select="$fieldset/div[contains-token(@class, 'control-group')][descendant::button[contains-token(@class, 'add-value')]]" as="element()?"/>
-                <xsl:sequence select="$property-control-group/ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-                <xsl:variable name="control-group-count" select="count($fieldset/div[contains-token(@class, 'control-group')][input/@name = 'pu'])" as="xs:integer"/>
+                <xsl:variable name="control-groups" as="element()*">
+                    <xsl:for-each select="$new-arcs">
+                        <xsl:apply-templates select="." mode="bs2:FormControl">
+                            <!-- generate fresh $for value because otherwise we can generate existing IDs from the same constructor -->
+                            <xsl:with-param name="for" select="'id' || ac:uuid()"/>
+                        </xsl:apply-templates>
+                    </xsl:for-each>
+                </xsl:variable>
+                <xsl:variable name="group-count" select="count($prop-form/div[contains-token(@class, 'ldh-prop-group')])" as="xs:integer"/>
 
-                <xsl:for-each select="$fieldset">
+                <!-- the add-statement row sits below the row container, so new groups always append at the container's end -->
+                <xsl:for-each select="$prop-form">
                     <xsl:result-document href="?." method="ixsl:append-content">
-                        <xsl:for-each select="$new-arcs">
-                            <xsl:apply-templates select="." mode="bs2:FormControl">
-                                <!-- generate fresh $for value because otherwise we can generate existing IDs from the same constructor -->
-                                <xsl:with-param name="for" select="'id' || ac:uuid()"/>
-                            </xsl:apply-templates>
-                        </xsl:for-each>
-
-                        <!-- re-append the property picker control group at the end of the fieldset -->
-                        <xsl:copy-of select="$property-control-group"/>
+                        <xsl:copy-of select="$control-groups"/>
                     </xsl:result-document>
 
-                    <!-- initialize the appended property control groups -->
-                    <xsl:apply-templates select="./div[contains-token(@class, 'control-group')][input/@name = 'pu'][position() gt $control-group-count]" mode="ldh:RenderRowForm"/>
+                    <!-- initialize the appended property groups -->
+                    <xsl:apply-templates select="./div[contains-token(@class, 'ldh-prop-group')][position() gt $group-count]" mode="ldh:RenderRowForm"/>
                 </xsl:for-each>
             </xsl:if>
         </xsl:if>
@@ -1359,22 +1440,14 @@ WHERE
                     </xsl:variable>
 
                     <xsl:for-each select="$block">
-                        <!-- replace block element attributes TO-DO: shouldn't be necessary in SaxonJS 3 using method="ixsl:replace-element": https://saxonica.plan.io/issues/6303#note-2 -->
-                        <xsl:for-each select="@*">
-                            <ixsl:remove-attribute object="$block" name="{name()}"/>
-                        </xsl:for-each>
-                        <xsl:for-each select="$new-block/@*">
-                            <ixsl:set-attribute object="$block" name="{name()}" select="."/>
-                        </xsl:for-each>
-
-                        <xsl:result-document href="?." method="ixsl:replace-content">
-                            <xsl:copy-of select="$new-block/*"/>
+                        <xsl:result-document href="?." method="ixsl:replace-element">
+                            <xsl:copy-of select="$new-block"/>
                         </xsl:result-document>
                     </xsl:for-each>
 
-                    <!-- cannot be in $block context because it contains old DOM (pre-ixsl:replace-content) -->
+                    <!-- the replacement detaches $block — re-resolve the inserted block by the rendered element's id -->
                     <xsl:variable name="factory" as="function(item()?) as item()*?">
-                        <xsl:apply-templates select="id($block/@id, ixsl:page())" mode="ldh:RenderRow"/>
+                        <xsl:apply-templates select="id($new-block/@id, ixsl:page())" mode="ldh:RenderRow"/>
                     </xsl:variable>
 
                     <xsl:if test="exists($factory)">
@@ -1415,8 +1488,9 @@ WHERE
         <xsl:message>ldh:row-form-submit-violation</xsl:message>
 
         <xsl:variable name="body" select="$response?body" as="document-node()"/>
-        <!-- exclude the violation/response machinery Descriptions (the suppression list above) - their types must not pollute the instance type set, or the union-typed constructor prototype fails bs2:FormControl's subset test -->
-        <xsl:variable name="types" select="for $t in distinct-values($body/rdf:RDF/*[not(@rdf:about = $doc-uri)][not(rdf:type/@rdf:resource = $system-types)]/rdf:type/@rdf:resource) return xs:anyURI($t)" as="xs:anyURI*"/>
+        <!-- the type set comes from the block's RDFa @typeof (stamped at render time by bs2:Row and the create flows; the submit handler's match pattern guarantees it), not from the response body: the 422 echo carries auxiliary descriptions - inlined bnodes like the signup cert key, constraint descriptions referenced via spin:violationSource - whose types would pollute the constructor's forClass and fail bs2:FormControl's prototype subset test. Trade-off: a type added via the type control just before submit is missing from @typeof until the next successful render -->
+        <xsl:variable name="block" select="$context('block')" as="element()"/>
+        <xsl:variable name="types" select="for $t in tokenize($block/@typeof, ' ') return xs:anyURI($t)" as="xs:anyURI*"/>
 
         <xsl:variable name="new-context" as="map(*)" select="map:merge((
             $context,
@@ -1469,7 +1543,16 @@ WHERE
         <xsl:variable name="row-form" as="node()*">
             <!-- filter out the current document which might be in the constraint violation response attached by an rdf:_N property to a block resource -->
             <xsl:apply-templates select="$body/rdf:RDF/*[not(@rdf:about = $doc-uri)]" mode="bs2:RowForm">
+                <!-- DO NOT make this tolerate an absent $form without fixing what follows. The flows that
+                     PATCH from a button rather than submitting a form (saving a query, saving a chart) put
+                     no 'form' in context, so this passes an empty sequence into a required xs:string and the
+                     violation surfaces as a type error. Supplying a fallback instead lets the path proceed -
+                     and it then resubmits in a loop: one rejected query save produced ~130 PATCHes and
+                     deleted the query resource outright, since the save is a DELETE/INSERT. The loop has to
+                     be fixed first; until then failing here is the lesser harm. -->
                 <xsl:with-param name="method" select="$form/@method"/>
+                <!-- keep the submitted form's id, so id-keyed overrides (e.g. signup's onsubmit on form#form-signup) survive the violation re-render; the block-derived fallback covers the formless PATCH flows -->
+                <xsl:with-param name="form-id" select="string(($form/@id, 'form-' || $block/@id)[1])"/>
                 <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                 <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                 <xsl:with-param name="constructor" select="$constructor" tunnel="yes"/>
@@ -1492,30 +1575,19 @@ WHERE
         </xsl:for-each>
     </xsl:function>
 
-    <xsl:function name="ldh:replace-content" as="map(*)" ixsl:updating="yes">
-        <xsl:param name="context" as="map(*)"/>
-
-        <xsl:variable name="target" select="$context('target')" as="element()"/>
-        <xsl:variable name="content" select="$context('content')" as="item()*"/>
-
-        <xsl:result-document href="?." method="ixsl:replace-content">
-          <xsl:copy-of select="$content"/>
-        </xsl:result-document>
-
-        <xsl:sequence select="$context"/>
-    </xsl:function>
-
-    <!-- toggles the .control-group for subject URI/bnode ID editing -->
+    <!-- toggles the .ldh-subject row for subject URI/bnode ID editing -->
     <xsl:template match="button[contains-token(@class, 'btn-edit-subj')]" mode="ixsl:onclick">
-        <!-- subject .control group is the first one after <legend> -->
-        <xsl:variable name="subj-control-group" select="ancestor::legend/following-sibling::div[1][contains-token(@class, 'control-group')]" as="element()"/>
-        
-        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'open' ])[current-date() lt xs:date('2000-01-01')]"/>
-        
-        <xsl:for-each select="$subj-control-group">
+        <!-- the subject row immediately follows the .ldh-form-subjbar hosting the toggle -->
+        <xsl:variable name="subject-row" select="ancestor::div[contains-token(@class, 'ldh-form-subjbar')][1]/following-sibling::div[1][contains-token(@class, 'ldh-subject')]" as="element()"/>
+        <xsl:variable name="pressed" select="ixsl:get(., 'ariaPressed') = 'true'" as="xs:boolean"/>
+
+        <ixsl:set-property name="ariaPressed" select="if ($pressed) then 'false' else 'true'" object="."/>
+
+        <xsl:for-each select="$subject-row">
             <xsl:choose>
+                <!-- clearing the inline display hands the choice back to the stylesheet (grid in form mode, flex standalone) -->
                 <xsl:when test="ixsl:style(.)?display = 'none'">
-                    <ixsl:set-style name="display" select="'block'"/>
+                    <ixsl:set-style name="display" select="''"/>
                 </xsl:when>
                 <xsl:otherwise>
                     <ixsl:set-style name="display" select="'none'"/>
@@ -1524,17 +1596,20 @@ WHERE
         </xsl:for-each>
     </xsl:template>
     
-    <!-- appends new SPIN-constructed instance to the page -->
-    <xsl:template match="div[contains-token(@class, 'row-fluid')]//button[contains-token(@class, 'add-constructor')][@data-for-class]" mode="ixsl:onclick" priority="1">
+    <!-- appends new SPIN-constructed instance to the page (block-row inline affordances and the create-resource dock) -->
+    <xsl:template match="div[contains-token(@class, 'block-row')]//button[contains-token(@class, 'add-constructor')][@data-for-class] | div[contains-token(@class, 'create-resource')]//button[contains-token(@class, 'add-constructor')][@data-for-class]" mode="ixsl:onclick" priority="1">
         <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="container" select="ancestor::div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
+        <xsl:param name="container" select="ancestor::div[contains-token(@class, 'block-row') or contains-token(@class, 'create-resource')][1]" as="element()"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:variable name="forClass" select="xs:anyURI(@data-for-class)" as="xs:anyURI"/>
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:variable name="id" select="'id' || ac:uuid()" as="xs:string"/>
         <xsl:variable name="this" select="xs:anyURI($doc-uri || '#' || $id)" as="xs:anyURI"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <!-- the class is picked, so the menu it was picked from is done: dismissed here rather than when the instance lands, because the chain that renders it takes several round-trips. The body pointerdown handler leaves this one alone - the press is inside the group it would close. Empty for the dock buttons that sit outside a drop-down. -->
+        <xsl:apply-templates select="ancestor::*[contains-token(@class, 'btn-group')][1]" mode="ldh:CloseDropdown"/>
+
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="context" as="map(*)" select="map{
             'method': $method,
@@ -1542,7 +1617,9 @@ WHERE
             'forClass': $forClass,
             'doc-uri': $doc-uri,
             'base-uri': $doc-uri,
-            'this': $this
+            'this': $this,
+            'insert-anchor': $container,
+            'insert-method': 'ixsl:insert-before'
         }"/>
 
         <ixsl:promise select="ixsl:resolve($context) =>
@@ -1559,7 +1636,8 @@ WHERE
             ixsl:then(ldh:http-request-threaded(?, 'shapes-request', 'shapes-response')) =>
             ixsl:then(ldh:handle-response(?, 'shapes-response')) =>
             ixsl:then(ldh:set-shapes#1) =>
-            ixsl:then(ldh:render-add-row-form#1)"
+            ixsl:then(ldh:render-add-row-form#1) =>
+            ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     
@@ -1576,7 +1654,7 @@ WHERE
     <!-- lookup by $label and optional $Type using search SELECT -->
     <xsl:template match="input[contains-token(@class, 'typeahead')]" mode="ixsl:onkeyup">
         <xsl:param name="text" select="ixsl:get(., 'value')" as="xs:string?"/>
-        <xsl:param name="menu" select="following-sibling::ul" as="element()"/>
+        <xsl:param name="menu" select="(following-sibling::ul, ../following-sibling::div[contains-token(@class, 'ldhc-cb-panel')])[1]" as="element()"/>
         <xsl:param name="delay" select="400" as="xs:integer"/>
         <xsl:param name="endpoint" select="sd:endpoint()" as="xs:anyURI"/>
         <xsl:param name="forClass" select="../ixsl:get(., 'dataset.forClass') ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
@@ -1648,20 +1726,17 @@ WHERE
                     <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/> <!-- prevent form submit -->
                 
                     <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:anyURI"/>
-                    <xsl:variable name="typeahead-class" select="'btn add-typeahead'" as="xs:string"/>
+                    <xsl:variable name="typeahead-class" select="'cb-chip-btn add-typeahead'" as="xs:string"/>
                     <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/> <!-- set by typeahead:xml-loaded -->
                     <xsl:variable name="resource" select="key('resources', $resource-id, $typeahead-doc)"/>
 
+                    <!-- the committed chip replaces the whole lookup wrapper (legacy span or .ldhc-combobox) -->
                     <xsl:for-each select="../..">
-                        <xsl:variable name="typeahead" as="element()">
+                        <xsl:result-document href="?." method="ixsl:replace-element">
                             <xsl:apply-templates select="$resource" mode="ldh:Typeahead">
                                 <xsl:with-param name="class" select="$typeahead-class"/>
                                 <xsl:with-param name="forClass" select="$forClass"/>
                             </xsl:apply-templates>
-                        </xsl:variable>
-                        
-                        <xsl:result-document href="?." method="ixsl:replace-content">
-                            <xsl:sequence select="$typeahead/*"/>
                         </xsl:result-document>
                     </xsl:for-each>
                 </xsl:for-each>
@@ -1697,7 +1772,7 @@ WHERE
     </xsl:template>
 
     <xsl:template match="input[contains-token(@class, 'typeahead')]" mode="ixsl:onfocusout">
-        <xsl:param name="menu" select="following-sibling::ul" as="element()"/>
+        <xsl:param name="menu" select="(following-sibling::ul, ../following-sibling::div[contains-token(@class, 'ldhc-cb-panel')])[1]" as="element()"/>
         
         <xsl:call-template name="typeahead:hide">
             <xsl:with-param name="menu" select="$menu"/>
@@ -1784,28 +1859,24 @@ WHERE
         </xsl:for-each>
     </xsl:function>
 
-    <xsl:template match="ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'type-typeahead')]/li" mode="ixsl:onmousedown" priority="1">
-        <xsl:param name="typeahead-class" select="'btn add-typeahead add-type-typeahead'" as="xs:string"/>
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'row-fluid')][1]" as="element()"/>
+    <xsl:template match="*[contains-token(@class, 'dropdown-menu') or contains-token(@class, 'ldhc-cb-panel')][contains-token(@class, 'type-typeahead')]/li" mode="ixsl:onmousedown" priority="1">
+        <xsl:param name="typeahead-class" select="'cb-chip-btn add-typeahead add-type-typeahead'" as="xs:string"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="fieldset" select="ancestor::fieldset" as="element()"/>
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:string"/> <!-- can be URI resource or blank node ID -->
         <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $resource-id, $typeahead-doc)" as="element()"/>
-        <xsl:variable name="initial-forClass" select="../../ixsl:get(., 'dataset.forClass') ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
+        <xsl:variable name="initial-forClass" select="(../../@data-for-class, ../preceding-sibling::div[contains-token(@class, 'ldhc-cb-box')]/@data-for-class)[1] ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
 
-        <!-- render the typeahead button replacing the dropdown (synchronous DOM mutation, runs before the promise) -->
+        <!-- render the committed chip replacing the whole lookup wrapper (synchronous DOM mutation, runs before the promise) -->
         <xsl:for-each select="../..">
-            <xsl:variable name="typeahead" as="element()">
+            <xsl:result-document href="?." method="ixsl:replace-element">
                 <xsl:apply-templates select="$resource" mode="ldh:Typeahead">
                     <xsl:with-param name="class" select="$typeahead-class"/>
                     <xsl:with-param name="forClass" select="$initial-forClass"/>
                 </xsl:apply-templates>
-            </xsl:variable>
-
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:sequence select="$typeahead/*"/>
             </xsl:result-document>
         </xsl:for-each>
 
@@ -1847,23 +1918,20 @@ WHERE
     
     <!-- select typeahead item -->
     
-    <xsl:template match="ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'typeahead')]/li" mode="ixsl:onmousedown">
-        <xsl:param name="typeahead-class" select="'btn add-typeahead'" as="xs:string"/>
+    <xsl:template match="*[contains-token(@class, 'dropdown-menu') or contains-token(@class, 'ldhc-cb-panel')][contains-token(@class, 'typeahead')]/li" mode="ixsl:onmousedown">
+        <xsl:param name="typeahead-class" select="'cb-chip-btn add-typeahead'" as="xs:string"/>
         <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:string"/> <!-- can be URI resource or blank node ID -->
         <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $resource-id, $typeahead-doc)" as="element()"/>
-        <xsl:variable name="forClass" select="../../ixsl:get(., 'dataset.forClass') ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
+        <xsl:variable name="forClass" select="(../../@data-for-class, ../preceding-sibling::div[contains-token(@class, 'ldhc-cb-box')]/@data-for-class)[1] ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
 
+        <!-- the committed chip replaces the whole lookup wrapper (legacy span or .ldhc-combobox) -->
         <xsl:for-each select="../..">
-            <xsl:variable name="typeahead" as="element()">
+            <xsl:result-document href="?." method="ixsl:replace-element">
                 <xsl:apply-templates select="$resource" mode="ldh:Typeahead">
                     <xsl:with-param name="class" select="$typeahead-class"/>
                     <xsl:with-param name="forClass" select="$forClass"/>
                 </xsl:apply-templates>
-            </xsl:variable>
-            
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:sequence select="$typeahead/*"/>
             </xsl:result-document>
         </xsl:for-each>
     </xsl:template>
@@ -1955,15 +2023,15 @@ WHERE
         <xsl:sequence select="ixsl:call(ancestor::fieldset, 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
-    <!-- remove <div class="control-group"> -->
+    <!-- remove the statement: a property group hosts a single row, so the whole group goes (label included); a constructor row is self-contained -->
     <xsl:template match="button[contains-token(@class, 'btn-remove-property')]" mode="ixsl:onclick" priority="1">
-        <xsl:sequence select="ixsl:call(../../.., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call((ancestor::div[contains-token(@class, 'ldh-ctor-row')], ancestor::div[contains-token(@class, 'ldh-prop-group')])[1], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
     <xsl:template match="button[contains-token(@class, 'add-type')]" mode="ixsl:onclick" priority="1">
         <xsl:param name="lookup-class" select="'type-typeahead typeahead'" as="xs:string"/>
         <xsl:param name="lookup-list-class" select="'type-typeahead typeahead dropdown-menu'" as="xs:string"/>
-        <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
+        <xsl:variable name="uuid" select="ac:uuid()" as="xs:string"/>
         
         <xsl:for-each select="..">
             <xsl:variable name="lookup" as="element()">
@@ -1999,24 +2067,20 @@ WHERE
     
     <xsl:template match="button[contains-token(@class, 'add-typeahead')]" mode="ixsl:onclick">
         <xsl:param name="lookup-class" select="'resource-typeahead typeahead'" as="xs:string"/>
-        <xsl:param name="lookup-list-class" select="'resource-typeahead typeahead dropdown-menu'" as="xs:string"/>
-        <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
-        
-        <xsl:variable name="lookup">
-            <xsl:call-template name="bs2:Lookup">
-                <xsl:with-param name="id" select="'input-' || $uuid"/>
-                <xsl:with-param name="class" select="$lookup-class"/>
-                <xsl:with-param name="list-class" select="$lookup-list-class"/>
-            </xsl:call-template>
-        </xsl:variable>
+        <xsl:param name="lookup-list-class" select="'resource-typeahead typeahead'" as="xs:string"/>
+        <xsl:variable name="uuid" select="ac:uuid()" as="xs:string"/>
+        <!-- the committed chip span carries the class scope; the fresh lookup replaces it wholesale -->
+        <xsl:variable name="committed" select="ancestor::span[contains-token(@class, 'ldhc-cb-committed')][1]" as="element()"/>
+        <xsl:variable name="forClass" select="$committed/@data-for-class ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
 
-        <!-- workaround for https://saxonica.plan.io/issues/6303 -->
-        <xsl:variable name="this" select="." as="element()"/>
-        <xsl:for-each select="..">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:sequence select="$this/preceding-sibling::node()"/>
-                <xsl:sequence select="$lookup/span/*"/>
-                <xsl:sequence select="$this/following-sibling::node()"/>
+        <xsl:for-each select="$committed">
+            <xsl:result-document href="?." method="ixsl:replace-element">
+                <xsl:call-template name="bs2:Lookup">
+                    <xsl:with-param name="id" select="'input-' || $uuid"/>
+                    <xsl:with-param name="class" select="$lookup-class"/>
+                    <xsl:with-param name="list-class" select="$lookup-list-class"/>
+                    <xsl:with-param name="forClass" select="$forClass"/>
+                </xsl:call-template>
             </xsl:result-document>
         </xsl:for-each>
 
@@ -2028,7 +2092,7 @@ WHERE
     <!-- show a typeahead dropdown with instances in the form -->
     
     <xsl:template match="form//input[contains-token(@class, 'resource-typeahead')]" mode="ixsl:onfocusin">
-        <xsl:variable name="menu" select="following-sibling::ul" as="element()"/>
+        <xsl:variable name="menu" select="(following-sibling::ul, ../following-sibling::div[contains-token(@class, 'ldhc-cb-panel')])[1]" as="element()"/>
         <xsl:variable name="forClass" select="../ixsl:get(., 'dataset.forClass')" as="xs:anyURI*"/>
         <xsl:variable name="item-doc" as="document-node()">
             <xsl:document>
@@ -2064,49 +2128,39 @@ WHERE
         </xsl:call-template>
     </xsl:template>
 
-    <!-- simplified version of Bootstrap's tooltip() -->
-    
-    <xsl:template match="fieldset//input" mode="ixsl:onmouseover">
-        <xsl:choose>
-            <!-- show existing tooltip -->
-            <xsl:when test="../div[contains-token(@class, 'tooltip')]">
-                <ixsl:set-style name="display" select="'block'" object="../div[contains-token(@class, 'tooltip')]"/>
-            </xsl:when>
-            <!-- append new tooltip -->
-            <xsl:otherwise>
-                <xsl:variable name="description-span" select="ancestor::*[contains-token(@class, 'control-group')]//*[contains-token(@class, 'description')]" as="element()?"/>
-                <xsl:if test="$description-span">
-                    <xsl:variable name="input-offset-width" select="ixsl:get(., 'offsetWidth')" as="xs:integer"/>
-                    <xsl:variable name="input-offset-height" select="ixsl:get(., 'offsetHeight')" as="xs:integer"/>
-                    <xsl:for-each select="..">
-                        <xsl:result-document href="?." method="ixsl:append-content">
-                            <div class="tooltip fade top in">
-                                <div class="tooltip-arrow"></div>
-                                <div class="tooltip-inner">
-                                    <xsl:sequence select="$description-span/text()"/>
-                                </div>
-                            </div>
-                        </xsl:result-document>
-                    </xsl:for-each>
-                </xsl:if>
-            </xsl:otherwise>
-        </xsl:choose>
-        <!-- adjust the position of the tooltip relative to the input -->
-        <xsl:variable name="input-top" select="ixsl:get(., 'offsetTop')" as="xs:double"/>
-        <xsl:variable name="input-left" select="ixsl:get(., 'offsetLeft')" as="xs:double"/>
-        <xsl:variable name="input-width" select="ixsl:get(., 'offsetWidth')" as="xs:double"/>
-        <xsl:for-each select="../div[contains-token(@class, 'tooltip')]">
-            <xsl:variable name="tooltip-height" select="ixsl:get(., 'offsetHeight')" as="xs:double"/>
-            <xsl:variable name="tooltip-width" select="ixsl:get(., 'offsetWidth')" as="xs:double"/>
-            
-            <ixsl:set-style name="top" select="($input-top - $tooltip-height) || 'px'"/>
-            <ixsl:set-style name="left" select="($input-left + ($input-width - $tooltip-width) div 2) || 'px'"/>
+    <!-- file picked: surface the selected-file chip below the drop zone (the hidden input keeps serializing into the multipart body) -->
+
+    <xsl:template match="div[contains-token(@class, 'ldhc-fileinput')]//input[@type = 'file']" mode="ixsl:onchange">
+        <xsl:variable name="wrapper" select="ancestor::div[contains-token(@class, 'ldhc-fileinput')][1]" as="element()"/>
+        <xsl:variable name="has-file" select="ixsl:get(., 'files.length') gt 0" as="xs:boolean"/>
+        <xsl:variable name="file-name" select="if ($has-file) then string(ixsl:get(ixsl:call(ixsl:get(., 'files'), 'item', [ 0 ]), 'name')) else ()" as="xs:string?"/>
+
+        <xsl:for-each select="$wrapper/div[contains-token(@class, 'ldh-file-sel')]">
+            <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
+
+        <xsl:if test="exists($file-name)">
+            <xsl:for-each select="$wrapper">
+                <xsl:result-document href="?." method="ixsl:append-content">
+                    <div class="ldh-file-sel">
+                        <span class="msi outline sm" aria-hidden="true">description</span>
+                        <span class="fs-name">
+                            <xsl:value-of select="$file-name"/>
+                        </span>
+                    </div>
+                </xsl:result-document>
+            </xsl:for-each>
+        </xsl:if>
     </xsl:template>
-    
-    <xsl:template match="fieldset//input" mode="ixsl:onmouseout">
-        <xsl:for-each select="../div[contains-token(@class, 'tooltip')]">
-            <ixsl:set-style name="display" select="'none'"/>
+
+    <!-- the predicate-description toggletip in the row label: click toggles the tip the row template ships closed -->
+
+    <xsl:template match="button[contains-token(@class, 'ldhc-toggletip-btn')]" mode="ixsl:onclick">
+        <xsl:variable name="open" select="not(ixsl:get(., 'ariaExpanded') = 'true')" as="xs:boolean"/>
+
+        <ixsl:set-property name="ariaExpanded" select="if ($open) then 'true' else 'false'" object="."/>
+        <xsl:for-each select="following-sibling::span[contains-token(@class, 'ldhc-tip')]">
+            <ixsl:set-style name="display" select="if ($open) then 'inline-flex' else 'none'"/>
         </xsl:for-each>
     </xsl:template>
     

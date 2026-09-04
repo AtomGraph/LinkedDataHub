@@ -57,7 +57,11 @@ exclude-result-prefixes="#all">
         <xsl:param name="type" as="xs:string?"/>
 
         <xsl:if test="not($type = 'hidden')">
-            <span class="help-inline">Literal</span>
+            <div class="ldh-annot">
+                <span class="ldhc-tag sz-sm em-quiet an-term is-literal">
+                    <xsl:apply-templates select="key('resources', 'literal', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                </span>
+            </div>
         </xsl:if>
     </xsl:template>
 

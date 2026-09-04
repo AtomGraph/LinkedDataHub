@@ -41,14 +41,16 @@ exclude-result-prefixes="#all">
         <xsl:variable name="properties" select="../../*[concat(namespace-uri(), local-name()) = $this]" as="element()*"/>
 
         <xsl:variable name="modes" select="key('resources-by-subclass', '&acl;Access', document(ac:document-uri('&acl;')))" as="element()*"/>
+        <span class="ldhc-select sz-sm is-multiple">
         <select name="ou" id="{generate-id()}" multiple="multiple" size="{count($modes)}">
             <xsl:for-each select="$modes">
-                <xsl:sort select="ac:label(.)" lang="{$ac:lang}"/>
+                <xsl:sort select="ac:label(.)" lang="{ac:langs()[1]}"/>
                 <xsl:apply-templates select="." mode="xhtml:Option">
                     <xsl:with-param name="selected" select="@rdf:about = $properties/@rdf:resource"/>
                 </xsl:apply-templates>
             </xsl:for-each>
         </select>
+        </span>
 
         <xsl:if test="$type-label">
             <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel"/>
@@ -62,7 +64,7 @@ exclude-result-prefixes="#all">
         <!-- we're not using the form's default action so we're not tunneling the param here -->
         <xsl:param name="action" select="ldh:href(resolve-uri(ac:uuid() || '/', resolve-uri('acl/authorizations/', ldt:base())), map{ '_method': 'PUT' })" as="xs:anyURI"/> <!-- create new authorization document -->
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
-        <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
+        <xsl:param name="class" select="'ldh-prop-form'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/> <!-- TO-DO: override with "multipart/form-data" for File instances -->
 
@@ -76,7 +78,7 @@ exclude-result-prefixes="#all">
             </div>
         </xsl:if>
 
-        <!-- .form-horizontal is required so that client.xsl can match this form and intercept its onsubmit event -->
+        <!-- .ldh-prop-form is required so that client.xsl can match this form and intercept its onsubmit event -->
         <form method="{$method}" action="{$action}">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
@@ -219,8 +221,13 @@ exclude-result-prefixes="#all">
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:call-template>
 
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary">Allow</button>
+            <div class="ldh-block-foot">
+                <button type="submit" class="ldhc-btn in-primary ap-solid sz-md">
+                    <span class="msi sm" aria-hidden="true">check</span>
+                    <xsl:value-of>
+                        <xsl:apply-templates select="key('resources', 'allow', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                    </xsl:value-of>
+                </button>
             </div>
         </form>
     </xsl:template>

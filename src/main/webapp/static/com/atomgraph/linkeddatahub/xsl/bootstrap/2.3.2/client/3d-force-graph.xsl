@@ -341,7 +341,7 @@
         <xsl:sequence select="ixsl:call($charge-force, 'strength', [ $charge-force-strength ])[current-date() lt xs:date('2000-01-01')]"/>
 
         <!-- Create and return graph state -->
-        <xsl:variable name="graph-state" select="ixsl:eval('({})')"/>
+        <xsl:variable name="graph-state" select="ldh:new-object()"/>
         <xsl:for-each select="$graph-state">
             <ixsl:set-property name="instance" select="$graph" object="."/>
             <ixsl:set-property name="showLabels" select="false()" object="."/>
@@ -393,7 +393,7 @@
         <xsl:if test="$show-stubs">
             <xsl:for-each select="distinct-values(rdf:Description/*/@rdf:resource[not(key('resources', .))])">
                 <xsl:variable name="uri" select="xs:anyURI(.)" as="xs:anyURI"/>
-                <xsl:variable name="node" select="ixsl:eval('{}')"/>
+                <xsl:variable name="node" select="ldh:new-object()"/>
                 <xsl:for-each select="$node">
                     <ixsl:set-property name="id" select="$uri" object="."/>
                     <ixsl:set-property name="label" select="$uri" object="."/>
@@ -405,7 +405,7 @@
             <!-- One stub blank node per unique unresolved @rdf:nodeID (referenced via rdf:_N etc. without a matching rdf:Description) -->
             <xsl:for-each select="distinct-values(rdf:Description/*/@rdf:nodeID[not(key('resources', .))])">
                 <xsl:variable name="nodeID" select="string(.)" as="xs:string"/>
-                <xsl:variable name="node" select="ixsl:eval('{}')"/>
+                <xsl:variable name="node" select="ldh:new-object()"/>
                 <xsl:for-each select="$node">
                     <ixsl:set-property name="id" select="$nodeID" object="."/>
                     <ixsl:set-property name="label" select="$nodeID" object="."/>
@@ -428,7 +428,7 @@
         <!-- captured here because inside the for-each below the context item is the JS node object, not this rdf:Description, so attribute axes would fail -->
         <xsl:variable name="is-bnode" select="exists(@rdf:nodeID)" as="xs:boolean"/>
 
-        <xsl:variable name="node" select="ixsl:eval('{}')"/>
+        <xsl:variable name="node" select="ldh:new-object()"/>
         <xsl:for-each select="$node">
             <ixsl:set-property name="id" select="$id" object="."/>
             <ixsl:set-property name="label" select="$label" object="."/>
@@ -471,7 +471,7 @@
                 select="if (string-length($literal-value) gt $ldh:literal-label-max-length)
                         then substring($literal-value, 1, $ldh:literal-label-max-length) || '…'
                         else $literal-value"/>
-            <xsl:variable name="node" select="ixsl:eval('{}')"/>
+            <xsl:variable name="node" select="ldh:new-object()"/>
             <xsl:for-each select="$node">
                 <ixsl:set-property name="id" select="$node-id" object="."/>
                 <ixsl:set-property name="label" select="$display-label" object="."/>
@@ -492,7 +492,7 @@
                 select="if (string-length($literal-value) gt $ldh:literal-label-max-length)
                         then substring($literal-value, 1, $ldh:literal-label-max-length) || '…'
                         else $literal-value"/>
-            <xsl:variable name="node" select="ixsl:eval('{}')"/>
+            <xsl:variable name="node" select="ldh:new-object()"/>
             <xsl:for-each select="$node">
                 <ixsl:set-property name="id" select="$node-id" object="."/>
                 <ixsl:set-property name="label" select="$display-label" object="."/>
@@ -506,7 +506,7 @@
     <!-- Level 4e: anonymous nested rdf:Description (no @rdf:about, no @rdf:nodeID): synthesize a bnode + recurse into its properties. Identified nested descriptions (@rdf:about/@rdf:nodeID) are already handled by level 2 (which wins over level 4d by priority). -->
     <xsl:template match="rdf:Description/*/rdf:Description[not(@rdf:about) and not(@rdf:nodeID)]" mode="ldh:ForceGraph3D-nodes" as="item()*" priority="1">
         <xsl:variable name="id" select="generate-id(.)" as="xs:string"/>
-        <xsl:variable name="node" select="ixsl:eval('{}')"/>
+        <xsl:variable name="node" select="ldh:new-object()"/>
         <xsl:for-each select="$node">
             <ixsl:set-property name="id" select="$id" object="."/>
             <ixsl:set-property name="label" select="$id" object="."/>
@@ -555,7 +555,7 @@
         <!-- Suppress link if target is a stub and stubs are hidden -->
         <xsl:if test="$show-stubs or exists(key('resources', .))">
             <xsl:variable name="target-id" select="xs:anyURI(.)" as="xs:anyURI"/>
-            <xsl:variable name="link" select="ixsl:eval('{}')"/>
+            <xsl:variable name="link" select="ldh:new-object()"/>
             <xsl:for-each select="$link">
                 <ixsl:set-property name="source" select="$source-id" object="."/>
                 <ixsl:set-property name="target" select="$target-id" object="."/>
@@ -573,7 +573,7 @@
         <!-- Suppress link if target is a stub blank node and stubs are hidden (symmetry with @rdf:resource) -->
         <xsl:if test="$show-stubs or exists(key('resources', .))">
             <xsl:variable name="target-id" select="string(.)" as="xs:string"/>
-            <xsl:variable name="link" select="ixsl:eval('{}')"/>
+            <xsl:variable name="link" select="ldh:new-object()"/>
             <xsl:for-each select="$link">
                 <ixsl:set-property name="source" select="$source-id" object="."/>
                 <ixsl:set-property name="target" select="$target-id" object="."/>
@@ -591,7 +591,7 @@
         <xsl:param name="locale-filter" select="()" tunnel="yes" as="xs:string?"/>
         <xsl:if test="$show-literals and (empty($locale-filter) or not(parent::*/@xml:lang) or lang($locale-filter))">
             <xsl:variable name="target-id" select="generate-id(.)" as="xs:string"/>
-            <xsl:variable name="link" select="ixsl:eval('{}')"/>
+            <xsl:variable name="link" select="ldh:new-object()"/>
             <xsl:for-each select="$link">
                 <ixsl:set-property name="source" select="$source-id" object="."/>
                 <ixsl:set-property name="target" select="$target-id" object="."/>
@@ -608,7 +608,7 @@
         <xsl:param name="show-literals" select="true()" tunnel="yes" as="xs:boolean"/>
         <xsl:if test="$show-literals">
             <xsl:variable name="target-id" select="generate-id(.)" as="xs:string"/>
-            <xsl:variable name="link" select="ixsl:eval('{}')"/>
+            <xsl:variable name="link" select="ldh:new-object()"/>
             <xsl:for-each select="$link">
                 <ixsl:set-property name="source" select="$source-id" object="."/>
                 <ixsl:set-property name="target" select="$target-id" object="."/>
@@ -627,7 +627,7 @@
             else if (@rdf:nodeID) then string(@rdf:nodeID)
             else generate-id(.)"/>
 
-        <xsl:variable name="link" select="ixsl:eval('{}')"/>
+        <xsl:variable name="link" select="ldh:new-object()"/>
         <xsl:for-each select="$link">
             <ixsl:set-property name="source" select="$source-id" object="."/>
             <ixsl:set-property name="target" select="$target-id" object="."/>

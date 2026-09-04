@@ -11,7 +11,7 @@ pwd=$(realpath "$PWD")
 
 # add agent to the writers group
 
-ldh admin acl add-agent-to-group \
+ldh admin add agent \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
@@ -25,7 +25,7 @@ file_content_type="application/octet-stream"
 slug=$(uuidgen | tr '[:upper:]' '[:lower:]')
 
 # Create an item document to hold the file
-file_doc=$(ldh create-item \
+file_doc=$(ldh create item \
   -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
@@ -34,7 +34,7 @@ file_doc=$(ldh create-item \
   --slug "$slug")
 
 # Add the file to the document
-ldh add-file \
+ldh add file \
   -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \

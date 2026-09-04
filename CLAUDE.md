@@ -148,15 +148,16 @@ The SPARQL endpoint forwarding chain ensures ContentMode blocks (charts, maps) q
 ## CLI Tools
 
 `ldh` (in `cli/`) is the command line interface for the HTTP API — one command per `bin/` script,
-same option names, `bin/` subdirectories as nested subcommand groups. Built with Maven on Java 21
+same option names, grouped by verb (`create`, `add`, `remove`, `import`) plus the `packages`
+family and the `admin` scope. Built with Maven on Java 21
 into a shaded `cli/target/ldh.jar` that `cli/bin/ldh` launches. See `cli/README.md` for the full
 script → command table and the behavioral differences from the scripts.
 
 ```bash
 cd cli && mvn package && export PATH="$PWD/bin:$PATH"
 
-ldh create-container --parent "$LDH_BASE" --title "Some" --slug some
-ldh admin acl add-agent-to-group --agent "$AGENT_URI" "${ADMIN_BASE}acl/groups/writers/"
+ldh create container --parent "$LDH_BASE" --title "Some" --slug some
+ldh admin add agent --agent "$AGENT_URI" "${ADMIN_BASE}acl/groups/writers/"
 ```
 
 `cli/` is not a module of the platform reactor (the root pom is the webapp artifact, so it cannot
@@ -165,11 +166,18 @@ around both release bumps, and `make cli-version` re-aligns it if it drifts.
 
 `LDH_CERT_FILE`, `LDH_CERT_PASSWORD`, `LDH_BASE` and `LDH_PROXY` supply defaults for `-f`, `-p`,
 `-b` and `--proxy`. Commands that create or append to a document print its URL as the only line on
-stdout (diagnostics go to stderr), so `item=$(ldh create-item ...)` works; exit codes are `0`
+stdout (diagnostics go to stderr), so `item=$(ldh create item ...)` works; exit codes are `0`
 success, `1` HTTP or runtime failure, `2` usage error.
 
-Packages have no command — an application imports one with a single `<app> ldh:import <package>`
-triple, so `ldh patch` on the application's `settings` document is the whole interface.
+Packages are declarative: an application imports one with a single `<app> ldh:import <package>`
+triple in its settings, and `ldh packages list`, `ldh packages add` and
+`ldh packages remove` write that triple through `PATCH /settings`. `packages list` reads the
+registry catalog through the Linked Data proxy, marking the imported ones.
+
+`ldh get` also addresses the RFC 7089 Memento roles of a versioned document, as mutually exclusive
+options: `--timemap` (version history), `--version <sha>` (a historical version) and `--timegate`
+with an optional `--datetime` (RFC 1123 or ISO 8601), which prints the selected version's URI as the
+only line on stdout so it pipes into another `ldh get`.
 
 The `bin/` HTTP API scripts are **deprecated** — `ldh` replaces them, and http-tests build their
 fixtures with it. Authentication moves from the `.pem` the scripts feed `curl -E` to the PKCS12

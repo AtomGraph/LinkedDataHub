@@ -181,7 +181,6 @@ import java.io.FileOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -228,6 +227,7 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.riot.resultset.ResultSetLang;
@@ -358,7 +358,6 @@ public class Application extends ResourceConfig
             System.getProperty("com.atomgraph.linkeddatahub.validateAfterInactivity") != null ? Integer.valueOf(System.getProperty("com.atomgraph.linkeddatahub.validateAfterInactivity")) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.maxImportThreads.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxImportThreads.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.notificationAddress.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.notificationAddress.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(LDHC.supportedLanguages.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.supportedLanguages.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.enableWebIDSignUp.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.enableWebIDSignUp.getURI())) : true,
             servletConfig.getServletContext().getInitParameter(LDHC.oidcRefreshTokens.getURI()),
             servletConfig.getServletContext().getInitParameter(LDHC.frontendProxy.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.frontendProxy.getURI()) : null,
@@ -414,7 +413,6 @@ public class Application extends ResourceConfig
      * @param maxRequestRetries maximum number of times that the HTTP client will retry a request
      * @param maxImportThreads maximum number of threads used for asynchronous imports
      * @param notificationAddressString email address used to send notifications
-     * @param supportedLanguageCodes comma-separated codes of supported languages
      * @param enableWebIDSignUp true if WebID signup is enabled
      * @param oidcRefreshTokensPropertiesPath path to the properties file with OIDC refresh tokens
      * @param mailUser username of the SMTP email server
@@ -443,7 +441,7 @@ public class Application extends ResourceConfig
             final Integer cookieMaxAge, final boolean enableLinkedDataProxy, final boolean allowInternalUrls, final Integer maxContentLength,
             final Integer maxConnPerRoute, final Integer maxTotalConn, final Integer maxRequestRetries, final Integer connectionRequestTimeout,
             final Integer socketTimeout, final Integer connectTimeout, final Long connectionTimeToLive, final Integer validateAfterInactivity, final Integer maxImportThreads,
-            final String notificationAddressString, final String supportedLanguageCodes, final boolean enableWebIDSignUp, final String oidcRefreshTokensPropertiesPath,
+            final String notificationAddressString, final boolean enableWebIDSignUp, final String oidcRefreshTokensPropertiesPath,
             final String frontendProxyString, final String backendProxyAdminString, final String backendProxyEndUserString,
             final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort,
             final String googleClientID, final String googleClientSecret,
@@ -561,12 +559,15 @@ public class Application extends ResourceConfig
         this.importThreadPool = Executors.newFixedThreadPool(maxImportThreads);
         servletConfig.getServletContext().setAttribute(LDHC.maxImportThreads.getURI(), importThreadPool); // used in ImportListener to shutdown the thread pool
         
-        if (supportedLanguageCodes == null)
+        try
         {
-            if (log.isErrorEnabled()) log.error("Supported languages ({}) not configured", LDHC.supportedLanguages.getURI());
-            throw new ConfigurationException(LDHC.supportedLanguages);
+            this.supportedLanguages = readBundleLanguages(servletConfig.getServletContext());
         }
-        this.supportedLanguages = Arrays.asList(supportedLanguageCodes.split(",")).stream().map(code -> Locale.forLanguageTag(code)).collect(Collectors.toList());
+        catch (IOException ex)
+        {
+            if (log.isErrorEnabled()) log.error("Could not read UI translations: {}", XSLTWriterBase.TRANSLATIONS_PATH, ex);
+            throw new IllegalStateException(ex);
+        }
         
         this.servletConfig = servletConfig;
         this.mediaTypes = mediaTypes;
@@ -832,13 +833,14 @@ public class Application extends ResourceConfig
             xsltProc.registerExtensionFunction(new DecodeURI());
             xsltProc.registerExtensionFunction(new com.atomgraph.linkeddatahub.writer.function.URLDecode());
             xsltProc.registerExtensionFunction(new com.atomgraph.linkeddatahub.writer.function.SendHTTPRequest(xsltProc, client));
+            xsltProc.registerExtensionFunction(new com.atomgraph.linkeddatahub.writer.function.ParseQuery());
             
             try
             {
-                for (String prefix : getRepository().getPrefixMappings().keySet())
+                for (String prefix : repository.getPrefixMappings().keySet())
                 {
                     // register mapped RDF documents in the XSLT processor so that document() returns them cached, throughout multiple transformations
-                    TreeInfo doc = xsltProc.getUnderlyingConfiguration().buildDocumentTree(getResolver().resolve("", prefix));
+                    TreeInfo doc = xsltProc.getUnderlyingConfiguration().buildDocumentTree(resolver.resolve("", prefix));
                     xsltProc.getUnderlyingConfiguration().getGlobalDocumentPool().add(doc, prefix);
                 }
 
@@ -2517,12 +2519,54 @@ public class Application extends ResourceConfig
     
     /**
      * Returns list of locales for languages supported by the UI.
-     * 
+     *
      * @return locale list
      */
     public List<Locale> getSupportedLanguages()
     {
         return supportedLanguages;
+    }
+
+    /**
+     * Reads the languages the UI translation bundle actually provides.
+     *
+     * Derived from the bundle rather than configured separately: a hand-maintained list can claim a language the bundle does
+     * not have, and the two drifted - the config said <code>en,es</code> while the bundle is tagged <code>en-US,es-ES</code>,
+     * and neither described the languages of the data being rendered.
+     *
+     * @param servletContext servlet context
+     * @return locales, ordered by language tag so variant selection is deterministic
+     * @throws IOException if the bundle cannot be read
+     */
+    public static List<Locale> readBundleLanguages(ServletContext servletContext) throws IOException
+    {
+        try (InputStream translations = servletContext.getResourceAsStream(XSLTWriterBase.TRANSLATIONS_PATH))
+        {
+            if (translations == null) throw new IOException("UI translations not found: " + XSLTWriterBase.TRANSLATIONS_PATH);
+
+            return readBundleLanguages(translations);
+        }
+    }
+
+    /**
+     * Reads the languages present in a UI translation bundle.
+     *
+     * @param translations RDF/XML translation bundle
+     * @return locales, ordered by language tag so variant selection is deterministic
+     */
+    public static List<Locale> readBundleLanguages(InputStream translations)
+    {
+        Model model = ModelFactory.createDefaultModel();
+        RDFParser.create().source(translations).lang(Lang.RDFXML).build().parse(model);
+
+        return model.listObjects().toList().stream().
+            filter(RDFNode::isLiteral).
+            map(node -> node.asLiteral().getLanguage()).
+            filter(lang -> !lang.isEmpty()).
+            distinct().
+            sorted().
+            map(Locale::forLanguageTag).
+            collect(Collectors.toList());
     }
     
     /**

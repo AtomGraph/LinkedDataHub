@@ -16,19 +16,35 @@ package_uri="https://packages.linkeddatahub.com/skos/#this"
 
 query='SELECT ?text WHERE { <http://www.w3.org/2004/02/skos/core#Concept> <http://spinrdf.org/spin#constructor> ?constructor . ?constructor <http://spinrdf.org/sp#text> ?text . }'
 
-constructor_count() {
+# the ldh:view declarations are what render the Broader/Narrower concept blocks - the user-facing
+# feature of the package, and the thing that goes silent if the import stops being composed
+view_query='SELECT ?view WHERE { VALUES ?property { <http://www.w3.org/2004/02/skos/core#broader> <http://www.w3.org/2004/02/skos/core#narrower> } ?property <https://w3id.org/atomgraph/linkeddatahub#view> ?view . }'
+
+ns_result_count() {
   curl -k -f -s -G \
     -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
     -H "Accept: application/sparql-results+xml" \
     "${END_USER_BASE_URL}ns" \
-    --data-urlencode "query=${query}" \
+    --data-urlencode "query=${1}" \
   | xmllint --xpath "count(//*[local-name() = 'result'])" -
+}
+
+constructor_count() {
+  ns_result_count "$query"
+}
+
+view_count() {
+  ns_result_count "$view_query"
 }
 
 # the skos:Concept constructor is not in the app ontology closure initially
 count=$(constructor_count)
 if [ "$count" != "0" ]; then
-  echo "DEBUG: Expected 0 skos:Concept constructors before import, got: $count"
+  exit 1
+fi
+
+views=$(view_count)
+if [ "$views" != "0" ]; then
   exit 1
 fi
 
@@ -50,7 +66,11 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 # the package ontology joined the closure - no restart, no sleep
 count=$(constructor_count)
 if [ "$count" != "1" ]; then
-  echo "DEBUG: Expected 1 skos:Concept constructor after import, got: $count"
+  exit 1
+fi
+
+views=$(view_count)
+if [ "$views" != "2" ]; then
   exit 1
 fi
 
@@ -69,14 +89,12 @@ purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 # the package ontology left the closure
+views=$(view_count)
+if [ "$views" != "0" ]; then
+  exit 1
+fi
+
 count=$(constructor_count)
 if [ "$count" != "0" ]; then
-  echo "DEBUG: Expected 0 skos:Concept constructors after removal, got: $count"
-  echo "DEBUG: does /settings still carry the ldh:import triple after the DELETE?"
-  curl -k -s \
-    -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
-    -H "Accept: application/n-triples" \
-    "${END_USER_BASE_URL}settings" \
-  | grep -c "linkeddatahub#import" | sed 's/^/DEBUG: ldh:import triple count in settings = /'
   exit 1
 fi

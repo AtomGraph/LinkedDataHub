@@ -65,36 +65,42 @@ exclude-result-prefixes="#all">
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:otherwise>
-                <div class="control-group">
+                <div class="ldh-prop-group">
                     <xsl:call-template name="xhtml:Input">
                         <xsl:with-param name="type" select="'hidden'"/>
                         <xsl:with-param name="name" select="'pu'"/>
                         <xsl:with-param name="value" select="'&rdf;type'"/>
                     </xsl:call-template>
 
-                    <label class="control-label" for="{$for}" title="{$this}">
-                        <xsl:value-of select="ac:label(key('resources', $this, document(ac:document-uri(namespace-uri()))))" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-                        <xsl:value-of select="ac:label(key('resources', $this, if (ixsl:doc-fetched(ac:document-uri(namespace-uri()))) then document(ac:document-uri(namespace-uri())) else ()))" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
-                    </label>
+                    <div class="label">
+                        <span class="lbl-row">
+                            <span class="pred" title="{$this}">
+                                <xsl:value-of select="ac:label(key('resources', $this, document(ac:document-uri(namespace-uri()))))" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+                                <xsl:value-of select="ac:label(key('resources', $this, if (ixsl:doc-fetched(ac:document-uri(namespace-uri()))) then document(ac:document-uri(namespace-uri())) else ()))" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
+                            </span>
+                        </span>
+                    </div>
 
-                    <div class="controls">
-                        <xsl:if test="not($required)">
-                            <div class="btn-group pull-right">
-                                <button type="button" tabindex="-1">
+                    <div class="ldh-prop-row is-interactive is-last">
+                        <div class="value val-stack">
+                            <div class="val-main">
+                                <xsl:apply-templates select="@rdf:resource" mode="#current"/>
+                            </div>
+                        </div>
+
+                        <div class="row-actions">
+                            <xsl:if test="not($required)">
+                                <button type="button" tabindex="-1" class="ldhc-iconbtn sz-xs in-destructive ap-ghost btn-remove-property">
                                     <xsl:attribute name="title">
                                         <xsl:value-of>
                                             <xsl:apply-templates select="key('resources', 'remove-stmt', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                                         </xsl:value-of>
                                     </xsl:attribute>
 
-                                    <xsl:apply-templates select="key('resources', 'remove', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
-                                        <xsl:with-param name="class" select="'btn btn-small pull-right'"/>
-                                    </xsl:apply-templates>
+                                    <span class="msi sm" aria-hidden="true">remove</span>
                                 </button>
-                            </div>
-                        </xsl:if>
-
-                        <xsl:apply-templates select="@rdf:resource" mode="#current"/>
+                            </xsl:if>
+                        </div>
                     </div>
                 </div>
             </xsl:otherwise>
@@ -104,7 +110,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:type/@rdf:resource" mode="bs2:TypeControl">
         <xsl:param name="type" select="'text'" as="xs:string"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <xsl:param name="class" select="'subject input-xxlarge'" as="xs:string?"/>
+        <xsl:param name="class" select="'subject'" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="auto" select="local-name() = 'nodeID' or starts-with(., ldt:base())" as="xs:boolean"/>
         <xsl:param name="type-metadata" as="document-node()?" tunnel="yes"/>
@@ -114,7 +120,7 @@ exclude-result-prefixes="#all">
         <xsl:choose>
             <xsl:when test="if ($type-metadata) then key('resources', ., $type-metadata) else false()">
                 <xsl:apply-templates select="key('resources', ., $type-metadata)" mode="ldh:Typeahead">
-                    <xsl:with-param name="class" select="'btn add-typeahead add-type-typeahead'"/>
+                    <xsl:with-param name="class" select="'cb-chip-btn add-typeahead add-type-typeahead'"/>
                     <xsl:with-param name="forClass" select="(xs:anyURI('&rdfs;Class'), xs:anyURI('&owl;Class'))"/> <!-- ontologies are served without inference, so owl:Class subjects do not carry the rdfs:Class type -->
                 </xsl:apply-templates>
             </xsl:when>
@@ -129,9 +135,11 @@ exclude-result-prefixes="#all">
             </xsl:otherwise>
         </xsl:choose>
         
-        <span class="help-inline">
-            <xsl:value-of select="ac:label(key('resources', '&owl;Class', document(ac:document-uri('&owl;'))))"/>
-        </span>
+        <div class="ldh-annot">
+            <span class="ldhc-tag sz-sm em-quiet an-term is-class">
+                <xsl:value-of select="ac:label(key('resources', '&owl;Class', document(ac:document-uri('&owl;'))))"/>
+            </span>
+        </div>
     </xsl:template>
     
 </xsl:stylesheet>

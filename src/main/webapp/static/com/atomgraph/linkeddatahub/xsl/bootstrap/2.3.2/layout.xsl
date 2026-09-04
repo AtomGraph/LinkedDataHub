@@ -100,6 +100,9 @@ exclude-result-prefixes="#all">
     <!-- ldh:MergeRDF mode + ldh:merge-metadata() for merging /sparql + /ns object-metadata on the initial server render (SSR-safe: no ixsl). The client SEF gets this via client.xsl → graph3d.xsl. -->
     <xsl:include href="client/merge-rdfxml.xsl"/>
 
+    <!-- signup page overrides, shared with the client (client.xsl includes it too); the browser-only submit handling inside is use-when-guarded to SaxonJS -->
+    <xsl:include href="admin/signup.xsl"/>
+
     <!--  To use xsl:import-schema, you need the schema-aware version of Saxon -->
     <!-- <xsl:import-schema namespace="http://www.w3.org/1999/xhtml" schema-location="http://www.w3.org/2002/08/xhtml/xhtml1-transitional.xsd"/> -->
 
@@ -281,6 +284,14 @@ exclude-result-prefixes="#all">
         ]]>
         <!-- VALUES $this goes here -->
     </xsl:param>
+    <!-- server-side twin of client.xsl's $property-metadata-query, so ac:property-label resolves predicate labels from
+         the application ontology on the initial render as it does client-side -->
+    <xsl:param name="property-metadata-query" as="xs:string">
+        <![CDATA[
+            DESCRIBE $Type
+        ]]>
+        <!-- VALUES $Type goes here -->
+    </xsl:param>
 
     <xsl:key name="violations-by-root" match="*[@rdf:about] | *[@rdf:nodeID]" use="spin:violationRoot/@rdf:resource | spin:violationRoot/@rdf:nodeID"/>
     <xsl:key name="violations-by-value" match="*" use="ldh:violationValue/text()"/>
@@ -358,22 +369,39 @@ exclude-result-prefixes="#all">
         </xsl:for-each>
     </xsl:template>
 
+    <!-- the m3 skin selector on the root element (retro.css keys on it) is the product's shipped look, not an optional theme.
+
+         lang is the language the page is composed in, taken from the Content-Language this response already carries rather
+         than from the languages the reader accepts - asking for German does not make the page German, and
+         reporting the request here is what put lang="de" on a page written entirely in English. Deriving it from the header
+         rather than recomputing it is what makes the two agree structurally instead of by two computations staying in step.
+         Falls back to en, never to the request: with nothing to go on, the honest answer is the language the chrome ships in -->
+    <xsl:template match="/">
+        <html lang="{($ldh:httpHeaders('Content-Language')[1], 'en')[1]}" data-retro="m3" data-theme="light">
+            <xsl:apply-templates/>
+        </html>
+    </xsl:template>
+
     <!-- STYLE -->
-    
+
     <xsl:template match="rdf:RDF[lapp:origin()] | srx:sparql[lapp:origin()]" mode="xhtml:Style">
         <xsl:param name="load-rdfa-editor" select="exists($foaf:Agent//@rdf:about)" as="xs:boolean"/>
         <xsl:param name="load-yasqe" select="true()" as="xs:boolean"/>
 
-        <link href="{resolve-uri('static/css/bootstrap.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
-        <link href="{resolve-uri('static/css/bootstrap-responsive.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
-        <link href="{resolve-uri('static/com/atomgraph/client/css/bootstrap.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
-        <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/bootstrap.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
+        <!-- Bootstrap 2 is gone; ldh-bridge.css carries the replacements for the primitives LDH still emits. -->
+        <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/ldh.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
         <xsl:if test="$load-rdfa-editor">
             <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/rdfa-editor.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
         </xsl:if>
         <xsl:if test="$load-yasqe">
             <link href="{resolve-uri('static/css/yasqe.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
         </xsl:if>
+        <!-- design system: fonts (vendored), tokens, components (app.css imports core.css, which imports controls.css and overlays.css), m3 skin - after the legacy links so its resets win during the transition -->
+        <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/fonts.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
+        <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/colors_and_type.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
+        <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/app.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
+        <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/retro.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
+        <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/ldh-bridge.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
     </xsl:template>
 
     <!-- SCRIPT -->
@@ -386,17 +414,12 @@ exclude-result-prefixes="#all">
         <xsl:param name="load-sparql-builder" select="not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="load-sparql-map" select="not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="load-google-charts" select="not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
-        <xsl:param name="load-xml-c14n" select="not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="load-graph3d" select="not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="output-schema-org" select="true()" as="xs:boolean"/>
         <xsl:param name="location-mapping" select="$location-mapping" as="map(xs:anyURI, xs:anyURI)"/>
 
-        <!-- Web-Client scripts -->
-        <script type="text/javascript" src="{resolve-uri('static/js/jquery.min.js', lapp:origin())}" defer="defer"></script>
-        <script type="text/javascript" src="{resolve-uri('static/js/bootstrap.js', lapp:origin())}" defer="defer"></script>
-        <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/client/js/UUID.js', lapp:origin())}" defer="defer"></script>
         <!-- LinkedDataHub scripts -->
-        <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/jquery.js', lapp:origin())}" defer="defer"></script>
+        <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/functions.js', lapp:origin())}" defer="defer"></script>
         <script type="text/javascript">
             <xsl:text disable-output-escaping="yes">
               //&lt;![CDATA[
@@ -491,9 +514,6 @@ exclude-result-prefixes="#all">
                 ]]>
             </script>
         </xsl:if>
-        <xsl:if test="$load-xml-c14n">
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/xml-c14n-sync.js', lapp:origin())}" defer="defer"></script>
-        </xsl:if>
         <xsl:if test="$output-schema-org">
             <xsl:variable name="rdf" as="element()?">
                 <xsl:apply-templates select="." mode="schema:BreadCrumbList"/>
@@ -512,95 +532,54 @@ exclude-result-prefixes="#all">
     
     <!-- NAVBAR -->
     
+    <!-- design system Header: wordmark | address bar | actions ('navbar' token kept - the CSR link
+         interception and address-bar handlers anchor on it) -->
     <xsl:template match="rdf:RDF[$lapp:origin] | srx:sparql[$lapp:origin]" mode="bs2:NavBar" priority="1">
-        <div class="navbar navbar-fixed-top">
-            <div class="navbar-inner">
-                <div class="container-fluid">
-                    <button class="btn btn-navbar">
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
+        <div class="navbar ldh-header">
+            <xsl:apply-templates select="." mode="bs2:Brand"/>
 
-                    <div id="collapsing-top-navbar" class="nav-collapse collapse">
-                        <div class="row-fluid">
-                            <xsl:apply-templates select="." mode="bs2:NavBarLeft"/>
+            <xsl:choose>
+                <xsl:when test="$ldh:ajaxRendering">
+                    <xsl:apply-templates select="." mode="bs2:SearchBar"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <div/> <!-- keep the 220px/1fr/auto grid columns aligned -->
+                </xsl:otherwise>
+            </xsl:choose>
 
-                            <xsl:apply-templates select="." mode="bs2:NavBarMain"/>
-
-                            <xsl:apply-templates select="." mode="bs2:NavBarRight"/>
-                        </div>
-                    </div>
-                </div>
+            <div class="ldh-header-actions">
+                <xsl:apply-templates select="." mode="bs2:NavBarNavList"/>
             </div>
         </div>
     </xsl:template>
 
     <xsl:template match="*" mode="bs2:NavBar"/>
 
-    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:NavBarLeft">
-        <xsl:param name="class" select="'span2'" as="xs:string?"/>
-
-        <div>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-
-            <xsl:apply-templates select="." mode="bs2:Brand"/>
-        </div>
-    </xsl:template>
-
-    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:NavBarMain">
-        <xsl:param name="class" select="'span7'" as="xs:string?"/>
-
-        <div>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-
-            <xsl:if test="$ldh:ajaxRendering">
-                <xsl:apply-templates select="." mode="bs2:SearchBar"/>
-            </xsl:if>
-        </div>
-    </xsl:template>
-
-    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:NavBarRight">
-        <xsl:param name="class" select="'span3'" as="xs:string?"/>
-
-        <div>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-
-            <xsl:apply-templates select="." mode="bs2:NavBarNavList"/>
-        </div>
-    </xsl:template>
-
     <xsl:template match="rdf:RDF[key('apps-by-origin', lapp:origin(), $lapp:Context)] | srx:sparql[key('apps-by-origin', lapp:origin(), $lapp:Context)]" mode="bs2:Brand" priority="1">
-        <a class="brand" href="{$ldt:base}">
+        <a class="brand ldh-wordmark" href="{$ldt:base}">
             <xsl:for-each select="key('apps-by-origin', lapp:origin(), $lapp:Context)">
                 <xsl:if test="rdf:type/@rdf:resource = '&lapp;AdminApplication'">
-                    <xsl:attribute name="class" select="'brand admin'"/>
+                    <xsl:attribute name="class" select="'brand ldh-wordmark admin'"/>
                 </xsl:if>
 
-                <xsl:value-of>
+                <span class="mark"></span>
+                <span>
                     <xsl:apply-templates select="." mode="ac:label"/>
-                </xsl:value-of>
+                </span>
             </xsl:for-each>
         </a>
     </xsl:template>
-    
+
     <xsl:template match="*" mode="bs2:Brand"/>
 
     <!-- check if agent has access to the user endpoint by executing a dummy query ASK {} -->
     <xsl:template match="rdf:RDF[doc-available(resolve-uri('sparql?query=ASK%20%7B%7D', $ldt:base))] | srx:sparql[doc-available(resolve-uri('sparql?query=ASK%20%7B%7D', $ldt:base))]" mode="bs2:SearchBar" priority="1">
-        <form action="{ac:absolute-path(ldh:request-uri())}" method="get" class="navbar-form" accept-charset="UTF-8" title="{ac:label(key('resources', 'address-bar-title', document('translations.rdf')))}">
-            <div>
-                <input type="text" id="uri" name="uri" class="input-xxlarge"/>
-            </div>
+        <form action="{ac:absolute-path(ldh:request-uri())}" method="get" class="navbar-form ldh-address" accept-charset="UTF-8" title="{ac:label(key('resources', 'address-bar-title', document('translations.rdf')))}">
+            <span class="msi outline" aria-hidden="true">public</span>
+            <input type="text" id="uri" name="uri" value="{ac:absolute-path(ldh:request-uri())}" spellcheck="false" autocomplete="off"/>
         </form>
     </xsl:template>
-    
+
     <xsl:template match="*" mode="bs2:SearchBar"/>
 
     <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:NavBarNavList">
@@ -614,7 +593,7 @@ exclude-result-prefixes="#all">
          TO-DO: refactor into component templates -->
     <xsl:template match="rdf:RDF[starts-with(replace(lapp:origin(), '^https?://', ''), 'admin.')]" mode="bs2:NavBarNavList" priority="1">
         <xsl:if test="$foaf:Agent//@rdf:about">
-            <ul class="nav pull-right">
+            <ul class="nav">
                 <xsl:variable name="notification-query" as="xs:string">
                     <![CDATA[
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -654,12 +633,16 @@ WHERE
                     <xsl:if test="$notifications/rdf:RDF/*[@rdf:about]">
                         <li>
                             <div class="btn-group">
-                                <button title="{ac:label(key('resources', 'notifications', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin()))))}">
-                                    <xsl:apply-templates select="key('resources', 'notifications', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', lapp:origin())))" mode="ldh:logo">
-                                        <xsl:with-param name="class" select="'btn btn-primary dropdown-toggle'"/>
-                                    </xsl:apply-templates>
+                                <!-- the button doubles as the badge anchor (ldhc-badge-wrap): the generic dropdown handler needs dropdown-toggle as a direct child of the btn-group, so a wrapping span is not an option -->
+                                <button class="dropdown-toggle ldhc-iconbtn sz-lg in-neutral ap-ghost ldhc-badge-wrap" title="{ac:label(key('resources', 'notifications', document('translations.rdf')))}">
+                                    <span class="msi outline sm" aria-hidden="true">notifications</span>
+                                    <span class="ldhc-badge co-informative sz-md pl-top-right is-dot" style="border-color: transparent">
+                                        <span class="ldhc-vh">
+                                            <xsl:value-of select="ac:label(key('resources', 'notifications', document('translations.rdf')))"/>
+                                        </span>
+                                    </span>
                                 </button>
-                                <ul class="dropdown-menu pull-right">
+                                <ul class="dropdown-menu">
                                     <xsl:for-each select="$notifications/rdf:RDF/*[@rdf:about]">
                                         <xsl:sort select="dct:created[1]/xs:dateTime(.)" order="descending"/>
 
@@ -671,22 +654,7 @@ WHERE
                     </xsl:if>
                 </xsl:if>
 
-                <li>
-                    <div class="btn-group">
-                        <button type="button" title="{ac:label($foaf:Agent//*[@rdf:about][1])}">
-                            <xsl:apply-templates select="key('resources', '&foaf;Agent', document(ac:document-uri('&foaf;')))" mode="ldh:logo">
-                                <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
-                            </xsl:apply-templates>
-                        </button>
-                        <ul class="dropdown-menu pull-right">
-                            <li>
-                                <xsl:for-each select="key('resources-by-type', '&foaf;Agent', $foaf:Agent)">
-                                    <xsl:apply-templates select="@rdf:about" mode="xhtml:Anchor"/>
-                                </xsl:for-each>
-                            </li>
-                        </ul>
-                    </div>
-                </li>
+                <xsl:apply-templates select="." mode="bs2:AgentNavListItem"/>
             </ul>
         </xsl:if>
 
@@ -695,7 +663,7 @@ WHERE
 
     <xsl:template match="rdf:RDF[lapp:origin()][key('apps-by-origin', lapp:origin(), $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication'] | srx:sparql[lapp:origin()][key('apps-by-origin', lapp:origin(), $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:DataspaceNavList" priority="1">
         <xsl:param name="id"  as="xs:string?"/>
-        <xsl:param name="class" select="'nav pull-right'" as="xs:string?"/>
+        <xsl:param name="class" select="'nav'" as="xs:string?"/>
 
         <ul>
             <xsl:if test="$id">
@@ -711,18 +679,16 @@ WHERE
             <xsl:if test="exists($user-defined-apps) or exists($system-apps)">
                 <li>
                     <div class="btn-group">
-                        <button class="btn dropdown-toggle" title="{ac:label(key('resources', 'application-list-title', document('translations.rdf')))}">
-                            <xsl:apply-templates select="key('resources', 'applications', document('translations.rdf'))" mode="ldh:logo">
-                                <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
-                            </xsl:apply-templates>
+                        <button class="dropdown-toggle ldhc-iconbtn sz-lg in-neutral ap-ghost btn-apps" title="{ac:label(key('resources', 'application-list-title', document('translations.rdf')))}">
+                            <span class="msi sm" aria-hidden="true">apps</span>
                         </button>
-                        <ul class="dropdown-menu pull-right">
+                        <ul class="dropdown-menu">
                             <xsl:if test="exists($user-defined-apps)">
                                 <li class="nav-header">
                                     <xsl:value-of select="ac:label(key('resources', 'user-defined-apps', document('translations.rdf')))"/>
                                 </li>
                                 <xsl:for-each select="$user-defined-apps">
-                                    <xsl:sort select="ac:label(.)" order="ascending" lang="{$ac:lang}"/>
+                                    <xsl:sort select="ac:label(.)" order="ascending" lang="{ac:langs()[1]}"/>
                                     <li>
                                         <a href="{lapp:origin/@rdf:resource}/" title="{lapp:origin/@rdf:resource}">
                                             <xsl:apply-templates select="." mode="ac:label"/>
@@ -738,7 +704,7 @@ WHERE
                                     <xsl:value-of select="ac:label(key('resources', 'system-apps', document('translations.rdf')))"/>
                                 </li>
                                 <xsl:for-each select="$system-apps">
-                                    <xsl:sort select="ac:label(.)" order="ascending" lang="{$ac:lang}"/>
+                                    <xsl:sort select="ac:label(.)" order="ascending" lang="{ac:langs()[1]}"/>
                                     <li>
                                         <a href="{lapp:origin/@rdf:resource}/" title="{lapp:origin/@rdf:resource}">
                                             <xsl:apply-templates select="." mode="ac:label"/>
@@ -755,28 +721,32 @@ WHERE
                 <li>
                     <xsl:apply-templates select="." mode="bs2:Settings"/>
                 </li>
-                <!-- overridden in acl/layout.xsl! TO-DO: extract into separate template -->
-                <li>
-                    <div class="btn-group">
-                        <button type="button" title="{ac:label($foaf:Agent//*[@rdf:about][1])}">
-                            <xsl:apply-templates select="key('resources', '&foaf;Agent', document(ac:document-uri('&foaf;')))" mode="ldh:logo">
-                                <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
-                            </xsl:apply-templates>
-                        </button>
-                        <ul class="dropdown-menu pull-right">
-                            <li>
-                                <xsl:for-each select="key('resources-by-type', '&foaf;Agent', $foaf:Agent)">
-                                    <xsl:apply-templates select="@rdf:about" mode="xhtml:Anchor"/>
-                                </xsl:for-each>
-                            </li>
-                        </ul>
-                    </div>
-                </li>
+                <!-- overridden in acl/layout.xsl! -->
+                <xsl:apply-templates select="." mode="bs2:AgentNavListItem"/>
             </xsl:if>
-        </ul>        
+        </ul>
     </xsl:template>
-    
+
     <xsl:template match="*" mode="bs2:DataspaceNavList"/>
+
+    <!-- agent avatar dropdown shared by the admin and end-user nav lists -->
+    <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:AgentNavListItem">
+        <li>
+            <div class="btn-group">
+                <xsl:variable name="agent-label" select="ac:label($foaf:Agent//*[@rdf:about][1])" as="xs:string?"/>
+                <button type="button" class="dropdown-toggle ldh-avatar" title="{$agent-label}">
+                    <xsl:value-of select="string-join(for $word in tokenize(normalize-space($agent-label), ' ')[position() le 2] return upper-case(substring($word, 1, 1)))"/>
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <xsl:for-each select="key('resources-by-type', '&foaf;Agent', $foaf:Agent)">
+                            <xsl:apply-templates select="@rdf:about" mode="xhtml:Anchor"/>
+                        </xsl:for-each>
+                    </li>
+                </ul>
+            </div>
+        </li>
+    </xsl:template>
 
     <!-- SIGNUP -->
     
@@ -790,15 +760,15 @@ WHERE
 
         <!-- OAuth providers dropdown -->
         <xsl:if test="$google-signup or $orcid-signup">
-            <div class="btn-group pull-right">
-                <button type="button" class="btn btn-primary dropdown-toggle">
+            <div class="btn-group">
+                <button type="button" class="dropdown-toggle ldhc-btn in-primary ap-solid sz-md">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'login', document('translations.rdf'))" mode="ac:label"/>
                     </xsl:value-of>
                     <xsl:text> </xsl:text>
-                    <span class="caret"></span>
+                    <span class="msi caret" aria-hidden="true">expand_more</span>
                 </button>
-                <ul class="dropdown-menu pull-right">
+                <ul class="dropdown-menu">
                     <xsl:if test="$google-signup">
                         <li>
                             <xsl:variable name="google-signup-uri" select="ac:build-uri(resolve-uri('oauth2/authorize/google', $ac:contextUri), map{ 'referer': string(ac:absolute-path(ldh:request-uri())) })" as="xs:anyURI"/>
@@ -824,8 +794,8 @@ WHERE
         </xsl:if>
         <!-- WebID signup - separate button -->
         <xsl:if test="$webid-signup">
-            <div class="pull-right">
-                <a class="btn btn-primary" href="{if (not(starts-with($ldt:base, lapp:origin()))) then ac:build-uri((), map{ 'uri': string($webid-signup-uri) }) else $webid-signup-uri}">
+            <div>
+                <a class="ldhc-btn in-primary ap-solid sz-md" href="{if (not(starts-with($ldt:base, lapp:origin()))) then ac:build-uri((), map{ 'uri': string($webid-signup-uri) }) else $webid-signup-uri}">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'sign-up', document('translations.rdf'))" mode="ac:label"/>
                     </xsl:value-of>
@@ -846,9 +816,9 @@ WHERE
                 <div id="tab-body">
                     <!-- tab bar — sticky, hidden until first external tab is opened -->
                     <div id="tab-bar" class="navbar-inner" style="display: none">
-                        <div class="container-fluid">
-                            <div class="row-fluid">
-                                <ul class="nav nav-tabs span12" id="tab-bar-list">
+                        <div>
+                            <div class="block-row">
+                                <ul class="nav nav-tabs row-main" id="tab-bar-list">
                                     <li data-uri="{ac:absolute-path(ldh:base-uri(.))}">
                                         <a href="{ldh:href(ac:absolute-path(ldh:base-uri(.)), ldh:build-query(ac:mode(root())))}">
                                             <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="ac:label"/>
@@ -879,6 +849,19 @@ WHERE
                                 <xsl:sequence select="ldh:merge-metadata($sparql-metadata, $ns-metadata)"/>
                             </xsl:if>
                         </xsl:variable>
+                        <xsl:variable name="property-uris" select="distinct-values(rdf:Description/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
+                        <!-- predicate labels from /ns, the counterpart of the object labels above and of the client's own
+                             property-metadata fetch. Without it ac:property-label finds nothing in $property-metadata and
+                             falls through to the published vocabulary, whose labels are English-only - so a reader whose
+                             language the application ontology does translate still got English predicates -->
+                        <xsl:variable name="property-metadata" as="document-node()?">
+                            <xsl:if test="exists($property-uris)">
+                                <xsl:variable name="values" select="' VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
+                                <xsl:try select="ldh:send-request(resolve-uri('ns', ldt:base()), 'POST', 'application/sparql-query', $property-metadata-query || $values, map{ 'Accept': 'application/rdf+xml' })">
+                                    <xsl:catch/>
+                                </xsl:try>
+                            </xsl:if>
+                        </xsl:variable>
                         <xsl:variable name="local-pane" as="element()">
                             <xsl:apply-templates select="." mode="bs2:TabBody">
                                 <xsl:with-param name="mode" select="ac:mode(root())"/>
@@ -887,6 +870,7 @@ WHERE
                                 <xsl:with-param name="acl-modes" select="acl:mode()"/>
                                 <xsl:with-param name="about" select="ac:absolute-path(ldh:base-uri(.))"/>
                                 <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
+                                <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                             </xsl:apply-templates>
                         </xsl:variable>
                         <xsl:for-each select="$local-pane">
@@ -937,7 +921,7 @@ WHERE
         <xsl:variable name="properties-original" select="for $triple-key in ac:value-except(map:keys($triples-original), map:keys($triples-local)) return map:get($triples-original, $triple-key)" as="element()*"/>
         <xsl:if test="exists($properties-original)">
             <div>
-                <h2 class="nav-header btn">
+                <h2 class="nav-header">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'from-origin', document('translations.rdf'))" mode="ac:label"/>
                     </xsl:value-of>
@@ -945,10 +929,11 @@ WHERE
 
                 <xsl:variable name="definitions" as="document-node()">
                     <xsl:document>
-                        <dl class="dl-horizontal">
+                        <dl>
                             <xsl:apply-templates select="$properties-original" mode="#current">
-                                <xsl:sort select="ac:property-label(., $property-metadata)" order="ascending" lang="{$ac:lang}"/>
-                                <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then (if ($object-metadata) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1], $object-metadata) else ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1])) else ()" order="ascending" lang="{$ac:lang}"/>
+                                <xsl:sort select="ac:property-label(., $property-metadata)" order="ascending" lang="{ac:langs()[1]}"/>
+                                <xsl:sort select="ac:lang-rank(.)" order="ascending"/>
+                                <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then (if ($object-metadata) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1], $object-metadata) else ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1])) else ()" order="ascending" lang="{ac:langs()[1]}"/>
                                 <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                             </xsl:apply-templates>
                         </dl>
@@ -962,7 +947,7 @@ WHERE
         <xsl:variable name="properties-local" select="for $triple-key in ac:value-except(map:keys($triples-local), map:keys($triples-original)) return map:get($triples-local, $triple-key)" as="element()*"/>
         <xsl:if test="exists($properties-local)">
             <div>
-                <h2 class="nav-header btn">
+                <h2 class="nav-header">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'local', document('translations.rdf'))" mode="ac:label"/>
                     </xsl:value-of>
@@ -970,10 +955,11 @@ WHERE
                 
                 <xsl:variable name="definitions" as="document-node()">
                     <xsl:document>
-                        <dl class="dl-horizontal">
+                        <dl>
                             <xsl:apply-templates select="$properties-local" mode="#current">
-                                <xsl:sort select="ac:property-label(., $property-metadata)" order="ascending" lang="{$ac:lang}"/>
-                                <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then (if ($object-metadata) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1], $object-metadata) else ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1])) else ()" order="ascending" lang="{$ac:lang}"/>
+                                <xsl:sort select="ac:property-label(., $property-metadata)" order="ascending" lang="{ac:langs()[1]}"/>
+                                <xsl:sort select="ac:lang-rank(.)" order="ascending"/>
+                                <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then (if ($object-metadata) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1], $object-metadata) else ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1])) else ()" order="ascending" lang="{ac:langs()[1]}"/>
                                 <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                             </xsl:apply-templates>
                         </dl>
@@ -987,7 +973,7 @@ WHERE
         <xsl:variable name="properties-common" select="for $triple-key in ac:value-intersect(map:keys($triples-original), map:keys($triples-local)) return map:get($triples-original, $triple-key)" as="element()*"/>
         <xsl:if test="exists($properties-common)">
             <div>
-                <h2 class="nav-header btn">
+                <h2 class="nav-header">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'common', document('translations.rdf'))" mode="ac:label"/>
                     </xsl:value-of>
@@ -995,10 +981,11 @@ WHERE
 
                 <xsl:variable name="definitions" as="document-node()">
                     <xsl:document>
-                        <dl class="dl-horizontal">
+                        <dl>
                             <xsl:apply-templates select="$properties-common" mode="#current">
-                                <xsl:sort select="ac:property-label(., $property-metadata)" order="ascending" lang="{$ac:lang}"/>
-                                <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then (if ($object-metadata) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1], $object-metadata) else ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1])) else ()" order="ascending" lang="{$ac:lang}"/>
+                                <xsl:sort select="ac:property-label(., $property-metadata)" order="ascending" lang="{ac:langs()[1]}"/>
+                                <xsl:sort select="ac:lang-rank(.)" order="ascending"/>
+                                <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then (if ($object-metadata) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1], $object-metadata) else ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1])) else ()" order="ascending" lang="{ac:langs()[1]}"/>
                                 <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                             </xsl:apply-templates>
                         </dl>
@@ -1042,17 +1029,15 @@ WHERE
     <!-- SETTINGS -->
     
     <xsl:template match="rdf:RDF[lapp:origin()] | srx:sparql[lapp:origin()]" mode="bs2:Settings" priority="1">
-        <div class="btn-group pull-right">
-            <button type="button" title="{ac:label(key('resources', 'nav-bar-action-settings-title', document('translations.rdf')))}">
-                <xsl:apply-templates select="key('resources', 'settings', document('translations.rdf'))" mode="ldh:logo">
-                    <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
-                </xsl:apply-templates>
+        <div class="btn-group">
+            <button type="button" class="dropdown-toggle ldhc-iconbtn sz-lg in-neutral ap-ghost" title="{ac:label(key('resources', 'nav-bar-action-settings-title', document('translations.rdf')))}">
+                <span class="msi outline sm" aria-hidden="true">settings</span>
             </button>
 
             <ul class="dropdown-menu">
                 <xsl:if test="$foaf:Agent//@rdf:about and key('apps-by-origin', lapp:origin(), $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication'">
                     <li>
-                        <button class="btn btn-app-settings">
+                        <button class="btn-app-settings">
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', '&lapp;Application', document(ac:document-uri('&lapp;')))" mode="ac:label"/>
                             </xsl:value-of>
@@ -1080,62 +1065,42 @@ WHERE
     <!-- FOOTER -->
     
     <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:Footer">
-        <div class="footer container-fluid">
-            <div class="row-fluid">
-                <div class="offset2 span8">
-                    <div class="span3">
-                        <h2 class="nav-header">About</h2>
-                        <ul class="nav nav-list">
-                            <li>
-                                <a href="https://linkeddatahub.com" target="_blank">LinkedDataHub</a>
-                            </li>
-                            <li>
-                                <a href="https://atomgraph.com" target="_blank">AtomGraph</a>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="span3">
-                        <h2 class="nav-header">Resources</h2>
-                        <ul class="nav nav-list">
-                            <li>
-                                <a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a>
-                            </li>
-                            <li>
-                                <a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="span3">
-                        <h2 class="nav-header">Support</h2>
-                        <ul class="nav nav-list">
-                            <li>
-                                <a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a>
-                            </li>
-                            <li>
-                                <a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a>
-                            </li>
-                            <li>
-                                <a href="mailto:support@linkeddatahub.com">Contact support</a>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="span3">
-                        <h2 class="nav-header">Follow us</h2>
-                        <ul class="nav nav-list">
-                            <li>
-                                <a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a>
-                            </li>
-                            <li>
-                                <a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a>
-                            </li>
-<!--                            <li>
-                                <a href="https://www.facebook.com/AtomGraph" target="_blank">facebook.com/AtomGraph</a>
-                            </li>-->
-                        </ul>
-                    </div>
+        <div class="footer ldh-footer">
+            <div class="cols">
+                <div class="col brand-col">
+                    <a class="ldh-wordmark" href="{$ldt:base}">
+                        <span class="mark"></span>
+                        <span>LinkedDataHub</span>
+                    </a>
+                    <p><xsl:value-of select="ac:label(key('resources', 'footer-tagline', document('translations.rdf')))"/></p>
                 </div>
+                <div class="col">
+                    <p class="ftitle"><xsl:value-of select="ac:label(key('resources', 'about', document('translations.rdf')))"/></p>
+                    <a href="https://linkeddatahub.com" target="_blank">LinkedDataHub</a>
+                    <a href="https://atomgraph.com" target="_blank">AtomGraph</a>
+                </div>
+                <div class="col">
+                    <p class="ftitle"><xsl:value-of select="ac:label(key('resources', 'resources', document('translations.rdf')))"/></p>
+                    <a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank"><xsl:value-of select="ac:label(key('resources', 'documentation', document('translations.rdf')))"/></a>
+                    <a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank"><xsl:value-of select="ac:label(key('resources', 'screencasts', document('translations.rdf')))"/></a>
+                </div>
+                <div class="col">
+                    <p class="ftitle"><xsl:value-of select="ac:label(key('resources', 'support', document('translations.rdf')))"/></p>
+                    <a href="https://groups.io/g/linkeddatahub" target="_blank"><xsl:value-of select="ac:label(key('resources', 'mailing-list', document('translations.rdf')))"/></a>
+                    <a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank"><xsl:value-of select="ac:label(key('resources', 'report-issues', document('translations.rdf')))"/></a>
+                    <a href="mailto:support@linkeddatahub.com"><xsl:value-of select="ac:label(key('resources', 'contact-support', document('translations.rdf')))"/></a>
+                </div>
+                <div class="col">
+                    <p class="ftitle"><xsl:value-of select="ac:label(key('resources', 'follow-us', document('translations.rdf')))"/></p>
+                    <a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a>
+                    <a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a>
+                </div>
+            </div>
+            <div class="legal">
+                <span>© <xsl:value-of select="format-date(current-date(), '[Y]')"/> AtomGraph · LinkedDataHub</span>
+                <span><xsl:value-of select="$ldt:base"/></span>
             </div>
         </div>
     </xsl:template>
-    
+
 </xsl:stylesheet>

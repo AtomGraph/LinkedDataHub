@@ -41,15 +41,6 @@ function patch_settings()
     "${END_USER_BASE_URL}settings"
 }
 
-function import_triple_count()
-{
-  curl -k -s \
-    -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
-    -H "Accept: application/n-triples" \
-    "${END_USER_BASE_URL}settings" \
-  | grep -c "linkeddatahub#import" || true
-}
-
 # The settings live in the in-memory application model, which initialize_dataset does not
 # reset - an import left behind by a failed assertion would stay for the rest of the suite.
 
@@ -64,7 +55,6 @@ trap remove_import EXIT
 response=$(homepage)
 
 if grep -qF "$marker" <<< "$response"; then
-  echo "DEBUG: package stylesheet marker present before import"
   exit 1
 fi
 
@@ -72,7 +62,6 @@ fi
 status=$(patch_settings "INSERT { <${app_uri}> <https://w3id.org/atomgraph/linkeddatahub#import> <${package_uri}> . } WHERE { }")
 
 if [[ ! "$status" =~ ^($STATUS_NO_CONTENT)$ ]]; then
-  echo "DEBUG: Expected $STATUS_NO_CONTENT from the INSERT PATCH, got: $status"
   exit 1
 fi
 
@@ -80,10 +69,6 @@ fi
 response=$(homepage)
 
 if ! grep -qF "$marker" <<< "$response"; then
-  echo "DEBUG: package stylesheet marker missing after import"
-  echo "DEBUG: Expected marker: $marker"
-  echo "DEBUG: Response size: $(wc -c <<< "$response") bytes"
-  echo "DEBUG: ldh:import triple count in settings = $(import_triple_count)"
   exit 1
 fi
 
@@ -91,7 +76,6 @@ fi
 status=$(patch_settings "DELETE { <${app_uri}> <https://w3id.org/atomgraph/linkeddatahub#import> <${package_uri}> . } WHERE { }")
 
 if [[ ! "$status" =~ ^($STATUS_NO_CONTENT)$ ]]; then
-  echo "DEBUG: Expected $STATUS_NO_CONTENT from the DELETE PATCH, got: $status"
   exit 1
 fi
 
@@ -99,7 +83,5 @@ fi
 response=$(homepage)
 
 if grep -qF "$marker" <<< "$response"; then
-  echo "DEBUG: package stylesheet marker still present after removal"
-  echo "DEBUG: ldh:import triple count in settings = $(import_triple_count)"
   exit 1
 fi

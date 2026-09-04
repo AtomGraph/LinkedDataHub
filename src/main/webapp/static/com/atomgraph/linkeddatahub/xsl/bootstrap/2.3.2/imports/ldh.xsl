@@ -29,14 +29,17 @@ exclude-result-prefixes="#all">
         <xsl:variable name="value" select="." as="xs:string"/>
 
         <xsl:variable name="chart-types" select="key('resources-by-subclass', '&ac;Chart', document(ac:document-uri('&ldh;')))" as="element()*"/>
+        <span class="ldhc-select sz-sm">
         <select name="ou" id="{generate-id()}">
             <xsl:for-each select="$chart-types">
-                <xsl:sort select="ac:label(.)" lang="{$ac:lang}"/>
+                <xsl:sort select="ac:label(.)" lang="{ac:langs()[1]}"/>
                 <xsl:apply-templates select="." mode="xhtml:Option">
                     <xsl:with-param name="selected" select="@rdf:about = $value"/>
                 </xsl:apply-templates>
             </xsl:for-each>
         </select>
+        <span class="msi sm ldhc-select-caret" aria-hidden="true">unfold_more</span>
+        </span>
 
         <xsl:if test="$type-label">
             <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel"/>

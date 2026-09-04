@@ -25,9 +25,7 @@ curl -k -f -s -o /dev/null -D "$headers" \
 
 endpoint=$(grep -i '^link:' "$headers" | tr ',' '\n' | grep 'sparql-service-description#endpoint' | sed 's/.*<\([^>]*\)>.*/\1/')
 
-echo "DEBUG: discovered endpoint: $endpoint"
 if [ -z "$endpoint" ]; then
-  echo "DEBUG: no sd:endpoint Link header forwarded"
   exit 1
 fi
 
@@ -46,6 +44,5 @@ count=$(curl -k -f -s \
 | xmllint --xpath "count(//*[local-name() = 'result'])" -)
 
 if [ "$count" != "1" ]; then
-  echo "DEBUG: Expected 1 result from the discovered remote endpoint, got: $count"
   exit 1
 fi

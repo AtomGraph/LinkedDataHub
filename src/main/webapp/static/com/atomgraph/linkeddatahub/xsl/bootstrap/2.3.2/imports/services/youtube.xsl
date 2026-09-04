@@ -49,7 +49,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="*[contains(@rdf:about, 'youtube.com/watch') or contains(@rdf:about, 'youtu.be/')][rdf:type/@rdf:resource = '&schema;VideoObject']" mode="bs2:Header">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'well'" as="xs:string?"/>
+        <xsl:param name="class" select="'ldh-block-head'" as="xs:string?"/>
         <xsl:variable name="video-id" select="analyze-string(@rdf:about, '^.*(?:youtube\.com/(?:watch\?v=|embed/)|youtu\.be/)([^&amp;?]+).*$')//fn:group[@nr='1']/text()" as="xs:string"/>
         
         <div>
@@ -62,7 +62,7 @@ exclude-result-prefixes="#all"
 
             <xsl:apply-templates select="." mode="bs2:Timestamp"/>
 
-            <div class="well-small text-center">
+            <div class="text-center">
                 <iframe width="560" height="315" 
                         src="https://www.youtube.com/embed/{$video-id}" 
                         frameborder="0" 

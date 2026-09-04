@@ -1,0 +1,431 @@
+/* =========================================================================
+   LinkedDataHub Design System — Tokens
+   Base palette + typography for the LinkedDataHub Knowledge Graph platform.
+   Remix of the legacy Bootstrap 2 / Material UI with Base44-style whitespace,
+   pastel gradients and modern variable-font typography.
+   ========================================================================= */
+
+/* Fonts loaded via Google Fonts — substitutions noted in README. */
+/* Geist / Geist Mono / Instrument Serif vendored locally in fonts.css */
+
+:root {
+  /* ---------- Color: Brand / Primary ---------- */
+  /* Pulled from the live product. The blue is the action color, the violet the
+     "structured / semantic" accent (used historically on RDF-typed labels). */
+  --ldh-blue-50:  #eef5ff;
+  --ldh-blue-100: #dbeafe;
+  --ldh-blue-200: #b8d3fd;
+  --ldh-blue-300: #8bb7fb;
+  --ldh-blue-400: #4d94f8;
+  --ldh-blue-500: #0f82f5;   /* Brand primary — matches legacy product */
+  --ldh-blue-600: #086ad6;
+  --ldh-blue-700: #0a55a8;
+  --ldh-blue-800: #0d4382;
+  --ldh-blue-900: #0a2d57;
+
+  --ldh-violet-50:  #faf5ff;
+  --ldh-violet-100: #f1e6fb;
+  --ldh-violet-200: #e1cdf6;
+  --ldh-violet-300: #c9a6ed;
+  --ldh-violet-400: #ad7adf;
+  --ldh-violet-500: #9954bb;   /* Brand accent — historical RDF tag color */
+  --ldh-violet-600: #803fa1;
+  --ldh-violet-700: #63307c;
+  --ldh-violet-800: #482358;
+  --ldh-violet-900: #2e1638;
+
+  /* ---------- Color: Pastel surface palette ---------- */
+  /* These wash backgrounds for hero / landing / category surfaces. Always paired
+     with --ink-1 text. Use as `background: var(--surf-lavender)` or composed in
+     a mesh gradient (see Visual Foundations in README). */
+  --surf-lavender: #efeaff;
+  --surf-mint:     #e6f6ee;
+  --surf-peach:    #ffece1;
+  --surf-sky:      #e3f1ff;
+  --surf-blush:    #ffe6ee;
+  --surf-sand:     #fcf5e7;
+
+  /* Pre-built gradients — used on hero / featured cards. */
+  --grad-aurora: linear-gradient(135deg, #efeaff 0%, #e3f1ff 50%, #e6f6ee 100%); /* @kind color */
+  --grad-dawn:   linear-gradient(135deg, #ffece1 0%, #ffe6ee 60%, #efeaff 100%); /* @kind color */
+  --grad-noon:   linear-gradient(135deg, #e3f1ff 0%, #ffffff 50%, #efeaff 100%); /* @kind color */
+  --grad-deep:   linear-gradient(135deg, #0a2d57 0%, #482358 100%);  /* @kind color */
+  --grad-radial-spot: radial-gradient(60% 60% at 30% 20%, #efeaff 0%, transparent 60%),
+                     radial-gradient(50% 50% at 80% 70%, #e3f1ff 0%, transparent 65%),
+                     #ffffff; /* @kind color */
+
+  /* ---------- Color: Neutrals ---------- */
+  /* Warm-white surfaces, near-black ink. NOT pure greys — slight blue undertone
+     to harmonise with the brand blue. */
+  --ink-1:  #0b0e14;   /* primary text, headings */
+  --ink-2:  #2b3245;   /* body text */
+  --ink-3:  #545b6e;   /* secondary text, meta */
+  --ink-4:  #8a91a3;   /* tertiary / hint */
+  --ink-5:  #b6bccc;   /* disabled */
+
+  --surface-0: #ffffff;          /* card / dialog */
+  --surface-1: #fafbfd;          /* page */
+  --surface-2: #f3f5f9;          /* recessed wells, table stripes */
+  --surface-3: #e8ebf2;          /* dividers, subtle borders */
+  --line-1:    #e2e6ee;          /* default border */
+  --line-2:    #cdd3df;          /* stronger border, focus ring outer */
+
+  /* ---------- Color: Semantic ---------- */
+  --success-500: #14a06a;
+  --success-50:  #e6f6ee;
+  --warning-500: #d48a08;
+  --warning-50:  #fff4dc;
+  --danger-500:  #d63a3a;
+  --danger-600:  #b62f2f;
+  --danger-50:   #ffe6e6;
+  /* Ink for text/icons sitting ON a --danger-500 fill. A token, not a literal:
+     skins whose danger is a light tint need dark ink here instead of white. */
+  --fg-on-danger: #ffffff;
+  --info-500:    var(--ldh-blue-500);
+  --info-50:     var(--ldh-blue-50);
+
+  /* ---------- RDF semantic colors ----------
+     Used to colour-code RDF node types in graph / list / table views.
+     Pulled from the live product (force-graph palette).               */
+  --rdf-class:    #9954bb;  /* purple — owl:Class instances */
+  --rdf-resource: #4d94f8;  /* blue   — generic resources */
+  --rdf-literal:  #14a06a;  /* green  — literals / values */
+  --rdf-blank:    #d48a08;  /* amber  — blank nodes */
+  --rdf-named:    #ad7adf;  /* light violet — named graphs */
+
+  /* ===========================================================================
+     PALETTE GOVERNANCE — how to choose among the many hues without drift.
+     ---------------------------------------------------------------------------
+     1. BLUE is the only interaction color. Buttons, links, focus, selected
+        state — all blue. Nothing else means "clickable".
+     2. VIOLET is decoration ONLY where it overlaps RDF: note that --ldh-violet-500
+        and --rdf-class are the SAME purple by design. Use the violet ramp for
+        chrome accents *sparingly* (it reads as "structured/semantic"); use the
+        --rdf-* tokens whenever the color is ENCODING a node type in data/viz.
+        Never use violet as a second action color — that competes with blue.
+     3. RDF-* tokens are DATA ENCODING, not decoration. Only use them where the
+        hue carries meaning (graph nodes, type pills, legends).
+     4. SEMANTIC (success/warning/danger) = status only, never decoration.
+     5. PASTEL surfaces + GRADIENTS are HERO-ONLY: document intros, landing /
+        category wash, empty-state art. Never behind body content or as a
+        default card background — that's the fastest route to "gradient slop".
+     =========================================================================== */
+
+  /* ---------- Typography: Families ---------- */
+  --font-sans:    'Geist', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono:    'Geist Mono', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-display: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+
+  /* ---------- Typography: Scale ---------- */
+  /* Modular scale ~1.25 (major third). Tuned for dense info-dense UI plus the
+     big-headline pastel hero moments.
+     ROLE MAP (the low end is tight on purpose — assign by role, don't eyeball):
+       --fs-xs   12  mono meta: IRIs, counts, timestamps, eyebrows, tags
+       --fs-sm   13  secondary UI: labels, table cells, buttons, captions
+       --fs-base 15  DEFAULT body & UI text  ← start here
+       --fs-md   17  lead paragraphs / emphasised body only
+       --fs-lg+  20+ headings (use the .ldh-h* classes, not raw sizes)
+     Rule: body/UI is base; drop to sm only for genuinely secondary text; xs is
+     mono-meta only. If you reach for md on plain UI, you probably want base. */
+  --fs-xs:   12px;
+  --fs-sm:   13px;
+  --fs-base: 15px;
+  --fs-md:   17px;
+  --fs-lg:   20px;
+  --fs-xl:   24px;
+  --fs-2xl:  30px;
+  --fs-3xl:  38px;
+  --fs-4xl:  48px;
+  --fs-5xl:  64px;
+  --fs-6xl:  88px;
+
+  /* ---------- Typography: Weights ---------- */
+  --fw-regular: 400; /* @kind font */
+  --fw-medium:  500; /* @kind font */
+  --fw-semibold: 600; /* @kind font */
+  --fw-bold:    700; /* @kind font */
+
+  /* ---------- Typography: Line heights ---------- */
+  --lh-tight:   1.1; /* @kind font */
+  --lh-snug:    1.25; /* @kind font */
+  --lh-base:    1.55; /* @kind font */
+  --lh-relaxed: 1.7; /* @kind font */
+
+  /* ---------- Typography: Letter spacing ---------- */
+  --tracking-tight:  -0.03em;   /* display */
+  --tracking-snug:   -0.015em;  /* headings */
+  --tracking-normal: 0;
+  --tracking-wide:   0.04em;    /* eyebrows, all-caps labels */
+  --tracking-widest: 0.18em;    /* big over-line labels */
+
+  /* ---------- Radius ---------- */
+  --r-xs:  4px;
+  --r-sm:  6px;
+  --r-md:  10px;
+  --r-lg:  16px;
+  --r-xl:  20px;
+  --r-2xl: 28px;
+  --r-pill: 999px;
+
+  /* ---------- Spacing scale (4px base) ---------- */
+  --sp-1:  4px;
+  --sp-2:  8px;
+  --sp-3:  12px;
+  --sp-4:  16px;
+  --sp-5:  20px;
+  --sp-6:  24px;
+  --sp-8:  32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+  --sp-20: 80px;
+  --sp-24: 96px;
+  --sp-32: 128px;
+
+  /* ---------- Elevation (shadows) ---------- */
+  /* Soft, low-contrast shadows — Base44 / glass vibe, not Material's harder cast. */
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 8px 24px -8px rgba(15, 23, 42, 0.10), 0 2px 4px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 24px 48px -16px rgba(15, 23, 42, 0.18), 0 4px 12px rgba(15, 23, 42, 0.05);
+  --shadow-xl: 0 40px 80px -24px rgba(15, 23, 42, 0.22), 0 8px 16px rgba(15, 23, 42, 0.06);
+  --shadow-glow-blue:   0 0 0 4px rgba(15, 130, 245, 0.18);
+  --shadow-glow-violet: 0 0 0 4px rgba(153, 84, 187, 0.16);
+
+  /* Hairline inset highlight for cards on dark backgrounds */
+  --inset-hairline: inset 0 1px 0 rgba(255,255,255,0.6);
+
+  /* ---------- Motion ---------- */
+  --ease-out-soft:  cubic-bezier(0.22, 1, 0.36, 1); /* @kind other */
+  --ease-in-out:    cubic-bezier(0.65, 0, 0.35, 1); /* @kind other */
+  --ease-spring:    cubic-bezier(0.34, 1.56, 0.64, 1); /* @kind other */
+  --dur-fast:   120ms; /* @kind other */
+  --dur-base:   200ms; /* @kind other */
+  --dur-slow:   360ms; /* @kind other */
+  --dur-xslow:  640ms; /* @kind other */
+
+  /* ---------- Layout ---------- */
+  --container-sm: 720px;
+  --container-md: 960px;
+  --container-lg: 1200px;
+  --container-xl: 1440px;
+
+  /* ---------- Semantic: Foreground tokens (consume these in components) ---------- */
+  --fg-1: var(--ink-1);
+  --fg-2: var(--ink-2);
+  --fg-muted: var(--ink-3);
+  /* Hint text: deliberately NOT ink-4 — ink-4 (#8a91a3) is ~3:1 on white and
+     fails WCAG AA for text. ink-4 is reserved for non-text use (icons that pair
+     with a label, hairline borders, disabled glyphs). For actual hint *text*
+     use this AA-safe value (~5.7:1 on the page surface). */
+  --fg-hint:  #5f6677;
+  --fg-on-accent: #ffffff;
+  --fg-link: var(--ldh-blue-600);
+
+  --bg-page:    var(--surface-1);
+  --bg-card:    var(--surface-0);
+  --bg-recess:  var(--surface-2);
+  /* Action color for text-bearing fills (filled buttons). blue-500 (#0f82f5)
+     is only ~3.3:1 against white text — it FAILS AA. blue-600 (#086ad6) clears
+     it at ~4.6:1, so the accent fill is pinned to 600, not 500. blue-500 stays
+     available as a primitive for non-text accents (dots, focus glints). */
+  --bg-accent:       var(--ldh-blue-600);
+  --bg-accent-hover: var(--ldh-blue-700);
+  --bg-accent-quiet: var(--ldh-blue-50);
+
+  /* ---------- Semantic: Interactive states ----------
+     First-class state tokens so components stop hand-rolling `surface-2` for
+     every hover. Use these for any hoverable/selectable surface.            */
+  --bg-hover:    var(--surface-2);   /* neutral hover (rows, ghost buttons, tabs) */
+  --bg-active:   var(--surface-3);   /* pressed / held */
+  --bg-selected: var(--bg-accent-quiet);   /* current / on / selected surface */
+  --fg-selected: var(--ldh-blue-700);      /* text/icon on a selected surface */
+
+  --border-default: var(--line-1);
+  --border-strong:  var(--line-2);
+  --focus-ring:     var(--shadow-glow-blue);
+}
+
+/* =========================================================================
+   DARK THEME  —  set [data-theme="dark"] on <html>.
+   The light theme funnels nearly everything through the neutral primitives
+   (ink-*, surface-*, line-*) and a small set of accent tints, so dark mode is
+   mostly a re-mapping of those primitives — the semantic layer and components
+   inherit it automatically. Accent *text* tints (blue/violet 600/700) flip
+   light; accent *fills* are pinned to literals so filled buttons keep AA.
+   ========================================================================= */
+:root[data-theme="dark"] {
+  /* Neutrals — cool dark slate, mirroring the light theme's blue undertone. */
+  --ink-1:  #f3f6fc;
+  --ink-2:  #cfd6e3;
+  --ink-3:  #9aa3b5;
+  --ink-4:  #717a8d;
+  --ink-5:  #4c5365;
+
+  --surface-0: #171b24;   /* card / dialog */
+  --surface-1: #0f131a;   /* page */
+  --surface-2: #1e2430;   /* recessed wells, hover */
+  --surface-3: #2b323f;   /* pressed, dividers */
+  --line-1:    #272e3a;
+  --line-2:    #39414f;
+
+  /* Accent TEXT tints flip light so they stay legible on dark surfaces. */
+  --ldh-blue-50:   #11243d;
+  --ldh-blue-100:  #173558;
+  --ldh-blue-200:  #1f4d7a;
+  --ldh-blue-600:  #6aa6f7;
+  --ldh-blue-700:  #93bdfb;
+  --ldh-violet-50:  #241836;
+  --ldh-violet-100: #33214d;
+  --ldh-violet-700: #c9a6ed;
+  --success-500: #3ecb8f;  --success-50: #102619;
+  --warning-500: #e6a52a;  --warning-50: #2c2410;
+  --danger-500:  #f06a6a;  --danger-600: #d94f4f;  --danger-50:  #2e1414;
+  --fg-on-danger: #2e0f0f;
+
+  /* Accent FILL stays a literal saturated blue so white button text keeps
+     AA (≈4.6:1) — independent of the now-light blue-600 text primitive. */
+  --bg-accent:       #086ad6;
+  --bg-accent-hover: #0a55a8;
+
+  --fg-hint: #8a92a4;   /* ~4.8:1 on the dark page */
+
+  /* Shadows need more weight to read on dark surfaces. */
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.40);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.40);
+  --shadow-md: 0 8px 24px -8px rgba(0,0,0,0.55), 0 2px 4px rgba(0,0,0,0.40);
+  --shadow-lg: 0 24px 48px -16px rgba(0,0,0,0.60), 0 4px 12px rgba(0,0,0,0.45);
+  --shadow-xl: 0 40px 80px -24px rgba(0,0,0,0.66), 0 8px 16px rgba(0,0,0,0.45);
+  --inset-hairline: inset 0 1px 0 rgba(255,255,255,0.06);
+}
+
+/* =========================================================================
+   Semantic typography classes — apply directly, or use as a reference for
+   component-level styles.
+   ========================================================================= */
+
+.ldh-display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--fs-6xl);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--fg-1);
+  font-style: italic;
+}
+
+.ldh-h1 {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-4xl);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--fg-1);
+}
+
+.ldh-h2 {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-3xl);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-snug);
+  color: var(--fg-1);
+}
+
+.ldh-h3 {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-2xl);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-snug);
+  color: var(--fg-1);
+}
+
+.ldh-h4 {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-xl);
+  line-height: var(--lh-snug);
+  color: var(--fg-1);
+}
+
+.ldh-h5 {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-medium);
+  font-size: var(--fs-lg);
+  line-height: var(--lh-snug);
+  color: var(--fg-1);
+}
+
+.ldh-body {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-regular);
+  font-size: var(--fs-base);
+  line-height: var(--lh-base);
+  color: var(--fg-2);
+}
+
+.ldh-body-lg {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-regular);
+  font-size: var(--fs-md);
+  line-height: var(--lh-base);
+  color: var(--fg-2);
+}
+
+.ldh-small {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-regular);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-base);
+  color: var(--fg-muted);
+}
+
+.ldh-meta {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-medium);
+  font-size: var(--fs-xs);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+
+.ldh-eyebrow {
+  font-family: var(--font-mono);
+  font-weight: var(--fw-medium);
+  font-size: var(--fs-xs);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--ldh-blue-600);
+}
+
+.ldh-code {
+  font-family: var(--font-mono);
+  font-weight: var(--fw-regular);
+  font-size: 0.92em;
+  line-height: var(--lh-base);
+  color: var(--ink-2);
+  background: var(--surface-2);
+  padding: 1px 6px;
+  border-radius: var(--r-xs);
+}
+
+/* Inline IRI / URI styling — a recurring element across LDH. */
+.ldh-iri {
+  font-family: var(--font-mono);
+  font-size: 0.94em;
+  color: var(--ldh-blue-700);
+  word-break: break-all;
+}
+
+/* Reset-ish baseline for design previews */
+html, body { background: var(--bg-page); color: var(--fg-1); }
+body {
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  line-height: var(--lh-base);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}

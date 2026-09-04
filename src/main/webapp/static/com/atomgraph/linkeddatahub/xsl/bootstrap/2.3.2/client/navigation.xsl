@@ -96,7 +96,7 @@ ORDER BY DESC(?created)
     <xsl:template name="ldh:LeftSidebar">
         <xsl:param name="base" select="ldt:base()" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'left-sidebar well well-small sidebar-nav'" as="xs:string?"/>
+        <xsl:param name="class" select="'left-sidebar ldh-sidebar'" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">
@@ -107,59 +107,62 @@ ORDER BY DESC(?created)
             </xsl:if>
 
             <!-- dataspace-scoped search form -->
-            <form class="form-search search-form" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
-                <div class="input-append">
-                    <input type="text" name="q" class="search-query" placeholder="{ac:label(key('resources', 'search-placeholder', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"/>
-                    <button type="submit">
-                        <xsl:apply-templates select="key('resources', 'search', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
-                            <xsl:with-param name="class" select="'btn btn-primary'"/>
-                        </xsl:apply-templates>
-                    </button>
-                </div>
+            <form class="search-form sb-search" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
+                <span class="msi sm" aria-hidden="true">search</span>
+                <input type="text" name="q" class="search-query" placeholder="{ac:label(key('resources', 'search-placeholder', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"/>
             </form>
 
             <!-- document tree container -->
-            <div class="document-tree">
-                <h2 class="nav-header btn">
+            <div class="document-tree sb-section">
+                <h2 class="nav-header sb-heading">
                     <xsl:apply-templates select="key('resources', 'document-tree', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                 </h2>
 
-                <ul class="well well-small nav nav-list">
+                <ul class="nav sb-tree">
                     <li>
-                        <button class="btn btn-small btn-expand-tree"></button>
-                        <a href="{$base}" class="btn-logo btn-container">
-                            <xsl:apply-templates select="key('resources', 'root', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        <button class="btn-expand-tree sb-caret"></button>
+                        <a href="{$base}">
+                            <span class="msi sm sb-icon" aria-hidden="true">home</span>
+                            <span class="sb-label">
+                                <xsl:apply-templates select="key('resources', 'root', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            </span>
                         </a>
                     </li>
                 </ul>
             </div>
 
             <!-- class list container -->
-            <div class="class-list">
-                <h2 class="nav-header btn">
+            <div class="class-list sb-section">
+                <h2 class="nav-header sb-heading">
                     <xsl:apply-templates select="key('resources', 'classes', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                 </h2>
 
-                <ul class="well well-small nav nav-list">
+                <ul class="nav sb-classes">
                     <!-- class list will be loaded dynamically -->
                 </ul>
             </div>
 
             <!-- other section -->
-            <div class="other-views">
-                <h2 class="nav-header btn">
+            <div class="other-views sb-section">
+                <h2 class="nav-header sb-heading">
                     <xsl:apply-templates select="key('resources', 'other', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                 </h2>
 
-                <ul class="well well-small nav nav-list">
+                <ul class="nav sb-other">
                     <li>
-                        <button type="button" class="btn btn-logo btn-geo">
-                            <xsl:apply-templates select="key('resources', 'geo', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        <button type="button" class="btn-geo sb-other-row">
+                            <span class="msi sm" aria-hidden="true">location_on</span>
+                            <span>
+                                <xsl:apply-templates select="key('resources', 'geo', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            </span>
                         </button>
                     </li>
                     <li>
-                        <button type="button" class="btn btn-logo btn-latest">
-                            <xsl:apply-templates select="key('resources', 'latest', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        <button type="button" class="btn-latest sb-other-row">
+                            <span class="msi sm" aria-hidden="true">history</span>
+                            <span>
+                                <xsl:apply-templates select="key('resources', 'latest', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            </span>
                         </button>
                     </li>
                 </ul>
@@ -251,7 +254,7 @@ ORDER BY DESC(?created)
         </xsl:param>
         <xsl:param name="endpoint" as="xs:anyURI"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
         
         <!-- wrap SELECT into a DESCRIBE -->
         <xsl:variable name="query-xml" as="element()">
@@ -272,7 +275,8 @@ ORDER BY DESC(?created)
         <ixsl:promise select="ixsl:http-request($context('request')) =>
             ixsl:then(ldh:rethread-response($context, ?)) =>
             ixsl:then(ldh:handle-response#1) =>
-            ixsl:then(ldh:left-sidebar-resource-response#1)"
+            ixsl:then(ldh:left-sidebar-resource-response#1) =>
+            ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     
@@ -282,7 +286,7 @@ ORDER BY DESC(?created)
         <li>
             <!-- only containers have can have children resources -->
             <xsl:if test="sioc:has_parent">
-                <button class="btn btn-small btn-expand-tree"></button>
+                <button class="btn-expand-tree sb-caret"></button>
             </xsl:if>
             
             <xsl:apply-templates select="@rdf:about" mode="xhtml:Anchor">
@@ -347,7 +351,7 @@ ORDER BY DESC(?created)
 
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:append-content">
-                        <ul class="well well-small nav nav-list">
+                        <ul class="nav">
                             <!-- list items will be injected by ldh:DocTreeResourceLoad -->
                         </ul>
                     </xsl:result-document>
@@ -380,52 +384,8 @@ ORDER BY DESC(?created)
         <ixsl:set-style name="display" select="'none'" object="$container/ul"/>
     </xsl:template>
 
-    <!-- backlinks -->
-    
-    <xsl:template match="div[contains-token(@class, 'backlinks-nav')]//*[contains-token(@class, 'nav-header')]" mode="ixsl:onclick">
-        <xsl:variable name="backlinks-container" select="ancestor::div[contains-token(@class, 'backlinks-nav')]" as="element()"/>
-        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
-        <xsl:variable name="block-uri" select="$block/@about" as="xs:anyURI"/>
-        <xsl:variable name="query-string" select="replace($backlinks-string, '$this', '&lt;' || $block-uri || '&gt;', 'q')" as="xs:string"/>
-        <xsl:variable name="service-uri" select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')) then (if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'service-uri')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'service-uri') else ()) else ()" as="xs:anyURI?"/>
-        <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ()))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
-        <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
-        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
-        
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+    <!-- backlinks load from the block links popover - the trigger is the tb-links onclick in block.xsl -->
 
-        <xsl:choose>
-            <!-- backlink nav list is not rendered yet - load it -->
-            <xsl:when test="not(following-sibling::*[contains-token(@class, 'nav')])">
-                <!-- toggle the caret direction -->
-                <xsl:for-each select="span[contains-token(@class, 'caret')]">
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'caret-reversed' ])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:for-each>
-
-                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-                <xsl:variable name="context" as="map(*)" select="
-                  map{
-                    'request': $request,
-                    'backlinks-container': $backlinks-container
-                  }"/>
-                <ixsl:promise select="ixsl:http-request($context('request')) =>
-                    ixsl:then(ldh:rethread-response($context, ?)) =>
-                    ixsl:then(ldh:handle-response#1) =>
-                    ixsl:then(ldh:backlinks-response#1)"
-                    on-failure="ldh:promise-failure#1"/>
-            </xsl:when>
-            <!-- show the nav list -->
-            <xsl:when test="ixsl:style(following-sibling::*[contains-token(@class, 'nav')])?display = 'none'">
-                <ixsl:set-style name="display" select="'block'" object="following-sibling::*[contains-token(@class, 'nav')]"/>
-            </xsl:when>
-            <!-- hide the nav list -->
-            <xsl:otherwise>
-                <ixsl:set-style name="display" select="'none'" object="following-sibling::*[contains-token(@class, 'nav')]"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-    
     <!-- CALLBACKS -->
         
     <xsl:function name="ldh:breadcrumb-resource-response" as="map(*)" ixsl:updating="yes">
@@ -461,7 +421,7 @@ ORDER BY DESC(?created)
                         </xsl:if>
 
                         <!-- append to the breadcrumb list -->
-                        <xsl:for-each select="$container/ul">
+                        <xsl:for-each select="$container/div[contains-token(@class, 'ldh-bc')]">
                             <xsl:variable name="content" select="*" as="element()*"/>
                             <!-- we want to prepend the parent resource to the beginning of the breadcrumb list -->
                             <xsl:result-document href="?." method="ixsl:replace-content">
@@ -516,7 +476,7 @@ ORDER BY DESC(?created)
                         <!-- Create <ul> for children -->
                         <xsl:for-each select="$current-li">
                             <xsl:result-document href="?." method="ixsl:append-content">
-                                <ul class="well well-small nav nav-list"></ul>
+                                <ul class="nav"></ul>
                             </xsl:result-document>
                         </xsl:for-each>
 
@@ -680,13 +640,11 @@ ORDER BY DESC(?created)
                     <xsl:for-each select="$backlinks-container">
                         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
                         <xsl:result-document href="?." method="ixsl:append-content">
-                            <ul class="well well-small nav nav-list">
-                                <xsl:apply-templates select="$results/rdf:RDF/rdf:Description[not(@rdf:about = $doc-uri)]" mode="xhtml:ListItem">
-                                    <xsl:sort select="ac:label(.)" order="ascending" lang="{$ac:lang}"/>
-                                    <xsl:with-param name="mode" select="ldh:query-params()?mode[1]" tunnel="yes"/> <!-- TO-DO: support multiple modes -->
-                                    <xsl:with-param name="render-id" select="false()" tunnel="yes"/>
+                            <div class="dgroup">
+                                <xsl:apply-templates select="$results/rdf:RDF/rdf:Description[not(@rdf:about = $doc-uri)]" mode="ldh:LinkRow">
+                                    <xsl:sort select="ac:label(.)" order="ascending" lang="{ac:langs()[1]}"/>
                                 </xsl:apply-templates>
-                            </ul>
+                            </div>
                         </xsl:result-document>
                     </xsl:for-each>
                 </xsl:when>
@@ -696,8 +654,6 @@ ORDER BY DESC(?created)
             </xsl:choose>
         </xsl:for-each>
 
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-
         <xsl:sequence select="$context"/>
     </xsl:function>
 
@@ -706,7 +662,7 @@ ORDER BY DESC(?created)
         <xsl:param name="container" as="element()"/> <!-- the <ul> inside <div class="class-list"> -->
         <xsl:param name="endpoint" as="xs:anyURI"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="select-string" select="$class-types-string" as="xs:string"/>
         <xsl:variable name="select-json" as="item()">
@@ -729,12 +685,15 @@ ORDER BY DESC(?created)
         <ixsl:promise select="ixsl:http-request($context('request')) =>
             ixsl:then(ldh:rethread-response($context, ?)) =>
             ixsl:then(ldh:handle-response#1) =>
-            ixsl:then(ldh:class-list-response#1)"
+            ixsl:then(ldh:class-list-response#1) =>
+            ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
-    <!-- handle the response from loading classes - extract type URIs and query ns endpoint -->
-    <xsl:function name="ldh:class-list-response" as="map(*)" ixsl:updating="yes">
+    <!-- handle the response from loading classes - extract type URIs and query ns endpoint. Returns the DESCRIBE
+         chain rather than firing it, so the caller's ixsl:then adopts it and the chain does not settle - and the
+         busy cursor does not drop - until the second hop has rendered (idiom: ldh:fetch-and-load-edited-resource). -->
+    <xsl:function name="ldh:class-list-response" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
@@ -763,15 +722,14 @@ ORDER BY DESC(?created)
                                     'container': $container,
                                     'type-results': $results
                                   }"/>
-                                <ixsl:promise select="ixsl:http-request($new-context('request')) =>
+                                <xsl:sequence select="ixsl:http-request($new-context('request')) =>
                                     ixsl:then(ldh:rethread-response($new-context, ?)) =>
                                     ixsl:then(ldh:handle-response#1) =>
-                                    ixsl:then(ldh:class-list-describe-response#1)"
-                                    on-failure="ldh:promise-failure#1"/>
+                                    ixsl:then(ldh:class-list-describe-response#1)"/>
                             </xsl:when>
                             <xsl:otherwise>
                                 <xsl:message>No class types found</xsl:message>
-                                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+                                <xsl:sequence select="ixsl:resolve($context)"/>
                             </xsl:otherwise>
                         </xsl:choose>
                     </xsl:for-each>
@@ -780,12 +738,10 @@ ORDER BY DESC(?created)
                     <xsl:message>
                         Error loading class types from sparql endpoint
                     </xsl:message>
-                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+                    <xsl:sequence select="ixsl:resolve($context)"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
-
-        <xsl:sequence select="$context"/>
     </xsl:function>
 
     <!-- handle the response from describing class types -->
@@ -827,13 +783,11 @@ ORDER BY DESC(?created)
                         </xsl:result-document>
                     </xsl:for-each>
 
-                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:message>
                         Error loading class descriptions from ns endpoint
                     </xsl:message>
-                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
@@ -846,15 +800,16 @@ ORDER BY DESC(?created)
         <xsl:param name="count" as="xs:integer"/>
 
         <li>
-            <button class="btn btn-class" data-class-uri="{@rdf:about}">
-                <span>
+            <button class="btn-class sb-class-row" data-class-uri="{@rdf:about}">
+                <span class="sb-class-dot" aria-hidden="true"></span>
+                <span class="sb-label">
                     <xsl:apply-templates select="." mode="ac:label"/>
                 </span>
-                
+
                 <xsl:if test="exists($count)">
-                    <xsl:text> (</xsl:text>
-                    <xsl:value-of select="$count"/>
-                    <xsl:text>)</xsl:text>
+                    <span class="sb-count">
+                        <xsl:value-of select="$count"/>
+                    </span>
                 </xsl:if>
             </button>
         </li>
@@ -869,45 +824,53 @@ ORDER BY DESC(?created)
         <xsl:variable name="container-id" select="'class-instances-container-' || $pane-id" as="xs:string"/>
 
         <xsl:variable name="modal" as="element()">
-            <div class="modal modal-constructor modal-class-instances fade in" id="{$modal-id}" data-container-id="{$container-id}">
-                <div class="modal-header">
-                    <button type="button" class="close">×</button>
-                    <legend>
-                        <xsl:choose>
-                            <xsl:when test="doc-available(ac:document-uri($class-uri))">
-                                <xsl:apply-templates select="key('resources', $class-uri, document(ac:document-uri($class-uri)))" mode="ac:label"/>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <xsl:value-of select="$class-uri"/>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                    </legend>
+            <div class="ldhc-backdrop pos-top modal modal-constructor modal-class-instances" id="{$modal-id}" data-container-id="{$container-id}">
+                <div class="ldhc-modal sz-xl" role="dialog" aria-modal="true" aria-labelledby="modal-title-{generate-id()}">
+                <div class="ldhc-modal-head">
+                    <div class="ldhc-modal-titles">
+                        <h2 class="ldhc-modal-title" id="modal-title-{generate-id()}">
+                            <xsl:choose>
+                                <xsl:when test="doc-available(ac:document-uri($class-uri))">
+                                    <xsl:apply-templates select="key('resources', $class-uri, document(ac:document-uri($class-uri)))" mode="ac:label"/>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <xsl:value-of select="$class-uri"/>
+                                </xsl:otherwise>
+                            </xsl:choose>
+                        </h2>
+                    </div>
+                    <span class="ldhc-modal-x">
+                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
+                    </span>
                 </div>
-                <div class="modal-body">
-                    <div class="row-fluid block">
-                        <div class="span12 progress progress-striped active">
-                            <div class="row-fluid row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
-                                <div class="span12">
-                                    <div class="row-fluid">
-                                        <div style="width: 0%;" class="span12 bar"></div>
+                <div class="ldhc-modal-body">
+                    <div class="block-row block">
+                        <div class="row-main progress active">
+                            <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
+                                <div class="row-main">
+                                    <div class="block-row">
+                                        <div style="width: 0%;" class="row-main bar"></div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div id="{$container-id}" class="row-fluid" typeof="&ldh;View">
-                                <div class="main span12">
+                            <div id="{$container-id}" class="block-row" typeof="&ldh;View">
+                                <div class="main row-main">
                                     <!-- View results will be rendered here -->
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="form-actions modal-footer">
-                    <button type="button" class="btn btn-primary btn-close">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>
+                <div class="ldhc-modal-foot">
+                    <span class="ldhc-modal-foot-end">
+                        <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-close">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                    </span>
+                </div>
                 </div>
             </div>
         </xsl:variable>
@@ -938,7 +901,7 @@ ORDER BY DESC(?created)
         <xsl:param name="cache" as="item()"/>
         <xsl:variable name="container-id" select="$container/@id" as="xs:string"/>
         
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <!-- determine which query to use based on whether instances are in named graphs -->
         <!-- TODO: we need to check if instances are in named graphs - for now use SelectInstancesInGraphs -->
@@ -989,8 +952,8 @@ ORDER BY DESC(?created)
 
         <ixsl:promise select="
             ixsl:resolve($context) =>
-                ixsl:then(ldh:view-results-thunk#1)
-            "
+                ixsl:then(ldh:view-results-thunk#1) =>
+                ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
@@ -1015,38 +978,46 @@ ORDER BY DESC(?created)
         <xsl:variable name="select-string" select="$geo-resources-string" as="xs:string"/>
 
         <xsl:variable name="modal" as="element()">
-            <div class="modal modal-constructor modal-geo fade in" id="{$modal-id}" data-container-id="{$container-id}">
-                <div class="modal-header">
-                    <button type="button" class="close">×</button>
-                    <legend>
-                        <xsl:apply-templates select="key('resources', 'geo', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                    </legend>
+            <div class="ldhc-backdrop pos-top modal modal-constructor modal-geo" id="{$modal-id}" data-container-id="{$container-id}">
+                <div class="ldhc-modal sz-xl" role="dialog" aria-modal="true" aria-labelledby="modal-title-{generate-id()}">
+                <div class="ldhc-modal-head">
+                    <div class="ldhc-modal-titles">
+                        <h2 class="ldhc-modal-title" id="modal-title-{generate-id()}">
+                            <xsl:apply-templates select="key('resources', 'geo', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </h2>
+                    </div>
+                    <span class="ldhc-modal-x">
+                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
+                    </span>
                 </div>
-                <div class="modal-body">
-                    <div class="row-fluid block">
-                        <div class="span12 progress progress-striped active">
-                            <div class="row-fluid row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
-                                <div class="span12">
-                                    <div class="row-fluid">
-                                        <div style="width: 0%;" class="span12 bar"></div>
+                <div class="ldhc-modal-body">
+                    <div class="block-row block">
+                        <div class="row-main progress active">
+                            <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
+                                <div class="row-main">
+                                    <div class="block-row">
+                                        <div style="width: 0%;" class="row-main bar"></div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div id="{$container-id}" class="row-fluid" typeof="&ldh;View">
-                                <div class="main span12">
+                            <div id="{$container-id}" class="block-row" typeof="&ldh;View">
+                                <div class="main row-main">
                                     <!-- View results will be rendered here -->
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="form-actions modal-footer">
-                    <button type="button" class="btn btn-primary btn-close">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>
+                <div class="ldhc-modal-foot">
+                    <span class="ldhc-modal-foot-end">
+                        <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-close">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                    </span>
+                </div>
                 </div>
             </div>
         </xsl:variable>
@@ -1079,7 +1050,7 @@ ORDER BY DESC(?created)
         <xsl:param name="cache" as="item()"/>
         <xsl:param name="select-string" as="xs:string"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="select-json" as="item()">
             <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
@@ -1113,8 +1084,8 @@ ORDER BY DESC(?created)
 
         <ixsl:promise select="
             ixsl:resolve($context) =>
-                ixsl:then(ldh:view-results-thunk#1)
-            "
+                ixsl:then(ldh:view-results-thunk#1) =>
+                ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
@@ -1127,38 +1098,46 @@ ORDER BY DESC(?created)
         <xsl:variable name="select-string" select="$latest-resources-string" as="xs:string"/>
 
         <xsl:variable name="modal" as="element()">
-            <div class="modal modal-constructor modal-latest fade in" id="{$modal-id}" data-container-id="{$container-id}">
-                <div class="modal-header">
-                    <button type="button" class="close">×</button>
-                    <legend>
-                        <xsl:apply-templates select="key('resources', 'latest', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                    </legend>
+            <div class="ldhc-backdrop pos-top modal modal-constructor modal-latest" id="{$modal-id}" data-container-id="{$container-id}">
+                <div class="ldhc-modal sz-xl" role="dialog" aria-modal="true" aria-labelledby="modal-title-{generate-id()}">
+                <div class="ldhc-modal-head">
+                    <div class="ldhc-modal-titles">
+                        <h2 class="ldhc-modal-title" id="modal-title-{generate-id()}">
+                            <xsl:apply-templates select="key('resources', 'latest', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </h2>
+                    </div>
+                    <span class="ldhc-modal-x">
+                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
+                    </span>
                 </div>
-                <div class="modal-body">
-                    <div class="row-fluid block">
-                        <div class="span12 progress progress-striped active">
-                            <div class="row-fluid row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
-                                <div class="span12">
-                                    <div class="row-fluid">
-                                        <div style="width: 0%;" class="span12 bar"></div>
+                <div class="ldhc-modal-body">
+                    <div class="block-row block">
+                        <div class="row-main progress active">
+                            <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
+                                <div class="row-main">
+                                    <div class="block-row">
+                                        <div style="width: 0%;" class="row-main bar"></div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div id="{$container-id}" class="row-fluid" typeof="&ldh;View">
-                                <div class="main span12">
+                            <div id="{$container-id}" class="block-row" typeof="&ldh;View">
+                                <div class="main row-main">
                                     <!-- view results will be rendered here -->
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="form-actions modal-footer">
-                    <button type="button" class="btn btn-primary btn-close">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>
+                <div class="ldhc-modal-foot">
+                    <span class="ldhc-modal-foot-end">
+                        <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-close">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                    </span>
+                </div>
                 </div>
             </div>
         </xsl:variable>
@@ -1194,7 +1173,7 @@ ORDER BY DESC(?created)
         <xsl:param name="page-size" select="20" as="xs:integer"/>
         <xsl:param name="cache" as="item()"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="select-json" as="item()">
             <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
@@ -1235,8 +1214,8 @@ ORDER BY DESC(?created)
 
         <ixsl:promise select="
             ixsl:resolve($context) =>
-                ixsl:then(ldh:view-results-thunk#1)
-            "
+                ixsl:then(ldh:view-results-thunk#1) =>
+                ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
@@ -1250,48 +1229,52 @@ ORDER BY DESC(?created)
         <xsl:variable name="container-id" select="'search-results-container-' || $pane-id" as="xs:string"/>
 
         <xsl:variable name="modal" as="element()">
-            <div class="modal modal-constructor modal-search fade in" id="{$modal-id}" data-container-id="{$container-id}">
-                <div class="modal-header">
-                    <button type="button" class="close">×</button>
-                    <legend>
-                        <xsl:apply-templates select="key('resources', 'search', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                    </legend>
-                    <form class="form-search search-form-modal" accept-charset="UTF-8">
-                        <div class="input-append">
-                            <input type="text" name="q" class="search-query" value="{$text}" placeholder="{ac:label(key('resources', 'search-placeholder', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"/>
-                            <button type="submit">
-                                <xsl:apply-templates select="key('resources', 'search', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
-                                    <xsl:with-param name="class" select="'btn btn-primary'"/>
-                                </xsl:apply-templates>
-                            </button>
-                        </div>
+            <div class="ldhc-backdrop pos-top modal modal-constructor modal-search" id="{$modal-id}" data-container-id="{$container-id}">
+                <div class="ldhc-modal sz-xl" role="dialog" aria-modal="true" aria-labelledby="modal-title-{generate-id()}">
+                <div class="ldhc-modal-head">
+                    <div class="ldhc-modal-titles">
+                        <h2 class="ldhc-modal-title" id="modal-title-{generate-id()}">
+                            <xsl:apply-templates select="key('resources', 'search', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </h2>
+                    </div>
+                    <form class="search-form-modal" accept-charset="UTF-8">
+                        <input type="text" name="q" class="search-query" value="{$text}" placeholder="{ac:label(key('resources', 'search-placeholder', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"/>
+                        <button type="submit" class="ldhc-btn in-primary ap-solid sz-md is-iconly btn-search">
+                            <span class="msi sm" aria-hidden="true">search</span>
+                        </button>
                     </form>
+                    <span class="ldhc-modal-x">
+                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
+                    </span>
                 </div>
-                <div class="modal-body">
-                    <div class="row-fluid block">
-                        <div class="span12 progress progress-striped active">
-                            <div class="row-fluid row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
-                                <div class="span12">
-                                    <div class="row-fluid">
-                                        <div style="width: 0%;" class="span12 bar"></div>
+                <div class="ldhc-modal-body">
+                    <div class="block-row block">
+                        <div class="row-main progress active">
+                            <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
+                                <div class="row-main">
+                                    <div class="block-row">
+                                        <div style="width: 0%;" class="row-main bar"></div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div id="{$container-id}" class="row-fluid" typeof="&ldh;View">
-                                <div class="main span12">
+                            <div id="{$container-id}" class="block-row" typeof="&ldh;View">
+                                <div class="main row-main">
                                     <!-- view results will be rendered here -->
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="form-actions modal-footer">
-                    <button type="button" class="btn btn-primary btn-close">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>
+                <div class="ldhc-modal-foot">
+                    <span class="ldhc-modal-foot-end">
+                        <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-close">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                    </span>
+                </div>
                 </div>
             </div>
         </xsl:variable>
@@ -1403,7 +1386,7 @@ ORDER BY DESC(?created)
         <xsl:param name="select-string" select="$select-labelled-string" as="xs:string"/>
         <xsl:param name="label-var-name" select="'label'" as="xs:string"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="select-json" as="item()">
             <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
@@ -1435,7 +1418,7 @@ ORDER BY DESC(?created)
         <xsl:sequence select="ldh:update-progress-counter($cache, map{'container': $container}, 'init', 3)"/>
 
         <!-- preserve user's chosen view mode across re-runs of the same search container; default to ListMode on first render (no view-mode-list yet) -->
-        <xsl:variable name="active-class" select="tokenize($container//ul[contains-token(@class, 'view-mode-list')]/li[contains-token(@class, 'active')]/@class, ' ')[not(. = 'active')]" as="xs:string?"/>
+        <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/a[contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string?"/>
         <xsl:variable name="active-mode" select="if (exists($active-class)) then map:get($class-modes, $active-class) else xs:anyURI('&ac;ListMode')" as="xs:anyURI"/>
 
         <xsl:variable name="view-context" as="map(*)">
@@ -1453,8 +1436,8 @@ ORDER BY DESC(?created)
 
         <ixsl:promise select="
             ixsl:resolve($context) =>
-                ixsl:then(ldh:view-results-thunk#1)
-            "
+                ixsl:then(ldh:view-results-thunk#1) =>
+                ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
