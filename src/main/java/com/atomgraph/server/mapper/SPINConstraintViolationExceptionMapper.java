@@ -25,6 +25,8 @@ import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.vocabulary.RDFS;
+import com.atomgraph.spinrdf.constraints.ConstraintViolation;
 import com.atomgraph.spinrdf.constraints.SPINConstraints;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
 import jakarta.inject.Inject;
@@ -50,6 +52,19 @@ public class SPINConstraintViolationExceptionMapper extends ExceptionMapperBase 
         ex.getModel().add(exception.getModel());
         
         SPINConstraints.addConstraintViolationsRDF(ex.getConstraintViolations(), ex.getModel(), true);
+
+        // describe each violation's spin:violationSource within the response, so that clients can tell the
+        // constraint kind (e.g. ldh:MissingPropertyValue) and read its authored label without the ontology
+        for (ConstraintViolation cv : ex.getConstraintViolations())
+        {
+            Resource source = cv.getSource();
+            if (source != null)
+            {
+                ex.getModel().add(source.listProperties(RDF.type));
+                ex.getModel().add(source.listProperties(RDFS.label));
+            }
+        }
+
         ResIterator it = ex.getModel().listSubjectsWithProperty(RDF.type, SPIN.ConstraintViolation);
         try
         {

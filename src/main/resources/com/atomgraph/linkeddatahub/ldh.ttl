@@ -437,7 +437,7 @@ WHERE {
     rdfs:isDefinedBy : .
 
 :PropertyCardinality a spin:Template ;
-    rdfs:label "Missing property value" ;
+    rdfs:label "Property cardinality violation" ;
     spin:body :ConstructPropertyCardinality ;
     spin:labelTemplate "Instance violates the cardinality of RDF property {?arg1}: {?arg2}" ;
     spin:constraint [ a spl:Argument ;

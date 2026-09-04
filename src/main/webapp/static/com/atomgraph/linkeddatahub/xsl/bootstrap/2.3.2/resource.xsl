@@ -1390,12 +1390,7 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="hidden" select="$type-hidden"/>
             </xsl:apply-templates>
 
-            <xsl:if test="exists($violations)">
-                <div class="violations">
-                    <xsl:apply-templates select="$violations" mode="bs2:Violation"/>
-                </div>
-            </xsl:if>
-
+            <!-- no fieldset-level alert stack: violations surface at the affected rows - .error decoration for missing mandatory properties, inline .ldhc-help messages for every other kind (see the property template in imports/default.xsl) -->
             <xsl:sequence select="$body"/>
 
             <xsl:if test="$show-property-control">

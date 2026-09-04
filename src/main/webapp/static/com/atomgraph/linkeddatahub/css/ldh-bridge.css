@@ -311,6 +311,8 @@ form .control-group > .controls { display: flex; flex-wrap: wrap; align-items: c
 form .control-group > * { grid-column: 2; }
 form .control-group > .control-label { grid-column: 1; grid-row: 1; }
 form .control-group > .controls { grid-column: 2; grid-row: 1; }
+/* inline violation messages sit under the controls, in the value column */
+form .control-group > .ldhc-help { grid-column: 2; }
 form .control-group > hr { display: none; }
 form .controls input[type="text"], form .controls input[type="url"], form .controls textarea { flex: 1 1 240px; min-width: 0; }
 form .controls textarea { min-height: 72px; }

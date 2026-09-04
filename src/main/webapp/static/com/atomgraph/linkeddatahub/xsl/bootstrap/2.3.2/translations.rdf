@@ -707,6 +707,14 @@
         <rdfs:label xml:lang="en-US">Technical detail</rdfs:label>
         <rdfs:label xml:lang="es-ES">Detalle técnico</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="violation-invalid-value">
+        <rdfs:label xml:lang="en-US">Invalid value</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Valor no válido</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="violation-constraint">
+        <rdfs:label xml:lang="en-US">Constraint violated</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Restricción violada</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="history">
         <rdfs:label xml:lang="en-US">History</rdfs:label>
         <rdfs:label xml:lang="es-ES">Historial</rdfs:label>

@@ -42,6 +42,7 @@ xmlns:dct="&dct;"
 xmlns:typeahead="&typeahead;"
 xmlns:ldt="&ldt;"
 xmlns:acl="&acl;"
+xmlns:foaf="&foaf;"
 xmlns:sd="&sd;"
 xmlns:sh="&sh;"
 xmlns:sioc="&sioc;"
@@ -112,6 +113,11 @@ WHERE
 
     <!-- suppress constraint violations and HTTP responses in the form - they are displayed as errors on the edited resources -->
     <xsl:template match="*[rdf:type/@rdf:resource = $system-types]" mode="bs2:Form" priority="3"/>
+
+    <!-- suppress the constraint descriptions the exception mapper includes for kind discrimination - they are referenced via spin:violationSource/sh:sourceShape and their types are open-ended (ldh:MissingPropertyValue, per-app templates), so the $system-types list cannot enumerate them -->
+    <xsl:template match="*[key('predicates-by-object', (@rdf:nodeID, @rdf:about))[self::spin:violationSource or self::sh:sourceShape]]" mode="bs2:RowForm" priority="3"/>
+
+    <xsl:template match="*[key('predicates-by-object', (@rdf:nodeID, @rdf:about))[self::spin:violationSource or self::sh:sourceShape]]" mode="bs2:Form" priority="3"/>
 
     <!-- suppress the system properties of document resources (they are set automatically by LinkedDataHub) -->
     <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:created | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:modified | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/sioc:has_container | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/sioc:has_parent | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/dct:creator | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]/acl:owner | *[rdf:type/@rdf:resource = ('&def;Root', '&dh;Container')]/*[namespace-uri() = '&rdf;'][starts-with(local-name(), '_')][@rdf:resource] | *[rdf:type/@rdf:resource = '&dh;Item']/*[namespace-uri() = '&rdf;'][starts-with(local-name(), '_')]" mode="bs2:FormControl" priority="1"/>
@@ -1488,8 +1494,9 @@ WHERE
         <xsl:message>ldh:row-form-submit-violation</xsl:message>
 
         <xsl:variable name="body" select="$response?body" as="document-node()"/>
-        <!-- exclude the violation/response machinery Descriptions (the suppression list above) - their types must not pollute the instance type set, or the union-typed constructor prototype fails bs2:FormControl's subset test -->
-        <xsl:variable name="types" select="for $t in distinct-values($body/rdf:RDF/*[not(@rdf:about = $doc-uri)][not(rdf:type/@rdf:resource = $system-types)]/rdf:type/@rdf:resource) return xs:anyURI($t)" as="xs:anyURI*"/>
+        <!-- the type set comes from the block's RDFa @typeof (stamped at render time by bs2:Row and the create flows; the submit handler's match pattern guarantees it), not from the response body: the 422 echo carries auxiliary descriptions - inlined bnodes like the signup cert key, constraint descriptions referenced via spin:violationSource - whose types would pollute the constructor's forClass and fail bs2:FormControl's prototype subset test. Trade-off: a type added via the type control just before submit is missing from @typeof until the next successful render -->
+        <xsl:variable name="block" select="$context('block')" as="element()"/>
+        <xsl:variable name="types" select="for $t in tokenize($block/@typeof, ' ') return xs:anyURI($t)" as="xs:anyURI*"/>
 
         <xsl:variable name="new-context" as="map(*)" select="map:merge((
             $context,
@@ -1550,6 +1557,8 @@ WHERE
                      deleted the query resource outright, since the save is a DELETE/INSERT. The loop has to
                      be fixed first; until then failing here is the lesser harm. -->
                 <xsl:with-param name="method" select="$form/@method"/>
+                <!-- keep the submitted form's id, so id-keyed overrides (e.g. signup's onsubmit on form#form-signup) survive the violation re-render; the block-derived fallback covers the formless PATCH flows -->
+                <xsl:with-param name="form-id" select="string(($form/@id, 'form-' || $block/@id)[1])"/>
                 <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                 <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                 <xsl:with-param name="constructor" select="$constructor" tunnel="yes"/>

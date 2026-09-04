@@ -1260,6 +1260,13 @@ exclude-result-prefixes="#all"
     <!-- turn off default form controls for rdf:type as we are handling it specially with bs2:TypeControl -->
     <xsl:template match="rdf:type[@rdf:resource]" mode="bs2:FormControl" priority="1"/>
 
+    <!-- translations.rdf key for a violation without an authored message, chosen by what the violation carries -->
+    <xsl:function name="ldh:violation-key" as="xs:string">
+        <xsl:param name="violation" as="element()"/>
+
+        <xsl:sequence select="if ($violation/spin:violationValue) then 'violation-invalid-value' else 'violation-constraint'"/>
+    </xsl:function>
+
     <!-- property -->
     <xsl:template match="*[@rdf:about or @rdf:nodeID]/*" mode="bs2:FormControl">
         <xsl:param name="this" select="xs:anyURI(concat(namespace-uri(), local-name()))" as="xs:anyURI"/>
@@ -1347,6 +1354,27 @@ exclude-result-prefixes="#all"
                     <xsl:apply-templates select="@xml:lang | @rdf:datatype" mode="#current"/>
                 </div>
             </xsl:if>
+
+            <!-- inline messages for this row's violations, except the missing-mandatory-property kind, where the .error/.required decoration already says everything. The kind is read off the violation's spin:violationSource description (included in the response by the exception mapper) resp. the SHACL constraint component. Authored labels/messages render verbatim; unlabeled violations fall back to a localized generic keyed by ldh:violation-key() -->
+            <xsl:for-each select="$violations[spin:violationPath/@rdf:resource = $this or sh:resultPath/@rdf:resource = $this or ldh:violationValue = current()/@rdf:resource][not(key('resources', (spin:violationSource/@rdf:resource, spin:violationSource/@rdf:nodeID))/rdf:type/@rdf:resource = '&ldh;MissingPropertyValue')][not(sh:sourceConstraintComponent/@rdf:resource = '&sh;MinCountConstraintComponent')]">
+                <span class="ldhc-help va-negative sz-sm">
+                    <xsl:choose>
+                        <xsl:when test="sh:resultMessage">
+                            <xsl:value-of select="sh:resultMessage[1]"/>
+                        </xsl:when>
+                        <xsl:when test="rdfs:label">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="." mode="ac:label"/>
+                            </xsl:value-of>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', ldh:violation-key(.), document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </span>
+            </xsl:for-each>
         </div>
     </xsl:template>
 

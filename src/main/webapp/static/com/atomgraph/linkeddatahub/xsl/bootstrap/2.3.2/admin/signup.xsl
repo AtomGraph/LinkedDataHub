@@ -147,6 +147,9 @@ exclude-result-prefixes="#all">
                 <xsl:attribute name="disabled" select="'disabled'"/>
             </xsl:if>
             
+            <!-- empty placeholder, so an untouched form does not submit the first country; ldh:parse-rdf-post drops the empty-valued statement -->
+            <option value=""></option>
+
             <xsl:variable name="selected" select="." as="xs:anyURI"/>
             <xsl:for-each select="document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/countries.rdf', $lapp:origin))/rdf:RDF/*[@rdf:about]">
                 <xsl:sort select="ac:label(.)" lang="{ac:langs()[1]}"/>
@@ -218,11 +221,9 @@ exclude-result-prefixes="#all">
             <input type="hidden" name="ou" value="&cert;X509Certificate"/>
             
             <xsl:variable name="violations" select="key('violations-by-value', .) | key('violations-by-root', .)" as="element()*"/>
-            <xsl:apply-templates select="$violations" mode="bs2:Violation"/>
-        
+
             <xsl:call-template name="lacl:password">
                 <xsl:with-param name="type" select="$type"/>
-                <xsl:with-param name="class" select="$class"/>
                 <xsl:with-param name="disabled" select="$disabled"/>
                 <xsl:with-param name="for" select="concat($id, '-pwd1')"/>
                 <xsl:with-param name="violations" select="$violations"/>
@@ -230,7 +231,6 @@ exclude-result-prefixes="#all">
             <!-- double the password input -->
             <xsl:call-template name="lacl:password">
                 <xsl:with-param name="type" select="$type"/>
-                <xsl:with-param name="class" select="$class"/>
                 <xsl:with-param name="disabled" select="$disabled"/>
                 <xsl:with-param name="for" select="concat($id, '-pwd2')"/>
                 <xsl:with-param name="violations" select="$violations"/>
@@ -277,7 +277,6 @@ exclude-result-prefixes="#all">
                     <xsl:with-param name="name" select="'ol'"/>
                     <xsl:with-param name="type" select="$type"/>
                     <xsl:with-param name="id" select="$for"/>
-                    <xsl:with-param name="class" select="$class"/>
                     <xsl:with-param name="disabled" select="$disabled"/>
                 </xsl:call-template>
 
@@ -285,6 +284,15 @@ exclude-result-prefixes="#all">
                     <span class="help-inline">Literal</span>
                 </xsl:if>
             </div>
+
+            <!-- the password violations are authored server-side (mismatch, length, character set) - inline their messages like the shared property template does -->
+            <xsl:for-each select="$violations[spin:violationPath/@rdf:resource = $this][rdfs:label]">
+                <span class="ldhc-help va-negative sz-sm">
+                    <xsl:value-of>
+                        <xsl:apply-templates select="." mode="ac:label"/>
+                    </xsl:value-of>
+                </span>
+            </xsl:for-each>
         </div>
     </xsl:template>
     
