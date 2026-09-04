@@ -78,21 +78,26 @@ version="3.0"
                 <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
                 <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseDropdown"/>
                 <xsl:result-document href="?." method="ixsl:append-content">
-                    <div class="modal modal-constructor fade in" id="document-history-modal">
-                        <div class="modal-header">
-                            <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
-                            <legend>
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'history', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                </xsl:value-of>
-                            </legend>
-                            <p class="text-info">
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'history-description', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                </xsl:value-of>
-                            </p>
+                    <div class="ldhc-backdrop pos-top modal modal-constructor" id="document-history-modal">
+                        <div class="ldhc-modal sz-xl" role="dialog" aria-modal="true" aria-labelledby="modal-title-{generate-id()}">
+                        <div class="ldhc-modal-head">
+                            <div class="ldhc-modal-titles">
+                                <h2 class="ldhc-modal-title" id="modal-title-{generate-id()}">
+                                    <xsl:value-of>
+                                        <xsl:apply-templates select="key('resources', 'history', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                    </xsl:value-of>
+                                </h2>
+                                <span class="ldhc-modal-sub">
+                                    <xsl:value-of>
+                                        <xsl:apply-templates select="key('resources', 'history-description', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                    </xsl:value-of>
+                                </span>
+                            </div>
+                            <span class="ldhc-modal-x">
+                                <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
+                            </span>
                         </div>
-                        <div class="modal-body">
+                        <div class="ldhc-modal-body">
                             <xsl:choose>
                                 <xsl:when test="$response?status = 200 and $response?media-type = 'application/rdf+xml'">
                                     <xsl:variable name="mementos" select="$response?body//*[@rdf:about][prov:specializationOf/@rdf:resource]" as="element()*"/>
@@ -148,7 +153,7 @@ version="3.0"
                                                 </xsl:apply-templates>
                                             </tbody>
                                         </table>
-                                        <div class="ldh-block-foot modal-footer">
+                                        <div class="ldh-block-foot">
                                             <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-close">
                                                 <xsl:value-of>
                                                     <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
@@ -167,6 +172,7 @@ version="3.0"
                                     <xsl:sequence select="ldh:error-alert('version-history-not-loaded', ldh:http-error-key($response?status), ())"/>
                                 </xsl:otherwise>
                             </xsl:choose>
+                        </div>
                         </div>
                     </div>
                 </xsl:result-document>
@@ -270,7 +276,7 @@ version="3.0"
         <xsl:param name="context" as="map(*)"/>
         <xsl:param name="title-key" as="xs:string"/> <!-- translations.rdf nodeID naming which step of the restore failed -->
 
-        <xsl:for-each select="$context('modal')/div[contains-token(@class, 'modal-body')]">
+        <xsl:for-each select="($context('modal')//div[contains-token(@class, 'ldhc-modal-body')])[1]">
             <xsl:result-document href="?." method="ixsl:prepend-content">
                 <xsl:sequence select="ldh:error-alert($title-key, ldh:http-error-key($context('response')?status), ())"/>
             </xsl:result-document>

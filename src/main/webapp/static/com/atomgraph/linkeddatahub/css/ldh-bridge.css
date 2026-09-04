@@ -94,8 +94,6 @@ table.table th.sortable[aria-sort] .sort-arrow { visibility: visible; color: var
 /* one card layer only: CSR hydration can re-render a row as a card inside the SSR wrapper card */
 .ldh-block .ldh-block { border: 0; box-shadow: none; border-radius: 0; background: transparent; margin-bottom: 0; }
 .row-block-controls { min-height: 30px; }
-.fade { opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft); }
-.fade.in { opacity: 1; }
 /* typeahead suggestions: shown/positioned via inline styles by the CSR */
 ul.typeahead.dropdown-menu {
   position: absolute;
@@ -126,7 +124,9 @@ ul.typeahead.dropdown-menu > li.active > a, ul.typeahead.dropdown-menu > li > a:
    Bar heights are tokens that size the bars, not mirrors of their content, so stacked sticky
    offsets (.editor-bar) can compose them without drifting ---------- */
 :root { --ldh-header-height: 56px; --ldh-tabbar-height: 40px; --ldh-actionbar-height: 61px; --action-bar-top: var(--ldh-header-height); --ldh-content-w: 1280px; }
-.navbar.ldh-header { position: sticky; top: 0; z-index: 1001; }
+/* chrome sits on the design system's stacking scale: above content dropdowns (70),
+   below the ldhc-backdrop overlays (100+), so open dialogs cover the sticky bars */
+.navbar.ldh-header { position: sticky; top: 0; z-index: 90; }
 .action-bar.ldh-actionbar {
   box-sizing: border-box;
   height: var(--ldh-actionbar-height);
@@ -231,36 +231,12 @@ div.breadcrumb.ldh-bc { min-width: 0; overflow: hidden; }
 .ldh-block-body .ldh-block-head { padding-left: 0; padding-right: 0; }
 .ldh-block-head .actions .tb.disabled { opacity: 0.4; pointer-events: none; }
 
-/* ---------- modals: CSR appends div.modal.fade.in and removes it on close ----------
-   the ported dialogs carry the modal token on a .ldhc-backdrop (core chrome) instead;
-   :not() keeps this legacy positioning off them while the remaining modals migrate */
-.modal:not(.ldhc-backdrop) {
-  position: fixed; top: 48px; left: 50%; transform: translateX(-50%);
-  /* match the content column: blocks span .content-body's inner width (max 1280px minus its side
-     padding); 100%, not 100vw — a fixed element's percentages resolve against the scrollbar-less
-     viewport that also centers the column (100vw would overhang half a classic scrollbar per side) */
-  width: calc(min(var(--ldh-content-w), 100%) - 2 * var(--sp-6));
-  max-height: calc(100vh - 96px);
-  background: var(--surface-0);
-  border: 0; border-radius: var(--r-lg);
-  box-shadow: var(--shadow-xl);
-  display: flex; flex-direction: column;
-  overflow: hidden;
-  z-index: 1050;
-}
-/* dim the page behind an open modal (non-interactive: LDH modals close via their own buttons) */
-body:has(.modal.fade.in)::after {
-  content: '';
-  position: fixed; inset: 0;
-  background: rgba(10, 14, 30, 0.45);
-  z-index: 1049;
-  pointer-events: none;
-}
-.modal.fade { opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft); }
-.modal.fade.in { opacity: 1; }
-/* grid, not flex: the legacy markup puts button.close FIRST and titles the modal with a <legend>,
-   so layout must not follow DOM order - title column left, close pinned top-right */
-.modal-header {
+/* ---------- modals: every dialog rides the ldhc-backdrop chrome (overlays.css) ----------
+   .modal-header/.modal-body live on only as borrowed chrome in two non-dialog spots: the OL map
+   info window (.ol-overlay-container hosts them without a .modal, see ldh.css) and the RDFa
+   annotation overlay. Grid, not flex: both put button.close FIRST (and the RDFa overlay titles
+   with a <legend>), so layout must not follow DOM order - title column left, close top-right */
+.ol-overlay-container .modal-header, #rdfa-editor-overlay .modal-header {
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: start;
@@ -268,24 +244,23 @@ body:has(.modal.fade.in)::after {
   padding: var(--sp-4) var(--sp-5) var(--sp-3);
   border-bottom: 1px solid var(--border-default);
 }
-.modal-header legend, .modal-header h2, .modal-header h3 {
+#rdfa-editor-overlay .modal-header legend {
   grid-column: 1; grid-row: 1;
   font-size: var(--fs-lg); margin: 0; font-weight: var(--fw-semibold);
   border: 0; padding: 0; line-height: var(--lh-snug); color: var(--fg-1);
   min-width: 0;
 }
-.modal-header > p { grid-column: 1; margin: 4px 0 0; font-size: var(--fs-sm); color: var(--fg-muted); }
-.modal-header .close {
+.ol-overlay-container .modal-header .close, #rdfa-editor-overlay .modal-header .close {
   grid-column: 2; grid-row: 1;
   border: 0; background: transparent;
   width: 28px; height: 28px; border-radius: var(--r-sm);
   color: var(--fg-hint); font-size: var(--fs-lg); line-height: 1;
 }
-.modal-header .close:hover { background: var(--bg-hover); color: var(--fg-1); }
-.modal-body { padding: var(--sp-4) var(--sp-5); overflow-y: auto; min-height: 0; }
+.ol-overlay-container .modal-header .close:hover, #rdfa-editor-overlay .modal-header .close:hover { background: var(--bg-hover); color: var(--fg-1); }
+.ol-overlay-container .modal-body, #rdfa-editor-overlay .modal-body { padding: var(--sp-4) var(--sp-5); overflow-y: auto; min-height: 0; }
 /* app.css gives .ldh-block-foot the band chrome with space-between (hint left, buttons right);
    LDH footers are bare button rows, so cluster them at the right edge instead */
-.modal-footer, .ldh-block-foot {
+.ldh-block-foot {
   display: flex; align-items: center; justify-content: flex-end; gap: var(--sp-2);
   padding: var(--sp-3) var(--sp-5);
   border-top: 1px solid var(--border-default);
@@ -388,9 +363,9 @@ legend {
 /* subject controls (type picker, subject edit toggle) hug the legend's right edge */
 legend > .actions { display: flex; align-items: center; gap: var(--sp-1); margin-left: auto; }
 /* the edit/create form titles itself with its fieldset legend (ac:label of the subject) - the modal
-   header carries only the close button. In a modal that legend IS the heading (Bootstrap sized it as
-   one); match .modal-header legend instead of the mono section-label treatment above */
-.modal .modal-body form > fieldset > legend { font-family: var(--font-sans); font-size: var(--fs-lg); font-weight: var(--fw-semibold); letter-spacing: normal; text-transform: none; color: var(--fg-1); }
+   head carries only the close button. In a modal that legend IS the heading (Bootstrap sized it as
+   one); match .ldhc-modal-title instead of the mono section-label treatment above */
+.ldhc-modal-body form > fieldset > legend { font-family: var(--font-sans); font-size: var(--fs-lg); font-weight: var(--fw-semibold); letter-spacing: normal; text-transform: none; color: var(--fg-1); }
 /* remove-resource button on legendless fieldsets rides its own top row, right-aligned */
 fieldset > .btn-group { display: flex; justify-content: flex-end; }
 /* remove-statement/add-statement groups trail their form row instead of floating */
@@ -433,7 +408,7 @@ form .control-group > .controls > .btn-group { order: 99; margin-left: auto; }
 /* the tree flyout's CSR handlers carry show/hide as inline display (mouse at x=0 → block, mouseout → none);
    neutralize the design's translateX(-100%)/.is-open slide so display alone controls visibility, and start
    the panel below the sticky header instead of the design's full-height top:0 */
-.left-sidebar.ldh-sidebar { display: none; transform: none; top: var(--ldh-header-height); z-index: 1001; box-shadow: var(--shadow-lg); }
+.left-sidebar.ldh-sidebar { display: none; transform: none; top: var(--ldh-header-height); z-index: 95; box-shadow: var(--shadow-lg); }
 /* the generic form-input chrome above (form input[type="text"]) outweighs app.css's .sb-search input reset,
    painting a second box inside the search pill; restore the design's borderless transparent input -
    the wrapper carries the border and the :focus-within ring */
@@ -544,7 +519,7 @@ html { overflow-x: clip; } /* the 50vw bleed overshoots by half a classic scroll
   border-top: 1px solid var(--border-default);
 }
 /* the modal dim overlay is pointer-inert, so hide the dock while a modal is open */
-body:has(.modal.fade.in) .ldh-create-dock { display: none; }
+body:has(.ldhc-backdrop.modal) .ldh-create-dock { display: none; }
 /* the RDFa editor owns the bottom strip while an XHTML block is being edited — its fixed breadcrumb bar would paint over the dock */
 body:has(.rdfa-editor-content) .ldh-create-dock { display: none; }
 /* the bar sits directly on the footer - no detached gap between them */

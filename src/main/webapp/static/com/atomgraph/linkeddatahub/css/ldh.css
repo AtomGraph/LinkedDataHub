@@ -1,6 +1,6 @@
 /* only the main navbar is fixed-top now; tab bar + action bar are sticky inside #tab-body;
    the tab skin itself lives in ldh-bridge.css on the design tokens */
-#tab-bar { position: sticky; top: var(--ldh-header-height); z-index: 1000; height: var(--ldh-tabbar-height); }
+#tab-bar { position: sticky; top: var(--ldh-header-height); z-index: 88; height: var(--ldh-tabbar-height); }
 /* Override Bootstrap's overflow:auto which would make action-bar sticky relative to #tab-content instead of the viewport */
 #tab-content { overflow: visible; }
 #tab-bar-list > li { position: relative; }
@@ -14,7 +14,7 @@ ul.dropdown-menu ul { margin: 0; }
 .search-form, .search-form-modal { display: flex; width: 100%; align-items: stretch; }
 .search-form .search-query, .search-form-modal .search-query { flex: 1 1 auto; min-width: 0; height: 36px; box-sizing: border-box; margin: 0; }
 .search-form-modal .btn-search { flex: 0 0 36px; margin: 0; }
-.action-bar { position: sticky; top: var(--action-bar-top); z-index: 999; padding: 0; box-shadow: none; }
+.action-bar { position: sticky; top: var(--action-bar-top); z-index: 86; padding: 0; box-shadow: none; }
 .action-bar form { margin-bottom: 0; }
 .action-bar .add-constructor, .dropdown-menu .add-constructor { background-color: inherit; display: block; text-align: left; width: 100%; }
 .action-bar .add-constructor:hover { color: #ffffff; background-color: #007af5; }
@@ -22,7 +22,7 @@ ul.dropdown-menu ul { margin: 0; }
 body:has(#edit-toolbar) .action-bar { border-bottom: 1px solid var(--border-default); }
 a.external::after { content: "⤴"; padding-left: 0.2em; }
 li button.btn-edit-constructors, li button.btn-add-data, li button.btn-add-ontology, li button.btn-generate-containers { text-align: left; width: 100%; background-color: inherit; }
-.left-sidebar { display: none; width: 15%; position: fixed; left: 0; top: var(--action-bar-top); height: calc(100% - var(--action-bar-top)); overflow-y: auto; z-index: 1001; }
+.left-sidebar { display: none; width: 15%; position: fixed; left: 0; top: var(--action-bar-top); height: calc(100% - var(--action-bar-top)); overflow-y: auto; z-index: 95; }
 @media (max-width: 979px)
 {
     body { padding-top: 0; }
@@ -55,8 +55,9 @@ li button.btn-edit-constructors, li button.btn-add-data, li button.btn-add-ontol
 .content-body > .block > .row-main > .drag-handle[draggable="true"]:active { cursor: grabbing; }
 .hero-unit { background-color: #0f82f530; box-shadow: 5px 5px 3px 0px rgb(192,192,192); }
 .modal .dropdown-menu { z-index: 1100; }
-/* Annotation overlay */
-#rdfa-editor-overlay { position: absolute; min-width: 360px; max-width: 520px; z-index: 10001; }
+/* Annotation overlay: point-positioned by rdfae:show-at; carries its own card chrome
+   (it borrows .modal-header/.modal-body layout from ldh-bridge.css but is not a dialog) */
+#rdfa-editor-overlay { position: absolute; min-width: 360px; max-width: 520px; z-index: 10001; background: var(--surface-0); border-radius: var(--r-lg); box-shadow: var(--shadow-xl); display: flex; flex-direction: column; overflow: hidden; }
 .control-group.endpoint-classes ul { max-height: 20em; overflow: auto; }
 .nav-tabs > li > a { cursor: pointer; }
 .container-results { max-height: 80em; overflow: auto; }
@@ -119,7 +120,7 @@ object { display: block; margin: auto; max-height: 400px; overflow: hidden; widt
 /* SVG graph specific */
 circle { cursor: move; }
 /* RDFa editor specific */
-.editor-bar { position: sticky; top: calc(var(--action-bar-top, 51px) + var(--ldh-actionbar-height, 50px)); z-index: 998; background: var(--bg-recess); padding: 0; box-shadow: none; display: flex; align-items: center; }
+.editor-bar { position: sticky; top: calc(var(--action-bar-top, 51px) + var(--ldh-actionbar-height, 50px)); z-index: 84; background: var(--bg-recess); padding: 0; box-shadow: none; display: flex; align-items: center; }
 #edit-toolbar { order: -1; margin-right: auto; display: flex; gap: var(--sp-1); align-items: center; }
 #edit-toolbar button, #edit-toolbar select { padding: 4px 8px; border: 0; border-radius: var(--r-sm); background: transparent; color: var(--fg-2); font-size: var(--fs-sm); font-family: inherit; cursor: pointer; margin-top: auto; margin-bottom: auto; transition: background var(--dur-fast) var(--ease-out-soft), color var(--dur-fast) var(--ease-out-soft); }
 #edit-toolbar button:disabled { opacity: 0.4; cursor: default; }

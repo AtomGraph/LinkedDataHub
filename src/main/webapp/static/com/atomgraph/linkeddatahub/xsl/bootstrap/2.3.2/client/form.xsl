@@ -320,7 +320,7 @@ WHERE
 
     <!-- Bootstrap-styled annotation overlay (replaces rdfa-editor's custom HTML structure) -->
     <xsl:template name="rdfae:render-overlay">
-        <div id="{$rdfae:overlay-id}" class="modal rdfa-editor-ui" role="dialog" aria-modal="true" aria-label="RDFa annotation" style="display: none;">
+        <div id="{$rdfae:overlay-id}" class="rdfa-editor-ui" role="dialog" aria-modal="true" aria-label="RDFa annotation" style="display: none;">
             <div class="modal-header">
                 <button type="button" class="close cancel-action">&#215;</button>
                 <legend>RDFa Annotation</legend>
@@ -395,7 +395,7 @@ WHERE
                             </div>
                         </div>
                     </fieldset>
-                    <div class="ldh-block-foot modal-footer">
+                    <div class="ldh-block-foot">
                         <button type="button" class="ldhc-btn in-negative ap-solid sz-sm remove-action" style="display: none;"><xsl:value-of select="ac:label(key('resources', 'remove', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))"/></button>
                         <button type="button" class="ldhc-btn in-neutral ap-outline sz-md cancel-action">Cancel</button>
                         <button type="button" class="ldhc-btn in-primary ap-solid sz-md spo-action">Annotate</button>

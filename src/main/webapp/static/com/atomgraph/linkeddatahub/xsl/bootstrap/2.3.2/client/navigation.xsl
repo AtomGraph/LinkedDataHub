@@ -824,21 +824,26 @@ ORDER BY DESC(?created)
         <xsl:variable name="container-id" select="'class-instances-container-' || $pane-id" as="xs:string"/>
 
         <xsl:variable name="modal" as="element()">
-            <div class="modal modal-constructor modal-class-instances fade in" id="{$modal-id}" data-container-id="{$container-id}">
-                <div class="modal-header">
-                    <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
-                    <legend>
-                        <xsl:choose>
-                            <xsl:when test="doc-available(ac:document-uri($class-uri))">
-                                <xsl:apply-templates select="key('resources', $class-uri, document(ac:document-uri($class-uri)))" mode="ac:label"/>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <xsl:value-of select="$class-uri"/>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                    </legend>
+            <div class="ldhc-backdrop pos-top modal modal-constructor modal-class-instances" id="{$modal-id}" data-container-id="{$container-id}">
+                <div class="ldhc-modal sz-xl" role="dialog" aria-modal="true" aria-labelledby="modal-title-{generate-id()}">
+                <div class="ldhc-modal-head">
+                    <div class="ldhc-modal-titles">
+                        <h2 class="ldhc-modal-title" id="modal-title-{generate-id()}">
+                            <xsl:choose>
+                                <xsl:when test="doc-available(ac:document-uri($class-uri))">
+                                    <xsl:apply-templates select="key('resources', $class-uri, document(ac:document-uri($class-uri)))" mode="ac:label"/>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <xsl:value-of select="$class-uri"/>
+                                </xsl:otherwise>
+                            </xsl:choose>
+                        </h2>
+                    </div>
+                    <span class="ldhc-modal-x">
+                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
+                    </span>
                 </div>
-                <div class="modal-body">
+                <div class="ldhc-modal-body">
                     <div class="block-row block">
                         <div class="row-main progress active">
                             <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
@@ -857,12 +862,15 @@ ORDER BY DESC(?created)
                         </div>
                     </div>
                 </div>
-                <div class="ldh-block-foot modal-footer">
-                    <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-close">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>
+                <div class="ldhc-modal-foot">
+                    <span class="ldhc-modal-foot-end">
+                        <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-close">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                    </span>
+                </div>
                 </div>
             </div>
         </xsl:variable>
@@ -970,14 +978,19 @@ ORDER BY DESC(?created)
         <xsl:variable name="select-string" select="$geo-resources-string" as="xs:string"/>
 
         <xsl:variable name="modal" as="element()">
-            <div class="modal modal-constructor modal-geo fade in" id="{$modal-id}" data-container-id="{$container-id}">
-                <div class="modal-header">
-                    <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
-                    <legend>
-                        <xsl:apply-templates select="key('resources', 'geo', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                    </legend>
+            <div class="ldhc-backdrop pos-top modal modal-constructor modal-geo" id="{$modal-id}" data-container-id="{$container-id}">
+                <div class="ldhc-modal sz-xl" role="dialog" aria-modal="true" aria-labelledby="modal-title-{generate-id()}">
+                <div class="ldhc-modal-head">
+                    <div class="ldhc-modal-titles">
+                        <h2 class="ldhc-modal-title" id="modal-title-{generate-id()}">
+                            <xsl:apply-templates select="key('resources', 'geo', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </h2>
+                    </div>
+                    <span class="ldhc-modal-x">
+                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
+                    </span>
                 </div>
-                <div class="modal-body">
+                <div class="ldhc-modal-body">
                     <div class="block-row block">
                         <div class="row-main progress active">
                             <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
@@ -996,12 +1009,15 @@ ORDER BY DESC(?created)
                         </div>
                     </div>
                 </div>
-                <div class="ldh-block-foot modal-footer">
-                    <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-close">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>
+                <div class="ldhc-modal-foot">
+                    <span class="ldhc-modal-foot-end">
+                        <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-close">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                    </span>
+                </div>
                 </div>
             </div>
         </xsl:variable>
@@ -1082,14 +1098,19 @@ ORDER BY DESC(?created)
         <xsl:variable name="select-string" select="$latest-resources-string" as="xs:string"/>
 
         <xsl:variable name="modal" as="element()">
-            <div class="modal modal-constructor modal-latest fade in" id="{$modal-id}" data-container-id="{$container-id}">
-                <div class="modal-header">
-                    <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
-                    <legend>
-                        <xsl:apply-templates select="key('resources', 'latest', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                    </legend>
+            <div class="ldhc-backdrop pos-top modal modal-constructor modal-latest" id="{$modal-id}" data-container-id="{$container-id}">
+                <div class="ldhc-modal sz-xl" role="dialog" aria-modal="true" aria-labelledby="modal-title-{generate-id()}">
+                <div class="ldhc-modal-head">
+                    <div class="ldhc-modal-titles">
+                        <h2 class="ldhc-modal-title" id="modal-title-{generate-id()}">
+                            <xsl:apply-templates select="key('resources', 'latest', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </h2>
+                    </div>
+                    <span class="ldhc-modal-x">
+                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
+                    </span>
                 </div>
-                <div class="modal-body">
+                <div class="ldhc-modal-body">
                     <div class="block-row block">
                         <div class="row-main progress active">
                             <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
@@ -1108,12 +1129,15 @@ ORDER BY DESC(?created)
                         </div>
                     </div>
                 </div>
-                <div class="ldh-block-foot modal-footer">
-                    <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-close">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>
+                <div class="ldhc-modal-foot">
+                    <span class="ldhc-modal-foot-end">
+                        <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-close">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                    </span>
+                </div>
                 </div>
             </div>
         </xsl:variable>
@@ -1205,20 +1229,25 @@ ORDER BY DESC(?created)
         <xsl:variable name="container-id" select="'search-results-container-' || $pane-id" as="xs:string"/>
 
         <xsl:variable name="modal" as="element()">
-            <div class="modal modal-constructor modal-search fade in" id="{$modal-id}" data-container-id="{$container-id}">
-                <div class="modal-header">
-                    <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
-                    <legend>
-                        <xsl:apply-templates select="key('resources', 'search', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                    </legend>
+            <div class="ldhc-backdrop pos-top modal modal-constructor modal-search" id="{$modal-id}" data-container-id="{$container-id}">
+                <div class="ldhc-modal sz-xl" role="dialog" aria-modal="true" aria-labelledby="modal-title-{generate-id()}">
+                <div class="ldhc-modal-head">
+                    <div class="ldhc-modal-titles">
+                        <h2 class="ldhc-modal-title" id="modal-title-{generate-id()}">
+                            <xsl:apply-templates select="key('resources', 'search', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </h2>
+                    </div>
                     <form class="search-form-modal" accept-charset="UTF-8">
                         <input type="text" name="q" class="search-query" value="{$text}" placeholder="{ac:label(key('resources', 'search-placeholder', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"/>
                         <button type="submit" class="ldhc-btn in-primary ap-solid sz-md is-iconly btn-search">
                             <span class="msi sm" aria-hidden="true">search</span>
                         </button>
                     </form>
+                    <span class="ldhc-modal-x">
+                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
+                    </span>
                 </div>
-                <div class="modal-body">
+                <div class="ldhc-modal-body">
                     <div class="block-row block">
                         <div class="row-main progress active">
                             <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
@@ -1237,12 +1266,15 @@ ORDER BY DESC(?created)
                         </div>
                     </div>
                 </div>
-                <div class="ldh-block-foot modal-footer">
-                    <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-close">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </button>
+                <div class="ldhc-modal-foot">
+                    <span class="ldhc-modal-foot-end">
+                        <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-close">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                    </span>
+                </div>
                 </div>
             </div>
         </xsl:variable>
