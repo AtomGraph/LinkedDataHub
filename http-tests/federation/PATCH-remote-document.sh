@@ -17,7 +17,7 @@ remote_base="https://test.localhost:4443/"
 
 # create the document on B (the owner is authorized on both dataspaces in the test setup)
 
-item=$(ldh create-item \
+item=$(ldh create item \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$remote_base" \

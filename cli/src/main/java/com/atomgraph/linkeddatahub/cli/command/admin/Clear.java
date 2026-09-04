@@ -17,17 +17,16 @@
 package com.atomgraph.linkeddatahub.cli.command.admin;
 
 import com.atomgraph.linkeddatahub.cli.CommandGroup;
-import com.atomgraph.linkeddatahub.cli.command.admin.acl.MakePublic;
 import picocli.CommandLine.Command;
 
 /**
- * Administrative command group.
+ * Command group clearing cached server-side state.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "admin",
-    description = "Administrative commands.",
-    subcommands = { Create.class, Add.class, Clear.class, Import.class, MakePublic.class })
-public class Admin extends CommandGroup
+@Command(name = "clear",
+    description = "Clears cached server-side state.",
+    subcommands = { ClearOntology.class })
+public class Clear extends CommandGroup
 {
 }

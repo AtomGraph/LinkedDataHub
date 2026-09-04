@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package com.atomgraph.linkeddatahub.cli.command.admin.acl;
+package com.atomgraph.linkeddatahub.cli.command.imports;
 
 import com.atomgraph.linkeddatahub.cli.CommandGroup;
 import picocli.CommandLine.Command;
 
 /**
- * Access control command group.
+ * Data import workflow group. Each subcommand composes the atomic commands that upload the file,
+ * add the transformation query and post the import metadata.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "acl",
-    description = "Access control commands.",
-    subcommands = { CreateGroup.class, CreateAuthorization.class, AddAgentToGroup.class, MakePublic.class })
-public class Acl extends CommandGroup
+@Command(name = "import",
+    description = "Data import workflows.",
+    subcommands = { ImportRDF.class, ImportCSV.class })
+public class Import extends CommandGroup
 {
 }

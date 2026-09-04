@@ -29,10 +29,11 @@ Bootstrap 2 is gone, and with it the class vocabulary application stylesheets we
 - Empty blocks and empty chart result sets say so through the design system's block-state component
 - `ldh:date-time()`, `ldh:datatype-family()`, `ldh:css-token()` and `ldh:view-cache()` replace logic that had been written out at every call site
 - Package ontologies are declared as `owl:imports` instead of grafted, with an imports characterization test
-- `ldh list-packages`, `ldh add-package-import` and `ldh remove-package-import` give the CLI the package management the settings modal has: the catalog read through the Linked Data proxy with the imported packages marked, and the `ldh:import` declaration written through `PATCH /settings`
+- `ldh packages list`, `ldh packages add` and `ldh packages remove` give the CLI the package management the settings modal has: the catalog read through the Linked Data proxy with the imported packages marked, and the `ldh:import` declaration written through `PATCH /settings`
 - `ldh get` reaches a versioned document's RFC 7089 Memento roles through mutually exclusive `--timemap`, `--version <sha>` and `--timegate` options, the last taking a `--datetime` in RFC 1123 or ISO 8601 and printing the negotiated version's URI as its only output
 
 ### Changed
+- **BREAKING**: `ldh` commands regroup by verb, dropping the `bin/` directory mirror: the hyphenated leaves split into `create`, `add` and `remove` groups (`ldh create item`, `ldh add view`, `ldh remove block`), the `imports`, `content`, `admin acl` and `admin ontologies` groups dissolve into them (`ldh import rdf`, `ldh add object-block`, `ldh admin create group`, `ldh admin add class`), `import` carries the composite workflows — `rdf`, `csv` and `admin import ontology` — apart from the atomic `add rdf-import`/`add csv-import`, and `admin acl add-agent-to-group` shortens to `ldh admin add agent`; the script → command table in `cli/README.md` maps every name
 - `<html lang>` is taken from the `Content-Language` the response carries, so the header and the document agree by construction rather than by two computations staying in step
 - The language a page reports is the first accepted language the UI bundle has, not the reader's top preference — asking for German no longer puts `lang="de"` on a page written entirely in English
 - Published language tags are the shortest the bundle justifies (`en`, not `en-US`), keeping a region subtag only where the bundle distinguishes two variants of one language

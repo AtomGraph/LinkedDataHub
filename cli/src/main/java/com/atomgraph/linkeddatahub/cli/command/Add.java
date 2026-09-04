@@ -14,20 +14,24 @@
  * limitations under the License.
  */
 
-package com.atomgraph.linkeddatahub.cli.command.admin;
+package com.atomgraph.linkeddatahub.cli.command;
 
 import com.atomgraph.linkeddatahub.cli.CommandGroup;
-import com.atomgraph.linkeddatahub.cli.command.admin.acl.MakePublic;
+import com.atomgraph.linkeddatahub.cli.command.content.AddObjectBlock;
+import com.atomgraph.linkeddatahub.cli.command.content.AddXHTMLBlock;
+import com.atomgraph.linkeddatahub.cli.command.imports.AddCSVImport;
+import com.atomgraph.linkeddatahub.cli.command.imports.AddRDFImport;
 import picocli.CommandLine.Command;
 
 /**
- * Administrative command group.
+ * Command group appending resources to a document.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "admin",
-    description = "Administrative commands.",
-    subcommands = { Create.class, Add.class, Clear.class, Import.class, MakePublic.class })
-public class Admin extends CommandGroup
+@Command(name = "add",
+    description = "Appends resources to a document.",
+    subcommands = { AddView.class, AddConstruct.class, AddSelect.class, AddResultSetChart.class, AddFile.class, AddGenericService.class,
+        AddRDFImport.class, AddCSVImport.class, AddObjectBlock.class, AddXHTMLBlock.class })
+public class Add extends CommandGroup
 {
 }

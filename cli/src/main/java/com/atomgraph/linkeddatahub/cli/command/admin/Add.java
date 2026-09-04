@@ -17,17 +17,23 @@
 package com.atomgraph.linkeddatahub.cli.command.admin;
 
 import com.atomgraph.linkeddatahub.cli.CommandGroup;
-import com.atomgraph.linkeddatahub.cli.command.admin.acl.MakePublic;
+import com.atomgraph.linkeddatahub.cli.command.admin.acl.AddAgentToGroup;
+import com.atomgraph.linkeddatahub.cli.command.admin.ontologies.AddClass;
+import com.atomgraph.linkeddatahub.cli.command.admin.ontologies.AddConstructor;
+import com.atomgraph.linkeddatahub.cli.command.admin.ontologies.AddPropertyConstraint;
+import com.atomgraph.linkeddatahub.cli.command.admin.ontologies.AddRestriction;
+import com.atomgraph.linkeddatahub.cli.command.admin.ontologies.AddSelect;
 import picocli.CommandLine.Command;
 
 /**
- * Administrative command group.
+ * Command group appending resources to admin documents.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "admin",
-    description = "Administrative commands.",
-    subcommands = { Create.class, Add.class, Clear.class, Import.class, MakePublic.class })
-public class Admin extends CommandGroup
+@Command(name = "add",
+    description = "Appends resources to admin documents.",
+    subcommands = { AddClass.class, AddConstructor.class, AddSelect.class, AddPropertyConstraint.class, AddRestriction.class,
+        AddOntologyImport.class, AddAgentToGroup.class })
+public class Add extends CommandGroup
 {
 }

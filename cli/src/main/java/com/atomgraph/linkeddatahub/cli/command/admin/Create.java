@@ -14,20 +14,22 @@
  * limitations under the License.
  */
 
-package com.atomgraph.linkeddatahub.cli.command.admin.ontologies;
+package com.atomgraph.linkeddatahub.cli.command.admin;
 
 import com.atomgraph.linkeddatahub.cli.CommandGroup;
+import com.atomgraph.linkeddatahub.cli.command.admin.acl.CreateAuthorization;
+import com.atomgraph.linkeddatahub.cli.command.admin.acl.CreateGroup;
+import com.atomgraph.linkeddatahub.cli.command.admin.ontologies.CreateOntology;
 import picocli.CommandLine.Command;
 
 /**
- * Ontology management command group.
+ * Admin document creation command group.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "ontologies",
-    description = "Ontology management commands.",
-    subcommands = { CreateOntology.class, ImportOntology.class, AddClass.class, AddConstructor.class,
-        AddSelect.class, AddPropertyConstraint.class, AddRestriction.class })
-public class Ontologies extends CommandGroup
+@Command(name = "create",
+    description = "Creates documents in the admin application.",
+    subcommands = { CreateOntology.class, CreateGroup.class, CreateAuthorization.class })
+public class Create extends CommandGroup
 {
 }

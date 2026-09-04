@@ -11,7 +11,7 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 slug="test"
 
-container=$(ldh create-container \
+container=$(ldh create container \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
@@ -21,7 +21,7 @@ container=$(ldh create-container \
 
 # add an explicit read/write authorization for the owner because add-agent-to-group.sh won't work non-existing URI
 
-ldh admin acl create-authorization \
+ldh admin create authorization \
 -b "$ADMIN_BASE_URL" \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \

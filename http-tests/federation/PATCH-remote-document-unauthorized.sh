@@ -18,7 +18,7 @@ remote_base="https://test.localhost:4443/"
 # create the target on B as the owner (authorized), so only the *writer* differs from the
 # positive test
 
-item=$(ldh create-item \
+item=$(ldh create item \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$remote_base" \

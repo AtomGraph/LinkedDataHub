@@ -17,17 +17,17 @@
 package com.atomgraph.linkeddatahub.cli.command.admin;
 
 import com.atomgraph.linkeddatahub.cli.CommandGroup;
-import com.atomgraph.linkeddatahub.cli.command.admin.acl.MakePublic;
+import com.atomgraph.linkeddatahub.cli.command.admin.ontologies.ImportOntology;
 import picocli.CommandLine.Command;
 
 /**
- * Administrative command group.
+ * Ontology import workflow group.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "admin",
-    description = "Administrative commands.",
-    subcommands = { Create.class, Add.class, Clear.class, Import.class, MakePublic.class })
-public class Admin extends CommandGroup
+@Command(name = "import",
+    description = "Ontology import workflows.",
+    subcommands = { ImportOntology.class })
+public class Import extends CommandGroup
 {
 }

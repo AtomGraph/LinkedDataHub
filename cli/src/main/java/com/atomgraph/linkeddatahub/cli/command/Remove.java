@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package com.atomgraph.linkeddatahub.cli.command.admin;
+package com.atomgraph.linkeddatahub.cli.command;
 
 import com.atomgraph.linkeddatahub.cli.CommandGroup;
-import com.atomgraph.linkeddatahub.cli.command.admin.acl.MakePublic;
+import com.atomgraph.linkeddatahub.cli.command.content.RemoveBlock;
 import picocli.CommandLine.Command;
 
 /**
- * Administrative command group.
+ * Command group removing resources from a document.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "admin",
-    description = "Administrative commands.",
-    subcommands = { Create.class, Add.class, Clear.class, Import.class, MakePublic.class })
-public class Admin extends CommandGroup
+@Command(name = "remove",
+    description = "Removes resources from a document.",
+    subcommands = { RemoveBlock.class })
+public class Remove extends CommandGroup
 {
 }

@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package com.atomgraph.linkeddatahub.cli.command.content;
+package com.atomgraph.linkeddatahub.cli.command;
 
 import com.atomgraph.linkeddatahub.cli.CommandGroup;
 import picocli.CommandLine.Command;
 
 /**
- * Content block command group.
+ * Document creation command group.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "content",
-    description = "Content block commands.",
-    subcommands = { AddObjectBlock.class, AddXHTMLBlock.class, RemoveBlock.class })
-public class Content extends CommandGroup
+@Command(name = "create",
+    description = "Creates documents.",
+    subcommands = { CreateItem.class, CreateContainer.class })
+public class Create extends CommandGroup
 {
 }

@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package com.atomgraph.linkeddatahub.cli.command.imports;
+package com.atomgraph.linkeddatahub.cli.command;
 
 import com.atomgraph.linkeddatahub.cli.CommandGroup;
 import picocli.CommandLine.Command;
 
 /**
- * Data import command group.
+ * Package management command group.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "imports",
-    description = "Data import commands.",
-    subcommands = { AddCSVImport.class, AddRDFImport.class, ImportCSV.class, ImportRDF.class })
-public class Imports extends CommandGroup
+@Command(name = "packages",
+    description = "Manages the application's package imports.",
+    subcommands = { ListPackages.class, AddPackageImport.class, RemovePackageImport.class })
+public class Packages extends CommandGroup
 {
 }

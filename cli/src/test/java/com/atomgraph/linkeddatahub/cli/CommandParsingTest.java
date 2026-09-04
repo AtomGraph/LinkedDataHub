@@ -43,38 +43,46 @@ public class CommandParsingTest
     }
 
     @Test
-    public void commandTreeMirrorsScriptLayout()
+    public void commandTreeGroupsByVerb()
     {
         CommandLine root = commandLine();
 
-        List.of("get", "post", "put", "patch", "delete", "create-item", "create-container",
-                "add-view", "add-construct", "add-select", "add-result-set-chart", "add-file", "add-generic-service",
-                "list-packages", "add-package-import", "remove-package-import",
-                "admin", "content", "imports").
+        List.of("get", "post", "put", "patch", "delete", "create", "add", "remove", "import", "packages", "admin").
             forEach(name -> assertTrue(root.getSubcommands().containsKey(name), name));
 
+        List.of("item", "container").
+            forEach(name -> assertTrue(root.getSubcommands().get("create").getSubcommands().containsKey(name), name));
+
+        List.of("view", "construct", "select", "result-set-chart", "file", "generic-service",
+                "rdf-import", "csv-import", "object-block", "xhtml-block").
+            forEach(name -> assertTrue(root.getSubcommands().get("add").getSubcommands().containsKey(name), name));
+
+        assertTrue(root.getSubcommands().get("remove").getSubcommands().containsKey("block"));
+
+        List.of("list", "add", "remove").
+            forEach(name -> assertTrue(root.getSubcommands().get("packages").getSubcommands().containsKey(name), name));
+
+        List.of("rdf", "csv").
+            forEach(name -> assertTrue(root.getSubcommands().get("import").getSubcommands().containsKey(name), name));
+
         CommandLine admin = root.getSubcommands().get("admin");
-        List.of("ontologies", "acl", "clear-ontology", "add-ontology-import").
+        List.of("create", "add", "clear", "import", "make-public").
             forEach(name -> assertTrue(admin.getSubcommands().containsKey(name), name));
 
-        List.of("create-ontology", "import-ontology", "add-class", "add-constructor", "add-select",
-                "add-property-constraint", "add-restriction").
-            forEach(name -> assertTrue(admin.getSubcommands().get("ontologies").getSubcommands().containsKey(name), name));
+        List.of("ontology", "group", "authorization").
+            forEach(name -> assertTrue(admin.getSubcommands().get("create").getSubcommands().containsKey(name), name));
 
-        List.of("create-group", "create-authorization", "add-agent-to-group", "make-public").
-            forEach(name -> assertTrue(admin.getSubcommands().get("acl").getSubcommands().containsKey(name), name));
+        List.of("class", "constructor", "select", "property-constraint", "restriction", "ontology-import", "agent").
+            forEach(name -> assertTrue(admin.getSubcommands().get("add").getSubcommands().containsKey(name), name));
 
-        List.of("add-object-block", "add-xhtml-block", "remove-block").
-            forEach(name -> assertTrue(root.getSubcommands().get("content").getSubcommands().containsKey(name), name));
-
-        List.of("add-csv-import", "add-rdf-import", "import-csv", "import-rdf").
-            forEach(name -> assertTrue(root.getSubcommands().get("imports").getSubcommands().containsKey(name), name));
+        assertTrue(admin.getSubcommands().get("clear").getSubcommands().containsKey("ontology"));
+        assertTrue(admin.getSubcommands().get("import").getSubcommands().containsKey("ontology"));
     }
 
     @Test
     public void missingRequiredOptionIsUsageError()
     {
-        assertEquals(CommandLine.ExitCode.USAGE, commandLine().execute("create-item", "--container", "https://localhost:4443/some/"));
+        assertEquals(CommandLine.ExitCode.USAGE, commandLine().execute("create", "item", "--container", "https://localhost:4443/some/"));
     }
 
     @Test
@@ -87,7 +95,7 @@ public class CommandParsingTest
     public void bareGroupCommandIsUsageError()
     {
         assertEquals(CommandLine.ExitCode.USAGE, commandLine().execute("admin"));
-        assertEquals(CommandLine.ExitCode.USAGE, commandLine().execute("admin", "acl"));
+        assertEquals(CommandLine.ExitCode.USAGE, commandLine().execute("admin", "add"));
     }
 
     @Test
@@ -96,13 +104,13 @@ public class CommandParsingTest
         List.of(new String[] { "--help" },
                 new String[] { "get", "--help" },
                 new String[] { "admin", "--help" },
-                new String[] { "content", "--help" },
-                new String[] { "imports", "--help" },
-                new String[] { "admin", "acl", "--help" },
-                new String[] { "admin", "ontologies", "--help" },
-                new String[] { "content", "remove-block", "--help" },
-                new String[] { "imports", "import-csv", "-h" },
-                new String[] { "admin", "ontologies", "add-class", "--help" }).
+                new String[] { "add", "--help" },
+                new String[] { "import", "--help" },
+                new String[] { "admin", "create", "--help" },
+                new String[] { "admin", "add", "--help" },
+                new String[] { "remove", "block", "--help" },
+                new String[] { "import", "csv", "-h" },
+                new String[] { "admin", "add", "class", "--help" }).
             forEach(args -> assertEquals(CommandLine.ExitCode.OK, commandLine().execute(args), String.join(" ", args)));
     }
 
@@ -112,15 +120,15 @@ public class CommandParsingTest
         StringWriter out = new StringWriter();
         CommandLine cmd = commandLine();
         cmd.setOut(new PrintWriter(out));
-        cmd.execute("content", "remove-block", "--help");
+        cmd.execute("remove", "block", "--help");
 
-        assertTrue(out.toString().startsWith("Usage: ldh content remove-block"), out.toString());
+        assertTrue(out.toString().startsWith("Usage: ldh remove block"), out.toString());
     }
 
     @Test
     public void repeatableOptionsAccumulate()
     {
-        ParseResult parseResult = commandLine().parseArgs("admin", "acl", "create-group",
+        ParseResult parseResult = commandLine().parseArgs("admin", "create", "group",
             "-f", "cert.p12", "-p", "secret", "-b", "https://admin.localhost:4443/",
             "--name", "Editors",
             "--member", "https://localhost:4443/acl/agents/a/#this",

@@ -33,7 +33,7 @@ import picocli.CommandLine.Option;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "add-package-import", description = "Imports a package by declaring an ldh:import statement in the application settings.")
+@Command(name = "add", description = "Imports a package by declaring an ldh:import statement in the application settings.")
 public class AddPackageImport extends BaseCommand
 {
 

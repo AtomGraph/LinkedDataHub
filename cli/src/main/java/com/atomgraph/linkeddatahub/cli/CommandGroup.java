@@ -24,7 +24,8 @@ import picocli.CommandLine.Spec;
 
 /**
  * Base class for commands that only group subcommands and do nothing on their own,
- * mirroring the subdirectories of the deprecated <code>bin/</code> scripts.
+ * grouping them by verb (<code>create</code>, <code>add</code>, <code>remove</code>, <code>list</code>, <code>import</code>)
+ * or scope (<code>admin</code>).
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */

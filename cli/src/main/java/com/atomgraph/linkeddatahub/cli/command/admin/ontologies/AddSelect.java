@@ -32,7 +32,7 @@ import picocli.CommandLine.Parameters;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "add-select", description = "Adds a SELECT query to an ontology.")
+@Command(name = "select", description = "Adds a SELECT query to an ontology.")
 public class AddSelect extends BaseCommand
 {
 

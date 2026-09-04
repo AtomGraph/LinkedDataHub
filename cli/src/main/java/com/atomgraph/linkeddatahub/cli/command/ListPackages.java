@@ -44,11 +44,11 @@ import picocli.CommandLine.Option;
  * way the application settings modal reads it.
  *
  * Each package is one tab-separated line of state, URI and title, so the listing greps and cuts:
- * <code>ldh list-packages | grep ^available | cut -f2</code>.
+ * <code>ldh packages list | grep ^available | cut -f2</code>.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "list-packages", description = "Lists the packages available in the registry, marking the ones the application imports.")
+@Command(name = "list", description = "Lists the packages available in the registry, marking the ones the application imports.")
 public class ListPackages extends BaseCommand
 {
 

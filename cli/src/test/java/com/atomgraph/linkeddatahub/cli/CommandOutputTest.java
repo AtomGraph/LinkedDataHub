@@ -37,7 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * document prints its URL as the only line on stdout, diagnostics go to stderr, and an HTTP error
  * status leaves stdout empty and exits 1.
  *
- * <code>item=$(ldh create-item ...)</code> breaks the moment anything else reaches stdout, and the
+ * <code>item=$(ldh create item ...)</code> breaks the moment anything else reaches stdout, and the
  * http-tests consume that substitution in dozens of places.
  */
 public class CommandOutputTest
@@ -66,7 +66,7 @@ public class CommandOutputTest
             URI base = server.baseURI();
             StringWriter out = new StringWriter(), err = new StringWriter();
 
-            int code = commandLine(out, err).execute("create-container",
+            int code = commandLine(out, err).execute("create", "container",
                 "-f", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
                 "--title", "Test", "--slug", "test", "--parent", base.toString());
 
@@ -86,7 +86,7 @@ public class CommandOutputTest
             URI base = server.baseURI();
             StringWriter out = new StringWriter(), err = new StringWriter();
 
-            commandLine(out, err).execute("create-container",
+            commandLine(out, err).execute("create", "container",
                 "-f", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
                 "--title", "Test", "--slug", "test", "--parent", base.toString());
 
@@ -105,7 +105,7 @@ public class CommandOutputTest
             URI base = server.baseURI();
             StringWriter out = new StringWriter(), err = new StringWriter();
 
-            int code = commandLine(out, err).execute("create-container",
+            int code = commandLine(out, err).execute("create", "container",
                 "-f", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
                 "--title", "Ö", "--slug", "ö x", "--parent", base.toString());
 
@@ -203,7 +203,7 @@ public class CommandOutputTest
             URI base = server.baseURI();
             StringWriter out = new StringWriter(), err = new StringWriter();
 
-            int code = commandLine(out, err).execute("create-container",
+            int code = commandLine(out, err).execute("create", "container",
                 "-f", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
                 "--title", "Test", "--slug", "test", "--parent", base.toString());
 
@@ -224,7 +224,7 @@ public class CommandOutputTest
 
         StringWriter out = new StringWriter(), err = new StringWriter();
 
-        int code = commandLine(out, err).execute("create-container",
+        int code = commandLine(out, err).execute("create", "container",
             "-f", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
             "--title", "Test", "--slug", "test", "--parent", base.toString());
 
@@ -357,7 +357,7 @@ public class CommandOutputTest
             URI base = server.baseURI();
             StringWriter out = new StringWriter(), err = new StringWriter();
 
-            int code = commandLine(out, err).execute("list-packages",
+            int code = commandLine(out, err).execute("packages", "list",
                 "-f", keyStorePath().toString(), "-p", "changeit", "-b", base.toString());
 
             assertEquals(0, code);

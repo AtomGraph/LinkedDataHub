@@ -32,7 +32,7 @@ import picocli.CommandLine.Option;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "remove-package-import", description = "Removes a package import by deleting its ldh:import statement from the application settings.")
+@Command(name = "remove", description = "Removes a package import by deleting its ldh:import statement from the application settings.")
 public class RemovePackageImport extends BaseCommand
 {
 

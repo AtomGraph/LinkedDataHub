@@ -16,25 +16,17 @@
 
 package com.atomgraph.linkeddatahub.cli;
 
-import com.atomgraph.linkeddatahub.cli.command.AddConstruct;
-import com.atomgraph.linkeddatahub.cli.command.AddFile;
-import com.atomgraph.linkeddatahub.cli.command.AddGenericService;
-import com.atomgraph.linkeddatahub.cli.command.AddPackageImport;
-import com.atomgraph.linkeddatahub.cli.command.AddResultSetChart;
-import com.atomgraph.linkeddatahub.cli.command.AddSelect;
-import com.atomgraph.linkeddatahub.cli.command.AddView;
-import com.atomgraph.linkeddatahub.cli.command.CreateContainer;
-import com.atomgraph.linkeddatahub.cli.command.CreateItem;
+import com.atomgraph.linkeddatahub.cli.command.Add;
+import com.atomgraph.linkeddatahub.cli.command.Create;
 import com.atomgraph.linkeddatahub.cli.command.Delete;
 import com.atomgraph.linkeddatahub.cli.command.Get;
-import com.atomgraph.linkeddatahub.cli.command.ListPackages;
+import com.atomgraph.linkeddatahub.cli.command.Packages;
 import com.atomgraph.linkeddatahub.cli.command.Patch;
 import com.atomgraph.linkeddatahub.cli.command.Post;
 import com.atomgraph.linkeddatahub.cli.command.Put;
-import com.atomgraph.linkeddatahub.cli.command.RemovePackageImport;
+import com.atomgraph.linkeddatahub.cli.command.Remove;
 import com.atomgraph.linkeddatahub.cli.command.admin.Admin;
-import com.atomgraph.linkeddatahub.cli.command.content.Content;
-import com.atomgraph.linkeddatahub.cli.command.imports.Imports;
+import com.atomgraph.linkeddatahub.cli.command.imports.Import;
 import org.apache.jena.sys.JenaSystem;
 import picocli.AutoComplete;
 import picocli.CommandLine;
@@ -53,10 +45,8 @@ import picocli.CommandLine.ScopeType;
     description = "Command line interface for the LinkedDataHub HTTP API.",
     subcommands = {
         Get.class, Post.class, Put.class, Patch.class, Delete.class,
-        CreateItem.class, CreateContainer.class,
-        AddView.class, AddConstruct.class, AddSelect.class, AddResultSetChart.class, AddFile.class, AddGenericService.class,
-        ListPackages.class, AddPackageImport.class, RemovePackageImport.class,
-        Admin.class, Content.class, Imports.class,
+        Create.class, Add.class, Remove.class, Import.class,
+        Packages.class, Admin.class,
         AutoComplete.GenerateCompletion.class
     })
 public class LDH

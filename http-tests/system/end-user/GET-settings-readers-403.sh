@@ -10,7 +10,7 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 # GET /settings with a reader should return 403
 # /settings is only in the full-control authorization which is restricted to owners
 
-ldh admin acl add-agent-to-group \
+ldh admin add agent \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \

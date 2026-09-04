@@ -11,7 +11,7 @@ pwd=$(realpath "$PWD")
 
 # add agent to the writers group
 
-ldh admin acl add-agent-to-group \
+ldh admin add agent \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
@@ -19,7 +19,7 @@ ldh admin acl add-agent-to-group \
 
 # create import item
 
-item=$(ldh create-item \
+item=$(ldh create item \
   -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
@@ -28,7 +28,7 @@ item=$(ldh create-item \
 
 # create target container
 
-container=$(ldh create-container \
+container=$(ldh create container \
   -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
@@ -38,7 +38,7 @@ container=$(ldh create-container \
 
 # import RDF
 
-ldh imports import-rdf \
+ldh import rdf \
   -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \

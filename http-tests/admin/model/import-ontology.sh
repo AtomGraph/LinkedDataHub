@@ -15,7 +15,7 @@ import_uri="http://www.w3.org/2004/02/skos/core"
 
 slug="test"
 
-item=$(ldh create-item \
+item=$(ldh create item \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
@@ -26,7 +26,7 @@ item=$(ldh create-item \
 # import the ontology: derive class constructors into the item document; the vocabulary itself only
 # passes through a scratch document and is not persisted
 
-ldh admin ontologies import-ontology \
+ldh admin import ontology \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
@@ -73,7 +73,7 @@ curl -k -f -s \
 # make the annotation document part of the application ontology (the vocabulary rides in via the
 # document's own owl:imports)
 
-ldh admin add-ontology-import \
+ldh admin add ontology-import \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --import "$item" \
@@ -81,7 +81,7 @@ ldh admin add-ontology-import \
 
 # clear the namespace ontology from memory
 
-ldh admin clear-ontology \
+ldh admin clear ontology \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
