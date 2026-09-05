@@ -92,6 +92,19 @@ public class CommandParsingTest
     }
 
     @Test
+    public void contentTypeIsRequiredOnlyWhenReadingStdin()
+    {
+        assertEquals(CommandLine.ExitCode.USAGE, commandLine().execute("put", "https://localhost:4443/some/"));
+        assertEquals(CommandLine.ExitCode.USAGE, commandLine().execute("post", "https://localhost:4443/some/"));
+    }
+
+    @Test
+    public void unrecognizedRDFFileExtensionIsUsageError()
+    {
+        assertEquals(CommandLine.ExitCode.USAGE, commandLine().execute("put", "https://localhost:4443/some/", "categories.foo"));
+    }
+
+    @Test
     public void bareGroupCommandIsUsageError()
     {
         assertEquals(CommandLine.ExitCode.USAGE, commandLine().execute("admin"));

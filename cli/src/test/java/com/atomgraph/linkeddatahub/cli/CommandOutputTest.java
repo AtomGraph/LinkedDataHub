@@ -23,6 +23,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -141,6 +142,34 @@ public class CommandOutputTest
         finally
         {
             System.setIn(in);
+        }
+    }
+
+    @Test
+    public void putReadsRDFFromAFileTypedByItsExtension() throws Exception
+    {
+        try (StubServer server = new StubServer())
+        {
+            server.responds(201, "");
+            URI target = server.baseURI().resolve("some/");
+            StringWriter out = new StringWriter(), err = new StringWriter();
+
+            Path file = Files.createTempFile("categories", ".ttl");
+            Files.writeString(file, "<> <http://purl.org/dc/terms/title> \"Filed\" .");
+            try
+            {
+                int code = commandLine(out, err).execute("put",
+                    "-f", keyStorePath().toString(), "-p", "changeit", target.toString(), file.toString());
+
+                assertEquals(0, code);
+                assertEquals("PUT", server.getLastMethod());
+                assertTrue(server.getLastBody().contains("Filed"), server.getLastBody());
+                assertEquals(target.toString(), out.toString().strip());
+            }
+            finally
+            {
+                Files.deleteIfExists(file);
+            }
         }
     }
 

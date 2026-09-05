@@ -107,9 +107,11 @@ ldh create item --container https://localhost:4443/some/ --title "My item" --slu
   with `--verbose`), `2` usage error.
 - `--proxy` rewrites the request URI's origin to the proxy's origin, like the scripts do; printed
   URLs keep the logical origin.
-- `post`/`put` read RDF from stdin and resolve relative URIs against the target URI (the scripts'
-  `turtle --base` piping); `patch` reads a SPARQL 1.1 update from stdin, validates it and sends it
-  verbatim.
+- `post`/`put` read RDF from an optional `FILE` argument, recognizing the syntax from its
+  extension (`ldh put "$LDH_BASE" root.ttl`), or from stdin, where `-t/--content-type` is
+  required since a stream carries no name; either way relative URIs resolve against the target
+  URI (the scripts' `turtle --base` piping). `patch` reads a SPARQL 1.1 update from stdin,
+  validates it and sends it verbatim.
 
 Shell completion: `source <(ldh generate-completion)` (bash/zsh).
 
