@@ -239,7 +239,14 @@ WHERE
     <!-- Focus the region's first editable host. When a click-to-edit stashed a structural caret anchor
          (window.LinkedDataHub pendingCaretBlock/Offset, set in block.xsl), re-resolve it against the
          editor DOM - the same content block at the same character offset - and place the caret there.
-         Falls back to plain focus (block start) for non-click entry or when the anchor no longer resolves. -->
+         Falls back to plain focus (block start) for non-click entry or when the anchor no longer resolves.
+
+         Entry must always leave focus inside the region. An XHTML block renders no form actions
+         (show-form-actions=false in block.xsl), so the focusout autosave is its only exit, and that
+         handler can only fire if something in the region holds focus. The entering click reaches
+         .btn-edit through a synthetic click(), which moves no focus, and the read-mode block is then
+         replaced - so anything this template leaves unfocused strands the author in an editor with no
+         way out but a reload. -->
     <xsl:template name="ldh:focus-editable">
         <xsl:param name="region" as="element()"/>
 
@@ -249,18 +256,26 @@ WHERE
         <ixsl:set-property name="pendingCaretBlock" select="()" object="$ldh-state"/>
         <ixsl:set-property name="pendingCaretOffset" select="()" object="$ldh-state"/>
 
-        <xsl:variable name="pos" as="map(*)?" select="if (exists($block-idx) and exists($char-off))
-            then ldh:text-position(($region/*[not(@data-role)])[xs:integer($block-idx) + 1], xs:integer($char-off)) else ()"/>
+        <xsl:variable name="pos" as="map(*)?" select="if (exists($block-idx) and exists($char-off)) then ldh:text-position(($region/*[not(@data-role)])[xs:integer($block-idx) + 1], xs:integer($char-off)) else ()"/>
+        <!-- the anchor is usable only where it resolves inside an editable host: ldh:text-position picks
+             any non-chrome text node, inter-element whitespace in a structural container included, and
+             rdfae:focus-caret focuses nothing for a host-less node (its for-each over rdfae:host-of
+             selects the empty sequence, and collapsing a selection into a non-editable node focuses
+             nothing either). Testing the host rather than the anchor routes that case to the fallback -->
+        <xsl:variable name="host" select="rdfae:host-of($pos?node)" as="element()?"/>
 
         <xsl:choose>
-            <xsl:when test="exists($pos)">
+            <xsl:when test="exists($host)">
                 <xsl:call-template name="rdfae:focus-caret">
                     <xsl:with-param name="node" select="$pos?node"/>
                     <xsl:with-param name="offset" select="$pos?offset"/>
                 </xsl:call-template>
             </xsl:when>
+            <!-- no anchor, or one that landed outside every host: the region's first host takes the caret.
+                 A region with no host at all falls back to the region itself, whose tabindex rdfae:init-region
+                 sets for exactly this - the canvas' focusable floor -->
             <xsl:otherwise>
-                <xsl:for-each select="($region//*[@contenteditable = 'true'])[1]">
+                <xsl:for-each select="(($region//*[@contenteditable = 'true'])[1], $region)[1]">
                     <xsl:sequence select="ixsl:call(., 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
             </xsl:otherwise>
