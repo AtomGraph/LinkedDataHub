@@ -236,6 +236,9 @@ div.breadcrumb.ldh-bc { min-width: 0; overflow: hidden; }
   margin: 0;
 }
 
+/* the XHTML editor fills its whole value cell, so the statement hover band would paint the entire editing surface grey - rows hosting the editor don't band */
+.ldh-prop-group:has(.rdfa-editor-content):hover > .label, .ldh-prop-row:has(.rdfa-editor-content):hover > .value, .ldh-prop-row:has(.rdfa-editor-content):hover > .row-actions, .ldh-prop-row.is-interactive:has(.rdfa-editor-content) .value:hover { background: transparent; }
+
 /* ---------- forms: base control chrome for dialogs outside the whole-form mode ---------- */
 form input[type="text"], form input[type="url"], form input[type="number"], form input[type="password"], form input[type="datetime-local"], form input[type="date"], form textarea, form select {
   border: 1px solid var(--border-default); border-radius: var(--r-sm);

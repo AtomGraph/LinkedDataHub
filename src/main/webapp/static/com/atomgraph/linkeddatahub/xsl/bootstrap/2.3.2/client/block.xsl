@@ -206,6 +206,13 @@ exclude-result-prefixes="#all"
         </xsl:next-match>
     </xsl:template>
 
+    <!-- the editor is the block's whole face: no legend header above it -->
+    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;XHTML']" mode="bs2:FormControl" priority="1">
+        <xsl:next-match>
+            <xsl:with-param name="legend" select="false()"/>
+        </xsl:next-match>
+    </xsl:template>
+
     <!-- provide a property label which otherwise would default to local-name() client-side (since $property-metadata is not loaded) -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;XHTML']/rdfs:label | *[rdf:type/@rdf:resource = '&ldh;XHTML']/ac:mode" mode="bs2:FormControl">
         <xsl:next-match>
