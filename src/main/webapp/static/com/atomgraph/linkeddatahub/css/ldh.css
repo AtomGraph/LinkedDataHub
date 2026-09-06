@@ -53,7 +53,6 @@ li button.btn-edit-constructors, li button.btn-add-data, li button.btn-add-ontol
 .content-body > .block:hover > .row-main > .drag-handle[draggable="true"] { opacity: 1; }
 .content-body > .block > .row-main > .drag-handle[draggable="true"]:hover { background-color: var(--bg-hover); }
 .content-body > .block > .row-main > .drag-handle[draggable="true"]:active { cursor: grabbing; }
-.hero-unit { background-color: #0f82f530; box-shadow: 5px 5px 3px 0px rgb(192,192,192); }
 .modal .dropdown-menu { z-index: 1100; }
 /* Annotation overlay: point-positioned by rdfae:show-at; carries its own card chrome
    (it borrows .modal-header/.modal-body layout from ldh-bridge.css but is not a dialog) */

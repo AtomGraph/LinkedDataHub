@@ -76,7 +76,7 @@ LIMIT   10
                     </span>
                 </div>
                 <div class="ldhc-modal-body is-flush">
-                    <div class="hero-unit">
+                    <div class="ldh-hero">
                         <h1>Your LinkedDataHub is ready!</h1>
                         <h2>Unlock the value of your Knowledge Graph with data-driven content and low code apps.</h2>
                         <p>Create structured content backed by live data, intuitively explore graph datasets, model and manage RDF data, control data quality and more. <em>Without writing code</em>.</p>

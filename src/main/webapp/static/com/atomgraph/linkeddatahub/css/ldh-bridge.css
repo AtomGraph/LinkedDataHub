@@ -30,13 +30,6 @@
 .caret { display: inline-flex; align-items: center; opacity: 0.85; }
 .caret:empty::before { font-family: 'Material Symbols Rounded'; font-size: 16px; line-height: 1; content: 'expand_more'; }
 .caret-reversed:empty::before { content: 'expand_less'; }
-:where(.badge) {
-  display: inline-flex; align-items: center;
-  min-width: 18px; height: 18px; padding: 0 6px;
-  border-radius: var(--r-pill); justify-content: center;
-  background: var(--surface-3); color: var(--fg-2);
-  font-size: var(--fs-xs); font-weight: var(--fw-semibold);
-}
 :where(.alert) {
   display: flex; align-items: flex-start; gap: var(--sp-3);
   padding: var(--sp-3) var(--sp-4); margin: var(--sp-2) 0;

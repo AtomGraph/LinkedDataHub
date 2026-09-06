@@ -225,7 +225,7 @@ exclude-result-prefixes="#all"
                 <strong>
                     <xsl:apply-templates select="key('resources', 'total-results', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                     <xsl:text> </xsl:text>
-                    <span class="badge badge-inverse">
+                    <span class="ldhc-badge co-neutral sz-md">
                         <xsl:value-of select="srx:literal"/>
                     </span>
                 </strong>
@@ -1131,7 +1131,7 @@ exclude-result-prefixes="#all"
                         <strong>
                             <xsl:apply-templates select="key('resources', 'total-results', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                             <xsl:text> </xsl:text>
-                            <span class="badge badge-inverse"><xsl:value-of select="$exact-count"/></span>
+                            <span class="ldhc-badge co-neutral sz-md"><xsl:value-of select="$exact-count"/></span>
                         </strong>
                     </xsl:result-document>
                 </xsl:for-each>
