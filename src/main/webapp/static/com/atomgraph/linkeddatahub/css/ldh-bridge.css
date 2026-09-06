@@ -30,15 +30,6 @@
 .caret { display: inline-flex; align-items: center; opacity: 0.85; }
 .caret:empty::before { font-family: 'Material Symbols Rounded'; font-size: 16px; line-height: 1; content: 'expand_more'; }
 .caret-reversed:empty::before { content: 'expand_less'; }
-.progress {
-  height: 8px; border-radius: var(--r-pill);
-  background: var(--surface-2); overflow: hidden; margin: var(--sp-2) 0;
-}
-/* fixed height, not 100%: the block markup nests .bar under auto-height wrappers (.row-block-controls > .row-main > .block-row), where a percentage resolves to 0 */
-.progress .bar { height: 8px; background: var(--bg-accent); transition: width var(--dur-base) var(--ease-out-soft); }
-/* indeterminate variant: nothing to report a percent for, the fill sweeps instead (facet popover loading) */
-.progress.progress-indeterminate .bar { width: 35%; animation: ldh-progress-indet 1.3s var(--ease-in-out) infinite; }
-@keyframes ldh-progress-indet { from { margin-left: -35%; } to { margin-left: 100%; } }
 table.table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
 /* middle, not top: cells hold single-line values sitting beside taller things - a type pill, an image - and the
    design system centres a label against a control everywhere (.ldhc-btn, .ldhc-tag, .ldhc-badge), reserving

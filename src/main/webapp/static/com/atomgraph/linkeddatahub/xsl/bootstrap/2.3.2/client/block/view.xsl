@@ -1979,8 +1979,10 @@ exclude-result-prefixes="#all"
                     <xsl:result-document href="?." method="ixsl:append-content">
                         <ul class="nav facet-pop">
                             <li class="facet-loading">
-                                <div class="progress progress-indeterminate">
-                                    <div class="bar"></div>
+                                <div class="ldhc-pbar ht-xs is-indeterminate">
+                                    <div class="ldhc-pbar-track">
+                                        <div class="ldhc-pbar-fill"></div>
+                                    </div>
                                 </div>
                             </li>
                         </ul>

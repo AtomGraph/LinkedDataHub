@@ -1210,6 +1210,7 @@ exclude-result-prefixes="#all"
         
         <!-- hide the progress bar -->
         <xsl:for-each select="$container/ancestor::div[contains-token(@class, 'row-main')][contains-token(@class, 'progress')][contains-token(@class, 'active')]">
+            <ixsl:set-style name="display" select="'none'" object=".//div[contains-token(@class, 'ldhc-pbar')]"/>
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -1268,11 +1269,12 @@ exclude-result-prefixes="#all"
             <xsl:variable name="container" select="$context('container')" as="element()"/>
 
             <xsl:for-each select="$container/ancestor::div[contains-token(@class, 'progress')][contains-token(@class, 'active')][1]">
-                <ixsl:set-style name="width" select="$percent || '%'" object=".//div[contains-token(@class, 'bar')]"/>
+                <ixsl:set-style name="width" select="$percent || '%'" object=".//div[contains-token(@class, 'ldhc-pbar-fill')]"/>
 
                 <!-- auto-hide when 100% -->
                 <xsl:if test="$percent ge 100">
                     <ixsl:set-style name="z-index" select="'-1'" object="./div[contains-token(@class, 'row-block-controls')]"/>
+                    <ixsl:set-style name="display" select="'none'" object=".//div[contains-token(@class, 'ldhc-pbar')]"/>
 
                     <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
                     <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>

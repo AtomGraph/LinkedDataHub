@@ -151,7 +151,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="show-properties" select="false()" as="xs:boolean"/>
         <xsl:param name="forClass" select="xs:anyURI('&sd;Service')" as="xs:anyURI"/>
         
-        <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
+        <xsl:for-each select="$block//div[contains-token(@class, 'ldhc-pbar-fill')]">
             <ixsl:set-style name="width" select="'66%'" object="."/>
         </xsl:for-each>
 

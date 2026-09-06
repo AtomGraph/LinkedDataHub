@@ -530,8 +530,10 @@ extension-element-prefixes="ixsl"
                                     <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
                                 </button>
                             </xsl:if>
-                            <div class="block-row">
-                                <div style="width: 0%;" class="row-main bar"></div>
+                            <div class="ldhc-pbar ht-xs">
+                                <div class="ldhc-pbar-track">
+                                    <div class="ldhc-pbar-fill" style="width: 0%;"></div>
+                                </div>
                             </div>
                         </div>
                     </div>

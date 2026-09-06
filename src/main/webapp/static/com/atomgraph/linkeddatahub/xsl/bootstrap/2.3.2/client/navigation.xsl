@@ -847,9 +847,9 @@ ORDER BY DESC(?created)
                     <div class="block-row block">
                         <div class="row-main progress active">
                             <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
-                                <div class="row-main">
-                                    <div class="block-row">
-                                        <div style="width: 0%;" class="row-main bar"></div>
+                                <div class="ldhc-pbar ht-xs">
+                                    <div class="ldhc-pbar-track">
+                                        <div class="ldhc-pbar-fill" style="width: 0%;"></div>
                                     </div>
                                 </div>
                             </div>
@@ -994,9 +994,9 @@ ORDER BY DESC(?created)
                     <div class="block-row block">
                         <div class="row-main progress active">
                             <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
-                                <div class="row-main">
-                                    <div class="block-row">
-                                        <div style="width: 0%;" class="row-main bar"></div>
+                                <div class="ldhc-pbar ht-xs">
+                                    <div class="ldhc-pbar-track">
+                                        <div class="ldhc-pbar-fill" style="width: 0%;"></div>
                                     </div>
                                 </div>
                             </div>
@@ -1114,9 +1114,9 @@ ORDER BY DESC(?created)
                     <div class="block-row block">
                         <div class="row-main progress active">
                             <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
-                                <div class="row-main">
-                                    <div class="block-row">
-                                        <div style="width: 0%;" class="row-main bar"></div>
+                                <div class="ldhc-pbar ht-xs">
+                                    <div class="ldhc-pbar-track">
+                                        <div class="ldhc-pbar-fill" style="width: 0%;"></div>
                                     </div>
                                 </div>
                             </div>
@@ -1251,9 +1251,9 @@ ORDER BY DESC(?created)
                     <div class="block-row block">
                         <div class="row-main progress active">
                             <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
-                                <div class="row-main">
-                                    <div class="block-row">
-                                        <div style="width: 0%;" class="row-main bar"></div>
+                                <div class="ldhc-pbar ht-xs">
+                                    <div class="ldhc-pbar-track">
+                                        <div class="ldhc-pbar-fill" style="width: 0%;"></div>
                                     </div>
                                 </div>
                             </div>

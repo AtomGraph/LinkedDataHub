@@ -63,7 +63,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="show-edit-button" select="false()" as="xs:boolean?"/>
 
-        <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
+        <xsl:for-each select="$block//div[contains-token(@class, 'ldhc-pbar-fill')]">
             <!-- update progress bar -->
             <ixsl:set-style name="width" select="'50%'" object="."/>
         </xsl:for-each>
@@ -175,7 +175,7 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$response">
             <xsl:choose>
                 <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                    <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
+                    <xsl:for-each select="$block//div[contains-token(@class, 'ldhc-pbar-fill')]">
                         <!-- update progress bar -->
                         <ixsl:set-style name="width" select="'33%'" object="."/>
                     </xsl:for-each>
@@ -253,7 +253,7 @@ exclude-result-prefixes="#all"
 
         </xsl:message>
         
-        <xsl:for-each select="$block//div[contains-token(@class, 'bar')]">
+        <xsl:for-each select="$block//div[contains-token(@class, 'ldhc-pbar-fill')]">
             <!-- update progress bar -->
             <ixsl:set-style name="width" select="'45%'" object="."/>
         </xsl:for-each>
