@@ -847,7 +847,7 @@ ORDER BY DESC(?created)
                     <div class="block-row block">
                         <div class="row-main progress active">
                             <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
-                                <div class="ldhc-pbar ht-xs">
+                                <div class="ldhc-pbar ht-sm">
                                     <div class="ldhc-pbar-track">
                                         <div class="ldhc-pbar-fill" style="width: 0%;"></div>
                                     </div>
@@ -994,7 +994,7 @@ ORDER BY DESC(?created)
                     <div class="block-row block">
                         <div class="row-main progress active">
                             <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
-                                <div class="ldhc-pbar ht-xs">
+                                <div class="ldhc-pbar ht-sm">
                                     <div class="ldhc-pbar-track">
                                         <div class="ldhc-pbar-fill" style="width: 0%;"></div>
                                     </div>
@@ -1114,7 +1114,7 @@ ORDER BY DESC(?created)
                     <div class="block-row block">
                         <div class="row-main progress active">
                             <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
-                                <div class="ldhc-pbar ht-xs">
+                                <div class="ldhc-pbar ht-sm">
                                     <div class="ldhc-pbar-track">
                                         <div class="ldhc-pbar-fill" style="width: 0%;"></div>
                                     </div>
@@ -1251,7 +1251,7 @@ ORDER BY DESC(?created)
                     <div class="block-row block">
                         <div class="row-main progress active">
                             <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
-                                <div class="ldhc-pbar ht-xs">
+                                <div class="ldhc-pbar ht-sm">
                                     <div class="ldhc-pbar-track">
                                         <div class="ldhc-pbar-fill" style="width: 0%;"></div>
                                     </div>
