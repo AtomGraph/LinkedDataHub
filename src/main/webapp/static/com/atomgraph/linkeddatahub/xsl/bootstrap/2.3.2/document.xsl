@@ -160,14 +160,11 @@ extension-element-prefixes="ixsl"
                     </xsl:apply-templates>
                 </xsl:if>
             </xsl:if>
-            
-            <xsl:if test="$ldh:ajaxRendering">
-                <xsl:apply-templates select="." mode="bs2:AddData"/>
-            </xsl:if>
         </div>
     </xsl:template>
-        
-    <xsl:template match="rdf:RDF[acl:mode() = '&acl;Append']" mode="bs2:AddData" priority="1">
+
+    <!-- rendered inside the Actions drop-down menu: acl:Append authorizes POSTing into a collection, so the add-data items only apply to the Root document and containers -->
+    <xsl:template match="rdf:RDF[acl:mode() = '&acl;Append'][key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:type/@rdf:resource = ('&def;Root', '&dh;Container')]" mode="bs2:AddData" priority="1">
         <xsl:param name="menu-items" as="element()*">
             <button type="button" class="it btn-generate-containers" title="{ac:label(key('resources', 'generate-containers-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
                 <span class="msi sm" aria-hidden="true">library_add</span>
@@ -177,24 +174,14 @@ extension-element-prefixes="ixsl"
             </button>
         </xsl:param>
 
-        <div class="ldh-of-wrap btn-group">
-            <button type="button" class="ldhc-btn in-neutral ap-outline sz-md dropdown-toggle" title="{ac:label(key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
-                <span class="msi sm" aria-hidden="true">upload</span>
-                <span>
-                    <xsl:apply-templates select="key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                </span>
-                <span class="msi caret" aria-hidden="true">expand_more</span>
-            </button>
+        <xsl:sequence select="$menu-items"/>
 
-            <div class="ldh-of-menu">
-                <xsl:sequence select="$menu-items"/>
-            </div>
-        </div>
+        <span class="ldh-of-div" aria-hidden="true"></span>
     </xsl:template>
 
     <!-- Admin app override: replace the default "Generate containers" with "Import ontology".
          Admin apps are identified by the 'admin.' subdomain prefix on lapp:origin() (nginx wildcard routing convention). -->
-    <xsl:template match="rdf:RDF[acl:mode() = '&acl;Append'][starts-with(replace(lapp:origin(), '^https?://', ''), 'admin.')]" mode="bs2:AddData" priority="2">
+    <xsl:template match="rdf:RDF[acl:mode() = '&acl;Append'][key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:type/@rdf:resource = ('&def;Root', '&dh;Container')][starts-with(replace(lapp:origin(), '^https?://', ''), 'admin.')]" mode="bs2:AddData" priority="2">
         <xsl:next-match>
             <xsl:with-param name="menu-items" as="element()*">
                 <button type="button" class="it btn-add-ontology" title="{ac:label(key('resources', 'import-ontology-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
@@ -360,6 +347,8 @@ extension-element-prefixes="ixsl"
                         </button>
 
                         <span class="ldh-of-div" aria-hidden="true"></span>
+
+                        <xsl:apply-templates select="." mode="bs2:AddData"/>
                     </xsl:if>
 
                     <button type="button" class="it is-danger btn-delete{if ($delete-disabled) then ' disabled' else ()}">
