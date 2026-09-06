@@ -30,6 +30,11 @@
 .caret { display: inline-flex; align-items: center; opacity: 0.85; }
 .caret:empty::before { font-family: 'Material Symbols Rounded'; font-size: 16px; line-height: 1; content: 'expand_more'; }
 .caret-reversed:empty::before { content: 'expand_less'; }
+/* a loading block collapses to the bar strip: the CSR strips the progress/active markers at 100%,
+   and until then the row shows only the overlaid pbar (the row-block-controls' top/negative-margin
+   pair lands it visually at the row top), keeping the un-hydrated SSR markup out of view - the
+   collapse the retired .progress height/overflow rule used to provide */
+.row-main.progress.active { height: 8px; overflow: hidden; }
 table.table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
 /* middle, not top: cells hold single-line values sitting beside taller things - a type pill, an image - and the
    design system centres a label against a control everywhere (.ldhc-btn, .ldhc-tag, .ldhc-badge), reserving
