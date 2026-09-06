@@ -1735,7 +1735,7 @@ WHERE
                 </xsl:call-template>
             </xsl:when>
             <xsl:when test="$key-code = 'Enter'">
-                <xsl:for-each select="$menu/li[contains-token(@class, 'active')]">
+                <xsl:for-each select="$menu/li[contains-token(@class, 'is-active')]">
                     <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/> <!-- prevent form submit -->
                 
                     <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:anyURI"/>

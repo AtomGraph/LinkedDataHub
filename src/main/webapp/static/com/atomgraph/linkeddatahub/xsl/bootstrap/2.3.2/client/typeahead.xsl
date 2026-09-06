@@ -46,14 +46,10 @@ version="3.0"
             <xsl:apply-templates select="." mode="ac:label"/>
         </xsl:variable>
 
-        <li>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-            
+        <li class="{string-join(('ldhc-cb-item', $class), ' ')}" title="{(@rdf:about, @rdf:nodeID)[1]}">
             <input type="hidden" name="{$name}" value="{(@rdf:about, @rdf:nodeID)[1]}"/>
 
-            <a title="{(@rdf:about, @rdf:nodeID)[1]}">
+            <span class="ldhc-cb-item-lbl">
                 <xsl:for-each select="$label">
                     <xsl:choose>
                         <xsl:when test="contains(lower-case(.), lower-case($query))">
@@ -74,16 +70,16 @@ version="3.0"
                         </xsl:otherwise>
                     </xsl:choose>
                 </xsl:for-each>
-                
-                <span class="meta">
-                    <xsl:for-each select="rdf:type/@rdf:resource">
-                        <xsl:apply-templates select="." mode="ac:object-label"/>
-                        <xsl:if test="position() != last()">
-                            <xsl:text> </xsl:text>
-                        </xsl:if>
-                    </xsl:for-each>
-                </span>
-            </a>
+            </span>
+
+            <span class="ldhc-cb-item-sub">
+                <xsl:for-each select="rdf:type/@rdf:resource">
+                    <xsl:apply-templates select="." mode="ac:object-label"/>
+                    <xsl:if test="position() != last()">
+                        <xsl:text> </xsl:text>
+                    </xsl:if>
+                </xsl:for-each>
+            </span>
         </li>
     </xsl:template>
     
@@ -215,12 +211,12 @@ version="3.0"
         <xsl:param name="menu" as="element()"/>
         
         <xsl:choose>
-            <xsl:when test="$menu/li[tokenize(@class, ' ') = 'active']">
-                <xsl:for-each select="$menu/li[tokenize(@class, ' ') = 'active']">
+            <xsl:when test="$menu/li[tokenize(@class, ' ') = 'is-active']">
+                <xsl:for-each select="$menu/li[tokenize(@class, ' ') = 'is-active']">
                     <xsl:if test="preceding-sibling::li">
-                        <ixsl:set-attribute name="class" select="string-join(tokenize(@class, ' ')[not(. = 'active')], ' ')"/>
+                        <ixsl:set-attribute name="class" select="string-join(tokenize(@class, ' ')[not(. = 'is-active')], ' ')"/>
                         <xsl:for-each select="preceding-sibling::li[1]">
-                            <ixsl:set-attribute name="class" select="concat(@class, ' ', 'active')"/>
+                            <ixsl:set-attribute name="class" select="concat(@class, ' ', 'is-active')"/>
                             <xsl:variable name="menu-scroll-top" select="ixsl:get($menu, 'scrollTop')" as="xs:double"/>
                             <xsl:variable name="offset-top" select="ixsl:get(., 'offsetTop')" as="xs:double"/>
                             <xsl:if test="$offset-top &lt; $menu-scroll-top">
@@ -232,7 +228,7 @@ version="3.0"
             </xsl:when>
             <xsl:otherwise>
                 <xsl:for-each select="$menu/li[last()]">
-                    <ixsl:set-attribute name="class" select="concat(@class, ' ', 'active')"/>
+                    <ixsl:set-attribute name="class" select="concat(@class, ' ', 'is-active')"/>
                 </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
@@ -242,12 +238,12 @@ version="3.0"
         <xsl:param name="menu" as="element()"/>
 
         <xsl:choose>
-            <xsl:when test="$menu/li[tokenize(@class, ' ') = 'active']">
-                <xsl:for-each select="$menu/li[tokenize(@class, ' ') = 'active']">
+            <xsl:when test="$menu/li[tokenize(@class, ' ') = 'is-active']">
+                <xsl:for-each select="$menu/li[tokenize(@class, ' ') = 'is-active']">
                     <xsl:if test="following-sibling::li">
-                        <ixsl:set-attribute name="class" select="string-join(tokenize(@class, ' ')[not(. = 'active')], ' ')"/>
+                        <ixsl:set-attribute name="class" select="string-join(tokenize(@class, ' ')[not(. = 'is-active')], ' ')"/>
                         <xsl:for-each select="following-sibling::li[1]">
-                            <ixsl:set-attribute name="class" select="concat(@class, ' ', 'active')"/>
+                            <ixsl:set-attribute name="class" select="concat(@class, ' ', 'is-active')"/>
                             <xsl:variable name="menu-scroll-top" select="ixsl:get($menu, 'scrollTop')" as="xs:double"/>
                             <xsl:variable name="menu-offset-height" select="ixsl:get($menu, 'offsetHeight')" as="xs:double"/>
                             <xsl:variable name="offset-top" select="ixsl:get(., 'offsetTop')" as="xs:double"/>
@@ -261,7 +257,7 @@ version="3.0"
             </xsl:when>
             <xsl:otherwise>
                 <xsl:for-each select="$menu/li[1]">
-                    <ixsl:set-attribute name="class" select="concat(@class, ' ', 'active')"/>
+                    <ixsl:set-attribute name="class" select="concat(@class, ' ', 'is-active')"/>
                 </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>

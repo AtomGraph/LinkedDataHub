@@ -153,10 +153,10 @@ LIMIT   10
                                 </xsl:value-of>
                             </label>
                             <div class="controls">
-                                <span data-for-class="&dh;Container &dh;Item">
-                                    <input type="text" name="ou" id="remote-rdf-doc" class="resource-typeahead typeahead" autocomplete="off"/>
-                                    <ul class="resource-typeahead typeahead dropdown-menu" id="ul-upload-rdf-doc" style="display: none;"></ul>
-                                </span>
+                                <xsl:call-template name="bs2:Lookup">
+                                    <xsl:with-param name="id" select="'remote-rdf-doc'"/>
+                                    <xsl:with-param name="forClass" select="(xs:anyURI('&dh;Container'), xs:anyURI('&dh;Item'))"/>
+                                </xsl:call-template>
 
                                 <!--
                                 <div class="btn-group">
@@ -270,10 +270,10 @@ LIMIT   10
                                             </xsl:value-of>
                                         </label>
                                         <div class="controls">
-                                            <span data-for-class="&def;Root &dh;Container">
-                                                <input type="text" name="ou" class="resource-typeahead typeahead" id="generate-containers-parent" autocomplete="off"/>
-                                                <ul class="resource-typeahead typeahead dropdown-menu" id="ul-parent-container" style="display: none;"></ul>
-                                            </span>
+                                            <xsl:call-template name="bs2:Lookup">
+                                                <xsl:with-param name="id" select="'generate-containers-parent'"/>
+                                                <xsl:with-param name="forClass" select="(xs:anyURI('&def;Root'), xs:anyURI('&dh;Container'))"/>
+                                            </xsl:call-template>
 
                                             <span class="help-inline">
                                                 <xsl:value-of>
@@ -304,10 +304,10 @@ LIMIT   10
                                             </xsl:value-of>
                                         </label>
                                         <div class="controls">
-                                            <span data-for-class="&sd;Service">
-                                                <input type="text" name="ou" class="resource-typeahead typeahead" id="source-service" autocomplete="off"/>
-                                                <ul class="resource-typeahead typeahead dropdown-menu" id="ul-source-service" style="display: none;"></ul>
-                                            </span>
+                                            <xsl:call-template name="bs2:Lookup">
+                                                <xsl:with-param name="id" select="'source-service'"/>
+                                                <xsl:with-param name="forClass" select="xs:anyURI('&sd;Service')"/>
+                                            </xsl:call-template>
 
                                             <span class="help-inline">
                                                 <xsl:value-of>

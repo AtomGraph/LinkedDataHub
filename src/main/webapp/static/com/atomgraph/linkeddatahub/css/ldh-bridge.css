@@ -68,17 +68,6 @@ table.table th.sortable[aria-sort] .sort-arrow { visibility: visible; color: var
 /* one card layer only: CSR hydration can re-render a row as a card inside the SSR wrapper card */
 .ldh-block .ldh-block { border: 0; box-shadow: none; border-radius: 0; background: transparent; margin-bottom: 0; }
 .row-block-controls { min-height: 30px; }
-/* typeahead suggestions: shown/positioned via inline styles by the CSR */
-ul.typeahead.dropdown-menu {
-  position: absolute;
-  min-width: 248px; max-height: 320px; overflow-y: auto;
-  background: var(--bg-card); border: 1px solid var(--border-default);
-  border-radius: var(--r-md); box-shadow: var(--shadow-lg);
-  padding: var(--sp-1); margin: 0; list-style: none; z-index: 1120;
-}
-ul.typeahead.dropdown-menu > li > a { display: block; padding: 6px 10px; border-radius: var(--r-sm); font-size: var(--fs-sm); color: var(--fg-1); }
-ul.typeahead.dropdown-menu > li.active > a, ul.typeahead.dropdown-menu > li > a:hover { background: var(--bg-accent-quiet); text-decoration: none; }
-
 /* ---------- cards: the m3 skin's resting M3-elevation shadow reads as a doubled bottom border;
      the design's card preview shows the bordered treatment, so keep the m3 palette but rest flat ---------- */
 :root[data-retro^="m3"] .ldh-block {
@@ -475,9 +464,6 @@ form .control-group > .controls > .btn-group { order: 99; margin-left: auto; }
 .btn-order-by .dir-desc, .btn-order-by.btn-order-by-desc .dir-asc { display: none; }
 .btn-order-by.btn-order-by-desc .dir-desc { display: inline; }
 
-/* typeahead suggestion metadata (type labels) trails the row */
-.dropdown-menu li a .meta { margin-left: auto; font-size: var(--fs-xs); color: var(--fg-muted); }
-
 /* the wordmark's white ink is header-bar styling; on the footer's light surface it takes body ink
    (the design sets this inline on the footer wordmark) */
 .ldh-footer .ldh-wordmark { color: var(--fg-1); }
@@ -569,14 +555,6 @@ body:has(.document-body > .content-body > :is(.graph-3d-canvas, .map-canvas)) .l
 .ldhc-modal > form.constructor-template { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
 /* Save validation marks value-less constructor rows */
 .ldh-ctor-row.error { box-shadow: inset 2px 0 0 var(--danger-500); background: var(--danger-50); }
-
-/* combobox result panels host the same li items the legacy ul menus do (one shared renderer
-   and keyboard-nav path in typeahead.xsl); these mirror the ul menu's item treatment */
-.ldhc-cb-panel { padding: var(--sp-1); }
-.ldhc-cb-panel > li { list-style: none; }
-.ldhc-cb-panel > li > a { display: block; padding: var(--sp-2); border-radius: var(--r-sm); color: var(--fg-1); text-decoration: none; font-size: var(--fs-sm); cursor: pointer; }
-.ldhc-cb-panel > li.active > a, .ldhc-cb-panel > li > a:hover { background: var(--bg-accent-quiet); }
-.ldhc-cb-panel > li a .meta { color: var(--fg-hint); font-size: var(--fs-xs); margin-left: var(--sp-2); }
 
 /* =========================================================================
    LDH-local rules recovered from the previous vendored app.css: the vendor
