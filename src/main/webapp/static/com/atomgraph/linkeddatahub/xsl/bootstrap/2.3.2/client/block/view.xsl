@@ -1248,9 +1248,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="total-count" as="xs:integer?"/>
         <xsl:variable name="result-count" select="count(rdf:Description)" as="xs:integer"/>
 
-        <div class="ldh-list-block">
+        <ul class="ldh-list-block">
             <xsl:apply-templates select="." mode="bs2:List"/>
-        </div>
+        </ul>
 
         <xsl:call-template name="bs2:Pager">
             <xsl:with-param name="container-id" select="$container-id"/>
@@ -1260,6 +1260,11 @@ exclude-result-prefixes="#all"
         </xsl:call-template>
     </xsl:template>
 
+    <!-- override Web-Client's template to select the resources only: the list is a ul, which admits nothing but its li rows -->
+    <xsl:template match="rdf:RDF" mode="bs2:List">
+        <xsl:apply-templates select="*" mode="#current"/>
+    </xsl:template>
+
     <!-- hide resources that will be shown paired/nested with a document -->
     <xsl:template match="*[key('resources-by-primary-topic', @rdf:about)]" mode="bs2:List" priority="1"/>
 
@@ -1267,47 +1272,51 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[*][@rdf:about]" mode="bs2:List" priority="0.8">
         <xsl:variable name="subject" select="(key('resources', foaf:primaryTopic/@rdf:resource), .)[1]" as="element()"/>
 
-        <a class="row" href="{ldh:href(ac:document-uri(xs:anyURI(@rdf:about)), map{})}" title="{@rdf:about}">
-            <span class="ic">
-                <span class="msi sm" aria-hidden="true">
-                    <xsl:value-of select="(rdf:type/@rdf:resource ! map:get($ldh:class-icons, string(.)), 'description')[1]"/>
-                </span>
-            </span>
-            <span class="ti">
-                <xsl:apply-templates select="$subject" mode="ac:label"/>
-
-                <xsl:where-populated>
-                    <span class="desc">
-                        <xsl:apply-templates select="$subject" mode="ac:description"/>
+        <li>
+            <a class="row" href="{ldh:href(ac:document-uri(xs:anyURI(@rdf:about)), map{})}" title="{@rdf:about}">
+                <span class="ic">
+                    <span class="msi sm" aria-hidden="true">
+                        <xsl:value-of select="(rdf:type/@rdf:resource ! map:get($ldh:class-icons, string(.)), 'description')[1]"/>
                     </span>
-                </xsl:where-populated>
-            </span>
+                </span>
+                <span class="ti">
+                    <xsl:apply-templates select="$subject" mode="ac:label"/>
 
-            <xsl:apply-templates select="." mode="ldh:ListRowTimestamp"/>
-            <xsl:apply-templates select="$subject" mode="ldh:ListRowType"/>
-        </a>
+                    <xsl:where-populated>
+                        <span class="desc">
+                            <xsl:apply-templates select="$subject" mode="ac:description"/>
+                        </span>
+                    </xsl:where-populated>
+                </span>
+
+                <xsl:apply-templates select="." mode="ldh:ListRowTimestamp"/>
+                <xsl:apply-templates select="$subject" mode="ldh:ListRowType"/>
+            </a>
+        </li>
     </xsl:template>
 
     <xsl:template match="*[*][@rdf:nodeID]" mode="bs2:List" priority="0.8">
-        <div class="row">
-            <span class="ic">
-                <span class="msi sm" aria-hidden="true">
-                    <xsl:value-of select="(rdf:type/@rdf:resource ! map:get($ldh:class-icons, string(.)), 'description')[1]"/>
-                </span>
-            </span>
-            <span class="ti">
-                <xsl:apply-templates select="." mode="ac:label"/>
-
-                <xsl:where-populated>
-                    <span class="desc">
-                        <xsl:apply-templates select="." mode="ac:description"/>
+        <li>
+            <div class="row">
+                <span class="ic">
+                    <span class="msi sm" aria-hidden="true">
+                        <xsl:value-of select="(rdf:type/@rdf:resource ! map:get($ldh:class-icons, string(.)), 'description')[1]"/>
                     </span>
-                </xsl:where-populated>
-            </span>
+                </span>
+                <span class="ti">
+                    <xsl:apply-templates select="." mode="ac:label"/>
 
-            <xsl:apply-templates select="." mode="ldh:ListRowTimestamp"/>
-            <xsl:apply-templates select="." mode="ldh:ListRowType"/>
-        </div>
+                    <xsl:where-populated>
+                        <span class="desc">
+                            <xsl:apply-templates select="." mode="ac:description"/>
+                        </span>
+                    </xsl:where-populated>
+                </span>
+
+                <xsl:apply-templates select="." mode="ldh:ListRowTimestamp"/>
+                <xsl:apply-templates select="." mode="ldh:ListRowType"/>
+            </div>
+        </li>
     </xsl:template>
 
     <!-- .ts cell: the latest of dct:created/dct:modified as a short date -->
@@ -1353,65 +1362,69 @@ exclude-result-prefixes="#all"
         <xsl:variable name="subject" select="(key('resources', foaf:primaryTopic/@rdf:resource), .)[1]" as="element()"/>
         <xsl:variable name="pos" select="position()" as="xs:integer"/>
 
-        <a class="card" href="{ldh:href(ac:document-uri(xs:anyURI(@rdf:about)), map{})}" title="{@rdf:about}">
-            <xsl:choose>
-                <xsl:when test="ac:image($subject)">
-                    <div class="img">
-                        <img src="{ac:image($subject)[1]}" alt="{ac:label($subject)}"/>
-                    </div>
-                </xsl:when>
-                <xsl:otherwise>
-                    <div class="img {('img-sky', 'img-mint', 'img-peach', 'img-lavender', 'img-blush', 'img-sand')[($pos - 1) mod 6 + 1]}">
-                        <span class="msi" aria-hidden="true">
-                            <xsl:value-of select="(rdf:type/@rdf:resource ! map:get($ldh:class-icons, string(.)), 'description')[1]"/>
-                        </span>
-                    </div>
-                </xsl:otherwise>
-            </xsl:choose>
-            <div class="card-body">
-                <span class="ti">
-                    <xsl:apply-templates select="$subject" mode="ac:label"/>
-                </span>
-
-                <xsl:where-populated>
-                    <span class="meta">
-                        <xsl:apply-templates select="$subject" mode="ac:description"/>
+        <li>
+            <a class="card" href="{ldh:href(ac:document-uri(xs:anyURI(@rdf:about)), map{})}" title="{@rdf:about}">
+                <xsl:choose>
+                    <xsl:when test="ac:image($subject)">
+                        <div class="img">
+                            <img src="{ac:image($subject)[1]}" alt="{ac:label($subject)}"/>
+                        </div>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <div class="img {('img-sky', 'img-mint', 'img-peach', 'img-lavender', 'img-blush', 'img-sand')[($pos - 1) mod 6 + 1]}">
+                            <span class="msi" aria-hidden="true">
+                                <xsl:value-of select="(rdf:type/@rdf:resource ! map:get($ldh:class-icons, string(.)), 'description')[1]"/>
+                            </span>
+                        </div>
+                    </xsl:otherwise>
+                </xsl:choose>
+                <div class="card-body">
+                    <span class="ti">
+                        <xsl:apply-templates select="$subject" mode="ac:label"/>
                     </span>
-                </xsl:where-populated>
-            </div>
-        </a>
+
+                    <xsl:where-populated>
+                        <span class="meta">
+                            <xsl:apply-templates select="$subject" mode="ac:description"/>
+                        </span>
+                    </xsl:where-populated>
+                </div>
+            </a>
+        </li>
     </xsl:template>
 
     <xsl:template match="*[*][@rdf:nodeID]" mode="bs2:Grid" priority="0.8">
         <xsl:variable name="pos" select="position()" as="xs:integer"/>
 
-        <div class="card">
-            <xsl:choose>
-                <xsl:when test="ac:image(.)">
-                    <div class="img">
-                        <img src="{ac:image(.)[1]}" alt="{ac:label(.)}"/>
-                    </div>
-                </xsl:when>
-                <xsl:otherwise>
-                    <div class="img {('img-sky', 'img-mint', 'img-peach', 'img-lavender', 'img-blush', 'img-sand')[($pos - 1) mod 6 + 1]}">
-                        <span class="msi" aria-hidden="true">
-                            <xsl:value-of select="(rdf:type/@rdf:resource ! map:get($ldh:class-icons, string(.)), 'description')[1]"/>
-                        </span>
-                    </div>
-                </xsl:otherwise>
-            </xsl:choose>
-            <div class="card-body">
-                <span class="ti">
-                    <xsl:apply-templates select="." mode="ac:label"/>
-                </span>
-
-                <xsl:where-populated>
-                    <span class="meta">
-                        <xsl:apply-templates select="." mode="ac:description"/>
+        <li>
+            <div class="card">
+                <xsl:choose>
+                    <xsl:when test="ac:image(.)">
+                        <div class="img">
+                            <img src="{ac:image(.)[1]}" alt="{ac:label(.)}"/>
+                        </div>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <div class="img {('img-sky', 'img-mint', 'img-peach', 'img-lavender', 'img-blush', 'img-sand')[($pos - 1) mod 6 + 1]}">
+                            <span class="msi" aria-hidden="true">
+                                <xsl:value-of select="(rdf:type/@rdf:resource ! map:get($ldh:class-icons, string(.)), 'description')[1]"/>
+                            </span>
+                        </div>
+                    </xsl:otherwise>
+                </xsl:choose>
+                <div class="card-body">
+                    <span class="ti">
+                        <xsl:apply-templates select="." mode="ac:label"/>
                     </span>
-                </xsl:where-populated>
+
+                    <xsl:where-populated>
+                        <span class="meta">
+                            <xsl:apply-templates select="." mode="ac:description"/>
+                        </span>
+                    </xsl:where-populated>
+                </div>
             </div>
-        </div>
+        </li>
     </xsl:template>
 
     <xsl:template match="rdf:RDF" mode="bs2:ContainerGrid" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
@@ -1420,9 +1433,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="total-count" as="xs:integer?"/>
         <xsl:variable name="result-count" select="count(rdf:Description)" as="xs:integer"/>
 
-        <div class="ldh-grid-block">
+        <ul class="ldh-grid-block">
             <xsl:apply-templates select="." mode="bs2:Grid"/>
-        </div>
+        </ul>
 
         <xsl:call-template name="bs2:Pager">
             <xsl:with-param name="container-id" select="$container-id"/>

@@ -1270,8 +1270,20 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 /* ---------- Property editor (read + edit on a row level) ----------
    Each row reads as a clean label/value pair by default. Click the value to
    edit it; the visual chrome (input border + bg) only appears while editing.
-   No block-wide editing flag; saves are optimistic per-row. */
-.ldh-prop-form { display: flex; flex-direction: column; }
+   No block-wide editing flag; saves are optimistic per-row.
+
+   The READ-mode list rides dl / dt / dd — a resource description is an
+   association list, and the product carries RDFa on these rows, so the markup
+   is the data representation. Every selector below stays CLASS-keyed, never
+   element-keyed: ResourceForm.jsx's whole-form mode reuses these same classes
+   on divs, because a form body is not a description list. */
+.ldh-prop-form {
+  display: flex; flex-direction: column;
+  /* Cancels the UA block margin now that read mode is a <dl>; harmless on the
+     form mode's <div>. No <dd> reset is needed — .ldh-prop-row is
+     display:contents, so it generates no box for margin-inline-start to hit. */
+  margin: 0;
+}
 
 /* One predicate (with N values) lives in a .ldh-prop-group grid. The label
    cell spans N rows; each value's .ldh-prop-row uses display:contents so its
@@ -3391,12 +3403,6 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 }
 .ldh-prop-row .val-main {
   display: flex; align-items: center; gap: var(--sp-3); min-width: 0; flex-wrap: wrap;
-  /* MUST be a definite width. As a stretched auto-width item of the .val-stack
-     column, Chromium can freeze the intrinsic height computed at a pre-stretch
-     width where the annot wraps under the control — the row then renders one
-     line but keeps the two-line height, breaking the read-row-height promise
-     above. A definite width sizes the line as drawn. */
-  width: 100%;
 }
 .ldh-prop-row .val-main > .ldhc-select { flex: 0 1 var(--prop-control-w); max-width: var(--prop-control-w); }
 .ldh-prop-row .val-main > .ldhc-combobox { flex: 0 1 var(--prop-control-w); max-width: var(--prop-control-w); }
@@ -3770,3 +3776,69 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-edit-form .ldh-subject:focus-within .ldh-subject-copy,
 .ldh-edit-form .ldh-subject:focus-within .ldh-form-action,
 .ldh-edit-form .ldh-subject:focus-within .ldh-form-actions-wrap { opacity: 1; }
+
+
+/* =========================================================================
+   TABULAR MARKUP RESET
+   .ldh-data-table / .ldh-mini-table / .ldh-map-table / .ldh-run-list are real
+   <table> elements (tabular data, and under the XHTML+RDFa direction the markup
+   IS the representation). Their column tracks come from grid on each <tr>, so
+   the table layout algorithm is switched off rather than fought: table, thead
+   and tbody become blocks and the rows stay grid. The explicit role attributes
+   in the JSX are what keep AT reporting a table despite display:grid.
+   ========================================================================= */
+.ldh-data-table, .ldh-mini-table, .ldh-map-table, .ldh-run-list {
+  display: block; border-collapse: collapse; border-spacing: 0; width: 100%;
+  text-indent: 0;
+}
+.ldh-data-table > thead, .ldh-data-table > tbody,
+.ldh-mini-table > thead, .ldh-mini-table > tbody,
+.ldh-map-table > thead, .ldh-map-table > tbody,
+.ldh-run-list > thead, .ldh-run-list > tbody { display: block; }
+/* th inherits the row's cell treatment; the UA's centre + bold would fight the
+   mono eyebrow styling each head already sets. */
+.ldh-data-table th, .ldh-mini-table th, .ldh-map-table th, .ldh-run-list th {
+  font-weight: inherit; text-align: left; padding: 0; vertical-align: inherit;
+}
+.ldh-data-table td, .ldh-mini-table td, .ldh-map-table td, .ldh-run-list td {
+  padding: 0; vertical-align: inherit;
+}
+.ldh-data-table caption, .ldh-mini-table caption,
+.ldh-map-table caption, .ldh-run-list caption { caption-side: top; }
+/* A visually-hidden thead must not claim grid tracks in the row above. */
+.ldh-run-list > thead.ldhc-vh { display: none; }
+/* num alignment applied to the cell rather than an inner span. */
+.ldh-data-table th.num, .ldh-mini-table th.num { text-align: right; }
+
+/* Ontology term list — <ul>/<li> of navigable terms. */
+.ldh-onto-terms { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.ldh-onto-terms > li { display: flex; min-width: 0; }
+.ldh-onto-terms > li > .ldh-onto-term { flex: 1; min-width: 0; }
+/* The group label is a real heading now, so cancel the UA heading box. Weight
+   stays regular — the eyebrow treatment is what carries it, not boldness. */
+.ldh-onto-group-h { margin: 0; font-weight: var(--fw-regular); }
+
+
+/* =========================================================================
+   LIST MARKUP RESET
+   Collections of navigable resources are real <ul>/<li>: the card grid and row
+   list in a view block, the ResourceGrid, and the sidebar's tree / classes /
+   other / latest-docs lists. `display: contents` on the <li> would keep the
+   old layout with one line of CSS, but several engines drop the listitem role
+   when it is applied — which is the whole point of the markup change. So the
+   <li> IS the layout item and the anchor fills it.
+   ========================================================================= */
+.ldh-grid-block, .ldh-list-block, .ldh-grid,
+.sb-tree, .sb-classes, .sb-other, .mlist { list-style: none; margin: 0; padding: 0; }
+.ldh-grid-block > li, .ldh-list-block > li, .ldh-grid > li,
+.sb-tree > li, .sb-classes > li, .sb-other > li, .mlist > li {
+  display: flex; min-width: 0;
+}
+.ldh-grid-block > li > .card,
+.ldh-list-block > li > .row,
+.ldh-grid > li > .ldh-grid-card,
+.sb-other > li > .sb-other-row,
+.mlist > li > .mresult { flex: 1; min-width: 0; }
+/* The sidebar tree and class rows render their own row element, so the li just
+   has to let it span. */
+.sb-tree > li > *, .sb-classes > li > * { flex: 1; min-width: 0; }

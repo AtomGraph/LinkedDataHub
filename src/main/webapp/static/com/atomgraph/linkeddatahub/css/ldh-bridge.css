@@ -373,10 +373,13 @@ form .control-group > .controls > .btn-group { order: 99; margin-left: auto; }
 .chart-controls .field select[multiple] { height: auto; }
 
 /* ---------- read-mode property lists now emit the design's .ldh-prop-group grid (app.css) ---------- */
-/* the read-mode list rides dl/dt/dd (a resource description is an association list); the dl's UA
-   block margin has to go. Drops once the design system carries margin: 0 on .ldh-prop-form itself.
-   The dd needs no reset - display:contents generates no box, so its UA margin never applies */
-dl.ldh-prop-form { margin: 0; }
+/* the dl's UA block margin is cancelled by app.css's .ldh-prop-form { margin: 0 } - no bridge needed.
+   The dd needs no reset either: display:contents generates no box, so its UA margin never applies */
+/* MUST be a definite width. As a stretched auto-width item of the .val-stack column, Chromium can
+   freeze the intrinsic height computed at a pre-stretch width where the annot wraps under the
+   control - the row then renders one line but keeps the two-line height, breaking app.css's
+   read-row-height promise. A definite width sizes the line as drawn */
+.ldh-prop-row .val-main { width: 100%; }
 /* a value is a whole row rather than a table cell, so the image gets more height than in
    table.table - enough to read, still short of pushing the rest of the property list off-screen.
    This also lands in the map info window, whose overlay hosts a .ldh-block property list */
@@ -435,6 +438,9 @@ dl.ldh-prop-form { margin: 0; }
 .ldh-sidebar .sb-tree li > a:hover { background: var(--bg-hover); color: var(--fg-1); text-decoration: none; }
 .ldh-sidebar .sb-tree li.active > a { background: var(--bg-accent-quiet); color: var(--ldh-blue-700); font-weight: var(--fw-medium); }
 /* expand/collapse carets: state is carried by btn-expand-tree <-> btn-expanded-tree */
+/* an LDH tree node is a caret plus an anchor, where the design's node is a single row element, so
+   app.css's LIST MARKUP RESET (.sb-tree > li > * { flex: 1 }) would stretch the caret to half the row */
+.ldh-sidebar .sb-tree > li > .btn-expand-tree, .ldh-sidebar .sb-tree > li > .btn-expanded-tree { flex: 0 0 auto; }
 .btn-expand-tree, .btn-expanded-tree {
   width: 18px; height: 18px; flex-shrink: 0;
   border: 0; background: transparent; padding: 0;
