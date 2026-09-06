@@ -1533,57 +1533,62 @@ extension-element-prefixes="ixsl"
     <!-- VIOLATION -->
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;URISyntaxViolation']" mode="bs2:Violation">
-        <xsl:param name="class" select="'alert alert-error'" as="xs:string?"/>
+        <xsl:param name="class" select="'ldhc-alert va-negative'" as="xs:string?"/>
 
-        <div>
+        <div role="alert">
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
-            <xsl:apply-templates select="key('resources', '&ldh;URISyntaxViolation', document(ac:document-uri('&ldh;')))" mode="ldh:logo">
-                <xsl:with-param name="class" select="$class"/>
-            </xsl:apply-templates>
-            <xsl:text> </xsl:text>
-            <xsl:value-of select="rdfs:label"/>
+            <span class="ldhc-alert-ic">
+                <span class="msi outline" aria-hidden="true">error</span>
+            </span>
+            <div class="ldhc-alert-body">
+                <span class="ldhc-alert-text">
+                    <xsl:value-of select="rdfs:label"/>
+                </span>
+            </div>
         </div>
     </xsl:template>
-        
+
     <!-- take constraint labels from sitemap instead of response, if possible -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&spin;ConstraintViolation']" mode="bs2:Violation">
-        <xsl:param name="class" select="'alert alert-error'" as="xs:string?"/>
-        <xsl:param name="request-uri" select="ldh:href(ac:document-uri(rdf:type/@rdf:resource), map{ 'accept': 'application/rdf+xml' }, ())" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SaxonJS'"/>
-        <xsl:param name="request-uri" select="ac:document-uri(rdf:type/@rdf:resource)" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+        <xsl:param name="class" select="'ldhc-alert va-negative'" as="xs:string?"/>
 
-        <div>
+        <div role="alert">
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
-            <xsl:apply-templates select="key('resources', rdf:type/@rdf:resource, document($request-uri))" mode="ldh:logo">
-                <xsl:with-param name="class" select="$class"/>
-            </xsl:apply-templates>
-            <xsl:text> </xsl:text>
-            <xsl:value-of>
-                <xsl:apply-templates select="." mode="ac:label"/>
-            </xsl:value-of>
+            <span class="ldhc-alert-ic">
+                <span class="msi outline" aria-hidden="true">error</span>
+            </span>
+            <div class="ldhc-alert-body">
+                <span class="ldhc-alert-text">
+                    <xsl:value-of>
+                        <xsl:apply-templates select="." mode="ac:label"/>
+                    </xsl:value-of>
+                </span>
+            </div>
         </div>
     </xsl:template>
-    
-    <xsl:template match="*[rdf:type/@rdf:resource = '&sh;ValidationResult']" mode="bs2:Violation">
-        <xsl:param name="class" select="'alert alert-error'" as="xs:string?"/>
-        <xsl:param name="request-uri" select="ldh:href(ac:document-uri(rdf:type/@rdf:resource), map{ 'accept': 'application/rdf+xml' }, ())" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SaxonJS'"/>
-        <xsl:param name="request-uri" select="ac:document-uri(rdf:type/@rdf:resource)" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
 
-        <div>
+    <xsl:template match="*[rdf:type/@rdf:resource = '&sh;ValidationResult']" mode="bs2:Violation">
+        <xsl:param name="class" select="'ldhc-alert va-negative'" as="xs:string?"/>
+
+        <div role="alert">
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
-            <xsl:apply-templates select="key('resources', rdf:type/@rdf:resource, document($request-uri))" mode="ldh:logo">
-                <xsl:with-param name="class" select="$class"/>
-            </xsl:apply-templates>
-            <xsl:text> </xsl:text>
-            <xsl:value-of select="sh:resultMessage"/>
+            <span class="ldhc-alert-ic">
+                <span class="msi outline" aria-hidden="true">error</span>
+            </span>
+            <div class="ldhc-alert-body">
+                <span class="ldhc-alert-text">
+                    <xsl:value-of select="sh:resultMessage"/>
+                </span>
+            </div>
         </div>
     </xsl:template>
     

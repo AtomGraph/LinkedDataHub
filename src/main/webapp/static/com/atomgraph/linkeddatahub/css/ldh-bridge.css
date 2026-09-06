@@ -30,16 +30,6 @@
 .caret { display: inline-flex; align-items: center; opacity: 0.85; }
 .caret:empty::before { font-family: 'Material Symbols Rounded'; font-size: 16px; line-height: 1; content: 'expand_more'; }
 .caret-reversed:empty::before { content: 'expand_less'; }
-:where(.alert) {
-  display: flex; align-items: flex-start; gap: var(--sp-3);
-  padding: var(--sp-3) var(--sp-4); margin: var(--sp-2) 0;
-  border: 1px solid color-mix(in srgb, var(--warning-500, #b45309) 30%, transparent);
-  border-radius: var(--r-md);
-  background: var(--warning-50, #fef3c7); color: var(--fg-1);
-  font-size: var(--fs-sm);
-}
-.alert-error, .alert.alert-error { background: var(--danger-50); border-color: color-mix(in srgb, var(--danger-500) 30%, transparent); }
-.alert .close { margin-left: auto; border: 0; background: none; color: var(--fg-hint); }
 .progress {
   height: 8px; border-radius: var(--r-pill);
   background: var(--surface-2); overflow: hidden; margin: var(--sp-2) 0;
@@ -83,7 +73,7 @@ table.table th.sortable:hover .sort-arrow { visibility: visible; }
 table.table th.sortable[aria-sort] .sort-arrow { visibility: visible; color: var(--fg-1); }
 .content-body { padding: var(--sp-4) var(--sp-6); max-width: var(--ldh-content-w); margin: 0 auto; }
 /* stacking rhythm between block cards and alerts (Bootstrap's row margins are gone) */
-.content-body .ldh-block, .content-body .ldhc-alert, .content-body :where(.alert) { margin-bottom: var(--sp-4); }
+.content-body .ldh-block, .content-body .ldhc-alert { margin-bottom: var(--sp-4); }
 /* one card layer only: CSR hydration can re-render a row as a card inside the SSR wrapper card */
 .ldh-block .ldh-block { border: 0; box-shadow: none; border-radius: 0; background: transparent; margin-bottom: 0; }
 .row-block-controls { min-height: 30px; }
@@ -111,7 +101,7 @@ ul.typeahead.dropdown-menu > li.active > a, ul.typeahead.dropdown-menu > li > a:
    stay in every state, because the header carries what a broken block needs
    (copy IRI, edit, delete) and holding the footprint keeps the document from
    reflowing. The failure now shows as the app.css ring instead. */
-.ldh-block :is(.alert, .ldhc-alert) { margin: 0; }
+.ldh-block .ldhc-alert { margin: 0; }
 
 /* ---------- sticky chrome: header on top, action bar (legacy --action-bar-top) right under it.
    Bar heights are tokens that size the bars, not mirrors of their content, so stacked sticky

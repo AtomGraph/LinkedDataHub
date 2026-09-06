@@ -607,15 +607,13 @@ WHERE
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <div class="block-row">
                     <div class="main">
-                        <div class="alert block-row">
-                            <div>
+                        <div class="ldhc-alert va-success block-row" role="alert">
+                            <span class="ldhc-alert-ic">
                                 <span class="msi" aria-label="Signup complete">check_circle</span>
-                            </div>
-                            <div>
-                                <p>Congratulations! Your WebID profile has been created. You can see its data below.</p>
-                                <p>
-                                    <strong>Authentication details have been sent to your email address.</strong>
-                                </p>
+                            </span>
+                            <div class="ldhc-alert-body">
+                                <span class="ldhc-alert-text">Congratulations! Your WebID profile has been created. You can see its data below.</span>
+                                <span class="ldhc-alert-title">Authentication details have been sent to your email address.</span>
                             </div>
                         </div>
                     </div>

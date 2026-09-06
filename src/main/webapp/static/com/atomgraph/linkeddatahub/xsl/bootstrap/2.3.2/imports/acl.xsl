@@ -71,10 +71,14 @@ exclude-result-prefixes="#all">
         <xsl:next-match/>
 
         <xsl:if test="lacl:requestMode/@rdf:resource = '&acl;Control'">
-            <div class="alert">
-                <p>
-                    <strong>Warning!</strong> By allowing <code>Control</code> access mode you are effectively granting full control of the dataspace.
-                </p>
+            <div class="ldhc-alert va-warning" role="alert">
+                <span class="ldhc-alert-ic">
+                    <span class="msi outline" aria-hidden="true">warning</span>
+                </span>
+                <div class="ldhc-alert-body">
+                    <span class="ldhc-alert-title">Warning!</span>
+                    <span class="ldhc-alert-text">By allowing <code>Control</code> access mode you are effectively granting full control of the dataspace.</span>
+                </div>
             </div>
         </xsl:if>
 

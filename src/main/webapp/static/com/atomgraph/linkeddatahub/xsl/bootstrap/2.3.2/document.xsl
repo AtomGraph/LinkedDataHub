@@ -525,51 +525,65 @@ extension-element-prefixes="ixsl"
 
             <!-- notice shown when a historical version is displayed (?version= query parameter) -->
             <xsl:if test="map:contains(ldh:query-params(), 'version')">
-                <div class="alert alert-info">
-                    <xsl:value-of>
-                        <xsl:apply-templates select="key('resources', 'historical-version-notice', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                    </xsl:value-of>
-                    <xsl:if test="exists(ldh:memento-datetime())">
-                        <xsl:text> (</xsl:text>
-                        <strong>
-                            <xsl:value-of select="ldh:memento-datetime()"/>
-                        </strong>
-                        <xsl:text>)</xsl:text>
-                    </xsl:if>
-                    <xsl:text>. </xsl:text>
-                    <a href="{ac:absolute-path(ldh:base-uri(.))}">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'view-current-version', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </a>
+                <div class="ldhc-alert va-informative" role="alert">
+                    <span class="ldhc-alert-ic">
+                        <span class="msi outline" aria-hidden="true">info</span>
+                    </span>
+                    <div class="ldhc-alert-body">
+                        <span class="ldhc-alert-text">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'historical-version-notice', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            </xsl:value-of>
+                            <xsl:if test="exists(ldh:memento-datetime())">
+                                <xsl:text> (</xsl:text>
+                                <strong>
+                                    <xsl:value-of select="ldh:memento-datetime()"/>
+                                </strong>
+                                <xsl:text>)</xsl:text>
+                            </xsl:if>
+                            <xsl:text>. </xsl:text>
+                            <a href="{ac:absolute-path(ldh:base-uri(.))}">
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', 'view-current-version', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </a>
+                        </span>
+                    </div>
                 </div>
             </xsl:if>
 
             <!-- legend shown when a version diff is displayed (?diff= query parameter): removed content comes from the compared version, added content from the viewed one, changed content exists in both -->
             <xsl:if test="map:contains(ldh:query-params(), 'diff')">
-                <div class="alert alert-info">
-                    <xsl:value-of>
-                        <xsl:apply-templates select="key('resources', 'comparing-versions', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                    </xsl:value-of>
-                    <xsl:text>: </xsl:text>
-                    <span class="text-error">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'removed', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                        </xsl:value-of>
+                <div class="ldhc-alert va-informative" role="alert">
+                    <span class="ldhc-alert-ic">
+                        <span class="msi outline" aria-hidden="true">info</span>
                     </span>
-                    <xsl:text> / </xsl:text>
-                    <span class="text-success">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'added', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </span>
-                    <xsl:text> / </xsl:text>
-                    <!-- the legend's .text-* classes resolve to the same tokens as the diff decorations (ldh-bridge.css) -->
-                    <span class="text-warning">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'changed', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </span>
+                    <div class="ldhc-alert-body">
+                        <span class="ldhc-alert-text">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'comparing-versions', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            </xsl:value-of>
+                            <xsl:text>: </xsl:text>
+                            <span class="text-error">
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', 'removed', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </span>
+                            <xsl:text> / </xsl:text>
+                            <span class="text-success">
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', 'added', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </span>
+                            <xsl:text> / </xsl:text>
+                            <!-- the legend's .text-* classes resolve to the same tokens as the diff decorations (ldh-bridge.css) -->
+                            <span class="text-warning">
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', 'changed', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </span>
+                        </span>
+                    </div>
                 </div>
             </xsl:if>
 
@@ -1334,9 +1348,9 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&http;Response'][lacl:requestAccess/@rdf:resource][$foaf:Agent]" mode="bs2:Header" priority="2">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'alert alert-info'" as="xs:string?"/>
+        <xsl:param name="class" select="'ldhc-alert va-informative'" as="xs:string?"/>
 
-        <div>
+        <div role="alert">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
@@ -1344,25 +1358,27 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
-            <h2>
-                <xsl:apply-templates select="." mode="ldh:logo"/>
-
-                <xsl:apply-templates select="." mode="ac:label"/>
-
+            <span class="ldhc-alert-ic">
+                <span class="msi outline" aria-hidden="true">info</span>
+            </span>
+            <div class="ldhc-alert-body">
+                <h2 class="ldhc-alert-title">
+                    <xsl:apply-templates select="." mode="ac:label"/>
+                </h2>
                 <button type="button" class="ldhc-btn in-primary ap-solid sz-md btn-access-form">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'request-access', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                     </xsl:value-of>
                 </button>
-            </h2>
+            </div>
         </div>
     </xsl:template>
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&http;Response']" mode="bs2:Header" priority="1">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'alert alert-error'" as="xs:string?"/>
+        <xsl:param name="class" select="'ldhc-alert va-negative'" as="xs:string?"/>
 
-        <div>
+        <div role="alert">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
@@ -1370,11 +1386,16 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
-            <h2>
-                <xsl:value-of>
-                    <xsl:apply-templates select="." mode="ac:label"/>
-                </xsl:value-of>
-            </h2>
+            <span class="ldhc-alert-ic">
+                <span class="msi outline" aria-hidden="true">error</span>
+            </span>
+            <div class="ldhc-alert-body">
+                <h2 class="ldhc-alert-title">
+                    <xsl:value-of>
+                        <xsl:apply-templates select="." mode="ac:label"/>
+                    </xsl:value-of>
+                </h2>
+            </div>
         </div>
     </xsl:template>
 

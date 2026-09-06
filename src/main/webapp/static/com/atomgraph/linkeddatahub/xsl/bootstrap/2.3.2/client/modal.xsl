@@ -207,8 +207,13 @@ LIMIT   10
                     </div>
                 </form>
 
-                <div class="alert alert-info">
-                    <p>Adding data this way fetches the source through the Linked Data proxy and appends it to the target document, so use it for small amounts of data only (e.g. a few thousand RDF triples). For larger data, use asynchronous <a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/reference/imports/rdf/" target="_blank">RDF imports</a>.</p>
+                <div class="ldhc-alert va-informative" role="alert">
+                    <span class="ldhc-alert-ic">
+                        <span class="msi outline" aria-hidden="true">info</span>
+                    </span>
+                    <div class="ldhc-alert-body">
+                        <span class="ldhc-alert-text">Adding data this way fetches the source through the Linked Data proxy and appends it to the target document, so use it for small amounts of data only (e.g. a few thousand RDF triples). For larger data, use asynchronous <a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/reference/imports/rdf/" target="_blank">RDF imports</a>.</span>
+                    </div>
                 </div>
                 </div>
             </div>
