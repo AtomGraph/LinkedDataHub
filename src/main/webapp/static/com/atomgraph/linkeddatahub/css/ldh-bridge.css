@@ -536,7 +536,7 @@ body:has(.document-body > .content-body > :is(.graph-3d-canvas, .map-canvas)) .l
    repo. They stay here so the next re-vendor cannot lose them again.
    ========================================================================= */
 /* hover-lift transforms (retro themes) make the card a stacking context, trapping its inline dropdowns below later positioned rows; while a popup is open the card must win the paint order over subsequent blocks (but stay under the z-70 action bar) */
-.ldh-block:has(.is-open) { position: relative; z-index: 60; }
+.ldh-block:has(.is-open), .ldh-nblock:has(.is-open) { position: relative; z-index: 60; }
 
 /* Links button — opens the block links popover (backlinks). The button always
    sits inside its .links-nav anchor, so one selector covers every host: block
@@ -616,7 +616,7 @@ body:has(.document-body > .content-body > :is(.graph-3d-canvas, .map-canvas)) .l
    all (m3 uses elevation and sets border-width: 0), and an outline survives
    both without fighting the skin's shadow. Offset inward so it lands on the
    card edge rather than outside it. */
-.ldh-block:has(.ldh-block-error) {
+.ldh-block:has(.ldh-block-error), .ldh-nblock:has(.ldh-block-error) {
   outline: 1px solid color-mix(in srgb, var(--danger-500) 38%, transparent);
   outline-offset: -1px;
   border-color: color-mix(in srgb, var(--danger-500) 28%, var(--border-default));

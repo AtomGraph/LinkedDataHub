@@ -969,12 +969,15 @@ exclude-result-prefixes="#all"
         <!-- first time rendering the view results -->
         <xsl:if test="$initial-load">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:where-populated>
-                    <h2>
-                        <!-- select the value text() only: a lang-tagged dct:title renders as <dd> with a leading language-badge <span> (xhtml:DefinitionDescription), and value-of over the whole element would prepend the badge (e.g. "enCurrent members"). [1] guards against multiple language values. -->
-                        <xsl:value-of select="($container/descendant::*[@property = '&dct;title']/text())[1]"/>
-                    </h2>
-                </xsl:where-populated>
+                <!-- an nblock host already shows the title in its head -->
+                <xsl:if test="not($container/ancestor::div[contains-token(@class, 'ldh-nblock')])">
+                    <xsl:where-populated>
+                        <h2>
+                            <!-- select the value text() only: a lang-tagged dct:title renders as <dd> with a leading language-badge <span> (xhtml:DefinitionDescription), and value-of over the whole element would prepend the badge (e.g. "enCurrent members"). [1] guards against multiple language values. -->
+                            <xsl:value-of select="($container/descendant::*[@property = '&dct;title']/text()[normalize-space()])[1]"/>
+                        </h2>
+                    </xsl:where-populated>
+                </xsl:if>
 
                 <div class="ldh-view-toolbar">
                     <div class="left">
@@ -1113,7 +1116,7 @@ exclude-result-prefixes="#all"
         <!-- ldh:showWhenEmpty (default true): when false, hide the whole injected view block while the query returns no results and un-hide it when results appear on a later refresh. Only evaluated on the first page: at offset 0 an empty page means an empty result set, while a non-zero offset implies interaction with a visible block -->
         <xsl:if test="$offset = 0">
             <xsl:variable name="view-block" select="$container/ancestor::div[contains-token(@class, 'block')][1]" as="element()?"/>
-            <xsl:variable name="show-when-empty" select="not(($view-block/@data-show-when-empty, $container/descendant::*[@property = '&ldh;showWhenEmpty']/text())[1] = ('false', '0'))" as="xs:boolean"/>
+            <xsl:variable name="show-when-empty" select="not(($view-block/@data-show-when-empty, $container/descendant::*[@property = '&ldh;showWhenEmpty']/text()[normalize-space()])[1] = ('false', '0'))" as="xs:boolean"/>
             <xsl:if test="not($show-when-empty)">
                 <xsl:for-each select="$view-block">
                     <ixsl:set-style name="display" select="if ($exact-count = 0) then 'none' else ''" object="."/>
@@ -3210,9 +3213,10 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:refresh-view" as="item()*" ixsl:updating="yes">
         <xsl:param name="block-id" as="xs:string"/>
 
-        <xsl:message>ldh:refresh-view block-id: '<xsl:value-of select="$block-id"/>' matched views: <xsl:value-of select="count(id($block-id, ixsl:page())/div[contains-token(@class, 'row-main')]/div[@typeof = '&ldh;View'])"/></xsl:message>
+        <xsl:message>ldh:refresh-view block-id: '<xsl:value-of select="$block-id"/>' matched views: <xsl:value-of select="count((id($block-id, ixsl:page())//div[@typeof = '&ldh;View'])[1])"/></xsl:message>
 
-        <xsl:for-each select="id($block-id, ixsl:page())/div[contains-token(@class, 'row-main')]/div[@typeof = '&ldh;View']">
+        <!-- shape-agnostic: legacy blocks nest the typed div under div.row-main, nblocks under div.ldh-nblock-body; document order keeps [1] on the block's own typed div even when sub-views are injected inside its results -->
+        <xsl:for-each select="(id($block-id, ixsl:page())//div[@typeof = '&ldh;View'])[1]">
             <xsl:variable name="container" select="." as="element()"/>
             <xsl:variable name="cache" select="ldh:view-cache($container)" as="item()"/>
             <xsl:message>ldh:refresh-view cache found: <xsl:value-of select="exists($cache)"/></xsl:message>

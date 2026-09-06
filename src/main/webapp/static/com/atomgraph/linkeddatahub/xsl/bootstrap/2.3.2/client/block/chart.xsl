@@ -226,8 +226,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="series-id" select="'series-' || generate-id()" as="xs:string"/>
         <xsl:variable name="query-uri" select="descendant::*[@property = '&spin;query']/@resource" as="xs:anyURI"/>
         <xsl:variable name="chart-type" select="descendant::*[@property = '&ldh;chartType']/@resource" as="xs:anyURI?"/>
-        <xsl:variable name="category" select="descendant::*[@property = '&ldh;categoryProperty']/@resource | descendant::*[@property = '&ldh;categoryVarName']/text()" as="xs:string?"/>
-        <xsl:variable name="series" select="descendant::*[@property = '&ldh;seriesProperty']/@resource | descendant::*[@property = '&ldh;seriesVarName']/text()" as="xs:string*"/>
+        <xsl:variable name="category" select="descendant::*[@property = '&ldh;categoryProperty']/@resource | descendant::*[@property = '&ldh;categoryVarName']/text()[normalize-space()]" as="xs:string?"/>
+        <xsl:variable name="series" select="descendant::*[@property = '&ldh;seriesProperty']/@resource | descendant::*[@property = '&ldh;seriesVarName']/text()[normalize-space()]" as="xs:string*"/>
         <xsl:variable name="canvas-id" select="generate-id() || '-chart-canvas'" as="xs:string?"/>
         <xsl:variable name="canvas-class" select="'chart-canvas'" as="xs:string?"/>
 

@@ -489,64 +489,111 @@ extension-element-prefixes="ixsl"
         <xsl:param name="draggable" select="false()" as="xs:boolean?"/>
         <xsl:param name="show-row-block-controls" select="true()" as="xs:boolean"/>
         <xsl:param name="show-drag-handle" select="true()" as="xs:boolean" tunnel="yes"/>
+        <xsl:param name="nested" select="false()" as="xs:boolean"/>
+        <xsl:param name="depth" select="1" as="xs:integer"/>
         <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
         <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
         <xsl:variable name="diff-class" select="ldh:diff-class(., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
 
-        <xsl:apply-templates select="key('resources', .)" mode="bs2:RowContentHeader"/>
+        <xsl:choose>
+            <!-- ontology-injected (derived) block: the design system's nested-block well. The stored-block chrome is omitted -
+                 drag reorder needs rdf:_N membership, the row edit form needs a subject that exists in the graph, and the host
+                 block's progress bar already spans this block's load - so only the head and the RDFa body remain -->
+            <xsl:when test="$nested">
+                <xsl:variable name="block-type" select="(rdf:type/@rdf:resource[. = ('&ldh;Object', '&ldh;View', '&ldh;GraphChart', '&ldh;ResultSetChart', '&sp;Describe', '&sp;Construct', '&sp;Ask', '&sp;Select')])[1]" as="xs:anyURI"/>
+                <xsl:variable name="glyph" select="map{ '&ldh;View': 'table_rows', '&ldh;GraphChart': 'show_chart', '&ldh;ResultSetChart': 'show_chart', '&sp;Describe': 'code', '&sp;Construct': 'code', '&sp;Ask': 'code', '&sp;Select': 'code' }($block-type)" as="xs:string?"/>
 
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class or $diff-class">
-                <xsl:attribute name="class" select="string-join(($class, $diff-class), ' ')"/>
-            </xsl:if>
-            <xsl:if test="$about">
-                <xsl:attribute name="about" select="$about"/>
-            </xsl:if>
-<!--            <xsl:if test="exists($typeof)">
-                <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
-            </xsl:if>-->
-            <xsl:if test="$draggable = true()">
-                <xsl:attribute name="draggable" select="'true'"/>
-            </xsl:if>
-
-            <div class="row-main">
-                <xsl:if test="$show-row-block-controls">
-                    <xsl:attribute name="class" select="'row-main progress active'"/>
-
-                    <xsl:if test="$show-drag-handle">
-                        <div class="drag-handle">
-                            <xsl:if test="acl:mode() = '&acl;Write'">
-                                <xsl:attribute name="draggable" select="'true'"/>
-                            </xsl:if>
-                        </div>
+                <div>
+                    <xsl:if test="$id">
+                        <xsl:attribute name="id" select="$id"/>
                     </xsl:if>
-                    <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
-                        <div class="row-main">
-                            <xsl:if test="acl:mode() = '&acl;Write'">
-                                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm btn-edit" style="display: none;">
-                                    <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                                </button>
-                            </xsl:if>
-                            <div class="ldhc-pbar ht-sm">
-                                <div class="ldhc-pbar-track">
-                                    <div class="ldhc-pbar-fill" style="width: 0%;"></div>
-                                </div>
+                    <xsl:attribute name="class" select="string-join(('block ldh-nblock', $diff-class), ' ')"/>
+                    <xsl:if test="$about">
+                        <xsl:attribute name="about" select="$about"/>
+                    </xsl:if>
+                    <xsl:attribute name="data-depth" select="min((3, $depth))"/>
+
+                    <div class="ldh-nblock-head">
+                        <span class="ldh-nblock-icon">
+                            <span class="msi outline sm" aria-hidden="true">
+                                <xsl:value-of select="($glyph, 'widgets')[1]"/>
+                            </span>
+                        </span>
+                        <span class="ldh-nblock-titles">
+                            <span class="ldh-nblock-kind">
+                                <xsl:apply-templates select="key('resources', $block-type, document(ac:document-uri($block-type)))" mode="ac:label"/>
+                            </span>
+                            <h4 class="ldh-nblock-title">
+                                <xsl:value-of select="ac:label(.)"/>
+                            </h4>
+                        </span>
+                    </div>
+                    <div class="ldh-nblock-body">
+                        <div class="block-row" typeof="{string-join($typeof, ' ')}">
+                            <div class="main">
+                                <xsl:apply-templates select="." mode="bs2:PropertyList"/>
                             </div>
                         </div>
                     </div>
-                </xsl:if>
+                </div>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:apply-templates select="key('resources', .)" mode="bs2:RowContentHeader"/>
 
-                <!-- client-side $container -->
-                <xsl:next-match>
-                    <xsl:with-param name="id" select="()"/> <!-- only block wrappers have @id-->
-                    <xsl:with-param name="about" select="()"/> <!-- only block wrappers have @about -->
-                    <xsl:with-param name="class" select="'block-row'"/>
-                </xsl:next-match>
-            </div>
-        </div>
+                <div>
+                    <xsl:if test="$id">
+                        <xsl:attribute name="id" select="$id"/>
+                    </xsl:if>
+                    <xsl:if test="$class or $diff-class">
+                        <xsl:attribute name="class" select="string-join(($class, $diff-class), ' ')"/>
+                    </xsl:if>
+                    <xsl:if test="$about">
+                        <xsl:attribute name="about" select="$about"/>
+                    </xsl:if>
+        <!--            <xsl:if test="exists($typeof)">
+                        <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
+                    </xsl:if>-->
+                    <xsl:if test="$draggable = true()">
+                        <xsl:attribute name="draggable" select="'true'"/>
+                    </xsl:if>
+
+                    <div class="row-main">
+                        <xsl:if test="$show-row-block-controls">
+                            <xsl:attribute name="class" select="'row-main progress active'"/>
+
+                            <xsl:if test="$show-drag-handle">
+                                <div class="drag-handle">
+                                    <xsl:if test="acl:mode() = '&acl;Write'">
+                                        <xsl:attribute name="draggable" select="'true'"/>
+                                    </xsl:if>
+                                </div>
+                            </xsl:if>
+                            <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
+                                <div class="row-main">
+                                    <xsl:if test="acl:mode() = '&acl;Write'">
+                                        <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm btn-edit" style="display: none;">
+                                            <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                                        </button>
+                                    </xsl:if>
+                                    <div class="ldhc-pbar ht-sm">
+                                        <div class="ldhc-pbar-track">
+                                            <div class="ldhc-pbar-fill" style="width: 0%;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </xsl:if>
+
+                        <!-- client-side $container -->
+                        <xsl:next-match>
+                            <xsl:with-param name="id" select="()"/> <!-- only block wrappers have @id-->
+                            <xsl:with-param name="about" select="()"/> <!-- only block wrappers have @about -->
+                            <xsl:with-param name="class" select="'block-row'"/>
+                        </xsl:next-match>
+                    </div>
+                </div>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <!-- XHTML content overrides -->
@@ -848,9 +895,11 @@ extension-element-prefixes="ixsl"
          for, so the semantic elements and the RDFa attributes ride the same markup the grid styles.
          One .ldh-prop-group per predicate (keyed on the dds' RDFa @property URI - labels can collide
          across predicates, property URIs cannot; the div group wrapper is the HTML spec's own dl
-         grouping element), the dt's label in the spanning .label cell, each dd as a .ldh-prop-row
-         carrying its RDFa attributes on the dd itself. The trailing empty .row-actions cell completes
-         the grid row so the statement delimiter reaches the card's right inset -->
+         grouping element), the dt's label in the spanning .label cell, each dd as a .ldh-prop-row.
+         The RDFa attributes ride the .value cell, not the dd: an RDFa literal is its element's text
+         content, and on the dd the layout whitespace around the cells would pollute it (and crash
+         the client-side text() extractions in chart.xsl/view.xsl). The trailing empty .row-actions
+         cell completes the grid row so the statement delimiter reaches the card's right inset -->
     <xsl:template match="xhtml:dl" mode="bs2:PropertyListIdentity">
         <dl class="ldh-prop-form">
             <xsl:for-each-group select="*" group-adjacent="string((self::xhtml:dd/@property, following-sibling::xhtml:dd[preceding-sibling::xhtml:dt[1] is current()][1]/@property)[1])">
@@ -875,9 +924,8 @@ extension-element-prefixes="ixsl"
 
                     <xsl:for-each select="$dds">
                         <dd class="ldh-prop-row{if (position() = last()) then ' is-last' else ()}">
-                            <xsl:copy-of select="@* except @class"/>
-
                             <div class="value{@class ! (' ' || .)}">
+                                <xsl:copy-of select="@* except @class"/>
                                 <xsl:sequence select="node()"/>
                             </div>
                             <div class="row-actions"></div>

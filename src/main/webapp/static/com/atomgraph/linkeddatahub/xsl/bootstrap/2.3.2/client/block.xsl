@@ -1015,6 +1015,8 @@ exclude-result-prefixes="#all"
                             <xsl:apply-templates select="$view-resource" mode="bs2:Row">
                                 <xsl:with-param name="about" select="xs:anyURI($base-uri || '#' || $id)"/>
                                 <xsl:with-param name="id" select="$id"/>
+                                <xsl:with-param name="nested" select="true()"/>
+                                <xsl:with-param name="depth" select="count($container/ancestor-or-self::div[contains-token(@class, 'block')])"/>
                                 <xsl:with-param name="property-metadata" select="$context('property-metadata')" tunnel="yes"/>
                                 <xsl:with-param name="object-metadata" select="$context('object-metadata')" tunnel="yes"/>
                             </xsl:apply-templates>
@@ -1215,9 +1217,9 @@ exclude-result-prefixes="#all"
               
         <xsl:variable name="container" select="$context('container')" as="element()"/>
         
-        <!-- hide the progress bar -->
-        <xsl:for-each select="$container/ancestor::div[contains-token(@class, 'row-main')][contains-token(@class, 'progress')][contains-token(@class, 'active')]">
-            <ixsl:set-style name="display" select="'none'" object=".//div[contains-token(@class, 'ldhc-pbar')]"/>
+        <!-- hide the progress bar. The row must belong to the container's own block: an nblock container nested in a host embed has no progress row of its own, and without the guard this call would hide the host's bar -->
+        <xsl:for-each select="$container/ancestor::div[contains-token(@class, 'row-main')][contains-token(@class, 'progress')][contains-token(@class, 'active')][1][ancestor::div[contains-token(@class, 'block')][1] is $container/ancestor-or-self::div[contains-token(@class, 'block')][1]]">
+            <ixsl:set-style name="display" select="'none'" object="(.//div[contains-token(@class, 'ldhc-pbar')])[1]"/>
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -1275,13 +1277,14 @@ exclude-result-prefixes="#all"
         <xsl:if test="map:contains($context, 'container')">
             <xsl:variable name="container" select="$context('container')" as="element()"/>
 
-            <xsl:for-each select="$container/ancestor::div[contains-token(@class, 'progress')][contains-token(@class, 'active')][1]">
-                <ixsl:set-style name="width" select="$percent || '%'" object=".//div[contains-token(@class, 'ldhc-pbar-fill')]"/>
+            <xsl:for-each select="$container/ancestor::div[contains-token(@class, 'progress')][contains-token(@class, 'active')][1][ancestor::div[contains-token(@class, 'block')][1] is $container/ancestor-or-self::div[contains-token(@class, 'block')][1]]">
+                <!-- the row must belong to the container's own block (an nblock container would otherwise drive its host's bar), and only its first pbar is this block's own -->
+                <ixsl:set-style name="width" select="$percent || '%'" object="(.//div[contains-token(@class, 'ldhc-pbar-fill')])[1]"/>
 
                 <!-- auto-hide when 100% -->
                 <xsl:if test="$percent ge 100">
                     <ixsl:set-style name="z-index" select="'-1'" object="./div[contains-token(@class, 'row-block-controls')]"/>
-                    <ixsl:set-style name="display" select="'none'" object=".//div[contains-token(@class, 'ldhc-pbar')]"/>
+                    <ixsl:set-style name="display" select="'none'" object="(.//div[contains-token(@class, 'ldhc-pbar')])[1]"/>
 
                     <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
                     <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
