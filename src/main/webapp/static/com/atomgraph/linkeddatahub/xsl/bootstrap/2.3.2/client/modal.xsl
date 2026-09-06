@@ -1185,7 +1185,7 @@ LIMIT   10
         </xsl:call-template>
 
         <xsl:call-template name="ldh:LoadTypeaheads">
-            <xsl:with-param name="typeahead-spans" select="(id('upload-rdf-doc', ixsl:page())/.., id('remote-rdf-doc', ixsl:page())/..)"/>
+            <xsl:with-param name="comboboxes" select="(id('upload-rdf-doc', ixsl:page()), id('remote-rdf-doc', ixsl:page()))/ancestor::div[contains-token(@class, 'ldhc-combobox')][1]"/>
             <xsl:with-param name="graph" select="$graph"/>
         </xsl:call-template>
     </xsl:template>
@@ -1203,7 +1203,7 @@ LIMIT   10
 
         <!-- initialise the parent typeahead with the current container -->
         <xsl:call-template name="ldh:LoadTypeaheads">
-            <xsl:with-param name="typeahead-spans" select="id('generate-containers-parent', ixsl:page())/.."/>
+            <xsl:with-param name="comboboxes" select="id('generate-containers-parent', ixsl:page())/ancestor::div[contains-token(@class, 'ldhc-combobox')][1]"/>
             <xsl:with-param name="graph" select="$graph"/>
         </xsl:call-template>
     </xsl:template>
@@ -1760,20 +1760,20 @@ LIMIT   10
         </xsl:if>
     </xsl:template>
 
-    <!-- populate typeahead spans inside a freshly-appended form modal with values from $graph -->
+    <!-- resolve lookup comboboxes inside a freshly-appended form modal into committed chips for $graph -->
 
     <xsl:template name="ldh:LoadTypeaheads">
-        <xsl:param name="typeahead-spans" as="element()*"/>
+        <xsl:param name="comboboxes" as="element()*"/>
         <xsl:param name="graph" as="xs:anyURI"/>
 
         <xsl:variable name="request-uri" select="ldh:href($graph, map{})" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-        <xsl:for-each select="$typeahead-spans">
+        <xsl:for-each select="$comboboxes">
             <xsl:variable name="context" as="map(*)" select="
               map{
                 'request': $request,
                 'resource-uri': $graph,
-                'typeahead-span': .
+                'combobox': .
               }"/>
             <ixsl:promise select="
               ixsl:http-request($context('request'))
@@ -1886,7 +1886,9 @@ LIMIT   10
         <xsl:variable name="status" select="$response?status" as="xs:double"/>
         <xsl:variable name="media-type" select="$response?media-type" as="xs:string?"/>
         <xsl:variable name="resource-uri" select="$context('resource-uri')" as="xs:anyURI"/>
-        <xsl:variable name="typeahead-span" select="$context('typeahead-span')" as="element()"/>
+        <xsl:variable name="combobox" select="$context('combobox')" as="element()"/>
+        <!-- data-for-class sits on the box; the committed chip carries it forward so the edit button's fresh lookup keeps the class scope -->
+        <xsl:variable name="forClass" select="$combobox/div[contains-token(@class, 'ldhc-cb-box')]/@data-for-class ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
 
         <xsl:message>ldh:typeahead-resource-response</xsl:message>
 
@@ -1897,25 +1899,31 @@ LIMIT   10
 
                     <xsl:choose>
                         <xsl:when test="$resource">
-                            <xsl:for-each select="$typeahead-span">
+                            <!-- the committed chip stands in for the whole combobox, mirroring the edit button's replace-element in the other direction -->
+                            <xsl:for-each select="$combobox">
                                 <xsl:variable name="typeahead" as="element()">
                                     <xsl:apply-templates select="$resource" mode="ldh:Typeahead">
-                                        <!-- <xsl:with-param name="forClass" select="$forClass"/> -->
+                                        <xsl:with-param name="forClass" select="$forClass"/>
                                     </xsl:apply-templates>
                                 </xsl:variable>
 
-                                <xsl:result-document href="?." method="ixsl:replace-content">
-                                    <xsl:sequence select="$typeahead/*"/>
+                                <xsl:result-document href="?." method="ixsl:replace-element">
+                                    <xsl:sequence select="$typeahead"/>
                                 </xsl:result-document>
                             </xsl:for-each>
                         </xsl:when>
                         <xsl:otherwise>
-                            <!-- resource description not found, render lookup input -->
-                            <xsl:call-template name="bs2:Lookup">
-                                <xsl:with-param name="class" select="'resource-typeahead typeahead'"/>
-                                <xsl:with-param name="list-class" select="'resource-typeahead typeahead dropdown-menu'"/>
-                                <xsl:with-param name="value" select="$resource-uri"/>
-                            </xsl:call-template>
+                            <!-- resource description not found: keep a lookup, with the raw URI as its value -->
+                            <xsl:for-each select="$combobox">
+                                <xsl:result-document href="?." method="ixsl:replace-element">
+                                    <xsl:call-template name="bs2:Lookup">
+                                        <xsl:with-param name="class" select="'resource-typeahead typeahead'"/>
+                                        <xsl:with-param name="list-class" select="'resource-typeahead typeahead dropdown-menu'"/>
+                                        <xsl:with-param name="value" select="$resource-uri"/>
+                                        <xsl:with-param name="forClass" select="$forClass"/>
+                                    </xsl:call-template>
+                                </xsl:result-document>
+                            </xsl:for-each>
                         </xsl:otherwise>
                     </xsl:choose>
                 </xsl:for-each>
