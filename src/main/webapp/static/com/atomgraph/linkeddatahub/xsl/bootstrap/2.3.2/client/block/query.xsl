@@ -205,32 +205,41 @@ exclude-result-prefixes="#all"
                 <xsl:copy-of select="$header"/>
                                 
                 <form class="sparql-query-form ldh-prop-form" method="get" action="">
-                    <div class="control-group">
+                    <div class="ldh-prop-group">
                         <xsl:call-template name="xhtml:Input">
                             <xsl:with-param name="name" select="'pu'"/>
                             <xsl:with-param name="type" select="'hidden'"/>
                             <xsl:with-param name="value" select="'&ldh;service'"/>
                         </xsl:call-template>
 
-                        <label class="control-label">
-                            <xsl:apply-templates select="key('resources', '&ldh;service', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
-                        </label>
-                        <div class="controls">
-                            <xsl:choose>
-                                <xsl:when test="$service-uri">
-                                    <!-- need to explicitly request RDF/XML, otherwise we get HTML -->
-                                    <xsl:variable name="request-uri" select="ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ())" as="xs:anyURI"/>
-                                    <!-- TO-DO: refactor asynchronously -->
-                                    <xsl:apply-templates select="key('resources', $service-uri, document($request-uri))" mode="ldh:Typeahead">
-                                        <xsl:with-param name="forClass" select="$forClass"/>
-                                    </xsl:apply-templates>
-                                </xsl:when>
-                                <xsl:otherwise>
-                                    <xsl:call-template name="bs2:Lookup">
-                                        <xsl:with-param name="forClass" select="$forClass"/>
-                                    </xsl:call-template>
-                                </xsl:otherwise>
-                            </xsl:choose>
+                        <div class="label">
+                            <span class="lbl-row">
+                                <span class="pred" title="&ldh;service">
+                                    <xsl:apply-templates select="key('resources', '&ldh;service', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
+                                </span>
+                            </span>
+                        </div>
+                        <div class="ldh-prop-row is-interactive is-last">
+                            <div class="value val-stack">
+                                <div class="val-main">
+                                    <xsl:choose>
+                                        <xsl:when test="$service-uri">
+                                            <!-- need to explicitly request RDF/XML, otherwise we get HTML -->
+                                            <xsl:variable name="request-uri" select="ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ())" as="xs:anyURI"/>
+                                            <!-- TO-DO: refactor asynchronously -->
+                                            <xsl:apply-templates select="key('resources', $service-uri, document($request-uri))" mode="ldh:Typeahead">
+                                                <xsl:with-param name="forClass" select="$forClass"/>
+                                            </xsl:apply-templates>
+                                        </xsl:when>
+                                        <xsl:otherwise>
+                                            <xsl:call-template name="bs2:Lookup">
+                                                <xsl:with-param name="forClass" select="$forClass"/>
+                                            </xsl:call-template>
+                                        </xsl:otherwise>
+                                    </xsl:choose>
+                                </div>
+                            </div>
+                            <div class="row-actions"></div>
                         </div>
                     </div>
 
@@ -298,8 +307,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="textarea-id" select="descendant::textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
-        <xsl:variable name="service-control-group" select="descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&ldh;service']]" as="element()"/>
-        <xsl:variable name="service-uri" select="$service-control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI?"/>
+        <xsl:variable name="service-prop-group" select="descendant::div[contains-token(@class, 'ldh-prop-group')][input[@name = 'pu'][@value = '&ldh;service']]" as="element()"/>
+        <xsl:variable name="service-uri" select="$service-prop-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI?"/>
         <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ()))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>

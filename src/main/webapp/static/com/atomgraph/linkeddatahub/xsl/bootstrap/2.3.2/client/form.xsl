@@ -342,71 +342,146 @@ WHERE
             </div>
             <div class="modal-body">
                 <form id="annotation-form" class="ldh-prop-form">
-                    <div class="control-group">
-                        <label class="control-label" for="stmt-subject">Subject</label>
-                        <div class="controls">
-                            <div id="stmt-subject" class="uneditable-input"/>
+                    <div class="ldh-prop-group">
+                        <div class="label">
+                            <span class="lbl-row">
+                                <span class="pred">Subject</span>
+                            </span>
+                        </div>
+                        <div class="ldh-prop-row is-last">
+                            <div class="value val-stack">
+                                <div class="val-main">
+                                    <div id="stmt-subject" class="uneditable-input"/>
+                                </div>
+                            </div>
+                            <div class="row-actions"></div>
                         </div>
                     </div>
-                    <div class="control-group">
-                        <label class="control-label" for="annotation-property">Property</label>
-                        <div class="controls">
-                            <xsl:sequence select="rdfae:typeahead-field('property')"/>
+                    <div class="ldh-prop-group">
+                        <div class="label">
+                            <span class="lbl-row">
+                                <span class="pred">Property</span>
+                            </span>
+                        </div>
+                        <div class="ldh-prop-row is-last">
+                            <div class="value val-stack">
+                                <div class="val-main">
+                                    <xsl:sequence select="rdfae:typeahead-field('property')"/>
+                                </div>
+                            </div>
+                            <div class="row-actions"></div>
                         </div>
                     </div>
-                    <div class="control-group">
-                        <label class="control-label" for="annotation-value">Value</label>
-                        <div class="controls">
-                            <input type="text" id="annotation-value" name="value" placeholder="Literal value"/>
-                            <span class="help-inline">The selected text; change to emit a machine-readable content value</span>
+                    <div class="ldh-prop-group">
+                        <div class="label">
+                            <span class="lbl-row">
+                                <span class="pred">Value</span>
+                            </span>
+                        </div>
+                        <div class="ldh-prop-row is-last">
+                            <div class="value val-stack">
+                                <div class="val-main">
+                                    <input type="text" id="annotation-value" name="value" placeholder="Literal value"/>
+                                </div>
+                                <span class="ldhc-help sz-sm">The selected text; change to emit a machine-readable content value</span>
+                            </div>
+                            <div class="row-actions"></div>
                         </div>
                     </div>
                     <fieldset>
                         <legend>Subject</legend>
-                        <div class="control-group">
-                            <label class="control-label" for="annotation-subject">Subject (about)</label>
-                            <div class="controls">
-                                <input type="text" id="annotation-subject" name="subject" placeholder="Overrides the subject in scope"/>
-                                <span class="help-inline">IRI or _:blank-node identifier</span>
+                        <div class="ldh-prop-group">
+                            <div class="label">
+                                <span class="lbl-row">
+                                    <span class="pred">Subject (about)</span>
+                                </span>
+                            </div>
+                            <div class="ldh-prop-row is-last">
+                                <div class="value val-stack">
+                                    <div class="val-main">
+                                        <input type="text" id="annotation-subject" name="subject" placeholder="Overrides the subject in scope"/>
+                                    </div>
+                                    <span class="ldhc-help sz-sm">IRI or _:blank-node identifier</span>
+                                </div>
+                                <div class="row-actions"></div>
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label class="control-label" for="annotation-typeof">Type (typeof)</label>
-                            <div class="controls">
-                                <xsl:sequence select="rdfae:typeahead-field('typeof')"/>
-                                <span class="help-inline">Types the annotated resource; without a subject the typed resource becomes the object of the property (chaining)</span>
+                        <div class="ldh-prop-group">
+                            <div class="label">
+                                <span class="lbl-row">
+                                    <span class="pred">Type (typeof)</span>
+                                </span>
+                            </div>
+                            <div class="ldh-prop-row is-last">
+                                <div class="value val-stack">
+                                    <div class="val-main">
+                                        <xsl:sequence select="rdfae:typeahead-field('typeof')"/>
+                                    </div>
+                                    <span class="ldhc-help sz-sm">Types the annotated resource; without a subject the typed resource becomes the object of the property (chaining)</span>
+                                </div>
+                                <div class="row-actions"></div>
                             </div>
                         </div>
                     </fieldset>
                     <fieldset>
                         <legend>Object</legend>
-                        <div class="control-group">
-                            <label class="control-label" for="annotation-object">Object (resource)</label>
-                            <div class="controls">
-                                <input type="text" id="annotation-object" name="object" placeholder="Object IRI"/>
-                                <span class="help-inline">Makes the object a resource instead of the literal value</span>
+                        <div class="ldh-prop-group">
+                            <div class="label">
+                                <span class="lbl-row">
+                                    <span class="pred">Object (resource)</span>
+                                </span>
+                            </div>
+                            <div class="ldh-prop-row is-last">
+                                <div class="value val-stack">
+                                    <div class="val-main">
+                                        <input type="text" id="annotation-object" name="object" placeholder="Object IRI"/>
+                                    </div>
+                                    <span class="ldhc-help sz-sm">Makes the object a resource instead of the literal value</span>
+                                </div>
+                                <div class="row-actions"></div>
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label class="control-label" for="annotation-datatype">Datatype</label>
-                            <div class="controls">
-                                <select id="annotation-datatype" name="datatype">
-                                    <option value="">(plain literal)</option>
-                                    <xsl:variable name="xsd" as="xs:string" select="'http://www.w3.org/2001/XMLSchema#'"/>
-                                    <xsl:for-each select="'string', 'date', 'dateTime', 'time', 'integer', 'decimal', 'double', 'float', 'boolean', 'anyURI'">
-                                        <option value="{$xsd || .}">xsd:<xsl:value-of select="."/></option>
-                                    </xsl:for-each>
-                                    <option value="{$rdfae:custom}">-- Custom datatype --</option>
-                                </select>
-                                <input type="text" name="custom-datatype" placeholder="Datatype IRI" style="display: none;"/>
-                                <span class="help-inline">Types the literal; mutually exclusive with a language tag</span>
+                        <div class="ldh-prop-group">
+                            <div class="label">
+                                <span class="lbl-row">
+                                    <span class="pred">Datatype</span>
+                                </span>
+                            </div>
+                            <div class="ldh-prop-row is-last">
+                                <div class="value val-stack">
+                                    <div class="val-main">
+                                        <span class="ldhc-select sz-sm">
+                                            <select id="annotation-datatype" name="datatype">
+                                                <option value="">(plain literal)</option>
+                                                <xsl:variable name="xsd" as="xs:string" select="'http://www.w3.org/2001/XMLSchema#'"/>
+                                                <xsl:for-each select="'string', 'date', 'dateTime', 'time', 'integer', 'decimal', 'double', 'float', 'boolean', 'anyURI'">
+                                                    <option value="{$xsd || .}">xsd:<xsl:value-of select="."/></option>
+                                                </xsl:for-each>
+                                                <option value="{$rdfae:custom}">-- Custom datatype --</option>
+                                            </select>
+                                            <span class="msi sm ldhc-select-caret" aria-hidden="true">unfold_more</span>
+                                        </span>
+                                        <input type="text" name="custom-datatype" placeholder="Datatype IRI" style="display: none;"/>
+                                    </div>
+                                    <span class="ldhc-help sz-sm">Types the literal; mutually exclusive with a language tag</span>
+                                </div>
+                                <div class="row-actions"></div>
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label class="control-label" for="annotation-lang">Language</label>
-                            <div class="controls">
-                                <input type="text" id="annotation-lang" name="lang" placeholder="e.g. en, fr-CA"/>
-                                <span class="help-inline">Language tag for the literal; ignored when a datatype is set</span>
+                        <div class="ldh-prop-group">
+                            <div class="label">
+                                <span class="lbl-row">
+                                    <span class="pred">Language</span>
+                                </span>
+                            </div>
+                            <div class="ldh-prop-row is-last">
+                                <div class="value val-stack">
+                                    <div class="val-main">
+                                        <input type="text" id="annotation-lang" name="lang" placeholder="e.g. en, fr-CA"/>
+                                    </div>
+                                    <span class="ldhc-help sz-sm">Language tag for the literal; ignored when a datatype is set</span>
+                                </div>
+                                <div class="row-actions"></div>
                             </div>
                         </div>
                     </fieldset>
@@ -478,7 +553,7 @@ WHERE
                 <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm replace-all">Replace all</button>
                 <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm find-close">Close</button>
             </div>
-            <span id="find-status" class="help-inline"/>
+            <span id="find-status" class="ldhc-help sz-sm"/>
         </div>
     </xsl:template>
 
@@ -538,7 +613,7 @@ WHERE
         <xsl:sequence select="($container//*[self::input[not(@type = 'hidden')] or self::textarea or self::select or self::button[contains-token(@class, 'add-typeahead')]])[1]"/>
     </xsl:function>
 
-    <!-- Focus the control-group the form opens on: the first required one, or - for a class that constrains nothing, a bare owl:NamedIndividual - the type control, since choosing the class is then the only thing left to do. Matching the group rather than the control itself keeps the focus out of the way of the templates that turn a control into a widget: block/query.xsl replaces the query textarea with a YASQE editor in this same mode, and two priority-1 rules on the same textarea would leave only the later-included one running. The group's own children go first, so by the time ldh:FocusControl is dispatched the widget exists. -->
+    <!-- Focus the prop-group the form opens on: the first required one, or - for a class that constrains nothing, a bare owl:NamedIndividual - the type control, since choosing the class is then the only thing left to do. Matching the group rather than the control itself keeps the focus out of the way of the templates that turn a control into a widget: block/query.xsl replaces the query textarea with a YASQE editor in this same mode, and two priority-1 rules on the same textarea would leave only the later-included one running. The group's own children go first, so by the time ldh:FocusControl is dispatched the widget exists. -->
     <xsl:template match="fieldset//div[contains-token(@class, 'required')][1] | fieldset[not(.//div[contains-token(@class, 'required')])]//div[contains-token(@class, 'ldh-prop-group')][input[@name = 'pu'][@value = '&rdf;type']]" mode="ldh:RenderRowForm" priority="1">
         <xsl:apply-templates mode="#current"/>
 
@@ -1246,7 +1321,7 @@ WHERE
     <!-- Terminal callback for the add-value onclick promise chain. Folds context('shapes') + context('constructed-doc') via ldh:build-merged-constructor — the same pure-constructor source the property picker was rendered from, so SHACL-defined properties resolve the same as SPIN-defined ones — and uses the matched property to render either a bs2:TypeControl or bs2:FormControl into the fieldset. -->
     <xsl:function name="ldh:render-add-value" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="property-control-group" select="$context('property-control-group')" as="element()"/>
+        <xsl:variable name="property-addrow" select="$context('property-addrow')" as="element()"/>
         <xsl:variable name="property-uri" select="$context('property-uri')" as="xs:anyURI"/>
         <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI*"/>
         <xsl:variable name="constructed-doc" select="$context('constructed-doc')" as="document-node()"/>
@@ -1270,7 +1345,7 @@ WHERE
         <xsl:variable name="property" select="$resource/*[concat(namespace-uri(), local-name()) = $property-uri]" as="element()"/>
 
         <!-- append the new group to the row container; the add-statement row stays below it as the fieldset's trailer -->
-        <xsl:variable name="prop-form" select="$property-control-group/preceding-sibling::div[contains-token(@class, 'ldh-prop-form')][1]" as="element()"/>
+        <xsl:variable name="prop-form" select="$property-addrow/preceding-sibling::div[contains-token(@class, 'ldh-prop-form')][1]" as="element()"/>
         <xsl:for-each select="$prop-form">
             <xsl:result-document href="?." method="ixsl:append-content">
                 <xsl:choose>
@@ -1298,14 +1373,14 @@ WHERE
     </xsl:function>
 
     <xsl:template match="div[@typeof]//form//button[contains-token(@class, 'add-value')]" mode="ixsl:onclick">
-        <xsl:variable name="property-control-group" select="ancestor::div[contains-token(@class, 'ldh-prop-addrow')][1]" as="element()"/>
+        <xsl:variable name="property-addrow" select="ancestor::div[contains-token(@class, 'ldh-prop-addrow')][1]" as="element()"/>
         <xsl:variable name="property-uri" select="preceding-sibling::span[contains-token(@class, 'ldhc-select')]/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
         <xsl:variable name="forClass" select="for $type in tokenize(ancestor::div[@typeof][contains-token(@class, 'block')][1]/@typeof) return xs:anyURI($type)" as="xs:anyURI*"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="context" as="map(*)" select="map{
-            'property-control-group': $property-control-group,
+            'property-addrow': $property-addrow,
             'property-uri': $property-uri,
             'forClass': $forClass,
             'types': $forClass
@@ -1372,7 +1447,7 @@ WHERE
             </xsl:for-each>
 
             <xsl:if test="exists($new-arcs)">
-                <xsl:variable name="control-groups" as="element()*">
+                <xsl:variable name="prop-groups" as="element()*">
                     <xsl:for-each select="$new-arcs">
                         <xsl:apply-templates select="." mode="bs2:FormControl">
                             <!-- generate fresh $for value because otherwise we can generate existing IDs from the same constructor -->
@@ -1385,7 +1460,7 @@ WHERE
                 <!-- the add-statement row sits below the row container, so new groups always append at the container's end -->
                 <xsl:for-each select="$prop-form">
                     <xsl:result-document href="?." method="ixsl:append-content">
-                        <xsl:copy-of select="$control-groups"/>
+                        <xsl:copy-of select="$prop-groups"/>
                     </xsl:result-document>
 
                     <!-- initialize the appended property groups -->

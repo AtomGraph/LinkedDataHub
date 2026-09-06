@@ -1643,7 +1643,7 @@ exclude-result-prefixes="#all"
                 </xsl:document>
             </xsl:variable>
             
-            <xsl:apply-templates select="$datatype//@rdf:datatype">
+            <xsl:apply-templates select="$datatype//@rdf:datatype" mode="bs2:FormControlTypeLabel">
                 <xsl:with-param name="type" select="$type"/>
             </xsl:apply-templates>
         </xsl:if>
@@ -1726,7 +1726,7 @@ exclude-result-prefixes="#all"
     
     <!-- FORM CONTROL TYPE LABEL -->
 
-    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*/@rdf:nodeID[key('resources', .)[not(* except rdf:type[not(starts-with(@rdf:resource, '&xsd;'))])]]" mode="bs2:FormControlTypeLabel">
+    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*/@rdf:nodeID" mode="bs2:FormControlTypeLabel">
         <xsl:param name="type" as="xs:string?"/>
         <xsl:param name="forClass" as="xs:anyURI*"/>
 
@@ -2006,7 +2006,7 @@ exclude-result-prefixes="#all"
                 </xsl:document>
             </xsl:variable>
 
-            <xsl:apply-templates select="$datatype//@rdf:datatype">
+            <xsl:apply-templates select="$datatype//@rdf:datatype" mode="bs2:FormControlTypeLabel">
                 <xsl:with-param name="type" select="$type"/>
             </xsl:apply-templates>
         </xsl:if>

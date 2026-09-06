@@ -86,9 +86,6 @@ exclude-result-prefixes="#all">
     <!-- hide "Create" button which otherwise would be shown because acl:Append is allowed for signup -->
     <xsl:template match="rdf:RDF[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), ldt:base())]" mode="bs2:Create" priority="2"/>
 
-    <!-- hide "Add data" button which otherwise would be shown because acl:Append is allowed for signup -->
-    <xsl:template match="rdf:RDF[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), ldt:base())]" mode="bs2:AddData" priority="2"/>
-
     <xsl:template match="rdf:RDF[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), ldt:base())]" mode="bs2:ModeList" priority="2"/>
 
     <!-- disable the block links popover (backlinks) -->
@@ -191,7 +188,11 @@ exclude-result-prefixes="#all">
         <xsl:param name="type" as="xs:string?"/>
 
         <xsl:if test="not($type = 'hidden')">
-            <span class="help-inline">Literal</span>
+            <div class="ldh-annot">
+                <span class="ldhc-tag sz-sm em-quiet an-term is-literal">
+                    <xsl:apply-templates select="key('resources', 'literal', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                </span>
+            </div>
         </xsl:if>
     </xsl:template>
     
@@ -222,19 +223,21 @@ exclude-result-prefixes="#all">
             
             <xsl:variable name="violations" select="key('violations-by-value', .) | key('violations-by-root', .)" as="element()*"/>
 
-            <xsl:call-template name="lacl:password">
-                <xsl:with-param name="type" select="$type"/>
-                <xsl:with-param name="disabled" select="$disabled"/>
-                <xsl:with-param name="for" select="concat($id, '-pwd1')"/>
-                <xsl:with-param name="violations" select="$violations"/>
-            </xsl:call-template>
-            <!-- double the password input -->
-            <xsl:call-template name="lacl:password">
-                <xsl:with-param name="type" select="$type"/>
-                <xsl:with-param name="disabled" select="$disabled"/>
-                <xsl:with-param name="for" select="concat($id, '-pwd2')"/>
-                <xsl:with-param name="violations" select="$violations"/>
-            </xsl:call-template>
+            <div class="ldh-prop-form is-form-mode">
+                <xsl:call-template name="lacl:password">
+                    <xsl:with-param name="type" select="$type"/>
+                    <xsl:with-param name="disabled" select="$disabled"/>
+                    <xsl:with-param name="for" select="concat($id, '-pwd1')"/>
+                    <xsl:with-param name="violations" select="$violations"/>
+                </xsl:call-template>
+                <!-- double the password input -->
+                <xsl:call-template name="lacl:password">
+                    <xsl:with-param name="type" select="$type"/>
+                    <xsl:with-param name="disabled" select="$disabled"/>
+                    <xsl:with-param name="for" select="concat($id, '-pwd2')"/>
+                    <xsl:with-param name="violations" select="$violations"/>
+                </xsl:call-template>
+            </div>
         </fieldset>
 
         <!-- restore subject context -->
@@ -259,40 +262,75 @@ exclude-result-prefixes="#all">
         <xsl:param name="required" select="true()" as="xs:boolean"/>
         <xsl:param name="violations" as="element()*"/>
         <xsl:param name="error" select="@rdf:resource = $violations/ldh:violationValue or $violations/spin:violationPath/@rdf:resource = $this" as="xs:boolean"/>
-        <xsl:param name="class" select="concat('control-group', if ($error) then ' error' else (), if ($required) then ' required' else ())" as="xs:string?"/>
-        
+        <xsl:param name="row-violations" select="$violations[spin:violationPath/@rdf:resource = $this][rdfs:label]" as="element()*"/>
+        <xsl:param name="class" select="concat('ldh-prop-group', if ($error) then ' is-violation' else (), if ($required) then ' required' else ())" as="xs:string?"/>
+
         <div>
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
             <input type="hidden" name="pu" value="&lacl;password"/>
 
-            <label class="control-label" for="{$for}">
-                <xsl:value-of>
-                    <xsl:apply-templates select="key('resources', '&lacl;password', document(ac:document-uri('&lacl;')))" mode="ac:label"/>
-                </xsl:value-of>
-            </label>
-            <div class="controls">
-                <xsl:call-template name="xhtml:Input">
-                    <xsl:with-param name="name" select="'ol'"/>
-                    <xsl:with-param name="type" select="$type"/>
-                    <xsl:with-param name="id" select="$for"/>
-                    <xsl:with-param name="disabled" select="$disabled"/>
-                </xsl:call-template>
+            <div class="label">
+                <span class="lbl-row">
+                    <span class="pred" title="{$this}">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', '&lacl;password', document(ac:document-uri('&lacl;')))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </span>
 
-                <xsl:if test="$type-label">
-                    <span class="help-inline">Literal</span>
-                </xsl:if>
+                    <xsl:if test="$required">
+                        <span class="ldhc-label-aux req">
+                            <xsl:attribute name="title">
+                                <xsl:apply-templates select="key('resources', 'required', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            </xsl:attribute>
+                            <xsl:text>*</xsl:text>
+                            <span class="ldhc-vh">
+                                <xsl:apply-templates select="key('resources', 'required', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            </span>
+                        </span>
+                    </xsl:if>
+                </span>
             </div>
 
-            <!-- the password violations are authored server-side (mismatch, length, character set) - inline their messages like the shared property template does -->
-            <xsl:for-each select="$violations[spin:violationPath/@rdf:resource = $this][rdfs:label]">
-                <span class="ldhc-help va-negative sz-sm">
-                    <xsl:value-of>
-                        <xsl:apply-templates select="." mode="ac:label"/>
-                    </xsl:value-of>
-                </span>
-            </xsl:for-each>
+            <div class="ldh-prop-row is-interactive is-last{if ($error) then ' is-violation' else ()}">
+                <div class="value val-stack">
+                    <div class="val-main">
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'ol'"/>
+                            <xsl:with-param name="type" select="$type"/>
+                            <xsl:with-param name="id" select="$for"/>
+                            <xsl:with-param name="disabled" select="$disabled"/>
+                        </xsl:call-template>
+
+                        <xsl:if test="$type-label">
+                            <div class="ldh-annot">
+                                <span class="ldhc-tag sz-sm em-quiet an-term is-literal">
+                                    <xsl:apply-templates select="key('resources', 'literal', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                </span>
+                            </div>
+                        </xsl:if>
+                    </div>
+
+                    <!-- the password violations are authored server-side (mismatch, length, character set) - inline their messages like the shared property template does -->
+                    <xsl:if test="exists($row-violations)">
+                        <div class="ldh-vmsgs">
+                            <xsl:for-each select="$row-violations">
+                                <span class="ldhc-help va-negative sz-sm" role="alert">
+                                    <span class="msi outline sm" aria-hidden="true">error</span>
+                                    <span>
+                                        <xsl:value-of>
+                                            <xsl:apply-templates select="." mode="ac:label"/>
+                                        </xsl:value-of>
+                                    </span>
+                                </span>
+                            </xsl:for-each>
+                        </div>
+                    </xsl:if>
+                </div>
+
+                <div class="row-actions"></div>
+            </div>
         </div>
     </xsl:template>
     

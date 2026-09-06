@@ -124,66 +124,84 @@ LIMIT   10
                             <input type="hidden" name="ou" value="{$query}"/>
                         </xsl:if>
 
-                        <div class="control-group required">
-                            <input type="hidden" name="pu" value="&dct;source"/>
-                            <!-- TO-DO: localize label -->
-                            <label class="control-label" for="remote-rdf-source">
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'source', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                </xsl:value-of>
-                            </label>
-                            <div class="controls">
-                                <input type="text" id="remote-rdf-source" name="ou">
-                                    <xsl:if test="$source">
-                                        <xsl:attribute name="value" select="$source"/>
-                                    </xsl:if>
-                                </input>
-                                <span class="help-inline">
-                                    <xsl:value-of>
-                                        <xsl:apply-templates select="key('resources', 'resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                    </xsl:value-of>
-                                </span>
-                            </div>
-                        </div>
-                        <div class="control-group required">
-                            <input type="hidden" name="pu" value="&sd;name"/>
-                            <label class="control-label" for="remote-rdf-doc">
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'graph', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                </xsl:value-of>
-                            </label>
-                            <div class="controls">
-                                <xsl:call-template name="bs2:Lookup">
-                                    <xsl:with-param name="id" select="'remote-rdf-doc'"/>
-                                    <xsl:with-param name="forClass" select="(xs:anyURI('&dh;Container'), xs:anyURI('&dh;Item'))"/>
-                                </xsl:call-template>
+                        <div class="ldh-prop-form is-form-mode">
+                            <div class="ldh-prop-group required">
+                                <input type="hidden" name="pu" value="&dct;source"/>
+                                <div class="label">
+                                    <span class="lbl-row">
+                                        <span class="pred" title="&dct;source">
+                                            <xsl:value-of>
+                                                <xsl:apply-templates select="key('resources', 'source', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                            </xsl:value-of>
+                                        </span>
 
-                                <!--
-                                <div class="btn-group">
-                                    <button type="button" class="btn dropdown-toggle create-action"></button>
-                                    <ul class="dropdown-menu">
-                                        <li>
-                                            <button data-for-class="&dh;Container" class="btn add-constructor" title="&dh;Container" id="{generate-id()}-remote-rdf-container">
-                                                <xsl:value-of>
-                                                    <xsl:apply-templates select="key('resources', '&dh;Container', document(ac:document-uri('&dh;')))" mode="ac:label"/>
-                                                </xsl:value-of>
-                                            </button>
-                                        </li>
-                                        <li>
-                                            <button data-for-class="&dh;Item" type="button" class="btn add-constructor" title="&dh;Item" id="{generate-id()}-remote-rdf-item">
-                                                <xsl:value-of>
-                                                    <xsl:apply-templates select="key('resources', '&dh;Item', document(ac:document-uri('&dh;')))" mode="ac:label"/>
-                                                </xsl:value-of>
-                                            </button>
-                                        </li>
-                                    </ul>
+                                        <span class="ldhc-label-aux req">
+                                            <xsl:attribute name="title">
+                                                <xsl:apply-templates select="key('resources', 'required', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                            </xsl:attribute>
+                                            <xsl:text>*</xsl:text>
+                                            <span class="ldhc-vh">
+                                                <xsl:apply-templates select="key('resources', 'required', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                            </span>
+                                        </span>
+                                    </span>
                                 </div>
-                                -->
-                                <span class="help-inline">
-                                    <xsl:value-of>
-                                        <xsl:apply-templates select="key('resources', '&dh;Document', document(ac:document-uri('&dh;')))" mode="ac:label"/>
-                                    </xsl:value-of>
-                                </span>
+                                <div class="ldh-prop-row is-interactive is-last">
+                                    <div class="value val-stack">
+                                        <div class="val-main">
+                                            <input type="text" id="remote-rdf-source" name="ou">
+                                                <xsl:if test="$source">
+                                                    <xsl:attribute name="value" select="$source"/>
+                                                </xsl:if>
+                                            </input>
+                                            <div class="ldh-annot">
+                                                <span class="ldhc-tag sz-sm em-quiet an-term is-resource">
+                                                    <xsl:apply-templates select="key('resources', 'resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row-actions"></div>
+                                </div>
+                            </div>
+                            <div class="ldh-prop-group required">
+                                <input type="hidden" name="pu" value="&sd;name"/>
+                                <div class="label">
+                                    <span class="lbl-row">
+                                        <span class="pred" title="&sd;name">
+                                            <xsl:value-of>
+                                                <xsl:apply-templates select="key('resources', 'graph', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                            </xsl:value-of>
+                                        </span>
+
+                                        <span class="ldhc-label-aux req">
+                                            <xsl:attribute name="title">
+                                                <xsl:apply-templates select="key('resources', 'required', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                            </xsl:attribute>
+                                            <xsl:text>*</xsl:text>
+                                            <span class="ldhc-vh">
+                                                <xsl:apply-templates select="key('resources', 'required', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                            </span>
+                                        </span>
+                                    </span>
+                                </div>
+                                <div class="ldh-prop-row is-interactive is-last">
+                                    <div class="value val-stack">
+                                        <div class="val-main">
+                                            <xsl:call-template name="bs2:Lookup">
+                                                <xsl:with-param name="id" select="'remote-rdf-doc'"/>
+                                                <xsl:with-param name="forClass" select="(xs:anyURI('&dh;Container'), xs:anyURI('&dh;Item'))"/>
+                                            </xsl:call-template>
+
+                                            <div class="ldh-annot">
+                                                <span class="ldhc-tag sz-sm em-quiet an-term is-resource">
+                                                    <xsl:apply-templates select="key('resources', '&dh;Document', document(ac:document-uri('&dh;')))" mode="ac:label"/>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row-actions"></div>
+                                </div>
                             </div>
                         </div>
                     </fieldset>
@@ -262,58 +280,109 @@ LIMIT   10
                             <!-- no @action: the submit handler orchestrates client-side PUTs of the generated container documents -->
                             <form id="form-generate-containers" method="POST">
                                 <fieldset>
-                                    <div class="control-group required">
-                                        <input name="pu" type="hidden" value="&sioc;has_parent"/>
-                                        <label class="control-label" for="generate-containers-parent">
-                                            <xsl:value-of>
-                                                <xsl:apply-templates select="key('resources', 'has-parent', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                            </xsl:value-of>
-                                        </label>
-                                        <div class="controls">
-                                            <xsl:call-template name="bs2:Lookup">
-                                                <xsl:with-param name="id" select="'generate-containers-parent'"/>
-                                                <xsl:with-param name="forClass" select="(xs:anyURI('&def;Root'), xs:anyURI('&dh;Container'))"/>
-                                            </xsl:call-template>
+                                    <div class="ldh-prop-form is-form-mode">
+                                        <div class="ldh-prop-group required">
+                                            <input name="pu" type="hidden" value="&sioc;has_parent"/>
+                                            <div class="label">
+                                                <span class="lbl-row">
+                                                    <span class="pred" title="&sioc;has_parent">
+                                                        <xsl:value-of>
+                                                            <xsl:apply-templates select="key('resources', 'has-parent', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                                        </xsl:value-of>
+                                                    </span>
 
-                                            <span class="help-inline">
-                                                <xsl:value-of>
-                                                    <xsl:apply-templates select="key('resources', '&dh;Container', document(ac:document-uri('&dh;')))" mode="ac:label"/>
-                                                </xsl:value-of>
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="control-group required">
-                                        <input name="pu" type="hidden" value="&sp;limit"/>
-                                        <label class="control-label" for="schema-class-limit">
-                                            <xsl:value-of>
-                                                <xsl:apply-templates select="key('resources', 'limit', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                            </xsl:value-of>
-                                        </label>
-                                        <div class="controls">
-                                            <input type="text" name="ol" id="schema-class-limit" value="{$default-limit}"/>
-                                            <input type="hidden" name="lt" value="&xsd;integer"/>
-                                            
-                                            <span class="help-inline">xsd:integer</span>
-                                        </div>
-                                    </div>
-                                    <div class="control-group">
-                                        <input name="pu" type="hidden" value="&ldh;service"/>
-                                        <label class="control-label" for="source-service">
-                                            <xsl:value-of>
-                                                <xsl:apply-templates select="key('resources', 'service', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                            </xsl:value-of>
-                                        </label>
-                                        <div class="controls">
-                                            <xsl:call-template name="bs2:Lookup">
-                                                <xsl:with-param name="id" select="'source-service'"/>
-                                                <xsl:with-param name="forClass" select="xs:anyURI('&sd;Service')"/>
-                                            </xsl:call-template>
+                                                    <span class="ldhc-label-aux req">
+                                                        <xsl:attribute name="title">
+                                                            <xsl:apply-templates select="key('resources', 'required', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                                        </xsl:attribute>
+                                                        <xsl:text>*</xsl:text>
+                                                        <span class="ldhc-vh">
+                                                            <xsl:apply-templates select="key('resources', 'required', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                                        </span>
+                                                    </span>
+                                                </span>
+                                            </div>
+                                            <div class="ldh-prop-row is-interactive is-last">
+                                                <div class="value val-stack">
+                                                    <div class="val-main">
+                                                        <xsl:call-template name="bs2:Lookup">
+                                                            <xsl:with-param name="id" select="'generate-containers-parent'"/>
+                                                            <xsl:with-param name="forClass" select="(xs:anyURI('&def;Root'), xs:anyURI('&dh;Container'))"/>
+                                                        </xsl:call-template>
 
-                                            <span class="help-inline">
-                                                <xsl:value-of>
-                                                    <xsl:apply-templates select="key('resources', 'service', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                                </xsl:value-of>
-                                            </span>
+                                                        <div class="ldh-annot">
+                                                            <span class="ldhc-tag sz-sm em-quiet an-term is-resource">
+                                                                <xsl:apply-templates select="key('resources', '&dh;Container', document(ac:document-uri('&dh;')))" mode="ac:label"/>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row-actions"></div>
+                                            </div>
+                                        </div>
+                                        <div class="ldh-prop-group required">
+                                            <input name="pu" type="hidden" value="&sp;limit"/>
+                                            <div class="label">
+                                                <span class="lbl-row">
+                                                    <span class="pred" title="&sp;limit">
+                                                        <xsl:value-of>
+                                                            <xsl:apply-templates select="key('resources', 'limit', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                                        </xsl:value-of>
+                                                    </span>
+
+                                                    <span class="ldhc-label-aux req">
+                                                        <xsl:attribute name="title">
+                                                            <xsl:apply-templates select="key('resources', 'required', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                                        </xsl:attribute>
+                                                        <xsl:text>*</xsl:text>
+                                                        <span class="ldhc-vh">
+                                                            <xsl:apply-templates select="key('resources', 'required', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                                        </span>
+                                                    </span>
+                                                </span>
+                                            </div>
+                                            <div class="ldh-prop-row is-interactive is-last">
+                                                <div class="value val-stack">
+                                                    <div class="val-main">
+                                                        <input type="text" name="ol" id="schema-class-limit" value="{$default-limit}"/>
+                                                        <input type="hidden" name="lt" value="&xsd;integer"/>
+
+                                                        <div class="ldh-annot">
+                                                            <span class="ldhc-tag sz-sm em-quiet co-neutral" title="&xsd;integer">xsd:integer</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row-actions"></div>
+                                            </div>
+                                        </div>
+                                        <div class="ldh-prop-group">
+                                            <input name="pu" type="hidden" value="&ldh;service"/>
+                                            <div class="label">
+                                                <span class="lbl-row">
+                                                    <span class="pred" title="&ldh;service">
+                                                        <xsl:value-of>
+                                                            <xsl:apply-templates select="key('resources', 'service', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                                        </xsl:value-of>
+                                                    </span>
+                                                </span>
+                                            </div>
+                                            <div class="ldh-prop-row is-interactive is-last">
+                                                <div class="value val-stack">
+                                                    <div class="val-main">
+                                                        <xsl:call-template name="bs2:Lookup">
+                                                            <xsl:with-param name="id" select="'source-service'"/>
+                                                            <xsl:with-param name="forClass" select="xs:anyURI('&sd;Service')"/>
+                                                        </xsl:call-template>
+
+                                                        <div class="ldh-annot">
+                                                            <span class="ldhc-tag sz-sm em-quiet an-term is-resource">
+                                                                <xsl:apply-templates select="key('resources', 'service', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row-actions"></div>
+                                            </div>
                                         </div>
                                     </div>
                                 </fieldset>
@@ -695,21 +764,42 @@ LIMIT   10
                     <fieldset>
                         <input type="hidden" name="su" value="{$resource}"/>
 
-                        <div class="control-group required">
-                            <input type="hidden" name="pu" value="&owl;sameAs"/>
-                            <label class="control-label" for="same-as-resource">
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'same-as', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                </xsl:value-of>
-                            </label>
-                            <div class="controls">
-                                <input id="same-as-resource" type="text" value="{$label}"/>
-                                
-                                <span class="help-inline">
-                                    <xsl:value-of>
-                                        <xsl:apply-templates select="key('resources', 'resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                    </xsl:value-of>
-                                </span>
+                        <div class="ldh-prop-form is-form-mode">
+                            <div class="ldh-prop-group required">
+                                <input type="hidden" name="pu" value="&owl;sameAs"/>
+                                <div class="label">
+                                    <span class="lbl-row">
+                                        <span class="pred" title="&owl;sameAs">
+                                            <xsl:value-of>
+                                                <xsl:apply-templates select="key('resources', 'same-as', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                            </xsl:value-of>
+                                        </span>
+
+                                        <span class="ldhc-label-aux req">
+                                            <xsl:attribute name="title">
+                                                <xsl:apply-templates select="key('resources', 'required', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                            </xsl:attribute>
+                                            <xsl:text>*</xsl:text>
+                                            <span class="ldhc-vh">
+                                                <xsl:apply-templates select="key('resources', 'required', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                            </span>
+                                        </span>
+                                    </span>
+                                </div>
+                                <div class="ldh-prop-row is-interactive is-last">
+                                    <div class="value val-stack">
+                                        <div class="val-main">
+                                            <input id="same-as-resource" type="text" value="{$label}"/>
+
+                                            <div class="ldh-annot">
+                                                <span class="ldhc-tag sz-sm em-quiet an-term is-resource">
+                                                    <xsl:apply-templates select="key('resources', 'resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row-actions"></div>
+                                </div>
                             </div>
                         </div>
                     </fieldset>
@@ -1303,33 +1393,33 @@ LIMIT   10
     <!-- generate containers: client-orchestrated. For each checked class, build a container document (an Object-wrapped View over a $type-parameterized SELECT) and PUT it under the parent. Parallel fan-out joined by ixsl:all. Replaces the former server-side /generate endpoint. -->
     <xsl:template match="form[@id = 'form-generate-containers']" mode="ixsl:onsubmit" priority="2">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')]" as="element()*"/>
-        <xsl:variable name="required-control-groups" select="$control-groups[contains-token(@class, 'required')]" as="element()*"/>
+        <xsl:variable name="prop-groups" select="descendant::div[contains-token(@class, 'ldh-prop-group')]" as="element()*"/>
+        <xsl:variable name="required-prop-groups" select="$prop-groups[contains-token(@class, 'required')]" as="element()*"/>
         <xsl:variable name="checked-classes" select="descendant::div[contains-token(@class, 'endpoint-classes')]//input[@type = 'checkbox'][ixsl:get(., 'checked')]" as="element()*"/>
 
         <!-- clear the errors initially -->
-        <xsl:for-each select="$control-groups">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:for-each select="$prop-groups">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-violation', false() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
 
         <xsl:choose>
             <!-- required input values missing (parent, limit), throw an error -->
-            <xsl:when test="exists($required-control-groups/descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))])">
-                <xsl:sequence select="$required-control-groups[descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:when test="exists($required-prop-groups/descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))])">
+                <xsl:sequence select="$required-prop-groups[descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-violation', true() ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
-            <!-- no class checked (or schema never loaded): flag the classes control-group -->
+            <!-- no class checked (or schema never loaded): flag the classes prop-group -->
             <xsl:when test="empty($checked-classes)">
-                <xsl:sequence select="descendant::div[contains-token(@class, 'endpoint-classes')]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="descendant::div[contains-token(@class, 'endpoint-classes')]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-violation', true() ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <!-- all required values present: build and PUT one container document per checked class -->
             <xsl:otherwise>
                 <xsl:sequence select="ldh:busy-cursor()"/>
 
                 <xsl:variable name="form" select="." as="element()"/>
-                <xsl:variable name="parent" select="$control-groups[input[@name = 'pu'][@value = '&sioc;has_parent']]/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
+                <xsl:variable name="parent" select="$prop-groups[input[@name = 'pu'][@value = '&sioc;has_parent']]/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
                 <!-- normalize the parent to a trailing slash so container URIs resolve as its children -->
                 <xsl:variable name="parent" select="xs:anyURI(if (ends-with($parent, '/')) then $parent else $parent || '/')" as="xs:anyURI"/>
-                <xsl:variable name="service" select="$control-groups[input[@name = 'pu'][@value = '&ldh;service']]/descendant::input[@name = 'ou']/ixsl:get(., 'value')[. != '']" as="xs:anyURI?"/>
+                <xsl:variable name="service" select="$prop-groups[input[@name = 'pu'][@value = '&ldh;service']]/descendant::input[@name = 'ou']/ixsl:get(., 'value')[. != '']" as="xs:anyURI?"/>
                 <!-- extract the checked classes as pure data; the http-requests are fired later, inside the promise context (ldh:generate-containers-fanout) -->
                 <xsl:variable name="parts" as="map(*)*" select="
                   for $checkbox in $checked-classes return
@@ -1353,18 +1443,18 @@ LIMIT   10
     <!-- import-ontology variant (carries a spin:query): client-orchestrated. Fetch the dct:source through the same-origin ?uri= proxy as RDF/XML and PUT it into a scratch document (document metadata + raw vocabulary in one graph), run the spin:query CONSTRUCT over the scratch graph via the SPARQL Protocol dataset specification (?default-graph-uri=) on the /sparql endpoint, append the derived constructors plus the annotation-ontology header (sd:name target a owl:Ontology; owl:imports dct:source) to the target document, then delete the scratch. Only the derived annotations persist - the vocabulary resolves live through the graph repository (bundled mapping or HTTP), so the target holds the same artifact shape a package ontology ships (constructors + owl:imports of the canonical vocabulary URI). -->
     <xsl:template match="form[@id = 'form-clone-data'][fieldset/input[@name = 'pu'][@value = '&spin;query']]" mode="ixsl:onsubmit" priority="2">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')]" as="element()*"/>
-        <xsl:variable name="required-control-groups" select="$control-groups[contains-token(@class, 'required')]" as="element()*"/>
+        <xsl:variable name="prop-groups" select="descendant::div[contains-token(@class, 'ldh-prop-group')]" as="element()*"/>
+        <xsl:variable name="required-prop-groups" select="$prop-groups[contains-token(@class, 'required')]" as="element()*"/>
 
         <!-- clear the errors initially -->
-        <xsl:for-each select="$control-groups">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:for-each select="$prop-groups">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-violation', false() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
 
         <xsl:choose>
             <!-- required input values missing, throw an error -->
-            <xsl:when test="exists($required-control-groups/descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))])">
-                <xsl:sequence select="$required-control-groups[descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:when test="exists($required-prop-groups/descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))])">
+                <xsl:sequence select="$required-prop-groups[descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-violation', true() ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <!-- all required values present, orchestrate the import + constructor derivation -->
             <xsl:otherwise>
@@ -1374,8 +1464,8 @@ LIMIT   10
                 <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/>
 
                 <xsl:variable name="form" select="." as="element()"/>
-                <xsl:variable name="source" select="$control-groups[input[@name = 'pu'][@value = '&dct;source']]/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
-                <xsl:variable name="target" select="$control-groups[input[@name = 'pu'][@value = '&sd;name']]/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
+                <xsl:variable name="source" select="$prop-groups[input[@name = 'pu'][@value = '&dct;source']]/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
+                <xsl:variable name="target" select="$prop-groups[input[@name = 'pu'][@value = '&sd;name']]/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
                 <xsl:variable name="query-uri" select="fieldset/input[@name = 'pu'][@value = '&spin;query']/following-sibling::input[@name = 'ou'][1]/@value" as="xs:anyURI"/>
                 <xsl:choose>
                     <!-- the target must be local because the constructor derivation runs on the local /sparql endpoint scoped to the target graph via ?default-graph-uri= - another instance's graphs are invisible to it (the add/clone variant below has no such constraint and accepts foreign targets) -->
@@ -1410,18 +1500,18 @@ LIMIT   10
     <!-- add/clone variant (no spin:query): client-orchestrated. Fetch the dct:source through the same-origin ?uri= proxy as RDF/XML, then GSP-append it to the sd:name target document. Replaces the former server-side /add endpoint. -->
     <xsl:template match="form[@id = 'form-clone-data'][not(fieldset/input[@name = 'pu'][@value = '&spin;query'])]" mode="ixsl:onsubmit" priority="2">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')]" as="element()*"/>
-        <xsl:variable name="required-control-groups" select="$control-groups[contains-token(@class, 'required')]" as="element()*"/>
+        <xsl:variable name="prop-groups" select="descendant::div[contains-token(@class, 'ldh-prop-group')]" as="element()*"/>
+        <xsl:variable name="required-prop-groups" select="$prop-groups[contains-token(@class, 'required')]" as="element()*"/>
 
         <!-- clear the errors initially -->
-        <xsl:for-each select="$control-groups">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:for-each select="$prop-groups">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-violation', false() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
 
         <xsl:choose>
             <!-- required input values missing, throw an error -->
-            <xsl:when test="exists($required-control-groups/descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))])">
-                <xsl:sequence select="$required-control-groups[descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:when test="exists($required-prop-groups/descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))])">
+                <xsl:sequence select="$required-prop-groups[descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-violation', true() ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <!-- all required values present, orchestrate the proxy fetch + append -->
             <xsl:otherwise>
@@ -1431,8 +1521,8 @@ LIMIT   10
                 <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/>
 
                 <xsl:variable name="form" select="." as="element()"/>
-                <xsl:variable name="source" select="$control-groups[input[@name = 'pu'][@value = '&dct;source']]/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
-                <xsl:variable name="target" select="$control-groups[input[@name = 'pu'][@value = '&sd;name']]/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
+                <xsl:variable name="source" select="$prop-groups[input[@name = 'pu'][@value = '&dct;source']]/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
+                <xsl:variable name="target" select="$prop-groups[input[@name = 'pu'][@value = '&sd;name']]/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
                 <!-- ldh:href routes the arbitrary external $source through the same-origin ?uri= proxy (CORS); the proxy also converts any Jena-parseable format to the requested RDF/XML. The target may be foreign too: its POST rides the same proxy, which forwards the method, body and delegated agent identity - the target instance's ACL arbitrates and a 403 surfaces as the form error -->
                 <xsl:variable name="request" select="map{ 'method': 'GET', 'href': ldh:href($source), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                 <xsl:variable name="context" as="map(*)" select="
@@ -1456,13 +1546,13 @@ LIMIT   10
         <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="fieldset" select="ancestor::form/fieldset" as="element()"/>
-        <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')]" as="element()*"/>
-        <xsl:variable name="required-control-groups" select="$control-groups[contains-token(@class, 'required')]" as="element()*"/>
+        <xsl:variable name="prop-groups" select="descendant::div[contains-token(@class, 'ldh-prop-group')]" as="element()*"/>
+        <xsl:variable name="required-prop-groups" select="$prop-groups[contains-token(@class, 'required')]" as="element()*"/>
         <xsl:variable name="timeout" select="30000" as="xs:integer"/> <!-- schema load query timeout in milliseconds -->
-        <xsl:variable name="service-control-group" select="$fieldset/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&ldh;service']]" as="element()"/>
-        <xsl:variable name="service-uri" select="$service-control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI?"/>
-        <xsl:variable name="limit-control-group" select="$fieldset/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&sp;limit']]" as="element()"/>
-        <xsl:variable name="limit-string" select="$limit-control-group/descendant::input[@name = 'ol']/ixsl:get(., 'value')" as="xs:string"/>
+        <xsl:variable name="service-prop-group" select="$fieldset/descendant::div[contains-token(@class, 'ldh-prop-group')][input[@name = 'pu'][@value = '&ldh;service']]" as="element()"/>
+        <xsl:variable name="service-uri" select="$service-prop-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI?"/>
+        <xsl:variable name="limit-prop-group" select="$fieldset/descendant::div[contains-token(@class, 'ldh-prop-group')][input[@name = 'pu'][@value = '&sp;limit']]" as="element()"/>
+        <xsl:variable name="limit-string" select="$limit-prop-group/descendant::input[@name = 'ol']/ixsl:get(., 'value')" as="xs:string"/>
         <xsl:variable name="limit" select="xs:integer($limit-string)" as="xs:integer"/>
         <xsl:variable name="select-string" select="$endpoint-classes-string" as="xs:string"/>
         <xsl:variable name="select-json" as="item()">
@@ -1541,7 +1631,7 @@ LIMIT   10
         "/>
     </xsl:function>
 
-    <!-- validate form before submitting it and show errors on required control-groups where input values are missing -->
+    <!-- validate form before submitting it and show errors on required prop-groups where input values are missing -->
     <xsl:template match="form[@id = 'form-request-access']" mode="ixsl:onsubmit" priority="1">
         <xsl:param name="callback" select="ldh:request-access-form-response#1" as="function(map(*)) as item()*"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
@@ -1705,16 +1795,35 @@ LIMIT   10
 
         <xsl:message>ldh:endpoint-classes-response</xsl:message>
 
-        <!-- append the controls for the class list if they don't exist -->
-        <xsl:for-each select="$container[not(./div[contains-token(@class, 'endpoint-classes')])]">
+        <!-- append the row for the class list if it doesn't exist -->
+        <xsl:for-each select="$container/div[contains-token(@class, 'ldh-prop-form')][not(./div[contains-token(@class, 'endpoint-classes')])]">
             <xsl:result-document href="?." method="ixsl:append-content">
-                <div class="control-group required endpoint-classes">
-                    <label class="control-label">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'classes', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </label>
-                    <div class="controls"></div>
+                <div class="ldh-prop-group required endpoint-classes">
+                    <div class="label">
+                        <span class="lbl-row">
+                            <span class="pred">
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', 'classes', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </span>
+
+                            <span class="ldhc-label-aux req">
+                                <xsl:attribute name="title">
+                                    <xsl:apply-templates select="key('resources', 'required', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                </xsl:attribute>
+                                <xsl:text>*</xsl:text>
+                                <span class="ldhc-vh">
+                                    <xsl:apply-templates select="key('resources', 'required', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                </span>
+                            </span>
+                        </span>
+                    </div>
+                    <div class="ldh-prop-row is-last">
+                        <div class="value val-stack">
+                            <div class="val-main"></div>
+                        </div>
+                        <div class="row-actions"></div>
+                    </div>
                 </div>
             </xsl:result-document>
         </xsl:for-each>
@@ -1726,8 +1835,8 @@ LIMIT   10
                 <xsl:for-each select="$response?body">
                     <xsl:variable name="results" select="." as="document-node()"/>
 
-                    <!-- populate the class list within div.controls -->
-                    <xsl:for-each select="$container//div[contains-token(@class, 'endpoint-classes')]/div">
+                    <!-- populate the class list within the row's value cell -->
+                    <xsl:for-each select="$container//div[contains-token(@class, 'endpoint-classes')]//div[contains-token(@class, 'val-main')]">
                         <xsl:result-document href="?." method="ixsl:replace-content">
                             <ul class="unstyled">
                                 <xsl:for-each select="$results/srx:sparql/srx:results/srx:result">
@@ -1761,7 +1870,7 @@ LIMIT   10
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:for-each select="$container//div[contains-token(@class, 'endpoint-classes')]/div">
+                <xsl:for-each select="$container//div[contains-token(@class, 'endpoint-classes')]//div[contains-token(@class, 'val-main')]">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <!-- a region of the modal form, not a block body, so the bare alert -->
                         <xsl:sequence select="ldh:error-alert('classes-not-loaded', ldh:http-error-key($response?status), ())"/>
@@ -2266,8 +2375,8 @@ LIMIT   10
         <xsl:choose>
             <!-- Success: redirect to target container with ReadMode -->
             <xsl:when test="$status = (200, 204)">
-                <xsl:variable name="control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&sd;name']]" as="element()*"/>
-                <xsl:variable name="uri" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
+                <xsl:variable name="prop-group" select="$form/descendant::div[contains-token(@class, 'ldh-prop-group')][input[@name = 'pu'][@value = '&sd;name']]" as="element()*"/>
+                <xsl:variable name="uri" select="$prop-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
                 <!-- Remove the modal -->
                 <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
 

@@ -236,37 +236,7 @@ div.breadcrumb.ldh-bc { min-width: 0; overflow: hidden; }
   margin: 0;
 }
 
-/* ---------- forms: control-group/control-label/controls tokens are CSR anchors ---------- */
-form .control-group {
-  display: grid;
-  grid-template-columns: minmax(140px, 220px) 1fr;
-  column-gap: var(--sp-6);
-  align-items: start;
-  padding: var(--sp-2) 0;
-  border-top: 1px solid var(--border-default);
-}
-form .control-group:first-of-type { border-top: 0; }
-form .control-group > .control-label {
-  padding-top: 6px;
-  font-size: var(--fs-sm); font-weight: var(--fw-medium);
-  color: var(--fg-muted);
-  overflow: hidden; text-overflow: ellipsis;
-}
-form .control-group > .controls { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); min-width: 0; }
-/* explicit placement: RDF/POST hidden inputs and <hr> separators are also direct children */
-form .control-group > * { grid-column: 2; }
-form .control-group > .control-label { grid-column: 1; grid-row: 1; }
-form .control-group > .controls { grid-column: 2; grid-row: 1; }
-/* inline violation messages sit under the controls, in the value column */
-form .control-group > .ldhc-help { grid-column: 2; }
-form .control-group > hr { display: none; }
-form .controls input[type="text"], form .controls input[type="url"], form .controls textarea { flex: 1 1 240px; min-width: 0; }
-form .controls textarea { min-height: 72px; }
-/* YASQE hides the textarea and inserts div.CodeMirror beside it, which declares no width of its own: as a flex item it is sized by the query text, and an empty query leaves nothing but the gutter */
-form .controls > .CodeMirror { flex: 1 1 240px; min-width: 0; }
-form .control-group.error > .control-label { color: var(--danger-500); }
-form .control-group.error input, form .control-group.error textarea { border-color: var(--danger-500); }
-form .control-group.required > .control-label::after { content: ' *'; color: var(--danger-500); }
+/* ---------- forms: base control chrome for dialogs outside the whole-form mode ---------- */
 form input[type="text"], form input[type="url"], form input[type="number"], form input[type="password"], form input[type="datetime-local"], form input[type="date"], form textarea, form select {
   border: 1px solid var(--border-default); border-radius: var(--r-sm);
   background: var(--surface-0); color: var(--fg-1);
@@ -278,8 +248,6 @@ form input:focus, form textarea:focus, form select:focus {
   outline: none; border-color: var(--ldh-blue-400);
   box-shadow: 0 0 0 3px var(--bg-accent-quiet);
 }
-form .help-inline { font-size: var(--fs-xs); color: var(--fg-hint); }
-form .control-group.error .help-inline, form .error > .help-inline { color: var(--danger-500); }
 form .btn-primary {
   display: inline-flex; align-items: center; gap: var(--sp-2);
   height: 30px; padding: 0 12px;
@@ -336,8 +304,6 @@ legend > .actions { display: flex; align-items: center; gap: var(--sp-1); margin
 .ldhc-modal-body form > fieldset > legend { font-family: var(--font-sans); font-size: var(--fs-lg); font-weight: var(--fw-semibold); letter-spacing: normal; text-transform: none; color: var(--fg-1); }
 /* remove-resource button on legendless fieldsets rides its own top row, right-aligned */
 fieldset > .btn-group { display: flex; justify-content: flex-end; }
-/* remove-statement/add-statement groups trail their form row instead of floating */
-form .control-group > .controls > .btn-group { order: 99; margin-left: auto; }
 .chart-controls .field select[multiple] { height: auto; }
 
 /* ---------- read-mode property lists now emit the design's .ldh-prop-group grid (app.css) ---------- */
