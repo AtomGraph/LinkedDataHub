@@ -228,6 +228,12 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$lapp:origin"/>
     </xsl:function>
 
+    <!-- Web-Client's label catalog resolves against the shell origin here, like the app's own translations.rdf:
+         the same-origin URL works for the same-site server resolver and in the browser alike -->
+    <xsl:function name="ac:translations" as="document-node()">
+        <xsl:sequence select="document(resolve-uri('static/com/atomgraph/client/xsl/translations.rdf', $lapp:origin))"/>
+    </xsl:function>
+
     <xsl:function name="ldh:href" as="xs:anyURI">
         <xsl:param name="uri" as="xs:anyURI?"/>
 
