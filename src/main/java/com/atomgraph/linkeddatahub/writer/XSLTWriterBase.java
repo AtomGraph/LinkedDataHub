@@ -75,7 +75,7 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
     private static final Logger log = LoggerFactory.getLogger(XSLTWriterBase.class);
     private static final Set<String> NAMESPACES;
     /** The relative URL of the RDF file with localized labels */
-    public static final String TRANSLATIONS_PATH = "static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf";
+    public static final String TRANSLATIONS_PATH = "static/com/atomgraph/linkeddatahub/xsl/translations.rdf";
     
     static
     {

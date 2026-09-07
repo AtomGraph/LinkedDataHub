@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xsl:stylesheet [
+    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
+    <!ENTITY ac     "https://w3id.org/atomgraph/client#">
+    <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <!ENTITY cert   "http://www.w3.org/ns/auth/cert#">
+]>
+<xsl:stylesheet version="3.0"
+xmlns="http://www.w3.org/1999/xhtml"
+xmlns:xhtml="http://www.w3.org/1999/xhtml"
+xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+xmlns:xs="http://www.w3.org/2001/XMLSchema"
+xmlns:lapp="&lapp;"
+xmlns:ac="&ac;"
+xmlns:rdf="&rdf;"
+xmlns:cert="&cert;"
+exclude-result-prefixes="#all">
+
+    <xsl:template match="*[@rdf:about = '&cert;PublicKey']" mode="ac:label">
+        <xsl:apply-templates select="key('resources', 'public-key', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="#current"/>
+    </xsl:template>
+
+</xsl:stylesheet>

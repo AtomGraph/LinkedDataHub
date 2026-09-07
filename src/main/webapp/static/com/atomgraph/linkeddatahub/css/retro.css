@@ -1166,23 +1166,26 @@ pressed 10%). ---- */
 :root[data-retro^="m3"] .ldhc-btn.ap-outline:active,
 :root[data-retro^="m3"] .ldhc-btn.ap-ghost:active { box-shadow: inset 0 0 0 999px rgba(0,97,164,0.12); }
 /* Icon buttons — circular, on-surface-variant state layer. */
-:root[data-retro^="m3"] .ldhc-iconbtn,
-:root[data-retro^="m3"] .ldh-toolbar .tb { border-radius: 999px; }
-:root[data-retro^="m3"] .ldhc-iconbtn:hover,
-:root[data-retro^="m3"] .ldh-toolbar .tb:hover { box-shadow: inset 0 0 0 999px rgba(67,71,78,0.08); }
+:root[data-retro^="m3"] .ldhc-iconbtn { border-radius: 999px; }
+:root[data-retro^="m3"] .ldhc-iconbtn:hover { box-shadow: inset 0 0 0 999px rgba(67,71,78,0.08); }
 /* Mode-switcher trigger is a button-like control — give it the M3 pill shape so
    it shares the shape language of the Create button instead of a 12px chip. */
 :root[data-retro^="m3"] .ldh-mode { border-radius: 999px; }
 
-/* ---- Resource media header (depiction placeholder): an explicit M3
-        primary→tertiary key-colour gradient. Deep enough that the scrim +
-        white title text stay legible; dark scheme drops to the container
-        tones so it doesn't glare. ---- */
-:root[data-retro^="m3"] .ldh-media-head {
-  background: linear-gradient(135deg, var(--md-primary) 0%, var(--md-tertiary) 100%);
+/* ---- Resource header. The full-bleed media header is gone (no gradient
+        backdrop or scrim to tint); the thumbnail and the type chips are what
+        remain, and they take the M3 container/primary tones. ---- */
+:root[data-retro^="m3"] .ldh-res-thumb { background: var(--md-surface-container-high); }
+:root[data-retro^="m3"] .ldh-res-icon {
+  background: var(--md-primary-container); color: var(--md-on-primary-container);
 }
-:root[data-retro="m3-dark"] .ldh-media-head {
-  background: linear-gradient(135deg, var(--md-primary-container) 0%, var(--md-tertiary-container) 100%);
+:root[data-retro^="m3"] .ldh-type-chip {
+  background: var(--md-secondary-container); color: var(--md-on-secondary-container);
+  border-color: transparent;
+}
+:root[data-retro^="m3"] .ldh-type-chip:hover {
+  background: var(--md-primary-container); color: var(--md-on-primary-container);
+  border-color: transparent;
 }
 
 /* ---- Inline value editor → M3 filled text field: a distinct grey container

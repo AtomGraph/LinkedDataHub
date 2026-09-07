@@ -5,7 +5,6 @@
    pastel gradients and modern variable-font typography.
    ========================================================================= */
 
-/* Fonts loaded via Google Fonts — substitutions noted in README. */
 /* Geist / Geist Mono / Instrument Serif vendored locally in fonts.css */
 
 :root {
@@ -232,6 +231,12 @@
   --bg-accent:       var(--ldh-blue-600);
   --bg-accent-hover: var(--ldh-blue-700);
   --bg-accent-quiet: var(--ldh-blue-50);
+
+  /* Inverse ground — a FIXED white, identical in every theme, for controls that
+     sit on a dark bar or over imagery where the surrounding theme cannot be
+     relied on. Deliberately not --surface-0, which flips with the theme. */
+  --bg-inverse:       #ffffff;                /* @kind color */
+  --bg-inverse-hover: rgba(255,255,255,0.88); /* @kind color */
 
   /* ---------- Semantic: Interactive states ----------
      First-class state tokens so components stop hand-rolling `surface-2` for

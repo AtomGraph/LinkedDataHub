@@ -14,16 +14,16 @@
    pair lands it visually at the row top), keeping the un-hydrated SSR markup out of view - the
    collapse the retired .progress height/overflow rule used to provide */
 .row-main.progress.active { height: 8px; overflow: hidden; }
-/* ---------- results table. The design's tabular components (.ldh-data-table, .ldh-mini-table,
-   .ldh-map-table, .ldh-run-list) put their column tracks on each <tr> as grid, which fixes the
-   column count per component. A SPARQL results table has as many columns as the SELECT has
-   variables, and per-row grids cannot share intrinsic track sizes - measured at 11 columns, the
-   head and body stop lining up under repeat(N, minmax(max-content, 1fr)), and equal 1fr tracks
-   shred a UUID column into four lines. So this one keeps native table layout and takes the
-   design's stated table treatment instead: horizontal rules only, no vertical lines, header row
-   on --surface-2. The sheet (--surface-0 + border + radius) is what .ldh-mini-table carries for
-   the same reason - a view nested in an .ldh-nblock well has to read as its own surface rather
-   than let the well's recession through its cells ---------- */
+/* ---------- results table. The design's core DataTable (.ldhc-table) puts its column tracks on
+   each <tr> as grid (--ldhc-cols), which fixes the column count per table. A SPARQL results table
+   has as many columns as the SELECT has variables, and per-row grids cannot share intrinsic track
+   sizes - measured at 11 columns, the head and body stop lining up under
+   repeat(N, minmax(max-content, 1fr)), and equal 1fr tracks shred a UUID column into four lines.
+   So this one keeps native table layout and takes the design's stated table treatment instead:
+   horizontal rules only, no vertical lines, header row on --surface-2. The sheet
+   (--surface-0 + border + radius) reads as its own surface inside an .ldh-nblock well rather than
+   letting the well's recession through its cells. Fixed-column tables (access matrix, version
+   history, packages) ride .ldhc-table proper ---------- */
 .ldh-results-table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); background: var(--surface-0); border: 1px solid var(--border-default); border-radius: var(--r-sm); }
 /* no overflow: hidden to clip the corners - it would make the table its own scrollport and leave
    the sticky header inert; the corner cells carry the radius instead */
@@ -61,6 +61,16 @@
 .ldh-results-table th.sortable .sort-arrow { vertical-align: middle; margin-left: 2px; visibility: hidden; color: var(--fg-muted); }
 .ldh-results-table th.sortable:hover .sort-arrow { visibility: visible; }
 .ldh-results-table th.sortable[aria-sort] .sort-arrow { visibility: visible; color: var(--fg-1); }
+/* the pager is emitted inside .container-results beside the rows it pages (every view mode renders
+   the two together, and a mode/facet/sort/page change replaces them as one), so it pins to the
+   bottom edge of the scrollport the header pins to the top of and the rows scroll between them.
+   It keeps its place in flow, so nothing is permanently covered - at the end of the scroll it rests
+   where it sits - but above that the rows pass beneath it, so it needs its host's surface under it.
+   left: 0 holds it against the port when a wide table scrolls sideways too */
+.container-results > .ldh-pager { position: sticky; bottom: 0; left: 0; z-index: 1; background: var(--bg-card); }
+/* a view nested in a well sits on the well's surface instead of the card's, along the same depth ramp */
+.ldh-nblock .container-results > .ldh-pager { background: var(--surface-2); }
+.ldh-nblock[data-depth="2"] .container-results > .ldh-pager, .ldh-nblock[data-depth="3"] .container-results > .ldh-pager { background: var(--surface-3); }
 .content-body { padding: var(--sp-4) var(--sp-6); max-width: var(--ldh-content-w); margin: 0 auto; }
 /* stacking rhythm between block cards and alerts (Bootstrap's row margins are gone) */
 .content-body .ldh-block, .content-body .ldhc-alert { margin-bottom: var(--sp-4); }
@@ -109,7 +119,9 @@
    dark bar; light dropdown panels inside the header need their ink back at higher specificity */
 :root[data-retro^="m3"] .ldh-header .dropdown-menu, :root[data-retro^="m3"] .ldh-header .dropdown-menu * { color: var(--fg-1); }
 :root[data-retro^="m3"] .ldh-header .dropdown-menu .nav-header { color: var(--fg-hint); }
-:root[data-retro^="m3"] .ldh-header .ldh-avatar:hover, :root[data-retro^="m3"] .ldh-header .btn-group.open .ldh-avatar { color: var(--fg-1); }
+/* the avatar disc's box, hover and ink come from app.css; the CSR dropdown handler toggles .open on the
+   wrap, so map it onto the design's .is-open ring here */
+.btn-group.open .ldh-avatar { box-shadow: 0 0 0 2px var(--surface-0), 0 0 0 4px var(--bg-accent); }
 .btn-group { position: relative; }
 .btn-group .dropdown-menu { display: none; }
 .btn-group.open .dropdown-menu {
@@ -196,7 +208,7 @@ div.breadcrumb.ldh-bc { min-width: 0; overflow: hidden; }
    head's --sp-6 side padding stacked on the body's and pushed pills/headings right of the rows below;
    the body already provides the horizontal inset */
 .ldh-block-body .ldh-block-head { padding-left: 0; padding-right: 0; }
-.ldh-block-head .actions .tb.disabled { opacity: 0.4; pointer-events: none; }
+.ldh-block-head .actions .ldhc-iconbtn.disabled { opacity: 0.4; pointer-events: none; }
 
 /* ---------- modals: every dialog rides the ldhc-backdrop chrome (overlays.css) ----------
    .modal-header/.modal-body live on only as borrowed chrome in two non-dialog spots: the OL map
@@ -238,15 +250,16 @@ div.breadcrumb.ldh-bc { min-width: 0; overflow: hidden; }
 /* the XHTML editor fills its whole value cell, so the statement hover band would paint the entire editing surface grey - rows hosting the editor don't band */
 .ldh-prop-group:has(.rdfa-editor-content):hover > .label, .ldh-prop-row:has(.rdfa-editor-content):hover > .value, .ldh-prop-row:has(.rdfa-editor-content):hover > .row-actions, .ldh-prop-row.is-interactive:has(.rdfa-editor-content) .value:hover { background: transparent; }
 
-/* ---------- forms: base control chrome for dialogs outside the whole-form mode ---------- */
-form input[type="text"], form input[type="url"], form input[type="number"], form input[type="password"], form input[type="datetime-local"], form input[type="date"], form textarea, form select {
+/* ---------- forms: base control chrome for dialogs outside the whole-form mode ----------
+   controls wrapped in the design's .ldhc-field-box are excluded: the box carries the chrome and core.css keeps its inner input bare */
+form input[type="text"]:not(.ldhc-field-box *), form input[type="url"]:not(.ldhc-field-box *), form input[type="number"]:not(.ldhc-field-box *), form input[type="password"]:not(.ldhc-field-box *), form input[type="datetime-local"]:not(.ldhc-field-box *), form input[type="date"]:not(.ldhc-field-box *), form textarea:not(.ldhc-field-box *), form select {
   border: 1px solid var(--border-default); border-radius: var(--r-sm);
   background: var(--surface-0); color: var(--fg-1);
   font-family: var(--font-sans); font-size: var(--fs-sm);
   padding: 5px 10px; min-height: 30px;
   transition: border-color var(--dur-fast) var(--ease-out-soft), box-shadow var(--dur-fast) var(--ease-out-soft);
 }
-form input:focus, form textarea:focus, form select:focus {
+form input:focus:not(.ldhc-field-box *), form textarea:focus:not(.ldhc-field-box *), form select:focus {
   outline: none; border-color: var(--ldh-blue-400);
   box-shadow: 0 0 0 3px var(--bg-accent-quiet);
 }
@@ -259,7 +272,17 @@ form .btn-primary {
 }
 form .btn-primary:hover { background: var(--bg-accent-hover); }
 
-ul.ldh-typelist { display: flex; flex-wrap: wrap; gap: var(--sp-1); list-style: none; margin: 0 0 var(--sp-1); padding: 0; }
+/* the header thumbnail is an <a><img> here rather than the design's image-slot component, so the image
+   fills the .ldh-res-thumb footprint itself */
+.ldh-res-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+/* .ldh-check is designed as a standalone confirm row (margin-top for stacking); inside a table cell the
+   checkbox is the cell's only content and centers without it */
+.ldhc-table .ldh-check { margin-top: 0; }
+
+/* selected-file display the upload flow appends beside the file input: icon + name as a quiet chip */
+.ldh-file-sel { display: inline-flex; align-items: center; gap: var(--sp-2); max-width: 100%; padding: 2px 8px; border-radius: var(--r-sm); background: var(--surface-2); color: var(--fg-2); font-size: var(--fs-sm); }
+.ldh-file-sel .fs-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ---------- language tags: the pill on a value that declares an @xml:lang ----------
    ac:lang-tag emits the chip from wherever values are laid out, so the pill belongs to .chip-inline itself
@@ -533,22 +556,9 @@ body:has(.document-body > .content-body > :is(.graph-3d-canvas, .map-canvas)) .l
 /* hover-lift transforms (retro themes) make the card a stacking context, trapping its inline dropdowns below later positioned rows; while a popup is open the card must win the paint order over subsequent blocks (but stay under the z-70 action bar) */
 .ldh-block:has(.is-open), .ldh-nblock:has(.is-open) { position: relative; z-index: 60; }
 
-/* Links button — opens the block links popover (backlinks). The button always
-   sits inside its .links-nav anchor, so one selector covers every host: block
-   head actions, the view toolbar's right zone, the content block's corner. */
-.links-nav > .tb-links {
-  height: 32px;
-  min-width: 32px;
-  padding: 0 8px 0 6px;
-  display: inline-flex; align-items: center; justify-content: center;
-  gap: 4px;
-  background: var(--bg-accent-quiet);
-  color: var(--ldh-blue-700);
-  border: 1px solid var(--ldh-blue-100);
-  border-radius: var(--r-sm);
-}
-.links-nav > .tb-links:hover { background: var(--ldh-blue-100); color: var(--ldh-blue-700); }
-.links-nav > .tb-links.is-on { background: var(--ldh-blue-600); color: #fff; border-color: var(--ldh-blue-600); }
+/* Links button — opens the block links popover (backlinks). It is the core
+   icon-button primitive (accent intent, aria-pressed toggle), so box, hover and
+   the "on" state come from controls.css; .tb-links stays as the handler hook. */
 
 
 /* Block links popover — backlinks as jump-off navigation, anchored to the
@@ -592,11 +602,9 @@ body:has(.document-body > .content-body > :is(.graph-3d-canvas, .map-canvas)) .l
 .ldh-block .block-row > .links-nav { position: absolute; top: var(--sp-3); right: var(--sp-3); opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft); }
 .ldh-block:hover .block-row > .links-nav, .ldh-block .block-row > .links-nav.is-open { opacity: 1; }
 
-/* Copy-URI button — the header actions' quiet icon treatment for hosts outside
-   the block head: the view toolbar's right zone and the content block's corner,
-   where it sits left of the links button and surfaces on the same card hover */
-.ldh-view-toolbar .right .btn-copy-uri, .ldh-block .block-row > .btn-copy-uri { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 0; border-radius: var(--r-sm); color: var(--fg-muted); }
-.ldh-view-toolbar .right .btn-copy-uri:hover, .ldh-block .block-row > .btn-copy-uri:hover { background: var(--bg-hover); color: var(--fg-1); }
+/* Copy-URI button — the core icon-button primitive owns its box; only the
+   content-block corner placement is scoped here, where it sits left of the
+   links button and surfaces on the same card hover */
 .ldh-block .block-row > .btn-copy-uri { position: absolute; top: var(--sp-3); right: calc(var(--sp-3) + 32px + var(--sp-1)); opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft); }
 .ldh-block:hover .block-row > .btn-copy-uri { opacity: 1; }
 

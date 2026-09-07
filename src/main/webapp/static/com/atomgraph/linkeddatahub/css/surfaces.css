@@ -1,0 +1,201 @@
+/* =========================================================================
+   ui_kits/core/surfaces.css — Card · DataTable · Avatar · Drawer · Stepper
+
+   These were the last five primitives the app kit had to invent for itself.
+   The table is the reason this file exists: four near-identical grid-per-row
+   implementations (.ldh-data-table, .ldh-mini-table, .ldh-map-table,
+   .ldh-run-list) differing only in column tracks and a couple of cell tints.
+   ========================================================================= */
+
+/* =========================================================================
+   Card — a bordered surface with optional header / body / footer.
+   `interactive` makes the whole surface a link or button target.
+   ========================================================================= */
+.ldhc-card {
+  display: flex; flex-direction: column; min-width: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-lg);
+  text-decoration: none; color: inherit;
+}
+.ldhc-card.ap-elevated { border-color: transparent; box-shadow: var(--shadow-md); }
+.ldhc-card.ap-ghost { border-color: transparent; background: transparent; }
+.ldhc-card.sz-sm { border-radius: var(--r-md); }
+.ldhc-card.is-interactive {
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out-soft), box-shadow var(--dur-fast) var(--ease-out-soft);
+}
+.ldhc-card.is-interactive:hover { border-color: var(--ldh-blue-300); box-shadow: var(--shadow-sm); text-decoration: none; }
+.ldhc-card.is-interactive:focus-visible { outline: 0; box-shadow: var(--focus-ring); }
+.ldhc-card.is-selected { border-color: var(--bg-accent); box-shadow: inset 0 0 0 1px var(--bg-accent); }
+.ldhc-card-head {
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-4) 0;
+}
+.ldhc-card-body { padding: var(--sp-4); min-width: 0; }
+.ldhc-card-foot {
+  display: flex; align-items: center; gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
+  border-top: 1px solid var(--border-default);
+}
+/* Leading icon tile. `tone` picks a pastel surface — the app kit's category
+   cards had six of these hard-coded per class name. */
+.ldhc-card-ic {
+  width: 36px; height: 36px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: var(--r-sm);
+  background: var(--surface-2); color: var(--fg-muted);
+}
+.ldhc-card-ic.tn-lavender { background: var(--surf-lavender); color: var(--ldh-violet-600); }
+.ldhc-card-ic.tn-mint     { background: var(--surf-mint);     color: var(--success-500); }
+.ldhc-card-ic.tn-peach    { background: var(--surf-peach);    color: #c25c00; }
+.ldhc-card-ic.tn-sky      { background: var(--surf-sky);      color: var(--ldh-blue-600); }
+.ldhc-card-ic.tn-blush    { background: var(--surf-blush);    color: #b03060; }
+.ldhc-card-ic.tn-sand     { background: var(--surf-sand);     color: #7a5b0c; }
+.ldhc-card-titles { display: flex; flex-direction: column; min-width: 0; gap: 2px; }
+.ldhc-card-title { font-weight: var(--fw-medium); color: var(--fg-1); font-size: var(--fs-sm); }
+.ldhc-card-meta { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--fg-hint); }
+
+/* =========================================================================
+   DataTable — ONE tabular surface.
+
+   Real <table> markup with grid-per-row layout, so the table layout algorithm
+   is switched off and the column tracks come from a --ldhc-cols custom property
+   the caller sets. That single variable is what collapsed four bespoke tables
+   into one: they differed by tracks, not by structure.
+   Explicit role attributes stay in the JSX — display:grid on a <tr> can drop
+   the implicit table roles.
+   ========================================================================= */
+.ldhc-table {
+  display: block; width: 100%;
+  border-collapse: collapse; border-spacing: 0; text-indent: 0;
+  background: var(--surface-0);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+.ldhc-table.ap-plain { border: 0; border-radius: 0; background: transparent; }
+/* Dropdowns inside cells (the column-mapping table) need to escape the box. */
+.ldhc-table.is-overflowing { overflow: visible; }
+.ldhc-table > thead, .ldhc-table > tbody { display: block; }
+.ldhc-table > thead.ldhc-vh { display: none; }
+.ldhc-table caption { caption-side: top; }
+/* Declared here so the column-track input is a registered token with a sane
+   default, rather than a variable that only ever exists as an inline style. */
+:root {
+  --ldhc-cols: 1fr; /* @kind other */
+}
+.ldhc-table tr {
+  display: grid;
+  grid-template-columns: var(--ldhc-cols, 1fr);
+  align-items: center; gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+}
+.ldhc-table.dn-comfy tr { padding: var(--sp-3); }
+.ldhc-table.dn-tight tr { padding: 5px var(--sp-3); }
+.ldhc-table th, .ldhc-table td {
+  padding: 0; vertical-align: inherit;
+  font-weight: inherit; text-align: left;
+  min-width: 0;
+}
+.ldhc-table thead tr {
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border-default);
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: var(--tracking-wide); text-transform: uppercase;
+  color: var(--fg-hint);
+}
+.ldhc-table tbody tr {
+  border-bottom: 1px solid var(--border-default);
+  font-size: var(--fs-sm); color: var(--fg-2);
+}
+.ldhc-table tbody tr:last-child { border-bottom: 0; }
+.ldhc-table.is-hoverable tbody tr:hover { background: var(--surface-1); }
+/* Cell decorations, shared by every table rather than redefined per variant. */
+.ldhc-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.ldhc-table th.num { text-align: right; }
+.ldhc-table .muted { color: var(--fg-muted); }
+.ldhc-table .mono { font-family: var(--font-mono); font-size: var(--fs-xs); }
+.ldhc-table .iri {
+  font-family: var(--font-mono); font-size: var(--fs-xs);
+  color: var(--ldh-blue-700); text-decoration: none;
+}
+.ldhc-table .iri:hover { text-decoration: underline; }
+/* A SPARQL variable name in a result-set header. */
+.ldhc-table .var {
+  font-family: var(--font-mono); font-size: var(--fs-xs);
+  color: var(--ldh-violet-700); font-weight: var(--fw-medium);
+}
+
+/* =========================================================================
+   Avatar — initials, image or fallback glyph.
+   A solid accent disc: it sits on the header bar, which is dark under m3 and
+   light under base44, and --bg-accent / --fg-on-accent is the one pair legible
+   on both without a per-skin patch.
+   ========================================================================= */
+.ldhc-avatar {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0; padding: 0; overflow: hidden;
+  border: 0; border-radius: 50%;
+  background: var(--bg-accent); color: var(--fg-on-accent);
+  font-family: var(--font-sans); font-weight: var(--fw-semibold);
+  letter-spacing: 0.02em; line-height: 1;
+}
+.ldhc-avatar.sz-xs { width: 22px; height: 22px; font-size: 9px; }
+.ldhc-avatar.sz-sm { width: 26px; height: 26px; font-size: 10px; }
+.ldhc-avatar.sz-md { width: 32px; height: 32px; font-size: var(--fs-xs); }
+.ldhc-avatar.sz-lg { width: 44px; height: 44px; font-size: var(--fs-base); }
+.ldhc-avatar.sz-xl { width: 64px; height: 64px; font-size: var(--fs-lg); }
+.ldhc-avatar > img { width: 100%; height: 100%; object-fit: cover; }
+.ldhc-avatar.is-button { cursor: pointer; transition: filter var(--dur-fast) var(--ease-out-soft), box-shadow var(--dur-fast) var(--ease-out-soft); }
+.ldhc-avatar.is-button:hover { filter: brightness(1.08); }
+.ldhc-avatar.is-button:focus-visible { outline: 0; box-shadow: var(--focus-ring); }
+.ldhc-avatar.is-open { box-shadow: 0 0 0 2px var(--surface-0), 0 0 0 4px var(--bg-accent); }
+
+/* =========================================================================
+   Drawer — an edge-anchored panel. Square, hairline-bordered, quiet: it is
+   anchored to the viewport edge, not floating, so it takes no radius.
+   ========================================================================= */
+.ldhc-drawer {
+  position: fixed; top: 0; bottom: 0; z-index: 45;
+  display: flex; flex-direction: column;
+  width: min(360px, 92vw);
+  background: var(--surface-0); color: var(--fg-1);
+  box-shadow: -8px 0 24px -22px rgba(15, 23, 42, 0.16);
+  overflow: hidden;
+}
+.ldhc-drawer.sd-right { right: 0; border-left: 1px solid var(--border-default); animation: ldhc-drawer-r var(--dur-base) var(--ease-out-soft); }
+.ldhc-drawer.sd-left { left: 0; border-right: 1px solid var(--border-default); animation: ldhc-drawer-l var(--dur-base) var(--ease-out-soft); }
+@keyframes ldhc-drawer-r { from { transform: translateX(12px); opacity: 0; } }
+@keyframes ldhc-drawer-l { from { transform: translateX(-12px); opacity: 0; } }
+.ldhc-drawer.sz-sm { width: min(280px, 92vw); }
+.ldhc-drawer.sz-lg { width: min(480px, 96vw); }
+.ldhc-drawer-head {
+  display: flex; align-items: center; gap: var(--sp-2); flex-shrink: 0;
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--border-default);
+}
+.ldhc-drawer-title { flex: 1; min-width: 0; font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--fg-1); }
+.ldhc-drawer-body { flex: 1; min-height: 0; overflow-y: auto; padding: var(--sp-3); }
+.ldhc-drawer-foot {
+  flex-shrink: 0; padding: var(--sp-3) var(--sp-4);
+  border-top: 1px solid var(--border-default);
+}
+
+/* =========================================================================
+   Stepper — numbered steps for a multi-part flow.
+   ========================================================================= */
+.ldhc-stepper { display: flex; flex-direction: column; gap: var(--sp-5); }
+.ldhc-step-head { display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap; margin-bottom: var(--sp-4); }
+.ldhc-step-n {
+  width: 24px; height: 24px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: var(--r-pill);
+  background: var(--bg-accent); color: var(--fg-on-accent);
+  font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: var(--fw-bold);
+}
+.ldhc-step-n.is-done { background: var(--success-500); color: #fff; }
+.ldhc-step-n.is-todo { background: var(--surface-3); color: var(--fg-muted); }
+.ldhc-step-n.is-error { background: var(--danger-500); color: #fff; }
+.ldhc-step-title { margin: 0; font-size: var(--fs-md); font-weight: var(--fw-semibold); color: var(--fg-1); }
+.ldhc-step-hint { font-size: var(--fs-sm); color: var(--fg-muted); }

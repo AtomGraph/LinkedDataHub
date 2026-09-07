@@ -22,10 +22,12 @@
                    Toggletip
      controls.css  Select · Combobox · IconButton · FileInput · CodeField
      overlays.css  Menu (+ ActionOverflow) · Popover · Modal
+     surfaces.css  Card · DataTable · Avatar · Drawer · Step
    ========================================================================= */
 
 @import url('controls.css');
 @import url('overlays.css');
+@import url('surfaces.css');
 
 /* ---------- Icon — the Material Symbols primitive ----------
    Five sizes aligned to the text/control scale; colour inherits from the
@@ -64,14 +66,22 @@
    intent × appearance matrix. intent sets the colour role; appearance sets
    whether that role is a fill, a border, or nothing until hover.
    ========================================================================= */
+/* Button intent variables. These are component INTERNALS, not theme tokens:
+   the appearance × intent matrix works by each intent rebinding them, so they
+   belong on the component and deliberately not on :root. */
+/* Button intent variables live ONLY on the intent rules below. The base has no
+   defaults because it never renders without one: Button always emits
+   `in-<intent>` (default "primary"), and every hand-written usage carries one
+   too. Defaults here were dead weight — and one more component-selector scope
+   declaring custom properties. */
 .ldhc-btn {
-  --btn-fg: var(--fg-on-accent);
-  --btn-bg: var(--bg-accent);
-  --btn-bg-hover: var(--bg-accent-hover);
-  --btn-bd: transparent;
   display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
   font-family: var(--font-sans); font-weight: var(--fw-medium);
-  border: 1px solid var(--btn-bd); border-radius: var(--r-md);
+  /* transparent literal, not a variable: unlike --btn-fg/-bg/-bg-hover, which
+     every intent rebinds, the border colour was never overridden through the
+     variable — each appearance sets `border-color` directly. A variable that
+     varies nothing is just indirection. */
+  border: 1px solid transparent; border-radius: var(--r-md);
   cursor: pointer; text-decoration: none; white-space: nowrap;
   position: relative; box-sizing: border-box;
   transition: background var(--dur-fast) var(--ease-out-soft),
@@ -100,7 +110,7 @@
 .ldhc-btn.in-neutral  { --btn-bg: var(--surface-2);      --btn-bg-hover: var(--surface-3);       --btn-fg: var(--fg-1); }
 .ldhc-btn.in-accent   { --btn-bg: var(--ldh-violet-600); --btn-bg-hover: var(--ldh-violet-700);  --btn-fg: #ffffff; }
 .ldhc-btn.in-negative { --btn-bg: var(--danger-500);     --btn-bg-hover: var(--danger-600); --btn-fg: var(--fg-on-danger); }
-.ldhc-btn.in-inverse  { --btn-bg: #ffffff;               --btn-bg-hover: rgba(255,255,255,0.88); --btn-fg: var(--ink-1); }
+.ldhc-btn.in-inverse  { --btn-bg: var(--bg-inverse);    --btn-bg-hover: var(--bg-inverse-hover); --btn-fg: var(--ink-1); }
 
 /* appearance: solid — the intent colour as a fill */
 .ldhc-btn.ap-solid { background: var(--btn-bg); color: var(--btn-fg); }

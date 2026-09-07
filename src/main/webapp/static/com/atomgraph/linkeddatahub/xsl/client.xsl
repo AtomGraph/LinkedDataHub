@@ -67,7 +67,6 @@ xmlns:skos="&skos;"
 xmlns:schema1="&schema1;"
 xmlns:schema2="&schema2;"
 xmlns:dbpo="&dbpo;"
-xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 xmlns:rdfae="https://w3id.org/atomgraph/rdfa-editor#"
 exclude-result-prefixes="#all"
 extension-element-prefixes="ixsl"
@@ -85,48 +84,46 @@ extension-element-prefixes="ixsl"
     <xsl:import href="../../../../com/atomgraph/client/xsl/imports/sioc.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/imports/skos.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/imports/sp.xsl"/>
-    <xsl:import href="../../../../com/atomgraph/client/xsl/bootstrap/2.3.2/imports/default.xsl"/>
-    <xsl:import href="bootstrap/2.3.2/imports/default.xsl"/>
-    <xsl:import href="../../../../com/atomgraph/client/xsl/bootstrap/2.3.2/resource.xsl"/>
-    <xsl:import href="../../../../com/atomgraph/client/xsl/bootstrap/2.3.2/document.xsl"/>
-    <xsl:import href="../../../../com/atomgraph/client/xsl/bootstrap/2.3.2/container.xsl"/>
-    <xsl:import href="bootstrap/2.3.2/resource.xsl"/>
-    <xsl:import href="bootstrap/2.3.2/imports/ac.xsl"/>
-    <xsl:import href="bootstrap/2.3.2/imports/acl.xsl"/>
-    <xsl:import href="bootstrap/2.3.2/imports/cert.xsl"/>
-    <xsl:import href="bootstrap/2.3.2/imports/ldh.xsl"/>
-    <xsl:import href="bootstrap/2.3.2/imports/dct.xsl"/>
-    <xsl:import href="bootstrap/2.3.2/imports/nfo.xsl"/>
-    <xsl:import href="bootstrap/2.3.2/imports/rdf.xsl"/>
-    <xsl:import href="bootstrap/2.3.2/imports/rdfs.xsl"/>
-    <xsl:import href="bootstrap/2.3.2/imports/sioc.xsl"/>
-    <xsl:import href="bootstrap/2.3.2/imports/sp.xsl"/>
-    <xsl:import href="bootstrap/2.3.2/imports/sh.xsl"/>
-    <xsl:import href="bootstrap/2.3.2/imports/memento.xsl"/>
-    <xsl:import href="bootstrap/2.3.2/document.xsl"/>
-    <xsl:import href="bootstrap/2.3.2/imports/services/youtube.xsl"/>
+    <xsl:import href="imports/default.xsl"/>
+    <xsl:import href="../../../../com/atomgraph/client/xsl/resource.xsl"/>
+    <xsl:import href="../../../../com/atomgraph/client/xsl/document.xsl"/>
+    <xsl:import href="../../../../com/atomgraph/client/xsl/container.xsl"/>
+    <xsl:import href="resource.xsl"/>
+    <xsl:import href="imports/ac.xsl"/>
+    <xsl:import href="imports/acl.xsl"/>
+    <xsl:import href="imports/cert.xsl"/>
+    <xsl:import href="imports/ldh.xsl"/>
+    <xsl:import href="imports/dct.xsl"/>
+    <xsl:import href="imports/nfo.xsl"/>
+    <xsl:import href="imports/rdf.xsl"/>
+    <xsl:import href="imports/sioc.xsl"/>
+    <xsl:import href="imports/sp.xsl"/>
+    <xsl:import href="imports/sh.xsl"/>
+    <xsl:import href="imports/memento.xsl"/>
+    <xsl:import href="document.xsl"/>
+    <xsl:import href="imports/services/youtube.xsl"/>
     <xsl:import href="converters/RDFXML2DataTable.xsl"/>
     <xsl:import href="converters/SPARQLXMLResults2DataTable.xsl"/>
     <xsl:import href="converters/RDFXML2GeoJSON.xsl"/>
     <xsl:import href="rdfa-editor/index.xsl"/>
 
-    <xsl:include href="bootstrap/2.3.2/admin/signup.xsl"/>
-    <xsl:include href="bootstrap/2.3.2/client/query-transforms.xsl"/>
-    <xsl:include href="bootstrap/2.3.2/client/typeahead.xsl"/>
-    <xsl:include href="bootstrap/2.3.2/client/functions.xsl"/>
-    <xsl:include href="bootstrap/2.3.2/client/navigation.xsl"/>
-    <xsl:include href="bootstrap/2.3.2/client/block.xsl"/>
-    <xsl:include href="bootstrap/2.3.2/client/modal.xsl"/>
-    <xsl:include href="bootstrap/2.3.2/client/memento.xsl"/>
-    <xsl:include href="bootstrap/2.3.2/client/packages.xsl"/>
-    <xsl:include href="bootstrap/2.3.2/client/form.xsl"/>
-    <xsl:include href="bootstrap/2.3.2/client/map.xsl"/> <!-- include in view.xsl and object.xsl instead? -->
-    <xsl:include href="bootstrap/2.3.2/client/graph3d.xsl"/>
-    <xsl:include href="bootstrap/2.3.2/client/constructor.xsl"/>
-    <xsl:include href="bootstrap/2.3.2/client/block/object.xsl"/>
-    <xsl:include href="bootstrap/2.3.2/client/block/view.xsl"/>
-    <xsl:include href="bootstrap/2.3.2/client/block/chart.xsl"/>
-    <xsl:include href="bootstrap/2.3.2/client/block/query.xsl"/>
+    <xsl:include href="admin/signup.xsl"/>
+    <xsl:include href="client/query-transforms.xsl"/>
+    <xsl:include href="client/typeahead.xsl"/>
+    <xsl:include href="client/functions.xsl"/>
+    <xsl:include href="client/navigation.xsl"/>
+    <xsl:include href="client/block.xsl"/>
+    <xsl:include href="client/modal.xsl"/>
+    <xsl:include href="client/memento.xsl"/>
+    <xsl:include href="client/packages.xsl"/>
+    <xsl:include href="client/form.xsl"/>
+    <xsl:include href="client/map.xsl"/> <!-- include in view.xsl and object.xsl instead? -->
+    <xsl:include href="client/graph3d.xsl"/>
+    <xsl:include href="client/constructor.xsl"/>
+    <xsl:include href="client/block/object.xsl"/>
+    <xsl:include href="client/block/view.xsl"/>
+    <xsl:include href="client/block/chart.xsl"/>
+    <xsl:include href="client/block/query.xsl"/>
 
     <xsl:param name="ldh:ajaxRendering" select="true()" as="xs:boolean"/>
     <xsl:param name="ldh:renderSystemResources" select="false()" as="xs:boolean"/>
@@ -506,11 +503,11 @@ WHERE
                             <xsl:when test="$reuse-pane">
                                 <xsl:variable name="old-about" select="string($reuse-pane/div[contains-token(@class, 'document-body')]/@about)" as="xs:string"/>
 
-                                <!-- on the initial load the server already rendered this body: keep it instead of re-rendering over it. The client SEF carries no package stylesheet imports (SEF is generated at build time), so re-rendering silently drops every package rendering rule the server applied - e.g. the SKOS package's suppression of skos:broader in bs2:PropertyList. ldh:RenderTab below still runs, so the content-block factories populate the pane as usual -->
+                                <!-- on the initial load the server already rendered this body: keep it instead of re-rendering over it. The client SEF carries no package stylesheet imports (SEF is generated at build time), so re-rendering silently drops every package rendering rule the server applied - e.g. the SKOS package's suppression of skos:broader in ac:PropertyEditor. ldh:RenderTab below still runs, so the content-block factories populate the pane as usual -->
                                 <xsl:if test="not($server-rendered and $old-about = string($doc-uri))">
                                     <xsl:for-each select="$reuse-pane/div[contains-token(@class, 'document-body')]">
                                         <xsl:result-document href="?." method="ixsl:replace-element">
-                                            <xsl:apply-templates select="$render-results/rdf:RDF" mode="bs2:DocumentBody">
+                                            <xsl:apply-templates select="$render-results/rdf:RDF" mode="ldh:DocumentBody">
                                                 <xsl:with-param name="mode" select="$mode"/>
                                                 <xsl:with-param name="about" select="$doc-uri"/>
                                                 <xsl:with-param name="object-metadata" select="$context('object-metadata')" tunnel="yes"/>
@@ -545,7 +542,7 @@ WHERE
                             <xsl:otherwise>
                                 <xsl:variable name="tab-body" as="element()">
                                     <!-- inert class: ldh:ActivateTab (called from ldh:RenderTab below) is the single source of truth for the 'active' token. Defaulting to 'tab-pane active' here would briefly leave two panes active (this one + the currently-active local one) and crash ldt:base()/sd:endpoint() in any code that runs between append and ActivateTab (e.g. ldh:LeftSidebar). -->
-                                    <xsl:apply-templates select="$render-results/rdf:RDF" mode="bs2:TabBody">
+                                    <xsl:apply-templates select="$render-results/rdf:RDF" mode="ldh:TabBody">
                                         <xsl:with-param name="id" select="$tab-body-id"/>
                                         <xsl:with-param name="class" select="'tab-pane'"/>
                                         <xsl:with-param name="mode" select="$mode"/>
@@ -644,7 +641,7 @@ WHERE
                                 <xsl:sequence select="?body"/>
                             </xsl:when>
                             <xsl:otherwise>
-                                <xsl:variable name="status-resource" select="key('status-by-code', xs:integer(?status), document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/http-statusCodes.rdf', $lapp:origin)))" as="element()?"/>
+                                <xsl:variable name="status-resource" select="key('status-by-code', xs:integer(?status), document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/http-statusCodes.rdf', $lapp:origin)))" as="element()?"/>
                                 <xsl:document>
                                     <rdf:RDF>
                                         <rdf:Description rdf:nodeID="error">
@@ -697,7 +694,7 @@ WHERE
                         <xsl:when test="$tab-pane">
                             <xsl:for-each select="$tab-pane/div[contains-token(@class, 'document-body')]">
                                 <xsl:result-document href="?." method="ixsl:replace-element">
-                                    <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:DocumentBody">
+                                    <xsl:apply-templates select="$results/rdf:RDF" mode="ldh:DocumentBody">
                                         <xsl:with-param name="mode" select="$mode"/>
                                         <xsl:with-param name="about" select="$doc-uri"/>
                                     </xsl:apply-templates>
@@ -706,7 +703,7 @@ WHERE
                         </xsl:when>
                         <xsl:otherwise>
                             <xsl:variable name="tab-body" as="element()">
-                                <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:TabBody">
+                                <xsl:apply-templates select="$results/rdf:RDF" mode="ldh:TabBody">
                                     <xsl:with-param name="id" select="$tab-body-id"/>
                                     <xsl:with-param name="class" select="'tab-pane'"/>
                                     <xsl:with-param name="mode" select="$mode"/>
@@ -874,7 +871,7 @@ WHERE
             </xsl:otherwise>
         </xsl:choose>
 
-        <!-- bs2:ActionBar always renders breadcrumb-nav inside bs2:ActionBarMain -->
+        <!-- ac:ActionBar always renders breadcrumb-nav inside ac:ActionBarMain -->
         <xsl:variable name="pane-breadcrumb-nav" select="id($tab-pane-id, ixsl:page())//*[contains-token(@class, 'breadcrumb-nav')]" as="element()?"/>
         <xsl:if test="$pane-breadcrumb-nav">
             <xsl:call-template name="ldh:PopulateBreadcrumbNav">
@@ -1330,7 +1327,7 @@ WHERE
     <xsl:template match="button[contains-token(@class, 'btn-delete')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:variable name="request-uri" select="ldh:href(ac:absolute-path(ldh:base-uri(.)), map{})" as="xs:anyURI"/>
 
-        <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))) ])">
+        <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))) ])">
             <xsl:variable name="context" as="map(*)" select="
               map{
                 'request': map{ 'method': 'DELETE', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } },
@@ -1369,7 +1366,7 @@ WHERE
     <!-- copy resource's URI into clipboard -->
     
     <xsl:template match="button[contains-token(@class, 'btn-copy-uri')]" mode="ixsl:onclick">
-        <!-- resolve the URI by placement: the block header's title anchor (bs2:Actions), the subject URI/bnode ID inputs (the .ldh-subject row hosting the button in edit forms), or the ancestor block's @about (view toolbar and XHTML content corner, which render no title anchor) -->
+        <!-- resolve the URI by placement: the block header's title anchor (ac:BlockActions), the subject URI/bnode ID inputs (the .ldh-subject row hosting the button in edit forms), or the ancestor block's @about (view toolbar and XHTML content corner, which render no title anchor) -->
         <xsl:variable name="uri-or-bnode" select="(ancestor::div[contains-token(@class, 'ldh-block-head')][1]//h2/a/@title, ancestor::div[contains-token(@class, 'ldh-subject')][1]//input[@name = ('su', 'sb')]/@value, ancestor::div[contains-token(@class, 'block')][1]/@about)[1]" as="xs:string"/>
         <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'navigator.clipboard'), 'writeText', [ $uri-or-bnode ])"/>
 

@@ -199,6 +199,16 @@
 .ldhc-iconbtn.sz-sm { width: 32px; height: 32px; }
 .ldhc-iconbtn.sz-md { width: 34px; height: 34px; }
 .ldhc-iconbtn.sz-lg { width: 36px; height: 36px; }
+/* A tally alongside the glyph — the block links button. The button stops being
+   square and pads instead, so the count is inside the same hit target. */
+.ldhc-iconbtn.has-count { width: auto; padding: 0 8px; gap: 4px; }
+.ldhc-iconbtn.has-count.sz-xs { min-width: 28px; }
+.ldhc-iconbtn.has-count.sz-sm { min-width: 32px; }
+.ldhc-iconbtn.has-count.sz-md { min-width: 34px; }
+.ldhc-iconbtn-count {
+  font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: var(--fw-semibold);
+  line-height: 1;
+}
 .ldhc-iconbtn:hover { background: var(--bg-hover); color: var(--fg-1); }
 .ldhc-iconbtn:active { background: var(--bg-active); }
 .ldhc-iconbtn:focus-visible { outline: 0; box-shadow: var(--focus-ring); }
