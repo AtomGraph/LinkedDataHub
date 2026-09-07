@@ -152,6 +152,10 @@
         <rdfs:label xml:lang="en-US">Run</rdfs:label>
         <rdfs:label xml:lang="es-ES">Ejecutar</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="edit-query">
+        <rdfs:label xml:lang="en-US">Edit query</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Editar consulta</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="search-title">
         <rdfs:label xml:lang="en-US">Search for resources by title, label, content etc.</rdfs:label>
         <rdfs:label xml:lang="es-ES">Buscar recursos por título, etiqueta, contenido, etc.</rdfs:label>

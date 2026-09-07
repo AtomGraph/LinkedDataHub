@@ -191,6 +191,11 @@ div.breadcrumb.ldh-bc { min-width: 0; overflow: hidden; }
 .ldh-actionbar--zoned > .ldh-actions { min-width: calc(var(--wing) - var(--sp-6)); justify-content: flex-end; }
 .ldh-header .ldh-address { --address-offset: max(0px, calc(var(--wing) - 220px - var(--sp-6))); justify-self: start; margin-left: var(--address-offset); width: calc(100% - var(--address-offset)); max-width: calc(min(var(--ldh-content-w), var(--layout-w)) - 2 * var(--sp-6)); }
 
+/* ---------- block titles are anchors (resources dereference); the design's .ttl is ink,
+   so the link inherits it and keeps underline for hover ---------- */
+.ldh-block-head .ttl a { color: inherit; text-decoration: none; }
+.ldh-block-head .ttl a:hover { text-decoration: underline; }
+
 /* ---------- block header actions hydrated by CSR ---------- */
 .ldh-block-head .actions > div { display: flex; gap: var(--sp-1); }
 /* bs2:Row nests bs2:Header inside .ldh-block-body (the design keeps head and body as siblings), so the
@@ -438,6 +443,32 @@ fieldset > .btn-group { display: flex; justify-content: flex-end; }
 .btn-order-by .dir-desc, .btn-order-by.btn-order-by-desc .dir-asc { display: none; }
 .btn-order-by.btn-order-by-desc .dir-desc { display: inline; }
 
+/* ---------- query block: the design's SPARQL pane (QueryBlock contract) hosts YASQE ----------
+   The pane is the dark surface app.css paints for .ldh-sparql-code; YASQE mounts a stock CodeMirror
+   beside the hidden textarea, so the CodeMirror surface takes the same treatment - transparent over
+   the pane, the pane's gutter wash, and the .t-* token palette mapped onto CodeMirror's .cm-* classes */
+.ldh-sparql-pane .CodeMirror { flex: 1; min-width: 0; height: auto; background: transparent; color: rgba(255,255,255,0.86); font-family: var(--font-mono); font-size: var(--fs-sm); line-height: 1.65; }
+.ldh-sparql-pane .CodeMirror-scroll { overflow-x: auto; overflow-y: hidden; }
+.ldh-sparql-pane .CodeMirror-lines { padding: var(--sp-4) 0; }
+.ldh-sparql-pane .CodeMirror pre { padding: 0 var(--sp-4); }
+.ldh-sparql-pane .CodeMirror-gutters { background: rgba(255,255,255,0.03); border-right: 0; }
+.ldh-sparql-pane .CodeMirror-linenumber { color: rgba(255,255,255,0.28); font-family: var(--font-mono); }
+.ldh-sparql-pane .CodeMirror-cursor { border-left: 1px solid rgba(255,255,255,0.86); }
+.ldh-sparql-pane .CodeMirror-selected { background: rgba(255,255,255,0.12); }
+.ldh-sparql-pane .CodeMirror-focused .CodeMirror-selected { background: rgba(124,199,255,0.25); }
+.ldh-sparql-pane .cm-s-default .cm-keyword { color: #ff9ec4; font-weight: var(--fw-semibold); }
+.ldh-sparql-pane .cm-s-default .cm-atom, .ldh-sparql-pane .cm-s-default .cm-meta, .ldh-sparql-pane .cm-s-default .cm-builtin { color: #7cc7ff; }
+.ldh-sparql-pane .cm-s-default .cm-variable, .ldh-sparql-pane .cm-s-default .cm-variable-2, .ldh-sparql-pane .cm-s-default .cm-variable-3, .ldh-sparql-pane .cm-s-default .cm-def { color: #ffd479; }
+.ldh-sparql-pane .cm-s-default .cm-string, .ldh-sparql-pane .cm-s-default .cm-string-2 { color: #9be29b; }
+.ldh-sparql-pane .cm-s-default .cm-number { color: #f5b06b; }
+.ldh-sparql-pane .cm-s-default .cm-comment { color: rgba(255,255,255,0.45); }
+.ldh-sparql-pane .cm-s-default .cm-operator, .ldh-sparql-pane .cm-s-default .cm-bracket, .ldh-sparql-pane .cm-s-default .cm-punctuation { color: rgba(255,255,255,0.6); }
+/* the editor folds behind the block head's code toggle (results first) */
+.ldh-sparql.is-collapsed { display: none; }
+/* the bar's meta slot carries the live service combobox, not the design's static endpoint text */
+.ldh-sparql-bar .ldh-sparql-meta { flex: 1 1 auto; min-width: 0; }
+.ldh-sparql-meta .ldhc-combobox { flex: 1 1 auto; min-width: 0; }
+
 /* the wordmark's white ink is header-bar styling; on the footer's light surface it takes body ink
    (the design sets this inline on the footer wordmark) */
 .ldh-footer .ldh-wordmark { color: var(--fg-1); }
@@ -503,22 +534,6 @@ body:has(.document-body > .content-body > :is(.graph-3d-canvas, .map-canvas)) .l
    the toolbar buttons with the content column and the breadcrumb zone. Compact vertical padding -
    the band is chrome, not content ---------- */
 .editor-bar > .content-body { width: 100%; padding-top: var(--sp-2); padding-bottom: var(--sp-2); }
-
-/* ---------- toolbar buttons outside the design's scoped containers: app.css only styles .tb
-   inside .ldh-toolbar / .ldh-of-wrap / .ldh-block-head .actions, so the form-row remove/add
-   buttons (tb btn-remove-property, tb btn-add, tb btn-remove-resource) fell back to browser
-   chrome. Zero-specificity base so every scoped recipe still wins ---------- */
-:where(button.tb) {
-  width: 28px; height: 28px; padding: 0;
-  display: inline-flex; align-items: center; justify-content: center;
-  background: transparent;
-  border: 0; border-radius: var(--r-sm);
-  color: var(--fg-hint);
-  cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-out-soft), color var(--dur-fast) var(--ease-out-soft);
-}
-:where(button.tb):hover { background: var(--bg-hover); color: var(--fg-1); }
-:where(button.tb.btn-remove-property, button.tb.btn-remove-resource):hover { background: var(--danger-50); color: var(--danger-500); }
 
 /* form Actions overflow: the design renders the menu only while open; the static
    markup ships it closed, so the is-open class the onclick handler toggles is what shows it */

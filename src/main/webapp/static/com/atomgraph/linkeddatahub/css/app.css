@@ -650,6 +650,31 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   margin-right: var(--sp-3);
   white-space: nowrap;
 }
+/* =========================================================================
+   .tb — toolbar icon button, BASE.
+   The box lives here once, unscoped, so a .tb works in any container. It was
+   previously defined four separate times (.ldh-toolbar, .ldh-of-wrap,
+   .ldh-block-head .actions, .ldh-media-actions), and every other scope —
+   .ldh-nblock-actions among them — inherited nothing and fell back to the UA
+   button default: grey fill, border, wrong size. Scoped rules below now only
+   override what genuinely differs (36 / 32 / 28px).
+   Prefer core <IconButton> for new work; .tb is the app kit's older sibling.
+   ========================================================================= */
+.tb {
+  width: 32px; height: 32px; flex-shrink: 0; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: transparent; border: 0; border-radius: var(--r-sm);
+  color: var(--fg-muted); cursor: pointer;
+  font-family: inherit; font-size: inherit;
+  transition: background var(--dur-fast) var(--ease-out-soft), color var(--dur-fast) var(--ease-out-soft);
+}
+.tb:hover { background: var(--bg-hover); color: var(--fg-1); }
+.tb:active { background: var(--bg-active); }
+.tb:focus-visible { outline: 0; box-shadow: var(--focus-ring); }
+.tb:disabled { cursor: not-allowed; opacity: 0.4; pointer-events: none; }
+/* Destructive variant, available in every scope rather than block heads only. */
+.tb-danger:hover { background: var(--danger-50); color: var(--danger-500); }
+
 .ldh-toolbar .tb {
   width: 36px; height: 36px;
   display: inline-flex; align-items: center; justify-content: center;
@@ -911,15 +936,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-block-head .ttl--hero { font-size: var(--fs-3xl); font-weight: var(--fw-bold); line-height: var(--lh-tight); letter-spacing: var(--tracking-tight); }
 .ldh-block-head .sub { display: block; font-size: var(--fs-sm); color: var(--fg-muted); margin-top: 4px; font-weight: 400; }
 .ldh-block-head .actions { display: flex; gap: var(--sp-1); }
-.ldh-block-head .actions .tb {
-  width: 32px; height: 32px;
-  display: inline-flex; align-items: center; justify-content: center;
-  background: transparent; border: 0; border-radius: var(--r-sm);
-  color: var(--fg-muted);
-}
-.ldh-block-head .actions .tb:hover { background: var(--bg-hover); color: var(--fg-1); }
-/* Delete (×) — quiet at rest, danger on hover. The block-removal affordance. */
-.ldh-block-head .actions .tb-danger:hover { background: var(--danger-50); color: var(--danger-500); }
+/* Box + hover + danger all come from the .tb base now. */
 
 /* Links button — opens block-scoped drawer (backlinks / related / parallax) */
 .ldh-block-head .actions .tb-links,
@@ -2498,17 +2515,44 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ar-sent-ic .msi { font-size: 28px; }
 .ar-sent h3 { margin: 0; font-size: var(--fs-lg); font-weight: var(--fw-semibold); color: var(--fg-1); }
 .ar-sent p { margin: 0 0 var(--sp-3); font-size: var(--fs-sm); color: var(--fg-muted); max-width: 360px; }
-.ldhc-modal .minput {
+/* Search field — the query input at the top of the search modal. Replaces
+   .minput, which was search-only despite the generic name. */
+.ldh-search-field {
   display: flex; align-items: center; gap: var(--sp-2);
-  padding: 0 var(--sp-6);
+  padding: 0 var(--sp-5);
   border-bottom: 1px solid var(--border-default);
-  height: 64px;
+  height: 60px; flex-shrink: 0;
 }
-.ldhc-modal .minput input {
-  flex: 1; height: 100%; border: 0; outline: 0;
+.ldh-search-field > .msi { color: var(--fg-muted); flex-shrink: 0; }
+.ldh-search-field input {
+  flex: 1; min-width: 0; height: 100%; border: 0; outline: 0;
   background: transparent; font: inherit; font-size: var(--fs-lg); color: var(--fg-1);
 }
-.ldhc-modal .minput .msi { color: var(--fg-muted); }
+.ldh-search-field input::placeholder { color: var(--fg-hint); }
+/* type="search" makes WebKit/Blink render their OWN clear button, which sat
+   next to our IconButton — two × controls, one unstyled and unthemed. The
+   input keeps type="search" (correct semantics, and it gets the platform's
+   search affordances) and we suppress the native decorations. */
+.ldh-search-field input::-webkit-search-cancel-button,
+.ldh-search-field input::-webkit-search-decoration,
+.ldh-search-field input::-webkit-search-results-button,
+.ldh-search-field input::-webkit-search-results-decoration {
+  -webkit-appearance: none; appearance: none; display: none;
+}
+
+/* The embedded results view. Search results ARE a view — the real <View>
+   block is mounted here, so it must sit flush inside the flush modal body
+   rather than reading as a card floating in a dialog. */
+.ldh-search-view { flex: 1; min-height: 0; overflow-y: auto; }
+/* No chrome overrides here: the embedded <View> is passed `quiet`, so it
+   renders .ldh-block.is-quiet — the variant that is already transparent and
+   borderless, and which every skin already patches. Overriding .ldh-block from
+   this scope instead would be a specificity war against each skin's own block
+   rules (the m3 flow patch alone is (0,4,0)), and one the later-loaded skin
+   file wins. */
+/* The block row must not clip the parallax drawer's slide-in. */
+.ldh-search-view .ldh-block-row { overflow: visible; }
+
 .ldhc-modal .mtoolbar {
   display: flex; align-items: center; gap: var(--sp-2);
   padding: var(--sp-2) var(--sp-5);
@@ -2548,6 +2592,9 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   background: var(--surface-1);
   border-top: 1px solid var(--border-default);
   font-size: var(--fs-xs); color: var(--fg-muted);
+  /* Pinned: it is the last child of a flex-column flush body, so without this
+     it would compress when the results region runs out of room. */
+  flex-shrink: 0;
 }
 .ldhc-modal .mhint kbd {
   font-family: var(--font-mono); font-size: 10px;
@@ -2881,8 +2928,8 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .ldh-nblock-actions { display: flex; align-items: center; gap: 2px; margin-left: auto; }
-/* Reuse the .tb toolbar-button styling from block heads; nested toolbar is
-   slightly quieter (revealed emphasis on hover of the block). */
+/* Box comes from the .tb base; a nested toolbar just rests quieter and gains
+   emphasis when its block is hovered. */
 .ldh-nblock-actions .tb { color: var(--ink-4); }
 .ldh-nblock:hover .ldh-nblock-actions .tb { color: var(--fg-muted); }
 

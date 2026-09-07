@@ -220,7 +220,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="graph" select="descendant::*[@property = '&ldh;graph']/@resource" as="xs:anyURI?"/>
         <xsl:param name="mode" select="descendant::*[@property = '&ac;mode']/@resource" as="xs:anyURI?"/>
         <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
-        <xsl:param name="method" select="'patch'" as="xs:string"/>
         <xsl:param name="chart-type-id" select="'chart-type-' || generate-id()" as="xs:string"/>
         <xsl:param name="category-id" select="'category-' || generate-id()" as="xs:string"/>
         <xsl:param name="series-id" select="'series-' || generate-id()" as="xs:string"/>
@@ -249,7 +248,6 @@ exclude-result-prefixes="#all"
             'block': $block,
             'container': $container,
             'container-id': $container-id,
-            'method': $method,
             'chart-type-id': $chart-type-id,
             'category-id': $category-id,
             'series-id': $series-id,
@@ -309,7 +307,6 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:render-chart" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
-        <xsl:variable name="method" select="$context('method')" as="xs:string"/>
         <xsl:variable name="chart-type-id" select="$context('chart-type-id')" as="xs:string"/>
         <xsl:variable name="category-id" select="$context('category-id')" as="xs:string"/>
         <xsl:variable name="series-id" select="$context('series-id')" as="xs:string"/>
@@ -332,8 +329,6 @@ exclude-result-prefixes="#all"
                 <xsl:copy-of select="$header"/>
 
                 <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:Chart">
-                    <xsl:with-param name="method" select="$method"/>
-                    <xsl:with-param name="class" select="()"/>
                     <xsl:with-param name="chart-type" select="($chart-type, xs:anyURI('&ac;Table'))[1]"/>
                     <xsl:with-param name="chart-type-id" select="$chart-type-id"/>
                     <xsl:with-param name="category-id" select="$category-id"/>
@@ -354,9 +349,9 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="select[contains-token(@class, 'chart-type')]" mode="ixsl:onchange">
         <xsl:variable name="chart-type" select="ixsl:get(., 'value')" as="xs:anyURI"/>
-        <xsl:variable name="category" select="../..//select[contains-token(@class, 'chart-category')]/ixsl:get(., 'value')" as="xs:string?"/>
+        <xsl:variable name="category" select="ancestor::div[contains-token(@class, 'chart-controls')][1]//select[contains-token(@class, 'chart-category')]/ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:variable name="series" as="xs:string*">
-            <xsl:for-each select="../..//select[contains-token(@class, 'chart-series')]">
+            <xsl:for-each select="ancestor::div[contains-token(@class, 'chart-controls')][1]//select[contains-token(@class, 'chart-series')]">
                 <xsl:variable name="select" select="." as="element()"/>
                 <xsl:for-each select="0 to xs:integer(ixsl:get(., 'selectedOptions.length')) - 1">
                     <xsl:sequence select="ixsl:get(ixsl:call(ixsl:get($select, 'selectedOptions'), 'item', [ . ]), 'value')"/>
@@ -367,7 +362,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="block-id" select="$block/@id" as="xs:string?"/>
         <!-- if there is no block, the chart is rendering the current document -->
         <xsl:variable name="block-uri" select="if ($block/@about) then $block/@about else (if ($block-id) then xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id) else ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/>
-        <xsl:variable name="chart-canvas-id" select="ancestor::fieldset/following-sibling::div/@id" as="xs:string"/>
+        <xsl:variable name="chart-canvas-id" select="ancestor::div[contains-token(@class, 'chart-controls')][1]/following-sibling::div[contains-token(@class, 'chart-canvas')][1]/@id" as="xs:string"/>
         <xsl:variable name="results" select="if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'results')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'results') else root(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'content'))" as="document-node()"/>
         
         <xsl:if test="not($chart-type) or not($category or $results/rdf:RDF) or empty($series)">
@@ -389,10 +384,10 @@ exclude-result-prefixes="#all"
     <!-- category onchange -->
 
     <xsl:template match="select[contains-token(@class, 'chart-category')]" mode="ixsl:onchange">
-        <xsl:variable name="chart-type" select="../..//select[contains-token(@class, 'chart-type')]/ixsl:get(., 'value')" as="xs:anyURI"/>
+        <xsl:variable name="chart-type" select="ancestor::div[contains-token(@class, 'chart-controls')][1]//select[contains-token(@class, 'chart-type')]/ixsl:get(., 'value')" as="xs:anyURI"/>
         <xsl:variable name="category" select="ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:variable name="series" as="xs:string*">
-            <xsl:for-each select="../..//select[contains-token(@class, 'chart-series')]">
+            <xsl:for-each select="ancestor::div[contains-token(@class, 'chart-controls')][1]//select[contains-token(@class, 'chart-series')]">
                 <xsl:variable name="select" select="." as="element()"/>
                 <xsl:for-each select="0 to xs:integer(ixsl:get(., 'selectedOptions.length')) - 1">
                     <xsl:sequence select="ixsl:get(ixsl:call(ixsl:get($select, 'selectedOptions'), 'item', [ . ]), 'value')"/>
@@ -403,7 +398,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="block-id" select="$block/@id" as="xs:string?"/>
         <!-- if there is no block, the chart is rendering the current document -->
         <xsl:variable name="block-uri" select="if ($block/@about) then $block/@about else (if ($block-id) then xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id) else ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/>
-        <xsl:variable name="chart-canvas-id" select="ancestor::fieldset/following-sibling::div/@id" as="xs:string"/>
+        <xsl:variable name="chart-canvas-id" select="ancestor::div[contains-token(@class, 'chart-controls')][1]/following-sibling::div[contains-token(@class, 'chart-canvas')][1]/@id" as="xs:string"/>
         <xsl:variable name="results" select="if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'results')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'results') else root(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'content'))" as="document-node()"/>
 
         <xsl:if test="not($chart-type) or not($category or $results/rdf:RDF) or empty($series)">
@@ -425,8 +420,8 @@ exclude-result-prefixes="#all"
     <!-- series onchange -->
 
     <xsl:template match="select[contains-token(@class, 'chart-series')]" mode="ixsl:onchange">
-        <xsl:variable name="chart-type" select="../..//select[contains-token(@class, 'chart-type')]/ixsl:get(., 'value')" as="xs:anyURI"/>
-        <xsl:variable name="category" select="../..//select[contains-token(@class, 'chart-category')]/ixsl:get(., 'value')" as="xs:string?"/>
+        <xsl:variable name="chart-type" select="ancestor::div[contains-token(@class, 'chart-controls')][1]//select[contains-token(@class, 'chart-type')]/ixsl:get(., 'value')" as="xs:anyURI"/>
+        <xsl:variable name="category" select="ancestor::div[contains-token(@class, 'chart-controls')][1]//select[contains-token(@class, 'chart-category')]/ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:variable name="series" as="xs:string*">
             <xsl:variable name="select" select="." as="element()"/>
             <xsl:for-each select="0 to xs:integer(ixsl:get(., 'selectedOptions.length')) - 1">
@@ -437,7 +432,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="block-id" select="$block/@id" as="xs:string?"/>
         <!-- if there is no block, the chart is rendering the current document -->
         <xsl:variable name="block-uri" select="if ($block/@about) then $block/@about else (if ($block-id) then xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id) else ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/>
-        <xsl:variable name="chart-canvas-id" select="ancestor::fieldset/following-sibling::div/@id" as="xs:string"/>
+        <xsl:variable name="chart-canvas-id" select="ancestor::div[contains-token(@class, 'chart-controls')][1]/following-sibling::div[contains-token(@class, 'chart-canvas')][1]/@id" as="xs:string"/>
         <xsl:variable name="results" select="if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'results')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'results') else root(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'content'))" as="document-node()"/>
 
         <xsl:if test="not($chart-type) or not($category or $results/rdf:RDF) or empty($series)">
@@ -467,10 +462,12 @@ exclude-result-prefixes="#all"
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
         <xsl:variable name="query-type" select="ldh:query-type($query-string)" as="xs:string"/>
         <xsl:variable name="forClass" select="if ($query-type = ('SELECT', 'ASK')) then xs:anyURI('&ldh;ResultSetChart') else xs:anyURI('&ldh;GraphChart')" as="xs:anyURI"/>
-        <xsl:variable name="chart-type" select="../..//select[contains-token(@class, 'chart-type')]/ixsl:get(., 'value')" as="xs:anyURI?"/>
-        <xsl:variable name="category" select="../..//select[contains-token(@class, 'chart-category')]/ixsl:get(., 'value')" as="xs:string?"/>
+        <!-- the create button rides the chart's .ldh-block-foot, a sibling of the .chart-controls grid -->
+        <xsl:variable name="chart-controls" select="ancestor::div[contains-token(@class, 'ldh-block-foot')][1]/preceding-sibling::div[contains-token(@class, 'chart-controls')][1]" as="element()"/>
+        <xsl:variable name="chart-type" select="$chart-controls//select[contains-token(@class, 'chart-type')]/ixsl:get(., 'value')" as="xs:anyURI?"/>
+        <xsl:variable name="category" select="$chart-controls//select[contains-token(@class, 'chart-category')]/ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:variable name="series" as="xs:string*">
-            <xsl:for-each select="../..//select[contains-token(@class, 'chart-series')]">
+            <xsl:for-each select="$chart-controls//select[contains-token(@class, 'chart-series')]">
                 <xsl:variable name="select" select="." as="element()"/>
                 <xsl:for-each select="0 to xs:integer(ixsl:get(., 'selectedOptions.length')) - 1">
                     <xsl:sequence select="ixsl:get(ixsl:call(ixsl:get($select, 'selectedOptions'), 'item', [ . ]), 'value')"/>
@@ -501,10 +498,10 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
         <xsl:variable name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:variable name="query-uri" select="$container//descendant::*[@property = '&spin;query']/@resource" as="xs:anyURI"/>
-        <xsl:variable name="chart-type" select="$container//form//select[contains-token(@class, 'chart-type')]/ixsl:get(., 'value')" as="xs:anyURI?"/>
-        <xsl:variable name="category" select="$container//form//select[contains-token(@class, 'chart-category')]/ixsl:get(., 'value')" as="xs:string?"/>
+        <xsl:variable name="chart-type" select="$container//div[contains-token(@class, 'chart-controls')]//select[contains-token(@class, 'chart-type')]/ixsl:get(., 'value')" as="xs:anyURI?"/>
+        <xsl:variable name="category" select="$container//div[contains-token(@class, 'chart-controls')]//select[contains-token(@class, 'chart-category')]/ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:variable name="series" as="xs:string*">
-            <xsl:for-each select="$container//form//select[contains-token(@class, 'chart-series')]">
+            <xsl:for-each select="$container//div[contains-token(@class, 'chart-controls')]//select[contains-token(@class, 'chart-series')]">
                 <xsl:variable name="select" select="." as="element()"/>
                 <xsl:for-each select="0 to xs:integer(ixsl:get(., 'selectedOptions.length')) - 1">
                     <xsl:sequence select="ixsl:get(ixsl:call(ixsl:get($select, 'selectedOptions'), 'item', [ . ]), 'value')"/>
@@ -648,8 +645,8 @@ exclude-result-prefixes="#all"
                         <xsl:variable name="series" select="if (exists($series)) then $series else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name())) else srx:sparql/srx:head/srx:variable/@name)" as="xs:string*"/>
 
                         <!-- re-render the chart header with the category/series options from the results -->
-                        <xsl:for-each select="$container//form/fieldset">
-                            <xsl:result-document href="?." method="ixsl:replace-content">
+                        <xsl:for-each select="$container//div[contains-token(@class, 'chart-controls')]">
+                            <xsl:result-document href="?." method="ixsl:replace-element">
                                 <xsl:apply-templates select="$results/*" mode="bs2:ChartHeader">
                                     <xsl:with-param name="chart-type" select="$chart-type"/>
                                     <xsl:with-param name="category" select="$category"/>

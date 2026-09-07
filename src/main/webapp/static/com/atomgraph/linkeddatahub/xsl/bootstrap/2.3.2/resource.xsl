@@ -864,6 +864,62 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
 
+    <!-- chart and query block heads follow the design's typed-block head (ChartBlock/QueryBlock):
+         no type badge - the block's kind rides the .sub slot when it carries no description of its own -->
+
+    <xsl:template match="*[*][@rdf:about][rdf:type/@rdf:resource = ('&ldh;ResultSetChart', '&ldh;GraphChart', '&sp;Describe', '&sp;Construct', '&sp;Ask', '&sp;Select')] | *[*][@rdf:nodeID][rdf:type/@rdf:resource = ('&ldh;ResultSetChart', '&ldh;GraphChart', '&sp;Describe', '&sp;Construct', '&sp;Ask', '&sp;Select')]" mode="bs2:Header" priority="1">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'ldh-block-head'" as="xs:string?"/>
+        <xsl:variable name="block-type" select="(rdf:type/@rdf:resource[. = ('&ldh;ResultSetChart', '&ldh;GraphChart', '&sp;Describe', '&sp;Construct', '&sp;Ask', '&sp;Select')])[1]" as="xs:anyURI"/>
+
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+
+            <xsl:apply-templates select="." mode="bs2:Image"/>
+
+            <div style="min-width: 0">
+                <h2 class="ttl">
+                    <xsl:apply-templates select="@rdf:about | @rdf:nodeID" mode="xhtml:Anchor"/>
+
+                    <!-- the block state marker travels with every header and app.css reveals it only where this
+                         block's body holds the empty state, so it cannot outlive the state it names -->
+                    <span class="ldh-block-state is-empty">
+                        <span class="msi outline" aria-hidden="true">inbox</span>
+                        <span>
+                            <xsl:apply-templates select="key('resources', 'block-state-empty', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </span>
+                    </span>
+                </h2>
+
+                <span class="sub">
+                    <xsl:choose>
+                        <xsl:when test="ac:description(.)">
+                            <xsl:apply-templates select="." mode="ac:description"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:apply-templates select="key('resources', $block-type, document(ac:document-uri($block-type)))" mode="ac:label"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </span>
+            </div>
+
+            <div class="actions">
+                <xsl:apply-templates select="." mode="bs2:Timestamp"/>
+
+                <xsl:if test="@rdf:about">
+                    <xsl:apply-templates select="." mode="ldh:BlockLinksPopover"/>
+                </xsl:if>
+
+                <xsl:apply-templates select="." mode="bs2:Actions"/>
+            </div>
+        </div>
+    </xsl:template>
+
     <!-- PROPERTY LIST -->
 
     <!-- suppress types in property list - we show them in the bs2:Header instead -->

@@ -782,9 +782,19 @@ extension-element-prefixes="ixsl"
 
     <!-- TABLE MODE -->
 
+    <!-- SPARQL SELECT results render through Web-Client's srx:sparql table, whose class default is
+         Bootstrap's table-bordered/table-striped; only the class changes, so the override delegates -->
+    <xsl:template match="srx:sparql" mode="xhtml:Table">
+        <xsl:param name="class" select="'ldh-results-table'" as="xs:string?"/>
+
+        <xsl:next-match>
+            <xsl:with-param name="class" select="$class"/>
+        </xsl:next-match>
+    </xsl:template>
+
     <xsl:template match="rdf:RDF" mode="xhtml:Table">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'table'" as="xs:string?"/>
+        <xsl:param name="class" select="'ldh-results-table'" as="xs:string?"/>
         <xsl:param name="property-uris" select="distinct-values(*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
         <xsl:param name="property-metadata" select="if (exists($property-uris)) then ldh:send-request(resolve-uri('ns', ldt:base()), 'POST', 'application/sparql-query', 'DESCRIBE $Type' || ' VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }', map{ 'Accept': 'application/rdf+xml' }) else ()" as="document-node()?" tunnel="yes"/>
         <xsl:param name="predicates" as="element()*">
@@ -833,28 +843,19 @@ extension-element-prefixes="ixsl"
     
     <!-- CHART -->
 
-    <!-- chart form: shell around the bs2:ChartHeader controls, the canvas and the save action -->
+    <!-- chart shell: the bs2:ChartHeader controls, the canvas and the save action sit directly in the
+         block body, as in the design's chart block - no form or fieldset chrome around them (the
+         controls act through their own change handlers, nothing here ever submits) -->
 
     <xsl:template match="rdf:RDF | srx:sparql" mode="bs2:Chart">
         <xsl:param name="canvas-id" as="xs:string"/>
         <xsl:param name="canvas-class" select="'chart-canvas'" as="xs:string?"/>
-        <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'ldh-prop-form'" as="xs:string?"/>
-        <xsl:param name="button-class" select="'ldhc-btn in-primary ap-solid sz-md'" as="xs:string?"/>
-        <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
-        <xsl:param name="enctype" as="xs:string?"/>
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI?"/> <!-- table is the default chart type -->
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*"/>
         <xsl:param name="chart-type-id" select="'chart-type'" as="xs:string"/>
         <xsl:param name="category-id" select="'category'" as="xs:string"/>
         <xsl:param name="series-id" select="'series'" as="xs:string"/>
-        <xsl:param name="width" as="xs:string?"/>
-        <xsl:param name="height" select="'480'" as="xs:string?"/>
-        <xsl:param name="uri" as="xs:anyURI?"/>
-        <xsl:param name="query" as="xs:string?"/>
-        <xsl:param name="show-controls" select="true()" as="xs:boolean"/>
         <xsl:param name="show-save" select="true()" as="xs:boolean"/>
         <xsl:param name="form-actions" as="element()?">
             <!-- saving PATCHes the current document, so the button only appears to an agent who may write to it -->
@@ -868,44 +869,25 @@ extension-element-prefixes="ixsl"
             </xsl:if>
         </xsl:param>
 
-        <xsl:if test="$show-controls">
-            <form method="{$method}">
-                <xsl:if test="$id">
-                    <xsl:attribute name="id" select="$id"/>
-                </xsl:if>
-                <xsl:if test="$class">
-                    <xsl:attribute name="class" select="$class"/>
-                </xsl:if>
-                <xsl:if test="$accept-charset">
-                    <xsl:attribute name="accept-charset" select="$accept-charset"/>
-                </xsl:if>
-                <xsl:if test="$enctype">
-                    <xsl:attribute name="enctype" select="$enctype"/>
-                </xsl:if>
+        <xsl:apply-templates select="." mode="bs2:ChartHeader">
+            <xsl:with-param name="chart-type" select="$chart-type"/>
+            <xsl:with-param name="category" select="$category"/>
+            <xsl:with-param name="series" select="$series"/>
+            <xsl:with-param name="chart-type-id" select="$chart-type-id"/>
+            <xsl:with-param name="category-id" select="$category-id"/>
+            <xsl:with-param name="series-id" select="$series-id"/>
+        </xsl:apply-templates>
 
-                <fieldset>
-                    <xsl:apply-templates select="." mode="bs2:ChartHeader">
-                        <xsl:with-param name="chart-type" select="$chart-type"/>
-                        <xsl:with-param name="category" select="$category"/>
-                        <xsl:with-param name="series" select="$series"/>
-                        <xsl:with-param name="chart-type-id" select="$chart-type-id"/>
-                        <xsl:with-param name="category-id" select="$category-id"/>
-                        <xsl:with-param name="series-id" select="$series-id"/>
-                    </xsl:apply-templates>
-                </fieldset>
+        <div>
+            <xsl:if test="$canvas-id">
+                <xsl:attribute name="id" select="$canvas-id"/>
+            </xsl:if>
+            <xsl:if test="$canvas-class">
+                <xsl:attribute name="class" select="$canvas-class"/>
+            </xsl:if>
+        </div>
 
-                <div>
-                    <xsl:if test="$canvas-id">
-                        <xsl:attribute name="id" select="$canvas-id"/>
-                    </xsl:if>
-                    <xsl:if test="$canvas-class">
-                        <xsl:attribute name="class" select="$canvas-class"/>
-                    </xsl:if>
-                </div>
-
-                <xsl:sequence select="$form-actions"/>
-            </form>
-        </xsl:if>
+        <xsl:sequence select="$form-actions"/>
     </xsl:template>
 
     <!-- chart header (RDF/XML results): chart-controls grid, category/series options grouped from resource properties -->
@@ -920,12 +902,12 @@ extension-element-prefixes="ixsl"
 
         <div class="chart-controls">
             <div class="field">
-                <label class="ldhc-label sz-md" for="{$chart-type-id}">
+                <label class="ldhc-label sz-sm" for="{$chart-type-id}">
                     <span>
                         <xsl:apply-templates select="key('resources', '&ldh;chartType', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
                     </span>
                 </label>
-                <span class="ldhc-select sz-md">
+                <span class="ldhc-select sz-sm">
                 <select id="{$chart-type-id}" name="ou" class="chart-type">
                     <xsl:for-each select="key('resources-by-subclass', '&ac;Chart', document(ac:document-uri('&ldh;')))">
                         <xsl:sort select="ac:label(.)" lang="{ac:langs()[1]}"/>
@@ -939,12 +921,12 @@ extension-element-prefixes="ixsl"
                 </span>
             </div>
             <div class="field">
-                <label class="ldhc-label sz-md" for="{$category-id}">
+                <label class="ldhc-label sz-sm" for="{$category-id}">
                     <span>
                         <xsl:apply-templates select="key('resources', 'category', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                     </span>
                 </label>
-                <span class="ldhc-select sz-md">
+                <span class="ldhc-select sz-sm">
                 <select id="{$category-id}" name="ou" class="chart-category">
                     <option value="">
                         <!-- URI is the default category -->
@@ -973,12 +955,12 @@ extension-element-prefixes="ixsl"
                 </span>
             </div>
             <div class="field">
-                <label class="ldhc-label sz-md" for="{$series-id}">
+                <label class="ldhc-label sz-sm" for="{$series-id}">
                     <span>
                         <xsl:apply-templates select="key('resources', 'series', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                     </span>
                 </label>
-                <span class="ldhc-select sz-md is-multiple">
+                <span class="ldhc-select sz-sm is-multiple">
                 <select id="{$series-id}" name="ou" multiple="multiple" class="chart-series">
                     <xsl:for-each-group select="*/*" group-by="concat(namespace-uri(), local-name())">
                         <xsl:sort select="ac:property-label(.)" order="ascending" lang="{ac:langs()[1]}"/>
@@ -1011,12 +993,12 @@ extension-element-prefixes="ixsl"
 
         <div class="chart-controls">
             <div class="field">
-                <label class="ldhc-label sz-md" for="{$chart-type-id}">
+                <label class="ldhc-label sz-sm" for="{$chart-type-id}">
                     <span>
                         <xsl:apply-templates select="key('resources', '&ldh;chartType', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
                     </span>
                 </label>
-                <span class="ldhc-select sz-md">
+                <span class="ldhc-select sz-sm">
                 <select id="{$chart-type-id}" name="ou" class="chart-type">
                     <xsl:for-each select="key('resources-by-subclass', '&ac;Chart', document(ac:document-uri('&ldh;')))">
                         <xsl:sort select="ac:label(.)" lang="{ac:langs()[1]}"/>
@@ -1030,18 +1012,12 @@ extension-element-prefixes="ixsl"
                 </span>
             </div>
             <div class="field">
-                <xsl:call-template name="xhtml:Input">
-                    <xsl:with-param name="name" select="'pu'"/>
-                    <xsl:with-param name="type" select="'hidden'"/>
-                    <xsl:with-param name="value" select="'&ldh;categoryVarName'"/>
-                </xsl:call-template>
-
-                <label class="ldhc-label sz-md" for="{$category-id}">
+                <label class="ldhc-label sz-sm" for="{$category-id}">
                     <span>
                         <xsl:apply-templates select="key('resources', 'category', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                     </span>
                 </label>
-                <span class="ldhc-select sz-md">
+                <span class="ldhc-select sz-sm">
                 <select id="{$category-id}" name="ol" class="chart-category">
                     <xsl:for-each select="srx:head/srx:variable">
                         <!-- leave the original variable order so it can be controlled from query -->
@@ -1059,12 +1035,12 @@ extension-element-prefixes="ixsl"
                 </span>
             </div>
             <div class="field">
-                <label class="ldhc-label sz-md" for="{$series-id}">
+                <label class="ldhc-label sz-sm" for="{$series-id}">
                     <span>
                         <xsl:apply-templates select="key('resources', 'series', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                     </span>
                 </label>
-                <span class="ldhc-select sz-md is-multiple">
+                <span class="ldhc-select sz-sm is-multiple">
                 <select id="{$series-id}" name="ol" multiple="multiple" class="chart-series">
                     <xsl:for-each select="srx:head/srx:variable">
                         <!-- leave the original variable order so it can be controlled from query -->

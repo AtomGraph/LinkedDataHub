@@ -42,13 +42,7 @@ exclude-result-prefixes="#all"
 >
 
     <!-- TEMPLATES -->
-    
-    <xsl:template match="*[@rdf:nodeID = 'run']" mode="ldh:logo">
-        <xsl:param name="class" as="xs:string?"/>
-        
-        <xsl:attribute name="class" select="concat($class, ' ', 'btn-run-query')"/>
-    </xsl:template>
-    
+
     <!-- update the query resource before saving. A mode of its own, not shared with the chart save: the
          two rewrite different resources and have nothing in common but the identity walk. -->
 
@@ -142,7 +136,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="mode" select="descendant::*[@property = '&ac;mode']/@resource" as="xs:anyURI?"/>
         <xsl:param name="show-edit-button" select="false()" as="xs:boolean?"/>
         <xsl:param name="textarea-id" select="generate-id() || '-textarea'" as="xs:string?"/>
-        <xsl:param name="textarea-class" select="'row-main sparql-query-string'" as="xs:string?"/>
+        <xsl:param name="textarea-class" select="'sparql-query-string'" as="xs:string?"/>
         <xsl:param name="textarea-name" select="'query'" as="xs:string?"/>
         <xsl:param name="textarea-rows" select="15" as="xs:integer?"/>
         <xsl:param name="service-uri" select="descendant::*[@property = '&ldh;service']/@resource" as="xs:anyURI?"/>
@@ -200,115 +194,142 @@ exclude-result-prefixes="#all"
 
         <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
             <xsl:variable name="header" select=".//*[contains-token(@class, 'ldh-block-head')][1]" as="element()"/>
-            
+
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:copy-of select="$header"/>
-                                
-                <form class="sparql-query-form ldh-prop-form" method="get" action="">
-                    <div class="ldh-prop-group">
-                        <xsl:call-template name="xhtml:Input">
-                            <xsl:with-param name="name" select="'pu'"/>
-                            <xsl:with-param name="type" select="'hidden'"/>
-                            <xsl:with-param name="value" select="'&ldh;service'"/>
-                        </xsl:call-template>
+                <!-- the head passes through unchanged except for gaining the editor toggle -->
+                <xsl:apply-templates select="$header" mode="ldh:query-block-head"/>
 
-                        <div class="label">
-                            <span class="lbl-row">
-                                <span class="pred" title="&ldh;service">
-                                    <xsl:apply-templates select="key('resources', '&ldh;service', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
-                                </span>
-                            </span>
+                <!-- the design's query block shows results first and folds the editor pane out of the head's
+                     code toggle; the pane stays a form so Enter and the Run submit reach the same handler -->
+                <form class="sparql-query-form" method="get" action="">
+                    <div class="ldh-sparql is-collapsed">
+                        <div class="ldh-sparql-pane">
+                            <textarea>
+                                <xsl:if test="$textarea-id">
+                                    <xsl:attribute name="id" select="$textarea-id"/>
+                                </xsl:if>
+                                <xsl:if test="$textarea-class">
+                                    <xsl:attribute name="class" select="$textarea-class"/>
+                                </xsl:if>
+                                <xsl:if test="$textarea-name">
+                                    <xsl:attribute name="name" select="$textarea-name"/>
+                                </xsl:if>
+                                <xsl:if test="$textarea-rows">
+                                    <xsl:attribute name="rows" select="$textarea-rows"/>
+                                </xsl:if>
+
+                                <xsl:value-of select="$query"/>
+                            </textarea>
                         </div>
-                        <div class="ldh-prop-row is-interactive is-last">
-                            <div class="value val-stack">
-                                <div class="val-main">
-                                    <xsl:choose>
-                                        <xsl:when test="$service-uri">
-                                            <!-- need to explicitly request RDF/XML, otherwise we get HTML -->
-                                            <xsl:variable name="request-uri" select="ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ())" as="xs:anyURI"/>
-                                            <!-- TO-DO: refactor asynchronously -->
-                                            <xsl:apply-templates select="key('resources', $service-uri, document($request-uri))" mode="ldh:Typeahead">
-                                                <xsl:with-param name="forClass" select="$forClass"/>
-                                            </xsl:apply-templates>
-                                        </xsl:when>
-                                        <xsl:otherwise>
-                                            <xsl:call-template name="bs2:Lookup">
-                                                <xsl:with-param name="forClass" select="$forClass"/>
-                                            </xsl:call-template>
-                                        </xsl:otherwise>
-                                    </xsl:choose>
-                                </div>
+                        <div class="ldh-sparql-bar">
+                            <div class="ldh-sparql-meta">
+                                <span class="msi sm" aria-hidden="true" title="{ac:label(key('resources', '&ldh;service', document(ac:document-uri('&ldh;'))))}">dns</span>
+
+                                <xsl:call-template name="xhtml:Input">
+                                    <xsl:with-param name="name" select="'pu'"/>
+                                    <xsl:with-param name="type" select="'hidden'"/>
+                                    <xsl:with-param name="value" select="'&ldh;service'"/>
+                                </xsl:call-template>
+
+                                <xsl:choose>
+                                    <xsl:when test="$service-uri">
+                                        <!-- need to explicitly request RDF/XML, otherwise we get HTML -->
+                                        <xsl:variable name="request-uri" select="ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ())" as="xs:anyURI"/>
+                                        <!-- TO-DO: refactor asynchronously -->
+                                        <xsl:apply-templates select="key('resources', $service-uri, document($request-uri))" mode="ldh:Typeahead">
+                                            <xsl:with-param name="forClass" select="$forClass"/>
+                                        </xsl:apply-templates>
+                                    </xsl:when>
+                                    <xsl:otherwise>
+                                        <xsl:call-template name="bs2:Lookup">
+                                            <xsl:with-param name="forClass" select="$forClass"/>
+                                        </xsl:call-template>
+                                    </xsl:otherwise>
+                                </xsl:choose>
                             </div>
-                            <div class="row-actions"></div>
+                            <div class="ldh-sparql-bar-actions">
+                                <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-open-query">
+                                    <xsl:value-of>
+                                        <xsl:apply-templates select="key('resources', 'open', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                    </xsl:value-of>
+                                </button>
+                                <!-- saving PATCHes the query back into the current document, so the button only appears to an agent who may write to it -->
+                                <xsl:if test="acl:mode() = '&acl;Write'">
+                                    <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-save btn-save-query">
+                                        <xsl:value-of>
+                                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                        </xsl:value-of>
+                                    </button>
+                                </xsl:if>
+                                <button type="submit" class="ldhc-btn in-primary ap-solid sz-md btn-run-query">
+                                    <span class="msi sm" aria-hidden="true">play_arrow</span>
+                                    <xsl:value-of>
+                                        <xsl:apply-templates select="key('resources', 'run', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                    </xsl:value-of>
+                                </button>
+                            </div>
                         </div>
-                    </div>
-
-                    <textarea>
-                        <xsl:if test="$textarea-id">
-                            <xsl:attribute name="id" select="$textarea-id"/>
-                        </xsl:if>
-                        <xsl:if test="$textarea-class">
-                            <xsl:attribute name="class" select="$textarea-class"/>
-                        </xsl:if>
-                        <xsl:if test="$textarea-name">
-                            <xsl:attribute name="name" select="$textarea-name"/>
-                        </xsl:if>
-                        <xsl:if test="$textarea-rows">
-                            <xsl:attribute name="rows" select="$textarea-rows"/>
-                        </xsl:if>
-                        
-                        <xsl:value-of select="$query"/>
-                    </textarea>
-
-                    <div class="ldh-block-foot">
-                        <button type="submit">
-                            <xsl:apply-templates select="key('resources', 'run', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ldh:logo">
-                                <xsl:with-param name="class" select="'ldhc-btn in-primary ap-solid sz-md'"/>
-                            </xsl:apply-templates>
-
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'run', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                        <button type="button" class="ldhc-btn in-primary ap-solid sz-md btn-open-query">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'open', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                        <!-- saving PATCHes the query back into the current document, so the button only appears to an agent who may write to it -->
-                        <xsl:if test="acl:mode() = '&acl;Write'">
-                            <button type="button" class="ldhc-btn in-primary ap-solid sz-md btn-save btn-save-query">
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                </xsl:value-of>
-                            </button>
-                        </xsl:if>
                     </div>
                 </form>
             </xsl:result-document>
         </xsl:for-each>
-        
+
         <!-- initialize YASQE SPARQL editor on the textarea -->
         <xsl:variable name="js-statement" as="element()">
             <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
         </xsl:variable>
         <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
-        
+
+        <!-- results first, as the design's query block: run the stored query straight away -->
+        <xsl:for-each select="$container//form[contains-token(@class, 'sparql-query-form')]">
+            <xsl:apply-templates select="." mode="ldh:RunQuery"/>
+        </xsl:for-each>
+
         <xsl:sequence select="$context"/>
     </xsl:function>
+
+    <!-- query block head: identity copy of the re-rendered head, with the editor toggle leading the
+         action toolbar as in the design's query block -->
+
+    <xsl:template match="@* | node()" mode="ldh:query-block-head">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+
+    <xsl:template match="div[contains-token(@class, 'actions')][not(button[contains-token(@class, 'tb-query')])]" mode="ldh:query-block-head" priority="1">
+        <xsl:copy>
+            <xsl:apply-templates select="@*" mode="#current"/>
+
+            <button type="button" class="tb tb-query" aria-pressed="false" title="{ac:label(key('resources', 'edit-query', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}" aria-label="{ac:label(key('resources', 'edit-query', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}">
+                <span class="msi sm" aria-hidden="true">code</span>
+            </button>
+
+            <xsl:apply-templates select="node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
     
     <!-- EVENT LISTENERS -->
     
     <!-- submit SPARQL query form (prioritize over default template in form.xsl) -->
-    
-    <xsl:template match="div[@typeof = ('&sp;Ask', '&sp;Select', '&sp;Describe', '&sp;Construct')]//form[contains-token(@class, 'sparql-query-form ')]" mode="ixsl:onsubmit" priority="2"> <!-- prioritize over form.xsl -->
-        <xsl:sequence select="ldh:busy-cursor()"/>
+
+    <xsl:template match="div[@typeof = ('&sp;Ask', '&sp;Select', '&sp;Describe', '&sp;Construct')]//form[contains-token(@class, 'sparql-query-form')]" mode="ixsl:onsubmit" priority="2"> <!-- prioritize over form.xsl -->
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+
+        <xsl:apply-templates select="." mode="ldh:RunQuery"/>
+    </xsl:template>
+
+    <!-- run the block's query and render its results after the form. Factored out of the submit handler
+         so render-query (results first) and the chart tab can run the query without a submit event to
+         cancel - ixsl:event() is only in scope while an event is being handled -->
+
+    <xsl:template match="form[contains-token(@class, 'sparql-query-form')]" mode="ldh:RunQuery">
+        <xsl:sequence select="ldh:busy-cursor()"/>
         <xsl:variable name="textarea-id" select="descendant::textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
-        <xsl:variable name="service-prop-group" select="descendant::div[contains-token(@class, 'ldh-prop-group')][input[@name = 'pu'][@value = '&ldh;service']]" as="element()"/>
-        <xsl:variable name="service-uri" select="$service-prop-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI?"/>
+        <xsl:variable name="service-meta" select="descendant::div[contains-token(@class, 'ldh-sparql-meta')][input[@name = 'pu'][@value = '&ldh;service']]" as="element()"/>
+        <xsl:variable name="service-uri" select="$service-meta/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI?"/>
         <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ()))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
@@ -441,7 +462,28 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
         </xsl:for-each>
 
-        <xsl:apply-templates select="$form" mode="ixsl:onsubmit"/>
+        <xsl:apply-templates select="$form" mode="ldh:RunQuery"/>
+    </xsl:template>
+
+    <!-- editor toggle onclick: folds the SPARQL pane out of and back into the block head, as in the
+         design's query block -->
+
+    <xsl:template match="div[contains-token(@class, 'block')]//button[contains-token(@class, 'tb-query')]" mode="ixsl:onclick">
+        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
+        <xsl:variable name="sparql" select="($block//div[contains-token(@class, 'ldh-sparql')])[1]" as="element()"/>
+        <xsl:variable name="show" select="contains-token($sparql/@class, 'is-collapsed')" as="xs:boolean"/>
+
+        <xsl:sequence select="ixsl:call(ixsl:get($sparql, 'classList'), 'toggle', [ 'is-collapsed', not($show) ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-on', $show ])[current-date() lt xs:date('2000-01-01')]"/>
+        <ixsl:set-attribute name="aria-pressed" select="if ($show) then 'true' else 'false'"/>
+
+        <xsl:if test="$show">
+            <!-- CodeMirror measured a hidden host when YASQE initialized, so the reveal re-measures and focuses -->
+            <xsl:variable name="textarea-id" select="($block//textarea[contains-token(@class, 'sparql-query-string')])[1]/ixsl:get(., 'id')" as="xs:string"/>
+            <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
+            <xsl:sequence select="ixsl:call($yasqe, 'refresh', [])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ixsl:call($yasqe, 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:if>
     </xsl:template>
     
     <!-- toggle query results to view mode (prioritize over view.xsl) -->
@@ -453,9 +495,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="textarea-id" select="$form//textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
-        <xsl:variable name="service-uri" select="$form//select[contains-token(@class, 'input-query-service')]/ixsl:get(., 'value')" as="xs:anyURI?"/>
-        <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ()))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
-        <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
         <xsl:variable name="query-id" select="'id' || ac:uuid()" as="xs:string"/>
         <xsl:variable name="query-uri" select="xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $query-id)" as="xs:anyURI"/>
         <xsl:variable name="query-form" select="ldh:query-type($query-string)" as="xs:string?"/>
@@ -533,7 +572,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="action" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:variable name="accept" select="'application/rdf+xml'" as="xs:string"/>
         <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
-        <xsl:variable name="service-uri" select="ancestor::form/descendant::select[contains-token(@class, 'input-query-service')]/ixsl:get(., 'value')" as="xs:anyURI?"/>
         <!-- the query form the agent has just typed: editing an ASK into a SELECT has to retype the resource,
              since leaving sp:Ask on SELECT text is exactly what the server rejects. Empty when the string
              does not parse, in which case the existing type is kept. -->
@@ -587,7 +625,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="textarea" select="ancestor::form/descendant::textarea[@name = 'query']" as="element()"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea/ixsl:get(., 'id'))"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string?"/> <!-- get query string from YASQE -->
-        <xsl:variable name="service-uri" select="descendant::select[contains-token(@class, 'input-query-service')]/ixsl:get(., 'value')" as="xs:anyURI?"/>
+        <xsl:variable name="service-uri" select="ancestor::form[1]/descendant::div[contains-token(@class, 'ldh-sparql-meta')]/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI?"/>
         <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ()))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
         <xsl:variable name="query-type" select="ldh:query-type($query-string)" as="xs:string?"/>
