@@ -35,38 +35,53 @@
    pair lands it visually at the row top), keeping the un-hydrated SSR markup out of view - the
    collapse the retired .progress height/overflow rule used to provide */
 .row-main.progress.active { height: 8px; overflow: hidden; }
-table.table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
+/* ---------- results table. The design's tabular components (.ldh-data-table, .ldh-mini-table,
+   .ldh-map-table, .ldh-run-list) put their column tracks on each <tr> as grid, which fixes the
+   column count per component. A SPARQL results table has as many columns as the SELECT has
+   variables, and per-row grids cannot share intrinsic track sizes - measured at 11 columns, the
+   head and body stop lining up under repeat(N, minmax(max-content, 1fr)), and equal 1fr tracks
+   shred a UUID column into four lines. So this one keeps native table layout and takes the
+   design's stated table treatment instead: horizontal rules only, no vertical lines, header row
+   on --surface-2. The sheet (--surface-0 + border + radius) is what .ldh-mini-table carries for
+   the same reason - a view nested in an .ldh-nblock well has to read as its own surface rather
+   than let the well's recession through its cells ---------- */
+.ldh-results-table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); background: var(--surface-0); border: 1px solid var(--border-default); border-radius: var(--r-sm); }
+/* no overflow: hidden to clip the corners - it would make the table its own scrollport and leave
+   the sticky header inert; the corner cells carry the radius instead */
+.ldh-results-table > thead > tr:first-child > :first-child { border-top-left-radius: var(--r-sm); }
+.ldh-results-table > thead > tr:first-child > :last-child { border-top-right-radius: var(--r-sm); }
 /* middle, not top: cells hold single-line values sitting beside taller things - a type pill, an image - and the
    design system centres a label against a control everywhere (.ldhc-btn, .ldhc-tag, .ldhc-badge), reserving
    flex-start for a wrapping text block beside a fixed-height one (.ldhc-help, .ldhc-choice, .ldhc-toast) */
-table.table th, table.table td { padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--border-default); text-align: left; vertical-align: middle; }
-table.table tr:last-child > td { border-bottom: 0; }
+.ldh-results-table th, .ldh-results-table td { padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--border-default); text-align: left; vertical-align: middle; }
+.ldh-results-table tr:last-child > td { border-bottom: 0; }
 /* the row lights as one band, the property-list hover's analog for a row-per-resource surface;
    no sp-6 bleed into the card padding here - .container-results (overflow: auto) clips at the table edge */
-table.table tbody td { transition: background var(--dur-fast) var(--ease-out-soft); }
-table.table tbody tr:hover > td { background: var(--surface-1); }
-table.table th { font-weight: var(--fw-semibold); color: var(--fg-muted); }
+.ldh-results-table tbody td { transition: background var(--dur-fast) var(--ease-out-soft); }
+.ldh-results-table tbody tr:hover > td { background: var(--surface-1); }
+/* the design's head treatment: a mono uppercase eyebrow on the recessed surface, not a bold label */
+.ldh-results-table thead th { font-family: var(--font-mono); font-size: 10px; letter-spacing: var(--tracking-wide); text-transform: uppercase; font-weight: var(--fw-regular); color: var(--fg-hint); background: var(--surface-2); }
 /* image objects in a data cell: cap the height alone so the row height is uniform down the column
    and the width stays proportional - a forced box would have to crop or letterbox, and a depiction
    is as often a logo or a scan as it is a headshot. The <a> wrapper keeps the full image one click away */
-table.table td img { max-height: var(--thumb-sm); border-radius: var(--r-xs); vertical-align: middle; }
+.ldh-results-table td img { max-height: var(--thumb-sm); border-radius: var(--r-xs); vertical-align: middle; }
 /* a property gets one cell however many values it has, so the values stack inside it, divided the way a predicate's
    dd's are in the property list. A table cell cannot bound its own height, so the cap rides the stack the cell holds:
    every value stays in the DOM and reachable by scrolling, instead of an order with fifty line items setting the row
    height for the whole table */
-table.table td > .values { max-height: 12em; overflow-y: auto; min-width: 0; overflow-wrap: break-word; }
-table.table td > .values > .value { padding: var(--sp-1) 0; }
-table.table td > .values > .value:first-child { padding-top: 0; }
-table.table td > .values > .value:last-child { padding-bottom: 0; }
-table.table td > .values > .value ~ .value { border-top: 1px solid var(--border-default); }
+.ldh-results-table td > .values { max-height: 12em; overflow-y: auto; min-width: 0; overflow-wrap: break-word; }
+.ldh-results-table td > .values > .value { padding: var(--sp-1) 0; }
+.ldh-results-table td > .values > .value:first-child { padding-top: 0; }
+.ldh-results-table td > .values > .value:last-child { padding-bottom: 0; }
+.ldh-results-table td > .values > .value ~ .value { border-top: 1px solid var(--border-default); }
 /* view table: the header row pins under the view toolbar while the rows scroll inside .container-results */
-.container-results > table.table thead th { position: sticky; top: 0; z-index: 1; background: var(--surface-1); border-bottom: 1px solid var(--border-strong); }
-/* sortable columns read full-strength at rest so non-sortable headers (which keep the base th --fg-muted) visibly recede; the arrow surfaces on hover and stays lit on the active sort column (aria-sort) */
-table.table th.sortable { cursor: pointer; user-select: none; white-space: nowrap; color: var(--fg-1); }
-table.table th.sortable:hover { background: var(--surface-2); }
-table.table th.sortable .sort-arrow { vertical-align: middle; margin-left: 2px; visibility: hidden; color: var(--fg-muted); }
-table.table th.sortable:hover .sort-arrow { visibility: visible; }
-table.table th.sortable[aria-sort] .sort-arrow { visibility: visible; color: var(--fg-1); }
+.container-results > .ldh-results-table thead th { position: sticky; top: 0; z-index: 1; border-bottom: 1px solid var(--border-strong); }
+/* sortable columns read full-strength at rest so non-sortable headers (which keep the base th --fg-hint) visibly recede; the arrow surfaces on hover and stays lit on the active sort column (aria-sort) */
+.ldh-results-table th.sortable { cursor: pointer; user-select: none; white-space: nowrap; color: var(--fg-1); }
+.ldh-results-table th.sortable:hover { background: var(--surface-3); }
+.ldh-results-table th.sortable .sort-arrow { vertical-align: middle; margin-left: 2px; visibility: hidden; color: var(--fg-muted); }
+.ldh-results-table th.sortable:hover .sort-arrow { visibility: visible; }
+.ldh-results-table th.sortable[aria-sort] .sort-arrow { visibility: visible; color: var(--fg-1); }
 .content-body { padding: var(--sp-4) var(--sp-6); max-width: var(--ldh-content-w); margin: 0 auto; }
 /* stacking rhythm between block cards and alerts (Bootstrap's row margins are gone) */
 .content-body .ldh-block, .content-body .ldhc-alert { margin-bottom: var(--sp-4); }
@@ -323,7 +338,7 @@ fieldset > .btn-group { display: flex; justify-content: flex-end; }
    read-row-height promise. A definite width sizes the line as drawn */
 .ldh-prop-row .val-main { width: 100%; }
 /* a value is a whole row rather than a table cell, so the image gets more height than in
-   table.table - enough to read, still short of pushing the rest of the property list off-screen.
+   .ldh-results-table - enough to read, still short of pushing the rest of the property list off-screen.
    This also lands in the map info window, whose overlay hosts a .ldh-block property list */
 .ldh-prop-row > .value img { max-width: 100%; max-height: var(--thumb-md); border-radius: var(--r-sm); }
 /* a block header with an image adopts the property-grid geometry (label track + gutter), so the
@@ -363,6 +378,10 @@ fieldset > .btn-group { display: flex; justify-content: flex-end; }
    the wrapper carries the border and the :focus-within ring */
 .sb-search input[type="text"] { border: 0; background: transparent; box-shadow: none; min-height: 0; height: 100%; padding: 0; }
 .sb-search input[type="text"]:focus { border: 0; box-shadow: none; }
+/* the search modal's field is a form (so Enter reaches the submit handler) where the design ships a
+   label, which puts its input in reach of the generic form input:focus ring above - the row is the
+   flush band, so a border and ring inside it would paint a box within the dialog's own edge */
+.ldh-search-field input:focus { border: 0; box-shadow: none; }
 /* tree/class lists are ul/li (CSR appends nested uls and toggles li .active) */
 .ldh-sidebar ul.nav { list-style: none; margin: 0; padding: 0; }
 .ldh-sidebar .sb-tree ul { list-style: none; margin: 0 0 0 var(--sp-4); padding: 0; }
@@ -431,7 +450,6 @@ fieldset > .btn-group { display: flex; justify-content: flex-end; }
 }
 .facet > ul.facet-pop > li > label.checkbox:hover { background: var(--bg-hover); color: var(--fg-1); }
 .facet > ul.facet-pop > li > label.checkbox input[type="checkbox"] { margin: 0; }
-.ldh-view-toolbar .result-count { margin: 0; white-space: nowrap; }
 .ldh-view-toolbar .form-inline { display: flex; align-items: center; gap: var(--sp-1); margin: 0; }
 .ldh-view-toolbar .form-inline label { display: flex; align-items: center; gap: var(--sp-1); margin: 0; }
 .ldh-view-toolbar .btn-group.open .dropdown-menu { left: auto; right: 0; }
@@ -517,6 +535,15 @@ body:has(.ldh-create-dock) .ldh-footer { margin-top: 0; }
 .tab-pane > .document-body > .content-body { width: 100%; }
 /* only create-bar pages need the column itself stretched (its children become flex items) */
 .document-body > .content-body:has(> .ldh-create-dock) { flex: 1 0 auto; display: flex; flex-direction: column; padding-bottom: 0; }
+
+/* ---------- .map-canvas in the design is a picture of a map: an absolute fill for a frame that
+   already has a size, painted with a gradient landmass and a grid. LDH hands the same element to
+   OpenLayers as a live map target, where it is an ordinary in-flow block that carries its own
+   height - out of flow it left its parent zero-high (the footer rode up under a view block's map)
+   and, at document level, escaped to the initial containing block and covered the viewport.
+   The gradient goes with it: OL paints its own tiles, and an empty canvas should look empty ---------- */
+.map-canvas { position: relative; inset: auto; background: none; }
+.map-canvas::before { content: none; }
 
 /* ---------- document-level graph and map modes: the canvas fills the whole space between the
    action bar and the viewport's bottom edge at full viewport width; canvases nested inside view

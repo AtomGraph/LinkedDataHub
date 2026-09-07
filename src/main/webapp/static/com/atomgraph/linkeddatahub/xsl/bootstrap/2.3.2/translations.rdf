@@ -172,6 +172,30 @@
         <rdfs:label xml:lang="en-US">Search…</rdfs:label>
         <rdfs:label xml:lang="es-ES">Buscar…</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="search-eyebrow">
+        <rdfs:label xml:lang="en-US">SPARQL · full-text</rdfs:label>
+        <rdfs:label xml:lang="es-ES">SPARQL · texto completo</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="search-subtitle">
+        <rdfs:label xml:lang="en-US">Results render as a view — facet, switch layout and page them like any other.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Los resultados se muestran como una vista: filtre por facetas, cambie el diseño y pagine como en cualquier otra.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="clear-query">
+        <rdfs:label xml:lang="en-US">Clear query</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Borrar consulta</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="hint-navigate">
+        <rdfs:label xml:lang="en-US">navigate</rdfs:label>
+        <rdfs:label xml:lang="es-ES">navegar</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="hint-open">
+        <rdfs:label xml:lang="en-US">open</rdfs:label>
+        <rdfs:label xml:lang="es-ES">abrir</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="hint-close">
+        <rdfs:label xml:lang="en-US">close</rdfs:label>
+        <rdfs:label xml:lang="es-ES">cerrar</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="application-list-title">
         <rdfs:label xml:lang="en-US">Applications</rdfs:label>
         <rdfs:label xml:lang="es-ES">Aplicaciones</rdfs:label>

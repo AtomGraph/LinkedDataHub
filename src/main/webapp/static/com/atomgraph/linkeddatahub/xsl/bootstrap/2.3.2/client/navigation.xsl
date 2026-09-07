@@ -1232,48 +1232,59 @@ ORDER BY DESC(?created)
             <div class="ldhc-backdrop pos-top modal modal-constructor modal-search" id="{$modal-id}" data-container-id="{$container-id}">
                 <div class="ldhc-modal sz-xl" role="dialog" aria-modal="true" aria-labelledby="modal-title-{generate-id()}">
                 <div class="ldhc-modal-head">
+                    <span class="ldhc-modal-icon">
+                        <span class="msi outline" aria-hidden="true">search</span>
+                    </span>
                     <div class="ldhc-modal-titles">
+                        <span class="ldhc-modal-eyebrow">
+                            <xsl:apply-templates select="key('resources', 'search-eyebrow', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </span>
                         <h2 class="ldhc-modal-title" id="modal-title-{generate-id()}">
                             <xsl:apply-templates select="key('resources', 'search', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                         </h2>
+                        <span class="ldhc-modal-sub">
+                            <xsl:apply-templates select="key('resources', 'search-subtitle', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </span>
                     </div>
-                    <form class="search-form-modal" accept-charset="UTF-8">
-                        <input type="text" name="q" class="search-query" value="{$text}" placeholder="{ac:label(key('resources', 'search-placeholder', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"/>
-                        <button type="submit" class="ldhc-btn in-primary ap-solid sz-md is-iconly btn-search">
-                            <span class="msi sm" aria-hidden="true">search</span>
-                        </button>
-                    </form>
                     <span class="ldhc-modal-x">
                         <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
                     </span>
                 </div>
-                <div class="ldhc-modal-body">
-                    <div class="block-row block">
-                        <div class="row-main progress active">
-                            <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
-                                <div class="ldhc-pbar ht-sm">
-                                    <div class="ldhc-pbar-track">
-                                        <div class="ldhc-pbar-fill" style="width: 0%;"></div>
+                <!-- the search field, the embedded view and the keyboard hints are each a full-bleed band, so the body carries no padding of its own -->
+                <div class="ldhc-modal-body is-flush">
+                    <!-- the design's search field is a label; here it stays a form so Enter still reaches the submit handler -->
+                    <form class="ldh-search-field search-form-modal" accept-charset="UTF-8">
+                        <span class="msi outline" aria-hidden="true">search</span>
+                        <input type="search" name="q" class="search-query" value="{$text}" placeholder="{ac:label(key('resources', 'search-placeholder', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"/>
+                        <button type="button" class="ldhc-iconbtn sz-xs in-neutral ap-ghost btn-clear-query" aria-label="{ac:label(key('resources', 'clear-query', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
+                    </form>
+
+                    <!-- search results ARE a view: the shared view block renders them, with its own facets, view modes and pager -->
+                    <div class="ldh-search-view">
+                        <div class="block-row block">
+                            <div class="row-main progress active">
+                                <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
+                                    <div class="ldhc-pbar ht-sm">
+                                        <div class="ldhc-pbar-track">
+                                            <div class="ldhc-pbar-fill" style="width: 0%;"></div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div id="{$container-id}" class="block-row" typeof="&ldh;View">
-                                <div class="main row-main">
-                                    <!-- view results will be rendered here -->
+                                <div id="{$container-id}" class="block-row" typeof="&ldh;View">
+                                    <div class="main row-main">
+                                        <!-- view results will be rendered here -->
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="ldhc-modal-foot">
-                    <span class="ldhc-modal-foot-end">
-                        <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-close">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                    </span>
+
+                    <div class="mhint">
+                        <span><kbd>↑↓</kbd><xsl:text> </xsl:text><xsl:apply-templates select="key('resources', 'hint-navigate', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/></span>
+                        <span><kbd>↵</kbd><xsl:text> </xsl:text><xsl:apply-templates select="key('resources', 'hint-open', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/></span>
+                        <span><kbd>esc</kbd><xsl:text> </xsl:text><xsl:apply-templates select="key('resources', 'hint-close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/></span>
+                    </div>
                 </div>
                 </div>
             </div>
@@ -1328,6 +1339,20 @@ ORDER BY DESC(?created)
                 </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
+    </xsl:template>
+
+    <!-- in-modal search field: the clear button empties the query and the results it produced -->
+    <xsl:template match="form[contains-token(@class, 'search-form-modal')]/button[contains-token(@class, 'btn-clear-query')]" mode="ixsl:onclick">
+        <xsl:variable name="input" select="../input[@name = 'q']" as="element()"/>
+        <xsl:variable name="container-id" select="ancestor::div[contains-token(@class, 'modal')][@data-container-id][1]/@data-container-id" as="xs:string"/>
+
+        <ixsl:set-property name="value" select="''" object="$input"/>
+
+        <xsl:for-each select="id($container-id, ixsl:page())/div[contains-token(@class, 'main')]">
+            <xsl:result-document href="?." method="ixsl:replace-content"/>
+        </xsl:for-each>
+
+        <xsl:sequence select="ixsl:call($input, 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
     <!-- in-modal search input: debounced live search (form-submit handles Enter) -->

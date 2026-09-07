@@ -795,6 +795,11 @@ but a touch more solid ---- */
 :root[data-retro="aurora"] .ldh-block:hover {
   box-shadow: 0 18px 44px -16px rgba(40,46,92,0.28), 0 2px 6px rgba(40,46,92,0.10);
 }
+/* A quiet block has no card to float — it is a bare content group (an embedded
+   view, a dissolved section). Every skin that patches .ldh-block must also
+   clear .is-quiet, or the "no chrome" variant keeps the skin's shadow. */
+:root[data-retro="aurora"] .ldh-block.is-quiet,
+:root[data-retro="aurora"] .ldh-block.is-quiet:hover { box-shadow: none; }
 
 /* =========================================================================
    7 · M3  —  MATERIAL DESIGN 3 FOUNDATIONS  (feeler theme)

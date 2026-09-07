@@ -108,7 +108,7 @@ version="3.0"
                                     <!-- preselect the viewed version as the diff target and its predecessor as the diff source (the viewed version itself when there is none) -->
                                     <xsl:variable name="from-memento" select="(xs:anyURI($sorted-mementos[$current-index - 1]/@rdf:about), $current-memento)[1]" as="xs:anyURI?"/>
                                     <form id="form-version-diff">
-                                        <table class="table">
+                                        <table class="ldh-results-table">
                                             <colgroup>
                                                 <col style="width: 38%;"/>
                                                 <col style="width: 22%;"/>

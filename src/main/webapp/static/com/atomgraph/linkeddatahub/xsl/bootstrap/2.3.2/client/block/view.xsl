@@ -222,13 +222,11 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <xsl:when test="@name = $count-var-name">
-                <strong>
-                    <xsl:apply-templates select="key('resources', 'total-results', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                    <xsl:text> </xsl:text>
-                    <span class="ldhc-badge co-neutral sz-md">
-                        <xsl:value-of select="srx:literal"/>
-                    </span>
-                </strong>
+                <xsl:apply-templates select="key('resources', 'total-results', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                <xsl:text> </xsl:text>
+                <b>
+                    <xsl:value-of select="srx:literal"/>
+                </b>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:next-match/>
@@ -1005,7 +1003,7 @@ exclude-result-prefixes="#all"
                             </button>
                         </xsl:if>
 
-                        <p id="{$result-count-container-id}" class="result-count count"/>
+                        <span id="{$result-count-container-id}" class="count"/>
 
                         <!-- no sortable variables means an empty order-by dropdown, so the sort controls stay out of the toolbar altogether -->
                         <xsl:if test="map:size($var-predicates) gt 0">
@@ -1131,11 +1129,9 @@ exclude-result-prefixes="#all"
 
                 <xsl:for-each select="id($result-count-container-id, ixsl:page())">
                     <xsl:result-document href="?." method="ixsl:replace-content">
-                        <strong>
-                            <xsl:apply-templates select="key('resources', 'total-results', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                            <xsl:text> </xsl:text>
-                            <span class="ldhc-badge co-neutral sz-md"><xsl:value-of select="$exact-count"/></span>
-                        </strong>
+                        <xsl:apply-templates select="key('resources', 'total-results', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        <xsl:text> </xsl:text>
+                        <b><xsl:value-of select="$exact-count"/></b>
                     </xsl:result-document>
                 </xsl:for-each>
                 <xsl:sequence select="ldh:update-progress-counter($cache, map{ 'container': $container }, 'complete', ())"/>

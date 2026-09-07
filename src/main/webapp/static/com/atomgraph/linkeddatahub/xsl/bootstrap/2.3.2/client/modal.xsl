@@ -518,7 +518,7 @@ LIMIT   10
                     <xsl:apply-templates select="key('resources', 'url-based-access', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                 </xsl:value-of>
             </legend>
-            <table class="table">
+            <table class="ldh-results-table">
                 <colgroup>
                     <col style="width: 55%;"/>
                     <col style="width: 15%;"/>
@@ -575,7 +575,7 @@ LIMIT   10
                     <xsl:apply-templates select="key('resources', 'class-based-access', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                 </xsl:value-of>
             </legend>
-            <table class="table">
+            <table class="ldh-results-table">
                 <colgroup>
                     <col style="width: 55%;"/>
                     <col style="width: 15%;"/>

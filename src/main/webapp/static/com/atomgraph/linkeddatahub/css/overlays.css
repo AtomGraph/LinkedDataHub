@@ -156,7 +156,14 @@
     radial-gradient(farthest-side at 50% 100%, rgba(15,18,26,0.10), rgba(0,0,0,0)) bottom / 100% 7px no-repeat;
   background-attachment: local, local, scroll, scroll;
 }
-.ldhc-modal-body.is-flush { padding: 0; }
+/* A flush body is a LAYOUT container, not just an unpadded one: its children
+   are pinned/scrolling regions (a search field that must not scroll away, a
+   results view that owns its own scroll box, a toolbar + list). Those recipes
+   are all written with `flex-shrink: 0` / `flex: 1` / `min-height: 0`, which are
+   inert in a block container — so the body scrolled as one piece and the pinned
+   children scrolled away with it. Declaring the column here fixes every flush
+   consumer at once. */
+.ldhc-modal-body.is-flush { padding: 0; display: flex; flex-direction: column; }
 /* Whole-dialog scroll instead of body scroll. */
 .ldhc-modal.is-pagescroll { max-height: none; }
 .ldhc-modal.is-pagescroll .ldhc-modal-body { overflow: visible; background: none; }
