@@ -376,6 +376,18 @@
         <rdfs:label xml:lang="en-US">No values</rdfs:label>
         <rdfs:label xml:lang="es-ES">Sin valores</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="facet-any">
+        <rdfs:label xml:lang="en-US">Any</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Cualquiera</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="facet-selected">
+        <rdfs:label xml:lang="en-US">selected</rdfs:label>
+        <rdfs:label xml:lang="es-ES">seleccionados</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="clear">
+        <rdfs:label xml:lang="en-US">Clear</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Borrar</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="ascending">
         <rdfs:label xml:lang="en-US">Ascending</rdfs:label>
         <rdfs:label xml:lang="es-ES">Ascendente</rdfs:label>

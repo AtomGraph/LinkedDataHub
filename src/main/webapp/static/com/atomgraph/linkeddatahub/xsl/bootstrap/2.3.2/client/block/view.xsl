@@ -246,45 +246,42 @@ exclude-result-prefixes="#all"
         <xsl:param name="label-sample-var-name" as="xs:string?"/>
         <xsl:param name="label" as="xs:string?"/>
         
-        <li>
-            <label class="checkbox">
-                <!-- store value type ('uri'/'literal') in a hidden input -->
-                <input type="hidden" name="type" value="{srx:binding[@name = $object-var-name]/srx:*/local-name()}"/>
-                <xsl:if test="srx:binding[@name = $object-var-name]/srx:literal/@datatype">
-                    <input type="hidden" name="datatype" value="{srx:binding[@name = $object-var-name]/srx:literal/@datatype}"/>
-                </xsl:if>
-                <!-- store count in a hidden input -->
-                <input type="hidden" name="count" value="{srx:binding[@name = $count-var-name]/srx:literal}"/>
+        <!-- the selection is the button's own 'is-on' state, so the value's type/datatype ride data
+             attributes rather than the hidden inputs a checkbox needed -->
+        <button type="button" class="opt" role="menuitemcheckbox" aria-checked="false" title="{srx:binding[@name = $object-var-name]/srx:*}" data-value="{srx:binding[@name = $object-var-name]/srx:*}" data-type="{srx:binding[@name = $object-var-name]/srx:*/local-name()}" data-count="{srx:binding[@name = $count-var-name]/srx:literal}">
+            <xsl:if test="srx:binding[@name = $object-var-name]/srx:literal/@datatype">
+                <xsl:attribute name="data-datatype" select="srx:binding[@name = $object-var-name]/srx:literal/@datatype"/>
+            </xsl:if>
 
-                <input type="checkbox" name="{$object-var-name}" value="{srx:binding[@name = $object-var-name]/srx:*}"/> <!-- can be srx:literal -->
-                <span title="{srx:binding[@name = $object-var-name]/srx:*}">
-                    <xsl:choose>
-                        <!-- label explicitly supplied -->
-                        <xsl:when test="$label">
-                            <xsl:value-of select="$label"/>
-                        </xsl:when>
-                        <!-- there is a separate ?label value - show it -->
-                        <xsl:when test="srx:binding[@name = $label-sample-var-name]/srx:literal">
-                            <xsl:value-of select="srx:binding[@name = $label-sample-var-name]/srx:literal"/>
-                        </xsl:when>
-                        <!-- show the raw value -->
-                        <xsl:otherwise>
-                            <xsl:value-of select="srx:binding[@name = $object-var-name]/srx:*"/>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                    
-                    <xsl:text> (</xsl:text>
-                    <xsl:value-of select="srx:binding[@name = $count-var-name]/srx:literal"/>
-                    <xsl:text>)</xsl:text>
-                </span>
-            </label>
-        </li>
+            <span class="check">
+                <span class="msi sm" aria-hidden="true">check</span>
+            </span>
+            <span class="nm">
+                <xsl:choose>
+                    <!-- label explicitly supplied -->
+                    <xsl:when test="$label">
+                        <xsl:value-of select="$label"/>
+                    </xsl:when>
+                    <!-- there is a separate ?label value - show it -->
+                    <xsl:when test="srx:binding[@name = $label-sample-var-name]/srx:literal">
+                        <xsl:value-of select="srx:binding[@name = $label-sample-var-name]/srx:literal"/>
+                    </xsl:when>
+                    <!-- show the raw value -->
+                    <xsl:otherwise>
+                        <xsl:value-of select="srx:binding[@name = $object-var-name]/srx:*"/>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </span>
+            <span class="cnt">
+                <xsl:value-of select="srx:binding[@name = $count-var-name]/srx:literal"/>
+            </span>
+        </button>
     </xsl:template>
     
     <!-- facet predicate block: a toolbar dropdown — the pill button opens a popover of value checkboxes -->
     <xsl:template match="rdf:Description[@rdf:about]" mode="bs2:FilterIn">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'facet faceted-nav'" as="xs:string?"/>
+        <xsl:param name="class" select="'facet'" as="xs:string?"/>
         <xsl:param name="subject-var-name" as="xs:string"/>
         <xsl:param name="object-var-name" as="xs:string"/>
 
@@ -296,20 +293,24 @@ exclude-result-prefixes="#all"
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
-            <button type="button" class="facet-pill nav-header" title="{@rdf:about}">
-                <span>
+            <button type="button" class="facet-pill" title="{@rdf:about}" aria-haspopup="true" aria-expanded="false">
+                <span class="pred">
                     <xsl:value-of>
                         <xsl:apply-templates select="." mode="ac:label"/>
                     </xsl:value-of>
                 </span>
+                <!-- the summary of what is selected: 'Any' until a value is picked -->
+                <span class="val">
+                    <xsl:apply-templates select="key('resources', 'facet-any', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                </span>
 
-                <span class="caret"></span>
+                <span class="msi sm caret" aria-hidden="true">expand_more</span>
                 <input type="hidden" name="subject" value="{$subject-var-name}"/>
                 <input type="hidden" name="predicate" value="{@rdf:about}"/>
                 <input type="hidden" name="object" value="{$object-var-name}"/>
             </button>
 
-            <!-- facet values will be loaded into an <ul> here -->
+            <!-- the value popover is appended here on first open -->
         </div>
     </xsl:template>
     
@@ -1168,7 +1169,6 @@ exclude-result-prefixes="#all"
 
     <xsl:template name="ldh:RenderFacets">
         <xsl:context-item as="element()" use="required"/>
-        <xsl:param name="sub-container-id" as="xs:string"/>
         <xsl:param name="select-string" as="xs:string"/>
         <xsl:param name="property-metadata" as="document-node()?"/>
         <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
@@ -1181,15 +1181,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $initial-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
 
         <!-- only append facets if they are not already present and there are BGP triples to facet on -->
-        <xsl:if test="not(id($sub-container-id, ixsl:page())) and exists($bgp-triples-map)">
-            <xsl:result-document href="?." method="ixsl:append-content">
-                <xsl:apply-templates select="." mode="ldh:RenderFacets">
-                    <xsl:with-param name="id" select="$sub-container-id"/>
-                    <xsl:with-param name="class" select="'facets'"/>
-                </xsl:apply-templates>
-            </xsl:result-document>
-
-            <xsl:variable name="sub-container" select="id($sub-container-id, ixsl:page())" as="element()"/>
+        <xsl:if test="not(child::div[contains-token(@class, 'facet')]) and exists($bgp-triples-map)">
+            <xsl:variable name="sub-container" select="." as="element()"/>
 
             <xsl:for-each select="$bgp-triples-map">
                 <!-- only simple properties in the BGP are supported, not property paths etc. -->
@@ -1225,20 +1218,6 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
     
-    <xsl:template match="*" mode="ldh:RenderFacets">
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="()" as="xs:string?"/>
-                
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-        </div>
-    </xsl:template>
-
     <!-- block list -->
 
     <xsl:template match="rdf:RDF" mode="bs2:ContainerBlockList" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
@@ -1943,10 +1922,10 @@ exclude-result-prefixes="#all"
 
     <!-- facet header onclick -->
     
-    <xsl:template match="div[@typeof = '&ldh;View']//div[contains-token(@class, 'faceted-nav')]//*[contains-token(@class, 'nav-header')]" mode="ixsl:onclick">
+    <xsl:template match="div[@typeof = '&ldh;View']//div[contains-token(@class, 'facet')]/button[contains-token(@class, 'facet-pill')]" mode="ixsl:onclick">
         <xsl:param name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
         <xsl:param name="cache" select="ldh:view-cache($container)" as="item()"/>
-        <xsl:variable name="facet-container" select="ancestor::div[contains-token(@class, 'faceted-nav')]" as="element()"/>
+        <xsl:variable name="facet-container" select="parent::div[contains-token(@class, 'facet')]" as="element()"/>
         <xsl:variable name="subject-var-name" select="input[@name = 'subject']/@value" as="xs:string"/>
         <xsl:variable name="predicate" select="input[@name = 'predicate']/@value" as="xs:anyURI"/>
         <xsl:variable name="object-var-name" select="input[@name = 'object']/@value" as="xs:string"/>
@@ -1959,32 +1938,40 @@ exclude-result-prefixes="#all"
         <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $subject-var-name][json:string[@key = 'predicate'] = $predicate][json:string[@key = 'object'] = '?' || $object-var-name]" as="element()"/>
 
         <!-- opening one facet closes the others in the same toolbar -->
-        <xsl:apply-templates select="$facet-container/../div[contains-token(@class, 'faceted-nav')][not(. is $facet-container)]/ul[contains-token(@class, 'facet-pop')][not(ixsl:style(.)?display = 'none')]" mode="ldh:CloseFacetPopover"/>
+        <xsl:apply-templates select="$facet-container/../div[contains-token(@class, 'facet')][not(. is $facet-container)]/div[contains-token(@class, 'facet-pop')][not(ixsl:style(.)?display = 'none')]" mode="ldh:CloseFacetPopover"/>
 
         <!-- is the current facet loaded? -->
-        <xsl:variable name="loaded" select="exists(following-sibling::ul)" as="xs:boolean"/>
+        <xsl:variable name="loaded" select="exists(following-sibling::div[contains-token(@class, 'facet-pop')])" as="xs:boolean"/>
         <xsl:choose>
             <!-- if not, load and render its values -->
             <xsl:when test="not($loaded)">
-                <!-- toggle the caret direction -->
-                <xsl:for-each select="span[contains-token(@class, 'caret')]">
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'caret-reversed' ])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:for-each>
-
                 <!-- open the popover immediately with a loading state; the response replaces it with the value list.
                      'is-open' elevates the host .ldh-block (app.css :has() rule) so the popover paints above subsequent blocks -->
+                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
+                <ixsl:set-property name="ariaExpanded" select="'true'" object="."/>
+
                 <xsl:for-each select="$facet-container">
                     <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
                     <xsl:result-document href="?." method="ixsl:append-content">
-                        <ul class="nav facet-pop">
-                            <li class="facet-loading">
-                                <div class="ldhc-pbar ht-sm is-indeterminate">
-                                    <div class="ldhc-pbar-track">
-                                        <div class="ldhc-pbar-fill"></div>
+                        <div class="facet-pop" role="menu">
+                            <div class="head">
+                                <span class="pname">
+                                    <xsl:value-of select="$predicate"/>
+                                </span>
+                                <button type="button" class="clear">
+                                    <xsl:apply-templates select="key('resources', 'clear', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                </button>
+                            </div>
+                            <div class="facet-values">
+                                <div class="facet-loading">
+                                    <div class="ldhc-pbar ht-sm is-indeterminate">
+                                        <div class="ldhc-pbar-track">
+                                            <div class="ldhc-pbar-fill"></div>
+                                        </div>
                                     </div>
                                 </div>
-                            </li>
-                        </ul>
+                            </div>
+                        </div>
                     </xsl:result-document>
                 </xsl:for-each>
 
@@ -2054,34 +2041,32 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <xsl:otherwise>
                 <!-- is the current facet hidden? -->
-                <xsl:variable name="hidden" select="ixsl:style(following-sibling::*[contains-token(@class, 'nav')])?display = 'none'" as="xs:boolean"/>
-
-                <!-- toggle the caret direction -->
-                <xsl:for-each select="span[contains-token(@class, 'caret')]">
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'caret-reversed' ])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:for-each>
+                <xsl:variable name="hidden" select="ixsl:style(following-sibling::div[contains-token(@class, 'facet-pop')])?display = 'none'" as="xs:boolean"/>
 
                 <!-- toggle the value list visibility, mirroring it as the container's 'is-open' state -->
                 <xsl:choose>
                     <xsl:when test="$hidden">
-                        <ixsl:set-style name="display" select="'block'" object="following-sibling::*[contains-token(@class, 'nav')]"/>
+                        <ixsl:set-style name="display" select="'block'" object="following-sibling::div[contains-token(@class, 'facet-pop')]"/>
                     </xsl:when>
                     <xsl:otherwise>
-                        <ixsl:set-style name="display" select="'none'" object="following-sibling::*[contains-token(@class, 'nav')]"/>
+                        <ixsl:set-style name="display" select="'none'" object="following-sibling::div[contains-token(@class, 'facet-pop')]"/>
                     </xsl:otherwise>
                 </xsl:choose>
                 <xsl:sequence select="ixsl:call(ixsl:get($facet-container, 'classList'), 'toggle', [ 'is-open', $hidden ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-open', $hidden ])[current-date() lt xs:date('2000-01-01')]"/>
+                <ixsl:set-property name="ariaExpanded" select="if ($hidden) then 'true' else 'false'" object="."/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
     
     <!-- closes a facet popover: hides the value list, drops the container's 'is-open' state and resets its pill's caret -->
 
-    <xsl:template match="ul[contains-token(@class, 'facet-pop')]" mode="ldh:CloseFacetPopover">
+    <xsl:template match="div[contains-token(@class, 'facet-pop')]" mode="ldh:CloseFacetPopover">
         <ixsl:set-style name="display" select="'none'" object="."/>
         <xsl:sequence select="ixsl:call(ixsl:get(.., 'classList'), 'remove', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
-        <xsl:for-each select="preceding-sibling::*[contains-token(@class, 'nav-header')]/span[contains-token(@class, 'caret')]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'caret-reversed', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:for-each select="preceding-sibling::button[contains-token(@class, 'facet-pill')]">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-property name="ariaExpanded" select="'false'" object="."/>
         </xsl:for-each>
     </xsl:template>
 
@@ -2090,25 +2075,81 @@ exclude-result-prefixes="#all"
          the ones a specific handler takes, so this rule never saw a case it had left to close -->
 
     <xsl:template match="body" mode="ixsl:onclick">
-        <xsl:apply-templates select="ixsl:page()//div[contains-token(@class, 'faceted-nav')]/ul[contains-token(@class, 'facet-pop')][not(ixsl:style(.)?display = 'none')]" mode="ldh:CloseFacetPopover"/>
+        <xsl:apply-templates select="ixsl:page()//div[contains-token(@class, 'facet')]/div[contains-token(@class, 'facet-pop')][not(ixsl:style(.)?display = 'none')]" mode="ldh:CloseFacetPopover"/>
         <xsl:apply-templates select="ixsl:page()//div[contains-token(@class, 'links-nav')][contains-token(@class, 'is-open')]" mode="ldh:CloseLinksPopover"/>
     </xsl:template>
 
-    <!-- clicks inside the popover (value checkboxes) stop here instead of bubbling to body and dismissing it -->
+    <!-- clicks inside the popover that no option or control claims stop here instead of bubbling to
+         body and dismissing it -->
 
-    <xsl:template match="div[contains-token(@class, 'faceted-nav')]/ul[contains-token(@class, 'facet-pop')]" mode="ixsl:onclick"/>
+    <xsl:template match="div[contains-token(@class, 'facet')]/div[contains-token(@class, 'facet-pop')]" mode="ixsl:onclick"/>
 
-    <!-- facet onchange -->
+    <!-- the pill's summary of its facet's selection: 'Any' with nothing picked, the value's own label
+         for a single pick, a count otherwise. The pill also carries the selection as 'is-active' -->
 
-    <xsl:template match="div[@typeof = '&ldh;View']//div[contains-token(@class, 'faceted-nav')]//input[@type = 'checkbox']" mode="ixsl:onchange">
+    <xsl:template match="div[contains-token(@class, 'facet')]" mode="ldh:UpdateFacetPill">
+        <xsl:variable name="selected" select="child::div[contains-token(@class, 'facet-pop')]/div[contains-token(@class, 'facet-values')]/button[contains-token(@class, 'opt')][contains-token(@class, 'is-on')]" as="element()*"/>
+
+        <xsl:for-each select="button[contains-token(@class, 'facet-pill')]">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-active', exists($selected) ])[current-date() lt xs:date('2000-01-01')]"/>
+
+            <xsl:for-each select="span[contains-token(@class, 'val')]">
+                <xsl:result-document href="?." method="ixsl:replace-content">
+                    <xsl:choose>
+                        <xsl:when test="empty($selected)">
+                            <xsl:apply-templates select="key('resources', 'facet-any', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </xsl:when>
+                        <xsl:when test="count($selected) eq 1">
+                            <xsl:value-of select="$selected/span[contains-token(@class, 'nm')]"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:value-of select="count($selected)"/>
+                            <xsl:text> </xsl:text>
+                            <xsl:apply-templates select="key('resources', 'facet-selected', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:result-document>
+            </xsl:for-each>
+        </xsl:for-each>
+    </xsl:template>
+
+    <!-- clearing a facet is the same rebuild as unchecking its last value, so both reach ldh:FilterFacet -->
+
+    <xsl:template match="div[@typeof = '&ldh;View']//div[contains-token(@class, 'facet-pop')]/div[contains-token(@class, 'head')]/button[contains-token(@class, 'clear')]" mode="ixsl:onclick">
+        <xsl:variable name="facet" select="ancestor::div[contains-token(@class, 'facet')][1]" as="element()"/>
+
+        <xsl:for-each select="$facet//button[contains-token(@class, 'opt')][contains-token(@class, 'is-on')]">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-on' ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-property name="ariaChecked" select="'false'" object="."/>
+        </xsl:for-each>
+
+        <xsl:apply-templates select="$facet" mode="ldh:FilterFacet"/>
+    </xsl:template>
+
+    <!-- facet value picked: the option carries its own selected state, so the click toggles it and the
+         facet is re-filtered from whatever is on. Picking does not dismiss the popover - several values
+         of one predicate are meant to be picked in one pass -->
+
+    <xsl:template match="div[@typeof = '&ldh;View']//div[contains-token(@class, 'facet-values')]/button[contains-token(@class, 'opt')]" mode="ixsl:onclick">
+        <xsl:variable name="on" select="not(contains-token(@class, 'is-on'))" as="xs:boolean"/>
+
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-on', $on ])[current-date() lt xs:date('2000-01-01')]"/>
+        <ixsl:set-property name="ariaChecked" select="if ($on) then 'true' else 'false'" object="."/>
+
+        <xsl:apply-templates select="ancestor::div[contains-token(@class, 'facet')][1]" mode="ldh:FilterFacet"/>
+    </xsl:template>
+
+    <xsl:template match="div[contains-token(@class, 'facet')]" mode="ldh:FilterFacet">
         <xsl:param name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
         <xsl:param name="cache" select="ldh:view-cache($container)" as="item()"/>
         <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/a[contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string"/>
         <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
-        <xsl:variable name="var-name" select="@name" as="xs:string"/>
-        <!-- collect the values/types/datatypes of all checked inputs within this facet and build an array of maps -->
-        <xsl:variable name="labels" select="ancestor::ul//label[input[@type = 'checkbox'][ixsl:get(., 'checked')]]" as="element()*"/>
-        <xsl:variable name="values" select="array { for $label in $labels return map { 'value' : string($label/input[@type = 'checkbox']/@value), 'type': string($label/input[@name = 'type']/@value), 'datatype': string($label/input[@name = 'datatype']/@value) } }" as="array(map(xs:string, xs:string))"/>
+        <xsl:variable name="var-name" select="button[contains-token(@class, 'facet-pill')]/input[@name = 'object']/@value" as="xs:string"/>
+        <!-- collect the values/types/datatypes of the options that are on and build an array of maps -->
+        <xsl:variable name="options" select="child::div[contains-token(@class, 'facet-pop')]/div[contains-token(@class, 'facet-values')]/button[contains-token(@class, 'opt')][contains-token(@class, 'is-on')]" as="element()*"/>
+        <xsl:variable name="values" select="array { for $option in $options return map { 'value' : string($option/@data-value), 'type': string($option/@data-type), 'datatype': string($option/@data-datatype) } }" as="array(map(xs:string, xs:string))"/>
+
+        <xsl:apply-templates select="." mode="ldh:UpdateFacetPill"/>
         <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
         <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
         <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
@@ -2590,7 +2631,6 @@ exclude-result-prefixes="#all"
             <xsl:for-each select="$container/descendant::div[contains-token(@class, 'ldh-view-toolbar')][1]/div[contains-token(@class, 'left')]">
                 <xsl:call-template name="ldh:RenderFacets">
                     <xsl:with-param name="select-string" select="$select-string"/>
-                    <xsl:with-param name="sub-container-id" select="$container-id || '-facets'"/>
                     <xsl:with-param name="property-metadata" select="$property-metadata"/>
                 </xsl:call-template>
             </xsl:for-each>
@@ -2799,7 +2839,7 @@ exclude-result-prefixes="#all"
                                     </xsl:when>
                                     <xsl:otherwise>
                                         <!-- replace the loading state with the value list -->
-                                        <xsl:for-each select="$container/ul[contains-token(@class, 'facet-pop')]">
+                                        <xsl:for-each select="$container/div[contains-token(@class, 'facet-pop')]/div[contains-token(@class, 'facet-values')]">
                                             <xsl:result-document href="?." method="ixsl:replace-content">
                                                 <xsl:apply-templates select="$results//srx:result[srx:binding[@name = $object-var-name]]" mode="bs2:FacetValueItem">
                                                     <!-- order by count first -->
@@ -2819,11 +2859,11 @@ exclude-result-prefixes="#all"
                             </xsl:when>
                             <xsl:otherwise>
                                 <!-- no values - replace the loading state with the empty state -->
-                                <xsl:for-each select="$container/ul[contains-token(@class, 'facet-pop')]">
+                                <xsl:for-each select="$container/div[contains-token(@class, 'facet-pop')]/div[contains-token(@class, 'facet-values')]">
                                     <xsl:result-document href="?." method="ixsl:replace-content">
-                                        <li class="facet-empty">
+                                        <div class="facet-empty">
                                             <xsl:apply-templates select="key('resources', 'no-values', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                        </li>
+                                        </div>
                                     </xsl:result-document>
                                 </xsl:for-each>
                             </xsl:otherwise>
@@ -2832,11 +2872,11 @@ exclude-result-prefixes="#all"
                 </xsl:when>
                 <xsl:otherwise>
                     <!-- error response - could not load facet results -->
-                    <xsl:for-each select="$container/ul[contains-token(@class, 'facet-pop')]">
+                    <xsl:for-each select="$container/div[contains-token(@class, 'facet-pop')]/div[contains-token(@class, 'facet-values')]">
                         <xsl:result-document href="?." method="ixsl:replace-content">
-                            <li>
+                            <div>
                                 <xsl:sequence select="ldh:error-alert('block-values-failed', ldh:http-error-key($response?status), ())"/>
-                            </li>
+                            </div>
                         </xsl:result-document>
                     </xsl:for-each>
                 </xsl:otherwise>
@@ -2860,7 +2900,7 @@ exclude-result-prefixes="#all"
 
         <xsl:for-each select="$response">
             <xsl:variable name="results" select="if (?status = 200 and ?media-type = 'application/rdf+xml') then ?body else ()" as="document-node()?"/>
-            <xsl:variable name="existing-items" select="$container/ul/li[not(contains-token(@class, 'facet-loading'))]" as="element()*"/>
+            <xsl:variable name="existing-items" select="$container/div[contains-token(@class, 'facet-pop')]/div[contains-token(@class, 'facet-values')]/button[contains-token(@class, 'opt')]" as="element()*"/>
             <xsl:variable name="new-item" as="element()">
                 <xsl:apply-templates select="$value-result" mode="bs2:FacetValueItem">
                     <xsl:with-param name="object-var-name" select="$object-var-name"/>
@@ -2880,14 +2920,14 @@ exclude-result-prefixes="#all"
             <xsl:variable name="items" as="element()*">
                 <!-- sort the existing <li> items together with the new item -->
                 <xsl:perform-sort select="($existing-items, $new-item)">
-                    <!-- sort by count in a hidden input first -->
-                    <xsl:sort select="xs:integer(input[@name = 'count']/@value)" order="descending"/>
-                    <!-- sort by the link text content (value label) -->
-                    <xsl:sort select="a/text()" lang="{ac:langs()[1]}"/>
+                    <!-- sort by the count the option carries first -->
+                    <xsl:sort select="xs:integer(@data-count)" order="descending"/>
+                    <!-- sort by the value label second -->
+                    <xsl:sort select="span[contains-token(@class, 'nm')]" lang="{ac:langs()[1]}"/>
                 </xsl:perform-sort>
             </xsl:variable>
 
-            <xsl:for-each select="$container/ul">
+            <xsl:for-each select="$container/div[contains-token(@class, 'facet-pop')]/div[contains-token(@class, 'facet-values')]">
                 <xsl:result-document href="?." method="ixsl:replace-content">
                     <xsl:sequence select="$items"/>
                 </xsl:result-document>

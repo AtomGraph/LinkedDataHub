@@ -8,28 +8,7 @@
    ========================================================================= */
 
 /* ---------- Bootstrap-framework replacements (bootstrap.css core is no longer linked) ---------- */
-/* buttons: every legacy .btn falls back to the neutral core-button look */
-:where(.btn) {
-  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
-  height: 30px; padding: 0 12px;
-  border: 1px solid var(--border-default); border-radius: var(--r-sm);
-  background: var(--surface-0); color: var(--fg-1);
-  font-family: var(--font-sans); font-size: var(--fs-sm); font-weight: var(--fw-medium);
-  cursor: pointer; white-space: nowrap;
-  transition: background var(--dur-fast) var(--ease-out-soft);
-}
-:where(.btn):hover { background: var(--bg-hover); text-decoration: none; }
-:where(.btn.disabled, .btn[disabled]) { opacity: 0.4; pointer-events: none; }
-:where(.btn-primary, .btn.btn-primary) { border: 0; background: var(--bg-accent); color: var(--fg-on-accent); }
-:where(.btn-primary, .btn.btn-primary):hover { background: var(--bg-accent-hover); }
-/* real specificity: something upstream colors buttons with the link color, which disappears on the accent fill */
-.btn-primary { color: var(--fg-on-accent); }
-/* carets are Material glyphs. Static ones ship <span class="msi caret">expand_more</span>;
-   CSR-toggled collapse indicators stay empty spans on purpose - the handlers flip the
-   caret-reversed class, and only ::before content can follow a class change */
 .caret { display: inline-flex; align-items: center; opacity: 0.85; }
-.caret:empty::before { font-family: 'Material Symbols Rounded'; font-size: 16px; line-height: 1; content: 'expand_more'; }
-.caret-reversed:empty::before { content: 'expand_less'; }
 /* a loading block collapses to the bar strip: the CSR strips the progress/active markers at 100%,
    and until then the row shows only the overlaid pbar (the row-block-controls' top/negative-margin
    pair lands it visually at the row top), keeping the un-hydrated SSR markup out of view - the
@@ -280,19 +259,6 @@ form .btn-primary {
 }
 form .btn-primary:hover { background: var(--bg-accent-hover); }
 
-/* ---------- type pills: Tag em-quiet co-primary sz-sm, for every rendered rdf:type value ----------
-   the pill belongs to .btn-type itself rather than to a position inside the header type list, so a type
-   reads the same wherever it lands - the resource description header, a table cell, a row. Without this
-   it is only the header that matches, and the rest fall through to the 30px :where(.btn) legacy look. */
-.btn-type {
-  display: inline-flex; align-items: center; gap: 4px;
-  height: 20px; padding: 0 8px;
-  border-radius: var(--r-pill);
-  background: var(--ldh-blue-50); color: var(--ldh-blue-700);
-  font-size: var(--fs-xs); font-weight: var(--fw-medium);
-  white-space: nowrap;
-}
-.btn-type:hover { text-decoration: none; background: var(--ldh-blue-100, var(--bg-hover)); }
 ul.ldh-typelist { display: flex; flex-wrap: wrap; gap: var(--sp-1); list-style: none; margin: 0 0 var(--sp-1); padding: 0; }
 
 /* ---------- language tags: the pill on a value that declares an @xml:lang ----------
@@ -434,22 +400,9 @@ fieldset > .btn-group { display: flex; justify-content: flex-end; }
 #tab-bar-list > li.active > a { color: var(--fg-1); border-bottom-color: var(--ldh-blue-500); }
 
 /* ---------- view toolbar: facet pills + sort + mode switcher (ViewBlocks contract) ---------- */
-/* the CSR facet renderer appends a .facets sub-container (id-gated against re-render); it must not break the pill row */
-.ldh-view-toolbar .left > .facets { display: contents; }
 .ldh-view-toolbar .facet { position: relative; }
-/* the hydrated value list doubles as the pill's popover; value items sit directly under the ul
-   (no .facet-values wrapper), so the design's overflow cap applies to the ul itself */
-.facet > ul.facet-pop { list-style: none; margin: 0; display: block; max-height: 264px; overflow-y: auto; }
-.facet > ul.facet-pop > li.facet-loading { padding: 8px var(--sp-2); }
-.facet > ul.facet-pop > li > label.checkbox {
-  display: flex; align-items: center; gap: var(--sp-2);
-  margin: 0; padding: 6px var(--sp-2);
-  border-radius: var(--r-sm);
-  font-size: var(--fs-sm); color: var(--fg-2);
-  cursor: pointer; white-space: nowrap;
-}
-.facet > ul.facet-pop > li > label.checkbox:hover { background: var(--bg-hover); color: var(--fg-1); }
-.facet > ul.facet-pop > li > label.checkbox input[type="checkbox"] { margin: 0; }
+/* the design's facet popover has no loading state; ours opens immediately and streams values in */
+.facet-pop .facet-loading { padding: 8px var(--sp-2); }
 .ldh-view-toolbar .form-inline { display: flex; align-items: center; gap: var(--sp-1); margin: 0; }
 .ldh-view-toolbar .form-inline label { display: flex; align-items: center; gap: var(--sp-1); margin: 0; }
 .ldh-view-toolbar .btn-group.open .dropdown-menu { left: auto; right: 0; }
