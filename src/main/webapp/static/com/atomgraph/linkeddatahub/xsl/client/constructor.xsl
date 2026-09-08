@@ -128,7 +128,7 @@ exclude-result-prefixes="#all"
                                         <span class="ldhc-modal-icon"><span class="msi outline" aria-hidden="true">tune</span></span>
                                         <div class="ldhc-modal-titles">
                                             <span class="ldhc-modal-eyebrow">
-                                                <xsl:apply-templates select="key('resources', 'constructor', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                                <xsl:apply-templates select="key('resources', 'constructor', ldh:translations())" mode="ac:label"/>
                                             </span>
                                             <h2 class="ldhc-modal-title" id="modal-title-{generate-id()}">
                                                 <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': 'DESCRIBE &lt;' || $type || '&gt;', 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
@@ -137,7 +137,7 @@ exclude-result-prefixes="#all"
                                             </h2>
                                         </div>
                                         <span class="ldhc-modal-x">
-                                            <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
+                                            <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
                                         </span>
                                     </div>
                                     <div class="ldhc-modal-body is-flush">
@@ -161,7 +161,7 @@ exclude-result-prefixes="#all"
                                             <button type="button" class="ldh-ctor-addctor create-action add-constructor">
                                                 <span class="msi sm" aria-hidden="true">add</span>
                                                 <span>
-                                                    <xsl:apply-templates select="key('resources', 'constructor', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                                    <xsl:apply-templates select="key('resources', 'constructor', ldh:translations())" mode="ac:label"/>
                                                 </span>
                                             </button>
                                         </div>
@@ -169,13 +169,13 @@ exclude-result-prefixes="#all"
                                         <div class="mhint">
                                             <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-close">
                                                 <span>
-                                                    <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                                    <xsl:apply-templates select="key('resources', 'cancel', ldh:translations())" mode="ac:label"/>
                                                 </span>
                                             </button>
                                             <button type="button" class="ldhc-btn in-primary ap-solid sz-md btn-save">
                                                 <span class="msi outline sm" aria-hidden="true">check</span>
                                                 <span>
-                                                    <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                                    <xsl:apply-templates select="key('resources', 'save', ldh:translations())" mode="ac:label"/>
                                                 </span>
                                             </button>
                                         </div>
@@ -271,13 +271,13 @@ exclude-result-prefixes="#all"
                 <xsl:attribute name="class" select="concat('object-kind', if (not(starts-with($object-type, '&xsd;'))) then ' is-on' else ())"/>
                 <xsl:attribute name="aria-checked" select="if (not(starts-with($object-type, '&xsd;'))) then 'true' else 'false'"/>
 
-                <xsl:apply-templates select="key('resources', 'resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                <xsl:apply-templates select="key('resources', 'resource', ldh:translations())" mode="ac:label"/>
             </button>
             <button type="button" role="radio" data-kind="&rdfs;Literal">
                 <xsl:attribute name="class" select="concat('object-kind', if (starts-with($object-type, '&xsd;')) then ' is-on' else ())"/>
                 <xsl:attribute name="aria-checked" select="if (starts-with($object-type, '&xsd;')) then 'true' else 'false'"/>
 
-                <xsl:apply-templates select="key('resources', 'literal', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                <xsl:apply-templates select="key('resources', 'literal', ldh:translations())" mode="ac:label"/>
             </button>
         </div>
 
@@ -299,7 +299,7 @@ exclude-result-prefixes="#all"
         <button type="button" class="ctor-rm btn-remove-property" tabindex="-1">
             <xsl:attribute name="title">
                 <xsl:value-of>
-                    <xsl:apply-templates select="key('resources', 'remove-stmt', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', 'remove-stmt', ldh:translations())" mode="ac:label"/>
                 </xsl:value-of>
             </xsl:attribute>
 

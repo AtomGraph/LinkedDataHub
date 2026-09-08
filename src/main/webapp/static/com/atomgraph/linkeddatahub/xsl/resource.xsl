@@ -93,7 +93,7 @@ extension-element-prefixes="ixsl"
     <!-- LABEL -->
 
     <xsl:template match="*[@rdf:about = '&owl;NamedIndividual']" mode="ac:label">
-        <xsl:apply-templates select="key('resources', 'instance', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+        <xsl:apply-templates select="key('resources', 'instance', ldh:translations())" mode="ac:label"/>
     </xsl:template>
     
     <!-- LOGO -->
@@ -374,7 +374,7 @@ extension-element-prefixes="ixsl"
         <div class="links-nav">
             <button type="button" class="ldhc-iconbtn sz-sm in-accent ap-ghost tb-links" aria-pressed="false">
                 <xsl:attribute name="title">
-                    <xsl:apply-templates select="key('resources', 'backlinks', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', 'backlinks', ldh:translations())" mode="ac:label"/>
                 </xsl:attribute>
 
                 <span class="msi sm" aria-hidden="true">link</span>
@@ -383,7 +383,7 @@ extension-element-prefixes="ixsl"
             <div class="links-pop">
                 <h2 class="dh2">
                     <xsl:value-of>
-                        <xsl:apply-templates select="key('resources', 'backlinks', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        <xsl:apply-templates select="key('resources', 'backlinks', ldh:translations())" mode="ac:label"/>
                     </xsl:value-of>
                 </h2>
 
@@ -404,7 +404,7 @@ extension-element-prefixes="ixsl"
 
         <button type="button" class="{$class}">
             <xsl:attribute name="title">
-                <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                <xsl:apply-templates select="key('resources', 'copy-uri', ldh:translations())" mode="ac:label"/>
             </xsl:attribute>
 
             <span class="msi sm" aria-hidden="true">content_copy</span>
@@ -850,7 +850,7 @@ extension-element-prefixes="ixsl"
                         <span class="ldh-block-state is-empty">
                             <span class="msi outline" aria-hidden="true">inbox</span>
                             <span>
-                                <xsl:apply-templates select="key('resources', 'block-state-empty', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                <xsl:apply-templates select="key('resources', 'block-state-empty', ldh:translations())" mode="ac:label"/>
                             </span>
                         </span>
                     </h2>
@@ -1004,10 +1004,10 @@ extension-element-prefixes="ixsl"
                     <div class="btn-group">
                         <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm dropdown-toggle">
                             <xsl:attribute name="title">
-                                <xsl:apply-templates select="key('resources', 'reconcile-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                <xsl:apply-templates select="key('resources', 'reconcile-title', ldh:translations())" mode="ac:label"/>
                             </xsl:attribute>
 
-                            <xsl:apply-templates select="key('resources', 'reconcile', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', 'reconcile', ldh:translations())" mode="ac:label"/>
                             <xsl:text> </xsl:text>
                             <span class="msi caret" aria-hidden="true">expand_more</span>
                         </button>
@@ -1288,14 +1288,11 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="*[http:sc/@rdf:resource = '&sc;Conflict']" mode="ldh:Exception" priority="1">
         <div class="ldh-form-alert">
-            <div class="ldhc-alert va-negative" role="alert">
-                <span class="ldhc-alert-ic"><span class="msi outline" aria-hidden="true">error</span></span>
-                <div class="ldhc-alert-body">
-                    <span class="ldhc-alert-text">
-                        <xsl:apply-templates select="key('resources', '&ldh;ResourceExistsException', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
-                    </span>
-                </div>
-            </div>
+            <xsl:apply-templates select="." mode="ac:Alert">
+                <xsl:with-param name="text" as="item()*">
+                    <xsl:apply-templates select="key('resources', '&ldh;ResourceExistsException', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
+                </xsl:with-param>
+            </xsl:apply-templates>
         </div>
     </xsl:template>
     
@@ -1391,7 +1388,7 @@ extension-element-prefixes="ixsl"
 
                             <span class="msi outline sm" aria-hidden="true">tune</span>
                             <span>
-                                <xsl:apply-templates select="key('resources', 'edit-constructors', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                <xsl:apply-templates select="key('resources', 'edit-constructors', ldh:translations())" mode="ac:label"/>
                             </span>
                         </button>
                     </xsl:when>
@@ -1405,7 +1402,7 @@ extension-element-prefixes="ixsl"
                             <button type="button" class="ldh-form-action" aria-haspopup="menu" aria-expanded="false">
                                 <span class="msi outline sm" aria-hidden="true">bolt</span>
                                 <span>
-                                    <xsl:apply-templates select="key('resources', 'actions', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                    <xsl:apply-templates select="key('resources', 'actions', ldh:translations())" mode="ac:label"/>
                                 </span>
                                 <span class="msi sm caret" aria-hidden="true">expand_more</span>
                             </button>
@@ -1419,7 +1416,7 @@ extension-element-prefixes="ixsl"
                                                 <xsl:apply-templates select="key('resources', ., $type-metadata)" mode="ac:label"/>
                                             </span>
                                             <span class="sub">
-                                                <xsl:apply-templates select="key('resources', 'edit-constructors', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                                <xsl:apply-templates select="key('resources', 'edit-constructors', ldh:translations())" mode="ac:label"/>
                                             </span>
                                         </span>
                                     </button>
@@ -1442,7 +1439,7 @@ extension-element-prefixes="ixsl"
                         <!-- button that toggles the .ldh-subject row for subject URI/bnode ID editing -->
                         <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost btn-edit-subj" aria-pressed="{if ($show-subject) then 'true' else 'false'}">
                             <xsl:attribute name="title">
-                                <xsl:apply-templates select="key('resources', 'subject-uri-actions', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                <xsl:apply-templates select="key('resources', 'subject-uri-actions', ldh:translations())" mode="ac:label"/>
                             </xsl:attribute>
 
                             <span class="msi outline sm" aria-hidden="true">link</span>
@@ -1452,7 +1449,7 @@ extension-element-prefixes="ixsl"
                     <xsl:if test="not($required)">
                         <button type="button" class="ldhc-iconbtn sz-sm in-destructive ap-ghost btn-remove-resource">
                             <xsl:attribute name="title">
-                                <xsl:apply-templates select="key('resources', 'remove-resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                <xsl:apply-templates select="key('resources', 'remove-resource', ldh:translations())" mode="ac:label"/>
                             </xsl:attribute>
 
                             <span class="msi sm" aria-hidden="true">close</span>
@@ -1583,7 +1580,7 @@ extension-element-prefixes="ixsl"
             <button type="button" id="button-{generate-id()}" class="ldhc-btn in-primary ap-solid sz-sm add-value">
                 <span class="msi outline sm" aria-hidden="true">add</span>
                 <span>
-                    <xsl:apply-templates select="key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', 'add', ldh:translations())" mode="ac:label"/>
                 </span>
             </button>
         </div>
@@ -1594,39 +1591,19 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;URISyntaxViolation']" mode="ac:Violation">
         <xsl:param name="class" select="'ldhc-alert va-negative'" as="xs:string?"/>
 
-        <div role="alert">
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-
-            <span class="ldhc-alert-ic">
-                <span class="msi outline" aria-hidden="true">error</span>
-            </span>
-            <div class="ldhc-alert-body">
-                <span class="ldhc-alert-text">
-                    <xsl:value-of select="rdfs:label"/>
-                </span>
-            </div>
-        </div>
+        <xsl:apply-templates select="." mode="ac:Alert">
+            <xsl:with-param name="class" select="$class"/>
+            <xsl:with-param name="text" select="string(rdfs:label)"/>
+        </xsl:apply-templates>
     </xsl:template>
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&sh;ValidationResult']" mode="ac:Violation">
         <xsl:param name="class" select="'ldhc-alert va-negative'" as="xs:string?"/>
 
-        <div role="alert">
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-
-            <span class="ldhc-alert-ic">
-                <span class="msi outline" aria-hidden="true">error</span>
-            </span>
-            <div class="ldhc-alert-body">
-                <span class="ldhc-alert-text">
-                    <xsl:value-of select="sh:resultMessage"/>
-                </span>
-            </div>
-        </div>
+        <xsl:apply-templates select="." mode="ac:Alert">
+            <xsl:with-param name="class" select="$class"/>
+            <xsl:with-param name="text" select="string(sh:resultMessage)"/>
+        </xsl:apply-templates>
     </xsl:template>
     
     <!-- EXCEPTION -->

@@ -95,7 +95,7 @@ exclude-result-prefixes="#all">
                                 <button type="button" tabindex="-1" class="ldhc-iconbtn sz-xs in-destructive ap-ghost btn-remove-property">
                                     <xsl:attribute name="title">
                                         <xsl:value-of>
-                                            <xsl:apply-templates select="key('resources', 'remove-stmt', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                            <xsl:apply-templates select="key('resources', 'remove-stmt', ldh:translations())" mode="ac:label"/>
                                         </xsl:value-of>
                                     </xsl:attribute>
 

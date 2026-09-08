@@ -181,7 +181,7 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <!-- a result set with no rows has nothing to chart, and Google Charts validates column types whether or not there are rows to draw: a variable bound in no result types as a string, which it refuses on a value axis, so the absence of data was reported as a datatype error -->
             <xsl:when test="xs:double(ixsl:call($data-table, 'getNumberOfRows', [])) = 0">
-                <xsl:variable name="translations" select="document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))" as="document-node()"/>
+                <xsl:variable name="translations" select="ldh:translations()" as="document-node()"/>
 
                 <xsl:for-each select="id($canvas-id, ixsl:page())">
                     <xsl:result-document href="?." method="ixsl:replace-content">

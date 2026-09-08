@@ -83,17 +83,17 @@ version="3.0"
                             <div class="ldhc-modal-titles">
                                 <h2 class="ldhc-modal-title" id="modal-title-{generate-id()}">
                                     <xsl:value-of>
-                                        <xsl:apply-templates select="key('resources', 'history', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                        <xsl:apply-templates select="key('resources', 'history', ldh:translations())" mode="ac:label"/>
                                     </xsl:value-of>
                                 </h2>
                                 <span class="ldhc-modal-sub">
                                     <xsl:value-of>
-                                        <xsl:apply-templates select="key('resources', 'history-description', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                        <xsl:apply-templates select="key('resources', 'history-description', ldh:translations())" mode="ac:label"/>
                                     </xsl:value-of>
                                 </span>
                             </div>
                             <span class="ldhc-modal-x">
-                                <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
+                                <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
                             </span>
                         </div>
                         <div class="ldhc-modal-body">
@@ -107,38 +107,37 @@ version="3.0"
                                     <!-- preselect the viewed version as the diff target and its predecessor as the diff source (the viewed version itself when there is none) -->
                                     <xsl:variable name="from-memento" select="(xs:anyURI($sorted-mementos[$current-index - 1]/@rdf:about), $current-memento)[1]" as="xs:anyURI?"/>
                                     <form id="form-version-diff">
-                                        <table class="ldhc-table is-hoverable" role="table" style="--ldhc-cols: 38fr 22fr 12fr 12fr 16fr;">
-                                            <caption class="ldhc-vh">
-                                                <xsl:apply-templates select="key('resources', 'history', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                            </caption>
-                                            <thead>
-                                                <tr role="row">
+                                        <xsl:apply-templates select="." mode="ldh:DataTable">
+                                            <xsl:with-param name="cols" select="'38fr 22fr 12fr 12fr 16fr'"/>
+                                            <xsl:with-param name="caption" as="item()*">
+                                                <xsl:apply-templates select="key('resources', 'history', ldh:translations())" mode="ac:label"/>
+                                            </xsl:with-param>
+                                            <xsl:with-param name="head" as="item()*">
                                                     <th scope="col" role="columnheader">
                                                         <xsl:value-of>
-                                                            <xsl:apply-templates select="key('resources', 'version', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                                            <xsl:apply-templates select="key('resources', 'version', ldh:translations())" mode="ac:label"/>
                                                         </xsl:value-of>
                                                     </th>
                                                     <th scope="col" role="columnheader">
                                                         <xsl:value-of>
-                                                            <xsl:apply-templates select="key('resources', 'agent', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                                            <xsl:apply-templates select="key('resources', 'agent', ldh:translations())" mode="ac:label"/>
                                                         </xsl:value-of>
                                                     </th>
                                                     <!-- header colors match the diff colors: removed content comes from the From version, added content from the To version -->
                                                     <th scope="col" role="columnheader" class="text-error">
                                                         <xsl:value-of>
-                                                            <xsl:apply-templates select="key('resources', 'from', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                                            <xsl:apply-templates select="key('resources', 'from', ldh:translations())" mode="ac:label"/>
                                                         </xsl:value-of>
                                                     </th>
                                                     <th scope="col" role="columnheader" class="text-success">
                                                         <xsl:value-of>
-                                                            <xsl:apply-templates select="key('resources', 'to', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                                            <xsl:apply-templates select="key('resources', 'to', ldh:translations())" mode="ac:label"/>
                                                         </xsl:value-of>
                                                     </th>
                                                     <!-- the restore column has no heading: the buttons name the action themselves -->
                                                     <th scope="col" role="columnheader"></th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
+                                            </xsl:with-param>
+                                            <xsl:with-param name="body" as="item()*">
                                                 <xsl:apply-templates select="$mementos" mode="ldh:MementoList">
                                                     <xsl:sort select="prov:generatedAtTime" order="descending"/>
                                                     <xsl:with-param name="current-memento" select="$current-memento"/>
@@ -146,18 +145,18 @@ version="3.0"
                                                     <xsl:with-param name="to-memento" select="$current-memento"/>
                                                     <xsl:with-param name="writable" select="$writable"/>
                                                 </xsl:apply-templates>
-                                            </tbody>
-                                        </table>
+                                            </xsl:with-param>
+                                        </xsl:apply-templates>
                                         <div class="ldh-block-foot">
                                             <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-close">
                                                 <xsl:value-of>
-                                                    <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                                    <xsl:apply-templates select="key('resources', 'close', ldh:translations())" mode="ac:label"/>
                                                 </xsl:value-of>
                                             </button>
                                             <button type="submit" class="ldhc-btn in-primary ap-solid sz-md">
                                                 <span class="msi sm" aria-hidden="true">compare_arrows</span>
                                                 <xsl:value-of>
-                                                    <xsl:apply-templates select="key('resources', 'compare', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                                    <xsl:apply-templates select="key('resources', 'compare', ldh:translations())" mode="ac:label"/>
                                                 </xsl:value-of>
                                             </button>
                                         </div>
@@ -207,7 +206,7 @@ version="3.0"
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:request-uri())" as="xs:anyURI"/>
         <xsl:variable name="modal" select="ancestor::div[contains-token(@class, 'modal')]" as="element()?"/>
 
-        <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))) ])">
+        <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', ldh:translations())) ])">
             <xsl:sequence select="ldh:busy-cursor()"/>
 
             <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $memento-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>

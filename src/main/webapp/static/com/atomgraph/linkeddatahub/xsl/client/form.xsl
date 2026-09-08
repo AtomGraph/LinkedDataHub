@@ -486,7 +486,7 @@ WHERE
                         </div>
                     </fieldset>
                     <div class="ldh-block-foot">
-                        <button type="button" class="ldhc-btn in-negative ap-solid sz-sm remove-action" style="display: none;"><xsl:value-of select="ac:label(key('resources', 'remove', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))))"/></button>
+                        <button type="button" class="ldhc-btn in-negative ap-solid sz-sm remove-action" style="display: none;"><xsl:value-of select="ac:label(key('resources', 'remove', ldh:translations()))"/></button>
                         <button type="button" class="ldhc-btn in-neutral ap-outline sz-md cancel-action">Cancel</button>
                         <button type="button" class="ldhc-btn in-primary ap-solid sz-md spo-action">Annotate</button>
                     </div>
@@ -518,7 +518,7 @@ WHERE
             <label for="link-href">Link target (href)</label>
             <input type="text" id="link-href" name="href" placeholder="https://..."/>
             <div class="action-buttons">
-                <button type="button" class="ldhc-btn in-negative ap-solid sz-sm link-remove" style="display: none;"><xsl:value-of select="ac:label(key('resources', 'remove-link', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))))"/></button>
+                <button type="button" class="ldhc-btn in-negative ap-solid sz-sm link-remove" style="display: none;"><xsl:value-of select="ac:label(key('resources', 'remove-link', ldh:translations()))"/></button>
                 <button type="button" class="ldhc-btn in-primary ap-solid sz-sm link-save">Save</button>
                 <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm link-cancel">Cancel</button>
             </div>
@@ -683,15 +683,16 @@ WHERE
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <div class="block-row">
                     <div class="main">
-                        <div class="ldhc-alert va-success block-row" role="alert">
-                            <span class="ldhc-alert-ic">
-                                <span class="msi" aria-label="Signup complete">check_circle</span>
-                            </span>
-                            <div class="ldhc-alert-body">
-                                <span class="ldhc-alert-text">Congratulations! Your WebID profile has been created. You can see its data below.</span>
-                                <span class="ldhc-alert-title">Authentication details have been sent to your email address.</span>
-                            </div>
-                        </div>
+                        <xsl:apply-templates select="." mode="ac:Alert">
+                            <xsl:with-param name="variant" select="'va-success'"/>
+                            <xsl:with-param name="class" select="'ldhc-alert va-success block-row'"/>
+                            <xsl:with-param name="title" as="item()*">
+                                <xsl:apply-templates select="key('resources', 'signup-created', ldh:translations())" mode="ac:label"/>
+                            </xsl:with-param>
+                            <xsl:with-param name="text" as="item()*">
+                                <xsl:apply-templates select="key('resources', 'signup-email-sent', ldh:translations())" mode="ac:label"/>
+                            </xsl:with-param>
+                        </xsl:apply-templates>
                     </div>
                 </div>
                 
@@ -2039,7 +2040,7 @@ WHERE
             <!-- delete existing content -->
             <xsl:when test="$about">
                 <!-- show a confirmation prompt -->
-                <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))) ])">
+                <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', ldh:translations())) ])">
                     <xsl:sequence select="ixsl:call($block, 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
 
                     <xsl:variable name="where-pattern" as="element()">

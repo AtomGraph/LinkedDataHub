@@ -24,7 +24,7 @@ exclude-result-prefixes="#all">
     <xsl:preserve-space elements="nfo:fileName"/>
     
     <xsl:template match="*[@rdf:about = '&nfo;FileDataObject']" mode="ac:label">
-        <xsl:apply-templates select="key('resources', 'file', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="#current"/>
+        <xsl:apply-templates select="key('resources', 'file', ldh:translations())" mode="#current"/>
     </xsl:template>
 
     <xsl:template match="nfo:fileName/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="ac:FormControl">
@@ -37,7 +37,7 @@ exclude-result-prefixes="#all">
             <label class="ldhc-file-drop" for="{$id}" tabindex="0">
                 <span class="msi outline sm" aria-hidden="true">upload_file</span>
                 <span>
-                    <xsl:apply-templates select="key('resources', 'upload', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', 'upload', ldh:translations())" mode="ac:label"/>
                 </span>
                 <xsl:call-template name="xhtml:Input">
                     <xsl:with-param name="name" select="'ol'"/>

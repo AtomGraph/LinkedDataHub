@@ -28,7 +28,7 @@ xmlns:foaf="&foaf;"
 exclude-result-prefixes="#all">
     
     <xsl:template match="*[@rdf:about = '&sioc;UserAccount']" mode="ac:label">
-        <xsl:apply-templates select="key('resources', 'user-account', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="#current"/>
+        <xsl:apply-templates select="key('resources', 'user-account', ldh:translations())" mode="#current"/>
     </xsl:template>
 
     <xsl:template match="sioc:email/@rdf:*"  mode="ac:FormControl">

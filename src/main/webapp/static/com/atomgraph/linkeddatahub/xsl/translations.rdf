@@ -947,4 +947,28 @@
         <rdfs:label xml:lang="en-US">Language</rdfs:label>
         <rdfs:label xml:lang="es-ES">Idioma</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="warning">
+        <rdfs:label xml:lang="en-US">Warning!</rdfs:label>
+        <rdfs:label xml:lang="es-ES">¡Advertencia!</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="control-mode-warning">
+        <rdfs:label xml:lang="en-US">By allowing Control access mode you are effectively granting full control of the dataspace.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Al permitir el modo de acceso Control, está otorgando efectivamente el control total del espacio de datos.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="signup-created">
+        <rdfs:label xml:lang="en-US">Congratulations! Your WebID profile has been created. You can see its data below.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">¡Enhorabuena! Su perfil WebID ha sido creado. Puede ver sus datos a continuación.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="signup-email-sent">
+        <rdfs:label xml:lang="en-US">Authentication details have been sent to your email address.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Los datos de autenticación se han enviado a su dirección de correo electrónico.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="add-data-notice">
+        <rdfs:label xml:lang="en-US">Adding data this way fetches the source through the Linked Data proxy and appends it to the target document, so use it for small amounts of data only (e.g. a few thousand RDF triples). For larger data, use asynchronous</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Añadir datos de esta manera obtiene la fuente a través del proxy de Linked Data y los añade al documento de destino, así que úselo solo para pequeñas cantidades de datos (p. ej. unos pocos miles de tripletas RDF). Para datos más grandes, use las</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdf-imports">
+        <rdfs:label xml:lang="en-US">RDF imports</rdfs:label>
+        <rdfs:label xml:lang="es-ES">importaciones RDF asíncronas</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>

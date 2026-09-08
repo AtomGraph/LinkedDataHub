@@ -106,15 +106,15 @@ ORDER BY DESC(?created)
             </xsl:if>
 
             <!-- dataspace-scoped search form -->
-            <form class="search-form sb-search" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))))}">
+            <form class="search-form sb-search" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', ldh:translations()))}">
                 <span class="msi sm" aria-hidden="true">search</span>
-                <input type="text" name="q" class="search-query" placeholder="{ac:label(key('resources', 'search-placeholder', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))))}"/>
+                <input type="text" name="q" class="search-query" placeholder="{ac:label(key('resources', 'search-placeholder', ldh:translations()))}"/>
             </form>
 
             <!-- document tree container -->
             <div class="document-tree sb-section">
                 <h2 class="nav-header sb-heading">
-                    <xsl:apply-templates select="key('resources', 'document-tree', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', 'document-tree', ldh:translations())" mode="ac:label"/>
                 </h2>
 
                 <ul class="nav sb-tree">
@@ -123,7 +123,7 @@ ORDER BY DESC(?created)
                         <a href="{$base}">
                             <span class="msi sm sb-icon" aria-hidden="true">home</span>
                             <span class="sb-label">
-                                <xsl:apply-templates select="key('resources', 'root', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                <xsl:apply-templates select="key('resources', 'root', ldh:translations())" mode="ac:label"/>
                             </span>
                         </a>
                     </li>
@@ -133,7 +133,7 @@ ORDER BY DESC(?created)
             <!-- class list container -->
             <div class="class-list sb-section">
                 <h2 class="nav-header sb-heading">
-                    <xsl:apply-templates select="key('resources', 'classes', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', 'classes', ldh:translations())" mode="ac:label"/>
                 </h2>
 
                 <ul class="nav sb-classes">
@@ -144,7 +144,7 @@ ORDER BY DESC(?created)
             <!-- other section -->
             <div class="other-views sb-section">
                 <h2 class="nav-header sb-heading">
-                    <xsl:apply-templates select="key('resources', 'other', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', 'other', ldh:translations())" mode="ac:label"/>
                 </h2>
 
                 <ul class="nav sb-other">
@@ -152,7 +152,7 @@ ORDER BY DESC(?created)
                         <button type="button" class="btn-geo sb-other-row">
                             <span class="msi sm" aria-hidden="true">location_on</span>
                             <span>
-                                <xsl:apply-templates select="key('resources', 'geo', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                <xsl:apply-templates select="key('resources', 'geo', ldh:translations())" mode="ac:label"/>
                             </span>
                         </button>
                     </li>
@@ -160,7 +160,7 @@ ORDER BY DESC(?created)
                         <button type="button" class="btn-latest sb-other-row">
                             <span class="msi sm" aria-hidden="true">history</span>
                             <span>
-                                <xsl:apply-templates select="key('resources', 'latest', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                <xsl:apply-templates select="key('resources', 'latest', ldh:translations())" mode="ac:label"/>
                             </span>
                         </button>
                     </li>
@@ -839,7 +839,7 @@ ORDER BY DESC(?created)
                         </h2>
                     </div>
                     <span class="ldhc-modal-x">
-                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
+                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
                     </span>
                 </div>
                 <div class="ldhc-modal-body">
@@ -979,11 +979,11 @@ ORDER BY DESC(?created)
                 <div class="ldhc-modal-head">
                     <div class="ldhc-modal-titles">
                         <h2 class="ldhc-modal-title" id="modal-title-{generate-id()}">
-                            <xsl:apply-templates select="key('resources', 'geo', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', 'geo', ldh:translations())" mode="ac:label"/>
                         </h2>
                     </div>
                     <span class="ldhc-modal-x">
-                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
+                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
                     </span>
                 </div>
                 <div class="ldhc-modal-body">
@@ -1096,11 +1096,11 @@ ORDER BY DESC(?created)
                 <div class="ldhc-modal-head">
                     <div class="ldhc-modal-titles">
                         <h2 class="ldhc-modal-title" id="modal-title-{generate-id()}">
-                            <xsl:apply-templates select="key('resources', 'latest', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', 'latest', ldh:translations())" mode="ac:label"/>
                         </h2>
                     </div>
                     <span class="ldhc-modal-x">
-                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
+                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
                     </span>
                 </div>
                 <div class="ldhc-modal-body">
@@ -1227,17 +1227,17 @@ ORDER BY DESC(?created)
                     </span>
                     <div class="ldhc-modal-titles">
                         <span class="ldhc-modal-eyebrow">
-                            <xsl:apply-templates select="key('resources', 'search-eyebrow', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', 'search-eyebrow', ldh:translations())" mode="ac:label"/>
                         </span>
                         <h2 class="ldhc-modal-title" id="modal-title-{generate-id()}">
-                            <xsl:apply-templates select="key('resources', 'search', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', 'search', ldh:translations())" mode="ac:label"/>
                         </h2>
                         <span class="ldhc-modal-sub">
-                            <xsl:apply-templates select="key('resources', 'search-subtitle', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', 'search-subtitle', ldh:translations())" mode="ac:label"/>
                         </span>
                     </div>
                     <span class="ldhc-modal-x">
-                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
+                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
                     </span>
                 </div>
                 <!-- the search field, the embedded view and the keyboard hints are each a full-bleed band, so the body carries no padding of its own -->
@@ -1245,8 +1245,8 @@ ORDER BY DESC(?created)
                     <!-- the design's search field is a label; here it stays a form so Enter still reaches the submit handler -->
                     <form class="ldh-search-field search-form-modal" accept-charset="UTF-8">
                         <span class="msi outline" aria-hidden="true">search</span>
-                        <input type="search" name="q" class="search-query" value="{$text}" placeholder="{ac:label(key('resources', 'search-placeholder', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))))}"/>
-                        <button type="button" class="ldhc-iconbtn sz-xs in-neutral ap-ghost btn-clear-query" aria-label="{ac:label(key('resources', 'clear-query', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
+                        <input type="search" name="q" class="search-query" value="{$text}" placeholder="{ac:label(key('resources', 'search-placeholder', ldh:translations()))}"/>
+                        <button type="button" class="ldhc-iconbtn sz-xs in-neutral ap-ghost btn-clear-query" aria-label="{ac:label(key('resources', 'clear-query', ldh:translations()))}"><span class="msi sm">close</span></button>
                     </form>
 
                     <!-- search results ARE a view: the shared view block renders them, with its own facets, view modes and pager -->
@@ -1271,9 +1271,9 @@ ORDER BY DESC(?created)
                     </div>
 
                     <div class="mhint">
-                        <span><kbd>↑↓</kbd><xsl:text> </xsl:text><xsl:apply-templates select="key('resources', 'hint-navigate', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/></span>
-                        <span><kbd>↵</kbd><xsl:text> </xsl:text><xsl:apply-templates select="key('resources', 'hint-open', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/></span>
-                        <span><kbd>esc</kbd><xsl:text> </xsl:text><xsl:apply-templates select="key('resources', 'hint-close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/></span>
+                        <span><kbd>↑↓</kbd><xsl:text> </xsl:text><xsl:apply-templates select="key('resources', 'hint-navigate', ldh:translations())" mode="ac:label"/></span>
+                        <span><kbd>↵</kbd><xsl:text> </xsl:text><xsl:apply-templates select="key('resources', 'hint-open', ldh:translations())" mode="ac:label"/></span>
+                        <span><kbd>esc</kbd><xsl:text> </xsl:text><xsl:apply-templates select="key('resources', 'hint-close', ldh:translations())" mode="ac:label"/></span>
                     </div>
                 </div>
                 </div>

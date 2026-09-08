@@ -236,7 +236,7 @@ exclude-result-prefixes="#all"
 
     <!-- the app's own label catalog, mirroring ac:translations() -->
     <xsl:function name="ldh:translations" as="document-node()">
-        <xsl:sequence select="document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))"/>
+        <xsl:sequence select="ldh:translations()"/>
     </xsl:function>
 
     <!-- the label of a class given as a bare URI: rdfs:Resource takes the app catalog's localized label,
@@ -1398,7 +1398,7 @@ exclude-result-prefixes="#all"
                                             </xsl:when>
                                             <xsl:otherwise>
                                                 <xsl:value-of>
-                                                    <xsl:apply-templates select="key('resources', ldh:violation-key(.), document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                                    <xsl:apply-templates select="key('resources', ldh:violation-key(.), ldh:translations())" mode="ac:label"/>
                                                 </xsl:value-of>
                                             </xsl:otherwise>
                                         </xsl:choose>
@@ -1413,7 +1413,7 @@ exclude-result-prefixes="#all"
                     <xsl:if test="$cloneable">
                         <button type="button" class="ldhc-iconbtn sz-xs in-accent ap-ghost btn-add">
                             <xsl:attribute name="title">
-                                <xsl:apply-templates select="key('resources', 'add-stmt', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                <xsl:apply-templates select="key('resources', 'add-stmt', ldh:translations())" mode="ac:label"/>
                             </xsl:attribute>
 
                             <span class="msi sm" aria-hidden="true">add</span>
@@ -1424,7 +1424,7 @@ exclude-result-prefixes="#all"
                         <button type="button" tabindex="-1" class="ldhc-iconbtn sz-xs in-destructive ap-ghost btn-remove-property">
                             <xsl:attribute name="title">
                                 <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'remove-stmt', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                    <xsl:apply-templates select="key('resources', 'remove-stmt', ldh:translations())" mode="ac:label"/>
                                 </xsl:value-of>
                             </xsl:attribute>
 
@@ -1774,6 +1774,32 @@ exclude-result-prefixes="#all"
                 </xsl:if>
             </span>
         </div>
+    </xsl:template>
+
+    <!-- DATA TABLE -->
+
+    <!-- the design system's fixed-column table scaffold: column widths, visually-hidden caption,
+         header row and body as slots -->
+    <xsl:template match="node() | @*" mode="ldh:DataTable">
+        <xsl:param name="cols" as="xs:string"/>
+        <xsl:param name="class" select="'ldhc-table is-hoverable'" as="xs:string"/>
+        <xsl:param name="caption" as="item()*"/>
+        <xsl:param name="head" as="item()*"/>
+        <xsl:param name="body" as="item()*"/>
+
+        <table class="{$class}" role="table" style="--ldhc-cols: {$cols};">
+            <caption class="ldhc-vh">
+                <xsl:sequence select="$caption"/>
+            </caption>
+            <thead>
+                <tr role="row">
+                    <xsl:sequence select="$head"/>
+                </tr>
+            </thead>
+            <tbody>
+                <xsl:sequence select="$body"/>
+            </tbody>
+        </table>
     </xsl:template>
 
     <!-- FORM FOOTER -->

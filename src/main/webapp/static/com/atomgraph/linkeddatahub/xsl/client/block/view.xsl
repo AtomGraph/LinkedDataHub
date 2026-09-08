@@ -221,7 +221,7 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <xsl:when test="@name = $count-var-name">
-                <xsl:apply-templates select="key('resources', 'total-results', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                <xsl:apply-templates select="key('resources', 'total-results', ldh:translations())" mode="ac:label"/>
                 <xsl:text> </xsl:text>
                 <b>
                     <xsl:value-of select="srx:literal"/>
@@ -300,7 +300,7 @@ exclude-result-prefixes="#all"
                 </span>
                 <!-- the summary of what is selected: 'Any' until a value is picked -->
                 <span class="val">
-                    <xsl:apply-templates select="key('resources', 'facet-any', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', 'facet-any', ldh:translations())" mode="ac:label"/>
                 </span>
 
                 <span class="msi sm caret" aria-hidden="true">expand_more</span>
@@ -408,10 +408,10 @@ exclude-result-prefixes="#all"
                     <xsl:attribute name="for" select="$select-id"/>
                 </xsl:if>
 
-                <xsl:apply-templates select="key('resources', 'rows-per-page', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                <xsl:apply-templates select="key('resources', 'rows-per-page', ldh:translations())" mode="ac:label"/>
             </label>
             <div class="ldh-pager-select">
-                <select class="pager-size" title="{ac:label(key('resources', 'rows-per-page', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))))}">
+                <select class="pager-size" title="{ac:label(key('resources', 'rows-per-page', ldh:translations()))}">
                     <xsl:if test="$select-id">
                         <xsl:attribute name="id" select="$select-id"/>
                     </xsl:if>
@@ -438,7 +438,7 @@ exclude-result-prefixes="#all"
                     <a class="ldhc-btn in-neutral ap-outline sz-sm pager-prev">
                         <span class="msi outline sm" aria-hidden="true">chevron_left</span>
                         <span>
-                            <xsl:apply-templates select="key('resources', 'previous', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', 'previous', ldh:translations())" mode="ac:label"/>
                         </span>
                     </a>
                 </xsl:when>
@@ -446,7 +446,7 @@ exclude-result-prefixes="#all"
                     <button type="button" class="ldhc-btn in-neutral ap-outline sz-sm" disabled="disabled" aria-disabled="true">
                         <span class="msi outline sm" aria-hidden="true">chevron_left</span>
                         <span>
-                            <xsl:apply-templates select="key('resources', 'previous', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', 'previous', ldh:translations())" mode="ac:label"/>
                         </span>
                     </button>
                 </xsl:otherwise>
@@ -460,7 +460,7 @@ exclude-result-prefixes="#all"
                 </b>
                 <xsl:if test="exists($total-count)">
                     <span class="of">
-                        <xsl:apply-templates select="key('resources', 'of', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        <xsl:apply-templates select="key('resources', 'of', ldh:translations())" mode="ac:label"/>
                         <xsl:text> </xsl:text>
                         <xsl:value-of select="$total-count"/>
                     </span>
@@ -472,7 +472,7 @@ exclude-result-prefixes="#all"
                 <xsl:when test="$result-count ge $limit and (empty($total-count) or ($offset + $limit) lt $total-count)">
                     <a class="ldhc-btn in-neutral ap-outline sz-sm pager-next">
                         <span>
-                            <xsl:apply-templates select="key('resources', 'next', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', 'next', ldh:translations())" mode="ac:label"/>
                         </span>
                         <span class="msi outline sm" aria-hidden="true">chevron_right</span>
                     </a>
@@ -480,7 +480,7 @@ exclude-result-prefixes="#all"
                 <xsl:otherwise>
                     <button type="button" class="ldhc-btn in-neutral ap-outline sz-sm" disabled="disabled" aria-disabled="true">
                         <span>
-                            <xsl:apply-templates select="key('resources', 'next', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', 'next', ldh:translations())" mode="ac:label"/>
                         </span>
                         <span class="msi outline sm" aria-hidden="true">chevron_right</span>
                     </button>
@@ -490,7 +490,7 @@ exclude-result-prefixes="#all"
 
         <xsl:if test="exists($total-count) and $limit gt 0">
             <div class="ldh-pager-page">
-                <xsl:apply-templates select="key('resources', 'page', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                <xsl:apply-templates select="key('resources', 'page', ldh:translations())" mode="ac:label"/>
                 <xsl:text> </xsl:text>
                 <b>
                     <xsl:value-of select="$offset idiv $limit + 1"/>
@@ -981,7 +981,7 @@ exclude-result-prefixes="#all"
                     <div class="left">
                         <span class="facet-lead">
                             <xsl:attribute name="title">
-                                <xsl:apply-templates select="key('resources', 'filter-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                <xsl:apply-templates select="key('resources', 'filter-title', ldh:translations())" mode="ac:label"/>
                             </xsl:attribute>
 
                             <span class="msi sm" aria-hidden="true">filter_alt</span>
@@ -996,7 +996,7 @@ exclude-result-prefixes="#all"
                         <xsl:variable name="create-container" select="($view-block/@data-container, $container/descendant::*[@property = '&ldh;container']/@resource)[1]" as="xs:string?"/>
                         <xsl:variable name="create-for-class" select="$view-block/@data-for-class" as="xs:string?"/>
                         <xsl:if test="exists($create-container) and exists($create-for-class) and tokenize($view-block/@data-acl-modes, ' ') = '&acl;Write' and (exists($view-block/@data-inverse) or acl:mode() = '&acl;Write')">
-                            <button type="button" class="ldhc-btn in-primary ap-solid sz-sm add-instance" data-for-class="{$create-for-class}" data-container="{$create-container}" title="{ac:label(key('resources', 'create-instance-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))))}">
+                            <button type="button" class="ldhc-btn in-primary ap-solid sz-sm add-instance" data-for-class="{$create-for-class}" data-container="{$create-container}" title="{ac:label(key('resources', 'create-instance-title', ldh:translations()))}">
                                 <xsl:value-of>
                                     <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
                                 </xsl:value-of>
@@ -1018,7 +1018,7 @@ exclude-result-prefixes="#all"
                                             <option>
                                                 <xsl:value-of>
                                                     <xsl:text>[</xsl:text>
-                                                    <xsl:apply-templates select="key('resources', 'none', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                                    <xsl:apply-templates select="key('resources', 'none', ldh:translations())" mode="ac:label"/>
                                                     <xsl:text>]</xsl:text>
                                                 </xsl:value-of>
                                             </option>
@@ -1057,12 +1057,12 @@ exclude-result-prefixes="#all"
                                     <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm btn-order-by{if ($desc) then ' btn-order-by-desc' else ()}">
                                         <span class="dir-asc">
                                             <xsl:value-of>
-                                                <xsl:apply-templates select="key('resources', 'ascending', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                                <xsl:apply-templates select="key('resources', 'ascending', ldh:translations())" mode="ac:label"/>
                                             </xsl:value-of>
                                         </span>
                                         <span class="dir-desc">
                                             <xsl:value-of>
-                                                <xsl:apply-templates select="key('resources', 'descending', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                                <xsl:apply-templates select="key('resources', 'descending', ldh:translations())" mode="ac:label"/>
                                             </xsl:value-of>
                                         </span>
                                         <span class="msi sm sort-arrow" aria-hidden="true"></span>
@@ -1087,7 +1087,7 @@ exclude-result-prefixes="#all"
                         <!-- the chips carry their own direction arrows, so the row's own glyph stays neutral -->
                         <span class="msi sm" aria-hidden="true">alt_route</span>
                         <span class="ldhc-vh">
-                            <xsl:apply-templates select="key('resources', 'related-results', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', 'related-results', ldh:translations())" mode="ac:label"/>
                         </span>
                     </span>
 
@@ -1129,7 +1129,7 @@ exclude-result-prefixes="#all"
 
                 <xsl:for-each select="id($result-count-container-id, ixsl:page())">
                     <xsl:result-document href="?." method="ixsl:replace-content">
-                        <xsl:apply-templates select="key('resources', 'total-results', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        <xsl:apply-templates select="key('resources', 'total-results', ldh:translations())" mode="ac:label"/>
                         <xsl:text> </xsl:text>
                         <b><xsl:value-of select="$exact-count"/></b>
                     </xsl:result-document>
@@ -1908,7 +1908,7 @@ exclude-result-prefixes="#all"
                                     <xsl:value-of select="$predicate"/>
                                 </span>
                                 <button type="button" class="clear">
-                                    <xsl:apply-templates select="key('resources', 'clear-facet', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                    <xsl:apply-templates select="key('resources', 'clear-facet', ldh:translations())" mode="ac:label"/>
                                 </button>
                             </div>
                             <div class="facet-values">
@@ -2046,7 +2046,7 @@ exclude-result-prefixes="#all"
                 <xsl:result-document href="?." method="ixsl:replace-content">
                     <xsl:choose>
                         <xsl:when test="empty($selected)">
-                            <xsl:apply-templates select="key('resources', 'facet-any', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', 'facet-any', ldh:translations())" mode="ac:label"/>
                         </xsl:when>
                         <xsl:when test="count($selected) eq 1">
                             <xsl:value-of select="$selected/span[contains-token(@class, 'nm')]"/>
@@ -2054,7 +2054,7 @@ exclude-result-prefixes="#all"
                         <xsl:otherwise>
                             <xsl:value-of select="count($selected)"/>
                             <xsl:text> </xsl:text>
-                            <xsl:apply-templates select="key('resources', 'facet-selected', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', 'facet-selected', ldh:translations())" mode="ac:label"/>
                         </xsl:otherwise>
                     </xsl:choose>
                 </xsl:result-document>
@@ -2210,7 +2210,7 @@ exclude-result-prefixes="#all"
                             <xsl:value-of select="if ($inverse) then 'arrow_back' else 'arrow_forward'"/>
                         </span>
                         <span class="pred">
-                            <xsl:apply-templates select="key('resources', if ($inverse) then 'via-incoming' else 'via', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', if ($inverse) then 'via-incoming' else 'via', ldh:translations())" mode="ac:label"/>
                         </span>
                         <span class="val">
                             <xsl:value-of select="$step('label')"/>
@@ -2811,7 +2811,7 @@ exclude-result-prefixes="#all"
                                 <xsl:for-each select="$container/div[contains-token(@class, 'facet-pop')]/div[contains-token(@class, 'facet-values')]">
                                     <xsl:result-document href="?." method="ixsl:replace-content">
                                         <div class="facet-empty">
-                                            <xsl:apply-templates select="key('resources', 'no-values', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                            <xsl:apply-templates select="key('resources', 'no-values', ldh:translations())" mode="ac:label"/>
                                         </div>
                                     </xsl:result-document>
                                 </xsl:for-each>
@@ -2940,7 +2940,7 @@ exclude-result-prefixes="#all"
                             <span class="ldhc-tag em-quiet co-negative sz-sm">
                                 <span class="msi outline" aria-hidden="true">error</span>
                                 <span class="ldhc-tag-lbl">
-                                    <xsl:apply-templates select="key('resources', 'block-count-failed', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                    <xsl:apply-templates select="key('resources', 'block-count-failed', ldh:translations())" mode="ac:label"/>
                                 </span>
                             </span>
                         </xsl:result-document>
@@ -3051,7 +3051,7 @@ exclude-result-prefixes="#all"
                     <div class="ldhc-modal sz-lg" role="dialog" aria-modal="true">
                         <div class="ldhc-modal-head">
                             <span class="ldhc-modal-x">
-                                <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
+                                <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
                             </span>
                         </div>
 

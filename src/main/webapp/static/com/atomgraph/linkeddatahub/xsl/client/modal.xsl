@@ -71,7 +71,7 @@ LIMIT   10
             <div class="ldhc-modal sz-lg" role="dialog" aria-modal="true">
                 <div class="ldhc-modal-head">
                     <span class="ldhc-modal-x">
-                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
+                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
                     </span>
                 </div>
                 <div class="ldhc-modal-body is-flush">
@@ -80,8 +80,8 @@ LIMIT   10
                         <h2>Unlock the value of your Knowledge Graph with data-driven content and low code apps.</h2>
                         <p>Create structured content backed by live data, intuitively explore graph datasets, model and manage RDF data, control data quality and more. <em>Without writing code</em>.</p>
                         <p>
-                            <a class="ldhc-btn in-primary ap-solid sz-lg" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/get-started/" target="_blank"><xsl:value-of select="ac:label(key('resources', 'get-started', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))))"/></a>
-                            <a class="ldhc-btn in-neutral ap-solid sz-lg" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank"><xsl:value-of select="ac:label(key('resources', 'learn-more', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))))"/></a>
+                            <a class="ldhc-btn in-primary ap-solid sz-lg" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/get-started/" target="_blank"><xsl:value-of select="ac:label(key('resources', 'get-started', ldh:translations()))"/></a>
+                            <a class="ldhc-btn in-neutral ap-solid sz-lg" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank"><xsl:value-of select="ac:label(key('resources', 'learn-more', ldh:translations()))"/></a>
                         </p>
                     </div>
                 </div>
@@ -95,7 +95,7 @@ LIMIT   10
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="source" as="xs:anyURI?"/>
         <xsl:param name="query" as="xs:anyURI?"/>
-        <xsl:param name="legend-label" select="ac:label(key('resources', 'add-rdf-data', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))))" as="xs:string"/>
+        <xsl:param name="legend-label" select="ac:label(key('resources', 'add-rdf-data', ldh:translations()))" as="xs:string"/>
 
         <div class="ldhc-backdrop pos-top modal modal-constructor">
             <xsl:if test="$id">
@@ -110,7 +110,7 @@ LIMIT   10
                         </h2>
                     </div>
                     <span class="ldhc-modal-x">
-                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
+                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
                     </span>
                 </div>
 
@@ -190,14 +190,17 @@ LIMIT   10
                     </xsl:apply-templates>
                 </form>
 
-                <div class="ldhc-alert va-informative" role="alert">
-                    <span class="ldhc-alert-ic">
-                        <span class="msi outline" aria-hidden="true">info</span>
-                    </span>
-                    <div class="ldhc-alert-body">
-                        <span class="ldhc-alert-text">Adding data this way fetches the source through the Linked Data proxy and appends it to the target document, so use it for small amounts of data only (e.g. a few thousand RDF triples). For larger data, use asynchronous <a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/reference/imports/rdf/" target="_blank">RDF imports</a>.</span>
-                    </div>
-                </div>
+                <xsl:apply-templates select="." mode="ac:Alert">
+                    <xsl:with-param name="variant" select="'va-informative'"/>
+                    <xsl:with-param name="text" as="item()*">
+                        <xsl:apply-templates select="key('resources', 'add-data-notice', ldh:translations())" mode="ac:label"/>
+                        <xsl:text> </xsl:text>
+                        <a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/reference/imports/rdf/" target="_blank">
+                            <xsl:apply-templates select="key('resources', 'rdf-imports', ldh:translations())" mode="ac:label"/>
+                        </a>
+                        <xsl:text>.</xsl:text>
+                    </xsl:with-param>
+                </xsl:apply-templates>
                 </div>
             </div>
         </div>
@@ -207,7 +210,7 @@ LIMIT   10
         <xsl:param name="id" select="'generate-containers'" as="xs:string?"/>
         <xsl:param name="button-class" select="'ldhc-btn in-primary ap-solid sz-md btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
-        <xsl:param name="legend-label" select="ac:label(key('resources', 'generate-containers', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))))" as="xs:string"/>
+        <xsl:param name="legend-label" select="ac:label(key('resources', 'generate-containers', ldh:translations()))" as="xs:string"/>
         <xsl:param name="default-limit" select="10" as="xs:integer"/>
         
         <div class="ldhc-backdrop pos-top modal modal-constructor">
@@ -223,7 +226,7 @@ LIMIT   10
                         </h2>
                     </div>
                     <span class="ldhc-modal-x">
-                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
+                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
                     </span>
                 </div>
 
@@ -233,7 +236,7 @@ LIMIT   10
                         <li class="active">
                             <a>
                                 <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'from-sparql-service', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                    <xsl:apply-templates select="key('resources', 'from-sparql-service', ldh:translations())" mode="ac:label"/>
                                 </xsl:value-of>
                             </a>
                         </li>
@@ -332,23 +335,23 @@ LIMIT   10
                                 <div class="ldh-block-foot">
                                     <button type="button" class="ldhc-btn in-primary ap-solid sz-md btn-load-endpoint-schema">
                                         <xsl:value-of>
-                                            <xsl:apply-templates select="key('resources', 'load-schema', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                            <xsl:apply-templates select="key('resources', 'load-schema', ldh:translations())" mode="ac:label"/>
                                         </xsl:value-of>
                                     </button>
                                     <!-- disabled until the schema is loaded; ldh:endpoint-classes-response enables it -->
                                     <button type="submit" class="{$button-class}" disabled="disabled">
                                         <xsl:value-of>
-                                            <xsl:apply-templates select="key('resources', 'generate', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                            <xsl:apply-templates select="key('resources', 'generate', ldh:translations())" mode="ac:label"/>
                                         </xsl:value-of>
                                     </button>
                                     <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-close">
                                         <xsl:value-of>
-                                            <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                            <xsl:apply-templates select="key('resources', 'close', ldh:translations())" mode="ac:label"/>
                                         </xsl:value-of>
                                     </button>
                                     <button type="reset" class="ldhc-btn in-neutral ap-outline sz-md btn-reset">
                                         <xsl:value-of>
-                                            <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                            <xsl:apply-templates select="key('resources', 'reset', ldh:translations())" mode="ac:label"/>
                                         </xsl:value-of>
                                     </button>
                                 </div>
@@ -370,7 +373,7 @@ LIMIT   10
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="action" select="ldh:href(resolve-uri('access/request', lapp:origin($this)))" as="xs:anyURI"/>
-        <xsl:param name="legend-label" select="ac:label(key('resources', 'request-access', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))))" as="xs:string"/>
+        <xsl:param name="legend-label" select="ac:label(key('resources', 'request-access', ldh:translations()))" as="xs:string"/>
         <xsl:param name="agent" as="xs:anyURI"/>
         
         <div class="ldhc-backdrop pos-top modal modal-constructor">
@@ -386,12 +389,12 @@ LIMIT   10
                         </h2>
                         <span class="ldhc-modal-sub">
                             <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'request-access-description', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                <xsl:apply-templates select="key('resources', 'request-access-description', ldh:translations())" mode="ac:label"/>
                             </xsl:value-of>
                         </span>
                     </div>
                     <span class="ldhc-modal-x">
-                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
+                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
                     </span>
                 </div>
 
@@ -407,7 +410,7 @@ LIMIT   10
                         <div>
                             <label for="request-access-for">
                                 <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'request-access-for', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                    <xsl:apply-templates select="key('resources', 'request-access-for', ldh:translations())" mode="ac:label"/>
                                 </xsl:value-of>
                             </label>
                             <xsl:apply-templates select="." mode="ac:SelectShell">
@@ -416,7 +419,7 @@ LIMIT   10
                                 <select id="request-access-for">
                                     <option value="{$agent}">
                                         <xsl:value-of select="$agent"/> (<xsl:value-of>
-                                            <xsl:apply-templates select="key('resources', 'me', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                            <xsl:apply-templates select="key('resources', 'me', ldh:translations())" mode="ac:label"/>
                                         </xsl:value-of>)
                                     </option>
                                 </select>
@@ -451,18 +454,18 @@ LIMIT   10
         <fieldset>
             <legend>
                 <xsl:value-of>
-                    <xsl:apply-templates select="key('resources', 'url-based-access', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', 'url-based-access', ldh:translations())" mode="ac:label"/>
                 </xsl:value-of>
             </legend>
-            <table class="ldhc-table is-hoverable" role="table" style="--ldhc-cols: 55fr 15fr 15fr 15fr;">
-                <caption class="ldhc-vh">
-                    <xsl:apply-templates select="key('resources', 'url-based-access', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                </caption>
-                <thead>
-                    <tr role="row">
+            <xsl:apply-templates select="." mode="ldh:DataTable">
+                <xsl:with-param name="cols" select="'55fr 15fr 15fr 15fr'"/>
+                <xsl:with-param name="caption" as="item()*">
+                    <xsl:apply-templates select="key('resources', 'url-based-access', ldh:translations())" mode="ac:label"/>
+                </xsl:with-param>
+                <xsl:with-param name="head" as="item()*">
                         <th scope="col" role="columnheader">
                             <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'url', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                <xsl:apply-templates select="key('resources', 'url', ldh:translations())" mode="ac:label"/>
                             </xsl:value-of>
                         </th>
                         <xsl:for-each select="$access-modes">
@@ -472,9 +475,8 @@ LIMIT   10
                                 </xsl:value-of>
                             </th>
                         </xsl:for-each>
-                    </tr>
-                </thead>
-                <tbody>
+                </xsl:with-param>
+                <xsl:with-param name="body" as="item()*">
                     <!-- the current document's URL is always shown -->
                     <xsl:variable name="this-auth" as="element()">
                         <rdf:Description>
@@ -498,25 +500,25 @@ LIMIT   10
                             <xsl:with-param name="granted-access-modes" select="$granted-access-modes"/>
                         </xsl:apply-templates>
                     </xsl:for-each-group>
-                </tbody>
-            </table>
+                </xsl:with-param>
+            </xsl:apply-templates>
         </fieldset>
 
         <fieldset>
             <legend>
                 <xsl:value-of>
-                    <xsl:apply-templates select="key('resources', 'class-based-access', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', 'class-based-access', ldh:translations())" mode="ac:label"/>
                 </xsl:value-of>
             </legend>
-            <table class="ldhc-table is-hoverable" role="table" style="--ldhc-cols: 55fr 15fr 15fr 15fr;">
-                <caption class="ldhc-vh">
-                    <xsl:apply-templates select="key('resources', 'class-based-access', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                </caption>
-                <thead>
-                    <tr role="row">
+            <xsl:apply-templates select="." mode="ldh:DataTable">
+                <xsl:with-param name="cols" select="'55fr 15fr 15fr 15fr'"/>
+                <xsl:with-param name="caption" as="item()*">
+                    <xsl:apply-templates select="key('resources', 'class-based-access', ldh:translations())" mode="ac:label"/>
+                </xsl:with-param>
+                <xsl:with-param name="head" as="item()*">
                         <th scope="col" role="columnheader">
                             <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'class-name', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                <xsl:apply-templates select="key('resources', 'class-name', ldh:translations())" mode="ac:label"/>
                             </xsl:value-of>
                         </th>
                         <xsl:for-each select="$access-modes">
@@ -526,9 +528,8 @@ LIMIT   10
                                 </xsl:value-of>
                             </th>
                         </xsl:for-each>
-                    </tr>
-                </thead>
-                <tbody>
+                </xsl:with-param>
+                <xsl:with-param name="body" as="item()*">
                     <xsl:variable name="default-classes" select="(xs:anyURI('&def;Root'), xs:anyURI('&dh;Container'), xs:anyURI('&dh;Item'), xs:anyURI('&nfo;FileDataObject'))" as="xs:anyURI*"/>
                     <!-- the current document's class is always shown -->
                     <xsl:variable name="this-auth" as="element()*">
@@ -554,8 +555,8 @@ LIMIT   10
                             <xsl:with-param name="granted-access-modes" select="$granted-access-modes"/>
                         </xsl:apply-templates>
                     </xsl:for-each-group>
-                </tbody>
-            </table>
+                </xsl:with-param>
+            </xsl:apply-templates>
         </fieldset>
     </xsl:template>
     
@@ -657,7 +658,7 @@ LIMIT   10
         <xsl:param name="button-class" select="'ldhc-btn in-primary ap-solid sz-md btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="action" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
-        <xsl:param name="legend-label" select="ac:label(key('resources', 'reconcile-entity', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))))" as="xs:string"/>
+        <xsl:param name="legend-label" select="ac:label(key('resources', 'reconcile-entity', ldh:translations()))" as="xs:string"/>
         <xsl:param name="resource" as="xs:anyURI"/>
         <xsl:param name="label" as="xs:string"/>
         <xsl:param name="service" as="xs:anyURI"/>
@@ -675,7 +676,7 @@ LIMIT   10
                         </h2>
                     </div>
                     <span class="ldhc-modal-x">
-                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
+                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
                     </span>
                 </div>
 
@@ -840,7 +841,7 @@ LIMIT   10
                                 </h2>
                             </div>
                             <span class="ldhc-modal-x">
-                                <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
+                                <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
                             </span>
                         </div>
 
@@ -919,7 +920,7 @@ LIMIT   10
                     <div class="ldhc-modal sz-lg" role="dialog" aria-modal="true">
                         <div class="ldhc-modal-head">
                             <span class="ldhc-modal-x">
-                                <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
+                                <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
                             </span>
                         </div>
                         <div class="ldhc-modal-body">
@@ -1093,7 +1094,7 @@ LIMIT   10
             <xsl:with-param name="form" as="element()">
                 <xsl:call-template name="ldh:AddDataForm">
                     <xsl:with-param name="query" select="resolve-uri('queries/construct-constructors/#this', ldt:base())"/>
-                    <xsl:with-param name="legend-label" select="ac:label(key('resources', 'import-ontology', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))))"/>
+                    <xsl:with-param name="legend-label" select="ac:label(key('resources', 'import-ontology', ldh:translations()))"/>
                 </xsl:call-template>
             </xsl:with-param>
             <xsl:with-param name="target" select="$target"/>
@@ -1144,11 +1145,11 @@ LIMIT   10
                     <div class="ldhc-modal-head">
                         <div class="ldhc-modal-titles">
                             <h2 class="ldhc-modal-title" id="modal-title-{generate-id()}">
-                                <xsl:apply-templates select="key('resources', 'application-settings', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                <xsl:apply-templates select="key('resources', 'application-settings', ldh:translations())" mode="ac:label"/>
                             </h2>
                         </div>
                         <span class="ldhc-modal-x">
-                            <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
+                            <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
                         </span>
                     </div>
                     <div class="ldhc-modal-body">
@@ -2378,7 +2379,7 @@ LIMIT   10
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <div class="ldhc-modal-head">
                     <span class="ldhc-modal-x">
-                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))))}"><span class="msi sm">close</span></button>
+                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
                     </span>
                 </div>
 

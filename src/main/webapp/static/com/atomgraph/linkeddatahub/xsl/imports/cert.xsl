@@ -11,13 +11,14 @@ xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:lapp="&lapp;"
+xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#"
 xmlns:ac="&ac;"
 xmlns:rdf="&rdf;"
 xmlns:cert="&cert;"
 exclude-result-prefixes="#all">
 
     <xsl:template match="*[@rdf:about = '&cert;PublicKey']" mode="ac:label">
-        <xsl:apply-templates select="key('resources', 'public-key', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="#current"/>
+        <xsl:apply-templates select="key('resources', 'public-key', ldh:translations())" mode="#current"/>
     </xsl:template>
 
 </xsl:stylesheet>

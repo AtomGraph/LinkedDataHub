@@ -31,7 +31,7 @@ xmlns:foaf="&foaf;"
 exclude-result-prefixes="#all">
 
     <xsl:template match="*[@rdf:about = '&acl;Authorization']" mode="ac:label">
-        <xsl:apply-templates select="key('resources', 'authorization', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="#current"/>
+        <xsl:apply-templates select="key('resources', 'authorization', ldh:translations())" mode="#current"/>
     </xsl:template>
 
     <xsl:template match="acl:mode/@rdf:resource | acl:mode/@rdf:nodeID" mode="ac:FormControl" priority="1">
@@ -73,15 +73,15 @@ exclude-result-prefixes="#all">
         <xsl:next-match/>
 
         <xsl:if test="lacl:requestMode/@rdf:resource = '&acl;Control'">
-            <div class="ldhc-alert va-warning" role="alert">
-                <span class="ldhc-alert-ic">
-                    <span class="msi outline" aria-hidden="true">warning</span>
-                </span>
-                <div class="ldhc-alert-body">
-                    <span class="ldhc-alert-title">Warning!</span>
-                    <span class="ldhc-alert-text">By allowing <code>Control</code> access mode you are effectively granting full control of the dataspace.</span>
-                </div>
-            </div>
+            <xsl:apply-templates select="." mode="ac:Alert">
+                <xsl:with-param name="variant" select="'va-warning'"/>
+                <xsl:with-param name="title" as="item()*">
+                    <xsl:apply-templates select="key('resources', 'warning', ldh:translations())" mode="ac:label"/>
+                </xsl:with-param>
+                <xsl:with-param name="text" as="item()*">
+                    <xsl:apply-templates select="key('resources', 'control-mode-warning', ldh:translations())" mode="ac:label"/>
+                </xsl:with-param>
+            </xsl:apply-templates>
         </xsl:if>
 
         <!-- .ldh-prop-form is required so that client.xsl can match this form and intercept its onsubmit event -->
@@ -231,7 +231,7 @@ exclude-result-prefixes="#all">
                 <button type="submit" class="ldhc-btn in-primary ap-solid sz-md">
                     <span class="msi sm" aria-hidden="true">check</span>
                     <xsl:value-of>
-                        <xsl:apply-templates select="key('resources', 'allow', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        <xsl:apply-templates select="key('resources', 'allow', ldh:translations())" mode="ac:label"/>
                     </xsl:value-of>
                 </button>
             </div>

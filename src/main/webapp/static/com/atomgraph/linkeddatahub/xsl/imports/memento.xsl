@@ -69,7 +69,7 @@ exclude-result-prefixes="#all"
                 <xsl:if test="$writable and not(@rdf:about = $current-memento)">
                     <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm btn-restore" value="{@rdf:about}">
                         <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'restore', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', 'restore', ldh:translations())" mode="ac:label"/>
                         </xsl:value-of>
                     </button>
                 </xsl:if>

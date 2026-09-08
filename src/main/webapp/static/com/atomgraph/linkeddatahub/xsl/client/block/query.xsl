@@ -106,17 +106,17 @@ exclude-result-prefixes="#all"
                  error response - could not load service 
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
-                        <div class="ldhc-alert va-negative" role="alert">
-                            <span class="ldhc-alert-ic"><span class="msi outline" aria-hidden="true">error</span></span>
-                            <div class="ldhc-alert-body">
-                                <span class="ldhc-alert-text">
-                                    <xsl:apply-templates select="key('resources', 'error-loading-service', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                </span>
+                        <xsl:apply-templates select="." mode="ac:Alert">
+                            <xsl:with-param name="variant" select="'va-negative'"/>
+                            <xsl:with-param name="text" as="item()*">
+                                    <xsl:apply-templates select="key('resources', 'error-loading-service', ldh:translations())" mode="ac:label"/>
+                            </xsl:with-param>
+                            <xsl:with-param name="body" as="item()*">
                                 <pre>
                                     <xsl:value-of select="$response?message"/>
                                 </pre>
-                            </div>
-                        </div>
+                            </xsl:with-param>
+                        </xsl:apply-templates>
                     </xsl:result-document>
                 </xsl:for-each>
                 
@@ -254,21 +254,21 @@ exclude-result-prefixes="#all"
                             <div class="ldh-sparql-bar-actions">
                                 <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-open-query">
                                     <xsl:value-of>
-                                        <xsl:apply-templates select="key('resources', 'open', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                        <xsl:apply-templates select="key('resources', 'open', ldh:translations())" mode="ac:label"/>
                                     </xsl:value-of>
                                 </button>
                                 <!-- saving PATCHes the query back into the current document, so the button only appears to an agent who may write to it -->
                                 <xsl:if test="acl:mode() = '&acl;Write'">
                                     <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-save btn-save-query">
                                         <xsl:value-of>
-                                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                            <xsl:apply-templates select="key('resources', 'save', ldh:translations())" mode="ac:label"/>
                                         </xsl:value-of>
                                     </button>
                                 </xsl:if>
                                 <button type="submit" class="ldhc-btn in-primary ap-solid sz-md btn-run-query">
                                     <span class="msi sm" aria-hidden="true">play_arrow</span>
                                     <xsl:value-of>
-                                        <xsl:apply-templates select="key('resources', 'run', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                        <xsl:apply-templates select="key('resources', 'run', ldh:translations())" mode="ac:label"/>
                                     </xsl:value-of>
                                 </button>
                             </div>
@@ -305,7 +305,7 @@ exclude-result-prefixes="#all"
         <xsl:copy>
             <xsl:apply-templates select="@*" mode="#current"/>
 
-            <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost tb-query" aria-pressed="false" title="{ac:label(key('resources', 'edit-query', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))))}" aria-label="{ac:label(key('resources', 'edit-query', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))))}">
+            <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost tb-query" aria-pressed="false" title="{ac:label(key('resources', 'edit-query', ldh:translations()))}" aria-label="{ac:label(key('resources', 'edit-query', ldh:translations()))}">
                 <span class="msi sm" aria-hidden="true">code</span>
             </button>
 

@@ -69,15 +69,15 @@ version="3.0"
             <fieldset id="packages">
                 <legend>
                     <xsl:value-of>
-                        <xsl:apply-templates select="key('resources', 'packages', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                        <xsl:apply-templates select="key('resources', 'packages', ldh:translations())" mode="ac:label"/>
                     </xsl:value-of>
                 </legend>
-                <table class="ldhc-table is-hoverable" role="table" style="--ldhc-cols: 25fr 60fr 15fr;">
-                    <caption class="ldhc-vh">
-                        <xsl:apply-templates select="key('resources', 'packages', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                    </caption>
-                    <thead>
-                        <tr role="row">
+                <xsl:apply-templates select="." mode="ldh:DataTable">
+                    <xsl:with-param name="cols" select="'25fr 60fr 15fr'"/>
+                    <xsl:with-param name="caption" as="item()*">
+                        <xsl:apply-templates select="key('resources', 'packages', ldh:translations())" mode="ac:label"/>
+                    </xsl:with-param>
+                    <xsl:with-param name="head" as="item()*">
                             <th scope="col" role="columnheader">
                                 <xsl:value-of>
                                     <xsl:apply-templates select="key('resources', '&lapp;Package', document(ac:document-uri('&lapp;')))" mode="ac:label"/>
@@ -90,18 +90,17 @@ version="3.0"
                             </th>
                             <th scope="col" role="columnheader">
                                 <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'installed', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                    <xsl:apply-templates select="key('resources', 'installed', ldh:translations())" mode="ac:label"/>
                                 </xsl:value-of>
                             </th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                    </xsl:with-param>
+                    <xsl:with-param name="body" as="item()*">
                         <xsl:apply-templates select="$packages" mode="#current">
                             <xsl:sort select="lower-case(dct:title[1])"/>
                             <xsl:with-param name="installed" select="$installed"/>
                         </xsl:apply-templates>
-                    </tbody>
-                </table>
+                    </xsl:with-param>
+                </xsl:apply-templates>
             </fieldset>
         </xsl:if>
     </xsl:template>

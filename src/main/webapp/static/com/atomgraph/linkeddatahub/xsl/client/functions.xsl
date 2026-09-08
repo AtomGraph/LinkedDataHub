@@ -609,28 +609,25 @@ exclude-result-prefixes="#all"
         <xsl:param name="explanation-key" as="xs:string"/> <!-- nodeID of the sentence under it; ldh:http-error-key() derives one from a status -->
         <xsl:param name="uri" as="xs:anyURI?"/> <!-- what could not be reached, linked under the sentence -->
 
-        <xsl:variable name="translations" select="document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))" as="document-node()"/>
+        <xsl:variable name="translations" select="ldh:translations()" as="document-node()"/>
 
-        <div class="ldhc-alert va-negative" role="alert">
-            <span class="ldhc-alert-ic">
-                <span class="msi outline" aria-hidden="true">error</span>
-            </span>
-            <div class="ldhc-alert-body">
-                <span class="ldhc-alert-title">
-                    <xsl:apply-templates select="key('resources', $title-key, $translations)" mode="ac:label"/>
-                </span>
-                <span class="ldhc-alert-text">
-                    <xsl:apply-templates select="key('resources', $explanation-key, $translations)" mode="ac:label"/>
-                </span>
-                <!-- the URI takes the alert body's link slot, its own row, so the sentence above it stays a
-                     sentence and a long IRI wraps without breaking the prose -->
+        <xsl:apply-templates select="$translations" mode="ac:Alert">
+            <xsl:with-param name="title" as="item()*">
+                <xsl:apply-templates select="key('resources', $title-key, $translations)" mode="ac:label"/>
+            </xsl:with-param>
+            <xsl:with-param name="text" as="item()*">
+                <xsl:apply-templates select="key('resources', $explanation-key, $translations)" mode="ac:label"/>
+            </xsl:with-param>
+            <!-- the URI takes the alert body's link slot, its own row, so the sentence above it stays a
+                 sentence and a long IRI wraps without breaking the prose -->
+            <xsl:with-param name="body" as="item()*">
                 <xsl:if test="$uri">
                     <a class="ldh-code" href="{$uri}">
                         <xsl:value-of select="$uri"/>
                     </a>
                 </xsl:if>
-            </div>
-        </div>
+            </xsl:with-param>
+        </xsl:apply-templates>
     </xsl:function>
 
     <!-- The upstream text, demoted into a collapsed disclosure: never the first thing read, never withheld from
@@ -642,7 +639,7 @@ exclude-result-prefixes="#all"
             <details class="ldh-block-detail">
                 <summary>
                     <span class="msi" aria-hidden="true">chevron_right</span>
-                    <xsl:apply-templates select="key('resources', 'technical-detail', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', 'technical-detail', ldh:translations())" mode="ac:label"/>
                 </summary>
                 <pre>
                     <xsl:value-of select="$detail"/>

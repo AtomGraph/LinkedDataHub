@@ -506,7 +506,7 @@ exclude-result-prefixes="#all"
             <!-- delete existing block -->
             <xsl:when test="$block/@about">
                 <!-- show a confirmation prompt -->
-                <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))) ])">
+                <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', ldh:translations())) ])">
                     <xsl:sequence select="ldh:busy-cursor()"/>
 
                     <xsl:variable name="block-uri" select="$block/@about" as="xs:anyURI"/>
@@ -1334,7 +1334,7 @@ exclude-result-prefixes="#all"
                 </xsl:otherwise>
             </xsl:choose>
 
-            <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ac:label(key('resources', 'could-not-move-block', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))) ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ac:label(key('resources', 'could-not-move-block', ldh:translations())) ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:if>
 
         <xsl:sequence select="$context"/>
