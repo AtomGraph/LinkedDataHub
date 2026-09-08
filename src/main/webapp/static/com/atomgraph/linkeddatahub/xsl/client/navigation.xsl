@@ -110,14 +110,13 @@ ORDER BY DESC(?created)
             <xsl:attribute name="aria-label" select="ac:label(key('resources', 'search-title', ldh:translations()))"/>
 
             <div class="sb-head">
-                <!-- an honest BUTTON, not an input: it opens the search dialog (the header field is an address bar) -->
-                <button type="button" class="sb-search" title="{ac:label(key('resources', 'search-title', ldh:translations()))}">
+                <!-- dataspace-scoped search form: typing happens here, and submitting opens the search
+                     dialog pre-populated with the typed text (the ⌘K handler submits this form too) -->
+                <form class="search-form sb-search" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', ldh:translations()))}">
                     <span class="msi sm" aria-hidden="true">search</span>
-                    <span class="sb-search-label">
-                        <xsl:apply-templates select="key('resources', 'search-placeholder', ldh:translations())" mode="ac:label"/>
-                    </span>
+                    <input type="search" name="q" placeholder="{ac:label(key('resources', 'search-placeholder', ldh:translations()))}"/>
                     <kbd>⌘K</kbd>
-                </button>
+                </form>
                 <button type="button" class="ldhc-iconbtn sz-xs in-neutral ap-ghost btn-close-sidebar" aria-label="{ac:label(key('resources', 'hide-navigation', ldh:translations()))}">
                     <span class="msi sm" aria-hidden="true">close</span>
                 </button>
@@ -394,7 +393,7 @@ ORDER BY DESC(?created)
             </xsl:when>
             <xsl:when test="lower-case($key) = 'k' and (ixsl:get(ixsl:event(), 'metaKey') or ixsl:get(ixsl:event(), 'ctrlKey'))">
                 <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
-                <xsl:apply-templates select="(id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]//button[contains-token(@class, 'sb-search')])[1]" mode="ixsl:onclick"/>
+                <xsl:apply-templates select="(id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]//form[contains-token(@class, 'search-form')])[1]" mode="ixsl:onsubmit"/>
             </xsl:when>
         </xsl:choose>
 
@@ -1293,11 +1292,11 @@ ORDER BY DESC(?created)
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
-    <!-- sidebar search form: open modal pre-populated with the typed value and run the search -->
-    <!-- the drawer's search button opens the search dialog (the ⌘K handler applies this template too);
-         typing happens in the dialog's own field, which submits below -->
-    <xsl:template match="button[contains-token(@class, 'sb-search')]" mode="ixsl:onclick">
-        <xsl:variable name="text" select="''" as="xs:string?"/>
+    <!-- sidebar search form: open the search dialog pre-populated with the typed value and run the
+         search (the ⌘K handler applies this template too) -->
+    <xsl:template match="form[contains-token(@class, 'search-form')]" mode="ixsl:onsubmit">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:variable name="text" select=".//input[@name = 'q']/ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:variable name="target" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
         <xsl:variable name="pane-id" select="$target/ancestor::div[contains-token(@class, 'ldh-pane')]/@id" as="xs:string"/>
         <xsl:variable name="modal-id" select="'search-modal-' || $pane-id" as="xs:string"/>

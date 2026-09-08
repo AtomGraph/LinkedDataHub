@@ -317,7 +317,7 @@ div.ldh-bc { min-width: 0; overflow: hidden; }
 
 /* ---------- forms: base control chrome for dialogs outside the whole-form mode ----------
    controls wrapped in the design's .ldhc-field-box are excluded: the box carries the chrome and core.css keeps its inner input bare */
-form input[type="text"]:not(.ldhc-field-box *), form input[type="url"]:not(.ldhc-field-box *), form input[type="number"]:not(.ldhc-field-box *), form input[type="password"]:not(.ldhc-field-box *), form input[type="datetime-local"]:not(.ldhc-field-box *), form input[type="date"]:not(.ldhc-field-box *), form textarea:not(.ldhc-field-box *), form select {
+form input[type="text"]:not(.ldhc-field-box *, .ldh-address *), form input[type="url"]:not(.ldhc-field-box *), form input[type="number"]:not(.ldhc-field-box *), form input[type="password"]:not(.ldhc-field-box *), form input[type="datetime-local"]:not(.ldhc-field-box *), form input[type="date"]:not(.ldhc-field-box *), form textarea:not(.ldhc-field-box *), form select {
   border: 1px solid var(--border-default); border-radius: var(--r-sm);
   background: var(--surface-0); color: var(--fg-1);
   font-family: var(--font-sans); font-size: var(--fs-sm);
@@ -417,6 +417,16 @@ button.tree-link { border: 0; background: transparent; width: 100%; font: inheri
    label, which puts its input in reach of the generic form input:focus ring above - the row is the
    flush band, so a border and ring inside it would paint a box within the dialog's own edge */
 .ldh-search-field input:focus { border: 0; box-shadow: none; }
+/* the drawer search is a typable field again (submit opens the dialog pre-populated; LDH overrides
+   §19's search button). app.css still draws the field-shaped shell; the ring moves to :focus-within
+   since the button's :focus-visible no longer fires, and the input inside stays bare - type="search"
+   keeps it clear of the generic form chrome above, while the :focus reset carries the form qualifier
+   to match that ring rule's specificity and outrank it by order */
+.sb-search { cursor: text; }
+.sb-search:focus-within { border-color: var(--ldh-blue-400); box-shadow: var(--focus-ring); }
+.sb-search input { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; padding: 0; background: transparent; font: inherit; color: var(--fg-1); }
+form.sb-search input:focus { border: 0; box-shadow: none; }
+.sb-search input::placeholder { color: var(--fg-hint); }
 
 /* ---------- document tab bar: DataspaceTabs (§17b) — the strip anatomy and the underline-active
    treatment are app.css's; the sticky wrapper stays a div (no HTML5 sectioning elements here), so it
