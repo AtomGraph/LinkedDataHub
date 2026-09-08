@@ -75,14 +75,13 @@ exclude-result-prefixes="#all">
                         <xsl:with-param name="value" select="'&rdf;type'"/>
                     </xsl:call-template>
 
-                    <div class="label">
-                        <span class="lbl-row">
-                            <span class="pred" title="{$this}">
-                                <xsl:value-of select="ac:label(key('resources', $this, document(ac:document-uri(namespace-uri()))))" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-                                <xsl:value-of select="ac:label(key('resources', $this, if (ixsl:doc-fetched(ac:document-uri(namespace-uri()))) then document(ac:document-uri(namespace-uri())) else ()))" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
-                            </span>
-                        </span>
-                    </div>
+                    <xsl:apply-templates select="." mode="ldh:PropertyLabel">
+                        <xsl:with-param name="this" select="$this"/>
+                        <xsl:with-param name="label" as="item()*">
+                            <xsl:value-of select="ac:label(key('resources', $this, document(ac:document-uri(namespace-uri()))))" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+                            <xsl:value-of select="ac:label(key('resources', $this, if (ixsl:doc-fetched(ac:document-uri(namespace-uri()))) then document(ac:document-uri(namespace-uri())) else ()))" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
+                        </xsl:with-param>
+                    </xsl:apply-templates>
 
                     <div class="ldh-prop-row is-interactive is-last">
                         <div class="value val-stack">
@@ -138,11 +137,10 @@ exclude-result-prefixes="#all">
             </xsl:otherwise>
         </xsl:choose>
         
-        <div class="ldh-annot">
-            <span class="ldhc-tag sz-sm em-quiet an-term is-class">
-                <xsl:value-of select="ac:label(key('resources', '&owl;Class', document(ac:document-uri('&owl;'))))"/>
-            </span>
-        </div>
+        <xsl:apply-templates select="." mode="ac:AnnotationTag">
+            <xsl:with-param name="class" select="'ldhc-tag sz-sm em-quiet an-term is-class'"/>
+            <xsl:with-param name="label" select="ac:label(key('resources', '&owl;Class', document(ac:document-uri('&owl;'))))"/>
+        </xsl:apply-templates>
     </xsl:template>
     
 </xsl:stylesheet>

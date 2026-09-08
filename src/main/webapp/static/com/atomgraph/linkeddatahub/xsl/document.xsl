@@ -956,7 +956,8 @@ extension-element-prefixes="ixsl"
                         <xsl:apply-templates select="key('resources', '&ldh;chartType', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
                     </span>
                 </label>
-                <span class="ldhc-select sz-sm">
+                <xsl:apply-templates select="." mode="ac:SelectShell">
+                    <xsl:with-param name="select" as="item()*">
                 <select id="{$chart-type-id}" name="ou" class="chart-type">
                     <xsl:for-each select="key('resources-by-subclass', '&ac;Chart', document(ac:document-uri('&ldh;')))">
                         <xsl:sort select="ac:label(.)" lang="{ac:langs()[1]}"/>
@@ -966,8 +967,8 @@ extension-element-prefixes="ixsl"
                         </xsl:apply-templates>
                     </xsl:for-each>
                 </select>
-                <span class="msi sm ldhc-select-caret" aria-hidden="true">unfold_more</span>
-                </span>
+                    </xsl:with-param>
+                </xsl:apply-templates>
             </div>
             <div class="field">
                 <label class="ldhc-label sz-sm" for="{$category-id}">
@@ -975,7 +976,8 @@ extension-element-prefixes="ixsl"
                         <xsl:apply-templates select="key('resources', 'category', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                     </span>
                 </label>
-                <span class="ldhc-select sz-sm">
+                <xsl:apply-templates select="." mode="ac:SelectShell">
+                    <xsl:with-param name="select" as="item()*">
                 <select id="{$category-id}" name="ou" class="chart-category">
                     <option value="">
                         <!-- URI is the default category -->
@@ -1000,8 +1002,8 @@ extension-element-prefixes="ixsl"
                         </option>
                     </xsl:for-each-group>
                 </select>
-                <span class="msi sm ldhc-select-caret" aria-hidden="true">unfold_more</span>
-                </span>
+                    </xsl:with-param>
+                </xsl:apply-templates>
             </div>
             <div class="field">
                 <label class="ldhc-label sz-sm" for="{$series-id}">
@@ -1009,7 +1011,9 @@ extension-element-prefixes="ixsl"
                         <xsl:apply-templates select="key('resources', 'series', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                     </span>
                 </label>
-                <span class="ldhc-select sz-sm is-multiple">
+                <xsl:apply-templates select="." mode="ac:SelectShell">
+                    <xsl:with-param name="multiple" select="true()"/>
+                    <xsl:with-param name="select" as="item()*">
                 <select id="{$series-id}" name="ou" multiple="multiple" class="chart-series">
                     <xsl:for-each-group select="*/*" group-by="concat(namespace-uri(), local-name())">
                         <xsl:sort select="ac:property-label(.)" order="ascending" lang="{ac:langs()[1]}"/>
@@ -1025,7 +1029,8 @@ extension-element-prefixes="ixsl"
                         </option>
                     </xsl:for-each-group>
                 </select>
-                </span>
+                    </xsl:with-param>
+                </xsl:apply-templates>
             </div>
         </div>
     </xsl:template>
@@ -1047,7 +1052,8 @@ extension-element-prefixes="ixsl"
                         <xsl:apply-templates select="key('resources', '&ldh;chartType', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
                     </span>
                 </label>
-                <span class="ldhc-select sz-sm">
+                <xsl:apply-templates select="." mode="ac:SelectShell">
+                    <xsl:with-param name="select" as="item()*">
                 <select id="{$chart-type-id}" name="ou" class="chart-type">
                     <xsl:for-each select="key('resources-by-subclass', '&ac;Chart', document(ac:document-uri('&ldh;')))">
                         <xsl:sort select="ac:label(.)" lang="{ac:langs()[1]}"/>
@@ -1057,8 +1063,8 @@ extension-element-prefixes="ixsl"
                         </xsl:apply-templates>
                     </xsl:for-each>
                 </select>
-                <span class="msi sm ldhc-select-caret" aria-hidden="true">unfold_more</span>
-                </span>
+                    </xsl:with-param>
+                </xsl:apply-templates>
             </div>
             <div class="field">
                 <label class="ldhc-label sz-sm" for="{$category-id}">
@@ -1066,7 +1072,8 @@ extension-element-prefixes="ixsl"
                         <xsl:apply-templates select="key('resources', 'category', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                     </span>
                 </label>
-                <span class="ldhc-select sz-sm">
+                <xsl:apply-templates select="." mode="ac:SelectShell">
+                    <xsl:with-param name="select" as="item()*">
                 <select id="{$category-id}" name="ol" class="chart-category">
                     <xsl:for-each select="srx:head/srx:variable">
                         <!-- leave the original variable order so it can be controlled from query -->
@@ -1080,8 +1087,8 @@ extension-element-prefixes="ixsl"
                         </option>
                     </xsl:for-each>
                 </select>
-                <span class="msi sm ldhc-select-caret" aria-hidden="true">unfold_more</span>
-                </span>
+                    </xsl:with-param>
+                </xsl:apply-templates>
             </div>
             <div class="field">
                 <label class="ldhc-label sz-sm" for="{$series-id}">
@@ -1089,7 +1096,9 @@ extension-element-prefixes="ixsl"
                         <xsl:apply-templates select="key('resources', 'series', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                     </span>
                 </label>
-                <span class="ldhc-select sz-sm is-multiple">
+                <xsl:apply-templates select="." mode="ac:SelectShell">
+                    <xsl:with-param name="multiple" select="true()"/>
+                    <xsl:with-param name="select" as="item()*">
                 <select id="{$series-id}" name="ol" multiple="multiple" class="chart-series">
                     <xsl:for-each select="srx:head/srx:variable">
                         <!-- leave the original variable order so it can be controlled from query -->
@@ -1103,7 +1112,8 @@ extension-element-prefixes="ixsl"
                         </option>
                     </xsl:for-each>
                 </select>
-                </span>
+                    </xsl:with-param>
+                </xsl:apply-templates>
             </div>
         </div>
     </xsl:template>
@@ -1252,31 +1262,11 @@ extension-element-prefixes="ixsl"
 
             <xsl:sequence select="$body"/>
 
-            <div class="{$form-actions-class}">
-                <span class="fb-end">
-                    <button type="reset" class="ldhc-btn in-neutral ap-ghost sz-sm btn-reset">
-                        <span class="msi outline sm" aria-hidden="true">restart_alt</span>
-                        <span>
-                            <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                        </span>
-                    </button>
-
-                    <xsl:if test="$show-close-button">
-                        <button type="button" class="ldhc-btn in-neutral ap-outline sz-sm btn-close">
-                            <span>
-                                <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                            </span>
-                        </button>
-                    </xsl:if>
-
-                    <button type="submit" class="{$button-class} btn-save">
-                        <span class="msi outline sm" aria-hidden="true">check</span>
-                        <span>
-                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                        </span>
-                    </button>
-                </span>
-            </div>
+            <xsl:apply-templates select="." mode="ldh:FormFooter">
+                <xsl:with-param name="class" select="$form-actions-class"/>
+                <xsl:with-param name="button-class" select="$button-class"/>
+                <xsl:with-param name="dismiss" select="if ($show-close-button) then 'close' else ()"/>
+            </xsl:apply-templates>
         </form>
     </xsl:template>
 

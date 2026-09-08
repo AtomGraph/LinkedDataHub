@@ -861,15 +861,12 @@ ORDER BY DESC(?created)
                         </div>
                     </div>
                 </div>
-                <div class="ldhc-modal-foot">
-                    <span class="ldhc-modal-foot-end">
-                        <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-close">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                    </span>
-                </div>
+                <xsl:apply-templates select="." mode="ldh:FormFooter">
+                    <xsl:with-param name="class" select="'ldhc-modal-foot'"/>
+                    <xsl:with-param name="dismiss" select="'close'"/>
+                    <xsl:with-param name="show-reset" select="false()"/>
+                    <xsl:with-param name="show-save" select="false()"/>
+                </xsl:apply-templates>
                 </div>
             </div>
         </xsl:variable>
@@ -1008,15 +1005,12 @@ ORDER BY DESC(?created)
                         </div>
                     </div>
                 </div>
-                <div class="ldhc-modal-foot">
-                    <span class="ldhc-modal-foot-end">
-                        <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-close">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                    </span>
-                </div>
+                <xsl:apply-templates select="." mode="ldh:FormFooter">
+                    <xsl:with-param name="class" select="'ldhc-modal-foot'"/>
+                    <xsl:with-param name="dismiss" select="'close'"/>
+                    <xsl:with-param name="show-reset" select="false()"/>
+                    <xsl:with-param name="show-save" select="false()"/>
+                </xsl:apply-templates>
                 </div>
             </div>
         </xsl:variable>
@@ -1128,15 +1122,12 @@ ORDER BY DESC(?created)
                         </div>
                     </div>
                 </div>
-                <div class="ldhc-modal-foot">
-                    <span class="ldhc-modal-foot-end">
-                        <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-close">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                    </span>
-                </div>
+                <xsl:apply-templates select="." mode="ldh:FormFooter">
+                    <xsl:with-param name="class" select="'ldhc-modal-foot'"/>
+                    <xsl:with-param name="dismiss" select="'close'"/>
+                    <xsl:with-param name="show-reset" select="false()"/>
+                    <xsl:with-param name="show-save" select="false()"/>
+                </xsl:apply-templates>
                 </div>
             </div>
         </xsl:variable>

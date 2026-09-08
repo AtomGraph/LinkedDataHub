@@ -705,3 +705,7 @@ body:has(.document-body > .content-body > :is(.graph-3d-canvas, .map-canvas)) .l
 /* Create/Add drop-down triggers: the caret rotates while the wrap is open (the old rule keyed on the retired .ldh-btn) */
 .ldh-add-wrap .caret { transition: transform var(--dur-fast) var(--ease-out-soft); }
 .ldh-add-wrap.is-open .caret { transform: rotate(180deg); }
+
+/* the shared form footer renders its action cluster as .fb-end in every placement, but the design
+   scopes the cluster rule to .ldh-form-bar - block-foot placements get the same right-aligned cluster */
+.ldh-block-foot .fb-end { margin-left: auto; display: flex; align-items: center; gap: var(--sp-2); }

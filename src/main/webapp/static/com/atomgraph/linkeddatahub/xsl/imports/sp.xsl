@@ -100,11 +100,12 @@ exclude-result-prefixes="#all">
         <xsl:param name="type" as="xs:string?"/>
 
         <xsl:if test="not($type = 'hidden')">
-            <div class="ldh-annot">
-                <span class="ldhc-tag sz-sm em-quiet an-term is-literal">
-                    <xsl:apply-templates select="key('resources', 'literal', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                </span>
-            </div>
+            <xsl:apply-templates select="." mode="ac:AnnotationTag">
+                <xsl:with-param name="class" select="'ldhc-tag sz-sm em-quiet an-term is-literal'"/>
+                <xsl:with-param name="label" as="item()*">
+                    <xsl:apply-templates select="key('resources', 'literal', ldh:translations())" mode="ac:label"/>
+                </xsl:with-param>
+            </xsl:apply-templates>
         </xsl:if>
     </xsl:template>
     

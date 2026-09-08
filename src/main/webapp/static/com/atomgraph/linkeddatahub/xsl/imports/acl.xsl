@@ -40,7 +40,9 @@ exclude-result-prefixes="#all">
         <xsl:variable name="properties" select="../../*[concat(namespace-uri(), local-name()) = $this]" as="element()*"/>
 
         <xsl:variable name="modes" select="key('resources-by-subclass', '&acl;Access', document(ac:document-uri('&acl;')))" as="element()*"/>
-        <span class="ldhc-select sz-sm is-multiple">
+        <xsl:apply-templates select="." mode="ac:SelectShell">
+            <xsl:with-param name="multiple" select="true()"/>
+            <xsl:with-param name="select" as="item()*">
         <select name="ou" id="{generate-id()}" multiple="multiple" size="{count($modes)}">
             <xsl:for-each select="$modes">
                 <xsl:sort select="ac:label(.)" lang="{ac:langs()[1]}"/>
@@ -49,7 +51,8 @@ exclude-result-prefixes="#all">
                 </xsl:apply-templates>
             </xsl:for-each>
         </select>
-        </span>
+            </xsl:with-param>
+        </xsl:apply-templates>
 
         <xsl:if test="$type-label">
             <xsl:apply-templates select="." mode="ac:ValueAnnotations"/>

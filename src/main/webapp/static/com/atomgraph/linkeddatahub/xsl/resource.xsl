@@ -1261,31 +1261,10 @@ extension-element-prefixes="ixsl"
                     </xsl:apply-templates>
 
                     <xsl:if test="$show-form-actions">
-                        <div class="ldh-form-bar pl-inline">
-                            <span class="fb-end">
-                                <button type="reset" class="ldhc-btn in-neutral ap-ghost sz-sm btn-reset">
-                                    <span class="msi outline sm" aria-hidden="true">restart_alt</span>
-                                    <span>
-                                        <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                    </span>
-                                </button>
-
-                                <xsl:if test="$show-cancel-button">
-                                    <button type="button" class="ldhc-btn in-neutral ap-outline sz-sm btn-cancel">
-                                        <span>
-                                            <xsl:apply-templates select="key('resources', 'cancel', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                        </span>
-                                    </button>
-                                </xsl:if>
-
-                                <button type="submit" class="{$button-class} btn-save">
-                                    <span class="msi outline sm" aria-hidden="true">check</span>
-                                    <span>
-                                        <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                    </span>
-                                </button>
-                            </span>
-                        </div>
+                        <xsl:apply-templates select="." mode="ldh:FormFooter">
+                            <xsl:with-param name="button-class" select="$button-class"/>
+                            <xsl:with-param name="dismiss" select="if ($show-cancel-button) then 'cancel' else ()"/>
+                        </xsl:apply-templates>
                     </xsl:if>
                 </form>
             </div>
@@ -1551,7 +1530,8 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="max-seq-index" select="if (empty($seq-properties)) then 0 else max(for $seq-property in $seq-properties return xs:integer(substring-after($seq-property, '&rdf;' || '_')))" as="xs:integer"/>
 
         <div class="ldh-prop-addrow">
-            <span class="ldhc-select sz-sm">
+            <xsl:apply-templates select="." mode="ac:SelectShell">
+                <xsl:with-param name="select" as="item()*">
                 <select>
                     <xsl:apply-templates select="key('resources', '&rdf;type', document(ac:document-uri('&rdf;type')))" mode="xhtml:Option"/>
                     
@@ -1597,8 +1577,8 @@ extension-element-prefixes="ixsl"
                         </xsl:for-each>
                     </xsl:for-each-group>
                 </select>
-                <span class="msi sm ldhc-select-caret" aria-hidden="true">unfold_more</span>
-            </span>
+                </xsl:with-param>
+            </xsl:apply-templates>
 
             <button type="button" id="button-{generate-id()}" class="ldhc-btn in-primary ap-solid sz-sm add-value">
                 <span class="msi outline sm" aria-hidden="true">add</span>

@@ -915,4 +915,36 @@
         <rdfs:label xml:lang="en-US">Could not move block</rdfs:label>
         <rdfs:label xml:lang="es-ES">No se pudo mover el bloque</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-subject">
+        <rdfs:label xml:lang="en-US">Subject</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Sujeto</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-property">
+        <rdfs:label xml:lang="en-US">Property</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Propiedad</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-value">
+        <rdfs:label xml:lang="en-US">Value</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Valor</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-subject-about">
+        <rdfs:label xml:lang="en-US">Subject (about)</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Sujeto (about)</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-type-typeof">
+        <rdfs:label xml:lang="en-US">Type (typeof)</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Tipo (typeof)</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-object-resource">
+        <rdfs:label xml:lang="en-US">Object (resource)</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Objeto (resource)</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-datatype">
+        <rdfs:label xml:lang="en-US">Datatype</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Tipo de datos</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-language">
+        <rdfs:label xml:lang="en-US">Language</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Idioma</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>

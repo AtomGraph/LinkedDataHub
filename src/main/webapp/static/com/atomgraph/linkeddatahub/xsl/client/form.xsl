@@ -342,11 +342,11 @@ WHERE
             <div class="modal-body">
                 <form id="annotation-form" class="ldh-prop-form">
                     <div class="ldh-prop-group">
-                        <div class="label">
-                            <span class="lbl-row">
-                                <span class="pred">Subject</span>
-                            </span>
-                        </div>
+                        <xsl:apply-templates select="." mode="ldh:PropertyLabel">
+                            <xsl:with-param name="label" as="item()*">
+                                <xsl:apply-templates select="key('resources', 'rdfa-subject', ldh:translations())" mode="ac:label"/>
+                            </xsl:with-param>
+                        </xsl:apply-templates>
                         <div class="ldh-prop-row is-last">
                             <div class="value val-stack">
                                 <div class="val-main">
@@ -357,11 +357,11 @@ WHERE
                         </div>
                     </div>
                     <div class="ldh-prop-group">
-                        <div class="label">
-                            <span class="lbl-row">
-                                <span class="pred">Property</span>
-                            </span>
-                        </div>
+                        <xsl:apply-templates select="." mode="ldh:PropertyLabel">
+                            <xsl:with-param name="label" as="item()*">
+                                <xsl:apply-templates select="key('resources', 'rdfa-property', ldh:translations())" mode="ac:label"/>
+                            </xsl:with-param>
+                        </xsl:apply-templates>
                         <div class="ldh-prop-row is-last">
                             <div class="value val-stack">
                                 <div class="val-main">
@@ -372,11 +372,11 @@ WHERE
                         </div>
                     </div>
                     <div class="ldh-prop-group">
-                        <div class="label">
-                            <span class="lbl-row">
-                                <span class="pred">Value</span>
-                            </span>
-                        </div>
+                        <xsl:apply-templates select="." mode="ldh:PropertyLabel">
+                            <xsl:with-param name="label" as="item()*">
+                                <xsl:apply-templates select="key('resources', 'rdfa-value', ldh:translations())" mode="ac:label"/>
+                            </xsl:with-param>
+                        </xsl:apply-templates>
                         <div class="ldh-prop-row is-last">
                             <div class="value val-stack">
                                 <div class="val-main">
@@ -390,11 +390,11 @@ WHERE
                     <fieldset>
                         <legend>Subject</legend>
                         <div class="ldh-prop-group">
-                            <div class="label">
-                                <span class="lbl-row">
-                                    <span class="pred">Subject (about)</span>
-                                </span>
-                            </div>
+                            <xsl:apply-templates select="." mode="ldh:PropertyLabel">
+                                <xsl:with-param name="label" as="item()*">
+                                    <xsl:apply-templates select="key('resources', 'rdfa-subject-about', ldh:translations())" mode="ac:label"/>
+                                </xsl:with-param>
+                            </xsl:apply-templates>
                             <div class="ldh-prop-row is-last">
                                 <div class="value val-stack">
                                     <div class="val-main">
@@ -406,11 +406,11 @@ WHERE
                             </div>
                         </div>
                         <div class="ldh-prop-group">
-                            <div class="label">
-                                <span class="lbl-row">
-                                    <span class="pred">Type (typeof)</span>
-                                </span>
-                            </div>
+                            <xsl:apply-templates select="." mode="ldh:PropertyLabel">
+                                <xsl:with-param name="label" as="item()*">
+                                    <xsl:apply-templates select="key('resources', 'rdfa-type-typeof', ldh:translations())" mode="ac:label"/>
+                                </xsl:with-param>
+                            </xsl:apply-templates>
                             <div class="ldh-prop-row is-last">
                                 <div class="value val-stack">
                                     <div class="val-main">
@@ -425,11 +425,11 @@ WHERE
                     <fieldset>
                         <legend>Object</legend>
                         <div class="ldh-prop-group">
-                            <div class="label">
-                                <span class="lbl-row">
-                                    <span class="pred">Object (resource)</span>
-                                </span>
-                            </div>
+                            <xsl:apply-templates select="." mode="ldh:PropertyLabel">
+                                <xsl:with-param name="label" as="item()*">
+                                    <xsl:apply-templates select="key('resources', 'rdfa-object-resource', ldh:translations())" mode="ac:label"/>
+                                </xsl:with-param>
+                            </xsl:apply-templates>
                             <div class="ldh-prop-row is-last">
                                 <div class="value val-stack">
                                     <div class="val-main">
@@ -441,15 +441,16 @@ WHERE
                             </div>
                         </div>
                         <div class="ldh-prop-group">
-                            <div class="label">
-                                <span class="lbl-row">
-                                    <span class="pred">Datatype</span>
-                                </span>
-                            </div>
+                            <xsl:apply-templates select="." mode="ldh:PropertyLabel">
+                                <xsl:with-param name="label" as="item()*">
+                                    <xsl:apply-templates select="key('resources', 'rdfa-datatype', ldh:translations())" mode="ac:label"/>
+                                </xsl:with-param>
+                            </xsl:apply-templates>
                             <div class="ldh-prop-row is-last">
                                 <div class="value val-stack">
                                     <div class="val-main">
-                                        <span class="ldhc-select sz-sm">
+                                        <xsl:apply-templates select="." mode="ac:SelectShell">
+                                            <xsl:with-param name="select" as="item()*">
                                             <select id="annotation-datatype" name="datatype">
                                                 <option value="">(plain literal)</option>
                                                 <xsl:variable name="xsd" as="xs:string" select="'http://www.w3.org/2001/XMLSchema#'"/>
@@ -458,8 +459,8 @@ WHERE
                                                 </xsl:for-each>
                                                 <option value="{$rdfae:custom}">-- Custom datatype --</option>
                                             </select>
-                                            <span class="msi sm ldhc-select-caret" aria-hidden="true">unfold_more</span>
-                                        </span>
+                                            </xsl:with-param>
+                                        </xsl:apply-templates>
                                         <input type="text" name="custom-datatype" placeholder="Datatype IRI" style="display: none;"/>
                                     </div>
                                     <span class="ldhc-help sz-sm">Types the literal; mutually exclusive with a language tag</span>
@@ -468,11 +469,11 @@ WHERE
                             </div>
                         </div>
                         <div class="ldh-prop-group">
-                            <div class="label">
-                                <span class="lbl-row">
-                                    <span class="pred">Language</span>
-                                </span>
-                            </div>
+                            <xsl:apply-templates select="." mode="ldh:PropertyLabel">
+                                <xsl:with-param name="label" as="item()*">
+                                    <xsl:apply-templates select="key('resources', 'rdfa-language', ldh:translations())" mode="ac:label"/>
+                                </xsl:with-param>
+                            </xsl:apply-templates>
                             <div class="ldh-prop-row is-last">
                                 <div class="value val-stack">
                                     <div class="val-main">

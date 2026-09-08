@@ -234,6 +234,37 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="document(resolve-uri('static/com/atomgraph/client/xsl/translations.rdf', $lapp:origin))"/>
     </xsl:function>
 
+    <!-- the app's own label catalog, mirroring ac:translations() -->
+    <xsl:function name="ldh:translations" as="document-node()">
+        <xsl:sequence select="document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))"/>
+    </xsl:function>
+
+    <!-- the label of a class given as a bare URI: rdfs:Resource takes the app catalog's localized label,
+         everything else delegates to the ac:object-label machinery over a synthesized object node, so the
+         load-guarded document lookup (with its SAXON catalog / SaxonJS documentPool duals) lives in one
+         place - the ac:object-label mode. The atomic-URI signature exists because $forClass travels as
+         xs:anyURI*, never as nodes the mode could dispatch on -->
+    <xsl:function name="ldh:class-label" as="xs:string?">
+        <xsl:param name="class" as="xs:anyURI"/>
+
+        <xsl:choose>
+            <xsl:when test="$class = '&rdfs;Resource'">
+                <xsl:value-of>
+                    <xsl:apply-templates select="key('resources', 'resource', ldh:translations())" mode="ac:label"/>
+                </xsl:value-of>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="object" as="document-node()">
+                    <xsl:document>
+                        <rdf:Description rdf:resource="{$class}"/>
+                    </xsl:document>
+                </xsl:variable>
+
+                <xsl:sequence select="ac:object-label($object/rdf:Description/@rdf:resource)"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
     <xsl:function name="ldh:href" as="xs:anyURI">
         <xsl:param name="uri" as="xs:anyURI?"/>
 
@@ -1325,37 +1356,12 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:apply-templates>
             <xsl:if test="$show-label">
-                <div class="label">
-                    <span class="lbl-row">
-                        <span class="pred" title="{$this}">
-                            <xsl:sequence select="$label"/>
-                        </span>
-
-                        <xsl:if test="$required">
-                            <span class="ldhc-label-aux req">
-                                <xsl:attribute name="title">
-                                    <xsl:apply-templates select="key('resources', 'required', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                </xsl:attribute>
-                                <xsl:text>*</xsl:text>
-                                <span class="ldhc-vh">
-                                    <xsl:apply-templates select="key('resources', 'required', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                </span>
-                            </span>
-                        </xsl:if>
-
-                        <xsl:if test="$description">
-                            <span class="ldhc-tip-anchor">
-                                <button type="button" class="ldhc-toggletip-btn" aria-expanded="false" aria-label="{$label}">
-                                    <span class="msi outline sm" aria-hidden="true">info</span>
-                                </button>
-                                <span class="ldhc-tip sd-bottom va-neutral description" role="status" style="max-width: 260px; display: none">
-                                    <xsl:sequence select="$description"/>
-                                    <span class="ldhc-tip-tip"></span>
-                                </span>
-                            </span>
-                        </xsl:if>
-                    </span>
-                </div>
+                <xsl:apply-templates select="." mode="ldh:PropertyLabel">
+                    <xsl:with-param name="this" select="$this"/>
+                    <xsl:with-param name="label" select="$label"/>
+                    <xsl:with-param name="required" select="$required"/>
+                    <xsl:with-param name="description" select="$description"/>
+                </xsl:apply-templates>
             </xsl:if>
 
             <div class="ldh-prop-row is-interactive is-last{if ($error or exists($row-violations)) then ' is-violation' else ()}">
@@ -1513,34 +1519,19 @@ exclude-result-prefixes="#all"
         <xsl:param name="forClass" as="xs:anyURI*"/>
 
         <xsl:if test="not($type = 'hidden')">
-            <div class="ldh-annot">
-                <xsl:choose>
-                    <xsl:when test="exists($forClass)">
-                        <span class="ldhc-tag sz-sm em-quiet an-term is-resource">
-                            <xsl:for-each select="$forClass">
-                                <!-- SAXON checks the catalog; SaxonJS only inspects the documentPool to avoid cross-origin fetches that would trigger mixed-content for slash-vocab term URIs (e.g. foaf) -->
-                                <xsl:variable name="doc-loaded" select="doc-available(ac:document-uri(.))" as="xs:boolean" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-                                <xsl:variable name="doc-loaded" select="ixsl:doc-fetched(ac:document-uri(.))" as="xs:boolean" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
-                                <xsl:choose>
-                                    <xsl:when test="$doc-loaded and key('resources', ., document(ac:document-uri(.)))">
-                                        <xsl:value-of>
-                                            <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ac:label"/>
-                                        </xsl:value-of>
-                                    </xsl:when>
-                                    <xsl:otherwise>
-                                        <xsl:value-of select="."/>
-                                    </xsl:otherwise>
-                                </xsl:choose>
-                            </xsl:for-each>
-                        </span>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <span class="ldhc-tag sz-sm em-quiet an-term is-resource">
-                            <xsl:apply-templates select="key('resources', 'resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                        </span>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </div>
+            <xsl:apply-templates select="." mode="ac:AnnotationTag">
+                <xsl:with-param name="class" select="'ldhc-tag sz-sm em-quiet an-term is-resource'"/>
+                <xsl:with-param name="label" as="item()*">
+                    <xsl:choose>
+                        <xsl:when test="exists($forClass)">
+                            <xsl:value-of select="$forClass ! ldh:class-label(xs:anyURI(.))" separator=""/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:apply-templates select="key('resources', 'resource', ldh:translations())" mode="ac:label"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:with-param>
+            </xsl:apply-templates>
         </xsl:if>
     </xsl:template>
 
@@ -1738,51 +1729,136 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
     
+    <!-- PROPERTY LABEL -->
+
+    <!-- the single-label cell of a property group: predicate label, required marker, description toggletip.
+         Hand-built form rows apply this instead of retyping the anatomy -->
+    <xsl:template match="node() | @*" mode="ldh:PropertyLabel">
+        <xsl:param name="this" as="xs:anyURI?"/>
+        <xsl:param name="label" as="item()*"/>
+        <xsl:param name="required" select="false()" as="xs:boolean"/>
+        <xsl:param name="description" as="xs:string?"/>
+
+        <div class="label">
+            <span class="lbl-row">
+                <span class="pred">
+                    <xsl:if test="exists($this)">
+                        <xsl:attribute name="title" select="$this"/>
+                    </xsl:if>
+
+                    <xsl:sequence select="$label"/>
+                </span>
+
+                <xsl:if test="$required">
+                    <span class="ldhc-label-aux req">
+                        <xsl:attribute name="title">
+                            <xsl:apply-templates select="key('resources', 'required', ldh:translations())" mode="ac:label"/>
+                        </xsl:attribute>
+                        <xsl:text>*</xsl:text>
+                        <span class="ldhc-vh">
+                            <xsl:apply-templates select="key('resources', 'required', ldh:translations())" mode="ac:label"/>
+                        </span>
+                    </span>
+                </xsl:if>
+
+                <xsl:if test="$description">
+                    <span class="ldhc-tip-anchor">
+                        <button type="button" class="ldhc-toggletip-btn" aria-expanded="false" aria-label="{$label}">
+                            <span class="msi outline sm" aria-hidden="true">info</span>
+                        </button>
+                        <span class="ldhc-tip sd-bottom va-neutral description" role="status" style="max-width: 260px; display: none">
+                            <xsl:sequence select="$description"/>
+                            <span class="ldhc-tip-tip"></span>
+                        </span>
+                    </span>
+                </xsl:if>
+            </span>
+        </div>
+    </xsl:template>
+
+    <!-- FORM FOOTER -->
+
+    <!-- the single form footer for the reset / dismiss / save anatomy, in the design's order and sizes.
+         $class picks the DS placement wrapper (.ldh-form-bar, .ldh-block-foot, .ldhc-modal-foot); bespoke
+         footers (composite button sets) keep their own content inside the placement wrapper instead -->
+    <xsl:template match="node() | @*" mode="ldh:FormFooter">
+        <xsl:param name="class" select="'ldh-form-bar pl-inline'" as="xs:string"/>
+        <xsl:param name="button-class" select="'ldhc-btn in-primary ap-solid sz-sm'" as="xs:string"/>
+        <xsl:param name="dismiss" as="xs:string?"/>
+        <xsl:param name="save-key" select="'save'" as="xs:string"/>
+        <xsl:param name="show-reset" select="true()" as="xs:boolean"/>
+        <xsl:param name="show-save" select="true()" as="xs:boolean"/>
+
+        <div class="{$class}">
+            <span class="{if (starts-with($class, 'ldhc-modal-foot')) then 'ldhc-modal-foot-end' else 'fb-end'}">
+                <xsl:if test="$show-reset">
+                    <button type="reset" class="ldhc-btn in-neutral ap-ghost sz-sm btn-reset">
+                        <span class="msi outline sm" aria-hidden="true">restart_alt</span>
+                        <span>
+                            <xsl:apply-templates select="key('resources', 'reset', ldh:translations())" mode="ac:label"/>
+                        </span>
+                    </button>
+                </xsl:if>
+
+                <xsl:if test="$dismiss">
+                    <button type="button" class="ldhc-btn in-neutral ap-outline sz-sm btn-{$dismiss}">
+                        <span>
+                            <xsl:apply-templates select="key('resources', $dismiss, ldh:translations())" mode="ac:label"/>
+                        </span>
+                    </button>
+                </xsl:if>
+
+                <xsl:if test="$show-save">
+                    <button type="submit" class="{$button-class} btn-save">
+                        <span class="msi outline sm" aria-hidden="true">check</span>
+                        <span>
+                            <xsl:apply-templates select="key('resources', $save-key, ldh:translations())" mode="ac:label"/>
+                        </span>
+                    </button>
+                </xsl:if>
+            </span>
+        </div>
+    </xsl:template>
+
     <!-- FORM CONTROL TYPE LABEL -->
+
+    <!-- the app skin of the annotation Tag: every chip rides the .ldh-annot slot the whole-form mode
+         hover-reveals; the chip markup itself stays Web-Client's single emitter -->
+    <xsl:template match="node() | @*" mode="ac:AnnotationTag">
+        <xsl:param name="class" select="'ldhc-tag sz-sm em-quiet'" as="xs:string"/>
+        <xsl:param name="key" as="xs:string?"/>
+        <xsl:param name="title" as="xs:string?"/>
+        <xsl:param name="label" as="item()*">
+            <xsl:apply-templates select="key('resources', $key, ac:translations())" mode="ac:label"/>
+        </xsl:param>
+
+        <div class="ldh-annot">
+            <xsl:next-match>
+                <xsl:with-param name="class" select="$class"/>
+                <xsl:with-param name="title" select="$title"/>
+                <xsl:with-param name="label" select="$label"/>
+            </xsl:next-match>
+        </div>
+    </xsl:template>
 
     <xsl:template match="*[@rdf:about or @rdf:nodeID]/*/@rdf:nodeID" mode="ac:ValueAnnotations">
         <xsl:param name="type" as="xs:string?"/>
         <xsl:param name="forClass" as="xs:anyURI*"/>
 
         <xsl:if test="not($type = 'hidden')">
-            <div class="ldh-annot">
-                <xsl:choose>
-                    <xsl:when test="exists($forClass)">
-                        <span class="ldhc-tag sz-sm em-quiet an-term is-blank">
-                            <xsl:for-each select="$forClass">
-                                <!-- SAXON checks the catalog; SaxonJS only inspects the documentPool to avoid cross-origin fetches that would trigger mixed-content for slash-vocab term URIs -->
-                                <xsl:variable name="doc-loaded" select="doc-available(ac:document-uri(.))" as="xs:boolean" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-                                <xsl:variable name="doc-loaded" select="ixsl:doc-fetched(ac:document-uri(.))" as="xs:boolean" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
-                                <xsl:choose>
-                                    <xsl:when test="$doc-loaded">
-                                        <xsl:choose>
-                                            <xsl:when test=". = '&rdfs;Resource'">
-                                                <xsl:apply-templates select="key('resources', 'resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                            </xsl:when>
-                                            <xsl:when test="key('resources', ., document(ac:document-uri(.)))">
-                                                <xsl:value-of>
-                                                    <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ac:label"/>
-                                                </xsl:value-of>
-                                            </xsl:when>
-                                            <xsl:otherwise>
-                                                <xsl:value-of select="."/>
-                                            </xsl:otherwise>
-                                        </xsl:choose>
-                                    </xsl:when>
-                                    <xsl:otherwise>
-                                        <xsl:value-of select="."/>
-                                    </xsl:otherwise>
-                                </xsl:choose>
-                            </xsl:for-each>
-                        </span>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <span class="ldhc-tag sz-sm em-quiet an-term is-blank">
-                            <xsl:apply-templates select="key('resources', 'resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                        </span>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </div>
+            <xsl:apply-templates select="." mode="ac:AnnotationTag">
+                <xsl:with-param name="class" select="'ldhc-tag sz-sm em-quiet an-term is-blank'"/>
+                <xsl:with-param name="label" as="item()*">
+                    <xsl:choose>
+                        <xsl:when test="exists($forClass)">
+                            <xsl:value-of select="$forClass ! ldh:class-label(xs:anyURI(.))" separator=""/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:apply-templates select="key('resources', 'resource', ldh:translations())" mode="ac:label"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:with-param>
+            </xsl:apply-templates>
         </xsl:if>
     </xsl:template>
 
@@ -1797,11 +1873,12 @@ exclude-result-prefixes="#all"
                     <xsl:apply-templates select="../@rdf:datatype" mode="#current"/>
                 </xsl:when>
                 <xsl:otherwise>
-                    <div class="ldh-annot">
-                        <span class="ldhc-tag sz-sm em-quiet an-term is-literal">
-                            <xsl:apply-templates select="key('resources', 'literal', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                        </span>
-                    </div>
+                    <xsl:apply-templates select="." mode="ac:AnnotationTag">
+                        <xsl:with-param name="class" select="'ldhc-tag sz-sm em-quiet an-term is-literal'"/>
+                        <xsl:with-param name="label" as="item()*">
+                            <xsl:apply-templates select="key('resources', 'literal', ldh:translations())" mode="ac:label"/>
+                        </xsl:with-param>
+                    </xsl:apply-templates>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:if>
@@ -1811,11 +1888,11 @@ exclude-result-prefixes="#all"
         <xsl:param name="type" as="xs:string?"/>
 
         <xsl:if test="not($type = 'hidden')">
-            <div class="ldh-annot">
-                <span class="ldhc-tag sz-sm em-quiet co-neutral" title="{.}">
-                    <xsl:value-of select="if (starts-with(., '&xsd;')) then 'xsd:' || substring-after(., '&xsd;') else ."/>
-                </span>
-            </div>
+            <xsl:apply-templates select="." mode="ac:AnnotationTag">
+                <xsl:with-param name="class" select="'ldhc-tag sz-sm em-quiet co-neutral'"/>
+                <xsl:with-param name="title" select="."/>
+                <xsl:with-param name="label" select="if (starts-with(., '&xsd;')) then 'xsd:' || substring-after(., '&xsd;') else string(.)"/>
+            </xsl:apply-templates>
         </xsl:if>
     </xsl:template>
 
@@ -1905,8 +1982,8 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <xsl:when test="$type = 'datetime-local'"> <!-- could also be 'hidden' -->
                 <span class="ldh-dt-pair">
-                    <div class="ldhc-field">
-                        <div class="ldhc-field-box sz-sm">
+                    <xsl:apply-templates select="." mode="ac:FieldShell">
+                        <xsl:with-param name="control" as="item()*">
                             <xsl:call-template name="xhtml:Input">
                                 <xsl:with-param name="name" select="'ol'"/>
                                 <xsl:with-param name="type" select="$type"/>
@@ -1915,8 +1992,8 @@ exclude-result-prefixes="#all"
                                 <xsl:with-param name="disabled" select="$disabled"/>
                                 <xsl:with-param name="value" select="format-dateTime(xs:dateTime(.), '[Y0001]-[M01]-[D01]T[H01]:[m01]:[s01]')"/>
                             </xsl:call-template>
-                        </div>
-                    </div>
+                        </xsl:with-param>
+                    </xsl:apply-templates>
 
                     <xsl:call-template name="xhtml:Input">
                         <xsl:with-param name="type" select="'hidden'"/>
@@ -1924,15 +2001,15 @@ exclude-result-prefixes="#all"
                         <xsl:with-param name="value" select="../@rdf:datatype"/>
                     </xsl:call-template>
 
-                    <div class="ldhc-field">
-                        <div class="ldhc-field-box sz-sm">
+                    <xsl:apply-templates select="." mode="ac:FieldShell">
+                        <xsl:with-param name="control" as="item()*">
                             <xsl:call-template name="xhtml:Input">
                                 <xsl:with-param name="class" select="'input-timezone'"/>
                                 <xsl:with-param name="type" select="'text'"/>
                                 <xsl:with-param name="value" select="format-dateTime(xs:dateTime(.), '[Z]')"/>
                             </xsl:call-template>
-                        </div>
-                    </div>
+                        </xsl:with-param>
+                    </xsl:apply-templates>
                 </span>
             </xsl:when>
             <xsl:otherwise>
@@ -1965,7 +2042,8 @@ exclude-result-prefixes="#all"
                 </xsl:call-template>
             </xsl:when>
             <xsl:otherwise>
-                <span class="ldhc-select sz-sm">
+                <xsl:apply-templates select="." mode="ac:SelectShell">
+                    <xsl:with-param name="select" as="item()*">
                 <select name="ol">
                     <xsl:if test="$id"><xsl:attribute name="id" select="$id"/></xsl:if>
                     <xsl:if test="$class"><xsl:attribute name="class" select="$class"/></xsl:if>
@@ -1979,8 +2057,8 @@ exclude-result-prefixes="#all"
                         <xsl:text>false</xsl:text>
                     </option>
                 </select>
-                <span class="msi sm ldhc-select-caret" aria-hidden="true">unfold_more</span>
-                </span>
+                    </xsl:with-param>
+                </xsl:apply-templates>
             </xsl:otherwise>
         </xsl:choose>
 
@@ -2014,7 +2092,8 @@ exclude-result-prefixes="#all"
                 </xsl:call-template>
             </xsl:when>
             <xsl:otherwise>
-                <span class="ldhc-select sz-sm">
+                <xsl:apply-templates select="." mode="ac:SelectShell">
+                    <xsl:with-param name="select" as="item()*">
                 <select name="ol">
                     <xsl:if test="$id"><xsl:attribute name="id" select="$id"/></xsl:if>
                     <xsl:if test="$class"><xsl:attribute name="class" select="$class"/></xsl:if>
@@ -2022,8 +2101,8 @@ exclude-result-prefixes="#all"
                     <option value="true">true</option>
                     <option value="false">false</option>
                 </select>
-                <span class="msi sm ldhc-select-caret" aria-hidden="true">unfold_more</span>
-                </span>
+                    </xsl:with-param>
+                </xsl:apply-templates>
             </xsl:otherwise>
         </xsl:choose>
 

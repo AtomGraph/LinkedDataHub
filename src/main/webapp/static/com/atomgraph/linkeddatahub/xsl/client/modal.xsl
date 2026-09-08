@@ -126,25 +126,13 @@ LIMIT   10
                         <div class="ldh-prop-form is-form-mode">
                             <div class="ldh-prop-group required">
                                 <input type="hidden" name="pu" value="&dct;source"/>
-                                <div class="label">
-                                    <span class="lbl-row">
-                                        <span class="pred" title="&dct;source">
-                                            <xsl:value-of>
-                                                <xsl:apply-templates select="key('resources', 'source', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                            </xsl:value-of>
-                                        </span>
-
-                                        <span class="ldhc-label-aux req">
-                                            <xsl:attribute name="title">
-                                                <xsl:apply-templates select="key('resources', 'required', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                            </xsl:attribute>
-                                            <xsl:text>*</xsl:text>
-                                            <span class="ldhc-vh">
-                                                <xsl:apply-templates select="key('resources', 'required', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                            </span>
-                                        </span>
-                                    </span>
-                                </div>
+                                <xsl:apply-templates select="." mode="ldh:PropertyLabel">
+                                    <xsl:with-param name="this" select="xs:anyURI('&dct;source')"/>
+                                    <xsl:with-param name="label" as="item()*">
+                                        <xsl:apply-templates select="key('resources', 'source', ldh:translations())" mode="ac:label"/>
+                                    </xsl:with-param>
+                                    <xsl:with-param name="required" select="true()"/>
+                                </xsl:apply-templates>
                                 <div class="ldh-prop-row is-interactive is-last">
                                     <div class="value val-stack">
                                         <div class="val-main">
@@ -153,11 +141,12 @@ LIMIT   10
                                                     <xsl:attribute name="value" select="$source"/>
                                                 </xsl:if>
                                             </input>
-                                            <div class="ldh-annot">
-                                                <span class="ldhc-tag sz-sm em-quiet an-term is-resource">
-                                                    <xsl:apply-templates select="key('resources', 'resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                                </span>
-                                            </div>
+                                            <xsl:apply-templates select="." mode="ac:AnnotationTag">
+                                                <xsl:with-param name="class" select="'ldhc-tag sz-sm em-quiet an-term is-resource'"/>
+                                                <xsl:with-param name="label" as="item()*">
+                                                    <xsl:apply-templates select="key('resources', 'resource', ldh:translations())" mode="ac:label"/>
+                                                </xsl:with-param>
+                                            </xsl:apply-templates>
                                         </div>
                                     </div>
                                     <div class="row-actions"></div>
@@ -165,25 +154,13 @@ LIMIT   10
                             </div>
                             <div class="ldh-prop-group required">
                                 <input type="hidden" name="pu" value="&sd;name"/>
-                                <div class="label">
-                                    <span class="lbl-row">
-                                        <span class="pred" title="&sd;name">
-                                            <xsl:value-of>
-                                                <xsl:apply-templates select="key('resources', 'graph', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                            </xsl:value-of>
-                                        </span>
-
-                                        <span class="ldhc-label-aux req">
-                                            <xsl:attribute name="title">
-                                                <xsl:apply-templates select="key('resources', 'required', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                            </xsl:attribute>
-                                            <xsl:text>*</xsl:text>
-                                            <span class="ldhc-vh">
-                                                <xsl:apply-templates select="key('resources', 'required', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                            </span>
-                                        </span>
-                                    </span>
-                                </div>
+                                <xsl:apply-templates select="." mode="ldh:PropertyLabel">
+                                    <xsl:with-param name="this" select="xs:anyURI('&sd;name')"/>
+                                    <xsl:with-param name="label" as="item()*">
+                                        <xsl:apply-templates select="key('resources', 'graph', ldh:translations())" mode="ac:label"/>
+                                    </xsl:with-param>
+                                    <xsl:with-param name="required" select="true()"/>
+                                </xsl:apply-templates>
                                 <div class="ldh-prop-row is-interactive is-last">
                                     <div class="value val-stack">
                                         <div class="val-main">
@@ -192,11 +169,12 @@ LIMIT   10
                                                 <xsl:with-param name="forClass" select="(xs:anyURI('&dh;Container'), xs:anyURI('&dh;Item'))"/>
                                             </xsl:call-template>
 
-                                            <div class="ldh-annot">
-                                                <span class="ldhc-tag sz-sm em-quiet an-term is-resource">
+                                            <xsl:apply-templates select="." mode="ac:AnnotationTag">
+                                                <xsl:with-param name="class" select="'ldhc-tag sz-sm em-quiet an-term is-resource'"/>
+                                                <xsl:with-param name="label" as="item()*">
                                                     <xsl:apply-templates select="key('resources', '&dh;Document', document(ac:document-uri('&dh;')))" mode="ac:label"/>
-                                                </span>
-                                            </div>
+                                                </xsl:with-param>
+                                            </xsl:apply-templates>
                                         </div>
                                     </div>
                                     <div class="row-actions"></div>
@@ -205,23 +183,11 @@ LIMIT   10
                         </div>
                     </fieldset>
 
-                    <div class="ldh-block-foot">
-                        <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-close">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                        <button type="reset" class="ldhc-btn in-neutral ap-outline sz-md btn-reset">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                        <button type="submit" class="{$button-class}">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                    </div>
+                    <xsl:apply-templates select="." mode="ldh:FormFooter">
+                        <xsl:with-param name="class" select="'ldh-block-foot'"/>
+                        <xsl:with-param name="button-class" select="$button-class"/>
+                        <xsl:with-param name="dismiss" select="'close'"/>
+                    </xsl:apply-templates>
                 </form>
 
                 <div class="ldhc-alert va-informative" role="alert">
@@ -282,25 +248,13 @@ LIMIT   10
                                     <div class="ldh-prop-form is-form-mode">
                                         <div class="ldh-prop-group required">
                                             <input name="pu" type="hidden" value="&sioc;has_parent"/>
-                                            <div class="label">
-                                                <span class="lbl-row">
-                                                    <span class="pred" title="&sioc;has_parent">
-                                                        <xsl:value-of>
-                                                            <xsl:apply-templates select="key('resources', 'has-parent', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                                        </xsl:value-of>
-                                                    </span>
-
-                                                    <span class="ldhc-label-aux req">
-                                                        <xsl:attribute name="title">
-                                                            <xsl:apply-templates select="key('resources', 'required', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                                        </xsl:attribute>
-                                                        <xsl:text>*</xsl:text>
-                                                        <span class="ldhc-vh">
-                                                            <xsl:apply-templates select="key('resources', 'required', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                                        </span>
-                                                    </span>
-                                                </span>
-                                            </div>
+                                            <xsl:apply-templates select="." mode="ldh:PropertyLabel">
+                                                <xsl:with-param name="this" select="xs:anyURI('&sioc;has_parent')"/>
+                                                <xsl:with-param name="label" as="item()*">
+                                                    <xsl:apply-templates select="key('resources', 'has-parent', ldh:translations())" mode="ac:label"/>
+                                                </xsl:with-param>
+                                                <xsl:with-param name="required" select="true()"/>
+                                            </xsl:apply-templates>
                                             <div class="ldh-prop-row is-interactive is-last">
                                                 <div class="value val-stack">
                                                     <div class="val-main">
@@ -309,11 +263,12 @@ LIMIT   10
                                                             <xsl:with-param name="forClass" select="(xs:anyURI('&def;Root'), xs:anyURI('&dh;Container'))"/>
                                                         </xsl:call-template>
 
-                                                        <div class="ldh-annot">
-                                                            <span class="ldhc-tag sz-sm em-quiet an-term is-resource">
+                                                        <xsl:apply-templates select="." mode="ac:AnnotationTag">
+                                                            <xsl:with-param name="class" select="'ldhc-tag sz-sm em-quiet an-term is-resource'"/>
+                                                            <xsl:with-param name="label" as="item()*">
                                                                 <xsl:apply-templates select="key('resources', '&dh;Container', document(ac:document-uri('&dh;')))" mode="ac:label"/>
-                                                            </span>
-                                                        </div>
+                                                            </xsl:with-param>
+                                                        </xsl:apply-templates>
                                                     </div>
                                                 </div>
                                                 <div class="row-actions"></div>
@@ -321,34 +276,24 @@ LIMIT   10
                                         </div>
                                         <div class="ldh-prop-group required">
                                             <input name="pu" type="hidden" value="&sp;limit"/>
-                                            <div class="label">
-                                                <span class="lbl-row">
-                                                    <span class="pred" title="&sp;limit">
-                                                        <xsl:value-of>
-                                                            <xsl:apply-templates select="key('resources', 'limit', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                                        </xsl:value-of>
-                                                    </span>
-
-                                                    <span class="ldhc-label-aux req">
-                                                        <xsl:attribute name="title">
-                                                            <xsl:apply-templates select="key('resources', 'required', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                                        </xsl:attribute>
-                                                        <xsl:text>*</xsl:text>
-                                                        <span class="ldhc-vh">
-                                                            <xsl:apply-templates select="key('resources', 'required', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                                        </span>
-                                                    </span>
-                                                </span>
-                                            </div>
+                                            <xsl:apply-templates select="." mode="ldh:PropertyLabel">
+                                                <xsl:with-param name="this" select="xs:anyURI('&sp;limit')"/>
+                                                <xsl:with-param name="label" as="item()*">
+                                                    <xsl:apply-templates select="key('resources', 'limit', ldh:translations())" mode="ac:label"/>
+                                                </xsl:with-param>
+                                                <xsl:with-param name="required" select="true()"/>
+                                            </xsl:apply-templates>
                                             <div class="ldh-prop-row is-interactive is-last">
                                                 <div class="value val-stack">
                                                     <div class="val-main">
                                                         <input type="text" name="ol" id="schema-class-limit" value="{$default-limit}"/>
                                                         <input type="hidden" name="lt" value="&xsd;integer"/>
 
-                                                        <div class="ldh-annot">
-                                                            <span class="ldhc-tag sz-sm em-quiet co-neutral" title="&xsd;integer">xsd:integer</span>
-                                                        </div>
+                                                        <xsl:apply-templates select="." mode="ac:AnnotationTag">
+                                                            <xsl:with-param name="class" select="'ldhc-tag sz-sm em-quiet co-neutral'"/>
+                                                            <xsl:with-param name="title" select="'&xsd;integer'"/>
+                                                            <xsl:with-param name="label" select="'xsd:integer'"/>
+                                                        </xsl:apply-templates>
                                                     </div>
                                                 </div>
                                                 <div class="row-actions"></div>
@@ -356,15 +301,12 @@ LIMIT   10
                                         </div>
                                         <div class="ldh-prop-group">
                                             <input name="pu" type="hidden" value="&ldh;service"/>
-                                            <div class="label">
-                                                <span class="lbl-row">
-                                                    <span class="pred" title="&ldh;service">
-                                                        <xsl:value-of>
-                                                            <xsl:apply-templates select="key('resources', 'service', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                                        </xsl:value-of>
-                                                    </span>
-                                                </span>
-                                            </div>
+                                            <xsl:apply-templates select="." mode="ldh:PropertyLabel">
+                                                <xsl:with-param name="this" select="xs:anyURI('&ldh;service')"/>
+                                                <xsl:with-param name="label" as="item()*">
+                                                    <xsl:apply-templates select="key('resources', 'service', ldh:translations())" mode="ac:label"/>
+                                                </xsl:with-param>
+                                            </xsl:apply-templates>
                                             <div class="ldh-prop-row is-interactive is-last">
                                                 <div class="value val-stack">
                                                     <div class="val-main">
@@ -373,11 +315,12 @@ LIMIT   10
                                                             <xsl:with-param name="forClass" select="xs:anyURI('&sd;Service')"/>
                                                         </xsl:call-template>
 
-                                                        <div class="ldh-annot">
-                                                            <span class="ldhc-tag sz-sm em-quiet an-term is-resource">
-                                                                <xsl:apply-templates select="key('resources', 'service', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                                            </span>
-                                                        </div>
+                                                        <xsl:apply-templates select="." mode="ac:AnnotationTag">
+                                                            <xsl:with-param name="class" select="'ldhc-tag sz-sm em-quiet an-term is-resource'"/>
+                                                            <xsl:with-param name="label" as="item()*">
+                                                                <xsl:apply-templates select="key('resources', 'service', ldh:translations())" mode="ac:label"/>
+                                                            </xsl:with-param>
+                                                        </xsl:apply-templates>
                                                     </div>
                                                 </div>
                                                 <div class="row-actions"></div>
@@ -467,7 +410,9 @@ LIMIT   10
                                     <xsl:apply-templates select="key('resources', 'request-access-for', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                                 </xsl:value-of>
                             </label>
-                            <span class="ldhc-select sz-md">
+                            <xsl:apply-templates select="." mode="ac:SelectShell">
+                                <xsl:with-param name="size" select="'sz-md'"/>
+                                <xsl:with-param name="select" as="item()*">
                                 <select id="request-access-for">
                                     <option value="{$agent}">
                                         <xsl:value-of select="$agent"/> (<xsl:value-of>
@@ -475,8 +420,8 @@ LIMIT   10
                                         </xsl:value-of>)
                                     </option>
                                 </select>
-                                <span class="msi sm ldhc-select-caret" aria-hidden="true">unfold_more</span>
-                            </span>
+                                </xsl:with-param>
+                            </xsl:apply-templates>
                         </div>
                     </fieldset>
 
@@ -484,23 +429,12 @@ LIMIT   10
                         <!-- content replaced by the ldh:access-response callback -->
                     </div>
                    
-                    <div class="ldh-block-foot">
-                        <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-close">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                        <button type="reset" class="ldhc-btn in-neutral ap-outline sz-md btn-reset">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                        <button type="submit" class="{$button-class}">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', 'request', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                            </xsl:value-of>
-                        </button>
-                    </div>
+                    <xsl:apply-templates select="." mode="ldh:FormFooter">
+                        <xsl:with-param name="class" select="'ldh-block-foot'"/>
+                        <xsl:with-param name="button-class" select="$button-class"/>
+                        <xsl:with-param name="dismiss" select="'close'"/>
+                        <xsl:with-param name="save-key" select="'request'"/>
+                    </xsl:apply-templates>
                 </form>
                 </div>
             </div>
@@ -759,35 +693,24 @@ LIMIT   10
                         <div class="ldh-prop-form is-form-mode">
                             <div class="ldh-prop-group required">
                                 <input type="hidden" name="pu" value="&owl;sameAs"/>
-                                <div class="label">
-                                    <span class="lbl-row">
-                                        <span class="pred" title="&owl;sameAs">
-                                            <xsl:value-of>
-                                                <xsl:apply-templates select="key('resources', 'same-as', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                            </xsl:value-of>
-                                        </span>
-
-                                        <span class="ldhc-label-aux req">
-                                            <xsl:attribute name="title">
-                                                <xsl:apply-templates select="key('resources', 'required', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                            </xsl:attribute>
-                                            <xsl:text>*</xsl:text>
-                                            <span class="ldhc-vh">
-                                                <xsl:apply-templates select="key('resources', 'required', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                            </span>
-                                        </span>
-                                    </span>
-                                </div>
+                                <xsl:apply-templates select="." mode="ldh:PropertyLabel">
+                                    <xsl:with-param name="this" select="xs:anyURI('&owl;sameAs')"/>
+                                    <xsl:with-param name="label" as="item()*">
+                                        <xsl:apply-templates select="key('resources', 'same-as', ldh:translations())" mode="ac:label"/>
+                                    </xsl:with-param>
+                                    <xsl:with-param name="required" select="true()"/>
+                                </xsl:apply-templates>
                                 <div class="ldh-prop-row is-interactive is-last">
                                     <div class="value val-stack">
                                         <div class="val-main">
                                             <input id="same-as-resource" type="text" value="{$label}"/>
 
-                                            <div class="ldh-annot">
-                                                <span class="ldhc-tag sz-sm em-quiet an-term is-resource">
-                                                    <xsl:apply-templates select="key('resources', 'resource', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                                </span>
-                                            </div>
+                                            <xsl:apply-templates select="." mode="ac:AnnotationTag">
+                                                <xsl:with-param name="class" select="'ldhc-tag sz-sm em-quiet an-term is-resource'"/>
+                                                <xsl:with-param name="label" as="item()*">
+                                                    <xsl:apply-templates select="key('resources', 'resource', ldh:translations())" mode="ac:label"/>
+                                                </xsl:with-param>
+                                            </xsl:apply-templates>
                                         </div>
                                     </div>
                                     <div class="row-actions"></div>
@@ -1791,25 +1714,12 @@ LIMIT   10
         <xsl:for-each select="$container/div[contains-token(@class, 'ldh-prop-form')][not(./div[contains-token(@class, 'endpoint-classes')])]">
             <xsl:result-document href="?." method="ixsl:append-content">
                 <div class="ldh-prop-group required endpoint-classes">
-                    <div class="label">
-                        <span class="lbl-row">
-                            <span class="pred">
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'classes', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                </xsl:value-of>
-                            </span>
-
-                            <span class="ldhc-label-aux req">
-                                <xsl:attribute name="title">
-                                    <xsl:apply-templates select="key('resources', 'required', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                </xsl:attribute>
-                                <xsl:text>*</xsl:text>
-                                <span class="ldhc-vh">
-                                    <xsl:apply-templates select="key('resources', 'required', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                </span>
-                            </span>
-                        </span>
-                    </div>
+                    <xsl:apply-templates select="." mode="ldh:PropertyLabel">
+                        <xsl:with-param name="label" as="item()*">
+                            <xsl:apply-templates select="key('resources', 'classes', ldh:translations())" mode="ac:label"/>
+                        </xsl:with-param>
+                        <xsl:with-param name="required" select="true()"/>
+                    </xsl:apply-templates>
                     <div class="ldh-prop-row is-last">
                         <div class="value val-stack">
                             <div class="val-main"></div>

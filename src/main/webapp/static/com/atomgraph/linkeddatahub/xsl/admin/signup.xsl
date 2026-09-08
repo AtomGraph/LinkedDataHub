@@ -187,11 +187,12 @@ exclude-result-prefixes="#all">
         <xsl:param name="type" as="xs:string?"/>
 
         <xsl:if test="not($type = 'hidden')">
-            <div class="ldh-annot">
-                <span class="ldhc-tag sz-sm em-quiet an-term is-literal">
-                    <xsl:apply-templates select="key('resources', 'literal', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                </span>
-            </div>
+            <xsl:apply-templates select="." mode="ac:AnnotationTag">
+                <xsl:with-param name="class" select="'ldhc-tag sz-sm em-quiet an-term is-literal'"/>
+                <xsl:with-param name="label" as="item()*">
+                    <xsl:apply-templates select="key('resources', 'literal', ldh:translations())" mode="ac:label"/>
+                </xsl:with-param>
+            </xsl:apply-templates>
         </xsl:if>
     </xsl:template>
     
@@ -270,27 +271,13 @@ exclude-result-prefixes="#all">
             </xsl:if>
             <input type="hidden" name="pu" value="&lacl;password"/>
 
-            <div class="label">
-                <span class="lbl-row">
-                    <span class="pred" title="{$this}">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', '&lacl;password', document(ac:document-uri('&lacl;')))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </span>
-
-                    <xsl:if test="$required">
-                        <span class="ldhc-label-aux req">
-                            <xsl:attribute name="title">
-                                <xsl:apply-templates select="key('resources', 'required', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                            </xsl:attribute>
-                            <xsl:text>*</xsl:text>
-                            <span class="ldhc-vh">
-                                <xsl:apply-templates select="key('resources', 'required', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                            </span>
-                        </span>
-                    </xsl:if>
-                </span>
-            </div>
+            <xsl:apply-templates select="." mode="ldh:PropertyLabel">
+                <xsl:with-param name="this" select="$this"/>
+                <xsl:with-param name="label" as="item()*">
+                    <xsl:apply-templates select="key('resources', '&lacl;password', document(ac:document-uri('&lacl;')))" mode="ac:label"/>
+                </xsl:with-param>
+                <xsl:with-param name="required" select="$required"/>
+            </xsl:apply-templates>
 
             <div class="ldh-prop-row is-interactive is-last{if ($error) then ' is-violation' else ()}">
                 <div class="value val-stack">
@@ -303,11 +290,12 @@ exclude-result-prefixes="#all">
                         </xsl:call-template>
 
                         <xsl:if test="$type-label">
-                            <div class="ldh-annot">
-                                <span class="ldhc-tag sz-sm em-quiet an-term is-literal">
-                                    <xsl:apply-templates select="key('resources', 'literal', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
-                                </span>
-                            </div>
+                            <xsl:apply-templates select="." mode="ac:AnnotationTag">
+                                <xsl:with-param name="class" select="'ldhc-tag sz-sm em-quiet an-term is-literal'"/>
+                                <xsl:with-param name="label" as="item()*">
+                                    <xsl:apply-templates select="key('resources', 'literal', ldh:translations())" mode="ac:label"/>
+                                </xsl:with-param>
+                            </xsl:apply-templates>
                         </xsl:if>
                     </div>
 
