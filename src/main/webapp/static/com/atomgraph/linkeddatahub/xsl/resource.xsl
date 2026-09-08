@@ -844,15 +844,6 @@ extension-element-prefixes="ixsl"
                 <div class="ldh-res-titleline">
                     <h2 class="ttl">
                         <xsl:apply-templates select="@rdf:about | @rdf:nodeID" mode="xhtml:Anchor"/>
-
-                        <!-- the block state marker travels with every header and app.css reveals it only where this
-                             block's body holds the empty state, so it cannot outlive the state it names -->
-                        <span class="ldh-block-state is-empty">
-                            <span class="msi outline" aria-hidden="true">inbox</span>
-                            <span>
-                                <xsl:apply-templates select="key('resources', 'block-state-empty', ldh:translations())" mode="ac:label"/>
-                            </span>
-                        </span>
                     </h2>
 
                     <xsl:apply-templates select="." mode="ac:ResourceTypes"/>

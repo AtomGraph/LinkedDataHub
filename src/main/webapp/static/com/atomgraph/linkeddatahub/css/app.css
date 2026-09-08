@@ -1631,8 +1631,9 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
         there is nothing to gain by hiding it while loading.
      3. Layout stability — the card holds its footprint, so the document does
         not reflow as blocks resolve.
-   The header gains one status marker so the state is legible when the block is
-   scrolled past or collapsed.
+   The empty state lives in the body alone; the header gains a status marker
+   only for the failure and loading states, so they stay legible when the block
+   is scrolled past or collapsed.
    ========================================================================= */
 
 /* Header status marker — sits after the title, before the actions. */
@@ -1645,7 +1646,6 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 }
 .ldh-block-state .msi { font-size: 13px; }
 .ldh-block-state.is-failed  { background: var(--danger-50);  color: var(--danger-500); }
-.ldh-block-state.is-empty   { background: var(--surface-2);  color: var(--fg-muted); }
 .ldh-block-state.is-loading { background: var(--surface-2);  color: var(--fg-muted); }
 .ldh-block-state.is-loading .msi { animation: spin 1.1s linear infinite; }
 /* A failed block gets a warm ring so it's findable in a long document. This is

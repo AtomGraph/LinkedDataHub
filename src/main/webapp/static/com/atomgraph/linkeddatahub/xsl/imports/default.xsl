@@ -1776,6 +1776,27 @@ exclude-result-prefixes="#all"
         </div>
     </xsl:template>
 
+    <!-- BLOCK BLANK -->
+
+    <!-- the design system's empty block body: quiet inbox glyph, "No results." message and an
+         explanation sub-line. The empty state lives here alone - block headers carry no marker for it -->
+    <xsl:template match="node() | @*" mode="ldh:BlockBlank">
+        <xsl:param name="msg-key" select="'no-results'" as="xs:string"/>
+        <xsl:param name="sub-key" select="'no-results-explanation'" as="xs:string?"/>
+
+        <div class="ldh-block-blank" role="status">
+            <span class="msi outline" aria-hidden="true">inbox</span>
+            <span class="bb-msg">
+                <xsl:apply-templates select="key('resources', $msg-key, ldh:translations())" mode="ac:label"/>
+            </span>
+            <xsl:if test="$sub-key">
+                <span class="bb-sub">
+                    <xsl:apply-templates select="key('resources', $sub-key, ldh:translations())" mode="ac:label"/>
+                </span>
+            </xsl:if>
+        </div>
+    </xsl:template>
+
     <!-- ROW BLOCK CONTROLS -->
 
     <!-- the hover-revealed controls row overlaid on the block row below it: the overlay geometry

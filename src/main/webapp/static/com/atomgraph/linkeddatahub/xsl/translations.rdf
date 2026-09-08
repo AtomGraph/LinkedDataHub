@@ -552,10 +552,6 @@
         <rdfs:label xml:lang="en-US">The query ran cleanly and matched nothing.</rdfs:label>
         <rdfs:label xml:lang="es-ES">La consulta se ejecutó correctamente y no coincidió con nada.</rdfs:label>
     </rdf:Description>
-    <rdf:Description rdf:nodeID="block-state-empty">
-        <rdfs:label xml:lang="en-US">No results</rdfs:label>
-        <rdfs:label xml:lang="es-ES">Sin resultados</rdfs:label>
-    </rdf:Description>
     <rdf:Description rdf:nodeID="previous">
         <rdfs:label xml:lang="en-US">Previous</rdfs:label>
         <rdfs:label xml:lang="es-ES">Anterior</rdfs:label>

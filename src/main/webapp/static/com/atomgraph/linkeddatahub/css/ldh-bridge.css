@@ -625,26 +625,6 @@ body:has(.document-body > .content-body > :is(.graph-3d-canvas, .map-canvas)) .l
   border-color: color-mix(in srgb, var(--danger-500) 28%, var(--border-default));
 }
 
-/* Header status marker — sits after the title, before the actions, so the state
-   is legible when the block is collapsed or scrolled past.
-   The design system stamps this marker only in the state it names. Here every
-   block header carries it and the body reveals it, the same way the ring above
-   is derived rather than set: a block that goes from empty to having rows drops
-   its marker on re-render with nothing to clear, and no code path has to
-   remember what it stamped. Hence `display: none` where the design system has
-   `inline-flex`. Only the empty variant is wired — the failed and loading
-   variants arrive with the markup that reveals them. */
-.ldh-block-state {
-  display: none; align-items: center; gap: 4px;
-  margin-left: var(--sp-2); padding: 1px 8px;
-  border-radius: var(--r-pill); flex-shrink: 0;
-  font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: var(--fw-medium);
-  white-space: nowrap; vertical-align: middle;
-}
-.ldh-block-state .msi { font-size: 13px; }
-.ldh-block-state.is-empty { background: var(--surface-2); color: var(--fg-muted); }
-.ldh-block:has(.ldh-block-blank) .ldh-block-state.is-empty { display: inline-flex; }
-
 /* Parallax row — second row of the view's control header: onward pivots derived
    from the current result set. Query inputs (filters, sort, modes) stay in the
    toolbar above; this row reads as output. Mirrors the toolbar's surface and

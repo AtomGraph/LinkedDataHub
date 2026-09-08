@@ -1225,16 +1225,22 @@ exclude-result-prefixes="#all"
         <xsl:param name="total-count" as="xs:integer?"/>
         <xsl:variable name="result-count" select="count(rdf:Description)" as="xs:integer"/>
 
-        <ul class="ldh-list-block">
-            <xsl:apply-templates select="." mode="ac:List"/>
-        </ul>
-
-        <xsl:call-template name="ldh:Pager">
-            <xsl:with-param name="container-id" select="$container-id"/>
-            <xsl:with-param name="result-count" select="$result-count"/>
-            <xsl:with-param name="select-xml" select="$select-xml"/>
-            <xsl:with-param name="total-count" select="$total-count"/>
-        </xsl:call-template>
+        <xsl:choose>
+            <xsl:when test="($total-count, $result-count)[1] = 0">
+                <xsl:apply-templates select="." mode="ldh:BlockBlank"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <ul class="ldh-list-block">
+                    <xsl:apply-templates select="." mode="ac:List"/>
+                </ul>
+                <xsl:call-template name="ldh:Pager">
+                    <xsl:with-param name="container-id" select="$container-id"/>
+                    <xsl:with-param name="result-count" select="$result-count"/>
+                    <xsl:with-param name="select-xml" select="$select-xml"/>
+                    <xsl:with-param name="total-count" select="$total-count"/>
+                </xsl:call-template>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
     <!-- override Web-Client's template to select the resources only: the list is a ul, which admits nothing but its li rows -->
@@ -1360,16 +1366,22 @@ exclude-result-prefixes="#all"
         <xsl:param name="total-count" as="xs:integer?"/>
         <xsl:variable name="result-count" select="count(rdf:Description)" as="xs:integer"/>
 
-        <ul class="ldh-grid-block">
-            <xsl:apply-templates select="." mode="ac:Grid"/>
-        </ul>
-
-        <xsl:call-template name="ldh:Pager">
-            <xsl:with-param name="container-id" select="$container-id"/>
-            <xsl:with-param name="result-count" select="$result-count"/>
-            <xsl:with-param name="select-xml" select="$select-xml"/>
-            <xsl:with-param name="total-count" select="$total-count"/>
-        </xsl:call-template>
+        <xsl:choose>
+            <xsl:when test="($total-count, $result-count)[1] = 0">
+                <xsl:apply-templates select="." mode="ldh:BlockBlank"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <ul class="ldh-grid-block">
+                    <xsl:apply-templates select="." mode="ac:Grid"/>
+                </ul>
+                <xsl:call-template name="ldh:Pager">
+                    <xsl:with-param name="container-id" select="$container-id"/>
+                    <xsl:with-param name="result-count" select="$result-count"/>
+                    <xsl:with-param name="select-xml" select="$select-xml"/>
+                    <xsl:with-param name="total-count" select="$total-count"/>
+                </xsl:call-template>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
     <!-- table -->
@@ -1380,14 +1392,20 @@ exclude-result-prefixes="#all"
         <xsl:param name="total-count" as="xs:integer?"/>
         <xsl:variable name="result-count" select="count(rdf:Description)" as="xs:integer"/>
 
-        <xsl:apply-templates select="." mode="xhtml:Table"/>
-
-        <xsl:call-template name="ldh:Pager">
-            <xsl:with-param name="container-id" select="$container-id"/>
-            <xsl:with-param name="result-count" select="$result-count"/>
-            <xsl:with-param name="select-xml" select="$select-xml"/>
-            <xsl:with-param name="total-count" select="$total-count"/>
-        </xsl:call-template>
+        <xsl:choose>
+            <xsl:when test="($total-count, $result-count)[1] = 0">
+                <xsl:apply-templates select="." mode="ldh:BlockBlank"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:apply-templates select="." mode="xhtml:Table"/>
+                <xsl:call-template name="ldh:Pager">
+                    <xsl:with-param name="container-id" select="$container-id"/>
+                    <xsl:with-param name="result-count" select="$result-count"/>
+                    <xsl:with-param name="select-xml" select="$select-xml"/>
+                    <xsl:with-param name="total-count" select="$total-count"/>
+                </xsl:call-template>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
     <!-- hide documents that are paired with resources -->
