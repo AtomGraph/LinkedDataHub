@@ -455,7 +455,7 @@ exclude-result-prefixes="#all"
     <!-- the block wrapper carries @about but not @typeof - ldh:BlockRow has the typeof attribute commented out
          (resource.xsl), leaving @typeof on the inner .block-row - so matching on both never fires -->
     <xsl:template match="div[contains-token(@class, 'block')][@about]//button[contains-token(@class, 'btn-create-chart')]" mode="ixsl:onclick">
-        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
+        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][@about][1]" as="element()"/>
         <xsl:variable name="textarea-id" select="$block//textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->

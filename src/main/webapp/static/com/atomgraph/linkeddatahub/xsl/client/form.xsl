@@ -710,7 +710,9 @@ WHERE
     <!-- enable inline editing form (do nothing if the button is disabled) -->
     
     <xsl:template match="div[contains-token(@class, 'block')][@about]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
-        <xsl:param name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
+        <!-- the nearest .block can be Web-Client's bare default-mode wrapper around a sub-resource;
+             the edit targets the nearest addressable block, per the match pattern's own guarantee -->
+        <xsl:param name="block" select="ancestor::div[contains-token(@class, 'block')][@about][1]" as="element()"/>
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
 
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
@@ -1272,7 +1274,7 @@ WHERE
     <!-- submit instance update row-form using PATCH -->
 
     <xsl:template match="div[contains-token(@class, 'block')]//form[tokenize(@class, ' ') = ('ldh-prop-form', 'ldh-edit-form')][upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="1">
-        <xsl:param name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
+        <xsl:param name="block" select="ancestor::div[contains-token(@class, 'block')][@about][1]" as="element()"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="form" select="." as="element()"/>
         <xsl:variable name="method" select="upper-case(@method)" as="xs:string"/>

@@ -1535,7 +1535,7 @@ exclude-result-prefixes="#all"
          chart, a view has no presentation settings to read off the results, so the query is all it carries. -->
 
     <xsl:template match="div[contains-token(@class, 'block')][@about]//button[contains-token(@class, 'btn-create-view')]" mode="ixsl:onclick">
-        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
+        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][@about][1]" as="element()"/>
         <xsl:variable name="forClass" select="xs:anyURI('&ldh;View')" as="xs:anyURI"/>
 
         <xsl:call-template name="ldh:CreateBlock">
