@@ -281,8 +281,8 @@ exclude-result-prefixes="#all"
                             <xsl:variable name="obj-value-id" select="'obj-value-' || generate-id($block)" as="xs:string"/>
                             <xsl:for-each select="$container">
                                 <xsl:result-document href="?." method="ixsl:replace-content">
-                                    <!-- wrap the row -->
-                                    <div id="{$obj-value-id}" class="row-main">
+                                    <!-- wrap the row: .ldh-obj-value marks the subtree as the host block's object rendering, so block-level tools (ldh:host-block) address the block instead of the object it renders -->
+                                    <div id="{$obj-value-id}" class="row-main ldh-obj-value">
                                         <xsl:copy-of select="$row"/>
                                     </div>
                                 </xsl:result-document>

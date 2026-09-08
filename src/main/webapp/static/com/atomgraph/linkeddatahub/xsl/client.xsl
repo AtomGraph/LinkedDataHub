@@ -1366,8 +1366,8 @@ WHERE
     <!-- copy resource's URI into clipboard -->
     
     <xsl:template match="button[contains-token(@class, 'btn-copy-uri')]" mode="ixsl:onclick">
-        <!-- resolve the URI by placement: the block header's title anchor (ac:BlockActions), the subject URI/bnode ID inputs (the .ldh-subject row hosting the button in edit forms), or the ancestor block's @about (view toolbar and XHTML content corner, which render no title anchor) -->
-        <xsl:variable name="uri-or-bnode" select="(ancestor::div[contains-token(@class, 'ldh-block-head')][1]//h2/a/@title, ancestor::div[contains-token(@class, 'ldh-subject')][1]//input[@name = ('su', 'sb')]/@value, ancestor::div[contains-token(@class, 'block')][1]/@about)[1]" as="xs:string"/>
+        <!-- resolve the URI by placement: the block header's title anchor (ac:BlockActions), the subject URI/bnode ID inputs (the .ldh-subject row hosting the button in edit forms), or the host block's @about (view toolbar and XHTML content corner, which render no title anchor) -->
+        <xsl:variable name="uri-or-bnode" select="(ancestor::div[contains-token(@class, 'ldh-block-head')][1]//h2/a/@title, ancestor::div[contains-token(@class, 'ldh-subject')][1]//input[@name = ('su', 'sb')]/@value, ldh:host-block(.)/@about)[1]" as="xs:string"/>
         <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'navigator.clipboard'), 'writeText', [ $uri-or-bnode ])"/>
 
         <!-- transient confirmation: the glyph flips to a check and reverts after a beat -->

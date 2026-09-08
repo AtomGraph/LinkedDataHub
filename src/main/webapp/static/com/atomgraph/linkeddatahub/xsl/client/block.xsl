@@ -164,6 +164,20 @@ exclude-result-prefixes="#all"
 
     <xsl:key name="element-by-about" match="*[@about]" use="@about"/>
 
+    <!-- FUNCTIONS -->
+
+    <!-- the block a block-level tool (copy URI, backlinks) addresses: the stored block, never the rendering of
+         its object. An ldh:Object block replaces its own row with the fetched description of its rdf:value, and
+         that description is a .block[@about] of its own carrying the *object's* URI - ldh:ChildrenView for a
+         select-children view - which would otherwise shadow the block for a nearest-.block lookup. Resolving
+         from the innermost .ldh-obj-value wrapper instead of from the tool skips the injected blocks and lands
+         on the block that hosts them. -->
+    <xsl:function name="ldh:host-block" as="element()?">
+        <xsl:param name="element" as="element()"/>
+
+        <xsl:sequence select="($element/ancestor::div[contains-token(@class, 'ldh-obj-value')][1], $element)[1]/ancestor::div[contains-token(@class, 'block')][@about][1]"/>
+    </xsl:function>
+
     <!-- TEMPLATES -->
 
     <!-- render row -->
