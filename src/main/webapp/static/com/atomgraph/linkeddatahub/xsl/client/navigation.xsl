@@ -215,15 +215,15 @@ ORDER BY DESC(?created)
              the disclosure control; aria-current rides the anchor) -->
         <xsl:for-each select=".//li[contains-token(@class, 'is-active')]">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-            <xsl:for-each select="div/a">
+            <xsl:for-each select="./div/a">
                 <xsl:sequence select="ixsl:call(., 'removeAttribute', [ 'aria-current' ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:for-each>
         </xsl:for-each>
         <!-- find li elements whose href (without query params) matches target href (without query params) -->
-        <xsl:for-each select=".//li[div/a[ac:document-uri(xs:anyURI(@href)) = $target-uri]]">
+        <xsl:for-each select=".//li[./div/a[ac:document-uri(xs:anyURI(@href)) = $target-uri]]">
             <!-- mark the new list item as active -->
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-            <xsl:for-each select="div/a">
+            <xsl:for-each select="./div/a">
                 <xsl:sequence select="ixsl:call(., 'setAttribute', [ 'aria-current', 'page' ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:for-each>
         </xsl:for-each>
@@ -625,9 +625,9 @@ ORDER BY DESC(?created)
                     </xsl:when>
 
                     <!-- Case 2b: Already expanded - find next child to descend into -->
-                    <xsl:when test="$current-li/ul/li[div/a]">
+                    <xsl:when test="$current-li/ul/li[./div/a]">
                         <!-- Find which child's href (without query params) is a prefix of target-uri -->
-                        <xsl:variable name="next-li" select="$current-li/ul/li[starts-with(string($target-uri), string(ac:document-uri(xs:anyURI(div/a/@href))))][1]" as="element()?"/>
+                        <xsl:variable name="next-li" select="$current-li/ul/li[starts-with(string($target-uri), string(ac:document-uri(xs:anyURI(./div/a/@href))))][1]" as="element()?"/>
 
                         <xsl:choose>
                             <xsl:when test="$next-li">
@@ -666,7 +666,7 @@ ORDER BY DESC(?created)
         <xsl:param name="tree-container" as="element()"/>
 
         <!-- Find which child's href (without query params) is a prefix of target-uri -->
-        <xsl:variable name="next-li" select="$current-li/ul/li[starts-with(string($target-uri), string(ac:document-uri(xs:anyURI(div/a/@href))))][1]" as="element()?"/>
+        <xsl:variable name="next-li" select="$current-li/ul/li[starts-with(string($target-uri), string(ac:document-uri(xs:anyURI(./div/a/@href))))][1]" as="element()?"/>
 
         <xsl:choose>
             <xsl:when test="$next-li">
