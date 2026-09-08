@@ -2996,7 +2996,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   border-radius: var(--r-lg); padding: var(--sp-5);
 }
 /* Steps are core <Step> (.ldhc-step-*). */
-.ldh-step-hint {.ldh-step-hint { font-size: var(--fs-sm); color: var(--fg-muted); }
+.ldh-step-hint { font-size: var(--fs-sm); color: var(--fg-muted); }
 
 .ldh-dropzone {
   display: flex; flex-direction: column; align-items: center; gap: 6px;
@@ -3029,7 +3029,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 
 /* Column-mapping cells. The table itself is core <DataTable>; these are the
    cell contents. */
-.ldh-map-col {.ldh-map-col { display: flex; align-items: center; gap: var(--sp-2); min-width: 0; color: var(--fg-muted); }
+.ldh-map-col { display: flex; align-items: center; gap: var(--sp-2); min-width: 0; color: var(--fg-muted); }
 .ldh-map-colname { font-family: var(--font-mono); font-size: var(--fs-sm); color: var(--fg-1); font-weight: var(--fw-medium); }
 .ldh-map-sample { font-size: var(--fs-xs); color: var(--fg-hint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ldh-map-arrow { display: inline-flex; justify-content: center; color: var(--ink-4); }
@@ -3051,7 +3051,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-select-wrap .caret { position: absolute; right: 8px; pointer-events: none; color: var(--fg-hint); }
 
 /* Run-list cells; the table is core <DataTable>. */
-.ldh-run-row > .msi {.ldh-run-row > .msi { color: var(--fg-hint); }
+.ldh-run-row > .msi { color: var(--fg-hint); }
 .ldh-run-file { font-family: var(--font-mono); font-size: var(--fs-sm); color: var(--fg-1); }
 .ldh-run-rows { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--fg-muted); font-variant-numeric: tabular-nums; }
 .ldh-run-note { color: var(--fg-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
