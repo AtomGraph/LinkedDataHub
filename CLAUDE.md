@@ -190,6 +190,22 @@ Certificate and WebID tooling stays in `bin/` and is not deprecated: `webid-keyg
 export PATH="$(find bin -type d -exec realpath {} \; | tr '\n' ':')$PATH"
 ```
 
+## XSLT Mode Namespaces
+
+Template mode names carry the rendering layer:
+
+- **`xhtml:` = childless element primitives.** The mode's local name is the XHTML element it emits
+  (`xhtml:Input`, `xhtml:Anchor`, `xhtml:Option`, `xhtml:Title`, `xhtml:Meta`, `xhtml:Script`): one
+  element, every attribute a parameter, content at most a text label, no design-system classes baked
+  in. If an emitter needs element children, it is a component and does not belong here.
+- **Component namespaces = structure.** Anything with internal element structure takes the owning
+  layer's namespace and, where one exists, the design system's component name: Web-Client-owned
+  surfaces use `ac:` (`ac:AppShell`, `ac:Head`, `ac:Stylesheets`, the `ac:ResultsTable*` family,
+  `ac:PropertyListLabel`/`ac:PropertyListValue`, `ac:FieldShell`), LDH-owned ones use `ldh:`
+  (`ldh:Modal`, `ldh:DataTable`, `ldh:DateTimePair`, `ldh:PropertyLabel`).
+- **The unnamed mode is the value leaf.** Mode-less `apply-templates` renders an object/literal
+  "somehow" — it lands in Web-Client's default-mode value emitters, the bottom of the dispatch tree.
+
 ## Development Notes
 - Java 21 is required for compilation (both the platform and the `cli/` project)
 - The application uses AtomGraph's Processor and Web-Client libraries as core dependencies

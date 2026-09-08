@@ -1010,7 +1010,7 @@ exclude-result-prefixes="#all"
                 <xsl:if test="not($container/ancestor::div[contains-token(@class, 'ldh-nblock')])">
                     <xsl:where-populated>
                         <h2>
-                            <!-- select the value text() only: a lang-tagged dct:title renders as <dd> with a leading language-badge <span> (xhtml:DefinitionDescription), and value-of over the whole element would prepend the badge (e.g. "enCurrent members"). [1] guards against multiple language values. -->
+                            <!-- select the value text() only: a lang-tagged dct:title renders as <dd> with a leading language-badge <span> (ac:PropertyListValue), and value-of over the whole element would prepend the badge (e.g. "enCurrent members"). [1] guards against multiple language values. -->
                             <xsl:value-of select="($container/descendant::*[@property = '&dct;title']/text()[normalize-space()])[1]"/>
                         </h2>
                     </xsl:where-populated>
@@ -1427,7 +1427,7 @@ exclude-result-prefixes="#all"
                 <xsl:apply-templates select="." mode="ldh:BlockBlank"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:apply-templates select="." mode="xhtml:Table"/>
+                <xsl:apply-templates select="." mode="ac:ResultsTable"/>
                 <xsl:call-template name="ldh:Pager">
                     <xsl:with-param name="container-id" select="$container-id"/>
                     <xsl:with-param name="result-count" select="$result-count"/>
@@ -1439,10 +1439,10 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <!-- hide documents that are paired with resources -->
-    <xsl:template match="*[key('resources', foaf:primaryTopic/@rdf:resource)]" mode="xhtml:Table"/>
+    <xsl:template match="*[key('resources', foaf:primaryTopic/@rdf:resource)]" mode="ac:ResultsTable"/>
 
     <!-- sortable column header: in view tables the column's predicate reverse-maps to a SELECT variable via $var-predicates, so the th carries the var name for the onclick sort. Columns outside the query's BGP (and non-view tables, where no $var-predicates is tunneled) fall through to the plain th -->
-    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*" mode="xhtml:TableHeaderCell">
+    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*" mode="ac:ResultsTableHeaderCell">
         <xsl:param name="var-predicates" as="map(xs:string, xs:anyURI*)?" tunnel="yes"/>
         <xsl:param name="order-by-var-name" as="xs:string?" tunnel="yes"/>
         <xsl:param name="order-by-desc" as="xs:boolean?" tunnel="yes"/>

@@ -117,7 +117,7 @@ extension-element-prefixes="ixsl"
     <!-- BODY -->
     
     <!-- always show errors (except ConstraintViolations) in block mode -->
-    <xsl:template match="rdf:RDF[not(key('resources', ac:absolute-path(ldh:base-uri(.))))][key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&spin;ConstraintViolation'))] | rdf:RDF[not(key('resources', ac:absolute-path(ldh:base-uri(.))))][key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&sh;ValidationResult'))]" mode="xhtml:Body" priority="1">
+    <xsl:template match="rdf:RDF[not(key('resources', ac:absolute-path(ldh:base-uri(.))))][key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&spin;ConstraintViolation'))] | rdf:RDF[not(key('resources', ac:absolute-path(ldh:base-uri(.))))][key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&sh;ValidationResult'))]" mode="ac:AppShell" priority="1">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'row-main'" as="xs:string?"/>
         
@@ -611,7 +611,7 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
-            <xsl:apply-templates select="." mode="xhtml:Table"/>
+            <xsl:apply-templates select="." mode="ac:ResultsTable"/>
         </div>
     </xsl:template>
     
@@ -777,7 +777,7 @@ extension-element-prefixes="ixsl"
          data-driven, which the design's grid-per-row .ldhc-table cannot share intrinsic tracks for
          (see the results-table section in ldh.css). The shadow adds the semantic-markup
          contract's visually-hidden caption and th scope on top of Web-Client's emitter -->
-    <xsl:template match="srx:sparql" mode="xhtml:Table">
+    <xsl:template match="srx:sparql" mode="ac:ResultsTable">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="title" as="xs:string?"/>
         <xsl:param name="class" select="'ldh-results-table'" as="xs:string?"/>
@@ -801,13 +801,13 @@ extension-element-prefixes="ixsl"
         </table>
     </xsl:template>
 
-    <xsl:template match="srx:variable" mode="xhtml:Table">
+    <xsl:template match="srx:variable" mode="ac:ResultsTable">
         <th scope="col">
             <xsl:value-of select="@name"/>
         </th>
     </xsl:template>
 
-    <xsl:template match="rdf:RDF" mode="xhtml:Table">
+    <xsl:template match="rdf:RDF" mode="ac:ResultsTable">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'ldh-results-table'" as="xs:string?"/>
         <xsl:param name="property-uris" select="distinct-values(*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
@@ -847,7 +847,7 @@ extension-element-prefixes="ixsl"
                         </th>
                     </xsl:if>
 
-                    <xsl:apply-templates select="$predicates" mode="xhtml:TableHeaderCell"/>
+                    <xsl:apply-templates select="$predicates" mode="ac:ResultsTableHeaderCell"/>
                 </tr>
             </thead>
             <tbody>

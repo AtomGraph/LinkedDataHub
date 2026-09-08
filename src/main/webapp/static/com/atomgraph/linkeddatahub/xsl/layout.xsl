@@ -382,7 +382,7 @@ exclude-result-prefixes="#all">
 
     <!-- STYLE -->
 
-    <xsl:template match="rdf:RDF[lapp:origin()] | srx:sparql[lapp:origin()]" mode="xhtml:Style">
+    <xsl:template match="rdf:RDF[lapp:origin()] | srx:sparql[lapp:origin()]" mode="ac:Stylesheets">
         <xsl:param name="load-rdfa-editor" select="exists($foaf:Agent//@rdf:about)" as="xs:boolean"/>
         <xsl:param name="load-yasqe" select="true()" as="xs:boolean"/>
 
@@ -800,7 +800,7 @@ WHERE
     
     <!-- BODY -->
 
-    <xsl:template match="rdf:RDF[$lapp:origin] | srx:sparql[$lapp:origin]" mode="xhtml:Body" priority="1">
+    <xsl:template match="rdf:RDF[$lapp:origin] | srx:sparql[$lapp:origin]" mode="ac:AppShell" priority="1">
         <body>
             <div id="visible-body">
                 <xsl:apply-templates select="." mode="ac:Header"/>

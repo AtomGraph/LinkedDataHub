@@ -918,7 +918,7 @@ exclude-result-prefixes="#all"
     
     <!-- RDFa overrides -->
 
-    <xsl:template match="@rdf:resource" mode="xhtml:DefinitionDescription">
+    <xsl:template match="@rdf:resource" mode="ac:PropertyListValue">
         <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
         <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
         <xsl:variable name="property-uri" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
@@ -933,7 +933,7 @@ exclude-result-prefixes="#all"
         </dd>
     </xsl:template>
 
-    <xsl:template match="@rdf:nodeID" mode="xhtml:DefinitionDescription">
+    <xsl:template match="@rdf:nodeID" mode="ac:PropertyListValue">
         <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
         <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
         <xsl:variable name="property-uri" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
@@ -948,7 +948,7 @@ exclude-result-prefixes="#all"
         </dd>
     </xsl:template>
 
-    <xsl:template match="text()[../@xml:lang]" mode="xhtml:DefinitionDescription">
+    <xsl:template match="text()[../@xml:lang]" mode="ac:PropertyListValue">
         <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
         <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
         <xsl:variable name="property-uri" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
@@ -978,7 +978,7 @@ exclude-result-prefixes="#all"
         </span>
     </xsl:template>
 
-    <xsl:template match="node()" mode="xhtml:DefinitionDescription">
+    <xsl:template match="node()" mode="ac:PropertyListValue">
         <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
         <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
         <xsl:variable name="property-uri" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
@@ -1193,7 +1193,7 @@ exclude-result-prefixes="#all"
     <!-- TABLE CELLS -->
 
     <!-- the semantic-markup contract's th scope, on top of Web-Client's emitter -->
-    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*" mode="xhtml:TableHeaderCell">
+    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*" mode="ac:ResultsTableHeaderCell">
         <th scope="col">
             <xsl:apply-templates select="."/>
         </th>
@@ -2100,7 +2100,8 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
     
-    <!-- the pair emits its own field shells, so it must not ride the generic text() field-shell wrapper -->
+    <!-- the pair emits its own field shells, so it must not ride the generic text() field-shell wrapper;
+         the hidden variant is a plain element, so it stays on the xhtml:Input primitive -->
     <xsl:template match="text()[../@rdf:datatype = '&xsd;dateTime'][. castable as xs:dateTime]" mode="ac:FormControl" priority="1">
         <xsl:param name="type" select="'datetime-local'" as="xs:string"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
@@ -2108,12 +2109,24 @@ exclude-result-prefixes="#all"
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
 
-        <xsl:apply-templates select="." mode="xhtml:Input">
-            <xsl:with-param name="type" select="$type"/>
-            <xsl:with-param name="id" select="$id"/>
-            <xsl:with-param name="class" select="$class"/>
-            <xsl:with-param name="disabled" select="$disabled"/>
-        </xsl:apply-templates>
+        <xsl:choose>
+            <xsl:when test="$type = 'datetime-local'">
+                <xsl:apply-templates select="." mode="ldh:DateTimePair">
+                    <xsl:with-param name="type" select="$type"/>
+                    <xsl:with-param name="id" select="$id"/>
+                    <xsl:with-param name="class" select="$class"/>
+                    <xsl:with-param name="disabled" select="$disabled"/>
+                </xsl:apply-templates>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:apply-templates select="." mode="xhtml:Input">
+                    <xsl:with-param name="type" select="$type"/>
+                    <xsl:with-param name="id" select="$id"/>
+                    <xsl:with-param name="class" select="$class"/>
+                    <xsl:with-param name="disabled" select="$disabled"/>
+                </xsl:apply-templates>
+            </xsl:otherwise>
+        </xsl:choose>
 
         <xsl:if test="$type-label">
             <xsl:apply-templates select="." mode="ac:ValueAnnotations">
@@ -2122,55 +2135,45 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
 
-    <!-- value and timezone offset as two TextFields sitting together, as in the design: the bespoke shared shell is gone -->
-    <xsl:template match="text()[../@rdf:datatype = '&xsd;dateTime'][. castable as xs:dateTime][../@rdf:datatype = '&xsd;dateTime']" mode="xhtml:Input" priority="1">
+    <!-- value and timezone offset as two TextFields sitting together, as in the design: a composite
+         component (the app kit's .ldh-dt-pair), so it carries a component mode rather than living
+         inside xhtml:Input, whose modes stay childless element primitives -->
+    <xsl:template match="text()[../@rdf:datatype = '&xsd;dateTime'][. castable as xs:dateTime]" mode="ldh:DateTimePair">
         <xsl:param name="type" select="'datetime-local'" as="xs:string"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
 
-        <xsl:choose>
-            <xsl:when test="$type = 'datetime-local'"> <!-- could also be 'hidden' -->
-                <span class="ldh-dt-pair">
-                    <xsl:apply-templates select="." mode="ac:FieldShell">
-                        <xsl:with-param name="control" as="item()*">
-                            <xsl:call-template name="xhtml:Input">
-                                <xsl:with-param name="name" select="'ol'"/>
-                                <xsl:with-param name="type" select="$type"/>
-                                <xsl:with-param name="id" select="$id"/>
-                                <xsl:with-param name="class" select="$class"/>
-                                <xsl:with-param name="disabled" select="$disabled"/>
-                                <xsl:with-param name="value" select="format-dateTime(xs:dateTime(.), '[Y0001]-[M01]-[D01]T[H01]:[m01]:[s01]')"/>
-                            </xsl:call-template>
-                        </xsl:with-param>
-                    </xsl:apply-templates>
-
+        <span class="ldh-dt-pair">
+            <xsl:apply-templates select="." mode="ac:FieldShell">
+                <xsl:with-param name="control" as="item()*">
                     <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="name" select="'lt'"/>
-                        <xsl:with-param name="value" select="../@rdf:datatype"/>
+                        <xsl:with-param name="name" select="'ol'"/>
+                        <xsl:with-param name="type" select="$type"/>
+                        <xsl:with-param name="id" select="$id"/>
+                        <xsl:with-param name="class" select="$class"/>
+                        <xsl:with-param name="disabled" select="$disabled"/>
+                        <xsl:with-param name="value" select="format-dateTime(xs:dateTime(.), '[Y0001]-[M01]-[D01]T[H01]:[m01]:[s01]')"/>
                     </xsl:call-template>
+                </xsl:with-param>
+            </xsl:apply-templates>
 
-                    <xsl:apply-templates select="." mode="ac:FieldShell">
-                        <xsl:with-param name="control" as="item()*">
-                            <xsl:call-template name="xhtml:Input">
-                                <xsl:with-param name="class" select="'input-timezone'"/>
-                                <xsl:with-param name="type" select="'text'"/>
-                                <xsl:with-param name="value" select="format-dateTime(xs:dateTime(.), '[Z]')"/>
-                            </xsl:call-template>
-                        </xsl:with-param>
-                    </xsl:apply-templates>
-                </span>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:next-match>
-                    <xsl:with-param name="type" select="$type"/>
-                    <xsl:with-param name="id" select="$id"/>
-                    <xsl:with-param name="class" select="$class"/>
-                    <xsl:with-param name="disabled" select="$disabled"/>
-                </xsl:next-match>
-            </xsl:otherwise>
-        </xsl:choose>
+            <xsl:call-template name="xhtml:Input">
+                <xsl:with-param name="type" select="'hidden'"/>
+                <xsl:with-param name="name" select="'lt'"/>
+                <xsl:with-param name="value" select="../@rdf:datatype"/>
+            </xsl:call-template>
+
+            <xsl:apply-templates select="." mode="ac:FieldShell">
+                <xsl:with-param name="control" as="item()*">
+                    <xsl:call-template name="xhtml:Input">
+                        <xsl:with-param name="class" select="'input-timezone'"/>
+                        <xsl:with-param name="type" select="'text'"/>
+                        <xsl:with-param name="value" select="format-dateTime(xs:dateTime(.), '[Z]')"/>
+                    </xsl:call-template>
+                </xsl:with-param>
+            </xsl:apply-templates>
+        </span>
     </xsl:template>
 
     <!-- booleans -->
