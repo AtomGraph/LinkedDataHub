@@ -506,28 +506,20 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:ViewModeList">
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="id" select="'view-modes'" as="xs:string?"/>
-        <xsl:param name="mode-button-classes" as="map(xs:string, xs:string)">
-            <xsl:map>
-                <xsl:map-entry key="'&ac;ReadMode'" select="'btn-read'"/>
-                <xsl:map-entry key="'&ac;ListMode'" select="'btn-list'"/>
-                <xsl:map-entry key="'&ac;TableMode'" select="'btn-table'"/>
-                <xsl:map-entry key="'&ac;GridMode'" select="'btn-grid'"/>
-                <xsl:map-entry key="'&ac;ChartMode'" select="'btn-chart'"/>
-                <xsl:map-entry key="'&ac;MapMode'" select="'btn-map'"/>
-                <xsl:map-entry key="'&ac;GraphMode'" select="'btn-graph'"/>
-            </xsl:map>
-        </xsl:param>
 
-        <div class="ldh-mode ldh-drop-wrap">
-            <button type="button" title="{ac:label(key('resources', '&ac;Mode', document(ac:document-uri('&ac;'))))}">
+        <!-- the same mode-switcher component as the document-level ac:ModeList, in the design's compact
+             sz-sm variant: labelled trigger, full-size popover -->
+        <div class="ldh-mode sz-sm ldh-drop-wrap">
+            <button type="button" class="label-row drop-toggle" title="{ac:label(key('resources', '&ac;Mode', document(ac:document-uri('&ac;'))))}">
                 <xsl:if test="$id">
                     <xsl:attribute name="id" select="$id"/>
                 </xsl:if>
 
-                <xsl:attribute name="class" select="'drop-toggle ' || (map:get($mode-button-classes, string($active-mode)), 'btn-read')[1]"/>
-
-                <span class="msi sm" aria-hidden="true"><xsl:value-of select="(map:get($ldh:mode-icons, string($active-mode)), 'view_list')[1]"/></span>
-                <span class="msi caret" aria-hidden="true">expand_more</span>
+                <span class="msi" aria-hidden="true"><xsl:value-of select="(map:get($ldh:mode-icons, string($active-mode)), 'view_list')[1]"/></span>
+                <span class="label">
+                    <xsl:apply-templates select="key('resources', $active-mode, document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                </span>
+                <span class="msi sm caret" aria-hidden="true">expand_more</span>
             </button>
 
             <div class="modes-pop view-mode-list">
@@ -545,6 +537,53 @@ exclude-result-prefixes="#all"
 
     <!-- render view -->
     
+    <!-- the sort direction pill: the label states the CURRENT direction, the accessible name the
+         pending action - an arrow alone is ambiguous between the two -->
+    <xsl:template name="ldh:SortDirectionPill">
+        <xsl:param name="desc" as="xs:boolean"/>
+
+        <button type="button" class="facet-pill sort-dir{if ($desc) then ' is-desc' else ()}">
+            <xsl:attribute name="aria-label">
+                <xsl:apply-templates select="key('resources', if ($desc) then 'sorted-desc-toggle' else 'sorted-asc-toggle', ldh:translations())" mode="ac:label"/>
+            </xsl:attribute>
+
+            <span class="msi sm" aria-hidden="true">
+                <xsl:value-of select="if ($desc) then 'south' else 'north'"/>
+            </span>
+            <span class="val">
+                <xsl:apply-templates select="key('resources', if ($desc) then 'descending' else 'ascending', ldh:translations())" mode="ac:label"/>
+            </span>
+        </button>
+    </xsl:template>
+
+    <!-- a sort key's label: a single-predicate variable takes the predicate's label from the /ns
+         property-metadata (falling back to its local name), an alt-path-bound variable keeps the var name -->
+    <xsl:function name="ldh:sort-key-label" as="xs:string">
+        <xsl:param name="var-name" as="xs:string"/>
+        <xsl:param name="var-predicates" as="map(xs:string, xs:anyURI*)"/>
+        <xsl:param name="property-metadata" as="document-node()?"/>
+        <xsl:variable name="predicates" select="$var-predicates($var-name)" as="xs:anyURI*"/>
+
+        <xsl:choose>
+            <xsl:when test="count($predicates) eq 1">
+                <xsl:variable name="predicate-desc" select="$property-metadata!key('resources', $predicates[1], .)" as="element()?"/>
+                <xsl:choose>
+                    <xsl:when test="exists($predicate-desc)">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="$predicate-desc" mode="ac:label"/>
+                        </xsl:value-of>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:value-of select="tokenize($predicates[1], '[/#]')[last()]"/>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="$var-name"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
     <xsl:template name="ldh:RenderView">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="select-string" as="xs:string"/>
@@ -1007,68 +1046,56 @@ exclude-result-prefixes="#all"
 
                         <!-- no sortable variables means an empty order-by dropdown, so the sort controls stay out of the toolbar altogether -->
                         <xsl:if test="map:size($var-predicates) gt 0">
-                            <form class="form-inline">
-                                <label for="{$order-by-container-id}">
-                                    <!-- currently no space for the label in the layout -->
-                                    <!--<xsl:text>Order by </xsl:text>-->
-
-                                    <select id="{$order-by-container-id}" name="order-by" class="container-order">
-                                        <!-- show the default option if the container query does not have an ORDER BY -->
-                                        <xsl:if test="not($select-xml/json:map/json:array[@key = 'order'])">
-                                            <option>
-                                                <xsl:value-of>
-                                                    <xsl:text>[</xsl:text>
-                                                    <xsl:apply-templates select="key('resources', 'none', ldh:translations())" mode="ac:label"/>
-                                                    <xsl:text>]</xsl:text>
-                                                </xsl:value-of>
-                                            </option>
-                                        </xsl:if>
-                                        <!-- emit all order-by options synchronously: a single-predicate var takes its label from the /ns property-metadata (falling back to the predicate's local name), an alt-path-bound var uses the var name (no single canonical predicate URI) -->
+                            <div class="facet sort-facet">
+                                <button type="button" class="facet-pill sort-key" aria-haspopup="true" aria-expanded="false">
+                                    <span class="pred">
+                                        <xsl:apply-templates select="key('resources', 'sort', ldh:translations())" mode="ac:label"/>
+                                    </span>
+                                    <span class="val">
+                                        <xsl:choose>
+                                            <xsl:when test="$order-by-var-name">
+                                                <xsl:value-of select="ldh:sort-key-label($order-by-var-name, $var-predicates, $property-metadata)"/>
+                                            </xsl:when>
+                                            <xsl:otherwise>
+                                                <xsl:apply-templates select="key('resources', 'none', ldh:translations())" mode="ac:label"/>
+                                            </xsl:otherwise>
+                                        </xsl:choose>
+                                    </span>
+                                    <span class="msi sm caret" aria-hidden="true">expand_more</span>
+                                </button>
+                                <!-- pre-rendered, unlike the lazily built facet value lists: the keys are known at render
+                                     time, so the popover rides the generic facet open/close machinery as already loaded -->
+                                <div class="facet-pop sort-pop" role="menu" style="display: none">
+                                    <div class="head">
+                                        <span class="pname">
+                                            <xsl:apply-templates select="key('resources', 'sort', ldh:translations())" mode="ac:label"/>
+                                        </span>
+                                    </div>
+                                    <div class="facet-values">
                                         <xsl:for-each select="map:keys($var-predicates)">
                                             <xsl:sort select="."/>
                                             <xsl:variable name="var-name" select="." as="xs:string"/>
-                                            <xsl:variable name="predicates" select="$var-predicates(.)" as="xs:anyURI*"/>
-                                            <option value="{$var-name}">
-                                                <xsl:if test="$var-name = $order-by-var-name">
-                                                    <xsl:attribute name="selected">selected</xsl:attribute>
-                                                </xsl:if>
-                                                <xsl:choose>
-                                                    <xsl:when test="count($predicates) eq 1">
-                                                        <xsl:variable name="predicate" select="$predicates[1]" as="xs:anyURI"/>
-                                                        <xsl:variable name="predicate-desc" select="$property-metadata!key('resources', $predicate, .)" as="element()?"/>
-                                                        <xsl:choose>
-                                                            <xsl:when test="exists($predicate-desc)">
-                                                                <xsl:apply-templates select="$predicate-desc" mode="ac:label"/>
-                                                            </xsl:when>
-                                                            <xsl:otherwise>
-                                                                <xsl:value-of select="tokenize($predicate, '[/#]')[last()]"/>
-                                                            </xsl:otherwise>
-                                                        </xsl:choose>
-                                                    </xsl:when>
-                                                    <xsl:otherwise>
-                                                        <xsl:value-of select="$var-name"/>
-                                                    </xsl:otherwise>
-                                                </xsl:choose>
-                                            </option>
-                                        </xsl:for-each>
-                                    </select>
+                                            <xsl:variable name="on" select="$var-name = $order-by-var-name" as="xs:boolean"/>
 
-                                    <!-- both direction labels are baked in and an empty arrow span mirrors the column headers; the CSR handlers only flip btn-order-by-desc, so CSS keyed on that class picks the visible label and the ::before glyph -->
-                                    <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm btn-order-by{if ($desc) then ' btn-order-by-desc' else ()}">
-                                        <span class="dir-asc">
-                                            <xsl:value-of>
-                                                <xsl:apply-templates select="key('resources', 'ascending', ldh:translations())" mode="ac:label"/>
-                                            </xsl:value-of>
-                                        </span>
-                                        <span class="dir-desc">
-                                            <xsl:value-of>
-                                                <xsl:apply-templates select="key('resources', 'descending', ldh:translations())" mode="ac:label"/>
-                                            </xsl:value-of>
-                                        </span>
-                                        <span class="msi sm sort-arrow" aria-hidden="true"></span>
-                                    </button>
-                                </label>
-                            </form>
+                                            <!-- single-selection: no leading check box (that is the facet menu's multi-select
+                                                 affordance) - the chosen key shows as the row highlight plus a trailing tick -->
+                                            <button type="button" role="menuitemradio" aria-checked="{$on}" class="opt sort-opt{if ($on) then ' is-on' else ()}" data-var-name="{$var-name}">
+                                                <span class="nm">
+                                                    <xsl:value-of select="ldh:sort-key-label($var-name, $var-predicates, $property-metadata)"/>
+                                                </span>
+                                                <xsl:if test="$on">
+                                                    <span class="msi sm tick" aria-hidden="true">check</span>
+                                                </xsl:if>
+                                            </button>
+                                        </xsl:for-each>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="sort-dir-slot">
+                                <xsl:call-template name="ldh:SortDirectionPill">
+                                    <xsl:with-param name="desc" select="boolean($desc)"/>
+                                </xsl:call-template>
+                            </span>
                         </xsl:if>
 
                         <xsl:call-template name="ldh:ViewModeList">
@@ -1082,16 +1109,16 @@ exclude-result-prefixes="#all"
                 </div>
 
                 <!-- parallax row: the second row of the view's control header. Query inputs (filters, sort, modes) stay in the toolbar above; onward pivots derived from the current result set land here, filled by ldh:ParallaxNav after every results render. Hidden by CSS while it has no chips. -->
-                <div class="parallax-nav">
-                    <span class="plabel">
-                        <!-- the chips carry their own direction arrows, so the row's own glyph stays neutral -->
-                        <span class="msi sm" aria-hidden="true">alt_route</span>
+                <div class="ldh-pivot-bar">
+                    <span class="ldh-pivot-glyph">
+                        <!-- the pills carry their own direction arrows, so the row's own glyph stays neutral -->
+                        <span class="msi sm outline" aria-hidden="true">alt_route</span>
                         <span class="ldhc-vh">
                             <xsl:apply-templates select="key('resources', 'related-results', ldh:translations())" mode="ac:label"/>
                         </span>
                     </span>
 
-                    <div id="{$container-id}-parallax-properties" class="pchips"></div>
+                    <div id="{$container-id}-parallax-properties" class="ldh-pivot-pills" role="group"></div>
                 </div>
 
                 <div>
@@ -1695,11 +1722,89 @@ exclude-result-prefixes="#all"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
-    <!-- View container-order handler (generic handler for all Views) -->
-    <xsl:template match="div[@typeof = '&ldh;View']//select[contains-token(@class, 'container-order')]" mode="ixsl:onchange">
+    <!-- keeps the toolbar sort controls in agreement with the query state, whichever control drove the
+         change (key pick, direction toggle, column-header sort): the popover highlights the chosen key,
+         the trigger names it, and the direction slot re-renders -->
+    <xsl:template match="div[@typeof = '&ldh;View']" mode="ldh:SortControlsState">
+        <xsl:param name="var-name" as="xs:string?"/>
+        <xsl:param name="desc" as="xs:boolean"/>
+
+        <xsl:for-each select=".//div[contains-token(@class, 'sort-facet')]">
+            <xsl:for-each select=".//button[contains-token(@class, 'sort-opt')]">
+                <xsl:variable name="on" select="string(@data-var-name) = $var-name" as="xs:boolean"/>
+
+                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-on', $on ])[current-date() lt xs:date('2000-01-01')]"/>
+                <ixsl:set-attribute name="aria-checked" select="if ($on) then 'true' else 'false'" object="."/>
+                <xsl:choose>
+                    <xsl:when test="$on and not(span[contains-token(@class, 'tick')])">
+                        <xsl:result-document href="?." method="ixsl:append-content">
+                            <span class="msi sm tick" aria-hidden="true">check</span>
+                        </xsl:result-document>
+                    </xsl:when>
+                    <xsl:when test="not($on)">
+                        <xsl:for-each select="span[contains-token(@class, 'tick')]">
+                            <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                        </xsl:for-each>
+                    </xsl:when>
+                    <xsl:otherwise/>
+                </xsl:choose>
+            </xsl:for-each>
+
+            <xsl:variable name="on-label" select=".//button[contains-token(@class, 'sort-opt')][string(@data-var-name) = $var-name]/span[contains-token(@class, 'nm')]/string()" as="xs:string?"/>
+            <xsl:for-each select="button[contains-token(@class, 'sort-key')]/span[contains-token(@class, 'val')]">
+                <xsl:result-document href="?." method="ixsl:replace-content">
+                    <xsl:choose>
+                        <xsl:when test="exists($on-label)">
+                            <xsl:value-of select="$on-label"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:apply-templates select="key('resources', 'none', ldh:translations())" mode="ac:label"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:result-document>
+            </xsl:for-each>
+        </xsl:for-each>
+
+        <xsl:for-each select=".//span[contains-token(@class, 'sort-dir-slot')]">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:call-template name="ldh:SortDirectionPill">
+                    <xsl:with-param name="desc" select="$desc"/>
+                </xsl:call-template>
+            </xsl:result-document>
+        </xsl:for-each>
+    </xsl:template>
+
+    <!-- sort-key trigger: its popover is pre-rendered, so this runs only the open/close lifecycle -
+         the generic facet-pill handler this button would otherwise match also loads facet values off
+         hidden inputs the sort pill does not carry -->
+    <xsl:template match="div[@typeof = '&ldh;View']//div[contains-token(@class, 'sort-facet')]/button[contains-token(@class, 'sort-key')]" mode="ixsl:onclick" priority="1">
+        <xsl:variable name="facet-container" select="parent::div[contains-token(@class, 'facet')]" as="element()"/>
+
+        <!-- one popover at a time: any other facet's open list yields to this one -->
+        <xsl:apply-templates select="$facet-container/../div[contains-token(@class, 'facet')][not(. is $facet-container)]/div[contains-token(@class, 'facet-pop')][not(ixsl:style(.)?display = 'none')]" mode="ldh:CloseFacetPopover"/>
+
+        <xsl:variable name="hidden" select="ixsl:style(following-sibling::div[contains-token(@class, 'facet-pop')])?display = 'none'" as="xs:boolean"/>
+        <xsl:choose>
+            <xsl:when test="$hidden">
+                <ixsl:set-style name="display" select="'block'" object="following-sibling::div[contains-token(@class, 'facet-pop')]"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <ixsl:set-style name="display" select="'none'" object="following-sibling::div[contains-token(@class, 'facet-pop')]"/>
+            </xsl:otherwise>
+        </xsl:choose>
+        <xsl:sequence select="ixsl:call(ixsl:get($facet-container, 'classList'), 'toggle', [ 'is-open', $hidden ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-open', $hidden ])[current-date() lt xs:date('2000-01-01')]"/>
+        <ixsl:set-property name="ariaExpanded" select="if ($hidden) then 'true' else 'false'" object="."/>
+    </xsl:template>
+
+    <!-- View sort-key option handler (generic handler for all Views): single-selection, so a pick also
+         closes the popover. Priority outranks the facet opt handler this button would otherwise match -->
+    <xsl:template match="div[@typeof = '&ldh;View']//button[contains-token(@class, 'sort-opt')]" mode="ixsl:onclick" priority="1">
         <xsl:param name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
         <xsl:param name="cache" select="ldh:view-cache($container)" as="item()"/>
-        <xsl:variable name="var-name" select="ixsl:get(., 'value')" as="xs:string?"/>
+        <xsl:variable name="var-name" select="string(@data-var-name)" as="xs:string?"/>
+
+        <xsl:apply-templates select="ancestor::div[contains-token(@class, 'facet-pop')][1]" mode="ldh:CloseFacetPopover"/>
         <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
         <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
         <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
@@ -1717,6 +1822,11 @@ exclude-result-prefixes="#all"
         </xsl:variable>
 
         <ixsl:set-property name="select-xml" select="$select-xml" object="$cache"/>
+
+        <xsl:apply-templates select="$container" mode="ldh:SortControlsState">
+            <xsl:with-param name="var-name" select="$var-name"/>
+            <xsl:with-param name="desc" select="boolean($select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:boolean[@key = 'descending'][. = 'true'])"/>
+        </xsl:apply-templates>
 
         <xsl:variable name="view-context" as="map(*)">
             <xsl:call-template name="ldh:RenderView">
@@ -1738,11 +1848,11 @@ exclude-result-prefixes="#all"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
-    <!-- View order-by button handler (generic handler for all Views) -->
-    <xsl:template match="div[@typeof = '&ldh;View']//button[contains-token(@class, 'btn-order-by')]" mode="ixsl:onclick">
+    <!-- View sort-direction handler (generic handler for all Views) -->
+    <xsl:template match="div[@typeof = '&ldh;View']//button[contains-token(@class, 'sort-dir')]" mode="ixsl:onclick">
         <xsl:param name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
         <xsl:param name="cache" select="ldh:view-cache($container)" as="item()"/>
-        <xsl:variable name="desc" select="contains(@class, 'btn-order-by-desc')" as="xs:boolean"/>
+        <xsl:variable name="desc" select="contains-token(@class, 'is-desc')" as="xs:boolean"/>
         <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
         <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
         <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
@@ -1760,6 +1870,11 @@ exclude-result-prefixes="#all"
         </xsl:variable>
 
         <ixsl:set-property name="select-xml" select="$select-xml" object="$cache"/>
+
+        <xsl:apply-templates select="$container" mode="ldh:SortControlsState">
+            <xsl:with-param name="var-name" select="$select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:string[@key = 'expression']/substring-after(., '?')"/>
+            <xsl:with-param name="desc" select="not($desc)"/>
+        </xsl:apply-templates>
 
         <xsl:variable name="view-context" as="map(*)">
             <xsl:call-template name="ldh:RenderView">
@@ -1821,12 +1936,10 @@ exclude-result-prefixes="#all"
 
         <!-- keep the toolbar sort controls in agreement with the column-driven state -->
         <xsl:variable name="new-desc" select="boolean($select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:boolean[@key = 'descending'][. = 'true'])" as="xs:boolean"/>
-        <xsl:for-each select="$container//select[contains-token(@class, 'container-order')]">
-            <ixsl:set-property name="value" select="$var-name" object="."/>
-        </xsl:for-each>
-        <xsl:for-each select="$container//button[contains-token(@class, 'btn-order-by')]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-order-by-desc', $new-desc ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
+        <xsl:apply-templates select="$container" mode="ldh:SortControlsState">
+            <xsl:with-param name="var-name" select="$var-name"/>
+            <xsl:with-param name="desc" select="$new-desc"/>
+        </xsl:apply-templates>
 
         <xsl:variable name="view-context" as="map(*)">
             <xsl:call-template name="ldh:RenderView">
@@ -2158,7 +2271,7 @@ exclude-result-prefixes="#all"
 
     <!-- parallax onclick -->
 
-    <xsl:template match="div[@typeof = '&ldh;View']//div[contains-token(@class, 'parallax-nav')]//a[contains-token(@class, 'pchip')]" mode="ixsl:onclick">
+    <xsl:template match="div[@typeof = '&ldh;View']//div[contains-token(@class, 'ldh-pivot-bar')]//button[contains-token(@class, 'ldh-pivot-pill')]" mode="ixsl:onclick">
         <xsl:param name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
         <xsl:param name="cache" select="ldh:view-cache($container)" as="item()"/>
         <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/a[contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string"/>
@@ -2719,7 +2832,7 @@ exclude-result-prefixes="#all"
                 <xsl:sort select="number(?inverse)"/>
                 <xsl:sort select="ldh:predicate-label(?predicate, $metadata)" lang="{ac:langs()[1]}"/>
 
-                <a class="pchip{if (?inverse) then ' pchip-in' else ()}" title="{?predicate}" data-dir="{if (?inverse) then 'in' else 'out'}">
+                <button type="button" class="ldh-pivot-pill{if (?inverse) then ' is-in' else ()}" title="{?predicate}" data-dir="{if (?inverse) then 'in' else 'out'}">
                     <input name="ou" type="hidden" value="{?predicate}"/>
                     <span class="msi sm" aria-hidden="true">
                         <xsl:value-of select="if (?inverse) then 'arrow_back' else 'arrow_forward'"/>
@@ -2727,7 +2840,7 @@ exclude-result-prefixes="#all"
                     <span class="lbl">
                         <xsl:value-of select="ldh:predicate-label(?predicate, $metadata)"/>
                     </span>
-                </a>
+                </button>
             </xsl:for-each>
         </xsl:variable>
 

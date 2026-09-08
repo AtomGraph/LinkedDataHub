@@ -967,4 +967,16 @@
         <rdfs:label xml:lang="en-US">RDF imports</rdfs:label>
         <rdfs:label xml:lang="es-ES">importaciones RDF asíncronas</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="sort">
+        <rdfs:label xml:lang="en-US">sort</rdfs:label>
+        <rdfs:label xml:lang="es-ES">ordenar</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="sorted-asc-toggle">
+        <rdfs:label xml:lang="en-US">Sorted ascending — click to sort descending</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Orden ascendente — haga clic para ordenar de forma descendente</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="sorted-desc-toggle">
+        <rdfs:label xml:lang="en-US">Sorted descending — click to sort ascending</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Orden descendente — haga clic para ordenar de forma ascendente</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>

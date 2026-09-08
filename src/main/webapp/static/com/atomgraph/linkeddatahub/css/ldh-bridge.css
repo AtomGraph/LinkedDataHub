@@ -428,13 +428,6 @@ legend > .actions { display: flex; align-items: center; gap: var(--sp-1); margin
 .ldh-view-toolbar .form-inline { display: flex; align-items: center; gap: var(--sp-1); margin: 0; }
 .ldh-view-toolbar .form-inline label { display: flex; align-items: center; gap: var(--sp-1); margin: 0; }
 .ldh-view-toolbar .ldh-drop-wrap.is-open .ldh-drop-menu { left: auto; right: 0; }
-/* direction toggle mirrors the column-header arrows: the handlers only flip btn-order-by-desc
-   (never the button's content), so the class picks the visible label and the ::before glyph -
-   same pattern as the caret */
-.btn-order-by .sort-arrow::before { content: 'arrow_upward'; }
-.btn-order-by.btn-order-by-desc .sort-arrow::before { content: 'arrow_downward'; }
-.btn-order-by .dir-desc, .btn-order-by.btn-order-by-desc .dir-asc { display: none; }
-.btn-order-by.btn-order-by-desc .dir-desc { display: inline; }
 
 /* ---------- query block: the design's SPARQL pane (QueryBlock contract) hosts YASQE ----------
    The pane is the dark surface app.css paints for .ldh-sparql-code; YASQE mounts a stock CodeMirror
@@ -624,40 +617,16 @@ body:has(.document-body > .content-body > :is(.graph-3d-canvas, .map-canvas)) .l
   border-color: color-mix(in srgb, var(--danger-500) 28%, var(--border-default));
 }
 
-/* Parallax row — second row of the view's control header: onward pivots derived
-   from the current result set. Query inputs (filters, sort, modes) stay in the
-   toolbar above; this row reads as output. Mirrors the toolbar's surface and
-   dashed hairline; hidden until ldh:ParallaxNav delivers chips. */
-.parallax-nav {
-  display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2);
-  padding: var(--sp-3) var(--sp-6);
-  background: var(--surface-1);
-  border-bottom: 1px dashed var(--border-default);
-}
-.parallax-nav:not(:has(.pchip)) { display: none; }
-.parallax-nav .plabel { display: inline-flex; align-items: center; color: var(--fg-muted); }
-/* the chips' host is a flex item of the row, so its max-content width pushes it off the label's line
-   as soon as the chips outgrow the row; dissolving it lets them wrap alongside the label the way the
-   facet pills wrap alongside their funnel (.ldh-view-toolbar .left > .facets does the same) */
-.parallax-nav .pchips { display: contents; }
-.parallax-nav .pchip {
-  display: inline-flex; align-items: center; gap: 6px;
-  height: 28px; padding: 0 12px;
-  background: var(--surface-0); border: 1px solid var(--border-default);
-  border-radius: var(--r-pill);
-  font-size: var(--fs-sm); color: var(--fg-2);
-  cursor: pointer;
-  transition: border-color var(--dur-fast) var(--ease-out-soft), background var(--dur-fast) var(--ease-out-soft), color var(--dur-fast) var(--ease-out-soft);
-}
-.parallax-nav .pchip:hover { border-color: var(--ldh-blue-300); color: var(--ldh-blue-700); background: var(--bg-accent-quiet); text-decoration: none; }
-.parallax-nav .pchip .msi { color: var(--fg-hint); }
-.parallax-nav .pchip:hover .msi { color: var(--ldh-blue-600); }
-/* incoming pivots leave the result set behind rather than extending it, so their chips sit
-   a shade quieter than the outgoing ones — the arrow carries the distinction, this backs it up */
-.parallax-nav .pchip-in { background: var(--surface-1); }
-.parallax-nav .pchip-in .lbl { color: var(--fg-muted); }
-.parallax-nav .pchip-in:hover .lbl { color: var(--ldh-blue-700); }
-.ldh-block-body > .ldh-view-toolbar, .ldh-block-body > .parallax-nav { padding-left: 0; padding-right: 0; }
+/* the pivot bar hides while it has no pills: the bar is derived output, and an empty band
+   would read as a broken control (the design renders it conditionally instead) */
+.ldh-pivot-bar:not(:has(.ldh-pivot-pill)) { display: none; }
+/* incoming pivots read quieter than outgoing, mirroring the retired chip treatment */
+.ldh-pivot-pill.is-in { background: var(--surface-1); }
+.ldh-pivot-pill.is-in .lbl { color: var(--fg-muted); }
+.ldh-pivot-pill.is-in:hover .lbl { color: var(--ldh-blue-700); }
+
+
+.ldh-block-body > .ldh-view-toolbar { padding-left: 0; padding-right: 0; }
 
 /* applied parallax steps read as removable chips beside the facet pills — the
    pivot's undo affordance; clicking one rewinds the view to before that step */

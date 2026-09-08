@@ -38,7 +38,6 @@ li button.btn-edit-constructors, li button.btn-add-data, li button.btn-add-ontol
 .left-nav .ldh-nav, .right-nav .ldh-nav { max-height: 20em; overflow: auto; }
 .left-nav, .right-nav { position: sticky; top: 0; }
 .faceted-nav input[type=checkbox]:checked + span { font-weight: bold; }
-.parallax-nav a { cursor: pointer; }
 /* Drop marker: the dragged block will be inserted after the block it is dropped on. A pseudo-element
    in the inter-block gap rather than border-bottom: the skins reset the card's border shorthand at
    equal specificity, and a border would shift layout while dragging. */
