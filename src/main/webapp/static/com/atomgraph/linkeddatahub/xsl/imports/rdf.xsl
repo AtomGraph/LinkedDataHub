@@ -43,18 +43,9 @@ xmlns:void="&void;"
 xmlns:saxon="http://saxon.sf.net/"
 exclude-result-prefixes="#all">
 
-    <!-- a rendered type is the design's Tag. Web-Client wraps it in span.btn.btn-type, and that wrapper
-         cannot be overridden away - xsl:import gives this stylesheet precedence, not replacement, so its
-         rule stays in the xsl:next-match ordering below this one and its span survives inside, inert (no
-         .btn/.btn-type rules remain). Declaring no params is deliberate: this rule outranks the proxying
-         @rdf:resource rule in imports/default.xsl, so forwarding an $href here would override that rule's
-         computed default and send external types straight out instead of through the ?uri= proxy. -->
-
-    <xsl:template match="rdf:type/@rdf:resource" priority="1">
-        <span title="{.}" class="ldhc-tag em-quiet co-primary sz-sm">
-            <xsl:next-match/>
-        </span>
-    </xsl:template>
+    <!-- the type Tag pill comes from Web-Client's rdf:type/@rdf:resource rule, which sits below the
+         proxying @rdf:resource rule in imports/default.xsl - external type URIs reach the anchor with
+         the ?uri= proxied $href it forwards -->
 
     <!-- shortened version of @rdf:resource ac:FormControl -->
     <xsl:template match="rdf:type[@rdf:resource]" mode="ldh:TypeControl">

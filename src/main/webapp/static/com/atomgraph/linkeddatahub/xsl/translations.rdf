@@ -392,7 +392,7 @@
         <rdfs:label xml:lang="en-US">selected</rdfs:label>
         <rdfs:label xml:lang="es-ES">seleccionados</rdfs:label>
     </rdf:Description>
-    <rdf:Description rdf:nodeID="clear">
+    <rdf:Description rdf:nodeID="clear-facet">
         <rdfs:label xml:lang="en-US">Clear</rdfs:label>
         <rdfs:label xml:lang="es-ES">Borrar</rdfs:label>
     </rdf:Description>

@@ -82,6 +82,14 @@ extension-element-prefixes="ixsl"
         '&dh;Item': 'description'
     }"/>
 
+    <!-- the single icon-from-type derivation: first mapped glyph of the resource's types, else the caller's fallback -->
+    <xsl:function name="ldh:class-icon" as="xs:string?">
+        <xsl:param name="resource" as="element()"/>
+        <xsl:param name="fallback" as="xs:string?"/>
+
+        <xsl:sequence select="($resource/rdf:type/@rdf:resource ! map:get($ldh:class-icons, string(.)), $fallback)[1]"/>
+    </xsl:function>
+
     <!-- LABEL -->
 
     <xsl:template match="*[@rdf:about = '&owl;NamedIndividual']" mode="ac:label">
@@ -336,7 +344,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[@rdf:about]" mode="ac:BreadcrumbItem">
         <xsl:param name="leaf" select="true()" as="xs:boolean"/>
         <!-- crumb icon by document type, as in the design system's breadcrumb -->
-        <xsl:param name="icon" select="((rdf:type/@rdf:resource ! map:get($ldh:class-icons, string(.))), 'link')[1]" as="xs:string"/>
+        <xsl:param name="icon" select="ldh:class-icon(., 'link')" as="xs:string"/>
 
         <!-- same href recipe as the xhtml:Anchor override in imports/default.xsl; the crumb builds its
              own <a> because the design puts a glyph inside it, which the anchor mode cannot emit -->
@@ -525,12 +533,7 @@ extension-element-prefixes="ixsl"
                                 <h4 class="ldh-nblock-title">
                                     <xsl:value-of select="ac:label(.)"/>
                                 </h4>
-                                <a class="ldh-type-chip" href="{ldh:href(ac:document-uri($block-type), map{}, ac:fragment-id($block-type))}" title="{$block-type}">
-                                    <span>
-                                        <xsl:apply-templates select="key('resources', $block-type, document(ac:document-uri($block-type)))" mode="ac:label"/>
-                                    </span>
-                                    <span class="msi sm" aria-hidden="true">north_east</span>
-                                </a>
+                                <xsl:apply-templates select="rdf:type/@rdf:resource[. = $block-type]" mode="ac:ResourceTypes"/>
                             </span>
                         </span>
                     </div>
@@ -951,8 +954,9 @@ extension-element-prefixes="ixsl"
     <!-- the depiction thumbnail and the class icon share one 72px footprint (.ldh-res-thumb/.ldh-res-icon),
          so the title starts at the same x whether or not the resource carries an image; resources whose
          class has no icon mapping render neither, as in the design's BlockHeader -->
-    <xsl:template match="*[*][@rdf:about]" mode="ac:Depiction">
-        <xsl:param name="icon" select="(rdf:type/@rdf:resource ! map:get($ldh:class-icons, string(.)))[1]" as="xs:string?"/>
+    <!-- URI-named thumbs link to the resource; blank-node thumbs render the same anatomy inert -->
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="ac:Depiction">
+        <xsl:param name="icon" select="ldh:class-icon(., ())" as="xs:string?"/>
 
         <xsl:variable name="image-uris" as="xs:anyURI*">
             <xsl:apply-templates select="." mode="ac:image"/>
@@ -962,36 +966,15 @@ extension-element-prefixes="ixsl"
         <xsl:choose>
             <xsl:when test="exists($image-uris)">
                 <xsl:for-each select="$image-uris[1]">
-                    <a class="ldh-res-thumb" href="{$this/@rdf:about}" title="{ac:label($this)}">
+                    <xsl:element name="{if ($this/@rdf:about) then 'a' else 'span'}" namespace="http://www.w3.org/1999/xhtml">
+                        <xsl:attribute name="class" select="'ldh-res-thumb'"/>
+                        <xsl:if test="$this/@rdf:about">
+                            <xsl:attribute name="href" select="$this/@rdf:about"/>
+                            <xsl:attribute name="title" select="ac:label($this)"/>
+                        </xsl:if>
+
                         <img src="{.}" alt="{ac:label($this)}"/>
-                    </a>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:when test="exists($icon)">
-                <span class="ldh-res-icon">
-                    <span class="msi outline" aria-hidden="true">
-                        <xsl:value-of select="$icon"/>
-                    </span>
-                </span>
-            </xsl:when>
-            <xsl:otherwise/>
-        </xsl:choose>
-    </xsl:template>
-
-    <xsl:template match="*[*][@rdf:nodeID]" mode="ac:Depiction">
-        <xsl:param name="icon" select="(rdf:type/@rdf:resource ! map:get($ldh:class-icons, string(.)))[1]" as="xs:string?"/>
-
-        <xsl:variable name="image-uris" as="xs:anyURI*">
-            <xsl:apply-templates select="." mode="ac:image"/>
-        </xsl:variable>
-        <xsl:variable name="this" select="." as="element()"/>
-
-        <xsl:choose>
-            <xsl:when test="exists($image-uris)">
-                <xsl:for-each select="$image-uris[1]">
-                    <span class="ldh-res-thumb">
-                        <img src="{.}" alt="{ac:label($this)}"/>
-                    </span>
+                    </xsl:element>
                 </xsl:for-each>
             </xsl:when>
             <xsl:when test="exists($icon)">
@@ -1065,14 +1048,22 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*" mode="ac:BlockActions"/>
     
     <!-- TIMESTAMP -->
-    
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ldh:Timestamp">
+
+    <!-- the single "latest of created/modified" selection, shared by ldh:Timestamp and the list row's .ts cell -->
+    <xsl:function name="ldh:latest-date-time" as="element()?">
+        <xsl:param name="resource" as="element()"/>
+
         <xsl:variable name="sorted-date-time-properties" as="element()*">
-            <xsl:perform-sort select="(dct:created, dct:modified)[exists(ldh:date-time(string(.)))]">
+            <xsl:perform-sort select="($resource/dct:created, $resource/dct:modified)[exists(ldh:date-time(string(.)))]">
                 <xsl:sort select="ldh:date-time(string(.))" order="ascending"/>
             </xsl:perform-sort>
         </xsl:variable>
-        <xsl:apply-templates select="$sorted-date-time-properties[last()]/text()"/>
+
+        <xsl:sequence select="$sorted-date-time-properties[last()]"/>
+    </xsl:function>
+
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ldh:Timestamp">
+        <xsl:apply-templates select="ldh:latest-date-time(.)/text()"/>
     </xsl:template>
     
     <!-- TYPE LIST -->
@@ -1084,18 +1075,21 @@ extension-element-prefixes="ixsl"
          breadcrumb crumb -->
     <xsl:template match="*[@rdf:about or @rdf:nodeID][rdf:type/@rdf:resource]" mode="ac:ResourceTypes">
         <span class="ldh-types">
-            <xsl:for-each select="rdf:type/@rdf:resource">
+            <xsl:apply-templates select="rdf:type/@rdf:resource" mode="#current">
                 <xsl:sort select="ac:object-label(.)" order="ascending" lang="{ac:langs()[1]}"/>
-
-                <!-- TO-DO: find a way to use only cached documents, otherwise this will execute a synchronous HTTP request which slows down the UI -->
-                <a class="ldh-type-chip" href="{ldh:href(ac:document-uri(xs:anyURI(.)), map{}, ac:fragment-id(xs:anyURI(.)))}" title="{.}">
-                    <span>
-                        <xsl:value-of select="ac:object-label(.)"/>
-                    </span>
-                    <span class="msi sm" aria-hidden="true">north_east</span>
-                </a>
-            </xsl:for-each>
+            </xsl:apply-templates>
         </span>
+    </xsl:template>
+
+    <!-- the design's type chip: the single emitter every chip surface applies templates into
+         (the titleline wrapper above, the nested-block head) -->
+    <xsl:template match="rdf:type/@rdf:resource" mode="ac:ResourceTypes">
+        <a class="ldh-type-chip" href="{ldh:href(ac:document-uri(xs:anyURI(.)), map{}, ac:fragment-id(xs:anyURI(.)))}" title="{.}">
+            <span>
+                <xsl:value-of select="ac:object-label(.)"/>
+            </span>
+            <span class="msi sm" aria-hidden="true">north_east</span>
+        </a>
     </xsl:template>
     
     <!-- CONTENT LIST -->

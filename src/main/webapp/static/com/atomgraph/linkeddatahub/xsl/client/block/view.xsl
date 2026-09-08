@@ -1245,15 +1245,22 @@ exclude-result-prefixes="#all"
     <!-- hide resources that will be shown paired/nested with a document -->
     <xsl:template match="*[key('resources-by-primary-topic', @rdf:about)]" mode="ac:List" priority="1"/>
 
-    <!-- a document paired with its primary topic renders as one row carrying the topic's label, description and type -->
-    <xsl:template match="*[*][@rdf:about]" mode="ac:List" priority="0.8">
+    <!-- a document paired with its primary topic renders as one row carrying the topic's label, description and type.
+         URI-named rows are the link to their document; blank-node rows render the same anatomy inert -->
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="ac:List" priority="0.8">
         <xsl:variable name="subject" select="(key('resources', foaf:primaryTopic/@rdf:resource), .)[1]" as="element()"/>
 
         <li>
-            <a class="row" href="{ldh:href(ac:document-uri(xs:anyURI(@rdf:about)), map{})}" title="{@rdf:about}">
+            <xsl:element name="{if (@rdf:about) then 'a' else 'div'}" namespace="http://www.w3.org/1999/xhtml">
+                <xsl:attribute name="class" select="'row'"/>
+                <xsl:if test="@rdf:about">
+                    <xsl:attribute name="href" select="ldh:href(ac:document-uri(xs:anyURI(@rdf:about)), map{})"/>
+                    <xsl:attribute name="title" select="@rdf:about"/>
+                </xsl:if>
+
                 <span class="ic">
                     <span class="msi sm" aria-hidden="true">
-                        <xsl:value-of select="(rdf:type/@rdf:resource ! map:get($ldh:class-icons, string(.)), 'description')[1]"/>
+                        <xsl:value-of select="ldh:class-icon(., 'description')"/>
                     </span>
                 </span>
                 <span class="ti">
@@ -1268,43 +1275,13 @@ exclude-result-prefixes="#all"
 
                 <xsl:apply-templates select="." mode="ldh:ListRowTimestamp"/>
                 <xsl:apply-templates select="$subject" mode="ldh:ListRowType"/>
-            </a>
-        </li>
-    </xsl:template>
-
-    <xsl:template match="*[*][@rdf:nodeID]" mode="ac:List" priority="0.8">
-        <li>
-            <div class="row">
-                <span class="ic">
-                    <span class="msi sm" aria-hidden="true">
-                        <xsl:value-of select="(rdf:type/@rdf:resource ! map:get($ldh:class-icons, string(.)), 'description')[1]"/>
-                    </span>
-                </span>
-                <span class="ti">
-                    <xsl:apply-templates select="." mode="ac:label"/>
-
-                    <xsl:where-populated>
-                        <span class="desc">
-                            <xsl:apply-templates select="." mode="ac:description"/>
-                        </span>
-                    </xsl:where-populated>
-                </span>
-
-                <xsl:apply-templates select="." mode="ldh:ListRowTimestamp"/>
-                <xsl:apply-templates select="." mode="ldh:ListRowType"/>
-            </div>
+            </xsl:element>
         </li>
     </xsl:template>
 
     <!-- .ts cell: the latest of dct:created/dct:modified as a short date -->
     <xsl:template match="*" mode="ldh:ListRowTimestamp">
-        <xsl:variable name="sorted-date-time-properties" as="element()*">
-            <xsl:perform-sort select="(dct:created, dct:modified)[exists(ldh:date-time(string(.)))]">
-                <xsl:sort select="ldh:date-time(string(.))" order="ascending"/>
-            </xsl:perform-sort>
-        </xsl:variable>
-
-        <xsl:for-each select="$sorted-date-time-properties[last()]">
+        <xsl:for-each select="ldh:latest-date-time(.)">
             <span class="ts">
                 <xsl:value-of select="format-date(xs:date(ldh:date-time(string(.))), '[D] [MNn] [Y]', ac:langs()[1], (), ())"/>
             </span>
@@ -1334,13 +1311,20 @@ exclude-result-prefixes="#all"
     <!-- hide resources that will be shown paired/nested with a document -->
     <xsl:template match="*[key('resources-by-primary-topic', @rdf:about)]" mode="ac:Grid" priority="1"/>
 
-    <!-- a document paired with its primary topic renders as one card carrying the topic's label and description -->
-    <xsl:template match="*[*][@rdf:about]" mode="ac:Grid" priority="0.8">
+    <!-- a document paired with its primary topic renders as one card carrying the topic's label and description.
+         URI-named cards are the link to their document; blank-node cards render the same anatomy inert -->
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="ac:Grid" priority="0.8">
         <xsl:variable name="subject" select="(key('resources', foaf:primaryTopic/@rdf:resource), .)[1]" as="element()"/>
         <xsl:variable name="pos" select="position()" as="xs:integer"/>
 
         <li>
-            <a class="card" href="{ldh:href(ac:document-uri(xs:anyURI(@rdf:about)), map{})}" title="{@rdf:about}">
+            <xsl:element name="{if (@rdf:about) then 'a' else 'div'}" namespace="http://www.w3.org/1999/xhtml">
+                <xsl:attribute name="class" select="'card'"/>
+                <xsl:if test="@rdf:about">
+                    <xsl:attribute name="href" select="ldh:href(ac:document-uri(xs:anyURI(@rdf:about)), map{})"/>
+                    <xsl:attribute name="title" select="@rdf:about"/>
+                </xsl:if>
+
                 <xsl:choose>
                     <xsl:when test="ac:image($subject)">
                         <div class="img">
@@ -1350,7 +1334,7 @@ exclude-result-prefixes="#all"
                     <xsl:otherwise>
                         <div class="img {('img-sky', 'img-mint', 'img-peach', 'img-lavender', 'img-blush', 'img-sand')[($pos - 1) mod 6 + 1]}">
                             <span class="msi" aria-hidden="true">
-                                <xsl:value-of select="(rdf:type/@rdf:resource ! map:get($ldh:class-icons, string(.)), 'description')[1]"/>
+                                <xsl:value-of select="ldh:class-icon(., 'description')"/>
                             </span>
                         </div>
                     </xsl:otherwise>
@@ -1366,41 +1350,7 @@ exclude-result-prefixes="#all"
                         </span>
                     </xsl:where-populated>
                 </div>
-            </a>
-        </li>
-    </xsl:template>
-
-    <xsl:template match="*[*][@rdf:nodeID]" mode="ac:Grid" priority="0.8">
-        <xsl:variable name="pos" select="position()" as="xs:integer"/>
-
-        <li>
-            <div class="card">
-                <xsl:choose>
-                    <xsl:when test="ac:image(.)">
-                        <div class="img">
-                            <img src="{ac:image(.)[1]}" alt="{ac:label(.)}"/>
-                        </div>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <div class="img {('img-sky', 'img-mint', 'img-peach', 'img-lavender', 'img-blush', 'img-sand')[($pos - 1) mod 6 + 1]}">
-                            <span class="msi" aria-hidden="true">
-                                <xsl:value-of select="(rdf:type/@rdf:resource ! map:get($ldh:class-icons, string(.)), 'description')[1]"/>
-                            </span>
-                        </div>
-                    </xsl:otherwise>
-                </xsl:choose>
-                <div class="card-body">
-                    <span class="ti">
-                        <xsl:apply-templates select="." mode="ac:label"/>
-                    </span>
-
-                    <xsl:where-populated>
-                        <span class="meta">
-                            <xsl:apply-templates select="." mode="ac:description"/>
-                        </span>
-                    </xsl:where-populated>
-                </div>
-            </div>
+            </xsl:element>
         </li>
     </xsl:template>
 
@@ -1958,7 +1908,7 @@ exclude-result-prefixes="#all"
                                     <xsl:value-of select="$predicate"/>
                                 </span>
                                 <button type="button" class="clear">
-                                    <xsl:apply-templates select="key('resources', 'clear', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
+                                    <xsl:apply-templates select="key('resources', 'clear-facet', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin)))" mode="ac:label"/>
                                 </button>
                             </div>
                             <div class="facet-values">
