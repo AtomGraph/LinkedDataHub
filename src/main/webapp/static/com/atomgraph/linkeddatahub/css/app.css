@@ -786,6 +786,17 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 }
 .ldh-mode .label-row { display: inline-flex; align-items: center; gap: var(--sp-2); }
 .ldh-mode .label { letter-spacing: 0.02em; }
+/* Compact variant — the same dropdown inside a view's own toolbar, where it
+   sits beside the facet pills rather than in the page-level action bar. Trigger
+   only: the popover keeps its full size, since the mode descriptions are the
+   reason it reads better than five unlabelled icons. */
+.ldh-mode.sz-sm {
+  height: 28px; padding: 0 var(--sp-2); gap: 5px;
+  margin-right: 0;
+  font-size: var(--fs-xs);
+}
+.ldh-mode.sz-sm .label-row { gap: 5px; }
+.ldh-mode.sz-sm .msi { font-size: 16px; }
 .ldh-mode .modes-pop {
   position: absolute; top: calc(100% + 6px); right: 0;
   min-width: 220px;
@@ -1080,6 +1091,36 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 }
 .ldh-drawer .drow.is-current .msi { color: var(--ldh-blue-600); }
 .ldh-drawer .drow.is-current .tag { background: var(--surface-0); color: var(--ldh-blue-600); }
+
+/* Parallax pivot row — a predicate with a direction button each way. Not a
+   .drow: a .drow IS the link, whereas here the row is a label and the two
+   buttons are the navigation, so the row itself must not be interactive. */
+.dpivot {
+  display: flex; align-items: center; gap: var(--sp-2);
+  padding: 4px 4px 4px 8px;
+  border-radius: var(--r-sm);
+  font-size: var(--fs-sm); color: var(--fg-2);
+  transition: background var(--dur-fast) var(--ease-out-soft);
+}
+.dpivot:hover { background: var(--bg-hover); }
+.dpivot-pred { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+.dpivot-pred .msi { color: var(--fg-hint); flex-shrink: 0; }
+.dpivot-pred .lbl { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* The two directions read as one control, so they sit in a shared track. */
+.dpivot-dirs {
+  display: flex; align-items: center; gap: 2px; flex-shrink: 0;
+  padding: 2px;
+  background: var(--surface-2);
+  border-radius: var(--r-sm);
+}
+.dpivot-dirs .ldhc-iconbtn { color: var(--fg-muted); }
+.dpivot-dirs .ldhc-iconbtn:hover { background: var(--surface-0); color: var(--ldh-blue-700); }
+/* A direction with no matches stays visible but inert — its absence would
+   wrongly imply the predicate does not exist that way round. */
+.dpivot-dirs .ldhc-iconbtn:disabled { opacity: 0.32; }
+.dpivot.is-current { background: var(--bg-accent-quiet); color: var(--ldh-blue-700); font-weight: var(--fw-medium); }
+.dpivot.is-current .dpivot-pred .msi { color: var(--ldh-blue-600); }
+.dpivot.is-current .dpivot-dirs { background: var(--surface-0); }
 
 .ldh-drawer .df {
   display: flex; align-items: center; justify-content: space-between;
@@ -1754,6 +1795,13 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   border-style: dashed; color: var(--fg-muted); background: transparent;
 }
 .facet-pill.add:hover { color: var(--fg-1); border-color: var(--border-strong); }
+/* Sort direction toggle — a .facet-pill so it matches the bar, but it states a
+   direction rather than a filter, so the arrow carries the accent and the pill
+   itself stays neutral. */
+.facet-pill.sort-dir { gap: 4px; }
+.facet-pill.sort-dir .msi { color: var(--ldh-blue-600); }
+.facet-pill.sort-dir:hover .msi { color: var(--ldh-blue-700); }
+.facet-pill.sort-dir .val { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.02em; }
 
 /* Filters lead icon + clear-all */
 .ldh-view-toolbar .facet-lead { display: inline-flex; align-items: center; color: var(--fg-hint); margin-right: 2px; }
@@ -1796,6 +1844,11 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .facet-pop .opt .cnt { font-family: var(--font-mono); font-size: 10px; color: var(--fg-hint); }
 .facet-pop .facet-values { display: flex; flex-direction: column; gap: 1px; max-height: 264px; overflow: auto; }
 .facet-pop .facet-empty { padding: 8px var(--sp-2); font-size: var(--fs-xs); color: var(--fg-muted); }
+/* Sort menu — single-selection, so no leading checkbox. The chosen key is the
+   highlighted row plus a trailing tick; the facet menu's .check box is its
+   multi-select affordance and would misdescribe this one. */
+.facet-pop.sort-pop .opt.is-on { background: var(--bg-selected); color: var(--fg-selected); font-weight: var(--fw-medium); }
+.facet-pop.sort-pop .opt .tick { margin-left: auto; color: var(--fg-selected); flex-shrink: 0; }
 .facet-pop .head {
   display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2);
   padding: 6px var(--sp-2) 6px;
@@ -1813,7 +1866,10 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 }
 .facet-pop .head .clear:hover { text-decoration: underline; }
 
-/* View-mode switcher inside the view-toolbar (grid / list / map / chart) */
+/* Two-option list/grid toggle in the sidebar's Latest-documents modal. NOT the
+   view's layout switcher any more — five options in a strip was too much
+   toolbar for too little; that is <ModeSwitcher size="sm"> now. A segmented
+   control still earns its space at two options. */
 .view-mode-seg {
   display: inline-flex; align-items: center;
   background: var(--surface-0);
@@ -1852,6 +1908,10 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
    and the grid's doubled bottom padding so everything aligns to the title. */
 .ldh-block-body > .ldh-grid-block { padding: var(--sp-2) 0 0; }
 .ldh-block-body > .ldh-view-toolbar { padding-left: 0; padding-right: 0; }
+/* The pivot bar is the toolbar's sibling and must take the same treatment: the
+   block body already supplies the --sp-6 inset, so keeping its own would push
+   the pivot pills 24px right of the facet pills. */
+.ldh-block-body > .ldh-pivot-bar { padding-left: 0; padding-right: 0; }
 .ldh-grid-block .card {
   position: relative;
   display: flex; flex-direction: column; align-items: stretch;
@@ -1928,10 +1988,14 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-list-block .row .ts {
   font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--fg-hint); white-space: nowrap;
 }
-.ldh-list-block .row .type {
-  font-family: var(--font-mono); font-size: 10px; color: var(--fg-muted);
-  padding: 2px 8px; background: var(--surface-2); border-radius: var(--r-pill);
-}
+/* An rdf:type value renders as the core type Tag (.ldhc-tag.em-quiet.co-primary)
+   wherever it lands — property values, table cells and list rows alike. The
+   `.type` cell only PLACES that Tag; it paints no pill of its own. Only the
+   title-line `a.ldh-type-chip` stays distinct, as the linked variant.
+   `.ldh-type-chip` here is the OUTGOING markup — the shipped bundle still
+   emits it until recompile, so it keeps its placement rule. */
+.ldh-list-block .row .type { display: inline-flex; flex-shrink: 0; }
+.ldh-list-block .row .ldh-type-chip { flex-shrink: 0; }
 
 /* ---------- Full-bleed mode wrappers (Graph / Map) ---------- */
 .ldh-fullbleed {
@@ -2914,8 +2978,8 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-admin-head-actions { display: flex; align-items: center; gap: var(--sp-2); flex-shrink: 0; }
 
 /* Legacy segmented control. No JSX consumer remains — the import-type and
-   per-browser pickers moved to core <Tabs>, the view-mode picker to core
-   <ContentSwitcher>. Kept for hand-written markup; prefer those components. */
+   per-browser pickers moved to core <Tabs>, and the view-mode picker to the
+   <ModeSwitcher> dropdown. Kept for hand-written markup; prefer those. */
 .ldh-seg {
   display: inline-flex; align-items: center; gap: 2px;
   padding: 3px; background: var(--surface-2);
@@ -3724,6 +3788,31 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 }
 .ldh-type-chip:focus-visible { outline: 0; box-shadow: var(--focus-ring); }
 .ldh-type-chip .msi { font-size: 12px; opacity: 0.7; }
+/* Quiet variant — a STATIC type label, not a link to the class definition.
+   The accent chip is an affordance: it carries the north_east icon and opens
+   the class document. Giving a non-interactive label the same accent would make
+   "clickable" and "just a label" look identical, and eight accent pills down a
+   dense row list shouts far louder than the row content. Same chip shape and
+   metrics, quiet neutral ink, no hover response.
+
+/* `.is-quiet` is the OUTGOING variant: the shipped bundle still emits
+   `.ldh-type-chip is-quiet` on list rows until it recompiles, so these styles
+   stay one cycle. The invariant is now that an rdf:type value renders as the
+   core type Tag (.ldhc-tag.em-quiet.co-primary) wherever it lands, so this
+   app-level variant has no incoming consumer and comes out next pass.
+
+   The doubled class is deliberate, exactly as with `.ttl.ttl`: every skin
+   patches `.ldh-type-chip` at `:root[data-retro…] .ldh-type-chip` (0,3,0) and
+   the skin files load after app.css, so a plain `.ldh-type-chip.is-quiet`
+   (0,2,0) loses and the label renders accent-coloured. */
+:root .ldh-type-chip.is-quiet.is-quiet {
+  background: var(--surface-2); color: var(--fg-muted);
+  border-color: transparent;
+  font-family: var(--font-mono); font-size: 10px;
+}
+:root .ldh-type-chip.is-quiet.is-quiet:hover {
+  background: var(--surface-2); color: var(--fg-muted); border-color: transparent;
+}
 
 
 /* =========================================================================
@@ -3819,3 +3908,105 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
    came from (a query, a container, a row count) is not part of the resource, so
    it gets no slot in the shell, header or footer. If the query is a property of
    the resource, it shows as a statement in the resource's own description. */
+
+
+/* =========================================================================
+   PIVOT BAR — parallax navigation, its own row under the facet/sort toolbar.
+   One pill per predicate PER DIRECTION, all visible: pivots are the primary
+   way to travel a graph, so the whole set is worth a row rather than a click.
+   The arrow leads the label, and forward pills group before backward ones.
+   ========================================================================= */
+.ldh-pivot-bar {
+  display: flex; gap: var(--sp-2);
+  /* Matches .ldh-view-toolbar exactly — same vertical padding, same inset, same
+     gap — so the two bars read as one stacked control rather than two
+     components that happen to sit together. Inside .ldh-block-body the
+     horizontal padding is zeroed alongside the toolbar's (see that rule), since
+     the body supplies the inset. */
+  padding: var(--sp-3) var(--sp-6);
+  /* Same tint and same dashed divider as .ldh-view-toolbar, so the two bars
+     read as one banded control stacked in two rows rather than a tinted bar
+     followed by a white one. */
+  background: var(--surface-1);
+  border-bottom: 1px dashed var(--border-default);
+  min-width: 0;
+  /* flex-start, not center: the pills wrap, and centring the glyph on a
+     two-row block floats it into the gap between rows instead of aligning it
+     with the first pill the way the facet bar's lead glyph does. */
+  align-items: flex-start;
+}
+/* Leading glyph, matching the facet bar's filter glyph — it names the row
+   without spending a label on it. */
+/* Mirrors .facet-lead, and takes the pill's height so it centres on the FIRST
+   pill row regardless of how many rows the pills wrap to. */
+.ldh-pivot-glyph {
+  display: inline-flex; align-items: center;
+  height: 28px; margin-right: 2px;
+  color: var(--fg-hint); flex-shrink: 0;
+}
+/* Wraps rather than scrolls: a hidden pivot is the problem this bar exists to
+   solve, so a second line is the right cost. */
+.ldh-pivot-pills { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; min-width: 0; }
+.ldh-pivot-pill {
+  /* Metrically identical to .facet-pill: same height, padding and gap. A pivot
+     and a facet are both "one tap changes the result set", so they should not
+     differ in weight. */
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 28px; padding: 0 10px; box-sizing: border-box;
+  background: var(--surface-0);
+  border: 1px solid var(--border-default); border-radius: var(--r-pill);
+  color: var(--fg-1); cursor: pointer;
+  font-family: var(--font-sans); font-size: var(--fs-sm); font-weight: var(--fw-medium);
+  white-space: nowrap;
+  transition: background var(--dur-fast) var(--ease-out-soft), border-color var(--dur-fast) var(--ease-out-soft), color var(--dur-fast) var(--ease-out-soft);
+}
+.ldh-pivot-pill:hover {
+  background: var(--bg-accent-quiet);
+  border-color: var(--ldh-blue-400);
+  color: var(--ldh-blue-700);
+}
+.ldh-pivot-pill:active { background: var(--ldh-blue-100); }
+.ldh-pivot-pill:focus-visible { outline: 0; box-shadow: var(--focus-ring); }
+/* The arrow is the direction, so it carries the accent, not the label. */
+.ldh-pivot-pill .msi { color: var(--ldh-blue-600); flex-shrink: 0; }
+.ldh-pivot-pill:hover .msi { color: var(--ldh-blue-700); }
+.ldh-pivot-pill .lbl { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+/* Outgoing dropdown, kept styled until the bundle recompiles. */
+   Lives beside the facets and the layout switcher because it is a QUERY
+   control: it reshapes this view's result set. (The block drawer holds links
+   OUT of the document — backlinks, related resources — which is a different
+   job, so both surfaces can offer pivots without competing.)
+   The trigger matches .ldh-mode.sz-sm exactly, so the two toolbar dropdowns
+   read as siblings.
+   ========================================================================= */
+.ldh-pivot { position: relative; display: inline-flex; }
+.ldh-pivot-trigger {
+  display: inline-flex; align-items: center; gap: 5px;
+  height: 28px; padding: 0 var(--sp-2); box-sizing: border-box;
+  background: var(--surface-2);
+  border: 1px solid var(--border-default); border-radius: var(--r-md);
+  color: var(--fg-2); cursor: pointer;
+  font-family: var(--font-sans); font-size: var(--fs-xs); font-weight: var(--fw-medium);
+  transition: background var(--dur-fast) var(--ease-out-soft), border-color var(--dur-fast) var(--ease-out-soft), color var(--dur-fast) var(--ease-out-soft);
+}
+.ldh-pivot-trigger:hover { background: var(--surface-0); border-color: var(--border-strong); color: var(--fg-1); }
+.ldh-pivot-trigger:focus-visible { outline: 0; box-shadow: var(--focus-ring); }
+.ldh-pivot-trigger .msi { font-size: 16px; color: var(--fg-muted); }
+.ldh-pivot.is-open .ldh-pivot-trigger { background: var(--surface-0); border-color: var(--ldh-blue-400); color: var(--fg-1); }
+
+.ldh-pivot-pop {
+  display: none;
+  position: absolute; top: calc(100% + 6px); right: 0; z-index: 40;
+  min-width: 280px; max-width: 340px;
+  padding: 4px;
+  background: var(--surface-0); color: var(--fg-1);
+  border: 1px solid var(--border-default); border-radius: var(--r-md);
+  box-shadow: var(--shadow-lg);
+}
+.ldh-pivot.is-open .ldh-pivot-pop { display: block; }
+.ldh-pivot-h {
+  display: block; padding: var(--sp-2) var(--sp-2) 4px;
+  font-family: var(--font-mono); font-size: 10px; font-weight: var(--fw-medium);
+  letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--fg-hint);
+}

@@ -518,13 +518,13 @@ exclude-result-prefixes="#all"
             </xsl:map>
         </xsl:param>
 
-        <div class="ldh-mode btn-group">
+        <div class="ldh-mode ldh-drop-wrap">
             <button type="button" title="{ac:label(key('resources', '&ac;Mode', document(ac:document-uri('&ac;'))))}">
                 <xsl:if test="$id">
                     <xsl:attribute name="id" select="$id"/>
                 </xsl:if>
 
-                <xsl:attribute name="class" select="'dropdown-toggle ' || (map:get($mode-button-classes, string($active-mode)), 'btn-read')[1]"/>
+                <xsl:attribute name="class" select="'drop-toggle ' || (map:get($mode-button-classes, string($active-mode)), 'btn-read')[1]"/>
 
                 <span class="msi sm" aria-hidden="true"><xsl:value-of select="(map:get($ldh:mode-icons, string($active-mode)), 'view_list')[1]"/></span>
                 <span class="msi caret" aria-hidden="true">expand_more</span>
@@ -1294,14 +1294,17 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
 
-    <!-- .type cell: the first type by label -->
+    <!-- .type cell: the first type by label, rendered as the core type Tag through the single pill
+         rule - linkless, because the row itself is the anchor -->
     <xsl:template match="*" mode="ldh:ListRowType">
         <xsl:for-each select="rdf:type/@rdf:resource">
             <xsl:sort select="ac:object-label(.)" order="ascending" lang="{ac:langs()[1]}"/>
 
             <xsl:if test="position() = 1">
                 <span class="type">
-                    <xsl:value-of select="ac:object-label(.)"/>
+                    <xsl:apply-templates select=".">
+                        <xsl:with-param name="link" select="false()" tunnel="yes"/>
+                    </xsl:apply-templates>
                 </span>
             </xsl:if>
         </xsl:for-each>
@@ -3062,7 +3065,7 @@ exclude-result-prefixes="#all"
 
 
             <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
-            <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseDropdown"/>
+            <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ldh-drop-wrap')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseDropdown"/>
             <xsl:result-document href="?." method="ixsl:append-content">
                 <div class="ldhc-backdrop pos-top modal modal-constructor" about="{$doc-uri}" typeof="{$forClass}"> <!-- @about identifies the new document URL (uniform with the other modals so submit handlers can read $block/@about); the instance URI travels on @data-instance -->
                     <xsl:apply-templates select="." mode="ldh:Modal">
