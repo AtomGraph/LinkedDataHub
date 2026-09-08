@@ -97,76 +97,111 @@ ORDER BY DESC(?created)
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'left-sidebar ldh-sidebar'" as="xs:string?"/>
 
-        <div>
+        <!-- the dataspace drawer (§19): it slides over the content and dismisses via its backdrop.
+             Closed by default: inert takes its subtree out of the tab order and away from AT while
+             transform/visibility (app.css) hide it; the toggle pill below is the open affordance -->
+        <div inert="">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
+            <xsl:attribute name="aria-label" select="ac:label(key('resources', 'search-title', ldh:translations()))"/>
 
-            <!-- dataspace-scoped search form -->
-            <form class="search-form sb-search" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', ldh:translations()))}">
-                <span class="msi sm" aria-hidden="true">search</span>
-                <input type="text" name="q" placeholder="{ac:label(key('resources', 'search-placeholder', ldh:translations()))}"/>
-            </form>
-
-            <!-- document tree container -->
-            <div class="document-tree sb-section">
-                <h2 class="ldh-section-heading sb-heading">
-                    <xsl:apply-templates select="key('resources', 'document-tree', ldh:translations())" mode="ac:label"/>
-                </h2>
-
-                <ul class="nav sb-tree">
-                    <li>
-                        <button class="btn-expand-tree sb-caret"></button>
-                        <a href="{$base}">
-                            <span class="msi sm sb-icon" aria-hidden="true">home</span>
-                            <span class="sb-label">
-                                <xsl:apply-templates select="key('resources', 'root', ldh:translations())" mode="ac:label"/>
-                            </span>
-                        </a>
-                    </li>
-                </ul>
+            <div class="sb-head">
+                <!-- an honest BUTTON, not an input: it opens the search dialog (the header field is an address bar) -->
+                <button type="button" class="sb-search" title="{ac:label(key('resources', 'search-title', ldh:translations()))}">
+                    <span class="msi sm" aria-hidden="true">search</span>
+                    <span class="sb-search-label">
+                        <xsl:apply-templates select="key('resources', 'search-placeholder', ldh:translations())" mode="ac:label"/>
+                    </span>
+                    <kbd>⌘K</kbd>
+                </button>
+                <button type="button" class="ldhc-iconbtn sz-xs in-neutral ap-ghost btn-close-sidebar" aria-label="{ac:label(key('resources', 'hide-navigation', ldh:translations()))}">
+                    <span class="msi sm" aria-hidden="true">close</span>
+                </button>
             </div>
 
-            <!-- class list container -->
-            <div class="class-list sb-section">
-                <h2 class="ldh-section-heading sb-heading">
-                    <xsl:apply-templates select="key('resources', 'classes', ldh:translations())" mode="ac:label"/>
-                </h2>
+            <!-- one scroll box for all sections, so the search row stays pinned -->
+            <div class="sb-scroll">
+                <!-- document tree container: the containment axis -->
+                <div class="document-tree sb-section">
+                    <h3 class="sb-heading">
+                        <span>
+                            <xsl:apply-templates select="key('resources', 'document-tree', ldh:translations())" mode="ac:label"/>
+                        </span>
+                    </h3>
 
-                <ul class="nav sb-classes">
-                    <!-- class list will be loaded dynamically -->
-                </ul>
-            </div>
+                    <ul class="ldh-tree">
+                        <li>
+                            <div class="tree-row" style="--depth: 0">
+                                <button type="button" class="ldhc-iconbtn sz-xs in-neutral ap-ghost btn-expand-tree" aria-expanded="false">
+                                    <span class="msi sm" aria-hidden="true">chevron_right</span>
+                                </button>
+                                <a class="tree-link" href="{$base}">
+                                    <span class="msi sm tree-icon" aria-hidden="true">home</span>
+                                    <span class="tree-label">
+                                        <xsl:apply-templates select="key('resources', 'root', ldh:translations())" mode="ac:label"/>
+                                    </span>
+                                </a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
 
-            <!-- other section -->
-            <div class="other-views sb-section">
-                <h2 class="ldh-section-heading sb-heading">
-                    <xsl:apply-templates select="key('resources', 'other', ldh:translations())" mode="ac:label"/>
-                </h2>
+                <!-- class list container: the type axis, cutting across containment -->
+                <div class="class-list sb-section">
+                    <h3 class="sb-heading">
+                        <span>
+                            <xsl:apply-templates select="key('resources', 'classes', ldh:translations())" mode="ac:label"/>
+                        </span>
+                    </h3>
 
-                <ul class="nav sb-other">
-                    <li>
-                        <button type="button" class="btn-geo sb-other-row">
-                            <span class="msi sm" aria-hidden="true">location_on</span>
-                            <span>
-                                <xsl:apply-templates select="key('resources', 'geo', ldh:translations())" mode="ac:label"/>
-                            </span>
-                        </button>
-                    </li>
-                    <li>
-                        <button type="button" class="btn-latest sb-other-row">
-                            <span class="msi sm" aria-hidden="true">history</span>
-                            <span>
-                                <xsl:apply-templates select="key('resources', 'latest', ldh:translations())" mode="ac:label"/>
-                            </span>
-                        </button>
-                    </li>
-                </ul>
+                    <ul class="sb-classes">
+                        <!-- class list will be loaded dynamically -->
+                    </ul>
+                </div>
+
+                <!-- other section -->
+                <div class="other-views sb-section">
+                    <h3 class="sb-heading">
+                        <span>
+                            <xsl:apply-templates select="key('resources', 'other', ldh:translations())" mode="ac:label"/>
+                        </span>
+                    </h3>
+
+                    <ul class="sb-other">
+                        <li>
+                            <button type="button" class="tree-link btn-geo">
+                                <span class="msi sm tree-icon" aria-hidden="true">location_on</span>
+                                <span class="tree-label">
+                                    <xsl:apply-templates select="key('resources', 'geo', ldh:translations())" mode="ac:label"/>
+                                </span>
+                                <!-- trailing glyph marking an entry that opens a dialog rather than navigating -->
+                                <span class="msi sm sb-out" aria-hidden="true">open_in_new</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="tree-link btn-latest">
+                                <span class="msi sm tree-icon" aria-hidden="true">history</span>
+                                <span class="tree-label">
+                                    <xsl:apply-templates select="key('resources', 'latest', ldh:translations())" mode="ac:label"/>
+                                </span>
+                                <span class="msi sm sb-out" aria-hidden="true">open_in_new</span>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
+        <!-- one affordance, not two (§21): the pill renders inert while the drawer is open
+             (the CSS guard .ldh-sidebar.is-open ~ .sidebar-toggle hides it) -->
+        <button type="button" class="sidebar-toggle" title="{ac:label(key('resources', 'show-navigation', ldh:translations()))}">
+            <span class="msi sm" aria-hidden="true">left_panel_open</span>
+            <xsl:text> </xsl:text>
+            <xsl:apply-templates select="key('resources', 'show-navigation', ldh:translations())" mode="ac:label"/>
+        </button>
     </xsl:template>
     
     <xsl:template name="ldh:DocTreeActivateHref">
@@ -176,14 +211,21 @@ ORDER BY DESC(?created)
         <!-- strip query params from href to ensure consistent matching -->
         <xsl:variable name="target-uri" select="ac:document-uri($href)" as="xs:anyURI"/>
 
-        <!-- make the previously active list items inactive -->
-        <xsl:for-each select=".//li[contains-token(@class, 'active')]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        <!-- make the previously active list items inactive (the state rides the li so the ground spans
+             the disclosure control; aria-current rides the anchor) -->
+        <xsl:for-each select=".//li[contains-token(@class, 'is-active')]">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:for-each select="div/a">
+                <xsl:sequence select="ixsl:call(., 'removeAttribute', [ 'aria-current' ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:for-each>
         </xsl:for-each>
         <!-- find li elements whose href (without query params) matches target href (without query params) -->
-        <xsl:for-each select=".//li[a[ac:document-uri(xs:anyURI(@href)) = $target-uri]]">
+        <xsl:for-each select=".//li[div/a[ac:document-uri(xs:anyURI(@href)) = $target-uri]]">
             <!-- mark the new list item as active -->
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:for-each select="div/a">
+                <xsl:sequence select="ixsl:call(., 'setAttribute', [ 'aria-current', 'page' ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:for-each>
         </xsl:for-each>
     </xsl:template>
 
@@ -193,7 +235,7 @@ ORDER BY DESC(?created)
 
         <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]/div[contains-token(@class, 'left-sidebar')]">
             <!-- activate the current URL in the document tree -->
-            <xsl:for-each select="./div[contains-token(@class, 'document-tree')]">
+            <xsl:for-each select=".//div[contains-token(@class, 'document-tree')]">
                 <xsl:variable name="href-string" select="string($href)" as="xs:string"/>
                 <xsl:variable name="target" select="xs:anyURI(if (contains($href-string, '?')) then substring-before($href-string, '?') else $href-string)" as="xs:anyURI"/>
                 <xsl:call-template name="ldh:DocTreeExpandPathAndActivate">
@@ -203,7 +245,7 @@ ORDER BY DESC(?created)
             </xsl:for-each>
 
             <!-- reload the class list -->
-            <xsl:for-each select="./div[contains-token(@class, 'class-list')]/ul">
+            <xsl:for-each select=".//div[contains-token(@class, 'class-list')]/ul">
                 <xsl:call-template name="ldh:ClassListLoad">
                     <xsl:with-param name="container" select="."/>
                     <xsl:with-param name="endpoint" select="sd:endpoint()"/>
@@ -279,52 +321,90 @@ ORDER BY DESC(?created)
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     
+    <!-- one tree node (§19): li > .tree-row > disclosure + a.tree-link; the li carries state, the row
+         carries the depth indent ramp (the depth custom property), and a leaf takes the inert spacer so labels stay aligned -->
     <xsl:template match="*[@rdf:about]" mode="ldh:DocTreeListItem">
-        <xsl:param name="class" as="xs:string?"/>
+        <xsl:param name="depth" select="0" as="xs:integer"/>
 
         <li>
-            <!-- only containers have can have children resources -->
-            <xsl:if test="sioc:has_parent">
-                <button class="btn-expand-tree sb-caret"></button>
-            </xsl:if>
-            
-            <xsl:apply-templates select="@rdf:about" mode="xhtml:Anchor">
-                <xsl:with-param name="id" select="()"/>
-                <xsl:with-param name="class" select="$class"/>
-            </xsl:apply-templates>
+            <div class="tree-row" style="--depth: {$depth}">
+                <!-- only containers can have children resources; the disclosure is a SIBLING of the anchor,
+                     so a container can be expanded without navigating into it -->
+                <xsl:choose>
+                    <xsl:when test="sioc:has_parent">
+                        <button type="button" class="ldhc-iconbtn sz-xs in-neutral ap-ghost btn-expand-tree" aria-expanded="false">
+                            <span class="msi sm" aria-hidden="true">chevron_right</span>
+                        </button>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <span class="tree-spacer" aria-hidden="true"/>
+                    </xsl:otherwise>
+                </xsl:choose>
+
+                <a class="tree-link" href="{@rdf:about}" title="{@rdf:about}">
+                    <span class="tree-label">
+                        <xsl:apply-templates select="." mode="ac:label"/>
+                    </span>
+                </a>
+            </div>
         </li>
     </xsl:template>
     
     <!-- EVENT HANDLERS -->
-    
-    <!-- show left-side document tree -->
 
-    <xsl:template match="body" mode="ixsl:onmousemove">
-        <xsl:variable name="x" select="ixsl:get(ixsl:event(), 'clientX')"/>
+    <!-- the drawer opens from its toggle pill and closes from its own button, the backdrop or Escape
+         (§21-§23): one affordance each way, inert while closed so the subtree leaves the tab order -->
 
-        <!-- check that the mouse is on the left edge -->
-        <xsl:if test="$x = 0">
-            <xsl:variable name="active-sidebar" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]/div[contains-token(@class, 'left-sidebar')]" as="element()?"/>
-            <xsl:if test="$active-sidebar">
-                <ixsl:set-style name="display" select="'block'" object="$active-sidebar"/>
-            </xsl:if>
-        </xsl:if>
+    <xsl:template match="button[contains-token(@class, 'sidebar-toggle')]" mode="ixsl:onclick">
+        <xsl:for-each select="preceding-sibling::div[contains-token(@class, 'ldh-sidebar')][1]">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ixsl:call(., 'removeAttribute', [ 'inert' ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
 
-        <!-- chain to the RDFa editor's sweep-selection tracker (lower import precedence) -->
+        <!-- the backdrop renders only while the drawer is open, so it never intercepts clicks on the
+             document; a button, because dismissing is an action and must be reachable without a pointer (§22) -->
+        <xsl:for-each select="ixsl:page()//body">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <button type="button" class="ldh-rail-backdrop" aria-label="{ac:label(key('resources', 'hide-navigation', ldh:translations()))}"/>
+            </xsl:result-document>
+        </xsl:for-each>
+    </xsl:template>
+
+    <xsl:template match="div[contains-token(@class, 'ldh-sidebar')]" mode="ldh:CloseDrawer">
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call(., 'setAttribute', [ 'inert', '' ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:for-each select="ixsl:page()//button[contains-token(@class, 'ldh-rail-backdrop')]">
+            <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+    </xsl:template>
+
+    <xsl:template match="button[contains-token(@class, 'ldh-rail-backdrop')]" mode="ixsl:onclick">
+        <xsl:apply-templates select="ixsl:page()//div[contains-token(@class, 'ldh-sidebar')][contains-token(@class, 'is-open')]" mode="ldh:CloseDrawer"/>
+    </xsl:template>
+
+    <xsl:template match="button[contains-token(@class, 'btn-close-sidebar')]" mode="ixsl:onclick">
+        <xsl:apply-templates select="ancestor::div[contains-token(@class, 'ldh-sidebar')][1]" mode="ldh:CloseDrawer"/>
+    </xsl:template>
+
+    <!-- Escape dismisses the open drawer (unless a modal owns the key); ⌘K/Ctrl+K opens the search
+         dialog from anywhere. Chains to the RDFa editor's body shortcuts (lower import precedence) -->
+    <xsl:template match="body" mode="ixsl:onkeydown">
+        <xsl:variable name="key" select="ixsl:get(ixsl:event(), 'key')" as="xs:string"/>
+
+        <xsl:choose>
+            <xsl:when test="$key = 'Escape' and empty(ixsl:page()//div[contains-token(@class, 'ldhc-backdrop')][contains-token(@class, 'modal')])">
+                <xsl:apply-templates select="ixsl:page()//div[contains-token(@class, 'ldh-sidebar')][contains-token(@class, 'is-open')]" mode="ldh:CloseDrawer"/>
+            </xsl:when>
+            <xsl:when test="lower-case($key) = 'k' and (ixsl:get(ixsl:event(), 'metaKey') or ixsl:get(ixsl:event(), 'ctrlKey'))">
+                <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:apply-templates select="(id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]//button[contains-token(@class, 'sb-search')])[1]" mode="ixsl:onclick"/>
+            </xsl:when>
+        </xsl:choose>
+
         <xsl:next-match/>
     </xsl:template>
 
-    <!-- hide the document tree container if its position is fixed (i.e. the layout is not responsive) -->
-    <xsl:template match="div[contains-token(@class, 'left-sidebar')][ixsl:style(.)?position = 'fixed']" mode="ixsl:onmouseout">
-        <xsl:variable name="related-target" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="element()?"/> <!-- the element mouse entered -->
-
-        <!-- only hide if the related target does not have this div as ancestor (is not its child) -->
-        <xsl:if test="not($related-target/ancestor-or-self::div[. is current()])">
-            <ixsl:set-style name="display" select="'none'"/>
-        </xsl:if>
-    </xsl:template>
-
-    <xsl:template match="div[contains-token(@class, 'document-tree')]//li/a[@href]" mode="ixsl:onclick" priority="1">
+    <xsl:template match="div[contains-token(@class, 'document-tree')]//li/div/a[@href]" mode="ixsl:onclick" priority="1">
         <xsl:variable name="href" select="@href" as="xs:anyURI"/>
 
         <xsl:for-each select="ancestor::div[contains-token(@class, 'document-tree')]">
@@ -340,18 +420,29 @@ ORDER BY DESC(?created)
     
     <xsl:template match="button[contains-token(@class, 'btn-expand-tree')]" mode="ixsl:onclick">
         <xsl:variable name="href" select="following-sibling::a/@href" as="xs:anyURI"/>
-        <xsl:variable name="container" select=".." as="element()"/> <!-- the parent <li> -->
+        <xsl:variable name="container" select="../.." as="element()"/> <!-- the row's parent <li> -->
+        <xsl:variable name="depth" select="count(ancestor::li)" as="xs:integer"/> <!-- children sit one level below this row -->
+
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expand-tree', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expanded-tree', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call(., 'setAttribute', [ 'aria-expanded', 'true' ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:for-each select="span[contains-token(@class, 'msi')]">
+            <ixsl:set-property name="textContent" select="'expand_more'" object="."/>
+        </xsl:for-each>
 
         <xsl:choose>
-            <!-- if children list does not exist, create it -->
+            <!-- if children list does not exist, create it with a lazy-loading row -->
             <xsl:when test="not($container/ul)">
-                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expand-tree', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expanded-tree', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:append-content">
-                        <ul class="ldh-nav">
-                            <!-- list items will be injected by ldh:DocTreeResourceLoad -->
+                        <ul>
+                            <!-- replaced by the list items when ldh:DocTreeResourceLoad's response lands -->
+                            <li class="tree-loading" style="--depth: {$depth}">
+                                <span class="msi sm" aria-hidden="true">progress_activity</span>
+                                <span>
+                                    <xsl:apply-templates select="key('resources', 'loading', ldh:translations())" mode="ac:label"/>
+                                </span>
+                            </li>
                         </ul>
                     </xsl:result-document>
                 </xsl:for-each>
@@ -364,21 +455,22 @@ ORDER BY DESC(?created)
             </xsl:when>
             <!-- if the children list is present but hidden, show it -->
             <xsl:when test="ixsl:style($container/ul)?display = 'none'">
-                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expand-tree', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expanded-tree', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-
                 <ixsl:set-style name="display" select="'block'" object="$container/ul"/>
             </xsl:when>
         </xsl:choose>
     </xsl:template>
-    
+
     <!-- collapses tree -->
-    
+
     <xsl:template match="button[contains-token(@class, 'btn-expanded-tree')]" mode="ixsl:onclick">
-        <xsl:variable name="container" select=".." as="element()"/> <!-- the parent <li> -->
-        
+        <xsl:variable name="container" select="../.." as="element()"/> <!-- the row's parent <li> -->
+
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expand-tree', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expanded-tree', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call(., 'setAttribute', [ 'aria-expanded', 'false' ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:for-each select="span[contains-token(@class, 'msi')]">
+            <ixsl:set-property name="textContent" select="'chevron_right'" object="."/>
+        </xsl:for-each>
 
         <ixsl:set-style name="display" select="'none'" object="$container/ul"/>
     </xsl:template>
@@ -450,7 +542,7 @@ ORDER BY DESC(?created)
         <xsl:param name="target-uri" as="xs:anyURI"/> <!-- the document URI we want to reach -->
         <xsl:param name="tree-container" as="element()"/> <!-- the document-tree element -->
 
-        <xsl:variable name="current-href-full" select="xs:anyURI($current-li/a/@href)" as="xs:anyURI"/>
+        <xsl:variable name="current-href-full" select="xs:anyURI($current-li/div/a/@href)" as="xs:anyURI"/>
         <!-- Strip query parameters for comparison -->
         <xsl:variable name="current-href" select="ac:document-uri($current-href-full)" as="xs:anyURI"/>
 
@@ -467,7 +559,7 @@ ORDER BY DESC(?created)
 
             <!-- Case 2: Target URI starts with current href - need to descend further -->
             <xsl:when test="starts-with(string($target-uri), string($current-href))">
-                <xsl:variable name="expand-button" select="$current-li/button[contains-token(@class, 'btn-expand-tree')]" as="element()?"/>
+                <xsl:variable name="expand-button" select="$current-li/div/button[contains-token(@class, 'btn-expand-tree')]" as="element()?"/>
 
                 <xsl:choose>
                     <!-- Case 2a: Has expand button and not expanded yet - expand and load children -->
@@ -475,7 +567,7 @@ ORDER BY DESC(?created)
                         <!-- Create <ul> for children -->
                         <xsl:for-each select="$current-li">
                             <xsl:result-document href="?." method="ixsl:append-content">
-                                <ul class="ldh-nav"></ul>
+                                <ul/>
                             </xsl:result-document>
                         </xsl:for-each>
 
@@ -483,6 +575,10 @@ ORDER BY DESC(?created)
                         <xsl:for-each select="$expand-button">
                             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expand-tree', false() ])[current-date() lt xs:date('2000-01-01')]"/>
                             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expanded-tree', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+                            <xsl:sequence select="ixsl:call(., 'setAttribute', [ 'aria-expanded', 'true' ])[current-date() lt xs:date('2000-01-01')]"/>
+                            <xsl:for-each select="span[contains-token(@class, 'msi')]">
+                                <ixsl:set-property name="textContent" select="'expand_more'" object="."/>
+                            </xsl:for-each>
                         </xsl:for-each>
 
                         <!-- Load children and continue descent after loading -->
@@ -529,9 +625,9 @@ ORDER BY DESC(?created)
                     </xsl:when>
 
                     <!-- Case 2b: Already expanded - find next child to descend into -->
-                    <xsl:when test="$current-li/ul/li">
+                    <xsl:when test="$current-li/ul/li[div/a]">
                         <!-- Find which child's href (without query params) is a prefix of target-uri -->
-                        <xsl:variable name="next-li" select="$current-li/ul/li[starts-with(string($target-uri), string(ac:document-uri(xs:anyURI(a/@href))))][1]" as="element()?"/>
+                        <xsl:variable name="next-li" select="$current-li/ul/li[starts-with(string($target-uri), string(ac:document-uri(xs:anyURI(div/a/@href))))][1]" as="element()?"/>
 
                         <xsl:choose>
                             <xsl:when test="$next-li">
@@ -570,7 +666,7 @@ ORDER BY DESC(?created)
         <xsl:param name="tree-container" as="element()"/>
 
         <!-- Find which child's href (without query params) is a prefix of target-uri -->
-        <xsl:variable name="next-li" select="$current-li/ul/li[starts-with(string($target-uri), string(ac:document-uri(xs:anyURI(a/@href))))][1]" as="element()?"/>
+        <xsl:variable name="next-li" select="$current-li/ul/li[starts-with(string($target-uri), string(ac:document-uri(xs:anyURI(div/a/@href))))][1]" as="element()?"/>
 
         <xsl:choose>
             <xsl:when test="$next-li">
@@ -600,12 +696,13 @@ ORDER BY DESC(?created)
                 <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                     <xsl:for-each select="?body">
                         <xsl:variable name="resources" select="rdf:RDF/*[@rdf:about]" as="element()*"/>
-                        <!-- append to the doc tree list -->
+                        <!-- replace the doc tree list's content (the lazy-loading row goes with it) -->
                         <xsl:for-each select="$container">
-                            <xsl:result-document href="?." method="ixsl:append-content">
+                            <xsl:variable name="depth" select="count(ancestor::li)" as="xs:integer"/>
+                            <xsl:result-document href="?." method="ixsl:replace-content">
                                 <xsl:apply-templates select="$resources" mode="ldh:DocTreeListItem">
                                     <xsl:sort select="ac:label(.)"/>
-                                    <!--<xsl:with-param name="active" select="@rdf:about = $uri"/>-->
+                                    <xsl:with-param name="depth" select="$depth"/>
                                 </xsl:apply-templates>
                             </xsl:result-document>
                         </xsl:for-each>
@@ -794,19 +891,21 @@ ORDER BY DESC(?created)
         <xsl:sequence select="$context"/>
     </xsl:function>
 
-    <!-- render a class as a list item with button -->
+    <!-- render a class as a list item: the same .tree-link row vocabulary as the document tree, since it is
+         the same kind of statement; the dot marks the flat type axis where the tree has its disclosure column,
+         and the instance count is a core Tag (§19) -->
     <xsl:template match="*[@rdf:about]" mode="ldh:ClassListItem">
         <xsl:param name="count" as="xs:integer"/>
 
         <li>
-            <button class="btn-class sb-class-row" data-class-uri="{@rdf:about}">
+            <button type="button" class="tree-link btn-class" data-class-uri="{@rdf:about}" title="{@rdf:about}">
                 <span class="sb-class-dot" aria-hidden="true"></span>
-                <span class="sb-label">
+                <span class="tree-label">
                     <xsl:apply-templates select="." mode="ac:label"/>
                 </span>
 
                 <xsl:if test="exists($count)">
-                    <span class="sb-count">
+                    <span class="ldhc-tag em-quiet co-neutral sz-xs">
                         <xsl:value-of select="$count"/>
                     </span>
                 </xsl:if>
@@ -839,7 +938,7 @@ ORDER BY DESC(?created)
                     <xsl:with-param name="body" as="item()*">
 
                     <div class="block-row block">
-                        <div class="row-main progress active">
+                        <div class="row-main is-loading" aria-busy="true">
                             <xsl:apply-templates select="." mode="ldh:RowBlockControls">
                                 <xsl:with-param name="content" as="item()*">
                                     <xsl:apply-templates select="." mode="ldh:ProgressBar"/>
@@ -979,7 +1078,7 @@ ORDER BY DESC(?created)
                     <xsl:with-param name="body" as="item()*">
 
                     <div class="block-row block">
-                        <div class="row-main progress active">
+                        <div class="row-main is-loading" aria-busy="true">
                             <xsl:apply-templates select="." mode="ldh:RowBlockControls">
                                 <xsl:with-param name="content" as="item()*">
                                     <xsl:apply-templates select="." mode="ldh:ProgressBar"/>
@@ -1092,7 +1191,7 @@ ORDER BY DESC(?created)
                     <xsl:with-param name="body" as="item()*">
 
                     <div class="block-row block">
-                        <div class="row-main progress active">
+                        <div class="row-main is-loading" aria-busy="true">
                             <xsl:apply-templates select="." mode="ldh:RowBlockControls">
                                 <xsl:with-param name="content" as="item()*">
                                     <xsl:apply-templates select="." mode="ldh:ProgressBar"/>
@@ -1198,9 +1297,10 @@ ORDER BY DESC(?created)
     </xsl:template>
 
     <!-- sidebar search form: open modal pre-populated with the typed value and run the search -->
-    <xsl:template match="form[contains-token(@class, 'search-form')]" mode="ixsl:onsubmit">
-        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="text" select=".//input[@name = 'q']/ixsl:get(., 'value')" as="xs:string?"/>
+    <!-- the drawer's search button opens the search dialog (the ⌘K handler applies this template too);
+         typing happens in the dialog's own field, which submits below -->
+    <xsl:template match="button[contains-token(@class, 'sb-search')]" mode="ixsl:onclick">
+        <xsl:variable name="text" select="''" as="xs:string?"/>
         <xsl:variable name="target" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
         <xsl:variable name="pane-id" select="$target/ancestor::div[contains-token(@class, 'ldh-pane')]/@id" as="xs:string"/>
         <xsl:variable name="modal-id" select="'search-modal-' || $pane-id" as="xs:string"/>
@@ -1235,7 +1335,7 @@ ORDER BY DESC(?created)
                     <!-- search results ARE a view: the shared view block renders them, with its own facets, view modes and pager -->
                     <div class="ldh-search-view">
                         <div class="block-row block">
-                            <div class="row-main progress active">
+                            <div class="row-main is-loading" aria-busy="true">
                                 <xsl:apply-templates select="." mode="ldh:RowBlockControls">
                                     <xsl:with-param name="content" as="item()*">
                                         <xsl:apply-templates select="." mode="ldh:ProgressBar"/>

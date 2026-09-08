@@ -742,14 +742,15 @@ WHERE
         <!-- append the new tab <li> to the tab bar; data-uri keys lookups (document scope), @href round-trips the fragment for the user -->
         <xsl:result-document href="#tab-bar-list" method="ixsl:append-content">
             <li data-uri="{$doc-uri}">
-                <a href="{ldh:href($doc-uri, ldh:build-query($mode), $fragment)}" title="{$doc-uri}{if ($fragment) then '#' || $fragment else ''}">
+                <a class="ldh-tab" href="{ldh:href($doc-uri, ldh:build-query($mode), $fragment)}" title="{$doc-uri}{if ($fragment) then '#' || $fragment else ''}">
                     <xsl:if test="$error">
                         <span class="msi sm" aria-hidden="true">warning</span>
                         <xsl:text> </xsl:text>
                     </xsl:if>
                     <xsl:value-of select="$label"/>
                 </a>
-                <span class="tab-close">&#xd7;</span>
+                <!-- a SIBLING of the anchor, never nested: a button inside an anchor is invalid HTML (§17b) -->
+                <button type="button" class="tab-close" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi">close</span></button>
             </li>
         </xsl:result-document>
 
@@ -762,12 +763,18 @@ WHERE
     <xsl:template match="ul[@id = 'tab-bar-list']/li" mode="ldh:ActivateTab">
         <xsl:param name="doc-uri" select="xs:anyURI(ixsl:get(., 'dataset.uri'))" as="xs:anyURI"/>
 
-        <!-- deactivate all tab <li>s -->
+        <!-- deactivate all tab <li>s (the state rides the li so the underline spans the close button; aria-current rides the anchor) -->
         <xsl:for-each select="id('tab-bar-list', ixsl:page())/li">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-active' ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:for-each select="a">
+                <xsl:sequence select="ixsl:call(., 'removeAttribute', [ 'aria-current' ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:for-each>
         </xsl:for-each>
         <!-- activate this tab <li> -->
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'is-active' ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:for-each select="a">
+            <xsl:sequence select="ixsl:call(., 'setAttribute', [ 'aria-current', 'page' ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
 
         <!-- deactivate and hide all tab panes -->
         <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')]">
@@ -1175,7 +1182,7 @@ WHERE
 
     <!-- intercept all HTML and SVG link clicks except to /uploads/ and those in the navbar (except breadcrumb bar, .brand and app list) and the footer -->
     <!-- resolve URLs against the current document URL because they can be relative -->
-    <xsl:template match="a[not(@target)][starts-with(resolve-uri(@href, ldh:base-uri(.)), 'http://') or starts-with(resolve-uri(@href, ldh:base-uri(.)), 'https://')][not(starts-with(resolve-uri(@href, ldh:base-uri(.)), resolve-uri('uploads/', ldt:base())))][ancestor::div[contains-token(@class, 'breadcrumb-nav')] or not(ancestor::div[tokenize(@class, ' ') = ('navbar', 'footer')])] | a[contains-token(@class, 'brand')] | div[button[contains-token(@class, 'btn-apps')]]/ul//a | svg:a[not(@target)][starts-with(resolve-uri(@href, ldh:base-uri(.)), 'http://') or starts-with(resolve-uri(@href, ldh:base-uri(.)), 'https://')][not(starts-with(resolve-uri(@href, ldh:base-uri(.)), resolve-uri('uploads/', ldt:base())))]" mode="ixsl:onclick">
+    <xsl:template match="a[not(@target)][starts-with(resolve-uri(@href, ldh:base-uri(.)), 'http://') or starts-with(resolve-uri(@href, ldh:base-uri(.)), 'https://')][not(starts-with(resolve-uri(@href, ldh:base-uri(.)), resolve-uri('uploads/', ldt:base())))][ancestor::div[contains-token(@class, 'breadcrumb-nav')] or not(ancestor::div[tokenize(@class, ' ') = ('navbar', 'footer')])] | a[contains-token(@class, 'brand')] | div[button[contains-token(@class, 'btn-apps')]]/div//a | svg:a[not(@target)][starts-with(resolve-uri(@href, ldh:base-uri(.)), 'http://') or starts-with(resolve-uri(@href, ldh:base-uri(.)), 'https://')][not(starts-with(resolve-uri(@href, ldh:base-uri(.)), resolve-uri('uploads/', ldt:base())))]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="href" select="xs:anyURI(resolve-uri(@href, ldh:base-uri(.)))" as="xs:anyURI"/>
         <xsl:variable name="parsed" select="ldh:parse-href($href)" as="map(xs:string, item()?)"/>
@@ -1252,7 +1259,7 @@ WHERE
          has less viewport space below it than above, and end-ward ('drop-left') when it has less space
          to its right than to its left, so it never opens into the nearer viewport edge on either axis -->
 
-    <xsl:template match="*[contains-token(@class, 'ldh-drop-wrap')][*[contains-token(@class, 'drop-toggle')]]" mode="ixsl:onclick">
+    <xsl:template match="*[contains-token(@class, 'ldhc-menu-anchor')][*[contains-token(@class, 'drop-toggle')]]" mode="ixsl:onclick">
         <xsl:variable name="group" select="." as="element()"/>
         <xsl:variable name="rect" select="ixsl:call(., 'getBoundingClientRect', [])"/>
         <xsl:variable name="drop-up" select="(ixsl:get(ixsl:window(), 'innerHeight') - ixsl:get($rect, 'bottom')) lt ixsl:get($rect, 'top')" as="xs:boolean"/>
@@ -1260,19 +1267,73 @@ WHERE
         <xsl:variable name="open" select="not(contains-token(@class, 'is-open'))" as="xs:boolean"/>
 
         <!-- one drop-down at a time: whichever group was open yields to this one -->
-        <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ldh-drop-wrap')][contains-token(@class, 'is-open')][not(. is $group)]" mode="ldh:CloseDropdown"/>
+        <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ldhc-menu-anchor')][contains-token(@class, 'is-open')][not(. is $group)]" mode="ldh:CloseDropdown"/>
 
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drop-up', $drop-up ])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drop-left', $drop-left ])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-open', $open ])[current-date() lt xs:date('2000-01-01')]"/>
+
+        <!-- a core Menu panel takes its placement class on open, measured against the viewport (the
+             component's autoFlip); the drop-up/drop-left stamps above stay for the app-kit menus
+             (.ldh-add-menu, .ldh-of-menu, .modes-pop) whose placement rules key on the wrap -->
+        <xsl:for-each select="*[contains-token(@class, 'ldhc-menu')]">
+            <xsl:variable name="menu" select="." as="element()"/>
+            <xsl:variable name="placement" select="'al-' || (if ($drop-up) then 'up-' else '') || (if ($drop-left) then 'end' else 'start')" as="xs:string"/>
+            <xsl:for-each select="('al-start', 'al-end', 'al-up-start', 'al-up-end')[. ne $placement]">
+                <xsl:sequence select="ixsl:call(ixsl:get($menu, 'classList'), 'remove', [ . ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:for-each>
+            <xsl:sequence select="ixsl:call(ixsl:get($menu, 'classList'), 'add', [ $placement ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+        <!-- the trigger reports the menu state -->
+        <xsl:for-each select="*[contains-token(@class, 'drop-toggle')]">
+            <ixsl:set-property name="ariaExpanded" select="if ($open) then 'true' else 'false'" object="."/>
+        </xsl:for-each>
+        <!-- focus moves INTO the menu on open, so Escape has something to restore from (§20) -->
+        <xsl:if test="$open">
+            <xsl:for-each select="(*[contains-token(@class, 'ldhc-menu')]//*[contains-token(@class, 'ldhc-menu-item')])[1]">
+                <xsl:sequence select="ixsl:call(., 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:for-each>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- the role="menu" keyboard model (§20): Arrow/Home/End rove focus across the menu items,
+         Escape dismisses and restores focus to the trigger -->
+
+    <xsl:template match="*[contains-token(@class, 'ldhc-menu-anchor')][contains-token(@class, 'is-open')]" mode="ixsl:onkeydown">
+        <xsl:variable name="key" select="ixsl:get(ixsl:event(), 'key')" as="xs:string"/>
+
+        <xsl:choose>
+            <xsl:when test="$key = 'Escape'">
+                <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:apply-templates select="." mode="ldh:CloseDropdown"/>
+                <xsl:for-each select="(*[contains-token(@class, 'drop-toggle')])[1]">
+                    <xsl:sequence select="ixsl:call(., 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:when test="$key = ('ArrowDown', 'ArrowUp', 'Home', 'End')">
+                <xsl:variable name="items" select=".//*[contains-token(@class, 'ldhc-menu-item')]" as="element()*"/>
+                <xsl:if test="exists($items)">
+                    <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:variable name="active" select="ixsl:get(ixsl:page(), 'activeElement')"/>
+                    <xsl:variable name="index" select="(for $i in 1 to count($items) return $i[$items[$i] is $active])[1]" as="xs:integer?"/>
+                    <xsl:variable name="target" as="element()?" select="if ($key = 'Home') then $items[1] else if ($key = 'End') then $items[last()] else if ($key = 'ArrowDown') then (if (exists($index)) then ($items[$index + 1], $items[1])[1] else $items[1]) else (if (exists($index)) then ($items[$index - 1], $items[last()])[1] else $items[last()])"/>
+                    <xsl:for-each select="$target">
+                        <xsl:sequence select="ixsl:call(., 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
+                    </xsl:for-each>
+                </xsl:if>
+            </xsl:when>
+        </xsl:choose>
     </xsl:template>
 
     <!-- dismisses an open drop-down by dropping the state tokens the toggle above sets. Applied from the
          places a drop-down stops being current: another one opens, a press lands outside it (below), a
          click lands outside it (the body handler in view.xsl), or a menu pick mounts a modal (ldh:ShowModalForm) -->
 
-    <xsl:template match="*[contains-token(@class, 'ldh-drop-wrap')]" mode="ldh:CloseDropdown">
+    <xsl:template match="*[contains-token(@class, 'ldhc-menu-anchor')]" mode="ldh:CloseDropdown">
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:for-each select="*[contains-token(@class, 'drop-toggle')]">
+            <ixsl:set-property name="ariaExpanded" select="'false'" object="."/>
+        </xsl:for-each>
     </xsl:template>
 
     <!-- the form Actions overflow shares the drop-down lifecycle: the wrap's is-open shows the menu
@@ -1284,7 +1345,7 @@ WHERE
         <xsl:variable name="open" select="not(contains-token(@class, 'is-open'))" as="xs:boolean"/>
 
         <!-- one drop-down at a time: whichever group or wrap was open yields to this one -->
-        <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ldh-drop-wrap')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')][not(. is $wrap)]" mode="ldh:CloseDropdown"/>
+        <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ldhc-menu-anchor')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')][not(. is $wrap)]" mode="ldh:CloseDropdown"/>
 
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-open', $open ])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:for-each select="*[contains-token(@class, 'ldh-form-action')]">
@@ -1314,7 +1375,7 @@ WHERE
 
     <xsl:template match="body" mode="ixsl:onpointerdown">
         <xsl:variable name="target" select="ixsl:get(ixsl:event(), 'target')"/>
-        <xsl:for-each select="ixsl:page()//*[contains-token(@class, 'ldh-drop-wrap')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]">
+        <xsl:for-each select="ixsl:page()//*[contains-token(@class, 'ldhc-menu-anchor')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]">
             <xsl:if test="not(ixsl:call(., 'contains', [ $target ]))">
                 <xsl:apply-templates select="." mode="ldh:CloseDropdown"/>
             </xsl:if>
@@ -1441,7 +1502,7 @@ WHERE
         </xsl:choose>
     </xsl:template>
 
-    <xsl:template match="ul[@id = 'tab-bar-list']/li/span[contains-token(@class, 'tab-close')]" mode="ixsl:onclick">
+    <xsl:template match="ul[@id = 'tab-bar-list']/li/button[contains-token(@class, 'tab-close')]" mode="ixsl:onclick">
         <xsl:variable name="tab-li" select=".." as="element()"/>
         <xsl:variable name="doc-uri" select="xs:anyURI(ixsl:get($tab-li, 'dataset.uri'))" as="xs:anyURI"/>
         <xsl:variable name="was-active" select="contains-token($tab-li/@class, 'is-active')" as="xs:boolean"/>

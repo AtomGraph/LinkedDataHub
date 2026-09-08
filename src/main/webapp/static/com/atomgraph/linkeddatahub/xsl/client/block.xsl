@@ -1230,12 +1230,11 @@ exclude-result-prefixes="#all"
               
         <xsl:variable name="container" select="$context('container')" as="element()"/>
         
-        <!-- hide the progress bar. The row must belong to the container's own block: an nblock container nested in a host embed has no progress row of its own, and without the guard this call would hide the host's bar -->
-        <xsl:for-each select="$container/ancestor::div[contains-token(@class, 'row-main')][contains-token(@class, 'progress')][contains-token(@class, 'active')][1][ancestor::div[contains-token(@class, 'block')][1] is $container/ancestor-or-self::div[contains-token(@class, 'block')][1]]">
+        <!-- hide the progress bar. The row must belong to the container's own block: an nblock container nested in a host embed has no loading row of its own, and without the guard this call would hide the host's bar -->
+        <xsl:for-each select="$container/ancestor::div[contains-token(@class, 'row-main')][contains-token(@class, 'is-loading')][1][ancestor::div[contains-token(@class, 'block')][1] is $container/ancestor-or-self::div[contains-token(@class, 'block')][1]]">
             <ixsl:set-style name="display" select="'none'" object="(.//div[contains-token(@class, 'ldhc-pbar')])[1]"/>
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-loading' ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ixsl:call(., 'removeAttribute', [ 'aria-busy' ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
         
         <xsl:sequence select="$context"/>
@@ -1290,7 +1289,7 @@ exclude-result-prefixes="#all"
         <xsl:if test="map:contains($context, 'container')">
             <xsl:variable name="container" select="$context('container')" as="element()"/>
 
-            <xsl:for-each select="$container/ancestor::div[contains-token(@class, 'progress')][contains-token(@class, 'active')][1][ancestor::div[contains-token(@class, 'block')][1] is $container/ancestor-or-self::div[contains-token(@class, 'block')][1]]">
+            <xsl:for-each select="$container/ancestor::div[contains-token(@class, 'is-loading')][1][ancestor::div[contains-token(@class, 'block')][1] is $container/ancestor-or-self::div[contains-token(@class, 'block')][1]]">
                 <!-- the row must belong to the container's own block (an nblock container would otherwise drive its host's bar), and only its first pbar is this block's own -->
                 <ixsl:set-style name="width" select="$percent || '%'" object="(.//div[contains-token(@class, 'ldhc-pbar-fill')])[1]"/>
 
@@ -1299,9 +1298,8 @@ exclude-result-prefixes="#all"
                     <ixsl:set-style name="z-index" select="'-1'" object="./div[contains-token(@class, 'row-block-controls')]"/>
                     <ixsl:set-style name="display" select="'none'" object="(.//div[contains-token(@class, 'ldhc-pbar')])[1]"/>
 
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'progress-striped', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-loading' ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:call(., 'removeAttribute', [ 'aria-busy' ])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:if>
             </xsl:for-each>
         </xsl:if>

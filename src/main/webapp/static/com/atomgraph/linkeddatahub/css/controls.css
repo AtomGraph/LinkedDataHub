@@ -181,8 +181,9 @@
 .ldhc-cb-chip > .cb-chip-btn .msi { font-size: 14px; }
 
 /* =========================================================================
-   IconButton — .tb promoted out of scoped recipes into a named primitive.
-   Sizes 28 / 32 / 34 (all three occur in the port). Intents neutral /
+   IconButton — THE icon button. It replaced the app kit's own .tb / .rb /
+   .ldh-icon-btn classes, which are gone.
+   Sizes 28 / 32 / 34 / 36. Intents neutral /
    destructive / accent. `is-reveal` is the row-hover behaviour: invisible until
    its container is hovered or anything inside it takes focus — never
    display:none, so it keeps its footprint and the row doesn't shift.

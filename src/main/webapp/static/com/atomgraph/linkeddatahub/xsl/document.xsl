@@ -152,7 +152,7 @@ extension-element-prefixes="ixsl"
                 <xsl:if test="key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:type/@rdf:resource = ('&def;Root', '&dh;Container')">
                     <xsl:variable name="document-classes" select="key('resources', ('&dh;Container', '&dh;Item'), document(ac:document-uri('&def;')))" as="element()*"/>
                     <xsl:apply-templates select="." mode="ac:Create">
-                        <xsl:with-param name="class" select="'ldh-add-wrap ldh-drop-wrap'"/>
+                        <xsl:with-param name="class" select="'ldh-add-wrap ldhc-menu-anchor'"/>
                         <xsl:with-param name="classes" select="$document-classes"/>
                         <xsl:with-param name="create-graph" select="true()"/>
                         <xsl:with-param name="show-instance" select="false()"/>
@@ -313,7 +313,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="edit-disabled" select="not(acl:mode() = '&acl;Write')" as="xs:boolean"/>
 
         <xsl:if test="$foaf:Agent//@rdf:about">
-            <div class="ldh-of-wrap ldh-drop-wrap">
+            <div class="ldh-of-wrap ldhc-menu-anchor">
                 <button type="button" class="ldhc-btn in-neutral ap-outline sz-md drop-toggle">
                     <span class="msi sm" aria-hidden="true">bolt</span>
                     <span>
@@ -368,7 +368,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="rdf:RDF | srx:sparql" mode="ac:MediaTypeList">
         <xsl:param name="uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
 
-        <div class="ldh-of-wrap ldh-drop-wrap">
+        <div class="ldh-of-wrap ldhc-menu-anchor">
             <button type="button" class="ldhc-btn in-neutral ap-outline sz-md drop-toggle">
                 <xsl:attribute name="title">
                     <xsl:apply-templates select="key('resources', 'nav-bar-action-export-rdf-title', ldh:translations())" mode="ac:label"/>
@@ -403,7 +403,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
         <xsl:param name="id" select="()" as="xs:string?"/>
 
-        <div class="ldh-mode ldh-drop-wrap">
+        <div class="ldh-mode ldhc-menu-anchor">
             <button type="button" class="label-row layout-modes drop-toggle" title="{ac:label(key('resources', '&ac;Mode', document(ac:document-uri('&ac;'))))}">
                 <xsl:if test="$id">
                     <xsl:attribute name="id" select="$id"/>
@@ -1265,7 +1265,7 @@ extension-element-prefixes="ixsl"
     <!-- CREATE -->
     
     <xsl:template match="rdf:RDF | srx:sparql" mode="ac:Create" priority="1">
-        <xsl:param name="class" select="'ldh-add-wrap ldh-drop-wrap'" as="xs:string?"/>
+        <xsl:param name="class" select="'ldh-add-wrap ldhc-menu-anchor'" as="xs:string?"/>
         <xsl:param name="classes" as="element()*"/>
         <xsl:param name="create-graph" select="false()" as="xs:boolean"/>
         <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
@@ -1315,7 +1315,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="create-graph" select="false()" as="xs:boolean"/>
         <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
 
-        <div class="ldh-add-wrap ldh-drop-wrap">
+        <div class="ldh-add-wrap ldhc-menu-anchor">
             <button type="button" class="ldhc-btn in-primary ap-solid sz-md drop-toggle" title="{ac:label(key('resources', 'create-instance-title', ldh:translations()))}">
                 <span class="msi sm" aria-hidden="true">add</span>
                 <span>

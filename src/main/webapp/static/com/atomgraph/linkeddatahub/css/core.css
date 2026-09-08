@@ -401,6 +401,10 @@
   border-radius: var(--r-pill); font-family: var(--font-sans); font-weight: var(--fw-medium);
   border: 1px solid transparent; max-width: 100%;
 }
+/* xs — for a Tag that sits INLINE after a value rather than in a row of its
+   own: a language tag, a datatype. Small enough not to outweigh the value it
+   annotates. */
+.ldhc-tag.sz-xs { height: 16px; padding: 0 6px; font-size: 10px; }
 .ldhc-tag.sz-sm { height: 20px; padding: 0 8px; font-size: var(--fs-xs); }
 .ldhc-tag.sz-md { height: 26px; padding: 0 11px; font-size: var(--fs-sm); }
 .ldhc-tag .ldhc-tag-lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

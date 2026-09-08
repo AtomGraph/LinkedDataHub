@@ -1703,7 +1703,7 @@ WHERE
         <xsl:variable name="this" select="xs:anyURI($doc-uri || '#' || $id)" as="xs:anyURI"/>
 
         <!-- the class is picked, so the menu it was picked from is done: dismissed here rather than when the instance lands, because the chain that renders it takes several round-trips. The body pointerdown handler leaves this one alone - the press is inside the group it would close. Empty for the dock buttons that sit outside a drop-down. -->
-        <xsl:apply-templates select="ancestor::*[contains-token(@class, 'ldh-drop-wrap')][1]" mode="ldh:CloseDropdown"/>
+        <xsl:apply-templates select="ancestor::*[contains-token(@class, 'ldhc-menu-anchor')][1]" mode="ldh:CloseDropdown"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
 

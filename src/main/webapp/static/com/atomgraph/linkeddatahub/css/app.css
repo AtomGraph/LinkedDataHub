@@ -27,10 +27,43 @@ button { font-family: inherit; cursor: pointer; }
   flex-direction: column;
 }
 
-/* Top header — dark accent gradient with knowledge-graph dot pattern overlay */
+/* Chrome geometry, declared once. The rail's top offset is derived from these,
+   so changing a height cannot silently misalign it. */
+:root {
+  --ldh-header-h: 56px;
+  --ldh-tabs-h: 40px;
+  --ldh-chrome-h: calc(var(--ldh-header-h) + var(--ldh-tabs-h));
+  --ldh-rail-w: 264px;
+}
+
+/* The rail is a DRAWER: it slides over the content, it does not push it.
+   It was briefly changed to push (offsetting .ldh-actionbar/.ldh-main/.ldh-footer
+   by --ldh-rail-w) to stop it obscuring blocks. That fixed a symptom by changing
+   what the component IS: a drawer legitimately covers content, and earns it by
+   being evidently temporary — hence the backdrop below and dismiss-on-click.
+   Push also reflowed the whole document on every open, and re-wrapped the text
+   the user was reading. */
+
+/* Backdrop. One z below the rail, above everything else, so the covered content
+   reads as behind a temporary panel rather than as broken layout — and clicking
+   it closes, which is the affordance that makes covering acceptable. */
+.ldh-rail-backdrop {
+  position: fixed; inset: 0; z-index: 29;
+  background: rgba(15, 18, 26, 0.32);
+  -webkit-backdrop-filter: blur(1px); backdrop-filter: blur(1px);
+  border: 0; padding: 0; cursor: pointer;
+  animation: ldhc-fade-in var(--dur-base) var(--ease-out-soft);
+}
+
+/* Top header — dark accent gradient with knowledge-graph dot pattern overlay.
+   STICKY, not relative: the rail is position:fixed and offset below the chrome,
+   so if the chrome scrolled away the rail would hang in the middle of the page
+   with a 96px band of content showing above it. Sticky keeps the offset true at
+   any scroll position, which is what makes "the rail belongs to the tab you are
+   in" readable rather than just asserted. */
 .ldh-header {
-  position: relative;
-  height: 56px;
+  position: sticky; top: 0; z-index: 40;
+  height: var(--ldh-header-h);
   padding: 0 var(--sp-6);
   display: grid;
   grid-template-columns: 220px 1fr auto;
@@ -257,6 +290,29 @@ button { font-family: inherit; cursor: pointer; }
 .ldh-user-menu .umitem .msi { color: inherit; }
 
 /* ---------- Tabs row (dataspaces) ---------- */
+/* Tab strip — ul > li > a + close. The sticky bar surface lives here (not in a
+   consumer stylesheet): surface-1 ground, bottom border, underline-active.
+   Flex on the UL, so the LI is the item that carries the active treatment. */
+.ldh-tabs { list-style: none; margin: 0; padding: 0 var(--sp-4); }
+.ldh-tabs > li {
+  display: inline-flex; align-items: center; gap: 2px;
+  border-bottom: 2px solid transparent;
+  transition: border-color var(--dur-fast) var(--ease-out-soft), background var(--dur-fast) var(--ease-out-soft);
+}
+.ldh-tabs > li:hover { background: var(--bg-hover); }
+/* The underline spans the whole item, close button included, which is why the
+   state is on the LI rather than the anchor. */
+.ldh-tabs > li.is-active { border-bottom-color: var(--fg-selected); }
+.ldh-tabs > li.is-active > .ldh-tab { color: var(--fg-selected); font-weight: var(--fw-medium); }
+.ldh-tabs > li > .ldh-tab {
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  padding: 0 var(--sp-2); height: 100%;
+  color: var(--ink-3); text-decoration: none; white-space: nowrap;
+}
+.ldh-tabs > li > .ldh-tab:hover { color: var(--fg-1); text-decoration: none; }
+.ldh-tabs > li > .ldh-tab:focus-visible { outline: 0; box-shadow: var(--focus-ring); border-radius: var(--r-xs); }
+
+/* Legacy nav>button anatomy — kept one cycle while the bundle recompiles. */
 .ldh-tabs {
   display: flex;
   align-items: stretch;
@@ -264,7 +320,19 @@ button { font-family: inherit; cursor: pointer; }
   padding: 0 var(--sp-6);
   background: var(--surface-1);
   border-bottom: 1px solid var(--border-default);
-  height: 40px;
+  height: var(--ldh-tabs-h);
+  box-sizing: border-box;
+}
+/* Sticky goes on the <nav> WRAPPER, not on the <ul>. A sticky element can only
+   travel within its containing block, and the nav is exactly the ul's height —
+   so sticking the ul pinned it to a box it already filled and it scrolled away
+   with the page. The nav is the element in the document flow, so it is the one
+   that can stick.
+   One z below the header; both must out-rank the rail (z-index 30), or the rail
+   slides over the chrome it hangs from. */
+nav:has(> .ldh-tabs) {
+  position: sticky; top: var(--ldh-header-h); z-index: 39;
+  background: var(--surface-1);
 }
 .ldh-tab {
   display: inline-flex; align-items: center; gap: var(--sp-2);
@@ -281,11 +349,24 @@ button { font-family: inherit; cursor: pointer; }
 /* Active marker uses the semantic --fg-selected (not a raw ramp step), so it
    matches core's .ldhc-tab.is-on and follows any skin without a per-skin patch. */
 .ldh-tab.is-active { color: var(--fg-selected); border-bottom-color: var(--fg-selected); }
-.ldh-tab .tab-close {
-  width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center;
+/* Scoped to the STRIP, not to `.ldh-tab`: §17b moved the close button out of
+   the anchor to be its sibling in the `li` (a button inside an anchor is
+   invalid), so `.ldh-tab .tab-close` stopped matching and it fell back to UA
+   button styling — a bordered white box, oversized, sitting outside the tab.
+   `.ldh-tabs .tab-close` matches wherever it sits inside the strip, so it also
+   covers the legacy nested markup while a stale bundle is still serving it.
+   It is a real <button> now, so it needs the reset an inert <span> did not. */
+.ldh-tabs .tab-close {
+  width: 18px; height: 18px; flex-shrink: 0; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 0; background: transparent; cursor: pointer;
+  font: inherit; line-height: 1;
   border-radius: var(--r-xs); color: var(--fg-hint);
+  transition: background var(--dur-fast) var(--ease-out-soft), color var(--dur-fast) var(--ease-out-soft);
 }
-.ldh-tab .tab-close:hover { background: var(--bg-hover); color: var(--fg-1); }
+.ldh-tabs .tab-close:hover { background: var(--bg-hover); color: var(--fg-1); }
+.ldh-tabs .tab-close:focus-visible { outline: 0; box-shadow: var(--focus-ring); }
+.ldh-tabs .tab-close .msi { font-size: 14px; }
 
 /* ---------- Action bar (Add / Breadcrumb / Toolbar) ---------- */
 /* Action bar Create dropdown — Container / Item picker. */
@@ -953,14 +1034,16 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   gap: var(--sp-1);
   z-index: 2;
 }
-.hero-actions .tb-links {
-  height: 32px;
-  display: inline-flex; align-items: center;
-  border-radius: var(--r-sm);
+/* The hero's links button is core <IconButton intent="accent" count>, and needs
+   a translucent ground because it sits on the hero's gradient rather than on a
+   card. Scoped to .ldhc-iconbtn — this rule still said `.tb-links`, a class
+   retired when the icon buttons were unified, so it had been dead. */
+.hero-actions .ldhc-iconbtn {
   background: rgba(255,255,255,0.72);
+  -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
-  border-color: rgba(255,255,255,0.85);
 }
+.hero-actions .ldhc-iconbtn:hover { background: rgba(255,255,255,0.9); }
 
 /* Block drawer — fixed to the viewport's right edge so it sits FLUSH against
    the page edge regardless of where the block lives inside the centered
@@ -1203,7 +1286,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 /* ChartMode hero canvas — the chart fills the full block width (fluid SVG),
    so it never gets letterboxed inside a fixed-height box like the small
    dashboard charts do. */
-.chart-canvas--hero { padding: var(--sp-7) var(--sp-6) var(--sp-8); }
+.chart-canvas--hero { padding: var(--sp-5) var(--sp-6) var(--sp-8); }
 
 /* =========================================================================
    RESOURCE BLOCK HEADER — one composite header for every resource.
@@ -1672,9 +1755,8 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
         there is nothing to gain by hiding it while loading.
      3. Layout stability — the card holds its footprint, so the document does
         not reflow as blocks resolve.
-   The empty state lives in the body alone; the header gains a status marker
-   only for the failure and loading states, so they stay legible when the block
-   is scrolled past or collapsed.
+   The header gains one status marker so the state is legible when the block is
+   scrolled past or collapsed.
    ========================================================================= */
 
 /* Header status marker — sits after the title, before the actions. */
@@ -1687,6 +1769,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 }
 .ldh-block-state .msi { font-size: 13px; }
 .ldh-block-state.is-failed  { background: var(--danger-50);  color: var(--danger-500); }
+.ldh-block-state.is-empty   { background: var(--surface-2);  color: var(--fg-muted); }
 .ldh-block-state.is-loading { background: var(--surface-2);  color: var(--fg-muted); }
 .ldh-block-state.is-loading .msi { animation: spin 1.1s linear infinite; }
 /* A failed block gets a warm ring so it's findable in a long document. This is
@@ -1886,14 +1969,9 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .view-mode-seg button:hover { background: var(--bg-hover); color: var(--fg-1); }
 .view-mode-seg button.is-on { background: var(--bg-accent-quiet); color: var(--ldh-blue-700); }
 
-/* Sort dropdown (used in view-toolbar) */
-.sort-drop {
-  display: inline-flex; align-items: center; gap: 4px;
-  height: 28px; padding: 0 var(--sp-2) 0 var(--sp-3);
-  background: var(--surface-0); border: 1px solid var(--border-default);
-  border-radius: var(--r-md); font-size: var(--fs-sm); color: var(--fg-2);
-}
-.sort-drop .lbl { font-family: var(--font-mono); font-size: 10px; color: var(--fg-hint); text-transform: uppercase; letter-spacing: 0.02em; margin-right: 2px; }
+/* The sort control is <SortControl>: a .facet-pill key dropdown plus a
+   .facet-pill.sort-dir direction button. The old static .sort-drop div (a
+   hardcoded arrow that opened nothing) is gone. */
 
 /* ---------- GridViewBlock — cards grid ---------- */
 .ldh-grid-block {
@@ -2598,140 +2676,181 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .chart-svg .bar:hover { fill: var(--ldh-blue-600); }
 .chart-svg .legend text { font-family: var(--font-sans); font-size: 10px; fill: var(--fg-muted); }
 
-/* ---------- Sidebar (optional, original LDH layout) ---------- */
-/* Sliding drawer anchored to the left edge of the viewport. Full viewport
-   height — overlays all chrome including header/tabs/actionbar when open. */
+/* =========================================================================
+   LEFT RAIL — a document tree, and nothing else.
+   The search field, CLASSES and OTHER sections are gone (see DocumentTree.jsx
+   for why each was duplication). What is left is the one thing no other surface
+   does — lateral navigation through the container hierarchy — which is what
+   makes persistent space defensible.
+
+   ANATOMY: ul.ldh-tree > li.is-active > .tree-row > IconButton + a.tree-link
+   Indentation comes from a --depth custom property rather than an inline
+   paddingLeft per row: one rule owns the ramp, so changing it is one edit.
+   ========================================================================= */
+/* The rail is DATASPACE-specific, not global, so it starts below the header and
+   the dataspace tab bar rather than at the top of the viewport — it belongs to
+   the tab you are in, and spanning the chrome would claim otherwise.
+   The offset is DERIVED from --ldh-chrome-h, never a literal: a hardcoded 96
+   duplicates two heights declared elsewhere and misaligns silently if either
+   changes. This only holds because the chrome is sticky (see .ldh-header). */
 .ldh-sidebar {
-  position: fixed;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 288px;
-  z-index: 60;
-  background: var(--bg-card);
+  position: fixed; top: var(--ldh-chrome-h); left: 0; bottom: 0; z-index: 30;
+  width: var(--ldh-rail-w); box-sizing: border-box;
+  display: flex; flex-direction: column;
+  background: var(--surface-1);
   border-right: 1px solid var(--border-default);
-  padding: var(--sp-4) var(--sp-3);
-  display: flex; flex-direction: column; gap: var(--sp-4);
-  font-size: var(--fs-sm);
-  overflow: auto;
-  scrollbar-width: thin;
   transform: translateX(-100%);
-  transition: transform 260ms var(--ease-out-soft), box-shadow 200ms var(--ease-out-soft);
-  box-shadow: none;
+  /* Fallback for engines without `inert` (the component sets that attribute
+     when closed): `visibility: hidden` is the one hiding mechanism that DOES
+     remove descendants from the tab order. Transitioned alongside the slide —
+     visibility animates in discrete steps, so the panel stays visible for the
+     whole slide-out and only then goes untabbable. */
+  visibility: hidden;
+  transition: transform var(--dur-base) var(--ease-out-soft),
+              visibility var(--dur-base) var(--ease-out-soft);
 }
-.ldh-sidebar.is-open {
-  transform: translateX(0);
-  box-shadow: 12px 0 28px -20px rgba(15, 23, 42, 0.22);
-}
+.ldh-sidebar.is-open { transform: none; visibility: visible; }
 
+.sb-head {
+  display: flex; align-items: center; gap: var(--sp-2); flex-shrink: 0;
+  padding: var(--sp-3);
+  border-bottom: 1px solid var(--border-default);
+}
+/* Search is a BUTTON, not a readOnly input — it opens a dialog, so it must not
+   impersonate a field. Styled like a field because that is the shape people
+   look for, but the element tells the truth. */
 .sb-search {
-  display: flex; align-items: center; gap: 6px;
-  height: 34px; padding: 0 var(--sp-2);
-  background: var(--surface-2);
-  border: 1px solid transparent;
-  border-radius: var(--r-md);
-  color: var(--fg-muted);
-  transition: background var(--dur-fast) var(--ease-out-soft), border-color var(--dur-fast) var(--ease-out-soft);
+  display: flex; align-items: center; gap: var(--sp-2);
+  flex: 1; min-width: 0; height: 32px; padding: 0 8px;
+  background: var(--surface-0);
+  border: 1px solid var(--border-default); border-radius: var(--r-md);
+  cursor: pointer; text-align: left;
+  font-family: var(--font-sans); font-size: var(--fs-sm); color: var(--fg-hint);
+  transition: border-color var(--dur-fast) var(--ease-out-soft), background var(--dur-fast) var(--ease-out-soft);
 }
-.sb-search:focus-within { background: var(--surface-0); border-color: var(--ldh-blue-400); box-shadow: 0 0 0 3px var(--bg-accent-quiet); }
-.sb-search input {
-  flex: 1; height: 100%; border: 0; outline: 0; background: transparent;
-  font: inherit; color: var(--fg-1);
+.sb-search:hover { border-color: var(--border-strong); color: var(--fg-2); }
+.sb-search:focus-visible { outline: 0; border-color: var(--ldh-blue-400); box-shadow: var(--focus-ring); }
+.sb-search .msi { color: var(--fg-hint); flex-shrink: 0; }
+.sb-search-label { flex: 1; min-width: 0; }
+.sb-search kbd {
+  flex-shrink: 0; padding: 1px 5px;
+  background: var(--surface-2); border: 1px solid var(--border-default); border-radius: var(--r-xs);
+  font-family: var(--font-mono); font-size: 10px; color: var(--fg-muted);
 }
-.sb-search input::placeholder { color: var(--fg-hint); }
-.sb-search-kbd {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.04em;
-  color: var(--fg-muted);
-  background: var(--surface-2);
-  border: 1px solid var(--border-default);
-  border-radius: 4px;
-  padding: 1px 5px;
-  white-space: nowrap;
-}
-.sb-clear {
-  width: 22px; height: 22px;
-  background: transparent; border: 0; border-radius: 4px;
-  color: var(--fg-muted);
-  display: inline-flex; align-items: center; justify-content: center;
-  cursor: pointer;
-}
-.sb-clear:hover { background: var(--surface-3); color: var(--fg-1); }
 
-.sb-section { display: flex; flex-direction: column; gap: 4px; }
+/* One scroll box for all sections, so the search row and the close button stay
+   pinned while Documents + Classes scroll together. */
+.sb-scroll { flex: 1; min-height: 0; overflow-y: auto; padding-bottom: var(--sp-4); }
+.sb-section + .sb-section { border-top: 1px solid var(--border-default); margin-top: var(--sp-2); padding-top: var(--sp-2); }
 .sb-heading {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 4px 8px;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
-  color: var(--fg-muted);
+  display: flex; align-items: center; gap: var(--sp-2);
+  margin: 0; padding: var(--sp-2) var(--sp-3) var(--sp-1);
+  font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: var(--fw-medium);
+  letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--fg-hint);
 }
-.sb-heading .sb-count {
-  font-family: var(--font-mono); font-size: 10px;
-  background: var(--surface-2); color: var(--fg-muted);
-  padding: 1px 6px; border-radius: var(--r-pill);
-  letter-spacing: 0;
+.sb-heading > span:first-child { flex: 1; min-width: 0; }
+
+/* Classes — the TYPE axis. Same row vocabulary as the tree (.tree-link), since
+   it is the same kind of statement; only the list wrapper differs. */
+.sb-classes { list-style: none; margin: 0; padding: 0 var(--sp-2); }
+/* Classes are a FLAT list — no hierarchy, so no disclosure column. They take a
+   small dot marker rather than the tree's 28px spacer, which is what the
+   reference does and why the spacer version read as misaligned: an indent that
+   deep implies a parent the class list does not have. */
+.sb-classes > li { display: flex; align-items: center; min-width: 0; border-radius: var(--r-sm); }
+.sb-classes > li:hover { background: var(--bg-hover); }
+.sb-classes > li.is-active { background: var(--bg-selected); box-shadow: inset 2px 0 0 var(--fg-selected); }
+.sb-classes > li.is-active .tree-label { color: var(--fg-selected); font-weight: var(--fw-medium); }
+/* The dot sits where the tree's disclosure chevron would, so the two lists share
+   a left edge without the class rows borrowing an indent they have no use for. */
+.sb-classes > li > .tree-link { padding-left: var(--sp-2); }
+.sb-class-dot {
+  width: 6px; height: 6px; flex-shrink: 0; margin-right: 2px;
+  border-radius: 50%; background: var(--ldh-violet-400);
+}
+.sb-classes > li.is-active .sb-class-dot { background: var(--fg-selected); }
+
+/* OTHER — Geo and Latest. A list sharing .tree-link, like the other two
+   sections, so all three scan as one rail rather than three widgets. */
+.sb-other { list-style: none; margin: 0; padding: 0 var(--sp-2); }
+.sb-other > li { display: flex; min-width: 0; border-radius: var(--r-sm); }
+.sb-other > li:hover { background: var(--bg-hover); }
+.sb-other > li > .tree-link { padding-left: var(--sp-2); }
+/* Trailing glyph marking an entry that opens a dialog rather than navigating. */
+.sb-out { margin-left: auto; color: var(--ink-5); flex-shrink: 0; }
+
+.sb-view {
+  display: inline-flex; align-items: center; gap: 6px;
+  flex: 1; justify-content: center; height: 30px; padding: 0 10px;
+  background: var(--surface-0);
+  border: 1px solid var(--border-default); border-radius: var(--r-md);
+  color: var(--fg-2); text-decoration: none;
+  font-family: var(--font-sans); font-size: var(--fs-sm); font-weight: var(--fw-medium);
+  transition: background var(--dur-fast) var(--ease-out-soft), border-color var(--dur-fast) var(--ease-out-soft), color var(--dur-fast) var(--ease-out-soft);
+}
+.sb-view:hover { background: var(--bg-accent-quiet); border-color: var(--ldh-blue-400); color: var(--ldh-blue-700); text-decoration: none; }
+.sb-view:focus-visible { outline: 0; box-shadow: var(--focus-ring); }
+.sb-view .msi { color: var(--fg-hint); }
+.sb-view:hover .msi { color: var(--ldh-blue-700); }
+
+.ldh-tree, .ldh-tree ul { list-style: none; margin: 0; padding: 0; }
+.ldh-tree { padding: 0 var(--sp-2); }
+/* The row is the flex container; the LI carries state so the ground spans the
+   twisty as well as the link (same reason as the tab strip's li.is-active). */
+.ldh-tree .tree-row {
+  display: flex; align-items: center; gap: 2px;
+  padding-left: calc(var(--depth, 0) * 14px);
+  border-radius: var(--r-sm);
+}
+.ldh-tree .tree-row:hover { background: var(--bg-hover); }
+.ldh-tree > li.is-active > .tree-row,
+.ldh-tree li.is-active > .tree-row {
+  background: var(--bg-selected);
+  box-shadow: inset 2px 0 0 var(--fg-selected);
+}
+.ldh-tree li.is-active > .tree-row .tree-label { color: var(--fg-selected); font-weight: var(--fw-medium); }
+.ldh-tree li.is-active > .tree-row .tree-icon { color: var(--fg-selected); }
+
+/* Shared row parts — UNSCOPED, because both navigation axes use them: the
+   document tree and the class list are the same kind of row, so they must be
+   the same rule. Scoping these under .ldh-tree is what left the class list's
+   spacer at 123px (no width, so it just flexed) and the two axes 66px apart.
+   Only genuinely tree-specific things stay scoped: the --depth ramp, the
+   is-active ground, and the lazy-loading row.
+
+   .tree-spacer matches the twisty's 28px box, so labels align whether or not a
+   node has children. Inert — alignment, not a control. */
+.tree-spacer { width: 28px; height: 28px; flex-shrink: 0; }
+
+.tree-link {
+  display: flex; align-items: center; gap: var(--sp-2);
+  flex: 1; min-width: 0; padding: 5px var(--sp-2) 5px 0;
+  color: var(--fg-2); text-decoration: none;
+  font-family: var(--font-sans); font-size: var(--fs-sm);
+  border-radius: var(--r-sm);
+}
+.tree-link:hover { color: var(--fg-1); text-decoration: none; }
+.tree-link:focus-visible { outline: 0; box-shadow: var(--focus-ring); }
+.tree-icon { color: var(--fg-hint); flex-shrink: 0; }
+.tree-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* The member count is a core Tag; only its placement is scoped here. */
+.tree-link > .ldhc-tag { flex-shrink: 0; }
+/* Lazy children in flight. */
+.ldh-tree .tree-loading {
+  display: flex; align-items: center; gap: var(--sp-2);
+  padding: 5px var(--sp-2) 5px calc(var(--depth, 0) * 14px + 28px);
+  font-size: var(--fs-xs); color: var(--fg-hint);
 }
 
-.sb-tree, .sb-classes, .sb-other { display: flex; flex-direction: column; gap: 1px; }
-
-.sb-tree-row, .sb-class-row, .sb-other-row {
-  display: flex; align-items: center; gap: 6px;
-  width: 100%;
-  min-height: 28px;
-  padding: 4px 8px;
-  background: transparent; border: 0; border-radius: var(--r-sm);
-  color: var(--fg-2);
-  text-decoration: none;
-  cursor: pointer;
-  text-align: left;
-  font: inherit;
-  transition: background var(--dur-fast) var(--ease-out-soft);
-}
-.sb-tree-row:hover, .sb-class-row:hover, .sb-other-row:hover { background: var(--bg-hover); color: var(--fg-1); }
-
-.sb-tree-row .sb-caret { color: var(--fg-hint); }
-.sb-tree-row .sb-icon { color: var(--fg-muted); flex-shrink: 0; }
-.sb-tree-row .sb-label { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: var(--fs-sm); }
-.sb-tree-row .sb-count {
-  font-family: var(--font-mono); font-size: 10px;
-  color: var(--fg-hint);
-  background: transparent;
-  padding: 0 2px;
-}
-.sb-tree-row.is-current {
-  background: var(--ldh-blue-50);
-  color: var(--ldh-blue-700);
-}
-.sb-tree-row.is-current .sb-icon { color: var(--ldh-blue-600); }
-.sb-tree-row.is-current .sb-label { font-weight: var(--fw-medium); }
-.sb-tree-row.is-current .sb-count { color: var(--ldh-blue-600); }
-
-.sb-class-row { display: grid; grid-template-columns: 8px 1fr auto auto; gap: 8px; align-items: baseline; padding: 5px 8px; }
-.sb-class-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--rdf-class); }
-.sb-class-row .sb-label { font-size: var(--fs-sm); color: var(--fg-1); font-weight: var(--fw-medium); }
-.sb-class-row .sb-class-iri { font-family: var(--font-mono); font-size: 10px; color: var(--fg-hint); }
-.sb-class-row .sb-count { font-family: var(--font-mono); font-size: 10px; color: var(--fg-muted); }
-
-.sb-other-row { color: var(--fg-2); }
-.sb-other-row .sb-out { color: var(--fg-hint); margin-left: auto; opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft); }
-.sb-other-row:hover .sb-out { opacity: 1; }
-.sb-other-row span:not(.sb-out) { font-size: var(--fs-sm); }
-
-.sb-foot {
-  margin-top: auto;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 8px 4px 2px;
-  border-top: 1px solid var(--border-default);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--fg-hint);
-}
 
 /* ---------- Floating "Show sidebar" toggle ---------- */
+/* Never visible at the same time as the rail: it is fixed bottom-left, and the
+   rail spans from --ldh-chrome-h to the viewport bottom, so an open rail would
+   have the pill sitting in its scroll area over two tree rows. The rail carries
+   its own close button, so while it is open this control is redundant as well
+   as in the way. index.html renders it conditionally; this is the guard for a
+   consumer that does not. */
+.ldh-sidebar.is-open ~ .sidebar-toggle { display: none; }
 .sidebar-toggle {
   position: fixed; left: var(--sp-4); bottom: var(--sp-4);
   display: inline-flex; align-items: center; gap: 6px;
@@ -2752,51 +2871,9 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .sidebar-toggle[aria-pressed="true"] { background: var(--ldh-blue-600); }
 .sidebar-toggle .msi { color: rgba(255,255,255,0.9); }
 
-/* ---------- Parallax navigation panel (right-side cousins / siblings within a view block) ---------- */
-.ldh-parallax {
-  display: grid;
-  grid-template-columns: 1fr 220px;
-  gap: 0;
-}
-.ldh-parallax .pl-main { min-width: 0; }
-.ldh-parallax .pl-rail {
-  border-left: 1px solid var(--border-default);
-  background: var(--surface-1);
-  padding: var(--sp-3) var(--sp-3);
-  display: flex; flex-direction: column; gap: var(--sp-3);
-}
-.ldh-parallax .pl-rail .pl-heading {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
-  color: var(--fg-muted);
-  padding: 0 4px;
-}
-.ldh-parallax .pl-rail .pl-group { display: flex; flex-direction: column; gap: 2px; }
-.ldh-parallax .pl-rail .pl-link {
-  display: flex; align-items: center; gap: 6px;
-  padding: 5px 6px;
-  border-radius: var(--r-sm);
-  font-size: var(--fs-sm);
-  color: var(--fg-2);
-  text-decoration: none;
-  font-family: var(--font-sans);
-}
-.ldh-parallax .pl-rail .pl-link:hover { background: var(--bg-hover); color: var(--fg-1); }
-.ldh-parallax .pl-rail .pl-link.is-current {
-  background: var(--bg-accent-quiet);
-  color: var(--ldh-blue-700);
-  font-weight: var(--fw-medium);
-}
-.ldh-parallax .pl-rail .pl-link .msi { color: var(--fg-hint); }
-.ldh-parallax .pl-rail .pl-link.is-current .msi { color: var(--ldh-blue-600); }
-.ldh-parallax .pl-rail .pl-tag {
-  font-family: var(--font-mono); font-size: 9.5px; color: var(--fg-hint);
-  background: var(--surface-2); padding: 1px 6px; border-radius: var(--r-pill);
-  margin-left: auto;
-}
-.ldh-parallax .pl-rail .pl-link.is-current .pl-tag { background: var(--surface-0); color: var(--ldh-blue-600); }
+/* Parallax navigation is <PivotBar> — its own row under the facet toolbar,
+   one pill per predicate per direction. The old .ldh-parallax two-column rail
+   is gone; pivots were undiscoverable in a side panel. */
 
 /* =========================================================================
    Pager — container pagination (limit/offset), sits quietly under a view's
@@ -3491,8 +3568,14 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-annot .an-term.is-resource { background: var(--bg-accent-quiet); color: var(--rdf-resource); }
 .ldh-annot .an-term.is-class    { background: var(--ldh-violet-100); color: var(--rdf-class); }
 .ldh-annot .an-term.is-blank    { background: var(--warning-50); color: var(--rdf-blank); }
-/* Language tag — a narrow TextField. It used to be a bespoke pill with its own
-   bordered input; the only thing it needed was a width. */
+/* Language tag. READ side: the value's @xml:lang renders as the core Tag in its
+   quiet violet at the new xs size — <span class="ldhc-tag em-quiet co-accent
+   sz-xs">. It was an LDH-only .chip-inline with the same violet-50/violet-700
+   tones, i.e. a Tag that had not been told it was one. Violet is the system's
+   "structural/semantic annotation" hue, which is exactly what a language tag is.
+   EDIT side: a narrow TextField (below) — it used to be a bespoke pill with its
+   own bordered input; the only thing it needed was a width. */
+.ldh-annot > .ldhc-tag.sz-xs { flex-shrink: 0; }
 .ldh-lang { display: inline-flex; min-width: 0; }
 .ldh-lang > .ldhc-field { width: 11ch; }
 .ldh-lang > .ldhc-field .ldhc-field-box { min-height: 24px; padding: 0 6px; }
@@ -3745,10 +3828,21 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
    when it is applied — which is the whole point of the markup change. So the
    <li> IS the layout item and the anchor fills it.
    ========================================================================= */
+/* .sb-classes and .ldh-tree are NOT in this list: both own a padding rule of
+   their own, and this reset is appended LATER in the file at equal specificity
+   (0,1,0), so listing them here silently zeroes their inset. Same trap as the
+   doubled-class title rule — when a component rule and a blanket reset tie,
+   file order decides, and the reset is always last. */
 .ldh-grid-block, .ldh-list-block, .ldh-grid,
-.sb-tree, .sb-classes, .sb-other, .mlist { list-style: none; margin: 0; padding: 0; }
+.sb-other, .mlist { list-style: none; margin: 0; padding: 0; }
+/* The sidebar's own lists are NOT in this reset. `.sb-tree` no longer exists
+   (renamed `.ldh-tree`), and the rail owns its own row vocabulary — `.tree-row`
+   is the flex parent in the tree, `.sb-classes > li` in the class list. Listing
+   them here re-broke alignment twice: a `> *` child stretch at (0,2,0) beats
+   `.tree-spacer`'s (0,1,0) `width: 28px`, giving the spacer `flex: 1 1 0%` so it
+   grew to 120px instead of holding its column. */
 .ldh-grid-block > li, .ldh-list-block > li, .ldh-grid > li,
-.sb-tree > li, .sb-classes > li, .sb-other > li, .mlist > li {
+.sb-other > li, .mlist > li {
   display: flex; min-width: 0;
 }
 .ldh-grid-block > li > .card,
@@ -3756,9 +3850,10 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-grid > li > .ldh-grid-card,
 .sb-other > li > .sb-other-row,
 .mlist > li > .mresult { flex: 1; min-width: 0; }
-/* The sidebar tree and class rows render their own row element, so the li just
-   has to let it span. */
-.sb-tree > li > *, .sb-classes > li > * { flex: 1; min-width: 0; }
+/* `.sb-other`'s rows render their own row element, so the li just has to let it
+   span. Deliberately NOT extended to the tree or class lists: their rows carry
+   a fixed-width spacer column, and a blanket `> *` stretch destroys it. */
+.sb-other > li > * { flex: 1; min-width: 0; }
 
 
 /* =========================================================================
@@ -3972,41 +4067,65 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-pivot-pill:hover .msi { color: var(--ldh-blue-700); }
 .ldh-pivot-pill .lbl { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 
-/* Outgoing dropdown, kept styled until the bundle recompiles. */
-   Lives beside the facets and the layout switcher because it is a QUERY
-   control: it reshapes this view's result set. (The block drawer holds links
-   OUT of the document — backlinks, related resources — which is a different
-   job, so both surfaces can offer pivots without competing.)
-   The trigger matches .ldh-mode.sz-sm exactly, so the two toolbar dropdowns
-   read as siblings.
-   ========================================================================= */
-.ldh-pivot { position: relative; display: inline-flex; }
-.ldh-pivot-trigger {
-  display: inline-flex; align-items: center; gap: 5px;
-  height: 28px; padding: 0 var(--sp-2); box-sizing: border-box;
-  background: var(--surface-2);
-  border: 1px solid var(--border-default); border-radius: var(--r-md);
-  color: var(--fg-2); cursor: pointer;
-  font-family: var(--font-sans); font-size: var(--fs-xs); font-weight: var(--fw-medium);
-  transition: background var(--dur-fast) var(--ease-out-soft), border-color var(--dur-fast) var(--ease-out-soft), color var(--dur-fast) var(--ease-out-soft);
-}
-.ldh-pivot-trigger:hover { background: var(--surface-0); border-color: var(--border-strong); color: var(--fg-1); }
-.ldh-pivot-trigger:focus-visible { outline: 0; box-shadow: var(--focus-ring); }
-.ldh-pivot-trigger .msi { font-size: 16px; color: var(--fg-muted); }
-.ldh-pivot.is-open .ldh-pivot-trigger { background: var(--surface-0); border-color: var(--ldh-blue-400); color: var(--fg-1); }
+/* The intermediate "Pivot" DROPDOWN (.ldh-pivot / -trigger / -pop / -h) is
+   gone, along with a malformed comment left beside it whose body was sitting
+   in the stylesheet as raw CSS. A flat bar shows every hop at once, which is
+   the point of it. */
 
-.ldh-pivot-pop {
-  display: none;
-  position: absolute; top: calc(100% + 6px); right: 0; z-index: 40;
-  min-width: 280px; max-width: 340px;
-  padding: 4px;
-  background: var(--surface-0); color: var(--fg-1);
-  border: 1px solid var(--border-default); border-radius: var(--r-md);
-  box-shadow: var(--shadow-lg);
+/* =========================================================================
+   §16 LEFTOVERS — the two states that kept legacy names because the kit had
+   not named them. Both now follow the kit's `is-*` convention.
+   ========================================================================= */
+
+/* 1 · BLOCK LOADING, COLLAPSED.
+   Distinct from the skeleton loading state (.ldh-block-loading), which is for a
+   block whose SHAPE is known — a table, a chart — and mirrors it. This is the
+   other case: a block still resolving what it even is, collapsed to a single
+   progress strip under its header.
+
+   The pair LDH carried as "progress + active" is one state with one modifier:
+     .ldh-block.is-loading            → the block is resolving
+     .ldh-block.is-loading[aria-busy] → and is the one being awaited
+   `aria-busy` is the standard attribute for exactly this, so the second class
+   was redundant.
+
+   The strip replaces the body rather than sitting above it: a header plus a bar
+   is an honest "nothing yet", whereas a bar above empty body padding reads as a
+   block that has loaded and is empty. */
+.ldh-block.is-loading > .ldh-block-body { display: none; }
+.ldh-block-bar {
+  height: 2px; overflow: hidden;
+  background: var(--surface-3);
+  border-radius: var(--r-pill);
+  margin: 0 var(--sp-6) var(--sp-4);
 }
-.ldh-pivot.is-open .ldh-pivot-pop { display: block; }
-.ldh-pivot-h {
-  display: block; padding: var(--sp-2) var(--sp-2) 4px;
-  font-family: var(--font-mono); font-size: 10px; font-weight: var(--fw-medium);
-  letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--fg-hint);
+.ldh-block.is-loading > .ldh-block-bar::after {
+  content: ""; display: block; height: 100%; width: 35%;
+  background: var(--bg-accent); border-radius: inherit;
+  animation: ldh-block-bar 1.3s var(--ease-in-out) infinite;
 }
+@keyframes ldh-block-bar { 0% { margin-left: -35%; } 100% { margin-left: 100%; } }
+/* Indeterminate by default; a known percentage sets --p and stops the sweep. */
+.ldh-block.is-loading > .ldh-block-bar[style*="--p"]::after {
+  width: var(--p); animation: none; margin-left: 0;
+  transition: width var(--dur-slow) var(--ease-out-soft);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ldh-block.is-loading > .ldh-block-bar::after { animation: none; width: 100%; opacity: 0.4; }
+}
+
+/* 2 · SIDEBAR DOCUMENT-TREE ACTIVE ITEM.
+   `is-active`, matching the tab strip's item state — it is the same statement
+   ("this row is the document you are looking at") and should not have two
+   names. LDH's `li.active` renames.
+   The state goes on the LI so the rail and background span the whole row
+   including its disclosure control, exactly as with the tabs.
+   Scoped to `.sb-other`: the tree and class lists declare their own is-active
+   rules next to the rest of their vocabulary, and a `> *` descendant here would
+   also recolour their spacer column. */
+.sb-other > li.is-active {
+  background: var(--bg-selected);
+  border-radius: var(--r-sm);
+  box-shadow: inset 2px 0 0 var(--fg-selected);
+}
+.sb-other > li.is-active > * { color: var(--fg-selected); font-weight: var(--fw-medium); }

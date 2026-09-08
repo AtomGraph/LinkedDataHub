@@ -970,9 +970,10 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <!-- the property list and the table cell both put a value's languages side by side, so the pill that tells them apart
-         is written once here and applied from wherever the values are laid out -->
+         is written once here and applied from wherever the values are laid out. The core Tag at the inline xs size,
+         in the system's structural-annotation violet (§17c) -->
     <xsl:template match="@xml:lang" mode="ac:lang-tag">
-        <span class="chip-inline">
+        <span class="ldhc-tag em-quiet co-accent sz-xs">
             <xsl:value-of select="."/>
         </span>
     </xsl:template>
