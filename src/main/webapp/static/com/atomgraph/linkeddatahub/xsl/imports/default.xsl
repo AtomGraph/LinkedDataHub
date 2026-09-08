@@ -1623,14 +1623,21 @@ exclude-result-prefixes="#all"
         <xsl:param name="required" select="false()" as="xs:boolean"/>
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
 
-        <xsl:call-template name="xhtml:Input">
-            <xsl:with-param name="name" select="'ol'"/>
+        <!-- the field shell keeps this input on the shared control width; a bare input here sat at its
+             UA-intrinsic width beside the capped fields (the §5d diagnostic) -->
+        <xsl:apply-templates select="." mode="ac:FieldShell">
             <xsl:with-param name="type" select="$type"/>
-            <xsl:with-param name="id" select="$id"/>
-            <xsl:with-param name="class" select="$class"/>
-            <xsl:with-param name="disabled" select="$disabled"/>
-        </xsl:call-template>
-        
+            <xsl:with-param name="control" as="item()*">
+                <xsl:call-template name="xhtml:Input">
+                    <xsl:with-param name="name" select="'ol'"/>
+                    <xsl:with-param name="type" select="$type"/>
+                    <xsl:with-param name="id" select="$id"/>
+                    <xsl:with-param name="class" select="$class"/>
+                    <xsl:with-param name="disabled" select="$disabled"/>
+                </xsl:call-template>
+            </xsl:with-param>
+        </xsl:apply-templates>
+
         <!-- datatype -->
         <xsl:call-template name="xhtml:Input">
             <xsl:with-param name="name" select="'lt'"/>
