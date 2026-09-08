@@ -398,7 +398,7 @@ WHERE
 
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <div class="breadcrumb ldh-bc ldh-bc-pills"/>
+                <div class="ldh-bc ldh-bc-pills"/>
             </xsl:result-document>
         </xsl:for-each>
         <xsl:sequence select="ldh:breadcrumb-resource-response(map{

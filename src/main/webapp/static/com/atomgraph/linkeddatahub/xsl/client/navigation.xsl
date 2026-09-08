@@ -108,7 +108,7 @@ ORDER BY DESC(?created)
             <!-- dataspace-scoped search form -->
             <form class="search-form sb-search" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', ldh:translations()))}">
                 <span class="msi sm" aria-hidden="true">search</span>
-                <input type="text" name="q" class="search-query" placeholder="{ac:label(key('resources', 'search-placeholder', ldh:translations()))}"/>
+                <input type="text" name="q" placeholder="{ac:label(key('resources', 'search-placeholder', ldh:translations()))}"/>
             </form>
 
             <!-- document tree container -->
@@ -1228,7 +1228,7 @@ ORDER BY DESC(?created)
                     <!-- the design's search field is a label; here it stays a form so Enter still reaches the submit handler -->
                     <form class="ldh-search-field search-form-modal" accept-charset="UTF-8">
                         <span class="msi outline" aria-hidden="true">search</span>
-                        <input type="search" name="q" class="search-query" value="{$text}" placeholder="{ac:label(key('resources', 'search-placeholder', ldh:translations()))}"/>
+                        <input type="search" name="q" value="{$text}" placeholder="{ac:label(key('resources', 'search-placeholder', ldh:translations()))}"/>
                         <button type="button" class="ldhc-iconbtn sz-xs in-neutral ap-ghost btn-clear-query" aria-label="{ac:label(key('resources', 'clear-query', ldh:translations()))}"><span class="msi sm">close</span></button>
                     </form>
 

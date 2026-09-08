@@ -3546,7 +3546,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-prop-group > .label .ldhc-label-aux {
   margin-left: 0; font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--fg-hint);
 }
-/* Required marker — .ldhc-label-aux is its home, replacing the bridge's
+/* Required marker — .ldhc-label-aux is its home, replacing the legacy
    ::after ' *'. It carries a text label for assistive tech, not just a glyph. */
 .ldh-prop-group > .label .req { color: var(--danger-500); font-weight: var(--fw-bold); }
 .ldh-prop-group > .label .ldhc-toggletip-btn { width: 18px; height: 18px; }

@@ -332,14 +332,18 @@ WHERE
         </xsl:choose>
     </xsl:function>
 
-    <!-- Bootstrap-styled annotation overlay (replaces rdfa-editor's custom HTML structure) -->
+    <!-- annotation overlay on the design system's modal head/body anatomy (replaces rdfa-editor's custom HTML structure) -->
     <xsl:template name="rdfae:render-overlay">
-        <div id="{$rdfae:overlay-id}" class="rdfa-editor-ui" role="dialog" aria-modal="true" aria-label="RDFa annotation" style="display: none;">
-            <div class="modal-header">
-                <button type="button" class="close cancel-action">&#215;</button>
-                <legend>RDFa Annotation</legend>
+        <div id="{$rdfae:overlay-id}" class="rdfa-editor-ui" role="dialog" aria-modal="true" aria-label="{ac:label(key('resources', 'rdfa-annotation', ldh:translations()))}" style="display: none;">
+            <div class="ldhc-modal-head">
+                <legend>
+                    <xsl:apply-templates select="key('resources', 'rdfa-annotation', ldh:translations())" mode="ac:label"/>
+                </legend>
+                <span class="ldhc-modal-x">
+                    <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close cancel-action" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
+                </span>
             </div>
-            <div class="modal-body">
+            <div class="ldhc-modal-body">
                 <form id="annotation-form" class="ldh-prop-form">
                     <div class="ldh-prop-group">
                         <xsl:apply-templates select="." mode="ldh:PropertyLabel">

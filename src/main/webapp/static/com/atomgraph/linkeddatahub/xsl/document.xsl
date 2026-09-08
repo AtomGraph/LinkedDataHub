@@ -286,7 +286,7 @@ extension-element-prefixes="ixsl"
             <!-- placeholder for client.xsl callbacks -->
 
             <xsl:if test="not($ldh:ajaxRendering)">
-                <div class="breadcrumb ldh-bc ldh-bc-pills">
+                <div class="ldh-bc ldh-bc-pills">
                     <!-- render breadcrumbs server-side -->
                     <xsl:apply-templates select="key('resources', $uri)" mode="ac:BreadcrumbItem"/>
                 </div>
@@ -557,7 +557,7 @@ extension-element-prefixes="ixsl"
                                 </xsl:value-of>
                             </span>
                             <xsl:text> / </xsl:text>
-                            <!-- the legend's .text-* classes resolve to the same tokens as the diff decorations (ldh-bridge.css) -->
+                            <!-- the legend's .text-* classes resolve to the same tokens as the diff decorations (ldh.css) -->
                             <span class="text-warning">
                                 <xsl:value-of>
                                     <xsl:apply-templates select="key('resources', 'changed', ldh:translations())" mode="ac:label"/>
@@ -775,7 +775,7 @@ extension-element-prefixes="ixsl"
 
     <!-- SPARQL SELECT results keep .ldh-results-table (native table layout): the column count is
          data-driven, which the design's grid-per-row .ldhc-table cannot share intrinsic tracks for
-         (see the results-table section in ldh-bridge.css). The shadow adds the semantic-markup
+         (see the results-table section in ldh.css). The shadow adds the semantic-markup
          contract's visually-hidden caption and th scope on top of Web-Client's emitter -->
     <xsl:template match="srx:sparql" mode="xhtml:Table">
         <xsl:param name="id" as="xs:string?"/>
@@ -824,7 +824,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="object-metadata" select="if (exists($object-uris)) then ldh:send-request(sd:endpoint(), 'POST', 'application/sparql-query', $object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }', map{ 'Accept': 'application/rdf+xml' }) else ()" as="document-node()?" tunnel="yes"/>
 
         <!-- .ldh-results-table keeps native table layout for the data-driven column count (see the
-             results-table section in ldh-bridge.css); the shadow adds the semantic-markup contract's
+             results-table section in ldh.css); the shadow adds the semantic-markup contract's
              visually-hidden caption and th scope on top of Web-Client's emitter -->
         <table>
             <xsl:if test="$id">

@@ -8,7 +8,7 @@
    and a text field line up in the same row.
 
    ONE FOCUS RING. Everything below uses --focus-ring. No control defines its
-   own; the transitional bridge's separate ring is retired.
+   own; no app-layer override defines one either.
    ========================================================================= */
 
 /* =========================================================================

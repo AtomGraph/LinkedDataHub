@@ -911,6 +911,10 @@
         <rdfs:label xml:lang="en-US">Could not move block</rdfs:label>
         <rdfs:label xml:lang="es-ES">No se pudo mover el bloque</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-annotation">
+        <rdfs:label xml:lang="en-US">RDFa annotation</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Anotación RDFa</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="rdfa-subject">
         <rdfs:label xml:lang="en-US">Subject</rdfs:label>
         <rdfs:label xml:lang="es-ES">Sujeto</rdfs:label>
