@@ -577,20 +577,18 @@ extension-element-prefixes="ixsl"
                                     </xsl:if>
                                 </div>
                             </xsl:if>
-                            <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
-                                <div class="row-main">
-                                    <xsl:if test="acl:mode() = '&acl;Write'">
-                                        <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm btn-edit" style="display: none;">
-                                            <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                                        </button>
-                                    </xsl:if>
-                                    <div class="ldhc-pbar ht-sm">
-                                        <div class="ldhc-pbar-track">
-                                            <div class="ldhc-pbar-fill" style="width: 0%;"></div>
-                                        </div>
+                            <xsl:apply-templates select="." mode="ldh:RowBlockControls">
+                                <xsl:with-param name="content" as="item()*">
+                                    <div class="row-main">
+                                        <xsl:if test="acl:mode() = '&acl;Write'">
+                                            <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm btn-edit" style="display: none;">
+                                                <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                                            </button>
+                                        </xsl:if>
+                                        <xsl:apply-templates select="." mode="ldh:ProgressBar"/>
                                     </div>
-                                </div>
-                            </div>
+                                </xsl:with-param>
+                            </xsl:apply-templates>
                         </xsl:if>
 
                         <!-- client-side $container -->
@@ -646,15 +644,17 @@ extension-element-prefixes="ixsl"
                         </xsl:if>
                     </div>
                 </xsl:if>
-                <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
-                    <div class="row-main">
-                        <xsl:if test="acl:mode() = '&acl;Write'">
-                            <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm btn-edit" style="display: none;">
-                                <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                            </button>
-                        </xsl:if>
-                    </div>
-                </div>
+                <xsl:apply-templates select="." mode="ldh:RowBlockControls">
+                    <xsl:with-param name="content" as="item()*">
+                        <div class="row-main">
+                            <xsl:if test="acl:mode() = '&acl;Write'">
+                                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm btn-edit" style="display: none;">
+                                    <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                                </button>
+                            </xsl:if>
+                        </div>
+                    </xsl:with-param>
+                </xsl:apply-templates>
 
                 <div id="row-{generate-id()}" class="block-row">
                     <xsl:if test="$about">

@@ -68,13 +68,10 @@ LIMIT   10
     
     <xsl:template name="ldh:FirstTimeMessage">
         <div class="ldhc-backdrop pos-center modal modal-first-time-message">
-            <div class="ldhc-modal sz-lg" role="dialog" aria-modal="true">
-                <div class="ldhc-modal-head">
-                    <span class="ldhc-modal-x">
-                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
-                    </span>
-                </div>
-                <div class="ldhc-modal-body is-flush">
+            <xsl:apply-templates select="." mode="ldh:Modal">
+                <xsl:with-param name="flush" select="true()"/>
+                <xsl:with-param name="body" as="item()*">
+
                     <div class="ldh-hero">
                         <h1>Your LinkedDataHub is ready!</h1>
                         <h2>Unlock the value of your Knowledge Graph with data-driven content and low code apps.</h2>
@@ -84,8 +81,9 @@ LIMIT   10
                             <a class="ldhc-btn in-neutral ap-solid sz-lg" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank"><xsl:value-of select="ac:label(key('resources', 'learn-more', ldh:translations()))"/></a>
                         </p>
                     </div>
-                </div>
-            </div>
+                
+                </xsl:with-param>
+            </xsl:apply-templates>
         </div>
     </xsl:template>
     
@@ -102,19 +100,12 @@ LIMIT   10
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
 
-            <div class="ldhc-modal sz-lg" role="dialog" aria-modal="true" aria-labelledby="modal-title-{generate-id()}">
-                <div class="ldhc-modal-head">
-                    <div class="ldhc-modal-titles">
-                        <h2 class="ldhc-modal-title" id="modal-title-{generate-id()}">
+            <xsl:apply-templates select="." mode="ldh:Modal">
+                <xsl:with-param name="title" as="item()*">
                             <xsl:value-of select="$legend-label"/>
-                        </h2>
-                    </div>
-                    <span class="ldhc-modal-x">
-                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
-                    </span>
-                </div>
+                </xsl:with-param>
+                <xsl:with-param name="body" as="item()*">
 
-                <div class="ldhc-modal-body">
                 <form id="form-clone-data" method="POST">
                     <xsl:comment>The hidden pu/ou input pairs use RDF/POST-style naming to key the submit handler's data extraction; the form is never wire-submitted</xsl:comment>
                     <fieldset>
@@ -201,8 +192,9 @@ LIMIT   10
                         <xsl:text>.</xsl:text>
                     </xsl:with-param>
                 </xsl:apply-templates>
-                </div>
-            </div>
+                
+                </xsl:with-param>
+            </xsl:apply-templates>
         </div>
     </xsl:template>
 
@@ -218,19 +210,12 @@ LIMIT   10
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
 
-            <div class="ldhc-modal sz-lg" role="dialog" aria-modal="true" aria-labelledby="modal-title-{generate-id()}">
-                <div class="ldhc-modal-head">
-                    <div class="ldhc-modal-titles">
-                        <h2 class="ldhc-modal-title" id="modal-title-{generate-id()}">
+            <xsl:apply-templates select="." mode="ldh:Modal">
+                <xsl:with-param name="title" as="item()*">
                             <xsl:value-of select="$legend-label"/>
-                        </h2>
-                    </div>
-                    <span class="ldhc-modal-x">
-                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
-                    </span>
-                </div>
+                </xsl:with-param>
+                <xsl:with-param name="body" as="item()*">
 
-                <div class="ldhc-modal-body">
                 <div class="tabbable">
                     <ul class="nav nav-tabs">
                         <li class="active">
@@ -362,8 +347,9 @@ LIMIT   10
 <!--                <div class="alert alert-info">
                     <p>Adding data this way will cause a blocking request, so use it for small amounts of data only (e.g. a few thousands of RDF triples). For larger data, use asynchronous <a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/reference/imports/rdf/" target="_blank">RDF imports</a>.</p>
                 </div>-->
-                </div>
-            </div>
+                
+                </xsl:with-param>
+            </xsl:apply-templates>
         </div>
     </xsl:template>
     
@@ -381,24 +367,17 @@ LIMIT   10
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
 
-            <div class="ldhc-modal sz-lg" role="dialog" aria-modal="true" aria-labelledby="modal-title-{generate-id()}">
-                <div class="ldhc-modal-head">
-                    <div class="ldhc-modal-titles">
-                        <h2 class="ldhc-modal-title" id="modal-title-{generate-id()}">
+            <xsl:apply-templates select="." mode="ldh:Modal">
+                <xsl:with-param name="title" as="item()*">
                             <xsl:value-of select="$legend-label"/>
-                        </h2>
-                        <span class="ldhc-modal-sub">
+                </xsl:with-param>
+                <xsl:with-param name="sub" as="item()*">
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', 'request-access-description', ldh:translations())" mode="ac:label"/>
                             </xsl:value-of>
-                        </span>
-                    </div>
-                    <span class="ldhc-modal-x">
-                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
-                    </span>
-                </div>
+                </xsl:with-param>
+                <xsl:with-param name="body" as="item()*">
 
-                <div class="ldhc-modal-body">
                 <form id="form-request-access" class="ldh-prop-form" method="POST" action="{$action}">
                     <xsl:comment>This form uses RDF/POST encoding: https://atomgraph.github.io/RDF-POST/</xsl:comment>
                     <xsl:call-template name="xhtml:Input">
@@ -439,8 +418,9 @@ LIMIT   10
                         <xsl:with-param name="save-key" select="'request'"/>
                     </xsl:apply-templates>
                 </form>
-                </div>
-            </div>
+                
+                </xsl:with-param>
+            </xsl:apply-templates>
         </div>
     </xsl:template>
     
@@ -668,19 +648,12 @@ LIMIT   10
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
 
-            <div class="ldhc-modal sz-lg" role="dialog" aria-modal="true" aria-labelledby="modal-title-{generate-id()}">
-                <div class="ldhc-modal-head">
-                    <div class="ldhc-modal-titles">
-                        <h2 class="ldhc-modal-title" id="modal-title-{generate-id()}">
+            <xsl:apply-templates select="." mode="ldh:Modal">
+                <xsl:with-param name="title" as="item()*">
                             <xsl:value-of select="$legend-label"/>
-                        </h2>
-                    </div>
-                    <span class="ldhc-modal-x">
-                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
-                    </span>
-                </div>
+                </xsl:with-param>
+                <xsl:with-param name="body" as="item()*">
 
-                <div class="ldhc-modal-body">
                 <form id="form-reconcile" method="POST" action="{$action}">
                     <xsl:comment>This form uses RDF/POST encoding: https://atomgraph.github.io/RDF-POST/</xsl:comment>
                     <xsl:call-template name="xhtml:Input">
@@ -720,8 +693,9 @@ LIMIT   10
                         </div>
                     </fieldset>
                 </form>
-                </div>
-            </div>
+                
+                </xsl:with-param>
+            </xsl:apply-templates>
         </div>
     </xsl:template>
 
@@ -831,24 +805,18 @@ LIMIT   10
             <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseDropdown"/>
             <xsl:result-document href="?." method="ixsl:append-content">
                 <div class="ldhc-backdrop pos-top modal modal-constructor" about="{$doc-uri}" typeof="{$forClass}"> <!-- @about identifies the new resource URL (uniform with edit/settings modals so submit handlers can read $block/@about without a fallback); $forClass used by ldh:ResourceUpdated in case of 4xx response -->
-                    <div class="ldhc-modal sz-lg" role="dialog" aria-modal="true" aria-labelledby="modal-title-{generate-id()}">
-                        <div class="ldhc-modal-head">
-                            <div class="ldhc-modal-titles">
-                                <h2 class="ldhc-modal-title" id="modal-title-{generate-id()}">
+                    <xsl:apply-templates select="." mode="ldh:Modal">
+                        <xsl:with-param name="title" as="item()*">
                                     <xsl:try select="ac:object-label($forClass)">
                                         <xsl:catch select="replace($forClass, '.*[#/]', '')"/>
                                     </xsl:try>
-                                </h2>
-                            </div>
-                            <span class="ldhc-modal-x">
-                                <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
-                            </span>
-                        </div>
+                        </xsl:with-param>
+                        <xsl:with-param name="body" as="item()*">
 
-                        <div class="ldhc-modal-body">
                             <xsl:copy-of select="$form"/>
-                        </div>
-                    </div>
+                        
+                        </xsl:with-param>
+                    </xsl:apply-templates>
                 </div>
             </xsl:result-document>
 
@@ -917,19 +885,16 @@ LIMIT   10
             <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseDropdown"/>
             <xsl:result-document href="?." method="ixsl:append-content">
                 <div class="ldhc-backdrop pos-top modal modal-constructor" about="{$about}">
-                    <div class="ldhc-modal sz-lg" role="dialog" aria-modal="true">
-                        <div class="ldhc-modal-head">
-                            <span class="ldhc-modal-x">
-                                <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
-                            </span>
-                        </div>
-                        <div class="ldhc-modal-body">
+                    <xsl:apply-templates select="." mode="ldh:Modal">
+                        <xsl:with-param name="body" as="item()*">
+
                             <!-- empty host block, uniform with the inline edit flow: ldh:render-form transplants the rendered form's block root onto it -->
                             <div id="{$block-id}" class="block ldh-block">
                                 <!-- to be injected -->
                             </div>
-                        </div>
-                    </div>
+                        
+                        </xsl:with-param>
+                    </xsl:apply-templates>
                 </div>
             </xsl:result-document>
         </xsl:for-each>
@@ -1141,21 +1106,16 @@ LIMIT   10
                         <xsl:attribute name="id" select="$id"/>
                     </xsl:if>
 
-                    <div class="ldhc-modal sz-lg" role="dialog" aria-modal="true" aria-labelledby="modal-title-{generate-id()}">
-                    <div class="ldhc-modal-head">
-                        <div class="ldhc-modal-titles">
-                            <h2 class="ldhc-modal-title" id="modal-title-{generate-id()}">
+                    <xsl:apply-templates select="." mode="ldh:Modal">
+                        <xsl:with-param name="title" as="item()*">
                                 <xsl:apply-templates select="key('resources', 'application-settings', ldh:translations())" mode="ac:label"/>
-                            </h2>
-                        </div>
-                        <span class="ldhc-modal-x">
-                            <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
-                        </span>
-                    </div>
-                    <div class="ldhc-modal-body">
+                        </xsl:with-param>
+                        <xsl:with-param name="body" as="item()*">
+
                         <!-- to be injected -->
-                    </div>
-                    </div>
+                    
+                        </xsl:with-param>
+                    </xsl:apply-templates>
                 </div>
             </xsl:result-document>
         </xsl:for-each>

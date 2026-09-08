@@ -78,25 +78,20 @@ version="3.0"
                 <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseDropdown"/>
                 <xsl:result-document href="?." method="ixsl:append-content">
                     <div class="ldhc-backdrop pos-top modal modal-constructor" id="document-history-modal">
-                        <div class="ldhc-modal sz-xl" role="dialog" aria-modal="true" aria-labelledby="modal-title-{generate-id()}">
-                        <div class="ldhc-modal-head">
-                            <div class="ldhc-modal-titles">
-                                <h2 class="ldhc-modal-title" id="modal-title-{generate-id()}">
+                        <xsl:apply-templates select="." mode="ldh:Modal">
+                            <xsl:with-param name="size" select="'sz-xl'"/>
+                            <xsl:with-param name="title" as="item()*">
                                     <xsl:value-of>
                                         <xsl:apply-templates select="key('resources', 'history', ldh:translations())" mode="ac:label"/>
                                     </xsl:value-of>
-                                </h2>
-                                <span class="ldhc-modal-sub">
+                            </xsl:with-param>
+                            <xsl:with-param name="sub" as="item()*">
                                     <xsl:value-of>
                                         <xsl:apply-templates select="key('resources', 'history-description', ldh:translations())" mode="ac:label"/>
                                     </xsl:value-of>
-                                </span>
-                            </div>
-                            <span class="ldhc-modal-x">
-                                <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
-                            </span>
-                        </div>
-                        <div class="ldhc-modal-body">
+                            </xsl:with-param>
+                            <xsl:with-param name="body" as="item()*">
+
                             <xsl:choose>
                                 <xsl:when test="$response?status = 200 and $response?media-type = 'application/rdf+xml'">
                                     <xsl:variable name="mementos" select="$response?body//*[@rdf:about][prov:specializationOf/@rdf:resource]" as="element()*"/>
@@ -166,8 +161,9 @@ version="3.0"
                                     <xsl:sequence select="ldh:error-alert('version-history-not-loaded', ldh:http-error-key($response?status), ())"/>
                                 </xsl:otherwise>
                             </xsl:choose>
-                        </div>
-                        </div>
+                        
+                            </xsl:with-param>
+                        </xsl:apply-templates>
                     </div>
                 </xsl:result-document>
             </xsl:for-each>

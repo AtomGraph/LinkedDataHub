@@ -824,10 +824,9 @@ ORDER BY DESC(?created)
 
         <xsl:variable name="modal" as="element()">
             <div class="ldhc-backdrop pos-top modal modal-constructor modal-class-instances" id="{$modal-id}" data-container-id="{$container-id}">
-                <div class="ldhc-modal sz-xl" role="dialog" aria-modal="true" aria-labelledby="modal-title-{generate-id()}">
-                <div class="ldhc-modal-head">
-                    <div class="ldhc-modal-titles">
-                        <h2 class="ldhc-modal-title" id="modal-title-{generate-id()}">
+                <xsl:apply-templates select="." mode="ldh:Modal">
+                    <xsl:with-param name="size" select="'sz-xl'"/>
+                    <xsl:with-param name="title" as="item()*">
                             <xsl:choose>
                                 <xsl:when test="doc-available(ac:document-uri($class-uri))">
                                     <xsl:apply-templates select="key('resources', $class-uri, document(ac:document-uri($class-uri)))" mode="ac:label"/>
@@ -836,22 +835,16 @@ ORDER BY DESC(?created)
                                     <xsl:value-of select="$class-uri"/>
                                 </xsl:otherwise>
                             </xsl:choose>
-                        </h2>
-                    </div>
-                    <span class="ldhc-modal-x">
-                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
-                    </span>
-                </div>
-                <div class="ldhc-modal-body">
+                    </xsl:with-param>
+                    <xsl:with-param name="body" as="item()*">
+
                     <div class="block-row block">
                         <div class="row-main progress active">
-                            <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
-                                <div class="ldhc-pbar ht-sm">
-                                    <div class="ldhc-pbar-track">
-                                        <div class="ldhc-pbar-fill" style="width: 0%;"></div>
-                                    </div>
-                                </div>
-                            </div>
+                            <xsl:apply-templates select="." mode="ldh:RowBlockControls">
+                                <xsl:with-param name="content" as="item()*">
+                                    <xsl:apply-templates select="." mode="ldh:ProgressBar"/>
+                                </xsl:with-param>
+                            </xsl:apply-templates>
 
                             <div id="{$container-id}" class="block-row" typeof="&ldh;View">
                                 <div class="main row-main">
@@ -860,14 +853,17 @@ ORDER BY DESC(?created)
                             </div>
                         </div>
                     </div>
-                </div>
-                <xsl:apply-templates select="." mode="ldh:FormFooter">
+                
+                    </xsl:with-param>
+                    <xsl:with-param name="foot" as="item()*">
+                        <xsl:apply-templates select="." mode="ldh:FormFooter">
                     <xsl:with-param name="class" select="'ldhc-modal-foot'"/>
                     <xsl:with-param name="dismiss" select="'close'"/>
                     <xsl:with-param name="show-reset" select="false()"/>
                     <xsl:with-param name="show-save" select="false()"/>
                 </xsl:apply-templates>
-                </div>
+                    </xsl:with-param>
+                </xsl:apply-templates>
             </div>
         </xsl:variable>
 
@@ -975,27 +971,20 @@ ORDER BY DESC(?created)
 
         <xsl:variable name="modal" as="element()">
             <div class="ldhc-backdrop pos-top modal modal-constructor modal-geo" id="{$modal-id}" data-container-id="{$container-id}">
-                <div class="ldhc-modal sz-xl" role="dialog" aria-modal="true" aria-labelledby="modal-title-{generate-id()}">
-                <div class="ldhc-modal-head">
-                    <div class="ldhc-modal-titles">
-                        <h2 class="ldhc-modal-title" id="modal-title-{generate-id()}">
+                <xsl:apply-templates select="." mode="ldh:Modal">
+                    <xsl:with-param name="size" select="'sz-xl'"/>
+                    <xsl:with-param name="title" as="item()*">
                             <xsl:apply-templates select="key('resources', 'geo', ldh:translations())" mode="ac:label"/>
-                        </h2>
-                    </div>
-                    <span class="ldhc-modal-x">
-                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
-                    </span>
-                </div>
-                <div class="ldhc-modal-body">
+                    </xsl:with-param>
+                    <xsl:with-param name="body" as="item()*">
+
                     <div class="block-row block">
                         <div class="row-main progress active">
-                            <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
-                                <div class="ldhc-pbar ht-sm">
-                                    <div class="ldhc-pbar-track">
-                                        <div class="ldhc-pbar-fill" style="width: 0%;"></div>
-                                    </div>
-                                </div>
-                            </div>
+                            <xsl:apply-templates select="." mode="ldh:RowBlockControls">
+                                <xsl:with-param name="content" as="item()*">
+                                    <xsl:apply-templates select="." mode="ldh:ProgressBar"/>
+                                </xsl:with-param>
+                            </xsl:apply-templates>
 
                             <div id="{$container-id}" class="block-row" typeof="&ldh;View">
                                 <div class="main row-main">
@@ -1004,14 +993,17 @@ ORDER BY DESC(?created)
                             </div>
                         </div>
                     </div>
-                </div>
-                <xsl:apply-templates select="." mode="ldh:FormFooter">
+                
+                    </xsl:with-param>
+                    <xsl:with-param name="foot" as="item()*">
+                        <xsl:apply-templates select="." mode="ldh:FormFooter">
                     <xsl:with-param name="class" select="'ldhc-modal-foot'"/>
                     <xsl:with-param name="dismiss" select="'close'"/>
                     <xsl:with-param name="show-reset" select="false()"/>
                     <xsl:with-param name="show-save" select="false()"/>
                 </xsl:apply-templates>
-                </div>
+                    </xsl:with-param>
+                </xsl:apply-templates>
             </div>
         </xsl:variable>
 
@@ -1092,27 +1084,20 @@ ORDER BY DESC(?created)
 
         <xsl:variable name="modal" as="element()">
             <div class="ldhc-backdrop pos-top modal modal-constructor modal-latest" id="{$modal-id}" data-container-id="{$container-id}">
-                <div class="ldhc-modal sz-xl" role="dialog" aria-modal="true" aria-labelledby="modal-title-{generate-id()}">
-                <div class="ldhc-modal-head">
-                    <div class="ldhc-modal-titles">
-                        <h2 class="ldhc-modal-title" id="modal-title-{generate-id()}">
+                <xsl:apply-templates select="." mode="ldh:Modal">
+                    <xsl:with-param name="size" select="'sz-xl'"/>
+                    <xsl:with-param name="title" as="item()*">
                             <xsl:apply-templates select="key('resources', 'latest', ldh:translations())" mode="ac:label"/>
-                        </h2>
-                    </div>
-                    <span class="ldhc-modal-x">
-                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
-                    </span>
-                </div>
-                <div class="ldhc-modal-body">
+                    </xsl:with-param>
+                    <xsl:with-param name="body" as="item()*">
+
                     <div class="block-row block">
                         <div class="row-main progress active">
-                            <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
-                                <div class="ldhc-pbar ht-sm">
-                                    <div class="ldhc-pbar-track">
-                                        <div class="ldhc-pbar-fill" style="width: 0%;"></div>
-                                    </div>
-                                </div>
-                            </div>
+                            <xsl:apply-templates select="." mode="ldh:RowBlockControls">
+                                <xsl:with-param name="content" as="item()*">
+                                    <xsl:apply-templates select="." mode="ldh:ProgressBar"/>
+                                </xsl:with-param>
+                            </xsl:apply-templates>
 
                             <div id="{$container-id}" class="block-row" typeof="&ldh;View">
                                 <div class="main row-main">
@@ -1121,14 +1106,17 @@ ORDER BY DESC(?created)
                             </div>
                         </div>
                     </div>
-                </div>
-                <xsl:apply-templates select="." mode="ldh:FormFooter">
+                
+                    </xsl:with-param>
+                    <xsl:with-param name="foot" as="item()*">
+                        <xsl:apply-templates select="." mode="ldh:FormFooter">
                     <xsl:with-param name="class" select="'ldhc-modal-foot'"/>
                     <xsl:with-param name="dismiss" select="'close'"/>
                     <xsl:with-param name="show-reset" select="false()"/>
                     <xsl:with-param name="show-save" select="false()"/>
                 </xsl:apply-templates>
-                </div>
+                    </xsl:with-param>
+                </xsl:apply-templates>
             </div>
         </xsl:variable>
 
@@ -1220,28 +1208,23 @@ ORDER BY DESC(?created)
 
         <xsl:variable name="modal" as="element()">
             <div class="ldhc-backdrop pos-top modal modal-constructor modal-search" id="{$modal-id}" data-container-id="{$container-id}">
-                <div class="ldhc-modal sz-xl" role="dialog" aria-modal="true" aria-labelledby="modal-title-{generate-id()}">
-                <div class="ldhc-modal-head">
-                    <span class="ldhc-modal-icon">
+                <xsl:apply-templates select="." mode="ldh:Modal">
+                    <xsl:with-param name="size" select="'sz-xl'"/>
+                    <xsl:with-param name="icon" as="item()*">
                         <span class="msi outline" aria-hidden="true">search</span>
-                    </span>
-                    <div class="ldhc-modal-titles">
-                        <span class="ldhc-modal-eyebrow">
+                    </xsl:with-param>
+                    <xsl:with-param name="eyebrow" as="item()*">
                             <xsl:apply-templates select="key('resources', 'search-eyebrow', ldh:translations())" mode="ac:label"/>
-                        </span>
-                        <h2 class="ldhc-modal-title" id="modal-title-{generate-id()}">
+                    </xsl:with-param>
+                    <xsl:with-param name="title" as="item()*">
                             <xsl:apply-templates select="key('resources', 'search', ldh:translations())" mode="ac:label"/>
-                        </h2>
-                        <span class="ldhc-modal-sub">
+                    </xsl:with-param>
+                    <xsl:with-param name="sub" as="item()*">
                             <xsl:apply-templates select="key('resources', 'search-subtitle', ldh:translations())" mode="ac:label"/>
-                        </span>
-                    </div>
-                    <span class="ldhc-modal-x">
-                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
-                    </span>
-                </div>
-                <!-- the search field, the embedded view and the keyboard hints are each a full-bleed band, so the body carries no padding of its own -->
-                <div class="ldhc-modal-body is-flush">
+                    </xsl:with-param>
+                    <xsl:with-param name="flush" select="true()"/>
+                    <xsl:with-param name="body" as="item()*">
+
                     <!-- the design's search field is a label; here it stays a form so Enter still reaches the submit handler -->
                     <form class="ldh-search-field search-form-modal" accept-charset="UTF-8">
                         <span class="msi outline" aria-hidden="true">search</span>
@@ -1253,13 +1236,11 @@ ORDER BY DESC(?created)
                     <div class="ldh-search-view">
                         <div class="block-row block">
                             <div class="row-main progress active">
-                                <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
-                                    <div class="ldhc-pbar ht-sm">
-                                        <div class="ldhc-pbar-track">
-                                            <div class="ldhc-pbar-fill" style="width: 0%;"></div>
-                                        </div>
-                                    </div>
-                                </div>
+                                <xsl:apply-templates select="." mode="ldh:RowBlockControls">
+                                    <xsl:with-param name="content" as="item()*">
+                                        <xsl:apply-templates select="." mode="ldh:ProgressBar"/>
+                                    </xsl:with-param>
+                                </xsl:apply-templates>
 
                                 <div id="{$container-id}" class="block-row" typeof="&ldh;View">
                                     <div class="main row-main">
@@ -1275,8 +1256,9 @@ ORDER BY DESC(?created)
                         <span><kbd>↵</kbd><xsl:text> </xsl:text><xsl:apply-templates select="key('resources', 'hint-open', ldh:translations())" mode="ac:label"/></span>
                         <span><kbd>esc</kbd><xsl:text> </xsl:text><xsl:apply-templates select="key('resources', 'hint-close', ldh:translations())" mode="ac:label"/></span>
                     </div>
-                </div>
-                </div>
+                
+                    </xsl:with-param>
+                </xsl:apply-templates>
             </div>
         </xsl:variable>
 

@@ -236,7 +236,7 @@ exclude-result-prefixes="#all"
 
     <!-- the app's own label catalog, mirroring ac:translations() -->
     <xsl:function name="ldh:translations" as="document-node()">
-        <xsl:sequence select="ldh:translations()"/>
+        <xsl:sequence select="document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))"/>
     </xsl:function>
 
     <!-- the label of a class given as a bare URI: rdfs:Resource takes the app catalog's localized label,
@@ -1773,6 +1773,101 @@ exclude-result-prefixes="#all"
                     </span>
                 </xsl:if>
             </span>
+        </div>
+    </xsl:template>
+
+    <!-- ROW BLOCK CONTROLS -->
+
+    <!-- the hover-revealed controls row overlaid on the block row below it: the overlay geometry
+         (pulled down over the following row) lives here once, the contents stay with the caller -->
+    <xsl:template match="node() | @*" mode="ldh:RowBlockControls">
+        <xsl:param name="content" as="item()*"/>
+
+        <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
+            <xsl:sequence select="$content"/>
+        </div>
+    </xsl:template>
+
+    <!-- PROGRESS BAR -->
+
+    <!-- the design system's progress bar anatomy -->
+    <xsl:template match="node() | @*" mode="ldh:ProgressBar">
+        <xsl:param name="class" select="'ldhc-pbar ht-sm'" as="xs:string"/>
+        <xsl:param name="width" select="'0%'" as="xs:string?"/>
+
+        <div class="{$class}">
+            <div class="ldhc-pbar-track">
+                <div class="ldhc-pbar-fill">
+                    <xsl:if test="$width">
+                        <xsl:attribute name="style" select="'width: ' || $width || ';'"/>
+                    </xsl:if>
+                </div>
+            </div>
+        </div>
+    </xsl:template>
+
+    <!-- MODAL -->
+
+    <!-- the design system's modal dialog shell: sized dialog with head (icon/eyebrow/title/sub slots
+         and the close button emitted once) and body; the backdrop stays at the call site, which owns
+         placement and the modal-* marker classes. The constructor-template modal keeps its own shell -
+         its form element wraps head and body, which this anatomy cannot express -->
+    <xsl:template match="node() | @*" mode="ldh:Modal">
+        <xsl:param name="size" select="'sz-lg'" as="xs:string"/>
+        <xsl:param name="icon" as="item()*"/>
+        <xsl:param name="eyebrow" as="item()*"/>
+        <xsl:param name="title" as="item()*"/>
+        <xsl:param name="title-id" select="'modal-title-' || generate-id()" as="xs:string?"/>
+        <xsl:param name="sub" as="item()*"/>
+        <xsl:param name="flush" select="false()" as="xs:boolean"/>
+        <xsl:param name="body" as="item()*"/>
+        <xsl:param name="foot" as="item()*"/>
+
+        <div class="ldhc-modal {$size}" role="dialog" aria-modal="true">
+            <xsl:if test="exists($title) and $title-id">
+                <xsl:attribute name="aria-labelledby" select="$title-id"/>
+            </xsl:if>
+
+            <div class="ldhc-modal-head">
+                <xsl:if test="exists($icon)">
+                    <span class="ldhc-modal-icon">
+                        <xsl:sequence select="$icon"/>
+                    </span>
+                </xsl:if>
+
+                <xsl:if test="exists($title)">
+                    <div class="ldhc-modal-titles">
+                        <xsl:if test="exists($eyebrow)">
+                            <span class="ldhc-modal-eyebrow">
+                                <xsl:sequence select="$eyebrow"/>
+                            </span>
+                        </xsl:if>
+
+                        <h2 class="ldhc-modal-title">
+                            <xsl:if test="$title-id">
+                                <xsl:attribute name="id" select="$title-id"/>
+                            </xsl:if>
+
+                            <xsl:sequence select="$title"/>
+                        </h2>
+
+                        <xsl:if test="exists($sub)">
+                            <span class="ldhc-modal-sub">
+                                <xsl:sequence select="$sub"/>
+                            </span>
+                        </xsl:if>
+                    </div>
+                </xsl:if>
+
+                <span class="ldhc-modal-x">
+                    <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
+                </span>
+            </div>
+            <div class="ldhc-modal-body{if ($flush) then ' is-flush' else ''}">
+                <xsl:sequence select="$body"/>
+            </div>
+
+            <xsl:sequence select="$foot"/>
         </div>
     </xsl:template>
 

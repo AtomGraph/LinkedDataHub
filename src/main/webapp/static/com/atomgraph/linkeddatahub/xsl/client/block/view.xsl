@@ -1913,11 +1913,10 @@ exclude-result-prefixes="#all"
                             </div>
                             <div class="facet-values">
                                 <div class="facet-loading">
-                                    <div class="ldhc-pbar ht-sm is-indeterminate">
-                                        <div class="ldhc-pbar-track">
-                                            <div class="ldhc-pbar-fill"></div>
-                                        </div>
-                                    </div>
+                                    <xsl:apply-templates select="." mode="ldh:ProgressBar">
+                                        <xsl:with-param name="class" select="'ldhc-pbar ht-sm is-indeterminate'"/>
+                                        <xsl:with-param name="width" select="()"/>
+                                    </xsl:apply-templates>
                                 </div>
                             </div>
                         </div>
@@ -3048,17 +3047,13 @@ exclude-result-prefixes="#all"
             <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseDropdown"/>
             <xsl:result-document href="?." method="ixsl:append-content">
                 <div class="ldhc-backdrop pos-top modal modal-constructor" about="{$doc-uri}" typeof="{$forClass}"> <!-- @about identifies the new document URL (uniform with the other modals so submit handlers can read $block/@about); the instance URI travels on @data-instance -->
-                    <div class="ldhc-modal sz-lg" role="dialog" aria-modal="true">
-                        <div class="ldhc-modal-head">
-                            <span class="ldhc-modal-x">
-                                <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
-                            </span>
-                        </div>
+                    <xsl:apply-templates select="." mode="ldh:Modal">
+                        <xsl:with-param name="body" as="item()*">
 
-                        <div class="ldhc-modal-body">
                             <xsl:copy-of select="$form"/>
-                        </div>
-                    </div>
+                        
+                        </xsl:with-param>
+                    </xsl:apply-templates>
                 </div>
             </xsl:result-document>
 
