@@ -1,13 +1,13 @@
 /* =========================================================================
    Transitional bridge between LDH's CSR state tokens and the design system.
-   The CSR handlers toggle Bootstrap-era state classes (.open on .btn-group,
+   The CSR handlers toggle legacy state classes (.open on .btn-group,
    .active on tab <li>s) and emit a few structural wrappers (ul.nav in the
    header, #tab-bar) that app.css has no rules for. This file styles those
    with the design system's tokens so no interaction wiring has to change.
    Rules move out of here (or die) as components finish porting.
    ========================================================================= */
 
-/* ---------- Bootstrap-framework replacements (bootstrap.css core is no longer linked) ---------- */
+/* ---------- replacements for rules the retired framework stylesheet provided ---------- */
 .caret { display: inline-flex; align-items: center; opacity: 0.85; }
 /* a loading block collapses to the bar strip: the CSR strips the progress/active markers at 100%,
    and until then the row shows only the overlaid pbar (the row-block-controls' top/negative-margin
@@ -72,7 +72,7 @@
 .ldh-nblock .container-results > .ldh-pager { background: var(--surface-2); }
 .ldh-nblock[data-depth="2"] .container-results > .ldh-pager, .ldh-nblock[data-depth="3"] .container-results > .ldh-pager { background: var(--surface-3); }
 .content-body { padding: var(--sp-4) var(--sp-6); max-width: var(--ldh-content-w); margin: 0 auto; }
-/* stacking rhythm between block cards and alerts (Bootstrap's row margins are gone) */
+/* stacking rhythm between block cards and alerts */
 .content-body .ldh-block, .content-body .ldhc-alert { margin-bottom: var(--sp-4); }
 /* one card layer only: CSR hydration can re-render a row as a card inside the SSR wrapper card */
 .ldh-block .ldh-block { border: 0; box-shadow: none; border-radius: 0; background: transparent; margin-bottom: 0; }
@@ -298,7 +298,7 @@ form .btn-primary:hover { background: var(--bg-accent-hover); }
   white-space: nowrap;
 }
 
-/* ---------- fieldsets/legends: sections, not Bootstrap-era boxes ---------- */
+/* ---------- fieldsets/legends: sections, not boxes ---------- */
 fieldset { border: 0; padding: 0; margin: 0 0 var(--sp-4); min-inline-size: 0; }
 legend {
   display: flex; align-items: center; gap: var(--sp-2);
@@ -311,8 +311,8 @@ legend {
 /* subject controls (type picker, subject edit toggle) hug the legend's right edge */
 legend > .actions { display: flex; align-items: center; gap: var(--sp-1); margin-left: auto; }
 /* the edit/create form titles itself with its fieldset legend (ac:label of the subject) - the modal
-   head carries only the close button. In a modal that legend IS the heading (Bootstrap sized it as
-   one); match .ldhc-modal-title instead of the mono section-label treatment above */
+   head carries only the close button. In a modal that legend IS the heading; match .ldhc-modal-title
+   instead of the mono section-label treatment above */
 .ldhc-modal-body form > fieldset > legend { font-family: var(--font-sans); font-size: var(--fs-lg); font-weight: var(--fw-semibold); letter-spacing: normal; text-transform: none; color: var(--fg-1); }
 /* remove-resource button on legendless fieldsets rides its own top row, right-aligned */
 fieldset > .btn-group { display: flex; justify-content: flex-end; }
@@ -501,8 +501,8 @@ body:has(.ldh-create-dock) .ldh-footer { margin-top: 0; }
 #visible-body { min-height: 100vh; display: flex; flex-direction: column; }
 #visible-body > #tab-body { flex: 1 0 auto; display: flex; flex-direction: column; }
 #tab-body > .tab-content { flex: 1 0 auto; display: flex; flex-direction: column; }
-/* the Bootstrap tab contract (only the active pane shows) left with bootstrap.css; the bridge
-   carries it, so an inactive tab's content - its create bar included - never lingers */
+/* the bridge owns the tab contract (only the active pane shows), so an inactive tab's
+   content - its create bar included - never lingers */
 .tab-content > .tab-pane { display: none; }
 .tab-content > .tab-pane.active { flex: 1 0 auto; display: flex; flex-direction: column; }
 .tab-pane > .document-body { flex: 1 0 auto; display: flex; flex-direction: column; }
