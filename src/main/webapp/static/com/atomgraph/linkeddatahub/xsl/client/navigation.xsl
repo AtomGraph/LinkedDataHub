@@ -99,7 +99,7 @@ ORDER BY DESC(?created)
 
         <!-- the dataspace drawer (§19): it slides over the content and dismisses via its backdrop.
              Closed by default: inert takes its subtree out of the tab order and away from AT while
-             transform/visibility (app.css) hide it; the toggle pill below is the open affordance -->
+             transform/visibility (app.css) hide it; the mouse reaching the screen's left edge opens it -->
         <div inert="">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
@@ -195,13 +195,6 @@ ORDER BY DESC(?created)
                 </div>
             </div>
         </div>
-        <!-- one affordance, not two (§21): the pill renders inert while the drawer is open
-             (the CSS guard .ldh-sidebar.is-open ~ .sidebar-toggle hides it) -->
-        <button type="button" class="sidebar-toggle" title="{ac:label(key('resources', 'show-navigation', ldh:translations()))}">
-            <span class="msi sm" aria-hidden="true">left_panel_open</span>
-            <xsl:text> </xsl:text>
-            <xsl:apply-templates select="key('resources', 'show-navigation', ldh:translations())" mode="ac:label"/>
-        </button>
     </xsl:template>
     
     <xsl:template name="ldh:DocTreeActivateHref">
@@ -352,34 +345,38 @@ ORDER BY DESC(?created)
     
     <!-- EVENT HANDLERS -->
 
-    <!-- the drawer opens from its toggle pill and closes from its own button, the backdrop or Escape
-         (§21-§23): one affordance each way, inert while closed so the subtree leaves the tab order -->
+    <!-- the drawer slides in when the mouse reaches the left edge of the screen and back out when the
+         pointer leaves it (plus its own close button and Escape); inert while closed keeps the hidden
+         subtree out of the tab order (§23) -->
 
-    <xsl:template match="button[contains-token(@class, 'sidebar-toggle')]" mode="ixsl:onclick">
-        <xsl:for-each select="preceding-sibling::div[contains-token(@class, 'ldh-sidebar')][1]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
-            <xsl:sequence select="ixsl:call(., 'removeAttribute', [ 'inert' ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
+    <xsl:template match="body" mode="ixsl:onmousemove">
+        <xsl:variable name="x" select="ixsl:get(ixsl:event(), 'clientX')"/>
 
-        <!-- the backdrop renders only while the drawer is open, so it never intercepts clicks on the
-             document; a button, because dismissing is an action and must be reachable without a pointer (§22) -->
-        <xsl:for-each select="ixsl:page()//body">
-            <xsl:result-document href="?." method="ixsl:append-content">
-                <button type="button" class="ldh-rail-backdrop" aria-label="{ac:label(key('resources', 'hide-navigation', ldh:translations()))}"/>
-            </xsl:result-document>
-        </xsl:for-each>
+        <!-- check that the mouse is on the left edge -->
+        <xsl:if test="$x = 0">
+            <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]/div[contains-token(@class, 'left-sidebar')][not(contains-token(@class, 'is-open'))]">
+                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call(., 'removeAttribute', [ 'inert' ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:for-each>
+        </xsl:if>
+
+        <!-- chain to the RDFa editor's sweep-selection tracker (lower import precedence) -->
+        <xsl:next-match/>
+    </xsl:template>
+
+    <!-- slide the drawer back out when the pointer leaves it -->
+    <xsl:template match="div[contains-token(@class, 'ldh-sidebar')][contains-token(@class, 'is-open')]" mode="ixsl:onmouseout">
+        <xsl:variable name="related-target" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="element()?"/> <!-- the element mouse entered -->
+
+        <!-- only close if the related target does not have this div as ancestor (is not its child) -->
+        <xsl:if test="not($related-target/ancestor-or-self::div[. is current()])">
+            <xsl:apply-templates select="." mode="ldh:CloseDrawer"/>
+        </xsl:if>
     </xsl:template>
 
     <xsl:template match="div[contains-token(@class, 'ldh-sidebar')]" mode="ldh:CloseDrawer">
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:sequence select="ixsl:call(., 'setAttribute', [ 'inert', '' ])[current-date() lt xs:date('2000-01-01')]"/>
-        <xsl:for-each select="ixsl:page()//button[contains-token(@class, 'ldh-rail-backdrop')]">
-            <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-    </xsl:template>
-
-    <xsl:template match="button[contains-token(@class, 'ldh-rail-backdrop')]" mode="ixsl:onclick">
-        <xsl:apply-templates select="ixsl:page()//div[contains-token(@class, 'ldh-sidebar')][contains-token(@class, 'is-open')]" mode="ldh:CloseDrawer"/>
     </xsl:template>
 
     <xsl:template match="button[contains-token(@class, 'btn-close-sidebar')]" mode="ixsl:onclick">

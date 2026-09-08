@@ -911,10 +911,6 @@
         <rdfs:label xml:lang="en-US">Could not move block</rdfs:label>
         <rdfs:label xml:lang="es-ES">No se pudo mover el bloque</rdfs:label>
     </rdf:Description>
-    <rdf:Description rdf:nodeID="show-navigation">
-        <rdfs:label xml:lang="en-US">Show navigation</rdfs:label>
-        <rdfs:label xml:lang="es-ES">Mostrar navegación</rdfs:label>
-    </rdf:Description>
     <rdf:Description rdf:nodeID="hide-navigation">
         <rdfs:label xml:lang="en-US">Hide navigation</rdfs:label>
         <rdfs:label xml:lang="es-ES">Ocultar navegación</rdfs:label>

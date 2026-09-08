@@ -408,7 +408,6 @@ legend > .actions { display: flex; align-items: center; gap: var(--sp-1); margin
    (56px, or 96px once the document tab bar shows), replacing app.css's static --ldh-chrome-h.
    Its z sits above the sticky action bar (86) and its own backdrop, below the modal overlays (100+) */
 .left-sidebar.ldh-sidebar { top: var(--action-bar-top); z-index: 88; }
-.ldh-rail-backdrop { z-index: 87; }
 /* rows that open dialogs (class list, Geo/Latest) are BUTTONS where the design's rows are anchors;
    .tree-link carries the row treatment for both, so the button only sheds its UA chrome */
 button.tree-link { border: 0; background: transparent; width: 100%; font: inherit; text-align: left; cursor: pointer; }
