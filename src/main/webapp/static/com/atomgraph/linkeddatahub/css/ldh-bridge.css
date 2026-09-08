@@ -204,7 +204,7 @@ div.breadcrumb.ldh-bc { min-width: 0; overflow: hidden; }
 
 /* ---------- block header actions hydrated by CSR ---------- */
 .ldh-block-head .actions > div { display: flex; gap: var(--sp-1); }
-/* bs2:Row nests bs2:Header inside .ldh-block-body (the design keeps head and body as siblings), so the
+/* ldh:BlockRow nests ac:BlockHeader inside .ldh-block-body (the design keeps head and body as siblings), so the
    head's --sp-6 side padding stacked on the body's and pushed pills/headings right of the rows below;
    the body already provides the horizontal inset */
 .ldh-block-body .ldh-block-head { padding-left: 0; padding-right: 0; }
@@ -648,7 +648,7 @@ body:has(.document-body > .content-body > :is(.graph-3d-canvas, .map-canvas)) .l
 /* Parallax row — second row of the view's control header: onward pivots derived
    from the current result set. Query inputs (filters, sort, modes) stay in the
    toolbar above; this row reads as output. Mirrors the toolbar's surface and
-   dashed hairline; hidden until bs2:ParallaxNav delivers chips. */
+   dashed hairline; hidden until ldh:ParallaxNav delivers chips. */
 .parallax-nav {
   display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2);
   padding: var(--sp-3) var(--sp-6);

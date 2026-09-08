@@ -1,7 +1,7 @@
 /* only the main navbar is fixed-top now; tab bar + action bar are sticky inside #tab-body;
    the tab skin itself lives in ldh-bridge.css on the design tokens */
 #tab-bar { position: sticky; top: var(--ldh-header-height); z-index: 88; height: var(--ldh-tabbar-height); }
-/* Override Bootstrap's overflow:auto which would make action-bar sticky relative to #tab-content instead of the viewport */
+/* keep overflow visible (the Bootstrap-era default was auto), else the action-bar sticks relative to #tab-content instead of the viewport */
 #tab-content { overflow: visible; }
 #tab-bar-list > li { position: relative; }
 #tab-bar-list.nav-tabs > li > a { padding-right: 22px; }
