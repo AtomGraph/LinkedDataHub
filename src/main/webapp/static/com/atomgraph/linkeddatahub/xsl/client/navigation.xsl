@@ -113,7 +113,7 @@ ORDER BY DESC(?created)
 
             <!-- document tree container -->
             <div class="document-tree sb-section">
-                <h2 class="nav-header sb-heading">
+                <h2 class="ldh-section-heading sb-heading">
                     <xsl:apply-templates select="key('resources', 'document-tree', ldh:translations())" mode="ac:label"/>
                 </h2>
 
@@ -132,7 +132,7 @@ ORDER BY DESC(?created)
 
             <!-- class list container -->
             <div class="class-list sb-section">
-                <h2 class="nav-header sb-heading">
+                <h2 class="ldh-section-heading sb-heading">
                     <xsl:apply-templates select="key('resources', 'classes', ldh:translations())" mode="ac:label"/>
                 </h2>
 
@@ -143,7 +143,7 @@ ORDER BY DESC(?created)
 
             <!-- other section -->
             <div class="other-views sb-section">
-                <h2 class="nav-header sb-heading">
+                <h2 class="ldh-section-heading sb-heading">
                     <xsl:apply-templates select="key('resources', 'other', ldh:translations())" mode="ac:label"/>
                 </h2>
 
@@ -191,7 +191,7 @@ ORDER BY DESC(?created)
     <xsl:template name="ldh:NavigationUpdate">
         <xsl:param name="href" as="xs:anyURI"/>
 
-        <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'left-sidebar')]">
+        <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]/div[contains-token(@class, 'left-sidebar')]">
             <!-- activate the current URL in the document tree -->
             <xsl:for-each select="./div[contains-token(@class, 'document-tree')]">
                 <xsl:variable name="href-string" select="string($href)" as="xs:string"/>
@@ -304,7 +304,7 @@ ORDER BY DESC(?created)
 
         <!-- check that the mouse is on the left edge -->
         <xsl:if test="$x = 0">
-            <xsl:variable name="active-sidebar" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'left-sidebar')]" as="element()?"/>
+            <xsl:variable name="active-sidebar" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]/div[contains-token(@class, 'left-sidebar')]" as="element()?"/>
             <xsl:if test="$active-sidebar">
                 <ixsl:set-style name="display" select="'block'" object="$active-sidebar"/>
             </xsl:if>
@@ -350,7 +350,7 @@ ORDER BY DESC(?created)
 
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:append-content">
-                        <ul class="nav">
+                        <ul class="ldh-nav">
                             <!-- list items will be injected by ldh:DocTreeResourceLoad -->
                         </ul>
                     </xsl:result-document>
@@ -475,7 +475,7 @@ ORDER BY DESC(?created)
                         <!-- Create <ul> for children -->
                         <xsl:for-each select="$current-li">
                             <xsl:result-document href="?." method="ixsl:append-content">
-                                <ul class="nav"></ul>
+                                <ul class="ldh-nav"></ul>
                             </xsl:result-document>
                         </xsl:for-each>
 
@@ -817,8 +817,8 @@ ORDER BY DESC(?created)
     <!-- opens modal dialog to show instances of a class -->
     <xsl:template match="button[contains-token(@class, 'btn-class')]" mode="ixsl:onclick">
         <xsl:variable name="class-uri" select="xs:anyURI(ixsl:get(., 'dataset.classUri'))"/>
-        <xsl:variable name="target" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
-        <xsl:variable name="pane-id" select="$target/ancestor::div[contains-token(@class, 'tab-pane')]/@id" as="xs:string"/>
+        <xsl:variable name="target" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
+        <xsl:variable name="pane-id" select="$target/ancestor::div[contains-token(@class, 'ldh-pane')]/@id" as="xs:string"/>
         <xsl:variable name="modal-id" select="'class-instances-modal-' || $pane-id" as="xs:string"/>
         <xsl:variable name="container-id" select="'class-instances-container-' || $pane-id" as="xs:string"/>
 
@@ -963,8 +963,8 @@ ORDER BY DESC(?created)
 
     <!-- opens modal dialog to show geo resources -->
     <xsl:template match="button[contains-token(@class, 'btn-geo')]" mode="ixsl:onclick">
-        <xsl:variable name="target" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
-        <xsl:variable name="pane-id" select="$target/ancestor::div[contains-token(@class, 'tab-pane')]/@id" as="xs:string"/>
+        <xsl:variable name="target" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
+        <xsl:variable name="pane-id" select="$target/ancestor::div[contains-token(@class, 'ldh-pane')]/@id" as="xs:string"/>
         <xsl:variable name="modal-id" select="'geo-modal-' || $pane-id" as="xs:string"/>
         <xsl:variable name="container-id" select="'geo-container-' || $pane-id" as="xs:string"/>
         <xsl:variable name="select-string" select="$geo-resources-string" as="xs:string"/>
@@ -1076,8 +1076,8 @@ ORDER BY DESC(?created)
 
     <!-- opens modal dialog to show latest resources -->
     <xsl:template match="button[contains-token(@class, 'btn-latest')]" mode="ixsl:onclick">
-        <xsl:variable name="target" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
-        <xsl:variable name="pane-id" select="$target/ancestor::div[contains-token(@class, 'tab-pane')]/@id" as="xs:string"/>
+        <xsl:variable name="target" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
+        <xsl:variable name="pane-id" select="$target/ancestor::div[contains-token(@class, 'ldh-pane')]/@id" as="xs:string"/>
         <xsl:variable name="modal-id" select="'latest-modal-' || $pane-id" as="xs:string"/>
         <xsl:variable name="container-id" select="'latest-container-' || $pane-id" as="xs:string"/>
         <xsl:variable name="select-string" select="$latest-resources-string" as="xs:string"/>
@@ -1201,8 +1201,8 @@ ORDER BY DESC(?created)
     <xsl:template match="form[contains-token(@class, 'search-form')]" mode="ixsl:onsubmit">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="text" select=".//input[@name = 'q']/ixsl:get(., 'value')" as="xs:string?"/>
-        <xsl:variable name="target" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
-        <xsl:variable name="pane-id" select="$target/ancestor::div[contains-token(@class, 'tab-pane')]/@id" as="xs:string"/>
+        <xsl:variable name="target" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
+        <xsl:variable name="pane-id" select="$target/ancestor::div[contains-token(@class, 'ldh-pane')]/@id" as="xs:string"/>
         <xsl:variable name="modal-id" select="'search-modal-' || $pane-id" as="xs:string"/>
         <xsl:variable name="container-id" select="'search-results-container-' || $pane-id" as="xs:string"/>
 

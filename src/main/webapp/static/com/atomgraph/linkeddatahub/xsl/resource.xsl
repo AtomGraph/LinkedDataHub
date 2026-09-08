@@ -992,8 +992,8 @@ extension-element-prefixes="ixsl"
                 <xsl:if test="$apps//*[sd:endpoint/@rdf:resource]">
                     <xsl:variable name="resource" select="." as="element()"/>
                     
-                    <div class="btn-group">
-                        <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm dropdown-toggle">
+                    <div class="ldh-drop-wrap">
+                        <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm drop-toggle">
                             <xsl:attribute name="title">
                                 <xsl:apply-templates select="key('resources', 'reconcile-title', ldh:translations())" mode="ac:label"/>
                             </xsl:attribute>
@@ -1002,7 +1002,7 @@ extension-element-prefixes="ixsl"
                             <xsl:text> </xsl:text>
                             <span class="msi caret" aria-hidden="true">expand_more</span>
                         </button>
-                        <ul class="dropdown-menu">
+                        <ul class="ldh-drop-menu">
                             <xsl:for-each select="$apps//*[@rdf:about][sd:endpoint/@rdf:resource]">
                                 <xsl:sort select="ac:label(.)" order="ascending" lang="{ac:langs()[1]}"/>
                                 

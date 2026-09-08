@@ -117,7 +117,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="auto" select="local-name() = 'nodeID' or starts-with(., ldt:base())" as="xs:boolean"/>
         <xsl:param name="type-metadata" as="document-node()?" tunnel="yes"/>
         <xsl:param name="lookup-class" select="'type-typeahead typeahead'" as="xs:string"/>
-        <xsl:param name="lookup-list-class" select="'type-typeahead typeahead dropdown-menu'" as="xs:string"/>
+        <xsl:param name="lookup-list-class" select="'type-typeahead typeahead ldhc-cb-panel'" as="xs:string"/>
 
         <xsl:choose>
             <xsl:when test="if ($type-metadata) then key('resources', ., $type-metadata) else false()">

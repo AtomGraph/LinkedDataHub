@@ -168,7 +168,7 @@ WHERE
 
     <!-- the RDFa editor toolbar mounts in the active document's editor-bar, below the action bar (LDH pages have no nav element) -->
     <xsl:function name="rdfae:toolbar-host" as="element()*">
-        <xsl:sequence select="(id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]//div[contains-token(@class, 'editor-bar')]/div[contains-token(@class, 'content-body')])[1]"/>
+        <xsl:sequence select="(id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]//div[contains-token(@class, 'editor-bar')]/div[contains-token(@class, 'content-body')])[1]"/>
     </xsl:function>
 
     <!-- the region's canonical lexical form: the single canonicalization point for rdf:XMLLiteral values
@@ -289,7 +289,7 @@ WHERE
             <xsl:call-template name="ldh:Lookup">
                 <xsl:with-param name="class" select="'property-typeahead typeahead'"/>
                 <xsl:with-param name="id" select="'annotation-' || $field"/>
-                <xsl:with-param name="list-class" select="'property-typeahead typeahead dropdown-menu'"/>
+                <xsl:with-param name="list-class" select="'property-typeahead typeahead ldhc-cb-panel'"/>
                 <xsl:with-param name="forClass" select="$for-class"/>
             </xsl:call-template>
         </span>
@@ -306,7 +306,7 @@ WHERE
                 <xsl:call-template name="ldh:Lookup">
                     <xsl:with-param name="class" select="'property-typeahead typeahead'"/>
                     <xsl:with-param name="id" select="'annotation-' || $field"/>
-                    <xsl:with-param name="list-class" select="'property-typeahead typeahead dropdown-menu'"/>
+                    <xsl:with-param name="list-class" select="'property-typeahead typeahead ldhc-cb-panel'"/>
                     <xsl:with-param name="forClass" select="$for-class"/>
                     <xsl:with-param name="value" select="if ($iri ne '') then $iri else ()"/>
                 </xsl:call-template>
@@ -675,7 +675,7 @@ WHERE
     <xsl:template name="ldh:SignUpComplete">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="created-uri" select="?headers?location" as="xs:anyURI"/>
-        <xsl:param name="content-body" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
+        <xsl:param name="content-body" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
@@ -1699,7 +1699,7 @@ WHERE
         <xsl:variable name="this" select="xs:anyURI($doc-uri || '#' || $id)" as="xs:anyURI"/>
 
         <!-- the class is picked, so the menu it was picked from is done: dismissed here rather than when the instance lands, because the chain that renders it takes several round-trips. The body pointerdown handler leaves this one alone - the press is inside the group it would close. Empty for the dock buttons that sit outside a drop-down. -->
-        <xsl:apply-templates select="ancestor::*[contains-token(@class, 'btn-group')][1]" mode="ldh:CloseDropdown"/>
+        <xsl:apply-templates select="ancestor::*[contains-token(@class, 'ldh-drop-wrap')][1]" mode="ldh:CloseDropdown"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
 
@@ -1951,7 +1951,7 @@ WHERE
         </xsl:for-each>
     </xsl:function>
 
-    <xsl:template match="*[contains-token(@class, 'dropdown-menu') or contains-token(@class, 'ldhc-cb-panel')][contains-token(@class, 'type-typeahead')]/li" mode="ixsl:onmousedown" priority="1">
+    <xsl:template match="*[contains-token(@class, 'ldhc-cb-panel')][contains-token(@class, 'type-typeahead')]/li" mode="ixsl:onmousedown" priority="1">
         <xsl:param name="typeahead-class" select="'cb-chip-btn add-typeahead add-type-typeahead'" as="xs:string"/>
         <xsl:sequence select="ldh:busy-cursor()"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
@@ -2010,7 +2010,7 @@ WHERE
     
     <!-- select typeahead item -->
     
-    <xsl:template match="*[contains-token(@class, 'dropdown-menu') or contains-token(@class, 'ldhc-cb-panel')][contains-token(@class, 'typeahead')]/li" mode="ixsl:onmousedown">
+    <xsl:template match="*[contains-token(@class, 'ldhc-cb-panel')][contains-token(@class, 'typeahead')]/li" mode="ixsl:onmousedown">
         <xsl:param name="typeahead-class" select="'cb-chip-btn add-typeahead'" as="xs:string"/>
         <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:string"/> <!-- can be URI resource or blank node ID -->
         <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/>
@@ -2122,7 +2122,7 @@ WHERE
 
     <xsl:template match="button[contains-token(@class, 'add-type')]" mode="ixsl:onclick" priority="1">
         <xsl:param name="lookup-class" select="'type-typeahead typeahead'" as="xs:string"/>
-        <xsl:param name="lookup-list-class" select="'type-typeahead typeahead dropdown-menu'" as="xs:string"/>
+        <xsl:param name="lookup-list-class" select="'type-typeahead typeahead ldhc-cb-panel'" as="xs:string"/>
         <xsl:variable name="uuid" select="ac:uuid()" as="xs:string"/>
         
         <xsl:for-each select="..">
@@ -2153,7 +2153,7 @@ WHERE
     <xsl:template match="button[contains-token(@class, 'add-type-typeahead')]" mode="ixsl:onclick" priority="1">
         <xsl:next-match>
             <xsl:with-param name="lookup-class" select="'type-typeahead typeahead'"/>
-            <xsl:with-param name="lookup-list-class" select="'type-typeahead typeahead dropdown-menu'" as="xs:string"/>
+            <xsl:with-param name="lookup-list-class" select="'type-typeahead typeahead ldhc-cb-panel'" as="xs:string"/>
         </xsl:next-match>
     </xsl:template>
     

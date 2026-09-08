@@ -118,7 +118,7 @@ exclude-result-prefixes="#all"
                 <xsl:for-each select="$container">
 
                     <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
-                    <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseDropdown"/>
+                    <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ldh-drop-wrap')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseDropdown"/>
                     <xsl:result-document href="?." method="ixsl:append-content">
                         <!-- the constructor dialog stacks above the edit form's dialog -->
                         <div class="ldhc-backdrop pos-top modal modal-constructor" data-depth="2">
@@ -255,7 +255,7 @@ exclude-result-prefixes="#all"
                         <xsl:with-param name="forClass" select="xs:anyURI('&rdf;Property')"/>
                         <xsl:with-param name="class" select="'property-typeahead typeahead'"/>
                         <xsl:with-param name="id" select="'input-' || $uuid"/>
-                        <xsl:with-param name="list-class" select="'property-typeahead typeahead dropdown-menu'"/>
+                        <xsl:with-param name="list-class" select="'property-typeahead typeahead ldhc-cb-panel'"/>
                     </xsl:call-template>
                 </xsl:otherwise>
             </xsl:choose>
@@ -417,7 +417,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="forClass" select="(xs:anyURI('&rdfs;Class'), xs:anyURI('&owl;Class'))"/> <!-- ontologies are served without inference, so owl:Class subjects do not carry the rdfs:Class type -->
                     <xsl:with-param name="class" select="'class-typeahead typeahead'"/>
                     <xsl:with-param name="id" select="'input-' || $uuid"/>
-                    <xsl:with-param name="list-class" select="'class-typeahead typeahead dropdown-menu'"/>
+                    <xsl:with-param name="list-class" select="'class-typeahead typeahead ldhc-cb-panel'"/>
                 </xsl:call-template>
             </xsl:otherwise>
         </xsl:choose>
@@ -429,7 +429,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="button[contains-token(@class, 'btn-edit-constructors')]" mode="ixsl:onclick">"
         <xsl:variable name="type" select="ixsl:get(., 'dataset.resourceType')" as="xs:anyURI"/>
 
-        <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]">
+        <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]">
             <xsl:call-template name="ldh:LoadConstructors">
                 <xsl:with-param name="type" select="$type"/>
             </xsl:call-template>
@@ -444,13 +444,13 @@ exclude-result-prefixes="#all"
         </xsl:next-match>
     </xsl:template>
 
-    <xsl:template match="*[contains-token(@class, 'dropdown-menu') or contains-token(@class, 'ldhc-cb-panel')][contains-token(@class, 'class-typeahead')]/li" mode="ixsl:onmousedown" priority="2">
+    <xsl:template match="*[contains-token(@class, 'ldhc-cb-panel')][contains-token(@class, 'class-typeahead')]/li" mode="ixsl:onmousedown" priority="2">
         <xsl:next-match>
             <xsl:with-param name="typeahead-class" select="'cb-chip-btn add-typeahead add-class-typeahead'"/>
         </xsl:next-match>
     </xsl:template>
 
-    <xsl:template match="*[contains-token(@class, 'dropdown-menu') or contains-token(@class, 'ldhc-cb-panel')][contains-token(@class, 'property-typeahead')]/li" mode="ixsl:onmousedown" priority="2">
+    <xsl:template match="*[contains-token(@class, 'ldhc-cb-panel')][contains-token(@class, 'property-typeahead')]/li" mode="ixsl:onmousedown" priority="2">
         <xsl:next-match>
             <xsl:with-param name="typeahead-class" select="'cb-chip-btn add-typeahead add-property-typeahead'"/>
         </xsl:next-match>
@@ -460,7 +460,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="button[contains-token(@class, 'add-class-typeahead')]" mode="ixsl:onclick" priority="1">
         <xsl:next-match>
             <xsl:with-param name="lookup-class" select="'class-typeahead typeahead'"/>
-            <xsl:with-param name="lookup-list-class" select="'class-typeahead typeahead dropdown-menu'" as="xs:string"/>
+            <xsl:with-param name="lookup-list-class" select="'class-typeahead typeahead ldhc-cb-panel'" as="xs:string"/>
         </xsl:next-match>
     </xsl:template>
 
@@ -468,7 +468,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="button[contains-token(@class, 'add-property-typeahead')]" mode="ixsl:onclick" priority="1">
         <xsl:next-match>
             <xsl:with-param name="lookup-class" select="'property-typeahead typeahead'"/>
-            <xsl:with-param name="lookup-list-class" select="'property-typeahead typeahead dropdown-menu'" as="xs:string"/>
+            <xsl:with-param name="lookup-list-class" select="'property-typeahead typeahead ldhc-cb-panel'" as="xs:string"/>
         </xsl:next-match>
     </xsl:template>
 

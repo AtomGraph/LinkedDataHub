@@ -314,7 +314,7 @@ WHERE
                     </xsl:for-each>
                 </xsl:if>
                 <!-- initialize navigation (e.g. the left sidebar) -->
-                <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')][@data-base]">
+                <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')][@data-base]">
                     <xsl:result-document href="?." method="ixsl:append-content">
                         <xsl:call-template name="ldh:LeftSidebar"/>
                     </xsl:result-document>
@@ -462,9 +462,9 @@ WHERE
                         <!-- store ETag header value under window.LinkedDataHub.contents[$doc-uri].etag -->
                         <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`')"/>
 
-                        <xsl:variable name="tab-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'document-body')]/@about = $doc-uri]" as="element()?"/>
+                        <xsl:variable name="pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][./div[contains-token(@class, 'document-body')]/@about = $doc-uri]" as="element()?"/>
                         <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
-                        <xsl:variable name="tab-body-id" select="'tab-pane-' || ac:uuid()" as="xs:string"/>
+                        <xsl:variable name="tab-body-id" select="'ldh-pane-' || ac:uuid()" as="xs:string"/>
                         <xsl:variable name="tab-base" select="if ($application) then resolve-uri('/', lapp:origin($doc-uri)) else ()" as="xs:anyURI?"/>
 
                         <!-- set document title from RDF; look up by the resource URI (with fragment) since SKOS Concepts etc. live at doc/#frag -->
@@ -481,7 +481,7 @@ WHERE
                         </xsl:call-template>
 
                         <!-- reuse exact-match pane, or same-origin pane (avoids accumulating panes for the same dataspace) -->
-                        <xsl:variable name="reuse-pane" select="($tab-pane, id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'document-body')][starts-with(@about, lapp:origin($doc-uri))]])[1]" as="element()?"/>
+                        <xsl:variable name="reuse-pane" select="($pane, id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][./div[contains-token(@class, 'document-body')][starts-with(@about, lapp:origin($doc-uri))]])[1]" as="element()?"/>
                         <xsl:variable name="effective-pane-id" select="if ($reuse-pane) then $reuse-pane/@id else $tab-body-id" as="xs:string"/>
 
                         <!-- external-only, new pane only: add tab bar item and hide local pane -->
@@ -493,7 +493,7 @@ WHERE
                                 <xsl:with-param name="mode" select="$mode"/>
                             </xsl:call-template>
 
-                            <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'document-body')][starts-with(@about, lapp:origin(ldh:request-uri()) || '/')]]">
+                            <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][./div[contains-token(@class, 'document-body')][starts-with(@about, lapp:origin(ldh:request-uri()) || '/')]]">
                                 <ixsl:set-style name="display" select="'none'" object="."/>
                             </xsl:for-each>
                         </xsl:if>
@@ -541,10 +541,10 @@ WHERE
                             <!-- no pane: create one with sidebar -->
                             <xsl:otherwise>
                                 <xsl:variable name="tab-body" as="element()">
-                                    <!-- inert class: ldh:ActivateTab (called from ldh:RenderTab below) is the single source of truth for the 'active' token. Defaulting to 'tab-pane active' here would briefly leave two panes active (this one + the currently-active local one) and crash ldt:base()/sd:endpoint() in any code that runs between append and ActivateTab (e.g. ldh:LeftSidebar). -->
+                                    <!-- inert class: ldh:ActivateTab (called from ldh:RenderTab below) is the single source of truth for the 'is-active' token. Defaulting to 'ldh-pane is-active' here would briefly leave two panes active (this one + the currently-active local one) and crash ldt:base()/sd:endpoint() in any code that runs between append and ActivateTab (e.g. ldh:LeftSidebar). -->
                                     <xsl:apply-templates select="$render-results/rdf:RDF" mode="ldh:TabBody">
                                         <xsl:with-param name="id" select="$tab-body-id"/>
-                                        <xsl:with-param name="class" select="'tab-pane'"/>
+                                        <xsl:with-param name="class" select="'ldh-pane'"/>
                                         <xsl:with-param name="mode" select="$mode"/>
                                         <xsl:with-param name="base" select="$tab-base"/>
                                         <xsl:with-param name="endpoint" select="$endpoint"/>
@@ -564,7 +564,7 @@ WHERE
 
                                 <!-- populate sidebar for newly created pane -->
                                 <xsl:if test="$tab-base">
-                                    <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][last()]">
+                                    <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][last()]">
                                         <xsl:result-document href="?." method="ixsl:append-content">
                                             <xsl:call-template name="ldh:LeftSidebar">
                                                 <xsl:with-param name="base" select="$tab-base"/>
@@ -576,7 +576,7 @@ WHERE
                         </xsl:choose>
 
                         <xsl:call-template name="ldh:RenderTab">
-                            <xsl:with-param name="tab-pane-id" select="$effective-pane-id"/>
+                            <xsl:with-param name="pane-id" select="$effective-pane-id"/>
                             <xsl:with-param name="doc-uri" select="$doc-uri"/>
                             <xsl:with-param name="fragment" select="$fragment"/>
                             <xsl:with-param name="mode" select="$mode"/>
@@ -662,9 +662,9 @@ WHERE
                     </xsl:variable>
 
                     <xsl:variable name="mode" select="xs:anyURI('&ac;ReadMode')" as="xs:anyURI"/>
-                    <xsl:variable name="tab-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'document-body')]/@about = $doc-uri]" as="element()?"/>
-                    <xsl:variable name="tab-body-id" select="'tab-pane-' || ac:uuid()" as="xs:string"/>
-                    <xsl:variable name="effective-pane-id" select="if ($tab-pane) then $tab-pane/@id else $tab-body-id" as="xs:string"/>
+                    <xsl:variable name="pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][./div[contains-token(@class, 'document-body')]/@about = $doc-uri]" as="element()?"/>
+                    <xsl:variable name="tab-body-id" select="'ldh-pane-' || ac:uuid()" as="xs:string"/>
+                    <xsl:variable name="effective-pane-id" select="if ($pane) then $pane/@id else $tab-body-id" as="xs:string"/>
                     <xsl:variable name="label" select="concat('HTTP ', ?status, if (?message) then ' ' || ?message else '')" as="xs:string"/>
 
                     <xsl:call-template name="ldh:SetDocumentState">
@@ -676,7 +676,7 @@ WHERE
                     </xsl:call-template>
 
                     <!-- external-only, new pane only: add tab bar item and hide local panes (mirrors the 200/RDF success path) -->
-                    <xsl:if test="not(starts-with($doc-uri, lapp:origin(ldh:request-uri()))) and not($tab-pane)">
+                    <xsl:if test="not(starts-with($doc-uri, lapp:origin(ldh:request-uri()))) and not($pane)">
                         <xsl:call-template name="ldh:AddTabNavBarListItem">
                             <xsl:with-param name="doc-uri" select="$doc-uri"/>
                             <xsl:with-param name="fragment" select="$fragment"/>
@@ -685,14 +685,14 @@ WHERE
                             <xsl:with-param name="error" select="true()"/>
                         </xsl:call-template>
 
-                        <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'document-body')][starts-with(@about, lapp:origin(ldh:request-uri()) || '/')]]">
+                        <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][./div[contains-token(@class, 'document-body')][starts-with(@about, lapp:origin(ldh:request-uri()) || '/')]]">
                             <ixsl:set-style name="display" select="'none'" object="."/>
                         </xsl:for-each>
                     </xsl:if>
 
                     <xsl:choose>
-                        <xsl:when test="$tab-pane">
-                            <xsl:for-each select="$tab-pane/div[contains-token(@class, 'document-body')]">
+                        <xsl:when test="$pane">
+                            <xsl:for-each select="$pane/div[contains-token(@class, 'document-body')]">
                                 <xsl:result-document href="?." method="ixsl:replace-element">
                                     <xsl:apply-templates select="$results/rdf:RDF" mode="ldh:DocumentBody">
                                         <xsl:with-param name="mode" select="$mode"/>
@@ -705,7 +705,7 @@ WHERE
                             <xsl:variable name="tab-body" as="element()">
                                 <xsl:apply-templates select="$results/rdf:RDF" mode="ldh:TabBody">
                                     <xsl:with-param name="id" select="$tab-body-id"/>
-                                    <xsl:with-param name="class" select="'tab-pane'"/>
+                                    <xsl:with-param name="class" select="'ldh-pane'"/>
                                     <xsl:with-param name="mode" select="$mode"/>
                                     <xsl:with-param name="about" select="$doc-uri"/>
                                 </xsl:apply-templates>
@@ -717,7 +717,7 @@ WHERE
                     </xsl:choose>
 
                     <xsl:call-template name="ldh:RenderTab">
-                        <xsl:with-param name="tab-pane-id" select="$effective-pane-id"/>
+                        <xsl:with-param name="pane-id" select="$effective-pane-id"/>
                         <xsl:with-param name="doc-uri" select="$doc-uri"/>
                         <xsl:with-param name="fragment" select="$fragment"/>
                         <xsl:with-param name="mode" select="$mode"/>
@@ -764,19 +764,19 @@ WHERE
 
         <!-- deactivate all tab <li>s -->
         <xsl:for-each select="id('tab-bar-list', ixsl:page())/li">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'active' ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-active' ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
         <!-- activate this tab <li> -->
-        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'active' ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'is-active' ])[current-date() lt xs:date('2000-01-01')]"/>
 
         <!-- deactivate and hide all tab panes -->
-        <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'active' ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')]">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-active' ])[current-date() lt xs:date('2000-01-01')]"/>
             <ixsl:set-style name="display" select="'none'" object="."/>
         </xsl:for-each>
         <!-- activate and show tab pane (flex, not block: the pane is a link in the flex chain that parks the create bar above the footer) -->
-        <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'document-body')]/@about = $doc-uri]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'active' ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][./div[contains-token(@class, 'document-body')]/@about = $doc-uri]">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'is-active' ])[current-date() lt xs:date('2000-01-01')]"/>
             <ixsl:set-style name="display" select="'flex'" object="."/>
 
             <!-- sync acl:mode() to this pane's data-acl-modes (stamped from its document's Link header); the window flags otherwise go stale on fetch-less tab switches between panes -->
@@ -815,7 +815,7 @@ WHERE
     <!-- render RDF results into a tab pane identified by @about = $doc-uri -->
     <!-- works for both local (#content-body) and external panes -->
     <xsl:template name="ldh:RenderTab">
-        <xsl:param name="tab-pane-id" as="xs:string"/>
+        <xsl:param name="pane-id" as="xs:string"/>
         <xsl:param name="doc-uri" as="xs:anyURI"/>
         <xsl:param name="fragment" as="xs:string?"/>
         <xsl:param name="tab-list-item" select="id('tab-bar-list', ixsl:page())/li[ixsl:get(., 'dataset.uri') = $doc-uri]" as="element()?"/>
@@ -829,12 +829,12 @@ WHERE
                 <xsl:apply-templates select="$tab-list-item" mode="ldh:ActivateTab"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')]">
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', ['active'])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')]">
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', ['is-active'])[current-date() lt xs:date('2000-01-01')]"/>
                     <ixsl:set-style name="display" select="'none'" object="."/>
                 </xsl:for-each>
-                <xsl:for-each select="id($tab-pane-id, ixsl:page())">
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', ['active'])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:for-each select="id($pane-id, ixsl:page())">
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', ['is-active'])[current-date() lt xs:date('2000-01-01')]"/>
                     <ixsl:set-style name="display" select="'flex'" object="."/>
                 </xsl:for-each>
             </xsl:otherwise>
@@ -847,7 +847,7 @@ WHERE
 
         <!-- fire factories for top-level content blocks in the rendered pane -->
         <xsl:variable name="factories" as="(function(item()?) as item()*)*">
-            <xsl:for-each select="id($tab-pane-id, ixsl:page())/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]/div">
+            <xsl:for-each select="id($pane-id, ixsl:page())/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]/div">
                 <xsl:apply-templates select="." mode="ldh:RenderRow">
                     <xsl:with-param name="refresh-content" select="$refresh-content"/>
                 </xsl:apply-templates>
@@ -872,7 +872,7 @@ WHERE
         </xsl:choose>
 
         <!-- ac:ActionBar always renders breadcrumb-nav inside ac:ActionBarMain -->
-        <xsl:variable name="pane-breadcrumb-nav" select="id($tab-pane-id, ixsl:page())//*[contains-token(@class, 'breadcrumb-nav')]" as="element()?"/>
+        <xsl:variable name="pane-breadcrumb-nav" select="id($pane-id, ixsl:page())//*[contains-token(@class, 'breadcrumb-nav')]" as="element()?"/>
         <xsl:if test="$pane-breadcrumb-nav">
             <xsl:call-template name="ldh:PopulateBreadcrumbNav">
                 <xsl:with-param name="container" select="$pane-breadcrumb-nav"/>
@@ -896,7 +896,7 @@ WHERE
         <xsl:param name="fragment" as="xs:string?"/>
 
         <xsl:variable name="resource-uri" select="xs:anyURI($doc-uri || (if ($fragment) then '#' || $fragment else ''))" as="xs:anyURI"/>
-        <xsl:variable name="active-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]" as="element()*"/>
+        <xsl:variable name="active-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]" as="element()*"/>
         <!-- look up the rendered RDFa resource container in the active pane via @about; sidesteps the multi-pane @id uniqueness constraint (two panes may both render a resource at the same fragment). Fall back to @id for fragments no RDFa container carries (e.g. anchors authored inside XHTML content) -->
         <xsl:variable name="scroll-target" as="element()?" select="if ($fragment) then ($active-pane//*[@about = $resource-uri], $active-pane//*[@id = $fragment])[1] else ()"/>
         <xsl:choose>
@@ -924,7 +924,7 @@ WHERE
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:sequence select="ixsl:call(ixsl:window(), 'Reflect.deleteProperty', [ ixsl:get(ixsl:window(), 'LinkedDataHub.pending-scrolls'), $scroll-id ])[current-date() lt xs:date('2000-01-01')]"/>
-                    <xsl:if test="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'document-body')]/@about = $doc-uri">
+                    <xsl:if test="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]/div[contains-token(@class, 'document-body')]/@about = $doc-uri">
                         <xsl:call-template name="ldh:ScrollToFragment">
                             <xsl:with-param name="doc-uri" select="$doc-uri"/>
                             <xsl:with-param name="fragment" select="$fragment"/>
@@ -1059,7 +1059,7 @@ WHERE
 
         <!-- hide local tab pane for external URIs -->
         <xsl:if test="not(starts-with($doc-uri, lapp:origin(ldh:request-uri()) || '/'))">
-            <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'document-body')]/@about = ac:absolute-path(ldh:request-uri())]">
+            <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][./div[contains-token(@class, 'document-body')]/@about = ac:absolute-path(ldh:request-uri())]">
                 <ixsl:set-style name="display" select="'none'" object="."/>
             </xsl:for-each>
         </xsl:if>
@@ -1252,21 +1252,18 @@ WHERE
          has less viewport space below it than above, and end-ward ('drop-left') when it has less space
          to its right than to its left, so it never opens into the nearer viewport edge on either axis -->
 
-    <xsl:template match="*[contains-token(@class, 'btn-group')][*[contains-token(@class, 'dropdown-toggle')]]" mode="ixsl:onclick">
+    <xsl:template match="*[contains-token(@class, 'ldh-drop-wrap')][*[contains-token(@class, 'drop-toggle')]]" mode="ixsl:onclick">
         <xsl:variable name="group" select="." as="element()"/>
         <xsl:variable name="rect" select="ixsl:call(., 'getBoundingClientRect', [])"/>
         <xsl:variable name="drop-up" select="(ixsl:get(ixsl:window(), 'innerHeight') - ixsl:get($rect, 'bottom')) lt ixsl:get($rect, 'top')" as="xs:boolean"/>
         <xsl:variable name="drop-left" select="(ixsl:get(ixsl:window(), 'innerWidth') - ixsl:get($rect, 'left')) lt ixsl:get($rect, 'right')" as="xs:boolean"/>
-        <xsl:variable name="open" select="not(contains-token(@class, 'open'))" as="xs:boolean"/>
+        <xsl:variable name="open" select="not(contains-token(@class, 'is-open'))" as="xs:boolean"/>
 
         <!-- one drop-down at a time: whichever group was open yields to this one -->
-        <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')][not(. is $group)]" mode="ldh:CloseDropdown"/>
+        <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ldh-drop-wrap')][contains-token(@class, 'is-open')][not(. is $group)]" mode="ldh:CloseDropdown"/>
 
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drop-up', $drop-up ])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drop-left', $drop-left ])[current-date() lt xs:date('2000-01-01')]"/>
-        <!-- 'open' is the CSR state token the handlers and bridge key on; 'is-open' mirrors it so
-             app.css's native open-state rules (caret rotation, trigger hover) apply without bridging -->
-        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'open', $open ])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-open', $open ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
@@ -1274,8 +1271,8 @@ WHERE
          places a drop-down stops being current: another one opens, a press lands outside it (below), a
          click lands outside it (the body handler in view.xsl), or a menu pick mounts a modal (ldh:ShowModalForm) -->
 
-    <xsl:template match="*[contains-token(@class, 'btn-group')]" mode="ldh:CloseDropdown">
-        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'open', 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
+    <xsl:template match="*[contains-token(@class, 'ldh-drop-wrap')]" mode="ldh:CloseDropdown">
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
     <!-- the form Actions overflow shares the drop-down lifecycle: the wrap's is-open shows the menu
@@ -1287,7 +1284,7 @@ WHERE
         <xsl:variable name="open" select="not(contains-token(@class, 'is-open'))" as="xs:boolean"/>
 
         <!-- one drop-down at a time: whichever group or wrap was open yields to this one -->
-        <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')][not(. is $wrap)]" mode="ldh:CloseDropdown"/>
+        <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ldh-drop-wrap')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')][not(. is $wrap)]" mode="ldh:CloseDropdown"/>
 
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-open', $open ])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:for-each select="*[contains-token(@class, 'ldh-form-action')]">
@@ -1317,7 +1314,7 @@ WHERE
 
     <xsl:template match="body" mode="ixsl:onpointerdown">
         <xsl:variable name="target" select="ixsl:get(ixsl:event(), 'target')"/>
-        <xsl:for-each select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]">
+        <xsl:for-each select="ixsl:page()//*[contains-token(@class, 'ldh-drop-wrap')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]">
             <xsl:if test="not(ixsl:call(., 'contains', [ $target ]))">
                 <xsl:apply-templates select="." mode="ldh:CloseDropdown"/>
             </xsl:if>
@@ -1344,22 +1341,22 @@ WHERE
 
     <!-- content tabs (markup from Bootstrap) -->
     
-    <xsl:template match="div[contains-token(@class, 'tabbable')]/ul[contains-token(@class, 'nav-tabs')]/li/a" mode="ixsl:onclick">
+    <xsl:template match="div[contains-token(@class, 'ldhc-tabs')]/ul[contains-token(@class, 'ldhc-tablist')]/li/a" mode="ixsl:onclick">
         <!-- deactivate other tabs -->
         <xsl:for-each select="../../li">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
         <!-- activate this tab -->
         <xsl:for-each select="..">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
         <!-- deactivate other tab panes -->
-        <xsl:for-each select="../../following-sibling::*[contains-token(@class, 'tab-content')]/*[contains-token(@class, 'tab-pane')]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:for-each select="../../following-sibling::*[contains-token(@class, 'ldh-panes')]/*[contains-token(@class, 'ldh-pane')]">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
         <!-- activate this tab -->
-        <xsl:for-each select="../../following-sibling::*[contains-token(@class, 'tab-content')]/*[contains-token(@class, 'tab-pane')][count(preceding-sibling::*[contains-token(@class, 'tab-pane')]) = count(current()/../preceding-sibling::li)]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:for-each select="../../following-sibling::*[contains-token(@class, 'ldh-panes')]/*[contains-token(@class, 'ldh-pane')][count(preceding-sibling::*[contains-token(@class, 'ldh-pane')]) = count(current()/../preceding-sibling::li)]">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
     </xsl:template>
     
@@ -1394,7 +1391,7 @@ WHERE
     <!-- open a form to save RDF document (do nothing if the button is disabled) -->
     
     <xsl:template match="button[contains-token(@class, 'btn-save-as')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
-        <xsl:variable name="target" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
+        <xsl:variable name="target" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
         <xsl:variable name="graph" select="ldh:base-uri(.)" as="xs:anyURI"/>
 
         <xsl:call-template name="ldh:ShowModalForm">
@@ -1414,7 +1411,7 @@ WHERE
     </xsl:template>
     
     <!-- tab bar: click on a tab link to activate it -->
-    <xsl:template match="ul[@id = 'tab-bar-list']/li[not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
+    <xsl:template match="ul[@id = 'tab-bar-list']/li[not(contains-token(@class, 'is-active'))]/a" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="href" select="xs:anyURI(resolve-uri(@href, ldh:base-uri(.)))" as="xs:anyURI"/>
         <xsl:variable name="parsed" select="ldh:parse-href($href)" as="map(xs:string, item()?)"/>
@@ -1447,13 +1444,13 @@ WHERE
     <xsl:template match="ul[@id = 'tab-bar-list']/li/span[contains-token(@class, 'tab-close')]" mode="ixsl:onclick">
         <xsl:variable name="tab-li" select=".." as="element()"/>
         <xsl:variable name="doc-uri" select="xs:anyURI(ixsl:get($tab-li, 'dataset.uri'))" as="xs:anyURI"/>
-        <xsl:variable name="was-active" select="contains-token($tab-li/@class, 'active')" as="xs:boolean"/>
+        <xsl:variable name="was-active" select="contains-token($tab-li/@class, 'is-active')" as="xs:boolean"/>
 
         <!-- pick fallback BEFORE removing this li; prefer previous sibling, fall back to next -->
         <xsl:variable name="fallback-li" select="($tab-li/preceding-sibling::li[1], $tab-li/following-sibling::li[1])[1]" as="element()?"/>
 
         <!-- remove the associated tab pane (matched by document-body/@about = $doc-uri) -->
-        <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][./div[contains-token(@class, 'document-body')]/@about = $doc-uri]">
+        <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][./div[contains-token(@class, 'document-body')]/@about = $doc-uri]">
             <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
 

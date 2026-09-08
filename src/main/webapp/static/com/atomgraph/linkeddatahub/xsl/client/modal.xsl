@@ -216,9 +216,9 @@ LIMIT   10
                 </xsl:with-param>
                 <xsl:with-param name="body" as="item()*">
 
-                <div class="tabbable">
-                    <ul class="nav nav-tabs">
-                        <li class="active">
+                <div class="ldhc-tabs or-horizontal">
+                    <ul class="ldhc-tablist sz-md">
+                        <li class="is-active">
                             <a>
                                 <xsl:value-of>
                                     <xsl:apply-templates select="key('resources', 'from-sparql-service', ldh:translations())" mode="ac:label"/>
@@ -226,9 +226,9 @@ LIMIT   10
                             </a>
                         </li>
                     </ul>
-                    <div class="tab-content">
+                    <div class="ldh-panes">
                         <div>
-                            <!--<xsl:attribute name="class" select="'tab-pane ' || (if (not($source)) then 'active' else ())"/>-->
+                            <!--<xsl:attribute name="class" select="'ldh-pane ' || (if (not($source)) then 'is-active' else ())"/>-->
 
                             <!-- no @action: the submit handler orchestrates client-side PUTs of the generated container documents -->
                             <form id="form-generate-containers" method="POST">
@@ -802,7 +802,7 @@ LIMIT   10
 
 
             <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
-            <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseDropdown"/>
+            <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ldh-drop-wrap')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseDropdown"/>
             <xsl:result-document href="?." method="ixsl:append-content">
                 <div class="ldhc-backdrop pos-top modal modal-constructor" about="{$doc-uri}" typeof="{$forClass}"> <!-- @about identifies the new resource URL (uniform with edit/settings modals so submit handlers can read $block/@about without a fallback); $forClass used by ldh:ResourceUpdated in case of 4xx response -->
                     <xsl:apply-templates select="." mode="ldh:Modal">
@@ -867,7 +867,7 @@ LIMIT   10
         <xsl:param name="method" select="'patch'" as="xs:string"/>
         <xsl:param name="form-actions-class" select="'ldh-form-bar'" as="xs:string?"/>
         <xsl:param name="button-class" select="'ldhc-btn in-primary ap-solid sz-sm'" as="xs:string?"/>
-        <xsl:variable name="content-body" select="ancestor::div[contains-token(@class, 'tab-pane')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
+        <xsl:variable name="content-body" select="ancestor::div[contains-token(@class, 'ldh-pane')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
 
@@ -882,7 +882,7 @@ LIMIT   10
         <xsl:for-each select="$content-body">
 
             <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
-            <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseDropdown"/>
+            <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ldh-drop-wrap')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseDropdown"/>
             <xsl:result-document href="?." method="ixsl:append-content">
                 <div class="ldhc-backdrop pos-top modal modal-constructor" about="{$about}">
                     <xsl:apply-templates select="." mode="ldh:Modal">
@@ -1052,7 +1052,7 @@ LIMIT   10
     </xsl:template>
     
     <xsl:template match="button[contains-token(@class, 'btn-add-ontology')]" mode="ixsl:onclick">
-        <xsl:variable name="target" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
+        <xsl:variable name="target" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
         <xsl:variable name="graph" select="ldh:base-uri(.)" as="xs:anyURI"/>
 
         <xsl:call-template name="ldh:ShowModalForm">
@@ -1072,7 +1072,7 @@ LIMIT   10
     </xsl:template>
 
     <xsl:template match="button[contains-token(@class, 'btn-generate-containers')]" mode="ixsl:onclick">
-        <xsl:variable name="target" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
+        <xsl:variable name="target" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
         <xsl:variable name="graph" select="ldh:base-uri(.)" as="xs:anyURI"/>
 
         <xsl:call-template name="ldh:ShowModalForm">
@@ -1092,14 +1092,14 @@ LIMIT   10
     <xsl:template match="button[contains-token(@class, 'btn-app-settings')]" mode="ixsl:onclick">
         <xsl:param name="id" select="'app-settings'" as="xs:string?"/>
         <xsl:param name="method" select="'patch'" as="xs:string"/>
-        <xsl:variable name="content-body" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
+        <xsl:variable name="content-body" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:for-each select="$content-body">
 
             <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
-            <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseDropdown"/>
+            <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ldh-drop-wrap')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseDropdown"/>
             <xsl:result-document href="?." method="ixsl:append-content">
                 <div class="ldhc-backdrop pos-top modal modal-constructor" about="{lapp:application()}">
                     <xsl:if test="$id">
@@ -1252,7 +1252,7 @@ LIMIT   10
         <xsl:variable name="resource" select="input[@name = 'resource']/@value" as="xs:anyURI"/>
         <xsl:variable name="label" select="input[@name = 'label']/@value" as="xs:string"/>
         <xsl:variable name="service" select="input[@name = 'service']/@value" as="xs:anyURI"/>
-        <xsl:variable name="target" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
+        <xsl:variable name="target" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
 
         <xsl:call-template name="ldh:ShowModalForm">
             <xsl:with-param name="form" as="element()">
@@ -1622,7 +1622,7 @@ LIMIT   10
         <xsl:param name="target" as="element()"/>
 
         <!-- the menu pick that reached here has served its purpose - the drop-down it came from closes behind the modal -->
-        <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'btn-group')][contains-token(@class, 'open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseDropdown"/>
+        <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ldh-drop-wrap')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseDropdown"/>
 
         <!-- per-pane modal ids guarantee uniqueness, so the page-wide existence check suffices -->
         <xsl:if test="not(id($form/@id, ixsl:page()))">
@@ -1781,7 +1781,7 @@ LIMIT   10
                                 <xsl:result-document href="?." method="ixsl:replace-element">
                                     <xsl:call-template name="ldh:Lookup">
                                         <xsl:with-param name="class" select="'resource-typeahead typeahead'"/>
-                                        <xsl:with-param name="list-class" select="'resource-typeahead typeahead dropdown-menu'"/>
+                                        <xsl:with-param name="list-class" select="'resource-typeahead typeahead ldhc-cb-panel'"/>
                                         <xsl:with-param name="value" select="$resource-uri"/>
                                         <xsl:with-param name="forClass" select="$forClass"/>
                                     </xsl:call-template>
@@ -1812,7 +1812,7 @@ LIMIT   10
         <xsl:choose>
             <xsl:when test="$status = 200 and $media-type = 'application/rdf+xml'">
                 <xsl:variable name="body" select="$response?body" as="document-node()"/>
-                <xsl:variable name="target" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
+                <xsl:variable name="target" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
 
                 <xsl:call-template name="ldh:ShowModalForm">
                     <xsl:with-param name="form" as="element()">

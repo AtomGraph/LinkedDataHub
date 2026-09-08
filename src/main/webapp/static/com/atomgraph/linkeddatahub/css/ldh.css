@@ -4,18 +4,18 @@
 /* keep overflow visible, else the action-bar sticks relative to #tab-content instead of the viewport */
 #tab-content { overflow: visible; }
 #tab-bar-list > li { position: relative; }
-#tab-bar-list.nav-tabs > li > a { padding-right: 22px; }
+#tab-bar-list.ldh-tabs > li > a { padding-right: 22px; }
 #tab-bar-list .tab-close { position: absolute; top: 6px; right: 6px; line-height: 1; font-size: 11px; color: var(--fg-hint); cursor: pointer; padding: 1px 3px; }
 #tab-bar-list .tab-close:hover { color: var(--fg-1); }
-ul.dropdown-menu { max-height: 26em; overflow-x: hidden; overflow-y: auto; }
-ul.dropdown-menu ul { margin: 0; }
-.dropdown-menu li form { margin-bottom: 0; }
-.dropdown-menu li form button { width: 100%; text-align: left; }
+ul.ldh-drop-menu { max-height: 26em; overflow-x: hidden; overflow-y: auto; }
+ul.ldh-drop-menu ul { margin: 0; }
+.ldh-drop-menu li form { margin-bottom: 0; }
+.ldh-drop-menu li form button { width: 100%; text-align: left; }
 .search-form { display: flex; width: 100%; align-items: stretch; }
 .search-form .search-query { flex: 1 1 auto; min-width: 0; height: 36px; box-sizing: border-box; margin: 0; }
 .action-bar { position: sticky; top: var(--action-bar-top); z-index: 86; padding: 0; box-shadow: none; }
 .action-bar form { margin-bottom: 0; }
-.action-bar .add-constructor, .dropdown-menu .add-constructor { background-color: inherit; display: block; text-align: left; width: 100%; }
+.action-bar .add-constructor, .ldh-drop-menu .add-constructor { background-color: inherit; display: block; text-align: left; width: 100%; }
 .action-bar .add-constructor:hover { color: #ffffff; background-color: #007af5; }
 .action-bar p.alert { margin-bottom: 0; }
 body:has(#edit-toolbar) .action-bar { border-bottom: 1px solid var(--border-default); }
@@ -26,7 +26,7 @@ li button.btn-edit-constructors, li button.btn-add-data, li button.btn-add-ontol
 {
     body { padding-top: 0; }
     .left-sidebar { display: block; width: auto; position: unset; top: unset; height: auto; z-index: auto; }
-    .left-sidebar .nav { max-height: 20em; overflow: auto; }
+    .left-sidebar .ldh-nav { max-height: 20em; overflow: auto; }
 }
 /* the tree gets half the sidebar's height (the sidebar is fixed-positioned, so the percentage
    resolves); the outer ul is the sole scroll container - nested uls stay uncapped so a deep
@@ -35,7 +35,7 @@ li button.btn-edit-constructors, li button.btn-add-data, li button.btn-add-ontol
 .left-sidebar .document-tree > ul { overflow: auto; min-height: 0; }
 .left-sidebar .class-list ul, .left-sidebar .other-views ul { max-height: 22em; overflow: auto; }
 .left-sidebar li > a { display: inline-block; }
-.left-nav .nav, .right-nav .nav { max-height: 20em; overflow: auto; }
+.left-nav .ldh-nav, .right-nav .ldh-nav { max-height: 20em; overflow: auto; }
 .left-nav, .right-nav { position: sticky; top: 0; }
 .faceted-nav input[type=checkbox]:checked + span { font-weight: bold; }
 .parallax-nav a { cursor: pointer; }
@@ -52,12 +52,12 @@ li button.btn-edit-constructors, li button.btn-add-data, li button.btn-add-ontol
 .content-body > .block:hover > .row-main > .drag-handle[draggable="true"] { opacity: 1; }
 .content-body > .block > .row-main > .drag-handle[draggable="true"]:hover { background-color: var(--bg-hover); }
 .content-body > .block > .row-main > .drag-handle[draggable="true"]:active { cursor: grabbing; }
-.modal .dropdown-menu { z-index: 1100; }
+.modal .ldh-drop-menu { z-index: 1100; }
 /* Annotation overlay: point-positioned by rdfae:show-at; carries its own card chrome
    (it borrows .modal-header/.modal-body layout from ldh-bridge.css but is not a dialog) */
 #rdfa-editor-overlay { position: absolute; min-width: 360px; max-width: 520px; z-index: 10001; background: var(--surface-0); border-radius: var(--r-lg); box-shadow: var(--shadow-xl); display: flex; flex-direction: column; overflow: hidden; }
 .control-group.endpoint-classes ul { max-height: 20em; overflow: auto; }
-.nav-tabs > li > a { cursor: pointer; }
+.ldh-tabs > li > a { cursor: pointer; }
 .container-results { max-height: 80em; overflow: auto; }
 .map-canvas { height: 45em; width: 100%; }
 fieldset { border: 1px outset #999; /* padding-top: 3%; */ }
@@ -130,7 +130,7 @@ circle { cursor: move; }
 .edit-dialog { background: white; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,.2); padding: 12px; min-width: 280px; z-index: 10000; }
 .edit-dialog .rdfa-editor-ui .action-buttons { margin-top: 10px; }
 .edit-dialog .rdfa-editor-ui .checkbox-label { display: inline-flex; gap: 6px; align-items: center; font-weight: 400; margin-top: 8px; }
-.editor-bar:not(:has(#edit-toolbar)), .tab-pane:not(:has(.rdfa-editor-content)) .editor-bar, body:not(:has(.tab-pane.active .rdfa-editor-content)) #rdfa-editor-breadcrumb { display: none; }
+.editor-bar:not(:has(#edit-toolbar)), .ldh-pane:not(:has(.rdfa-editor-content)) .editor-bar, body:not(:has(.ldh-pane.is-active .rdfa-editor-content)) #rdfa-editor-breadcrumb { display: none; }
 /* Host-page gutter for the block drag handles (rendered at left:-1.5em, outside each block's box).
    The editor documents this as a host requirement (padding-left >= 2.5em); LDH must reserve it since
    the .rdfa-editor-content div is generated bare by the XMLLiteral form control. */

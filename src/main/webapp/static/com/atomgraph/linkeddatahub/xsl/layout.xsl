@@ -591,7 +591,7 @@ exclude-result-prefixes="#all">
          TO-DO: refactor into component templates -->
     <xsl:template match="rdf:RDF[starts-with(replace(lapp:origin(), '^https?://', ''), 'admin.')]" mode="ldh:HeaderNavList" priority="1">
         <xsl:if test="$foaf:Agent//@rdf:about">
-            <ul class="nav">
+            <ul class="ldh-nav">
                 <xsl:variable name="notification-query" as="xs:string">
                     <![CDATA[
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -630,9 +630,9 @@ WHERE
 
                     <xsl:if test="$notifications/rdf:RDF/*[@rdf:about]">
                         <li>
-                            <div class="btn-group">
-                                <!-- the button doubles as the badge anchor (ldhc-badge-wrap): the generic dropdown handler needs dropdown-toggle as a direct child of the btn-group, so a wrapping span is not an option -->
-                                <button class="dropdown-toggle ldhc-iconbtn sz-lg in-neutral ap-ghost ldhc-badge-wrap" title="{ac:label(key('resources', 'notifications', document('translations.rdf')))}">
+                            <div class="ldh-drop-wrap">
+                                <!-- the button doubles as the badge anchor (ldhc-badge-wrap): the generic dropdown handler needs drop-toggle as a direct child of the ldh-drop-wrap, so a wrapping span is not an option -->
+                                <button class="drop-toggle ldhc-iconbtn sz-lg in-neutral ap-ghost ldhc-badge-wrap" title="{ac:label(key('resources', 'notifications', document('translations.rdf')))}">
                                     <span class="msi outline sm" aria-hidden="true">notifications</span>
                                     <span class="ldhc-badge co-informative sz-md pl-top-right is-dot" style="border-color: transparent">
                                         <span class="ldhc-vh">
@@ -640,7 +640,7 @@ WHERE
                                         </span>
                                     </span>
                                 </button>
-                                <ul class="dropdown-menu">
+                                <ul class="ldh-drop-menu">
                                     <xsl:for-each select="$notifications/rdf:RDF/*[@rdf:about]">
                                         <xsl:sort select="dct:created[1]/xs:dateTime(.)" order="descending"/>
 
@@ -661,7 +661,7 @@ WHERE
 
     <xsl:template match="rdf:RDF[lapp:origin()][key('apps-by-origin', lapp:origin(), $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication'] | srx:sparql[lapp:origin()][key('apps-by-origin', lapp:origin(), $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="ldh:DataspaceTabs" priority="1">
         <xsl:param name="id"  as="xs:string?"/>
-        <xsl:param name="class" select="'nav'" as="xs:string?"/>
+        <xsl:param name="class" select="'ldh-nav'" as="xs:string?"/>
 
         <ul>
             <xsl:if test="$id">
@@ -676,13 +676,13 @@ WHERE
 
             <xsl:if test="exists($user-defined-apps) or exists($system-apps)">
                 <li>
-                    <div class="btn-group">
-                        <button class="dropdown-toggle ldhc-iconbtn sz-lg in-neutral ap-ghost btn-apps" title="{ac:label(key('resources', 'application-list-title', document('translations.rdf')))}">
+                    <div class="ldh-drop-wrap">
+                        <button class="drop-toggle ldhc-iconbtn sz-lg in-neutral ap-ghost btn-apps" title="{ac:label(key('resources', 'application-list-title', document('translations.rdf')))}">
                             <span class="msi sm" aria-hidden="true">apps</span>
                         </button>
-                        <ul class="dropdown-menu">
+                        <ul class="ldh-drop-menu">
                             <xsl:if test="exists($user-defined-apps)">
-                                <li class="nav-header">
+                                <li class="drop-header">
                                     <xsl:value-of select="ac:label(key('resources', 'user-defined-apps', document('translations.rdf')))"/>
                                 </li>
                                 <xsl:for-each select="$user-defined-apps">
@@ -698,7 +698,7 @@ WHERE
                                 <xsl:if test="exists($user-defined-apps)">
                                     <li class="divider"/>
                                 </xsl:if>
-                                <li class="nav-header">
+                                <li class="drop-header">
                                     <xsl:value-of select="ac:label(key('resources', 'system-apps', document('translations.rdf')))"/>
                                 </li>
                                 <xsl:for-each select="$system-apps">
@@ -730,13 +730,13 @@ WHERE
     <!-- agent avatar dropdown shared by the admin and end-user nav lists -->
     <xsl:template match="rdf:RDF | srx:sparql" mode="ldh:AgentNavListItem">
         <li>
-            <!-- .ldh-avatar-wrap is the design's avatar anchor; .btn-group keeps the CSR dropdown handler and its .open state -->
-            <div class="btn-group ldh-avatar-wrap">
+            <!-- .ldh-avatar-wrap is the design's avatar anchor; .ldh-drop-wrap keeps the CSR dropdown handler and its .open state -->
+            <div class="ldh-drop-wrap ldh-avatar-wrap">
                 <xsl:variable name="agent-label" select="ac:label($foaf:Agent//*[@rdf:about][1])" as="xs:string?"/>
-                <button type="button" class="dropdown-toggle ldh-avatar" title="{$agent-label}">
+                <button type="button" class="drop-toggle ldh-avatar" title="{$agent-label}">
                     <xsl:value-of select="string-join(for $word in tokenize(normalize-space($agent-label), ' ')[position() le 2] return upper-case(substring($word, 1, 1)))"/>
                 </button>
-                <ul class="dropdown-menu">
+                <ul class="ldh-drop-menu">
                     <li>
                         <xsl:for-each select="key('resources-by-type', '&foaf;Agent', $foaf:Agent)">
                             <xsl:apply-templates select="@rdf:about" mode="xhtml:Anchor"/>
@@ -759,15 +759,15 @@ WHERE
 
         <!-- OAuth providers dropdown -->
         <xsl:if test="$google-signup or $orcid-signup">
-            <div class="btn-group">
-                <button type="button" class="dropdown-toggle ldhc-btn in-primary ap-solid sz-md">
+            <div class="ldh-drop-wrap">
+                <button type="button" class="drop-toggle ldhc-btn in-primary ap-solid sz-md">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'login', document('translations.rdf'))" mode="ac:label"/>
                     </xsl:value-of>
                     <xsl:text> </xsl:text>
                     <span class="msi caret" aria-hidden="true">expand_more</span>
                 </button>
-                <ul class="dropdown-menu">
+                <ul class="ldh-drop-menu">
                     <xsl:if test="$google-signup">
                         <li>
                             <xsl:variable name="google-signup-uri" select="ac:build-uri(resolve-uri('oauth2/authorize/google', $ac:contextUri), map{ 'referer': string(ac:absolute-path(ldh:request-uri())) })" as="xs:anyURI"/>
@@ -817,7 +817,7 @@ WHERE
                     <div id="tab-bar" style="display: none">
                         <div>
                             <div class="block-row">
-                                <ul class="nav nav-tabs row-main" id="tab-bar-list">
+                                <ul class="ldh-tabs row-main" id="tab-bar-list">
                                     <li data-uri="{ac:absolute-path(ldh:base-uri(.))}">
                                         <a href="{ldh:href(ac:absolute-path(ldh:base-uri(.)), ldh:build-query(ac:mode(root())))}">
                                             <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="ac:label"/>
@@ -828,8 +828,8 @@ WHERE
                         </div>
                     </div>
 
-                    <!-- document content panes using Bootstrap 2.3.2 tab-content/tab-pane classes -->
-                    <div id="tab-content" class="tab-content">
+                    <!-- document content panes (.ldh-panes/.ldh-pane classes -->
+                    <div id="tab-content" class="ldh-panes">
                         <xsl:variable name="object-uris" select="rdf:Description/*/@rdf:resource[not(key('resources', .))]" as="xs:anyURI*"/>
                         <xsl:variable name="object-metadata" as="document-node()?">
                             <xsl:if test="exists($object-uris)">
@@ -920,7 +920,7 @@ WHERE
         <xsl:variable name="properties-original" select="for $triple-key in ac:value-except(map:keys($triples-original), map:keys($triples-local)) return map:get($triples-original, $triple-key)" as="element()*"/>
         <xsl:if test="exists($properties-original)">
             <div>
-                <h2 class="nav-header">
+                <h2 class="ldh-section-heading">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'from-origin', document('translations.rdf'))" mode="ac:label"/>
                     </xsl:value-of>
@@ -946,7 +946,7 @@ WHERE
         <xsl:variable name="properties-local" select="for $triple-key in ac:value-except(map:keys($triples-local), map:keys($triples-original)) return map:get($triples-local, $triple-key)" as="element()*"/>
         <xsl:if test="exists($properties-local)">
             <div>
-                <h2 class="nav-header">
+                <h2 class="ldh-section-heading">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'local', document('translations.rdf'))" mode="ac:label"/>
                     </xsl:value-of>
@@ -972,7 +972,7 @@ WHERE
         <xsl:variable name="properties-common" select="for $triple-key in ac:value-intersect(map:keys($triples-original), map:keys($triples-local)) return map:get($triples-original, $triple-key)" as="element()*"/>
         <xsl:if test="exists($properties-common)">
             <div>
-                <h2 class="nav-header">
+                <h2 class="ldh-section-heading">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'common', document('translations.rdf'))" mode="ac:label"/>
                     </xsl:value-of>
@@ -1028,12 +1028,12 @@ WHERE
     <!-- SETTINGS -->
     
     <xsl:template match="rdf:RDF[lapp:origin()] | srx:sparql[lapp:origin()]" mode="ldh:Settings" priority="1">
-        <div class="btn-group">
-            <button type="button" class="dropdown-toggle ldhc-iconbtn sz-lg in-neutral ap-ghost" title="{ac:label(key('resources', 'nav-bar-action-settings-title', document('translations.rdf')))}">
+        <div class="ldh-drop-wrap">
+            <button type="button" class="drop-toggle ldhc-iconbtn sz-lg in-neutral ap-ghost" title="{ac:label(key('resources', 'nav-bar-action-settings-title', document('translations.rdf')))}">
                 <span class="msi outline sm" aria-hidden="true">settings</span>
             </button>
 
-            <ul class="dropdown-menu">
+            <ul class="ldh-drop-menu">
                 <xsl:if test="$foaf:Agent//@rdf:about and key('apps-by-origin', lapp:origin(), $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication'">
                     <li>
                         <button class="btn-app-settings">

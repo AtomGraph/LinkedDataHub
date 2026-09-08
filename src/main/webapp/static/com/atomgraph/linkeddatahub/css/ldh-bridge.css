@@ -1,7 +1,7 @@
 /* =========================================================================
    Transitional bridge between LDH's CSR state tokens and the design system.
-   The CSR handlers toggle legacy state classes (.open on .btn-group,
-   .active on tab <li>s) and emit a few structural wrappers (ul.nav in the
+   The CSR handlers toggle state classes (.is-open on .ldh-drop-wrap,
+   .is-active on tab <li>s) and emit a few structural wrappers (ul.ldh-nav in the
    header, #tab-bar) that app.css has no rules for. This file styles those
    with the design system's tokens so no interaction wiring has to change.
    Rules move out of here (or die) as components finish porting.
@@ -108,23 +108,23 @@
 }
 
 /* ---------- header actions: the right-side ul.nav is a flex strip ---------- */
-.ldh-header-actions ul.nav {
+.ldh-header-actions ul.ldh-nav {
   display: flex; align-items: center; gap: var(--sp-2);
   list-style: none; margin: 0; padding: 0;
 }
-.ldh-header-actions ul.nav > li { display: flex; align-items: center; }
+.ldh-header-actions ul.ldh-nav > li { display: flex; align-items: center; }
 
-/* ---------- dropdown menus: .open is toggled by the CSR btn-group handler ---------- */
+/* ---------- dropdown menus: .is-open is toggled by the CSR drop-wrap handler ---------- */
 /* the m3 skin paints every .ldh-header descendant with the inverse (near-white) text color for the
    dark bar; light dropdown panels inside the header need their ink back at higher specificity */
-:root[data-retro^="m3"] .ldh-header .dropdown-menu, :root[data-retro^="m3"] .ldh-header .dropdown-menu * { color: var(--fg-1); }
-:root[data-retro^="m3"] .ldh-header .dropdown-menu .nav-header { color: var(--fg-hint); }
+:root[data-retro^="m3"] .ldh-header .ldh-drop-menu, :root[data-retro^="m3"] .ldh-header .ldh-drop-menu * { color: var(--fg-1); }
+:root[data-retro^="m3"] .ldh-header .ldh-drop-menu .drop-header { color: var(--fg-hint); }
 /* the avatar disc's box, hover and ink come from app.css; the CSR dropdown handler toggles .open on the
    wrap, so map it onto the design's .is-open ring here */
-.btn-group.open .ldh-avatar { box-shadow: 0 0 0 2px var(--surface-0), 0 0 0 4px var(--bg-accent); }
-.btn-group { position: relative; }
-.btn-group .dropdown-menu { display: none; }
-.btn-group.open .dropdown-menu {
+.ldh-drop-wrap.is-open .ldh-avatar { box-shadow: 0 0 0 2px var(--surface-0), 0 0 0 4px var(--bg-accent); }
+.ldh-drop-wrap { position: relative; }
+.ldh-drop-wrap .ldh-drop-menu { display: none; }
+.ldh-drop-wrap.is-open .ldh-drop-menu {
   display: block;
   position: absolute;
   top: calc(100% + 8px);
@@ -140,8 +140,8 @@
   margin: 0;
 }
 /* header menus hug the viewport's right edge */
-.ldh-header .btn-group.open .dropdown-menu { left: auto; right: 0; }
-.dropdown-menu > li > a, .dropdown-menu > li > button {
+.ldh-header .ldh-drop-wrap.is-open .ldh-drop-menu { left: auto; right: 0; }
+.ldh-drop-menu > li > a, .ldh-drop-menu > li > button {
   display: flex; align-items: center; gap: var(--sp-2);
   width: 100%;
   padding: 8px 10px;
@@ -149,20 +149,20 @@
   border-radius: var(--r-sm);
   font-size: var(--fs-sm); color: var(--fg-1); text-align: left;
 }
-.dropdown-menu > li > a:hover, .dropdown-menu > li > button:hover { background: var(--bg-hover); text-decoration: none; }
-.dropdown-menu > li.nav-header {
+.ldh-drop-menu > li > a:hover, .ldh-drop-menu > li > button:hover { background: var(--bg-hover); text-decoration: none; }
+.ldh-drop-menu > li.drop-header {
   padding: 6px 10px 2px;
   font-size: var(--fs-xs); font-weight: var(--fw-semibold);
   letter-spacing: 0.06em; text-transform: uppercase;
   color: var(--fg-hint);
 }
-.dropdown-menu > li.divider { height: 1px; margin: var(--sp-2) 0; background: var(--border-default); }
+.ldh-drop-menu > li.divider { height: 1px; margin: var(--sp-2) 0; background: var(--border-default); }
 
-/* ---------- action bar: design menus open via the CSR btn-group 'open' toggle ---------- */
+/* ---------- action bar: design menus open via the CSR drop-wrap 'is-open' toggle ---------- */
 .ldh-actionbar .ab-mid { display: flex; align-items: center; gap: var(--sp-4); min-width: 0; }
 .ldh-actionbar > .ab-left { display: flex; align-items: center; gap: var(--sp-2); }
 .ldh-add-wrap .ldh-add-menu, .ldh-of-wrap .ldh-of-menu, .ldh-mode .modes-pop { display: none; }
-.ldh-add-wrap.open .ldh-add-menu, .ldh-mode.open .modes-pop { display: block; }
+.ldh-add-wrap.is-open .ldh-add-menu, .ldh-mode.is-open .modes-pop { display: block; }
 /* The toggle handler stamps 'drop-up' when the group is closer to the viewport bottom than the top,
    and 'drop-left' when it is closer to the right edge than the left, so a menu always opens into the
    side that has room for it instead of being clipped. The same trigger appears in both action-bar
@@ -171,7 +171,7 @@
 .ldh-add-wrap.drop-up .ldh-add-menu, .ldh-of-wrap.drop-up .ldh-of-menu, .ldh-mode.drop-up .modes-pop { top: auto; bottom: calc(100% + 6px); }
 .ldh-add-wrap.drop-left .ldh-add-menu, .ldh-of-wrap.drop-left .ldh-of-menu, .ldh-mode.drop-left .modes-pop { left: auto; right: 0; }
 .ldh-add-wrap:not(.drop-left) .ldh-add-menu, .ldh-of-wrap:not(.drop-left) .ldh-of-menu, .ldh-mode:not(.drop-left) .modes-pop { left: 0; right: auto; }
-.ldh-of-wrap.open .ldh-of-menu { display: flex; }
+.ldh-of-wrap.is-open .ldh-of-menu { display: flex; }
 .ldh-of-menu .it.disabled, .ldh-add-menu .it.disabled { opacity: 0.4; pointer-events: none; }
 .ldh-of-menu a.it { text-decoration: none; }
 /* the CSR-built breadcrumb container (bc-pill / bc-sep styled by app.css) */
@@ -315,7 +315,6 @@ legend > .actions { display: flex; align-items: center; gap: var(--sp-1); margin
    instead of the mono section-label treatment above */
 .ldhc-modal-body form > fieldset > legend { font-family: var(--font-sans); font-size: var(--fs-lg); font-weight: var(--fw-semibold); letter-spacing: normal; text-transform: none; color: var(--fg-1); }
 /* remove-resource button on legendless fieldsets rides its own top row, right-aligned */
-fieldset > .btn-group { display: flex; justify-content: flex-end; }
 .chart-controls .field select[multiple] { height: auto; }
 
 /* ---------- read-mode property lists now emit the design's .ldh-prop-group grid (app.css) ---------- */
@@ -428,7 +427,7 @@ fieldset > .btn-group { display: flex; justify-content: flex-end; }
 .facet-pop .facet-loading { padding: 8px var(--sp-2); }
 .ldh-view-toolbar .form-inline { display: flex; align-items: center; gap: var(--sp-1); margin: 0; }
 .ldh-view-toolbar .form-inline label { display: flex; align-items: center; gap: var(--sp-1); margin: 0; }
-.ldh-view-toolbar .btn-group.open .dropdown-menu { left: auto; right: 0; }
+.ldh-view-toolbar .ldh-drop-wrap.is-open .ldh-drop-menu { left: auto; right: 0; }
 /* direction toggle mirrors the column-header arrows: the handlers only flip btn-order-by-desc
    (never the button's content), so the class picks the visible label and the ::before glyph -
    same pattern as the caret */
@@ -500,15 +499,15 @@ body:has(.ldh-create-dock) .ldh-footer { margin-top: 0; }
    can only pull an element up from its flow position, never push it down) ---------- */
 #visible-body { min-height: 100vh; display: flex; flex-direction: column; }
 #visible-body > #tab-body { flex: 1 0 auto; display: flex; flex-direction: column; }
-#tab-body > .tab-content { flex: 1 0 auto; display: flex; flex-direction: column; }
+#tab-body > .ldh-panes { flex: 1 0 auto; display: flex; flex-direction: column; }
 /* the bridge owns the tab contract (only the active pane shows), so an inactive tab's
    content - its create bar included - never lingers */
-.tab-content > .tab-pane { display: none; }
-.tab-content > .tab-pane.active { flex: 1 0 auto; display: flex; flex-direction: column; }
-.tab-pane > .document-body { flex: 1 0 auto; display: flex; flex-direction: column; }
+.ldh-panes > .ldh-pane { display: none; }
+.ldh-panes > .ldh-pane.is-active { flex: 1 0 auto; display: flex; flex-direction: column; }
+.ldh-pane > .document-body { flex: 1 0 auto; display: flex; flex-direction: column; }
 /* .content-body centers with auto side margins, which opt a flex item out of cross-axis
    stretch (it would shrink-wrap to its widest child); explicit width restores the full column */
-.tab-pane > .document-body > .content-body { width: 100%; }
+.ldh-pane > .document-body > .content-body { width: 100%; }
 /* only create-bar pages need the column itself stretched (its children become flex items) */
 .document-body > .content-body:has(> .ldh-create-dock) { flex: 1 0 auto; display: flex; flex-direction: column; padding-bottom: 0; }
 

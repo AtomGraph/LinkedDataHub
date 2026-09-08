@@ -79,7 +79,7 @@ exclude-result-prefixes="#all"
     </xsl:function>
     
     <xsl:function name="ldt:base" as="xs:anyURI">
-        <xsl:variable name="active-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]" as="element()?"/>
+        <xsl:variable name="active-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]" as="element()?"/>
         <xsl:sequence select="if ($active-pane and ixsl:contains($active-pane, 'dataset.base')) then xs:anyURI(ixsl:get($active-pane, 'dataset.base')) else xs:anyURI(lapp:origin(ldh:request-uri()) || '/')"/>
     </xsl:function>
 
@@ -93,7 +93,7 @@ exclude-result-prefixes="#all"
     </xsl:function>
 
     <xsl:function name="sd:endpoint" as="xs:anyURI">
-        <xsl:variable name="active-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'tab-pane')][contains-token(@class, 'active')]" as="element()?"/>
+        <xsl:variable name="active-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]" as="element()?"/>
         <xsl:sequence select="if ($active-pane and ixsl:contains($active-pane, 'dataset.endpoint')) then xs:anyURI(ixsl:get($active-pane, 'dataset.endpoint')) else resolve-uri('sparql', ldt:base())"/>
     </xsl:function>
 
