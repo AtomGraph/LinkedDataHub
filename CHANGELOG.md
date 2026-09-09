@@ -92,6 +92,9 @@ Bootstrap 2 is gone, and with it the class vocabulary application stylesheets we
 - The property-list grid keys on the wrapped `dt`/`dd` shape, leaving prose `dl`s to their own layout
 - An error page renders without the action bar, which had nothing left to act on
 
+### Security
+- CSV/RDF imports now validate the `ldh:file` source and `spin:query` URIs via `URLValidator` before fetching, closing a previously unguarded SSRF surface on the import path (same class as LNK-002; the import client carries delegation/client-cert). Loopback stays allowed; `ALLOW_INTERNAL_URLS` remains the escape hatch
+
 ### Known limitations
 - The in-place editor edits tab-group content but cannot create tab groups: while a region is edited every tab panel is shown stacked and editable, and the markup round-trips intact, but there is no gesture that inserts a new tab group — that markup is authored via the HTTP API (e.g. `ldh put`) for now
 
