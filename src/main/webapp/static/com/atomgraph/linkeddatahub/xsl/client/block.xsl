@@ -509,8 +509,8 @@ exclude-result-prefixes="#all"
 
     <!-- start dragging block when drag-handle is dragged -->
     
-    <xsl:template match="div[contains-token(@class, 'drag-handle')]" mode="ixsl:ondragstart">
-        <!-- find the parent block to drag -->
+    <xsl:template match="span[contains-token(@class, 'ldh-bh-drag')]" mode="ixsl:ondragstart">
+        <!-- find the parent block row to drag -->
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'ldh-block-row')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()?"/>
         <xsl:for-each select="$block">
             <ixsl:set-property name="dataTransfer.effectAllowed" select="'move'" object="ixsl:event()"/>
@@ -531,7 +531,7 @@ exclude-result-prefixes="#all"
     
     <!-- cleanup after drag ends: a cancelled drag (Esc, drop outside a target) can leave the drop marker behind -->
 
-    <xsl:template match="div[contains-token(@class, 'drag-handle')]" mode="ixsl:ondragend">
+    <xsl:template match="span[contains-token(@class, 'ldh-bh-drag')]" mode="ixsl:ondragend">
         <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'content-body')]/div[contains-token(@class, 'ldh-block-row')][contains-token(@class, 'drag-over')]">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>

@@ -575,23 +575,14 @@ extension-element-prefixes="ixsl"
                     </xsl:if>
                     <xsl:attribute name="data-depth" select="min((3, $depth))"/>
 
-                    <div class="ldh-nblock-head">
-                        <span class="ldh-nblock-icon">
-                            <span class="msi outline sm" aria-hidden="true">
-                                <xsl:value-of select="($glyph, 'widgets')[1]"/>
-                            </span>
-                        </span>
-                        <span class="ldh-nblock-titles">
-                            <!-- title + type chip on one line (.ldh-nblock-titleline), mirroring the resource header;
-                                 replaces the .ldh-nblock-kind eyebrow -->
-                            <span class="ldh-nblock-titleline">
-                                <h4 class="ldh-nblock-title">
-                                    <xsl:value-of select="ac:label(.)"/>
-                                </h4>
-                                <xsl:apply-templates select="rdf:type/@rdf:resource[. = $block-type]" mode="ac:ResourceTypes"/>
-                            </span>
-                        </span>
-                    </div>
+                    <!-- THE header - the same component as a top-level block's, at compact density: depth
+                         changes the density, never the structure. Links stay off inside the well, and the
+                         derived block is not reorderable (no rdf:_N membership), so no drag slot either -->
+                    <xsl:apply-templates select="." mode="ac:BlockHeader">
+                        <xsl:with-param name="density" select="'compact'"/>
+                        <xsl:with-param name="icon" select="($glyph, 'widgets')[1]"/>
+                        <xsl:with-param name="show-links" select="false()"/>
+                    </xsl:apply-templates>
                     <div class="ldh-nblock-body">
                         <div class="block-row" typeof="{string-join($typeof, ' ')}">
                             <div class="main">
@@ -615,14 +606,6 @@ extension-element-prefixes="ixsl"
                     </xsl:if>
 
                     <div class="row-main">
-                        <xsl:if test="$show-drag-handle">
-                            <div class="drag-handle">
-                                <xsl:if test="acl:mode() = '&acl;Write'">
-                                    <xsl:attribute name="draggable" select="'true'"/>
-                                </xsl:if>
-                            </div>
-                        </xsl:if>
-
                         <xsl:apply-templates select="." mode="ldh:Block">
                             <xsl:with-param name="about" select="$about"/>
                             <xsl:with-param name="mode" select="$mode"/>
@@ -646,6 +629,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="class" select="'block ldh-block'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="show-block-bar" select="true()" as="xs:boolean"/>
+        <xsl:param name="show-drag-handle" select="true()" as="xs:boolean" tunnel="yes"/>
 
         <div>
             <xsl:attribute name="class" select="string-join(($class, 'is-loading'[$show-block-bar]), ' ')"/>
@@ -658,7 +642,9 @@ extension-element-prefixes="ixsl"
 
             <!-- the carrier resource's own header: title, type chips, actions. Head, bar and
                  body are siblings of the card (the bar shows under the head while loading) -->
-            <xsl:apply-templates select="." mode="ac:BlockHeader"/>
+            <xsl:apply-templates select="." mode="ac:BlockHeader">
+                <xsl:with-param name="draggable" select="$show-drag-handle"/>
+            </xsl:apply-templates>
 
             <xsl:if test="$show-block-bar">
                 <xsl:apply-templates select="." mode="ldh:BlockBar"/>
@@ -680,6 +666,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="main-class" select="'main ldh-block-body'" as="xs:string?"/>
+        <xsl:param name="show-drag-handle" select="true()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
         <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
 
@@ -689,6 +676,14 @@ extension-element-prefixes="ixsl"
             </xsl:if>
             <xsl:if test="$about">
                 <xsl:attribute name="about" select="$about"/>
+            </xsl:if>
+
+            <!-- one header for every block type (the design's TextBlock is a quiet Block with the same
+                 header); the drag slot rides it, replacing the gutter handle -->
+            <xsl:if test="$about">
+                <xsl:apply-templates select="." mode="ac:BlockHeader">
+                    <xsl:with-param name="draggable" select="$show-drag-handle"/>
+                </xsl:apply-templates>
             </xsl:if>
 
             <div id="row-{generate-id()}" class="block-row">
@@ -722,16 +717,6 @@ extension-element-prefixes="ixsl"
                     </xsl:for-each>
                 </div>
 
-                <!-- content blocks have no header - the action cluster anchors to the card's top right corner instead, surfaced on card hover by CSS, in the block header's control order -->
-                <xsl:if test="$about">
-                    <div class="actions">
-                        <xsl:apply-templates select="." mode="ldh:BlockLinksPopover"/>
-                        <xsl:apply-templates select="." mode="ldh:CopyUriButton"/>
-                        <xsl:if test="acl:mode() = '&acl;Write'">
-                            <xsl:apply-templates select="." mode="ldh:EditButton"/>
-                        </xsl:if>
-                    </div>
-                </xsl:if>
             </div>
         </div>
     </xsl:template>
@@ -746,6 +731,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="style" as="xs:string?"/>
         <xsl:param name="main-class" select="'main ldh-block-body'" as="xs:string?"/>
         <xsl:param name="show-header" select="true()" as="xs:boolean"/>
+        <xsl:param name="show-drag-handle" select="true()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
         <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
         <xsl:variable name="diff-class" select="ldh:diff-class(., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
@@ -767,7 +753,9 @@ extension-element-prefixes="ixsl"
             <!-- head and body are siblings (the design's Block anatomy); the edit form titles itself
                  with its fieldset legend, so EditMode skips the header rather than doubling the title -->
             <xsl:if test="$show-header and not($mode = '&ac;EditMode')">
-                <xsl:apply-templates select="." mode="ac:BlockHeader"/>
+                <xsl:apply-templates select="." mode="ac:BlockHeader">
+                    <xsl:with-param name="draggable" select="$show-drag-handle"/>
+                </xsl:apply-templates>
             </xsl:if>
 
             <div>
@@ -822,6 +810,10 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ac:BlockHeader">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'ldh-block-head ldh-res-head'" as="xs:string?"/>
+        <xsl:param name="density" select="'default'" as="xs:string"/> <!-- default | compact: nesting depth, not type -->
+        <xsl:param name="icon" as="xs:string?"/>
+        <xsl:param name="draggable" select="false()" as="xs:boolean"/>
+        <xsl:param name="show-links" select="true()" as="xs:boolean"/>
 
         <div>
             <xsl:if test="$id">
@@ -830,8 +822,21 @@ extension-element-prefixes="ixsl"
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
+            <xsl:if test="not($density = 'default')">
+                <xsl:attribute name="data-density" select="$density"/>
+            </xsl:if>
 
-            <xsl:apply-templates select="." mode="ac:Depiction"/>
+            <!-- the design's drag slot: present when the block is reorderable, which is also the
+                 authorization gate - only acl:Write can PATCH the new content order -->
+            <xsl:if test="$draggable and acl:mode() = '&acl;Write'">
+                <span class="ldh-bh-drag" role="button" tabindex="0" draggable="true" aria-label="{ac:label(key('resources', 'drag-to-reorder', ldh:translations()))}" title="{ac:label(key('resources', 'drag-to-reorder', ldh:translations()))}">
+                    <span class="msi sm" aria-hidden="true">drag_indicator</span>
+                </span>
+            </xsl:if>
+
+            <xsl:apply-templates select="." mode="ac:Depiction">
+                <xsl:with-param name="icon" select="($icon, ldh:class-icon(., ()))[1]"/>
+            </xsl:apply-templates>
 
             <div class="ldh-res-text">
                 <div class="ldh-res-titleline">
@@ -852,7 +857,7 @@ extension-element-prefixes="ixsl"
             <div class="actions">
                 <xsl:apply-templates select="." mode="ldh:Timestamp"/>
 
-                <xsl:if test="@rdf:about">
+                <xsl:if test="$show-links and @rdf:about">
                     <xsl:apply-templates select="." mode="ldh:BlockLinksPopover"/>
                 </xsl:if>
 

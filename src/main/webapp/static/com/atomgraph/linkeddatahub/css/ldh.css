@@ -29,15 +29,6 @@ a.external::after { content: "⤴"; padding-left: 0.2em; }
    in the inter-block gap rather than border-bottom: the skins reset the card's border shorthand at
    equal specificity, and a border would shift layout while dragging. */
 .content-body > [about].ldh-block-row.drag-over::after { content: ""; position: absolute; left: 0; right: 0; bottom: -10px; border-top: 4px dotted var(--bg-accent); pointer-events: none; }
-/* Block drag handle: a dotted grip strip in the gutter left of the block (inside .content-body's
-   side padding), revealed while its block is hovered. Only rendered draggable under acl:Write,
-   so the [draggable] gate doubles as the authorization gate. The row's position: relative anchor
-   comes from the vendored app.css (.ldh-block-row). */
-.ldh-block-row .drag-handle { display: none; }
-.content-body > .ldh-block-row > .row-main > .drag-handle[draggable="true"] { display: block; position: absolute; top: 0; bottom: 0; left: -18px; width: 12px; border-radius: var(--r-sm); background-image: radial-gradient(circle at 2px 2px, var(--fg-hint) 1px, transparent 1.5px); background-size: 6px 6px; cursor: grab; opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft), background-color var(--dur-fast) var(--ease-out-soft); }
-.content-body > .ldh-block-row:hover > .row-main > .drag-handle[draggable="true"] { opacity: 1; }
-.content-body > .ldh-block-row > .row-main > .drag-handle[draggable="true"]:hover { background-color: var(--bg-hover); }
-.content-body > .ldh-block-row > .row-main > .drag-handle[draggable="true"]:active { cursor: grabbing; }
 .modal .ldhc-menu { z-index: 1100; }
 /* Annotation overlay: point-positioned by rdfae:show-at; carries its own card chrome
    (it borrows the .ldhc-modal-head/.ldhc-modal-body anatomy but is not a dialog) */
@@ -587,13 +578,6 @@ body:has(.document-body > .content-body > :is(.graph-3d-canvas, .map-canvas)) .l
 .links-pop .drow .msi { color: var(--fg-hint); flex-shrink: 0; }
 .links-pop .drow .lbl { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* content (XHTML) blocks have no header row — their action cluster (backlinks, copy-URI, edit,
-   in the same order as the block header's) anchors to the card's top right corner as one flex
-   group and surfaces on card hover, staying put while the popover is open. The chip carries its
-   own card surface: the quiet block is transparent and its prose runs under the corner, so ghost
-   icons alone would sit illegibly on the text */
-.ldh-block .block-row > .actions { position: absolute; top: var(--sp-3); right: var(--sp-3); display: flex; gap: var(--sp-1); padding: 2px; background: var(--surface-0); border: 1px solid var(--border-default); border-radius: var(--r-md); box-shadow: var(--shadow-sm); opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft); }
-.ldh-block:hover .block-row > .actions, .ldh-block .block-row > .actions:has(.links-nav.is-open) { opacity: 1; }
 
 /* The design system sets an `is-failed` class on the card. Here the ring is
    derived from the body content instead: the failed state is a function of
