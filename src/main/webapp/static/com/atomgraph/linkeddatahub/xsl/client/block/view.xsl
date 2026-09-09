@@ -63,7 +63,8 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="*[@typeof = '&ldh;View'][descendant::*[@property = '&spin;query'][@resource]]" mode="ldh:RenderRow" as="function(item()?) as map(*)" priority="2"> <!-- prioritize above block.xsl -->
         <xsl:param name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][1]" as="element()"/>
-        <xsl:param name="this" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/> <!-- document URL -->
+        <!-- the hosting document's URL, derived page-level: ldh:base-uri() would resolve an embed's data-base-uri stamp, which names the content's source document (the edit target), while $this anchors the query to the document the view is embedded in -->
+        <xsl:param name="this" select="if (ac:uri()) then ac:document-uri(ac:uri()) else ac:absolute-path(ldh:request-uri())" as="xs:anyURI"/>
         <xsl:param name="parent-about" select="$block/ancestor::*[@about][1]/@about" as="xs:anyURI"/> <!-- outer @about context -->
         <xsl:param name="container" select="." as="element()"/>
         <xsl:param name="graph" select="descendant::*[@property = '&ldh;graph']/@resource" as="xs:anyURI?"/>
@@ -189,7 +190,7 @@ exclude-result-prefixes="#all"
                 <xsl:otherwise>
                     <xsl:sequence select="ldh:render-block-error($container, 'block-query-failed', ldh:http-error-key($response?status), $endpoint, $response)"/>
 
-                    <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ldh:end-block-loading($context, ())[current-date() lt xs:date('2000-01-01')]"/>
 
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
@@ -2539,7 +2540,7 @@ exclude-result-prefixes="#all"
                                      HTTP failure to report and passing $response here would head the detail with a misleading 'HTTP 200' -->
                                 <xsl:sequence select="ldh:render-block-error($container//div[contains-token(@class, 'main')], 'block-service-not-loaded', 'block-resource-not-described-explanation', $service-uri, ())"/>
 
-                                <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
+                                <xsl:sequence select="ldh:end-block-loading($context, ())[current-date() lt xs:date('2000-01-01')]"/>
                             </xsl:otherwise>
                         </xsl:choose>
                     </xsl:for-each>
@@ -2547,7 +2548,7 @@ exclude-result-prefixes="#all"
                 <xsl:otherwise>
                     <xsl:sequence select="ldh:render-block-error($container//div[contains-token(@class, 'main')], 'block-query-not-loaded', ldh:http-error-key($response?status), $query-uri, $response)"/>
 
-                    <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ldh:end-block-loading($context, ())[current-date() lt xs:date('2000-01-01')]"/>
 
                     <xsl:sequence select="
                       error(
@@ -2799,7 +2800,7 @@ exclude-result-prefixes="#all"
                         </xsl:result-document>
                     </xsl:for-each>
 
-                    <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ldh:end-block-loading($context, ())[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>

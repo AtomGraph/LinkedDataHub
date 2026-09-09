@@ -149,10 +149,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="show-properties" select="false()" as="xs:boolean"/>
         <xsl:param name="forClass" select="xs:anyURI('&sd;Service')" as="xs:anyURI"/>
         
-        <xsl:for-each select="($block//div[contains-token(@class, 'ldhc-pbar-fill')])[1]">
-            <ixsl:set-style name="width" select="'66%'" object="."/>
-        </xsl:for-each>
-
         <xsl:variable name="context" as="map(*)" select="
           map{
             'container': $container,
@@ -730,7 +726,7 @@ exclude-result-prefixes="#all"
                 <!-- error response - could not load query results -->
                 <xsl:sequence select="ldh:render-block-error($results-container, 'block-query-failed', ldh:http-error-key($response?status), (), $response)"/>
                 
-                <xsl:sequence select="ldh:hide-block-progress-bar(map{ 'container': $results-container }, ())[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ldh:end-block-loading(map{ 'container': $results-container }, ())[current-date() lt xs:date('2000-01-01')]"/>
                 <xsl:sequence select="
                     error(
                       QName('&ldh;', 'ldh:HTTPError'),

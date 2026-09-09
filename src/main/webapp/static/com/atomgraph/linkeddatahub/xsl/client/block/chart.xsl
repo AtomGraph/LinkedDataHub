@@ -590,7 +590,7 @@ exclude-result-prefixes="#all"
                     <!-- error response - could not load query -->
                     <xsl:sequence select="ldh:render-block-error($container, 'block-query-not-loaded', ldh:http-error-key($response?status), $query-uri, $response)"/>
 
-                    <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ldh:end-block-loading($context, ())[current-date() lt xs:date('2000-01-01')]"/>
 
                     <xsl:sequence select="
                       error(
@@ -670,7 +670,7 @@ exclude-result-prefixes="#all"
                     <!-- error response - could not load query results -->
                     <xsl:sequence select="ldh:render-block-error($container, 'block-query-failed', ldh:http-error-key($response?status), (), $response)"/>
 
-                    <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ldh:end-block-loading($context, ())[current-date() lt xs:date('2000-01-01')]"/>
 
                     <xsl:sequence select="
                       error(
@@ -683,5 +683,5 @@ exclude-result-prefixes="#all"
             </xsl:choose>
         </xsl:for-each>
     </xsl:function>
-    
+
 </xsl:stylesheet>

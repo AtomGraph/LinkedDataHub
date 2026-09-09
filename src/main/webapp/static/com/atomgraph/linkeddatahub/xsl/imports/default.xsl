@@ -1795,16 +1795,12 @@ exclude-result-prefixes="#all"
         </div>
     </xsl:template>
 
-    <!-- ROW BLOCK CONTROLS -->
+    <!-- BLOCK BAR -->
 
-    <!-- the hover-revealed controls row overlaid on the block row below it: the overlay geometry
-         (pulled down over the following row) lives here once, the contents stay with the caller -->
-    <xsl:template match="node() | @*" mode="ldh:RowBlockControls">
-        <xsl:param name="content" as="item()*"/>
-
-        <div class="block-row row-block-controls" style="position: relative; top: 30px; margin-top: -30px; z-index: 1;">
-            <xsl:sequence select="$content"/>
-        </div>
+    <!-- the design system's collapsed block-loading strip: is-loading on the block wrapper shows the bar
+         and hides the body; the sweep runs indeterminate until a handler sets a determinate width -->
+    <xsl:template match="node() | @*" mode="ldh:BlockBar">
+        <div class="ldh-block-bar" role="progressbar" aria-label="{ac:label(key('resources', 'loading', ldh:translations()))}"></div>
     </xsl:template>
 
     <!-- PROGRESS BAR -->

@@ -63,11 +63,6 @@ exclude-result-prefixes="#all"
         <!-- empty by default: the loaded document's own acl:mode Link headers decide in ldh:block-object-value-response; a caller passes an explicit value only to force the button off (or on) -->
         <xsl:param name="show-edit-button" as="xs:boolean?"/>
 
-        <xsl:for-each select="($block//div[contains-token(@class, 'ldhc-pbar-fill')])[1]">
-            <!-- update progress bar -->
-            <ixsl:set-style name="width" select="'50%'" object="."/>
-        </xsl:for-each>
-
         <xsl:variable name="base-uri" select="($graph, ac:document-uri($resource-uri))[1]" as="xs:anyURI"/>
         <!-- stamp the loaded document's URI on the persistent container: ldh:base-uri() resolves it for every
              descendant - the read rows and the edit form that later replaces them - so handlers fetch and PATCH
@@ -110,7 +105,7 @@ exclude-result-prefixes="#all"
                 <!-- self-reference detected - render error and return resolved context -->
                 <xsl:variable name="container" select="$context('container')" as="element()"/>
                 <xsl:sequence select="ldh:render-block-error($container, 'block-self-reference', 'block-self-reference-explanation', $resource-uri, ())"/>
-                <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ldh:end-block-loading($context, ())[current-date() lt xs:date('2000-01-01')]"/>
                 <xsl:sequence select="ixsl:resolve($context)"/>
             </xsl:when>
             <xsl:otherwise>
@@ -179,11 +174,6 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$response">
             <xsl:choose>
                 <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                    <xsl:for-each select="($block//div[contains-token(@class, 'ldhc-pbar-fill')])[1]">
-                        <!-- update progress bar -->
-                        <ixsl:set-style name="width" select="'33%'" object="."/>
-                    </xsl:for-each>
-
                     <!-- the loaded document's own acl:mode Link headers decide the edit affordance (same parsing as ldh:set-container-acl-modes; ProxyRequestFilter forwards them for remote documents) unless the caller forced a value -->
                     <xsl:variable name="acl-modes" select="ldh:link-targets(?headers?link, '&acl;mode')" as="xs:anyURI*"/>
                     <xsl:variable name="show-edit-button" select="($show-edit-button, $acl-modes = '&acl;Write')[1]" as="xs:boolean"/>
@@ -210,7 +200,7 @@ exclude-result-prefixes="#all"
                                 <!-- the fetch succeeded, so there is no HTTP failure to report in the technical detail -->
                                 <xsl:sequence select="ldh:render-block-error($container, 'block-resource-not-described', 'block-resource-not-described-explanation', $resource-uri, ())"/>
 
-                                <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
+                                <xsl:sequence select="ldh:end-block-loading($context, ())[current-date() lt xs:date('2000-01-01')]"/>
                                 <xsl:sequence select="$context"/>
                             </xsl:otherwise>
                         </xsl:choose>
@@ -225,13 +215,13 @@ exclude-result-prefixes="#all"
                         </xsl:result-document>
                     </xsl:for-each>
 
-                    <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ldh:end-block-loading($context, ())[current-date() lt xs:date('2000-01-01')]"/>
                     <xsl:sequence select="$context"/>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:sequence select="ldh:render-block-error($container, 'block-resource-not-loaded', ldh:http-error-key($response?status), $resource-uri, $response)"/>
 
-                    <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ldh:end-block-loading($context, ())[current-date() lt xs:date('2000-01-01')]"/>
                     <xsl:sequence select="
                         error(
                           QName('&ldh;', 'ldh:HTTPError'),
@@ -261,11 +251,6 @@ exclude-result-prefixes="#all"
 
         </xsl:message>
         
-        <xsl:for-each select="($block//div[contains-token(@class, 'ldhc-pbar-fill')])[1]">
-            <!-- update progress bar -->
-            <ixsl:set-style name="width" select="'45%'" object="."/>
-        </xsl:for-each>
-        
         <xsl:choose>
             <xsl:when test="$resource">
                 <xsl:for-each select="$response">
@@ -282,7 +267,7 @@ exclude-result-prefixes="#all"
                                     <xsl:with-param name="mode" select="$mode"/>
                                     <xsl:with-param name="show-edit-button" select="$show-edit-button" tunnel="yes"/>
                                     <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
-                                    <xsl:with-param name="show-row-block-controls" select="false()"/> <!-- blocks nested within ldh:Object do not show their own progress bars -->
+                                    <xsl:with-param name="show-block-bar" select="false()"/> <!-- blocks nested within ldh:Object do not show their own block bars -->
                                     <xsl:with-param name="draggable" select="false()"/> <!-- blocks nested within ldh:Object are not draggable -->
                                 </xsl:apply-templates>
                             </xsl:variable>
@@ -372,7 +357,7 @@ exclude-result-prefixes="#all"
                         </xsl:when>
                         <xsl:otherwise>
                             <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>
-                            <xsl:sequence select="ldh:hide-block-progress-bar($context, ())[current-date() lt xs:date('2000-01-01')]"/>
+                            <xsl:sequence select="ldh:end-block-loading($context, ())[current-date() lt xs:date('2000-01-01')]"/>
 
                             <xsl:sequence select="$context"/>
                         </xsl:otherwise>

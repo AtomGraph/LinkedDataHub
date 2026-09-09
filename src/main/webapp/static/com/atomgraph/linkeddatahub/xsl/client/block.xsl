@@ -801,7 +801,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="
             $thunk($context) =>
                 ixsl:then(
-                    ldh:hide-block-progress-bar(
+                    ldh:end-block-loading(
                         $context,
                         ?
                         )
@@ -1182,19 +1182,21 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:function>
 
-    <xsl:function name="ldh:hide-block-progress-bar" as="map(*)" ixsl:updating="yes">
+    <xsl:function name="ldh:end-block-loading" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:param name="ignored" as="item()?"/>
-              
+
         <xsl:variable name="container" select="$context('container')" as="element()"/>
-        
-        <!-- hide the progress bar. The row must belong to the container's own block: an nblock container nested in a host embed has no loading row of its own, and without the guard this call would hide the host's bar -->
-        <xsl:for-each select="$container/ancestor::div[contains-token(@class, 'row-main')][contains-token(@class, 'is-loading')][1][ancestor::div[contains-token(@class, 'block')][1] is $container/ancestor-or-self::div[contains-token(@class, 'block')][1]]">
-            <ixsl:set-style name="display" select="'none'" object="(.//div[contains-token(@class, 'ldhc-pbar')])[1]"/>
+
+        <!-- end the loading state of the container's own block: an nblock container nested in a host embed never carries the state itself, so the nearest-block test keeps this call off the host's bar -->
+        <xsl:for-each select="$container/ancestor-or-self::div[contains-token(@class, 'block')][1][contains-token(@class, 'is-loading')]">
+            <xsl:for-each select="./div[contains-token(@class, 'ldh-block-bar')]">
+                <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:for-each>
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-loading' ])[current-date() lt xs:date('2000-01-01')]"/>
             <xsl:sequence select="ixsl:call(., 'removeAttribute', [ 'aria-busy' ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
-        
+
         <xsl:sequence select="$context"/>
     </xsl:function>
 
@@ -1238,7 +1240,7 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:function>
 
-    <!-- Helper: Update visual progress bar -->
+    <!-- Helper: Update the block bar -->
     <xsl:function name="ldh:display-progress" as="empty-sequence()" ixsl:updating="yes">
         <xsl:param name="cache" as="item()"/>
         <xsl:param name="context" as="map(*)"/>
@@ -1247,19 +1249,19 @@ exclude-result-prefixes="#all"
         <xsl:if test="map:contains($context, 'container')">
             <xsl:variable name="container" select="$context('container')" as="element()"/>
 
-            <xsl:for-each select="$container/ancestor::div[contains-token(@class, 'is-loading')][1][ancestor::div[contains-token(@class, 'block')][1] is $container/ancestor-or-self::div[contains-token(@class, 'block')][1]]">
-                <!-- the row must belong to the container's own block (an nblock container would otherwise drive its host's bar), and only its first pbar is this block's own -->
-                <ixsl:set-style name="width" select="$percent || '%'" object="(.//div[contains-token(@class, 'ldhc-pbar-fill')])[1]"/>
-
-                <!-- auto-hide when 100% -->
-                <xsl:if test="$percent ge 100">
-                    <ixsl:set-style name="z-index" select="'-1'" object="./div[contains-token(@class, 'row-block-controls')]"/>
-                    <ixsl:set-style name="display" select="'none'" object="(.//div[contains-token(@class, 'ldhc-pbar')])[1]"/>
-
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-loading' ])[current-date() lt xs:date('2000-01-01')]"/>
-                    <xsl:sequence select="ixsl:call(., 'removeAttribute', [ 'aria-busy' ])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:if>
+            <!-- the bar must belong to the container's own block (an nblock container would otherwise drive its host's bar) -->
+            <xsl:for-each select="$container/ancestor-or-self::div[contains-token(@class, 'block')][1][contains-token(@class, 'is-loading')]">
+                <xsl:for-each select="./div[contains-token(@class, 'ldh-block-bar')]">
+                    <!-- a determinate width stops the indeterminate sweep -->
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'style'), 'setProperty', [ '--p', $percent || '%' ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <ixsl:set-attribute name="aria-valuenow" select="string(round($percent))"/>
+                </xsl:for-each>
             </xsl:for-each>
+
+            <!-- auto-remove when 100% -->
+            <xsl:if test="$percent ge 100">
+                <xsl:sequence select="ldh:end-block-loading(map{ 'container': $container }, ())[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:if>
         </xsl:if>
     </xsl:function>
 

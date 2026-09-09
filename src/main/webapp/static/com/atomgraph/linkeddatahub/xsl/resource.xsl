@@ -505,7 +505,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="draggable" select="false()" as="xs:boolean?"/>
-        <xsl:param name="show-row-block-controls" select="true()" as="xs:boolean"/>
+        <xsl:param name="show-block-bar" select="true()" as="xs:boolean"/>
         <xsl:param name="show-drag-handle" select="true()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="nested" select="false()" as="xs:boolean"/>
         <xsl:param name="depth" select="1" as="xs:integer"/>
@@ -516,7 +516,7 @@ extension-element-prefixes="ixsl"
         <xsl:choose>
             <!-- ontology-injected (derived) block: the design system's nested-block well. The stored-block chrome is omitted -
                  drag reorder needs rdf:_N membership, the row edit form needs a subject that exists in the graph, and the host
-                 block's progress bar already spans this block's load - so only the head and the RDFa body remain -->
+                 block's bar already spans this block's load - so only the head and the RDFa body remain -->
             <xsl:when test="$nested">
                 <xsl:variable name="block-type" select="(rdf:type/@rdf:resource[. = ('&ldh;Object', '&ldh;View', '&ldh;GraphChart', '&ldh;ResultSetChart', '&sp;Describe', '&sp;Construct', '&sp;Ask', '&sp;Select')])[1]" as="xs:anyURI"/>
                 <xsl:variable name="glyph" select="map{ '&ldh;View': 'table_rows', '&ldh;GraphChart': 'show_chart', '&ldh;ResultSetChart': 'show_chart', '&sp;Describe': 'code', '&sp;Construct': 'code', '&sp;Ask': 'code', '&sp;Select': 'code' }($block-type)" as="xs:string?"/>
@@ -564,8 +564,8 @@ extension-element-prefixes="ixsl"
                     <xsl:if test="$id">
                         <xsl:attribute name="id" select="$id"/>
                     </xsl:if>
-                    <xsl:if test="$class or $diff-class">
-                        <xsl:attribute name="class" select="string-join(($class, $diff-class), ' ')"/>
+                    <xsl:if test="$class or $diff-class or $show-block-bar">
+                        <xsl:attribute name="class" select="string-join(($class, $diff-class, 'is-loading'[$show-block-bar]), ' ')"/>
                     </xsl:if>
                     <xsl:if test="$about">
                         <xsl:attribute name="about" select="$about"/>
@@ -577,25 +577,19 @@ extension-element-prefixes="ixsl"
                         <xsl:attribute name="draggable" select="'true'"/>
                     </xsl:if>
 
-                    <div class="row-main">
-                        <xsl:if test="$show-row-block-controls">
-                            <xsl:attribute name="class" select="'row-main is-loading'"/>
-                            <xsl:attribute name="aria-busy" select="'true'"/>
+                    <xsl:if test="$show-block-bar">
+                        <xsl:attribute name="aria-busy" select="'true'"/>
 
-                            <xsl:if test="$show-drag-handle">
-                                <div class="drag-handle">
-                                    <xsl:if test="acl:mode() = '&acl;Write'">
-                                        <xsl:attribute name="draggable" select="'true'"/>
-                                    </xsl:if>
-                                </div>
-                            </xsl:if>
-                            <xsl:apply-templates select="." mode="ldh:RowBlockControls">
-                                <xsl:with-param name="content" as="item()*">
-                                    <div class="row-main">
-                                        <xsl:apply-templates select="." mode="ldh:ProgressBar"/>
-                                    </div>
-                                </xsl:with-param>
-                            </xsl:apply-templates>
+                        <xsl:apply-templates select="." mode="ldh:BlockBar"/>
+                    </xsl:if>
+
+                    <div class="row-main">
+                        <xsl:if test="$show-block-bar and $show-drag-handle">
+                            <div class="drag-handle">
+                                <xsl:if test="acl:mode() = '&acl;Write'">
+                                    <xsl:attribute name="draggable" select="'true'"/>
+                                </xsl:if>
+                            </div>
                         </xsl:if>
 
                         <!-- client-side $container -->
@@ -709,7 +703,7 @@ extension-element-prefixes="ixsl"
     <!-- hide instances of system classes -->
     <xsl:template match="*[not($ldh:renderSystemResources)][@rdf:about = ac:absolute-path(ldh:base-uri(.)) and rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]" mode="ldh:BlockRow" priority="1"/>
 
-    <!-- ldh:BlockRow wrapper: outer div + inner div.row-main around next-match output. Emitted by both products so that server- and client-rendered markup have the same shape: the ontology-driven view injection in client/block.xsl keys off this exact nesting (outer div.block[@about] / div.row-main / inner div.block[@typeof]), and it now runs over server-rendered markup too, which is kept in place on the initial load. The SAXON-only predecessor at resource.xsl:605 also injected view blocks synchronously; only the shape is reproduced here, the injection stays client-side. Excludes the typed block types handled by the typed-block template since those have their own wrapper structure (progress bar etc.) and the unconditional wrapping here would inject two spurious div levels into their next-match chain. -->
+    <!-- ldh:BlockRow wrapper: outer div + inner div.row-main around next-match output. Emitted by both products so that server- and client-rendered markup have the same shape: the ontology-driven view injection in client/block.xsl keys off this exact nesting (outer div.block[@about] / div.row-main / inner div.block[@typeof]), and it now runs over server-rendered markup too, which is kept in place on the initial load. The SAXON-only predecessor at resource.xsl:605 also injected view blocks synchronously; only the shape is reproduced here, the injection stays client-side. Excludes the typed block types handled by the typed-block template since those have their own wrapper structure (block bar etc.) and the unconditional wrapping here would inject two spurious div levels into their next-match chain. -->
     <!-- TO-DO: replace with fully client-side wrapper in ldh:RenderRow in block.xsl -->
     <xsl:template match="*[*][@rdf:about][not(rdf:type/@rdf:resource = ('&http;Response', '&ldh;Object', '&ldh;View', '&ldh;GraphChart', '&ldh;ResultSetChart', '&sp;Describe', '&sp;Construct', '&sp;Ask', '&sp;Select'))] | *[*][@rdf:nodeID][not(rdf:type/@rdf:resource = ('&http;Response', '&ldh;Object', '&ldh;View', '&ldh;GraphChart', '&ldh;ResultSetChart', '&sp;Describe', '&sp;Construct', '&sp;Ask', '&sp;Select'))]" mode="ldh:BlockRow" priority="0.7">
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>

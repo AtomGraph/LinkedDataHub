@@ -363,12 +363,27 @@ ORDER BY DESC(?created)
         <xsl:next-match/>
     </xsl:template>
 
-    <!-- slide the drawer back out when the pointer leaves it -->
+    <!-- the open drawer is owned by the pointer or the focus and closes when it holds neither — the
+         event-level transcription of :is(:hover, :focus-within). Each of the two events that can end
+         one ownership axis checks the other axis's current truth; nothing is tracked -->
+
+    <!-- the pointer leaves the drawer: close unless it left the document (null relatedTarget — the
+         window edge or a browser-native overlay such as the search input's suggestion popup) or focus
+         is still inside (typing in the search input) -->
     <xsl:template match="div[contains-token(@class, 'ldh-sidebar')][contains-token(@class, 'is-open')]" mode="ixsl:onmouseout">
         <xsl:variable name="related-target" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="element()?"/> <!-- the element mouse entered -->
 
-        <!-- only close if the related target does not have this div as ancestor (is not its child) -->
-        <xsl:if test="not($related-target/ancestor-or-self::div[. is current()])">
+        <xsl:if test="exists($related-target) and not($related-target/ancestor-or-self::div[. is current()]) and not(ixsl:get(ixsl:page(), 'activeElement')/ancestor-or-self::div[. is current()])">
+            <xsl:apply-templates select="." mode="ldh:CloseDrawer"/>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- focus leaves the drawer: close unless it moved to an element still inside or the pointer
+         still hovers the drawer -->
+    <xsl:template match="div[contains-token(@class, 'ldh-sidebar')][contains-token(@class, 'is-open')]" mode="ixsl:onfocusout">
+        <xsl:variable name="related-target" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="element()?"/> <!-- the element receiving focus -->
+
+        <xsl:if test="not($related-target/ancestor-or-self::div[. is current()]) and not(ixsl:call(., 'matches', [ ':hover' ]))">
             <xsl:apply-templates select="." mode="ldh:CloseDrawer"/>
         </xsl:if>
     </xsl:template>
@@ -933,14 +948,10 @@ ORDER BY DESC(?created)
                     </xsl:with-param>
                     <xsl:with-param name="body" as="item()*">
 
-                    <div class="block-row block">
-                        <div class="row-main is-loading" aria-busy="true">
-                            <xsl:apply-templates select="." mode="ldh:RowBlockControls">
-                                <xsl:with-param name="content" as="item()*">
-                                    <xsl:apply-templates select="." mode="ldh:ProgressBar"/>
-                                </xsl:with-param>
-                            </xsl:apply-templates>
+                    <div class="block-row block ldh-block is-quiet is-loading" aria-busy="true">
+                        <xsl:apply-templates select="." mode="ldh:BlockBar"/>
 
+                        <div class="row-main">
                             <div id="{$container-id}" class="block-row" typeof="&ldh;View">
                                 <div class="main row-main">
                                     <!-- View results will be rendered here -->
@@ -1073,14 +1084,10 @@ ORDER BY DESC(?created)
                     </xsl:with-param>
                     <xsl:with-param name="body" as="item()*">
 
-                    <div class="block-row block">
-                        <div class="row-main is-loading" aria-busy="true">
-                            <xsl:apply-templates select="." mode="ldh:RowBlockControls">
-                                <xsl:with-param name="content" as="item()*">
-                                    <xsl:apply-templates select="." mode="ldh:ProgressBar"/>
-                                </xsl:with-param>
-                            </xsl:apply-templates>
+                    <div class="block-row block ldh-block is-quiet is-loading" aria-busy="true">
+                        <xsl:apply-templates select="." mode="ldh:BlockBar"/>
 
+                        <div class="row-main">
                             <div id="{$container-id}" class="block-row" typeof="&ldh;View">
                                 <div class="main row-main">
                                     <!-- View results will be rendered here -->
@@ -1186,14 +1193,10 @@ ORDER BY DESC(?created)
                     </xsl:with-param>
                     <xsl:with-param name="body" as="item()*">
 
-                    <div class="block-row block">
-                        <div class="row-main is-loading" aria-busy="true">
-                            <xsl:apply-templates select="." mode="ldh:RowBlockControls">
-                                <xsl:with-param name="content" as="item()*">
-                                    <xsl:apply-templates select="." mode="ldh:ProgressBar"/>
-                                </xsl:with-param>
-                            </xsl:apply-templates>
+                    <div class="block-row block ldh-block is-quiet is-loading" aria-busy="true">
+                        <xsl:apply-templates select="." mode="ldh:BlockBar"/>
 
+                        <div class="row-main">
                             <div id="{$container-id}" class="block-row" typeof="&ldh;View">
                                 <div class="main row-main">
                                     <!-- view results will be rendered here -->
@@ -1327,14 +1330,10 @@ ORDER BY DESC(?created)
 
                     <!-- search results ARE a view: the shared view block renders them, with its own facets, view modes and pager -->
                     <div class="ldh-search-view">
-                        <div class="block-row block">
-                            <div class="row-main is-loading" aria-busy="true">
-                                <xsl:apply-templates select="." mode="ldh:RowBlockControls">
-                                    <xsl:with-param name="content" as="item()*">
-                                        <xsl:apply-templates select="." mode="ldh:ProgressBar"/>
-                                    </xsl:with-param>
-                                </xsl:apply-templates>
+                        <div class="block-row block ldh-block is-quiet is-loading" aria-busy="true">
+                            <xsl:apply-templates select="." mode="ldh:BlockBar"/>
 
+                            <div class="row-main">
                                 <div id="{$container-id}" class="block-row" typeof="&ldh;View">
                                     <div class="main row-main">
                                         <!-- view results will be rendered here -->
