@@ -31,14 +31,13 @@ item=$(ldh create item \
 # (here: sp:Construct, a SPARQL query — must be wrapped in ldh:Object to be a valid block).
 # Expected: rejected by ldh:InvalidContentBlockType with 422.
 
-curl -k -w "%{http_code}\n" -o /dev/null -s \
+response=$(curl -k -w "%{http_code}\n" -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -X PUT \
   -H "Accept: application/n-triples" \
   -H "Content-Type: application/n-triples" \
   --data-binary @- \
-  "$item" <<EOF \
-| grep -q "$STATUS_UNPROCESSABLE_ENTITY"
+  "$item" <<EOF
 <${item}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item> .
 <${item}> <http://purl.org/dc/terms/title> "Test item" .
 <${item}> <http://rdfs.org/sioc/ns#has_container> <${END_USER_BASE_URL}> .
@@ -47,3 +46,36 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
 <${item}#bad-block> <http://purl.org/dc/terms/title> "Not a valid content block" .
 <${item}#bad-block> <http://spinrdf.org/sp#text> "CONSTRUCT WHERE {}" .
 EOF
+)
+
+status=$(echo "$response" | tail -n 1)
+body=$(echo "$response" | sed '$d')
+
+echo "DEBUG: Expected status: $STATUS_UNPROCESSABLE_ENTITY"
+echo "DEBUG: Got status: $status"
+if [ "$status" != "$STATUS_UNPROCESSABLE_ENTITY" ]; then
+    echo "DEBUG: Status mismatch!"
+    exit 1
+fi
+
+# PUT keeps the full request-payload echo: the violating root here is the document, and
+# #bad-block is only the spin:violationValue — both must come back so the client can re-render
+# the whole submitted form. This pins 422 scoping to the PATCH seam, not the shared mapper.
+
+ntriples=$(echo "$body" | rapper -q --input ntriples --output ntriples /dev/stdin -)
+echo "DEBUG: Response body as N-Triples:"
+echo "$ntriples"
+
+expected="<${item}> <http://purl.org/dc/terms/title> \"Test item\""
+echo "DEBUG: Expected present: $expected"
+if ! echo "$ntriples" | grep -qF "$expected"; then
+    echo "DEBUG: Item description missing from the 422 body!"
+    exit 1
+fi
+
+expected="<${item}#bad-block> <http://purl.org/dc/terms/title> \"Not a valid content block\""
+echo "DEBUG: Expected present: $expected"
+if ! echo "$ntriples" | grep -qF "$expected"; then
+    echo "DEBUG: Co-submitted block description missing from the 422 body!"
+    exit 1
+fi
