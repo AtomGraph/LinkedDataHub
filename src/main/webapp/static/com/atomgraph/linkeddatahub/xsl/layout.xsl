@@ -637,6 +637,7 @@ WHERE
 
                                         <xsl:apply-templates select="@rdf:about" mode="xhtml:Anchor">
                                             <xsl:with-param name="class" select="'ldhc-menu-item'"/>
+                                            <xsl:with-param name="role" select="'menuitem'"/>
                                         </xsl:apply-templates>
                                     </xsl:for-each>
                                 </div>
@@ -712,6 +713,7 @@ WHERE
                     <xsl:for-each select="key('resources-by-type', '&foaf;Agent', $foaf:Agent)">
                         <xsl:apply-templates select="@rdf:about" mode="xhtml:Anchor">
                             <xsl:with-param name="class" select="'ldhc-menu-item'"/>
+                            <xsl:with-param name="role" select="'menuitem'"/>
                         </xsl:apply-templates>
                     </xsl:for-each>
                 </div>

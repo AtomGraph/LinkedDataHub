@@ -247,7 +247,7 @@ exclude-result-prefixes="#all">
                 <xsl:with-param name="required" select="$required"/>
             </xsl:apply-templates>
 
-            <div class="ldh-prop-row is-interactive is-last{if ($error) then ' is-violation' else ()}">
+            <div class="ldh-prop-row{if (position() = last()) then ' is-last' else ()}{if ($error) then ' is-violation' else ()}">
                 <div class="value val-stack">
                     <div class="val-main">
                         <xsl:apply-templates select="." mode="ac:FieldShell">

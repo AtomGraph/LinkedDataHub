@@ -1107,6 +1107,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="title" select="." as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
+        <xsl:param name="role" as="xs:string?"/>
         <xsl:param name="target" as="xs:string?"/>
 
         <xsl:next-match>
@@ -1114,6 +1115,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="id" select="$id"/>
             <xsl:with-param name="title" select="$title"/>
             <xsl:with-param name="class" select="$class || (if (not(starts-with(., ldt:base()))) then ' external' else())"/>
+            <xsl:with-param name="role" select="$role"/>
             <xsl:with-param name="target" select="$target"/>
         </xsl:next-match>
     </xsl:template>
@@ -1365,7 +1367,7 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
             </xsl:if>
 
-            <div class="ldh-prop-row is-interactive is-last{if ($error or exists($row-violations)) then ' is-violation' else ()}">
+            <div class="ldh-prop-row{if (position() = last()) then ' is-last' else ()}{if ($error or exists($row-violations)) then ' is-violation' else ()}">
                 <div class="value val-stack">
                     <div class="val-main">
                         <xsl:apply-templates select="node() | @rdf:resource | @rdf:nodeID" mode="#current"> <!-- not @rdf:* because that would apply to @rdf:parseType -->
@@ -1748,14 +1750,16 @@ exclude-result-prefixes="#all"
                 </span>
 
                 <xsl:if test="$required">
-                    <span class="ldhc-label-aux req">
+                    <!-- the design keeps the star its own aria-hidden span; .ldhc-label-aux is the
+                         end-aligned aux-text slot, which pushed the star to the far edge -->
+                    <span class="req" aria-hidden="true">
                         <xsl:attribute name="title">
                             <xsl:apply-templates select="key('resources', 'required', ldh:translations())" mode="ac:label"/>
                         </xsl:attribute>
                         <xsl:text>*</xsl:text>
-                        <span class="ldhc-vh">
-                            <xsl:apply-templates select="key('resources', 'required', ldh:translations())" mode="ac:label"/>
-                        </span>
+                    </span>
+                    <span class="ldhc-vh">
+                        <xsl:apply-templates select="key('resources', 'required', ldh:translations())" mode="ac:label"/>
                     </span>
                 </xsl:if>
 
@@ -1839,7 +1843,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="width" select="'0%'" as="xs:string?"/>
 
         <div class="{$class}">
-            <div class="ldhc-pbar-track">
+            <div class="ldhc-pbar-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="{ac:label(key('resources', 'loading', ldh:translations()))}">
                 <div class="ldhc-pbar-fill">
                     <xsl:if test="$width">
                         <xsl:attribute name="style" select="'width: ' || $width || ';'"/>

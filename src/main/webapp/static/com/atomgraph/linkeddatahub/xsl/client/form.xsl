@@ -475,9 +475,9 @@ WHERE
                                             </select>
                                             </xsl:with-param>
                                         </xsl:apply-templates>
-                                        <!-- hidden until the Custom option reveals it; the handler toggles the shell, not the input -->
+                                        <!-- hidden until the Custom option reveals it; the handler toggles the shell's state class, not the input -->
                                         <xsl:apply-templates select="." mode="ac:FieldShell">
-                                            <xsl:with-param name="style" select="'display: none;'"/>
+                                            <xsl:with-param name="class" select="'is-hidden'"/>
                                             <xsl:with-param name="control" as="item()*">
                                                 <input type="text" name="custom-datatype" placeholder="{ac:label(key('resources', 'rdfa-datatype-placeholder', ldh:translations()))}"/>
                                             </xsl:with-param>
@@ -511,8 +511,8 @@ WHERE
                     </fieldset>
                     <div class="ldh-block-foot">
                         <button type="button" class="ldhc-btn in-negative ap-solid sz-sm remove-action" style="display: none;"><xsl:value-of select="ac:label(key('resources', 'remove', ldh:translations()))"/></button>
-                        <button type="button" class="ldhc-btn in-neutral ap-outline sz-md cancel-action"><xsl:value-of select="ac:label(key('resources', 'cancel', ldh:translations()))"/></button>
-                        <button type="button" class="ldhc-btn in-primary ap-solid sz-md spo-action"><xsl:value-of select="ac:label(key('resources', 'annotate', ldh:translations()))"/></button>
+                        <button type="button" class="ldhc-btn in-neutral ap-outline sz-sm cancel-action"><xsl:value-of select="ac:label(key('resources', 'cancel', ldh:translations()))"/></button>
+                        <button type="button" class="ldhc-btn in-primary ap-solid sz-sm spo-action"><xsl:value-of select="ac:label(key('resources', 'annotate', ldh:translations()))"/></button>
                     </div>
                 </form>
             </div>
@@ -526,7 +526,7 @@ WHERE
     <xsl:template match="select[@name = 'datatype']" mode="ixsl:onchange">
         <xsl:variable name="custom" as="xs:boolean" select="string(ixsl:get(., 'value')) eq $rdfae:custom"/>
         <xsl:for-each select="ancestor::form//input[@name = 'custom-datatype']/ancestor::div[contains-token(@class, 'ldhc-field')][1]">
-            <ixsl:set-style name="display" select="if ($custom) then 'flex' else 'none'"/>
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-hidden', not($custom) ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
 
         <xsl:apply-imports/>

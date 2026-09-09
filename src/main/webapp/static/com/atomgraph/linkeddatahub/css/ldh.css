@@ -511,6 +511,9 @@ body:has(.document-body > .content-body > :is(.graph-3d-canvas, .map-canvas)) .l
    the band is chrome, not content ---------- */
 .editor-bar > .content-body { width: 100%; padding-top: var(--sp-2); padding-bottom: var(--sp-2); }
 
+/* a field shell a handler conditionally reveals (the custom-datatype input) hides by state class */
+.ldhc-field.is-hidden { display: none; }
+
 /* form Actions overflow: the design renders the menu only while open; the static
    markup ships it closed, so the is-open class the onclick handler toggles is what shows it */
 .ldh-form-actions-wrap:not(.is-open) > .ldh-form-actions-menu { display: none; }

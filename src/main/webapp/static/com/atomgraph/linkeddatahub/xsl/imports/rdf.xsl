@@ -83,7 +83,7 @@ exclude-result-prefixes="#all">
                         </xsl:with-param>
                     </xsl:apply-templates>
 
-                    <div class="ldh-prop-row is-interactive is-last">
+                    <div class="ldh-prop-row is-last">
                         <div class="value val-stack">
                             <div class="val-main">
                                 <xsl:apply-templates select="@rdf:resource" mode="#current"/>

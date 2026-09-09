@@ -124,7 +124,7 @@ LIMIT   10
                                     </xsl:with-param>
                                     <xsl:with-param name="required" select="true()"/>
                                 </xsl:apply-templates>
-                                <div class="ldh-prop-row is-interactive is-last">
+                                <div class="ldh-prop-row is-last">
                                     <div class="value val-stack">
                                         <div class="val-main">
                                             <xsl:apply-templates select="." mode="ac:FieldShell">
@@ -156,7 +156,7 @@ LIMIT   10
                                     </xsl:with-param>
                                     <xsl:with-param name="required" select="true()"/>
                                 </xsl:apply-templates>
-                                <div class="ldh-prop-row is-interactive is-last">
+                                <div class="ldh-prop-row is-last">
                                     <div class="value val-stack">
                                         <div class="val-main">
                                             <xsl:call-template name="ldh:Combobox">
@@ -247,7 +247,7 @@ LIMIT   10
                                                 </xsl:with-param>
                                                 <xsl:with-param name="required" select="true()"/>
                                             </xsl:apply-templates>
-                                            <div class="ldh-prop-row is-interactive is-last">
+                                            <div class="ldh-prop-row is-last">
                                                 <div class="value val-stack">
                                                     <div class="val-main">
                                                         <xsl:call-template name="ldh:Combobox">
@@ -275,7 +275,7 @@ LIMIT   10
                                                 </xsl:with-param>
                                                 <xsl:with-param name="required" select="true()"/>
                                             </xsl:apply-templates>
-                                            <div class="ldh-prop-row is-interactive is-last">
+                                            <div class="ldh-prop-row is-last">
                                                 <div class="value val-stack">
                                                     <div class="val-main">
                                                         <xsl:apply-templates select="." mode="ac:FieldShell">
@@ -303,7 +303,7 @@ LIMIT   10
                                                     <xsl:apply-templates select="key('resources', 'service', ldh:translations())" mode="ac:label"/>
                                                 </xsl:with-param>
                                             </xsl:apply-templates>
-                                            <div class="ldh-prop-row is-interactive is-last">
+                                            <div class="ldh-prop-row is-last">
                                                 <div class="value val-stack">
                                                     <div class="val-main">
                                                         <xsl:call-template name="ldh:Combobox">
@@ -682,7 +682,7 @@ LIMIT   10
                                     </xsl:with-param>
                                     <xsl:with-param name="required" select="true()"/>
                                 </xsl:apply-templates>
-                                <div class="ldh-prop-row is-interactive is-last">
+                                <div class="ldh-prop-row is-last">
                                     <div class="value val-stack">
                                         <div class="val-main">
                                             <xsl:apply-templates select="." mode="ac:FieldShell">
