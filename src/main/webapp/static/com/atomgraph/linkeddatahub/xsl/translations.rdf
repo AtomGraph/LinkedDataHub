@@ -180,10 +180,6 @@
         <rdfs:label xml:lang="en-US">Search…</rdfs:label>
         <rdfs:label xml:lang="es-ES">Buscar…</rdfs:label>
     </rdf:Description>
-    <rdf:Description rdf:nodeID="search-eyebrow">
-        <rdfs:label xml:lang="en-US">SPARQL · full-text</rdfs:label>
-        <rdfs:label xml:lang="es-ES">SPARQL · texto completo</rdfs:label>
-    </rdf:Description>
     <rdf:Description rdf:nodeID="search-subtitle">
         <rdfs:label xml:lang="en-US">Results render as a view — facet, switch layout and page them like any other.</rdfs:label>
         <rdfs:label xml:lang="es-ES">Los resultados se muestran como una vista: filtre por facetas, cambie el diseño y pagine como en cualquier otra.</rdfs:label>

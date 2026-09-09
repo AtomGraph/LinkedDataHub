@@ -1309,9 +1309,6 @@ ORDER BY DESC(?created)
                     <xsl:with-param name="icon" as="item()*">
                         <span class="msi outline" aria-hidden="true">search</span>
                     </xsl:with-param>
-                    <xsl:with-param name="eyebrow" as="item()*">
-                            <xsl:apply-templates select="key('resources', 'search-eyebrow', ldh:translations())" mode="ac:label"/>
-                    </xsl:with-param>
                     <xsl:with-param name="title" as="item()*">
                             <xsl:apply-templates select="key('resources', 'search', ldh:translations())" mode="ac:label"/>
                     </xsl:with-param>
