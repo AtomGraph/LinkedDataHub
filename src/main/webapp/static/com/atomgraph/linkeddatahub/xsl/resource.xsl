@@ -457,18 +457,50 @@ extension-element-prefixes="ixsl"
             </xsl:map>
         </xsl:param>
         <xsl:param name="class" select="map:get($mode-classes, @rdf:about) || (if ($active) then ' is-active' else ())" as="xs:string?"/>
+        <xsl:param name="desc-keys" as="map(xs:string, xs:string)">
+            <xsl:map>
+                <xsl:map-entry key="'&ldh;ContentMode'" select="'content-mode-desc'"/>
+                <xsl:map-entry key="'&ac;ReadMode'" select="'read-mode-desc'"/>
+                <xsl:map-entry key="'&ac;ListMode'" select="'list-mode-desc'"/>
+                <xsl:map-entry key="'&ac;TableMode'" select="'table-mode-desc'"/>
+                <xsl:map-entry key="'&ac;GridMode'" select="'grid-mode-desc'"/>
+                <xsl:map-entry key="'&ac;MapMode'" select="'map-mode-desc'"/>
+                <xsl:map-entry key="'&ac;ChartMode'" select="'chart-mode-desc'"/>
+                <xsl:map-entry key="'&ac;GraphMode'" select="'graph-mode-desc'"/>
+            </xsl:map>
+        </xsl:param>
 
-        <a class="mi{if ($class) then ' ' || $class else ()}">
-            <xsl:if test="$href">
-                <xsl:attribute name="href" select="$href"/>
-            </xsl:if>
+        <!-- a menu item radio (the design's ModeSwitcher): a link when the mode is URL-addressable,
+             a button when the switch is client state only (the view modes) -->
+        <xsl:element name="{if ($href) then 'a' else 'button'}" namespace="http://www.w3.org/1999/xhtml">
+            <xsl:attribute name="class" select="'mi' || (if ($class) then ' ' || $class else ())"/>
+            <xsl:attribute name="role" select="'menuitemradio'"/>
+            <xsl:attribute name="aria-checked" select="if ($active) then 'true' else 'false'"/>
+            <xsl:choose>
+                <xsl:when test="$href">
+                    <xsl:attribute name="href" select="$href"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:attribute name="type" select="'button'"/>
+                </xsl:otherwise>
+            </xsl:choose>
             <span class="msi sm" aria-hidden="true">
                 <xsl:value-of select="map:get($ldh:mode-icons, string(@rdf:about))"/>
             </span>
             <span class="label-col">
-                <xsl:apply-templates select="." mode="ac:label"/>
+                <span class="label">
+                    <xsl:apply-templates select="." mode="ac:label"/>
+                </span>
+                <xsl:for-each select="map:get($desc-keys, string(@rdf:about))">
+                    <span class="desc">
+                        <xsl:apply-templates select="key('resources', ., ldh:translations())" mode="ac:label"/>
+                    </span>
+                </xsl:for-each>
             </span>
-        </a>
+            <xsl:if test="$active">
+                <span class="msi sm tick" aria-hidden="true">check</span>
+            </xsl:if>
+        </xsl:element>
     </xsl:template>
 
     <!-- DEFAULT -->

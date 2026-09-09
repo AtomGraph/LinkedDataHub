@@ -1543,4 +1543,48 @@
         <rdfs:label xml:lang="en-US">Predicate</rdfs:label>
         <rdfs:label xml:lang="es-ES">Predicado</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="pagination">
+        <rdfs:label xml:lang="en-US">Pagination</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Paginación</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="clear-filters">
+        <rdfs:label xml:lang="en-US">Clear filters</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Quitar filtros</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="no-facet-values">
+        <rdfs:label xml:lang="en-US">No distinct values</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Sin valores distintos</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="content-mode-desc">
+        <rdfs:label xml:lang="en-US">Composition of blocks — charts, text, views, embedded resources</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Composición de bloques: gráficos, texto, vistas, recursos incrustados</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="read-mode-desc">
+        <rdfs:label xml:lang="en-US">Resource properties as labelled rows · per-resource editing</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Propiedades del recurso como filas etiquetadas · edición por recurso</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="list-mode-desc">
+        <rdfs:label xml:lang="en-US">Resources as scannable summary rows</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Recursos como filas de resumen</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="table-mode-desc">
+        <rdfs:label xml:lang="en-US">Property values in sortable columns</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Valores de propiedades en columnas ordenables</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="grid-mode-desc">
+        <rdfs:label xml:lang="en-US">Resource cards with thumbnails</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Tarjetas de recursos con miniaturas</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="map-mode-desc">
+        <rdfs:label xml:lang="en-US">Geographic resources on a basemap</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Recursos geográficos sobre un mapa base</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="chart-mode-desc">
+        <rdfs:label xml:lang="en-US">Aggregated SPARQL results as a single chart</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Resultados SPARQL agregados en un gráfico</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="graph-mode-desc">
+        <rdfs:label xml:lang="en-US">3D force-directed graph layout</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Grafo 3D dirigido por fuerzas</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>

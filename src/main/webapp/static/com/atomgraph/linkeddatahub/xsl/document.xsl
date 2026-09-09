@@ -259,12 +259,16 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
-            <xsl:apply-templates select="." mode="ac:HeaderActions"/>
-
+            <!-- the design's cluster order: the mode switcher leads, the divider separates it from the
+                 action controls (ldh-actions-div is the kit's rule) -->
             <xsl:apply-templates select="." mode="ac:ModeSwitcher">
                 <xsl:with-param name="active-mode" select="$active-mode"/>
                 <xsl:with-param name="ajax-rendering" select="$ldh:ajaxRendering"/>
             </xsl:apply-templates>
+
+            <span class="ldh-actions-div" aria-hidden="true"></span>
+
+            <xsl:apply-templates select="." mode="ac:HeaderActions"/>
 
             <xsl:apply-templates select="." mode="ac:MediaTypeList"/>
         </div>
@@ -425,19 +429,10 @@ extension-element-prefixes="ixsl"
                 <span class="msi sm caret" aria-hidden="true">expand_more</span>
             </button>
 
-            <div class="modes-pop">
-                <a class="mi content-mode{if ($active-mode = '&ldh;ContentMode') then ' is-active' else() }" href="{ldh:href(ac:document-uri(ldh:base-uri(.)), ldh:build-query(xs:anyURI('&ldh;ContentMode')))}">
-                    <span class="msi sm" aria-hidden="true">
-                        <xsl:value-of select="map:get($ldh:mode-icons, '&ldh;ContentMode')"/>
-                    </span>
-                    <span class="label-col">
-                        <xsl:apply-templates select="key('resources', 'content', ldh:translations())" mode="ac:label"/>
-                    </span>
-                </a>
-
-                <xsl:for-each select="('&ac;ReadMode', '&ac;MapMode', if ($ajax-rendering) then ('&ac;ChartMode', '&ac;GraphMode') else ())">
+            <div class="modes-pop" role="menu">
+                <xsl:for-each select="('&ldh;ContentMode', '&ac;ReadMode', '&ac;MapMode', if ($ajax-rendering) then ('&ac;ChartMode', '&ac;GraphMode') else ())">
                     <xsl:variable name="mode-uri" select="." as="xs:string"/>
-                    <xsl:for-each select="key('resources', $mode-uri, document(ac:document-uri('&ac;')))">
+                    <xsl:for-each select="key('resources', $mode-uri, document(ac:document-uri(xs:anyURI($mode-uri))))">
                         <xsl:apply-templates select="." mode="ac:ModeSwitcherItem">
                             <xsl:with-param name="active" select="@rdf:about = $active-mode"/>
                             <xsl:with-param name="absolute-path" select="$absolute-path" tunnel="yes"/>

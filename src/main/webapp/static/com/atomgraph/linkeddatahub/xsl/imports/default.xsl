@@ -1781,6 +1781,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="node() | @*" mode="ldh:BlockBlank">
         <xsl:param name="msg-key" select="'no-results'" as="xs:string"/>
         <xsl:param name="sub-key" select="'no-results-explanation'" as="xs:string?"/>
+        <xsl:param name="action" as="item()*"/>
 
         <div class="ldh-block-blank" role="status">
             <span class="msi outline" aria-hidden="true">inbox</span>
@@ -1792,6 +1793,33 @@ exclude-result-prefixes="#all"
                     <xsl:apply-templates select="key('resources', $sub-key, ldh:translations())" mode="ac:label"/>
                 </span>
             </xsl:if>
+            <xsl:if test="exists($action)">
+                <!-- the design's recovery slot: the one action that resolves the empty state -->
+                <div class="bb-act">
+                    <xsl:sequence select="$action"/>
+                </div>
+            </xsl:if>
+        </div>
+    </xsl:template>
+
+    <!-- BLOCK SKELETON -->
+
+    <!-- the design system's skeleton loading body: rows shaped like the content they replace, for a
+         block whose shape is known (a re-queried view); a block still resolving what it is keeps the
+         collapsed ldh:BlockBar instead -->
+    <xsl:template name="ldh:BlockSkeleton">
+        <xsl:param name="rows" select="4" as="xs:integer"/>
+
+        <div class="ldh-block-loading" role="status" aria-label="{ac:label(key('resources', 'loading', ldh:translations()))}">
+            <xsl:for-each select="1 to $rows">
+                <div class="bl-row">
+                    <span class="ldhc-skel sh-text is-shimmer" style="width: 84px; height: 12px;"></span>
+                    <div style="flex: 1">
+                        <span class="ldhc-skel sh-text is-shimmer" style="width: {(92, 78, 85, 70)[(position() - 1) mod 4 + 1]}%; height: 12px;"></span>
+                    </div>
+                    <span class="ldhc-skel sh-text is-shimmer" style="width: 64px; height: 12px;"></span>
+                </div>
+            </xsl:for-each>
         </div>
     </xsl:template>
 

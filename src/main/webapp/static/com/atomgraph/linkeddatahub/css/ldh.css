@@ -414,6 +414,14 @@ button.tree-link { border: 0; background: transparent; width: 100%; font: inheri
 
 /* ---------- view toolbar: facet pills + sort + mode switcher (ViewBlocks contract) ---------- */
 .ldh-view-toolbar .facet { position: relative; }
+/* popover visibility is the is-open state the handlers already toggle (the design renders the
+   popover only while open; LDH keeps it in the DOM, pre-rendered for sort, lazily loaded for facets) */
+.facet > .facet-pop { display: none; }
+.facet.is-open > .facet-pop { display: block; }
+/* the design renders Clear-all only while some facet holds a selection; LDH keeps the button in the
+   toolbar and gates it on the same state */
+.ldh-view-toolbar .facet-clear-all { display: none; }
+.ldh-view-toolbar .left:has(.facet-pill.is-active) .facet-clear-all { display: inline-block; }
 /* the design's facet popover has no loading state; ours opens immediately and streams values in */
 .facet-pop .facet-loading { padding: 8px var(--sp-2); }
 .ldh-view-toolbar .form-inline { display: flex; align-items: center; gap: var(--sp-1); margin: 0; }
