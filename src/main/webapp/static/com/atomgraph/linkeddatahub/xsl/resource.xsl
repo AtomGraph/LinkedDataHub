@@ -439,7 +439,7 @@ extension-element-prefixes="ixsl"
 
     <!-- MODE LIST -->
 
-    <xsl:template match="*[@rdf:about]" mode="ac:ModeListItem">
+    <xsl:template match="*[@rdf:about]" mode="ac:ModeSwitcherItem">
         <xsl:param name="absolute-path" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="base-uri" as="xs:anyURI?"/>
         <xsl:param name="active" as="xs:boolean"/>
@@ -1263,7 +1263,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="*[http:sc/@rdf:resource = '&sc;Conflict']" mode="ldh:Exception" priority="1">
         <div class="ldh-form-alert">
-            <xsl:apply-templates select="." mode="ac:Alert">
+            <xsl:apply-templates select="." mode="ac:InlineAlert">
                 <xsl:with-param name="text" as="item()*">
                     <xsl:apply-templates select="key('resources', '&ldh;ResourceExistsException', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
                 </xsl:with-param>
@@ -1566,7 +1566,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;URISyntaxViolation']" mode="ac:Violation">
         <xsl:param name="class" select="'ldhc-alert va-negative'" as="xs:string?"/>
 
-        <xsl:apply-templates select="." mode="ac:Alert">
+        <xsl:apply-templates select="." mode="ac:InlineAlert">
             <xsl:with-param name="class" select="$class"/>
             <xsl:with-param name="text" select="string(rdfs:label)"/>
         </xsl:apply-templates>
@@ -1575,7 +1575,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[rdf:type/@rdf:resource = '&sh;ValidationResult']" mode="ac:Violation">
         <xsl:param name="class" select="'ldhc-alert va-negative'" as="xs:string?"/>
 
-        <xsl:apply-templates select="." mode="ac:Alert">
+        <xsl:apply-templates select="." mode="ac:InlineAlert">
             <xsl:with-param name="class" select="$class"/>
             <xsl:with-param name="text" select="string(sh:resultMessage)"/>
         </xsl:apply-templates>
@@ -1593,7 +1593,7 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ldh:ComboboxChip">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <xsl:param name="class" select="'cb-chip-btn add-typeahead'" as="xs:string?"/>
+        <xsl:param name="class" select="'cb-chip-btn add-combobox'" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="title" select="(@rdf:about, @rdf:nodeID)[1]" as="xs:string?"/>
         <xsl:param name="forClass" as="xs:anyURI*"/>

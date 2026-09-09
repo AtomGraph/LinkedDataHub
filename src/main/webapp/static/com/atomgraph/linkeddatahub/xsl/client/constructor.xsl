@@ -228,7 +228,7 @@ exclude-result-prefixes="#all"
                     <xsl:choose>
                         <xsl:when test="exists($resource)">
                             <xsl:apply-templates select="$resource" mode="ldh:ComboboxChip">
-                                <xsl:with-param name="class" select="'cb-chip-btn add-typeahead add-property-typeahead'"/>
+                                <xsl:with-param name="class" select="'cb-chip-btn add-combobox add-property-combobox'"/>
                             </xsl:apply-templates>
                         </xsl:when>
                         <xsl:otherwise>
@@ -243,7 +243,7 @@ exclude-result-prefixes="#all"
                                 </xsl:document>
                             </xsl:variable>
                             <xsl:apply-templates select="$synthetic/rdf:RDF/rdf:Description" mode="ldh:ComboboxChip">
-                                <xsl:with-param name="class" select="'cb-chip-btn add-typeahead add-property-typeahead'"/>
+                                <xsl:with-param name="class" select="'cb-chip-btn add-combobox add-property-combobox'"/>
                             </xsl:apply-templates>
                         </xsl:otherwise>
                     </xsl:choose>
@@ -253,9 +253,9 @@ exclude-result-prefixes="#all"
 
                     <xsl:call-template name="ldh:Combobox">
                         <xsl:with-param name="forClass" select="xs:anyURI('&rdf;Property')"/>
-                        <xsl:with-param name="class" select="'property-typeahead typeahead'"/>
+                        <xsl:with-param name="class" select="'property-combobox combobox'"/>
                         <xsl:with-param name="id" select="'input-' || $uuid"/>
-                        <xsl:with-param name="list-class" select="'property-typeahead typeahead ldhc-cb-panel'"/>
+                        <xsl:with-param name="list-class" select="'property-combobox combobox ldhc-cb-panel'"/>
                     </xsl:call-template>
                 </xsl:otherwise>
             </xsl:choose>
@@ -411,7 +411,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': 'DESCRIBE &lt;' || $object-type || '&gt;', 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
 
                 <xsl:apply-templates select="key('resources', $object-type, document($request-uri))" mode="ldh:ComboboxChip">
-                    <xsl:with-param name="class" select="'cb-chip-btn add-typeahead add-class-typeahead'"/>
+                    <xsl:with-param name="class" select="'cb-chip-btn add-combobox add-class-combobox'"/>
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:otherwise>
@@ -419,9 +419,9 @@ exclude-result-prefixes="#all"
 
                 <xsl:call-template name="ldh:Combobox">
                     <xsl:with-param name="forClass" select="(xs:anyURI('&rdfs;Class'), xs:anyURI('&owl;Class'))"/> <!-- ontologies are served without inference, so owl:Class subjects do not carry the rdfs:Class type -->
-                    <xsl:with-param name="class" select="'class-typeahead typeahead'"/>
+                    <xsl:with-param name="class" select="'class-combobox combobox'"/>
                     <xsl:with-param name="id" select="'input-' || $uuid"/>
-                    <xsl:with-param name="list-class" select="'class-typeahead typeahead ldhc-cb-panel'"/>
+                    <xsl:with-param name="list-class" select="'class-combobox combobox ldhc-cb-panel'"/>
                 </xsl:call-template>
             </xsl:otherwise>
         </xsl:choose>
@@ -441,38 +441,38 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- classes and properties are looked up in the <ns> endpoint -->
-    <xsl:template match="input[contains-token(@class, 'class-typeahead')] | input[contains-token(@class, 'property-typeahead')]" mode="ixsl:onkeyup" priority="1">
+    <xsl:template match="input[contains-token(@class, 'class-combobox')] | input[contains-token(@class, 'property-combobox')]" mode="ixsl:onkeyup" priority="1">
         <xsl:next-match>
             <xsl:with-param name="endpoint" select="resolve-uri('ns', ldt:base())"/>
             <xsl:with-param name="select-string" select="$select-labelled-string"/>
         </xsl:next-match>
     </xsl:template>
 
-    <xsl:template match="*[contains-token(@class, 'ldhc-cb-panel')][contains-token(@class, 'class-typeahead')]/li" mode="ixsl:onmousedown" priority="2">
+    <xsl:template match="*[contains-token(@class, 'ldhc-cb-panel')][contains-token(@class, 'class-combobox')]/li" mode="ixsl:onmousedown" priority="2">
         <xsl:next-match>
-            <xsl:with-param name="typeahead-class" select="'cb-chip-btn add-typeahead add-class-typeahead'"/>
+            <xsl:with-param name="chip-class" select="'cb-chip-btn add-combobox add-class-combobox'"/>
         </xsl:next-match>
     </xsl:template>
 
-    <xsl:template match="*[contains-token(@class, 'ldhc-cb-panel')][contains-token(@class, 'property-typeahead')]/li" mode="ixsl:onmousedown" priority="2">
+    <xsl:template match="*[contains-token(@class, 'ldhc-cb-panel')][contains-token(@class, 'property-combobox')]/li" mode="ixsl:onmousedown" priority="2">
         <xsl:next-match>
-            <xsl:with-param name="typeahead-class" select="'cb-chip-btn add-typeahead add-property-typeahead'"/>
+            <xsl:with-param name="chip-class" select="'cb-chip-btn add-combobox add-property-combobox'"/>
         </xsl:next-match>
     </xsl:template>
 
     <!-- special case for class lookups -->
-    <xsl:template match="button[contains-token(@class, 'add-class-typeahead')]" mode="ixsl:onclick" priority="1">
+    <xsl:template match="button[contains-token(@class, 'add-class-combobox')]" mode="ixsl:onclick" priority="1">
         <xsl:next-match>
-            <xsl:with-param name="lookup-class" select="'class-typeahead typeahead'"/>
-            <xsl:with-param name="lookup-list-class" select="'class-typeahead typeahead ldhc-cb-panel'" as="xs:string"/>
+            <xsl:with-param name="combobox-class" select="'class-combobox combobox'"/>
+            <xsl:with-param name="combobox-list-class" select="'class-combobox combobox ldhc-cb-panel'" as="xs:string"/>
         </xsl:next-match>
     </xsl:template>
 
     <!-- special case for property lookups -->
-    <xsl:template match="button[contains-token(@class, 'add-property-typeahead')]" mode="ixsl:onclick" priority="1">
+    <xsl:template match="button[contains-token(@class, 'add-property-combobox')]" mode="ixsl:onclick" priority="1">
         <xsl:next-match>
-            <xsl:with-param name="lookup-class" select="'property-typeahead typeahead'"/>
-            <xsl:with-param name="lookup-list-class" select="'property-typeahead typeahead ldhc-cb-panel'" as="xs:string"/>
+            <xsl:with-param name="combobox-class" select="'property-combobox combobox'"/>
+            <xsl:with-param name="combobox-list-class" select="'property-combobox combobox ldhc-cb-panel'" as="xs:string"/>
         </xsl:next-match>
     </xsl:template>
 

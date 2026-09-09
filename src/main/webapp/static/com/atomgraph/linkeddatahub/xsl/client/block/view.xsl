@@ -503,11 +503,11 @@ exclude-result-prefixes="#all"
 
     <!-- view mode dropdown -->
 
-    <xsl:template name="ldh:ViewModeList">
+    <xsl:template name="ldh:ViewModeSwitcher">
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="id" select="'view-modes'" as="xs:string?"/>
 
-        <!-- the same mode-switcher component as the document-level ac:ModeList, in the design's compact
+        <!-- the same mode-switcher component as the document-level ac:ModeSwitcher, in the design's compact
              sz-sm variant: labelled trigger, full-size popover -->
         <div class="ldh-mode sz-sm ldhc-menu-anchor">
             <button type="button" class="label-row drop-toggle" title="{ac:label(key('resources', '&ac;Mode', document(ac:document-uri('&ac;'))))}">
@@ -525,7 +525,7 @@ exclude-result-prefixes="#all"
             <div class="modes-pop view-mode-list">
                 <xsl:for-each select="('&ac;ReadMode', '&ac;ListMode', '&ac;TableMode', '&ac;GridMode', '&ac;ChartMode', '&ac;MapMode', '&ac;GraphMode')">
                     <xsl:for-each select="key('resources', ., document(ac:document-uri('&ac;')))">
-                        <xsl:apply-templates select="." mode="ac:ModeListItem">
+                        <xsl:apply-templates select="." mode="ac:ModeSwitcherItem">
                             <xsl:with-param name="active" select="@rdf:about = $active-mode"/>
                             <xsl:with-param name="href" select="()"/>
                         </xsl:apply-templates>
@@ -914,7 +914,7 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <xsl:when test="$active-mode = '&ac;ListMode'">
-                <xsl:apply-templates select="$results" mode="ldh:ContainerBlockList">
+                <xsl:apply-templates select="$results" mode="ldh:ListViewBlock">
                     <xsl:with-param name="container-id" select="$container-id"/>
                     <xsl:with-param name="select-xml" select="$select-xml"/>
                     <xsl:with-param name="total-count" select="$total-count"/>
@@ -923,7 +923,7 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:when test="$active-mode = '&ac;TableMode'">
-                <xsl:apply-templates select="$results" mode="ldh:ContainerTable">
+                <xsl:apply-templates select="$results" mode="ldh:TableViewBlock">
                     <xsl:with-param name="container-id" select="$container-id"/>
                     <xsl:with-param name="select-xml" select="$select-xml"/>
                     <xsl:with-param name="total-count" select="$total-count"/>
@@ -936,7 +936,7 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:when test="$active-mode = '&ac;GridMode'">
-                <xsl:apply-templates select="$results" mode="ldh:ContainerGrid">
+                <xsl:apply-templates select="$results" mode="ldh:GridViewBlock">
                     <xsl:with-param name="container-id" select="$container-id"/>
                     <xsl:with-param name="select-xml" select="$select-xml"/>
                     <xsl:with-param name="total-count" select="$total-count"/>
@@ -1098,7 +1098,7 @@ exclude-result-prefixes="#all"
                             </span>
                         </xsl:if>
 
-                        <xsl:call-template name="ldh:ViewModeList">
+                        <xsl:call-template name="ldh:ViewModeSwitcher">
                             <xsl:with-param name="active-mode" select="$active-mode"/>
                         </xsl:call-template>
 
@@ -1250,7 +1250,7 @@ exclude-result-prefixes="#all"
     
     <!-- block list -->
 
-    <xsl:template match="rdf:RDF" mode="ldh:ContainerBlockList" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
+    <xsl:template match="rdf:RDF" mode="ldh:ListViewBlock" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
         <xsl:param name="container-id" as="xs:string?"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="total-count" as="xs:integer?"/>
@@ -1394,7 +1394,7 @@ exclude-result-prefixes="#all"
         </li>
     </xsl:template>
 
-    <xsl:template match="rdf:RDF" mode="ldh:ContainerGrid" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
+    <xsl:template match="rdf:RDF" mode="ldh:GridViewBlock" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
         <xsl:param name="container-id" as="xs:string?"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="total-count" as="xs:integer?"/>
@@ -1420,7 +1420,7 @@ exclude-result-prefixes="#all"
 
     <!-- table -->
 
-    <xsl:template match="rdf:RDF" mode="ldh:ContainerTable" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
+    <xsl:template match="rdf:RDF" mode="ldh:TableViewBlock" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
         <xsl:param name="container-id" as="xs:string?"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="total-count" as="xs:integer?"/>
@@ -3109,11 +3109,11 @@ exclude-result-prefixes="#all"
         <xsl:variable name="forClass" select="xs:anyURI(@data-for-class)" as="xs:anyURI"/>
         <xsl:variable name="container-uri" select="xs:anyURI(@data-container)" as="xs:anyURI"/>
         <xsl:variable name="doc-uri" select="resolve-uri(ac:uuid() || '/', $container-uri)" as="xs:anyURI"/> <!-- build a relative URI for the container's child document -->
-        <xsl:variable name="this" select="xs:anyURI($doc-uri || '#id' || ac:uuid())" as="xs:anyURI"/> <!-- the instance is a fragment resource within the new document, same minting as the type-typeahead flow -->
+        <xsl:variable name="this" select="xs:anyURI($doc-uri || '#id' || ac:uuid())" as="xs:anyURI"/> <!-- the instance is a fragment resource within the new document, same minting as the type-combobox flow -->
 
         <xsl:sequence select="ldh:busy-cursor()"/>
 
-        <!-- 'types' is initially set to ($forClass) so the shape fetch targets the right class, same as the type-typeahead flow; 'view-*' keys carry the linkage metadata through the chain -->
+        <!-- 'types' is initially set to ($forClass) so the shape fetch targets the right class, same as the type-combobox flow; 'view-*' keys carry the linkage metadata through the chain -->
         <xsl:variable name="context" as="map(*)" select="map{
             'content-body': $content-body,
             'forClass': $forClass,
@@ -3131,7 +3131,7 @@ exclude-result-prefixes="#all"
               [ ldh:load-constructed-doc#1, 'constructed-doc-request', 'constructed-doc-response', ldh:set-constructed-doc#1 ],
               [ ldh:load-shapes#1,          'shapes-request',          'shapes-response',          ldh:set-shapes#1 ]
             ])) =>
-            ixsl:then(ldh:set-typeahead-form-resource#1) =>
+            ixsl:then(ldh:set-combobox-form-resource#1) =>
             ixsl:then(ldh:fire-load-set-parallel(?, [
               [ ldh:load-constructors#1,      'constructors-request',      'constructors-response',      ldh:set-constructors#1 ],
               [ ldh:load-type-metadata#1,     'type-metadata-request',     'type-metadata-response',     ldh:set-type-metadata#1 ],
@@ -3143,7 +3143,7 @@ exclude-result-prefixes="#all"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
 
-    <!-- Terminal callback for the add-instance onclick chain. Renders the instantiated resource with the same ac:ResourceForm pipeline as the type-typeahead row form (ldh:render-typeahead-row-form), but with method='put' targeting the new document — the RDF/POST body then describes the fragment instance and the PUT auto-creates the containing Item document around it. Stamps the linkage metadata on the modal element so the submit and response handlers (separate events) can read it. -->
+    <!-- Terminal callback for the add-instance onclick chain. Renders the instantiated resource with the same ac:ResourceForm pipeline as the type-combobox row form (ldh:render-combobox-row-form), but with method='put' targeting the new document — the RDF/POST body then describes the fragment instance and the PUT auto-creates the containing Item document around it. Stamps the linkage metadata on the modal element so the submit and response handlers (separate events) can read it. -->
     <xsl:function name="ldh:render-view-instance-modal-form" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="content-body" select="$context('content-body')" as="element()"/>

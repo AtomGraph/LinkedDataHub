@@ -221,7 +221,7 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
             
-            <xsl:apply-templates select="." mode="ldh:BreadcrumbBar">
+            <xsl:apply-templates select="." mode="ldh:Breadcrumb">
                 <xsl:with-param name="class" select="'breadcrumb-nav'"/>
                 <xsl:with-param name="uri" select="ac:absolute-path(ldh:base-uri(.))"/>
             </xsl:apply-templates>
@@ -261,7 +261,7 @@ extension-element-prefixes="ixsl"
 
             <xsl:apply-templates select="." mode="ac:HeaderActions"/>
 
-            <xsl:apply-templates select="." mode="ac:ModeList">
+            <xsl:apply-templates select="." mode="ac:ModeSwitcher">
                 <xsl:with-param name="active-mode" select="$active-mode"/>
                 <xsl:with-param name="ajax-rendering" select="$ldh:ajaxRendering"/>
             </xsl:apply-templates>
@@ -270,7 +270,7 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
     
-    <xsl:template match="rdf:RDF" mode="ldh:BreadcrumbBar">
+    <xsl:template match="rdf:RDF" mode="ldh:Breadcrumb">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="()" as="xs:string?"/>
         <xsl:param name="uri" as="xs:string?"/>
@@ -294,9 +294,9 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
 
-    <xsl:template match="srx:sparql" mode="ldh:BreadcrumbBar"/>
+    <xsl:template match="srx:sparql" mode="ldh:Breadcrumb"/>
     
-    <!-- NAVBAR ACTIONS -->
+    <!-- HEADER ACTIONS -->
 
     <xsl:template match="srx:sparql" mode="ac:HeaderActions" priority="1">
         <xsl:next-match>
@@ -392,11 +392,11 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
 
-    <!-- MODE LIST -->
+    <!-- MODE SWITCHER -->
 
-    <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&spin;ConstraintViolation'))] | rdf:RDF[key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&sh;ValidationResult'))]" mode="ac:ModeList" priority="1"/>
+    <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&spin;ConstraintViolation'))] | rdf:RDF[key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&sh;ValidationResult'))]" mode="ac:ModeSwitcher" priority="1"/>
 
-    <xsl:template match="rdf:RDF" mode="ac:ModeList">
+    <xsl:template match="rdf:RDF" mode="ac:ModeSwitcher">
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="ajax-rendering" select="true()" as="xs:boolean"/>
         <xsl:param name="absolute-path" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
@@ -438,7 +438,7 @@ extension-element-prefixes="ixsl"
                 <xsl:for-each select="('&ac;ReadMode', '&ac;MapMode', if ($ajax-rendering) then ('&ac;ChartMode', '&ac;GraphMode') else ())">
                     <xsl:variable name="mode-uri" select="." as="xs:string"/>
                     <xsl:for-each select="key('resources', $mode-uri, document(ac:document-uri('&ac;')))">
-                        <xsl:apply-templates select="." mode="ac:ModeListItem">
+                        <xsl:apply-templates select="." mode="ac:ModeSwitcherItem">
                             <xsl:with-param name="active" select="@rdf:about = $active-mode"/>
                             <xsl:with-param name="absolute-path" select="$absolute-path" tunnel="yes"/>
                             <xsl:with-param name="base-uri" select="$base-uri"/>
@@ -451,7 +451,7 @@ extension-element-prefixes="ixsl"
 
     <!-- TAB BODY -->
     
-    <xsl:template match="rdf:RDF" mode="ldh:TabBody">
+    <xsl:template match="rdf:RDF" mode="ldh:TabPanel">
         <xsl:param name="id" select="'ldh-pane-' || ac:uuid()" as="xs:string?"/>
         <xsl:param name="class" select="'ldh-pane is-active'" as="xs:string?"/>
         <xsl:param name="mode" as="xs:anyURI"/>
@@ -513,7 +513,7 @@ extension-element-prefixes="ixsl"
 
             <!-- notice shown when a historical version is displayed (?version= query parameter) -->
             <xsl:if test="map:contains(ldh:query-params(), 'version')">
-                <xsl:apply-templates select="." mode="ac:Alert">
+                <xsl:apply-templates select="." mode="ac:InlineAlert">
                     <xsl:with-param name="variant" select="'va-informative'"/>
                     <xsl:with-param name="text" as="item()*">
                             <xsl:value-of>
@@ -538,7 +538,7 @@ extension-element-prefixes="ixsl"
 
             <!-- legend shown when a version diff is displayed (?diff= query parameter): removed content comes from the compared version, added content from the viewed one, changed content exists in both -->
             <xsl:if test="map:contains(ldh:query-params(), 'diff')">
-                <xsl:apply-templates select="." mode="ac:Alert">
+                <xsl:apply-templates select="." mode="ac:InlineAlert">
                     <xsl:with-param name="variant" select="'va-informative'"/>
                     <xsl:with-param name="text" as="item()*">
                             <xsl:value-of>
@@ -884,7 +884,7 @@ extension-element-prefixes="ixsl"
     
     <!-- CHART -->
 
-    <!-- chart shell: the ldh:ChartHeader controls, the canvas and the save action sit directly in the
+    <!-- chart shell: the ldh:ChartControls controls, the canvas and the save action sit directly in the
          block body, as in the design's chart block - no form or fieldset chrome around them (the
          controls act through their own change handlers, nothing here ever submits) -->
 
@@ -910,7 +910,7 @@ extension-element-prefixes="ixsl"
             </xsl:if>
         </xsl:param>
 
-        <xsl:apply-templates select="." mode="ldh:ChartHeader">
+        <xsl:apply-templates select="." mode="ldh:ChartControls">
             <xsl:with-param name="chart-type" select="$chart-type"/>
             <xsl:with-param name="category" select="$category"/>
             <xsl:with-param name="series" select="$series"/>
@@ -933,7 +933,7 @@ extension-element-prefixes="ixsl"
 
     <!-- chart header (RDF/XML results): chart-controls grid, category/series options grouped from resource properties -->
 
-    <xsl:template match="rdf:RDF" mode="ldh:ChartHeader">
+    <xsl:template match="rdf:RDF" mode="ldh:ChartControls">
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI?"/> <!-- table is the default chart type -->
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*"/>
@@ -1029,7 +1029,7 @@ extension-element-prefixes="ixsl"
 
     <!-- chart header (SPARQL XML results): chart-controls grid, category/series options from result variables -->
 
-    <xsl:template match="srx:sparql" mode="ldh:ChartHeader">
+    <xsl:template match="srx:sparql" mode="ldh:ChartControls">
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI?"/> <!-- table is the default chart type -->
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*"/>
@@ -1346,7 +1346,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'ldhc-alert va-informative'" as="xs:string?"/>
 
-        <xsl:apply-templates select="." mode="ac:Alert">
+        <xsl:apply-templates select="." mode="ac:InlineAlert">
             <xsl:with-param name="id" select="$id"/>
             <xsl:with-param name="class" select="$class"/>
             <xsl:with-param name="icon" select="'info'"/>

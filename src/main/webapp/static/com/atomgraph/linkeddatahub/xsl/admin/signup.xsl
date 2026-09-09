@@ -85,7 +85,7 @@ exclude-result-prefixes="#all">
     <!-- hide "Create" button which otherwise would be shown because acl:Append is allowed for signup -->
     <xsl:template match="rdf:RDF[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), ldt:base())]" mode="ac:Create" priority="2"/>
 
-    <xsl:template match="rdf:RDF[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), ldt:base())]" mode="ac:ModeList" priority="2"/>
+    <xsl:template match="rdf:RDF[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), ldt:base())]" mode="ac:ModeSwitcher" priority="2"/>
 
     <!-- disable the block links popover (backlinks) -->
     <xsl:template match="*[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), ldt:base())]" mode="ldh:BlockLinksPopover"/>

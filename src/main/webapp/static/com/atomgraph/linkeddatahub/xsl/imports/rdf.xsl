@@ -116,22 +116,22 @@ exclude-result-prefixes="#all">
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="auto" select="local-name() = 'nodeID' or starts-with(., ldt:base())" as="xs:boolean"/>
         <xsl:param name="type-metadata" as="document-node()?" tunnel="yes"/>
-        <xsl:param name="lookup-class" select="'type-typeahead typeahead'" as="xs:string"/>
-        <xsl:param name="lookup-list-class" select="'type-typeahead typeahead ldhc-cb-panel'" as="xs:string"/>
+        <xsl:param name="combobox-class" select="'type-combobox combobox'" as="xs:string"/>
+        <xsl:param name="combobox-list-class" select="'type-combobox combobox ldhc-cb-panel'" as="xs:string"/>
 
         <xsl:choose>
             <xsl:when test="if ($type-metadata) then key('resources', ., $type-metadata) else false()">
                 <xsl:apply-templates select="key('resources', ., $type-metadata)" mode="ldh:ComboboxChip">
-                    <xsl:with-param name="class" select="'cb-chip-btn add-typeahead add-type-typeahead'"/>
+                    <xsl:with-param name="class" select="'cb-chip-btn add-combobox add-type-combobox'"/>
                     <xsl:with-param name="forClass" select="(xs:anyURI('&rdfs;Class'), xs:anyURI('&owl;Class'))"/> <!-- ontologies are served without inference, so owl:Class subjects do not carry the rdfs:Class type -->
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:call-template name="ldh:Combobox">
-                    <xsl:with-param name="class" select="$lookup-class"/>
+                    <xsl:with-param name="class" select="$combobox-class"/>
                     <xsl:with-param name="id" select="$id"/>
                     <xsl:with-param name="value" select="."/>
-                    <xsl:with-param name="list-class" select="$lookup-list-class"/>
+                    <xsl:with-param name="list-class" select="$combobox-list-class"/>
                     <xsl:with-param name="forClass" select="(xs:anyURI('&rdfs;Class'), xs:anyURI('&owl;Class'))"/> <!-- ontologies are served without inference, so owl:Class subjects do not carry the rdfs:Class type -->
                 </xsl:call-template>
             </xsl:otherwise>

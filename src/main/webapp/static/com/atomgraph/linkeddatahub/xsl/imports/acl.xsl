@@ -73,7 +73,7 @@ exclude-result-prefixes="#all">
         <xsl:next-match/>
 
         <xsl:if test="lacl:requestMode/@rdf:resource = '&acl;Control'">
-            <xsl:apply-templates select="." mode="ac:Alert">
+            <xsl:apply-templates select="." mode="ac:InlineAlert">
                 <xsl:with-param name="variant" select="'va-warning'"/>
                 <xsl:with-param name="title" as="item()*">
                     <xsl:apply-templates select="key('resources', 'warning', ldh:translations())" mode="ac:label"/>

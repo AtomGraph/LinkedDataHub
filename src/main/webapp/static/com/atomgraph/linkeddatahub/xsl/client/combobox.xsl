@@ -114,7 +114,7 @@ version="3.0"
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:for-each select="?body">
                     <!-- TO-DO: does not belong here -->
-                    <ixsl:set-property name="LinkedDataHub.typeahead.rdfXml" select="."/>
+                    <ixsl:set-property name="LinkedDataHub.combobox.rdfXml" select="."/>
 
                     <xsl:call-template name="ldh:ComboboxProcess">
                         <xsl:with-param name="menu" select="$menu"/>

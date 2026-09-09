@@ -185,7 +185,7 @@ LIMIT   10
                     </xsl:apply-templates>
                 </form>
 
-                <xsl:apply-templates select="." mode="ac:Alert">
+                <xsl:apply-templates select="." mode="ac:InlineAlert">
                     <xsl:with-param name="variant" select="'va-informative'"/>
                     <xsl:with-param name="text" as="item()*">
                         <xsl:apply-templates select="key('resources', 'add-data-notice', ldh:translations())" mode="ac:label"/>
@@ -1667,7 +1667,7 @@ LIMIT   10
               ixsl:http-request($context('request'))
                 => ixsl:then(ldh:rethread-response($context, ?))
                 => ixsl:then(ldh:handle-response#1)
-                => ixsl:then(ldh:typeahead-resource-response#1)
+                => ixsl:then(ldh:combobox-resource-response#1)
             " on-failure="ldh:promise-failure#1"/>
         </xsl:for-each>
     </xsl:template>
@@ -1755,7 +1755,7 @@ LIMIT   10
         </xsl:choose>
     </xsl:function>
     
-    <xsl:function name="ldh:typeahead-resource-response" ixsl:updating="yes">
+    <xsl:function name="ldh:combobox-resource-response" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="status" select="$response?status" as="xs:double"/>
@@ -1765,7 +1765,7 @@ LIMIT   10
         <!-- data-for-class sits on the box; the committed chip carries it forward so the edit button's fresh lookup keeps the class scope -->
         <xsl:variable name="forClass" select="$combobox/div[contains-token(@class, 'ldhc-cb-box')]/@data-for-class ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
 
-        <xsl:message>ldh:typeahead-resource-response</xsl:message>
+        <xsl:message>ldh:combobox-resource-response</xsl:message>
 
         <xsl:choose>
             <xsl:when test="$status = 200 and $media-type = 'application/rdf+xml'">
@@ -1776,14 +1776,14 @@ LIMIT   10
                         <xsl:when test="$resource">
                             <!-- the committed chip stands in for the whole combobox, mirroring the edit button's replace-element in the other direction -->
                             <xsl:for-each select="$combobox">
-                                <xsl:variable name="typeahead" as="element()">
+                                <xsl:variable name="combobox" as="element()">
                                     <xsl:apply-templates select="$resource" mode="ldh:ComboboxChip">
                                         <xsl:with-param name="forClass" select="$forClass"/>
                                     </xsl:apply-templates>
                                 </xsl:variable>
 
                                 <xsl:result-document href="?." method="ixsl:replace-element">
-                                    <xsl:sequence select="$typeahead"/>
+                                    <xsl:sequence select="$combobox"/>
                                 </xsl:result-document>
                             </xsl:for-each>
                         </xsl:when>
@@ -1792,8 +1792,8 @@ LIMIT   10
                             <xsl:for-each select="$combobox">
                                 <xsl:result-document href="?." method="ixsl:replace-element">
                                     <xsl:call-template name="ldh:Combobox">
-                                        <xsl:with-param name="class" select="'resource-typeahead typeahead'"/>
-                                        <xsl:with-param name="list-class" select="'resource-typeahead typeahead ldhc-cb-panel'"/>
+                                        <xsl:with-param name="class" select="'resource-combobox combobox'"/>
+                                        <xsl:with-param name="list-class" select="'resource-combobox combobox ldhc-cb-panel'"/>
                                         <xsl:with-param name="value" select="$resource-uri"/>
                                         <xsl:with-param name="forClass" select="$forClass"/>
                                     </xsl:call-template>

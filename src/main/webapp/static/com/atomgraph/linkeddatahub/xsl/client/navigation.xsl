@@ -315,7 +315,7 @@ ORDER BY DESC(?created)
     
     <!-- one tree node (§19): li > .tree-row > disclosure + a.tree-link; the li carries state, the row
          carries the depth indent ramp (the depth custom property), and a leaf takes the inert spacer so labels stay aligned -->
-    <xsl:template match="*[@rdf:about]" mode="ldh:DocTreeListItem">
+    <xsl:template match="*[@rdf:about]" mode="ldh:TreeNode">
         <xsl:param name="depth" select="0" as="xs:integer"/>
 
         <li>
@@ -696,7 +696,7 @@ ORDER BY DESC(?created)
                         <xsl:for-each select="$container">
                             <xsl:variable name="depth" select="count(ancestor::li)" as="xs:integer"/>
                             <xsl:result-document href="?." method="ixsl:replace-content">
-                                <xsl:apply-templates select="$resources" mode="ldh:DocTreeListItem">
+                                <xsl:apply-templates select="$resources" mode="ldh:TreeNode">
                                     <xsl:sort select="ac:label(.)"/>
                                     <xsl:with-param name="depth" select="$depth"/>
                                 </xsl:apply-templates>

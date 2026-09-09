@@ -526,7 +526,7 @@ exclude-result-prefixes="#all">
         </xsl:if>
     </xsl:template>
     
-    <!-- NAVBAR -->
+    <!-- HEADER -->
     
     <!-- design system Header: wordmark | address bar | actions ('navbar' token kept - the CSR link
          interception and address-bar handlers anchor on it) -->
@@ -851,7 +851,7 @@ WHERE
                             </xsl:if>
                         </xsl:variable>
                         <xsl:variable name="local-pane" as="element()">
-                            <xsl:apply-templates select="." mode="ldh:TabBody">
+                            <xsl:apply-templates select="." mode="ldh:TabPanel">
                                 <xsl:with-param name="mode" select="ac:mode(root())"/>
                                 <xsl:with-param name="base" select="ldt:base()"/>
                                 <xsl:with-param name="endpoint" select="sd:endpoint()"/>

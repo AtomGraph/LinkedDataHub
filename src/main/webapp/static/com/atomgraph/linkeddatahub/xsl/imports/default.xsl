@@ -1162,9 +1162,9 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:Combobox">
         <xsl:param name="type" select="'text'" as="xs:string"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <xsl:param name="class" select="'resource-typeahead typeahead'" as="xs:string?"/>
+        <xsl:param name="class" select="'resource-combobox combobox'" as="xs:string?"/>
         <xsl:param name="value" as="xs:string?"/>
-        <xsl:param name="list-class" select="'resource-typeahead typeahead'" as="xs:string"/>
+        <xsl:param name="list-class" select="'resource-combobox combobox'" as="xs:string"/>
         <xsl:param name="list-id" select="concat('ul-', $id)" as="xs:string"/>
         <xsl:param name="forClass" as="xs:anyURI*"/>
 
@@ -1438,7 +1438,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <!-- object resource -->
-    <!-- object resource: committed values render as typeahead chips, open values as the combobox lookup -->
+    <!-- object resource: committed values render as combobox chips, open values as the combobox lookup -->
     <xsl:template match="@rdf:resource" mode="ac:FormControl">
         <xsl:param name="type" select="'text'" as="xs:string"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
@@ -1652,11 +1652,11 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
 
-    <!-- special case for owl:NamedIndividual bnode instances which become typeaheads -->
+    <!-- special case for owl:NamedIndividual bnode instances which become comboboxes -->
     <xsl:template match="*[@rdf:nodeID]/*/@rdf:nodeID[key('resources', .)/rdf:type/@rdf:resource = '&owl;NamedIndividual']" mode="ac:FormControl" priority="2">
         <xsl:param name="type" select="'text'" as="xs:string"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <xsl:param name="class" select="'resource-typeahead typeahead'" as="xs:string?"/>
+        <xsl:param name="class" select="'resource-combobox combobox'" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="required" select="false()" as="xs:boolean"/>
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
@@ -1678,7 +1678,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[@rdf:about or @rdf:nodeID]/*/@rdf:nodeID[key('resources', .)[not(* except rdf:type[not(starts-with(@rdf:resource, '&xsd;'))])]]" mode="ac:FormControl" priority="1">
         <xsl:param name="type" select="'text'" as="xs:string"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <xsl:param name="class" select="'resource-typeahead typeahead'" as="xs:string?"/>
+        <xsl:param name="class" select="'resource-combobox combobox'" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="required" select="false()" as="xs:boolean"/>
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>

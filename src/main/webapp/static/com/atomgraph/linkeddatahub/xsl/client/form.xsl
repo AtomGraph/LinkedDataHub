@@ -283,17 +283,17 @@ WHERE
     <xsl:function name="rdfae:typeahead-field" as="element()">
         <xsl:param name="field" as="xs:string"/>
         <xsl:variable name="for-class" as="xs:anyURI" select="if ($field = 'typeof') then xs:anyURI('&owl;Class') else xs:anyURI('&rdf;Property')"/>
-        <span data-field="{$field}" class="typeahead-field rdfa-editor-ui">
+        <span data-field="{$field}" class="combobox-field rdfa-editor-ui">
             <xsl:call-template name="ldh:Combobox">
-                <xsl:with-param name="class" select="'property-typeahead typeahead'"/>
+                <xsl:with-param name="class" select="'property-combobox combobox'"/>
                 <xsl:with-param name="id" select="'annotation-' || $field"/>
-                <xsl:with-param name="list-class" select="'property-typeahead typeahead ldhc-cb-panel'"/>
+                <xsl:with-param name="list-class" select="'property-combobox combobox ldhc-cb-panel'"/>
                 <xsl:with-param name="forClass" select="$for-class"/>
             </xsl:call-template>
         </span>
     </xsl:function>
 
-    <!-- rebuild the typeahead field and pre-populate with IRI; clears any prior committed button state -->
+    <!-- rebuild the combobox field and pre-populate with IRI; clears any prior committed button state -->
     <xsl:template name="rdfae:typeahead-set-value">
         <xsl:param name="form" as="element()"/>
         <xsl:param name="field" as="xs:string"/>
@@ -302,9 +302,9 @@ WHERE
         <xsl:for-each select="($form//span[@data-field = $field])[1]">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:call-template name="ldh:Combobox">
-                    <xsl:with-param name="class" select="'property-typeahead typeahead'"/>
+                    <xsl:with-param name="class" select="'property-combobox combobox'"/>
                     <xsl:with-param name="id" select="'annotation-' || $field"/>
-                    <xsl:with-param name="list-class" select="'property-typeahead typeahead ldhc-cb-panel'"/>
+                    <xsl:with-param name="list-class" select="'property-combobox combobox ldhc-cb-panel'"/>
                     <xsl:with-param name="forClass" select="$for-class"/>
                     <xsl:with-param name="value" select="if ($iri ne '') then $iri else ()"/>
                 </xsl:call-template>
@@ -312,7 +312,7 @@ WHERE
         </xsl:for-each>
     </xsl:template>
 
-    <!-- read back the IRI from span[@data-field]: committed (hidden input) or typed (property-typeahead text) -->
+    <!-- read back the IRI from span[@data-field]: committed (hidden input) or typed (property-combobox text) -->
     <xsl:function name="rdfae:typeahead-value" as="xs:string?">
         <xsl:param name="form" as="element()"/>
         <xsl:param name="field" as="xs:string"/>
@@ -323,7 +323,7 @@ WHERE
                 <xsl:sequence select="string(ixsl:get($hidden, 'value'))[. ne '']"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:variable name="input" as="element()?" select="($wrapper//input[contains-token(@class, 'property-typeahead')])[1]"/>
+                <xsl:variable name="input" as="element()?" select="($wrapper//input[contains-token(@class, 'property-combobox')])[1]"/>
                 <xsl:variable name="text" as="xs:string" select="normalize-space(string(ixsl:get($input, 'value')))"/>
                 <xsl:sequence select="if (rdfae:is-absolute-iri($text)) then $text else ()"/>
             </xsl:otherwise>
@@ -644,15 +644,15 @@ WHERE
     </xsl:template>
 
     <xsl:template match="fieldset//input" mode="ldh:RenderRowForm" priority="1">
-        <!-- TO-DO: move to a better place. Does not take effect if typeahead is reset -->
+        <!-- TO-DO: move to a better place. Does not take effect if combobox is reset -->
         <ixsl:set-property object="." name="autocomplete" select="'off'"/>
     </xsl:template>
 
-    <!-- The control a user would fill in first. Hidden RDF/POST inputs are skipped - focus() on them is a no-op - and a typeahead whose value already resolves renders as a button rather than an input. -->
+    <!-- The control a user would fill in first. Hidden RDF/POST inputs are skipped - focus() on them is a no-op - and a combobox whose value already resolves renders as a button rather than an input. -->
     <xsl:function name="ldh:focusable-control" as="element()?">
         <xsl:param name="container" as="element()"/>
 
-        <xsl:sequence select="($container//*[self::input[not(@type = 'hidden')] or self::textarea or self::select or self::button[contains-token(@class, 'add-typeahead')]])[1]"/>
+        <xsl:sequence select="($container//*[self::input[not(@type = 'hidden')] or self::textarea or self::select or self::button[contains-token(@class, 'add-combobox')]])[1]"/>
     </xsl:function>
 
     <!-- Focus the prop-group the form opens on: the first required one, or - for a class that constrains nothing, a bare owl:NamedIndividual - the type control, since choosing the class is then the only thing left to do. Matching the group rather than the control itself keeps the focus out of the way of the templates that turn a control into a widget: block/query.xsl replaces the query textarea with a YASQE editor in this same mode, and two priority-1 rules on the same textarea would leave only the later-included one running. The group's own children go first, so by the time ldh:FocusControl is dispatched the widget exists. -->
@@ -725,7 +725,7 @@ WHERE
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <div class="block-row">
                     <div class="main">
-                        <xsl:apply-templates select="." mode="ac:Alert">
+                        <xsl:apply-templates select="." mode="ac:InlineAlert">
                             <xsl:with-param name="variant" select="'va-success'"/>
                             <xsl:with-param name="class" select="'ldhc-alert va-success block-row'"/>
                             <xsl:with-param name="title" as="item()*">
@@ -1101,7 +1101,7 @@ WHERE
         <!-- tunnel params (about, action, base-uri, required, constructors, constraints,
              shapes, type-metadata, property-metadata, object-metadata) propagate through
              to ac:ResourceForm and to the per-Description templates automatically -->
-        <!-- the block shell (div[@about][@typeof] with the 'block' anchor token) unifies the modal form with the inline row forms: the generic handlers (add-value property picker, constructor sync, type typeahead) key on it. @id is read back by ldh:render-modal-form-violation to initialize listeners on the re-rendered form -->
+        <!-- the block shell (div[@about][@typeof] with the 'block' anchor token) unifies the modal form with the inline row forms: the generic handlers (add-value property picker, constructor sync, type combobox) key on it. @id is read back by ldh:render-modal-form-violation to initialize listeners on the re-rendered form -->
         <div id="block-{generate-id()}" class="block ldh-block" about="{$about}">
             <xsl:if test="exists($types)">
                 <xsl:attribute name="typeof" select="string-join($types, ' ')"/>
@@ -1784,7 +1784,7 @@ WHERE
     </xsl:template>
     
     <!-- types (classes with constructors) are looked up in the <ns> endpoint -->
-    <xsl:template match="input[contains-token(@class, 'type-typeahead')]" mode="ixsl:onkeyup" priority="1">
+    <xsl:template match="input[contains-token(@class, 'type-combobox')]" mode="ixsl:onkeyup" priority="1">
         <xsl:next-match>
             <xsl:with-param name="endpoint" select="resolve-uri('ns', ldt:base())"/>
             <xsl:with-param name="select-string" select="$select-labelled-class-or-shape-string"/>
@@ -1794,7 +1794,7 @@ WHERE
     </xsl:template>
     
     <!-- lookup by $label and optional $Type using search SELECT -->
-    <xsl:template match="input[contains-token(@class, 'typeahead')]" mode="ixsl:onkeyup">
+    <xsl:template match="input[contains-token(@class, 'combobox')]" mode="ixsl:onkeyup">
         <xsl:param name="text" select="ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:param name="menu" select="(following-sibling::ul, ../following-sibling::div[contains-token(@class, 'ldhc-cb-panel')])[1]" as="element()"/>
         <xsl:param name="delay" select="400" as="xs:integer"/>
@@ -1868,15 +1868,15 @@ WHERE
                     <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/> <!-- prevent form submit -->
                 
                     <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:anyURI"/>
-                    <xsl:variable name="typeahead-class" select="'cb-chip-btn add-typeahead'" as="xs:string"/>
-                    <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/> <!-- set by ldh:ComboboxLoaded -->
-                    <xsl:variable name="resource" select="key('resources', $resource-id, $typeahead-doc)"/>
+                    <xsl:variable name="chip-class" select="'cb-chip-btn add-combobox'" as="xs:string"/>
+                    <xsl:variable name="combobox-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.combobox.rdfXml')" as="document-node()"/> <!-- set by ldh:ComboboxLoaded -->
+                    <xsl:variable name="resource" select="key('resources', $resource-id, $combobox-doc)"/>
 
                     <!-- the committed chip replaces the whole lookup wrapper (legacy span or .ldhc-combobox) -->
                     <xsl:for-each select="../..">
                         <xsl:result-document href="?." method="ixsl:replace-element">
                             <xsl:apply-templates select="$resource" mode="ldh:ComboboxChip">
-                                <xsl:with-param name="class" select="$typeahead-class"/>
+                                <xsl:with-param name="class" select="$chip-class"/>
                                 <xsl:with-param name="forClass" select="$forClass"/>
                             </xsl:apply-templates>
                         </xsl:result-document>
@@ -1913,7 +1913,7 @@ WHERE
         </xsl:choose>
     </xsl:template>
 
-    <xsl:template match="input[contains-token(@class, 'typeahead')]" mode="ixsl:onfocusout">
+    <xsl:template match="input[contains-token(@class, 'combobox')]" mode="ixsl:onfocusout">
         <xsl:param name="menu" select="(following-sibling::ul, ../following-sibling::div[contains-token(@class, 'ldhc-cb-panel')])[1]" as="element()"/>
         
         <xsl:call-template name="ldh:ComboboxHide">
@@ -1921,10 +1921,10 @@ WHERE
         </xsl:call-template>
     </xsl:template>
 
-    <!-- select .type-typeahead item (priority over plain .typeahead) -->
+    <!-- select .type-combobox item (priority over plain .combobox) -->
     
-    <!-- Fold step for the type-typeahead chain. Builds the SHACL shape-instance doc (bnode-prototyped, no identity rewrite), folds it with the async-fetched SPIN constructed-doc via ldh:merge-constructors (alpha-rename + group-by, both halves stay bnode-keyed), instantiates the merged constructor under $this, and extracts the row-form resource. Requires context('shapes') populated by an upstream ldh:load-shapes / ldh:set-shapes pair. Writes context('constructed-doc') as the pure merged constructor (ac:FormControl reads it via the 'constructor' tunnel to derive $template); context('instance-doc') as the instantiated copy used to find $resource. -->
-    <xsl:function name="ldh:set-typeahead-form-resource" as="map(*)" ixsl:updating="yes">
+    <!-- Fold step for the type-combobox chain. Builds the SHACL shape-instance doc (bnode-prototyped, no identity rewrite), folds it with the async-fetched SPIN constructed-doc via ldh:merge-constructors (alpha-rename + group-by, both halves stay bnode-keyed), instantiates the merged constructor under $this, and extracts the row-form resource. Requires context('shapes') populated by an upstream ldh:load-shapes / ldh:set-shapes pair. Writes context('constructed-doc') as the pure merged constructor (ac:FormControl reads it via the 'constructor' tunnel to derive $template); context('instance-doc') as the instantiated copy used to find $resource. -->
+    <xsl:function name="ldh:set-combobox-form-resource" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="constructed-doc" select="$context('constructed-doc')" as="document-node()"/>
         <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI"/>
@@ -1952,11 +1952,11 @@ WHERE
         }), map{ 'duplicates': 'use-last' })"/>
     </xsl:function>
 
-    <!-- Terminal callback for the type-typeahead chain. Reads context (including async-fetched shapes
+    <!-- Terminal callback for the type-combobox chain. Reads context (including async-fetched shapes
          and constructors), does the remaining (still-sync) type-metadata/property-metadata/constraints fetches,
          applies ac:ResourceForm to render the new fieldset, replaces the existing fieldset content, and re-runs
          ldh:RenderRowForm to wire up event listeners. -->
-    <xsl:function name="ldh:render-typeahead-row-form" as="item()*" ixsl:updating="yes">
+    <xsl:function name="ldh:render-combobox-row-form" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="fieldset" select="$context('fieldset')" as="element()"/>
         <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
@@ -2001,22 +2001,22 @@ WHERE
         </xsl:for-each>
     </xsl:function>
 
-    <xsl:template match="*[contains-token(@class, 'ldhc-cb-panel')][contains-token(@class, 'type-typeahead')]/li" mode="ixsl:onmousedown" priority="1">
-        <xsl:param name="typeahead-class" select="'cb-chip-btn add-typeahead add-type-typeahead'" as="xs:string"/>
+    <xsl:template match="*[contains-token(@class, 'ldhc-cb-panel')][contains-token(@class, 'type-combobox')]/li" mode="ixsl:onmousedown" priority="1">
+        <xsl:param name="chip-class" select="'cb-chip-btn add-combobox add-type-combobox'" as="xs:string"/>
         <xsl:sequence select="ldh:busy-cursor()"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="fieldset" select="ancestor::fieldset" as="element()"/>
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:string"/> <!-- can be URI resource or blank node ID -->
-        <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/>
-        <xsl:variable name="resource" select="key('resources', $resource-id, $typeahead-doc)" as="element()"/>
+        <xsl:variable name="combobox-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.combobox.rdfXml')" as="document-node()"/>
+        <xsl:variable name="resource" select="key('resources', $resource-id, $combobox-doc)" as="element()"/>
         <xsl:variable name="initial-forClass" select="(../../@data-for-class, ../preceding-sibling::div[contains-token(@class, 'ldhc-cb-box')]/@data-for-class)[1] ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
 
         <!-- render the committed chip replacing the whole lookup wrapper (synchronous DOM mutation, runs before the promise) -->
         <xsl:for-each select="../..">
             <xsl:result-document href="?." method="ixsl:replace-element">
                 <xsl:apply-templates select="$resource" mode="ldh:ComboboxChip">
-                    <xsl:with-param name="class" select="$typeahead-class"/>
+                    <xsl:with-param name="class" select="$chip-class"/>
                     <xsl:with-param name="forClass" select="$initial-forClass"/>
                 </xsl:apply-templates>
             </xsl:result-document>
@@ -2029,8 +2029,8 @@ WHERE
         <ixsl:set-attribute name="typeof" select="$forClass" object="$container"/>
 
         <!-- 'types' is initially set to ($forClass) so the shape fetch (which runs before
-             ldh:set-typeahead-form-resource and feeds the SHACL+SPIN merge) targets the right class.
-             After ldh:set-typeahead-form-resource runs the merge and extracts the real types from the
+             ldh:set-combobox-form-resource and feeds the SHACL+SPIN merge) targets the right class.
+             After ldh:set-combobox-form-resource runs the merge and extracts the real types from the
              merged document, it overwrites 'types' to the actual derived value used by load-constructors. -->
         <xsl:variable name="context" as="map(*)" select="map{
             'container': $container,
@@ -2046,32 +2046,32 @@ WHERE
               [ ldh:load-constructed-doc#1, 'constructed-doc-request', 'constructed-doc-response', ldh:set-constructed-doc#1 ],
               [ ldh:load-shapes#1,          'shapes-request',          'shapes-response',          ldh:set-shapes#1 ]
             ])) =>
-            ixsl:then(ldh:set-typeahead-form-resource#1) =>
+            ixsl:then(ldh:set-combobox-form-resource#1) =>
             ixsl:then(ldh:fire-load-set-parallel(?, [
               [ ldh:load-constructors#1,      'constructors-request',      'constructors-response',      ldh:set-constructors#1 ],
               [ ldh:load-type-metadata#1,     'type-metadata-request',     'type-metadata-response',     ldh:set-type-metadata#1 ],
               [ ldh:load-property-metadata#1, 'property-metadata-request', 'property-metadata-response', ldh:set-property-metadata#1 ],
               [ ldh:load-constraints#1,       'constraints-request',       'constraints-response',       ldh:set-constraints#1 ]
             ])) =>
-            ixsl:then(ldh:render-typeahead-row-form#1) =>
+            ixsl:then(ldh:render-combobox-row-form#1) =>
             ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     
-    <!-- select typeahead item -->
+    <!-- select combobox item -->
     
-    <xsl:template match="*[contains-token(@class, 'ldhc-cb-panel')][contains-token(@class, 'typeahead')]/li" mode="ixsl:onmousedown">
-        <xsl:param name="typeahead-class" select="'cb-chip-btn add-typeahead'" as="xs:string"/>
+    <xsl:template match="*[contains-token(@class, 'ldhc-cb-panel')][contains-token(@class, 'combobox')]/li" mode="ixsl:onmousedown">
+        <xsl:param name="chip-class" select="'cb-chip-btn add-combobox'" as="xs:string"/>
         <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:string"/> <!-- can be URI resource or blank node ID -->
-        <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/>
-        <xsl:variable name="resource" select="key('resources', $resource-id, $typeahead-doc)" as="element()"/>
+        <xsl:variable name="combobox-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.combobox.rdfXml')" as="document-node()"/>
+        <xsl:variable name="resource" select="key('resources', $resource-id, $combobox-doc)" as="element()"/>
         <xsl:variable name="forClass" select="(../../@data-for-class, ../preceding-sibling::div[contains-token(@class, 'ldhc-cb-box')]/@data-for-class)[1] ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
 
         <!-- the committed chip replaces the whole lookup wrapper (legacy span or .ldhc-combobox) -->
         <xsl:for-each select="../..">
             <xsl:result-document href="?." method="ixsl:replace-element">
                 <xsl:apply-templates select="$resource" mode="ldh:ComboboxChip">
-                    <xsl:with-param name="class" select="$typeahead-class"/>
+                    <xsl:with-param name="class" select="$chip-class"/>
                     <xsl:with-param name="forClass" select="$forClass"/>
                 </xsl:apply-templates>
             </xsl:result-document>
@@ -2171,16 +2171,16 @@ WHERE
     </xsl:template>
 
     <xsl:template match="button[contains-token(@class, 'add-type')]" mode="ixsl:onclick" priority="1">
-        <xsl:param name="lookup-class" select="'type-typeahead typeahead'" as="xs:string"/>
-        <xsl:param name="lookup-list-class" select="'type-typeahead typeahead ldhc-cb-panel'" as="xs:string"/>
+        <xsl:param name="combobox-class" select="'type-combobox combobox'" as="xs:string"/>
+        <xsl:param name="combobox-list-class" select="'type-combobox combobox ldhc-cb-panel'" as="xs:string"/>
         <xsl:variable name="uuid" select="ac:uuid()" as="xs:string"/>
         
         <xsl:for-each select="..">
             <xsl:variable name="lookup" as="element()">
                 <xsl:call-template name="ldh:Combobox">
                     <xsl:with-param name="id" select="'input-' || $uuid"/>
-                    <xsl:with-param name="class" select="$lookup-class"/>
-                    <xsl:with-param name="list-class" select="$lookup-list-class"/>
+                    <xsl:with-param name="class" select="$combobox-class"/>
+                    <xsl:with-param name="list-class" select="$combobox-list-class"/>
                 </xsl:call-template>
             </xsl:variable>
             
@@ -2200,16 +2200,16 @@ WHERE
     </xsl:template>
 
     <!-- special case for class (with constructor) lookups -->
-    <xsl:template match="button[contains-token(@class, 'add-type-typeahead')]" mode="ixsl:onclick" priority="1">
+    <xsl:template match="button[contains-token(@class, 'add-type-combobox')]" mode="ixsl:onclick" priority="1">
         <xsl:next-match>
-            <xsl:with-param name="lookup-class" select="'type-typeahead typeahead'"/>
-            <xsl:with-param name="lookup-list-class" select="'type-typeahead typeahead ldhc-cb-panel'" as="xs:string"/>
+            <xsl:with-param name="combobox-class" select="'type-combobox combobox'"/>
+            <xsl:with-param name="combobox-list-class" select="'type-combobox combobox ldhc-cb-panel'" as="xs:string"/>
         </xsl:next-match>
     </xsl:template>
     
-    <xsl:template match="button[contains-token(@class, 'add-typeahead')]" mode="ixsl:onclick">
-        <xsl:param name="lookup-class" select="'resource-typeahead typeahead'" as="xs:string"/>
-        <xsl:param name="lookup-list-class" select="'resource-typeahead typeahead'" as="xs:string"/>
+    <xsl:template match="button[contains-token(@class, 'add-combobox')]" mode="ixsl:onclick">
+        <xsl:param name="combobox-class" select="'resource-combobox combobox'" as="xs:string"/>
+        <xsl:param name="combobox-list-class" select="'resource-combobox combobox'" as="xs:string"/>
         <xsl:variable name="uuid" select="ac:uuid()" as="xs:string"/>
         <!-- the committed chip span carries the class scope; the fresh lookup replaces it wholesale -->
         <xsl:variable name="committed" select="ancestor::span[contains-token(@class, 'ldhc-cb-committed')][1]" as="element()"/>
@@ -2219,8 +2219,8 @@ WHERE
             <xsl:result-document href="?." method="ixsl:replace-element">
                 <xsl:call-template name="ldh:Combobox">
                     <xsl:with-param name="id" select="'input-' || $uuid"/>
-                    <xsl:with-param name="class" select="$lookup-class"/>
-                    <xsl:with-param name="list-class" select="$lookup-list-class"/>
+                    <xsl:with-param name="class" select="$combobox-class"/>
+                    <xsl:with-param name="list-class" select="$combobox-list-class"/>
                     <xsl:with-param name="forClass" select="$forClass"/>
                 </xsl:call-template>
             </xsl:result-document>
@@ -2231,9 +2231,9 @@ WHERE
         </xsl:for-each>
     </xsl:template>
     
-    <!-- show a typeahead dropdown with instances in the form -->
+    <!-- show a combobox panel with instances in the form -->
     
-    <xsl:template match="form//input[contains-token(@class, 'resource-typeahead')]" mode="ixsl:onfocusin">
+    <xsl:template match="form//input[contains-token(@class, 'resource-combobox')]" mode="ixsl:onfocusin">
         <xsl:variable name="menu" select="(following-sibling::ul, ../following-sibling::div[contains-token(@class, 'ldhc-cb-panel')])[1]" as="element()"/>
         <xsl:variable name="forClass" select="../ixsl:get(., 'dataset.forClass')" as="xs:anyURI*"/>
         <xsl:variable name="item-doc" as="document-node()">
@@ -2261,7 +2261,7 @@ WHERE
             </xsl:document>
         </xsl:variable>
 
-        <ixsl:set-property name="LinkedDataHub.typeahead.rdfXml" select="$item-doc"/>
+        <ixsl:set-property name="LinkedDataHub.combobox.rdfXml" select="$item-doc"/>
 
         <xsl:call-template name="ldh:ComboboxProcess">
             <xsl:with-param name="menu" select="$menu"/>

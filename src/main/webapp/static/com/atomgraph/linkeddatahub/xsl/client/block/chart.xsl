@@ -636,7 +636,7 @@ exclude-result-prefixes="#all"
                         <!-- re-render the chart header with the category/series options from the results -->
                         <xsl:for-each select="$container//div[contains-token(@class, 'chart-controls')]">
                             <xsl:result-document href="?." method="ixsl:replace-element">
-                                <xsl:apply-templates select="$results/*" mode="ldh:ChartHeader">
+                                <xsl:apply-templates select="$results/*" mode="ldh:ChartControls">
                                     <xsl:with-param name="chart-type" select="$chart-type"/>
                                     <xsl:with-param name="category" select="$category"/>
                                     <xsl:with-param name="series" select="$series"/>

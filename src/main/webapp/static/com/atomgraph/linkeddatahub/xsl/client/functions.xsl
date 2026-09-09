@@ -618,7 +618,7 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="translations" select="ldh:translations()" as="document-node()"/>
 
-        <xsl:apply-templates select="$translations" mode="ac:Alert">
+        <xsl:apply-templates select="$translations" mode="ac:InlineAlert">
             <xsl:with-param name="title" as="item()*">
                 <xsl:apply-templates select="key('resources', $title-key, $translations)" mode="ac:label"/>
             </xsl:with-param>

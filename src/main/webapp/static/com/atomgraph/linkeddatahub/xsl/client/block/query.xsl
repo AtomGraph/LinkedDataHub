@@ -106,7 +106,7 @@ exclude-result-prefixes="#all"
                  error response - could not load service 
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
-                        <xsl:apply-templates select="." mode="ac:Alert">
+                        <xsl:apply-templates select="." mode="ac:InlineAlert">
                             <xsl:with-param name="variant" select="'va-negative'"/>
                             <xsl:with-param name="text" as="item()*">
                                     <xsl:apply-templates select="key('resources', 'error-loading-service', ldh:translations())" mode="ac:label"/>

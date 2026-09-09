@@ -106,7 +106,7 @@ extension-element-prefixes="ixsl"
 
     <xsl:include href="admin/signup.xsl"/>
     <xsl:include href="client/query-transforms.xsl"/>
-    <xsl:include href="client/typeahead.xsl"/>
+    <xsl:include href="client/combobox.xsl"/>
     <xsl:include href="client/functions.xsl"/>
     <xsl:include href="client/navigation.xsl"/>
     <xsl:include href="client/block.xsl"/>
@@ -281,7 +281,7 @@ WHERE
         <!-- create a LinkedDataHub namespace -->
         <ixsl:set-property name="LinkedDataHub" select="ldh:new-object()"/>
         <ixsl:set-property name="contents" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        <ixsl:set-property name="typeahead" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by typeahead.xsl -->
+        <ixsl:set-property name="combobox" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by combobox.xsl -->
         <ixsl:set-property name="graphs" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by graph3d.xsl -->
         <ixsl:set-property name="yasqe" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="pending-scrolls" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- deferred fragment scrolls awaiting block hydration, keyed by scroll id (ldh:RenderTab/ldh:block-hydrated) -->
@@ -491,7 +491,7 @@ WHERE
                             <xsl:otherwise>
                                 <xsl:variable name="tab-body" as="element()">
                                     <!-- inert class: ldh:ActivateTab (called from ldh:RenderTab below) is the single source of truth for the 'is-active' token. Defaulting to 'ldh-pane is-active' here would briefly leave two panes active (this one + the currently-active local one) and crash ldt:base()/sd:endpoint() in any code that runs between append and ActivateTab (e.g. ldh:DataspaceDrawer). -->
-                                    <xsl:apply-templates select="$render-results/rdf:RDF" mode="ldh:TabBody">
+                                    <xsl:apply-templates select="$render-results/rdf:RDF" mode="ldh:TabPanel">
                                         <xsl:with-param name="id" select="$tab-body-id"/>
                                         <xsl:with-param name="class" select="'ldh-pane'"/>
                                         <xsl:with-param name="mode" select="$mode"/>
@@ -652,7 +652,7 @@ WHERE
                         </xsl:when>
                         <xsl:otherwise>
                             <xsl:variable name="tab-body" as="element()">
-                                <xsl:apply-templates select="$results/rdf:RDF" mode="ldh:TabBody">
+                                <xsl:apply-templates select="$results/rdf:RDF" mode="ldh:TabPanel">
                                     <xsl:with-param name="id" select="$tab-body-id"/>
                                     <xsl:with-param name="class" select="'ldh-pane'"/>
                                     <xsl:with-param name="mode" select="$mode"/>
