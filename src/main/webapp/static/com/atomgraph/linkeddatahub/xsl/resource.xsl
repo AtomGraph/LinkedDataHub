@@ -679,12 +679,22 @@ exclude-result-prefixes="#all"
                 <xsl:attribute name="about" select="$about"/>
             </xsl:if>
 
-            <!-- one header for every block type (the design's TextBlock is a quiet Block with the same
-                 header); the drag slot rides it, replacing the gutter handle -->
+            <!-- prose renders headerless - no title, no type chips - so the header's affordances move onto
+                 the card, hover-surfaced: the drag slot stretches into a full-height strip on the right edge
+                 (same class and gate as the header slot - the DnD handlers key on the class and resolve the
+                 row via the ancestor axis, so the reorder wiring is unchanged) and the actions anchor at the
+                 top-right corner beside it -->
             <xsl:if test="$about">
-                <xsl:apply-templates select="." mode="ac:BlockHeader">
-                    <xsl:with-param name="draggable" select="$show-drag-handle"/>
-                </xsl:apply-templates>
+                <xsl:if test="$show-drag-handle and acl:mode() = '&acl;Write'">
+                    <span class="ldh-bh-drag is-edge" role="button" tabindex="0" draggable="true" aria-label="{ac:label(key('resources', 'drag-to-reorder', ldh:translations()))}" title="{ac:label(key('resources', 'drag-to-reorder', ldh:translations()))}">
+                        <span class="msi sm" aria-hidden="true">drag_indicator</span>
+                    </span>
+                </xsl:if>
+
+                <div class="ldh-block-corner">
+                    <xsl:apply-templates select="." mode="ldh:BlockLinksPopover"/>
+                    <xsl:apply-templates select="." mode="ac:BlockActions"/>
+                </div>
             </xsl:if>
 
             <div id="row-{generate-id()}" class="block-row">
@@ -856,8 +866,6 @@ exclude-result-prefixes="#all"
             </div>
 
             <div class="actions">
-                <xsl:apply-templates select="." mode="ldh:Timestamp"/>
-
                 <xsl:if test="$show-links and @rdf:about">
                     <xsl:apply-templates select="." mode="ldh:BlockLinksPopover"/>
                 </xsl:if>

@@ -621,6 +621,19 @@ body:has(.document-body > .content-body > :is(.graph-3d-canvas, .map-canvas)) .l
    inline inside it - the design repo's card re-introduced overflow clipping and dropped the anchor */
 .ldh-block { position: relative; overflow: visible; }
 
+/* XHTML content blocks are headerless - prose reads as part of the page flow, a documented
+   divergence from the design repo's TextBlock, which keeps the shared block header. The header's
+   affordances stay on the card, surfaced on card hover or keyboard focus: the drag slot stretches
+   into a full-height strip along the right edge (the 22px width and the grab/hover treatment come
+   from app.css's .ldh-bh-drag base) and the actions cluster anchors at the top-right corner beside
+   it, staying put while its links popover is open */
+.ldh-block > .ldh-bh-drag.is-edge { position: absolute; top: 0; right: 0; bottom: 0; height: auto; margin-top: 0; opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft), background var(--dur-fast) var(--ease-out-soft), color var(--dur-fast) var(--ease-out-soft); }
+.ldh-block:hover > .ldh-bh-drag.is-edge, .ldh-block > .ldh-bh-drag.is-edge:focus-visible { opacity: 1; }
+.ldh-block-corner { position: absolute; top: var(--sp-3); right: calc(22px + var(--sp-2)); display: flex; align-items: center; gap: var(--sp-1); opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft); }
+/* ac:BlockActions wraps its buttons in a div of its own - flatten it into the cluster row */
+.ldh-block-corner > div:not(.links-nav) { display: contents; }
+.ldh-block:hover > .ldh-block-corner, .ldh-block > .ldh-block-corner:focus-within, .ldh-block > .ldh-block-corner:has(.is-open) { opacity: 1; }
+
 /* mode switchers (the document- and view-scoped variants share the template): the trigger is a
    native button inside the .ldh-mode pill, so it must not paint its own chrome */
 .ldh-mode > button { background: transparent; border: 0; padding: 0; color: inherit; font: inherit; }
