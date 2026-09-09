@@ -11,6 +11,7 @@ exclude-result-prefixes="#all">
          Web-Client base is imported by the master (internal-layout for SSR, common for CSR), not here:
          which Web-Client flavor applies is the one real product difference. -->
 
+    <xsl:import href="merge-rdfxml.xsl"/>
     <xsl:import href="imports/default.xsl"/>
     <xsl:import href="resource.xsl"/>
     <xsl:import href="imports/ac.xsl"/>

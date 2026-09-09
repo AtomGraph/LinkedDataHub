@@ -23,7 +23,6 @@ exclude-result-prefixes="#all"
 
     <xsl:include href="3d-force-graph.xsl"/>
     <xsl:include href="normalize-rdfxml.xsl"/>
-    <xsl:include href="merge-rdfxml.xsl"/>
 
     <xsl:param name="backlinks-graph-string" as="xs:string">
 <![CDATA[
