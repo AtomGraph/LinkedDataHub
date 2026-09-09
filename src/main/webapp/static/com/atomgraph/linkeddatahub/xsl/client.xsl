@@ -80,6 +80,7 @@ extension-element-prefixes="ixsl"
     <xsl:import href="rdfa-editor/index.xsl"/>
 
     <xsl:include href="admin/signup.xsl"/>
+    <xsl:include href="client/signup.xsl"/>
     <xsl:include href="client/query-transforms.xsl"/>
     <xsl:include href="client/combobox.xsl"/>
     <xsl:include href="client/functions.xsl"/>

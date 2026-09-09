@@ -22,7 +22,6 @@
 <xsl:stylesheet version="3.0"
 xmlns="http://www.w3.org/1999/xhtml"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:lapp="&lapp;"
@@ -78,8 +77,7 @@ exclude-result-prefixes="#all">
                     <xsl:apply-templates select="." mode="ldh:PropertyLabel">
                         <xsl:with-param name="this" select="$this"/>
                         <xsl:with-param name="label" as="item()*">
-                            <xsl:value-of select="ac:label(key('resources', $this, document(ac:document-uri(namespace-uri()))))" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-                            <xsl:value-of select="ac:label(key('resources', $this, if (ixsl:doc-fetched(ac:document-uri(namespace-uri()))) then document(ac:document-uri(namespace-uri())) else ()))" use-when="system-property('xsl:product-name') eq 'SaxonJS'"/>
+                            <xsl:value-of select="ldh:label-document(ac:document-uri(namespace-uri()))!key('resources', $this, .)!ac:label(.)"/>
                         </xsl:with-param>
                     </xsl:apply-templates>
 

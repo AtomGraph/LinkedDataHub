@@ -122,6 +122,39 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="lapp:origin(ldt:base())"/>
     </xsl:function>
 
+    <xsl:function name="ldh:label-document" as="document-node()?">
+        <xsl:param name="uri" as="xs:anyURI"/>
+
+        <xsl:sequence select="if (ixsl:doc-fetched($uri)) then document($uri) else ()"/>
+    </xsl:function>
+
+    <!-- the browser's own language preferences, overriding the Web-Client body that reads the writer-supplied parameter.
+         Same normalisation as that one: primary subtags, deduped, 'en' when the browser offers nothing.
+
+         navigator.languages comes back as a sequence of xs:untypedAtomic, so a for clause iterates the tags themselves -
+         measured in the browser, where reaching into it with ?* instead reports "Required item type is function(*);
+         supplied value is xs:untypedAtomic". Not every JS array converts this way: DataTransfer.types arrives as an XDM
+         array and does need flattening, so check the shape rather than assuming either. -->
+    <xsl:function name="ac:langs" as="xs:string*">
+        <xsl:variable name="langs" select="distinct-values(for $lang in ixsl:get(ixsl:window(), 'navigator.languages') return tokenize($lang, '-')[1])[not(. = ('', '*'))]" as="xs:string*"/>
+
+        <xsl:sequence select="if (exists($langs)) then $langs else 'en'"/>
+    </xsl:function>
+
+    <!-- Parses a SPARQL query string into the parse-tree JSON subset that ldh:construct-instance consumes: a 'template' array of subject/predicate/object term strings in the SPARQL.js 2.x serialization (see ldh:triples-to-descriptions) and a 'where' array whose non-emptiness marks a query that cannot be instantiated as a pure template. Dual-declared so both products parse identically: the SaxonJS declaration wraps the browser's SPARQL.js Parser; under Saxon the registered ParseQuery extension function (Jena QueryFactory) emits the same subset and takes precedence over the standalone-compilation fallback below (override-extension-function="no"). ParseQuery, ldh:triples-to-descriptions and ldh:construct-instance must change in lockstep if SPARQL.js is upgraded to 3.x. -->
+    <xsl:function name="ldh:parse-query" as="xs:string">
+        <xsl:param name="query" as="xs:string"/>
+
+        <!-- read the parse tree through JSON serialization - SaxonJS does not marshal plain JS arrays for ixsl:get() access -->
+        <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($sparql-parser, 'parse', [ $query ]) ])"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:url-decode" as="xs:string">
+        <xsl:param name="encoded-string" as="xs:string"/>
+        
+        <xsl:sequence select="ixsl:call(ixsl:window(), 'decodeURIComponent', [ $encoded-string ])"/>
+    </xsl:function>
+
     <xsl:function name="ldh:query-type" as="xs:string?">
         <xsl:param name="query-string" as="xs:string"/>
         

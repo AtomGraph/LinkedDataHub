@@ -83,6 +83,7 @@ exclude-result-prefixes="#all">
     <xsl:import href="../../client/xsl/converters/RDFXML2JSON-LD.xsl"/>
     <xsl:import href="../../client/xsl/internal-layout.xsl"/>
     <xsl:import href="common.xsl"/>
+    <xsl:import href="server.xsl"/> <!-- the server-side bindings of the product-dualed functions (client/functions.xsl mirrors them) -->
 
 
     <!-- signup page overrides, shared with the client (client.xsl includes it too); the browser-only submit handling inside is use-when-guarded to SaxonJS -->

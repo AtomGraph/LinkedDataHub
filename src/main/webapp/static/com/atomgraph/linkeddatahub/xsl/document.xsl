@@ -59,9 +59,7 @@ xmlns:geo="&geo;"
 xmlns:srx="&srx;"
 xmlns:void="&void;"
 xmlns:schema="&schema;"
-xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 exclude-result-prefixes="#all"
-extension-element-prefixes="ixsl"
 >
     
     <xsl:mode name="ldh:Shape" on-no-match="deep-skip"/>

@@ -45,34 +45,8 @@ xmlns:dct="&dct;"
 xmlns:foaf="&foaf;"
 xmlns:sioc="&sioc;"
 xmlns:spin="&spin;"
-xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
-extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all">
-
-    <!-- intercept signup form submit to route the success callback through ldh:signup-form-response -->
-    <xsl:template match="form[@id = 'form-signup']" mode="ixsl:onsubmit" priority="3" use-when="system-property('xsl:product-name') = 'SaxonJS'">
-        <xsl:next-match>
-            <xsl:with-param name="callback" select="ldh:signup-form-response#1"/>
-        </xsl:next-match>
-    </xsl:template>
-
-    <xsl:function name="ldh:signup-form-response" ixsl:updating="yes" use-when="system-property('xsl:product-name') = 'SaxonJS'">
-        <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
-        <xsl:variable name="status" select="$response?status" as="xs:double"/>
-
-        <xsl:choose>
-            <xsl:when test="$status = 201 and map:contains($response?headers, 'location')">
-                <xsl:for-each select="$response">
-                    <xsl:call-template name="ldh:SignUpComplete"/>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:sequence select="ldh:row-form-response($context)"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:function>
 
     <xsl:template match="rdf:RDF[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), ldt:base())]" mode="ldh:ContentBody" priority="2">
         <div class="content-body">

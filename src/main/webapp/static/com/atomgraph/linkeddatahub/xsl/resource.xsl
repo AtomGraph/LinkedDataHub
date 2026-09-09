@@ -57,9 +57,7 @@ xmlns:spin="&spin;"
 xmlns:geo="&geo;"
 xmlns:void="&void;"
 xmlns:schema="&schema;"
-xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 exclude-result-prefixes="#all"
-extension-element-prefixes="ixsl"
 >
     
     <xsl:key name="shapes-by-target-class" match="*[@rdf:about] | *[@rdf:nodeID]" use="sh:targetClass/@rdf:resource | sh:targetClass/@rdf:resource"/>

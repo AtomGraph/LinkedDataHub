@@ -26,7 +26,6 @@
 <xsl:stylesheet version="3.0"
 xmlns="http://www.w3.org/1999/xhtml"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:json="http://www.w3.org/2005/xpath-functions"
@@ -59,6 +58,8 @@ exclude-result-prefixes="#all"
     <xsl:key name="resources-by-type" match="*[*][@rdf:about] | *[*][@rdf:nodeID]" use="rdf:type/@rdf:resource"/>
 
     <xsl:param name="ac:contextUri" as="xs:anyURI?"/>
+
+
 
     <xsl:function name="ac:property-label" as="xs:string?">
         <xsl:param name="property" as="element()"/>
@@ -96,11 +97,8 @@ exclude-result-prefixes="#all"
                 <!-- <xsl:message>ac:object-label(<xsl:value-of select="."/>) $object-metadata: <xsl:value-of select="serialize($object-metadata)"/></xsl:message> -->
                 <xsl:apply-templates select="$object-metadata!key('resources', $this, .)" mode="ac:label"/>
             </xsl:when>
-            <xsl:when test="ixsl:doc-fetched(ac:document-uri(.)) and key('resources', ., document(ac:document-uri(.)))" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
-                <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ac:label"/>
-            </xsl:when>
-            <xsl:when test="doc-available(ac:document-uri(.)) and key('resources', ., document(ac:document-uri(.)))" use-when="system-property('xsl:product-name') = 'SAXON'">
-                <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="ac:label"/>
+            <xsl:when test="ldh:label-document(ac:document-uri(.))!key('resources', $this, .)">
+                <xsl:apply-templates select="ldh:label-document(ac:document-uri(.))!key('resources', $this, .)" mode="ac:label"/>
             </xsl:when>
             <xsl:when test="contains(., '#') and not(ends-with(., '#'))">
                 <xsl:sequence select="substring-after(., '#')"/>
@@ -114,54 +112,10 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
     
-    <xsl:function name="acl:mode" as="xs:anyURI*" use-when="system-property('xsl:product-name') = 'SAXON'">
-        <xsl:variable name="entries" as="xs:string*">
-            <xsl:for-each select="$ldh:httpHeaders('Link')">
-                <xsl:analyze-string select="." regex="&lt;[^&gt;]+&gt;[^&lt;]*">
-                    <xsl:matching-substring>
-                        <xsl:sequence select="."/>
-                    </xsl:matching-substring>
-                </xsl:analyze-string>
-            </xsl:for-each>
-        </xsl:variable>
-        <xsl:sequence select="for $entry in $entries return if (matches($entry, '^&lt;[^&gt;]+&gt;\s*;.*[;\s]rel\s*=\s*&quot;?[^&quot;\s,;]*acl#mode&quot;?')) then xs:anyURI(replace($entry, '^&lt;([^&gt;]+)&gt;.*$', '$1')) else ()"/>
-    </xsl:function>
 
-    <!-- the browser's own language preferences, overriding the Web-Client body that reads the writer-supplied parameter.
-         Same normalisation as that one: primary subtags, deduped, 'en' when the browser offers nothing.
 
-         navigator.languages comes back as a sequence of xs:untypedAtomic, so a for clause iterates the tags themselves -
-         measured in the browser, where reaching into it with ?* instead reports "Required item type is function(*);
-         supplied value is xs:untypedAtomic". Not every JS array converts this way: DataTransfer.types arrives as an XDM
-         array and does need flattening, so check the shape rather than assuming either. -->
-    <xsl:function name="ac:langs" as="xs:string*" use-when="system-property('xsl:product-name') = 'SaxonJS'">
-        <xsl:variable name="langs" select="distinct-values(for $lang in ixsl:get(ixsl:window(), 'navigator.languages') return tokenize($lang, '-')[1])[not(. = ('', '*'))]" as="xs:string*"/>
 
-        <xsl:sequence select="if (exists($langs)) then $langs else 'en'"/>
-    </xsl:function>
 
-    <xsl:function name="ac:uri" as="xs:anyURI?" use-when="system-property('xsl:product-name') = 'SAXON'">
-        <xsl:sequence select="$ac:uri"/>
-    </xsl:function>
-
-    <!-- TimeMap URI from the Link response header (rel=timemap), present when the document is versioned -->
-    <xsl:function name="ldh:timemap" as="xs:anyURI?" use-when="system-property('xsl:product-name') = 'SAXON'">
-        <xsl:variable name="entries" as="xs:string*">
-            <xsl:for-each select="$ldh:httpHeaders('Link')">
-                <xsl:analyze-string select="." regex="&lt;[^&gt;]+&gt;[^&lt;]*">
-                    <xsl:matching-substring>
-                        <xsl:sequence select="."/>
-                    </xsl:matching-substring>
-                </xsl:analyze-string>
-            </xsl:for-each>
-        </xsl:variable>
-        <xsl:sequence select="(for $entry in $entries return if (matches($entry, '^&lt;[^&gt;]+&gt;\s*;.*[;\s]rel\s*=\s*&quot;?timemap&quot;?([;\s]|$)')) then xs:anyURI(replace($entry, '^&lt;([^&gt;]+)&gt;.*$', '$1')) else ())[1]"/>
-    </xsl:function>
-
-    <!-- Memento-Datetime response header value, present on ?version= responses -->
-    <xsl:function name="ldh:memento-datetime" as="xs:string?" use-when="system-property('xsl:product-name') = 'SAXON'">
-        <xsl:sequence select="$ldh:httpHeaders('Memento-Datetime')[1]"/>
-    </xsl:function>
 
     <!-- Strips the leftmost subdomain and returns parent dataspace origin (scheme + host + port) -->
     <xsl:function name="ldh:parent-origin" as="xs:anyURI?">
@@ -188,9 +142,6 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:function>
     
-    <xsl:function name="ldh:request-uri" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'">
-        <xsl:sequence select="$ldh:requestUri"/>
-    </xsl:function>
     
     <xsl:function name="ldh:query-params" as="map(xs:string, xs:string*)">
         <!-- ac:document-uri strips the URL's #fragment so it doesn't get glued onto the last query value -->
@@ -204,11 +155,6 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="map:merge((if (map:contains($query-params, 'version')) then map{ 'version': $query-params?version } else (), if (map:contains($query-params, 'timemap')) then map{ 'timemap': $query-params?timemap } else ()))"/>
     </xsl:function>
     
-    <xsl:function name="ldh:base-uri" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'">
-        <xsl:param name="arg" as="node()"/>
-        
-        <xsl:sequence select="base-uri($arg)"/>
-    </xsl:function>
       
     <xsl:function name="ldt:base" as="xs:anyURI">
         <xsl:sequence select="$ldt:base"/>
@@ -224,9 +170,6 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="xs:anyURI(replace($uri, '^(https?://[^/]+).*$', '$1'))"/>
     </xsl:function>
 
-    <xsl:function name="lapp:origin" as="xs:anyURI?" use-when="system-property('xsl:product-name') = 'SAXON'">
-        <xsl:sequence select="$lapp:origin"/>
-    </xsl:function>
 
     <!-- Web-Client's label catalog resolves against the shell origin here, like the app's own translations.rdf:
          the same-origin URL works for the same-site server resolver and in the browser alike -->
@@ -360,19 +303,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="'SELECT DISTINCT ?constructor ?text WHERE { VALUES ?type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' } ?type &lt;http://www.w3.org/2000/01/rdf-schema#subClassOf&gt;* ?class . ?class &lt;http://spinrdf.org/spin#constructor&gt; ?constructor . ?constructor &lt;http://spinrdf.org/sp#text&gt; ?text . }'"/>
     </xsl:function>
 
-    <!-- Parses a SPARQL query string into the parse-tree JSON subset that ldh:construct-instance consumes: a 'template' array of subject/predicate/object term strings in the SPARQL.js 2.x serialization (see ldh:triples-to-descriptions) and a 'where' array whose non-emptiness marks a query that cannot be instantiated as a pure template. Dual-declared so both products parse identically: the SaxonJS declaration wraps the browser's SPARQL.js Parser; under Saxon the registered ParseQuery extension function (Jena QueryFactory) emits the same subset and takes precedence over the standalone-compilation fallback below (override-extension-function="no"). ParseQuery, ldh:triples-to-descriptions and ldh:construct-instance must change in lockstep if SPARQL.js is upgraded to 3.x. -->
-    <xsl:function name="ldh:parse-query" as="xs:string" use-when="system-property('xsl:product-name') = 'SaxonJS'">
-        <xsl:param name="query" as="xs:string"/>
 
-        <!-- read the parse tree through JSON serialization - SaxonJS does not marshal plain JS arrays for ixsl:get() access -->
-        <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($sparql-parser, 'parse', [ $query ]) ])"/>
-    </xsl:function>
-
-    <xsl:function name="ldh:parse-query" as="xs:string" override-extension-function="no" use-when="system-property('xsl:product-name') = 'SAXON'">
-        <xsl:param name="query" as="xs:string"/>
-
-        <xsl:sequence select="'{}'"/>
-    </xsl:function>
 
     <!-- constructor instantiation: the template mirrors the instance. One SELECT fetches the
     spin:constructor query texts for the whole type set (subclass closure, DISTINCT), and the
@@ -761,19 +692,7 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:function>
 
-    <xsl:function name="ldh:url-decode" as="xs:string" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
-        <xsl:param name="encoded-string" as="xs:string"/>
-        
-        <xsl:sequence select="ixsl:call(ixsl:window(), 'decodeURIComponent', [ $encoded-string ])"/>
-    </xsl:function>
 
-    <xsl:function name="ldh:url-decode" as="xs:string" use-when="system-property('xsl:product-name') = 'SAXON'" override-extension-function="no" cache="yes">
-        <xsl:param name="encoded-string" as="xs:string"/>
-        
-        <xsl:message terminate="yes">
-            Not implemented -- com.atomgraph.linkeddatahub.writer.function.URLDecode needs to be registered as an extension function
-        </xsl:message>
-    </xsl:function>
 
     <xsl:function name="ldh:parse-query-params" as="map(xs:string, xs:string*)">
         <xsl:param name="query-string" as="xs:string"/>
@@ -830,11 +749,8 @@ exclude-result-prefixes="#all"
             <xsl:when test="$property-metadata/key('resources', $this, .)">
                 <xsl:apply-templates select="$property-metadata/key('resources', $this, .)" mode="ac:label"/>
             </xsl:when>
-            <xsl:when test="ixsl:doc-fetched(ac:document-uri(namespace-uri())) and key('resources', $this, document(ac:document-uri(namespace-uri())))" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
-                <xsl:apply-templates select="key('resources', $this, document(ac:document-uri(namespace-uri())))" mode="ac:label"/>
-            </xsl:when>
-            <xsl:when test="doc-available(ac:document-uri(namespace-uri())) and key('resources', $this, document(ac:document-uri(namespace-uri())))" use-when="system-property('xsl:product-name') = 'SAXON'">
-                <xsl:apply-templates select="key('resources', $this, document(ac:document-uri(namespace-uri())))" mode="ac:label"/>
+            <xsl:when test="ldh:label-document(ac:document-uri(namespace-uri()))!key('resources', $this, .)">
+                <xsl:apply-templates select="ldh:label-document(ac:document-uri(namespace-uri()))!key('resources', $this, .)" mode="ac:label"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:sequence select="local-name()"/>
