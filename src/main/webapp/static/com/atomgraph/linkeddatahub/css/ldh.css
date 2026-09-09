@@ -43,6 +43,11 @@ a.external::after { content: "⤴"; padding-left: 0.2em; }
    (it borrows the .ldhc-modal-head/.ldhc-modal-body anatomy but is not a dialog) */
 #rdfa-editor-overlay { position: absolute; min-width: 360px; max-width: 520px; z-index: 10001; background: var(--surface-0); border-radius: var(--r-lg); box-shadow: var(--shadow-xl); display: flex; flex-direction: column; overflow: hidden; }
 .container-results { max-height: 80em; overflow: auto; }
+/* grid mode opts out of the scrollport: the m3 card draws its border as an outside box-shadow, and the
+   grid sits flush in the wrapper (the list reset zeroes .ldh-grid-block padding), so any clip box cuts
+   the card edges - the table can stay flush because its border draws inside. In the design system the
+   grid lives in normal flow; the page scrolls it, and the sticky pager pins to that scrollport instead */
+.container-results:has(> .ldh-grid-block) { max-height: none; overflow: visible; }
 .map-canvas { height: 45em; width: 100%; }
 #uri { height: 24px; width: 100%; }
 /* Web-Client's default resource templates emit p.description summaries LDH does not surface */
