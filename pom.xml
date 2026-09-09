@@ -92,7 +92,7 @@
         <dependency>
             <groupId>org.glassfish.jersey.connectors</groupId>
             <artifactId>jersey-apache-connector</artifactId>
-            <version>3.1.12</version>
+            <version>3.1.11</version>
             <exclusions>
                 <!-- exclude commons-logging (via httpclient) - jcl-over-slf4j from Jena provides the JCL API. Otherwise duplicate org.apache.commons.logging classes on the classpath -->
                 <exclusion>
@@ -110,12 +110,12 @@
         <dependency>
             <groupId>org.glassfish.jersey.media</groupId>
             <artifactId>jersey-media-multipart</artifactId>
-            <version>3.1.12</version>
+            <version>3.1.11</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.media</groupId>
             <artifactId>jersey-media-json-processing</artifactId>
-            <version>3.1.12</version>
+            <version>3.1.11</version>
         </dependency>
         <dependency>
             <groupId>com.sun.mail</groupId>
