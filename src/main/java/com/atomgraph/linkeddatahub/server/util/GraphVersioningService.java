@@ -169,18 +169,20 @@ public class GraphVersioningService
         // all commits to a branch share one chain: two files committed concurrently would race the branch head
         String repositoryBranch = repository.client().getOwner() + "/" + repository.client().getRepo() + "/" + repository.client().getBranch();
 
-        commitChains.compute(repositoryBranch, (key, chain) ->
+        CompletableFuture<Void> next = commitChains.compute(repositoryBranch, (key, chain) ->
         {
             CompletableFuture<Void> previous = chain != null ? chain : CompletableFuture.completedFuture(null);
-            CompletableFuture<Void> next = previous.thenRunAsync(() -> reconcile(serviceContext, repository, path, graphURI, message, agentWebID), executor).
+            return previous.thenRunAsync(() -> reconcile(serviceContext, repository, path, graphURI, message, agentWebID), executor).
                 exceptionally(ex ->
                 {
                     if (log.isErrorEnabled()) log.error("Failed to version graph <{}> as '{}': {}", graphURI, path, ex.getMessage());
                     return null;
                 });
-            next.whenComplete((result, ex) -> commitChains.remove(key, next));
-            return next;
         });
+        // cleanup is registered after compute() returns: whenComplete runs on the calling thread when the
+        // future is already done, and ConcurrentHashMap forbids re-entrant updates from inside compute -
+        // registered inside, a fast completion removes the entry before compute installs it, leaking it forever
+        next.whenComplete((result, ex) -> commitChains.remove(repositoryBranch, next));
     }
 
     private void reconcile(ServiceContext serviceContext, Repository repository, String path, URI graphURI, String message, String agentWebID)

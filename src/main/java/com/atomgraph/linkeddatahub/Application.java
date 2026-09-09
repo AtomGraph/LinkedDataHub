@@ -180,6 +180,8 @@ import com.apicatalog.jsonld.JsonLdOptions;
 import java.io.FileOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.util.List;
 import java.util.Locale;
@@ -298,7 +300,9 @@ public class Application extends ResourceConfig
     private final String oidcRefreshTokensPropertiesPath;
     private final Properties oidcRefreshTokens;
     private final URI contextDatasetURI;
-    private final Dataset contextDataset;
+    // volatile: updateApp() replaces the dataset copy-on-write while request threads read it unsynchronized
+    private volatile Dataset contextDataset;
+    private final Object contextDatasetWriteLock = new Object();
     private final URI frontendProxy;
     private final URI backendProxyAdmin;
     private final URI backendProxyEndUser;
@@ -2298,26 +2302,39 @@ public class Application extends ResourceConfig
         if (application == null) throw new IllegalArgumentException("Application cannot be null");
         if (newModel == null) throw new IllegalArgumentException("Model cannot be null");
 
-        synchronized (getContextDataset())
+        synchronized (contextDatasetWriteLock)
         {
             String dataspaceURI = application.getURI();
 
-            // Update the named graph in the dataset
-            getContextDataset().removeNamedModel(dataspaceURI).
-                addNamedModel(dataspaceURI, newModel);
+            // copy-on-write: readers (getContextModel() et al) hold live views over the current dataset from
+            // unsynchronized request threads, so mutating it in place would race them. Build a replacement
+            // dataset sharing the untouched graphs and swap the volatile reference once it is complete.
+            Dataset updated = DatasetFactory.create();
+            updated.setDefaultModel(getContextDataset().getDefaultModel());
+            getContextDataset().listModelNames().forEachRemaining(name ->
+            {
+                if (!name.getURI().equals(dataspaceURI)) updated.addNamedModel(name.getURI(), getContextDataset().getNamedModel(name.getURI()));
+            });
+            updated.addNamedModel(dataspaceURI, ModelFactory.createDefaultModel().add(newModel)); // copy so the caller's reference cannot mutate the published snapshot
 
             // Write the updated dataset back to file using RDFDataMgr
             // Support both absolute file:// URIs and relative webapp paths (like getDataset does)
-            try (java.io.OutputStream out = (getContextDatasetURI().isAbsolute() ?
-                    new FileOutputStream(new java.io.File(getContextDatasetURI())) :
-                    new FileOutputStream(getServletConfig().getServletContext().getRealPath(getContextDatasetURI().toString()))))
-            {
-                Lang lang = RDFDataMgr.determineLang(getContextDatasetURI().toString(), null, null);
-                if (lang == null) throw new IOException("Could not determine RDF format from dataset URI: " + getContextDatasetURI().toString());
+            Lang lang = RDFDataMgr.determineLang(getContextDatasetURI().toString(), null, null);
+            if (lang == null) throw new IOException("Could not determine RDF format from dataset URI: " + getContextDatasetURI().toString());
 
-                RDFDataMgr.write(out, getContextDataset(), lang);
-                if (log.isInfoEnabled()) log.info("Updated dataspace <{}> in context dataset: {}", dataspaceURI, getContextDatasetURI());
+            java.io.File targetFile = getContextDatasetURI().isAbsolute() ?
+                    new java.io.File(getContextDatasetURI()) :
+                    new java.io.File(getServletConfig().getServletContext().getRealPath(getContextDatasetURI().toString()));
+            // temp file in the target directory + atomic move: a crash mid-write must not truncate the deployment's configuration
+            java.io.File tempFile = java.io.File.createTempFile(targetFile.getName(), null, targetFile.getParentFile());
+            try (java.io.OutputStream out = new FileOutputStream(tempFile))
+            {
+                RDFDataMgr.write(out, updated, lang);
             }
+            Files.move(tempFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+
+            this.contextDataset = updated;
+            if (log.isInfoEnabled()) log.info("Updated dataspace <{}> in context dataset: {}", dataspaceURI, getContextDatasetURI());
         }
     }
 
@@ -2599,11 +2616,19 @@ public class Application extends ResourceConfig
      */
     public void storeRefreshToken(String clientID, String refreshToken) throws IOException
     {
-        oidcRefreshTokens.put(clientID, refreshToken);
-        
-        try (FileOutputStream fos = new FileOutputStream(oidcRefreshTokensPropertiesPath))
+        // serialized + written via temp file and atomic move: concurrent OAuth callbacks opening the same
+        // file with truncating streams would interleave and corrupt the token store
+        synchronized (oidcRefreshTokens)
         {
-            oidcRefreshTokens.store(fos, null);
+            oidcRefreshTokens.put(clientID, refreshToken);
+
+            java.io.File targetFile = new java.io.File(oidcRefreshTokensPropertiesPath);
+            java.io.File tempFile = java.io.File.createTempFile(targetFile.getName(), null, targetFile.getParentFile());
+            try (FileOutputStream fos = new FileOutputStream(tempFile))
+            {
+                oidcRefreshTokens.store(fos, null);
+            }
+            Files.move(tempFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
         }
     }
     

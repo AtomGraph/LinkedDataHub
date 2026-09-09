@@ -202,9 +202,9 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
         @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context HttpHeaders httpHeaders)
     {
-        super(request, system.getServiceContext(service.get()).getGraphStoreClient(), mediaTypes, uriInfo);
+        // orElseThrow: the super() call dereferences the service before any statement can check emptiness
+        super(request, system.getServiceContext(service.orElseThrow(() -> new InternalServerErrorException("Service is not specified"))).getGraphStoreClient(), mediaTypes, uriInfo);
         if (ontology.isEmpty()) throw new InternalServerErrorException("Ontology is not specified");
-        if (service.isEmpty()) throw new InternalServerErrorException("Service is not specified");
         this.application = application;
         this.ontology = ontology.get();
         this.service = service.get();

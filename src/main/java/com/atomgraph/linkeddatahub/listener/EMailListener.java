@@ -62,7 +62,7 @@ public class EMailListener implements ServletContextListener
      */
     public static void submit(Message message)
     {
-        CompletableFuture.runAsync(new MessageSender(message)).
+        CompletableFuture.runAsync(new MessageSender(message), THREAD_POOL).
             exceptionally(failure(message));
     }
     
