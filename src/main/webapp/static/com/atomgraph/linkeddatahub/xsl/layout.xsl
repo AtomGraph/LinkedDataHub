@@ -536,7 +536,7 @@ exclude-result-prefixes="#all">
 
             <xsl:choose>
                 <xsl:when test="$ldh:ajaxRendering">
-                    <xsl:apply-templates select="." mode="ldh:SearchField"/>
+                    <xsl:apply-templates select="." mode="ldh:AddressBar"/>
                 </xsl:when>
                 <xsl:otherwise>
                     <div/> <!-- keep the 220px/1fr/auto grid columns aligned -->
@@ -544,7 +544,7 @@ exclude-result-prefixes="#all">
             </xsl:choose>
 
             <div class="ldh-header-actions">
-                <xsl:apply-templates select="." mode="ldh:HeaderNavList"/>
+                <xsl:apply-templates select="." mode="ldh:HeaderActions"/>
             </div>
         </div>
     </xsl:template>
@@ -569,25 +569,25 @@ exclude-result-prefixes="#all">
     <xsl:template match="*" mode="ldh:Brand"/>
 
     <!-- check if agent has access to the user endpoint by executing a dummy query ASK {} -->
-    <xsl:template match="rdf:RDF[doc-available(resolve-uri('sparql?query=ASK%20%7B%7D', $ldt:base))] | srx:sparql[doc-available(resolve-uri('sparql?query=ASK%20%7B%7D', $ldt:base))]" mode="ldh:SearchField" priority="1">
+    <xsl:template match="rdf:RDF[doc-available(resolve-uri('sparql?query=ASK%20%7B%7D', $ldt:base))] | srx:sparql[doc-available(resolve-uri('sparql?query=ASK%20%7B%7D', $ldt:base))]" mode="ldh:AddressBar" priority="1">
         <form action="{ac:absolute-path(ldh:request-uri())}" method="get" class="navbar-form ldh-address" accept-charset="UTF-8" title="{ac:label(key('resources', 'address-bar-title', document('translations.rdf')))}">
             <span class="msi outline" aria-hidden="true">public</span>
             <input type="text" id="uri" name="uri" value="{ac:absolute-path(ldh:request-uri())}" spellcheck="false" autocomplete="off"/>
         </form>
     </xsl:template>
 
-    <xsl:template match="*" mode="ldh:SearchField"/>
+    <xsl:template match="*" mode="ldh:AddressBar"/>
 
-    <xsl:template match="rdf:RDF | srx:sparql" mode="ldh:HeaderNavList">
+    <xsl:template match="rdf:RDF | srx:sparql" mode="ldh:HeaderActions">
         <xsl:apply-templates select="." mode="ldh:DataspaceTabs"/>
 
         <xsl:apply-templates select="." mode="ldh:SignUp"/>
     </xsl:template>
 
-    <!-- Admin app override: notification dropdown for pending AuthorizationRequests + agent dropdown.
+    <!-- Admin app override: notification menu for pending AuthorizationRequests + account menu.
          Admin apps are identified by the 'admin.' subdomain prefix on lapp:origin() (nginx wildcard routing convention).
          TO-DO: refactor into component templates -->
-    <xsl:template match="rdf:RDF[starts-with(replace(lapp:origin(), '^https?://', ''), 'admin.')]" mode="ldh:HeaderNavList" priority="1">
+    <xsl:template match="rdf:RDF[starts-with(replace(lapp:origin(), '^https?://', ''), 'admin.')]" mode="ldh:HeaderActions" priority="1">
         <xsl:if test="$foaf:Agent//@rdf:about">
             <ul class="ldh-nav">
                 <xsl:variable name="notification-query" as="xs:string">
@@ -629,7 +629,7 @@ WHERE
                     <xsl:if test="$notifications/rdf:RDF/*[@rdf:about]">
                         <li>
                             <div class="ldhc-menu-anchor">
-                                <!-- the button doubles as the badge anchor (ldhc-badge-wrap): the generic dropdown handler needs drop-toggle as a direct child of the ldhc-menu-anchor, so a wrapping span is not an option -->
+                                <!-- the button doubles as the badge anchor (ldhc-badge-wrap): the generic menu handler needs drop-toggle as a direct child of the ldhc-menu-anchor, so a wrapping span is not an option -->
                                 <button class="drop-toggle ldhc-iconbtn sz-lg in-neutral ap-ghost ldhc-badge-wrap" aria-haspopup="menu" aria-expanded="false" title="{ac:label(key('resources', 'notifications', document('translations.rdf')))}">
                                     <span class="msi outline sm" aria-hidden="true">notifications</span>
                                     <span class="ldhc-badge co-informative sz-md pl-top-right is-dot" style="border-color: transparent">
@@ -652,7 +652,7 @@ WHERE
                     </xsl:if>
                 </xsl:if>
 
-                <xsl:apply-templates select="." mode="ldh:AgentNavListItem"/>
+                <xsl:apply-templates select="." mode="ldh:AccountMenu"/>
             </ul>
         </xsl:if>
 
@@ -716,17 +716,17 @@ WHERE
                     <xsl:apply-templates select="." mode="ldh:Settings"/>
                 </li>
                 <!-- overridden in acl/layout.xsl! -->
-                <xsl:apply-templates select="." mode="ldh:AgentNavListItem"/>
+                <xsl:apply-templates select="." mode="ldh:AccountMenu"/>
             </xsl:if>
         </ul>
     </xsl:template>
 
     <xsl:template match="*" mode="ldh:DataspaceTabs"/>
 
-    <!-- agent avatar dropdown shared by the admin and end-user nav lists -->
-    <xsl:template match="rdf:RDF | srx:sparql" mode="ldh:AgentNavListItem">
+    <!-- account menu shared by the admin and end-user header actions -->
+    <xsl:template match="rdf:RDF | srx:sparql" mode="ldh:AccountMenu">
         <li>
-            <!-- .ldh-avatar-wrap is the design's avatar anchor; .ldhc-menu-anchor keeps the CSR dropdown handler and its is-open state -->
+            <!-- .ldh-avatar-wrap is the design's avatar anchor; .ldhc-menu-anchor keeps the CSR menu handler and its is-open state -->
             <div class="ldhc-menu-anchor ldh-avatar-wrap">
                 <xsl:variable name="agent-label" select="ac:label($foaf:Agent//*[@rdf:about][1])" as="xs:string?"/>
                 <button type="button" class="drop-toggle ldh-avatar" aria-haspopup="menu" aria-expanded="false" title="{$agent-label}">
@@ -753,7 +753,7 @@ WHERE
         <xsl:param name="admin-origin" select="xs:anyURI(replace(string($ac:contextUri), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
         <xsl:param name="webid-signup-uri" select="ac:build-uri(resolve-uri('sign%20up', $admin-origin), map{ 'referer': string(ac:absolute-path(ldh:request-uri())) })" as="xs:anyURI"/>
 
-        <!-- OAuth providers dropdown -->
+        <!-- OAuth providers menu -->
         <xsl:if test="$google-signup or $orcid-signup">
             <div class="ldhc-menu-anchor">
                 <button type="button" class="drop-toggle ldhc-btn in-primary ap-solid sz-md" aria-haspopup="menu" aria-expanded="false">

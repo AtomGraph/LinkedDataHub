@@ -92,7 +92,7 @@ ORDER BY DESC(?created)
 
     <!-- TEMPLATES -->
     
-    <xsl:template name="ldh:LeftSidebar">
+    <xsl:template name="ldh:DataspaceDrawer">
         <xsl:param name="base" select="ldt:base()" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'left-sidebar ldh-sidebar'" as="xs:string?"/>

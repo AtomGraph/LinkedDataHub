@@ -312,7 +312,7 @@ WHERE
                 <!-- initialize navigation (e.g. the left sidebar) -->
                 <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')][@data-base]">
                     <xsl:result-document href="?." method="ixsl:append-content">
-                        <xsl:call-template name="ldh:LeftSidebar"/>
+                        <xsl:call-template name="ldh:DataspaceDrawer"/>
                     </xsl:result-document>
                 </xsl:for-each>
                 <!-- if the URI is external, set it in the address bar -->
@@ -340,7 +340,7 @@ WHERE
 
     <!-- CALLBACKS -->
 
-    <xsl:template name="ldh:PopulateBreadcrumbNav">
+    <xsl:template name="ldh:PopulateBreadcrumb">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="response" as="map(*)"/>
         <xsl:param name="uri" as="xs:anyURI"/>
@@ -435,7 +435,7 @@ WHERE
 
                         <!-- external-only, new pane only: add tab bar item and hide local pane -->
                         <xsl:if test="not(starts-with($doc-uri, lapp:origin(ldh:request-uri()))) and not($reuse-pane)">
-                            <xsl:call-template name="ldh:AddTabNavBarListItem">
+                            <xsl:call-template name="ldh:AddDataspaceTab">
                                 <xsl:with-param name="doc-uri" select="$doc-uri"/>
                                 <xsl:with-param name="fragment" select="$fragment"/>
                                 <xsl:with-param name="label" select="$label"/>
@@ -490,7 +490,7 @@ WHERE
                             <!-- no pane: create one with sidebar -->
                             <xsl:otherwise>
                                 <xsl:variable name="tab-body" as="element()">
-                                    <!-- inert class: ldh:ActivateTab (called from ldh:RenderTab below) is the single source of truth for the 'is-active' token. Defaulting to 'ldh-pane is-active' here would briefly leave two panes active (this one + the currently-active local one) and crash ldt:base()/sd:endpoint() in any code that runs between append and ActivateTab (e.g. ldh:LeftSidebar). -->
+                                    <!-- inert class: ldh:ActivateTab (called from ldh:RenderTab below) is the single source of truth for the 'is-active' token. Defaulting to 'ldh-pane is-active' here would briefly leave two panes active (this one + the currently-active local one) and crash ldt:base()/sd:endpoint() in any code that runs between append and ActivateTab (e.g. ldh:DataspaceDrawer). -->
                                     <xsl:apply-templates select="$render-results/rdf:RDF" mode="ldh:TabBody">
                                         <xsl:with-param name="id" select="$tab-body-id"/>
                                         <xsl:with-param name="class" select="'ldh-pane'"/>
@@ -515,7 +515,7 @@ WHERE
                                 <xsl:if test="$tab-base">
                                     <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][last()]">
                                         <xsl:result-document href="?." method="ixsl:append-content">
-                                            <xsl:call-template name="ldh:LeftSidebar">
+                                            <xsl:call-template name="ldh:DataspaceDrawer">
                                                 <xsl:with-param name="base" select="$tab-base"/>
                                             </xsl:call-template>
                                         </xsl:result-document>
@@ -626,7 +626,7 @@ WHERE
 
                     <!-- external-only, new pane only: add tab bar item and hide local panes (mirrors the 200/RDF success path) -->
                     <xsl:if test="not(starts-with($doc-uri, lapp:origin(ldh:request-uri()))) and not($pane)">
-                        <xsl:call-template name="ldh:AddTabNavBarListItem">
+                        <xsl:call-template name="ldh:AddDataspaceTab">
                             <xsl:with-param name="doc-uri" select="$doc-uri"/>
                             <xsl:with-param name="fragment" select="$fragment"/>
                             <xsl:with-param name="label" select="$label"/>
@@ -681,7 +681,7 @@ WHERE
     <!-- TAB MANAGEMENT TEMPLATES -->
 
     <!-- Create a new tab for an external URI and render its content into #external-pane -->
-    <xsl:template name="ldh:AddTabNavBarListItem">
+    <xsl:template name="ldh:AddDataspaceTab">
         <xsl:param name="doc-uri" as="xs:anyURI"/>
         <xsl:param name="fragment" as="xs:string?"/>
         <xsl:param name="label" as="xs:string"/>
@@ -830,7 +830,7 @@ WHERE
         <!-- ac:ActionBar always renders breadcrumb-nav inside ac:ActionBarMain -->
         <xsl:variable name="pane-breadcrumb-nav" select="id($pane-id, ixsl:page())//*[contains-token(@class, 'breadcrumb-nav')]" as="element()?"/>
         <xsl:if test="$pane-breadcrumb-nav">
-            <xsl:call-template name="ldh:PopulateBreadcrumbNav">
+            <xsl:call-template name="ldh:PopulateBreadcrumb">
                 <xsl:with-param name="container" select="$pane-breadcrumb-nav"/>
                 <xsl:with-param name="response" select="$response"/>
                 <xsl:with-param name="uri" select="$doc-uri"/>
@@ -1216,7 +1216,7 @@ WHERE
         <xsl:variable name="open" select="not(contains-token(@class, 'is-open'))" as="xs:boolean"/>
 
         <!-- one drop-down at a time: whichever group was open yields to this one -->
-        <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ldhc-menu-anchor')][contains-token(@class, 'is-open')][not(. is $group)]" mode="ldh:CloseDropdown"/>
+        <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ldhc-menu-anchor')][contains-token(@class, 'is-open')][not(. is $group)]" mode="ldh:CloseMenu"/>
 
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drop-up', $drop-up ])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drop-left', $drop-left ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -1254,7 +1254,7 @@ WHERE
         <xsl:choose>
             <xsl:when test="$key = 'Escape'">
                 <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
-                <xsl:apply-templates select="." mode="ldh:CloseDropdown"/>
+                <xsl:apply-templates select="." mode="ldh:CloseMenu"/>
                 <xsl:for-each select="(*[contains-token(@class, 'drop-toggle')])[1]">
                     <xsl:sequence select="ixsl:call(., 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
@@ -1278,7 +1278,7 @@ WHERE
          places a drop-down stops being current: another one opens, a press lands outside it (below), a
          click lands outside it (the body handler in view.xsl), or a menu pick mounts a modal (ldh:ShowModalForm) -->
 
-    <xsl:template match="*[contains-token(@class, 'ldhc-menu-anchor')]" mode="ldh:CloseDropdown">
+    <xsl:template match="*[contains-token(@class, 'ldhc-menu-anchor')]" mode="ldh:CloseMenu">
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:for-each select="*[contains-token(@class, 'drop-toggle')]">
             <ixsl:set-property name="ariaExpanded" select="'false'" object="."/>
@@ -1294,7 +1294,7 @@ WHERE
         <xsl:variable name="open" select="not(contains-token(@class, 'is-open'))" as="xs:boolean"/>
 
         <!-- one drop-down at a time: whichever group or wrap was open yields to this one -->
-        <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ldhc-menu-anchor')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')][not(. is $wrap)]" mode="ldh:CloseDropdown"/>
+        <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ldhc-menu-anchor')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')][not(. is $wrap)]" mode="ldh:CloseMenu"/>
 
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-open', $open ])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:for-each select="*[contains-token(@class, 'ldh-form-action')]">
@@ -1303,7 +1303,7 @@ WHERE
         </xsl:for-each>
     </xsl:template>
 
-    <xsl:template match="*[contains-token(@class, 'ldh-form-actions-wrap')]" mode="ldh:CloseDropdown">
+    <xsl:template match="*[contains-token(@class, 'ldh-form-actions-wrap')]" mode="ldh:CloseMenu">
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:for-each select="*[contains-token(@class, 'ldh-form-action')]">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -1326,7 +1326,7 @@ WHERE
         <xsl:variable name="target" select="ixsl:get(ixsl:event(), 'target')"/>
         <xsl:for-each select="ixsl:page()//*[contains-token(@class, 'ldhc-menu-anchor')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]">
             <xsl:if test="not(ixsl:call(., 'contains', [ $target ]))">
-                <xsl:apply-templates select="." mode="ldh:CloseDropdown"/>
+                <xsl:apply-templates select="." mode="ldh:CloseMenu"/>
             </xsl:if>
         </xsl:for-each>
     </xsl:template>
@@ -1413,8 +1413,8 @@ WHERE
             <xsl:with-param name="target" select="$target"/>
         </xsl:call-template>
 
-        <!-- seed the target graph typeahead with the local dataspace document (request URI); ldh:base-uri resolves to the proxied remote resource when viewing one, which is never a valid write target -->
-        <xsl:call-template name="ldh:LoadTypeaheads">
+        <!-- seed the target graph combobox with the local dataspace document (request URI); ldh:base-uri resolves to the proxied remote resource when viewing one, which is never a valid write target -->
+        <xsl:call-template name="ldh:LoadComboboxes">
             <xsl:with-param name="comboboxes" select="(id('upload-rdf-doc', ixsl:page()), id('remote-rdf-doc', ixsl:page()))/ancestor::div[contains-token(@class, 'ldhc-combobox')][1]"/>
             <xsl:with-param name="graph" select="ac:absolute-path(ldh:request-uri())"/>
         </xsl:call-template>
@@ -1494,7 +1494,7 @@ WHERE
             </xsl:choose>
         </xsl:if>
 
-        <!-- if only the base-uri tab is left, hide the whole tab-bar (mirror of ldh:AddTabNavBarListItem) -->
+        <!-- if only the base-uri tab is left, hide the whole tab-bar (mirror of ldh:AddDataspaceTab) -->
         <xsl:if test="count(id('tab-bar-list', ixsl:page())/li) le 1">
             <ixsl:set-style name="display" select="'none'" object="id('tab-bar', ixsl:page())"/>
             <xsl:sequence select="ixsl:call(ixsl:get(ixsl:page(), 'documentElement.style'), 'removeProperty', ['--action-bar-top'])[current-date() lt xs:date('2000-01-01')]"/>

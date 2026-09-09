@@ -118,7 +118,7 @@ exclude-result-prefixes="#all"
                 <xsl:for-each select="$container">
 
                     <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
-                    <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ldhc-menu-anchor')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseDropdown"/>
+                    <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ldhc-menu-anchor')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseMenu"/>
                     <xsl:result-document href="?." method="ixsl:append-content">
                         <!-- the constructor dialog stacks above the edit form's dialog -->
                         <div class="ldhc-backdrop pos-top modal modal-constructor" data-depth="2">
