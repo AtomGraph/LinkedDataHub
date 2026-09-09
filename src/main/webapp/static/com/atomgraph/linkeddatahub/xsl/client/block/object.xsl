@@ -60,16 +60,21 @@ exclude-result-prefixes="#all"
         <xsl:param name="graph" select="descendant::*[@property = '&ldh;graph']/@resource" as="xs:anyURI?"/>
         <xsl:param name="mode" select="descendant::*[@property = '&ac;mode']/@resource" as="xs:anyURI?"/>
         <xsl:param name="refresh-content" as="xs:boolean?"/>
-        <xsl:param name="show-edit-button" select="false()" as="xs:boolean?"/>
+        <!-- empty by default: the loaded document's own acl:mode Link headers decide in ldh:block-object-value-response; a caller passes an explicit value only to force the button off (or on) -->
+        <xsl:param name="show-edit-button" as="xs:boolean?"/>
 
         <xsl:for-each select="($block//div[contains-token(@class, 'ldhc-pbar-fill')])[1]">
             <!-- update progress bar -->
             <ixsl:set-style name="width" select="'50%'" object="."/>
         </xsl:for-each>
 
-        <!-- don't use ldh:base-uri(.) because its value comes from the last HTML document load -->
-        <xsl:variable name="request-uri" select="ldh:href(($graph, ac:document-uri($resource-uri))[1], map{})" as="xs:anyURI"/>
-        
+        <xsl:variable name="base-uri" select="($graph, ac:document-uri($resource-uri))[1]" as="xs:anyURI"/>
+        <!-- stamp the loaded document's URI on the persistent container: ldh:base-uri() resolves it for every
+             descendant - the read rows and the edit form that later replaces them - so handlers fetch and PATCH
+             the document (or ldh:graph) this content actually came from, not the page's -->
+        <ixsl:set-attribute name="data-base-uri" select="$base-uri" object="$container"/>
+        <xsl:variable name="request-uri" select="ldh:href($base-uri, map{})" as="xs:anyURI"/>
+
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
           map{
@@ -179,6 +184,10 @@ exclude-result-prefixes="#all"
                         <ixsl:set-style name="width" select="'33%'" object="."/>
                     </xsl:for-each>
 
+                    <!-- the loaded document's own acl:mode Link headers decide the edit affordance (same parsing as ldh:set-container-acl-modes; ProxyRequestFilter forwards them for remote documents) unless the caller forced a value -->
+                    <xsl:variable name="acl-modes" select="ldh:link-targets(?headers?link, '&acl;mode')" as="xs:anyURI*"/>
+                    <xsl:variable name="show-edit-button" select="($show-edit-button, $acl-modes = '&acl;Write')[1]" as="xs:boolean"/>
+
                     <xsl:for-each select="?body">
                         <xsl:variable name="resource" select="key('resources', $resource-uri)" as="element()?"/>
                         <xsl:choose>
@@ -191,11 +200,11 @@ exclude-result-prefixes="#all"
                                 <!-- second request resolves ontology-term object labels (rdf:type/class values etc.) from the /ns endpoint; merged with the /sparql result in ldh:block-object-metadata-response -->
                                 <xsl:variable name="ns-query-string" select="$object-metadata-ns-query || $values" as="xs:string"/>
                                 <xsl:variable name="ns-request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', ldt:base())), 'media-type': 'application/sparql-query', 'body': $ns-query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-                                <xsl:sequence select="map:merge(($context, map{
+                                <xsl:sequence select="map:put(map:merge(($context, map{
                                     'object-metadata-request': $request,
                                     'ns-object-metadata-request': $ns-request,
                                     'resource': $resource
-                                }))"/>
+                                })), 'show-edit-button', $show-edit-button)"/>
                             </xsl:when>
                             <xsl:otherwise>
                                 <!-- the fetch succeeded, so there is no HTTP failure to report in the technical detail -->

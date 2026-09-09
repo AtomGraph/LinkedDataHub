@@ -281,12 +281,12 @@ WHERE
         </xsl:choose>
     </xsl:template>
 
-    <!-- override RDFa editor annotation typeahead: use LDH's /ns-querying ldh:Lookup instead of doc()-on-vocabs -->
+    <!-- override RDFa editor annotation typeahead: use LDH's /ns-querying ac:Lookup instead of doc()-on-vocabs -->
     <xsl:function name="rdfae:typeahead-field" as="element()">
         <xsl:param name="field" as="xs:string"/>
         <xsl:variable name="for-class" as="xs:anyURI" select="if ($field = 'typeof') then xs:anyURI('&owl;Class') else xs:anyURI('&rdf;Property')"/>
         <span data-field="{$field}" class="typeahead-field rdfa-editor-ui">
-            <xsl:call-template name="ldh:Lookup">
+            <xsl:call-template name="ac:Lookup">
                 <xsl:with-param name="class" select="'property-typeahead typeahead'"/>
                 <xsl:with-param name="id" select="'annotation-' || $field"/>
                 <xsl:with-param name="list-class" select="'property-typeahead typeahead ldhc-cb-panel'"/>
@@ -303,7 +303,7 @@ WHERE
         <xsl:variable name="for-class" as="xs:anyURI" select="if ($field = 'typeof') then xs:anyURI('&owl;Class') else xs:anyURI('&rdf;Property')"/>
         <xsl:for-each select="($form//span[@data-field = $field])[1]">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:call-template name="ldh:Lookup">
+                <xsl:call-template name="ac:Lookup">
                     <xsl:with-param name="class" select="'property-typeahead typeahead'"/>
                     <xsl:with-param name="id" select="'annotation-' || $field"/>
                     <xsl:with-param name="list-class" select="'property-typeahead typeahead ldhc-cb-panel'"/>
@@ -384,15 +384,19 @@ WHERE
                         <div class="ldh-prop-row is-last">
                             <div class="value val-stack">
                                 <div class="val-main">
-                                    <input type="text" id="annotation-value" name="value" placeholder="Literal value"/>
+                                    <xsl:apply-templates select="." mode="ac:FieldShell">
+                                        <xsl:with-param name="control" as="item()*">
+                                            <input type="text" id="annotation-value" name="value" placeholder="{ac:label(key('resources', 'rdfa-value-placeholder', ldh:translations()))}"/>
+                                        </xsl:with-param>
+                                    </xsl:apply-templates>
                                 </div>
-                                <span class="ldhc-help sz-sm">The selected text; change to emit a machine-readable content value</span>
+                                <span class="ldhc-help sz-sm"><xsl:apply-templates select="key('resources', 'rdfa-value-help', ldh:translations())" mode="ac:label"/></span>
                             </div>
                             <div class="row-actions"></div>
                         </div>
                     </div>
                     <fieldset>
-                        <legend>Subject</legend>
+                        <legend><xsl:apply-templates select="key('resources', 'rdfa-subject', ldh:translations())" mode="ac:label"/></legend>
                         <div class="ldh-prop-group">
                             <xsl:apply-templates select="." mode="ldh:PropertyLabel">
                                 <xsl:with-param name="label" as="item()*">
@@ -402,9 +406,13 @@ WHERE
                             <div class="ldh-prop-row is-last">
                                 <div class="value val-stack">
                                     <div class="val-main">
-                                        <input type="text" id="annotation-subject" name="subject" placeholder="Overrides the subject in scope"/>
+                                        <xsl:apply-templates select="." mode="ac:FieldShell">
+                                            <xsl:with-param name="control" as="item()*">
+                                                <input type="text" id="annotation-subject" name="subject" placeholder="{ac:label(key('resources', 'rdfa-subject-placeholder', ldh:translations()))}"/>
+                                            </xsl:with-param>
+                                        </xsl:apply-templates>
                                     </div>
-                                    <span class="ldhc-help sz-sm">IRI or _:blank-node identifier</span>
+                                    <span class="ldhc-help sz-sm"><xsl:apply-templates select="key('resources', 'rdfa-subject-help', ldh:translations())" mode="ac:label"/></span>
                                 </div>
                                 <div class="row-actions"></div>
                             </div>
@@ -420,14 +428,14 @@ WHERE
                                     <div class="val-main">
                                         <xsl:sequence select="rdfae:typeahead-field('typeof')"/>
                                     </div>
-                                    <span class="ldhc-help sz-sm">Types the annotated resource; without a subject the typed resource becomes the object of the property (chaining)</span>
+                                    <span class="ldhc-help sz-sm"><xsl:apply-templates select="key('resources', 'rdfa-typeof-help', ldh:translations())" mode="ac:label"/></span>
                                 </div>
                                 <div class="row-actions"></div>
                             </div>
                         </div>
                     </fieldset>
                     <fieldset>
-                        <legend>Object</legend>
+                        <legend><xsl:apply-templates select="key('resources', 'rdfa-object', ldh:translations())" mode="ac:label"/></legend>
                         <div class="ldh-prop-group">
                             <xsl:apply-templates select="." mode="ldh:PropertyLabel">
                                 <xsl:with-param name="label" as="item()*">
@@ -437,9 +445,13 @@ WHERE
                             <div class="ldh-prop-row is-last">
                                 <div class="value val-stack">
                                     <div class="val-main">
-                                        <input type="text" id="annotation-object" name="object" placeholder="Object IRI"/>
+                                        <xsl:apply-templates select="." mode="ac:FieldShell">
+                                            <xsl:with-param name="control" as="item()*">
+                                                <input type="text" id="annotation-object" name="object" placeholder="{ac:label(key('resources', 'rdfa-object-placeholder', ldh:translations()))}"/>
+                                            </xsl:with-param>
+                                        </xsl:apply-templates>
                                     </div>
-                                    <span class="ldhc-help sz-sm">Makes the object a resource instead of the literal value</span>
+                                    <span class="ldhc-help sz-sm"><xsl:apply-templates select="key('resources', 'rdfa-object-help', ldh:translations())" mode="ac:label"/></span>
                                 </div>
                                 <div class="row-actions"></div>
                             </div>
@@ -456,18 +468,24 @@ WHERE
                                         <xsl:apply-templates select="." mode="ac:SelectShell">
                                             <xsl:with-param name="select" as="item()*">
                                             <select id="annotation-datatype" name="datatype">
-                                                <option value="">(plain literal)</option>
+                                                <option value=""><xsl:apply-templates select="key('resources', 'rdfa-plain-literal', ldh:translations())" mode="ac:label"/></option>
                                                 <xsl:variable name="xsd" as="xs:string" select="'http://www.w3.org/2001/XMLSchema#'"/>
                                                 <xsl:for-each select="'string', 'date', 'dateTime', 'time', 'integer', 'decimal', 'double', 'float', 'boolean', 'anyURI'">
                                                     <option value="{$xsd || .}">xsd:<xsl:value-of select="."/></option>
                                                 </xsl:for-each>
-                                                <option value="{$rdfae:custom}">-- Custom datatype --</option>
+                                                <option value="{$rdfae:custom}"><xsl:apply-templates select="key('resources', 'rdfa-custom-datatype', ldh:translations())" mode="ac:label"/></option>
                                             </select>
                                             </xsl:with-param>
                                         </xsl:apply-templates>
-                                        <input type="text" name="custom-datatype" placeholder="Datatype IRI" style="display: none;"/>
+                                        <!-- hidden until the Custom option reveals it; the handler toggles the shell, not the input -->
+                                        <xsl:apply-templates select="." mode="ac:FieldShell">
+                                            <xsl:with-param name="style" select="'display: none;'"/>
+                                            <xsl:with-param name="control" as="item()*">
+                                                <input type="text" name="custom-datatype" placeholder="{ac:label(key('resources', 'rdfa-datatype-placeholder', ldh:translations()))}"/>
+                                            </xsl:with-param>
+                                        </xsl:apply-templates>
                                     </div>
-                                    <span class="ldhc-help sz-sm">Types the literal; mutually exclusive with a language tag</span>
+                                    <span class="ldhc-help sz-sm"><xsl:apply-templates select="key('resources', 'rdfa-datatype-help', ldh:translations())" mode="ac:label"/></span>
                                 </div>
                                 <div class="row-actions"></div>
                             </div>
@@ -481,9 +499,13 @@ WHERE
                             <div class="ldh-prop-row is-last">
                                 <div class="value val-stack">
                                     <div class="val-main">
-                                        <input type="text" id="annotation-lang" name="lang" placeholder="e.g. en, fr-CA"/>
+                                        <xsl:apply-templates select="." mode="ac:FieldShell">
+                                            <xsl:with-param name="control" as="item()*">
+                                                <input type="text" id="annotation-lang" name="lang" placeholder="{ac:label(key('resources', 'rdfa-language-placeholder', ldh:translations()))}"/>
+                                            </xsl:with-param>
+                                        </xsl:apply-templates>
                                     </div>
-                                    <span class="ldhc-help sz-sm">Language tag for the literal; ignored when a datatype is set</span>
+                                    <span class="ldhc-help sz-sm"><xsl:apply-templates select="key('resources', 'rdfa-language-help', ldh:translations())" mode="ac:label"/></span>
                                 </div>
                                 <div class="row-actions"></div>
                             </div>
@@ -491,12 +513,30 @@ WHERE
                     </fieldset>
                     <div class="ldh-block-foot">
                         <button type="button" class="ldhc-btn in-negative ap-solid sz-sm remove-action" style="display: none;"><xsl:value-of select="ac:label(key('resources', 'remove', ldh:translations()))"/></button>
-                        <button type="button" class="ldhc-btn in-neutral ap-outline sz-md cancel-action">Cancel</button>
-                        <button type="button" class="ldhc-btn in-primary ap-solid sz-md spo-action">Annotate</button>
+                        <button type="button" class="ldhc-btn in-neutral ap-outline sz-md cancel-action"><xsl:value-of select="ac:label(key('resources', 'cancel', ldh:translations()))"/></button>
+                        <button type="button" class="ldhc-btn in-primary ap-solid sz-md spo-action"><xsl:value-of select="ac:label(key('resources', 'annotate', ldh:translations()))"/></button>
                     </div>
                 </form>
             </div>
         </div>
+    </xsl:template>
+
+    <!-- the imported handler toggles the custom-datatype input itself (and focus/lang state); with the inputs
+         riding field shells, the wrappers toggle here in agreement — the reveal before the delegation, so the
+         input is focusable by the time the imported handler calls focus on it, and the language box takes the
+         design's is-disabled state after it, mirroring the disabled flag the delegation sets on the input -->
+    <xsl:template match="select[@name = 'datatype']" mode="ixsl:onchange">
+        <xsl:variable name="custom" as="xs:boolean" select="string(ixsl:get(., 'value')) eq $rdfae:custom"/>
+        <xsl:for-each select="ancestor::form//input[@name = 'custom-datatype']/ancestor::div[contains-token(@class, 'ldhc-field')][1]">
+            <ixsl:set-style name="display" select="if ($custom) then 'flex' else 'none'"/>
+        </xsl:for-each>
+
+        <xsl:apply-imports/>
+
+        <xsl:variable name="datatype" as="xs:boolean" select="string(ixsl:get(., 'value')) ne ''"/>
+        <xsl:for-each select="ancestor::form//input[@name = 'lang']/ancestor::div[contains-token(@class, 'ldhc-field-box')][1]">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-disabled', $datatype ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
     </xsl:template>
 
     <!-- Bootstrap-styled toolbar dialogs (replace rdfa-editor's custom HTML) -->
@@ -728,14 +768,16 @@ WHERE
         <!-- deep clone of the current DOM content so it can be restored if .btn-cancel is clicked -->
         <ixsl:set-property name="block-html" select="ixsl:call($block, 'cloneNode', [ true() ])" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $about || '`')"/>
 
-        <!-- if the URI is external, dereference it through the proxy -->
-        <xsl:variable name="request-uri" select="ldh:href(ldh:base-uri(.))" as="xs:anyURI"/>
+        <!-- the block content's source document (per-subtree via the data-base-uri stamp for embeds); if the URI is external, dereference it through the proxy -->
+        <xsl:variable name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href($base-uri)" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
           map{
             'request': $request,
             'block': $block,
             'about': $about,
+            'base-uri': $base-uri,
             'endpoint': sd:endpoint()
           }"/>
         <!-- ldh:fetch-and-load-edited-resource bakes a GET-style type-metadata-request directly, so the type-metadata pair uses an identity load-fn rather than ldh:load-type-metadata (which would build a different POST-style request). The ldh:load-constructed-doc pair fetches the SPIN-side constructor in parallel; ldh:render-row-form folds it with $shapes via ldh:merge-constructors to produce the pure constructor passed as the ac:FormControl 'constructor' tunnel — same input shape as the CREATE flows. -->
@@ -806,14 +848,16 @@ WHERE
                     <xsl:variable name="etag" select="?headers?etag" as="xs:string?"/>
 
                     <xsl:for-each select="?body">
+                        <!-- key by the loaded document's URI threaded from the requesting handler (a response document has no stamped DOM ancestor for ldh:base-uri() to resolve); flows that do not thread it are page-level and fall back -->
+                        <xsl:variable name="base-uri" select="($context('base-uri'), ldh:base-uri(.))[1]" as="xs:anyURI"/>
                         <!-- reuse the existing per-URI object: replacing it would wipe the 'block-html' snapshot stored by the btn-edit handler when $about equals the document URI (proxied external resources) -->
-                        <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'))">
-                            <ixsl:set-property name="{'`' || ac:absolute-path(ldh:base-uri(.)) || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+                        <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path($base-uri) || '`'))">
+                            <ixsl:set-property name="{'`' || ac:absolute-path($base-uri) || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
                         </xsl:if>
                         <!-- store document under window.LinkedDataHub.contents[$base-uri].results -->
-                        <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`')"/>
+                        <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path($base-uri) || '`')"/>
                         <!-- store ETag header value under window.LinkedDataHub.contents[$base-uri].etag -->
-                        <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`')"/>
+                        <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path($base-uri) || '`')"/>
 
                         <xsl:variable name="resource" select="key('resources', $about)" as="element()"/> <!-- TO-DO: handle error -->
                         <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
@@ -1010,6 +1054,8 @@ WHERE
 
         <xsl:variable name="row" as="element()">
             <xsl:apply-templates select="$resource" mode="ldh:RowForm">
+                <!-- the loaded document's URI threaded from the requesting handler - the form's action must PATCH the document the content came from, which ldh:base-uri() cannot resolve on a response-document node -->
+                <xsl:with-param name="base-uri" select="($context('base-uri'), ldh:base-uri($resource))[1]" tunnel="yes"/>
                 <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                 <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                 <xsl:with-param name="constructor" select="$constructor" tunnel="yes"/>
@@ -1649,6 +1695,8 @@ WHERE
                 <xsl:with-param name="method" select="$form/@method"/>
                 <!-- keep the submitted form's id, so id-keyed overrides (e.g. signup's onsubmit on form#form-signup) survive the violation re-render; the block-derived fallback covers the formless PATCH flows -->
                 <xsl:with-param name="form-id" select="string(($form/@id, 'form-' || $block/@id)[1])"/>
+                <!-- the loaded document's URI from the submit context (computed on the stamped form DOM), so the re-rendered form keeps PATCHing the document the content came from -->
+                <xsl:with-param name="base-uri" select="$doc-uri" tunnel="yes"/>
                 <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
                 <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                 <xsl:with-param name="constructor" select="$constructor" tunnel="yes"/>
@@ -1829,7 +1877,7 @@ WHERE
                     <!-- the committed chip replaces the whole lookup wrapper (legacy span or .ldhc-combobox) -->
                     <xsl:for-each select="../..">
                         <xsl:result-document href="?." method="ixsl:replace-element">
-                            <xsl:apply-templates select="$resource" mode="ldh:Typeahead">
+                            <xsl:apply-templates select="$resource" mode="ac:Typeahead">
                                 <xsl:with-param name="class" select="$typeahead-class"/>
                                 <xsl:with-param name="forClass" select="$forClass"/>
                             </xsl:apply-templates>
@@ -1969,7 +2017,7 @@ WHERE
         <!-- render the committed chip replacing the whole lookup wrapper (synchronous DOM mutation, runs before the promise) -->
         <xsl:for-each select="../..">
             <xsl:result-document href="?." method="ixsl:replace-element">
-                <xsl:apply-templates select="$resource" mode="ldh:Typeahead">
+                <xsl:apply-templates select="$resource" mode="ac:Typeahead">
                     <xsl:with-param name="class" select="$typeahead-class"/>
                     <xsl:with-param name="forClass" select="$initial-forClass"/>
                 </xsl:apply-templates>
@@ -2024,7 +2072,7 @@ WHERE
         <!-- the committed chip replaces the whole lookup wrapper (legacy span or .ldhc-combobox) -->
         <xsl:for-each select="../..">
             <xsl:result-document href="?." method="ixsl:replace-element">
-                <xsl:apply-templates select="$resource" mode="ldh:Typeahead">
+                <xsl:apply-templates select="$resource" mode="ac:Typeahead">
                     <xsl:with-param name="class" select="$typeahead-class"/>
                     <xsl:with-param name="forClass" select="$forClass"/>
                 </xsl:apply-templates>
@@ -2131,7 +2179,7 @@ WHERE
         
         <xsl:for-each select="..">
             <xsl:variable name="lookup" as="element()">
-                <xsl:call-template name="ldh:Lookup">
+                <xsl:call-template name="ac:Lookup">
                     <xsl:with-param name="id" select="'input-' || $uuid"/>
                     <xsl:with-param name="class" select="$lookup-class"/>
                     <xsl:with-param name="list-class" select="$lookup-list-class"/>
@@ -2171,7 +2219,7 @@ WHERE
 
         <xsl:for-each select="$committed">
             <xsl:result-document href="?." method="ixsl:replace-element">
-                <xsl:call-template name="ldh:Lookup">
+                <xsl:call-template name="ac:Lookup">
                     <xsl:with-param name="id" select="'input-' || $uuid"/>
                     <xsl:with-param name="class" select="$lookup-class"/>
                     <xsl:with-param name="list-class" select="$lookup-list-class"/>

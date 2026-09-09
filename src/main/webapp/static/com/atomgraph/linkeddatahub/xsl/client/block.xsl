@@ -250,36 +250,6 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <!-- EVENT LISTENERS -->
-    
-    <!-- show block controls -->
-    
-    <xsl:template match="div[contains-token(@class, 'block')][key('elements-by-class', 'row-block-controls', .)][acl:mode() = '&acl;Write']" mode="ixsl:onmousemove"> <!-- TO-DO: better selector -->        
-        <!-- there might be multiple .row-block-controls in a block if the main block is followed by blocks rendered from ldh:block -->
-        <xsl:variable name="row-block-controls" select="key('elements-by-class', 'row-block-controls', .)[1]" as="element()"/>
-        <xsl:variable name="btn-edit" select="key('elements-by-class', 'btn-edit', $row-block-controls)" as="element()?"/>
-        
-        <xsl:if test="$btn-edit">
-            <xsl:variable name="dom-x" select="ixsl:get(ixsl:event(), 'clientX')" as="xs:double"/>
-            <xsl:variable name="dom-y" select="ixsl:get(ixsl:event(), 'clientY')" as="xs:double"/>
-            <xsl:variable name="rect" select="ixsl:call(., 'getBoundingClientRect', [])"/>
-            <xsl:variable name="offset-x" select="$dom-x - ixsl:get($rect, 'x')" as="xs:double"/>
-            <xsl:variable name="offset-y" select="$dom-y - ixsl:get($rect, 'y')" as="xs:double"/>
-            <xsl:variable name="width" select="ixsl:get($rect, 'width')" as="xs:double"/>
-            <xsl:variable name="offset-x-treshold" select="120" as="xs:double"/>
-            <xsl:variable name="offset-y-treshold" select="20" as="xs:double"/>
-
-            <!-- check that the mouse is on the top edge and show the block controls if they're not already shown -->
-            <xsl:if test="$offset-x &gt;= $width - $offset-x-treshold and $offset-y &lt;= $offset-y-treshold and ixsl:style($row-block-controls)?z-index = '-1'">
-                <ixsl:set-style name="z-index" select="'1'" object="$row-block-controls"/>
-                <ixsl:set-style name="display" select="'block'" object="$btn-edit"/>
-            </xsl:if>
-            <!-- check that the mouse is outside the top edge and hide the block controls if they're not already hidden -->
-            <xsl:if test="$offset-x &lt; $width - $offset-x-treshold and $offset-y &gt; $offset-y-treshold and ixsl:style($row-block-controls)?z-index = '1'">
-                <ixsl:set-style name="z-index" select="'-1'" object="$row-block-controls"/>
-                <ixsl:set-style name="display" select="'none'" object="$btn-edit"/>
-            </xsl:if>
-        </xsl:if>
-    </xsl:template>
 
     <!-- ARIA content tabs (design-system .ldhc-tabs with .ldhc-tabpanel panes, e.g. authored in XHTML content):
          move is-on/aria-selected to the clicked tab and unhide only the panel it aria-controls. Paneless tablists
@@ -457,18 +427,6 @@ exclude-result-prefixes="#all"
         <xsl:call-template name="rdfae:disarm-sweep"/>
     </xsl:template>
 
-    <!-- override inline editing form for block types (do nothing if the button is disabled) - prioritize over form.xsl -->
-
-    <xsl:template match="div[following-sibling::div[@typeof = ('&ldh;XHTML', '&ldh;Object')]]//button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick" priority="1">
-        <xsl:param name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
-        <!-- for block types, button.btn-edit is placed in its own div.row-fluid, therefore the next row is the actual container -->
-        <xsl:param name="container" select="$block/descendant::div[@typeof][1]" as="element()"/> <!-- other resources can be nested within object -->
-        
-        <xsl:next-match>
-<!--            <xsl:with-param name="container" select="$container"/>-->
-        </xsl:next-match>
-    </xsl:template>
-    
     <!-- append new block form onsubmit (using POST) -->
     
     <xsl:template match="div[@typeof = ('&ldh;XHTML', '&ldh;Object')]//form[tokenize(@class, ' ') = ('ldh-prop-form', 'ldh-edit-form')][upper-case(@method) = 'POST']" mode="ixsl:onsubmit" priority="2"> <!-- prioritize over form.xsl -->

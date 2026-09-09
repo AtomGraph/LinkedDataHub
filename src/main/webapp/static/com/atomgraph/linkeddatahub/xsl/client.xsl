@@ -84,10 +84,10 @@ extension-element-prefixes="ixsl"
     <xsl:import href="../../../../com/atomgraph/client/xsl/imports/sioc.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/imports/skos.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/imports/sp.xsl"/>
-    <xsl:import href="imports/default.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/resource.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/document.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/container.xsl"/>
+    <xsl:import href="imports/default.xsl"/>
     <xsl:import href="resource.xsl"/>
     <xsl:import href="imports/ac.xsl"/>
     <xsl:import href="imports/acl.xsl"/>
@@ -98,7 +98,6 @@ extension-element-prefixes="ixsl"
     <xsl:import href="imports/rdf.xsl"/>
     <xsl:import href="imports/sioc.xsl"/>
     <xsl:import href="imports/sp.xsl"/>
-    <xsl:import href="imports/sh.xsl"/>
     <xsl:import href="imports/memento.xsl"/>
     <xsl:import href="document.xsl"/>
     <xsl:import href="imports/services/youtube.xsl"/>
@@ -342,53 +341,6 @@ WHERE
 
     <!-- TEMPLATES -->
 
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ac:image">
-        <xsl:choose>
-            <xsl:when test="foaf:img/@rdf:resource">
-                <xsl:sequence select="foaf:img/@rdf:resource"/>
-            </xsl:when>
-            <xsl:when test="foaf:logo/@rdf:resource">
-                <xsl:sequence select="foaf:logo/@rdf:resource"/>
-            </xsl:when>
-            <xsl:when test="foaf:depiction/@rdf:resource">
-                <xsl:sequence select="foaf:depiction/@rdf:resource"/>
-            </xsl:when>
-            <xsl:when test="schema1:image/@rdf:resource">
-                <xsl:sequence select="schema1:image/@rdf:resource"/>
-            </xsl:when>
-            <xsl:when test="schema1:logo/@rdf:resource">
-                <xsl:sequence select="schema1:logo/@rdf:resource"/>
-            </xsl:when>
-            <xsl:when test="schema2:image/@rdf:resource">
-                <xsl:sequence select="schema2:image/@rdf:resource"/>
-            </xsl:when>
-            <xsl:when test="schema2:logo/@rdf:resource">
-                <xsl:sequence select="schema2:logo/@rdf:resource"/>
-            </xsl:when>
-            <xsl:when test="schema1:thumbnailUrl/@rdf:resource">
-                <xsl:sequence select="schema1:thumbnailUrl/@rdf:resource"/>
-            </xsl:when>
-            <xsl:when test="schema2:thumbnailUrl/@rdf:resource">
-                <xsl:sequence select="schema2:thumbnailUrl/@rdf:resource"/>
-            </xsl:when>
-            <xsl:when test="dbpo:thumbnail/@rdf:resource">
-                <xsl:sequence select="dbpo:thumbnail/@rdf:resource"/>
-            </xsl:when>
-        </xsl:choose>
-    </xsl:template>
-    
-    <xsl:template match="foaf:img/@rdf:resource | foaf:logo/@rdf:resource | foaf:depiction/@rdf:resource | schema1:image/@rdf:resource | schema2:image/@rdf:resource | schema1:logo/@rdf:resource | schema2:logo/@rdf:resource | schema1:thumbnailUrl/@rdf:resource | schema2:thumbnailUrl/@rdf:resource | dbpo:thumbnail/@rdf:resource">
-        <a href="{.}">
-            <img src="{.}">
-                <xsl:attribute name="alt">
-                    <xsl:value-of>
-                        <xsl:apply-templates select="." mode="ac:object-label"/>
-                    </xsl:value-of>
-                </xsl:attribute>
-            </img>
-        </a>
-    </xsl:template>
-    
     <!-- CALLBACKS -->
 
     <xsl:template name="ldh:PopulateBreadcrumbNav">

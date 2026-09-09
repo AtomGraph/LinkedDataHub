@@ -37,13 +37,18 @@ exclude-result-prefixes="#all">
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
 
-        <xsl:call-template name="xhtml:Input">
-            <xsl:with-param name="name" select="'ol'"/>
-            <xsl:with-param name="type" select="'text'"/>
-            <xsl:with-param name="id" select="$id"/>
-            <xsl:with-param name="class" select="$class"/>
-            <xsl:with-param name="value" select="substring-after(., 'mailto:')"/>
-        </xsl:call-template>
+        <xsl:apply-templates select="." mode="ac:FieldShell">
+            <xsl:with-param name="type" select="$type"/>
+            <xsl:with-param name="control" as="item()*">
+                <xsl:call-template name="xhtml:Input">
+                    <xsl:with-param name="name" select="'ol'"/>
+                    <xsl:with-param name="type" select="$type"/>
+                    <xsl:with-param name="id" select="$id"/>
+                    <xsl:with-param name="class" select="$class"/>
+                    <xsl:with-param name="value" select="substring-after(., 'mailto:')"/>
+                </xsl:call-template>
+            </xsl:with-param>
+        </xsl:apply-templates>
 
         <xsl:if test="$type-label">
             <xsl:apply-templates select="." mode="ac:ValueAnnotations">

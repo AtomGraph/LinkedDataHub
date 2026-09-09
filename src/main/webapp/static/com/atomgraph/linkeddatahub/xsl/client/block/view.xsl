@@ -1105,6 +1105,10 @@ exclude-result-prefixes="#all"
                         <xsl:apply-templates select="." mode="ldh:BlockLinksPopover"/>
 
                         <xsl:apply-templates select="." mode="ldh:CopyUriButton"/>
+
+                        <xsl:if test="acl:mode() = '&acl;Write'">
+                            <xsl:apply-templates select="." mode="ldh:EditButton"/>
+                        </xsl:if>
                     </div>
                 </div>
 

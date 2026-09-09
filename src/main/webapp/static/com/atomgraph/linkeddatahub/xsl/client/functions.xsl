@@ -65,9 +65,16 @@ exclude-result-prefixes="#all"
     <!-- ldh:query-params is defined once in imports/default.xsl and works in both contexts via ldh:request-uri -->
 
     <xsl:function name="ldh:base-uri" as="xs:anyURI">
-        <xsl:param name="arg" as="node()"/> <!-- ignored -->
+        <xsl:param name="arg" as="node()"/>
 
+        <!-- content loaded from another document (an ldh:Object embed, possibly with an ldh:graph override)
+             carries its source's URI on a data-base-uri ancestor, stamped by the loading flow - the browser
+             offers no per-subtree base (HTML never honored xml:base and Node.baseURI is document-wide) -->
+        <xsl:variable name="stamped" select="$arg/ancestor-or-self::*[@data-base-uri][1]/@data-base-uri" as="attribute()?"/>
         <xsl:choose>
+            <xsl:when test="$stamped">
+                <xsl:sequence select="xs:anyURI($stamped)"/>
+            </xsl:when>
             <xsl:when test="ac:uri()">
                 <xsl:sequence select="ac:document-uri(ac:uri())"/>
             </xsl:when>

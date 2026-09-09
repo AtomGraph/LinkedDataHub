@@ -121,13 +121,13 @@ exclude-result-prefixes="#all">
 
         <xsl:choose>
             <xsl:when test="if ($type-metadata) then key('resources', ., $type-metadata) else false()">
-                <xsl:apply-templates select="key('resources', ., $type-metadata)" mode="ldh:Typeahead">
+                <xsl:apply-templates select="key('resources', ., $type-metadata)" mode="ac:Typeahead">
                     <xsl:with-param name="class" select="'cb-chip-btn add-typeahead add-type-typeahead'"/>
                     <xsl:with-param name="forClass" select="(xs:anyURI('&rdfs;Class'), xs:anyURI('&owl;Class'))"/> <!-- ontologies are served without inference, so owl:Class subjects do not carry the rdfs:Class type -->
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:call-template name="ldh:Lookup">
+                <xsl:call-template name="ac:Lookup">
                     <xsl:with-param name="class" select="$lookup-class"/>
                     <xsl:with-param name="id" select="$id"/>
                     <xsl:with-param name="value" select="."/>

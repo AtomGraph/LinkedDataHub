@@ -227,12 +227,12 @@ exclude-result-prefixes="#all"
 
                     <xsl:choose>
                         <xsl:when test="exists($resource)">
-                            <xsl:apply-templates select="$resource" mode="ldh:Typeahead">
+                            <xsl:apply-templates select="$resource" mode="ac:Typeahead">
                                 <xsl:with-param name="class" select="'cb-chip-btn add-typeahead add-property-typeahead'"/>
                             </xsl:apply-templates>
                         </xsl:when>
                         <xsl:otherwise>
-                            <!-- no metadata available for $predicate: synthesize a minimal rdf:Description so ldh:Typeahead matches and ac:label falls back to the URI tail -->
+                            <!-- no metadata available for $predicate: synthesize a minimal rdf:Description so ac:Typeahead matches and ac:label falls back to the URI tail -->
                             <xsl:variable name="synthetic" as="document-node()">
                                 <xsl:document>
                                     <rdf:RDF>
@@ -242,7 +242,7 @@ exclude-result-prefixes="#all"
                                     </rdf:RDF>
                                 </xsl:document>
                             </xsl:variable>
-                            <xsl:apply-templates select="$synthetic/rdf:RDF/rdf:Description" mode="ldh:Typeahead">
+                            <xsl:apply-templates select="$synthetic/rdf:RDF/rdf:Description" mode="ac:Typeahead">
                                 <xsl:with-param name="class" select="'cb-chip-btn add-typeahead add-property-typeahead'"/>
                             </xsl:apply-templates>
                         </xsl:otherwise>
@@ -251,7 +251,7 @@ exclude-result-prefixes="#all"
                 <xsl:otherwise>
                     <xsl:variable name="uuid" select="ac:uuid()" as="xs:string"/>
 
-                    <xsl:call-template name="ldh:Lookup">
+                    <xsl:call-template name="ac:Lookup">
                         <xsl:with-param name="forClass" select="xs:anyURI('&rdf;Property')"/>
                         <xsl:with-param name="class" select="'property-typeahead typeahead'"/>
                         <xsl:with-param name="id" select="'input-' || $uuid"/>
@@ -339,64 +339,68 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:ConstructorLiteralObject">
         <xsl:param name="object-type" as="xs:anyURI?"/>
 
-        <select name="ou" class="ctor-range">
-            <option value="&xsd;string">
-                <xsl:if test="$object-type = '&xsd;string'">
-                    <xsl:attribute name="selected" select="'selected'"/>
-                </xsl:if>
-                    
-                <xsl:text>String</xsl:text>
-            </option>
-            <option value="&xsd;boolean">
-                <xsl:if test="$object-type = '&xsd;boolean'">
-                    <xsl:attribute name="selected" select="'selected'"/>
-                </xsl:if>
-
-                <xsl:text>Boolean</xsl:text>
-            </option>
-            <option value="&xsd;date">
-                <xsl:if test="$object-type = '&xsd;date'">
-                    <xsl:attribute name="selected" select="'selected'"/>
-                </xsl:if>
-
-                <xsl:text>Date</xsl:text>
-            </option>
-            <option value="&xsd;dateTime">
-                <xsl:if test="$object-type = '&xsd;dateTime'">
-                    <xsl:attribute name="selected" select="'selected'"/>
-                </xsl:if>
-
-                <xsl:text>Datetime</xsl:text>
-            </option>
-            <option value="&xsd;integer">
-                <xsl:if test="$object-type = '&xsd;integer'">
-                    <xsl:attribute name="selected" select="'selected'"/>
-                </xsl:if>
-
-                <xsl:text>Integer</xsl:text>
-            </option>
-            <option value="&xsd;float">
-                <xsl:if test="$object-type = '&xsd;float'">
-                    <xsl:attribute name="selected" select="'selected'"/>
-                </xsl:if>
-
-                <xsl:text>Float</xsl:text>
-            </option>
-            <option value="&xsd;double">
-                <xsl:if test="$object-type = '&xsd;double'">
-                    <xsl:attribute name="selected" select="'selected'"/>
-                </xsl:if>
-
-                <xsl:text>Double</xsl:text>
-            </option>
-            <option value="&xsd;decimal">
-                <xsl:if test="$object-type = '&xsd;decimal'">
-                    <xsl:attribute name="selected" select="'selected'"/>
-                </xsl:if>
-
-                <xsl:text>Decimal</xsl:text>
-            </option>
-        </select>
+        <xsl:apply-templates select="." mode="ac:SelectShell">
+            <xsl:with-param name="select" as="item()*">
+                <select name="ou" class="ctor-range">
+                    <option value="&xsd;string">
+                        <xsl:if test="$object-type = '&xsd;string'">
+                            <xsl:attribute name="selected" select="'selected'"/>
+                        </xsl:if>
+                            
+                        <xsl:text>String</xsl:text>
+                    </option>
+                    <option value="&xsd;boolean">
+                        <xsl:if test="$object-type = '&xsd;boolean'">
+                            <xsl:attribute name="selected" select="'selected'"/>
+                        </xsl:if>
+        
+                        <xsl:text>Boolean</xsl:text>
+                    </option>
+                    <option value="&xsd;date">
+                        <xsl:if test="$object-type = '&xsd;date'">
+                            <xsl:attribute name="selected" select="'selected'"/>
+                        </xsl:if>
+        
+                        <xsl:text>Date</xsl:text>
+                    </option>
+                    <option value="&xsd;dateTime">
+                        <xsl:if test="$object-type = '&xsd;dateTime'">
+                            <xsl:attribute name="selected" select="'selected'"/>
+                        </xsl:if>
+        
+                        <xsl:text>Datetime</xsl:text>
+                    </option>
+                    <option value="&xsd;integer">
+                        <xsl:if test="$object-type = '&xsd;integer'">
+                            <xsl:attribute name="selected" select="'selected'"/>
+                        </xsl:if>
+        
+                        <xsl:text>Integer</xsl:text>
+                    </option>
+                    <option value="&xsd;float">
+                        <xsl:if test="$object-type = '&xsd;float'">
+                            <xsl:attribute name="selected" select="'selected'"/>
+                        </xsl:if>
+        
+                        <xsl:text>Float</xsl:text>
+                    </option>
+                    <option value="&xsd;double">
+                        <xsl:if test="$object-type = '&xsd;double'">
+                            <xsl:attribute name="selected" select="'selected'"/>
+                        </xsl:if>
+        
+                        <xsl:text>Double</xsl:text>
+                    </option>
+                    <option value="&xsd;decimal">
+                        <xsl:if test="$object-type = '&xsd;decimal'">
+                            <xsl:attribute name="selected" select="'selected'"/>
+                        </xsl:if>
+        
+                        <xsl:text>Decimal</xsl:text>
+                    </option>
+                </select>
+            </xsl:with-param>
+        </xsl:apply-templates>
     </xsl:template>
     
     <xsl:template name="ldh:ConstructorResourceObject">
@@ -406,14 +410,14 @@ exclude-result-prefixes="#all"
             <xsl:when test="$object-type">
                 <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': 'DESCRIBE &lt;' || $object-type || '&gt;', 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
 
-                <xsl:apply-templates select="key('resources', $object-type, document($request-uri))" mode="ldh:Typeahead">
+                <xsl:apply-templates select="key('resources', $object-type, document($request-uri))" mode="ac:Typeahead">
                     <xsl:with-param name="class" select="'cb-chip-btn add-typeahead add-class-typeahead'"/>
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:variable name="uuid" select="ac:uuid()" as="xs:string"/>
 
-                <xsl:call-template name="ldh:Lookup">
+                <xsl:call-template name="ac:Lookup">
                     <xsl:with-param name="forClass" select="(xs:anyURI('&rdfs;Class'), xs:anyURI('&owl;Class'))"/> <!-- ontologies are served without inference, so owl:Class subjects do not carry the rdfs:Class type -->
                     <xsl:with-param name="class" select="'class-typeahead typeahead'"/>
                     <xsl:with-param name="id" select="'input-' || $uuid"/>

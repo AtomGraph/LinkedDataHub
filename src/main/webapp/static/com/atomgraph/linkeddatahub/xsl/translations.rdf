@@ -991,4 +991,64 @@
         <rdfs:label xml:lang="en-US">Sorted descending — click to sort ascending</rdfs:label>
         <rdfs:label xml:lang="es-ES">Orden descendente — haga clic para ordenar de forma ascendente</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-object">
+        <rdfs:label xml:lang="en-US">Object</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Objeto</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="annotate">
+        <rdfs:label xml:lang="en-US">Annotate</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Anotar</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-value-placeholder">
+        <rdfs:label xml:lang="en-US">Literal value</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Valor literal</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-value-help">
+        <rdfs:label xml:lang="en-US">The selected text; change to emit a machine-readable content value</rdfs:label>
+        <rdfs:label xml:lang="es-ES">El texto seleccionado; cámbielo para emitir un valor de contenido legible por máquina</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-subject-placeholder">
+        <rdfs:label xml:lang="en-US">Overrides the subject in scope</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Anula el sujeto en el ámbito</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-subject-help">
+        <rdfs:label xml:lang="en-US">IRI or _:blank-node identifier</rdfs:label>
+        <rdfs:label xml:lang="es-ES">IRI o identificador de nodo en blanco _:</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-typeof-help">
+        <rdfs:label xml:lang="en-US">Types the annotated resource; without a subject the typed resource becomes the object of the property (chaining)</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Tipa el recurso anotado; sin un sujeto, el recurso tipado se convierte en el objeto de la propiedad (encadenamiento)</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-object-placeholder">
+        <rdfs:label xml:lang="en-US">Object IRI</rdfs:label>
+        <rdfs:label xml:lang="es-ES">IRI del objeto</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-object-help">
+        <rdfs:label xml:lang="en-US">Makes the object a resource instead of the literal value</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Convierte el objeto en un recurso en lugar del valor literal</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-datatype-placeholder">
+        <rdfs:label xml:lang="en-US">Datatype IRI</rdfs:label>
+        <rdfs:label xml:lang="es-ES">IRI del tipo de datos</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-datatype-help">
+        <rdfs:label xml:lang="en-US">Types the literal; mutually exclusive with a language tag</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Tipa el literal; mutuamente excluyente con una etiqueta de idioma</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-plain-literal">
+        <rdfs:label xml:lang="en-US">(plain literal)</rdfs:label>
+        <rdfs:label xml:lang="es-ES">(literal simple)</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-custom-datatype">
+        <rdfs:label xml:lang="en-US">-- Custom datatype --</rdfs:label>
+        <rdfs:label xml:lang="es-ES">-- Tipo de datos personalizado --</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-language-placeholder">
+        <rdfs:label xml:lang="en-US">e.g. en, fr-CA</rdfs:label>
+        <rdfs:label xml:lang="es-ES">p. ej. en, fr-CA</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-language-help">
+        <rdfs:label xml:lang="en-US">Language tag for the literal; ignored when a datatype is set</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Etiqueta de idioma del literal; se ignora cuando se establece un tipo de datos</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>

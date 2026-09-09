@@ -411,6 +411,23 @@ extension-element-prefixes="ixsl"
         </button>
     </xsl:template>
 
+    <!-- EDIT BUTTON -->
+
+    <!-- opens the whole-resource edit form for the nearest addressable block. Context-free markup like
+         ldh:CopyUriButton: the onclick handler in client/form.xsl resolves the target from the ancestor
+         block's @about at click time. -->
+    <xsl:template match="*" mode="ldh:EditButton">
+        <xsl:param name="class" select="'ldhc-iconbtn sz-sm in-neutral ap-ghost btn-edit'" as="xs:string"/>
+
+        <button type="button" class="{$class}">
+            <xsl:attribute name="title">
+                <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+            </xsl:attribute>
+
+            <span class="msi sm" aria-hidden="true">edit</span>
+        </button>
+    </xsl:template>
+
     <!-- LINK ROW -->
 
     <xsl:template match="*[@rdf:about]" mode="ldh:LinkRow">
@@ -581,11 +598,6 @@ extension-element-prefixes="ixsl"
                             <xsl:apply-templates select="." mode="ldh:RowBlockControls">
                                 <xsl:with-param name="content" as="item()*">
                                     <div class="row-main">
-                                        <xsl:if test="acl:mode() = '&acl;Write'">
-                                            <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm btn-edit" style="display: none;">
-                                                <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                                            </button>
-                                        </xsl:if>
                                         <xsl:apply-templates select="." mode="ldh:ProgressBar"/>
                                     </div>
                                 </xsl:with-param>
@@ -645,18 +657,6 @@ extension-element-prefixes="ixsl"
                         </xsl:if>
                     </div>
                 </xsl:if>
-                <xsl:apply-templates select="." mode="ldh:RowBlockControls">
-                    <xsl:with-param name="content" as="item()*">
-                        <div class="row-main">
-                            <xsl:if test="acl:mode() = '&acl;Write'">
-                                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm btn-edit" style="display: none;">
-                                    <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                                </button>
-                            </xsl:if>
-                        </div>
-                    </xsl:with-param>
-                </xsl:apply-templates>
-
                 <div id="row-{generate-id()}" class="block-row">
                     <xsl:if test="$about">
                         <xsl:attribute name="about" select="$about"/>
@@ -688,10 +688,15 @@ extension-element-prefixes="ixsl"
                         </xsl:for-each>
                     </div>
 
-                    <!-- content blocks have no header - the popover and the copy-URI button anchor to the card's top right corner instead, surfaced on card hover by CSS -->
+                    <!-- content blocks have no header - the action cluster anchors to the card's top right corner instead, surfaced on card hover by CSS, in the block header's control order -->
                     <xsl:if test="$about">
-                        <xsl:apply-templates select="." mode="ldh:BlockLinksPopover"/>
-                        <xsl:apply-templates select="." mode="ldh:CopyUriButton"/>
+                        <div class="actions">
+                            <xsl:apply-templates select="." mode="ldh:BlockLinksPopover"/>
+                            <xsl:apply-templates select="." mode="ldh:CopyUriButton"/>
+                            <xsl:if test="acl:mode() = '&acl;Write'">
+                                <xsl:apply-templates select="." mode="ldh:EditButton"/>
+                            </xsl:if>
+                        </div>
                     </xsl:if>
                 </div>
             </div>
@@ -1026,13 +1031,7 @@ extension-element-prefixes="ixsl"
             <xsl:apply-templates select="." mode="ldh:CopyUriButton"/>
 
             <xsl:if test="$show-edit-button">
-                <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost btn-edit">
-                    <xsl:attribute name="title">
-                        <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                    </xsl:attribute>
-
-                    <span class="msi sm" aria-hidden="true">edit</span>
-                </button>
+                <xsl:apply-templates select="." mode="ldh:EditButton"/>
             </xsl:if>
         </div>
     </xsl:template>
@@ -1606,59 +1605,4 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="ldh:Object"/>
 
-    <!-- ### SHARED BETWEEN SERVER AND CLIENT -->
-    
-    <!-- TYPEAHEAD -->
-    
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ldh:Typeahead">
-        <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <xsl:param name="class" select="'cb-chip-btn add-typeahead'" as="xs:string?"/>
-        <xsl:param name="disabled" select="false()" as="xs:boolean"/>
-        <xsl:param name="title" select="(@rdf:about, @rdf:nodeID)[1]" as="xs:string?"/>
-        <xsl:param name="forClass" as="xs:anyURI*"/>
-
-        <span class="ldhc-cb-committed">
-            <xsl:if test="exists($forClass)">
-                <xsl:attribute name="data-for-class" select="string-join($forClass, ' ')"/>
-            </xsl:if>
-
-            <span class="ldhc-cb-chip">
-                <span class="msi outline sm" aria-hidden="true">link</span>
-                <span class="cb-chip-lbl">
-                    <xsl:if test="$title">
-                        <xsl:attribute name="title" select="$title"/>
-                    </xsl:if>
-
-                    <xsl:value-of>
-                        <xsl:apply-templates select="." mode="ac:label"/>
-                    </xsl:value-of>
-                </span>
-                <!-- the edit button carries the committed term's RDF/POST input, so re-picking replaces both together -->
-                <button type="button">
-                    <xsl:if test="$id">
-                        <xsl:attribute name="id" select="$id"/>
-                    </xsl:if>
-                    <xsl:if test="$class">
-                        <xsl:attribute name="class" select="$class"/>
-                    </xsl:if>
-                    <xsl:if test="$disabled">
-                        <xsl:attribute name="disabled" select="'disabled'"/>
-                    </xsl:if>
-                    <xsl:if test="$title">
-                        <xsl:attribute name="title" select="$title"/>
-                    </xsl:if>
-
-                    <span class="msi" aria-hidden="true">edit</span>
-
-                    <xsl:if test="@rdf:about">
-                        <input type="hidden" name="ou" value="{@rdf:about}"/>
-                    </xsl:if>
-                    <xsl:if test="@rdf:nodeID">
-                        <input type="hidden" name="ob" value="{@rdf:nodeID}"/>
-                    </xsl:if>
-                </button>
-            </span>
-        </span>
-    </xsl:template>
-    
 </xsl:stylesheet>

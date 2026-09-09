@@ -132,70 +132,38 @@ exclude-result-prefixes="#all">
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         
-        <select name="ou">
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-            <xsl:if test="$disabled">
-                <xsl:attribute name="disabled" select="'disabled'"/>
-            </xsl:if>
-            
-            <!-- empty placeholder, so an untouched form does not submit the first country; ldh:parse-rdf-post drops the empty-valued statement -->
-            <option value=""></option>
+        <xsl:apply-templates select="." mode="ac:SelectShell">
+            <xsl:with-param name="select" as="item()*">
+                <select name="ou">
+                    <xsl:if test="$id">
+                        <xsl:attribute name="id" select="$id"/>
+                    </xsl:if>
+                    <xsl:if test="$class">
+                        <xsl:attribute name="class" select="$class"/>
+                    </xsl:if>
+                    <xsl:if test="$disabled">
+                        <xsl:attribute name="disabled" select="'disabled'"/>
+                    </xsl:if>
 
-            <xsl:variable name="selected" select="." as="xs:anyURI"/>
-            <xsl:for-each select="document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/admin/countries.rdf', $lapp:origin))/rdf:RDF/*[@rdf:about]">
-                <xsl:sort select="ac:label(.)" lang="{ac:langs()[1]}"/>
-                <xsl:apply-templates select="." mode="xhtml:Option">
-                    <xsl:with-param name="selected" select="@rdf:about = $selected"/>
-                </xsl:apply-templates>
-            </xsl:for-each>
-        </select>
-        
+                    <!-- empty placeholder, so an untouched form does not submit the first country; ldh:parse-rdf-post drops the empty-valued statement -->
+                    <option value=""></option>
+
+                    <xsl:variable name="selected" select="." as="xs:anyURI"/>
+                    <xsl:for-each select="document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/admin/countries.rdf', $lapp:origin))/rdf:RDF/*[@rdf:about]">
+                        <xsl:sort select="ac:label(.)" lang="{ac:langs()[1]}"/>
+                        <xsl:apply-templates select="." mode="xhtml:Option">
+                            <xsl:with-param name="selected" select="@rdf:about = $selected"/>
+                        </xsl:apply-templates>
+                    </xsl:for-each>
+                </select>
+            </xsl:with-param>
+        </xsl:apply-templates>
+
         <xsl:if test="$type-label">
             <xsl:apply-templates select="." mode="ac:ValueAnnotations"/>
         </xsl:if>
     </xsl:template>
         
-    <!-- change foaf:mbox object type from resource to literal -->
-    <!-- TO-DO: apply this from Client's foaf.xsl instead - likely needs import restructuring -->
-    <xsl:template match="foaf:mbox/@rdf:*" mode="ac:FormControl">
-        <xsl:param name="type" select="'text'" as="xs:string"/>
-        <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <xsl:param name="class" as="xs:string?"/>
-        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
-
-        <xsl:call-template name="xhtml:Input">
-            <xsl:with-param name="name" select="'ol'"/>
-            <xsl:with-param name="type" select="'text'"/>
-            <xsl:with-param name="id" select="$id"/>
-            <xsl:with-param name="class" select="$class"/>
-            <xsl:with-param name="value" select="substring-after(., 'mailto:')"/>
-        </xsl:call-template>
-
-        <xsl:if test="$type-label">
-            <xsl:apply-templates select="." mode="ac:ValueAnnotations">
-                <xsl:with-param name="type" select="$type"/>
-            </xsl:apply-templates>
-        </xsl:if>
-    </xsl:template>
-
-    <xsl:template match="foaf:mbox/@rdf:*" mode="ac:ValueAnnotations">
-        <xsl:param name="type" as="xs:string?"/>
-
-        <xsl:if test="not($type = 'hidden')">
-            <xsl:apply-templates select="." mode="ac:AnnotationTag">
-                <xsl:with-param name="class" select="'ldhc-tag sz-sm em-quiet an-term is-literal'"/>
-                <xsl:with-param name="label" as="item()*">
-                    <xsl:apply-templates select="key('resources', 'literal', ldh:translations())" mode="ac:label"/>
-                </xsl:with-param>
-            </xsl:apply-templates>
-        </xsl:if>
-    </xsl:template>
-    
     <!-- make properties required -->
     <xsl:template match="foaf:givenName[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), ldt:base())] | foaf:familyName[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), ldt:base())] | foaf:mbox[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), ldt:base())] | cert:key[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), ldt:base())]" mode="ac:FormControl" priority="1">
         <xsl:param name="violations" as="element()*"/>
@@ -282,12 +250,17 @@ exclude-result-prefixes="#all">
             <div class="ldh-prop-row is-interactive is-last{if ($error) then ' is-violation' else ()}">
                 <div class="value val-stack">
                     <div class="val-main">
-                        <xsl:call-template name="xhtml:Input">
-                            <xsl:with-param name="name" select="'ol'"/>
+                        <xsl:apply-templates select="." mode="ac:FieldShell">
                             <xsl:with-param name="type" select="$type"/>
-                            <xsl:with-param name="id" select="$for"/>
-                            <xsl:with-param name="disabled" select="$disabled"/>
-                        </xsl:call-template>
+                            <xsl:with-param name="control" as="item()*">
+                                <xsl:call-template name="xhtml:Input">
+                                    <xsl:with-param name="name" select="'ol'"/>
+                                    <xsl:with-param name="type" select="$type"/>
+                                    <xsl:with-param name="id" select="$for"/>
+                                    <xsl:with-param name="disabled" select="$disabled"/>
+                                </xsl:call-template>
+                            </xsl:with-param>
+                        </xsl:apply-templates>
 
                         <xsl:if test="$type-label">
                             <xsl:apply-templates select="." mode="ac:AnnotationTag">

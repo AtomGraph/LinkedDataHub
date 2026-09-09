@@ -127,11 +127,15 @@ LIMIT   10
                                 <div class="ldh-prop-row is-interactive is-last">
                                     <div class="value val-stack">
                                         <div class="val-main">
-                                            <input type="text" id="remote-rdf-source" name="ou">
-                                                <xsl:if test="$source">
-                                                    <xsl:attribute name="value" select="$source"/>
-                                                </xsl:if>
-                                            </input>
+                                            <xsl:apply-templates select="." mode="ac:FieldShell">
+                                                <xsl:with-param name="control" as="item()*">
+                                                    <input type="text" id="remote-rdf-source" name="ou">
+                                                        <xsl:if test="$source">
+                                                            <xsl:attribute name="value" select="$source"/>
+                                                        </xsl:if>
+                                                    </input>
+                                                </xsl:with-param>
+                                            </xsl:apply-templates>
                                             <xsl:apply-templates select="." mode="ac:AnnotationTag">
                                                 <xsl:with-param name="class" select="'ldhc-tag sz-sm em-quiet an-term is-resource'"/>
                                                 <xsl:with-param name="label" as="item()*">
@@ -155,7 +159,7 @@ LIMIT   10
                                 <div class="ldh-prop-row is-interactive is-last">
                                     <div class="value val-stack">
                                         <div class="val-main">
-                                            <xsl:call-template name="ldh:Lookup">
+                                            <xsl:call-template name="ac:Lookup">
                                                 <xsl:with-param name="id" select="'remote-rdf-doc'"/>
                                                 <xsl:with-param name="forClass" select="(xs:anyURI('&dh;Container'), xs:anyURI('&dh;Item'))"/>
                                             </xsl:call-template>
@@ -246,7 +250,7 @@ LIMIT   10
                                             <div class="ldh-prop-row is-interactive is-last">
                                                 <div class="value val-stack">
                                                     <div class="val-main">
-                                                        <xsl:call-template name="ldh:Lookup">
+                                                        <xsl:call-template name="ac:Lookup">
                                                             <xsl:with-param name="id" select="'generate-containers-parent'"/>
                                                             <xsl:with-param name="forClass" select="(xs:anyURI('&def;Root'), xs:anyURI('&dh;Container'))"/>
                                                         </xsl:call-template>
@@ -274,7 +278,11 @@ LIMIT   10
                                             <div class="ldh-prop-row is-interactive is-last">
                                                 <div class="value val-stack">
                                                     <div class="val-main">
-                                                        <input type="text" name="ol" id="schema-class-limit" value="{$default-limit}"/>
+                                                        <xsl:apply-templates select="." mode="ac:FieldShell">
+                                                            <xsl:with-param name="control" as="item()*">
+                                                                <input type="text" name="ol" id="schema-class-limit" value="{$default-limit}"/>
+                                                            </xsl:with-param>
+                                                        </xsl:apply-templates>
                                                         <input type="hidden" name="lt" value="&xsd;integer"/>
 
                                                         <xsl:apply-templates select="." mode="ac:AnnotationTag">
@@ -298,7 +306,7 @@ LIMIT   10
                                             <div class="ldh-prop-row is-interactive is-last">
                                                 <div class="value val-stack">
                                                     <div class="val-main">
-                                                        <xsl:call-template name="ldh:Lookup">
+                                                        <xsl:call-template name="ac:Lookup">
                                                             <xsl:with-param name="id" select="'source-service'"/>
                                                             <xsl:with-param name="forClass" select="xs:anyURI('&sd;Service')"/>
                                                         </xsl:call-template>
@@ -677,7 +685,11 @@ LIMIT   10
                                 <div class="ldh-prop-row is-interactive is-last">
                                     <div class="value val-stack">
                                         <div class="val-main">
-                                            <input id="same-as-resource" type="text" value="{$label}"/>
+                                            <xsl:apply-templates select="." mode="ac:FieldShell">
+                                                <xsl:with-param name="control" as="item()*">
+                                                    <input id="same-as-resource" type="text" value="{$label}"/>
+                                                </xsl:with-param>
+                                            </xsl:apply-templates>
 
                                             <xsl:apply-templates select="." mode="ac:AnnotationTag">
                                                 <xsl:with-param name="class" select="'ldhc-tag sz-sm em-quiet an-term is-resource'"/>
@@ -1765,7 +1777,7 @@ LIMIT   10
                             <!-- the committed chip stands in for the whole combobox, mirroring the edit button's replace-element in the other direction -->
                             <xsl:for-each select="$combobox">
                                 <xsl:variable name="typeahead" as="element()">
-                                    <xsl:apply-templates select="$resource" mode="ldh:Typeahead">
+                                    <xsl:apply-templates select="$resource" mode="ac:Typeahead">
                                         <xsl:with-param name="forClass" select="$forClass"/>
                                     </xsl:apply-templates>
                                 </xsl:variable>
@@ -1779,7 +1791,7 @@ LIMIT   10
                             <!-- resource description not found: keep a lookup, with the raw URI as its value -->
                             <xsl:for-each select="$combobox">
                                 <xsl:result-document href="?." method="ixsl:replace-element">
-                                    <xsl:call-template name="ldh:Lookup">
+                                    <xsl:call-template name="ac:Lookup">
                                         <xsl:with-param name="class" select="'resource-typeahead typeahead'"/>
                                         <xsl:with-param name="list-class" select="'resource-typeahead typeahead ldhc-cb-panel'"/>
                                         <xsl:with-param name="value" select="$resource-uri"/>

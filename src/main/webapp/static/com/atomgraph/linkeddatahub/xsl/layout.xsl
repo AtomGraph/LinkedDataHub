@@ -80,8 +80,8 @@ exclude-result-prefixes="#all">
 
     <xsl:import href="../../client/xsl/converters/RDFXML2JSON-LD.xsl"/>
     <xsl:import href="../../client/xsl/internal-layout.xsl"/>
-    <xsl:import href="resource.xsl"/>
     <xsl:import href="imports/default.xsl"/>
+    <xsl:import href="resource.xsl"/>
     <xsl:import href="imports/ac.xsl"/>
     <xsl:import href="imports/acl.xsl"/>
     <xsl:import href="imports/cert.xsl"/>
@@ -90,7 +90,6 @@ exclude-result-prefixes="#all">
     <xsl:import href="imports/rdf.xsl"/>
     <xsl:import href="imports/sioc.xsl"/>
     <xsl:import href="imports/sp.xsl"/>
-    <xsl:import href="imports/sh.xsl"/>
     <xsl:import href="imports/memento.xsl"/>
     <xsl:import href="imports/services/youtube.xsl"/>
     <xsl:import href="document.xsl"/>

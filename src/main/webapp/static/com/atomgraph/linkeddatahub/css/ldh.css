@@ -55,7 +55,6 @@ div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main { font-size: 
 div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main pre { margin: var(--sp-4) 0; padding: var(--sp-3) var(--sp-4); background: var(--surface-2); border-radius: var(--r-sm); font-family: var(--font-mono); font-size: 0.92em; line-height: var(--lh-base); color: var(--ink-2); overflow-x: auto; }
 /* click-to-edit affordance only when the pane's document grants acl:Write (mirrors the ixsl:onclick guard in block.xsl) */
 div[data-acl-modes~="http://www.w3.org/ns/auth/acl#Write"] div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"]:not(:has(form)) .main { cursor: pointer; }
-div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .btn-edit { display: none; }
 /* collapse the property grid in the XHTML block's edit form: the region spans the block as a document
    surface, not a "value" form row - the predicate label goes, and group/row/value become plain flow */
 div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .ldh-edit-form .ldh-prop-group > .label { display: none; }
@@ -260,9 +259,6 @@ circle { cursor: move; }
 .ldh-of-menu a.it { text-decoration: none; }
 /* the CSR-built breadcrumb container (bc-pill / bc-sep styled by app.css) */
 div.ldh-bc { min-width: 0; overflow: hidden; }
-/* address bar: the field is skinned by app.css .ldh-address, not the form-field rules below */
-.ldh-address input[type="text"] { background: transparent; border: 0; box-shadow: none; min-height: 0; padding: 0; }
-.ldh-address input[type="text"]:focus { border: 0; box-shadow: none; }
 /* the breadcrumb zone and the address bar left-align with the content column's blocks: the column
    edge is (layout width - column)/2 + the sp-6 inset. The layout width comes from container units,
    not 100vw: 100vw includes the classic scrollbar while the column centers via margin auto in the
@@ -314,20 +310,6 @@ div.ldh-bc { min-width: 0; overflow: hidden; }
 
 /* the XHTML editor fills its whole value cell, so the statement hover band would paint the entire editing surface grey - rows hosting the editor don't band */
 .ldh-prop-group:has(.rdfa-editor-content):hover > .label, .ldh-prop-row:has(.rdfa-editor-content):hover > .value, .ldh-prop-row:has(.rdfa-editor-content):hover > .row-actions, .ldh-prop-row.is-interactive:has(.rdfa-editor-content) .value:hover { background: transparent; }
-
-/* ---------- forms: base control chrome for dialogs outside the whole-form mode ----------
-   controls wrapped in the design's .ldhc-field-box are excluded: the box carries the chrome and core.css keeps its inner input bare */
-form input[type="text"]:not(.ldhc-field-box *, .ldh-address *), form input[type="url"]:not(.ldhc-field-box *), form input[type="number"]:not(.ldhc-field-box *), form input[type="password"]:not(.ldhc-field-box *), form input[type="datetime-local"]:not(.ldhc-field-box *), form input[type="date"]:not(.ldhc-field-box *), form textarea:not(.ldhc-field-box *), form select {
-  border: 1px solid var(--border-default); border-radius: var(--r-sm);
-  background: var(--surface-0); color: var(--fg-1);
-  font-family: var(--font-sans); font-size: var(--fs-sm);
-  padding: 5px 10px; min-height: 30px;
-  transition: border-color var(--dur-fast) var(--ease-out-soft), box-shadow var(--dur-fast) var(--ease-out-soft);
-}
-form input:focus:not(.ldhc-field-box *), form textarea:focus:not(.ldhc-field-box *), form select:focus {
-  outline: none; border-color: var(--ldh-blue-400);
-  box-shadow: 0 0 0 3px var(--bg-accent-quiet);
-}
 
 /* the header thumbnail is an <a><img> here rather than the design's image-slot component, so the image
    fills the .ldh-res-thumb footprint itself */
@@ -413,19 +395,12 @@ legend > .actions { display: flex; align-items: center; gap: var(--sp-1); margin
 button.tree-link { border: 0; background: transparent; width: 100%; font: inherit; text-align: left; cursor: pointer; }
 /* the lazy-loading row's glyph spins (the design mounts a ProgressCircle; the glyph does the same job) */
 .ldh-tree .tree-loading .msi { animation: ldhc-spin 0.9s linear infinite; }
-/* the search modal's field is a form (so Enter reaches the submit handler) where the design ships a
-   label, which puts its input in reach of the generic form input:focus ring above - the row is the
-   flush band, so a border and ring inside it would paint a box within the dialog's own edge */
-.ldh-search-field input:focus { border: 0; box-shadow: none; }
-/* the drawer search is a typable field again (submit opens the dialog pre-populated; LDH overrides
+/* the drawer search is a typable field (submit opens the dialog pre-populated; LDH overrides
    §19's search button). app.css still draws the field-shaped shell; the ring moves to :focus-within
-   since the button's :focus-visible no longer fires, and the input inside stays bare - type="search"
-   keeps it clear of the generic form chrome above, while the :focus reset carries the form qualifier
-   to match that ring rule's specificity and outrank it by order */
+   since the button's :focus-visible no longer fires, and the input inside stays bare */
 .sb-search { cursor: text; }
 .sb-search:focus-within { border-color: var(--ldh-blue-400); box-shadow: var(--focus-ring); }
 .sb-search input { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; padding: 0; background: transparent; font: inherit; color: var(--fg-1); }
-form.sb-search input:focus { border: 0; box-shadow: none; }
 .sb-search input::placeholder { color: var(--fg-hint); }
 
 /* ---------- document tab bar: DataspaceTabs (§17b) — the strip anatomy and the underline-active
@@ -600,16 +575,13 @@ body:has(.document-body > .content-body > :is(.graph-3d-canvas, .map-canvas)) .l
 .links-pop .drow .msi { color: var(--fg-hint); flex-shrink: 0; }
 .links-pop .drow .lbl { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* content (XHTML) blocks have no header row — their popover anchors to the
-   card's top right corner and surfaces on card hover, staying put while open */
-.ldh-block .block-row > .links-nav { position: absolute; top: var(--sp-3); right: var(--sp-3); opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft); }
-.ldh-block:hover .block-row > .links-nav, .ldh-block .block-row > .links-nav.is-open { opacity: 1; }
-
-/* Copy-URI button — the core icon-button primitive owns its box; only the
-   content-block corner placement is scoped here, where it sits left of the
-   links button and surfaces on the same card hover */
-.ldh-block .block-row > .btn-copy-uri { position: absolute; top: var(--sp-3); right: calc(var(--sp-3) + 32px + var(--sp-1)); opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft); }
-.ldh-block:hover .block-row > .btn-copy-uri { opacity: 1; }
+/* content (XHTML) blocks have no header row — their action cluster (backlinks, copy-URI, edit,
+   in the same order as the block header's) anchors to the card's top right corner as one flex
+   group and surfaces on card hover, staying put while the popover is open. The chip carries its
+   own card surface: the quiet block is transparent and its prose runs under the corner, so ghost
+   icons alone would sit illegibly on the text */
+.ldh-block .block-row > .actions { position: absolute; top: var(--sp-3); right: var(--sp-3); display: flex; gap: var(--sp-1); padding: 2px; background: var(--surface-0); border: 1px solid var(--border-default); border-radius: var(--r-md); box-shadow: var(--shadow-sm); opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft); }
+.ldh-block:hover .block-row > .actions, .ldh-block .block-row > .actions:has(.links-nav.is-open) { opacity: 1; }
 
 /* The design system sets an `is-failed` class on the card. Here the ring is
    derived from the body content instead: the failed state is a function of

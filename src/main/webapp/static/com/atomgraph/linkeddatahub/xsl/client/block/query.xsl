@@ -96,7 +96,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="results" select="?body" as="document-node()"/>
 
                 <xsl:result-document href="?." method="ixsl:append-content">
-                    <xsl:apply-templates select="key('resources', $service-uri, $results)" mode="ldh:Typeahead">
+                    <xsl:apply-templates select="key('resources', $service-uri, $results)" mode="ac:Typeahead">
                         <xsl:with-param name="forClass" select="$forClass"/>
                     </xsl:apply-templates>
                 </xsl:result-document>
@@ -240,12 +240,12 @@ exclude-result-prefixes="#all"
                                         <!-- need to explicitly request RDF/XML, otherwise we get HTML -->
                                         <xsl:variable name="request-uri" select="ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ())" as="xs:anyURI"/>
                                         <!-- TO-DO: refactor asynchronously -->
-                                        <xsl:apply-templates select="key('resources', $service-uri, document($request-uri))" mode="ldh:Typeahead">
+                                        <xsl:apply-templates select="key('resources', $service-uri, document($request-uri))" mode="ac:Typeahead">
                                             <xsl:with-param name="forClass" select="$forClass"/>
                                         </xsl:apply-templates>
                                     </xsl:when>
                                     <xsl:otherwise>
-                                        <xsl:call-template name="ldh:Lookup">
+                                        <xsl:call-template name="ac:Lookup">
                                             <xsl:with-param name="forClass" select="$forClass"/>
                                         </xsl:call-template>
                                     </xsl:otherwise>
