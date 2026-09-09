@@ -1312,5 +1312,15 @@ exclude-result-prefixes="#all"
 
         <xsl:sequence select="$context"/>
     </xsl:function>
-    
+
+    <!-- the block bundle: this module is the base machinery (ldh:load-block, ldh:end-block-loading,
+         the metadata loaders, ldh:CreateBlock, progress); chart.xsl is the shared renderer the others
+         call down into (ldh:RenderChart); object/view/query sit above and call only downward - no
+         circular dependency exists. xsl:include, not import: the sub-modules disambiguate against each
+         other and this module by @priority, which only resolves at equal precedence. -->
+    <xsl:include href="block/object.xsl"/>
+    <xsl:include href="block/view.xsl"/>
+    <xsl:include href="block/chart.xsl"/>
+    <xsl:include href="block/query.xsl"/>
+
 </xsl:stylesheet>

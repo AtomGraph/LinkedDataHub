@@ -78,21 +78,11 @@ xmlns:orcid="&orcid;"
 xmlns:schema="&schema;"
 exclude-result-prefixes="#all">
 
+    <!-- the import tree, not this list, is the precedence order: Web-Client's internal-layout (its
+         common layer + page layout) below LinkedDataHub's shared layer (common.xsl) - see §3.10.3 -->
     <xsl:import href="../../client/xsl/converters/RDFXML2JSON-LD.xsl"/>
     <xsl:import href="../../client/xsl/internal-layout.xsl"/>
-    <xsl:import href="imports/default.xsl"/>
-    <xsl:import href="resource.xsl"/>
-    <xsl:import href="imports/ac.xsl"/>
-    <xsl:import href="imports/acl.xsl"/>
-    <xsl:import href="imports/cert.xsl"/>
-    <xsl:import href="imports/dct.xsl"/>
-    <xsl:import href="imports/nfo.xsl"/>
-    <xsl:import href="imports/rdf.xsl"/>
-    <xsl:import href="imports/sioc.xsl"/>
-    <xsl:import href="imports/sp.xsl"/>
-    <xsl:import href="imports/memento.xsl"/>
-    <xsl:import href="imports/services/youtube.xsl"/>
-    <xsl:import href="document.xsl"/>
+    <xsl:import href="common.xsl"/>
 
     <!-- ldh:MergeRDF mode + ldh:merge-metadata() for merging /sparql + /ns object-metadata on the initial server render (SSR-safe: no ixsl). The client SEF gets this via client.xsl → graph3d.xsl. -->
     <xsl:include href="client/merge-rdfxml.xsl"/>

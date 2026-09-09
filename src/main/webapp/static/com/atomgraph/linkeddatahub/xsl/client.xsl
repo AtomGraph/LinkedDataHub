@@ -70,35 +70,10 @@ exclude-result-prefixes="#all"
 extension-element-prefixes="ixsl"
 >
 
-    <xsl:import href="../../../../com/atomgraph/client/xsl/functions.xsl"/>
-    <xsl:import href="../../../../com/atomgraph/client/xsl/imports/default.xsl"/>
-    <xsl:import href="../../../../com/atomgraph/client/xsl/imports/dc.xsl"/>
-    <xsl:import href="../../../../com/atomgraph/client/xsl/imports/dct.xsl"/>
-    <xsl:import href="../../../../com/atomgraph/client/xsl/imports/doap.xsl"/>
-    <xsl:import href="../../../../com/atomgraph/client/xsl/imports/foaf.xsl"/>
-    <xsl:import href="../../../../com/atomgraph/client/xsl/imports/rdf.xsl"/>
-    <xsl:import href="../../../../com/atomgraph/client/xsl/imports/rdfs.xsl"/>
-    <xsl:import href="../../../../com/atomgraph/client/xsl/imports/schema.xsl"/>
-    <xsl:import href="../../../../com/atomgraph/client/xsl/imports/sioc.xsl"/>
-    <xsl:import href="../../../../com/atomgraph/client/xsl/imports/skos.xsl"/>
-    <xsl:import href="../../../../com/atomgraph/client/xsl/imports/sp.xsl"/>
-    <xsl:import href="../../../../com/atomgraph/client/xsl/resource.xsl"/>
-    <xsl:import href="../../../../com/atomgraph/client/xsl/document.xsl"/>
-    <xsl:import href="../../../../com/atomgraph/client/xsl/container.xsl"/>
-    <xsl:import href="imports/default.xsl"/>
-    <xsl:import href="resource.xsl"/>
-    <xsl:import href="imports/ac.xsl"/>
-    <xsl:import href="imports/acl.xsl"/>
-    <xsl:import href="imports/cert.xsl"/>
-    <xsl:import href="imports/ldh.xsl"/>
-    <xsl:import href="imports/dct.xsl"/>
-    <xsl:import href="imports/nfo.xsl"/>
-    <xsl:import href="imports/rdf.xsl"/>
-    <xsl:import href="imports/sioc.xsl"/>
-    <xsl:import href="imports/sp.xsl"/>
-    <xsl:import href="imports/memento.xsl"/>
-    <xsl:import href="document.xsl"/>
-    <xsl:import href="imports/services/youtube.xsl"/>
+    <!-- the import tree, not this list, is the precedence order: Web-Client's common layer (no page
+         layout - the client bootstraps its own) below LinkedDataHub's shared layer - see §3.10.3 -->
+    <xsl:import href="../../../../com/atomgraph/client/xsl/common.xsl"/>
+    <xsl:import href="common.xsl"/>
     <xsl:import href="converters/RDFXML2DataTable.xsl"/>
     <xsl:import href="converters/SPARQLXMLResults2DataTable.xsl"/>
     <xsl:import href="converters/RDFXML2GeoJSON.xsl"/>
@@ -117,10 +92,6 @@ extension-element-prefixes="ixsl"
     <xsl:include href="client/map.xsl"/> <!-- include in view.xsl and object.xsl instead? -->
     <xsl:include href="client/graph3d.xsl"/>
     <xsl:include href="client/constructor.xsl"/>
-    <xsl:include href="client/block/object.xsl"/>
-    <xsl:include href="client/block/view.xsl"/>
-    <xsl:include href="client/block/chart.xsl"/>
-    <xsl:include href="client/block/query.xsl"/>
 
     <xsl:param name="ldh:ajaxRendering" select="true()" as="xs:boolean"/>
     <xsl:param name="ldh:renderSystemResources" select="false()" as="xs:boolean"/>
