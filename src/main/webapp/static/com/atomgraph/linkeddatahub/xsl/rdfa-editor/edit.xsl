@@ -6,6 +6,8 @@ xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:cm="https://w3id.org/atomgraph/rdfa-editor/content-model#"
 xmlns:rdfae="https://w3id.org/atomgraph/rdfa-editor#"
+xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#"
+xmlns:ac="https://w3id.org/atomgraph/client#"
 extension-element-prefixes="ixsl"
 xpath-default-namespace="http://www.w3.org/1999/xhtml"
 version="3.0">
@@ -552,7 +554,7 @@ version="3.0">
             <ixsl:set-attribute name="data-role" select="'chrome'" object="$chrome"/>
             <ixsl:set-attribute name="class" select="'drag-handle'" object="$chrome"/>
             <ixsl:set-attribute name="contenteditable" select="'false'" object="$chrome"/>
-            <ixsl:set-attribute name="title" select="'Drag to reorder'" object="$chrome"/>
+            <ixsl:set-attribute name="title" select="ac:label(key('resources', 'drag-to-reorder', ldh:translations()))" object="$chrome"/>
             <ixsl:set-property name="textContent" select="'&#x283F;'" object="$chrome"/>
             <xsl:sequence select="ixsl:call($block, 'prepend', [ $chrome ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:if>
@@ -589,48 +591,48 @@ version="3.0">
     </xsl:template>
 
     <xsl:template name="rdfae:render-toolbar">
-        <div id="edit-toolbar" class="rdfa-editor-ui" role="toolbar" aria-label="Editing toolbar">
-            <div class="tb-group" role="group" aria-label="Block">
-                <select name="block-type" title="Block type" aria-label="Block type">
-                    <option value="p">Paragraph</option>
-                    <option value="h1">Heading 1</option>
-                    <option value="h2">Heading 2</option>
-                    <option value="h3">Heading 3</option>
-                    <option value="pre">Preformatted</option>
+        <div id="edit-toolbar" class="rdfa-editor-ui" role="toolbar" aria-label="{ac:label(key('resources', 'toolbar', ldh:translations()))}">
+            <div class="tb-group" role="group" aria-label="{ac:label(key('resources', 'toolbar-group-block', ldh:translations()))}">
+                <select name="block-type" title="{ac:label(key('resources', 'block-type', ldh:translations()))}" aria-label="{ac:label(key('resources', 'block-type', ldh:translations()))}">
+                    <option value="p"><xsl:apply-templates select="key('resources', 'block-paragraph', ldh:translations())" mode="ac:label"/></option>
+                    <option value="h1"><xsl:apply-templates select="key('resources', 'block-heading-1', ldh:translations())" mode="ac:label"/></option>
+                    <option value="h2"><xsl:apply-templates select="key('resources', 'block-heading-2', ldh:translations())" mode="ac:label"/></option>
+                    <option value="h3"><xsl:apply-templates select="key('resources', 'block-heading-3', ldh:translations())" mode="ac:label"/></option>
+                    <option value="pre"><xsl:apply-templates select="key('resources', 'block-preformatted', ldh:translations())" mode="ac:label"/></option>
                 </select>
             </div>
-            <div class="tb-group" role="group" aria-label="Text">
-                <button type="button" class="format-inline" data-element="strong" aria-pressed="false" title="Bold" aria-label="Bold"><strong>B</strong></button>
-                <button type="button" class="format-inline" data-element="em" aria-pressed="false" title="Italic" aria-label="Italic"><em>I</em></button>
-                <button type="button" class="format-link" aria-pressed="false" title="Link" aria-label="Link">&#x1F517;</button>
+            <div class="tb-group" role="group" aria-label="{ac:label(key('resources', 'toolbar-group-text', ldh:translations()))}">
+                <button type="button" class="format-inline" data-element="strong" aria-pressed="false" title="{ac:label(key('resources', 'bold', ldh:translations()))}" aria-label="{ac:label(key('resources', 'bold', ldh:translations()))}"><strong>B</strong></button>
+                <button type="button" class="format-inline" data-element="em" aria-pressed="false" title="{ac:label(key('resources', 'italic', ldh:translations()))}" aria-label="{ac:label(key('resources', 'italic', ldh:translations()))}"><em>I</em></button>
+                <button type="button" class="format-link" aria-pressed="false" title="{ac:label(key('resources', 'link', ldh:translations()))}" aria-label="{ac:label(key('resources', 'link', ldh:translations()))}">&#x1F517;</button>
             </div>
-            <div class="tb-group" role="group" aria-label="Blocks">
-                <button type="button" class="insert-block" title="Add paragraph" aria-label="Add paragraph">+ &#xB6;</button>
-                <button type="button" class="insert-list" data-list="ul" aria-pressed="false" title="Bulleted list" aria-label="Bulleted list">&#x2022; List</button>
-                <button type="button" class="insert-list" data-list="ol" aria-pressed="false" title="Numbered list" aria-label="Numbered list">1. List</button>
-                <button type="button" class="format-quote" aria-pressed="false" title="Quote" aria-label="Quote">&#x201C;&#x201D;</button>
+            <div class="tb-group" role="group" aria-label="{ac:label(key('resources', 'toolbar-group-blocks', ldh:translations()))}">
+                <button type="button" class="insert-block" title="{ac:label(key('resources', 'add-paragraph', ldh:translations()))}" aria-label="{ac:label(key('resources', 'add-paragraph', ldh:translations()))}">+ &#xB6;</button>
+                <button type="button" class="insert-list" data-list="ul" aria-pressed="false" title="{ac:label(key('resources', 'bulleted-list', ldh:translations()))}" aria-label="{ac:label(key('resources', 'bulleted-list', ldh:translations()))}">&#x2022; <xsl:apply-templates select="key('resources', 'list', ldh:translations())" mode="ac:label"/></button>
+                <button type="button" class="insert-list" data-list="ol" aria-pressed="false" title="{ac:label(key('resources', 'numbered-list', ldh:translations()))}" aria-label="{ac:label(key('resources', 'numbered-list', ldh:translations()))}">1. <xsl:apply-templates select="key('resources', 'list', ldh:translations())" mode="ac:label"/></button>
+                <button type="button" class="format-quote" aria-pressed="false" title="{ac:label(key('resources', 'quote', ldh:translations()))}" aria-label="{ac:label(key('resources', 'quote', ldh:translations()))}">&#x201C;&#x201D;</button>
             </div>
-            <div class="tb-group" role="group" aria-label="Insert">
-                <button type="button" class="insert-figure" title="Insert figure" aria-label="Insert figure">&#x1F5BC;</button>
-                <button type="button" class="insert-table" title="Insert table" aria-label="Insert table">&#x229E;</button>
+            <div class="tb-group" role="group" aria-label="{ac:label(key('resources', 'insert', ldh:translations()))}">
+                <button type="button" class="insert-figure" title="{ac:label(key('resources', 'insert-figure', ldh:translations()))}" aria-label="{ac:label(key('resources', 'insert-figure', ldh:translations()))}">&#x1F5BC;</button>
+                <button type="button" class="insert-table" title="{ac:label(key('resources', 'insert-table', ldh:translations()))}" aria-label="{ac:label(key('resources', 'insert-table', ldh:translations()))}">&#x229E;</button>
                 <xsl:call-template name="rdfae:render-extra-insert-buttons"/>
             </div>
-            <div class="tb-group table-ops" role="group" aria-label="Table operations">
-                <button type="button" class="table-op" data-op="row-above" disabled="disabled" title="Insert row above" aria-label="Insert row above">&#x2191;R</button>
-                <button type="button" class="table-op" data-op="row-below" disabled="disabled" title="Insert row below" aria-label="Insert row below">&#x2193;R</button>
-                <button type="button" class="table-op" data-op="col-left" disabled="disabled" title="Insert column left" aria-label="Insert column left">&#x2190;C</button>
-                <button type="button" class="table-op" data-op="col-right" disabled="disabled" title="Insert column right" aria-label="Insert column right">&#x2192;C</button>
-                <button type="button" class="table-op" data-op="del-row" disabled="disabled" title="Delete row" aria-label="Delete row">&#x2212;R</button>
-                <button type="button" class="table-op" data-op="del-col" disabled="disabled" title="Delete column" aria-label="Delete column">&#x2212;C</button>
+            <div class="tb-group table-ops" role="group" aria-label="{ac:label(key('resources', 'toolbar-group-table-ops', ldh:translations()))}">
+                <button type="button" class="table-op" data-op="row-above" disabled="disabled" title="{ac:label(key('resources', 'insert-row-above', ldh:translations()))}" aria-label="{ac:label(key('resources', 'insert-row-above', ldh:translations()))}">&#x2191;R</button>
+                <button type="button" class="table-op" data-op="row-below" disabled="disabled" title="{ac:label(key('resources', 'insert-row-below', ldh:translations()))}" aria-label="{ac:label(key('resources', 'insert-row-below', ldh:translations()))}">&#x2193;R</button>
+                <button type="button" class="table-op" data-op="col-left" disabled="disabled" title="{ac:label(key('resources', 'insert-column-left', ldh:translations()))}" aria-label="{ac:label(key('resources', 'insert-column-left', ldh:translations()))}">&#x2190;C</button>
+                <button type="button" class="table-op" data-op="col-right" disabled="disabled" title="{ac:label(key('resources', 'insert-column-right', ldh:translations()))}" aria-label="{ac:label(key('resources', 'insert-column-right', ldh:translations()))}">&#x2192;C</button>
+                <button type="button" class="table-op" data-op="del-row" disabled="disabled" title="{ac:label(key('resources', 'delete-row', ldh:translations()))}" aria-label="{ac:label(key('resources', 'delete-row', ldh:translations()))}">&#x2212;R</button>
+                <button type="button" class="table-op" data-op="del-col" disabled="disabled" title="{ac:label(key('resources', 'delete-column', ldh:translations()))}" aria-label="{ac:label(key('resources', 'delete-column', ldh:translations()))}">&#x2212;C</button>
             </div>
-            <div class="tb-group" role="group" aria-label="Block actions">
-                <button type="button" class="delete-block" title="Delete block" aria-label="Delete block">&#x2715;</button>
+            <div class="tb-group" role="group" aria-label="{ac:label(key('resources', 'toolbar-group-block-actions', ldh:translations()))}">
+                <button type="button" class="delete-block" title="{ac:label(key('resources', 'delete-block', ldh:translations()))}" aria-label="{ac:label(key('resources', 'delete-block', ldh:translations()))}">&#x2715;</button>
             </div>
-            <div class="tb-group" role="group" aria-label="View">
-                <button type="button" id="toc-toggle" title="Table of contents" aria-label="Table of contents">&#x2630;</button>
-                <button type="button" id="inspector-toggle" title="Properties" aria-label="Subject properties">&#x24C5;</button>
-                <button type="button" id="find-open" title="Find and replace" aria-label="Find and replace">&#x1F50D;</button>
-                <button type="button" id="view-source" title="Canonical XHTML+RDFa" aria-label="View canonical source">Source</button>
+            <div class="tb-group" role="group" aria-label="{ac:label(key('resources', 'view', ldh:translations()))}">
+                <button type="button" id="toc-toggle" title="{ac:label(key('resources', 'table-of-contents', ldh:translations()))}" aria-label="{ac:label(key('resources', 'table-of-contents', ldh:translations()))}">&#x2630;</button>
+                <button type="button" id="inspector-toggle" title="{ac:label(key('resources', 'properties', ldh:translations()))}" aria-label="{ac:label(key('resources', 'subject-properties', ldh:translations()))}">&#x24C5;</button>
+                <button type="button" id="find-open" title="{ac:label(key('resources', 'find-and-replace', ldh:translations()))}" aria-label="{ac:label(key('resources', 'find-and-replace', ldh:translations()))}">&#x1F50D;</button>
+                <button type="button" id="view-source" title="{ac:label(key('resources', 'canonical-xhtml-rdfa', ldh:translations()))}" aria-label="{ac:label(key('resources', 'view-canonical-source', ldh:translations()))}"><xsl:apply-templates select="key('resources', 'source', ldh:translations())" mode="ac:label"/></button>
             </div>
         </div>
     </xsl:template>
@@ -2086,7 +2088,7 @@ version="3.0">
     <xsl:template match="button[contains-token(@class, 'delete-block')]" mode="ixsl:onclick">
         <xsl:for-each select="rdfae:current-block()">
             <xsl:variable name="confirmed" as="xs:boolean" select="rdfae:block-text(.) = ''
-                or ixsl:call(ixsl:window(), 'confirm', [ 'Delete this block?' ])"/>
+                or ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'confirm-delete-block', ldh:translations())) ])"/>
             <xsl:if test="$confirmed">
                 <xsl:call-template name="rdfae:push-undo"/>
                 <xsl:variable name="prev" as="element()?" select="preceding-sibling::*[1]"/>
@@ -2141,13 +2143,13 @@ version="3.0">
 
     <xsl:template name="rdfae:render-link-dialog">
         <div id="link-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true"
-                aria-label="Link" style="display: none;">
-            <label>Link target (href)</label>
+                aria-label="{ac:label(key('resources', 'link', ldh:translations()))}" style="display: none;">
+            <label><xsl:apply-templates select="key('resources', 'link-href', ldh:translations())" mode="ac:label"/></label>
             <input type="text" name="href" placeholder="https://..."/>
             <div class="action-buttons">
-                <button type="button" class="ldhc-btn in-negative ap-solid sz-sm link-remove" style="display: none;">Remove link</button>
-                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm link-save">Save</button>
-                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm link-cancel">Cancel</button>
+                <button type="button" class="ldhc-btn in-negative ap-solid sz-sm link-remove" style="display: none;"><xsl:apply-templates select="key('resources', 'remove-link', ldh:translations())" mode="ac:label"/></button>
+                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm link-save"><xsl:apply-templates select="key('resources', 'save', ldh:translations())" mode="ac:label"/></button>
+                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm link-cancel"><xsl:apply-templates select="key('resources', 'cancel', ldh:translations())" mode="ac:label"/></button>
             </div>
         </div>
     </xsl:template>
@@ -2275,16 +2277,16 @@ version="3.0">
 
     <xsl:template name="rdfae:render-figure-dialog">
         <div id="figure-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true"
-                aria-label="Insert figure" style="display: none;">
-            <label>Image URL (src)</label>
-            <input type="text" name="src" placeholder="https://... or relative path"/>
-            <label>Alternate text (alt)</label>
+                aria-label="{ac:label(key('resources', 'insert-figure', ldh:translations()))}" style="display: none;">
+            <label><xsl:apply-templates select="key('resources', 'figure-src', ldh:translations())" mode="ac:label"/></label>
+            <input type="text" name="src" placeholder="{ac:label(key('resources', 'figure-src-placeholder', ldh:translations()))}"/>
+            <label><xsl:apply-templates select="key('resources', 'figure-alt', ldh:translations())" mode="ac:label"/></label>
             <input type="text" name="alt"/>
-            <label>Caption</label>
+            <label><xsl:apply-templates select="key('resources', 'caption', ldh:translations())" mode="ac:label"/></label>
             <input type="text" name="caption"/>
             <div class="action-buttons">
-                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm figure-save">Insert</button>
-                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm figure-cancel">Cancel</button>
+                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm figure-save"><xsl:apply-templates select="key('resources', 'insert', ldh:translations())" mode="ac:label"/></button>
+                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm figure-cancel"><xsl:apply-templates select="key('resources', 'cancel', ldh:translations())" mode="ac:label"/></button>
             </div>
         </div>
     </xsl:template>
@@ -2575,7 +2577,7 @@ version="3.0">
             </xsl:call-template>
         </xsl:variable>
         <xsl:call-template name="rdfae:show-output">
-            <xsl:with-param name="title" select="'Canonical XHTML+RDFa'"/>
+            <xsl:with-param name="title" select="ac:label(key('resources', 'canonical-xhtml-rdfa', ldh:translations()))"/>
             <xsl:with-param name="text" select="rdfae:canonicalize-xml(parse-xml(serialize($canonical, map{ 'method': 'xml' })))"/>
             <xsl:with-param name="filename" select="'content.xhtml'"/>
             <xsl:with-param name="media-type" select="'application/xhtml+xml'"/>

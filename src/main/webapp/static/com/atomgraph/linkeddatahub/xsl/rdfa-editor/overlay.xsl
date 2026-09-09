@@ -5,6 +5,8 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:rdfae="https://w3id.org/atomgraph/rdfa-editor#"
+xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#"
+xmlns:ac="https://w3id.org/atomgraph/client#"
 extension-element-prefixes="ixsl"
 xpath-default-namespace="http://www.w3.org/1999/xhtml"
 version="3.0">
@@ -32,69 +34,67 @@ version="3.0">
     </xsl:template>
 
     <xsl:template name="rdfae:render-overlay">
-        <div id="{$rdfae:overlay-id}" class="rdfa-editor-ui" role="dialog" aria-modal="true" aria-label="RDFa annotation" style="display: none;">
+        <div id="{$rdfae:overlay-id}" class="rdfa-editor-ui" role="dialog" aria-modal="true" aria-label="{ac:label(key('resources', 'rdfa-annotation', ldh:translations()))}" style="display: none;">
             <div class="overlay-header">
-                <h3>RDFa Annotation</h3>
+                <h3><xsl:apply-templates select="key('resources', 'rdfa-annotation', ldh:translations())" mode="ac:label"/></h3>
             </div>
             <form id="annotation-form">
                 <div class="statement">
-                    <span class="stmt-role" title="Subject">S</span>
+                    <span class="stmt-role" title="{ac:label(key('resources', 'rdfa-subject', ldh:translations()))}">S</span>
                     <div id="stmt-subject" class="stmt-value"/>
-                    <span class="stmt-role" title="Predicate">P</span>
+                    <span class="stmt-role" title="{ac:label(key('resources', 'rdfa-predicate', ldh:translations()))}">P</span>
                     <div class="stmt-control">
                         <xsl:sequence select="rdfae:typeahead-field('property')"/>
                     </div>
-                    <span class="stmt-role" title="Object">O</span>
+                    <span class="stmt-role" title="{ac:label(key('resources', 'rdfa-object', ldh:translations()))}">O</span>
                     <div class="stmt-control">
-                        <input type="text" name="value" placeholder="Literal value"/>
-                        <span class="helper-text">The selected text; change it to emit a machine-readable content value</span>
+                        <input type="text" name="value" placeholder="{ac:label(key('resources', 'rdfa-value-placeholder', ldh:translations()))}"/>
+                        <span class="helper-text"><xsl:apply-templates select="key('resources', 'rdfa-value-help', ldh:translations())" mode="ac:label"/></span>
                     </div>
                 </div>
 
                 <details id="advanced-fields">
-                    <summary>Type, subject &amp; object</summary>
+                    <summary><xsl:apply-templates select="key('resources', 'rdfa-advanced-summary', ldh:translations())" mode="ac:label"/></summary>
                     <fieldset>
-                        <label>Entity type (typeof)</label>
+                        <label><xsl:apply-templates select="key('resources', 'rdfa-type-typeof', ldh:translations())" mode="ac:label"/></label>
                         <xsl:sequence select="rdfae:typeahead-field('typeof')"/>
-                        <span class="helper-text">Types the annotated resource; without a subject the typed
-                            resource becomes the object of the property (chaining)</span>
+                        <span class="helper-text"><xsl:apply-templates select="key('resources', 'rdfa-typeof-help', ldh:translations())" mode="ac:label"/></span>
                     </fieldset>
                     <fieldset>
-                        <label>Subject (about)</label>
-                        <input type="text" name="subject" placeholder="Overrides the subject in scope"/>
-                        <span class="helper-text">IRI or _:blank-node identifier</span>
+                        <label><xsl:apply-templates select="key('resources', 'rdfa-subject-about', ldh:translations())" mode="ac:label"/></label>
+                        <input type="text" name="subject" placeholder="{ac:label(key('resources', 'rdfa-subject-placeholder', ldh:translations()))}"/>
+                        <span class="helper-text"><xsl:apply-templates select="key('resources', 'rdfa-subject-help', ldh:translations())" mode="ac:label"/></span>
                     </fieldset>
                     <fieldset>
-                        <label>Object (resource)</label>
-                        <input type="text" name="object" placeholder="Object IRI"/>
-                        <span class="helper-text">Makes the object a resource instead of the literal value</span>
+                        <label><xsl:apply-templates select="key('resources', 'rdfa-object-resource', ldh:translations())" mode="ac:label"/></label>
+                        <input type="text" name="object" placeholder="{ac:label(key('resources', 'rdfa-object-placeholder', ldh:translations()))}"/>
+                        <span class="helper-text"><xsl:apply-templates select="key('resources', 'rdfa-object-help', ldh:translations())" mode="ac:label"/></span>
                     </fieldset>
                     <fieldset>
-                        <label>Literal type (datatype)</label>
+                        <label><xsl:apply-templates select="key('resources', 'rdfa-datatype', ldh:translations())" mode="ac:label"/></label>
                         <select name="datatype">
-                            <option value="">(plain literal)</option>
+                            <option value=""><xsl:apply-templates select="key('resources', 'rdfa-plain-literal', ldh:translations())" mode="ac:label"/></option>
                             <xsl:variable name="xsd" as="xs:string" select="'http://www.w3.org/2001/XMLSchema#'"/>
                             <xsl:for-each select="'string', 'date', 'dateTime', 'time', 'integer',
                                     'decimal', 'double', 'float', 'boolean', 'anyURI'">
                                 <option value="{$xsd || .}">xsd:<xsl:value-of select="."/></option>
                             </xsl:for-each>
-                            <option value="{$rdfae:custom}">-- Custom datatype --</option>
+                            <option value="{$rdfae:custom}"><xsl:apply-templates select="key('resources', 'rdfa-custom-datatype', ldh:translations())" mode="ac:label"/></option>
                         </select>
-                        <input type="text" name="custom-datatype" placeholder="Datatype IRI" style="display: none;"/>
-                        <span class="helper-text">Types the literal (e.g. xsd:date, xsd:integer);
-                            mutually exclusive with a language tag</span>
+                        <input type="text" name="custom-datatype" placeholder="{ac:label(key('resources', 'rdfa-datatype-placeholder', ldh:translations()))}" style="display: none;"/>
+                        <span class="helper-text"><xsl:apply-templates select="key('resources', 'rdfa-datatype-help', ldh:translations())" mode="ac:label"/></span>
                     </fieldset>
                     <fieldset>
-                        <label>Language (lang)</label>
-                        <input type="text" name="lang" placeholder="e.g. en, fr-CA"/>
-                        <span class="helper-text">Language tag for the literal; ignored when a datatype is set</span>
+                        <label><xsl:apply-templates select="key('resources', 'rdfa-language', ldh:translations())" mode="ac:label"/></label>
+                        <input type="text" name="lang" placeholder="{ac:label(key('resources', 'rdfa-language-placeholder', ldh:translations()))}"/>
+                        <span class="helper-text"><xsl:apply-templates select="key('resources', 'rdfa-language-help', ldh:translations())" mode="ac:label"/></span>
                     </fieldset>
                 </details>
 
                 <div class="action-buttons">
-                    <button type="button" class="ldhc-btn in-negative ap-solid sz-sm remove-action" style="display: none;">Remove</button>
-                    <button type="button" class="ldhc-btn in-primary ap-solid sz-sm spo-action">Annotate</button>
-                    <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm cancel-action">Cancel</button>
+                    <button type="button" class="ldhc-btn in-negative ap-solid sz-sm remove-action" style="display: none;"><xsl:apply-templates select="key('resources', 'remove', ldh:translations())" mode="ac:label"/></button>
+                    <button type="button" class="ldhc-btn in-primary ap-solid sz-sm spo-action"><xsl:apply-templates select="key('resources', 'annotate', ldh:translations())" mode="ac:label"/></button>
+                    <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm cancel-action"><xsl:apply-templates select="key('resources', 'cancel', ldh:translations())" mode="ac:label"/></button>
                 </div>
             </form>
         </div>

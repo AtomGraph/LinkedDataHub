@@ -433,7 +433,7 @@ WHERE
         <xsl:param name="node-label" as="xs:string"/>
         <h4><xsl:value-of select="$node-label"/></h4>
         <dl>
-            <dt>ID</dt>
+            <dt><xsl:apply-templates select="key('resources', 'node-id', ldh:translations())" mode="ac:label"/></dt>
             <dd>
                 <xsl:choose>
                     <xsl:when test="starts-with($node-id, 'http://') or starts-with($node-id, 'https://')">
@@ -443,7 +443,7 @@ WHERE
                 </xsl:choose>
             </dd>
             <xsl:if test="rdf:type">
-                <dt>Types</dt>
+                <dt><xsl:apply-templates select="key('resources', 'node-types', ldh:translations())" mode="ac:label"/></dt>
                 <dd><xsl:value-of select="distinct-values(rdf:type/tokenize(@rdf:resource, '[/#]')[last()])" separator=", "/></dd>
             </xsl:if>
         </dl>
@@ -454,7 +454,7 @@ WHERE
         <xsl:param name="node-label" as="xs:string"/>
         <h4><xsl:value-of select="."/></h4>
         <dl>
-            <dt>ID</dt>
+            <dt><xsl:apply-templates select="key('resources', 'node-id', ldh:translations())" mode="ac:label"/></dt>
             <dd><xsl:value-of select="$node-id"/></dd>
         </dl>
     </xsl:template>
@@ -469,16 +469,16 @@ WHERE
             <xsl:result-document href="?." method="ixsl:append-content">
                 <div id="tooltip-{$canvas-id}" class="graph-3d-tooltip"/>
                 <div id="info-panel-{$canvas-id}" class="graph-3d-info-panel">
-                    <div id="info-content-{$canvas-id}">Click a node to see details</div>
+                    <div id="info-content-{$canvas-id}"><xsl:apply-templates select="key('resources', 'graph-click-node-hint', ldh:translations())" mode="ac:label"/></div>
                 </div>
                 <div id="show-panel-{$canvas-id}" class="graph-3d-show-panel">
-                    <label><input type="checkbox" id="show-stubs-{$canvas-id}" data-canvas-id="{$canvas-id}" class="graph-3d-filter" checked="checked"/> Resources without descriptions</label>
-                    <label><input type="checkbox" id="show-literals-{$canvas-id}" data-canvas-id="{$canvas-id}" class="graph-3d-filter"/> Literals
-                        <label class="sub-option"><input type="checkbox" id="show-locale-literals-{$canvas-id}" data-canvas-id="{$canvas-id}" class="graph-3d-filter" disabled="disabled"/> Matching locale only</label>
+                    <label><input type="checkbox" id="show-stubs-{$canvas-id}" data-canvas-id="{$canvas-id}" class="graph-3d-filter" checked="checked"/><xsl:text> </xsl:text><xsl:apply-templates select="key('resources', 'graph-show-stubs', ldh:translations())" mode="ac:label"/></label>
+                    <label><input type="checkbox" id="show-literals-{$canvas-id}" data-canvas-id="{$canvas-id}" class="graph-3d-filter"/><xsl:text> </xsl:text><xsl:apply-templates select="key('resources', 'graph-show-literals', ldh:translations())" mode="ac:label"/>
+                        <label class="sub-option"><input type="checkbox" id="show-locale-literals-{$canvas-id}" data-canvas-id="{$canvas-id}" class="graph-3d-filter" disabled="disabled"/><xsl:text> </xsl:text><xsl:apply-templates select="key('resources', 'graph-locale-literals-only', ldh:translations())" mode="ac:label"/></label>
                     </label>
                 </div>
-                <button data-canvas-id="{$canvas-id}" class="graph-3d-zoom ldhc-btn in-neutral ap-solid sz-sm"><span class="msi sm" aria-hidden="true">fit_screen</span>Zoom to fit</button>
-                <button data-canvas-id="{$canvas-id}" class="graph-3d-fullscreen ldhc-btn in-neutral ap-solid sz-sm"><span class="msi sm" aria-hidden="true">fullscreen</span>Fullscreen</button>
+                <button data-canvas-id="{$canvas-id}" class="graph-3d-zoom ldhc-btn in-neutral ap-solid sz-sm"><span class="msi sm" aria-hidden="true">fit_screen</span><xsl:value-of select="ac:label(key('resources', 'zoom-to-fit', ldh:translations()))"/></button>
+                <button data-canvas-id="{$canvas-id}" class="graph-3d-fullscreen ldhc-btn in-neutral ap-solid sz-sm"><span class="msi sm" aria-hidden="true">fullscreen</span><xsl:value-of select="ac:label(key('resources', 'fullscreen', ldh:translations()))"/></button>
             </xsl:result-document>
         </xsl:for-each>
     </xsl:template>

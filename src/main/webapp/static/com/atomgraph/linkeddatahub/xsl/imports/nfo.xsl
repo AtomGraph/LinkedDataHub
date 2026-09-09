@@ -53,12 +53,6 @@ exclude-result-prefixes="#all">
         </xsl:if>
     </xsl:template>
 
-    <xsl:template match="nfo:fileName/@rdf:datatype" mode="ac:FormControl">
-        <xsl:next-match>
-            <xsl:with-param name="type" select="'hidden'"/>
-        </xsl:next-match>
-    </xsl:template>
-
     <xsl:template match="nfo:fileName/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="ac:ValueAnnotations">
         <xsl:param name="type" as="xs:string?"/>
 

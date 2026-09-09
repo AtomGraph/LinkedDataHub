@@ -1037,7 +1037,7 @@ exclude-result-prefixes="#all"
                         <xsl:if test="exists($create-container) and exists($create-for-class) and tokenize($view-block/@data-acl-modes, ' ') = '&acl;Write' and (exists($view-block/@data-inverse) or acl:mode() = '&acl;Write')">
                             <button type="button" class="ldhc-btn in-primary ap-solid sz-sm add-instance" data-for-class="{$create-for-class}" data-container="{$create-container}" title="{ac:label(key('resources', 'create-instance-title', ldh:translations()))}">
                                 <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                                    <xsl:apply-templates select="key('resources', 'create', ldh:translations())" mode="ac:label"/>
                                 </xsl:value-of>
                             </button>
                         </xsl:if>

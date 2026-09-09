@@ -48,19 +48,22 @@ count()
     echo "$body" | xmllint --xpath "count($1)" - 2> /dev/null || echo "0"
 }
 
+# the assertions anchor on the RDFa @property carrier, whichever layout element it rides - the property grid
+# currently puts it (with @lang) on the .value cell inside the dd, not the dd itself
+
 # the page is in English and both values are on it: each says which language it is in
 
-[ "$(count "//*[local-name() = 'dd'][@property = 'https://example.org/test#tagged'][@lang = 'lt']")" = "1" ]
-[ "$(count "//*[local-name() = 'dd'][@property = 'https://example.org/test#tagged'][@lang = 'en']")" = "1" ]
+[ "$(count "//*[@property = 'https://example.org/test#tagged'][@lang = 'lt']")" = "1" ]
+[ "$(count "//*[@property = 'https://example.org/test#tagged'][@lang = 'en']")" = "1" ]
 
 # an untagged literal claims no language rather than inheriting the document's
 
-[ "$(count "//*[local-name() = 'dd'][@property = 'https://example.org/test#plain'][@lang = '']")" = "1" ]
+[ "$(count "//*[@property = 'https://example.org/test#plain'][@lang = '']")" = "1" ]
 
 # a number is not prose - it inherits, so it is read out in whatever language the reader is in
 
-[ "$(count "//*[local-name() = 'dd'][@property = 'https://example.org/test#typed']")" = "1" ]
-[ "$(count "//*[local-name() = 'dd'][@property = 'https://example.org/test#typed'][@lang]")" = "0" ]
+[ "$(count "//*[@property = 'https://example.org/test#typed']")" = "1" ]
+[ "$(count "//*[@property = 'https://example.org/test#typed'][@lang]")" = "0" ]
 
 # both languages of the property survive to the page - suppressing one is the defect this marking exists to make safe
 

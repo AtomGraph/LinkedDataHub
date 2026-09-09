@@ -73,9 +73,9 @@ LIMIT   10
                 <xsl:with-param name="body" as="item()*">
 
                     <div class="ldh-hero">
-                        <h1>Your LinkedDataHub is ready!</h1>
-                        <h2>Unlock the value of your Knowledge Graph with data-driven content and low code apps.</h2>
-                        <p>Create structured content backed by live data, intuitively explore graph datasets, model and manage RDF data, control data quality and more. <em>Without writing code</em>.</p>
+                        <h1><xsl:apply-templates select="key('resources', 'first-time-title', ldh:translations())" mode="ac:label"/></h1>
+                        <h2><xsl:apply-templates select="key('resources', 'first-time-subtitle', ldh:translations())" mode="ac:label"/></h2>
+                        <p><xsl:apply-templates select="key('resources', 'first-time-body', ldh:translations())" mode="ac:label"/><xsl:text> </xsl:text><em><xsl:apply-templates select="key('resources', 'first-time-body-emphasis', ldh:translations())" mode="ac:label"/></em>.</p>
                         <p>
                             <a class="ldhc-btn in-primary ap-solid sz-lg" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/get-started/" target="_blank"><xsl:value-of select="ac:label(key('resources', 'get-started', ldh:translations()))"/></a>
                             <a class="ldhc-btn in-neutral ap-solid sz-lg" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank"><xsl:value-of select="ac:label(key('resources', 'learn-more', ldh:translations()))"/></a>
@@ -159,7 +159,7 @@ LIMIT   10
                                 <div class="ldh-prop-row is-interactive is-last">
                                     <div class="value val-stack">
                                         <div class="val-main">
-                                            <xsl:call-template name="ac:Lookup">
+                                            <xsl:call-template name="ldh:Combobox">
                                                 <xsl:with-param name="id" select="'remote-rdf-doc'"/>
                                                 <xsl:with-param name="forClass" select="(xs:anyURI('&dh;Container'), xs:anyURI('&dh;Item'))"/>
                                             </xsl:call-template>
@@ -250,7 +250,7 @@ LIMIT   10
                                             <div class="ldh-prop-row is-interactive is-last">
                                                 <div class="value val-stack">
                                                     <div class="val-main">
-                                                        <xsl:call-template name="ac:Lookup">
+                                                        <xsl:call-template name="ldh:Combobox">
                                                             <xsl:with-param name="id" select="'generate-containers-parent'"/>
                                                             <xsl:with-param name="forClass" select="(xs:anyURI('&def;Root'), xs:anyURI('&dh;Container'))"/>
                                                         </xsl:call-template>
@@ -306,7 +306,7 @@ LIMIT   10
                                             <div class="ldh-prop-row is-interactive is-last">
                                                 <div class="value val-stack">
                                                     <div class="val-main">
-                                                        <xsl:call-template name="ac:Lookup">
+                                                        <xsl:call-template name="ldh:Combobox">
                                                             <xsl:with-param name="id" select="'source-service'"/>
                                                             <xsl:with-param name="forClass" select="xs:anyURI('&sd;Service')"/>
                                                         </xsl:call-template>
@@ -432,7 +432,7 @@ LIMIT   10
         </div>
     </xsl:template>
     
-    <xsl:template match="rdf:RDF" mode="request-access-matrix">
+    <xsl:template match="rdf:RDF" mode="ldh:RequestAccessMatrix">
         <xsl:param name="agent" as="xs:anyURI"/>
         <!-- TO-DO: support agent-group? -->
         <xsl:param name="this" as="xs:anyURI"/>
@@ -481,7 +481,7 @@ LIMIT   10
                         <xsl:variable name="granted-access-modes" select="distinct-values(current-group()/acl:mode/@rdf:resource)" as="xs:anyURI*"/>
 
                         <!-- applying on the first authorization in the group -->
-                        <xsl:apply-templates select="." mode="access-to">
+                        <xsl:apply-templates select="." mode="ldh:AccessToRow">
                             <xsl:with-param name="agent" select="$agent"/>
                             <xsl:with-param name="access-modes" select="$access-modes"/>
                             <xsl:with-param name="access-to" select="current-grouping-key()"/>
@@ -536,7 +536,7 @@ LIMIT   10
                         <xsl:variable name="granted-access-modes" select="distinct-values(current-group()/acl:mode/@rdf:resource)" as="xs:anyURI*"/>
 
                         <!-- applying on the first authorization in the group -->                        
-                        <xsl:apply-templates select="." mode="access-to-class">
+                        <xsl:apply-templates select="." mode="ldh:AccessToClassRow">
                             <xsl:with-param name="agent" select="$agent"/>
                             <xsl:with-param name="access-modes" select="$access-modes"/>
                             <xsl:with-param name="access-to-class" select="current-grouping-key()"/>
@@ -548,7 +548,7 @@ LIMIT   10
         </fieldset>
     </xsl:template>
     
-    <xsl:template match="rdf:Description" mode="access-to">
+    <xsl:template match="rdf:Description" mode="ldh:AccessToRow">
         <xsl:param name="agent" as="xs:anyURI"/>
         <xsl:param name="access-to" as="xs:anyURI"/>
         <xsl:param name="access-modes" as="xs:anyURI*"/>
@@ -570,14 +570,14 @@ LIMIT   10
                 <input type="hidden" name="pu" value="&acl;mode"/>
             </td>
             
-            <xsl:apply-templates select="." mode="access-table">
+            <xsl:apply-templates select="." mode="ldh:AccessModeCells">
                 <xsl:with-param name="access-modes" select="$access-modes"/>
                 <xsl:with-param name="granted-access-modes" select="$granted-access-modes"/>
             </xsl:apply-templates>
         </tr>
     </xsl:template>
 
-    <xsl:template match="rdf:Description" mode="access-to-class">
+    <xsl:template match="rdf:Description" mode="ldh:AccessToClassRow">
         <xsl:param name="agent" as="xs:anyURI"/>
         <xsl:param name="access-to-class" as="xs:anyURI"/>
         <xsl:param name="access-modes" as="xs:anyURI*"/>
@@ -607,14 +607,14 @@ LIMIT   10
                 <input type="hidden" name="pu" value="&acl;mode"/>
             </td>
             
-            <xsl:apply-templates select="." mode="access-table">
+            <xsl:apply-templates select="." mode="ldh:AccessModeCells">
                 <xsl:with-param name="access-modes" select="$access-modes"/>
                 <xsl:with-param name="granted-access-modes" select="$granted-access-modes"/>
             </xsl:apply-templates>
         </tr>
     </xsl:template>
     
-    <xsl:template match="rdf:Description" mode="access-table">
+    <xsl:template match="rdf:Description" mode="ldh:AccessModeCells">
         <xsl:param name="access-modes" as="xs:anyURI*"/>
         <xsl:param name="granted-access-modes" as="xs:anyURI*"/>
         <xsl:param name="is-owner" select="rdf:type/@rdf:resource = '&lacl;OwnerAuthorization'" as="xs:boolean"/>
@@ -1777,7 +1777,7 @@ LIMIT   10
                             <!-- the committed chip stands in for the whole combobox, mirroring the edit button's replace-element in the other direction -->
                             <xsl:for-each select="$combobox">
                                 <xsl:variable name="typeahead" as="element()">
-                                    <xsl:apply-templates select="$resource" mode="ac:Typeahead">
+                                    <xsl:apply-templates select="$resource" mode="ldh:ComboboxChip">
                                         <xsl:with-param name="forClass" select="$forClass"/>
                                     </xsl:apply-templates>
                                 </xsl:variable>
@@ -1791,7 +1791,7 @@ LIMIT   10
                             <!-- resource description not found: keep a lookup, with the raw URI as its value -->
                             <xsl:for-each select="$combobox">
                                 <xsl:result-document href="?." method="ixsl:replace-element">
-                                    <xsl:call-template name="ac:Lookup">
+                                    <xsl:call-template name="ldh:Combobox">
                                         <xsl:with-param name="class" select="'resource-typeahead typeahead'"/>
                                         <xsl:with-param name="list-class" select="'resource-typeahead typeahead ldhc-cb-panel'"/>
                                         <xsl:with-param name="value" select="$resource-uri"/>
@@ -1838,7 +1838,7 @@ LIMIT   10
 
                 <xsl:for-each select="id('request-access-matrix', ixsl:page())">
                     <xsl:result-document href="?." method="ixsl:replace-content">
-                        <xsl:apply-templates select="$body/rdf:RDF" mode="request-access-matrix">
+                        <xsl:apply-templates select="$body/rdf:RDF" mode="ldh:RequestAccessMatrix">
                             <xsl:with-param name="agent" select="$agent"/>
                             <xsl:with-param name="this" select="$this"/>
                         </xsl:apply-templates>

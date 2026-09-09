@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
-    <!ENTITY typeahead  "http://graphity.org/typeahead#">
+    <!ENTITY ldh        "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY ac         "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf        "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs       "http://www.w3.org/2000/01/rdf-schema#">
@@ -20,7 +20,7 @@ xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 xmlns:prop="http://saxonica.com/ns/html-property"
 xmlns:style="http://saxonica.com/ns/html-style-property"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
-xmlns:typeahead="&typeahead;"
+xmlns:ldh="&ldh;"
 xmlns:ac="&ac;"
 xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
@@ -38,7 +38,7 @@ extension-element-prefixes="ixsl"
 version="3.0"
 >
         
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ac:TypeaheadOption">
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ldh:ComboboxItem">
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="query" as="xs:string"/>
         <xsl:param name="name" select="if (@rdf:about) then 'ou' else if (@rdf:nodeID) then 'ob' else ()" as="xs:string"/>
@@ -85,7 +85,7 @@ version="3.0"
     
     <!-- NAMED TEMPLATES -->
 
-    <xsl:template name="typeahead:load-xml">
+    <xsl:template name="ldh:ComboboxLoad">
         <xsl:param name="element" as="element()"/>
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="query" as="xs:string"/>
@@ -94,7 +94,7 @@ version="3.0"
         <!-- if the value hasn't changed during the delay -->
         <xsl:if test="$query = $element/ixsl:get(., 'value')">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="typeahead:xml-loaded">
+                <xsl:call-template name="ldh:ComboboxLoaded">
                     <xsl:with-param name="element" select="$element" as="element()"/>
                     <xsl:with-param name="resource-types" select="$resource-types"/>
                 </xsl:call-template>
@@ -102,7 +102,7 @@ version="3.0"
         </xsl:if>
     </xsl:template>
 
-    <xsl:template name="typeahead:xml-loaded">
+    <xsl:template name="ldh:ComboboxLoaded">
         <xsl:context-item as="map(*)" use="required"/>
         
         <xsl:param name="element" as="element()"/>
@@ -116,7 +116,7 @@ version="3.0"
                     <!-- TO-DO: does not belong here -->
                     <ixsl:set-property name="LinkedDataHub.typeahead.rdfXml" select="."/>
 
-                    <xsl:call-template name="typeahead:process">
+                    <xsl:call-template name="ldh:ComboboxProcess">
                         <xsl:with-param name="menu" select="$menu"/>
                         <!-- filter out the search container and the hypermedia arguments which are not the real search results -->
                         <xsl:with-param name="items" select="rdf:RDF/*[@rdf:about]"/>
@@ -132,7 +132,7 @@ version="3.0"
         </xsl:choose>
     </xsl:template>
     
-    <xsl:template name="typeahead:process">
+    <xsl:template name="ldh:ComboboxProcess">
         <xsl:param name="menu" as="element()"/>
         <xsl:param name="items" as="element()*"/>
         <xsl:param name="element" as="element()"/>
@@ -141,7 +141,7 @@ version="3.0"
 
         <xsl:choose>
             <xsl:when test="$items">
-                <xsl:call-template name="typeahead:render">
+                <xsl:call-template name="ldh:ComboboxRender">
                     <xsl:with-param name="menu" select="$menu"/>
                     <!-- we're filtering here because data might not come pre-FILTERed from a SPARQL result, e.g. from an ontology document -->
                     <!-- TO-DO: filtering properties by literal text() containing $query -->
@@ -150,27 +150,27 @@ version="3.0"
                     <!--<xsl:with-param name="name" select="$name"/>-->
                 </xsl:call-template>
                 
-                <xsl:call-template name="typeahead:show">
+                <xsl:call-template name="ldh:ComboboxShow">
                     <xsl:with-param name="element" select="$element"/>
                     <xsl:with-param name="menu" select="$menu"/>
                 </xsl:call-template>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:call-template name="typeahead:hide">
+                <xsl:call-template name="ldh:ComboboxHide">
                     <xsl:with-param name="menu" select="$menu"/>
                 </xsl:call-template>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
 
-    <xsl:template name="typeahead:render">
+    <xsl:template name="ldh:ComboboxRender">
         <xsl:param name="menu" as="element()"/>
         <xsl:param name="items" as="element()*"/>
         <xsl:param name="element" as="element()"/>
         <!--<xsl:param name="name" as="xs:string"/>-->
         
         <xsl:result-document href="#{$menu/@id}" method="ixsl:replace-content">
-            <xsl:apply-templates select="$items" mode="ac:TypeaheadOption">
+            <xsl:apply-templates select="$items" mode="ldh:ComboboxItem">
                 <xsl:with-param name="query" select="$element/ixsl:get(., 'value')"/>
                 <!--<xsl:with-param name="name" select="$name"/>-->
                 <!-- TO-DO: replace with ac:label()? -->
@@ -184,7 +184,7 @@ version="3.0"
         </xsl:result-document>
     </xsl:template>
     
-    <xsl:template name="typeahead:show">
+    <xsl:template name="ldh:ComboboxShow">
         <xsl:param name="element" as="element()"/>
         <xsl:param name="menu" as="element()"/>
         
@@ -198,7 +198,7 @@ version="3.0"
         </xsl:for-each>
     </xsl:template>
 
-    <xsl:template name="typeahead:hide">
+    <xsl:template name="ldh:ComboboxHide">
         <xsl:param name="menu" as="element()"/>
 
         <xsl:for-each select="$menu">
@@ -207,7 +207,7 @@ version="3.0"
         </xsl:for-each>
     </xsl:template>
     
-    <xsl:template name="typeahead:selection-up">
+    <xsl:template name="ldh:ComboboxSelectionUp">
         <xsl:param name="menu" as="element()"/>
         
         <xsl:choose>
@@ -234,7 +234,7 @@ version="3.0"
         </xsl:choose>
     </xsl:template>
 
-    <xsl:template name="typeahead:selection-down">
+    <xsl:template name="ldh:ComboboxSelectionDown">
         <xsl:param name="menu" as="element()"/>
 
         <xsl:choose>

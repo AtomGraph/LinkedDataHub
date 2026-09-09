@@ -71,7 +71,7 @@ extension-element-prefixes="ixsl"
 
     <!-- schema.org BREADCRUMBS -->
     
-    <xsl:template match="rdf:RDF" mode="schema:BreadCrumbList">
+    <xsl:template match="rdf:RDF" mode="schema:BreadcrumbList">
         <xsl:variable name="resource" select="key('resources', ac:absolute-path(ldh:base-uri(.)))" as="element()?"/>
 
         <xsl:if test="$resource">
@@ -83,17 +83,17 @@ extension-element-prefixes="ixsl"
 
                     <!-- position index has to start from Root=1, so we need to reverse the ancestor sequence -->
                     <xsl:for-each select="reverse($doc-with-ancestors)">
-                        <schema:itemListElement rdf:nodeID="item{position()}"/> <!-- rdf:nodeID aligned with schema:BreadCrumbListItem output -->
+                        <schema:itemListElement rdf:nodeID="item{position()}"/> <!-- rdf:nodeID aligned with schema:ListItem output -->
                     </xsl:for-each>
                 </rdf:Description>
 
                 <!-- position index has to start from Root=1, so we need to reverse the ancestor sequence -->
-                <xsl:apply-templates select="reverse($doc-with-ancestors)" mode="schema:BreadCrumbListItem"/>
+                <xsl:apply-templates select="reverse($doc-with-ancestors)" mode="schema:ListItem"/>
             </rdf:RDF>
         </xsl:if>
     </xsl:template>
 
-    <xsl:template match="srx:sparql" mode="schema:BreadCrumbList"/>
+    <xsl:template match="srx:sparql" mode="schema:BreadcrumbList"/>
 
     <!-- walks up the ancestor document chain and collects them -->
     <xsl:function name="ldh:doc-with-ancestors" as="element()*">
@@ -1279,7 +1279,7 @@ extension-element-prefixes="ixsl"
             <button type="button" class="ldhc-btn in-primary ap-solid sz-md drop-toggle" title="{ac:label(key('resources', 'create-instance-title', ldh:translations()))}">
                 <span class="msi sm" aria-hidden="true">add</span>
                 <span>
-                    <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', 'create', ldh:translations())" mode="ac:label"/>
                 </span>
                 <span class="msi caret" aria-hidden="true">expand_more</span>
             </button>
@@ -1319,7 +1319,7 @@ extension-element-prefixes="ixsl"
             <button type="button" class="ldhc-btn in-primary ap-solid sz-md drop-toggle" title="{ac:label(key('resources', 'create-instance-title', ldh:translations()))}">
                 <span class="msi sm" aria-hidden="true">add</span>
                 <span>
-                    <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', 'create', ldh:translations())" mode="ac:label"/>
                 </span>
                 <span class="msi caret" aria-hidden="true">expand_more</span>
             </button>

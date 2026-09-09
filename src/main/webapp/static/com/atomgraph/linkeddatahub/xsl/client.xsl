@@ -6,7 +6,6 @@
     <!ENTITY ldh        "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY ac         "https://w3id.org/atomgraph/client#">
     <!ENTITY a          "https://w3id.org/atomgraph/core#">
-    <!ENTITY typeahead  "http://graphity.org/typeahead#">
     <!ENTITY rdf        "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs       "http://www.w3.org/2000/01/rdf-schema#">
     <!ENTITY xsd        "http://www.w3.org/2001/XMLSchema#">
@@ -43,7 +42,6 @@ xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:json="http://www.w3.org/2005/xpath-functions"
 xmlns:array="http://www.w3.org/2005/xpath-functions/array"
 xmlns:saxon="http://saxon.sf.net/"
-xmlns:typeahead="&typeahead;"
 xmlns:a="&a;"
 xmlns:ac="&ac;"
 xmlns:lapp="&lapp;"
@@ -132,7 +130,6 @@ extension-element-prefixes="ixsl"
     <xsl:param name="ldt:ontology" as="xs:anyURI?"/> <!-- used in Web-Client TO-DO: remove -->
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
     <xsl:param name="foaf:Agent" select="if ($acl:agent) then document(ac:document-uri($acl:agent)) else ()" as="document-node()?"/> <!-- should be in SaxonJS documentPool -->
-    <xsl:param name="ac:forClass" as="xs:anyURI?"/> <!-- used by Web-Client -->
     <xsl:param name="ac:query" select="ldh:query-params()?query" as="xs:string?"/>
     <xsl:param name="ac:googleMapsKey" select="''" as="xs:string"/>  <!-- cannot remove yet as it's used by container.xsl in Web-Client -->
     <xsl:param name="sparql-parser" select="ixsl:call(ixsl:window(), 'Reflect.construct', [ ixsl:get(ixsl:get(ixsl:window(), '`' || 'SPARQL.js' || '`'), 'Parser'), [] ] )"/>
@@ -1574,7 +1571,7 @@ WHERE
                                 <xsl:sequence select="js:fetchDispatchXML($base-uri, 'POST', $headers, $file, ., (), (), (), 'RDFFileUpload')[current-date() lt xs:date('2000-01-01')]"/>
                             </xsl:when>
                             <xsl:otherwise>
-                                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'The file extension or media type is not a supported RDF triple syntax' ])[current-date() lt xs:date('2000-01-01')]"/>
+                                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ac:label(key('resources', 'unsupported-rdf-syntax', ldh:translations())) ])[current-date() lt xs:date('2000-01-01')]"/>
                             </xsl:otherwise>
                         </xsl:choose>
                     </xsl:for-each>

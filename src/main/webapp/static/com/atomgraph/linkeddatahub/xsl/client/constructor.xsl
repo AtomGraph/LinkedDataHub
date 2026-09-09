@@ -187,7 +187,7 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not load constructors for class &quot;' || $type || '&quot;' ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ac:label(key('resources', 'constructors-not-loaded', ldh:translations())) || ' &quot;' || $type || '&quot;' ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
 
@@ -227,12 +227,12 @@ exclude-result-prefixes="#all"
 
                     <xsl:choose>
                         <xsl:when test="exists($resource)">
-                            <xsl:apply-templates select="$resource" mode="ac:Typeahead">
+                            <xsl:apply-templates select="$resource" mode="ldh:ComboboxChip">
                                 <xsl:with-param name="class" select="'cb-chip-btn add-typeahead add-property-typeahead'"/>
                             </xsl:apply-templates>
                         </xsl:when>
                         <xsl:otherwise>
-                            <!-- no metadata available for $predicate: synthesize a minimal rdf:Description so ac:Typeahead matches and ac:label falls back to the URI tail -->
+                            <!-- no metadata available for $predicate: synthesize a minimal rdf:Description so ldh:ComboboxChip matches and ac:label falls back to the URI tail -->
                             <xsl:variable name="synthetic" as="document-node()">
                                 <xsl:document>
                                     <rdf:RDF>
@@ -242,7 +242,7 @@ exclude-result-prefixes="#all"
                                     </rdf:RDF>
                                 </xsl:document>
                             </xsl:variable>
-                            <xsl:apply-templates select="$synthetic/rdf:RDF/rdf:Description" mode="ac:Typeahead">
+                            <xsl:apply-templates select="$synthetic/rdf:RDF/rdf:Description" mode="ldh:ComboboxChip">
                                 <xsl:with-param name="class" select="'cb-chip-btn add-typeahead add-property-typeahead'"/>
                             </xsl:apply-templates>
                         </xsl:otherwise>
@@ -251,7 +251,7 @@ exclude-result-prefixes="#all"
                 <xsl:otherwise>
                     <xsl:variable name="uuid" select="ac:uuid()" as="xs:string"/>
 
-                    <xsl:call-template name="ac:Lookup">
+                    <xsl:call-template name="ldh:Combobox">
                         <xsl:with-param name="forClass" select="xs:anyURI('&rdf;Property')"/>
                         <xsl:with-param name="class" select="'property-typeahead typeahead'"/>
                         <xsl:with-param name="id" select="'input-' || $uuid"/>
@@ -347,56 +347,56 @@ exclude-result-prefixes="#all"
                             <xsl:attribute name="selected" select="'selected'"/>
                         </xsl:if>
                             
-                        <xsl:text>String</xsl:text>
+                        <xsl:apply-templates select="key('resources', 'datatype-string', ldh:translations())" mode="ac:label"/>
                     </option>
                     <option value="&xsd;boolean">
                         <xsl:if test="$object-type = '&xsd;boolean'">
                             <xsl:attribute name="selected" select="'selected'"/>
                         </xsl:if>
         
-                        <xsl:text>Boolean</xsl:text>
+                        <xsl:apply-templates select="key('resources', 'datatype-boolean', ldh:translations())" mode="ac:label"/>
                     </option>
                     <option value="&xsd;date">
                         <xsl:if test="$object-type = '&xsd;date'">
                             <xsl:attribute name="selected" select="'selected'"/>
                         </xsl:if>
         
-                        <xsl:text>Date</xsl:text>
+                        <xsl:apply-templates select="key('resources', 'datatype-date', ldh:translations())" mode="ac:label"/>
                     </option>
                     <option value="&xsd;dateTime">
                         <xsl:if test="$object-type = '&xsd;dateTime'">
                             <xsl:attribute name="selected" select="'selected'"/>
                         </xsl:if>
         
-                        <xsl:text>Datetime</xsl:text>
+                        <xsl:apply-templates select="key('resources', 'datatype-datetime', ldh:translations())" mode="ac:label"/>
                     </option>
                     <option value="&xsd;integer">
                         <xsl:if test="$object-type = '&xsd;integer'">
                             <xsl:attribute name="selected" select="'selected'"/>
                         </xsl:if>
         
-                        <xsl:text>Integer</xsl:text>
+                        <xsl:apply-templates select="key('resources', 'datatype-integer', ldh:translations())" mode="ac:label"/>
                     </option>
                     <option value="&xsd;float">
                         <xsl:if test="$object-type = '&xsd;float'">
                             <xsl:attribute name="selected" select="'selected'"/>
                         </xsl:if>
         
-                        <xsl:text>Float</xsl:text>
+                        <xsl:apply-templates select="key('resources', 'datatype-float', ldh:translations())" mode="ac:label"/>
                     </option>
                     <option value="&xsd;double">
                         <xsl:if test="$object-type = '&xsd;double'">
                             <xsl:attribute name="selected" select="'selected'"/>
                         </xsl:if>
         
-                        <xsl:text>Double</xsl:text>
+                        <xsl:apply-templates select="key('resources', 'datatype-double', ldh:translations())" mode="ac:label"/>
                     </option>
                     <option value="&xsd;decimal">
                         <xsl:if test="$object-type = '&xsd;decimal'">
                             <xsl:attribute name="selected" select="'selected'"/>
                         </xsl:if>
         
-                        <xsl:text>Decimal</xsl:text>
+                        <xsl:apply-templates select="key('resources', 'datatype-decimal', ldh:translations())" mode="ac:label"/>
                     </option>
                 </select>
             </xsl:with-param>
@@ -410,14 +410,14 @@ exclude-result-prefixes="#all"
             <xsl:when test="$object-type">
                 <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': 'DESCRIBE &lt;' || $object-type || '&gt;', 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
 
-                <xsl:apply-templates select="key('resources', $object-type, document($request-uri))" mode="ac:Typeahead">
+                <xsl:apply-templates select="key('resources', $object-type, document($request-uri))" mode="ldh:ComboboxChip">
                     <xsl:with-param name="class" select="'cb-chip-btn add-typeahead add-class-typeahead'"/>
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:variable name="uuid" select="ac:uuid()" as="xs:string"/>
 
-                <xsl:call-template name="ac:Lookup">
+                <xsl:call-template name="ldh:Combobox">
                     <xsl:with-param name="forClass" select="(xs:anyURI('&rdfs;Class'), xs:anyURI('&owl;Class'))"/> <!-- ontologies are served without inference, so owl:Class subjects do not carry the rdfs:Class type -->
                     <xsl:with-param name="class" select="'class-typeahead typeahead'"/>
                     <xsl:with-param name="id" select="'input-' || $uuid"/>
@@ -637,7 +637,7 @@ exclude-result-prefixes="#all"
                 </ixsl:schedule-action>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not update constructor' ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ac:label(key('resources', 'constructor-not-updated', ldh:translations())) ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -671,7 +671,7 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not load ontology graph URI(s)' ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ac:label(key('resources', 'ontology-graphs-not-loaded', ldh:translations())) ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -693,7 +693,7 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not append constructor' ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ac:label(key('resources', 'constructor-not-appended', ldh:translations())) ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
         

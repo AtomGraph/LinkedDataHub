@@ -2,6 +2,7 @@
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY def    "https://w3id.org/atomgraph/linkeddatahub/default#">
     <!ENTITY adm    "https://w3id.org/atomgraph/linkeddatahub/admin#">
+    <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
@@ -16,6 +17,7 @@ xmlns="http://www.w3.org/1999/xhtml"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
+xmlns:ldh="&ldh;"
 xmlns:ac="&ac;"
 xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
@@ -46,53 +48,53 @@ exclude-result-prefixes="#all">
                 <xsl:attribute name="disabled" select="'disabled'"/>
             </xsl:if>
             
-            <option value="">[browser-defined]</option>
-            <optgroup label="RDF triples">
+            <option value=""><xsl:apply-templates select="key('resources', 'media-type-browser-defined', ldh:translations())" mode="ac:label"/></option>
+            <optgroup label="{ac:label(key('resources', 'media-type-group-triples', ldh:translations()))}">
                 <option value="text/turtle">
                     <xsl:if test="ends-with(., 'text/turtle')">
                         <xsl:attribute name="selected" select="'selected'"/>
                     </xsl:if>
                     
-                    <xsl:text>Turtle (.ttl)</xsl:text>
+                    <xsl:apply-templates select="key('resources', 'media-type-turtle', ldh:translations())" mode="ac:label"/>
                 </option>
                 <option value="application/n-triples">
                     <xsl:if test="ends-with(., 'application/n-triples')">
                         <xsl:attribute name="selected" select="'selected'"/>
                     </xsl:if>
                     
-                    <xsl:text>N-Triples (.nt)</xsl:text>
+                    <xsl:apply-templates select="key('resources', 'media-type-ntriples', ldh:translations())" mode="ac:label"/>
                 </option>
                 <option value="application/rdf+xml">
                     <xsl:if test="ends-with(., 'application/rdf+xml')">
                         <xsl:attribute name="selected" select="'selected'"/>
                     </xsl:if>
 
-                    <xsl:text>RDF/XML (.rdf)</xsl:text>
+                    <xsl:apply-templates select="key('resources', 'media-type-rdfxml', ldh:translations())" mode="ac:label"/>
                 </option>
             </optgroup>
-            <optgroup label="RDF quads">
+            <optgroup label="{ac:label(key('resources', 'media-type-group-quads', ldh:translations()))}">
                 <option value="text/trig">
                     <xsl:if test="ends-with(., 'text/trig')">
                         <xsl:attribute name="selected" select="'selected'"/>
                     </xsl:if>
 
-                    <xsl:text>TriG (.trig)</xsl:text>
+                    <xsl:apply-templates select="key('resources', 'media-type-trig', ldh:translations())" mode="ac:label"/>
                 </option>
                 <option value="application/n-quads">
                     <xsl:if test="ends-with(., 'application/n-quads')">
                         <xsl:attribute name="selected" select="'selected'"/>
                     </xsl:if>
 
-                    <xsl:text>N-Quads (.nq)</xsl:text>
+                    <xsl:apply-templates select="key('resources', 'media-type-nquads', ldh:translations())" mode="ac:label"/>
                 </option>
             </optgroup>
-            <optgroup label="Other">
+            <optgroup label="{ac:label(key('resources', 'other', ldh:translations()))}">
                 <option value="text/csv">
                     <xsl:if test="ends-with(., 'text/csv')">
                         <xsl:attribute name="selected" select="'selected'"/>
                     </xsl:if>
 
-                    <xsl:text>CSV (.csv)</xsl:text>
+                    <xsl:apply-templates select="key('resources', 'media-type-csv', ldh:translations())" mode="ac:label"/>
                 </option>
             </optgroup>
         </select>

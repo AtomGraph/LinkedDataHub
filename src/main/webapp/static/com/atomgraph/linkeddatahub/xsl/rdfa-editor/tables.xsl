@@ -5,6 +5,8 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:rdfae="https://w3id.org/atomgraph/rdfa-editor#"
+xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#"
+xmlns:ac="https://w3id.org/atomgraph/client#"
 extension-element-prefixes="ixsl"
 xpath-default-namespace="http://www.w3.org/1999/xhtml"
 version="3.0">
@@ -116,17 +118,17 @@ version="3.0">
 
     <xsl:template name="rdfae:render-table-dialog">
         <div id="table-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true"
-                aria-label="Insert table" style="display: none;">
-            <label>Body rows</label>
+                aria-label="{ac:label(key('resources', 'insert-table', ldh:translations()))}" style="display: none;">
+            <label><xsl:apply-templates select="key('resources', 'table-body-rows', ldh:translations())" mode="ac:label"/></label>
             <input type="number" name="rows" value="3" min="1" max="50"/>
-            <label>Columns</label>
+            <label><xsl:apply-templates select="key('resources', 'table-columns', ldh:translations())" mode="ac:label"/></label>
             <input type="number" name="cols" value="3" min="1" max="20"/>
-            <label class="checkbox-label"><input type="checkbox" name="header-row" checked="checked"/> Header row</label>
-            <label>Caption</label>
+            <label class="checkbox-label"><input type="checkbox" name="header-row" checked="checked"/><xsl:text> </xsl:text><xsl:apply-templates select="key('resources', 'table-header-row', ldh:translations())" mode="ac:label"/></label>
+            <label><xsl:apply-templates select="key('resources', 'caption', ldh:translations())" mode="ac:label"/></label>
             <input type="text" name="caption"/>
             <div class="action-buttons">
-                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm table-save">Insert</button>
-                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm table-cancel">Cancel</button>
+                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm table-save"><xsl:apply-templates select="key('resources', 'insert', ldh:translations())" mode="ac:label"/></button>
+                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm table-cancel"><xsl:apply-templates select="key('resources', 'cancel', ldh:translations())" mode="ac:label"/></button>
             </div>
         </div>
     </xsl:template>

@@ -512,7 +512,7 @@ exclude-result-prefixes="#all">
         </xsl:if>
         <xsl:if test="$output-schema-org">
             <xsl:variable name="rdf" as="element()?">
-                <xsl:apply-templates select="." mode="schema:BreadCrumbList"/>
+                <xsl:apply-templates select="." mode="schema:BreadcrumbList"/>
             </xsl:variable>
             <xsl:if test="exists($rdf)">
                 <!-- output structured data: https://developers.google.com/search/docs/guides/intro-structured-data -->

@@ -7,6 +7,8 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:rdfae="https://w3id.org/atomgraph/rdfa-editor#"
 xmlns:rdfax="https://w3id.org/atomgraph/rdfa-editor/rdfa#"
 xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#"
+xmlns:ac="https://w3id.org/atomgraph/client#"
 extension-element-prefixes="ixsl"
 xpath-default-namespace="http://www.w3.org/1999/xhtml"
 version="3.0">
@@ -275,8 +277,8 @@ version="3.0">
                 <div id="output-modal" class="rdfa-editor-ui" style="display: none;">
                     <div class="modal-content">
                         <span class="modal-close">&#215;</span>
-                        <h3 id="output-title">Output</h3>
-                        <button id="output-download" type="button" style="display: none;">Download</button>
+                        <h3 id="output-title"><xsl:apply-templates select="key('resources', 'output', ldh:translations())" mode="ac:label"/></h3>
+                        <button id="output-download" type="button" style="display: none;"><xsl:apply-templates select="key('resources', 'download', ldh:translations())" mode="ac:label"/></button>
                         <pre id="output-content"/>
                     </div>
                 </div>
@@ -336,7 +338,7 @@ version="3.0">
         </xsl:variable>
 
         <xsl:call-template name="rdfae:show-output">
-            <xsl:with-param name="title" select="'Extracted RDF/XML'"/>
+            <xsl:with-param name="title" select="ac:label(key('resources', 'extracted-rdfxml', ldh:translations()))"/>
             <xsl:with-param name="text" select="serialize(rdfae:group-triples($rdf), map{ 'method': 'xml', 'indent': true() })"/>
             <xsl:with-param name="filename" select="'content.rdf'"/>
             <xsl:with-param name="media-type" select="'application/rdf+xml'"/>

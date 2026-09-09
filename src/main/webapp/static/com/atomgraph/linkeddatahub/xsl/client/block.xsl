@@ -408,7 +408,7 @@ exclude-result-prefixes="#all"
             <ixsl:set-attribute name="data-role" select="'chrome'" object="$chrome"/>
             <ixsl:set-attribute name="class" select="'rdfa-editor-drag-handle'" object="$chrome"/>
             <ixsl:set-attribute name="contenteditable" select="'false'" object="$chrome"/>
-            <ixsl:set-attribute name="title" select="'Drag to reorder'" object="$chrome"/>
+            <ixsl:set-attribute name="title" select="ac:label(key('resources', 'drag-to-reorder', ldh:translations()))" object="$chrome"/>
             <ixsl:set-property name="textContent" select="'&#x283F;'" object="$chrome"/>
             <xsl:sequence select="ixsl:call($block, 'prepend', [ $chrome ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:if>
@@ -1277,7 +1277,7 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Could not delete block' ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ac:label(key('resources', 'block-not-deleted', ldh:translations())) ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
 

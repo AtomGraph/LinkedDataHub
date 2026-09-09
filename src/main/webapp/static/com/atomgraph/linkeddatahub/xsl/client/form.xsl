@@ -4,7 +4,6 @@
     <!ENTITY ldh        "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY lapp       "https://w3id.org/atomgraph/linkeddatahub/apps#">
     <!ENTITY ac         "https://w3id.org/atomgraph/client#">
-    <!ENTITY typeahead  "http://graphity.org/typeahead#">
     <!ENTITY rdf        "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs       "http://www.w3.org/2000/01/rdf-schema#">
     <!ENTITY xsd        "http://www.w3.org/2001/XMLSchema#">
@@ -39,7 +38,6 @@ xmlns:lapp="&lapp;"
 xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
 xmlns:dct="&dct;"
-xmlns:typeahead="&typeahead;"
 xmlns:ldt="&ldt;"
 xmlns:acl="&acl;"
 xmlns:foaf="&foaf;"
@@ -281,12 +279,12 @@ WHERE
         </xsl:choose>
     </xsl:template>
 
-    <!-- override RDFa editor annotation typeahead: use LDH's /ns-querying ac:Lookup instead of doc()-on-vocabs -->
+    <!-- override RDFa editor annotation typeahead: use LDH's /ns-querying ldh:Combobox instead of doc()-on-vocabs -->
     <xsl:function name="rdfae:typeahead-field" as="element()">
         <xsl:param name="field" as="xs:string"/>
         <xsl:variable name="for-class" as="xs:anyURI" select="if ($field = 'typeof') then xs:anyURI('&owl;Class') else xs:anyURI('&rdf;Property')"/>
         <span data-field="{$field}" class="typeahead-field rdfa-editor-ui">
-            <xsl:call-template name="ac:Lookup">
+            <xsl:call-template name="ldh:Combobox">
                 <xsl:with-param name="class" select="'property-typeahead typeahead'"/>
                 <xsl:with-param name="id" select="'annotation-' || $field"/>
                 <xsl:with-param name="list-class" select="'property-typeahead typeahead ldhc-cb-panel'"/>
@@ -303,7 +301,7 @@ WHERE
         <xsl:variable name="for-class" as="xs:anyURI" select="if ($field = 'typeof') then xs:anyURI('&owl;Class') else xs:anyURI('&rdf;Property')"/>
         <xsl:for-each select="($form//span[@data-field = $field])[1]">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:call-template name="ac:Lookup">
+                <xsl:call-template name="ldh:Combobox">
                     <xsl:with-param name="class" select="'property-typeahead typeahead'"/>
                     <xsl:with-param name="id" select="'annotation-' || $field"/>
                     <xsl:with-param name="list-class" select="'property-typeahead typeahead ldhc-cb-panel'"/>
@@ -542,105 +540,105 @@ WHERE
     <!-- Bootstrap-styled toolbar dialogs (replace rdfa-editor's custom HTML) -->
 
     <xsl:template name="rdfae:render-table-dialog">
-        <div id="table-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true" aria-label="Insert table" style="display: none;">
-            <label for="table-rows">Body rows</label>
+        <div id="table-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true" aria-label="{ac:label(key('resources', 'insert-table', ldh:translations()))}" style="display: none;">
+            <label for="table-rows"><xsl:apply-templates select="key('resources', 'table-body-rows', ldh:translations())" mode="ac:label"/></label>
             <input type="number" id="table-rows" name="rows" value="3" min="1" max="50"/>
-            <label for="table-cols">Columns</label>
+            <label for="table-cols"><xsl:apply-templates select="key('resources', 'table-columns', ldh:translations())" mode="ac:label"/></label>
             <input type="number" id="table-cols" name="cols" value="3" min="1" max="20"/>
-            <label class="checkbox"><input type="checkbox" name="header-row" checked="checked"/> Header row</label>
-            <label for="table-caption">Caption</label>
+            <label class="checkbox"><input type="checkbox" name="header-row" checked="checked"/><xsl:text> </xsl:text><xsl:apply-templates select="key('resources', 'table-header-row', ldh:translations())" mode="ac:label"/></label>
+            <label for="table-caption"><xsl:apply-templates select="key('resources', 'caption', ldh:translations())" mode="ac:label"/></label>
             <input type="text" id="table-caption" name="caption"/>
             <div class="action-buttons">
-                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm table-save">Insert</button>
-                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm table-cancel">Cancel</button>
+                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm table-save"><xsl:value-of select="ac:label(key('resources', 'insert', ldh:translations()))"/></button>
+                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm table-cancel"><xsl:value-of select="ac:label(key('resources', 'cancel', ldh:translations()))"/></button>
             </div>
         </div>
     </xsl:template>
 
     <xsl:template name="rdfae:render-link-dialog">
-        <div id="link-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true" aria-label="Link" style="display: none;">
-            <label for="link-href">Link target (href)</label>
+        <div id="link-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true" aria-label="{ac:label(key('resources', 'link', ldh:translations()))}" style="display: none;">
+            <label for="link-href"><xsl:apply-templates select="key('resources', 'link-href', ldh:translations())" mode="ac:label"/></label>
             <input type="text" id="link-href" name="href" placeholder="https://..."/>
             <div class="action-buttons">
                 <button type="button" class="ldhc-btn in-negative ap-solid sz-sm link-remove" style="display: none;"><xsl:value-of select="ac:label(key('resources', 'remove-link', ldh:translations()))"/></button>
-                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm link-save">Save</button>
-                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm link-cancel">Cancel</button>
+                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm link-save"><xsl:value-of select="ac:label(key('resources', 'save', ldh:translations()))"/></button>
+                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm link-cancel"><xsl:value-of select="ac:label(key('resources', 'cancel', ldh:translations()))"/></button>
             </div>
         </div>
     </xsl:template>
 
     <xsl:template name="rdfae:render-figure-dialog">
-        <div id="figure-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true" aria-label="Insert figure" style="display: none;">
-            <label for="figure-src">Image URL (src)</label>
-            <input type="text" id="figure-src" name="src" placeholder="https://... or relative path"/>
-            <label for="figure-alt">Alternate text (alt)</label>
+        <div id="figure-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true" aria-label="{ac:label(key('resources', 'insert-figure', ldh:translations()))}" style="display: none;">
+            <label for="figure-src"><xsl:apply-templates select="key('resources', 'figure-src', ldh:translations())" mode="ac:label"/></label>
+            <input type="text" id="figure-src" name="src" placeholder="{ac:label(key('resources', 'figure-src-placeholder', ldh:translations()))}"/>
+            <label for="figure-alt"><xsl:apply-templates select="key('resources', 'figure-alt', ldh:translations())" mode="ac:label"/></label>
             <input type="text" id="figure-alt" name="alt"/>
-            <label for="figure-caption">Caption</label>
+            <label for="figure-caption"><xsl:apply-templates select="key('resources', 'caption', ldh:translations())" mode="ac:label"/></label>
             <input type="text" id="figure-caption" name="caption"/>
             <div class="action-buttons">
-                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm figure-save">Insert</button>
-                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm figure-cancel">Cancel</button>
+                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm figure-save"><xsl:value-of select="ac:label(key('resources', 'insert', ldh:translations()))"/></button>
+                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm figure-cancel"><xsl:value-of select="ac:label(key('resources', 'cancel', ldh:translations()))"/></button>
             </div>
         </div>
     </xsl:template>
 
     <xsl:template name="rdfae:render-find-dialog">
-        <div id="find-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true" aria-label="Find and replace" style="display: none;">
-            <label for="find-text">Find</label>
+        <div id="find-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true" aria-label="{ac:label(key('resources', 'find-and-replace', ldh:translations()))}" style="display: none;">
+            <label for="find-text"><xsl:apply-templates select="key('resources', 'find', ldh:translations())" mode="ac:label"/></label>
             <input type="text" id="find-text" name="find"/>
-            <label for="find-replace">Replace with</label>
+            <label for="find-replace"><xsl:apply-templates select="key('resources', 'replace-with', ldh:translations())" mode="ac:label"/></label>
             <input type="text" id="find-replace" name="replace"/>
-            <label class="checkbox"><input type="checkbox" name="match-case"/> Match case</label>
+            <label class="checkbox"><input type="checkbox" name="match-case"/><xsl:text> </xsl:text><xsl:apply-templates select="key('resources', 'match-case', ldh:translations())" mode="ac:label"/></label>
             <div class="action-buttons">
-                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm find-next">Find next</button>
-                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm replace-current">Replace</button>
-                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm replace-all">Replace all</button>
-                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm find-close">Close</button>
+                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm find-next"><xsl:value-of select="ac:label(key('resources', 'find-next', ldh:translations()))"/></button>
+                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm replace-current"><xsl:value-of select="ac:label(key('resources', 'replace', ldh:translations()))"/></button>
+                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm replace-all"><xsl:value-of select="ac:label(key('resources', 'replace-all', ldh:translations()))"/></button>
+                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm find-close"><xsl:value-of select="ac:label(key('resources', 'close', ldh:translations()))"/></button>
             </div>
             <span id="find-status" class="ldhc-help sz-sm"/>
         </div>
     </xsl:template>
 
     <xsl:template name="rdfae:render-extra-dialogs">
-        <div id="ldh-block-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true" aria-label="Insert block" style="display: none;">
-            <label for="ldh-block-type">Block type</label>
+        <div id="ldh-block-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true" aria-label="{ac:label(key('resources', 'insert-block', ldh:translations()))}" style="display: none;">
+            <label for="ldh-block-type"><xsl:apply-templates select="key('resources', 'block-type', ldh:translations())" mode="ac:label"/></label>
             <select id="ldh-block-type" name="block-type-iri">
-                <option value="https://w3id.org/atomgraph/rdfa-editor#reference">Resource</option>
-                <option value="&ldh;View">View</option>
-                <option value="&ldh;ResultSetChart">Result set chart</option>
+                <option value="https://w3id.org/atomgraph/rdfa-editor#reference"><xsl:apply-templates select="key('resources', 'resource', ldh:translations())" mode="ac:label"/></option>
+                <option value="&ldh;View"><xsl:apply-templates select="key('resources', 'view', ldh:translations())" mode="ac:label"/></option>
+                <option value="&ldh;ResultSetChart"><xsl:apply-templates select="key('resources', 'result-set-chart', ldh:translations())" mode="ac:label"/></option>
             </select>
             <div class="ldh-fields ldh-fields-reference">
-                <label for="ldh-reference-uri">Resource URI</label>
+                <label for="ldh-reference-uri"><xsl:apply-templates select="key('resources', 'resource-uri', ldh:translations())" mode="ac:label"/></label>
                 <input type="text" id="ldh-reference-uri" name="reference-uri" placeholder="http://dbpedia.org/resource/Ada_Lovelace"/>
             </div>
             <div class="ldh-fields ldh-fields-frag" style="display: none;">
-                <label for="ldh-about">Fragment id</label>
+                <label for="ldh-about"><xsl:apply-templates select="key('resources', 'fragment-id', ldh:translations())" mode="ac:label"/></label>
                 <input type="text" id="ldh-about" name="about" placeholder="#chart-1"/>
             </div>
             <div class="ldh-fields ldh-fields-view" style="display: none;">
-                <label for="ldh-view-query">Query URI</label>
+                <label for="ldh-view-query"><xsl:apply-templates select="key('resources', 'query-uri', ldh:translations())" mode="ac:label"/></label>
                 <input type="text" id="ldh-view-query" name="view-query"/>
-                <label for="ldh-view-mode">Mode URI (optional)</label>
+                <label for="ldh-view-mode"><xsl:apply-templates select="key('resources', 'mode-uri-optional', ldh:translations())" mode="ac:label"/></label>
                 <input type="text" id="ldh-view-mode" name="view-mode"/>
             </div>
             <div class="ldh-fields ldh-fields-chart" style="display: none;">
-                <label for="ldh-chart-query">Query URI</label>
+                <label for="ldh-chart-query"><xsl:apply-templates select="key('resources', 'query-uri', ldh:translations())" mode="ac:label"/></label>
                 <input type="text" id="ldh-chart-query" name="chart-query"/>
-                <label for="ldh-chart-type">Chart type</label>
+                <label for="ldh-chart-type"><xsl:apply-templates select="key('resources', 'chart-type', ldh:translations())" mode="ac:label"/></label>
                 <select id="ldh-chart-type" name="chart-type">
-                    <option value="&ac;Table">Table</option>
-                    <option value="&ac;BarChart">Bar chart</option>
-                    <option value="&ac;LineChart">Line chart</option>
-                    <option value="&ac;ScatterChart">Scatter chart</option>
+                    <option value="&ac;Table"><xsl:apply-templates select="key('resources', 'chart-table', ldh:translations())" mode="ac:label"/></option>
+                    <option value="&ac;BarChart"><xsl:apply-templates select="key('resources', 'chart-bar', ldh:translations())" mode="ac:label"/></option>
+                    <option value="&ac;LineChart"><xsl:apply-templates select="key('resources', 'chart-line', ldh:translations())" mode="ac:label"/></option>
+                    <option value="&ac;ScatterChart"><xsl:apply-templates select="key('resources', 'chart-scatter', ldh:translations())" mode="ac:label"/></option>
                 </select>
-                <label for="ldh-chart-category">Category variable</label>
+                <label for="ldh-chart-category"><xsl:apply-templates select="key('resources', 'chart-category-var', ldh:translations())" mode="ac:label"/></label>
                 <input type="text" id="ldh-chart-category" name="chart-category"/>
-                <label for="ldh-chart-series">Series variable</label>
+                <label for="ldh-chart-series"><xsl:apply-templates select="key('resources', 'chart-series-var', ldh:translations())" mode="ac:label"/></label>
                 <input type="text" id="ldh-chart-series" name="chart-series"/>
             </div>
             <div class="action-buttons">
-                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm ldh-block-save">Insert</button>
-                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm ldh-block-cancel">Cancel</button>
+                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm ldh-block-save"><xsl:value-of select="ac:label(key('resources', 'insert', ldh:translations()))"/></button>
+                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm ldh-block-cancel"><xsl:value-of select="ac:label(key('resources', 'cancel', ldh:translations()))"/></button>
             </div>
         </div>
     </xsl:template>
@@ -692,7 +690,7 @@ WHERE
             <xsl:apply-templates select="rdfae:active-root()/node()" mode="cm:canonical"/>
         </xsl:variable>
         <xsl:call-template name="rdfae:show-output">
-            <xsl:with-param name="title" select="'Canonical XHTML+RDFa'"/>
+            <xsl:with-param name="title" select="ac:label(key('resources', 'canonical-xhtml-rdfa', ldh:translations()))"/>
             <xsl:with-param name="text" select="serialize($canonical, map{ 'method': 'xml' })"/>
             <xsl:with-param name="filename" select="'content.xhtml'"/>
             <xsl:with-param name="media-type" select="'application/xhtml+xml'"/>
@@ -1861,7 +1859,7 @@ WHERE
 
         <xsl:choose>
             <xsl:when test="$key-code = 'Escape'">
-                <xsl:call-template name="typeahead:hide">
+                <xsl:call-template name="ldh:ComboboxHide">
                     <xsl:with-param name="menu" select="$menu"/>
                 </xsl:call-template>
             </xsl:when>
@@ -1871,13 +1869,13 @@ WHERE
                 
                     <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:anyURI"/>
                     <xsl:variable name="typeahead-class" select="'cb-chip-btn add-typeahead'" as="xs:string"/>
-                    <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/> <!-- set by typeahead:xml-loaded -->
+                    <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/> <!-- set by ldh:ComboboxLoaded -->
                     <xsl:variable name="resource" select="key('resources', $resource-id, $typeahead-doc)"/>
 
                     <!-- the committed chip replaces the whole lookup wrapper (legacy span or .ldhc-combobox) -->
                     <xsl:for-each select="../..">
                         <xsl:result-document href="?." method="ixsl:replace-element">
-                            <xsl:apply-templates select="$resource" mode="ac:Typeahead">
+                            <xsl:apply-templates select="$resource" mode="ldh:ComboboxChip">
                                 <xsl:with-param name="class" select="$typeahead-class"/>
                                 <xsl:with-param name="forClass" select="$forClass"/>
                             </xsl:apply-templates>
@@ -1886,29 +1884,29 @@ WHERE
                 </xsl:for-each>
             </xsl:when>
             <xsl:when test="$key-code = 'ArrowUp'">
-                <xsl:call-template name="typeahead:selection-up">
+                <xsl:call-template name="ldh:ComboboxSelectionUp">
                     <xsl:with-param name="menu" select="$menu"/>
                 </xsl:call-template>
             </xsl:when>
             <xsl:when test="$key-code = 'ArrowDown'">
-                <xsl:call-template name="typeahead:selection-down">
+                <xsl:call-template name="ldh:ComboboxSelectionDown">
                     <xsl:with-param name="menu" select="$menu"/>
                 </xsl:call-template>
             </xsl:when>
             <!-- ignore URIs in the input -->
             <xsl:when test="not(starts-with(ixsl:get(., 'value'), 'http://')) and not(starts-with(ixsl:get(., 'value'), 'https://'))">
                 <ixsl:schedule-action wait="$delay">
-                    <xsl:call-template name="typeahead:load-xml">
+                    <xsl:call-template name="ldh:ComboboxLoad">
                         <xsl:with-param name="element" select="."/>
                         <xsl:with-param name="query" select="ixsl:get(., 'value')"/>
                         <xsl:with-param name="uri" select="$request-uri"/>
-                        <!-- we don't want to use rdfs:Resource as a type because a filter in typeahead:process would not select any resources with this type -->
+                        <!-- we don't want to use rdfs:Resource as a type because a filter in ldh:ComboboxProcess would not select any resources with this type -->
                         <xsl:with-param name="resource-types" select="$forClass[not(. = '&rdfs;Resource')]"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:call-template name="typeahead:hide">
+                <xsl:call-template name="ldh:ComboboxHide">
                     <xsl:with-param name="menu" select="$menu"/>
                 </xsl:call-template>
             </xsl:otherwise>
@@ -1918,7 +1916,7 @@ WHERE
     <xsl:template match="input[contains-token(@class, 'typeahead')]" mode="ixsl:onfocusout">
         <xsl:param name="menu" select="(following-sibling::ul, ../following-sibling::div[contains-token(@class, 'ldhc-cb-panel')])[1]" as="element()"/>
         
-        <xsl:call-template name="typeahead:hide">
+        <xsl:call-template name="ldh:ComboboxHide">
             <xsl:with-param name="menu" select="$menu"/>
         </xsl:call-template>
     </xsl:template>
@@ -2017,7 +2015,7 @@ WHERE
         <!-- render the committed chip replacing the whole lookup wrapper (synchronous DOM mutation, runs before the promise) -->
         <xsl:for-each select="../..">
             <xsl:result-document href="?." method="ixsl:replace-element">
-                <xsl:apply-templates select="$resource" mode="ac:Typeahead">
+                <xsl:apply-templates select="$resource" mode="ldh:ComboboxChip">
                     <xsl:with-param name="class" select="$typeahead-class"/>
                     <xsl:with-param name="forClass" select="$initial-forClass"/>
                 </xsl:apply-templates>
@@ -2072,7 +2070,7 @@ WHERE
         <!-- the committed chip replaces the whole lookup wrapper (legacy span or .ldhc-combobox) -->
         <xsl:for-each select="../..">
             <xsl:result-document href="?." method="ixsl:replace-element">
-                <xsl:apply-templates select="$resource" mode="ac:Typeahead">
+                <xsl:apply-templates select="$resource" mode="ldh:ComboboxChip">
                     <xsl:with-param name="class" select="$typeahead-class"/>
                     <xsl:with-param name="forClass" select="$forClass"/>
                 </xsl:apply-templates>
@@ -2179,7 +2177,7 @@ WHERE
         
         <xsl:for-each select="..">
             <xsl:variable name="lookup" as="element()">
-                <xsl:call-template name="ac:Lookup">
+                <xsl:call-template name="ldh:Combobox">
                     <xsl:with-param name="id" select="'input-' || $uuid"/>
                     <xsl:with-param name="class" select="$lookup-class"/>
                     <xsl:with-param name="list-class" select="$lookup-list-class"/>
@@ -2219,7 +2217,7 @@ WHERE
 
         <xsl:for-each select="$committed">
             <xsl:result-document href="?." method="ixsl:replace-element">
-                <xsl:call-template name="ac:Lookup">
+                <xsl:call-template name="ldh:Combobox">
                     <xsl:with-param name="id" select="'input-' || $uuid"/>
                     <xsl:with-param name="class" select="$lookup-class"/>
                     <xsl:with-param name="list-class" select="$lookup-list-class"/>
@@ -2265,7 +2263,7 @@ WHERE
 
         <ixsl:set-property name="LinkedDataHub.typeahead.rdfXml" select="$item-doc"/>
 
-        <xsl:call-template name="typeahead:process">
+        <xsl:call-template name="ldh:ComboboxProcess">
             <xsl:with-param name="menu" select="$menu"/>
             <xsl:with-param name="items" select="$item-doc/rdf:RDF/rdf:Description"/>
             <xsl:with-param name="element" select="."/>

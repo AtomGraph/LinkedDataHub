@@ -96,7 +96,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="results" select="?body" as="document-node()"/>
 
                 <xsl:result-document href="?." method="ixsl:append-content">
-                    <xsl:apply-templates select="key('resources', $service-uri, $results)" mode="ac:Typeahead">
+                    <xsl:apply-templates select="key('resources', $service-uri, $results)" mode="ldh:ComboboxChip">
                         <xsl:with-param name="forClass" select="$forClass"/>
                     </xsl:apply-templates>
                 </xsl:result-document>
@@ -240,12 +240,12 @@ exclude-result-prefixes="#all"
                                         <!-- need to explicitly request RDF/XML, otherwise we get HTML -->
                                         <xsl:variable name="request-uri" select="ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ())" as="xs:anyURI"/>
                                         <!-- TO-DO: refactor asynchronously -->
-                                        <xsl:apply-templates select="key('resources', $service-uri, document($request-uri))" mode="ac:Typeahead">
+                                        <xsl:apply-templates select="key('resources', $service-uri, document($request-uri))" mode="ldh:ComboboxChip">
                                             <xsl:with-param name="forClass" select="$forClass"/>
                                         </xsl:apply-templates>
                                     </xsl:when>
                                     <xsl:otherwise>
-                                        <xsl:call-template name="ac:Lookup">
+                                        <xsl:call-template name="ldh:Combobox">
                                             <xsl:with-param name="forClass" select="$forClass"/>
                                         </xsl:call-template>
                                     </xsl:otherwise>
@@ -534,12 +534,8 @@ exclude-result-prefixes="#all"
             <xsl:if test="acl:mode() = '&acl;Append'">
                 <div class="ldh-block-foot">
                     <button class="ldhc-btn in-primary ap-solid sz-md btn-create-view" type="button">
-                        <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ldh:logo">
-                            <xsl:with-param name="class" select="'ldhc-btn in-primary ap-solid sz-md btn-create-view'"/>
-                        </xsl:apply-templates>
-
                         <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', 'create', ldh:translations())" mode="ac:label"/>
                         </xsl:value-of>
                     </button>
                 </div>
@@ -705,12 +701,8 @@ exclude-result-prefixes="#all"
                                     <xsl:if test="acl:mode() = '&acl;Append'">
                                         <div class="ldh-block-foot">
                                             <button class="ldhc-btn in-primary ap-solid sz-md btn-create-chart" type="button">
-                                                <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ldh:logo">
-                                                    <xsl:with-param name="class" select="'ldhc-btn in-primary ap-solid sz-md btn-create-chart'"/>
-                                                </xsl:apply-templates>
-
                                                 <xsl:value-of>
-                                                    <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                                                    <xsl:apply-templates select="key('resources', 'create', ldh:translations())" mode="ac:label"/>
                                                 </xsl:value-of>
                                             </button>
                                         </div>

@@ -110,12 +110,6 @@ extension-element-prefixes="ixsl"
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-logo btn-item')"/>
     </xsl:template>
     
-    <xsl:template match="*[@rdf:about = '&ac;ConstructMode']" mode="ldh:logo">
-        <xsl:param name="class" as="xs:string?"/>
-        
-        <xsl:attribute name="class" select="concat($class, ' ', 'create-action')"/>
-    </xsl:template>
-
     <xsl:template match="*[@rdf:about = '&dh;Container']" mode="ldh:logo" priority="1">
         <xsl:param name="class" as="xs:string?"/>
         
@@ -330,7 +324,7 @@ extension-element-prefixes="ixsl"
 
     <!-- schema.org BREADCRUMBS -->
     
-    <xsl:template match="*[@rdf:about]" mode="schema:BreadCrumbListItem" as="element()">
+    <xsl:template match="*[@rdf:about]" mode="schema:ListItem" as="element()">
         <rdf:Description rdf:nodeID="item{position()}">
             <rdf:type rdf:resource="&schema;ListItem"/>
             <schema:position><xsl:value-of select="position()"/></schema:position>
@@ -1133,27 +1127,17 @@ extension-element-prefixes="ixsl"
         <xsl:param name="with-label" select="false()" as="xs:boolean"/>
         <xsl:param name="base-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI" tunnel="yes"/>
         
-        <button title="{@rdf:about}" data-for-shape="{@rdf:about}">
+        <!-- add-constructor/create-action are the behavior hooks the constructor onclick handlers match on -->
+        <button title="{@rdf:about}" data-for-shape="{@rdf:about}" class="it add-constructor create-action">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
 
-            <xsl:choose>
-                <xsl:when test="$with-label">
-                    <xsl:apply-templates select="." mode="ldh:logo">
-                        <xsl:with-param name="class" select="'it add-constructor'"/>
-                    </xsl:apply-templates>
-
-                    <xsl:value-of>
-                        <xsl:apply-templates select="." mode="ac:label"/>
-                    </xsl:value-of>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ldh:logo">
-                        <xsl:with-param name="class" select="'it add-constructor'"/>
-                    </xsl:apply-templates>
-                </xsl:otherwise>
-            </xsl:choose>
+            <xsl:if test="$with-label">
+                <xsl:value-of>
+                    <xsl:apply-templates select="." mode="ac:label"/>
+                </xsl:value-of>
+            </xsl:if>
         </button>
     </xsl:template>
     
@@ -1602,7 +1586,60 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ldh:Exception"/>
 
     <!-- OBJECT -->
-    
+
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="ldh:Object"/>
+
+    <!-- COMBOBOX CHIP -->
+
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ldh:ComboboxChip">
+        <xsl:param name="id" select="generate-id()" as="xs:string"/>
+        <xsl:param name="class" select="'cb-chip-btn add-typeahead'" as="xs:string?"/>
+        <xsl:param name="disabled" select="false()" as="xs:boolean"/>
+        <xsl:param name="title" select="(@rdf:about, @rdf:nodeID)[1]" as="xs:string?"/>
+        <xsl:param name="forClass" as="xs:anyURI*"/>
+
+        <span class="ldhc-cb-committed">
+            <xsl:if test="exists($forClass)">
+                <xsl:attribute name="data-for-class" select="string-join($forClass, ' ')"/>
+            </xsl:if>
+
+            <span class="ldhc-cb-chip">
+                <span class="msi outline sm" aria-hidden="true">link</span>
+                <span class="cb-chip-lbl">
+                    <xsl:if test="$title">
+                        <xsl:attribute name="title" select="$title"/>
+                    </xsl:if>
+
+                    <xsl:value-of>
+                        <xsl:apply-templates select="." mode="ac:label"/>
+                    </xsl:value-of>
+                </span>
+                <!-- the edit button carries the committed term's RDF/POST input, so re-picking replaces both together -->
+                <button type="button">
+                    <xsl:if test="$id">
+                        <xsl:attribute name="id" select="$id"/>
+                    </xsl:if>
+                    <xsl:if test="$class">
+                        <xsl:attribute name="class" select="$class"/>
+                    </xsl:if>
+                    <xsl:if test="$disabled">
+                        <xsl:attribute name="disabled" select="'disabled'"/>
+                    </xsl:if>
+                    <xsl:if test="$title">
+                        <xsl:attribute name="title" select="$title"/>
+                    </xsl:if>
+
+                    <span class="msi" aria-hidden="true">edit</span>
+
+                    <xsl:if test="@rdf:about">
+                        <input type="hidden" name="ou" value="{@rdf:about}"/>
+                    </xsl:if>
+                    <xsl:if test="@rdf:nodeID">
+                        <input type="hidden" name="ob" value="{@rdf:nodeID}"/>
+                    </xsl:if>
+                </button>
+            </span>
+        </span>
+    </xsl:template>
 
 </xsl:stylesheet>
