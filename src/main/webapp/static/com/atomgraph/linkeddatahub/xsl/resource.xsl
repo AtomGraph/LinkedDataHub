@@ -345,6 +345,9 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="fragment" select="ac:fragment-id(@rdf:about)" as="xs:string?"/>
 
         <a href="{ldh:href(ac:document-uri(xs:anyURI(@rdf:about)), map{}, $fragment)}" title="{@rdf:about}" class="bc-pill{if ($leaf) then ' is-current' else ()}">
+            <xsl:if test="$leaf">
+                <xsl:attribute name="aria-current" select="'page'"/>
+            </xsl:if>
             <span class="msi sm" aria-hidden="true">
                 <xsl:value-of select="$icon"/>
             </span>

@@ -345,10 +345,9 @@ WHERE
         <xsl:param name="response" as="map(*)"/>
         <xsl:param name="uri" as="xs:anyURI"/>
 
+        <!-- the container is the pills list itself; clear it before the crumbs stream in -->
         <xsl:for-each select="$container">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <div class="ldh-bc ldh-bc-pills"/>
-            </xsl:result-document>
+            <xsl:result-document href="?." method="ixsl:replace-content"/>
         </xsl:for-each>
         <xsl:sequence select="ldh:breadcrumb-resource-response(map{
             'response': $response,
@@ -442,8 +441,9 @@ WHERE
                                 <xsl:with-param name="mode" select="$mode"/>
                             </xsl:call-template>
 
+                            <!-- is-active is the whole visibility contract (ldh.css owns display) -->
                             <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][./div[contains-token(@class, 'document-body')][starts-with(@about, lapp:origin(ldh:request-uri()) || '/')]]">
-                                <ixsl:set-style name="display" select="'none'" object="."/>
+                                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-active' ])[current-date() lt xs:date('2000-01-01')]"/>
                             </xsl:for-each>
                         </xsl:if>
 
@@ -634,8 +634,9 @@ WHERE
                             <xsl:with-param name="error" select="true()"/>
                         </xsl:call-template>
 
+                        <!-- is-active is the whole visibility contract (ldh.css owns display) -->
                         <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][./div[contains-token(@class, 'document-body')][starts-with(@about, lapp:origin(ldh:request-uri()) || '/')]]">
-                            <ixsl:set-style name="display" select="'none'" object="."/>
+                            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-active' ])[current-date() lt xs:date('2000-01-01')]"/>
                         </xsl:for-each>
                     </xsl:if>
 
@@ -703,9 +704,7 @@ WHERE
             </li>
         </xsl:result-document>
 
-        <!-- show the tab bar -->
-        <ixsl:set-style name="display" select="'block'" object="id('tab-bar', ixsl:page())"/>
-        <xsl:sequence select="ixsl:call(ixsl:get(ixsl:page(), 'documentElement.style'), 'setProperty', ['--action-bar-top', 'calc(var(--ldh-header-height) + var(--ldh-tabbar-height))'])[current-date() lt xs:date('2000-01-01')]"/>
+        <!-- the tab bar's visibility and the chrome offset derive from the tab count (ldh.css :has rules) -->
     </xsl:template>
 
     <!-- activate an existing tab; matches pane by @about = $doc-uri (document scope, no fragment) -->
@@ -725,15 +724,13 @@ WHERE
             <xsl:sequence select="ixsl:call(., 'setAttribute', [ 'aria-current', 'page' ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
 
-        <!-- deactivate and hide all tab panes -->
+        <!-- deactivate all tab panes; is-active is the whole visibility contract (ldh.css owns display) -->
         <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')]">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-active' ])[current-date() lt xs:date('2000-01-01')]"/>
-            <ixsl:set-style name="display" select="'none'" object="."/>
         </xsl:for-each>
-        <!-- activate and show tab pane (flex, not block: the pane is a link in the flex chain that parks the create bar above the footer) -->
+        <!-- activate the tab pane -->
         <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][./div[contains-token(@class, 'document-body')]/@about = $doc-uri]">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'is-active' ])[current-date() lt xs:date('2000-01-01')]"/>
-            <ixsl:set-style name="display" select="'flex'" object="."/>
 
             <!-- sync acl:mode() to this pane's data-acl-modes (stamped from its document's Link header); the window flags otherwise go stale on fetch-less tab switches between panes -->
             <xsl:call-template name="ldh:SetAclModes">
@@ -785,13 +782,12 @@ WHERE
                 <xsl:apply-templates select="$tab-list-item" mode="ldh:ActivateTab"/>
             </xsl:when>
             <xsl:otherwise>
+                <!-- is-active is the whole visibility contract (ldh.css owns display) -->
                 <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')]">
                     <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', ['is-active'])[current-date() lt xs:date('2000-01-01')]"/>
-                    <ixsl:set-style name="display" select="'none'" object="."/>
                 </xsl:for-each>
                 <xsl:for-each select="id($pane-id, ixsl:page())">
                     <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', ['is-active'])[current-date() lt xs:date('2000-01-01')]"/>
-                    <ixsl:set-style name="display" select="'flex'" object="."/>
                 </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
@@ -827,8 +823,8 @@ WHERE
             </xsl:otherwise>
         </xsl:choose>
 
-        <!-- ac:ActionBar always renders breadcrumb-nav inside ac:ActionBarMain -->
-        <xsl:variable name="pane-breadcrumb-nav" select="id($pane-id, ixsl:page())//*[contains-token(@class, 'breadcrumb-nav')]" as="element()?"/>
+        <!-- ac:ActionBar always renders the .ldh-bc pills list inside ac:ActionBarMain -->
+        <xsl:variable name="pane-breadcrumb-nav" select="id($pane-id, ixsl:page())//*[contains-token(@class, 'ldh-bc')]" as="element()?"/>
         <xsl:if test="$pane-breadcrumb-nav">
             <xsl:call-template name="ldh:PopulateBreadcrumb">
                 <xsl:with-param name="container" select="$pane-breadcrumb-nav"/>
@@ -1013,10 +1009,11 @@ WHERE
             <ixsl:set-property name="value" select="$doc-uri || (if ($fragment) then '#' || $fragment else '')" object="."/>
         </xsl:for-each>
 
-        <!-- hide local tab pane for external URIs -->
+        <!-- deactivate the local tab pane for external URIs; is-active is the whole visibility contract
+             (an inline display here outlived the switch back and kept the reactivated pane hidden) -->
         <xsl:if test="not(starts-with($doc-uri, lapp:origin(ldh:request-uri()) || '/'))">
             <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][./div[contains-token(@class, 'document-body')]/@about = ac:absolute-path(ldh:request-uri())]">
-                <ixsl:set-style name="display" select="'none'" object="."/>
+                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-active' ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:for-each>
         </xsl:if>
 
@@ -1233,9 +1230,11 @@ WHERE
             </xsl:for-each>
             <xsl:sequence select="ixsl:call(ixsl:get($menu, 'classList'), 'add', [ $placement ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
-        <!-- the trigger reports the menu state -->
+        <!-- the trigger reports the menu state, and carries it: the design keys trigger styling
+             (the avatar ring) on the trigger's own is-open -->
         <xsl:for-each select="*[contains-token(@class, 'drop-toggle')]">
             <ixsl:set-property name="ariaExpanded" select="if ($open) then 'true' else 'false'" object="."/>
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-open', $open ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
         <!-- focus moves INTO the menu on open, so Escape has something to restore from (§20) -->
         <xsl:if test="$open">
@@ -1282,6 +1281,7 @@ WHERE
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:for-each select="*[contains-token(@class, 'drop-toggle')]">
             <ixsl:set-property name="ariaExpanded" select="'false'" object="."/>
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
     </xsl:template>
 
@@ -1494,11 +1494,7 @@ WHERE
             </xsl:choose>
         </xsl:if>
 
-        <!-- if only the base-uri tab is left, hide the whole tab-bar (mirror of ldh:AddDataspaceTab) -->
-        <xsl:if test="count(id('tab-bar-list', ixsl:page())/li) le 1">
-            <ixsl:set-style name="display" select="'none'" object="id('tab-bar', ixsl:page())"/>
-            <xsl:sequence select="ixsl:call(ixsl:get(ixsl:page(), 'documentElement.style'), 'removeProperty', ['--action-bar-top'])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:if>
+        <!-- the tab bar's visibility and the chrome offset derive from the tab count (ldh.css :has rules) -->
     </xsl:template>
 
     <!-- file drop -->

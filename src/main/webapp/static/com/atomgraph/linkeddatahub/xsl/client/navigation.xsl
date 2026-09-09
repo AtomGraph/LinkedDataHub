@@ -107,7 +107,7 @@ ORDER BY DESC(?created)
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
-            <xsl:attribute name="aria-label" select="ac:label(key('resources', 'search-title', ldh:translations()))"/>
+            <xsl:attribute name="aria-label" select="ac:label(key('resources', 'dataspace-navigation', ldh:translations()))"/>
 
             <div class="sb-head">
                 <!-- dataspace-scoped search form: typing happens here, and submitting opens the search
@@ -334,6 +334,9 @@ ORDER BY DESC(?created)
                 </xsl:choose>
 
                 <a class="tree-link" href="{@rdf:about}" title="{@rdf:about}">
+                    <span class="msi sm tree-icon" aria-hidden="true">
+                        <xsl:value-of select="ldh:class-icon(., 'description')"/>
+                    </span>
                     <span class="tree-label">
                         <xsl:apply-templates select="." mode="ac:label"/>
                     </span>
@@ -464,10 +467,7 @@ ORDER BY DESC(?created)
                     <xsl:with-param name="endpoint" select="sd:endpoint()"/>
                 </xsl:call-template>
             </xsl:when>
-            <!-- if the children list is present but hidden, show it -->
-            <xsl:when test="ixsl:style($container/ul)?display = 'none'">
-                <ixsl:set-style name="display" select="'block'" object="$container/ul"/>
-            </xsl:when>
+            <!-- a present children list re-shows via the toggle's aria-expanded state (ldh.css) -->
         </xsl:choose>
     </xsl:template>
 
@@ -482,8 +482,6 @@ ORDER BY DESC(?created)
         <xsl:for-each select="span[contains-token(@class, 'msi')]">
             <ixsl:set-property name="textContent" select="'chevron_right'" object="."/>
         </xsl:for-each>
-
-        <ixsl:set-style name="display" select="'none'" object="$container/ul"/>
     </xsl:template>
 
     <!-- backlinks load from the block links popover - the trigger is the tb-links onclick in block.xsl -->
@@ -522,8 +520,8 @@ ORDER BY DESC(?created)
                                 on-failure="ldh:promise-failure#1"/>
                         </xsl:if>
 
-                        <!-- append to the breadcrumb list -->
-                        <xsl:for-each select="$container/div[contains-token(@class, 'ldh-bc')]">
+                        <!-- append to the breadcrumb list (the container is the pills list itself) -->
+                        <xsl:for-each select="$container">
                             <xsl:variable name="content" select="*" as="element()*"/>
                             <!-- we want to prepend the parent resource to the beginning of the breadcrumb list -->
                             <xsl:result-document href="?." method="ixsl:replace-content">

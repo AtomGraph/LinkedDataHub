@@ -11,6 +11,10 @@
 
 /* only the main navbar is fixed-top now; tab bar + action bar are sticky inside #tab-body */
 #tab-bar { position: sticky; top: var(--ldh-header-height); z-index: 88; height: var(--ldh-tabbar-height); }
+/* the strip and the chrome offset derive from the tab count: the design renders the strip only while
+   more than one tab exists, so no handler toggles visibility */
+#tab-bar:not(:has(li:nth-child(2))) { display: none; }
+:root:has(#tab-bar-list li:nth-child(2)) { --action-bar-top: calc(var(--ldh-header-height) + var(--ldh-tabbar-height)); }
 /* keep overflow visible, else the action-bar sticks relative to #tab-content instead of the viewport */
 #tab-content { overflow: visible; }
 /* core Menu (§17a): the static markup ships the panel closed in the DOM (the design mounts it only
@@ -224,24 +228,12 @@ circle { cursor: move; }
   padding: var(--sp-3) var(--sp-6);
 }
 
-/* ---------- header actions: the right-side ul.ldh-nav is a flex strip ---------- */
-.ldh-header-actions ul.ldh-nav {
-  display: flex; align-items: center; gap: var(--sp-2);
-  list-style: none; margin: 0; padding: 0;
-}
-.ldh-header-actions ul.ldh-nav > li { display: flex; align-items: center; }
-
 /* ---------- dropdown menus ride the core Menu (§17a); only header-specific fit stays here ---------- */
 /* the m3 skin paints every .ldh-header descendant with the inverse (near-white) text color for the
    dark bar; light menu panels inside the header need their ink back at higher specificity */
 :root[data-retro^="m3"] .ldh-header .ldhc-menu, :root[data-retro^="m3"] .ldh-header .ldhc-menu * { color: var(--fg-1); }
 :root[data-retro^="m3"] .ldh-header .ldhc-menu .ldhc-menu-header { color: var(--fg-hint); }
-/* the avatar disc's box, hover and ink come from app.css; the CSR dropdown handler toggles the
-   anchor's .is-open, so map it onto the design's ring here */
-.ldhc-menu-anchor.is-open .ldh-avatar { box-shadow: 0 0 0 2px var(--surface-0), 0 0 0 4px var(--bg-accent); }
-
 /* ---------- action bar: design menus open via the CSR drop-wrap 'is-open' toggle ---------- */
-.ldh-actionbar .ab-mid { display: flex; align-items: center; gap: var(--sp-4); min-width: 0; }
 .ldh-actionbar > .ab-left { display: flex; align-items: center; gap: var(--sp-2); }
 .ldh-add-wrap .ldh-add-menu, .ldh-of-wrap .ldh-of-menu, .ldh-mode .modes-pop { display: none; }
 .ldh-add-wrap.is-open .ldh-add-menu, .ldh-mode.is-open .modes-pop { display: block; }
@@ -256,8 +248,6 @@ circle { cursor: move; }
 .ldh-of-wrap.is-open .ldh-of-menu { display: flex; }
 .ldh-of-menu .it.disabled, .ldh-add-menu .it.disabled { opacity: 0.4; pointer-events: none; }
 .ldh-of-menu a.it { text-decoration: none; }
-/* the CSR-built breadcrumb container (bc-pill / bc-sep styled by app.css) */
-div.ldh-bc { min-width: 0; overflow: hidden; }
 /* the breadcrumb zone and the address bar left-align with the content column's blocks: the column
    edge is (layout width - column)/2 + the sp-6 inset. The layout width comes from container units,
    not 100vw: 100vw includes the classic scrollbar while the column centers via margin auto in the
@@ -390,6 +380,8 @@ legend > .actions { display: flex; align-items: center; gap: var(--sp-1); margin
 button.tree-link { border: 0; background: transparent; width: 100%; font: inherit; text-align: left; cursor: pointer; }
 /* the lazy-loading row's glyph spins (the design mounts a ProgressCircle; the glyph does the same job) */
 .ldh-tree .tree-loading .msi { animation: ldhc-spin 0.9s linear infinite; }
+/* a subtree's visibility is its toggle's aria-expanded - the one state the handler already maintains */
+.ldh-tree li:has(> div > button[aria-expanded="false"]) > ul { display: none; }
 /* the drawer search is a typable field (submit opens the dialog pre-populated; LDH overrides
    §19's search button). app.css still draws the field-shaped shell; the ring moves to :focus-within
    since the button's :focus-visible no longer fires, and the input inside stays bare */

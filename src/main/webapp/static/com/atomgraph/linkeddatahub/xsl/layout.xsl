@@ -531,17 +531,12 @@ exclude-result-prefixes="#all">
     <!-- design system Header: wordmark | address bar | actions ('navbar' token kept - the CSR link
          interception and address-bar handlers anchor on it) -->
     <xsl:template match="rdf:RDF[$lapp:origin] | srx:sparql[$lapp:origin]" mode="ac:Header" priority="1">
-        <div class="navbar ldh-header">
+        <div class="navbar ldh-header" role="banner">
             <xsl:apply-templates select="." mode="ldh:Brand"/>
 
-            <xsl:choose>
-                <xsl:when test="$ldh:ajaxRendering">
-                    <xsl:apply-templates select="." mode="ldh:AddressBar"/>
-                </xsl:when>
-                <xsl:otherwise>
-                    <div/> <!-- keep the 220px/1fr/auto grid columns aligned -->
-                </xsl:otherwise>
-            </xsl:choose>
+            <!-- the address form browses server-side (?uri= through the Linked Data proxy), so it renders
+                 with or without CSR - which also keeps the 220px/1fr/auto header grid real, not propped -->
+            <xsl:apply-templates select="." mode="ldh:AddressBar"/>
 
             <div class="ldh-header-actions">
                 <xsl:apply-templates select="." mode="ldh:HeaderActions"/>
@@ -570,9 +565,9 @@ exclude-result-prefixes="#all">
 
     <!-- check if agent has access to the user endpoint by executing a dummy query ASK {} -->
     <xsl:template match="rdf:RDF[doc-available(resolve-uri('sparql?query=ASK%20%7B%7D', $ldt:base))] | srx:sparql[doc-available(resolve-uri('sparql?query=ASK%20%7B%7D', $ldt:base))]" mode="ldh:AddressBar" priority="1">
-        <form action="{ac:absolute-path(ldh:request-uri())}" method="get" class="navbar-form ldh-address" accept-charset="UTF-8" title="{ac:label(key('resources', 'address-bar-title', document('translations.rdf')))}">
+        <form action="{ac:absolute-path(ldh:request-uri())}" method="get" class="navbar-form ldh-address" accept-charset="UTF-8" role="search" aria-label="{ac:label(key('resources', 'address-bar-title', document('translations.rdf')))}" title="{ac:label(key('resources', 'address-bar-title', document('translations.rdf')))}">
             <span class="msi outline" aria-hidden="true">public</span>
-            <input type="text" id="uri" name="uri" value="{ac:absolute-path(ldh:request-uri())}" spellcheck="false" autocomplete="off"/>
+            <input type="url" id="uri" name="uri" value="{ac:absolute-path(ldh:request-uri())}" spellcheck="false" autocomplete="off" aria-label="{ac:label(key('resources', 'address-bar-title', document('translations.rdf')))}"/>
         </form>
     </xsl:template>
 
@@ -589,7 +584,6 @@ exclude-result-prefixes="#all">
          TO-DO: refactor into component templates -->
     <xsl:template match="rdf:RDF[starts-with(replace(lapp:origin(), '^https?://', ''), 'admin.')]" mode="ldh:HeaderActions" priority="1">
         <xsl:if test="$foaf:Agent//@rdf:about">
-            <ul class="ldh-nav">
                 <xsl:variable name="notification-query" as="xs:string">
                     <![CDATA[
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -627,12 +621,11 @@ WHERE
                     <xsl:variable name="notifications" select="document(ac:build-uri(resolve-uri('sparql', $ldt:base), map{ 'query': $notification-query }))" as="document-node()"/>
 
                     <xsl:if test="$notifications/rdf:RDF/*[@rdf:about]">
-                        <li>
                             <div class="ldhc-menu-anchor">
                                 <!-- the button doubles as the badge anchor (ldhc-badge-wrap): the generic menu handler needs drop-toggle as a direct child of the ldhc-menu-anchor, so a wrapping span is not an option -->
                                 <button class="drop-toggle ldhc-iconbtn sz-lg in-neutral ap-ghost ldhc-badge-wrap" aria-haspopup="menu" aria-expanded="false" title="{ac:label(key('resources', 'notifications', document('translations.rdf')))}">
                                     <span class="msi outline sm" aria-hidden="true">notifications</span>
-                                    <span class="ldhc-badge co-informative sz-md pl-top-right is-dot" style="border-color: transparent">
+                                    <span class="ldhc-badge sz-md pl-top-right is-dot" style="border-color: transparent">
                                         <span class="ldhc-vh">
                                             <xsl:value-of select="ac:label(key('resources', 'notifications', document('translations.rdf')))"/>
                                         </span>
@@ -648,41 +641,29 @@ WHERE
                                     </xsl:for-each>
                                 </div>
                             </div>
-                        </li>
                     </xsl:if>
                 </xsl:if>
 
                 <xsl:apply-templates select="." mode="ldh:AccountMenu"/>
-            </ul>
         </xsl:if>
 
         <xsl:apply-templates select="." mode="ldh:SignUp"/>
     </xsl:template>
 
     <xsl:template match="rdf:RDF[lapp:origin()][key('apps-by-origin', lapp:origin(), $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication'] | srx:sparql[lapp:origin()][key('apps-by-origin', lapp:origin(), $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="ldh:DataspaceTabs" priority="1">
-        <xsl:param name="id"  as="xs:string?"/>
-        <xsl:param name="class" select="'ldh-nav'" as="xs:string?"/>
-
-        <ul>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-
             <xsl:variable name="user-defined-apps" select="if (doc-available($app-request-uri)) then document($app-request-uri)//*[lapp:origin/@rdf:resource] else ()" as="element()*"/>
             <xsl:variable name="system-apps" select="$lapp:Context//*[rdf:type/@rdf:resource = '&lapp;EndUserApplication'][lapp:origin/@rdf:resource]" as="element()*"/>
 
+            <!-- .ldh-header-actions IS the flex cluster (AppShell): controls are its direct children,
+                 no intermediate list -->
             <xsl:if test="exists($user-defined-apps) or exists($system-apps)">
-                <li>
                     <div class="ldhc-menu-anchor">
                         <button class="drop-toggle ldhc-iconbtn sz-lg in-neutral ap-ghost btn-apps" aria-haspopup="menu" aria-expanded="false" title="{ac:label(key('resources', 'application-list-title', document('translations.rdf')))}">
                             <span class="msi sm" aria-hidden="true">apps</span>
                         </button>
                         <div class="ldhc-menu al-end" role="menu">
                             <xsl:if test="exists($user-defined-apps)">
-                                <div class="ldhc-menu-header">
+                                <div class="ldhc-menu-header" role="presentation">
                                     <xsl:value-of select="ac:label(key('resources', 'user-defined-apps', document('translations.rdf')))"/>
                                 </div>
                                 <xsl:for-each select="$user-defined-apps">
@@ -694,9 +675,9 @@ WHERE
                             </xsl:if>
                             <xsl:if test="exists($system-apps)">
                                 <xsl:if test="exists($user-defined-apps)">
-                                    <div class="ldhc-menu-sep"/>
+                                    <div class="ldhc-menu-sep" role="separator" aria-orientation="horizontal"/>
                                 </xsl:if>
-                                <div class="ldhc-menu-header">
+                                <div class="ldhc-menu-header" role="presentation">
                                     <xsl:value-of select="ac:label(key('resources', 'system-apps', document('translations.rdf')))"/>
                                 </div>
                                 <xsl:for-each select="$system-apps">
@@ -708,24 +689,19 @@ WHERE
                             </xsl:if>
                         </div>
                     </div>
-                </li>
             </xsl:if>
             
             <xsl:if test="$foaf:Agent//*[@rdf:about]">
-                <li>
-                    <xsl:apply-templates select="." mode="ldh:Settings"/>
-                </li>
+                <xsl:apply-templates select="." mode="ldh:Settings"/>
                 <!-- overridden in acl/layout.xsl! -->
                 <xsl:apply-templates select="." mode="ldh:AccountMenu"/>
             </xsl:if>
-        </ul>
     </xsl:template>
 
     <xsl:template match="*" mode="ldh:DataspaceTabs"/>
 
     <!-- account menu shared by the admin and end-user header actions -->
     <xsl:template match="rdf:RDF | srx:sparql" mode="ldh:AccountMenu">
-        <li>
             <!-- .ldh-avatar-wrap is the design's avatar anchor; .ldhc-menu-anchor keeps the CSR menu handler and its is-open state -->
             <div class="ldhc-menu-anchor ldh-avatar-wrap">
                 <xsl:variable name="agent-label" select="ac:label($foaf:Agent//*[@rdf:about][1])" as="xs:string?"/>
@@ -740,7 +716,6 @@ WHERE
                     </xsl:for-each>
                 </div>
             </div>
-        </li>
     </xsl:template>
 
     <!-- SIGNUP -->
@@ -804,15 +779,17 @@ WHERE
             <div id="visible-body">
                 <xsl:apply-templates select="." mode="ac:Header"/>
 
-                <div id="tab-body">
+                <div id="tab-body" role="main">
                     <!-- tab bar — sticky, hidden until first external tab is opened.
                          DataspaceTabs anatomy (§17b): ul.ldh-tabs > li.is-active > a.ldh-tab[href] + button.tab-close -->
-                    <div id="tab-bar" style="display: none">
+                    <div id="tab-bar" role="navigation" aria-label="{ac:label(key('resources', 'dataspaces', document('translations.rdf')))}">
                         <ul class="ldh-tabs" id="tab-bar-list">
-                            <li data-uri="{ac:absolute-path(ldh:base-uri(.))}">
-                                <a class="ldh-tab" href="{ldh:href(ac:absolute-path(ldh:base-uri(.)), ldh:build-query(ac:mode(root())))}">
+                            <!-- the same shape ldh:AddDataspaceTab appends client-side: state on the li, aria-current on the anchor, close as its sibling -->
+                            <li class="is-active" data-uri="{ac:absolute-path(ldh:base-uri(.))}">
+                                <a class="ldh-tab" aria-current="page" href="{ldh:href(ac:absolute-path(ldh:base-uri(.)), ldh:build-query(ac:mode(root())))}">
                                     <xsl:apply-templates select="key('resources', ac:absolute-path(ldh:base-uri(.)))" mode="ac:label"/>
                                 </a>
+                                <button type="button" class="tab-close" aria-label="{ac:label(key('resources', 'close', document('translations.rdf')))}"><span class="msi">close</span></button>
                             </li>
                         </ul>
                     </div>
@@ -1042,7 +1019,7 @@ WHERE
     <!-- FOOTER -->
     
     <xsl:template match="rdf:RDF | srx:sparql" mode="ac:Footer">
-        <div class="footer ldh-footer">
+        <div class="footer ldh-footer" role="contentinfo">
             <div class="cols">
                 <div class="col brand-col">
                     <a class="ldh-wordmark" href="{$ldt:base}">

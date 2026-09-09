@@ -1587,4 +1587,16 @@
         <rdfs:label xml:lang="en-US">3D force-directed graph layout</rdfs:label>
         <rdfs:label xml:lang="es-ES">Grafo 3D dirigido por fuerzas</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="dataspaces">
+        <rdfs:label xml:lang="en-US">Dataspaces</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Espacios de datos</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="breadcrumb">
+        <rdfs:label xml:lang="en-US">Breadcrumb</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Ruta de navegación</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="dataspace-navigation">
+        <rdfs:label xml:lang="en-US">Dataspace navigation</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Navegación del espacio de datos</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>

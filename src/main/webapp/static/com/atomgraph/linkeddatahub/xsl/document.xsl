@@ -222,7 +222,6 @@ extension-element-prefixes="ixsl"
             </xsl:if>
             
             <xsl:apply-templates select="." mode="ldh:Breadcrumb">
-                <xsl:with-param name="class" select="'breadcrumb-nav'"/>
                 <xsl:with-param name="uri" select="ac:absolute-path(ldh:base-uri(.))"/>
             </xsl:apply-templates>
 
@@ -276,24 +275,23 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="rdf:RDF" mode="ldh:Breadcrumb">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="()" as="xs:string?"/>
+        <xsl:param name="class" select="'ldh-bc ldh-bc-pills'" as="xs:string?"/>
         <xsl:param name="uri" as="xs:string?"/>
 
-        <div>
+        <!-- the pills list is the container itself, sitting directly in .ab-mid (the design's shape;
+             an intermediate wrapper defaulted to min-width:auto and refused to shrink, pushing the
+             timestamp and actions instead of truncating crumbs). CSR populate replaces its content -->
+        <div role="navigation" aria-label="{ac:label(key('resources', 'breadcrumb', ldh:translations()))}">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
-            
-            <!-- placeholder for client.xsl callbacks -->
 
             <xsl:if test="not($ldh:ajaxRendering)">
-                <div class="ldh-bc ldh-bc-pills">
-                    <!-- render breadcrumbs server-side -->
-                    <xsl:apply-templates select="key('resources', $uri)" mode="ac:BreadcrumbItem"/>
-                </div>
+                <!-- render breadcrumbs server-side -->
+                <xsl:apply-templates select="key('resources', $uri)" mode="ac:BreadcrumbItem"/>
             </xsl:if>
         </div>
     </xsl:template>
@@ -636,6 +634,8 @@ extension-element-prefixes="ixsl"
                 <xsl:when test="$mode = '&ac;ChartMode'">
                     <xsl:apply-templates select="." mode="ldh:Chart">
                         <xsl:with-param name="canvas-id" select="generate-id() || '-chart-canvas'"/>
+                        <!-- the full-bleed document-level canvas is the design's hero variant -->
+                        <xsl:with-param name="canvas-class" select="'chart-canvas chart-canvas--hero'"/>
                         <xsl:with-param name="show-save" select="false()"/>
                         <xsl:sort select="ac:label(.)"/>
                     </xsl:apply-templates>
