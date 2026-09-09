@@ -286,6 +286,8 @@ run_tests "versioning" $(find ./versioning/ -type f -name '*.sh')
 (( error_count += $? ))
 run_tests "language" $(find ./language/ -type f -name '*.sh')
 (( error_count += $? ))
+run_tests "system" $(find ./system/ -type f -name '*.sh')
+(( error_count += $? ))
 
 end_time=$(date +%s)
 runtime=$((end_time-start_time))
