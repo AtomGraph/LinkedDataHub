@@ -413,11 +413,12 @@ exclude-result-prefixes="#all"
          block's @about at click time. -->
     <xsl:template match="*" mode="ldh:EditButton">
         <xsl:param name="class" select="'ldhc-iconbtn sz-sm in-neutral ap-ghost btn-edit'" as="xs:string"/>
+        <xsl:param name="title" select="ac:label(key('resources', '&ac;EditMode', document(ac:document-uri('&ac;'))))" as="xs:string?"/>
 
         <button type="button" class="{$class}">
-            <xsl:attribute name="title">
-                <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-            </xsl:attribute>
+            <xsl:if test="$title">
+                <xsl:attribute name="title" select="$title"/>
+            </xsl:if>
 
             <span class="msi sm" aria-hidden="true">edit</span>
         </button>
@@ -624,13 +625,20 @@ exclude-result-prefixes="#all"
          and the row scaffolding above needs no change. ldh:RowForm is this layer's edit-mode peer: it returns a
          card with the same contract, which is what lets the edit flows replace cards in place -->
 
-    <!-- typed resource card: the carrier's header + loading bar + the CSR container the hydration chain fills -->
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&ldh;Object', '&ldh;View', '&ldh;GraphChart', '&ldh;ResultSetChart', '&sp;Describe', '&sp;Construct', '&sp;Ask', '&sp;Select')]" mode="ldh:Block" priority="1">
-        <!-- TO-DO: use ldh:request-uri() to resolve URIs server-side -->
+    <!-- ldh:Object carrier card: a chrome-less content slot. The carrier renders no header - its metadata
+         is not worth default visibility, and the hydrated rdf:value resource brings the block's single
+         header - only the rail (drag slot + the slot-level copy/edit actions), the loading bar and the
+         CSR container the hydration chain fills. The rail's buttons resolve the nearest .block/@about at
+         click time, which is this card - the Object - while the embedded header's own buttons resolve
+         the embedded resource. The Object's fragment stays the block's canonical address: the row and
+         this card carry it, and the embedded resource is generally defined in another document. The card
+         is unconditionally the carrier: an ldh:Object renders only as a content member - the rdf:RDF row
+         template in document.xsl hides content resources in every other mode -->
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Object']" mode="ldh:Block" priority="1">
         <xsl:param name="class" select="'block ldh-block'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
+        <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="show-block-bar" select="true()" as="xs:boolean"/>
-        <xsl:param name="show-drag-handle" select="true()" as="xs:boolean" tunnel="yes"/>
 
         <div>
             <xsl:attribute name="class" select="string-join(($class, 'is-loading'[$show-block-bar]), ' ')"/>
@@ -641,7 +649,53 @@ exclude-result-prefixes="#all"
                 <xsl:attribute name="aria-busy" select="'true'"/>
             </xsl:if>
 
-            <!-- the carrier resource's own header: title, type chips, actions. Head, bar and
+            <xsl:if test="$about">
+                <!-- slot chrome is an authoring affordance: without acl:Write neither drag nor edit renders,
+                     and a rail holding just the copy button reads as debris - so read-only viewers get none -->
+                <xsl:apply-templates select="." mode="ldh:BlockRail">
+                    <xsl:with-param name="show-actions" select="acl:mode() = '&acl;Write'"/>
+                </xsl:apply-templates>
+            </xsl:if>
+
+            <xsl:if test="$show-block-bar">
+                <xsl:apply-templates select="." mode="ldh:BlockBar"/>
+            </xsl:if>
+
+            <!-- client-side $container; the card carries @about -->
+            <div class="block-row">
+                <xsl:if test="exists($typeof)">
+                    <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
+                </xsl:if>
+
+                <div class="main ldh-block-body">
+                    <xsl:apply-templates select="."/>
+                </div>
+            </div>
+        </div>
+    </xsl:template>
+
+    <!-- typed resource card: the resource's header + loading bar + the CSR container the hydration chain
+         fills. Embedded under an ldh:Object carrier (the $embedded tunnel), the card is the block's single
+         header-bearing surface and takes the is-embedded mark - the hairline that distinguishes a resource
+         rendered inside a content slot from the same resource rendered standalone -->
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&ldh;View', '&ldh;GraphChart', '&ldh;ResultSetChart', '&sp;Describe', '&sp;Construct', '&sp;Ask', '&sp;Select')]" mode="ldh:Block" priority="1">
+        <!-- TO-DO: use ldh:request-uri() to resolve URIs server-side -->
+        <xsl:param name="class" select="'block ldh-block'" as="xs:string?"/>
+        <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
+        <xsl:param name="show-block-bar" select="true()" as="xs:boolean"/>
+        <xsl:param name="show-drag-handle" select="true()" as="xs:boolean" tunnel="yes"/>
+        <xsl:param name="embedded" select="false()" as="xs:boolean" tunnel="yes"/>
+
+        <div>
+            <xsl:attribute name="class" select="string-join(($class, 'is-loading'[$show-block-bar], 'is-embedded'[$embedded]), ' ')"/>
+            <xsl:if test="$about">
+                <xsl:attribute name="about" select="$about"/>
+            </xsl:if>
+            <xsl:if test="$show-block-bar">
+                <xsl:attribute name="aria-busy" select="'true'"/>
+            </xsl:if>
+
+            <!-- the resource's own header: title, type chips, actions. Head, bar and
                  body are siblings of the card (the bar shows under the head while loading) -->
             <xsl:apply-templates select="." mode="ac:BlockHeader">
                 <xsl:with-param name="draggable" select="$show-drag-handle"/>
@@ -667,7 +721,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="main-class" select="'main ldh-block-body'" as="xs:string?"/>
-        <xsl:param name="show-drag-handle" select="true()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
         <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
 
@@ -680,16 +733,11 @@ exclude-result-prefixes="#all"
             </xsl:if>
 
             <!-- prose renders headerless - no title, no type chips - so the header's affordances move onto
-                 the card, hover-surfaced: the drag slot stretches into a full-height strip on the right edge
-                 (same class and gate as the header slot - the DnD handlers key on the class and resolve the
-                 row via the ancestor axis, so the reorder wiring is unchanged) and the actions anchor at the
-                 top-right corner beside it -->
+                 the card, hover-surfaced: the rail carries the drag slot on the left edge and the resource's
+                 actions anchor at the top-right corner (the XHTML resource is its own content, so no
+                 slot-level rail actions) -->
             <xsl:if test="$about">
-                <xsl:if test="$show-drag-handle and acl:mode() = '&acl;Write'">
-                    <span class="ldh-bh-drag is-edge" role="button" tabindex="0" draggable="true" aria-label="{ac:label(key('resources', 'drag-to-reorder', ldh:translations()))}" title="{ac:label(key('resources', 'drag-to-reorder', ldh:translations()))}">
-                        <span class="msi sm" aria-hidden="true">drag_indicator</span>
-                    </span>
-                </xsl:if>
+                <xsl:apply-templates select="." mode="ldh:BlockRail"/>
 
                 <div class="ldh-block-corner">
                     <xsl:apply-templates select="." mode="ldh:BlockLinksPopover"/>
@@ -873,6 +921,40 @@ exclude-result-prefixes="#all"
                 <xsl:apply-templates select="." mode="ac:BlockActions"/>
             </div>
         </div>
+    </xsl:template>
+
+    <!-- RAIL -->
+
+    <!-- the content slot's chrome: a hover-surfaced strip along the card's left edge carrying the drag
+         slot and, on carrier cards, the slot-level copy/edit actions. Rail = the block-as-content-slot;
+         everything beside it belongs to the resource the slot renders. The drag span keeps the
+         ldh-bh-drag class and the acl:Write gate of the header slot - the DnD handlers key on the class
+         and resolve the row via the ancestor axis, so the reorder wiring is placement-free -->
+    <xsl:template match="*" mode="ldh:BlockRail">
+        <xsl:param name="show-actions" select="false()" as="xs:boolean"/>
+        <!-- the edit form submits a PATCH, which AuthorizationFilter requires acl:Write for - so without that mode the button opens a form that cannot be saved -->
+        <xsl:param name="show-edit-button" select="acl:mode() = '&acl;Write'" as="xs:boolean" tunnel="yes"/>
+        <xsl:param name="show-drag-handle" select="true()" as="xs:boolean" tunnel="yes"/>
+
+        <xsl:if test="$show-actions or ($show-drag-handle and acl:mode() = '&acl;Write')">
+            <div class="ldh-block-rail">
+                <xsl:if test="$show-actions">
+                    <xsl:apply-templates select="." mode="ldh:CopyUriButton"/>
+
+                    <xsl:if test="$show-edit-button">
+                        <xsl:apply-templates select="." mode="ldh:EditButton">
+                            <xsl:with-param name="title" select="ac:label(key('resources', 'edit-block', ldh:translations()))"/>
+                        </xsl:apply-templates>
+                    </xsl:if>
+                </xsl:if>
+
+                <xsl:if test="$show-drag-handle and acl:mode() = '&acl;Write'">
+                    <span class="ldh-bh-drag" role="button" tabindex="0" draggable="true" aria-label="{ac:label(key('resources', 'drag-to-reorder', ldh:translations()))}" title="{ac:label(key('resources', 'drag-to-reorder', ldh:translations()))}">
+                        <span class="msi sm" aria-hidden="true">drag_indicator</span>
+                    </span>
+                </xsl:if>
+            </div>
+        </xsl:if>
     </xsl:template>
 
     <!-- PROPERTY LIST -->

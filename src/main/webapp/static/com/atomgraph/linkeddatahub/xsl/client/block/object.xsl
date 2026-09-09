@@ -270,6 +270,7 @@ exclude-result-prefixes="#all"
                                     <xsl:with-param name="show-block-bar" select="false()"/> <!-- blocks nested within ldh:Object do not show their own block bars -->
                                     <xsl:with-param name="show-drag-handle" select="false()" tunnel="yes"/> <!-- reorder needs rdf:_N membership in the host document, which an embedded block lacks -->
                                     <xsl:with-param name="draggable" select="false()"/> <!-- blocks nested within ldh:Object are not draggable -->
+                                    <xsl:with-param name="embedded" select="true()" tunnel="yes"/> <!-- marks the card is-embedded: the hairline distinguishing a content-slot rendering from the same resource standalone -->
                                 </xsl:apply-templates>
                             </xsl:variable>
 

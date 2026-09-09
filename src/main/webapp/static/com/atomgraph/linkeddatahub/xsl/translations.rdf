@@ -1291,6 +1291,10 @@
         <rdfs:label xml:lang="en-US">Drag to reorder</rdfs:label>
         <rdfs:label xml:lang="es-ES">Arrastre para reordenar</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="edit-block">
+        <rdfs:label xml:lang="en-US">Edit block</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Editar bloque</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="block-not-deleted">
         <rdfs:label xml:lang="en-US">Could not delete block</rdfs:label>
         <rdfs:label xml:lang="es-ES">No se pudo eliminar el bloque</rdfs:label>
