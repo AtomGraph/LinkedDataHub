@@ -1696,7 +1696,7 @@ WHERE
                      be fixed first; until then failing here is the lesser harm. -->
                 <xsl:with-param name="method" select="$form/@method"/>
                 <!-- keep the submitted form's id, so id-keyed overrides (e.g. signup's onsubmit on form#form-signup) survive the violation re-render; the block-derived fallback covers the formless PATCH flows -->
-                <xsl:with-param name="form-id" select="string(($form/@id, 'form-' || $block/@id)[1])"/>
+                <xsl:with-param name="form-id" select="string(($form/@id, 'form-' || ldh:block-id($block))[1])"/>
                 <!-- the loaded document's URI from the submit context (computed on the stamped form DOM), so the re-rendered form keeps PATCHing the document the content came from -->
                 <xsl:with-param name="base-uri" select="$doc-uri" tunnel="yes"/>
                 <xsl:with-param name="type-metadata" select="$type-metadata" tunnel="yes"/>
@@ -1716,7 +1716,7 @@ WHERE
         </xsl:for-each>
 
         <!-- cannot be in $block context because it contains old DOM (pre-ixsl:replace-content) -->
-        <xsl:for-each select="id($block/@id, ixsl:page())">
+        <xsl:for-each select="id(ldh:block-id($block), ixsl:page())">
             <xsl:apply-templates select="." mode="ldh:RenderRowForm"/>
         </xsl:for-each>
     </xsl:function>

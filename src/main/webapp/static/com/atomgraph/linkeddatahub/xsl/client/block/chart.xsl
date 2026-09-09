@@ -344,7 +344,7 @@ exclude-result-prefixes="#all"
             </xsl:for-each>
         </xsl:variable>
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()?"/>
-        <xsl:variable name="block-id" select="$block/@id" as="xs:string?"/>
+        <xsl:variable name="block-id" select="$block/ldh:block-id(.)" as="xs:string?"/>
         <!-- if there is no block, the chart is rendering the current document -->
         <xsl:variable name="block-uri" select="if ($block/@about) then $block/@about else (if ($block-id) then xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id) else ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/>
         <xsl:variable name="chart-canvas-id" select="ancestor::div[contains-token(@class, 'chart-controls')][1]/following-sibling::div[contains-token(@class, 'chart-canvas')][1]/@id" as="xs:string"/>
@@ -380,7 +380,7 @@ exclude-result-prefixes="#all"
             </xsl:for-each>
         </xsl:variable>
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()?"/>
-        <xsl:variable name="block-id" select="$block/@id" as="xs:string?"/>
+        <xsl:variable name="block-id" select="$block/ldh:block-id(.)" as="xs:string?"/>
         <!-- if there is no block, the chart is rendering the current document -->
         <xsl:variable name="block-uri" select="if ($block/@about) then $block/@about else (if ($block-id) then xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id) else ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/>
         <xsl:variable name="chart-canvas-id" select="ancestor::div[contains-token(@class, 'chart-controls')][1]/following-sibling::div[contains-token(@class, 'chart-canvas')][1]/@id" as="xs:string"/>
@@ -414,7 +414,7 @@ exclude-result-prefixes="#all"
             </xsl:for-each>
         </xsl:variable>
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()?"/>
-        <xsl:variable name="block-id" select="$block/@id" as="xs:string?"/>
+        <xsl:variable name="block-id" select="$block/ldh:block-id(.)" as="xs:string?"/>
         <!-- if there is no block, the chart is rendering the current document -->
         <xsl:variable name="block-uri" select="if ($block/@about) then $block/@about else (if ($block-id) then xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id) else ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/>
         <xsl:variable name="chart-canvas-id" select="ancestor::div[contains-token(@class, 'chart-controls')][1]/following-sibling::div[contains-token(@class, 'chart-canvas')][1]/@id" as="xs:string"/>

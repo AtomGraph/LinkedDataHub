@@ -165,6 +165,14 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ixsl:new('Object', [])"/>
     </xsl:function>
 
+    <!-- the block's identity: the BlockRow/Block split keeps @id on the div.ldh-block-row scaffolding,
+         not on the div.block card the event handlers resolve, while a modal-hosted block carries its own -->
+    <xsl:function name="ldh:block-id" as="xs:string?">
+        <xsl:param name="block" as="element()"/>
+
+        <xsl:sequence select="($block/@id, $block/ancestor::div[contains-token(@class, 'ldh-block-row')][1]/@id)[1]"/>
+    </xsl:function>
+
     <!-- resolved value of a design token (CSS custom property on the root element), for canvas
          libraries (Google Charts, 3d-force-graph, OpenLayers) that take concrete color strings -->
     <xsl:function name="ldh:css-token" as="xs:string">
