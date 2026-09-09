@@ -985,11 +985,6 @@ WHERE
         </xsl:if>
     </xsl:template>
    
-    <!-- CONTENT HEADER -->
-
-    <!-- hide the header of def:SelectChildren content -->
-    <xsl:template match="*[*][$ldh:ajaxRendering][rdf:value/@rdf:resource = '&ldh;SelectChildren']" mode="ldh:RowContentHeader"/>
-    
     <!-- ACCESS LIST ITEM -->
     
     <xsl:template match="*[@rdf:about]" mode="ldh:AccessListItem" priority="1">

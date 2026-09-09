@@ -416,12 +416,18 @@ exclude-result-prefixes="#all"
 
                     <xsl:variable name="info-window-options" select="ldh:new-object()"/>
                     <xsl:variable name="info-window-html" as="element()">
-                        <xsl:apply-templates select="key('resources', $uri)">
-                            <!-- the design-system property-list CSS is scoped to .ldh-block, which the ldh:BlockRow card wrapper provides elsewhere;
-                                 is-quiet drops the card chrome that would otherwise paint a second bordered surface inside the info window panel -->
-                            <xsl:with-param name="class" select="'ldh-block is-quiet'"/>
-                            <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
-                        </xsl:apply-templates>
+                        <!-- the design-system property-list CSS is scoped to .ldh-block; is-quiet drops the card
+                             chrome that would otherwise paint a second bordered surface inside the info window
+                             panel, and the flush body leaves the inset to the overlay's own modal-body -->
+                        <div class="ldh-block is-quiet">
+                            <xsl:apply-templates select="key('resources', $uri)" mode="ac:BlockHeader"/>
+
+                            <div class="main ldh-block-body is-flush">
+                                <xsl:apply-templates select="key('resources', $uri)">
+                                    <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
+                                </xsl:apply-templates>
+                            </div>
+                        </div>
                     </xsl:variable>
                     <xsl:variable name="coord" select="ixsl:get($event, 'coordinate')"/>
                     <xsl:variable name="container" select="ixsl:call(ixsl:page(), 'createElement', [ 'div' ])" as="element()"/>

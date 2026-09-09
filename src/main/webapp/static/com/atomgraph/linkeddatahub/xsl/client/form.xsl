@@ -1220,7 +1220,10 @@ WHERE
     <!-- a block that has never been saved has no @about, no server-side resource and no pre-editing
          snapshot to restore: cancelling discards the block itself -->
     <xsl:template match="div[contains-token(@class, 'block')][not(@about)]" mode="ldh:CancelEditing">
-        <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+        <!-- the whole row goes: removing only the card would leave an empty .ldh-block-row shell -->
+        <xsl:for-each select="(ancestor::div[contains-token(@class, 'ldh-block-row')][1], .)[1]">
+            <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
     </xsl:template>
 
     <!-- restores the block's pre-editing snapshot (stashed by the btn-edit handler) and drops it: the edit
@@ -1566,7 +1569,7 @@ WHERE
             <xsl:choose>
                 <!-- empty submitted graph (user stripped rdf:type and left other inputs blank): nothing was created/modified server-side, so drop the just-added block rather than re-rendering it from zero descriptions (which would violate the cardinality=1 assertion on $new-block) -->
                 <xsl:when test="empty($resources/rdf:RDF/*)">
-                    <xsl:sequence select="ixsl:call($block, 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:call(($block/ancestor::div[contains-token(@class, 'ldh-block-row')][1], $block)[1], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:variable name="classes" select="()" as="element()*"/>
@@ -1579,7 +1582,8 @@ WHERE
                         </xsl:apply-templates>
                     </xsl:variable>
 
-                    <xsl:for-each select="$block">
+                    <!-- ldh:BlockRow renders a whole .ldh-block-row, so the row is what gets replaced (the card alone would nest a row inside the old row) -->
+                    <xsl:for-each select="($block/ancestor::div[contains-token(@class, 'ldh-block-row')][1], $block)[1]">
                         <xsl:result-document href="?." method="ixsl:replace-element">
                             <xsl:copy-of select="$new-block"/>
                         </xsl:result-document>
@@ -2093,7 +2097,8 @@ WHERE
             <xsl:when test="$about">
                 <!-- show a confirmation prompt -->
                 <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', ldh:translations())) ])">
-                    <xsl:sequence select="ixsl:call($block, 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                    <!-- content-flow blocks sit in an .ldh-block-row shell that goes with them; modal forms have no row and fall back to the block itself -->
+                    <xsl:sequence select="ixsl:call(($block/ancestor::div[contains-token(@class, 'ldh-block-row')][1], $block)[1], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
 
                     <xsl:variable name="where-pattern" as="element()">
                         <json:map>

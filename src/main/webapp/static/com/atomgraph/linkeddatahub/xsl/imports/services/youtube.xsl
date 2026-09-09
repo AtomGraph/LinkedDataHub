@@ -30,62 +30,17 @@ exclude-result-prefixes="#all"
 
     <!-- TEMPLATES -->
     
+    <!-- the video embed is the block's body content; the standard ac:BlockHeader supplies title,
+         type chips and actions -->
     <xsl:template match="*[contains(@rdf:about, 'youtube.com/watch') or contains(@rdf:about, 'youtu.be/')][rdf:type/@rdf:resource = '&schema;VideoObject']">
-        <xsl:param name="id" select="generate-id()" as="xs:string?"/>
-        <xsl:param name="class" as="xs:string?"/>
-
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-
-            <xsl:apply-templates select="." mode="ac:BlockHeader"/>
-        </div>
-    </xsl:template>
-    
-    <xsl:template match="*[contains(@rdf:about, 'youtube.com/watch') or contains(@rdf:about, 'youtu.be/')][rdf:type/@rdf:resource = '&schema;VideoObject']" mode="ac:BlockHeader">
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'ldh-block-head'" as="xs:string?"/>
         <xsl:variable name="video-id" select="analyze-string(@rdf:about, '^.*(?:youtube\.com/(?:watch\?v=|embed/)|youtu\.be/)([^&amp;?]+).*$')//fn:group[@nr='1']/text()" as="xs:string"/>
-        
+
         <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-
-            <xsl:apply-templates select="." mode="ldh:Timestamp"/>
-
-            <div>
-                <iframe width="560" height="315" 
-                        src="https://www.youtube.com/embed/{$video-id}" 
-                        frameborder="0" 
-                        allowfullscreen="allowfullscreen">
-                </iframe>
-            </div>
-            
-            <xsl:apply-templates select="." mode="ac:BlockActions"/>
-
-            <h2>
-                <xsl:apply-templates select="@rdf:about | @rdf:nodeID" mode="xhtml:Anchor">
-                    <xsl:with-param name="class" as="xs:string?">
-                        <xsl:apply-templates select="." mode="ldh:logo"/>
-                    </xsl:with-param>
-                </xsl:apply-templates>
-            </h2>
-
-            <xsl:where-populated>
-                <p>
-                    <xsl:apply-templates select="." mode="ac:description"/>
-                </p>
-            </xsl:where-populated>
-
-            <xsl:apply-templates select="." mode="ac:ResourceTypes"/>
+            <iframe width="560" height="315" 
+                    src="https://www.youtube.com/embed/{$video-id}" 
+                    frameborder="0" 
+                    allowfullscreen="allowfullscreen">
+            </iframe>
         </div>
     </xsl:template>
     

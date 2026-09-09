@@ -312,11 +312,7 @@ exclude-result-prefixes="#all"
         <xsl:message>ldh:render-chart</xsl:message>
 
         <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
-            <xsl:variable name="header" select=".//*[contains-token(@class, 'ldh-block-head')][1]" as="element()"/>
-
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:copy-of select="$header"/>
-
                 <xsl:apply-templates select="$results/rdf:RDF" mode="ldh:Chart">
                     <xsl:with-param name="chart-type" select="($chart-type, xs:anyURI('&ac;Table'))[1]"/>
                     <xsl:with-param name="chart-type-id" select="$chart-type-id"/>

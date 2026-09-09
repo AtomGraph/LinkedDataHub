@@ -192,13 +192,15 @@ exclude-result-prefixes="#all"
         
         <xsl:message>ldh:render-query</xsl:message>
 
-        <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
-            <xsl:variable name="header" select=".//*[contains-token(@class, 'ldh-block-head')][1]" as="element()"/>
-
+        <!-- the head is the card's own child (sibling of the body): it stays in place and only gains the editor toggle -->
+        <xsl:for-each select="$container/../div[contains-token(@class, 'ldh-block-head')]">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <!-- the head passes through unchanged except for gaining the editor toggle -->
-                <xsl:apply-templates select="$header" mode="ldh:query-block-head"/>
+                <xsl:apply-templates select="node()" mode="ldh:query-block-head"/>
+            </xsl:result-document>
+        </xsl:for-each>
 
+        <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
+            <xsl:result-document href="?." method="ixsl:replace-content">
                 <!-- the design's query block shows results first and folds the editor pane out of the head's
                      code toggle; the pane stays a form so Enter and the Run submit reach the same handler -->
                 <form class="sparql-query-form" method="get" action="">
@@ -288,7 +290,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$context"/>
     </xsl:function>
 
-    <!-- query block head: identity copy of the re-rendered head, with the editor toggle leading the
+    <!-- query block head: identity copy of the head's content, with the editor toggle leading the
          action toolbar as in the design's query block -->
 
     <xsl:template match="@* | node()" mode="ldh:query-block-head">
@@ -458,7 +460,7 @@ exclude-result-prefixes="#all"
             <ixsl:set-attribute name="typeof" select="'&ldh;View'" object="$view-container"/>
             
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <div class="main"></div>
+                <div class="main ldh-block-body"></div>
             </xsl:result-document>
         </xsl:for-each>
 
@@ -519,7 +521,7 @@ exclude-result-prefixes="#all"
             <ixsl:set-attribute name="typeof" select="'&ldh;View'" object="$view-container"/>
             
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <div class="main"></div>
+                <div class="main ldh-block-body"></div>
             </xsl:result-document>
         </xsl:for-each>
         

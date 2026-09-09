@@ -209,7 +209,7 @@ exclude-result-prefixes="#all"
                 <xsl:when test="?status = 406">
                     <xsl:for-each select="$container">
                         <xsl:result-document href="?." method="ixsl:replace-content">
-                            <div class="main">
+                            <div class="main ldh-block-body">
                                 <object data="{$resource-uri}"/>
                             </div>
                         </xsl:result-document>
@@ -268,6 +268,7 @@ exclude-result-prefixes="#all"
                                     <xsl:with-param name="show-edit-button" select="$show-edit-button" tunnel="yes"/>
                                     <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
                                     <xsl:with-param name="show-block-bar" select="false()"/> <!-- blocks nested within ldh:Object do not show their own block bars -->
+                                    <xsl:with-param name="show-drag-handle" select="false()" tunnel="yes"/> <!-- reorder needs rdf:_N membership in the host document, which an embedded block lacks -->
                                     <xsl:with-param name="draggable" select="false()"/> <!-- blocks nested within ldh:Object are not draggable -->
                                 </xsl:apply-templates>
                             </xsl:variable>

@@ -948,13 +948,15 @@ ORDER BY DESC(?created)
                     </xsl:with-param>
                     <xsl:with-param name="body" as="item()*">
 
-                    <div class="block-row block ldh-block is-quiet is-loading" aria-busy="true">
-                        <xsl:apply-templates select="." mode="ldh:BlockBar"/>
-
+                    <div class="ldh-block-row">
                         <div class="row-main">
-                            <div id="{$container-id}" class="block-row" typeof="&ldh;View">
-                                <div class="main row-main">
-                                    <!-- View results will be rendered here -->
+                            <div class="block ldh-block is-quiet is-loading" aria-busy="true">
+                                <xsl:apply-templates select="." mode="ldh:BlockBar"/>
+
+                                <div id="{$container-id}" class="block-row" typeof="&ldh;View">
+                                    <div class="main ldh-block-body">
+                                        <!-- View results will be rendered here -->
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1084,13 +1086,15 @@ ORDER BY DESC(?created)
                     </xsl:with-param>
                     <xsl:with-param name="body" as="item()*">
 
-                    <div class="block-row block ldh-block is-quiet is-loading" aria-busy="true">
-                        <xsl:apply-templates select="." mode="ldh:BlockBar"/>
-
+                    <div class="ldh-block-row">
                         <div class="row-main">
-                            <div id="{$container-id}" class="block-row" typeof="&ldh;View">
-                                <div class="main row-main">
-                                    <!-- View results will be rendered here -->
+                            <div class="block ldh-block is-quiet is-loading" aria-busy="true">
+                                <xsl:apply-templates select="." mode="ldh:BlockBar"/>
+
+                                <div id="{$container-id}" class="block-row" typeof="&ldh;View">
+                                    <div class="main ldh-block-body">
+                                        <!-- View results will be rendered here -->
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1193,13 +1197,15 @@ ORDER BY DESC(?created)
                     </xsl:with-param>
                     <xsl:with-param name="body" as="item()*">
 
-                    <div class="block-row block ldh-block is-quiet is-loading" aria-busy="true">
-                        <xsl:apply-templates select="." mode="ldh:BlockBar"/>
-
+                    <div class="ldh-block-row">
                         <div class="row-main">
-                            <div id="{$container-id}" class="block-row" typeof="&ldh;View">
-                                <div class="main row-main">
-                                    <!-- view results will be rendered here -->
+                            <div class="block ldh-block is-quiet is-loading" aria-busy="true">
+                                <xsl:apply-templates select="." mode="ldh:BlockBar"/>
+
+                                <div id="{$container-id}" class="block-row" typeof="&ldh;View">
+                                    <div class="main ldh-block-body">
+                                        <!-- view results will be rendered here -->
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1330,13 +1336,15 @@ ORDER BY DESC(?created)
 
                     <!-- search results ARE a view: the shared view block renders them, with its own facets, view modes and pager -->
                     <div class="ldh-search-view">
-                        <div class="block-row block ldh-block is-quiet is-loading" aria-busy="true">
-                            <xsl:apply-templates select="." mode="ldh:BlockBar"/>
-
+                        <div class="ldh-block-row">
                             <div class="row-main">
-                                <div id="{$container-id}" class="block-row" typeof="&ldh;View">
-                                    <div class="main row-main">
-                                        <!-- view results will be rendered here -->
+                                <div class="block ldh-block is-quiet is-loading" aria-busy="true">
+                                    <xsl:apply-templates select="." mode="ldh:BlockBar"/>
+
+                                    <div id="{$container-id}" class="block-row" typeof="&ldh;View">
+                                        <div class="main ldh-block-body">
+                                            <!-- view results will be rendered here -->
+                                        </div>
                                     </div>
                                 </div>
                             </div>

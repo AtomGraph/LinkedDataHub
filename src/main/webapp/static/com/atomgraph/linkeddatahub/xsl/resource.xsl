@@ -473,37 +473,52 @@ extension-element-prefixes="ixsl"
 
     <!-- DEFAULT -->
 
+    <!-- the unnamed resource dispatch emits block BODY content only: ldh:BlockRow owns the card and its
+         header/body slots (the design keeps head and body as siblings), so Web-Client's full-block
+         default (div.block > header + property list) is overridden here -->
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]">
+        <xsl:apply-templates select="." mode="ac:PropertyEditor"/>
+    </xsl:template>
+
     <!-- embed file content -->
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&nfo;FileDataObject'][dct:format]" priority="2">
-        <xsl:param name="id" select="generate-id()" as="xs:string?"/>
-        <xsl:param name="class" as="xs:string?"/>
+        <xsl:apply-templates select="." mode="ac:PropertyEditor"/>
 
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
+        <xsl:variable name="media-type" select="substring-after(dct:format[1]/@rdf:resource, 'http://www.sparontologies.net/mediatype/')" as="xs:string"/>
+        <object data="{@rdf:about}" type="{$media-type}"></object>
+    </xsl:template>
 
-            <xsl:apply-templates select="." mode="ac:BlockHeader"/>
+    <!-- BLOCK -->
 
-            <xsl:apply-templates select="." mode="ac:PropertyEditor"/>
-            
-            <xsl:variable name="media-type" select="substring-after(dct:format[1]/@rdf:resource, 'http://www.sparontologies.net/mediatype/')" as="xs:string"/>
-            <object data="{@rdf:about}" type="{$media-type}"></object>
-        </div>
+    <!-- hide inlined blank node resources from the main block flow -->
+    <xsl:template match="*[*][key('resources', @rdf:nodeID)][count(key('predicates-by-object', @rdf:nodeID)[not(self::foaf:primaryTopic)]) = 1]" mode="ldh:BlockRow" priority="1">
+        <xsl:param name="display" select="false()" as="xs:boolean" tunnel="yes"/>
+        
+        <xsl:if test="$display">
+            <xsl:next-match/>
+        </xsl:if>
     </xsl:template>
     
-    <!-- BLOCK -->
-        
-    <!-- resource block overrides -->
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&ldh;Object', '&ldh;View', '&ldh;GraphChart', '&ldh;ResultSetChart', '&sp;Describe', '&sp;Construct', '&sp;Ask', '&sp;Select')]" mode="ldh:BlockRow" priority="1">
-        <!-- TO-DO: use ldh:request-uri() to resolve URIs server-side -->
+    <!-- hide instances of system classes -->
+    <xsl:template match="*[not($ldh:renderSystemResources)][@rdf:about = ac:absolute-path(ldh:base-uri(.)) and rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]" mode="ldh:BlockRow" priority="1"/>
+
+    <!-- ldh:BlockRow: the design system's row layer (div.ldh-block-row > div.row-main) around the block card,
+         mirroring the BlockRow/Block component split in the design's Blocks.jsx. One template owns the
+         scaffolding - the row carries @id/@about/diff/@draggable, .row-main carries the drag handle - and the
+         per-type variance lives in the ldh:Block card mode below. Emitted by both products so that server- and
+         client-rendered markup have the same shape: the ontology-driven view injection in client/block.xsl keys
+         off this exact nesting (outer div.ldh-block-row[@about] / div.row-main / inner div.block[@typeof]).
+         An ontology-injected (derived) block renders as the nested-block well instead: no row layer, and the
+         stored-block chrome is omitted - drag reorder needs rdf:_N membership, the row edit form needs a subject
+         that exists in the graph, and the host block's bar already spans this block's load - so only the head
+         and the RDFa body remain -->
+    <!-- TO-DO: replace with fully client-side wrapper in ldh:RenderRow in block.xsl -->
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ldh:BlockRow">
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
-        <xsl:param name="class" select="'block ldh-block'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
+        <xsl:param name="mode" as="xs:anyURI?"/>
+        <xsl:param name="style" as="xs:string?"/>
         <xsl:param name="draggable" select="false()" as="xs:boolean?"/>
         <xsl:param name="show-block-bar" select="true()" as="xs:boolean"/>
         <xsl:param name="show-drag-handle" select="true()" as="xs:boolean" tunnel="yes"/>
@@ -514,12 +529,9 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="diff-class" select="ldh:diff-class(., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
 
         <xsl:choose>
-            <!-- ontology-injected (derived) block: the design system's nested-block well. The stored-block chrome is omitted -
-                 drag reorder needs rdf:_N membership, the row edit form needs a subject that exists in the graph, and the host
-                 block's bar already spans this block's load - so only the head and the RDFa body remain -->
             <xsl:when test="$nested">
-                <xsl:variable name="block-type" select="(rdf:type/@rdf:resource[. = ('&ldh;Object', '&ldh;View', '&ldh;GraphChart', '&ldh;ResultSetChart', '&sp;Describe', '&sp;Construct', '&sp;Ask', '&sp;Select')])[1]" as="xs:anyURI"/>
-                <xsl:variable name="glyph" select="map{ '&ldh;View': 'table_rows', '&ldh;GraphChart': 'show_chart', '&ldh;ResultSetChart': 'show_chart', '&sp;Describe': 'code', '&sp;Construct': 'code', '&sp;Ask': 'code', '&sp;Select': 'code' }($block-type)" as="xs:string?"/>
+                <xsl:variable name="block-type" select="(rdf:type/@rdf:resource[. = ('&ldh;Object', '&ldh;View', '&ldh;GraphChart', '&ldh;ResultSetChart', '&sp;Describe', '&sp;Construct', '&sp;Ask', '&sp;Select')])[1]" as="xs:anyURI?"/>
+                <xsl:variable name="glyph" select="map{ '&ldh;View': 'table_rows', '&ldh;GraphChart': 'show_chart', '&ldh;ResultSetChart': 'show_chart', '&sp;Describe': 'code', '&sp;Construct': 'code', '&sp;Ask': 'code', '&sp;Select': 'code' }(string($block-type))" as="xs:string?"/>
 
                 <div>
                     <xsl:if test="$id">
@@ -558,33 +570,20 @@ extension-element-prefixes="ixsl"
                 </div>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:apply-templates select="key('resources', .)" mode="ldh:RowContentHeader"/>
-
                 <div>
+                    <xsl:attribute name="class" select="string-join(('ldh-block-row', $diff-class), ' ')"/>
                     <xsl:if test="$id">
                         <xsl:attribute name="id" select="$id"/>
-                    </xsl:if>
-                    <xsl:if test="$class or $diff-class or $show-block-bar">
-                        <xsl:attribute name="class" select="string-join(($class, $diff-class, 'is-loading'[$show-block-bar]), ' ')"/>
                     </xsl:if>
                     <xsl:if test="$about">
                         <xsl:attribute name="about" select="$about"/>
                     </xsl:if>
-        <!--            <xsl:if test="exists($typeof)">
-                        <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
-                    </xsl:if>-->
                     <xsl:if test="$draggable = true()">
                         <xsl:attribute name="draggable" select="'true'"/>
                     </xsl:if>
 
-                    <xsl:if test="$show-block-bar">
-                        <xsl:attribute name="aria-busy" select="'true'"/>
-
-                        <xsl:apply-templates select="." mode="ldh:BlockBar"/>
-                    </xsl:if>
-
                     <div class="row-main">
-                        <xsl:if test="$show-block-bar and $show-drag-handle">
+                        <xsl:if test="$show-drag-handle">
                             <div class="drag-handle">
                                 <xsl:if test="acl:mode() = '&acl;Write'">
                                     <xsl:attribute name="draggable" select="'true'"/>
@@ -592,157 +591,121 @@ extension-element-prefixes="ixsl"
                             </div>
                         </xsl:if>
 
-                        <!-- client-side $container -->
-                        <xsl:next-match>
-                            <xsl:with-param name="id" select="()"/> <!-- only block wrappers have @id-->
-                            <xsl:with-param name="about" select="()"/> <!-- only block wrappers have @about -->
-                            <xsl:with-param name="class" select="'block-row'"/>
-                        </xsl:next-match>
+                        <xsl:apply-templates select="." mode="ldh:Block">
+                            <xsl:with-param name="about" select="$about"/>
+                            <xsl:with-param name="mode" select="$mode"/>
+                            <xsl:with-param name="style" select="$style"/>
+                            <xsl:with-param name="show-block-bar" select="$show-block-bar"/>
+                        </xsl:apply-templates>
                     </div>
                 </div>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
-    
-    <!-- XHTML content overrides -->
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;XHTML'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="ldh:BlockRow" priority="1">
-        <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
+
+    <!-- ldh:Block: the block card, the row layer's counterpart of the design's Block component. Templates here
+         emit the card and its children only (head, bar, body, actions); a new block type adds one card template
+         and the row scaffolding above needs no change. ldh:RowForm is this layer's edit-mode peer: it returns a
+         card with the same contract, which is what lets the edit flows replace cards in place -->
+
+    <!-- typed resource card: the carrier's header + loading bar + the CSR container the hydration chain fills -->
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&ldh;Object', '&ldh;View', '&ldh;GraphChart', '&ldh;ResultSetChart', '&sp;Describe', '&sp;Construct', '&sp;Ask', '&sp;Select')]" mode="ldh:Block" priority="1">
+        <!-- TO-DO: use ldh:request-uri() to resolve URIs server-side -->
+        <xsl:param name="class" select="'block ldh-block'" as="xs:string?"/>
+        <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
+        <xsl:param name="show-block-bar" select="true()" as="xs:boolean"/>
+
+        <div>
+            <xsl:attribute name="class" select="string-join(($class, 'is-loading'[$show-block-bar]), ' ')"/>
+            <xsl:if test="$about">
+                <xsl:attribute name="about" select="$about"/>
+            </xsl:if>
+            <xsl:if test="$show-block-bar">
+                <xsl:attribute name="aria-busy" select="'true'"/>
+            </xsl:if>
+
+            <!-- the carrier resource's own header: title, type chips, actions. Head, bar and
+                 body are siblings of the card (the bar shows under the head while loading) -->
+            <xsl:apply-templates select="." mode="ac:BlockHeader"/>
+
+            <xsl:if test="$show-block-bar">
+                <xsl:apply-templates select="." mode="ldh:BlockBar"/>
+            </xsl:if>
+
+            <!-- client-side $container -->
+            <xsl:next-match>
+                <xsl:with-param name="about" select="()"/> <!-- the card carries @about -->
+                <xsl:with-param name="class" select="'block-row'"/>
+                <xsl:with-param name="show-header" select="false()"/>
+            </xsl:next-match>
+        </div>
+    </xsl:template>
+
+    <!-- XHTML content card -->
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;XHTML'][rdf:value[@rdf:parseType = 'Literal']/xhtml:div]" mode="ldh:Block" priority="1">
         <!-- XHTML content is prose: quiet block, no card surface, reads as part of the page flow -->
         <xsl:param name="class" select="'block ldh-block is-quiet'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
         <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="main-class" select="'main ldh-block-body'" as="xs:string?"/>
-        <xsl:param name="draggable" select="false()" as="xs:boolean?"/>
-        <xsl:param name="show-drag-handle" select="true()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
         <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
-        <xsl:variable name="diff-class" select="ldh:diff-class(., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
-
-        <xsl:apply-templates select="." mode="ldh:RowContentHeader"/>
 
         <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$class or $diff-class">
-                <xsl:attribute name="class" select="string-join(($class, $diff-class), ' ')"/>
+            <xsl:if test="$class">
+                <xsl:attribute name="class" select="$class"/>
             </xsl:if>
             <xsl:if test="$about">
                 <xsl:attribute name="about" select="$about"/>
             </xsl:if>
-<!--            <xsl:if test="exists($typeof)">
-                <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
-            </xsl:if>-->
-            <xsl:if test="$draggable = true()">
-                <xsl:attribute name="draggable" select="'true'"/>
-            </xsl:if>
-            
-            <div class="row-main">
-                <xsl:if test="$show-drag-handle">
-                    <div class="drag-handle">
+
+            <div id="row-{generate-id()}" class="block-row">
+                <xsl:if test="$about">
+                    <xsl:attribute name="about" select="$about"/>
+                </xsl:if>
+                <xsl:if test="exists($typeof)">
+                    <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
+                </xsl:if>
+
+                <div>
+                    <xsl:if test="$main-class">
+                        <xsl:attribute name="class" select="$main-class"/>
+                    </xsl:if>
+
+                    <!-- the diff union can carry two values (removed and added); mark each and show the removed one first -->
+                    <xsl:for-each select="rdf:value[@rdf:parseType = 'Literal']">
+                        <xsl:sort select="if (ldh:value-diff-class(., $diff-added-keys, $diff-removed-keys) = 'diff-removed') then 0 else 1"/>
+
+                        <xsl:variable name="value-diff-class" select="ldh:value-diff-class(., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
+                        <xsl:choose>
+                            <xsl:when test="$value-diff-class">
+                                <div class="{$value-diff-class}">
+                                    <xsl:apply-templates select="xhtml:div" mode="ldh:XHTMLContent"/>
+                                </div>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:apply-templates select="xhtml:div" mode="ldh:XHTMLContent"/>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:for-each>
+                </div>
+
+                <!-- content blocks have no header - the action cluster anchors to the card's top right corner instead, surfaced on card hover by CSS, in the block header's control order -->
+                <xsl:if test="$about">
+                    <div class="actions">
+                        <xsl:apply-templates select="." mode="ldh:BlockLinksPopover"/>
+                        <xsl:apply-templates select="." mode="ldh:CopyUriButton"/>
                         <xsl:if test="acl:mode() = '&acl;Write'">
-                            <xsl:attribute name="draggable" select="'true'"/>
+                            <xsl:apply-templates select="." mode="ldh:EditButton"/>
                         </xsl:if>
                     </div>
                 </xsl:if>
-                <div id="row-{generate-id()}" class="block-row">
-                    <xsl:if test="$about">
-                        <xsl:attribute name="about" select="$about"/>
-                    </xsl:if>
-                    <xsl:if test="exists($typeof)">
-                        <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
-                    </xsl:if>
-            
-                    <div>
-                        <xsl:if test="$main-class">
-                            <xsl:attribute name="class" select="$main-class"/>
-                        </xsl:if>
-
-                        <!-- the diff union can carry two values (removed and added); mark each and show the removed one first -->
-                        <xsl:for-each select="rdf:value[@rdf:parseType = 'Literal']">
-                            <xsl:sort select="if (ldh:value-diff-class(., $diff-added-keys, $diff-removed-keys) = 'diff-removed') then 0 else 1"/>
-
-                            <xsl:variable name="value-diff-class" select="ldh:value-diff-class(., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
-                            <xsl:choose>
-                                <xsl:when test="$value-diff-class">
-                                    <div class="{$value-diff-class}">
-                                        <xsl:apply-templates select="xhtml:div" mode="ldh:XHTMLContent"/>
-                                    </div>
-                                </xsl:when>
-                                <xsl:otherwise>
-                                    <xsl:apply-templates select="xhtml:div" mode="ldh:XHTMLContent"/>
-                                </xsl:otherwise>
-                            </xsl:choose>
-                        </xsl:for-each>
-                    </div>
-
-                    <!-- content blocks have no header - the action cluster anchors to the card's top right corner instead, surfaced on card hover by CSS, in the block header's control order -->
-                    <xsl:if test="$about">
-                        <div class="actions">
-                            <xsl:apply-templates select="." mode="ldh:BlockLinksPopover"/>
-                            <xsl:apply-templates select="." mode="ldh:CopyUriButton"/>
-                            <xsl:if test="acl:mode() = '&acl;Write'">
-                                <xsl:apply-templates select="." mode="ldh:EditButton"/>
-                            </xsl:if>
-                        </div>
-                    </xsl:if>
-                </div>
             </div>
         </div>
     </xsl:template>
 
-    <!-- hide inlined blank node resources from the main block flow -->
-    <xsl:template match="*[*][key('resources', @rdf:nodeID)][count(key('predicates-by-object', @rdf:nodeID)[not(self::foaf:primaryTopic)]) = 1]" mode="ldh:BlockRow" priority="1">
-        <xsl:param name="display" select="false()" as="xs:boolean" tunnel="yes"/>
-        
-        <xsl:if test="$display">
-            <xsl:next-match/>
-        </xsl:if>
-    </xsl:template>
-    
-    <!-- hide instances of system classes -->
-    <xsl:template match="*[not($ldh:renderSystemResources)][@rdf:about = ac:absolute-path(ldh:base-uri(.)) and rdf:type/@rdf:resource = ('&def;Root', '&dh;Container', '&dh;Item')]" mode="ldh:BlockRow" priority="1"/>
-
-    <!-- ldh:BlockRow wrapper: outer div + inner div.row-main around next-match output. Emitted by both products so that server- and client-rendered markup have the same shape: the ontology-driven view injection in client/block.xsl keys off this exact nesting (outer div.block[@about] / div.row-main / inner div.block[@typeof]), and it now runs over server-rendered markup too, which is kept in place on the initial load. The SAXON-only predecessor at resource.xsl:605 also injected view blocks synchronously; only the shape is reproduced here, the injection stays client-side. Excludes the typed block types handled by the typed-block template since those have their own wrapper structure (block bar etc.) and the unconditional wrapping here would inject two spurious div levels into their next-match chain. -->
-    <!-- TO-DO: replace with fully client-side wrapper in ldh:RenderRow in block.xsl -->
-    <xsl:template match="*[*][@rdf:about][not(rdf:type/@rdf:resource = ('&http;Response', '&ldh;Object', '&ldh;View', '&ldh;GraphChart', '&ldh;ResultSetChart', '&sp;Describe', '&sp;Construct', '&sp;Ask', '&sp;Select'))] | *[*][@rdf:nodeID][not(rdf:type/@rdf:resource = ('&http;Response', '&ldh;Object', '&ldh;View', '&ldh;GraphChart', '&ldh;ResultSetChart', '&sp;Describe', '&sp;Construct', '&sp;Ask', '&sp;Select'))]" mode="ldh:BlockRow" priority="0.7">
-        <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
-        <xsl:param name="class" select="'block ldh-block'" as="xs:string?"/>
-        <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
-        <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
-        <xsl:param name="mode" as="xs:anyURI?"/>
-        <xsl:param name="style" as="xs:string?"/>
-        <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
-        <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
-        <xsl:variable name="diff-class" select="ldh:diff-class(., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
-
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <!-- the wrapper keeps the 'block' anchor token but not the ldh-block card skin:
-                 the inner next-match block is the card, and skinning both stacked two cards -->
-            <xsl:attribute name="class" select="string-join(('block', $diff-class), ' ')"/>
-            <xsl:if test="$about">
-                <xsl:attribute name="about" select="$about"/>
-            </xsl:if>
-
-            <div class="row-main">
-                <xsl:next-match>
-                    <xsl:with-param name="id" select="()"/> <!-- only the wrapper carries @id -->
-                    <xsl:with-param name="class" select="$class"/>
-                    <xsl:with-param name="about" select="$about"/>
-                    <xsl:with-param name="typeof" select="$typeof"/>
-                    <xsl:with-param name="mode" select="$mode"/>
-                    <xsl:with-param name="style" select="$style"/>
-                </xsl:next-match>
-            </div>
-        </div>
-    </xsl:template>
-
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ldh:BlockRow">
-        <!-- TO-DO: use ldh:request-uri() to resolve URIs server-side -->
-        <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
+    <!-- default card: the resource's header + property-list body (or the per-mode body for Map/Chart/Graph/Edit) -->
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ldh:Block">
         <!-- 'block' is the token every CSR handler anchors on; 'ldh-block' is what app.css styles -->
         <xsl:param name="class" select="'block ldh-block'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
@@ -750,14 +713,12 @@ extension-element-prefixes="ixsl"
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="style" as="xs:string?"/>
         <xsl:param name="main-class" select="'main ldh-block-body'" as="xs:string?"/>
+        <xsl:param name="show-header" select="true()" as="xs:boolean"/>
         <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
         <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
         <xsl:variable name="diff-class" select="ldh:diff-class(., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
 
         <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
             <xsl:if test="$class or $diff-class">
                 <xsl:attribute name="class" select="string-join(($class, $diff-class), ' ')"/>
             </xsl:if>
@@ -771,11 +732,17 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="style" select="$style"/>
             </xsl:if>
 
+            <!-- head and body are siblings (the design's Block anatomy); the edit form titles itself
+                 with its fieldset legend, so EditMode skips the header rather than doubling the title -->
+            <xsl:if test="$show-header and not($mode = '&ac;EditMode')">
+                <xsl:apply-templates select="." mode="ac:BlockHeader"/>
+            </xsl:if>
+
             <div>
                 <xsl:if test="$main-class">
                     <xsl:attribute name="class" select="$main-class"/>
                 </xsl:if>
-                
+
                 <xsl:variable name="doc" as="document-node()">
                     <xsl:document>
                         <rdf:RDF>
@@ -1086,34 +1053,6 @@ extension-element-prefixes="ixsl"
         </xsl:for-each>
     </xsl:template>
 
-    <!-- ROW CONTENT HEADER -->
-    
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;Object']" mode="ldh:RowContentHeader" priority="1">
-        <xsl:variable name="anchor" as="node()*">
-            <xsl:for-each select="@rdf:about">
-                <xsl:variable name="request-uri" select="ldh:href(ac:document-uri(.), map{ 'accept': 'application/rdf+xml' }, ())" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SaxonJS'"/>
-                <xsl:variable name="request-uri" select="ac:document-uri(.)" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-                <xsl:apply-templates select="key('resources', ., document($request-uri))" mode="xhtml:Anchor">
-                    <xsl:with-param name="class" as="xs:string?">
-                        <xsl:apply-templates select="." mode="ldh:logo"/>
-                    </xsl:with-param>
-                </xsl:apply-templates>
-            </xsl:for-each>
-        </xsl:variable>
-        
-        <xsl:if test="exists($anchor)">
-            <div class="block-row">
-                <div class="main">
-                    <h2>
-                        <xsl:sequence select="$anchor"/>
-                    </h2>
-                </div>
-            </div>
-        </xsl:if>
-    </xsl:template>
-    
-    <xsl:template match="*[*][@rdf:about]" mode="ldh:RowContentHeader"/>
-    
     <!-- SHAPE CONSTRUCTOR -->
 
     <xsl:template match="*[*][@rdf:about]" mode="ldh:ShapeConstructor" use-when="system-property('xsl:product-name') = 'SAXON'">
