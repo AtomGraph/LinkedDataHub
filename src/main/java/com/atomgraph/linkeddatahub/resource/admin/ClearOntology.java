@@ -125,7 +125,13 @@ public class ClearOntology
             }
             
             // !!! we need to reload the ontology model before returning a response, to make sure the next request already gets the new version !!!
-            getSystem().getOntologyGraphs().put(ontologyURI, OntologyFilter.loadOntology(repository, ontologyURI, getSystem().getPackageOntologies(endUserApp)));
+            // The request-scoped endUserApp is a snapshot ApplicationFilter captured before Settings.updateApp
+            // swapped the context dataset copy-on-write, so on a PATCH /settings that just added an ldh:import
+            // its import set is stale. Re-read the app from the current (post-write) dataspace model -
+            // getDataspaceModel reads the volatile contextDataset fresh, keyed by URI - so the rebuilt closure
+            // reflects the persisted import set rather than the pre-write snapshot.
+            com.atomgraph.linkeddatahub.apps.model.Application currentApp = getSystem().getDataspaceModel(endUserApp).getResource(endUserApp.getURI()).as(com.atomgraph.linkeddatahub.apps.model.Application.class);
+            getSystem().getOntologyGraphs().put(ontologyURI, OntologyFilter.loadOntology(repository, ontologyURI, getSystem().getPackageOntologies(currentApp)));
         }
         
         if (referer != null) return Response.seeOther(referer).build();
