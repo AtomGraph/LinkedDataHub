@@ -49,12 +49,15 @@ _:import a ldh:RDFImport ;
 _:import spin:query <${query}> ."
     fi
 
-    # capture status + body separately so a non-400 shows what the server actually returned
-    response=$(curl -k -s -w $'\n%{http_code}' \
+    # capture status + body separately so a non-400 shows what the server actually returned.
+    # feed the Turtle body via stdin (--data-binary @-): the body starts with "@prefix", and
+    # curl reads a leading @ in --data-binary "<arg>" as a filename ("error encountered when
+    # reading a file"), aborting before it ever sends the request
+    response=$(printf '%s' "$body" | curl -k -s -w $'\n%{http_code}' \
       -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
       -X POST \
       -H "Content-Type: text/turtle" \
-      --data-binary "$body" \
+      --data-binary @- \
       "$item") || true
     status="${response##*$'\n'}"
     resp_body="${response%$'\n'*}"
