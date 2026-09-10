@@ -16,7 +16,7 @@ ldh admin add agent \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/readers/"
 
-curl -k -w "%{http_code}\n" -o /dev/null -s \
+actual=$(curl -k -w "%{http_code}" -o /dev/null -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -X PATCH \
   -H "Content-Type: application/sparql-update" \
@@ -24,5 +24,8 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
 DELETE { ?app dct:title ?title }
 INSERT { ?app dct:title \"Unauthorized\" }
 WHERE { ?app dct:title ?title }" \
-  "${END_USER_BASE_URL}settings" \
-| grep -q "$STATUS_FORBIDDEN"
+  "${END_USER_BASE_URL}settings")
+expected="$STATUS_FORBIDDEN"
+echo "DEBUG: Expected: $expected"
+echo "DEBUG: Got: $actual"
+echo "$actual" | grep -qE "^(${expected})$"

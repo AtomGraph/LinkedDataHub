@@ -9,8 +9,11 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 # GET /ns is publicly accessible (foaf:Agent has acl:Read via public-namespace authorization)
 
-curl -k -w "%{http_code}\n" -o /dev/null -s -G \
+actual=$(curl -k -w "%{http_code}" -o /dev/null -s -G \
   -H "Accept: application/sparql-results+xml" \
   "${END_USER_BASE_URL}ns" \
-  --data-urlencode "query=SELECT * { ?s ?p ?o } LIMIT 1" \
-| grep -q "$STATUS_OK"
+  --data-urlencode "query=SELECT * { ?s ?p ?o } LIMIT 1")
+expected="$STATUS_OK"
+echo "DEBUG: Expected: $expected"
+echo "DEBUG: Got: $actual"
+echo "$actual" | grep -qE "^(${expected})$"

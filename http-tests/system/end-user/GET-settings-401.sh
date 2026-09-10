@@ -10,7 +10,10 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 # GET /settings without a certificate should return 401
 # Only owners have access to /settings via full-control authorization
 
-curl -k -w "%{http_code}\n" -o /dev/null -s \
+actual=$(curl -k -w "%{http_code}" -o /dev/null -s \
   -H "Accept: application/n-triples" \
-  "${END_USER_BASE_URL}settings" \
-| grep -q "$STATUS_UNAUTHORIZED"
+  "${END_USER_BASE_URL}settings")
+expected="$STATUS_UNAUTHORIZED"
+echo "DEBUG: Expected: $expected"
+echo "DEBUG: Got: $actual"
+echo "$actual" | grep -qE "^(${expected})$"
