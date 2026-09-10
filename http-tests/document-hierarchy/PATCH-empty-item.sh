@@ -49,10 +49,10 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
    --data-binary "$update" \
 | grep -q "$STATUS_NO_CONTENT"
 
-# verify the item was deleted
+# verify the item is gone: once deleted it is a typeless URL, so a read is now forbidden (403), not 404
 
 curl -k -w "%{http_code}\n" -o /dev/null -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: application/n-triples" \
   "$item" \
-| grep -q "$STATUS_NOT_FOUND"
+| grep -q "$STATUS_FORBIDDEN"

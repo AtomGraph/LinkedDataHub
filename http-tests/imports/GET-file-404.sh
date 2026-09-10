@@ -20,4 +20,4 @@ file="${END_USER_BASE_URL}uploads/0000000000000000000000000000000000000000"
 curl -k -w "%{http_code}\n" -o /dev/null -s -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   "$file" \
-| grep -q "$STATUS_NOT_FOUND"
+| grep -q "$STATUS_FORBIDDEN"
