@@ -20,81 +20,72 @@ query='SELECT ?text WHERE { <http://www.w3.org/2004/02/skos/core#Concept> <http:
 # feature of the package, and the thing that goes silent if the import stops being composed
 view_query='SELECT ?view WHERE { VALUES ?property { <http://www.w3.org/2004/02/skos/core#broader> <http://www.w3.org/2004/02/skos/core#narrower> } ?property <https://w3id.org/atomgraph/linkeddatahub#view> ?view . }'
 
-ns_result_count() {
-  curl -k -f -s -G \
+# Probe /ns with a query in one shot. Sets NS_STATUS, NS_BODY, NS_COUNT. Never fails the shell
+# (no -f), so even a 5xx from a broken closure still yields diagnostics instead of aborting.
+ns_probe() {
+  local body
+  body=$(curl -k -s -G -w $'\n%{http_code}' \
     -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
     -H "Accept: application/sparql-results+xml" \
     "${END_USER_BASE_URL}ns" \
-    --data-urlencode "query=${1}" \
-  | xmllint --xpath "count(//*[local-name() = 'result'])" -
+    --data-urlencode "query=${1}") || true
+  NS_STATUS="${body##*$'\n'}"
+  NS_BODY="${body%$'\n'*}"
+  NS_COUNT=$(printf '%s' "$NS_BODY" | xmllint --xpath "count(//*[local-name() = 'result'])" - 2>/dev/null || echo "ERR")
 }
 
-constructor_count() {
-  ns_result_count "$query"
+# assert NS_COUNT for a phase; on mismatch dump the raw response and exit 1
+assert_count() {
+  local phase="$1" q="$2" expected="$3" note="$4"
+  ns_probe "$q"
+  echo "DEBUG: [$phase] Expected: $expected  Got: $NS_COUNT  (HTTP $NS_STATUS)"
+  if [ "$NS_COUNT" != "$expected" ]; then
+    echo "DEBUG: [$phase] $note" >&2
+    echo "DEBUG: [$phase] raw /ns response body:" >&2
+    printf '%s\n' "$NS_BODY" >&2
+    exit 1
+  fi
 }
 
-view_count() {
-  ns_result_count "$view_query"
+# PATCH /settings and assert no-content; on mismatch report the status
+patch_settings() {
+  local phase="$1" update="$2" status
+  status=$(curl -k -w "%{http_code}" -o /dev/null -s \
+    -X PATCH \
+    -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+    -H "Content-Type: application/sparql-update" \
+    -d "$update" \
+    "${END_USER_BASE_URL}settings")
+  echo "DEBUG: [$phase] Expected: $STATUS_NO_CONTENT  Got: $status"
+  if ! grep -qE "^(${STATUS_NO_CONTENT})$" <<< "$status"; then
+    echo "DEBUG: [$phase] PATCH of ldh:import did not return no-content" >&2
+    exit 1
+  fi
 }
 
-# the skos:Concept constructor is not in the app ontology closure initially
-count=$(constructor_count)
-if [ "$count" != "0" ]; then
-  exit 1
-fi
-
-views=$(view_count)
-if [ "$views" != "0" ]; then
-  exit 1
-fi
+# the skos:Concept constructor / views are not in the app ontology closure initially
+assert_count "pre-import constructor"  "$query"      0 "package leaked into closure before import?"
+assert_count "pre-import views"        "$view_query" 0 "package leaked into closure before import?"
 
 # declare the package import
-(
-curl -k -w "%{http_code}\n" -o /dev/null -s \
-  -X PATCH \
-  -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
-  -H "Content-Type: application/sparql-update" \
-  -d "INSERT { <${app_uri}> <https://w3id.org/atomgraph/linkeddatahub#import> <${package_uri}> . } WHERE { }" \
-  "${END_USER_BASE_URL}settings"
-) \
-| grep -q "$STATUS_NO_CONTENT"
+patch_settings "import PATCH" \
+  "INSERT { <${app_uri}> <https://w3id.org/atomgraph/linkeddatahub#import> <${package_uri}> . } WHERE { }"
 
 # the /ns query URL is identical across the phases, so evict any cached response
 purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 # the package ontology joined the closure - no restart, no sleep
-count=$(constructor_count)
-if [ "$count" != "1" ]; then
-  exit 1
-fi
-
-views=$(view_count)
-if [ "$views" != "2" ]; then
-  exit 1
-fi
+assert_count "post-import constructor" "$query"      1 "constructor missing - package ontology (${package_uri}) did not join the closure"
+assert_count "post-import views"       "$view_query" 2 "views missing - ldh:view declarations did not join the closure"
 
 # remove the package import
-(
-curl -k -w "%{http_code}\n" -o /dev/null -s \
-  -X PATCH \
-  -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
-  -H "Content-Type: application/sparql-update" \
-  -d "DELETE { <${app_uri}> <https://w3id.org/atomgraph/linkeddatahub#import> <${package_uri}> . } WHERE { }" \
-  "${END_USER_BASE_URL}settings"
-) \
-| grep -q "$STATUS_NO_CONTENT"
+patch_settings "remove PATCH" \
+  "DELETE { <${app_uri}> <https://w3id.org/atomgraph/linkeddatahub#import> <${package_uri}> . } WHERE { }"
 
 purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 # the package ontology left the closure
-views=$(view_count)
-if [ "$views" != "0" ]; then
-  exit 1
-fi
-
-count=$(constructor_count)
-if [ "$count" != "0" ]; then
-  exit 1
-fi
+assert_count "post-remove views"       "$view_query" 0 "views still present - package ontology did not leave the closure"
+assert_count "post-remove constructor" "$query"      0 "constructor still present - package ontology did not leave the closure"
