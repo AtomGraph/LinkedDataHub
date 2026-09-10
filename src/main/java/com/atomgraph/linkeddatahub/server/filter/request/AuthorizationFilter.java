@@ -55,6 +55,7 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.vocabulary.RDFS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -204,6 +205,13 @@ public class AuthorizationFilter implements ContainerRequestFilter
                 pss = new ParameterizedSparqlString(query.toString()); // make sure type VALUES are now part of the query string
                 assert pss.toString().contains("VALUES");
             }
+            else
+                // resource has no rdf:type (e.g. /settings, /sparql, and other non-graph endpoints): bind $Type to a
+                // sentinel so the acl:accessToClass branch matches nothing. Left unbound, the triple pattern
+                // ?auth acl:accessToClass $Type wildcard-matches every class-based authorization (typeless resources
+                // would inherit all accessToClass grants). Mirrors the RDFS.Resource sentinel AuthorizationParams uses
+                // to disable the $agent/$AuthenticatedAgentClass branches.
+                pss.setIri("Type", RDFS.Resource.getURI());
 
             // note we're not setting the $mode value on the ACL queries as we want to provide the AuthorizationContext with all of the agent's authorizations
             authorizations.add(loadModel(getAdminService(), pss, new AuthorizationParams(getAdminBase(), accessTo, agent).get()));

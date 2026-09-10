@@ -7,7 +7,7 @@ purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
-# PATCH /settings without a certificate should return 401
+# PATCH /settings without a certificate is denied with 403 (LDH issues no 401 challenge for unauthenticated requests)
 # Only owners have acl:Write access to /settings
 
 actual=$(curl -k -w "%{http_code}" -o /dev/null -s \
@@ -18,7 +18,7 @@ DELETE { ?app dct:title ?title }
 INSERT { ?app dct:title \"Unauthorized\" }
 WHERE { ?app dct:title ?title }" \
   "${END_USER_BASE_URL}settings")
-expected="$STATUS_UNAUTHORIZED"
+expected="$STATUS_FORBIDDEN"
 echo "DEBUG: Expected: $expected"
 echo "DEBUG: Got: $actual"
 echo "$actual" | grep -qE "^(${expected})$"
