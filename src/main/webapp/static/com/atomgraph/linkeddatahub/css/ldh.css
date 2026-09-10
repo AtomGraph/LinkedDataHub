@@ -623,15 +623,32 @@ body:has(.document-body > .content-body > :is(.graph-3d-canvas, .map-canvas)) .l
 
 /* Content-slot chrome - a documented divergence from the design repo, which has no carrier concept
    (one block = one resource = one header). XHTML and Object content blocks render headerless; the
-   slot's affordances ride the card, surfaced on card hover or keyboard focus. The rail runs the full
-   left edge - the same side as the header drag slot on other blocks - stacking the slot-level
-   copy/edit buttons (Object carriers) above the drag slot, whose grab/hover treatment comes from
-   app.css's .ldh-bh-drag base. The corner cluster anchors the resource's own actions top-right
-   (XHTML blocks, whose resource has no header), staying put while its links popover is open */
+   slot's chrome splits by the polarity the block header always had: the drag grip on the left (the
+   rail, hover/focus-surfaced, grab treatment from app.css's .ldh-bh-drag base), everything actionable
+   on the right (the Object carrier's slot bar below; the corner cluster that anchors an XHTML
+   resource's own actions top-right, staying put while its links popover is open) */
 .ldh-block-rail { position: absolute; top: 0; left: 0; bottom: 0; width: 22px; display: flex; flex-direction: column; align-items: center; opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft); z-index: 5; }
 .ldh-block:hover > .ldh-block-rail, .ldh-block-rail:focus-within { opacity: 1; }
-.ldh-block-rail > .ldhc-iconbtn { width: 22px; height: 26px; border-radius: var(--r-xs); }
 .ldh-block-rail > .ldh-bh-drag { flex: 1 1 auto; height: auto; width: 22px; margin-top: 0; }
+
+/* Slot bar - the Object carrier's top-edge chrome, tinted apart from the embedded block's surface to
+   mark the nesting, just tall enough for the right-aligned actions cluster. The native details
+   discloses the carrier's label inline at constant band height (details laid out as a flex row, so
+   the [open] content lands beside the chevron, never below it); disclosure grammar borrowed from
+   app.css's .ldh-block-detail. Authoring chrome: emitted only under acl:Write - read-only viewers
+   keep the is-embedded hairline as the embedding signal */
+/* positioned above the rail: the rail's strip overlays the card's left edge (hit-testable even at
+   opacity 0), and the bar's disclosure sits within its 22px - the bar wins the top band */
+.ldh-slot-bar { position: relative; z-index: 6; display: flex; align-items: center; gap: var(--sp-2); min-height: 32px; padding: 0 var(--sp-2) 0 var(--sp-3); background: var(--surface-1); border-bottom: 1px solid var(--border-default); border-top-left-radius: inherit; border-top-right-radius: inherit; }
+.ldh-slot-bar > details { display: flex; align-items: center; gap: var(--sp-2); min-width: 0; }
+.ldh-slot-bar summary { display: inline-flex; align-items: center; cursor: pointer; list-style: none; color: var(--fg-hint); border-radius: var(--r-xs); }
+.ldh-slot-bar summary::-webkit-details-marker { display: none; }
+.ldh-slot-bar summary:hover { color: var(--fg-2); }
+.ldh-slot-bar summary:focus-visible { outline: 0; box-shadow: var(--focus-ring); }
+.ldh-slot-bar summary .msi { transition: transform var(--dur-fast) var(--ease-out-soft); }
+.ldh-slot-bar details[open] summary .msi { transform: rotate(90deg); }
+.ldh-slot-bar .ttl { font-size: var(--fs-sm); color: var(--fg-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ldh-slot-bar > .actions { margin-left: auto; display: flex; align-items: center; gap: var(--sp-1); }
 .ldh-block-corner { position: absolute; top: var(--sp-3); right: var(--sp-3); display: flex; align-items: center; gap: var(--sp-1); opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft); }
 /* ac:BlockActions wraps its buttons in a div of its own - flatten it into the cluster row */
 .ldh-block-corner > div:not(.links-nav) { display: contents; }

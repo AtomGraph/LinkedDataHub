@@ -584,6 +584,10 @@ exclude-result-prefixes="#all"
                         <xsl:with-param name="density" select="'compact'"/>
                         <xsl:with-param name="icon" select="($glyph, 'widgets')[1]"/>
                         <xsl:with-param name="show-links" select="false()"/>
+                        <!-- no edit pencil at any access level: the derived resource is no subject in a
+                             retrievable document graph (the row form's exactly-one $resource comes up
+                             empty), and ontology terms are authored in the admin app, not row forms -->
+                        <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
                     </xsl:apply-templates>
                     <div class="ldh-nblock-body">
                         <div class="block-row" typeof="{string-join($typeof, ' ')}">
@@ -650,11 +654,34 @@ exclude-result-prefixes="#all"
             </xsl:if>
 
             <xsl:if test="$about">
-                <!-- slot chrome is an authoring affordance: without acl:Write neither drag nor edit renders,
-                     and a rail holding just the copy button reads as debris - so read-only viewers get none -->
-                <xsl:apply-templates select="." mode="ldh:BlockRail">
-                    <xsl:with-param name="show-actions" select="acl:mode() = '&acl;Write'"/>
-                </xsl:apply-templates>
+                <xsl:apply-templates select="." mode="ldh:BlockRail"/>
+
+                <!-- the slot bar: the carrier's top-edge chrome, tinted apart from the embedded surface to
+                     mark the nesting, just tall enough for the actions cluster (right-aligned like every
+                     other). The native details discloses the carrier's label inline - the only metadata an
+                     ldh:Object really has - and the action buttons are siblings of the details, not its
+                     content (a closed details hides content), resolving this card's @about like the header
+                     buttons resolve theirs. Authoring chrome, so acl:Write-gated; read-only viewers keep
+                     the is-embedded hairline as the only embedding signal -->
+                <xsl:if test="acl:mode() = '&acl;Write'">
+                    <div class="ldh-slot-bar">
+                        <details>
+                            <summary aria-label="{ac:label(.)}">
+                                <span class="msi sm" aria-hidden="true">chevron_right</span>
+                            </summary>
+                            <span class="ttl">
+                                <xsl:value-of select="ac:label(.)"/>
+                            </span>
+                        </details>
+
+                        <div class="actions">
+                            <xsl:apply-templates select="." mode="ldh:CopyUriButton"/>
+                            <xsl:apply-templates select="." mode="ldh:EditButton">
+                                <xsl:with-param name="title" select="ac:label(key('resources', 'edit-block', ldh:translations()))"/>
+                            </xsl:apply-templates>
+                        </div>
+                    </div>
+                </xsl:if>
             </xsl:if>
 
             <xsl:if test="$show-block-bar">
@@ -925,34 +952,18 @@ exclude-result-prefixes="#all"
 
     <!-- RAIL -->
 
-    <!-- the content slot's chrome: a hover-surfaced strip along the card's left edge carrying the drag
-         slot and, on carrier cards, the slot-level copy/edit actions. Rail = the block-as-content-slot;
-         everything beside it belongs to the resource the slot renders. The drag span keeps the
+    <!-- the content slot's drag grip: a hover-surfaced strip along the card's left edge. Grip on the
+         left, actions on the right - the polarity the block header always had. The drag span keeps the
          ldh-bh-drag class and the acl:Write gate of the header slot - the DnD handlers key on the class
          and resolve the row via the ancestor axis, so the reorder wiring is placement-free -->
     <xsl:template match="*" mode="ldh:BlockRail">
-        <xsl:param name="show-actions" select="false()" as="xs:boolean"/>
-        <!-- the edit form submits a PATCH, which AuthorizationFilter requires acl:Write for - so without that mode the button opens a form that cannot be saved -->
-        <xsl:param name="show-edit-button" select="acl:mode() = '&acl;Write'" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="show-drag-handle" select="true()" as="xs:boolean" tunnel="yes"/>
 
-        <xsl:if test="$show-actions or ($show-drag-handle and acl:mode() = '&acl;Write')">
+        <xsl:if test="$show-drag-handle and acl:mode() = '&acl;Write'">
             <div class="ldh-block-rail">
-                <xsl:if test="$show-actions">
-                    <xsl:apply-templates select="." mode="ldh:CopyUriButton"/>
-
-                    <xsl:if test="$show-edit-button">
-                        <xsl:apply-templates select="." mode="ldh:EditButton">
-                            <xsl:with-param name="title" select="ac:label(key('resources', 'edit-block', ldh:translations()))"/>
-                        </xsl:apply-templates>
-                    </xsl:if>
-                </xsl:if>
-
-                <xsl:if test="$show-drag-handle and acl:mode() = '&acl;Write'">
-                    <span class="ldh-bh-drag" role="button" tabindex="0" draggable="true" aria-label="{ac:label(key('resources', 'drag-to-reorder', ldh:translations()))}" title="{ac:label(key('resources', 'drag-to-reorder', ldh:translations()))}">
-                        <span class="msi sm" aria-hidden="true">drag_indicator</span>
-                    </span>
-                </xsl:if>
+                <span class="ldh-bh-drag" role="button" tabindex="0" draggable="true" aria-label="{ac:label(key('resources', 'drag-to-reorder', ldh:translations()))}" title="{ac:label(key('resources', 'drag-to-reorder', ldh:translations()))}">
+                    <span class="msi sm" aria-hidden="true">drag_indicator</span>
+                </span>
             </div>
         </xsl:if>
     </xsl:template>
