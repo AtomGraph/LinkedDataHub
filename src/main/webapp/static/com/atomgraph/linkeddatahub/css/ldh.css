@@ -9,7 +9,7 @@
    files stay pristine mirrors - LDH-specific CSS lives only here.
    ========================================================================= */
 
-/* only the main navbar is fixed-top now; tab bar + action bar are sticky inside #tab-body */
+/* only the main header is sticky at the top now; tab bar + action bar are sticky inside #tab-body */
 #tab-bar { position: sticky; top: var(--ldh-header-height); z-index: 88; height: var(--ldh-tabbar-height); }
 /* the strip and the chrome offset derive from the tab count: the design renders the strip only while
    more than one tab exists, so no handler toggles visibility */
@@ -219,7 +219,7 @@ circle { cursor: move; }
 :root { --thumb-sm: 48px; --thumb-md: 160px; --thumb-lg: 240px; }
 /* chrome sits on the design system's stacking scale: above content dropdowns (70),
    below the ldhc-backdrop overlays (100+), so open dialogs cover the sticky bars */
-.navbar.ldh-header { position: sticky; top: 0; z-index: 90; }
+.ldh-header { position: sticky; top: 0; z-index: 90; }
 .action-bar.ldh-actionbar {
   box-sizing: border-box;
   height: var(--ldh-actionbar-height);
@@ -365,9 +365,9 @@ legend > .actions { display: flex; align-items: center; gap: var(--sp-1); margin
 .ldh-prop-row > .value.diff-added { background: var(--success-50); }
 .ldh-prop-row > .value.diff-removed { background: var(--danger-50); }
 /* the comparing-versions banner legend (document.xsl) keys its labels to the same tokens */
-.text-success { color: var(--success-500); }
-.text-error { color: var(--danger-500); }
-.text-warning { color: var(--warning-500); }
+.ldh-diff-tint.va-success { color: var(--success-500); }
+.ldh-diff-tint.va-negative { color: var(--danger-500); }
+.ldh-diff-tint.va-warning { color: var(--warning-500); }
 
 /* ---------- dataspace drawer (§19-§23): anatomy, rows and the closed-state slide are app.css's;
    only LDH's chrome geometry lands here ---------- */
@@ -441,7 +441,7 @@ button.tree-link { border: 0; background: transparent; width: 100%; font: inheri
 .ldh-footer .ldh-wordmark { color: var(--fg-1); }
 
 /* ---------- create bar: document-level creation (content mode's XHTML/Object, the row
-   modes' Create picker) sits in a full-bleed navbar-like row. Sticky, not fixed: it rides
+   modes' Create picker) sits in a full-bleed header-like row. Sticky, not fixed: it rides
    the viewport bottom while the content scrolls, but parks at its flow position at the end
    of the content - stacked on the footer, never over it. The negative side margins bleed
    the row out of the centered content column to the viewport edges; the right padding brings

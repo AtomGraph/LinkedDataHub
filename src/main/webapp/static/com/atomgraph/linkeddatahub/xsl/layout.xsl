@@ -517,10 +517,10 @@ exclude-result-prefixes="#all">
     
     <!-- HEADER -->
     
-    <!-- design system Header: wordmark | address bar | actions ('navbar' token kept - the CSR link
-         interception and address-bar handlers anchor on it) -->
+    <!-- design system Header: wordmark | address bar | actions. The CSR link interception and the
+         address-bar handler anchor on .ldh-header / .ldh-address, the design system's own names -->
     <xsl:template match="rdf:RDF[$lapp:origin] | srx:sparql[$lapp:origin]" mode="ac:Header" priority="1">
-        <div class="navbar ldh-header" role="banner">
+        <div class="ldh-header" role="banner">
             <xsl:apply-templates select="." mode="ldh:Brand"/>
 
             <!-- the address form browses server-side (?uri= through the Linked Data proxy), so it renders
@@ -536,10 +536,10 @@ exclude-result-prefixes="#all">
     <xsl:template match="*" mode="ac:Header"/>
 
     <xsl:template match="rdf:RDF[key('apps-by-origin', lapp:origin(), $lapp:Context)] | srx:sparql[key('apps-by-origin', lapp:origin(), $lapp:Context)]" mode="ldh:Brand" priority="1">
-        <a class="brand ldh-wordmark" href="{$ldt:base}">
+        <a class="ldh-wordmark" href="{$ldt:base}">
             <xsl:for-each select="key('apps-by-origin', lapp:origin(), $lapp:Context)">
                 <xsl:if test="rdf:type/@rdf:resource = '&lapp;AdminApplication'">
-                    <xsl:attribute name="class" select="'brand ldh-wordmark admin'"/>
+                    <xsl:attribute name="class" select="'ldh-wordmark admin'"/>
                 </xsl:if>
 
                 <span class="mark"></span>
@@ -554,7 +554,7 @@ exclude-result-prefixes="#all">
 
     <!-- check if agent has access to the user endpoint by executing a dummy query ASK {} -->
     <xsl:template match="rdf:RDF[doc-available(resolve-uri('sparql?query=ASK%20%7B%7D', $ldt:base))] | srx:sparql[doc-available(resolve-uri('sparql?query=ASK%20%7B%7D', $ldt:base))]" mode="ldh:AddressBar" priority="1">
-        <form action="{ac:absolute-path(ldh:request-uri())}" method="get" class="navbar-form ldh-address" accept-charset="UTF-8" role="search" aria-label="{ac:label(key('resources', 'address-bar-title', document('translations.rdf')))}" title="{ac:label(key('resources', 'address-bar-title', document('translations.rdf')))}">
+        <form action="{ac:absolute-path(ldh:request-uri())}" method="get" class="ldh-address" accept-charset="UTF-8" role="search" aria-label="{ac:label(key('resources', 'address-bar-title', document('translations.rdf')))}" title="{ac:label(key('resources', 'address-bar-title', document('translations.rdf')))}">
             <span class="msi outline" aria-hidden="true">public</span>
             <input type="url" id="uri" name="uri" value="{ac:absolute-path(ldh:request-uri())}" spellcheck="false" autocomplete="off" aria-label="{ac:label(key('resources', 'address-bar-title', document('translations.rdf')))}"/>
         </form>
@@ -1010,7 +1010,7 @@ WHERE
     <!-- FOOTER -->
     
     <xsl:template match="rdf:RDF | srx:sparql" mode="ac:Footer">
-        <div class="footer ldh-footer" role="contentinfo">
+        <div class="ldh-footer" role="contentinfo">
             <div class="cols">
                 <div class="col brand-col">
                     <a class="ldh-wordmark" href="{$ldt:base}">

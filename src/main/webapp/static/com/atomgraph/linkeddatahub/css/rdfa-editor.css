@@ -272,7 +272,7 @@
                 color: #0d47a1;
             }
 
-/* ToC jumps land below the fixed navbar */
+/* ToC jumps land below the sticky header */
             .rdfa-editor-content > * {
                 scroll-margin-top: 76px;
                 scroll-margin-bottom: 48px;

@@ -1098,9 +1098,9 @@ WHERE
         </xsl:if>
     </xsl:template>
 
-    <!-- intercept all HTML and SVG link clicks except to /uploads/ and those in the navbar (except breadcrumb bar, .brand and app list) and the footer -->
+    <!-- intercept all HTML and SVG link clicks except to /uploads/ and those in the header (except breadcrumb bar, .ldh-wordmark and app list) and the footer -->
     <!-- resolve URLs against the current document URL because they can be relative -->
-    <xsl:template match="a[not(@target)][starts-with(resolve-uri(@href, ldh:base-uri(.)), 'http://') or starts-with(resolve-uri(@href, ldh:base-uri(.)), 'https://')][not(starts-with(resolve-uri(@href, ldh:base-uri(.)), resolve-uri('uploads/', ldt:base())))][ancestor::div[contains-token(@class, 'breadcrumb-nav')] or not(ancestor::div[tokenize(@class, ' ') = ('navbar', 'footer')])] | a[contains-token(@class, 'brand')] | div[button[contains-token(@class, 'btn-apps')]]/div//a | svg:a[not(@target)][starts-with(resolve-uri(@href, ldh:base-uri(.)), 'http://') or starts-with(resolve-uri(@href, ldh:base-uri(.)), 'https://')][not(starts-with(resolve-uri(@href, ldh:base-uri(.)), resolve-uri('uploads/', ldt:base())))]" mode="ixsl:onclick">
+    <xsl:template match="a[not(@target)][starts-with(resolve-uri(@href, ldh:base-uri(.)), 'http://') or starts-with(resolve-uri(@href, ldh:base-uri(.)), 'https://')][not(starts-with(resolve-uri(@href, ldh:base-uri(.)), resolve-uri('uploads/', ldt:base())))][ancestor::div[contains-token(@class, 'breadcrumb-nav')] or not(ancestor::div[tokenize(@class, ' ') = ('ldh-header', 'ldh-footer')])] | a[contains-token(@class, 'ldh-wordmark')] | div[button[contains-token(@class, 'btn-apps')]]/div//a | svg:a[not(@target)][starts-with(resolve-uri(@href, ldh:base-uri(.)), 'http://') or starts-with(resolve-uri(@href, ldh:base-uri(.)), 'https://')][not(starts-with(resolve-uri(@href, ldh:base-uri(.)), resolve-uri('uploads/', ldt:base())))]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="href" select="xs:anyURI(resolve-uri(@href, ldh:base-uri(.)))" as="xs:anyURI"/>
         <xsl:variable name="parsed" select="ldh:parse-href($href)" as="map(xs:string, item()?)"/>
@@ -1129,7 +1129,7 @@ WHERE
         </xsl:choose>
     </xsl:template>
 
-    <xsl:template match="form[contains-token(@class, 'navbar-form')]" mode="ixsl:onsubmit">
+    <xsl:template match="form[contains-token(@class, 'ldh-address')]" mode="ixsl:onsubmit">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="uri-string" select=".//input[@name = 'uri']/ixsl:get(., 'value')" as="xs:string?"/>
 

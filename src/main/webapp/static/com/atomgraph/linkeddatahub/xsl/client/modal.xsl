@@ -81,7 +81,6 @@ LIMIT   10
                             <a class="ldhc-btn in-neutral ap-solid sz-lg" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank"><xsl:value-of select="ac:label(key('resources', 'learn-more', ldh:translations()))"/></a>
                         </p>
                     </div>
-                
                 </xsl:with-param>
             </xsl:apply-templates>
         </div>
@@ -352,9 +351,6 @@ LIMIT   10
                         </div>
                     </div>
                 </div>
-<!--                <div class="alert alert-info">
-                    <p>Adding data this way will cause a blocking request, so use it for small amounts of data only (e.g. a few thousands of RDF triples). For larger data, use asynchronous <a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/reference/imports/rdf/" target="_blank">RDF imports</a>.</p>
-                </div>-->
                 
                 </xsl:with-param>
             </xsl:apply-templates>
@@ -715,7 +711,7 @@ LIMIT   10
 
     <!-- close modal first time message -->
     
-    <xsl:template match="div[contains-token(@class, 'modal-first-time-message')]//button[contains-token(@class, 'close')]" mode="ixsl:onclick" priority="1">
+    <xsl:template match="div[contains-token(@class, 'modal-first-time-message')]//span[contains-token(@class, 'ldhc-modal-x')]/button" mode="ixsl:onclick" priority="1">
         <xsl:next-match/>
         
         <!-- set a cookie to never show it again. path=/ is scoped to the page origin (cookies are
@@ -2351,7 +2347,7 @@ LIMIT   10
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <div class="ldhc-modal-head">
                     <span class="ldhc-modal-x">
-                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
+                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
                     </span>
                 </div>
 

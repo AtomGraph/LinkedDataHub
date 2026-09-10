@@ -338,7 +338,7 @@ WHERE
                     <xsl:apply-templates select="key('resources', 'rdfa-annotation', ldh:translations())" mode="ac:label"/>
                 </legend>
                 <span class="ldhc-modal-x">
-                    <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close cancel-action" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
+                    <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost cancel-action" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
                 </span>
             </div>
             <div class="ldhc-modal-body">

@@ -119,12 +119,12 @@ version="3.0"
                                                         </xsl:value-of>
                                                     </th>
                                                     <!-- header colors match the diff colors: removed content comes from the From version, added content from the To version -->
-                                                    <th scope="col" role="columnheader" class="text-error">
+                                                    <th scope="col" role="columnheader" class="ldh-diff-tint va-negative">
                                                         <xsl:value-of>
                                                             <xsl:apply-templates select="key('resources', 'from', ldh:translations())" mode="ac:label"/>
                                                         </xsl:value-of>
                                                     </th>
-                                                    <th scope="col" role="columnheader" class="text-success">
+                                                    <th scope="col" role="columnheader" class="ldh-diff-tint va-success">
                                                         <xsl:value-of>
                                                             <xsl:apply-templates select="key('resources', 'to', ldh:translations())" mode="ac:label"/>
                                                         </xsl:value-of>

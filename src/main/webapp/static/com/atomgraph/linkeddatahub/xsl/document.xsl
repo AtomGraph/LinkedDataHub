@@ -536,20 +536,20 @@ exclude-result-prefixes="#all"
                                 <xsl:apply-templates select="key('resources', 'comparing-versions', ldh:translations())" mode="ac:label"/>
                             </xsl:value-of>
                             <xsl:text>: </xsl:text>
-                            <span class="text-error">
+                            <span class="ldh-diff-tint va-negative">
                                 <xsl:value-of>
                                     <xsl:apply-templates select="key('resources', 'removed', ldh:translations())" mode="ac:label"/>
                                 </xsl:value-of>
                             </span>
                             <xsl:text> / </xsl:text>
-                            <span class="text-success">
+                            <span class="ldh-diff-tint va-success">
                                 <xsl:value-of>
                                     <xsl:apply-templates select="key('resources', 'added', ldh:translations())" mode="ac:label"/>
                                 </xsl:value-of>
                             </span>
                             <xsl:text> / </xsl:text>
-                            <!-- the legend's .text-* classes resolve to the same tokens as the diff decorations (ldh.css) -->
-                            <span class="text-warning">
+                            <!-- the legend's .ldh-diff-tint variants resolve to the same tokens as the diff decorations (ldh.css) -->
+                            <span class="ldh-diff-tint va-warning">
                                 <xsl:value-of>
                                     <xsl:apply-templates select="key('resources', 'changed', ldh:translations())" mode="ac:label"/>
                                 </xsl:value-of>
@@ -559,7 +559,7 @@ exclude-result-prefixes="#all"
             </xsl:if>
 
             <!-- host for the RDFa editor toolbar (appended by rdfae:init-editing); empty until an editable region initializes -->
-            <div class="navbar-inner editor-bar">
+            <div class="editor-bar">
                 <div class="content-body"></div>
             </div>
 

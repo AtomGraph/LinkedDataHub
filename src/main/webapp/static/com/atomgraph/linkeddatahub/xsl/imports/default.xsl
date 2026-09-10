@@ -1823,7 +1823,7 @@ exclude-result-prefixes="#all"
                 </xsl:if>
 
                 <span class="ldhc-modal-x">
-                    <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost close" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
+                    <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
                 </span>
             </div>
             <div class="ldhc-modal-body{if ($flush) then ' is-flush' else ''}">
