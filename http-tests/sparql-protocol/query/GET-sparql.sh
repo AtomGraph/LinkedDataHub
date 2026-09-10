@@ -10,9 +10,12 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 # GET /sparql with a signed-up agent (no group) should return 200
 # The sparql-endpoint authorization grants acl:Read to acl:AuthenticatedAgent regardless of group membership
 
-curl -k -w "%{http_code}\n" -o /dev/null -s -G \
+actual=$(curl -k -w "%{http_code}" -o /dev/null -s -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: application/sparql-results+xml" \
   "${END_USER_BASE_URL}sparql" \
-  --data-urlencode "query=SELECT * { ?s ?p ?o } LIMIT 1" \
-| grep -q "$STATUS_OK"
+  --data-urlencode "query=SELECT * { ?s ?p ?o } LIMIT 1")
+expected="$STATUS_OK"
+echo "DEBUG: Expected: $expected"
+echo "DEBUG: Got: $actual"
+echo "$actual" | grep -qE "^(${expected})$"

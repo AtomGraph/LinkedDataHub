@@ -15,20 +15,21 @@ ldh admin add agent \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
 
-# check that non-existing document is not found
+# a DELETE of a non-existing document is forbidden (403), not 404: a typeless URL matches no authorization,
+# so the gate denies before the request reaches the handler
 
 curl -k -w "%{http_code}\n" -o /dev/null -s -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -X DELETE \
   -H "Accept: application/n-triples" \
   "${END_USER_BASE_URL}non-existing/" \
-| grep -q "$STATUS_NOT_FOUND"
+| grep -q "$STATUS_FORBIDDEN"
 
-# check that document without parent is not found
+# a DELETE of a document under a non-existing parent is likewise forbidden (403)
 
 curl -k -w "%{http_code}\n" -o /dev/null -s -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -X DELETE \
   -H "Accept: application/n-triples" \
   "${END_USER_BASE_URL}parent/non-existing/" \
-| grep -q "$STATUS_NOT_FOUND"
+| grep -q "$STATUS_FORBIDDEN"

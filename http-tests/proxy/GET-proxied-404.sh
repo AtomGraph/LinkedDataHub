@@ -20,11 +20,12 @@ ldh admin add agent \
 uuid=$(cat /proc/sys/kernel/random/uuid 2>/dev/null || uuidgen)
 non_existing_uri="${END_USER_BASE_URL}${uuid}/"
 
-# Attempt to proxy a non-existing document on the END_USER_BASE_URL
+# Attempt to proxy a non-existing document on the END_USER_BASE_URL.
+# The upstream fetch of a typeless (non-existing) URL is now denied (403), and the proxy relays that status.
 curl -k -s -o /dev/null -w "%{http_code}" \
   -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H 'Accept: application/n-triples' \
   --data-urlencode "uri=${non_existing_uri}" \
   "$END_USER_BASE_URL" \
-| grep -q "$STATUS_NOT_FOUND"
+| grep -q "$STATUS_FORBIDDEN"

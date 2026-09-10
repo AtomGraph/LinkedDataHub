@@ -26,7 +26,7 @@ ldh admin add agent \
 # admin and end-user share writer configs (same Accept → same negotiated type on both).
 # A UUID-named path that doesn't exist on either origin disambiguates:
 #   - bypass: ApplicationFilter strips ?uri= → request URI becomes admin root → 200
-#   - forward: proxy forwards the actual UUID path to end-user → 404
+#   - forward: proxy forwards the actual UUID path to end-user → 403 (authorization denies the typeless UUID path)
 
 accept_header='application/xml, text/xml;q=0.9, application/xhtml+xml;q=0.8, */*;q=0.7'
 non_existing_uri="${END_USER_BASE_URL}$(cat /proc/sys/kernel/random/uuid 2>/dev/null || uuidgen)/"
@@ -37,4 +37,4 @@ status=$(curl -k -s -G -o /dev/null -w "%{http_code}" \
   --data-urlencode "uri=${non_existing_uri}" \
   "$ADMIN_BASE_URL")
 
-[ "$status" = "$STATUS_NOT_FOUND" ] || exit 1
+[ "$status" = "$STATUS_FORBIDDEN" ] || exit 1

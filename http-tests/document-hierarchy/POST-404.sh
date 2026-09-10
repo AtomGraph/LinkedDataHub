@@ -15,7 +15,8 @@ ldh admin add agent \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
 
-# check that non-existing document is not found
+# a POST to a non-existing document is forbidden (403), not 404: a typeless URL matches no authorization,
+# so the gate denies before the request reaches the handler
 
 (
 curl -k -w "%{http_code}\n" -o /dev/null -s \
@@ -27,4 +28,4 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
 <http://s> <http://p> <http://o> .
 EOF
 ) \
-| grep -q "$STATUS_NOT_FOUND"
+| grep -q "$STATUS_FORBIDDEN"

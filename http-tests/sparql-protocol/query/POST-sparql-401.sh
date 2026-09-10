@@ -7,13 +7,16 @@ purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
-# POST /sparql without a certificate should return 401
+# POST /sparql without a certificate is denied with 403 (LDH issues no 401 challenge for unauthenticated requests)
 # The sparql-endpoint authorization grants acl:Append only to acl:AuthenticatedAgent, not foaf:Agent
 
-curl -k -w "%{http_code}\n" -o /dev/null -s \
+actual=$(curl -k -w "%{http_code}" -o /dev/null -s \
   -X POST \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -H "Accept: application/sparql-results+xml" \
   --data-urlencode "query=SELECT * { ?s ?p ?o } LIMIT 1" \
-  "${END_USER_BASE_URL}sparql" \
-| grep -q "$STATUS_UNAUTHORIZED"
+  "${END_USER_BASE_URL}sparql")
+expected="$STATUS_FORBIDDEN"
+echo "DEBUG: Expected: $expected"
+echo "DEBUG: Got: $actual"
+echo "$actual" | grep -qE "^(${expected})$"

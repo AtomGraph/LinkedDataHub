@@ -10,8 +10,11 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 # GET /settings with the owner should return 200
 # /settings is accessible to owners via full-control authorization
 
-curl -k -w "%{http_code}\n" -o /dev/null -s \
+actual=$(curl -k -w "%{http_code}" -o /dev/null -s \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
   -H "Accept: application/n-triples" \
-  "${END_USER_BASE_URL}settings" \
-| grep -q "$STATUS_OK"
+  "${END_USER_BASE_URL}settings")
+expected="$STATUS_OK"
+echo "DEBUG: Expected: $expected"
+echo "DEBUG: Got: $actual"
+echo "$actual" | grep -qE "^(${expected})$"

@@ -10,11 +10,14 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 # POST /sparql (query via POST form) with a signed-up agent (no group) should return 200
 # The sparql-endpoint authorization grants acl:Append to acl:AuthenticatedAgent regardless of group membership
 
-curl -k -w "%{http_code}\n" -o /dev/null -s \
+actual=$(curl -k -w "%{http_code}" -o /dev/null -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -X POST \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -H "Accept: application/sparql-results+xml" \
   --data-urlencode "query=SELECT * { ?s ?p ?o } LIMIT 1" \
-  "${END_USER_BASE_URL}sparql" \
-| grep -q "$STATUS_OK"
+  "${END_USER_BASE_URL}sparql")
+expected="$STATUS_OK"
+echo "DEBUG: Expected: $expected"
+echo "DEBUG: Got: $actual"
+echo "$actual" | grep -qE "^(${expected})$"
