@@ -87,6 +87,9 @@ WHERE
 
     FILTER(strstarts(str(?g), str($base)))
   }
+# fail-closed default: with no resource type injected, $Type is rdfs:Resource, which no acl:accessToClass uses,
+# so the class branches match nothing. SetResultSetValues replaces this block with the resource's real types.
+VALUES ?Type { rdfs:Resource }
 ]]></param-value>
     </context-param>
     <context-param>
@@ -145,6 +148,9 @@ WHERE
 
     FILTER(strstarts(str(?g), str($base)))
   }
+# fail-closed default: with no resource type injected, $Type is rdfs:Resource, which no acl:accessToClass uses,
+# so the class branches match nothing. SetResultSetValues replaces this block with the resource's real types.
+VALUES ?Type { rdfs:Resource }
 ]]></param-value>
     </context-param>
     <context-param>

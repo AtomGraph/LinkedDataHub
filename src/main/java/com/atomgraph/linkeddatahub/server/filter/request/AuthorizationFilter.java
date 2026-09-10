@@ -55,7 +55,6 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.RDF;
-import org.apache.jena.vocabulary.RDFS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -200,19 +199,15 @@ public class AuthorizationFilter implements ContainerRequestFilter
             }
          
             ParameterizedSparqlString pss = getApplication().get().canAs(EndUserApplication.class) ? getACLQuery() : getOwnerACLQuery();
+            // the ACL query carries a fail-closed default VALUES ?Type { rdfs:Resource } (see web.xml); when the resource
+            // (or its parent, on a PUT-create) has a type, override that block with the real types so acl:accessToClass
+            // grants match. A typeless resource keeps the default, whose class no authorization uses, so it matches nothing.
             if (aclTypesResult.hasNext())
             {
                 Query query = new SetResultSetValues().apply(pss.asQuery(), aclTypesResult);
                 pss = new ParameterizedSparqlString(query.toString()); // make sure type VALUES are now part of the query string
                 assert pss.toString().contains("VALUES");
             }
-            else
-                // resource has no rdf:type and no typed parent (e.g. /settings, /sparql, and other non-graph endpoints):
-                // bind $Type to a sentinel so the acl:accessToClass branch matches nothing. Left unbound, the triple
-                // pattern ?auth acl:accessToClass $Type wildcard-matches every class-based authorization, so a typeless
-                // resource would inherit every accessToClass grant. Mirrors the RDFS.Resource sentinel AuthorizationParams
-                // uses to disable the $agent/$AuthenticatedAgentClass branches.
-                pss.setIri("Type", RDFS.Resource.getURI());
 
             // note we're not setting the $mode value on the ACL queries as we want to provide the AuthorizationContext with all of the agent's authorizations
             authorizations.add(loadModel(getAdminService(), pss, new AuthorizationParams(getAdminBase(), accessTo, agent).get()));
