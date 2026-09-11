@@ -131,53 +131,29 @@ circle { cursor: move; }
    redraws, so these keep their laid-out body through loading (the bar still shows) - the behaviour
    before is-loading moved onto the block and activated this collapse */
 .ldh-block.is-loading:not(:has(.chart-canvas, .map-canvas, .graph-3d-canvas)) > .block-row { display: none; }
-/* ---------- results table. The design's core DataTable (.ac-table) puts its column tracks on
-   each <tr> as grid (--ac-cols), which fixes the column count per table. A SPARQL results table
-   has as many columns as the SELECT has variables, and per-row grids cannot share intrinsic track
-   sizes - measured at 11 columns, the head and body stop lining up under
-   repeat(N, minmax(max-content, 1fr)), and equal 1fr tracks shred a UUID column into four lines.
-   So this one keeps native table layout and takes the design's stated table treatment instead:
-   horizontal rules only, no vertical lines, header row on --surface-2. The sheet
-   (--surface-0 + border + radius) reads as its own surface inside an .ldh-nblock well rather than
-   letting the well's recession through its cells. Fixed-column tables (access matrix, version
-   history, packages) ride .ac-table proper ---------- */
-.ldh-results-table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); background: var(--surface-0); border: 1px solid var(--border-default); border-radius: var(--r-sm); }
-/* no overflow: hidden to clip the corners - it would make the table its own scrollport and leave
-   the sticky header inert; the corner cells carry the radius instead */
-.ldh-results-table > thead > tr:first-child > :first-child { border-top-left-radius: var(--r-sm); }
-.ldh-results-table > thead > tr:first-child > :last-child { border-top-right-radius: var(--r-sm); }
-/* middle, not top: cells hold single-line values sitting beside taller things - a type pill, an image - and the
-   design system centres a label against a control everywhere (.ac-btn, .ac-tag, .ac-badge), reserving
-   flex-start for a wrapping text block beside a fixed-height one (.ac-help, .ac-choice, .ac-toast) */
-.ldh-results-table th, .ldh-results-table td { padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--border-default); text-align: left; vertical-align: middle; }
-.ldh-results-table tr:last-child > td { border-bottom: 0; }
-/* the row lights as one band, the property-list hover's analog for a row-per-resource surface;
-   no sp-6 bleed into the card padding here - .container-results (overflow: auto) clips at the table edge */
-.ldh-results-table tbody td { transition: background var(--dur-fast) var(--ease-out-soft); }
-.ldh-results-table tbody tr:hover > td { background: var(--surface-1); }
-/* the design's head treatment: a mono uppercase eyebrow on the recessed surface, not a bold label */
-.ldh-results-table thead th { font-family: var(--font-mono); font-size: 10px; letter-spacing: var(--tracking-wide); text-transform: uppercase; font-weight: var(--fw-regular); color: var(--fg-hint); background: var(--surface-2); }
-/* image objects in a data cell: cap the height alone so the row height is uniform down the column
-   and the width stays proportional - a forced box would have to crop or letterbox, and a depiction
-   is as often a logo or a scan as it is a headshot. The <a> wrapper keeps the full image one click away */
-.ldh-results-table td img { max-height: var(--thumb-sm); border-radius: var(--r-xs); vertical-align: middle; }
+/* ---------- SPARQL results table: .ac-table plus the behaviour a data-driven result set needs.
+   The base skin - surface, border, radius, header eyebrow, row rules, hover - is the core
+   DataTable's and is no longer restated here; what follows is what a result set adds on top of it:
+   a header that pins while the rows scroll, sortable columns, and cells that hold images or a
+   stack of values for one predicate ---------- */
+.ac-table td img { max-height: var(--thumb-sm); border-radius: var(--r-xs); vertical-align: middle; }
 /* a property gets one cell however many values it has, so the values stack inside it, divided the way a predicate's
    dd's are in the property list. A table cell cannot bound its own height, so the cap rides the stack the cell holds:
    every value stays in the DOM and reachable by scrolling, instead of an order with fifty line items setting the row
    height for the whole table */
-.ldh-results-table td > .values { max-height: 12em; overflow-y: auto; min-width: 0; overflow-wrap: break-word; }
-.ldh-results-table td > .values > .value { padding: var(--sp-1) 0; }
-.ldh-results-table td > .values > .value:first-child { padding-top: 0; }
-.ldh-results-table td > .values > .value:last-child { padding-bottom: 0; }
-.ldh-results-table td > .values > .value ~ .value { border-top: 1px solid var(--border-default); }
+.ac-table td > .values { max-height: 12em; overflow-y: auto; min-width: 0; overflow-wrap: break-word; }
+.ac-table td > .values > .value { padding: var(--sp-1) 0; }
+.ac-table td > .values > .value:first-child { padding-top: 0; }
+.ac-table td > .values > .value:last-child { padding-bottom: 0; }
+.ac-table td > .values > .value ~ .value { border-top: 1px solid var(--border-default); }
 /* view table: the header row pins under the view toolbar while the rows scroll inside .container-results */
-.container-results > .ldh-results-table thead th { position: sticky; top: 0; z-index: 1; border-bottom: 1px solid var(--border-strong); }
+.container-results > .ac-table thead th { position: sticky; top: 0; z-index: 1; border-bottom: 1px solid var(--border-strong); }
 /* sortable columns read full-strength at rest so non-sortable headers (which keep the base th --fg-hint) visibly recede; the arrow surfaces on hover and stays lit on the active sort column (aria-sort) */
-.ldh-results-table th.sortable { cursor: pointer; user-select: none; white-space: nowrap; color: var(--fg-1); }
-.ldh-results-table th.sortable:hover { background: var(--surface-3); }
-.ldh-results-table th.sortable .sort-arrow { vertical-align: middle; margin-left: 2px; visibility: hidden; color: var(--fg-muted); }
-.ldh-results-table th.sortable:hover .sort-arrow { visibility: visible; }
-.ldh-results-table th.sortable[aria-sort] .sort-arrow { visibility: visible; color: var(--fg-1); }
+.ac-table th.sortable { cursor: pointer; user-select: none; white-space: nowrap; color: var(--fg-1); }
+.ac-table th.sortable:hover { background: var(--surface-3); }
+.ac-table th.sortable .sort-arrow { vertical-align: middle; margin-left: 2px; visibility: hidden; color: var(--fg-muted); }
+.ac-table th.sortable:hover .sort-arrow { visibility: visible; }
+.ac-table th.sortable[aria-sort] .sort-arrow { visibility: visible; color: var(--fg-1); }
 /* the pager is emitted inside .container-results beside the rows it pages (every view mode renders
    the two together, and a mode/facet/sort/page change replaces them as one), so it pins to the
    bottom edge of the scrollport the header pins to the top of and the rows scroll between them.
@@ -339,8 +315,8 @@ legend > .actions { display: flex; align-items: center; gap: var(--sp-1); margin
    control - the row then renders one line but keeps the two-line height, breaking app.css's
    read-row-height promise. A definite width sizes the line as drawn */
 .ldh-prop-row .val-main { width: 100%; }
-/* a value is a whole row rather than a table cell, so the image gets more height than in
-   .ldh-results-table - enough to read, still short of pushing the rest of the property list off-screen.
+/* a value is a whole row rather than a table cell, so the image gets more height than the cap a
+   data table's cell takes - enough to read, still short of pushing the property list off-screen.
    This also lands in the map info window, whose overlay hosts a .ldh-block property list */
 .ldh-prop-row > .value img { max-width: 100%; max-height: var(--thumb-md); border-radius: var(--r-sm); }
 /* a block header with an image adopts the property-grid geometry (label track + gutter), so the

@@ -83,9 +83,10 @@
 }
 .ac-table.ap-plain { border: 0; border-radius: 0; background: transparent; }
 .ac-table caption { caption-side: top; }
-/* border-radius does not clip the corner cells of a border-collapse table, so
-   overflow: hidden would do nothing here — the corner cells round themselves.
-   Same trap .ldh-results-table documents in ldh.css. */
+/* border-radius does not clip the corner cells of a border-collapse table, so the corner cells
+   round themselves. overflow: hidden is not the fix and would cost: it makes the table its own
+   scrollport, which leaves a position: sticky header inert — and a result set pinned under a
+   toolbar is exactly where that matters. */
 .ac-table > thead > tr:first-child > *:first-child { border-top-left-radius: var(--r-md); }
 .ac-table > thead > tr:first-child > *:last-child  { border-top-right-radius: var(--r-md); }
 .ac-table.ap-plain > thead > tr:first-child > * { border-radius: 0; }

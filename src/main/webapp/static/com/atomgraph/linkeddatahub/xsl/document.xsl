@@ -766,14 +766,13 @@ exclude-result-prefixes="#all"
 
     <!-- TABLE MODE -->
 
-    <!-- SPARQL SELECT results keep .ldh-results-table (native table layout): the column count is
-         data-driven, which the design's grid-per-row .ac-table cannot share intrinsic tracks for
-         (see the results-table section in ldh.css). The shadow adds the semantic-markup
+    <!-- SPARQL SELECT results ride the core DataTable. No colgroup: the column count is data-driven,
+         so the widths are the table algorithm's to negotiate. The shadow adds the semantic-markup
          contract's visually-hidden caption and th scope on top of Web-Client's emitter -->
     <xsl:template match="srx:sparql" mode="ac:ResultsTable">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="title" as="xs:string?"/>
-        <xsl:param name="class" select="'ldh-results-table'" as="xs:string?"/>
+        <xsl:param name="class" select="'ac-table is-hoverable'" as="xs:string?"/>
 
         <table>
             <xsl:if test="$id">
@@ -802,7 +801,7 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="rdf:RDF" mode="ac:ResultsTable">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'ldh-results-table'" as="xs:string?"/>
+        <xsl:param name="class" select="'ac-table is-hoverable'" as="xs:string?"/>
         <xsl:param name="property-uris" select="distinct-values(*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
         <xsl:param name="property-metadata" select="if (exists($property-uris)) then ldh:send-request(resolve-uri('ns', ldt:base()), 'POST', 'application/sparql-query', 'DESCRIBE $Type' || ' VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }', map{ 'Accept': 'application/rdf+xml' }) else ()" as="document-node()?" tunnel="yes"/>
         <xsl:param name="predicates" as="element()*">
@@ -816,9 +815,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="object-uris" select="rdf:Description/*/@rdf:resource[not(key('resources', .))]" as="xs:anyURI*"/>
         <xsl:param name="object-metadata" select="if (exists($object-uris)) then ldh:send-request(sd:endpoint(), 'POST', 'application/sparql-query', $object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }', map{ 'Accept': 'application/rdf+xml' }) else ()" as="document-node()?" tunnel="yes"/>
 
-        <!-- .ldh-results-table keeps native table layout for the data-driven column count (see the
-             results-table section in ldh.css); the shadow adds the semantic-markup contract's
-             visually-hidden caption and th scope on top of Web-Client's emitter -->
+        <!-- the core DataTable, sized by the table algorithm rather than a colgroup: a described
+             resource's predicates are the columns, so the count is data-driven; the shadow adds the
+             semantic-markup contract's visually-hidden caption and th scope on top of Web-Client's -->
         <table>
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
