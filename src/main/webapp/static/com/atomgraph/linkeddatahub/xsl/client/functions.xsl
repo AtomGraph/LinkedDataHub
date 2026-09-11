@@ -178,9 +178,9 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:css-token" as="xs:string">
         <xsl:param name="name" as="xs:string"/>
 
-        <!-- getPropertyValue rather than ixsl:get on the declaration: a custom property is not exposed as a
-             property of CSSStyleDeclaration, only through the indexed accessor -->
-        <xsl:sequence select="normalize-space(ixsl:call(ixsl:style(ixsl:page()/*), 'getPropertyValue', [ $name ]))"/>
+        <!-- ixsl:style() hands back a map of the computed style, not the CSSStyleDeclaration itself, so the
+             token is a key lookup; custom properties are in it because getComputedStyle enumerates them -->
+        <xsl:sequence select="normalize-space(ixsl:style(ixsl:page()/*)($name))"/>
     </xsl:function>
     
     <!-- format URLs in DataTable as HTML links. !!! Saxon-JS cannot intercept Google Charts events, therefore set a full proxied URL !!! -->
