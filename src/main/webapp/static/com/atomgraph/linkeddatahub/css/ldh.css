@@ -43,15 +43,6 @@ a.external::after { content: "⤴"; padding-left: 0.2em; }
    the card edges - the table can stay flush because its border draws inside. In the design system the
    grid lives in normal flow; the page scrolls it, and the sticky pager pins to that scrollport instead */
 .container-results:has(> .ldh-grid-block) { max-height: none; overflow: visible; }
-/* the design's GridCard image slot is a decorative block with a glyph in it; LDH's card puts a real
-   <img> there whenever the resource has an ac:image(), so the image has to fill the slot's 4:3 box
-   itself. The slot is a flex item of the column-flex card, where min-height: auto resolves to the
-   image's transferred content size and outvotes the slot's own aspect-ratio - a tall source (a 400x1400
-   coat of arms) then drove the card to the image's height. min-height: 0 lets the ratio hold, and the
-   image fits the box it is given rather than sizing it - contain rather than cover, because ac:image()
-   is as often an emblem or a diagram as a photograph, and cropping one to fill a 4:3 box loses the subject */
-.ldh-grid-block .card .img { min-height: 0; }
-.ldh-grid-block .card .img img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .map-canvas { height: 45em; width: 100%; }
 #uri { height: 24px; width: 100%; }
 /* Web-Client's default resource templates emit p.description summaries LDH does not surface */
@@ -624,55 +615,6 @@ body:has(.document-body > .content-body > :is(.graph-3d-canvas, .map-canvas)) .l
   color: var(--ldh-blue-600);
 }
 .facet-pill.parallax-step .x:hover { background: rgba(0,0,0,0.06); }
-
-/* the card anchors its corner affordances (.links-nav, .btn-copy-uri) and the block-scoped
-   .ldh-drawer, and must not clip the dropdown menus (.modes-pop, .ldh-add-menu) that render
-   inline inside it - the design repo's card re-introduced overflow clipping and dropped the anchor */
-.ldh-block { position: relative; overflow: visible; }
-
-/* Content-slot chrome - a documented divergence from the design repo, which has no carrier concept
-   (one block = one resource = one header). XHTML and Object content blocks render headerless; the
-   slot's chrome splits by the polarity the block header always had: the drag grip on the left (the
-   rail, hover/focus-surfaced, grab treatment from app.css's .ldh-bh-drag base), everything actionable
-   on the right (the Object carrier's slot bar below; the corner cluster that anchors an XHTML
-   resource's own actions top-right, staying put while its links popover is open) */
-.ldh-block-rail { position: absolute; top: 0; left: 0; bottom: 0; width: 22px; display: flex; flex-direction: column; align-items: center; opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft); z-index: 5; }
-.ldh-block:hover > .ldh-block-rail, .ldh-block-rail:focus-within { opacity: 1; }
-.ldh-block-rail > .ldh-bh-drag { flex: 1 1 auto; height: auto; width: 22px; margin-top: 0; }
-
-/* Slot bar - the Object carrier's top-edge chrome, tinted apart from the embedded block's surface to
-   mark the nesting, just tall enough for the right-aligned actions cluster. The native details
-   discloses the carrier's label inline at constant band height (details laid out as a flex row, so
-   the [open] content lands beside the chevron, never below it); disclosure grammar borrowed from
-   app.css's .ldh-block-detail. Authoring chrome: emitted only under acl:Write - read-only viewers
-   keep the is-embedded hairline as the embedding signal */
-/* positioned above the rail: the rail's strip overlays the card's left edge (hit-testable even at
-   opacity 0), and the bar's disclosure sits within its 22px - the bar wins the top band */
-.ldh-slot-bar { position: relative; z-index: 6; display: flex; align-items: center; gap: var(--sp-2); min-height: 32px; padding: 0 var(--sp-2) 0 var(--sp-3); background: var(--surface-1); border-bottom: 1px solid var(--border-default); border-top-left-radius: inherit; border-top-right-radius: inherit; }
-.ldh-slot-bar > details { display: flex; align-items: center; gap: var(--sp-2); min-width: 0; }
-.ldh-slot-bar summary { display: inline-flex; align-items: center; cursor: pointer; list-style: none; color: var(--fg-hint); border-radius: var(--r-xs); }
-.ldh-slot-bar summary::-webkit-details-marker { display: none; }
-.ldh-slot-bar summary:hover { color: var(--fg-2); }
-.ldh-slot-bar summary:focus-visible { outline: 0; box-shadow: var(--focus-ring); }
-.ldh-slot-bar summary .msi { transition: transform var(--dur-fast) var(--ease-out-soft); }
-.ldh-slot-bar details[open] summary .msi { transform: rotate(90deg); }
-.ldh-slot-bar .ttl { font-size: var(--fs-sm); color: var(--fg-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ldh-slot-bar > .actions { margin-left: auto; display: flex; align-items: center; gap: var(--sp-1); }
-.ldh-block-corner { position: absolute; top: var(--sp-3); right: var(--sp-3); display: flex; align-items: center; gap: var(--sp-1); opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft); }
-/* ac:BlockActions wraps its buttons in a div of its own - flatten it into the cluster row */
-.ldh-block-corner > div:not(.links-nav) { display: contents; }
-.ldh-block:hover > .ldh-block-corner, .ldh-block > .ldh-block-corner:focus-within, .ldh-block > .ldh-block-corner:has(.is-open) { opacity: 1; }
-
-/* Embedded resource card (an ldh:Object's rdf:value): the block's single header-bearing surface.
-   Flattened onto the carrier card - no surface, shadow or hover lift of its own - with an inset left
-   hairline as the embedding signal, distinguishing it from the same resource rendered standalone in
-   ReadMode. :root matches the skins' base and hover specificity so load order wins */
-:root .ldh-block.is-embedded { background: transparent; border: 0; border-radius: 0; box-shadow: inset 2px 0 0 var(--border-default); }
-:root .ldh-block.is-embedded:hover { transform: none; box-shadow: inset 2px 0 0 var(--border-default); }
-/* the hover card lift is an elevation affordance, so quiet blocks - which the skins already exempt
-   from the hover shadow - must not take it either: on a transparent prose block the 1px translate
-   reads as the text wiggling. :root matches the skins' (0,4,0) hover specificity so load order wins */
-:root .ldh-block.is-quiet:hover { transform: none; }
 
 /* mode switchers (the document- and view-scoped variants share the template): the trigger is a
    native button inside the .ldh-mode pill, so it must not paint its own chrome */

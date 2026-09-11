@@ -510,6 +510,18 @@
 }
 :root[data-retro="glass"] .ldh-block:hover { box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,0.9); }
 :root[data-retro="glass"] .ldh-block.is-quiet { border: 0; background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; }
+/* No elevation → no lift, and an embedded card keeps only its hairline — a
+   frosted surface inside a frosted surface reads as a rendering bug. */
+:root[data-retro="glass"] .ldh-block.is-quiet:hover,
+:root[data-retro="glass"] .ldh-block.is-embedded:hover { transform: none; }
+:root[data-retro="glass"] .ldh-block.is-embedded,
+:root[data-retro="glass"] .ldh-block.is-embedded:hover {
+  background: transparent; border: 0; /* inherit, not 0: the carrier is rounded and no longer clips, so a
+     square-cornered inset hairline escapes past its corners. */
+  border-radius: inherit;
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+  box-shadow: inset 2px 0 0 var(--border-default);
+}
 
 /* Grid cards + their image headers go glassy too */
 :root[data-retro="glass"] .ldh-grid-block .card {
@@ -695,6 +707,16 @@ blue glow — overrides the
 }
 :root[data-retro="glasspro"] .ldh-block:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
 :root[data-retro="glasspro"] .ldh-block.is-quiet { border: 0; background: transparent; box-shadow: none; }
+/* glasspro lifts 1px on hover, so both exemptions are load-bearing here. */
+:root[data-retro="glasspro"] .ldh-block.is-quiet:hover,
+:root[data-retro="glasspro"] .ldh-block.is-embedded:hover { transform: none; box-shadow: none; }
+:root[data-retro="glasspro"] .ldh-block.is-embedded,
+:root[data-retro="glasspro"] .ldh-block.is-embedded:hover {
+  background: transparent; border: 0; /* inherit, not 0: the carrier is rounded and no longer clips, so a
+     square-cornered inset hairline escapes past its corners. */
+  border-radius: inherit;
+  box-shadow: inset 2px 0 0 var(--border-default);
+}
 :root[data-retro="glasspro"] .ldh-grid-block .card { overflow: hidden; }
 /* Keep the property editor / statement list flat-white for max legibility */
 :root[data-retro="glasspro"] .ldh-prop-form,
@@ -800,6 +822,17 @@ but a touch more solid ---- */
    clear .is-quiet, or the "no chrome" variant keeps the skin's shadow. */
 :root[data-retro="aurora"] .ldh-block.is-quiet,
 :root[data-retro="aurora"] .ldh-block.is-quiet:hover { box-shadow: none; }
+/* No elevation → no lift. On a transparent prose block the 1px translate reads
+   as the text wiggling. Embedded cards keep only their hairline. */
+:root[data-retro="aurora"] .ldh-block.is-quiet:hover,
+:root[data-retro="aurora"] .ldh-block.is-embedded:hover { transform: none; }
+:root[data-retro="aurora"] .ldh-block.is-embedded,
+:root[data-retro="aurora"] .ldh-block.is-embedded:hover {
+  background: transparent; border: 0; /* inherit, not 0: the carrier is rounded and no longer clips, so a
+     square-cornered inset hairline escapes past its corners. */
+  border-radius: inherit;
+  box-shadow: inset 2px 0 0 var(--border-default);
+}
 
 /* =========================================================================
    7 · M3  —  MATERIAL DESIGN 3 FOUNDATIONS  (feeler theme)
@@ -1086,6 +1119,20 @@ but a touch more solid ---- */
   overflow: hidden;
 }
 :root[data-retro^="m3"] .ldh-block.is-quiet { background: transparent; box-shadow: none; }
+:root[data-retro^="m3"] .ldh-block.is-quiet:hover,
+:root[data-retro^="m3"] .ldh-block.is-embedded:hover { transform: none; box-shadow: none; }
+:root[data-retro^="m3"] .ldh-block.is-embedded,
+:root[data-retro^="m3"] .ldh-block.is-embedded:hover {
+  background: transparent; border: 0; /* inherit, not 0: the carrier is rounded and no longer clips, so a
+     square-cornered inset hairline escapes past its corners. */
+  border-radius: inherit;
+  box-shadow: inset 2px 0 0 var(--md-outline-variant, var(--border-default));
+}
+/* The slot bar takes the skin's own toolbar tint. */
+:root[data-retro^="m3"] .ldh-slot-bar {
+  background: var(--md-surface-container-low, var(--surface-1));
+  border-bottom-color: var(--md-outline-variant, var(--border-default));
+}
 :root[data-retro^="m3"] .ldh-grid-block .card { overflow: hidden; }
 
 /* ---- Top app bar (M3): surface-container, on-surface text, hairline divider,
@@ -1426,6 +1473,27 @@ pressed 10%). ---- */
 :root[data-retro="m3-dark"] .ldh-block:hover {
   box-shadow: 0 2px 4px rgba(0,0,0,0.40), 0 8px 18px 1px rgba(0,0,0,0.34);
   transform: translateY(-1px);
+}
+/* m3-dark restates .ldh-block AFTER the [data-retro^="m3"] rules at the same
+   specificity, so it wins on load order — the quiet/embedded exemptions have to
+   be repeated here or a dark embedded card gets a surface and a lift. */
+:root[data-retro="m3-dark"] .ldh-block.is-quiet,
+:root[data-retro="m3-dark"] .ldh-block.is-quiet:hover { background: transparent; box-shadow: none; transform: none; }
+:root[data-retro="m3-dark"] .ldh-block.is-embedded,
+:root[data-retro="m3-dark"] .ldh-block.is-embedded:hover {
+  background: transparent; border: 0; /* inherit, not 0: the carrier is rounded and no longer clips, so a
+     square-cornered inset hairline escapes past its corners. */
+  border-radius: inherit; transform: none;
+  box-shadow: inset 2px 0 0 var(--md-outline-variant, var(--border-default));
+}
+/* The slot bar's job is to be tinted APART from the card it sits on. The
+   [data-retro^="m3"] rule gives it --md-surface-container-low — which is
+   exactly what m3-dark's own .ldh-block uses, so the two collide at #171c21
+   and the nesting signal vanishes. A step up reads clearly against it.
+   The `^="m3"` prefix looks like coverage but isn't when the dark variant
+   restates the token: check the value, not just the selector. */
+:root[data-retro="m3-dark"] .ldh-slot-bar {
+  background: var(--md-surface-container-high, var(--surface-2));
 }
 :root[data-retro="m3-dark"] .ac-btn.ap-outline:hover,
 :root[data-retro="m3-dark"] .ac-btn.ap-ghost:hover { box-shadow: inset 0 0 0 999px rgba(158,202,255,0.08); }
