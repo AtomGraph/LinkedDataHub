@@ -1101,7 +1101,7 @@ exclude-result-prefixes="#all"
         <!-- first time rendering the view results -->
         <xsl:if test="$initial-load">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <!-- no body title: the card's own ldh-block-head (or the nblock head) carries it -->
+                <!-- no body title: the card's own ldh-block-head carries it, derived and authored alike -->
                 <div class="ldh-view-toolbar">
                     <div class="left">
                         <span class="facet-lead">
@@ -3502,7 +3502,7 @@ exclude-result-prefixes="#all"
 
         <xsl:message>ldh:refresh-view block-id: '<xsl:value-of select="$block-id"/>' matched views: <xsl:value-of select="count((id($block-id, ixsl:page())//div[@typeof = '&ldh;View'])[1])"/></xsl:message>
 
-        <!-- shape-agnostic: legacy blocks nest the typed div under div.row-main, nblocks under div.ldh-nblock-body; document order keeps [1] on the block's own typed div even when sub-views are injected inside its results -->
+        <!-- shape-agnostic: the typed div sits at a different depth depending on whether the block is a row's card or an ldh:Object embed; document order keeps [1] on the block's own typed div even when sub-views are injected inside its results -->
         <xsl:for-each select="(id($block-id, ixsl:page())//div[@typeof = '&ldh;View'])[1]">
             <xsl:variable name="container" select="." as="element()"/>
             <xsl:variable name="cache" select="ldh:view-cache($container)" as="item()"/>

@@ -542,61 +542,53 @@ exclude-result-prefixes="#all"
          per-type variance lives in the ldh:Block card mode below. Emitted by both products so that server- and
          client-rendered markup have the same shape: the ontology-driven view injection in client/block.xsl keys
          off this exact nesting (outer div.ldh-block-row[@about] / div.row-main / inner div.block[@typeof]).
-         An ontology-injected (derived) block renders as the nested-block well instead: no row layer, and the
-         stored-block chrome is omitted - drag reorder needs rdf:_N membership, the row edit form needs a subject
-         that exists in the graph, and the host block's bar already spans this block's load - so only the head
-         and the RDFa body remain -->
+         $row-member says the row already exists and this block is a member of it - the ontology-injected
+         (derived) view, which client/block.xsl appends into the host resource's .row-main. Only the row layer
+         is skipped; the card itself comes from the same ldh:Block mode a stored block uses, so a derived view
+         and an authored one cannot drift apart. The scaffolding's own attributes (@id, the diff mark) land on
+         the card, since there is no row to carry them. Which chrome a member drops is the CALLER's to say -
+         the same parameters ldh:Object's embed passes in client/block/object.xsl - because it is derivation,
+         not membership, that costs a block its drag grip and its edit pencil -->
     <!-- TO-DO: replace with fully client-side wrapper in ldh:RenderRow in block.xsl -->
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ldh:BlockRow">
         <xsl:param name="id" select="if (contains(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#')) then substring-after(@rdf:about, ac:absolute-path(ldh:base-uri(.)) || '#') else generate-id()" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
-        <xsl:param name="typeof" select="rdf:type/@rdf:resource/xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="style" as="xs:string?"/>
         <xsl:param name="draggable" select="false()" as="xs:boolean?"/>
         <xsl:param name="show-block-bar" select="true()" as="xs:boolean"/>
         <xsl:param name="show-drag-handle" select="true()" as="xs:boolean" tunnel="yes"/>
-        <xsl:param name="nested" select="false()" as="xs:boolean"/>
-        <xsl:param name="depth" select="1" as="xs:integer"/>
+        <xsl:param name="row-member" select="false()" as="xs:boolean"/>
         <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
         <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
         <xsl:variable name="diff-class" select="ldh:diff-class(., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
 
         <xsl:choose>
-            <xsl:when test="$nested">
-                <xsl:variable name="block-type" select="(rdf:type/@rdf:resource[. = ('&ldh;Object', '&ldh;View', '&ldh;GraphChart', '&ldh;ResultSetChart', '&sp;Describe', '&sp;Construct', '&sp;Ask', '&sp;Select')])[1]" as="xs:anyURI?"/>
-                <xsl:variable name="glyph" select="map{ '&ldh;View': 'table_rows', '&ldh;GraphChart': 'show_chart', '&ldh;ResultSetChart': 'show_chart', '&sp;Describe': 'code', '&sp;Construct': 'code', '&sp;Ask': 'code', '&sp;Select': 'code' }(string($block-type))" as="xs:string?"/>
-
-                <div>
-                    <xsl:if test="$id">
-                        <xsl:attribute name="id" select="$id"/>
-                    </xsl:if>
-                    <xsl:attribute name="class" select="string-join(('block ldh-nblock', $diff-class), ' ')"/>
-                    <xsl:if test="$about">
-                        <xsl:attribute name="about" select="$about"/>
-                    </xsl:if>
-                    <xsl:attribute name="data-depth" select="min((3, $depth))"/>
-
-                    <!-- THE header - the same component as a top-level block's, at compact density: depth
-                         changes the density, never the structure. Links stay off inside the well, and the
-                         derived block is not reorderable (no rdf:_N membership), so no drag slot either -->
-                    <xsl:apply-templates select="." mode="ac:BlockHeader">
-                        <xsl:with-param name="density" select="'compact'"/>
-                        <xsl:with-param name="icon" select="($glyph, 'widgets')[1]"/>
-                        <xsl:with-param name="show-links" select="false()"/>
-                        <!-- no edit pencil at any access level: the derived resource is no subject in a
-                             retrievable document graph (the row form's exactly-one $resource comes up
-                             empty), and ontology terms are authored in the admin app, not row forms -->
-                        <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
+            <xsl:when test="$row-member">
+                <xsl:variable name="card" as="element()?">
+                    <xsl:apply-templates select="." mode="ldh:Block">
+                        <xsl:with-param name="about" select="$about"/>
+                        <xsl:with-param name="mode" select="$mode"/>
+                        <xsl:with-param name="style" select="$style"/>
+                        <xsl:with-param name="show-block-bar" select="$show-block-bar"/>
                     </xsl:apply-templates>
-                    <div class="ldh-nblock-body">
-                        <div class="block-row" typeof="{string-join($typeof, ' ')}">
-                            <div class="main">
-                                <xsl:apply-templates select="." mode="ac:PropertyEditor"/>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                </xsl:variable>
+
+                <!-- the row's attributes move onto the card: @id keeps the fragment addressable (the
+                     block's @about ends in it, and ldh:RenderTab's deferred scroll lands on it), and the
+                     diff mark joins the card's own class rather than replacing it -->
+                <xsl:for-each select="$card">
+                    <xsl:copy>
+                        <xsl:copy-of select="@*"/>
+                        <xsl:if test="$id">
+                            <xsl:attribute name="id" select="$id"/>
+                        </xsl:if>
+                        <xsl:if test="$diff-class">
+                            <xsl:attribute name="class" select="string-join((@class, $diff-class), ' ')"/>
+                        </xsl:if>
+                        <xsl:copy-of select="node()"/>
+                    </xsl:copy>
+                </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
                 <div>
@@ -899,7 +891,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="density" select="'default'" as="xs:string"/> <!-- default | compact: nesting depth, not type -->
         <xsl:param name="icon" as="xs:string?"/>
         <xsl:param name="draggable" select="false()" as="xs:boolean"/>
-        <xsl:param name="show-links" select="true()" as="xs:boolean"/>
+        <xsl:param name="show-links" select="true()" as="xs:boolean" tunnel="yes"/>
 
         <div>
             <xsl:if test="$id">

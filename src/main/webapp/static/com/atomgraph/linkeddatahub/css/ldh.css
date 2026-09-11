@@ -175,6 +175,34 @@ circle { cursor: move; }
 .content-body .ldh-block, .content-body .ac-alert { margin-bottom: var(--sp-4); }
 /* one card layer only: CSR hydration can re-render a row as a card inside the SSR wrapper card */
 .ldh-block .ldh-block { border: 0; box-shadow: none; border-radius: 0; background: transparent; margin-bottom: 0; }
+
+/* ---------- grouped row: a resource and the views its ontology derives from it ----------
+   client/block.xsl appends an ontology-injected view into the host resource's .row-main, so the row
+   already holds the resource and everything derived from it - the relationship is in the DOM and was
+   simply never painted. The ROW takes the card surface and its members flatten onto it: the same
+   "one card layer only" trade as above, one level up. No card ends up containing another resource,
+   so the block contract holds - every member is a peer with its own header - and the is-embedded
+   hairline keeps the meaning it has in an ldh:Object slot, marking a card whose resource was fetched
+   from somewhere else.
+   The two :has() tests together say "a row holding a block of its own AND something derived from it",
+   which is what separates this from the Object embed's inner .row-main - that one holds the embedded
+   card alone, and its surface belongs to the carrier. */
+.row-main:has(> .ldh-block:not(.is-embedded)):has(> .ldh-block.is-embedded) { background: var(--bg-card); border: 1px solid var(--border-default); border-radius: var(--r-lg); margin-bottom: var(--sp-4); }
+/* No skin rule needed: --bg-card tracks --surface-0, which every skin redefines for its own card
+   (m3 maps it to --md-surface-container-lowest), and the m3 block below already rests flat on the
+   same 1px border. */
+.row-main:has(> .ldh-block:not(.is-embedded)):has(> .ldh-block.is-embedded) > .ldh-block { background: transparent; border: 0; border-radius: 0; margin-bottom: 0; }
+/* The is-embedded hairline goes too, and the :hover pair is what takes it: app.css paints it as an
+   inset 2px on the LEFT only, which in a carrier runs the card's full height and reads as a slightly
+   heavier edge. Here it would sit immediately inside the row's own 1px left border in the same
+   --border-default, so the card's edge would step 1px -> 3px at the first derived member and back.
+   It buys nothing to pay that with: the divider already separates every member, and every member
+   below the first IS derived, so the mark states what position already states. The class stays -
+   it is what the :has() tests above read to recognise a grouped row. */
+.row-main:has(> .ldh-block:not(.is-embedded)):has(> .ldh-block.is-embedded) > .ldh-block, .row-main:has(> .ldh-block:not(.is-embedded)):has(> .ldh-block.is-embedded) > .ldh-block:hover { box-shadow: none; }
+/* Members are divided by a rule, not a gap - a gap would show the page through the card. It is also
+   what lets the shape survive multiplicity: a class can attach any number of views to a resource. */
+.row-main:has(> .ldh-block:not(.is-embedded)):has(> .ldh-block.is-embedded) > .ldh-block + .ldh-block { border-top: 1px solid var(--border-default); }
 /* ---------- cards: the m3 skin's resting M3-elevation shadow reads as a doubled bottom border;
      the design's card preview shows the bordered treatment, so keep the m3 palette but rest flat ---------- */
 :root[data-retro^="m3"] .ldh-block {

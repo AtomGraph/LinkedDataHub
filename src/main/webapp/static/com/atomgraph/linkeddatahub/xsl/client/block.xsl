@@ -985,19 +985,37 @@ exclude-result-prefixes="#all"
                         <!-- append into the wrapper's .span12 so the new block's ancestor::*[@about][1] is the outer #this with @about ending in #this -->
                         <xsl:for-each select="$span12">
                             <xsl:result-document href="?." method="ixsl:append-content">
+                                <!-- the same card a stored view block is, minus the chrome a derived block cannot
+                                     carry - the parameter set ldh:Object's embed passes in block/object.xsl, since
+                                     both render a resource fetched from another document into this one's flow.
+                                     is-embedded says so in the DOM and is what ldh.css reads to recognise a grouped
+                                     row; it paints nothing here, since the row is the surface and members flatten.
+                                     No drag grip or reorder (that needs rdf:_N membership in this document), no
+                                     loading bar (the host block's own bar already spans this load), no edit pencil at
+                                     any access level (the derived resource is no subject in a retrievable document
+                                     graph, so the row form's exactly-one $resource comes up empty, and ontology terms
+                                     are authored in the admin app), and no backlinks (they would query the synthetic
+                                     #id fragment below, which no graph holds) -->
                                 <xsl:apply-templates select="$view-resource" mode="ldh:BlockRow">
                                     <xsl:with-param name="about" select="xs:anyURI($base-uri || '#' || $id)"/>
                                     <xsl:with-param name="id" select="$id"/>
-                                    <xsl:with-param name="nested" select="true()"/>
-                                    <xsl:with-param name="depth" select="count($container/ancestor-or-self::div[contains-token(@class, 'block') or contains-token(@class, 'ldh-block-row')])"/>
+                                    <xsl:with-param name="row-member" select="true()"/>
+                                    <xsl:with-param name="show-block-bar" select="false()"/>
+                                    <xsl:with-param name="embedded" select="true()" tunnel="yes"/>
+                                    <xsl:with-param name="show-drag-handle" select="false()" tunnel="yes"/>
+                                    <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
+                                    <xsl:with-param name="show-links" select="false()" tunnel="yes"/>
                                     <xsl:with-param name="property-metadata" select="$context('property-metadata')" tunnel="yes"/>
                                     <xsl:with-param name="object-metadata" select="$context('object-metadata')" tunnel="yes"/>
                                 </xsl:apply-templates>
                             </xsl:result-document>
                         </xsl:for-each>
 
-                        <!-- hydrate the freshly-injected wrapper via the existing view.xsl:62 RenderRow handler -->
-                        <xsl:variable name="injected" select="$span12/*[last()]" as="element()?"/>
+                        <!-- hydrate the freshly-injected wrapper via the existing view.xsl:62 RenderRow handler.
+                             Addressed by @id, not by position: a resource carrying several ontology views has one
+                             of these chains per view running concurrently under the ixsl:all fan-out, and $id is
+                             already unique per host-and-view -->
+                        <xsl:variable name="injected" select="$span12/*[@id = $id]" as="element()?"/>
                         <xsl:choose>
                             <xsl:when test="exists($injected)">
                                 <!-- stamp inline-creation metadata before hydration so ldh:RenderViewResults can read it off the wrapper -->
@@ -1188,7 +1206,7 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="container" select="$context('container')" as="element()"/>
 
-        <!-- end the loading state of the container's own block: an nblock container nested in a host embed never carries the state itself, so the nearest-block test keeps this call off the host's bar -->
+        <!-- end the loading state of the container's own block: a derived or embedded container never carries the state itself, so the nearest-block test keeps this call off the host's bar -->
         <xsl:for-each select="$container/ancestor-or-self::div[contains-token(@class, 'block')][1][contains-token(@class, 'is-loading')]">
             <xsl:for-each select="./div[contains-token(@class, 'ldh-block-bar')]">
                 <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
@@ -1249,7 +1267,7 @@ exclude-result-prefixes="#all"
         <xsl:if test="map:contains($context, 'container')">
             <xsl:variable name="container" select="$context('container')" as="element()"/>
 
-            <!-- the bar must belong to the container's own block (an nblock container would otherwise drive its host's bar) -->
+            <!-- the bar must belong to the container's own block (a derived or embedded container would otherwise drive its host's bar) -->
             <xsl:for-each select="$container/ancestor-or-self::div[contains-token(@class, 'block')][1][contains-token(@class, 'is-loading')]">
                 <xsl:for-each select="./div[contains-token(@class, 'ldh-block-bar')]">
                     <!-- a determinate width stops the indeterminate sweep -->
