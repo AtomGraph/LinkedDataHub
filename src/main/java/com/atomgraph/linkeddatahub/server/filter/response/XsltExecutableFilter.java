@@ -18,7 +18,9 @@ package com.atomgraph.linkeddatahub.server.filter.response;
 
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.MediaType;
+import com.atomgraph.linkeddatahub.server.util.ClientStylesheetService;
 import com.atomgraph.linkeddatahub.server.util.SecureXML;
+import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -70,7 +72,7 @@ import org.xml.sax.SAXException;
  * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-@Priority(Priorities.USER + 200)
+@Priority(Priorities.USER + 350)
 public class XsltExecutableFilter implements ContainerResponseFilter
 {
 
@@ -98,9 +100,31 @@ public class XsltExecutableFilter implements ContainerResponseFilter
             if (stylesheet != null)
             {
                 List<URI> packages = getPackages(getApplication().get());
+                ClientStylesheetService stylesheetService = getSystem().getClientStylesheetService();
 
                 if (packages.isEmpty()) req.setProperty(AC.stylesheet.getURI(), getXsltExecutable(stylesheet));
-                else req.setProperty(AC.stylesheet.getURI(), getXsltExecutable(getApplication().get(), stylesheet, packages));
+                else if (stylesheetService == null)
+                    // no compiler configured: compose server-side only, which is how packages behaved
+                    // before client-side composition existed
+                    req.setProperty(AC.stylesheet.getURI(), getXsltExecutable(getApplication().get(), stylesheet, packages));
+                else
+                {
+                    String key = stylesheetService.getKey(packages);
+
+                    if (stylesheetService.isPublished(key))
+                    {
+                        req.setProperty(LDH.clientStylesheet.getURI(), stylesheetService.getPublicPath(key));
+                        req.setProperty(AC.stylesheet.getURI(), getXsltExecutable(getApplication().get(), stylesheet, packages));
+                    }
+                    else
+                    {
+                        // both renderers stay on the uncomposed stylesheet until the compiled one exists.
+                        // Composing server-side while the client cannot is what makes a package's rules
+                        // appear on load and vanish on the first client-side navigation
+                        stylesheetService.buildAsync(key, getStylesheets(packages));
+                        req.setProperty(AC.stylesheet.getURI(), getXsltExecutable(stylesheet));
+                    }
+                }
             }
             else req.setProperty(AC.stylesheet.getURI(), getSystem().getXsltExecutable());
 

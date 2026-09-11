@@ -94,6 +94,12 @@ public class LDHC
     /** Upload root property */
     public static final Property uploadRoot = m_model.createObjectProperty( NS + "uploadRoot" );
 
+    /** SEF root property. Directory holding the composed client stylesheets, served under /static/ through a Tomcat alias */
+    public static final Property sefRoot = m_model.createObjectProperty( NS + "sefRoot" );
+
+    /** SEF compiler property. Endpoint of the service that compiles composed client stylesheets */
+    public static final Property sefCompiler = m_model.createObjectProperty( NS + "sefCompiler" );
+
     /** Invalidate cache property */
     public static final Property invalidateCache = m_model.createDataProperty( NS + "invalidateCache" );
 

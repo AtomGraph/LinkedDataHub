@@ -272,7 +272,9 @@ exclude-result-prefixes="#all">
     <!-- SCRIPT -->
 
     <xsl:template match="rdf:RDF[lapp:origin()] | srx:sparql[lapp:origin()]" mode="xhtml:Script">
-        <xsl:param name="client-stylesheet" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json', lapp:origin())" as="xs:anyURI"/>
+        <!-- the stylesheet composed with this application's packages when one has been compiled, otherwise
+             the one built into the webapp. Both are absolute on this application's origin -->
+        <xsl:param name="client-stylesheet" select="(ldh:client-stylesheet(), resolve-uri('static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json', lapp:origin()))[1]" as="xs:anyURI"/>
         <xsl:param name="saxon-js-log-level" select="10" as="xs:integer"/>
         <xsl:param name="load-yasqe" select="not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="load-saxon-js" select="$ldh:ajaxRendering and not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>

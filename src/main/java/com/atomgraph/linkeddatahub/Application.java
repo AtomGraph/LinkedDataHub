@@ -259,6 +259,9 @@ public class Application extends ResourceConfig
 
     private static final Logger log = LoggerFactory.getLogger(Application.class);
 
+    /** Webapp path of the client stylesheet built at package time. Its digest fingerprints the platform build, so a composed stylesheet is invalidated by an upgrade */
+    public static final String CLIENT_SEF_PATH = "/static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json";
+
     private final ExecutorService importThreadPool;
     private final ServletConfig servletConfig;
     private final EventBus eventBus = new EventBus();
@@ -274,7 +277,7 @@ public class Application extends ResourceConfig
     private final XsltExecutable xsltExec;
     private final boolean cacheStylesheet;
     private final boolean resolvingUncached;
-    private final URI baseURI, uploadRoot;
+    private final URI baseURI, uploadRoot, sefRoot;
     private final boolean invalidateCache;
     private final Integer cookieMaxAge;
     private final boolean enableLinkedDataProxy;
@@ -305,6 +308,7 @@ public class Application extends ResourceConfig
     private final URI backendProxyEndUser;
     private Map<String, com.atomgraph.linkeddatahub.model.ServiceContext> serviceContextMap;
     private final com.atomgraph.linkeddatahub.server.util.GraphVersioningService graphVersioningService;
+    private final com.atomgraph.linkeddatahub.server.util.ClientStylesheetService clientStylesheetService;
 
     /**
      * Constructs system application and configures it using sevlet config.
@@ -342,6 +346,8 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(LDHC.proxyHost.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.proxyHost.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.proxyPort.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.proxyPort.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.uploadRoot.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.uploadRoot.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.sefRoot.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.sefRoot.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.sefCompiler.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.sefCompiler.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.invalidateCache.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.invalidateCache.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(LDHC.cookieMaxAge.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.cookieMaxAge.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.enableLinkedDataProxy.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.enableLinkedDataProxy.getURI())) : true,
@@ -404,6 +410,8 @@ public class Application extends ResourceConfig
      * @param proxyHostname client's URI rewrite hostname
      * @param proxyPort client's URI rewrite port
      * @param uploadRootString location of the root folder for file uploads
+     * @param sefRootString location of the root folder for composed client stylesheets
+     * @param sefCompilerString endpoint of the client stylesheet compiler service
      * @param invalidateCache true if Varnish proxy cache should be invalidated
      * @param cookieMaxAge max age of auth cookies
      * @param enableLinkedDataProxy true if Linked Data proxy is enabled
@@ -438,7 +446,7 @@ public class Application extends ResourceConfig
             final String documentTypeQueryString, final String documentOwnerQueryString, final String aclQueryString, final String ownerAclQueryString,
             final String webIDQueryString, final String agentQueryString, final String userAccountQueryString, final String ontologyQueryString,
             final String baseURIString, final String proxyScheme, final String proxyHostname, final Integer proxyPort,
-            final String uploadRootString, final boolean invalidateCache,
+            final String uploadRootString, final String sefRootString, final String sefCompilerString, final boolean invalidateCache,
             final Integer cookieMaxAge, final boolean enableLinkedDataProxy, final boolean allowInternalUrls, final Integer maxContentLength,
             final Integer maxConnPerRoute, final Integer maxTotalConn, final Integer maxRequestRetries, final Integer connectionRequestTimeout,
             final Integer socketTimeout, final Integer connectTimeout, final Long connectionTimeToLive, final Integer validateAfterInactivity, final Integer maxImportThreads,
@@ -595,6 +603,18 @@ public class Application extends ResourceConfig
         catch (URISyntaxException ex)
         {
             if (log.isErrorEnabled()) log.error("Upload root URI syntax error: {}", ex);
+            throw new IllegalStateException(ex);
+        }
+
+        try
+        {
+            // optional: an instance whose applications import no packages never composes a client
+            // stylesheet, so a missing SEF root disables that feature rather than failing startup
+            this.sefRoot = sefRootString != null ? new URI(sefRootString) : null;
+        }
+        catch (URISyntaxException ex)
+        {
+            if (log.isErrorEnabled()) log.error("SEF root URI syntax error: {}", ex);
             throw new IllegalStateException(ex);
         }
         
@@ -788,6 +808,31 @@ public class Application extends ResourceConfig
 
             graphVersioningService = new com.atomgraph.linkeddatahub.server.util.GraphVersioningService(ctxUnion, verifiedClient);
             servletConfig.getServletContext().setAttribute(com.atomgraph.linkeddatahub.server.util.GraphVersioningService.class.getName(), graphVersioningService); // used in GraphVersioningListener to shut down its executor
+
+            // composing client stylesheets is optional: without a SEF root, a compiler endpoint, or the
+            // stylesheet built into the webapp to fingerprint the platform with, package rules simply stay
+            // server-side, which is how the platform behaved before this existed
+            com.atomgraph.linkeddatahub.server.util.ClientStylesheetService stylesheetService = null;
+            if (sefRoot != null && sefCompilerString != null)
+            {
+                try (InputStream stockSEF = servletConfig.getServletContext().getResourceAsStream(CLIENT_SEF_PATH))
+                {
+                    if (stockSEF == null)
+                    {
+                        if (log.isWarnEnabled()) log.warn("Client stylesheet '{}' not found in the webapp, package stylesheets will not reach the client", CLIENT_SEF_PATH);
+                    }
+                    else
+                        stylesheetService = new com.atomgraph.linkeddatahub.server.util.ClientStylesheetService(
+                            java.nio.file.Paths.get(sefRoot), URI.create(sefCompilerString), client, stockSEF);
+                }
+                catch (IOException ex)
+                {
+                    if (log.isErrorEnabled()) log.error("Could not start the client stylesheet service, package stylesheets will not reach the client", ex);
+                }
+            }
+            clientStylesheetService = stylesheetService;
+            if (clientStylesheetService != null)
+                servletConfig.getServletContext().setAttribute(com.atomgraph.linkeddatahub.server.util.ClientStylesheetService.class.getName(), clientStylesheetService); // used in ClientStylesheetListener to shut down its executor
 
             endUserRepositories = new ConcurrentHashMap<>();
             // global graph repository: bundled vocabularies/ontologies mapped from the prefix-mapping config
@@ -2238,6 +2283,16 @@ public class Application extends ResourceConfig
     {
         return uploadRoot;
     }
+
+    /**
+     * Returns URL of the server directory holding composed client stylesheets, or null if not configured.
+     *
+     * @return path as URI, or null
+     */
+    public URI getSEFRoot()
+    {
+        return sefRoot;
+    }
     
     /**
      * Returns RDF dataset with LinkedDataHub application descriptions.
@@ -2452,6 +2507,16 @@ public class Application extends ResourceConfig
     public com.atomgraph.linkeddatahub.server.util.GraphVersioningService getGraphVersioningService()
     {
         return graphVersioningService;
+    }
+
+    /**
+     * Returns the service that composes and compiles client stylesheets, or null if not configured.
+     *
+     * @return client stylesheet service, or null
+     */
+    public com.atomgraph.linkeddatahub.server.util.ClientStylesheetService getClientStylesheetService()
+    {
+        return clientStylesheetService;
     }
 
     /**

@@ -46,6 +46,24 @@ exclude-result-prefixes="#all">
         <xsl:sequence select="ldh:link-targets($ldh:httpHeaders('Link'), 'rel=timemap')[1]"/>
     </xsl:function>
 
+    <!-- Compiled client stylesheet composed with this application's imported packages, from the Link
+         response header. Absent until the composed stylesheet exists, so the bootstrap falls back to the
+         stylesheet built into the webapp. The rel is matched against the vocabulary term rather than a
+         restated literal, with its dots escaped so they cannot act as regex wildcards -->
+    <xsl:function name="ldh:client-stylesheet" as="xs:anyURI?">
+        <xsl:variable name="entries" as="xs:string*">
+            <xsl:for-each select="$ldh:httpHeaders('Link')">
+                <xsl:analyze-string select="." regex="&lt;[^&gt;]+&gt;[^&lt;]*">
+                    <xsl:matching-substring>
+                        <xsl:sequence select="."/>
+                    </xsl:matching-substring>
+                </xsl:analyze-string>
+            </xsl:for-each>
+        </xsl:variable>
+        <xsl:variable name="rel" select="replace('&ldh;clientStylesheet', '\.', '\\.')" as="xs:string"/>
+        <xsl:sequence select="(for $entry in $entries return if (matches($entry, '^&lt;[^&gt;]+&gt;\s*;.*[;\s]rel\s*=\s*&quot;?' || $rel || '&quot;?([;,\s]|$)')) then xs:anyURI(replace($entry, '^&lt;([^&gt;]+)&gt;.*$', '$1')) else ())[1]"/>
+    </xsl:function>
+
     <!-- Memento-Datetime response header value, present on ?version= responses -->
     <xsl:function name="ldh:memento-datetime" as="xs:string?">
         <xsl:sequence select="$ldh:httpHeaders('Memento-Datetime')[1]"/>

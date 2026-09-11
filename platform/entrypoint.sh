@@ -176,6 +176,16 @@ if [ -z "$UPLOAD_ROOT" ]; then
     exit 1
 fi
 
+if [ -z "$SEF_ROOT" ]; then
+    echo '$SEF_ROOT not set'
+    exit 1
+fi
+
+if [ -z "$SEF_COMPILER" ]; then
+    echo '$SEF_COMPILER not set'
+    exit 1
+fi
+
 if [ -z "$SIGN_UP_CERT_VALIDITY" ]; then
     echo '$SIGN_UP_CERT_VALIDITY not set'
     exit 1
@@ -1041,6 +1051,8 @@ CLIENT_TRUSTSTORE_PARAM="--stringparam ldhc:clientTrustStore 'file://$CLIENT_TRU
 CLIENT_KEYSTORE_PASSWORD_PARAM="--stringparam ldhc:clientKeyStorePassword '$CLIENT_KEYSTORE_PASSWORD' "
 CLIENT_TRUSTSTORE_PASSWORD_PARAM="--stringparam ldhc:clientTrustStorePassword '$CLIENT_TRUSTSTORE_PASSWORD' "
 UPLOAD_ROOT_PARAM="--stringparam ldhc:uploadRoot 'file://$UPLOAD_ROOT' "
+SEF_ROOT_PARAM="--stringparam ldhc:sefRoot 'file://$SEF_ROOT' "
+SEF_COMPILER_PARAM="--stringparam ldhc:sefCompiler '$SEF_COMPILER' "
 SIGN_UP_CERT_VALIDITY_PARAM="--stringparam ldhc:signUpCertValidity '$SIGN_UP_CERT_VALIDITY' "
 CONTEXT_DATASET_PARAM="--stringparam ldhc:contextDataset '$webapp_context_dataset' "
 MAIL_SMTP_HOST_PARAM="--stringparam mail.smtp.host '$MAIL_SMTP_HOST' "
@@ -1199,6 +1211,8 @@ transform="xsltproc \
   $CLIENT_KEYSTORE_PASSWORD_PARAM \
   $CLIENT_TRUSTSTORE_PASSWORD_PARAM \
   $UPLOAD_ROOT_PARAM \
+  $SEF_ROOT_PARAM \
+  $SEF_COMPILER_PARAM \
   $SIGN_UP_CERT_VALIDITY_PARAM \
   $CONTEXT_DATASET_PARAM \
   $AUTH_QUERY_PARAM \
