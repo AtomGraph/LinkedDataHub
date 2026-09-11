@@ -830,11 +830,21 @@ extension-element-prefixes="ixsl"
                                 <!-- literal value - wrap in quotes: "literal" -->
                                 <xsl:when test="array:get($values, $pos)?type = 'literal'">
                                     <xsl:text>&quot;</xsl:text><xsl:value-of select="array:get($values, $pos)?value"/><xsl:text>&quot;</xsl:text>
-                                    <!-- add datatype URI, if any -->
-                                    <xsl:if test="array:get($values, $pos)?datatype">
-                                        <xsl:text>^^</xsl:text>
-                                        <xsl:value-of select="array:get($values, $pos)?datatype"/>
-                                    </xsl:if>
+                                    <xsl:choose>
+                                        <!-- a language tag is part of the term: IN("x") does not match "x"@lt, so dropping
+                                             it turned every facet selection on a language-tagged value into an empty result.
+                                             Mutually exclusive with the datatype, which for a tagged literal is rdf:langString
+                                             and is written by the tag alone -->
+                                        <xsl:when test="array:get($values, $pos)?lang">
+                                            <xsl:text>@</xsl:text>
+                                            <xsl:value-of select="array:get($values, $pos)?lang"/>
+                                        </xsl:when>
+                                        <!-- add datatype URI, if any -->
+                                        <xsl:when test="array:get($values, $pos)?datatype">
+                                            <xsl:text>^^</xsl:text>
+                                            <xsl:value-of select="array:get($values, $pos)?datatype"/>
+                                        </xsl:when>
+                                    </xsl:choose>
                                 </xsl:when>
                                 <!-- URI value -->
                                 <xsl:otherwise>

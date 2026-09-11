@@ -246,11 +246,15 @@ exclude-result-prefixes="#all"
         <xsl:param name="label-sample-var-name" as="xs:string?"/>
         <xsl:param name="label" as="xs:string?"/>
         
-        <!-- the selection is the button's own 'is-on' state, so the value's type/datatype ride data
-             attributes rather than the hidden inputs a checkbox needed -->
+        <!-- the selection is the button's own 'is-on' state, so the value's type/datatype/language ride
+             data attributes rather than the hidden inputs a checkbox needed. A literal's term identity is
+             all three: the FILTER this option feeds compares RDF terms, and "x" does not equal "x"@lt -->
         <button type="button" class="opt" role="menuitemcheckbox" aria-checked="false" title="{srx:binding[@name = $object-var-name]/srx:*}" data-value="{srx:binding[@name = $object-var-name]/srx:*}" data-type="{srx:binding[@name = $object-var-name]/srx:*/local-name()}" data-count="{srx:binding[@name = $count-var-name]/srx:literal}">
             <xsl:if test="srx:binding[@name = $object-var-name]/srx:literal/@datatype">
                 <xsl:attribute name="data-datatype" select="srx:binding[@name = $object-var-name]/srx:literal/@datatype"/>
+            </xsl:if>
+            <xsl:if test="srx:binding[@name = $object-var-name]/srx:literal/@xml:lang">
+                <xsl:attribute name="data-lang" select="srx:binding[@name = $object-var-name]/srx:literal/@xml:lang"/>
             </xsl:if>
 
             <span class="check">
@@ -653,6 +657,20 @@ exclude-result-prefixes="#all"
              the view-context variable constructor, which is temporary output state (XTDE1480) and rules
              out xsl:result-document - emitting markup from here would have to move to the handlers -->
         <xsl:sequence select="ldh:begin-view-refresh($container)"/>
+
+        <!-- the cached total counts the query this cycle is replacing, so it stops being an answer the
+             moment the query changes. ldh:RenderViewMode keys the empty state on it (total first, this
+             page's own count as fallback) and ldh:RenderViewResults only refreshes it synchronously when
+             the whole result set fits one page - a DESCRIBE that also returns the rows' related resources
+             exceeds the LIMIT routinely, and then the COUNT is a separate request that lands after the
+             render. Left standing, a cleared filter whose predecessor matched nothing re-rendered the
+             blank state over rows that were in hand, and the late COUNT corrected the pager and the
+             result count around it without touching the results region. Dropping it here leaves
+             $total-count empty until this cycle's own COUNT arrives, which costs no extra request:
+             ldh:RenderViewResults re-counts on every cycle either way -->
+        <xsl:if test="ixsl:contains($cache, 'result-count')">
+            <ixsl:remove-property name="result-count" object="$cache"/>
+        </xsl:if>
 
         <!-- wrap SELECT into a DESCRIBE -->
         <xsl:variable name="query-xml" as="element()">
@@ -1318,6 +1336,32 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
     
+    <!-- the view's empty body: the design system's blank state plus the one recovery action a view can
+         offer. Shared by the list, grid and table view blocks - it was written out once in each of them,
+         which is three places for one decision about what an empty view says. The action is conditional on
+         a facet actually being selected, so an empty result set that no filter caused offers nothing to undo -->
+
+    <xsl:template match="rdf:RDF" mode="ldh:ViewBlockBlank" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
+        <xsl:param name="container-id" as="xs:string?"/>
+        <!-- the correlation id rides @data-view-id, never @id: id() looked it up as an element id, found
+             nothing whatever the facets held, and the recovery action never rendered -->
+        <xsl:variable name="container" select="ixsl:page()//*[@data-view-id = $container-id]" as="element()?"/>
+
+        <xsl:apply-templates select="." mode="ldh:BlockBlank">
+            <xsl:with-param name="action" as="item()*">
+                <!-- with filters active the empty state is recoverable: the same control the toolbar's Clear-all carries -->
+                <xsl:if test="$container//button[contains-token(@class, 'opt')][contains-token(@class, 'is-on')]">
+                    <button type="button" class="ac-btn in-neutral ap-outline sz-sm facet-clear-all">
+                        <span class="msi outline sm" aria-hidden="true">filter_alt_off</span>
+                        <span>
+                            <xsl:apply-templates select="key('resources', 'clear-filters', ldh:translations())" mode="ac:label"/>
+                        </span>
+                    </button>
+                </xsl:if>
+            </xsl:with-param>
+        </xsl:apply-templates>
+    </xsl:template>
+
     <!-- block list -->
 
     <xsl:template match="rdf:RDF" mode="ldh:ListViewBlock" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
@@ -1327,18 +1371,8 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <xsl:when test="($total-count, $result-count)[1] = 0">
-                <xsl:apply-templates select="." mode="ldh:BlockBlank">
-                    <xsl:with-param name="action" as="item()*">
-                        <!-- with filters active the empty state is recoverable: the same control the toolbar's Clear-all carries -->
-                        <xsl:if test="$container-id and id($container-id, ixsl:page())//button[contains-token(@class, 'opt')][contains-token(@class, 'is-on')]">
-                            <button type="button" class="ac-btn in-neutral ap-outline sz-sm facet-clear-all">
-                                <span class="msi outline sm" aria-hidden="true">filter_alt_off</span>
-                                <span>
-                                    <xsl:apply-templates select="key('resources', 'clear-filters', ldh:translations())" mode="ac:label"/>
-                                </span>
-                            </button>
-                        </xsl:if>
-                    </xsl:with-param>
+                <xsl:apply-templates select="." mode="ldh:ViewBlockBlank">
+                    <xsl:with-param name="container-id" select="$container-id"/>
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:otherwise>
@@ -1505,18 +1539,8 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <xsl:when test="($total-count, $result-count)[1] = 0">
-                <xsl:apply-templates select="." mode="ldh:BlockBlank">
-                    <xsl:with-param name="action" as="item()*">
-                        <!-- with filters active the empty state is recoverable: the same control the toolbar's Clear-all carries -->
-                        <xsl:if test="$container-id and id($container-id, ixsl:page())//button[contains-token(@class, 'opt')][contains-token(@class, 'is-on')]">
-                            <button type="button" class="ac-btn in-neutral ap-outline sz-sm facet-clear-all">
-                                <span class="msi outline sm" aria-hidden="true">filter_alt_off</span>
-                                <span>
-                                    <xsl:apply-templates select="key('resources', 'clear-filters', ldh:translations())" mode="ac:label"/>
-                                </span>
-                            </button>
-                        </xsl:if>
-                    </xsl:with-param>
+                <xsl:apply-templates select="." mode="ldh:ViewBlockBlank">
+                    <xsl:with-param name="container-id" select="$container-id"/>
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:otherwise>
@@ -1536,18 +1560,8 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <xsl:when test="($total-count, $result-count)[1] = 0">
-                <xsl:apply-templates select="." mode="ldh:BlockBlank">
-                    <xsl:with-param name="action" as="item()*">
-                        <!-- with filters active the empty state is recoverable: the same control the toolbar's Clear-all carries -->
-                        <xsl:if test="$container-id and id($container-id, ixsl:page())//button[contains-token(@class, 'opt')][contains-token(@class, 'is-on')]">
-                            <button type="button" class="ac-btn in-neutral ap-outline sz-sm facet-clear-all">
-                                <span class="msi outline sm" aria-hidden="true">filter_alt_off</span>
-                                <span>
-                                    <xsl:apply-templates select="key('resources', 'clear-filters', ldh:translations())" mode="ac:label"/>
-                                </span>
-                            </button>
-                        </xsl:if>
-                    </xsl:with-param>
+                <xsl:apply-templates select="." mode="ldh:ViewBlockBlank">
+                    <xsl:with-param name="container-id" select="$container-id"/>
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:otherwise>
@@ -2379,9 +2393,9 @@ exclude-result-prefixes="#all"
         <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/*[contains-token(@class, 'mi')][contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string"/>
         <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
         <xsl:variable name="var-name" select="button[contains-token(@class, 'facet-pill')]/input[@name = 'object']/@value" as="xs:string"/>
-        <!-- collect the values/types/datatypes of the options that are on and build an array of maps -->
+        <!-- collect the values/types/datatypes/languages of the options that are on and build an array of maps -->
         <xsl:variable name="options" select="child::div[contains-token(@class, 'facet-pop')]/div[contains-token(@class, 'facet-values')]/button[contains-token(@class, 'opt')][contains-token(@class, 'is-on')]" as="element()*"/>
-        <xsl:variable name="values" select="array { for $option in $options return map { 'value' : string($option/@data-value), 'type': string($option/@data-type), 'datatype': string($option/@data-datatype) } }" as="array(map(xs:string, xs:string))"/>
+        <xsl:variable name="values" select="array { for $option in $options return map { 'value' : string($option/@data-value), 'type': string($option/@data-type), 'datatype': string($option/@data-datatype), 'lang': string($option/@data-lang) } }" as="array(map(xs:string, xs:string))"/>
 
         <xsl:apply-templates select="." mode="ldh:UpdateFacetPill"/>
         <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
