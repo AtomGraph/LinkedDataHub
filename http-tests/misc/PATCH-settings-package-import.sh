@@ -14,21 +14,32 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 app_uri="urn:linkeddatahub:apps/end-user"
 package_uri="https://packages.linkeddatahub.com/skos/#this"
 
-# stylesheet marker injected into every page by the SKOS package layout.xsl
-marker="com/linkeddatahub/demo/skos/css/bootstrap.css"
+slug="skos-package-probe"
+doc="${END_USER_BASE_URL}${slug}/"
+concept="${doc}#this"
 
-# The rendered homepage is tens of KiB and the marker sits in <head>, within its first
-# 2 KiB. Assertions therefore read the response from a here-string rather than piping
-# curl into `grep -q`: `grep -q` closes the pipe on its first match, and with
-# `set -o pipefail` the SIGPIPE'd curl fails the whole pipeline. That only happens when
-# curl is still writing at the moment grep exits, which made this test fail randomly.
+# The package's rule is that the SKOS hierarchy predicates render as the concept tree rather than
+# as statement rows: it binds skos:narrower/broader/related/member to an empty ac:PropertyEditor
+# template. The object of the concept's skos:broader is therefore the marker - present in the
+# rendered document while the package is not imported, absent while it is.
+#
+# The concept is a resource of its own that the document describes, not the document itself. A
+# dh:Item carrying skos:broader directly renders nothing: the property list belongs to the
+# described resource, so with no foaf:primaryTopic there is nothing for ac:PropertyEditor to emit
+# and the assertion would pass in both directions.
+marker="http://example.org/skos-broader-probe"
 
-function homepage()
+# The rendered document is tens of KiB. Assertions therefore read the response from a here-string
+# rather than piping curl into `grep -q`: `grep -q` closes the pipe on its first match, and with
+# `set -o pipefail` the SIGPIPE'd curl fails the whole pipeline. That only happens when curl is
+# still writing at the moment grep exits, which made this test fail randomly.
+
+function document()
 {
   curl -k -s \
     -H "Accept: text/html" \
     -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
-    "$END_USER_BASE_URL"
+    "$doc"
 }
 
 function patch_settings()
@@ -51,37 +62,65 @@ function remove_import()
 
 trap remove_import EXIT
 
-# verify the homepage is not rendered with the package stylesheet initially
-response=$(homepage)
+# a document describing a SKOS concept that has a broader concept
 
-if grep -qF "$marker" <<< "$response"; then
+curl -k -w "%{http_code}\n" -o /dev/null -f -s \
+  -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+  -X PUT \
+  -H "Content-Type: application/n-triples" \
+  --data-binary @- \
+  "$doc" <<EOF \
+| grep -q "$STATUS_CREATED"
+<${doc}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item> .
+<${doc}> <http://purl.org/dc/terms/title> "SKOS package probe" .
+<${doc}> <http://rdfs.org/sioc/ns#has_container> <${END_USER_BASE_URL}> .
+<${doc}> <http://xmlns.com/foaf/0.1/primaryTopic> <${concept}> .
+<${concept}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2004/02/skos/core#Concept> .
+<${concept}> <http://www.w3.org/2004/02/skos/core#prefLabel> "Probe concept" .
+<${concept}> <http://www.w3.org/2004/02/skos/core#broader> <${marker}> .
+EOF
+
+# without the package, the broader statement renders as a property row
+
+response=$(document)
+
+if ! grep -qF "$marker" <<< "$response"; then
+  echo "DEBUG: broader row missing before import - the fixture does not exercise the package rule" >&2
   exit 1
 fi
 
 # declare the package import
+
 status=$(patch_settings "INSERT { <${app_uri}> <https://w3id.org/atomgraph/linkeddatahub#import> <${package_uri}> . } WHERE { }")
 
 if [[ ! "$status" =~ ^($STATUS_NO_CONTENT)$ ]]; then
+  echo "DEBUG: Expected: $STATUS_NO_CONTENT  Got: $status" >&2
   exit 1
 fi
 
-# verify the homepage is rendered with the package stylesheet — no restart, no sleep
-response=$(homepage)
+# the package suppresses it — on the very next request, no restart and no sleep
 
-if ! grep -qF "$marker" <<< "$response"; then
+response=$(document)
+
+if grep -qF "$marker" <<< "$response"; then
+  echo "DEBUG: broader row still rendered after import - the package stylesheet did not compose" >&2
   exit 1
 fi
 
 # remove the package import
+
 status=$(patch_settings "DELETE { <${app_uri}> <https://w3id.org/atomgraph/linkeddatahub#import> <${package_uri}> . } WHERE { }")
 
 if [[ ! "$status" =~ ^($STATUS_NO_CONTENT)$ ]]; then
+  echo "DEBUG: Expected: $STATUS_NO_CONTENT  Got: $status" >&2
   exit 1
 fi
 
-# verify the homepage is no longer rendered with the package stylesheet
-response=$(homepage)
+# and the row is back
 
-if grep -qF "$marker" <<< "$response"; then
+response=$(document)
+
+if ! grep -qF "$marker" <<< "$response"; then
+  echo "DEBUG: broader row still suppressed after the import was removed" >&2
   exit 1
 fi
