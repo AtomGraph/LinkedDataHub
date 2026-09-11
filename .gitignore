@@ -16,3 +16,6 @@
 /fuseki
 .claude/scheduled_tasks.lock
 /cli/target
+/ui-tests/node_modules
+/ui-tests/out
+/ui-tests/test-results
