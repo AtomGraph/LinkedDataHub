@@ -1845,12 +1845,20 @@ exclude-result-prefixes="#all"
         <xsl:param name="head" as="item()*"/>
         <xsl:param name="body" as="item()*"/>
 
-        <table class="{$class}" role="table" style="--ac-cols: {$cols};">
+        <table class="{$class}">
             <caption class="ac-vh">
                 <xsl:sequence select="$caption"/>
             </caption>
+            <!-- column widths are a colgroup: the table algorithm negotiates them across every row,
+                 which is what the retired grid tracks could not do (a double hyphen cannot appear in
+                 an XML comment, so the old custom property is not named here) -->
+            <colgroup>
+                <xsl:for-each select="tokenize(normalize-space($cols), ' ')">
+                    <col style="width: {.};"/>
+                </xsl:for-each>
+            </colgroup>
             <thead>
-                <tr role="row">
+                <tr>
                     <xsl:sequence select="$head"/>
                 </tr>
             </thead>

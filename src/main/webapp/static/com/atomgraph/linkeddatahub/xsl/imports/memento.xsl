@@ -30,8 +30,8 @@ exclude-result-prefixes="#all"
         <!-- whether the agent can write the live document, which is what a restore rewrites -->
         <xsl:param name="writable" select="false()" as="xs:boolean"/>
 
-        <tr role="row">
-            <td role="cell">
+        <tr>
+            <td>
                 <xsl:choose>
                     <!-- the version being viewed: bold, no self-link -->
                     <xsl:when test="@rdf:about = $current-memento">
@@ -46,24 +46,24 @@ exclude-result-prefixes="#all"
                     </xsl:otherwise>
                 </xsl:choose>
             </td>
-            <td role="cell">
+            <td>
                 <xsl:apply-templates select="dct:creator/@rdf:resource"/>
             </td>
-            <td role="cell">
+            <td>
                 <input type="radio" name="from" value="{@rdf:about}">
                     <xsl:if test="@rdf:about = $from-memento">
                         <xsl:attribute name="checked" select="'checked'"/>
                     </xsl:if>
                 </input>
             </td>
-            <td role="cell">
+            <td>
                 <input type="radio" name="to" value="{@rdf:about}">
                     <xsl:if test="@rdf:about = $to-memento">
                         <xsl:attribute name="checked" select="'checked'"/>
                     </xsl:if>
                 </input>
             </td>
-            <td role="cell">
+            <td>
                 <!-- restoring is a point action on one version, unlike the From/To pair that bounds a comparison.
                      The version being viewed is skipped: writing it back would only commit identical content. -->
                 <xsl:if test="$writable and not(@rdf:about = $current-memento)">

@@ -73,22 +73,22 @@ version="3.0"
                     </xsl:value-of>
                 </legend>
                 <xsl:apply-templates select="." mode="ldh:DataTable">
-                    <xsl:with-param name="cols" select="'25fr 60fr 15fr'"/>
+                    <xsl:with-param name="cols" select="'25% 60% 15%'"/>
                     <xsl:with-param name="caption" as="item()*">
                         <xsl:apply-templates select="key('resources', 'packages', ldh:translations())" mode="ac:label"/>
                     </xsl:with-param>
                     <xsl:with-param name="head" as="item()*">
-                            <th scope="col" role="columnheader">
+                            <th scope="col">
                                 <xsl:value-of>
                                     <xsl:apply-templates select="key('resources', '&lapp;Package', document(ac:document-uri('&lapp;')))" mode="ac:label"/>
                                 </xsl:value-of>
                             </th>
-                            <th scope="col" role="columnheader">
+                            <th scope="col">
                                 <xsl:value-of>
                                     <xsl:apply-templates select="key('resources', '&dct;description', document(ac:document-uri('&dct;')))" mode="ac:label"/>
                                 </xsl:value-of>
                             </th>
-                            <th scope="col" role="columnheader">
+                            <th scope="col">
                                 <xsl:value-of>
                                     <xsl:apply-templates select="key('resources', 'installed', ldh:translations())" mode="ac:label"/>
                                 </xsl:value-of>
@@ -108,16 +108,16 @@ version="3.0"
     <xsl:template match="*[@rdf:about]" mode="ldh:PackageList">
         <xsl:param name="installed" as="xs:anyURI*"/>
 
-        <tr role="row">
-            <td role="cell">
+        <tr>
+            <td>
                 <a href="{ldh:href(xs:anyURI(@rdf:about), map{})}">
                     <xsl:apply-templates select="." mode="ac:label"/>
                 </a>
             </td>
-            <td role="cell">
+            <td>
                 <xsl:value-of select="dct:description[1]"/>
             </td>
-            <td role="cell">
+            <td>
                 <input type="hidden" name="pu" value="&ldh;import"/>
                 <input type="checkbox" name="ou" value="{@rdf:about}">
                     <xsl:if test="@rdf:about = $installed">

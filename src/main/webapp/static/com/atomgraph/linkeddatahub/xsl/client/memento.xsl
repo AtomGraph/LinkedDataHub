@@ -103,34 +103,34 @@ version="3.0"
                                     <xsl:variable name="from-memento" select="(xs:anyURI($sorted-mementos[$current-index - 1]/@rdf:about), $current-memento)[1]" as="xs:anyURI?"/>
                                     <form id="form-version-diff">
                                         <xsl:apply-templates select="." mode="ldh:DataTable">
-                                            <xsl:with-param name="cols" select="'38fr 22fr 12fr 12fr 16fr'"/>
+                                            <xsl:with-param name="cols" select="'38% 22% 12% 12% 16%'"/>
                                             <xsl:with-param name="caption" as="item()*">
                                                 <xsl:apply-templates select="key('resources', 'history', ldh:translations())" mode="ac:label"/>
                                             </xsl:with-param>
                                             <xsl:with-param name="head" as="item()*">
-                                                    <th scope="col" role="columnheader">
+                                                    <th scope="col">
                                                         <xsl:value-of>
                                                             <xsl:apply-templates select="key('resources', 'version', ldh:translations())" mode="ac:label"/>
                                                         </xsl:value-of>
                                                     </th>
-                                                    <th scope="col" role="columnheader">
+                                                    <th scope="col">
                                                         <xsl:value-of>
                                                             <xsl:apply-templates select="key('resources', 'agent', ldh:translations())" mode="ac:label"/>
                                                         </xsl:value-of>
                                                     </th>
                                                     <!-- header colors match the diff colors: removed content comes from the From version, added content from the To version -->
-                                                    <th scope="col" role="columnheader" class="ldh-diff-tint va-negative">
+                                                    <th scope="col" class="ldh-diff-tint va-negative">
                                                         <xsl:value-of>
                                                             <xsl:apply-templates select="key('resources', 'from', ldh:translations())" mode="ac:label"/>
                                                         </xsl:value-of>
                                                     </th>
-                                                    <th scope="col" role="columnheader" class="ldh-diff-tint va-success">
+                                                    <th scope="col" class="ldh-diff-tint va-success">
                                                         <xsl:value-of>
                                                             <xsl:apply-templates select="key('resources', 'to', ldh:translations())" mode="ac:label"/>
                                                         </xsl:value-of>
                                                     </th>
                                                     <!-- the restore column has no heading: the buttons name the action themselves -->
-                                                    <th scope="col" role="columnheader"></th>
+                                                    <th scope="col"></th>
                                             </xsl:with-param>
                                             <xsl:with-param name="body" as="item()*">
                                                 <xsl:apply-templates select="$mementos" mode="ldh:MementoList">

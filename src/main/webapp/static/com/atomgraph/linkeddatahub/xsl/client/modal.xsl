@@ -442,18 +442,18 @@ LIMIT   10
                 </xsl:value-of>
             </legend>
             <xsl:apply-templates select="." mode="ldh:DataTable">
-                <xsl:with-param name="cols" select="'55fr 15fr 15fr 15fr'"/>
+                <xsl:with-param name="cols" select="'55% 15% 15% 15%'"/>
                 <xsl:with-param name="caption" as="item()*">
                     <xsl:apply-templates select="key('resources', 'url-based-access', ldh:translations())" mode="ac:label"/>
                 </xsl:with-param>
                 <xsl:with-param name="head" as="item()*">
-                        <th scope="col" role="columnheader">
+                        <th scope="col">
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', 'url', ldh:translations())" mode="ac:label"/>
                             </xsl:value-of>
                         </th>
                         <xsl:for-each select="$access-modes">
-                            <th scope="col" role="columnheader">
+                            <th scope="col">
                                 <xsl:value-of>
                                     <xsl:apply-templates select="key('resources', ., document(ac:document-uri('&acl;')))" mode="ac:label"/>
                                 </xsl:value-of>
@@ -495,18 +495,18 @@ LIMIT   10
                 </xsl:value-of>
             </legend>
             <xsl:apply-templates select="." mode="ldh:DataTable">
-                <xsl:with-param name="cols" select="'55fr 15fr 15fr 15fr'"/>
+                <xsl:with-param name="cols" select="'55% 15% 15% 15%'"/>
                 <xsl:with-param name="caption" as="item()*">
                     <xsl:apply-templates select="key('resources', 'class-based-access', ldh:translations())" mode="ac:label"/>
                 </xsl:with-param>
                 <xsl:with-param name="head" as="item()*">
-                        <th scope="col" role="columnheader">
+                        <th scope="col">
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', 'class-name', ldh:translations())" mode="ac:label"/>
                             </xsl:value-of>
                         </th>
                         <xsl:for-each select="$access-modes">
-                            <th scope="col" role="columnheader">
+                            <th scope="col">
                                 <xsl:value-of>
                                     <xsl:apply-templates select="key('resources', ., document(ac:document-uri('&acl;')))" mode="ac:label"/>
                                 </xsl:value-of>
@@ -550,8 +550,8 @@ LIMIT   10
         <xsl:param name="access-modes" as="xs:anyURI*"/>
         <xsl:param name="granted-access-modes" as="xs:anyURI*"/>
 
-        <tr role="row">
-            <td role="cell">
+        <tr>
+            <td>
                 <a href="{$access-to}" target="_blank">
                     <xsl:value-of select="$access-to"/>
                 </a>
@@ -579,8 +579,8 @@ LIMIT   10
         <xsl:param name="access-modes" as="xs:anyURI*"/>
         <xsl:param name="granted-access-modes" as="xs:anyURI*"/>
 
-        <tr role="row">
-            <td role="cell">
+        <tr>
+            <td>
                 <a href="{$access-to-class}" target="_blank">
                     <xsl:choose>
                         <xsl:when test="doc-available(ac:document-uri($access-to-class)) and key('resources', $access-to-class, document(ac:document-uri($access-to-class)))">
@@ -617,7 +617,7 @@ LIMIT   10
 
         <xsl:for-each select="$access-modes">
             <xsl:variable name="current-mode" select="."/>
-            <td role="cell">
+            <td>
                 <label class="ldh-check">
                     <input type="checkbox" name="ou" value="{$current-mode}">
                         <xsl:if test="$current-mode = $granted-access-modes">

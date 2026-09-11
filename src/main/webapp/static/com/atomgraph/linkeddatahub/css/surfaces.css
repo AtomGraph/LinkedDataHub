@@ -59,45 +59,46 @@
 /* =========================================================================
    DataTable — ONE tabular surface.
 
-   Real <table> markup with grid-per-row layout, so the table layout algorithm
-   is switched off and the column tracks come from a --ac-cols custom property
-   the caller sets. That single variable is what collapsed four bespoke tables
-   into one: they differed by tracks, not by structure.
-   Explicit role attributes stay in the JSX — display:grid on a <tr> can drop
-   the implicit table roles.
+   Real <table> markup laid out BY THE TABLE ALGORITHM. Ask for a table and you
+   get table behaviour: columns negotiate their widths across every row, the
+   implicit roles hold so no component re-declares them, and rowspan/colspan
+   work. Column widths are a <colgroup>, which is the native mechanism for
+   exactly this and is what --ac-cols was standing in for. The four bespoke
+   tables this replaced differed by widths, not by structure, so the collapse
+   into one component still holds — the widths simply live where the platform
+   keeps them.
+
+   This file previously set display: block on the table and display: grid on
+   every tr. Per-row grids are independent formatting contexts, so columns could
+   not share intrinsic sizes: measured at 11 columns the head and body stopped
+   lining up, and equal 1fr tracks shredded a UUID column into four lines. Two
+   consumers left the component over it rather than pay the cost.
    ========================================================================= */
 .ac-table {
-  display: block; width: 100%;
+  width: 100%;
   border-collapse: collapse; border-spacing: 0; text-indent: 0;
   background: var(--surface-0);
   border: 1px solid var(--border-default);
   border-radius: var(--r-md);
-  overflow: hidden;
 }
 .ac-table.ap-plain { border: 0; border-radius: 0; background: transparent; }
-/* Dropdowns inside cells (the column-mapping table) need to escape the box. */
-.ac-table.is-overflowing { overflow: visible; }
-.ac-table > thead, .ac-table > tbody { display: block; }
-.ac-table > thead.ac-vh { display: none; }
 .ac-table caption { caption-side: top; }
-/* Declared here so the column-track input is a registered token with a sane
-   default, rather than a variable that only ever exists as an inline style. */
-:root {
-  --ac-cols: 1fr; /* @kind other */
-}
-.ac-table tr {
-  display: grid;
-  grid-template-columns: var(--ac-cols, 1fr);
-  align-items: center; gap: var(--sp-3);
-  padding: var(--sp-2) var(--sp-3);
-}
-.ac-table.dn-comfy tr { padding: var(--sp-3); }
-.ac-table.dn-tight tr { padding: 5px var(--sp-3); }
+/* border-radius does not clip the corner cells of a border-collapse table, so
+   overflow: hidden would do nothing here — the corner cells round themselves.
+   Same trap .ldh-results-table documents in ldh.css. */
+.ac-table > thead > tr:first-child > *:first-child { border-top-left-radius: var(--r-md); }
+.ac-table > thead > tr:first-child > *:last-child  { border-top-right-radius: var(--r-md); }
+.ac-table.ap-plain > thead > tr:first-child > * { border-radius: 0; }
+/* Density is CELL padding now: under table layout a tr is not a box that takes
+   padding, so the row-level rule it used to carry was inert the moment the grid
+   came off. */
 .ac-table th, .ac-table td {
-  padding: 0; vertical-align: inherit;
+  padding: var(--sp-2) var(--sp-3);
+  vertical-align: middle;
   font-weight: inherit; text-align: left;
-  min-width: 0;
 }
+.ac-table.dn-comfy th, .ac-table.dn-comfy td { padding: var(--sp-3); }
+.ac-table.dn-tight th, .ac-table.dn-tight td { padding: 5px var(--sp-3); }
 .ac-table thead tr {
   background: var(--surface-2);
   border-bottom: 1px solid var(--border-default);
