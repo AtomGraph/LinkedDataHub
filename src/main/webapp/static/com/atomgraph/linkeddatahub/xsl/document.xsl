@@ -150,7 +150,7 @@ exclude-result-prefixes="#all"
                 <xsl:if test="key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:type/@rdf:resource = ('&def;Root', '&dh;Container')">
                     <xsl:variable name="document-classes" select="key('resources', ('&dh;Container', '&dh;Item'), document(ac:document-uri('&def;')))" as="element()*"/>
                     <xsl:apply-templates select="." mode="ac:Create">
-                        <xsl:with-param name="class" select="'ldh-add-wrap ldhc-menu-anchor'"/>
+                        <xsl:with-param name="class" select="'ldh-add-wrap ac-menu-anchor'"/>
                         <xsl:with-param name="classes" select="$document-classes"/>
                         <xsl:with-param name="create-graph" select="true()"/>
                         <xsl:with-param name="show-instance" select="false()"/>
@@ -197,7 +197,7 @@ exclude-result-prefixes="#all"
         <form action="{resolve-uri('clear', ldt:base())}" method="post">
             <input type="hidden" name="uri" value="{@rdf:about}"/>
 
-            <button class="ldhc-btn in-primary ap-solid sz-md" type="submit">
+            <button class="ac-btn in-primary ap-solid sz-md" type="submit">
                 <xsl:value-of>
                     <xsl:apply-templates select="key('resources', 'clear', ldh:translations())" mode="ac:label"/>
                 </xsl:value-of>
@@ -313,8 +313,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="edit-disabled" select="not(acl:mode() = '&acl;Write')" as="xs:boolean"/>
 
         <xsl:if test="$foaf:Agent//@rdf:about">
-            <div class="ldh-of-wrap ldhc-menu-anchor">
-                <button type="button" class="ldhc-btn in-neutral ap-outline sz-md drop-toggle">
+            <div class="ldh-of-wrap ac-menu-anchor">
+                <button type="button" class="ac-btn in-neutral ap-outline sz-md drop-toggle">
                     <span class="msi sm" aria-hidden="true">bolt</span>
                     <span>
                         <xsl:apply-templates select="key('resources', 'actions', ldh:translations())" mode="ac:label"/>
@@ -368,8 +368,8 @@ exclude-result-prefixes="#all"
     <xsl:template match="rdf:RDF | srx:sparql" mode="ac:MediaTypeList">
         <xsl:param name="uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
 
-        <div class="ldh-of-wrap ldhc-menu-anchor">
-            <button type="button" class="ldhc-btn in-neutral ap-outline sz-md drop-toggle">
+        <div class="ldh-of-wrap ac-menu-anchor">
+            <button type="button" class="ac-btn in-neutral ap-outline sz-md drop-toggle">
                 <xsl:attribute name="title">
                     <xsl:apply-templates select="key('resources', 'nav-bar-action-export-rdf-title', ldh:translations())" mode="ac:label"/>
                 </xsl:attribute>
@@ -403,7 +403,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
         <xsl:param name="id" select="()" as="xs:string?"/>
 
-        <div class="ldh-mode ldhc-menu-anchor">
+        <div class="ldh-mode ac-menu-anchor">
             <button type="button" class="label-row layout-modes drop-toggle" title="{ac:label(key('resources', '&ac;Mode', document(ac:document-uri('&ac;'))))}">
                 <xsl:if test="$id">
                     <xsl:attribute name="id" select="$id"/>
@@ -689,13 +689,13 @@ exclude-result-prefixes="#all"
              The dock is a full-bleed sticky bar that parks on the footer, per tab pane -->
         <xsl:if test="acl:mode() = '&acl;Append'">
             <div class="create-resource ldh-create-dock">
-                <button type="button" class="ldhc-btn in-primary ap-solid sz-md create-action add-constructor" data-for-class="&ldh;XHTML">
+                <button type="button" class="ac-btn in-primary ap-solid sz-md create-action add-constructor" data-for-class="&ldh;XHTML">
                     <span class="msi sm" aria-hidden="true">add</span>
                     <span>
                         <xsl:apply-templates select="key('resources', '&ldh;XHTML', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
                     </span>
                 </button>
-                <button type="button" class="ldhc-btn in-primary ap-solid sz-md create-action add-constructor" data-for-class="&ldh;Object">
+                <button type="button" class="ac-btn in-primary ap-solid sz-md create-action add-constructor" data-for-class="&ldh;Object">
                     <span class="msi sm" aria-hidden="true">add</span>
                     <span>
                         <xsl:apply-templates select="key('resources', '&ldh;Object', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
@@ -767,7 +767,7 @@ exclude-result-prefixes="#all"
     <!-- TABLE MODE -->
 
     <!-- SPARQL SELECT results keep .ldh-results-table (native table layout): the column count is
-         data-driven, which the design's grid-per-row .ldhc-table cannot share intrinsic tracks for
+         data-driven, which the design's grid-per-row .ac-table cannot share intrinsic tracks for
          (see the results-table section in ldh.css). The shadow adds the semantic-markup
          contract's visually-hidden caption and th scope on top of Web-Client's emitter -->
     <xsl:template match="srx:sparql" mode="ac:ResultsTable">
@@ -786,7 +786,7 @@ exclude-result-prefixes="#all"
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
-            <caption class="ldhc-vh">
+            <caption class="ac-vh">
                 <xsl:apply-templates select="key('resources', 'query-results', ldh:translations())" mode="ac:label"/>
             </caption>
 
@@ -827,7 +827,7 @@ exclude-result-prefixes="#all"
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
-            <caption class="ldhc-vh">
+            <caption class="ac-vh">
                 <xsl:apply-templates select="key('resources', 'resources', ldh:translations())" mode="ac:label"/>
             </caption>
 
@@ -895,7 +895,7 @@ exclude-result-prefixes="#all"
             <!-- saving PATCHes the current document, so the button only appears to an agent who may write to it -->
             <xsl:if test="$show-save and acl:mode() = '&acl;Write'">
                 <div class="ldh-block-foot">
-                    <button class="ldhc-btn in-primary ap-solid sz-md btn-save-chart" type="button">
+                    <button class="ac-btn in-primary ap-solid sz-md btn-save-chart" type="button">
                         <span class="msi sm" aria-hidden="true">save</span>
                         <xsl:apply-templates select="key('resources', 'save', ldh:translations())" mode="ac:label"/>
                     </button>
@@ -936,7 +936,7 @@ exclude-result-prefixes="#all"
 
         <div class="chart-controls">
             <div class="field">
-                <label class="ldhc-label sz-sm" for="{$chart-type-id}">
+                <label class="ac-label sz-sm" for="{$chart-type-id}">
                     <span>
                         <xsl:apply-templates select="key('resources', '&ldh;chartType', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
                     </span>
@@ -956,7 +956,7 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
             </div>
             <div class="field">
-                <label class="ldhc-label sz-sm" for="{$category-id}">
+                <label class="ac-label sz-sm" for="{$category-id}">
                     <span>
                         <xsl:apply-templates select="key('resources', 'category', ldh:translations())" mode="ac:label"/>
                     </span>
@@ -991,7 +991,7 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
             </div>
             <div class="field">
-                <label class="ldhc-label sz-sm" for="{$series-id}">
+                <label class="ac-label sz-sm" for="{$series-id}">
                     <span>
                         <xsl:apply-templates select="key('resources', 'series', ldh:translations())" mode="ac:label"/>
                     </span>
@@ -1032,7 +1032,7 @@ exclude-result-prefixes="#all"
 
         <div class="chart-controls">
             <div class="field">
-                <label class="ldhc-label sz-sm" for="{$chart-type-id}">
+                <label class="ac-label sz-sm" for="{$chart-type-id}">
                     <span>
                         <xsl:apply-templates select="key('resources', '&ldh;chartType', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
                     </span>
@@ -1052,7 +1052,7 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
             </div>
             <div class="field">
-                <label class="ldhc-label sz-sm" for="{$category-id}">
+                <label class="ac-label sz-sm" for="{$category-id}">
                     <span>
                         <xsl:apply-templates select="key('resources', 'category', ldh:translations())" mode="ac:label"/>
                     </span>
@@ -1076,7 +1076,7 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
             </div>
             <div class="field">
-                <label class="ldhc-label sz-sm" for="{$series-id}">
+                <label class="ac-label sz-sm" for="{$series-id}">
                     <span>
                         <xsl:apply-templates select="key('resources', 'series', ldh:translations())" mode="ac:label"/>
                     </span>
@@ -1180,7 +1180,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="show-close-button" select="false()" as="xs:boolean"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/>
-        <xsl:param name="button-class" select="'ldhc-btn in-primary ap-solid sz-sm'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'ac-btn in-primary ap-solid sz-sm'" as="xs:string?"/>
         <xsl:param name="create-resource" select="true()" as="xs:boolean"/>
         <xsl:param name="classes" as="element()*"/>
         <xsl:param name="types" select="distinct-values(rdf:Description/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
@@ -1258,7 +1258,7 @@ exclude-result-prefixes="#all"
     <!-- CREATE -->
     
     <xsl:template match="rdf:RDF | srx:sparql" mode="ac:Create" priority="1">
-        <xsl:param name="class" select="'ldh-add-wrap ldhc-menu-anchor'" as="xs:string?"/>
+        <xsl:param name="class" select="'ldh-add-wrap ac-menu-anchor'" as="xs:string?"/>
         <xsl:param name="classes" as="element()*"/>
         <xsl:param name="create-graph" select="false()" as="xs:boolean"/>
         <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
@@ -1269,7 +1269,7 @@ exclude-result-prefixes="#all"
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
-            <button type="button" class="ldhc-btn in-primary ap-solid sz-md drop-toggle" title="{ac:label(key('resources', 'create-instance-title', ldh:translations()))}">
+            <button type="button" class="ac-btn in-primary ap-solid sz-md drop-toggle" title="{ac:label(key('resources', 'create-instance-title', ldh:translations()))}">
                 <span class="msi sm" aria-hidden="true">add</span>
                 <span>
                     <xsl:apply-templates select="key('resources', 'create', ldh:translations())" mode="ac:label"/>
@@ -1308,8 +1308,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="create-graph" select="false()" as="xs:boolean"/>
         <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
 
-        <div class="ldh-add-wrap ldhc-menu-anchor">
-            <button type="button" class="ldhc-btn in-primary ap-solid sz-md drop-toggle" title="{ac:label(key('resources', 'create-instance-title', ldh:translations()))}">
+        <div class="ldh-add-wrap ac-menu-anchor">
+            <button type="button" class="ac-btn in-primary ap-solid sz-md drop-toggle" title="{ac:label(key('resources', 'create-instance-title', ldh:translations()))}">
                 <span class="msi sm" aria-hidden="true">add</span>
                 <span>
                     <xsl:apply-templates select="key('resources', 'create', ldh:translations())" mode="ac:label"/>
@@ -1337,17 +1337,17 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&http;Response'][lacl:requestAccess/@rdf:resource][$foaf:Agent]" mode="ac:BlockHeader" priority="2">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'ldhc-alert va-informative'" as="xs:string?"/>
+        <xsl:param name="class" select="'ac-alert va-informative'" as="xs:string?"/>
 
         <xsl:apply-templates select="." mode="ac:InlineAlert">
             <xsl:with-param name="id" select="$id"/>
             <xsl:with-param name="class" select="$class"/>
             <xsl:with-param name="icon" select="'info'"/>
             <xsl:with-param name="body" as="item()*">
-                <h2 class="ldhc-alert-title">
+                <h2 class="ac-alert-title">
                     <xsl:apply-templates select="." mode="ac:label"/>
                 </h2>
-                <button type="button" class="ldhc-btn in-primary ap-solid sz-md btn-access-form">
+                <button type="button" class="ac-btn in-primary ap-solid sz-md btn-access-form">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'request-access', ldh:translations())" mode="ac:label"/>
                     </xsl:value-of>

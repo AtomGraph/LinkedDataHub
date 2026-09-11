@@ -530,10 +530,10 @@ version="3.0">
                 <xsl:apply-templates select="key('resources', 'match-case', ldh:translations())" mode="ac:label"/>
             </label>
             <div class="action-buttons">
-                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm find-next"><xsl:apply-templates select="key('resources', 'find-next', ldh:translations())" mode="ac:label"/></button>
-                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm replace-current"><xsl:apply-templates select="key('resources', 'replace', ldh:translations())" mode="ac:label"/></button>
-                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm replace-all"><xsl:apply-templates select="key('resources', 'replace-all', ldh:translations())" mode="ac:label"/></button>
-                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm find-close"><xsl:apply-templates select="key('resources', 'close', ldh:translations())" mode="ac:label"/></button>
+                <button type="button" class="ac-btn in-primary ap-solid sz-sm find-next"><xsl:apply-templates select="key('resources', 'find-next', ldh:translations())" mode="ac:label"/></button>
+                <button type="button" class="ac-btn in-neutral ap-solid sz-sm replace-current"><xsl:apply-templates select="key('resources', 'replace', ldh:translations())" mode="ac:label"/></button>
+                <button type="button" class="ac-btn in-neutral ap-solid sz-sm replace-all"><xsl:apply-templates select="key('resources', 'replace-all', ldh:translations())" mode="ac:label"/></button>
+                <button type="button" class="ac-btn in-neutral ap-solid sz-sm find-close"><xsl:apply-templates select="key('resources', 'close', ldh:translations())" mode="ac:label"/></button>
             </div>
             <span id="find-status" class="helper-text"/>
         </div>

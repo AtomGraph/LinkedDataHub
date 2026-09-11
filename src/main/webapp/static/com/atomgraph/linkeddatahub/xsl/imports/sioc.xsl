@@ -62,7 +62,7 @@ exclude-result-prefixes="#all">
 
         <xsl:if test="not($type = 'hidden')">
             <xsl:apply-templates select="." mode="ac:AnnotationTag">
-                <xsl:with-param name="class" select="'ldhc-tag sz-sm em-quiet an-term is-literal'"/>
+                <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet an-term is-literal'"/>
                 <xsl:with-param name="label" as="item()*">
                     <xsl:apply-templates select="key('resources', 'literal', ldh:translations())" mode="ac:label"/>
                 </xsl:with-param>

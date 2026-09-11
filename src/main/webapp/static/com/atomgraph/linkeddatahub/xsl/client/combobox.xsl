@@ -46,10 +46,10 @@ version="3.0"
             <xsl:apply-templates select="." mode="ac:label"/>
         </xsl:variable>
 
-        <li class="{string-join(('ldhc-cb-item', $class), ' ')}" title="{(@rdf:about, @rdf:nodeID)[1]}">
+        <li class="{string-join(('ac-cb-item', $class), ' ')}" title="{(@rdf:about, @rdf:nodeID)[1]}">
             <input type="hidden" name="{$name}" value="{(@rdf:about, @rdf:nodeID)[1]}"/>
 
-            <span class="ldhc-cb-item-lbl">
+            <span class="ac-cb-item-lbl">
                 <xsl:for-each select="$label">
                     <xsl:choose>
                         <xsl:when test="contains(lower-case(.), lower-case($query))">
@@ -72,7 +72,7 @@ version="3.0"
                 </xsl:for-each>
             </span>
 
-            <span class="ldhc-cb-item-sub">
+            <span class="ac-cb-item-sub">
                 <xsl:for-each select="rdf:type/@rdf:resource">
                     <xsl:apply-templates select="." mode="ac:object-label"/>
                     <xsl:if test="position() != last()">
@@ -108,7 +108,7 @@ version="3.0"
         <xsl:param name="element" as="element()"/>
         <xsl:param name="resource-types" as="xs:anyURI*"/>
         
-        <xsl:variable name="menu" select="($element/following-sibling::ul, $element/../following-sibling::div[contains-token(@class, 'ldhc-cb-panel')])[1]" as="element()"/>
+        <xsl:variable name="menu" select="($element/following-sibling::ul, $element/../following-sibling::div[contains-token(@class, 'ac-cb-panel')])[1]" as="element()"/>
         
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
@@ -191,7 +191,7 @@ version="3.0"
         <xsl:for-each select="$menu">
             <ixsl:set-style name="display" select="'block'"/>
             <!-- combobox panels are positioned by the stylesheet; only the legacy ul menus need inline offsets -->
-            <xsl:if test="not(contains-token(@class, 'ldhc-cb-panel'))">
+            <xsl:if test="not(contains-token(@class, 'ac-cb-panel'))">
                 <ixsl:set-style name="top" select="($element/ixsl:get(., 'offsetTop') + $element/ixsl:get(., 'offsetHeight')) || 'px'"/>
                 <ixsl:set-style name="left" select="($element/ixsl:get(., 'offsetLeft')) || 'px'"/>
             </xsl:if>

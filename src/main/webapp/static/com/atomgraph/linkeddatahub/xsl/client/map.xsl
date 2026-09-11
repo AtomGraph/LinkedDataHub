@@ -450,13 +450,13 @@ exclude-result-prefixes="#all"
 
                     <xsl:for-each select="$container">
                         <xsl:result-document href="?." method="ixsl:replace-content">
-                            <div class="ldhc-modal-head">
-                                <span class="ldhc-modal-x">
-                                    <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
+                            <div class="ac-modal-head">
+                                <span class="ac-modal-x">
+                                    <button type="button" class="ac-iconbtn sz-sm in-neutral ap-ghost" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
                                 </span>
                             </div>
 
-                            <div class="ldhc-modal-body">
+                            <div class="ac-modal-body">
                                 <xsl:sequence select="$info-window-html"/>
                             </div>
                         </xsl:result-document>
@@ -513,7 +513,7 @@ exclude-result-prefixes="#all"
     
     <!-- close popup overlay (info window) -->
     
-    <xsl:template match="div[contains-token(@class, 'ol-overlay-container')]//span[contains-token(@class, 'ldhc-modal-x')]/button" mode="ixsl:onclick">
+    <xsl:template match="div[contains-token(@class, 'ol-overlay-container')]//span[contains-token(@class, 'ac-modal-x')]/button" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'ol-overlay-container')]/div" as="element()"/>
         <xsl:variable name="overlay" select="ixsl:get($container, 'overlay')" as="item()"/>
         <xsl:variable name="map" select="ixsl:call($overlay, 'getMap', [])" as="item()"/>

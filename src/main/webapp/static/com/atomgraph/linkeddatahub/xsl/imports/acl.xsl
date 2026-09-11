@@ -228,7 +228,7 @@ exclude-result-prefixes="#all">
             </xsl:call-template>
 
             <div class="ldh-block-foot">
-                <button type="submit" class="ldhc-btn in-primary ap-solid sz-md">
+                <button type="submit" class="ac-btn in-primary ap-solid sz-md">
                     <span class="msi sm" aria-hidden="true">check</span>
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'allow', ldh:translations())" mode="ac:label"/>

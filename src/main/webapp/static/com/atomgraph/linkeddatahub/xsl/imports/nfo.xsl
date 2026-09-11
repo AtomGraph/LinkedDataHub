@@ -33,8 +33,8 @@ exclude-result-prefixes="#all">
         <xsl:param name="accept" as="xs:string?"/>
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
 
-        <div class="ldhc-fileinput">
-            <label class="ldhc-file-drop" for="{$id}" tabindex="0">
+        <div class="ac-fileinput">
+            <label class="ac-file-drop" for="{$id}" tabindex="0">
                 <span class="msi outline sm" aria-hidden="true">upload_file</span>
                 <span>
                     <xsl:apply-templates select="key('resources', 'upload', ldh:translations())" mode="ac:label"/>
@@ -58,7 +58,7 @@ exclude-result-prefixes="#all">
 
         <xsl:if test="not($type = 'hidden')">
             <xsl:apply-templates select="." mode="ac:AnnotationTag">
-                <xsl:with-param name="class" select="'ldhc-tag sz-sm em-quiet co-neutral'"/>
+                <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet co-neutral'"/>
                 <xsl:with-param name="label" as="item()*">
                     <xsl:apply-templates select="key('resources', 'upload', ldh:translations())" mode="ac:label"/>
                 </xsl:with-param>

@@ -287,7 +287,7 @@ WHERE
             <xsl:call-template name="ldh:Combobox">
                 <xsl:with-param name="class" select="'property-combobox combobox'"/>
                 <xsl:with-param name="id" select="'annotation-' || $field"/>
-                <xsl:with-param name="list-class" select="'property-combobox combobox ldhc-cb-panel'"/>
+                <xsl:with-param name="list-class" select="'property-combobox combobox ac-cb-panel'"/>
                 <xsl:with-param name="forClass" select="$for-class"/>
             </xsl:call-template>
         </span>
@@ -304,7 +304,7 @@ WHERE
                 <xsl:call-template name="ldh:Combobox">
                     <xsl:with-param name="class" select="'property-combobox combobox'"/>
                     <xsl:with-param name="id" select="'annotation-' || $field"/>
-                    <xsl:with-param name="list-class" select="'property-combobox combobox ldhc-cb-panel'"/>
+                    <xsl:with-param name="list-class" select="'property-combobox combobox ac-cb-panel'"/>
                     <xsl:with-param name="forClass" select="$for-class"/>
                     <xsl:with-param name="value" select="if ($iri ne '') then $iri else ()"/>
                 </xsl:call-template>
@@ -333,15 +333,15 @@ WHERE
     <!-- annotation overlay on the design system's modal head/body anatomy (replaces rdfa-editor's custom HTML structure) -->
     <xsl:template name="rdfae:render-overlay">
         <div id="{$rdfae:overlay-id}" class="rdfa-editor-ui" role="dialog" aria-modal="true" aria-label="{ac:label(key('resources', 'rdfa-annotation', ldh:translations()))}" style="display: none;">
-            <div class="ldhc-modal-head">
+            <div class="ac-modal-head">
                 <legend>
                     <xsl:apply-templates select="key('resources', 'rdfa-annotation', ldh:translations())" mode="ac:label"/>
                 </legend>
-                <span class="ldhc-modal-x">
-                    <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost cancel-action" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
+                <span class="ac-modal-x">
+                    <button type="button" class="ac-iconbtn sz-sm in-neutral ap-ghost cancel-action" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
                 </span>
             </div>
-            <div class="ldhc-modal-body">
+            <div class="ac-modal-body">
                 <form id="annotation-form" class="ldh-prop-form">
                     <div class="ldh-prop-group">
                         <xsl:apply-templates select="." mode="ldh:PropertyLabel">
@@ -388,7 +388,7 @@ WHERE
                                         </xsl:with-param>
                                     </xsl:apply-templates>
                                 </div>
-                                <span class="ldhc-help sz-sm"><xsl:apply-templates select="key('resources', 'rdfa-value-help', ldh:translations())" mode="ac:label"/></span>
+                                <span class="ac-help sz-sm"><xsl:apply-templates select="key('resources', 'rdfa-value-help', ldh:translations())" mode="ac:label"/></span>
                             </div>
                             <div class="row-actions"></div>
                         </div>
@@ -410,7 +410,7 @@ WHERE
                                             </xsl:with-param>
                                         </xsl:apply-templates>
                                     </div>
-                                    <span class="ldhc-help sz-sm"><xsl:apply-templates select="key('resources', 'rdfa-subject-help', ldh:translations())" mode="ac:label"/></span>
+                                    <span class="ac-help sz-sm"><xsl:apply-templates select="key('resources', 'rdfa-subject-help', ldh:translations())" mode="ac:label"/></span>
                                 </div>
                                 <div class="row-actions"></div>
                             </div>
@@ -426,7 +426,7 @@ WHERE
                                     <div class="val-main">
                                         <xsl:sequence select="rdfae:typeahead-field('typeof')"/>
                                     </div>
-                                    <span class="ldhc-help sz-sm"><xsl:apply-templates select="key('resources', 'rdfa-typeof-help', ldh:translations())" mode="ac:label"/></span>
+                                    <span class="ac-help sz-sm"><xsl:apply-templates select="key('resources', 'rdfa-typeof-help', ldh:translations())" mode="ac:label"/></span>
                                 </div>
                                 <div class="row-actions"></div>
                             </div>
@@ -449,7 +449,7 @@ WHERE
                                             </xsl:with-param>
                                         </xsl:apply-templates>
                                     </div>
-                                    <span class="ldhc-help sz-sm"><xsl:apply-templates select="key('resources', 'rdfa-object-help', ldh:translations())" mode="ac:label"/></span>
+                                    <span class="ac-help sz-sm"><xsl:apply-templates select="key('resources', 'rdfa-object-help', ldh:translations())" mode="ac:label"/></span>
                                 </div>
                                 <div class="row-actions"></div>
                             </div>
@@ -483,7 +483,7 @@ WHERE
                                             </xsl:with-param>
                                         </xsl:apply-templates>
                                     </div>
-                                    <span class="ldhc-help sz-sm"><xsl:apply-templates select="key('resources', 'rdfa-datatype-help', ldh:translations())" mode="ac:label"/></span>
+                                    <span class="ac-help sz-sm"><xsl:apply-templates select="key('resources', 'rdfa-datatype-help', ldh:translations())" mode="ac:label"/></span>
                                 </div>
                                 <div class="row-actions"></div>
                             </div>
@@ -503,16 +503,16 @@ WHERE
                                             </xsl:with-param>
                                         </xsl:apply-templates>
                                     </div>
-                                    <span class="ldhc-help sz-sm"><xsl:apply-templates select="key('resources', 'rdfa-language-help', ldh:translations())" mode="ac:label"/></span>
+                                    <span class="ac-help sz-sm"><xsl:apply-templates select="key('resources', 'rdfa-language-help', ldh:translations())" mode="ac:label"/></span>
                                 </div>
                                 <div class="row-actions"></div>
                             </div>
                         </div>
                     </fieldset>
                     <div class="ldh-block-foot">
-                        <button type="button" class="ldhc-btn in-negative ap-solid sz-sm remove-action" style="display: none;"><xsl:value-of select="ac:label(key('resources', 'remove', ldh:translations()))"/></button>
-                        <button type="button" class="ldhc-btn in-neutral ap-outline sz-sm cancel-action"><xsl:value-of select="ac:label(key('resources', 'cancel', ldh:translations()))"/></button>
-                        <button type="button" class="ldhc-btn in-primary ap-solid sz-sm spo-action"><xsl:value-of select="ac:label(key('resources', 'annotate', ldh:translations()))"/></button>
+                        <button type="button" class="ac-btn in-negative ap-solid sz-sm remove-action" style="display: none;"><xsl:value-of select="ac:label(key('resources', 'remove', ldh:translations()))"/></button>
+                        <button type="button" class="ac-btn in-neutral ap-outline sz-sm cancel-action"><xsl:value-of select="ac:label(key('resources', 'cancel', ldh:translations()))"/></button>
+                        <button type="button" class="ac-btn in-primary ap-solid sz-sm spo-action"><xsl:value-of select="ac:label(key('resources', 'annotate', ldh:translations()))"/></button>
                     </div>
                 </form>
             </div>
@@ -525,14 +525,14 @@ WHERE
          design's is-disabled state after it, mirroring the disabled flag the delegation sets on the input -->
     <xsl:template match="select[@name = 'datatype']" mode="ixsl:onchange">
         <xsl:variable name="custom" as="xs:boolean" select="string(ixsl:get(., 'value')) eq $rdfae:custom"/>
-        <xsl:for-each select="ancestor::form//input[@name = 'custom-datatype']/ancestor::div[contains-token(@class, 'ldhc-field')][1]">
+        <xsl:for-each select="ancestor::form//input[@name = 'custom-datatype']/ancestor::div[contains-token(@class, 'ac-field')][1]">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-hidden', not($custom) ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
 
         <xsl:apply-imports/>
 
         <xsl:variable name="datatype" as="xs:boolean" select="string(ixsl:get(., 'value')) ne ''"/>
-        <xsl:for-each select="ancestor::form//input[@name = 'lang']/ancestor::div[contains-token(@class, 'ldhc-field-box')][1]">
+        <xsl:for-each select="ancestor::form//input[@name = 'lang']/ancestor::div[contains-token(@class, 'ac-field-box')][1]">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-disabled', $datatype ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
     </xsl:template>
@@ -549,8 +549,8 @@ WHERE
             <label for="table-caption"><xsl:apply-templates select="key('resources', 'caption', ldh:translations())" mode="ac:label"/></label>
             <input type="text" id="table-caption" name="caption"/>
             <div class="action-buttons">
-                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm table-save"><xsl:value-of select="ac:label(key('resources', 'insert', ldh:translations()))"/></button>
-                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm table-cancel"><xsl:value-of select="ac:label(key('resources', 'cancel', ldh:translations()))"/></button>
+                <button type="button" class="ac-btn in-primary ap-solid sz-sm table-save"><xsl:value-of select="ac:label(key('resources', 'insert', ldh:translations()))"/></button>
+                <button type="button" class="ac-btn in-neutral ap-solid sz-sm table-cancel"><xsl:value-of select="ac:label(key('resources', 'cancel', ldh:translations()))"/></button>
             </div>
         </div>
     </xsl:template>
@@ -560,9 +560,9 @@ WHERE
             <label for="link-href"><xsl:apply-templates select="key('resources', 'link-href', ldh:translations())" mode="ac:label"/></label>
             <input type="text" id="link-href" name="href" placeholder="https://..."/>
             <div class="action-buttons">
-                <button type="button" class="ldhc-btn in-negative ap-solid sz-sm link-remove" style="display: none;"><xsl:value-of select="ac:label(key('resources', 'remove-link', ldh:translations()))"/></button>
-                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm link-save"><xsl:value-of select="ac:label(key('resources', 'save', ldh:translations()))"/></button>
-                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm link-cancel"><xsl:value-of select="ac:label(key('resources', 'cancel', ldh:translations()))"/></button>
+                <button type="button" class="ac-btn in-negative ap-solid sz-sm link-remove" style="display: none;"><xsl:value-of select="ac:label(key('resources', 'remove-link', ldh:translations()))"/></button>
+                <button type="button" class="ac-btn in-primary ap-solid sz-sm link-save"><xsl:value-of select="ac:label(key('resources', 'save', ldh:translations()))"/></button>
+                <button type="button" class="ac-btn in-neutral ap-solid sz-sm link-cancel"><xsl:value-of select="ac:label(key('resources', 'cancel', ldh:translations()))"/></button>
             </div>
         </div>
     </xsl:template>
@@ -576,8 +576,8 @@ WHERE
             <label for="figure-caption"><xsl:apply-templates select="key('resources', 'caption', ldh:translations())" mode="ac:label"/></label>
             <input type="text" id="figure-caption" name="caption"/>
             <div class="action-buttons">
-                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm figure-save"><xsl:value-of select="ac:label(key('resources', 'insert', ldh:translations()))"/></button>
-                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm figure-cancel"><xsl:value-of select="ac:label(key('resources', 'cancel', ldh:translations()))"/></button>
+                <button type="button" class="ac-btn in-primary ap-solid sz-sm figure-save"><xsl:value-of select="ac:label(key('resources', 'insert', ldh:translations()))"/></button>
+                <button type="button" class="ac-btn in-neutral ap-solid sz-sm figure-cancel"><xsl:value-of select="ac:label(key('resources', 'cancel', ldh:translations()))"/></button>
             </div>
         </div>
     </xsl:template>
@@ -590,12 +590,12 @@ WHERE
             <input type="text" id="find-replace" name="replace"/>
             <label class="checkbox"><input type="checkbox" name="match-case"/><xsl:text> </xsl:text><xsl:apply-templates select="key('resources', 'match-case', ldh:translations())" mode="ac:label"/></label>
             <div class="action-buttons">
-                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm find-next"><xsl:value-of select="ac:label(key('resources', 'find-next', ldh:translations()))"/></button>
-                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm replace-current"><xsl:value-of select="ac:label(key('resources', 'replace', ldh:translations()))"/></button>
-                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm replace-all"><xsl:value-of select="ac:label(key('resources', 'replace-all', ldh:translations()))"/></button>
-                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm find-close"><xsl:value-of select="ac:label(key('resources', 'close', ldh:translations()))"/></button>
+                <button type="button" class="ac-btn in-primary ap-solid sz-sm find-next"><xsl:value-of select="ac:label(key('resources', 'find-next', ldh:translations()))"/></button>
+                <button type="button" class="ac-btn in-neutral ap-solid sz-sm replace-current"><xsl:value-of select="ac:label(key('resources', 'replace', ldh:translations()))"/></button>
+                <button type="button" class="ac-btn in-neutral ap-solid sz-sm replace-all"><xsl:value-of select="ac:label(key('resources', 'replace-all', ldh:translations()))"/></button>
+                <button type="button" class="ac-btn in-neutral ap-solid sz-sm find-close"><xsl:value-of select="ac:label(key('resources', 'close', ldh:translations()))"/></button>
             </div>
-            <span id="find-status" class="ldhc-help sz-sm"/>
+            <span id="find-status" class="ac-help sz-sm"/>
         </div>
     </xsl:template>
 
@@ -637,8 +637,8 @@ WHERE
                 <input type="text" id="ldh-chart-series" name="chart-series"/>
             </div>
             <div class="action-buttons">
-                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm ldh-block-save"><xsl:value-of select="ac:label(key('resources', 'insert', ldh:translations()))"/></button>
-                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm ldh-block-cancel"><xsl:value-of select="ac:label(key('resources', 'cancel', ldh:translations()))"/></button>
+                <button type="button" class="ac-btn in-primary ap-solid sz-sm ldh-block-save"><xsl:value-of select="ac:label(key('resources', 'insert', ldh:translations()))"/></button>
+                <button type="button" class="ac-btn in-neutral ap-solid sz-sm ldh-block-cancel"><xsl:value-of select="ac:label(key('resources', 'cancel', ldh:translations()))"/></button>
             </div>
         </div>
     </xsl:template>
@@ -727,7 +727,7 @@ WHERE
                     <div class="main">
                         <xsl:apply-templates select="." mode="ac:InlineAlert">
                             <xsl:with-param name="variant" select="'va-success'"/>
-                            <xsl:with-param name="class" select="'ldhc-alert va-success block-row'"/>
+                            <xsl:with-param name="class" select="'ac-alert va-success block-row'"/>
                             <xsl:with-param name="title" as="item()*">
                                 <xsl:apply-templates select="key('resources', 'signup-created', ldh:translations())" mode="ac:label"/>
                             </xsl:with-param>
@@ -1429,7 +1429,7 @@ WHERE
 
     <xsl:template match="div[@typeof]//form//button[contains-token(@class, 'add-value')]" mode="ixsl:onclick">
         <xsl:variable name="property-addrow" select="ancestor::div[contains-token(@class, 'ldh-prop-addrow')][1]" as="element()"/>
-        <xsl:variable name="property-uri" select="preceding-sibling::span[contains-token(@class, 'ldhc-select')]/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
+        <xsl:variable name="property-uri" select="preceding-sibling::span[contains-token(@class, 'ac-select')]/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
         <xsl:variable name="forClass" select="for $type in tokenize(ancestor::div[@typeof][contains-token(@class, 'block')][1]/@typeof) return xs:anyURI($type)" as="xs:anyURI*"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
@@ -1753,7 +1753,7 @@ WHERE
         <xsl:variable name="this" select="xs:anyURI($doc-uri || '#' || $id)" as="xs:anyURI"/>
 
         <!-- the class is picked, so the menu it was picked from is done: dismissed here rather than when the instance lands, because the chain that renders it takes several round-trips. The body pointerdown handler leaves this one alone - the press is inside the group it would close. Empty for the dock buttons that sit outside a drop-down. -->
-        <xsl:apply-templates select="ancestor::*[contains-token(@class, 'ldhc-menu-anchor')][1]" mode="ldh:CloseMenu"/>
+        <xsl:apply-templates select="ancestor::*[contains-token(@class, 'ac-menu-anchor')][1]" mode="ldh:CloseMenu"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
 
@@ -1800,7 +1800,7 @@ WHERE
     <!-- lookup by $label and optional $Type using search SELECT -->
     <xsl:template match="input[contains-token(@class, 'combobox')]" mode="ixsl:onkeyup">
         <xsl:param name="text" select="ixsl:get(., 'value')" as="xs:string?"/>
-        <xsl:param name="menu" select="(following-sibling::ul, ../following-sibling::div[contains-token(@class, 'ldhc-cb-panel')])[1]" as="element()"/>
+        <xsl:param name="menu" select="(following-sibling::ul, ../following-sibling::div[contains-token(@class, 'ac-cb-panel')])[1]" as="element()"/>
         <xsl:param name="delay" select="400" as="xs:integer"/>
         <xsl:param name="endpoint" select="sd:endpoint()" as="xs:anyURI"/>
         <xsl:param name="forClass" select="../ixsl:get(., 'dataset.forClass') ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
@@ -1876,7 +1876,7 @@ WHERE
                     <xsl:variable name="combobox-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.combobox.rdfXml')" as="document-node()"/> <!-- set by ldh:ComboboxLoaded -->
                     <xsl:variable name="resource" select="key('resources', $resource-id, $combobox-doc)"/>
 
-                    <!-- the committed chip replaces the whole lookup wrapper (legacy span or .ldhc-combobox) -->
+                    <!-- the committed chip replaces the whole lookup wrapper (legacy span or .ac-combobox) -->
                     <xsl:for-each select="../..">
                         <xsl:result-document href="?." method="ixsl:replace-element">
                             <xsl:apply-templates select="$resource" mode="ldh:ComboboxChip">
@@ -1918,7 +1918,7 @@ WHERE
     </xsl:template>
 
     <xsl:template match="input[contains-token(@class, 'combobox')]" mode="ixsl:onfocusout">
-        <xsl:param name="menu" select="(following-sibling::ul, ../following-sibling::div[contains-token(@class, 'ldhc-cb-panel')])[1]" as="element()"/>
+        <xsl:param name="menu" select="(following-sibling::ul, ../following-sibling::div[contains-token(@class, 'ac-cb-panel')])[1]" as="element()"/>
         
         <xsl:call-template name="ldh:ComboboxHide">
             <xsl:with-param name="menu" select="$menu"/>
@@ -2005,7 +2005,7 @@ WHERE
         </xsl:for-each>
     </xsl:function>
 
-    <xsl:template match="*[contains-token(@class, 'ldhc-cb-panel')][contains-token(@class, 'type-combobox')]/li" mode="ixsl:onmousedown" priority="1">
+    <xsl:template match="*[contains-token(@class, 'ac-cb-panel')][contains-token(@class, 'type-combobox')]/li" mode="ixsl:onmousedown" priority="1">
         <xsl:param name="chip-class" select="'cb-chip-btn add-combobox add-type-combobox'" as="xs:string"/>
         <xsl:sequence select="ldh:busy-cursor()"/>
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
@@ -2014,7 +2014,7 @@ WHERE
         <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:string"/> <!-- can be URI resource or blank node ID -->
         <xsl:variable name="combobox-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.combobox.rdfXml')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $resource-id, $combobox-doc)" as="element()"/>
-        <xsl:variable name="initial-forClass" select="(../../@data-for-class, ../preceding-sibling::div[contains-token(@class, 'ldhc-cb-box')]/@data-for-class)[1] ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
+        <xsl:variable name="initial-forClass" select="(../../@data-for-class, ../preceding-sibling::div[contains-token(@class, 'ac-cb-box')]/@data-for-class)[1] ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
 
         <!-- render the committed chip replacing the whole lookup wrapper (synchronous DOM mutation, runs before the promise) -->
         <xsl:for-each select="../..">
@@ -2064,14 +2064,14 @@ WHERE
     
     <!-- select combobox item -->
     
-    <xsl:template match="*[contains-token(@class, 'ldhc-cb-panel')][contains-token(@class, 'combobox')]/li" mode="ixsl:onmousedown">
+    <xsl:template match="*[contains-token(@class, 'ac-cb-panel')][contains-token(@class, 'combobox')]/li" mode="ixsl:onmousedown">
         <xsl:param name="chip-class" select="'cb-chip-btn add-combobox'" as="xs:string"/>
         <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:string"/> <!-- can be URI resource or blank node ID -->
         <xsl:variable name="combobox-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.combobox.rdfXml')" as="document-node()"/>
         <xsl:variable name="resource" select="key('resources', $resource-id, $combobox-doc)" as="element()"/>
-        <xsl:variable name="forClass" select="(../../@data-for-class, ../preceding-sibling::div[contains-token(@class, 'ldhc-cb-box')]/@data-for-class)[1] ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
+        <xsl:variable name="forClass" select="(../../@data-for-class, ../preceding-sibling::div[contains-token(@class, 'ac-cb-box')]/@data-for-class)[1] ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
 
-        <!-- the committed chip replaces the whole lookup wrapper (legacy span or .ldhc-combobox) -->
+        <!-- the committed chip replaces the whole lookup wrapper (legacy span or .ac-combobox) -->
         <xsl:for-each select="../..">
             <xsl:result-document href="?." method="ixsl:replace-element">
                 <xsl:apply-templates select="$resource" mode="ldh:ComboboxChip">
@@ -2177,7 +2177,7 @@ WHERE
 
     <xsl:template match="button[contains-token(@class, 'add-type')]" mode="ixsl:onclick" priority="1">
         <xsl:param name="combobox-class" select="'type-combobox combobox'" as="xs:string"/>
-        <xsl:param name="combobox-list-class" select="'type-combobox combobox ldhc-cb-panel'" as="xs:string"/>
+        <xsl:param name="combobox-list-class" select="'type-combobox combobox ac-cb-panel'" as="xs:string"/>
         <xsl:variable name="uuid" select="ac:uuid()" as="xs:string"/>
         
         <xsl:for-each select="..">
@@ -2208,7 +2208,7 @@ WHERE
     <xsl:template match="button[contains-token(@class, 'add-type-combobox')]" mode="ixsl:onclick" priority="1">
         <xsl:next-match>
             <xsl:with-param name="combobox-class" select="'type-combobox combobox'"/>
-            <xsl:with-param name="combobox-list-class" select="'type-combobox combobox ldhc-cb-panel'" as="xs:string"/>
+            <xsl:with-param name="combobox-list-class" select="'type-combobox combobox ac-cb-panel'" as="xs:string"/>
         </xsl:next-match>
     </xsl:template>
     
@@ -2217,7 +2217,7 @@ WHERE
         <xsl:param name="combobox-list-class" select="'resource-combobox combobox'" as="xs:string"/>
         <xsl:variable name="uuid" select="ac:uuid()" as="xs:string"/>
         <!-- the committed chip span carries the class scope; the fresh lookup replaces it wholesale -->
-        <xsl:variable name="committed" select="ancestor::span[contains-token(@class, 'ldhc-cb-committed')][1]" as="element()"/>
+        <xsl:variable name="committed" select="ancestor::span[contains-token(@class, 'ac-cb-committed')][1]" as="element()"/>
         <xsl:variable name="forClass" select="$committed/@data-for-class ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
 
         <xsl:for-each select="$committed">
@@ -2239,7 +2239,7 @@ WHERE
     <!-- show a combobox panel with instances in the form -->
     
     <xsl:template match="form//input[contains-token(@class, 'resource-combobox')]" mode="ixsl:onfocusin">
-        <xsl:variable name="menu" select="(following-sibling::ul, ../following-sibling::div[contains-token(@class, 'ldhc-cb-panel')])[1]" as="element()"/>
+        <xsl:variable name="menu" select="(following-sibling::ul, ../following-sibling::div[contains-token(@class, 'ac-cb-panel')])[1]" as="element()"/>
         <xsl:variable name="forClass" select="../ixsl:get(., 'dataset.forClass')" as="xs:anyURI*"/>
         <xsl:variable name="item-doc" as="document-node()">
             <xsl:document>
@@ -2277,8 +2277,8 @@ WHERE
 
     <!-- file picked: surface the selected-file chip below the drop zone (the hidden input keeps serializing into the multipart body) -->
 
-    <xsl:template match="div[contains-token(@class, 'ldhc-fileinput')]//input[@type = 'file']" mode="ixsl:onchange">
-        <xsl:variable name="wrapper" select="ancestor::div[contains-token(@class, 'ldhc-fileinput')][1]" as="element()"/>
+    <xsl:template match="div[contains-token(@class, 'ac-fileinput')]//input[@type = 'file']" mode="ixsl:onchange">
+        <xsl:variable name="wrapper" select="ancestor::div[contains-token(@class, 'ac-fileinput')][1]" as="element()"/>
         <xsl:variable name="has-file" select="ixsl:get(., 'files.length') gt 0" as="xs:boolean"/>
         <xsl:variable name="file-name" select="if ($has-file) then string(ixsl:get(ixsl:call(ixsl:get(., 'files'), 'item', [ 0 ]), 'name')) else ()" as="xs:string?"/>
 
@@ -2302,11 +2302,11 @@ WHERE
 
     <!-- the predicate-description toggletip in the row label: click toggles the tip the row template ships closed -->
 
-    <xsl:template match="button[contains-token(@class, 'ldhc-toggletip-btn')]" mode="ixsl:onclick">
+    <xsl:template match="button[contains-token(@class, 'ac-toggletip-btn')]" mode="ixsl:onclick">
         <xsl:variable name="open" select="not(ixsl:get(., 'ariaExpanded') = 'true')" as="xs:boolean"/>
 
         <ixsl:set-property name="ariaExpanded" select="if ($open) then 'true' else 'false'" object="."/>
-        <xsl:for-each select="following-sibling::span[contains-token(@class, 'ldhc-tip')]">
+        <xsl:for-each select="following-sibling::span[contains-token(@class, 'ac-tip')]">
             <ixsl:set-style name="display" select="if ($open) then 'inline-flex' else 'none'"/>
         </xsl:for-each>
     </xsl:template>

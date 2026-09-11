@@ -367,7 +367,7 @@ exclude-result-prefixes="#all"
          markup needs no resource context of its own. -->
     <xsl:template match="*" mode="ldh:BlockLinksPopover">
         <div class="links-nav">
-            <button type="button" class="ldhc-iconbtn sz-sm in-accent ap-ghost tb-links" aria-pressed="false">
+            <button type="button" class="ac-iconbtn sz-sm in-accent ap-ghost tb-links" aria-pressed="false">
                 <xsl:attribute name="title">
                     <xsl:apply-templates select="key('resources', 'backlinks', ldh:translations())" mode="ac:label"/>
                 </xsl:attribute>
@@ -395,7 +395,7 @@ exclude-result-prefixes="#all"
          the onclick handler in client.xsl resolves the URI from the header's title anchor or the
          ancestor block's @about at click time. -->
     <xsl:template match="*" mode="ldh:CopyUriButton">
-        <xsl:param name="class" select="'ldhc-iconbtn sz-sm in-neutral ap-ghost btn-copy-uri'" as="xs:string"/>
+        <xsl:param name="class" select="'ac-iconbtn sz-sm in-neutral ap-ghost btn-copy-uri'" as="xs:string"/>
 
         <button type="button" class="{$class}">
             <xsl:attribute name="title">
@@ -412,7 +412,7 @@ exclude-result-prefixes="#all"
          ldh:CopyUriButton: the onclick handler in client/form.xsl resolves the target from the ancestor
          block's @about at click time. -->
     <xsl:template match="*" mode="ldh:EditButton">
-        <xsl:param name="class" select="'ldhc-iconbtn sz-sm in-neutral ap-ghost btn-edit'" as="xs:string"/>
+        <xsl:param name="class" select="'ac-iconbtn sz-sm in-neutral ap-ghost btn-edit'" as="xs:string"/>
         <xsl:param name="title" select="ac:label(key('resources', '&ac;EditMode', document(ac:document-uri('&ac;'))))" as="xs:string?"/>
 
         <button type="button" class="{$class}">
@@ -1092,8 +1092,8 @@ exclude-result-prefixes="#all"
                 <xsl:if test="$apps//*[sd:endpoint/@rdf:resource]">
                     <xsl:variable name="resource" select="." as="element()"/>
                     
-                    <div class="ldhc-menu-anchor">
-                        <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm drop-toggle">
+                    <div class="ac-menu-anchor">
+                        <button type="button" class="ac-btn in-neutral ap-solid sz-sm drop-toggle">
                             <xsl:attribute name="title">
                                 <xsl:apply-templates select="key('resources', 'reconcile-title', ldh:translations())" mode="ac:label"/>
                             </xsl:attribute>
@@ -1102,7 +1102,7 @@ exclude-result-prefixes="#all"
                             <xsl:text> </xsl:text>
                             <span class="msi caret" aria-hidden="true">expand_more</span>
                         </button>
-                        <ul class="ldhc-menu">
+                        <ul class="ac-menu">
                             <xsl:for-each select="$apps//*[@rdf:about][sd:endpoint/@rdf:resource]">
                                 <xsl:sort select="ac:label(.)" order="ascending" lang="{ac:langs()[1]}"/>
                                 
@@ -1257,7 +1257,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="action" select="ldh:href(ac:absolute-path($base-uri))" as="xs:anyURI" tunnel="yes"/>
         <xsl:param name="enctype" select="if ($typeof = '&nfo;FileDataObject') then 'multipart/form-data' else ()" as="xs:string?"/>
-        <xsl:param name="button-class" select="'ldhc-btn in-primary ap-solid sz-sm'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'ac-btn in-primary ap-solid sz-sm'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="show-cancel-button" select="true()" as="xs:boolean"/>
         <xsl:param name="show-form-actions" select="true()" as="xs:boolean"/>
@@ -1484,7 +1484,7 @@ exclude-result-prefixes="#all"
                 <div class="ldh-form-subjbar">
                     <xsl:if test="$legend">
                         <!-- button that toggles the .ldh-subject row for subject URI/bnode ID editing -->
-                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost btn-edit-subj" aria-pressed="{if ($show-subject) then 'true' else 'false'}">
+                        <button type="button" class="ac-iconbtn sz-sm in-neutral ap-ghost btn-edit-subj" aria-pressed="{if ($show-subject) then 'true' else 'false'}">
                             <xsl:attribute name="title">
                                 <xsl:apply-templates select="key('resources', 'subject-uri-actions', ldh:translations())" mode="ac:label"/>
                             </xsl:attribute>
@@ -1494,7 +1494,7 @@ exclude-result-prefixes="#all"
                     </xsl:if>
 
                     <xsl:if test="not($required)">
-                        <button type="button" class="ldhc-iconbtn sz-sm in-destructive ap-ghost btn-remove-resource">
+                        <button type="button" class="ac-iconbtn sz-sm in-destructive ap-ghost btn-remove-resource">
                             <xsl:attribute name="title">
                                 <xsl:apply-templates select="key('resources', 'remove-resource', ldh:translations())" mode="ac:label"/>
                             </xsl:attribute>
@@ -1517,7 +1517,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="hidden" select="$type-hidden"/>
                 </xsl:apply-templates>
 
-                <!-- no fieldset-level alert stack: violations surface at the affected rows - .error decoration for missing mandatory properties, inline .ldhc-help messages for every other kind (see the property template in imports/default.xsl) -->
+                <!-- no fieldset-level alert stack: violations surface at the affected rows - .error decoration for missing mandatory properties, inline .ac-help messages for every other kind (see the property template in imports/default.xsl) -->
                 <xsl:sequence select="$body"/>
             </div>
 
@@ -1624,7 +1624,7 @@ exclude-result-prefixes="#all"
                 </xsl:with-param>
             </xsl:apply-templates>
 
-            <button type="button" id="button-{generate-id()}" class="ldhc-btn in-primary ap-solid sz-sm add-value">
+            <button type="button" id="button-{generate-id()}" class="ac-btn in-primary ap-solid sz-sm add-value">
                 <span class="msi outline sm" aria-hidden="true">add</span>
                 <span>
                     <xsl:apply-templates select="key('resources', 'add', ldh:translations())" mode="ac:label"/>
@@ -1636,7 +1636,7 @@ exclude-result-prefixes="#all"
     <!-- VIOLATION -->
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;URISyntaxViolation']" mode="ac:Violation">
-        <xsl:param name="class" select="'ldhc-alert va-negative'" as="xs:string?"/>
+        <xsl:param name="class" select="'ac-alert va-negative'" as="xs:string?"/>
 
         <xsl:apply-templates select="." mode="ac:InlineAlert">
             <xsl:with-param name="class" select="$class"/>
@@ -1645,7 +1645,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&sh;ValidationResult']" mode="ac:Violation">
-        <xsl:param name="class" select="'ldhc-alert va-negative'" as="xs:string?"/>
+        <xsl:param name="class" select="'ac-alert va-negative'" as="xs:string?"/>
 
         <xsl:apply-templates select="." mode="ac:InlineAlert">
             <xsl:with-param name="class" select="$class"/>
@@ -1670,12 +1670,12 @@ exclude-result-prefixes="#all"
         <xsl:param name="title" select="(@rdf:about, @rdf:nodeID)[1]" as="xs:string?"/>
         <xsl:param name="forClass" as="xs:anyURI*"/>
 
-        <span class="ldhc-cb-committed">
+        <span class="ac-cb-committed">
             <xsl:if test="exists($forClass)">
                 <xsl:attribute name="data-for-class" select="string-join($forClass, ' ')"/>
             </xsl:if>
 
-            <span class="ldhc-cb-chip">
+            <span class="ac-cb-chip">
                 <span class="msi outline sm" aria-hidden="true">link</span>
                 <span class="cb-chip-lbl">
                     <xsl:if test="$title">

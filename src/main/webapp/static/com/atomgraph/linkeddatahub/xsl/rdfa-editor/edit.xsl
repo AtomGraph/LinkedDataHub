@@ -2147,9 +2147,9 @@ version="3.0">
             <label><xsl:apply-templates select="key('resources', 'link-href', ldh:translations())" mode="ac:label"/></label>
             <input type="text" name="href" placeholder="https://..."/>
             <div class="action-buttons">
-                <button type="button" class="ldhc-btn in-negative ap-solid sz-sm link-remove" style="display: none;"><xsl:apply-templates select="key('resources', 'remove-link', ldh:translations())" mode="ac:label"/></button>
-                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm link-save"><xsl:apply-templates select="key('resources', 'save', ldh:translations())" mode="ac:label"/></button>
-                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm link-cancel"><xsl:apply-templates select="key('resources', 'cancel', ldh:translations())" mode="ac:label"/></button>
+                <button type="button" class="ac-btn in-negative ap-solid sz-sm link-remove" style="display: none;"><xsl:apply-templates select="key('resources', 'remove-link', ldh:translations())" mode="ac:label"/></button>
+                <button type="button" class="ac-btn in-primary ap-solid sz-sm link-save"><xsl:apply-templates select="key('resources', 'save', ldh:translations())" mode="ac:label"/></button>
+                <button type="button" class="ac-btn in-neutral ap-solid sz-sm link-cancel"><xsl:apply-templates select="key('resources', 'cancel', ldh:translations())" mode="ac:label"/></button>
             </div>
         </div>
     </xsl:template>
@@ -2285,8 +2285,8 @@ version="3.0">
             <label><xsl:apply-templates select="key('resources', 'caption', ldh:translations())" mode="ac:label"/></label>
             <input type="text" name="caption"/>
             <div class="action-buttons">
-                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm figure-save"><xsl:apply-templates select="key('resources', 'insert', ldh:translations())" mode="ac:label"/></button>
-                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm figure-cancel"><xsl:apply-templates select="key('resources', 'cancel', ldh:translations())" mode="ac:label"/></button>
+                <button type="button" class="ac-btn in-primary ap-solid sz-sm figure-save"><xsl:apply-templates select="key('resources', 'insert', ldh:translations())" mode="ac:label"/></button>
+                <button type="button" class="ac-btn in-neutral ap-solid sz-sm figure-cancel"><xsl:apply-templates select="key('resources', 'cancel', ldh:translations())" mode="ac:label"/></button>
             </div>
         </div>
     </xsl:template>

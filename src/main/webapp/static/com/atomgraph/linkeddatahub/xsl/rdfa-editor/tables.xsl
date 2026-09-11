@@ -127,8 +127,8 @@ version="3.0">
             <label><xsl:apply-templates select="key('resources', 'caption', ldh:translations())" mode="ac:label"/></label>
             <input type="text" name="caption"/>
             <div class="action-buttons">
-                <button type="button" class="ldhc-btn in-primary ap-solid sz-sm table-save"><xsl:apply-templates select="key('resources', 'insert', ldh:translations())" mode="ac:label"/></button>
-                <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm table-cancel"><xsl:apply-templates select="key('resources', 'cancel', ldh:translations())" mode="ac:label"/></button>
+                <button type="button" class="ac-btn in-primary ap-solid sz-sm table-save"><xsl:apply-templates select="key('resources', 'insert', ldh:translations())" mode="ac:label"/></button>
+                <button type="button" class="ac-btn in-neutral ap-solid sz-sm table-cancel"><xsl:apply-templates select="key('resources', 'cancel', ldh:translations())" mode="ac:label"/></button>
             </div>
         </div>
     </xsl:template>

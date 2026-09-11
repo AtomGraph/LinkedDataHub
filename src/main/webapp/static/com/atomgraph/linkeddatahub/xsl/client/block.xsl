@@ -251,16 +251,16 @@ exclude-result-prefixes="#all"
 
     <!-- EVENT LISTENERS -->
 
-    <!-- ARIA content tabs (design-system .ldhc-tabs with .ldhc-tabpanel panes, e.g. authored in XHTML content):
+    <!-- ARIA content tabs (design-system .ac-tabs with .ac-tabpanel panes, e.g. authored in XHTML content):
          move is-on/aria-selected to the clicked tab and unhide only the panel it aria-controls. Paneless tablists
          (the query block's mode tabs re-render results and carry their own priority-1 handlers) fail the panel guard -->
 
-    <xsl:template match="button[contains-token(@class, 'ldhc-tab')][@role = 'tab'][not(contains-token(@class, 'is-on'))]" mode="ixsl:onclick">
+    <xsl:template match="button[contains-token(@class, 'ac-tab')][@role = 'tab'][not(contains-token(@class, 'is-on'))]" mode="ixsl:onclick">
         <xsl:variable name="tab" select="." as="element()"/>
-        <xsl:variable name="panels" select="ancestor::div[contains-token(@class, 'ldhc-tabs')][1]/div[contains-token(@class, 'ldhc-tabpanel')]" as="element()*"/>
+        <xsl:variable name="panels" select="ancestor::div[contains-token(@class, 'ac-tabs')][1]/div[contains-token(@class, 'ac-tabpanel')]" as="element()*"/>
 
         <xsl:if test="exists($panels)">
-            <xsl:for-each select="../button[contains-token(@class, 'ldhc-tab')]">
+            <xsl:for-each select="../button[contains-token(@class, 'ac-tab')]">
                 <ixsl:set-attribute name="aria-selected" select="'false'"/>
                 <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-on' ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:for-each>

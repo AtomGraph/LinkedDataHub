@@ -90,7 +90,7 @@ exclude-result-prefixes="#all">
 
                         <div class="row-actions">
                             <xsl:if test="not($required)">
-                                <button type="button" tabindex="-1" class="ldhc-iconbtn sz-xs in-destructive ap-ghost btn-remove-property">
+                                <button type="button" tabindex="-1" class="ac-iconbtn sz-xs in-destructive ap-ghost btn-remove-property">
                                     <xsl:attribute name="title">
                                         <xsl:value-of>
                                             <xsl:apply-templates select="key('resources', 'remove-stmt', ldh:translations())" mode="ac:label"/>
@@ -115,7 +115,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="auto" select="local-name() = 'nodeID' or starts-with(., ldt:base())" as="xs:boolean"/>
         <xsl:param name="type-metadata" as="document-node()?" tunnel="yes"/>
         <xsl:param name="combobox-class" select="'type-combobox combobox'" as="xs:string"/>
-        <xsl:param name="combobox-list-class" select="'type-combobox combobox ldhc-cb-panel'" as="xs:string"/>
+        <xsl:param name="combobox-list-class" select="'type-combobox combobox ac-cb-panel'" as="xs:string"/>
 
         <xsl:choose>
             <xsl:when test="if ($type-metadata) then key('resources', ., $type-metadata) else false()">
@@ -136,7 +136,7 @@ exclude-result-prefixes="#all">
         </xsl:choose>
         
         <xsl:apply-templates select="." mode="ac:AnnotationTag">
-            <xsl:with-param name="class" select="'ldhc-tag sz-sm em-quiet an-term is-class'"/>
+            <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet an-term is-class'"/>
             <xsl:with-param name="label" select="ac:label(key('resources', '&owl;Class', document(ac:document-uri('&owl;'))))"/>
         </xsl:apply-templates>
     </xsl:template>

@@ -238,7 +238,7 @@ exclude-result-prefixes="#all">
 
                         <xsl:if test="$type-label">
                             <xsl:apply-templates select="." mode="ac:AnnotationTag">
-                                <xsl:with-param name="class" select="'ldhc-tag sz-sm em-quiet an-term is-literal'"/>
+                                <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet an-term is-literal'"/>
                                 <xsl:with-param name="label" as="item()*">
                                     <xsl:apply-templates select="key('resources', 'literal', ldh:translations())" mode="ac:label"/>
                                 </xsl:with-param>
@@ -250,7 +250,7 @@ exclude-result-prefixes="#all">
                     <xsl:if test="exists($row-violations)">
                         <div class="ldh-vmsgs">
                             <xsl:for-each select="$row-violations">
-                                <span class="ldhc-help va-negative sz-sm" role="alert">
+                                <span class="ac-help va-negative sz-sm" role="alert">
                                     <span class="msi outline sm" aria-hidden="true">error</span>
                                     <span>
                                         <xsl:value-of>

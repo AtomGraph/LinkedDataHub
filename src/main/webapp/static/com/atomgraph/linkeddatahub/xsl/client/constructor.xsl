@@ -118,29 +118,29 @@ exclude-result-prefixes="#all"
                 <xsl:for-each select="$container">
 
                     <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
-                    <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ldhc-menu-anchor')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseMenu"/>
+                    <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ac-menu-anchor')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseMenu"/>
                     <xsl:result-document href="?." method="ixsl:append-content">
                         <!-- the constructor dialog stacks above the edit form's dialog -->
-                        <div class="ldhc-backdrop pos-top modal modal-constructor" data-depth="2">
-                            <div class="ldhc-modal sz-lg" role="dialog" aria-modal="true" aria-labelledby="modal-title-{generate-id()}">
+                        <div class="ac-backdrop pos-top modal modal-constructor" data-depth="2">
+                            <div class="ac-modal sz-lg" role="dialog" aria-modal="true" aria-labelledby="modal-title-{generate-id()}">
                                 <form class="ldh-edit-form constructor-template" about="{$type}">
-                                    <div class="ldhc-modal-head">
-                                        <span class="ldhc-modal-icon"><span class="msi outline" aria-hidden="true">tune</span></span>
-                                        <div class="ldhc-modal-titles">
-                                            <span class="ldhc-modal-eyebrow">
+                                    <div class="ac-modal-head">
+                                        <span class="ac-modal-icon"><span class="msi outline" aria-hidden="true">tune</span></span>
+                                        <div class="ac-modal-titles">
+                                            <span class="ac-modal-eyebrow">
                                                 <xsl:apply-templates select="key('resources', 'constructor', ldh:translations())" mode="ac:label"/>
                                             </span>
-                                            <h2 class="ldhc-modal-title" id="modal-title-{generate-id()}">
+                                            <h2 class="ac-modal-title" id="modal-title-{generate-id()}">
                                                 <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': 'DESCRIBE &lt;' || $type || '&gt;', 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
 
                                                 <xsl:apply-templates select="key('resources', $type, document(ac:document-uri($request-uri)))" mode="ac:label"/>
                                             </h2>
                                         </div>
-                                        <span class="ldhc-modal-x">
-                                            <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
+                                        <span class="ac-modal-x">
+                                            <button type="button" class="ac-iconbtn sz-sm in-neutral ap-ghost" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
                                         </span>
                                     </div>
-                                    <div class="ldhc-modal-body is-flush">
+                                    <div class="ac-modal-body is-flush">
                                         <div class="ldh-ctor-body">
                                             <xsl:for-each select="$constructors//srx:result">
                                                 <xsl:variable name="constructor-uri" select="srx:binding[@name = 'constructor']/srx:uri" as="xs:anyURI"/>
@@ -167,12 +167,12 @@ exclude-result-prefixes="#all"
                                         </div>
 
                                         <div class="mhint">
-                                            <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-close">
+                                            <button type="button" class="ac-btn in-neutral ap-outline sz-md btn-close">
                                                 <span>
                                                     <xsl:apply-templates select="key('resources', 'cancel', ldh:translations())" mode="ac:label"/>
                                                 </span>
                                             </button>
-                                            <button type="button" class="ldhc-btn in-primary ap-solid sz-md btn-save">
+                                            <button type="button" class="ac-btn in-primary ap-solid sz-md btn-save">
                                                 <span class="msi outline sm" aria-hidden="true">check</span>
                                                 <span>
                                                     <xsl:apply-templates select="key('resources', 'save', ldh:translations())" mode="ac:label"/>
@@ -255,7 +255,7 @@ exclude-result-prefixes="#all"
                         <xsl:with-param name="forClass" select="xs:anyURI('&rdf;Property')"/>
                         <xsl:with-param name="class" select="'property-combobox combobox'"/>
                         <xsl:with-param name="id" select="'input-' || $uuid"/>
-                        <xsl:with-param name="list-class" select="'property-combobox combobox ldhc-cb-panel'"/>
+                        <xsl:with-param name="list-class" select="'property-combobox combobox ac-cb-panel'"/>
                     </xsl:call-template>
                 </xsl:otherwise>
             </xsl:choose>
@@ -421,7 +421,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="forClass" select="(xs:anyURI('&rdfs;Class'), xs:anyURI('&owl;Class'))"/> <!-- ontologies are served without inference, so owl:Class subjects do not carry the rdfs:Class type -->
                     <xsl:with-param name="class" select="'class-combobox combobox'"/>
                     <xsl:with-param name="id" select="'input-' || $uuid"/>
-                    <xsl:with-param name="list-class" select="'class-combobox combobox ldhc-cb-panel'"/>
+                    <xsl:with-param name="list-class" select="'class-combobox combobox ac-cb-panel'"/>
                 </xsl:call-template>
             </xsl:otherwise>
         </xsl:choose>
@@ -448,13 +448,13 @@ exclude-result-prefixes="#all"
         </xsl:next-match>
     </xsl:template>
 
-    <xsl:template match="*[contains-token(@class, 'ldhc-cb-panel')][contains-token(@class, 'class-combobox')]/li" mode="ixsl:onmousedown" priority="2">
+    <xsl:template match="*[contains-token(@class, 'ac-cb-panel')][contains-token(@class, 'class-combobox')]/li" mode="ixsl:onmousedown" priority="2">
         <xsl:next-match>
             <xsl:with-param name="chip-class" select="'cb-chip-btn add-combobox add-class-combobox'"/>
         </xsl:next-match>
     </xsl:template>
 
-    <xsl:template match="*[contains-token(@class, 'ldhc-cb-panel')][contains-token(@class, 'property-combobox')]/li" mode="ixsl:onmousedown" priority="2">
+    <xsl:template match="*[contains-token(@class, 'ac-cb-panel')][contains-token(@class, 'property-combobox')]/li" mode="ixsl:onmousedown" priority="2">
         <xsl:next-match>
             <xsl:with-param name="chip-class" select="'cb-chip-btn add-combobox add-property-combobox'"/>
         </xsl:next-match>
@@ -464,7 +464,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="button[contains-token(@class, 'add-class-combobox')]" mode="ixsl:onclick" priority="1">
         <xsl:next-match>
             <xsl:with-param name="combobox-class" select="'class-combobox combobox'"/>
-            <xsl:with-param name="combobox-list-class" select="'class-combobox combobox ldhc-cb-panel'" as="xs:string"/>
+            <xsl:with-param name="combobox-list-class" select="'class-combobox combobox ac-cb-panel'" as="xs:string"/>
         </xsl:next-match>
     </xsl:template>
 
@@ -472,7 +472,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="button[contains-token(@class, 'add-property-combobox')]" mode="ixsl:onclick" priority="1">
         <xsl:next-match>
             <xsl:with-param name="combobox-class" select="'property-combobox combobox'"/>
-            <xsl:with-param name="combobox-list-class" select="'property-combobox combobox ldhc-cb-panel'" as="xs:string"/>
+            <xsl:with-param name="combobox-list-class" select="'property-combobox combobox ac-cb-panel'" as="xs:string"/>
         </xsl:next-match>
     </xsl:template>
 
@@ -520,7 +520,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <!-- appends new constructor -->
-    <xsl:template match="div[contains-token(@class, 'ldhc-modal-body')]//button[contains-token(@class, 'create-action')][contains-token(@class, 'add-constructor')]" mode="ixsl:onclick">
+    <xsl:template match="div[contains-token(@class, 'ac-modal-body')]//button[contains-token(@class, 'create-action')][contains-token(@class, 'add-constructor')]" mode="ixsl:onclick">
         <xsl:variable name="button-div" select="." as="element()"/> <!-- the addctor strip button itself; new cards insert before it -->
         <xsl:variable name="type" select="ancestor::form/@about" as="xs:anyURI"/> <!-- the URI of the class that constructors are attached to -->
         <xsl:variable name="query-string" select="replace($type-graph-query, '$Type', '&lt;' || $type || '&gt;', 'q')" as="xs:string"/>

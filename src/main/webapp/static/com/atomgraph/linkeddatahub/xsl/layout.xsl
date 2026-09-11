@@ -610,22 +610,22 @@ WHERE
                     <xsl:variable name="notifications" select="document(ac:build-uri(resolve-uri('sparql', $ldt:base), map{ 'query': $notification-query }))" as="document-node()"/>
 
                     <xsl:if test="$notifications/rdf:RDF/*[@rdf:about]">
-                            <div class="ldhc-menu-anchor">
-                                <!-- the button doubles as the badge anchor (ldhc-badge-wrap): the generic menu handler needs drop-toggle as a direct child of the ldhc-menu-anchor, so a wrapping span is not an option -->
-                                <button class="drop-toggle ldhc-iconbtn sz-lg in-neutral ap-ghost ldhc-badge-wrap" aria-haspopup="menu" aria-expanded="false" title="{ac:label(key('resources', 'notifications', document('translations.rdf')))}">
+                            <div class="ac-menu-anchor">
+                                <!-- the button doubles as the badge anchor (ac-badge-wrap): the generic menu handler needs drop-toggle as a direct child of the ac-menu-anchor, so a wrapping span is not an option -->
+                                <button class="drop-toggle ac-iconbtn sz-lg in-neutral ap-ghost ac-badge-wrap" aria-haspopup="menu" aria-expanded="false" title="{ac:label(key('resources', 'notifications', document('translations.rdf')))}">
                                     <span class="msi outline sm" aria-hidden="true">notifications</span>
-                                    <span class="ldhc-badge sz-md pl-top-right is-dot" style="border-color: transparent">
-                                        <span class="ldhc-vh">
+                                    <span class="ac-badge sz-md pl-top-right is-dot" style="border-color: transparent">
+                                        <span class="ac-vh">
                                             <xsl:value-of select="ac:label(key('resources', 'notifications', document('translations.rdf')))"/>
                                         </span>
                                     </span>
                                 </button>
-                                <div class="ldhc-menu al-end" role="menu">
+                                <div class="ac-menu al-end" role="menu">
                                     <xsl:for-each select="$notifications/rdf:RDF/*[@rdf:about]">
                                         <xsl:sort select="dct:created[1]/xs:dateTime(.)" order="descending"/>
 
                                         <xsl:apply-templates select="@rdf:about" mode="xhtml:Anchor">
-                                            <xsl:with-param name="class" select="'ldhc-menu-item'"/>
+                                            <xsl:with-param name="class" select="'ac-menu-item'"/>
                                             <xsl:with-param name="role" select="'menuitem'"/>
                                         </xsl:apply-templates>
                                     </xsl:for-each>
@@ -647,32 +647,32 @@ WHERE
             <!-- .ldh-header-actions IS the flex cluster (AppShell): controls are its direct children,
                  no intermediate list -->
             <xsl:if test="exists($user-defined-apps) or exists($system-apps)">
-                    <div class="ldhc-menu-anchor">
-                        <button class="drop-toggle ldhc-iconbtn sz-lg in-neutral ap-ghost btn-apps" aria-haspopup="menu" aria-expanded="false" title="{ac:label(key('resources', 'application-list-title', document('translations.rdf')))}">
+                    <div class="ac-menu-anchor">
+                        <button class="drop-toggle ac-iconbtn sz-lg in-neutral ap-ghost btn-apps" aria-haspopup="menu" aria-expanded="false" title="{ac:label(key('resources', 'application-list-title', document('translations.rdf')))}">
                             <span class="msi sm" aria-hidden="true">apps</span>
                         </button>
-                        <div class="ldhc-menu al-end" role="menu">
+                        <div class="ac-menu al-end" role="menu">
                             <xsl:if test="exists($user-defined-apps)">
-                                <div class="ldhc-menu-header" role="presentation">
+                                <div class="ac-menu-header" role="presentation">
                                     <xsl:value-of select="ac:label(key('resources', 'user-defined-apps', document('translations.rdf')))"/>
                                 </div>
                                 <xsl:for-each select="$user-defined-apps">
                                     <xsl:sort select="ac:label(.)" order="ascending" lang="{ac:langs()[1]}"/>
-                                    <a class="ldhc-menu-item" role="menuitem" href="{lapp:origin/@rdf:resource}/" title="{lapp:origin/@rdf:resource}">
+                                    <a class="ac-menu-item" role="menuitem" href="{lapp:origin/@rdf:resource}/" title="{lapp:origin/@rdf:resource}">
                                         <xsl:apply-templates select="." mode="ac:label"/>
                                     </a>
                                 </xsl:for-each>
                             </xsl:if>
                             <xsl:if test="exists($system-apps)">
                                 <xsl:if test="exists($user-defined-apps)">
-                                    <div class="ldhc-menu-sep" role="separator" aria-orientation="horizontal"/>
+                                    <div class="ac-menu-sep" role="separator" aria-orientation="horizontal"/>
                                 </xsl:if>
-                                <div class="ldhc-menu-header" role="presentation">
+                                <div class="ac-menu-header" role="presentation">
                                     <xsl:value-of select="ac:label(key('resources', 'system-apps', document('translations.rdf')))"/>
                                 </div>
                                 <xsl:for-each select="$system-apps">
                                     <xsl:sort select="ac:label(.)" order="ascending" lang="{ac:langs()[1]}"/>
-                                    <a class="ldhc-menu-item" role="menuitem" href="{lapp:origin/@rdf:resource}/" title="{lapp:origin/@rdf:resource}">
+                                    <a class="ac-menu-item" role="menuitem" href="{lapp:origin/@rdf:resource}/" title="{lapp:origin/@rdf:resource}">
                                         <xsl:apply-templates select="." mode="ac:label"/>
                                     </a>
                                 </xsl:for-each>
@@ -692,16 +692,16 @@ WHERE
 
     <!-- account menu shared by the admin and end-user header actions -->
     <xsl:template match="rdf:RDF | srx:sparql" mode="ldh:AccountMenu">
-            <!-- .ldh-avatar-wrap is the design's avatar anchor; .ldhc-menu-anchor keeps the CSR menu handler and its is-open state -->
-            <div class="ldhc-menu-anchor ldh-avatar-wrap">
+            <!-- .ldh-avatar-wrap is the design's avatar anchor; .ac-menu-anchor keeps the CSR menu handler and its is-open state -->
+            <div class="ac-menu-anchor ldh-avatar-wrap">
                 <xsl:variable name="agent-label" select="ac:label($foaf:Agent//*[@rdf:about][1])" as="xs:string?"/>
                 <button type="button" class="drop-toggle ldh-avatar" aria-haspopup="menu" aria-expanded="false" title="{$agent-label}">
                     <xsl:value-of select="string-join(for $word in tokenize(normalize-space($agent-label), ' ')[position() le 2] return upper-case(substring($word, 1, 1)))"/>
                 </button>
-                <div class="ldhc-menu al-end" role="menu">
+                <div class="ac-menu al-end" role="menu">
                     <xsl:for-each select="key('resources-by-type', '&foaf;Agent', $foaf:Agent)">
                         <xsl:apply-templates select="@rdf:about" mode="xhtml:Anchor">
-                            <xsl:with-param name="class" select="'ldhc-menu-item'"/>
+                            <xsl:with-param name="class" select="'ac-menu-item'"/>
                             <xsl:with-param name="role" select="'menuitem'"/>
                         </xsl:apply-templates>
                     </xsl:for-each>
@@ -721,18 +721,18 @@ WHERE
 
         <!-- OAuth providers menu -->
         <xsl:if test="$google-signup or $orcid-signup">
-            <div class="ldhc-menu-anchor">
-                <button type="button" class="drop-toggle ldhc-btn in-primary ap-solid sz-md" aria-haspopup="menu" aria-expanded="false">
+            <div class="ac-menu-anchor">
+                <button type="button" class="drop-toggle ac-btn in-primary ap-solid sz-md" aria-haspopup="menu" aria-expanded="false">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'login', document('translations.rdf'))" mode="ac:label"/>
                     </xsl:value-of>
                     <xsl:text> </xsl:text>
                     <span class="msi caret" aria-hidden="true">expand_more</span>
                 </button>
-                <div class="ldhc-menu al-end" role="menu">
+                <div class="ac-menu al-end" role="menu">
                     <xsl:if test="$google-signup">
                         <xsl:variable name="google-signup-uri" select="ac:build-uri(resolve-uri('oauth2/authorize/google', $ac:contextUri), map{ 'referer': string(ac:absolute-path(ldh:request-uri())) })" as="xs:anyURI"/>
-                        <a class="ldhc-menu-item" role="menuitem" href="{$google-signup-uri}">
+                        <a class="ac-menu-item" role="menuitem" href="{$google-signup-uri}">
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', 'login-google', document('translations.rdf'))" mode="ac:label"/>
                             </xsl:value-of>
@@ -740,7 +740,7 @@ WHERE
                     </xsl:if>
                     <xsl:if test="$orcid-signup">
                         <xsl:variable name="orcid-signup-uri" select="ac:build-uri(resolve-uri('oauth2/authorize/orcid', $ac:contextUri), map{ 'referer': string(ac:absolute-path(ldh:request-uri())) })" as="xs:anyURI"/>
-                        <a class="ldhc-menu-item" role="menuitem" href="{$orcid-signup-uri}">
+                        <a class="ac-menu-item" role="menuitem" href="{$orcid-signup-uri}">
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', 'login-orcid', document('translations.rdf'))" mode="ac:label"/>
                             </xsl:value-of>
@@ -752,7 +752,7 @@ WHERE
         <!-- WebID signup - separate button -->
         <xsl:if test="$webid-signup">
             <div>
-                <a class="ldhc-btn in-primary ap-solid sz-md" href="{if (not(starts-with($ldt:base, lapp:origin()))) then ac:build-uri((), map{ 'uri': string($webid-signup-uri) }) else $webid-signup-uri}">
+                <a class="ac-btn in-primary ap-solid sz-md" href="{if (not(starts-with($ldt:base, lapp:origin()))) then ac:build-uri((), map{ 'uri': string($webid-signup-uri) }) else $webid-signup-uri}">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'sign-up', document('translations.rdf'))" mode="ac:label"/>
                     </xsl:value-of>
@@ -980,24 +980,24 @@ WHERE
     <!-- SETTINGS -->
     
     <xsl:template match="rdf:RDF[lapp:origin()] | srx:sparql[lapp:origin()]" mode="ldh:Settings" priority="1">
-        <div class="ldhc-menu-anchor">
-            <button type="button" class="drop-toggle ldhc-iconbtn sz-lg in-neutral ap-ghost" aria-haspopup="menu" aria-expanded="false" title="{ac:label(key('resources', 'nav-bar-action-settings-title', document('translations.rdf')))}">
+        <div class="ac-menu-anchor">
+            <button type="button" class="drop-toggle ac-iconbtn sz-lg in-neutral ap-ghost" aria-haspopup="menu" aria-expanded="false" title="{ac:label(key('resources', 'nav-bar-action-settings-title', document('translations.rdf')))}">
                 <span class="msi outline sm" aria-hidden="true">settings</span>
             </button>
 
-            <div class="ldhc-menu al-end" role="menu">
+            <div class="ac-menu al-end" role="menu">
                 <xsl:if test="$foaf:Agent//@rdf:about and key('apps-by-origin', lapp:origin(), $lapp:Context)/rdf:type/@rdf:resource = '&lapp;EndUserApplication'">
-                    <button type="button" class="ldhc-menu-item btn-app-settings" role="menuitem">
+                    <button type="button" class="ac-menu-item btn-app-settings" role="menuitem">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', '&lapp;Application', document(ac:document-uri('&lapp;')))" mode="ac:label"/>
                         </xsl:value-of>
                     </button>
-                    <a href="{replace(string(lapp:origin()), '^(https?://)', '$1admin.')}" class="ldhc-menu-item external" role="menuitem" target="_blank">
+                    <a href="{replace(string(lapp:origin()), '^(https?://)', '$1admin.')}" class="ac-menu-item external" role="menuitem" target="_blank">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'administration', document('translations.rdf'))" mode="ac:label"/>
                         </xsl:value-of>
                     </a>
-                    <a class="ldhc-menu-item" role="menuitem" href="{resolve-uri('ns', $ldt:base)}">
+                    <a class="ac-menu-item" role="menuitem" href="{resolve-uri('ns', $ldt:base)}">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'namespace-ontology', document('translations.rdf'))" mode="ac:label"/>
                         </xsl:value-of>

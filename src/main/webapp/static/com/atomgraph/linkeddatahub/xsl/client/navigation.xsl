@@ -117,7 +117,7 @@ ORDER BY DESC(?created)
                     <input type="search" name="q" placeholder="{ac:label(key('resources', 'search-placeholder', ldh:translations()))}"/>
                     <kbd>⌘K</kbd>
                 </form>
-                <button type="button" class="ldhc-iconbtn sz-xs in-neutral ap-ghost btn-close-sidebar" aria-label="{ac:label(key('resources', 'hide-navigation', ldh:translations()))}">
+                <button type="button" class="ac-iconbtn sz-xs in-neutral ap-ghost btn-close-sidebar" aria-label="{ac:label(key('resources', 'hide-navigation', ldh:translations()))}">
                     <span class="msi sm" aria-hidden="true">close</span>
                 </button>
             </div>
@@ -135,7 +135,7 @@ ORDER BY DESC(?created)
                     <ul class="ldh-tree">
                         <li>
                             <div class="tree-row" style="--depth: 0">
-                                <button type="button" class="ldhc-iconbtn sz-xs in-neutral ap-ghost btn-expand-tree" aria-expanded="false">
+                                <button type="button" class="ac-iconbtn sz-xs in-neutral ap-ghost btn-expand-tree" aria-expanded="false">
                                     <span class="msi sm" aria-hidden="true">chevron_right</span>
                                 </button>
                                 <a class="tree-link" href="{$base}">
@@ -324,7 +324,7 @@ ORDER BY DESC(?created)
                      so a container can be expanded without navigating into it -->
                 <xsl:choose>
                     <xsl:when test="sioc:has_parent">
-                        <button type="button" class="ldhc-iconbtn sz-xs in-neutral ap-ghost btn-expand-tree" aria-expanded="false">
+                        <button type="button" class="ac-iconbtn sz-xs in-neutral ap-ghost btn-expand-tree" aria-expanded="false">
                             <span class="msi sm" aria-hidden="true">chevron_right</span>
                         </button>
                     </xsl:when>
@@ -406,7 +406,7 @@ ORDER BY DESC(?created)
         <xsl:variable name="key" select="ixsl:get(ixsl:event(), 'key')" as="xs:string"/>
 
         <xsl:choose>
-            <xsl:when test="$key = 'Escape' and empty(ixsl:page()//div[contains-token(@class, 'ldhc-backdrop')][contains-token(@class, 'modal')])">
+            <xsl:when test="$key = 'Escape' and empty(ixsl:page()//div[contains-token(@class, 'ac-backdrop')][contains-token(@class, 'modal')])">
                 <xsl:apply-templates select="ixsl:page()//div[contains-token(@class, 'ldh-sidebar')][contains-token(@class, 'is-open')]" mode="ldh:CloseDrawer"/>
             </xsl:when>
             <xsl:when test="lower-case($key) = 'k' and (ixsl:get(ixsl:event(), 'metaKey') or ixsl:get(ixsl:event(), 'ctrlKey'))">
@@ -914,7 +914,7 @@ ORDER BY DESC(?created)
                 </span>
 
                 <xsl:if test="exists($count)">
-                    <span class="ldhc-tag em-quiet co-neutral sz-xs">
+                    <span class="ac-tag em-quiet co-neutral sz-xs">
                         <xsl:value-of select="$count"/>
                     </span>
                 </xsl:if>
@@ -931,7 +931,7 @@ ORDER BY DESC(?created)
         <xsl:variable name="container-id" select="'class-instances-container-' || $pane-id" as="xs:string"/>
 
         <xsl:variable name="modal" as="element()">
-            <div class="ldhc-backdrop pos-top modal modal-constructor modal-class-instances" id="{$modal-id}" data-container-id="{$container-id}">
+            <div class="ac-backdrop pos-top modal modal-constructor modal-class-instances" id="{$modal-id}" data-container-id="{$container-id}">
                 <xsl:apply-templates select="." mode="ldh:Modal">
                     <xsl:with-param name="size" select="'sz-xl'"/>
                     <xsl:with-param name="title" as="item()*">
@@ -963,7 +963,7 @@ ORDER BY DESC(?created)
                     </xsl:with-param>
                     <xsl:with-param name="foot" as="item()*">
                         <xsl:apply-templates select="." mode="ldh:FormFooter">
-                    <xsl:with-param name="class" select="'ldhc-modal-foot'"/>
+                    <xsl:with-param name="class" select="'ac-modal-foot'"/>
                     <xsl:with-param name="dismiss" select="'close'"/>
                     <xsl:with-param name="show-reset" select="false()"/>
                     <xsl:with-param name="show-save" select="false()"/>
@@ -1076,7 +1076,7 @@ ORDER BY DESC(?created)
         <xsl:variable name="select-string" select="$geo-resources-string" as="xs:string"/>
 
         <xsl:variable name="modal" as="element()">
-            <div class="ldhc-backdrop pos-top modal modal-constructor modal-geo" id="{$modal-id}" data-container-id="{$container-id}">
+            <div class="ac-backdrop pos-top modal modal-constructor modal-geo" id="{$modal-id}" data-container-id="{$container-id}">
                 <xsl:apply-templates select="." mode="ldh:Modal">
                     <xsl:with-param name="size" select="'sz-xl'"/>
                     <xsl:with-param name="title" as="item()*">
@@ -1101,7 +1101,7 @@ ORDER BY DESC(?created)
                     </xsl:with-param>
                     <xsl:with-param name="foot" as="item()*">
                         <xsl:apply-templates select="." mode="ldh:FormFooter">
-                    <xsl:with-param name="class" select="'ldhc-modal-foot'"/>
+                    <xsl:with-param name="class" select="'ac-modal-foot'"/>
                     <xsl:with-param name="dismiss" select="'close'"/>
                     <xsl:with-param name="show-reset" select="false()"/>
                     <xsl:with-param name="show-save" select="false()"/>
@@ -1187,7 +1187,7 @@ ORDER BY DESC(?created)
         <xsl:variable name="select-string" select="$latest-resources-string" as="xs:string"/>
 
         <xsl:variable name="modal" as="element()">
-            <div class="ldhc-backdrop pos-top modal modal-constructor modal-latest" id="{$modal-id}" data-container-id="{$container-id}">
+            <div class="ac-backdrop pos-top modal modal-constructor modal-latest" id="{$modal-id}" data-container-id="{$container-id}">
                 <xsl:apply-templates select="." mode="ldh:Modal">
                     <xsl:with-param name="size" select="'sz-xl'"/>
                     <xsl:with-param name="title" as="item()*">
@@ -1212,7 +1212,7 @@ ORDER BY DESC(?created)
                     </xsl:with-param>
                     <xsl:with-param name="foot" as="item()*">
                         <xsl:apply-templates select="." mode="ldh:FormFooter">
-                    <xsl:with-param name="class" select="'ldhc-modal-foot'"/>
+                    <xsl:with-param name="class" select="'ac-modal-foot'"/>
                     <xsl:with-param name="dismiss" select="'close'"/>
                     <xsl:with-param name="show-reset" select="false()"/>
                     <xsl:with-param name="show-save" select="false()"/>
@@ -1310,7 +1310,7 @@ ORDER BY DESC(?created)
         <xsl:variable name="container-id" select="'search-results-container-' || $pane-id" as="xs:string"/>
 
         <xsl:variable name="modal" as="element()">
-            <div class="ldhc-backdrop pos-top modal modal-constructor modal-search" id="{$modal-id}" data-container-id="{$container-id}">
+            <div class="ac-backdrop pos-top modal modal-constructor modal-search" id="{$modal-id}" data-container-id="{$container-id}">
                 <xsl:apply-templates select="." mode="ldh:Modal">
                     <xsl:with-param name="size" select="'sz-xl'"/>
                     <xsl:with-param name="icon" as="item()*">
@@ -1329,7 +1329,7 @@ ORDER BY DESC(?created)
                     <form class="ldh-search-field search-form-modal" accept-charset="UTF-8">
                         <span class="msi outline" aria-hidden="true">search</span>
                         <input type="search" name="q" value="{$text}" placeholder="{ac:label(key('resources', 'search-placeholder', ldh:translations()))}"/>
-                        <button type="button" class="ldhc-iconbtn sz-xs in-neutral ap-ghost btn-clear-query" aria-label="{ac:label(key('resources', 'clear-query', ldh:translations()))}"><span class="msi sm">close</span></button>
+                        <button type="button" class="ac-iconbtn sz-xs in-neutral ap-ghost btn-clear-query" aria-label="{ac:label(key('resources', 'clear-query', ldh:translations()))}"><span class="msi sm">close</span></button>
                     </form>
 
                     <!-- search results ARE a view: the shared view block renders them, with its own facets, view modes and pager -->

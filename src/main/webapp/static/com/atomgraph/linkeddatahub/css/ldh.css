@@ -20,9 +20,9 @@
 /* core Menu (§17a): the static markup ships the panel closed in the DOM (the design mounts it only
    while open), so the drop-toggle handler's is-open is what shows it; the panel, items, headers and
    separators are overlays.css's */
-.ldhc-menu-anchor:not(.is-open) > .ldhc-menu { display: none; }
-.ldhc-menu form { margin: 0; }
-.ldhc-menu form button { width: 100%; text-align: left; }
+.ac-menu-anchor:not(.is-open) > .ac-menu { display: none; }
+.ac-menu form { margin: 0; }
+.ac-menu form button { width: 100%; text-align: left; }
 .action-bar { position: sticky; top: var(--action-bar-top); z-index: 86; padding: 0; box-shadow: none; }
 .action-bar form { margin-bottom: 0; }
 body:has(#edit-toolbar) .action-bar { border-bottom: 1px solid var(--border-default); }
@@ -33,9 +33,9 @@ a.external::after { content: "⤴"; padding-left: 0.2em; }
    in the inter-block gap rather than border-bottom: the skins reset the card's border shorthand at
    equal specificity, and a border would shift layout while dragging. */
 .content-body > [about].ldh-block-row.drag-over::after { content: ""; position: absolute; left: 0; right: 0; bottom: -10px; border-top: 4px dotted var(--bg-accent); pointer-events: none; }
-.modal .ldhc-menu { z-index: 1100; }
+.modal .ac-menu { z-index: 1100; }
 /* Annotation overlay: point-positioned by rdfae:show-at; carries its own card chrome
-   (it borrows the .ldhc-modal-head/.ldhc-modal-body anatomy but is not a dialog) */
+   (it borrows the .ac-modal-head/.ac-modal-body anatomy but is not a dialog) */
 #rdfa-editor-overlay { position: absolute; min-width: 360px; max-width: 520px; z-index: 10001; background: var(--surface-0); border-radius: var(--r-lg); box-shadow: var(--shadow-xl); display: flex; flex-direction: column; overflow: hidden; }
 .container-results { max-height: 80em; overflow: auto; }
 /* grid mode opts out of the scrollport: the m3 card draws its border as an outside box-shadow, and the
@@ -93,7 +93,7 @@ object { display: block; margin: auto; max-height: 400px; overflow: hidden; widt
 .ol-overlay-container { width: 60%; max-height: 75%; background: var(--bg-card); border: 1px solid var(--border-default); border-radius: var(--r-lg); box-shadow: var(--shadow-lg); overflow: auto; }
 .ol-overlay-container img { max-width: 100%; }
 /* the block has no .ldh-block-body wrapper here (the default resource template emits head + property
-   list only), so the ldhc-modal-body inset is the only one: drop the head's own side padding or the
+   list only), so the ac-modal-body inset is the only one: drop the head's own side padding or the
    title sits sp-6 right of the labels below it, and its top padding stacks on the body's */
 .ol-overlay-container .ldh-block-head { padding: 0 0 var(--sp-3); }
 /* SVG graph specific */
@@ -131,8 +131,8 @@ circle { cursor: move; }
    redraws, so these keep their laid-out body through loading (the bar still shows) - the behaviour
    before is-loading moved onto the block and activated this collapse */
 .ldh-block.is-loading:not(:has(.chart-canvas, .map-canvas, .graph-3d-canvas)) > .block-row { display: none; }
-/* ---------- results table. The design's core DataTable (.ldhc-table) puts its column tracks on
-   each <tr> as grid (--ldhc-cols), which fixes the column count per table. A SPARQL results table
+/* ---------- results table. The design's core DataTable (.ac-table) puts its column tracks on
+   each <tr> as grid (--ac-cols), which fixes the column count per table. A SPARQL results table
    has as many columns as the SELECT has variables, and per-row grids cannot share intrinsic track
    sizes - measured at 11 columns, the head and body stop lining up under
    repeat(N, minmax(max-content, 1fr)), and equal 1fr tracks shred a UUID column into four lines.
@@ -140,15 +140,15 @@ circle { cursor: move; }
    horizontal rules only, no vertical lines, header row on --surface-2. The sheet
    (--surface-0 + border + radius) reads as its own surface inside an .ldh-nblock well rather than
    letting the well's recession through its cells. Fixed-column tables (access matrix, version
-   history, packages) ride .ldhc-table proper ---------- */
+   history, packages) ride .ac-table proper ---------- */
 .ldh-results-table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); background: var(--surface-0); border: 1px solid var(--border-default); border-radius: var(--r-sm); }
 /* no overflow: hidden to clip the corners - it would make the table its own scrollport and leave
    the sticky header inert; the corner cells carry the radius instead */
 .ldh-results-table > thead > tr:first-child > :first-child { border-top-left-radius: var(--r-sm); }
 .ldh-results-table > thead > tr:first-child > :last-child { border-top-right-radius: var(--r-sm); }
 /* middle, not top: cells hold single-line values sitting beside taller things - a type pill, an image - and the
-   design system centres a label against a control everywhere (.ldhc-btn, .ldhc-tag, .ldhc-badge), reserving
-   flex-start for a wrapping text block beside a fixed-height one (.ldhc-help, .ldhc-choice, .ldhc-toast) */
+   design system centres a label against a control everywhere (.ac-btn, .ac-tag, .ac-badge), reserving
+   flex-start for a wrapping text block beside a fixed-height one (.ac-help, .ac-choice, .ac-toast) */
 .ldh-results-table th, .ldh-results-table td { padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--border-default); text-align: left; vertical-align: middle; }
 .ldh-results-table tr:last-child > td { border-bottom: 0; }
 /* the row lights as one band, the property-list hover's analog for a row-per-resource surface;
@@ -190,7 +190,7 @@ circle { cursor: move; }
 .ldh-nblock[data-depth="2"] .container-results > .ldh-pager, .ldh-nblock[data-depth="3"] .container-results > .ldh-pager { background: var(--surface-3); }
 .content-body { padding: var(--sp-4) var(--sp-6); max-width: var(--ldh-content-w); margin: 0 auto; }
 /* stacking rhythm between block cards and alerts */
-.content-body .ldh-block, .content-body .ldhc-alert { margin-bottom: var(--sp-4); }
+.content-body .ldh-block, .content-body .ac-alert { margin-bottom: var(--sp-4); }
 /* one card layer only: CSR hydration can re-render a row as a card inside the SSR wrapper card */
 .ldh-block .ldh-block { border: 0; box-shadow: none; border-radius: 0; background: transparent; margin-bottom: 0; }
 /* ---------- cards: the m3 skin's resting M3-elevation shadow reads as a doubled bottom border;
@@ -206,7 +206,7 @@ circle { cursor: move; }
    stay in every state, because the header carries what a broken block needs
    (copy IRI, edit, delete) and holding the footprint keeps the document from
    reflowing. The failure now shows as the app.css ring instead. */
-.ldh-block .ldhc-alert { margin: 0; }
+.ldh-block .ac-alert { margin: 0; }
 
 /* ---------- sticky chrome: header on top, action bar (legacy --action-bar-top) right under it.
    Bar heights are tokens that size the bars, not mirrors of their content, so stacked sticky
@@ -218,7 +218,7 @@ circle { cursor: move; }
    (the §18 no-fallback sweep is what caught it) - so they are pinned here with the other LDH tokens */
 :root { --thumb-sm: 48px; --thumb-md: 160px; --thumb-lg: 240px; }
 /* chrome sits on the design system's stacking scale: above content dropdowns (70),
-   below the ldhc-backdrop overlays (100+), so open dialogs cover the sticky bars */
+   below the ac-backdrop overlays (100+), so open dialogs cover the sticky bars */
 .ldh-header { position: sticky; top: 0; z-index: 90; }
 .action-bar.ldh-actionbar {
   box-sizing: border-box;
@@ -231,8 +231,8 @@ circle { cursor: move; }
 /* ---------- dropdown menus ride the core Menu (§17a); only header-specific fit stays here ---------- */
 /* the m3 skin paints every .ldh-header descendant with the inverse (near-white) text color for the
    dark bar; light menu panels inside the header need their ink back at higher specificity */
-:root[data-retro^="m3"] .ldh-header .ldhc-menu, :root[data-retro^="m3"] .ldh-header .ldhc-menu * { color: var(--fg-1); }
-:root[data-retro^="m3"] .ldh-header .ldhc-menu .ldhc-menu-header { color: var(--fg-hint); }
+:root[data-retro^="m3"] .ldh-header .ac-menu, :root[data-retro^="m3"] .ldh-header .ac-menu * { color: var(--fg-1); }
+:root[data-retro^="m3"] .ldh-header .ac-menu .ac-menu-header { color: var(--fg-hint); }
 /* ---------- action bar: design menus open via the CSR drop-wrap 'is-open' toggle ---------- */
 .ldh-actionbar > .ab-left { display: flex; align-items: center; gap: var(--sp-2); }
 .ldh-add-wrap .ldh-add-menu, .ldh-of-wrap .ldh-of-menu, .ldh-mode .modes-pop { display: none; }
@@ -273,16 +273,16 @@ circle { cursor: move; }
 
 /* ---------- block header actions hydrated by CSR ---------- */
 .ldh-block-head .actions > div { display: flex; gap: var(--sp-1); }
-.ldh-block-head .actions .ldhc-iconbtn.disabled { opacity: 0.4; pointer-events: none; }
+.ldh-block-head .actions .ac-iconbtn.disabled { opacity: 0.4; pointer-events: none; }
 
-/* ---------- modals: every dialog rides the ldhc-backdrop chrome (overlays.css). Two non-dialog
-   overlays borrow the modal head/body anatomy (.ldhc-modal-head/.ldhc-modal-body): the OL map
+/* ---------- modals: every dialog rides the ac-backdrop chrome (overlays.css). Two non-dialog
+   overlays borrow the modal head/body anatomy (.ac-modal-head/.ac-modal-body): the OL map
    info window (ol.Overlay hosts it, see the .ol-overlay-container rules above) and the RDFa
    annotation overlay. Only their host-specific fit lands here. ---------- */
 /* the map head holds only the close button; auto margin lands the lone x on the right edge */
-.ol-overlay-container .ldhc-modal-x { margin-left: auto; }
+.ol-overlay-container .ac-modal-x { margin-left: auto; }
 /* the annotation overlay titles with a <legend>; reset the fieldset styling to the modal-title treatment */
-#rdfa-editor-overlay .ldhc-modal-head legend { flex: 1; min-width: 0; margin: 0; border: 0; padding: 0; font-size: var(--fs-lg); font-weight: var(--fw-semibold); line-height: var(--lh-snug); color: var(--fg-1); }
+#rdfa-editor-overlay .ac-modal-head legend { flex: 1; min-width: 0; margin: 0; border: 0; padding: 0; font-size: var(--fs-lg); font-weight: var(--fw-semibold); line-height: var(--lh-snug); color: var(--fg-1); }
 /* app.css gives .ldh-block-foot the band chrome with space-between (hint left, buttons right);
    LDH footers are bare button rows, so cluster them at the right edge instead */
 .ldh-block-foot {
@@ -302,15 +302,15 @@ circle { cursor: move; }
 
 /* .ldh-check is designed as a standalone confirm row (margin-top for stacking); inside a table cell the
    checkbox is the cell's only content and centers without it */
-.ldhc-table .ldh-check { margin-top: 0; }
+.ac-table .ldh-check { margin-top: 0; }
 
 /* selected-file display the upload flow appends beside the file input: icon + name as a quiet chip */
 .ldh-file-sel { display: inline-flex; align-items: center; gap: var(--sp-2); max-width: 100%; padding: 2px 8px; border-radius: var(--r-sm); background: var(--surface-2); color: var(--fg-2); font-size: var(--fs-sm); }
 .ldh-file-sel .fs-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* the language tag is the core Tag at the inline xs size (§17c: ldhc-tag em-quiet co-accent sz-xs,
+/* the language tag is the core Tag at the inline xs size (§17c: ac-tag em-quiet co-accent sz-xs,
    emitted by ac:lang-tag); the gap to the value it annotates is the one thing scoped here */
-.value > .ldhc-tag.sz-xs, dd > .ldhc-tag.sz-xs { margin-left: var(--sp-2); }
+.value > .ac-tag.sz-xs, dd > .ac-tag.sz-xs { margin-left: var(--sp-2); }
 
 /* ---------- fieldsets/legends: sections, not boxes ---------- */
 fieldset { border: 0; padding: 0; margin: 0 0 var(--sp-4); min-inline-size: 0; }
@@ -325,9 +325,9 @@ legend {
 /* subject controls (type picker, subject edit toggle) hug the legend's right edge */
 legend > .actions { display: flex; align-items: center; gap: var(--sp-1); margin-left: auto; }
 /* the edit/create form titles itself with its fieldset legend (ac:label of the subject) - the modal
-   head carries only the close button. In a modal that legend IS the heading; match .ldhc-modal-title
+   head carries only the close button. In a modal that legend IS the heading; match .ac-modal-title
    instead of the mono section-label treatment above */
-.ldhc-modal-body form > fieldset > legend { font-family: var(--font-sans); font-size: var(--fs-lg); font-weight: var(--fw-semibold); letter-spacing: normal; text-transform: none; color: var(--fg-1); }
+.ac-modal-body form > fieldset > legend { font-family: var(--font-sans); font-size: var(--fs-lg); font-weight: var(--fw-semibold); letter-spacing: normal; text-transform: none; color: var(--fg-1); }
 /* remove-resource button on legendless fieldsets rides its own top row, right-aligned */
 .chart-controls .field select[multiple] { height: auto; }
 
@@ -379,7 +379,7 @@ legend > .actions { display: flex; align-items: center; gap: var(--sp-1); margin
    .tree-link carries the row treatment for both, so the button only sheds its UA chrome */
 button.tree-link { border: 0; background: transparent; width: 100%; font: inherit; text-align: left; cursor: pointer; }
 /* the lazy-loading row's glyph spins (the design mounts a ProgressCircle; the glyph does the same job) */
-.ldh-tree .tree-loading .msi { animation: ldhc-spin 0.9s linear infinite; }
+.ldh-tree .tree-loading .msi { animation: ac-spin 0.9s linear infinite; }
 /* a subtree's visibility is its toggle's aria-expanded - the one state the handler already maintains */
 .ldh-tree li:has(> div > button[aria-expanded="false"]) > ul { display: none; }
 /* the drawer search is a typable field (submit opens the dialog pre-populated; LDH overrides
@@ -434,7 +434,7 @@ button.tree-link { border: 0; background: transparent; width: 100%; font: inheri
 .ldh-sparql.is-collapsed { display: none; }
 /* the bar's meta slot carries the live service combobox, not the design's static endpoint text */
 .ldh-sparql-bar .ldh-sparql-meta { flex: 1 1 auto; min-width: 0; }
-.ldh-sparql-meta .ldhc-combobox { flex: 1 1 auto; min-width: 0; }
+.ldh-sparql-meta .ac-combobox { flex: 1 1 auto; min-width: 0; }
 
 /* the wordmark's white ink is header-bar styling; on the footer's light surface it takes body ink
    (the design sets this inline on the footer wordmark) */
@@ -461,7 +461,7 @@ html { overflow-x: clip; } /* the 50vw bleed overshoots by half a classic scroll
   border-top: 1px solid var(--border-default);
 }
 /* the modal dim overlay is pointer-inert, so hide the dock while a modal is open */
-body:has(.ldhc-backdrop.modal) .ldh-create-dock { display: none; }
+body:has(.ac-backdrop.modal) .ldh-create-dock { display: none; }
 /* the RDFa editor owns the bottom strip while an XHTML block is being edited — its fixed breadcrumb bar would paint over the dock */
 body:has(.rdfa-editor-content) .ldh-create-dock { display: none; }
 /* the bar sits directly on the footer - no detached gap between them */
@@ -512,15 +512,15 @@ body:has(.document-body > .content-body > :is(.graph-3d-canvas, .map-canvas)) .l
 .editor-bar > .content-body { width: 100%; padding-top: var(--sp-2); padding-bottom: var(--sp-2); }
 
 /* a field shell a handler conditionally reveals (the custom-datatype input) hides by state class */
-.ldhc-field.is-hidden { display: none; }
+.ac-field.is-hidden { display: none; }
 
 /* form Actions overflow: the design renders the menu only while open; the static
    markup ships it closed, so the is-open class the onclick handler toggles is what shows it */
 .ldh-form-actions-wrap:not(.is-open) > .ldh-form-actions-menu { display: none; }
 
-/* constructor dialog: the form element sits between .ldhc-modal and its head/body,
+/* constructor dialog: the form element sits between .ac-modal and its head/body,
    so it must relay the modal's column layout for the body to get its scroll box */
-.ldhc-modal > form.constructor-template { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.ac-modal > form.constructor-template { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
 /* Save validation marks value-less constructor rows */
 .ldh-ctor-row.error { box-shadow: inset 2px 0 0 var(--danger-500); background: var(--danger-50); }
 
@@ -579,7 +579,7 @@ body:has(.document-body > .content-body > :is(.graph-3d-canvas, .map-canvas)) .l
    what the error handler rendered, so :has() recomputes it on every re-render
    and a block that later succeeds cannot keep a stale ring. Nothing needs to
    clear it. Only block bodies get .ldh-block-error — the small hosts (facet
-   popover, result count, parallax rows) emit the bare .ldhc-alert, so they
+   popover, result count, parallax rows) emit the bare .ac-alert, so they
    cannot ring the card they happen to sit in.
    An `outline`, not a border: skins differ on whether cards have borders at
    all (m3 uses elevation and sets border-width: 0), and an outline survives

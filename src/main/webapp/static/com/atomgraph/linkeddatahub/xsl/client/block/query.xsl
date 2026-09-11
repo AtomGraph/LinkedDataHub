@@ -250,20 +250,20 @@ exclude-result-prefixes="#all"
                                 </xsl:choose>
                             </div>
                             <div class="ldh-sparql-bar-actions">
-                                <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-open-query">
+                                <button type="button" class="ac-btn in-neutral ap-outline sz-md btn-open-query">
                                     <xsl:value-of>
                                         <xsl:apply-templates select="key('resources', 'open', ldh:translations())" mode="ac:label"/>
                                     </xsl:value-of>
                                 </button>
                                 <!-- saving PATCHes the query back into the current document, so the button only appears to an agent who may write to it -->
                                 <xsl:if test="acl:mode() = '&acl;Write'">
-                                    <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-save btn-save-query">
+                                    <button type="button" class="ac-btn in-neutral ap-outline sz-md btn-save btn-save-query">
                                         <xsl:value-of>
                                             <xsl:apply-templates select="key('resources', 'save', ldh:translations())" mode="ac:label"/>
                                         </xsl:value-of>
                                     </button>
                                 </xsl:if>
-                                <button type="submit" class="ldhc-btn in-primary ap-solid sz-md btn-run-query">
+                                <button type="submit" class="ac-btn in-primary ap-solid sz-md btn-run-query">
                                     <span class="msi sm" aria-hidden="true">play_arrow</span>
                                     <xsl:value-of>
                                         <xsl:apply-templates select="key('resources', 'run', ldh:translations())" mode="ac:label"/>
@@ -303,7 +303,7 @@ exclude-result-prefixes="#all"
         <xsl:copy>
             <xsl:apply-templates select="@*" mode="#current"/>
 
-            <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost tb-query" aria-pressed="false" title="{ac:label(key('resources', 'edit-query', ldh:translations()))}" aria-label="{ac:label(key('resources', 'edit-query', ldh:translations()))}">
+            <button type="button" class="ac-iconbtn sz-sm in-neutral ap-ghost tb-query" aria-pressed="false" title="{ac:label(key('resources', 'edit-query', ldh:translations()))}" aria-label="{ac:label(key('resources', 'edit-query', ldh:translations()))}">
                 <span class="msi sm" aria-hidden="true">code</span>
             </button>
 
@@ -361,7 +361,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="view-tab-id" select="$block-id || '-view-tab'" as="xs:string"/>
                 <!-- built once: the tabs wrap it when there are tabs, otherwise it stands on its own -->
                 <xsl:variable name="results-container" as="element()">
-                    <div class="{$results-container-class || (if ($show-tabs) then ' ldhc-tabpanel' else ())}" id="{$results-container-id}" about="{$results-container-about}">
+                    <div class="{$results-container-class || (if ($show-tabs) then ' ac-tabpanel' else ())}" id="{$results-container-id}" about="{$results-container-about}">
                         <xsl:if test="$show-tabs">
                             <xsl:attribute name="role" select="'tabpanel'"/>
                             <!-- the tabs share this one panel, so its label follows whichever of them is active -->
@@ -374,18 +374,18 @@ exclude-result-prefixes="#all"
                 <xsl:result-document href="?." method="ixsl:append-content">
                     <xsl:choose>
                         <xsl:when test="$show-tabs">
-                            <div class="ldhc-tabs or-horizontal">
-                                <div class="ldhc-tablist sz-sm va-line query-results-tabs" role="tablist" aria-label="{ac:label(key('resources', '&ac;Mode', document(ac:document-uri('&ac;'))))}">
-                                    <button type="button" class="ldhc-tab chart-mode is-on" id="{$chart-tab-id}" role="tab" aria-selected="true" aria-controls="{$results-container-id}">
+                            <div class="ac-tabs or-horizontal">
+                                <div class="ac-tablist sz-sm va-line query-results-tabs" role="tablist" aria-label="{ac:label(key('resources', '&ac;Mode', document(ac:document-uri('&ac;'))))}">
+                                    <button type="button" class="ac-tab chart-mode is-on" id="{$chart-tab-id}" role="tab" aria-selected="true" aria-controls="{$results-container-id}">
                                         <span class="msi sm" aria-hidden="true">bar_chart</span>
-                                        <span class="ldhc-tab-lbl">
+                                        <span class="ac-tab-lbl">
                                             <xsl:apply-templates select="key('resources', '&ldh;Chart', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
                                         </span>
                                     </button>
 
-                                    <button type="button" class="ldhc-tab view-mode" id="{$view-tab-id}" role="tab" aria-selected="false" aria-controls="{$results-container-id}">
+                                    <button type="button" class="ac-tab view-mode" id="{$view-tab-id}" role="tab" aria-selected="false" aria-controls="{$results-container-id}">
                                         <span class="msi sm" aria-hidden="true">view_module</span>
-                                        <span class="ldhc-tab-lbl">
+                                        <span class="ac-tab-lbl">
                                             <xsl:apply-templates select="key('resources', '&ldh;View', document(ac:document-uri('&ldh;')))" mode="ac:label"/>
                                         </span>
                                     </button>
@@ -424,7 +424,7 @@ exclude-result-prefixes="#all"
          ported: both buttons stay natural tab stops, so neither goes keyboard-unreachable, and Enter
          reaches the ixsl:onclick rules below. -->
 
-    <xsl:template match="button[contains-token(@class, 'ldhc-tab')]" mode="ldh:SelectTab">
+    <xsl:template match="button[contains-token(@class, 'ac-tab')]" mode="ldh:SelectTab">
         <xsl:variable name="tab-id" select="@id" as="xs:string"/>
 
         <!-- deactivate the other tabs. Excluding this one is not just tidiness: ixsl:call on classList
@@ -531,7 +531,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="form-actions" as="element()?">
             <xsl:if test="acl:mode() = '&acl;Append'">
                 <div class="ldh-block-foot">
-                    <button class="ldhc-btn in-primary ap-solid sz-md btn-create-view" type="button">
+                    <button class="ac-btn in-primary ap-solid sz-md btn-create-view" type="button">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'create', ldh:translations())" mode="ac:label"/>
                         </xsl:value-of>
@@ -698,7 +698,7 @@ exclude-result-prefixes="#all"
                                     <!-- creating POSTs a new chart block into the current document, so the button only appears to an agent who may append to it -->
                                     <xsl:if test="acl:mode() = '&acl;Append'">
                                         <div class="ldh-block-foot">
-                                            <button class="ldhc-btn in-primary ap-solid sz-md btn-create-chart" type="button">
+                                            <button class="ac-btn in-primary ap-solid sz-md btn-create-chart" type="button">
                                                 <xsl:value-of>
                                                     <xsl:apply-templates select="key('resources', 'create', ldh:translations())" mode="ac:label"/>
                                                 </xsl:value-of>

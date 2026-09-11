@@ -52,7 +52,7 @@ button { font-family: inherit; cursor: pointer; }
   background: rgba(15, 18, 26, 0.32);
   -webkit-backdrop-filter: blur(1px); backdrop-filter: blur(1px);
   border: 0; padding: 0; cursor: pointer;
-  animation: ldhc-fade-in var(--dur-base) var(--ease-out-soft);
+  animation: ac-fade-in var(--dur-base) var(--ease-out-soft);
 }
 
 /* Top header — dark accent gradient with knowledge-graph dot pattern overlay.
@@ -185,9 +185,9 @@ button { font-family: inherit; cursor: pointer; }
    light (dark ink), and `intent="inverse"` would pin white in both. Hover tints
    with currentColor so it lands correctly on either. This is why the button
    needs no per-skin colour patch at all. */
-.ldh-header .ldhc-iconbtn { color: inherit; }
-.ldh-header .ldhc-iconbtn:hover { background: color-mix(in srgb, currentColor 12%, transparent); color: inherit; }
-.ldh-header .ldhc-iconbtn:active { background: color-mix(in srgb, currentColor 18%, transparent); }
+.ldh-header .ac-iconbtn { color: inherit; }
+.ldh-header .ac-iconbtn:hover { background: color-mix(in srgb, currentColor 12%, transparent); color: inherit; }
+.ldh-header .ac-iconbtn:active { background: color-mix(in srgb, currentColor 18%, transparent); }
 
 /* Header icon buttons are core <IconButton size="lg">; the
    unread dot is a core <Badge dot>. The old .ldh-icon-btn hardcoded
@@ -214,12 +214,12 @@ button { font-family: inherit; cursor: pointer; }
    renders a dark bar and base44 a light one, so a hardcoded inverse would be
    invisible in one of them. .ldh-header sets the ink once; these inherit it and
    tint their hover from currentColor. */
-.ldh-header .ldhc-iconbtn { color: inherit; opacity: 0.82; }
-.ldh-header .ldhc-iconbtn:hover {
+.ldh-header .ac-iconbtn { color: inherit; opacity: 0.82; }
+.ldh-header .ac-iconbtn:hover {
   opacity: 1; color: inherit;
   background: color-mix(in srgb, currentColor 14%, transparent);
 }
-.ldh-header .ldhc-iconbtn:active { background: color-mix(in srgb, currentColor 22%, transparent); }
+.ldh-header .ac-iconbtn:active { background: color-mix(in srgb, currentColor 22%, transparent); }
 .ldh-user-menu {
   position: absolute;
   top: calc(100% + 8px);
@@ -347,7 +347,7 @@ nav:has(> .ldh-tabs) {
 }
 .ldh-tab:hover { color: var(--fg-1); }
 /* Active marker uses the semantic --fg-selected (not a raw ramp step), so it
-   matches core's .ldhc-tab.is-on and follows any skin without a per-skin patch. */
+   matches core's .ac-tab.is-on and follows any skin without a per-skin patch. */
 .ldh-tab.is-active { color: var(--fg-selected); border-bottom-color: var(--fg-selected); }
 /* Scoped to the STRIP, not to `.ldh-tab`: §17b moved the close button out of
    the anchor to be its sibling in the `li` (a button inside an anchor is
@@ -371,8 +371,8 @@ nav:has(> .ldh-tabs) {
 /* ---------- Action bar (Add / Breadcrumb / Toolbar) ---------- */
 /* Action bar Create dropdown — Container / Item picker. */
 .ldh-add-wrap { position: relative; display: inline-flex; }
-.ldh-add-wrap .ldhc-btn.is-open .caret { transform: rotate(180deg); }
-.ldh-add-wrap .ldhc-btn .caret { transition: transform var(--dur-fast) var(--ease-out-soft); }
+.ldh-add-wrap .ac-btn.is-open .caret { transform: rotate(180deg); }
+.ldh-add-wrap .ac-btn .caret { transition: transform var(--dur-fast) var(--ease-out-soft); }
 .ldh-add-menu {
   position: absolute;
   top: calc(100% + 6px);
@@ -440,7 +440,7 @@ nav:has(> .ldh-tabs) {
   flex-shrink: 0;
 }
 
-/* Buttons live in ui_kits/core/core.css as .ldhc-btn — the ONE button system.
+/* Buttons live in ui_kits/core/core.css as .ac-btn — the ONE button system.
    The app kit's legacy .ldh-btn is gone; markup uses the core class directly. */
 
 /* ---------- Breadcrumb · Drive (Google-Drive-flavored, default) ----------
@@ -772,7 +772,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 /* ─── Redesigned action cluster (declutter): mode · contextual primary · ⋯ ── */
 .ldh-actions { display: flex; align-items: center; gap: var(--sp-1); color: var(--fg-muted); }
 .ldh-actions-div { width: 1px; height: 20px; background: var(--border-default); margin: 0 var(--sp-2); }
-.ldh-actions .ldhc-btn .msi { font-size: 18px; }
+.ldh-actions .ac-btn .msi { font-size: 18px; }
 
 /* Document dateTime as quiet metadata — never a control */
 .ldh-ab-ts {
@@ -785,7 +785,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 /* Overflow kebab */
 .ldh-of-wrap { position: relative; display: inline-flex; }
 /* The kebab is <IconButton size="lg">; only its open state is scoped here. */
-.ldh-of-wrap.is-open .ldhc-iconbtn { background: var(--bg-hover); color: var(--fg-1); }
+.ldh-of-wrap.is-open .ac-iconbtn { background: var(--bg-hover); color: var(--fg-1); }
 .ldh-of-menu {
   position: absolute; top: calc(100% + 6px); right: 0; z-index: 50;
   min-width: 184px; padding: 6px;
@@ -839,13 +839,13 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 
 /* CONTEXTUAL — minimal at rest; secondary actions (Edit + ⋯) reveal on hover/
    focus of the bar. Mode switcher stays visible as the one persistent control. */
-.ldh-actionbar--contextual .ldh-actions .ldhc-btn,
+.ldh-actionbar--contextual .ldh-actions .ac-btn,
 .ldh-actionbar--contextual .ldh-actions .ldh-of-wrap,
 .ldh-actionbar--contextual .ldh-actions .ldh-actions-div {
   opacity: 0; transition: opacity var(--dur-base) var(--ease-out-soft);
 }
-.ldh-actionbar--contextual:hover .ldh-actions .ldhc-btn,
-.ldh-actionbar--contextual:focus-within .ldh-actions .ldhc-btn,
+.ldh-actionbar--contextual:hover .ldh-actions .ac-btn,
+.ldh-actionbar--contextual:focus-within .ldh-actions .ac-btn,
 .ldh-actionbar--contextual:hover .ldh-actions .ldh-of-wrap,
 .ldh-actionbar--contextual:focus-within .ldh-actions .ldh-of-wrap,
 .ldh-actionbar--contextual:hover .ldh-actions .ldh-actions-div,
@@ -1036,14 +1036,14 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 }
 /* The hero's links button is core <IconButton intent="accent" count>, and needs
    a translucent ground because it sits on the hero's gradient rather than on a
-   card. Scoped to .ldhc-iconbtn — this rule still said `.tb-links`, a class
+   card. Scoped to .ac-iconbtn — this rule still said `.tb-links`, a class
    retired when the icon buttons were unified, so it had been dead. */
-.hero-actions .ldhc-iconbtn {
+.hero-actions .ac-iconbtn {
   background: rgba(255,255,255,0.72);
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
 }
-.hero-actions .ldhc-iconbtn:hover { background: rgba(255,255,255,0.9); }
+.hero-actions .ac-iconbtn:hover { background: rgba(255,255,255,0.9); }
 
 /* Block drawer — fixed to the viewport's right edge so it sits FLUSH against
    the page edge regardless of where the block lives inside the centered
@@ -1196,11 +1196,11 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   background: var(--surface-2);
   border-radius: var(--r-sm);
 }
-.dpivot-dirs .ldhc-iconbtn { color: var(--fg-muted); }
-.dpivot-dirs .ldhc-iconbtn:hover { background: var(--surface-0); color: var(--ldh-blue-700); }
+.dpivot-dirs .ac-iconbtn { color: var(--fg-muted); }
+.dpivot-dirs .ac-iconbtn:hover { background: var(--surface-0); color: var(--ldh-blue-700); }
 /* A direction with no matches stays visible but inert — its absence would
    wrongly imply the predicate does not exist that way round. */
-.dpivot-dirs .ldhc-iconbtn:disabled { opacity: 0.32; }
+.dpivot-dirs .ac-iconbtn:disabled { opacity: 0.32; }
 .dpivot.is-current { background: var(--bg-accent-quiet); color: var(--ldh-blue-700); font-weight: var(--fw-medium); }
 .dpivot.is-current .dpivot-pred .msi { color: var(--ldh-blue-600); }
 .dpivot.is-current .dpivot-dirs { background: var(--surface-0); }
@@ -1348,7 +1348,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   gap: var(--sp-4);
 }
 /* Grid cards are core <Card size="sm" tone="…">; the six per-tone rules and the
-   .gi/.gt/.gc anatomy moved to .ldhc-card-ic / -title / -meta. */
+   .gi/.gt/.gc anatomy moved to .ac-card-ic / -title / -meta. */
 
 /* ---------- Property editor (read + edit on a row level) ----------
    Each row reads as a clean label/value pair by default. Click the value to
@@ -1820,12 +1820,12 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 /* Loading body: skeleton shaped like the content it replaces. */
 .ldh-block-loading { display: flex; flex-direction: column; gap: var(--sp-3); }
 .ldh-block-loading .bl-row { display: flex; align-items: center; gap: var(--sp-3); }
-/* Core's .ldhc-skel-group is width:100% (it's normally a block-level stack), so
+/* Core's .ac-skel-group is width:100% (it's normally a block-level stack), so
    a fixed-width skeleton used as a flex child still claims a 100% flex base and
    over-subscribes the row — leaving no free space for a flex:1 sibling to grow
    into, which collapses it to 0. Pin the fixed columns to their content width so
    the fluid column keeps the remainder. */
-.ldh-block-loading .bl-row > .ldhc-skel-group { flex: 0 0 auto; width: auto; }
+.ldh-block-loading .bl-row > .ac-skel-group { flex: 0 0 auto; width: auto; }
 
 /* ---------- View-block toolbar (facets / sort / count, sits inside .ldh-block between head and body) ---------- */
 .ldh-view-toolbar {
@@ -2066,7 +2066,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-list-block .row .ts {
   font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--fg-hint); white-space: nowrap;
 }
-/* An rdf:type value renders as the core type Tag (.ldhc-tag.em-quiet.co-primary)
+/* An rdf:type value renders as the core type Tag (.ac-tag.em-quiet.co-primary)
    wherever it lands — property values, table cells and list rows alike. The
    `.type` cell only PLACES that Tag; it paints no pill of its own. Only the
    title-line `a.ldh-type-chip` stays distinct, as the linked variant.
@@ -2505,13 +2505,13 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-form-actions-menu .it .sub { font-size: var(--fs-xs); color: var(--fg-2); }
 .ldh-form-actions-menu .it.is-danger .ico { background: var(--danger-50); color: var(--danger-500); }
 
-/* Modal chrome is core: .ldhc-backdrop / .ldhc-modal / .ldhc-modal-head|body|foot
+/* Modal chrome is core: .ac-backdrop / .ac-modal / .ac-modal-head|body|foot
    (ui_kits/core/overlays.css). The old .ldh-modal-backdrop + .ldh-modal + .mhead
    set was a SECOND modal system with no focus trap, no Escape handling and no
    depth stacking; all five dialogs now use core <Modal>, which has all three.
    What remains below is per-dialog BODY styling only. */
 /* ---------- Access-request modal ---------- */
-/* The dialog's leading glyph is core <Modal icon>; .ldhc-modal-icon styles it. */
+/* The dialog's leading glyph is core <Modal icon>; .ac-modal-icon styles it. */
 .ar-body { padding: var(--sp-5); display: flex; flex-direction: column; gap: var(--sp-4); overflow-y: auto; }
 .ar-pair { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
 .ar-card {
@@ -2617,40 +2617,40 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 /* The block row must not clip the parallax drawer's slide-in. */
 .ldh-search-view .ldh-block-row { overflow: visible; }
 
-.ldhc-modal .mtoolbar {
+.ac-modal .mtoolbar {
   display: flex; align-items: center; gap: var(--sp-2);
   padding: var(--sp-2) var(--sp-5);
   background: var(--surface-1);
   border-bottom: 1px solid var(--border-default);
   font-size: var(--fs-sm); color: var(--fg-muted);
 }
-.ldhc-modal .mtoolbar .count b {
+.ac-modal .mtoolbar .count b {
   display: inline-block; min-width: 20px; padding: 2px 6px;
   background: var(--ink-1); color: #fff; border-radius: var(--r-pill);
   font-family: var(--font-mono); font-size: 10px; font-weight: 600; text-align: center;
   margin-left: 6px;
 }
-.ldhc-modal .mtoolbar .right { margin-left: auto; display: flex; align-items: center; gap: var(--sp-2); }
-.ldhc-modal .mlist { overflow-y: auto; flex: 1; padding: var(--sp-2); }
-.ldhc-modal .mresult {
+.ac-modal .mtoolbar .right { margin-left: auto; display: flex; align-items: center; gap: var(--sp-2); }
+.ac-modal .mlist { overflow-y: auto; flex: 1; padding: var(--sp-2); }
+.ac-modal .mresult {
   display: grid; grid-template-columns: 32px 1fr auto;
   gap: var(--sp-3); align-items: center;
   padding: var(--sp-3); border-radius: var(--r-sm);
   cursor: pointer;
 }
-.ldhc-modal .mresult:hover { background: var(--surface-1); }
-.ldhc-modal .mresult .ic {
+.ac-modal .mresult:hover { background: var(--surface-1); }
+.ac-modal .mresult .ic {
   width: 32px; height: 32px; border-radius: var(--r-sm);
   background: var(--bg-accent-quiet); color: var(--ldh-blue-700);
   display: inline-flex; align-items: center; justify-content: center;
 }
-.ldhc-modal .mresult .ti { font-weight: var(--fw-medium); color: var(--ldh-blue-700); }
-.ldhc-modal .mresult .meta { display: block; font-size: var(--fs-xs); color: var(--fg-muted); margin-top: 2px; font-family: var(--font-mono); }
-.ldhc-modal .mresult .badge {
+.ac-modal .mresult .ti { font-weight: var(--fw-medium); color: var(--ldh-blue-700); }
+.ac-modal .mresult .meta { display: block; font-size: var(--fs-xs); color: var(--fg-muted); margin-top: 2px; font-family: var(--font-mono); }
+.ac-modal .mresult .badge {
   font-family: var(--font-mono); font-size: 10px; color: var(--fg-muted);
   padding: 2px 8px; background: var(--surface-2); border-radius: var(--r-pill);
 }
-.ldhc-modal .mhint {
+.ac-modal .mhint {
   display: flex; align-items: center; gap: var(--sp-3);
   padding: var(--sp-3) var(--sp-5);
   background: var(--surface-1);
@@ -2660,7 +2660,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
      it would compress when the results region runs out of room. */
   flex-shrink: 0;
 }
-.ldhc-modal .mhint kbd {
+.ac-modal .mhint kbd {
   font-family: var(--font-mono); font-size: 10px;
   padding: 2px 6px; border: 1px solid var(--border-default); border-radius: 4px;
   background: var(--surface-0);
@@ -2834,7 +2834,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .tree-icon { color: var(--fg-hint); flex-shrink: 0; }
 .tree-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* The member count is a core Tag; only its placement is scoped here. */
-.tree-link > .ldhc-tag { flex-shrink: 0; }
+.tree-link > .ac-tag { flex-shrink: 0; }
 /* Lazy children in flight. */
 .ldh-tree .tree-loading {
   display: flex; align-items: center; gap: var(--sp-2);
@@ -3007,8 +3007,8 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-nblock-actions { display: flex; align-items: center; gap: 2px; margin-left: auto; }
 /* A nested toolbar just rests quieter and gains emphasis when its block is
    hovered; the box itself comes from <IconButton>. */
-.ldh-nblock-actions .ldhc-iconbtn { color: var(--ink-4); }
-.ldh-nblock:hover .ldh-nblock-actions .ldhc-iconbtn { color: var(--fg-muted); }
+.ldh-nblock-actions .ac-iconbtn { color: var(--ink-4); }
+.ldh-nblock:hover .ldh-nblock-actions .ac-iconbtn { color: var(--fg-muted); }
 
 .ldh-nblock-body { padding: var(--sp-3); }
 .ldh-nblock-lede { margin: 0; font-size: var(--fs-sm); color: var(--fg-muted); line-height: var(--lh-base); }
@@ -3024,9 +3024,9 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   border-radius: var(--r-sm); padding: var(--sp-3);
 }
 
-/* Tables are core <DataTable> (.ldhc-table). The four bespoke implementations
+/* Tables are core <DataTable> (.ac-table). The four bespoke implementations
    here — .ldh-data-table, .ldh-mini-table, .ldh-map-table, .ldh-run-list —
-   differed only in column tracks, which is now a --ldhc-cols variable. */
+   differed only in column tracks, which is now a --ac-cols variable. */
 
 /* =========================================================================
    Admin surfaces — Ontology editor · Imports · SPARQL editor.
@@ -3131,12 +3131,12 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 
 /* ---------- Imports ---------- */
 .ldh-import-flow { display: flex; flex-direction: column; gap: var(--sp-5); }
-.ldh-import-tabs > .ldhc-tabpanel { padding-top: var(--sp-5); }
+.ldh-import-tabs > .ac-tabpanel { padding-top: var(--sp-5); }
 .ldh-import-step {
   background: var(--bg-card); border: 1px solid var(--border-default);
   border-radius: var(--r-lg); padding: var(--sp-5);
 }
-/* Steps are core <Step> (.ldhc-step-*). */
+/* Steps are core <Step> (.ac-step-*). */
 .ldh-step-hint { font-size: var(--fs-sm); color: var(--fg-muted); }
 
 .ldh-dropzone {
@@ -3378,15 +3378,15 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-p12-card .p12-body { display: flex; flex-direction: column; min-width: 0; }
 .ldh-p12-card .p12-name { font-family: var(--font-mono); font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--fg-1); }
 .ldh-p12-card .p12-meta { font-family: var(--font-mono); font-size: 11px; color: var(--fg-hint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ldh-p12-card .ldhc-btn { margin-left: auto; flex-shrink: 0; }
+.ldh-p12-card .ac-btn { margin-left: auto; flex-shrink: 0; }
 
 /* Per-browser install steps */
 .ldh-install { display: flex; flex-direction: column; gap: var(--sp-3); }
 /* The install tablist sits inline in the head row, so it must not stretch.
    The height override needs the sz-sm class too, or it loses on specificity to
-   `.ldhc-tablist.sz-sm .ldhc-tab`. */
-.ldh-install-tabs .ldhc-tablist { align-self: center; }
-.ldh-install-tabs .ldhc-tablist.sz-sm .ldhc-tab { height: 28px; }
+   `.ac-tablist.sz-sm .ac-tab`. */
+.ldh-install-tabs .ac-tablist { align-self: center; }
+.ldh-install-tabs .ac-tablist.sz-sm .ac-tab { height: 28px; }
 .ldh-install-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); flex-wrap: wrap; }
 .ldh-install-steps { margin: 0; padding-left: 0; list-style: none; counter-reset: step; display: flex; flex-direction: column; gap: var(--sp-2); }
 .ldh-install-steps li { position: relative; padding-left: 32px; font-size: var(--fs-sm); color: var(--fg-2); line-height: var(--lh-base); counter-increment: step; }
@@ -3432,7 +3432,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 
 /* ---- Value stack: control, annotations, messages ----
    DECISION (C8): controls sit NAKED in the value cell — no per-control
-   .ldhc-field-box wrapper. The core controls already carry field-box metrics
+   .ac-field-box wrapper. The core controls already carry field-box metrics
    (32/40/48), so wrapping would double the border and double the port's markup.
    The cell becomes a vertical stack instead, which is where the two lines the
    drawn row never had now live. */
@@ -3468,15 +3468,15 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-prop-row .val-main {
   display: flex; align-items: center; gap: var(--sp-3); min-width: 0; flex-wrap: wrap;
 }
-.ldh-prop-row .val-main > .ldhc-field { flex: 0 1 var(--prop-control-w); max-width: var(--prop-control-w); }
-.ldh-prop-row .val-main > .ldhc-select { flex: 0 1 var(--prop-control-w); max-width: var(--prop-control-w); }
-.ldh-prop-row .val-main > .ldhc-combobox { flex: 0 1 var(--prop-control-w); max-width: var(--prop-control-w); }
+.ldh-prop-row .val-main > .ac-field { flex: 0 1 var(--prop-control-w); max-width: var(--prop-control-w); }
+.ldh-prop-row .val-main > .ac-select { flex: 0 1 var(--prop-control-w); max-width: var(--prop-control-w); }
+.ldh-prop-row .val-main > .ac-combobox { flex: 0 1 var(--prop-control-w); max-width: var(--prop-control-w); }
 .ldh-prop-row .val-main > .ldh-dt-pair { flex: 0 1 var(--prop-control-w); max-width: var(--prop-control-w); }
-.ldh-prop-row .val-main > .ldhc-cb-committed { flex: 0 1 auto; }
+.ldh-prop-row .val-main > .ac-cb-committed { flex: 0 1 auto; }
 .ldh-prop-row .val-main > .ldh-bool-seg { flex: 0 0 auto; }
 /* Full-width controls: a code editor or an upload target needs the column. */
-.ldh-prop-row .val-main > .ldhc-codefield,
-.ldh-prop-row .val-main > .ldhc-fileinput { flex: 1 1 100%; }
+.ldh-prop-row .val-main > .ac-codefield,
+.ldh-prop-row .val-main > .ac-fileinput { flex: 1 1 100%; }
 /* basis 0 + shrink: the annot fills whatever space is left on the control's
    line and never pushes itself onto a second one. A wrapped annot line still
    occupies height even at opacity 0, which is exactly what made form rows
@@ -3494,51 +3494,51 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
    app kit used to style itself: a form row is indistinguishable from a
    description row until you touch it. The border stays in the box model
    (transparent) so revealing it shifts nothing. */
-.ldh-prop-form.is-form-mode .val-main > .ldhc-field .ldhc-field-box {
+.ldh-prop-form.is-form-mode .val-main > .ac-field .ac-field-box {
   background: transparent; border-color: transparent;
 }
-.ldh-prop-form.is-form-mode .ldh-prop-row:hover .val-main > .ldhc-field .ldhc-field-box {
+.ldh-prop-form.is-form-mode .ldh-prop-row:hover .val-main > .ac-field .ac-field-box {
   background: var(--surface-0); border-color: var(--border-default);
 }
-.ldh-prop-form.is-form-mode .val-main > .ldhc-field .ldhc-field-box:focus-within {
+.ldh-prop-form.is-form-mode .val-main > .ac-field .ac-field-box:focus-within {
   background: var(--surface-0); border-color: var(--ldh-blue-400); box-shadow: var(--focus-ring);
 }
 /* A multiline value takes the column. */
-.ldh-prop-row .val-main > .ldhc-field:has(textarea) { flex: 1 1 100%; max-width: none; }
+.ldh-prop-row .val-main > .ac-field:has(textarea) { flex: 1 1 100%; max-width: none; }
 
 /* Selects, comboboxes and the dateTime pair follow the same rule: text at rest,
    chrome on hover/focus. Otherwise a row with a select reads as a "form row"
    next to rows that read as description rows. */
-.ldh-prop-form.is-form-mode .val-main > .ldhc-select > select,
+.ldh-prop-form.is-form-mode .val-main > .ac-select > select,
 .ldh-prop-form.is-form-mode .val-main > .ldh-dt-pair,
-.ldh-prop-form.is-form-mode .val-main > .ldhc-combobox .ldhc-cb-box {
+.ldh-prop-form.is-form-mode .val-main > .ac-combobox .ac-cb-box {
   background: transparent; border-color: transparent;
 }
-.ldh-prop-form.is-form-mode .ldh-prop-row:hover .val-main > .ldhc-select > select,
+.ldh-prop-form.is-form-mode .ldh-prop-row:hover .val-main > .ac-select > select,
 .ldh-prop-form.is-form-mode .ldh-prop-row:hover .val-main > .ldh-dt-pair,
-.ldh-prop-form.is-form-mode .ldh-prop-row:hover .val-main > .ldhc-combobox .ldhc-cb-box {
+.ldh-prop-form.is-form-mode .ldh-prop-row:hover .val-main > .ac-combobox .ac-cb-box {
   background: var(--surface-0); border-color: var(--border-default);
 }
-.ldh-prop-form.is-form-mode .val-main > .ldhc-select > select:focus-visible,
+.ldh-prop-form.is-form-mode .val-main > .ac-select > select:focus-visible,
 .ldh-prop-form.is-form-mode .val-main > .ldh-dt-pair:focus-within,
-.ldh-prop-form.is-form-mode .val-main > .ldhc-combobox .ldhc-cb-box:focus-within {
+.ldh-prop-form.is-form-mode .val-main > .ac-combobox .ac-cb-box:focus-within {
   background: var(--surface-0); border-color: var(--ldh-blue-400); box-shadow: var(--focus-ring);
 }
 /* The select caret is chrome too — hidden until the row is live. */
-.ldh-prop-form.is-form-mode .val-main > .ldhc-select .ldhc-select-caret { opacity: 0; }
-.ldh-prop-form.is-form-mode .ldh-prop-row:hover .val-main > .ldhc-select .ldhc-select-caret,
-.ldh-prop-form.is-form-mode .ldh-prop-row:focus-within .val-main > .ldhc-select .ldhc-select-caret { opacity: 1; }
+.ldh-prop-form.is-form-mode .val-main > .ac-select .ac-select-caret { opacity: 0; }
+.ldh-prop-form.is-form-mode .ldh-prop-row:hover .val-main > .ac-select .ac-select-caret,
+.ldh-prop-form.is-form-mode .ldh-prop-row:focus-within .val-main > .ac-select .ac-select-caret { opacity: 1; }
 /* A committed resource value reads as the read row's IRI link, not a pill,
    until the row is live. */
-.ldh-prop-form.is-form-mode .val-main > .ldhc-cb-committed .ldhc-cb-chip {
+.ldh-prop-form.is-form-mode .val-main > .ac-cb-committed .ac-cb-chip {
   background: transparent; border-color: transparent; color: var(--ldh-blue-700);
 }
-.ldh-prop-form.is-form-mode .ldh-prop-row:hover .val-main > .ldhc-cb-committed .ldhc-cb-chip,
-.ldh-prop-form.is-form-mode .ldh-prop-row:focus-within .val-main > .ldhc-cb-committed .ldhc-cb-chip {
+.ldh-prop-form.is-form-mode .ldh-prop-row:hover .val-main > .ac-cb-committed .ac-cb-chip,
+.ldh-prop-form.is-form-mode .ldh-prop-row:focus-within .val-main > .ac-cb-committed .ac-cb-chip {
   background: var(--bg-accent-quiet); color: var(--fg-selected);
   border-color: color-mix(in srgb, var(--fg-selected) 24%, transparent);
 }
-.ldh-prop-form.is-form-mode .val-main > .ldhc-cb-committed .cb-chip-btn { opacity: 0; }
+.ldh-prop-form.is-form-mode .val-main > .ac-cb-committed .cb-chip-btn { opacity: 0; }
 .ldh-prop-form.is-form-mode .ldh-prop-row:hover .val-main .cb-chip-btn,
 .ldh-prop-form.is-form-mode .ldh-prop-row:focus-within .val-main .cb-chip-btn { opacity: 1; }
 /* Annotations are editing metadata, not description content: inline (so they
@@ -3555,7 +3555,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 
 /* ---- Annotations line (C10): ONE system for term kind, datatype, language ----
    The read side used pills and the edit side grey micro-text; both now use
-   .ldhc-tag sz-sm em-quiet, so a datatype reads identically in a read row and
+   .ac-tag sz-sm em-quiet, so a datatype reads identically in a read row and
    an edit row. Term kind is encoded by colour via the RDF hues. */
 /* NOWRAP is load-bearing. With flex-basis 0 (set below so the annot never
    pushes itself onto its own line) the tags wrap against a 0-width hypothetical
@@ -3563,23 +3563,23 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
    tall and inflated every form row to twice a read row. Clipping revealed
    metadata is the right trade. */
 .ldh-annot { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; min-width: 0; }
-.ldh-annot > .ldhc-tag { flex-shrink: 0; }
+.ldh-annot > .ac-tag { flex-shrink: 0; }
 .ldh-annot .an-term.is-literal  { background: var(--success-50); color: var(--rdf-literal); }
 .ldh-annot .an-term.is-resource { background: var(--bg-accent-quiet); color: var(--rdf-resource); }
 .ldh-annot .an-term.is-class    { background: var(--ldh-violet-100); color: var(--rdf-class); }
 .ldh-annot .an-term.is-blank    { background: var(--warning-50); color: var(--rdf-blank); }
 /* Language tag. READ side: the value's @xml:lang renders as the core Tag in its
-   quiet violet at the new xs size — <span class="ldhc-tag em-quiet co-accent
+   quiet violet at the new xs size — <span class="ac-tag em-quiet co-accent
    sz-xs">. It was an LDH-only .chip-inline with the same violet-50/violet-700
    tones, i.e. a Tag that had not been told it was one. Violet is the system's
    "structural/semantic annotation" hue, which is exactly what a language tag is.
    EDIT side: a narrow TextField (below) — it used to be a bespoke pill with its
    own bordered input; the only thing it needed was a width. */
-.ldh-annot > .ldhc-tag.sz-xs { flex-shrink: 0; }
+.ldh-annot > .ac-tag.sz-xs { flex-shrink: 0; }
 .ldh-lang { display: inline-flex; min-width: 0; }
-.ldh-lang > .ldhc-field { width: 11ch; }
-.ldh-lang > .ldhc-field .ldhc-field-box { min-height: 24px; padding: 0 6px; }
-.ldh-lang > .ldhc-field .ldhc-field-box input {
+.ldh-lang > .ac-field { width: 11ch; }
+.ldh-lang > .ac-field .ac-field-box { min-height: 24px; padding: 0 6px; }
+.ldh-lang > .ac-field .ac-field-box input {
   font-family: var(--font-mono); font-size: var(--fs-xs); padding: 2px 0;
 }
 
@@ -3588,19 +3588,19 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
    re-implementing a field box, so it is gone. The offset field is narrow and
    does not shrink; the datetime field absorbs the row's control cap. */
 .ldh-dt-pair { display: inline-flex; align-items: center; gap: var(--sp-2); min-width: 0; }
-.ldh-dt-pair > .ldhc-field:first-child { flex: 1 1 auto; min-width: 0; }
-.ldh-dt-pair > .ldhc-field:last-child { flex: 0 0 9ch; }
-.ldh-dt-pair > .ldhc-field .ldhc-field-box input {
+.ldh-dt-pair > .ac-field:first-child { flex: 1 1 auto; min-width: 0; }
+.ldh-dt-pair > .ac-field:last-child { flex: 0 0 9ch; }
+.ldh-dt-pair > .ac-field .ac-field-box input {
   font-family: var(--font-mono); font-size: var(--fs-xs);
 }
 
 /* ---- Boolean values (C11) ----
-   DECISION: a 3-way segmented control, NOT .ldhc-toggle. A toggle means "takes
+   DECISION: a 3-way segmented control, NOT .ac-toggle. A toggle means "takes
    effect immediately", which is wrong inside an explicit Save/Cancel form, and
    a two-state toggle cannot express an RDF boolean that is simply absent.
    true / false / unset are all reachable in one click. */
 .ldh-bool-seg { display: inline-flex; align-self: flex-start; }
-.ldh-bool-seg .ldhc-switch-seg[aria-checked="true"] { color: var(--fg-selected); }
+.ldh-bool-seg .ac-switch-seg[aria-checked="true"] { color: var(--fg-selected); }
 .ldh-bool-seg .seg-unset[aria-checked="true"] { color: var(--fg-muted); }
 
 /* ---- Violation + help messages (C9) ----
@@ -3610,13 +3610,13 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-vmsgs { display: flex; flex-direction: column; gap: 3px; }
 .ldh-prop-group.is-violation > .label .pred { color: var(--danger-500); }
 .ldh-prop-group.is-violation > .label { box-shadow: inset 2px 0 0 var(--danger-500); }
-.ldh-prop-row.is-violation .val-main > .ldhc-field .ldhc-field-box,
-.ldh-prop-row.is-violation .val-main > .ldhc-select > select,
-.ldh-prop-row.is-violation .val-main > .ldhc-combobox .ldhc-cb-box,
-.ldh-prop-row.is-violation .val-main > .ldhc-codefield,
-.ldh-prop-row.is-violation .val-main > .ldh-dt-pair .ldhc-field-box { border-color: var(--danger-500); }
-.ldh-prop-row.is-violation .val-main > .ldhc-fileinput .ldhc-file-drop { border-color: var(--danger-500); background: var(--danger-50); }
-.ldh-prop-row.is-violation .val-main > .ldhc-cb-committed .ldhc-cb-chip { border-color: var(--danger-500); color: var(--danger-500); background: var(--danger-50); }
+.ldh-prop-row.is-violation .val-main > .ac-field .ac-field-box,
+.ldh-prop-row.is-violation .val-main > .ac-select > select,
+.ldh-prop-row.is-violation .val-main > .ac-combobox .ac-cb-box,
+.ldh-prop-row.is-violation .val-main > .ac-codefield,
+.ldh-prop-row.is-violation .val-main > .ldh-dt-pair .ac-field-box { border-color: var(--danger-500); }
+.ldh-prop-row.is-violation .val-main > .ac-fileinput .ac-file-drop { border-color: var(--danger-500); background: var(--danger-50); }
+.ldh-prop-row.is-violation .val-main > .ac-cb-committed .ac-cb-chip { border-color: var(--danger-500); color: var(--danger-500); background: var(--danger-50); }
 
 /* ---- Label slots: required marker + predicate description (C8) ----
    DECISION (rdfs:comment): a TOGGLETIP on the label, not a hint line under it.
@@ -3626,14 +3626,14 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
    before typing — click-to-read is the right cost, and a toggletip works on
    touch where a tooltip does not. */
 .ldh-prop-group > .label .lbl-row { display: inline-flex; align-items: center; gap: 4px; justify-content: flex-end; flex-wrap: wrap; }
-.ldh-prop-group > .label .ldhc-label-aux {
+.ldh-prop-group > .label .ac-label-aux {
   margin-left: 0; font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--fg-hint);
 }
-/* Required marker — .ldhc-label-aux is its home, replacing the legacy
+/* Required marker — .ac-label-aux is its home, replacing the legacy
    ::after ' *'. It carries a text label for assistive tech, not just a glyph. */
 .ldh-prop-group > .label .req { color: var(--danger-500); font-weight: var(--fw-bold); }
-.ldh-prop-group > .label .ldhc-toggletip-btn { width: 18px; height: 18px; }
-.ldh-prop-group > .label .ldhc-toggletip-btn .msi { font-size: 14px; }
+.ldh-prop-group > .label .ac-toggletip-btn { width: 18px; height: 18px; }
+.ldh-prop-group > .label .ac-toggletip-btn .msi { font-size: 14px; }
 
 /* ---- Per-property add-value affordance ----
    It is the small + in .row-actions (an <IconButton size="xs">), matching the
@@ -3655,7 +3655,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 
 /* =========================================================================
    FORM ACTION BAR (A) — one button vocabulary.
-   Spec'd in the .ldhc-btn matrix — the one button system in the design system.
+   Spec'd in the .ac-btn matrix — the one button system in the design system.
    Save is gated on dirty. 2-button (Save/Cancel) and 3-button (+ Reset) forms
    are the same bar with a conditional child.
    ========================================================================= */
@@ -3666,7 +3666,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   background: var(--surface-1);
 }
 /* Inline placement (a form in a block) keeps the card's bottom radius; the
-   modal-footer placement is .ldhc-modal-foot and needs neither. */
+   modal-footer placement is .ac-modal-foot and needs neither. */
 .ldh-form-bar.pl-inline { border-radius: 0 0 var(--r-lg) var(--r-lg); }
 .ldh-form-bar .fb-end { margin-left: auto; display: flex; align-items: center; gap: var(--sp-2); }
 /* Dirty-state readout — the form says what will happen, so Save being disabled
@@ -3685,7 +3685,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-prop-form.is-submitting { pointer-events: none; opacity: 0.72; }
 .ldh-prop-form.is-submitting * { cursor: progress !important; }
 
-/* Conflict alert (A) — .ldhc-alert at the top of the form, replacing the legacy
+/* Conflict alert (A) — .ac-alert at the top of the form, replacing the legacy
    .alert.alert-error. Sits inside the form's own scroll area so it travels with
    the fields it describes. */
 .ldh-form-alert { padding: var(--sp-4) var(--sp-6) 0; }
@@ -3808,7 +3808,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-edit-form .ldh-subject:focus-within .ldh-form-actions-wrap { opacity: 1; }
 
 
-/* The tabular markup reset lives in core surfaces.css with .ldhc-table. */
+/* The tabular markup reset lives in core surfaces.css with .ac-table. */
 
 /* Ontology term list — <ul>/<li> of navigable terms. */
 .ldh-onto-terms { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
@@ -3893,7 +3893,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 /* `.is-quiet` is the OUTGOING variant: the shipped bundle still emits
    `.ldh-type-chip is-quiet` on list rows until it recompiles, so these styles
    stay one cycle. The invariant is now that an rdf:type value renders as the
-   core type Tag (.ldhc-tag.em-quiet.co-primary) wherever it lands, so this
+   core type Tag (.ac-tag.em-quiet.co-primary) wherever it lands, so this
    app-level variant has no incoming consumer and comes out next pass.
 
    The doubled class is deliberate, exactly as with `.ttl.ttl`: every skin
@@ -3984,7 +3984,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   height: 18px; padding: 0 6px 0 7px; font-size: 10px;
 }
 .ldh-block-head[data-density="compact"] .ldh-type-chip .msi { font-size: 11px; }
-.ldh-block-head[data-density="compact"] .actions .ldhc-iconbtn { width: 26px; height: 26px; }
+.ldh-block-head[data-density="compact"] .actions .ac-iconbtn { width: 26px; height: 26px; }
 
 /* Drag handle — a header slot, present when the block is reorderable. */
 .ldh-bh-drag {

@@ -67,7 +67,7 @@ exclude-result-prefixes="#all"
                 <!-- restoring is a point action on one version, unlike the From/To pair that bounds a comparison.
                      The version being viewed is skipped: writing it back would only commit identical content. -->
                 <xsl:if test="$writable and not(@rdf:about = $current-memento)">
-                    <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm btn-restore" value="{@rdf:about}">
+                    <button type="button" class="ac-btn in-neutral ap-solid sz-sm btn-restore" value="{@rdf:about}">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'restore', ldh:translations())" mode="ac:label"/>
                         </xsl:value-of>

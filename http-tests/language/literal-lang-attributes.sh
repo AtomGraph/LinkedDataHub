@@ -67,7 +67,7 @@ count()
 
 # both languages of the property survive to the page - suppressing one is the defect this marking exists to make safe
 
-[ "$(count "//*[local-name() = 'span'][@class = 'ldhc-tag em-quiet co-accent sz-xs']")" = "2" ]
+[ "$(count "//*[local-name() = 'span'][@class = 'ac-tag em-quiet co-accent sz-xs']")" = "2" ]
 
 ldh delete \
   -f "$OWNER_CERT_KEYSTORE" \

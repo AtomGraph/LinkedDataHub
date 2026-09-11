@@ -291,14 +291,14 @@
 :root[data-retro="neon"] .ldh-hero h1 { text-shadow: 0 0 18px rgba(255,79,163,0.45); }
 :root[data-retro="dusk"] .ldh-hero h1 { text-shadow: 0 0 18px rgba(0,180,166,0.30); }
 /* ---- Chrome / beveled primary buttons (machined-metal edge) ---- */
-:root[data-retro] .ldhc-btn.ap-solid {
+:root[data-retro] .ac-btn.ap-solid {
   background-image: linear-gradient(180deg, rgba(255,255,255,0.22), rgba(0,0,0,0.10));
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,0.45),
     inset 0 -1px 0 rgba(0,0,0,0.28),
     0 1px 2px rgba(0,0,0,0.35);
 }
-:root[data-retro] .ldhc-btn.ap-solid:active {
+:root[data-retro] .ac-btn.ap-solid:active {
   background-image: linear-gradient(180deg, rgba(0,0,0,0.12), rgba(255,255,255,0.12));
 }
 /* Mode switcher + tabs get a thin inset chrome line too */
@@ -552,19 +552,19 @@
 glossy white sheen,
 blue glow — overrides the
         generic retro "machined chrome" bevel for this skin only ---- */
-:root[data-retro="glass"] .ldhc-btn.ap-solid {
+:root[data-retro="glass"] .ac-btn.ap-solid {
   border-radius: 999px;
   background-image: linear-gradient(180deg, rgba(255,255,255,0.30), rgba(255,255,255,0.0));
   -webkit-backdrop-filter: blur(8px) saturate(160%);
   backdrop-filter: blur(8px) saturate(160%);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 4px 16px rgba(10,132,255,0.30);
 }
-:root[data-retro="glass"] .ldhc-btn.ap-solid:active {
+:root[data-retro="glass"] .ac-btn.ap-solid:active {
   background-image: linear-gradient(180deg, rgba(0,0,0,0.07), rgba(255,255,255,0.10));
 }
-:root[data-retro="glass"] .ldhc-iconbtn,
-:root[data-retro="glass"] .ldhc-btn.ap-outline,
-:root[data-retro="glass"] .ldhc-btn.ap-ghost { border-radius: 999px; }
+:root[data-retro="glass"] .ac-iconbtn,
+:root[data-retro="glass"] .ac-btn.ap-outline,
+:root[data-retro="glass"] .ac-btn.ap-ghost { border-radius: 999px; }
 
 /* ---- Type: clean, tight, no glow. Undo the wide-display retro flourish ---- */
 :root[data-retro="glass"] .ldh-wordmark,
@@ -743,17 +743,17 @@ blue glow — overrides the
 :root[data-retro="glasspro"] .ldh-hero > * { position: relative; z-index: 1; }
 /* ---- Buttons: glossy blue pills (match Glass),
 but a touch more solid ---- */
-:root[data-retro="glasspro"] .ldhc-btn.ap-solid {
+:root[data-retro="glasspro"] .ac-btn.ap-solid {
   border-radius: 999px;
   background-image: linear-gradient(180deg, rgba(255,255,255,0.28), rgba(255,255,255,0));
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 3px 12px rgba(10,132,255,0.26);
 }
-:root[data-retro="glasspro"] .ldhc-btn.ap-solid:active {
+:root[data-retro="glasspro"] .ac-btn.ap-solid:active {
   background-image: linear-gradient(180deg, rgba(0,0,0,0.06), rgba(255,255,255,0.08));
 }
-:root[data-retro="glasspro"] .ldhc-iconbtn,
-:root[data-retro="glasspro"] .ldhc-btn.ap-outline,
-:root[data-retro="glasspro"] .ldhc-btn.ap-ghost { border-radius: 999px; }
+:root[data-retro="glasspro"] .ac-iconbtn,
+:root[data-retro="glasspro"] .ac-btn.ap-outline,
+:root[data-retro="glasspro"] .ac-btn.ap-ghost { border-radius: 999px; }
 
 /* ---- Type: clean, tight, no glow ---- */
 :root[data-retro="glasspro"] .ldh-wordmark,
@@ -1143,31 +1143,31 @@ M3 "Label large" type,
 flat at rest (filled = level 0),
 STATE LAYERS via inset shadow (hover 8%,
 pressed 10%). ---- */
-:root[data-retro^="m3"] .ldhc-btn {
+:root[data-retro^="m3"] .ac-btn {
   border-radius: 999px;
   font-family: var(--font-sans);
   font-weight: 500;
   letter-spacing: 0.1px;
 }
 /* Filled (primary) button — on-primary state layer (white). */
-:root[data-retro^="m3"] .ldhc-btn.ap-solid { box-shadow: none; }
-:root[data-retro^="m3"] .ldhc-btn.ap-solid:hover {
+:root[data-retro^="m3"] .ac-btn.ap-solid { box-shadow: none; }
+:root[data-retro^="m3"] .ac-btn.ap-solid:hover {
   box-shadow: 0 1px 2px rgba(0,0,0,0.30), 0 1px 3px 1px rgba(0,0,0,0.15),
               inset 0 0 0 999px rgba(255,255,255,0.10);
 }
-:root[data-retro^="m3"] .ldhc-btn.ap-solid:active {
+:root[data-retro^="m3"] .ac-btn.ap-solid:active {
   box-shadow: inset 0 0 0 999px rgba(255,255,255,0.14);
 }
 /* Text / ghost button — primary state layer. */
-:root[data-retro^="m3"] .ldhc-btn.ap-outline,
-:root[data-retro^="m3"] .ldhc-btn.ap-ghost { border-radius: 999px; }
-:root[data-retro^="m3"] .ldhc-btn.ap-outline:hover,
-:root[data-retro^="m3"] .ldhc-btn.ap-ghost:hover { box-shadow: inset 0 0 0 999px rgba(0,97,164,0.08); }
-:root[data-retro^="m3"] .ldhc-btn.ap-outline:active,
-:root[data-retro^="m3"] .ldhc-btn.ap-ghost:active { box-shadow: inset 0 0 0 999px rgba(0,97,164,0.12); }
+:root[data-retro^="m3"] .ac-btn.ap-outline,
+:root[data-retro^="m3"] .ac-btn.ap-ghost { border-radius: 999px; }
+:root[data-retro^="m3"] .ac-btn.ap-outline:hover,
+:root[data-retro^="m3"] .ac-btn.ap-ghost:hover { box-shadow: inset 0 0 0 999px rgba(0,97,164,0.08); }
+:root[data-retro^="m3"] .ac-btn.ap-outline:active,
+:root[data-retro^="m3"] .ac-btn.ap-ghost:active { box-shadow: inset 0 0 0 999px rgba(0,97,164,0.12); }
 /* Icon buttons — circular, on-surface-variant state layer. */
-:root[data-retro^="m3"] .ldhc-iconbtn { border-radius: 999px; }
-:root[data-retro^="m3"] .ldhc-iconbtn:hover { box-shadow: inset 0 0 0 999px rgba(67,71,78,0.08); }
+:root[data-retro^="m3"] .ac-iconbtn { border-radius: 999px; }
+:root[data-retro^="m3"] .ac-iconbtn:hover { box-shadow: inset 0 0 0 999px rgba(67,71,78,0.08); }
 /* Mode-switcher trigger is a button-like control — give it the M3 pill shape so
    it shares the shape language of the Create button instead of a 12px chip. */
 :root[data-retro^="m3"] .ldh-mode { border-radius: 999px; }
@@ -1427,18 +1427,18 @@ pressed 10%). ---- */
   box-shadow: 0 2px 4px rgba(0,0,0,0.40), 0 8px 18px 1px rgba(0,0,0,0.34);
   transform: translateY(-1px);
 }
-:root[data-retro="m3-dark"] .ldhc-btn.ap-outline:hover,
-:root[data-retro="m3-dark"] .ldhc-btn.ap-ghost:hover { box-shadow: inset 0 0 0 999px rgba(158,202,255,0.08); }
-:root[data-retro="m3-dark"] .ldhc-btn.ap-outline:active,
-:root[data-retro="m3-dark"] .ldhc-btn.ap-ghost:active { box-shadow: inset 0 0 0 999px rgba(158,202,255,0.12); }
-:root[data-retro="m3-dark"] .ldhc-iconbtn:hover { box-shadow: inset 0 0 0 999px rgba(195,198,207,0.08); }
+:root[data-retro="m3-dark"] .ac-btn.ap-outline:hover,
+:root[data-retro="m3-dark"] .ac-btn.ap-ghost:hover { box-shadow: inset 0 0 0 999px rgba(158,202,255,0.08); }
+:root[data-retro="m3-dark"] .ac-btn.ap-outline:active,
+:root[data-retro="m3-dark"] .ac-btn.ap-ghost:active { box-shadow: inset 0 0 0 999px rgba(158,202,255,0.12); }
+:root[data-retro="m3-dark"] .ac-iconbtn:hover { box-shadow: inset 0 0 0 999px rgba(195,198,207,0.08); }
 /* Filled button in dark: on-primary is dark,
 so its state layer is a dark overlay */
 so its state layer is a dark overlay */
-:root[data-retro="m3-dark"] .ldhc-btn.ap-solid:hover {
+:root[data-retro="m3-dark"] .ac-btn.ap-solid:hover {
   box-shadow: 0 1px 2px rgba(0,0,0,0.30), 0 1px 3px 1px rgba(0,0,0,0.15),
               inset 0 0 0 999px rgba(0,0,0,0.08);
 }
-:root[data-retro="m3-dark"] .ldhc-btn.ap-solid:active {
+:root[data-retro="m3-dark"] .ac-btn.ap-solid:active {
   box-shadow: inset 0 0 0 999px rgba(0,0,0,0.12);
 }

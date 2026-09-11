@@ -889,7 +889,7 @@ exclude-result-prefixes="#all"
          is written once here and applied from wherever the values are laid out. The core Tag at the inline xs size,
          in the system's structural-annotation violet (§17c) -->
     <xsl:template match="@xml:lang" mode="ac:lang-tag">
-        <span class="ldhc-tag em-quiet co-accent sz-xs">
+        <span class="ac-tag em-quiet co-accent sz-xs">
             <xsl:value-of select="."/>
         </span>
     </xsl:template>
@@ -1086,9 +1086,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="list-id" select="concat('ul-', $id)" as="xs:string"/>
         <xsl:param name="forClass" as="xs:anyURI*"/>
 
-        <div class="ldhc-combobox sz-sm is-iri">
+        <div class="ac-combobox sz-sm is-iri">
             <!-- data-for-class sits on the box, the input's parent, where the lookup handlers read it -->
-            <div class="ldhc-cb-box">
+            <div class="ac-cb-box">
                 <xsl:if test="exists($forClass)">
                     <xsl:attribute name="data-for-class" select="string-join($forClass, ' ')"/>
                 </xsl:if>
@@ -1104,7 +1104,7 @@ exclude-result-prefixes="#all"
                 </xsl:call-template>
             </div>
 
-            <div class="ldhc-cb-panel {$list-class}" id="{$list-id}" role="listbox" style="display: none;"></div>
+            <div class="ac-cb-panel {$list-class}" id="{$list-id}" role="listbox" style="display: none;"></div>
         </div>
     </xsl:template>
 
@@ -1144,7 +1144,7 @@ exclude-result-prefixes="#all"
             </xsl:if>
 
             <!-- document hierarchy locks the term type to URI; the disabled select keeps the subject-type slot the type-flip handler expects -->
-            <span class="ldhc-select-locked sz-sm">
+            <span class="ac-select-locked sz-sm">
                 <span class="msi outline sm" aria-hidden="true">lock</span>
                 <span class="lk-val"><xsl:apply-templates select="key('resources', 'term-uri', ldh:translations())" mode="ac:label"/></span>
                 <select class="subject-type" disabled="disabled" tabindex="-1">
@@ -1303,7 +1303,7 @@ exclude-result-prefixes="#all"
                     <xsl:if test="exists($row-violations)">
                         <div class="ldh-vmsgs">
                             <xsl:for-each select="$row-violations">
-                                <span class="ldhc-help va-negative sz-sm" role="alert">
+                                <span class="ac-help va-negative sz-sm" role="alert">
                                     <span class="msi outline sm" aria-hidden="true">error</span>
                                     <span>
                                         <xsl:choose>
@@ -1330,7 +1330,7 @@ exclude-result-prefixes="#all"
 
                 <div class="row-actions">
                     <xsl:if test="$cloneable">
-                        <button type="button" class="ldhc-iconbtn sz-xs in-accent ap-ghost btn-add">
+                        <button type="button" class="ac-iconbtn sz-xs in-accent ap-ghost btn-add">
                             <xsl:attribute name="title">
                                 <xsl:apply-templates select="key('resources', 'add-stmt', ldh:translations())" mode="ac:label"/>
                             </xsl:attribute>
@@ -1340,7 +1340,7 @@ exclude-result-prefixes="#all"
                     </xsl:if>
 
                     <xsl:if test="not($required)">
-                        <button type="button" tabindex="-1" class="ldhc-iconbtn sz-xs in-destructive ap-ghost btn-remove-property">
+                        <button type="button" tabindex="-1" class="ac-iconbtn sz-xs in-destructive ap-ghost btn-remove-property">
                             <xsl:attribute name="title">
                                 <xsl:value-of>
                                     <xsl:apply-templates select="key('resources', 'remove-stmt', ldh:translations())" mode="ac:label"/>
@@ -1440,7 +1440,7 @@ exclude-result-prefixes="#all"
 
         <xsl:if test="not($type = 'hidden')">
             <xsl:apply-templates select="." mode="ac:AnnotationTag">
-                <xsl:with-param name="class" select="'ldhc-tag sz-sm em-quiet an-term is-resource'"/>
+                <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet an-term is-resource'"/>
                 <xsl:with-param name="label" as="item()*">
                     <xsl:choose>
                         <xsl:when test="exists($forClass)">
@@ -1666,7 +1666,7 @@ exclude-result-prefixes="#all"
                 </span>
 
                 <xsl:if test="$required">
-                    <!-- the design keeps the star its own aria-hidden span; .ldhc-label-aux is the
+                    <!-- the design keeps the star its own aria-hidden span; .ac-label-aux is the
                          end-aligned aux-text slot, which pushed the star to the far edge -->
                     <span class="req" aria-hidden="true">
                         <xsl:attribute name="title">
@@ -1674,19 +1674,19 @@ exclude-result-prefixes="#all"
                         </xsl:attribute>
                         <xsl:text>*</xsl:text>
                     </span>
-                    <span class="ldhc-vh">
+                    <span class="ac-vh">
                         <xsl:apply-templates select="key('resources', 'required', ldh:translations())" mode="ac:label"/>
                     </span>
                 </xsl:if>
 
                 <xsl:if test="$description">
-                    <span class="ldhc-tip-anchor">
-                        <button type="button" class="ldhc-toggletip-btn" aria-expanded="false" aria-label="{$label}">
+                    <span class="ac-tip-anchor">
+                        <button type="button" class="ac-toggletip-btn" aria-expanded="false" aria-label="{$label}">
                             <span class="msi outline sm" aria-hidden="true">info</span>
                         </button>
-                        <span class="ldhc-tip sd-bottom va-neutral description" role="status" style="max-width: 260px; display: none">
+                        <span class="ac-tip sd-bottom va-neutral description" role="status" style="max-width: 260px; display: none">
                             <xsl:sequence select="$description"/>
-                            <span class="ldhc-tip-tip"></span>
+                            <span class="ac-tip-tip"></span>
                         </span>
                     </span>
                 </xsl:if>
@@ -1733,11 +1733,11 @@ exclude-result-prefixes="#all"
         <div class="ldh-block-loading" role="status" aria-label="{ac:label(key('resources', 'loading', ldh:translations()))}">
             <xsl:for-each select="1 to $rows">
                 <div class="bl-row">
-                    <span class="ldhc-skel sh-text is-shimmer" style="width: 84px; height: 12px;"></span>
+                    <span class="ac-skel sh-text is-shimmer" style="width: 84px; height: 12px;"></span>
                     <div style="flex: 1">
-                        <span class="ldhc-skel sh-text is-shimmer" style="width: {(92, 78, 85, 70)[(position() - 1) mod 4 + 1]}%; height: 12px;"></span>
+                        <span class="ac-skel sh-text is-shimmer" style="width: {(92, 78, 85, 70)[(position() - 1) mod 4 + 1]}%; height: 12px;"></span>
                     </div>
-                    <span class="ldhc-skel sh-text is-shimmer" style="width: 64px; height: 12px;"></span>
+                    <span class="ac-skel sh-text is-shimmer" style="width: 64px; height: 12px;"></span>
                 </div>
             </xsl:for-each>
         </div>
@@ -1755,12 +1755,12 @@ exclude-result-prefixes="#all"
 
     <!-- the design system's progress bar anatomy -->
     <xsl:template match="node() | @*" mode="ldh:ProgressBar">
-        <xsl:param name="class" select="'ldhc-pbar ht-sm'" as="xs:string"/>
+        <xsl:param name="class" select="'ac-pbar ht-sm'" as="xs:string"/>
         <xsl:param name="width" select="'0%'" as="xs:string?"/>
 
         <div class="{$class}">
-            <div class="ldhc-pbar-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="{ac:label(key('resources', 'loading', ldh:translations()))}">
-                <div class="ldhc-pbar-fill">
+            <div class="ac-pbar-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="{ac:label(key('resources', 'loading', ldh:translations()))}">
+                <div class="ac-pbar-fill">
                     <xsl:if test="$width">
                         <xsl:attribute name="style" select="'width: ' || $width || ';'"/>
                     </xsl:if>
@@ -1786,27 +1786,27 @@ exclude-result-prefixes="#all"
         <xsl:param name="body" as="item()*"/>
         <xsl:param name="foot" as="item()*"/>
 
-        <div class="ldhc-modal {$size}" role="dialog" aria-modal="true">
+        <div class="ac-modal {$size}" role="dialog" aria-modal="true">
             <xsl:if test="exists($title) and $title-id">
                 <xsl:attribute name="aria-labelledby" select="$title-id"/>
             </xsl:if>
 
-            <div class="ldhc-modal-head">
+            <div class="ac-modal-head">
                 <xsl:if test="exists($icon)">
-                    <span class="ldhc-modal-icon">
+                    <span class="ac-modal-icon">
                         <xsl:sequence select="$icon"/>
                     </span>
                 </xsl:if>
 
                 <xsl:if test="exists($title)">
-                    <div class="ldhc-modal-titles">
+                    <div class="ac-modal-titles">
                         <xsl:if test="exists($eyebrow)">
-                            <span class="ldhc-modal-eyebrow">
+                            <span class="ac-modal-eyebrow">
                                 <xsl:sequence select="$eyebrow"/>
                             </span>
                         </xsl:if>
 
-                        <h2 class="ldhc-modal-title">
+                        <h2 class="ac-modal-title">
                             <xsl:if test="$title-id">
                                 <xsl:attribute name="id" select="$title-id"/>
                             </xsl:if>
@@ -1815,18 +1815,18 @@ exclude-result-prefixes="#all"
                         </h2>
 
                         <xsl:if test="exists($sub)">
-                            <span class="ldhc-modal-sub">
+                            <span class="ac-modal-sub">
                                 <xsl:sequence select="$sub"/>
                             </span>
                         </xsl:if>
                     </div>
                 </xsl:if>
 
-                <span class="ldhc-modal-x">
-                    <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
+                <span class="ac-modal-x">
+                    <button type="button" class="ac-iconbtn sz-sm in-neutral ap-ghost" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
                 </span>
             </div>
-            <div class="ldhc-modal-body{if ($flush) then ' is-flush' else ''}">
+            <div class="ac-modal-body{if ($flush) then ' is-flush' else ''}">
                 <xsl:sequence select="$body"/>
             </div>
 
@@ -1840,13 +1840,13 @@ exclude-result-prefixes="#all"
          header row and body as slots -->
     <xsl:template match="node() | @*" mode="ldh:DataTable">
         <xsl:param name="cols" as="xs:string"/>
-        <xsl:param name="class" select="'ldhc-table is-hoverable'" as="xs:string"/>
+        <xsl:param name="class" select="'ac-table is-hoverable'" as="xs:string"/>
         <xsl:param name="caption" as="item()*"/>
         <xsl:param name="head" as="item()*"/>
         <xsl:param name="body" as="item()*"/>
 
-        <table class="{$class}" role="table" style="--ldhc-cols: {$cols};">
-            <caption class="ldhc-vh">
+        <table class="{$class}" role="table" style="--ac-cols: {$cols};">
+            <caption class="ac-vh">
                 <xsl:sequence select="$caption"/>
             </caption>
             <thead>
@@ -1863,20 +1863,20 @@ exclude-result-prefixes="#all"
     <!-- FORM FOOTER -->
 
     <!-- the single form footer for the reset / dismiss / save anatomy, in the design's order and sizes.
-         $class picks the DS placement wrapper (.ldh-form-bar, .ldh-block-foot, .ldhc-modal-foot); bespoke
+         $class picks the DS placement wrapper (.ldh-form-bar, .ldh-block-foot, .ac-modal-foot); bespoke
          footers (composite button sets) keep their own content inside the placement wrapper instead -->
     <xsl:template match="node() | @*" mode="ldh:FormFooter">
         <xsl:param name="class" select="'ldh-form-bar pl-inline'" as="xs:string"/>
-        <xsl:param name="button-class" select="'ldhc-btn in-primary ap-solid sz-sm'" as="xs:string"/>
+        <xsl:param name="button-class" select="'ac-btn in-primary ap-solid sz-sm'" as="xs:string"/>
         <xsl:param name="dismiss" as="xs:string?"/>
         <xsl:param name="save-key" select="'save'" as="xs:string"/>
         <xsl:param name="show-reset" select="true()" as="xs:boolean"/>
         <xsl:param name="show-save" select="true()" as="xs:boolean"/>
 
         <div class="{$class}">
-            <span class="{if (starts-with($class, 'ldhc-modal-foot')) then 'ldhc-modal-foot-end' else 'fb-end'}">
+            <span class="{if (starts-with($class, 'ac-modal-foot')) then 'ac-modal-foot-end' else 'fb-end'}">
                 <xsl:if test="$show-reset">
-                    <button type="reset" class="ldhc-btn in-neutral ap-ghost sz-sm btn-reset">
+                    <button type="reset" class="ac-btn in-neutral ap-ghost sz-sm btn-reset">
                         <span class="msi outline sm" aria-hidden="true">restart_alt</span>
                         <span>
                             <xsl:apply-templates select="key('resources', 'reset', ldh:translations())" mode="ac:label"/>
@@ -1885,7 +1885,7 @@ exclude-result-prefixes="#all"
                 </xsl:if>
 
                 <xsl:if test="$dismiss">
-                    <button type="button" class="ldhc-btn in-neutral ap-outline sz-sm btn-{$dismiss}">
+                    <button type="button" class="ac-btn in-neutral ap-outline sz-sm btn-{$dismiss}">
                         <span>
                             <xsl:apply-templates select="key('resources', $dismiss, ldh:translations())" mode="ac:label"/>
                         </span>
@@ -1909,7 +1909,7 @@ exclude-result-prefixes="#all"
     <!-- the app skin of the annotation Tag: every chip rides the .ldh-annot slot the whole-form mode
          hover-reveals; the chip markup itself stays Web-Client's single emitter -->
     <xsl:template match="node() | @*" mode="ac:AnnotationTag">
-        <xsl:param name="class" select="'ldhc-tag sz-sm em-quiet'" as="xs:string"/>
+        <xsl:param name="class" select="'ac-tag sz-sm em-quiet'" as="xs:string"/>
         <xsl:param name="key" as="xs:string?"/>
         <xsl:param name="title" as="xs:string?"/>
         <xsl:param name="label" as="item()*">
@@ -1931,7 +1931,7 @@ exclude-result-prefixes="#all"
 
         <xsl:if test="not($type = 'hidden')">
             <xsl:apply-templates select="." mode="ac:AnnotationTag">
-                <xsl:with-param name="class" select="'ldhc-tag sz-sm em-quiet an-term is-blank'"/>
+                <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet an-term is-blank'"/>
                 <xsl:with-param name="label" as="item()*">
                     <xsl:choose>
                         <xsl:when test="exists($forClass)">
@@ -1958,7 +1958,7 @@ exclude-result-prefixes="#all"
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:apply-templates select="." mode="ac:AnnotationTag">
-                        <xsl:with-param name="class" select="'ldhc-tag sz-sm em-quiet an-term is-literal'"/>
+                        <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet an-term is-literal'"/>
                         <xsl:with-param name="label" as="item()*">
                             <xsl:apply-templates select="key('resources', 'literal', ldh:translations())" mode="ac:label"/>
                         </xsl:with-param>
@@ -1973,7 +1973,7 @@ exclude-result-prefixes="#all"
 
         <xsl:if test="not($type = 'hidden')">
             <xsl:apply-templates select="." mode="ac:AnnotationTag">
-                <xsl:with-param name="class" select="'ldhc-tag sz-sm em-quiet co-neutral'"/>
+                <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet co-neutral'"/>
                 <xsl:with-param name="title" select="."/>
                 <xsl:with-param name="label" select="if (starts-with(., '&xsd;')) then 'xsd:' || substring-after(., '&xsd;') else string(.)"/>
             </xsl:apply-templates>

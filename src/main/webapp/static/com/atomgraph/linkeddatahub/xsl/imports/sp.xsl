@@ -62,14 +62,14 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="sp:text/text() | sp:text/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="ac:FormControl">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
-        <xsl:param name="class" select="'ldhc-cf-area sparql-query-string'" as="xs:string?"/>
+        <xsl:param name="class" select="'ac-cf-area sparql-query-string'" as="xs:string?"/>
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         <xsl:param name="name" select="'ol'" as="xs:string"/>
         <xsl:param name="rows" select="3" as="xs:integer"/>
         <xsl:param name="gutter-rows" select="max(($rows, count(tokenize(string(self::text()), '\n'))))" as="xs:integer"/>
 
-        <div class="ldhc-codefield">
-            <div class="ldhc-cf-gutter" aria-hidden="true">
+        <div class="ac-codefield">
+            <div class="ac-cf-gutter" aria-hidden="true">
                 <xsl:for-each select="1 to $gutter-rows">
                     <div>
                         <xsl:value-of select="."/>
@@ -101,7 +101,7 @@ exclude-result-prefixes="#all">
 
         <xsl:if test="not($type = 'hidden')">
             <xsl:apply-templates select="." mode="ac:AnnotationTag">
-                <xsl:with-param name="class" select="'ldhc-tag sz-sm em-quiet an-term is-literal'"/>
+                <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet an-term is-literal'"/>
                 <xsl:with-param name="label" as="item()*">
                     <xsl:apply-templates select="key('resources', 'literal', ldh:translations())" mode="ac:label"/>
                 </xsl:with-param>

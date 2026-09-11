@@ -92,9 +92,9 @@ version="3.0">
                 </details>
 
                 <div class="action-buttons">
-                    <button type="button" class="ldhc-btn in-negative ap-solid sz-sm remove-action" style="display: none;"><xsl:apply-templates select="key('resources', 'remove', ldh:translations())" mode="ac:label"/></button>
-                    <button type="button" class="ldhc-btn in-primary ap-solid sz-sm spo-action"><xsl:apply-templates select="key('resources', 'annotate', ldh:translations())" mode="ac:label"/></button>
-                    <button type="button" class="ldhc-btn in-neutral ap-solid sz-sm cancel-action"><xsl:apply-templates select="key('resources', 'cancel', ldh:translations())" mode="ac:label"/></button>
+                    <button type="button" class="ac-btn in-negative ap-solid sz-sm remove-action" style="display: none;"><xsl:apply-templates select="key('resources', 'remove', ldh:translations())" mode="ac:label"/></button>
+                    <button type="button" class="ac-btn in-primary ap-solid sz-sm spo-action"><xsl:apply-templates select="key('resources', 'annotate', ldh:translations())" mode="ac:label"/></button>
+                    <button type="button" class="ac-btn in-neutral ap-solid sz-sm cancel-action"><xsl:apply-templates select="key('resources', 'cancel', ldh:translations())" mode="ac:label"/></button>
                 </div>
             </form>
         </div>

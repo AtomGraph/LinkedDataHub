@@ -67,7 +67,7 @@ LIMIT   10
     <!-- TEMPLATES -->
     
     <xsl:template name="ldh:FirstTimeMessage">
-        <div class="ldhc-backdrop pos-center modal modal-first-time-message">
+        <div class="ac-backdrop pos-center modal modal-first-time-message">
             <xsl:apply-templates select="." mode="ldh:Modal">
                 <xsl:with-param name="flush" select="true()"/>
                 <xsl:with-param name="body" as="item()*">
@@ -77,8 +77,8 @@ LIMIT   10
                         <h2><xsl:apply-templates select="key('resources', 'first-time-subtitle', ldh:translations())" mode="ac:label"/></h2>
                         <p><xsl:apply-templates select="key('resources', 'first-time-body', ldh:translations())" mode="ac:label"/><xsl:text> </xsl:text><em><xsl:apply-templates select="key('resources', 'first-time-body-emphasis', ldh:translations())" mode="ac:label"/></em>.</p>
                         <p>
-                            <a class="ldhc-btn in-primary ap-solid sz-lg" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/get-started/" target="_blank"><xsl:value-of select="ac:label(key('resources', 'get-started', ldh:translations()))"/></a>
-                            <a class="ldhc-btn in-neutral ap-solid sz-lg" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank"><xsl:value-of select="ac:label(key('resources', 'learn-more', ldh:translations()))"/></a>
+                            <a class="ac-btn in-primary ap-solid sz-lg" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/get-started/" target="_blank"><xsl:value-of select="ac:label(key('resources', 'get-started', ldh:translations()))"/></a>
+                            <a class="ac-btn in-neutral ap-solid sz-lg" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank"><xsl:value-of select="ac:label(key('resources', 'learn-more', ldh:translations()))"/></a>
                         </p>
                     </div>
                 </xsl:with-param>
@@ -88,13 +88,13 @@ LIMIT   10
     
     <xsl:template name="ldh:AddDataForm">
         <xsl:param name="id" select="'add-data'" as="xs:string?"/>
-        <xsl:param name="button-class" select="'ldhc-btn in-primary ap-solid sz-md btn-save'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'ac-btn in-primary ap-solid sz-md btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="source" as="xs:anyURI?"/>
         <xsl:param name="query" as="xs:anyURI?"/>
         <xsl:param name="legend-label" select="ac:label(key('resources', 'add-rdf-data', ldh:translations()))" as="xs:string"/>
 
-        <div class="ldhc-backdrop pos-top modal modal-constructor">
+        <div class="ac-backdrop pos-top modal modal-constructor">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
@@ -136,7 +136,7 @@ LIMIT   10
                                                 </xsl:with-param>
                                             </xsl:apply-templates>
                                             <xsl:apply-templates select="." mode="ac:AnnotationTag">
-                                                <xsl:with-param name="class" select="'ldhc-tag sz-sm em-quiet an-term is-resource'"/>
+                                                <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet an-term is-resource'"/>
                                                 <xsl:with-param name="label" as="item()*">
                                                     <xsl:apply-templates select="key('resources', 'resource', ldh:translations())" mode="ac:label"/>
                                                 </xsl:with-param>
@@ -164,7 +164,7 @@ LIMIT   10
                                             </xsl:call-template>
 
                                             <xsl:apply-templates select="." mode="ac:AnnotationTag">
-                                                <xsl:with-param name="class" select="'ldhc-tag sz-sm em-quiet an-term is-resource'"/>
+                                                <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet an-term is-resource'"/>
                                                 <xsl:with-param name="label" as="item()*">
                                                     <xsl:apply-templates select="key('resources', '&dh;Document', document(ac:document-uri('&dh;')))" mode="ac:label"/>
                                                 </xsl:with-param>
@@ -203,12 +203,12 @@ LIMIT   10
 
     <xsl:template name="ldh:GenerateContainersForm">
         <xsl:param name="id" select="'generate-containers'" as="xs:string?"/>
-        <xsl:param name="button-class" select="'ldhc-btn in-primary ap-solid sz-md btn-save'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'ac-btn in-primary ap-solid sz-md btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="legend-label" select="ac:label(key('resources', 'generate-containers', ldh:translations()))" as="xs:string"/>
         <xsl:param name="default-limit" select="10" as="xs:integer"/>
         
-        <div class="ldhc-backdrop pos-top modal modal-constructor">
+        <div class="ac-backdrop pos-top modal modal-constructor">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
@@ -219,8 +219,8 @@ LIMIT   10
                 </xsl:with-param>
                 <xsl:with-param name="body" as="item()*">
 
-                <div class="ldhc-tabs or-horizontal">
-                    <ul class="ldhc-tablist sz-md">
+                <div class="ac-tabs or-horizontal">
+                    <ul class="ac-tablist sz-md">
                         <li class="is-active">
                             <a>
                                 <xsl:value-of>
@@ -255,7 +255,7 @@ LIMIT   10
                                                         </xsl:call-template>
 
                                                         <xsl:apply-templates select="." mode="ac:AnnotationTag">
-                                                            <xsl:with-param name="class" select="'ldhc-tag sz-sm em-quiet an-term is-resource'"/>
+                                                            <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet an-term is-resource'"/>
                                                             <xsl:with-param name="label" as="item()*">
                                                                 <xsl:apply-templates select="key('resources', '&dh;Container', document(ac:document-uri('&dh;')))" mode="ac:label"/>
                                                             </xsl:with-param>
@@ -285,7 +285,7 @@ LIMIT   10
                                                         <input type="hidden" name="lt" value="&xsd;integer"/>
 
                                                         <xsl:apply-templates select="." mode="ac:AnnotationTag">
-                                                            <xsl:with-param name="class" select="'ldhc-tag sz-sm em-quiet co-neutral'"/>
+                                                            <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet co-neutral'"/>
                                                             <xsl:with-param name="title" select="'&xsd;integer'"/>
                                                             <xsl:with-param name="label" select="'xsd:integer'"/>
                                                         </xsl:apply-templates>
@@ -311,7 +311,7 @@ LIMIT   10
                                                         </xsl:call-template>
 
                                                         <xsl:apply-templates select="." mode="ac:AnnotationTag">
-                                                            <xsl:with-param name="class" select="'ldhc-tag sz-sm em-quiet an-term is-resource'"/>
+                                                            <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet an-term is-resource'"/>
                                                             <xsl:with-param name="label" as="item()*">
                                                                 <xsl:apply-templates select="key('resources', 'service', ldh:translations())" mode="ac:label"/>
                                                             </xsl:with-param>
@@ -325,7 +325,7 @@ LIMIT   10
                                 </fieldset>
 
                                 <div class="ldh-block-foot">
-                                    <button type="button" class="ldhc-btn in-primary ap-solid sz-md btn-load-endpoint-schema">
+                                    <button type="button" class="ac-btn in-primary ap-solid sz-md btn-load-endpoint-schema">
                                         <xsl:value-of>
                                             <xsl:apply-templates select="key('resources', 'load-schema', ldh:translations())" mode="ac:label"/>
                                         </xsl:value-of>
@@ -336,12 +336,12 @@ LIMIT   10
                                             <xsl:apply-templates select="key('resources', 'generate', ldh:translations())" mode="ac:label"/>
                                         </xsl:value-of>
                                     </button>
-                                    <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-close">
+                                    <button type="button" class="ac-btn in-neutral ap-outline sz-md btn-close">
                                         <xsl:value-of>
                                             <xsl:apply-templates select="key('resources', 'close', ldh:translations())" mode="ac:label"/>
                                         </xsl:value-of>
                                     </button>
-                                    <button type="reset" class="ldhc-btn in-neutral ap-outline sz-md btn-reset">
+                                    <button type="reset" class="ac-btn in-neutral ap-outline sz-md btn-reset">
                                         <xsl:value-of>
                                             <xsl:apply-templates select="key('resources', 'reset', ldh:translations())" mode="ac:label"/>
                                         </xsl:value-of>
@@ -359,14 +359,14 @@ LIMIT   10
     
     <xsl:template match="rdf:RDF" mode="ldh:RequestAccessForm">
         <xsl:param name="id" select="'request-access'" as="xs:string?"/>
-        <xsl:param name="button-class" select="'ldhc-btn in-primary ap-solid sz-md btn-access-form'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'ac-btn in-primary ap-solid sz-md btn-access-form'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="action" select="ldh:href(resolve-uri('access/request', lapp:origin($this)))" as="xs:anyURI"/>
         <xsl:param name="legend-label" select="ac:label(key('resources', 'request-access', ldh:translations()))" as="xs:string"/>
         <xsl:param name="agent" as="xs:anyURI"/>
         
-        <div class="ldhc-backdrop pos-top modal modal-constructor">
+        <div class="ac-backdrop pos-top modal modal-constructor">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
@@ -639,7 +639,7 @@ LIMIT   10
     
     <xsl:template name="ldh:ReconcileForm">
         <xsl:param name="id" select="'form-reconcile'" as="xs:string?"/>
-        <xsl:param name="button-class" select="'ldhc-btn in-primary ap-solid sz-md btn-save'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'ac-btn in-primary ap-solid sz-md btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="action" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:param name="legend-label" select="ac:label(key('resources', 'reconcile-entity', ldh:translations()))" as="xs:string"/>
@@ -647,7 +647,7 @@ LIMIT   10
         <xsl:param name="label" as="xs:string"/>
         <xsl:param name="service" as="xs:anyURI"/>
         
-        <div class="ldhc-backdrop pos-top modal modal-constructor">
+        <div class="ac-backdrop pos-top modal modal-constructor">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>
@@ -688,7 +688,7 @@ LIMIT   10
                                             </xsl:apply-templates>
 
                                             <xsl:apply-templates select="." mode="ac:AnnotationTag">
-                                                <xsl:with-param name="class" select="'ldhc-tag sz-sm em-quiet an-term is-resource'"/>
+                                                <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet an-term is-resource'"/>
                                                 <xsl:with-param name="label" as="item()*">
                                                     <xsl:apply-templates select="key('resources', 'resource', ldh:translations())" mode="ac:label"/>
                                                 </xsl:with-param>
@@ -711,7 +711,7 @@ LIMIT   10
 
     <!-- close modal first time message -->
     
-    <xsl:template match="div[contains-token(@class, 'modal-first-time-message')]//span[contains-token(@class, 'ldhc-modal-x')]/button" mode="ixsl:onclick" priority="1">
+    <xsl:template match="div[contains-token(@class, 'modal-first-time-message')]//span[contains-token(@class, 'ac-modal-x')]/button" mode="ixsl:onclick" priority="1">
         <xsl:next-match/>
         
         <!-- set a cookie to never show it again. path=/ is scoped to the page origin (cookies are
@@ -730,7 +730,7 @@ LIMIT   10
 
     <!-- a press on the backdrop itself (outside the dialog card) dismisses the dialog; presses inside land on a child, which the containment test filters out -->
 
-    <xsl:template match="div[contains-token(@class, 'ldhc-backdrop')]" mode="ixsl:onclick">
+    <xsl:template match="div[contains-token(@class, 'ac-backdrop')]" mode="ixsl:onclick">
         <xsl:variable name="target" select="ixsl:get(ixsl:event(), 'target')"/>
 
         <xsl:if test="empty(*[ixsl:call(., 'contains', [ $target ])])">
@@ -810,9 +810,9 @@ LIMIT   10
 
 
             <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
-            <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ldhc-menu-anchor')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseMenu"/>
+            <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ac-menu-anchor')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseMenu"/>
             <xsl:result-document href="?." method="ixsl:append-content">
-                <div class="ldhc-backdrop pos-top modal modal-constructor" about="{$doc-uri}" typeof="{$forClass}"> <!-- @about identifies the new resource URL (uniform with edit/settings modals so submit handlers can read $block/@about without a fallback); $forClass used by ldh:ResourceUpdated in case of 4xx response -->
+                <div class="ac-backdrop pos-top modal modal-constructor" about="{$doc-uri}" typeof="{$forClass}"> <!-- @about identifies the new resource URL (uniform with edit/settings modals so submit handlers can read $block/@about without a fallback); $forClass used by ldh:ResourceUpdated in case of 4xx response -->
                     <xsl:apply-templates select="." mode="ldh:Modal">
                         <xsl:with-param name="title" as="item()*">
                                     <xsl:try select="ac:object-label($forClass)">
@@ -874,7 +874,7 @@ LIMIT   10
         <xsl:param name="about" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/> <!-- editing the current document resources -->
         <xsl:param name="method" select="'patch'" as="xs:string"/>
         <xsl:param name="form-actions-class" select="'ldh-form-bar'" as="xs:string?"/>
-        <xsl:param name="button-class" select="'ldhc-btn in-primary ap-solid sz-sm'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'ac-btn in-primary ap-solid sz-sm'" as="xs:string?"/>
         <xsl:variable name="content-body" select="ancestor::div[contains-token(@class, 'ldh-pane')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
@@ -890,9 +890,9 @@ LIMIT   10
         <xsl:for-each select="$content-body">
 
             <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
-            <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ldhc-menu-anchor')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseMenu"/>
+            <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ac-menu-anchor')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseMenu"/>
             <xsl:result-document href="?." method="ixsl:append-content">
-                <div class="ldhc-backdrop pos-top modal modal-constructor" about="{$about}">
+                <div class="ac-backdrop pos-top modal modal-constructor" about="{$about}">
                     <xsl:apply-templates select="." mode="ldh:Modal">
                         <xsl:with-param name="body" as="item()*">
 
@@ -1074,7 +1074,7 @@ LIMIT   10
         </xsl:call-template>
 
         <xsl:call-template name="ldh:LoadComboboxes">
-            <xsl:with-param name="comboboxes" select="(id('upload-rdf-doc', ixsl:page()), id('remote-rdf-doc', ixsl:page()))/ancestor::div[contains-token(@class, 'ldhc-combobox')][1]"/>
+            <xsl:with-param name="comboboxes" select="(id('upload-rdf-doc', ixsl:page()), id('remote-rdf-doc', ixsl:page()))/ancestor::div[contains-token(@class, 'ac-combobox')][1]"/>
             <xsl:with-param name="graph" select="$graph"/>
         </xsl:call-template>
     </xsl:template>
@@ -1092,7 +1092,7 @@ LIMIT   10
 
         <!-- initialise the parent combobox with the current container -->
         <xsl:call-template name="ldh:LoadComboboxes">
-            <xsl:with-param name="comboboxes" select="id('generate-containers-parent', ixsl:page())/ancestor::div[contains-token(@class, 'ldhc-combobox')][1]"/>
+            <xsl:with-param name="comboboxes" select="id('generate-containers-parent', ixsl:page())/ancestor::div[contains-token(@class, 'ac-combobox')][1]"/>
             <xsl:with-param name="graph" select="$graph"/>
         </xsl:call-template>
     </xsl:template>
@@ -1107,9 +1107,9 @@ LIMIT   10
         <xsl:for-each select="$content-body">
 
             <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
-            <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ldhc-menu-anchor')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseMenu"/>
+            <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ac-menu-anchor')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseMenu"/>
             <xsl:result-document href="?." method="ixsl:append-content">
-                <div class="ldhc-backdrop pos-top modal modal-constructor" about="{lapp:application()}">
+                <div class="ac-backdrop pos-top modal modal-constructor" about="{lapp:application()}">
                     <xsl:if test="$id">
                         <xsl:attribute name="id" select="$id"/>
                     </xsl:if>
@@ -1129,7 +1129,7 @@ LIMIT   10
         </xsl:for-each>
 
         <xsl:variable name="modal" select="$content-body/div[contains-token(@class, 'modal')][last()]" as="element()"/>
-        <xsl:variable name="block" select="($modal//div[contains-token(@class, 'ldhc-modal-body')])[1]" as="element()"/>
+        <xsl:variable name="block" select="($modal//div[contains-token(@class, 'ac-modal-body')])[1]" as="element()"/>
         <!-- settings UI is a single global button, not per-tab; target the local app's settings, not the active tab's dataspace -->
         <xsl:variable name="settings-uri" select="resolve-uri('settings', xs:anyURI(lapp:origin(ldh:request-uri()) || '/'))" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $settings-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
@@ -1630,7 +1630,7 @@ LIMIT   10
         <xsl:param name="target" as="element()"/>
 
         <!-- the menu pick that reached here has served its purpose - the drop-down it came from closes behind the modal -->
-        <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ldhc-menu-anchor')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseMenu"/>
+        <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ac-menu-anchor')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseMenu"/>
 
         <!-- per-pane modal ids guarantee uniqueness, so the page-wide existence check suffices -->
         <xsl:if test="not(id($form/@id, ixsl:page()))">
@@ -1759,7 +1759,7 @@ LIMIT   10
         <xsl:variable name="resource-uri" select="$context('resource-uri')" as="xs:anyURI"/>
         <xsl:variable name="combobox" select="$context('combobox')" as="element()"/>
         <!-- data-for-class sits on the box; the committed chip carries it forward so the edit button's fresh lookup keeps the class scope -->
-        <xsl:variable name="forClass" select="$combobox/div[contains-token(@class, 'ldhc-cb-box')]/@data-for-class ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
+        <xsl:variable name="forClass" select="$combobox/div[contains-token(@class, 'ac-cb-box')]/@data-for-class ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
 
         <xsl:message>ldh:combobox-resource-response</xsl:message>
 
@@ -1789,7 +1789,7 @@ LIMIT   10
                                 <xsl:result-document href="?." method="ixsl:replace-element">
                                     <xsl:call-template name="ldh:Combobox">
                                         <xsl:with-param name="class" select="'resource-combobox combobox'"/>
-                                        <xsl:with-param name="list-class" select="'resource-combobox combobox ldhc-cb-panel'"/>
+                                        <xsl:with-param name="list-class" select="'resource-combobox combobox ac-cb-panel'"/>
                                         <xsl:with-param name="value" select="$resource-uri"/>
                                         <xsl:with-param name="forClass" select="$forClass"/>
                                     </xsl:call-template>
@@ -2342,16 +2342,16 @@ LIMIT   10
         <xsl:variable name="rendered" select="$render-fn($body, $render-ctx)" as="element()*"/>
 
         <!-- resolve the dialog shell from whichever element the flow stamped as 'block': the backdrop (edit/create submits) or the modal body (app-settings) -->
-        <xsl:variable name="dialog" select="($block/ancestor-or-self::div[contains-token(@class, 'ldhc-modal')], $block/descendant::div[contains-token(@class, 'ldhc-modal')])[1]" as="element()"/>
+        <xsl:variable name="dialog" select="($block/ancestor-or-self::div[contains-token(@class, 'ac-modal')], $block/descendant::div[contains-token(@class, 'ac-modal')])[1]" as="element()"/>
         <xsl:for-each select="$dialog">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <div class="ldhc-modal-head">
-                    <span class="ldhc-modal-x">
-                        <button type="button" class="ldhc-iconbtn sz-sm in-neutral ap-ghost" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
+                <div class="ac-modal-head">
+                    <span class="ac-modal-x">
+                        <button type="button" class="ac-iconbtn sz-sm in-neutral ap-ghost" aria-label="{ac:label(key('resources', 'close', ldh:translations()))}"><span class="msi sm">close</span></button>
                     </span>
                 </div>
 
-                <div class="ldhc-modal-body">
+                <div class="ac-modal-body">
                     <xsl:copy-of select="$rendered"/>
                 </div>
             </xsl:result-document>

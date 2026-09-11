@@ -75,9 +75,9 @@ version="3.0"
             <xsl:for-each select="$container">
 
                 <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
-                <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ldhc-menu-anchor')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseMenu"/>
+                <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ac-menu-anchor')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseMenu"/>
                 <xsl:result-document href="?." method="ixsl:append-content">
-                    <div class="ldhc-backdrop pos-top modal modal-constructor" id="document-history-modal">
+                    <div class="ac-backdrop pos-top modal modal-constructor" id="document-history-modal">
                         <xsl:apply-templates select="." mode="ldh:Modal">
                             <xsl:with-param name="size" select="'sz-xl'"/>
                             <xsl:with-param name="title" as="item()*">
@@ -143,12 +143,12 @@ version="3.0"
                                             </xsl:with-param>
                                         </xsl:apply-templates>
                                         <div class="ldh-block-foot">
-                                            <button type="button" class="ldhc-btn in-neutral ap-outline sz-md btn-close">
+                                            <button type="button" class="ac-btn in-neutral ap-outline sz-md btn-close">
                                                 <xsl:value-of>
                                                     <xsl:apply-templates select="key('resources', 'close', ldh:translations())" mode="ac:label"/>
                                                 </xsl:value-of>
                                             </button>
-                                            <button type="submit" class="ldhc-btn in-primary ap-solid sz-md">
+                                            <button type="submit" class="ac-btn in-primary ap-solid sz-md">
                                                 <span class="msi sm" aria-hidden="true">compare_arrows</span>
                                                 <xsl:value-of>
                                                     <xsl:apply-templates select="key('resources', 'compare', ldh:translations())" mode="ac:label"/>
@@ -266,7 +266,7 @@ version="3.0"
         <xsl:param name="context" as="map(*)"/>
         <xsl:param name="title-key" as="xs:string"/> <!-- translations.rdf nodeID naming which step of the restore failed -->
 
-        <xsl:for-each select="($context('modal')//div[contains-token(@class, 'ldhc-modal-body')])[1]">
+        <xsl:for-each select="($context('modal')//div[contains-token(@class, 'ac-modal-body')])[1]">
             <xsl:result-document href="?." method="ixsl:prepend-content">
                 <xsl:sequence select="ldh:error-alert($title-key, ldh:http-error-key($context('response')?status), ())"/>
             </xsl:result-document>

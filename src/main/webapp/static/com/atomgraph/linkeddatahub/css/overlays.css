@@ -16,10 +16,10 @@
      1 action   → a direct labelled button, no menu (a dropdown holding one
                   item is pure friction)
      2+ actions → collapse into this menu
-   Named `.ldhc-menu-overflow` so call sites can rely on it.
+   Named `.ac-menu-overflow` so call sites can rely on it.
    ========================================================================= */
-.ldhc-menu-anchor { position: relative; display: inline-flex; }
-.ldhc-menu {
+.ac-menu-anchor { position: relative; display: inline-flex; }
+.ac-menu {
   position: absolute; z-index: 50; min-width: 200px; max-width: 340px;
   max-height: 340px; overflow-y: auto;
   padding: 4px;
@@ -29,37 +29,37 @@
   /* A floating panel is an independent surface: it pins its own ink so a skin
      that recolours a region can't bleed into it. */
   color: var(--fg-1);
-  animation: ldhc-menu-in var(--dur-fast) var(--ease-out-soft);
+  animation: ac-menu-in var(--dur-fast) var(--ease-out-soft);
 }
-@keyframes ldhc-menu-in { from { opacity: 0; transform: translateY(-4px) scale(0.99); } }
-.ldhc-menu.al-start { top: calc(100% + 5px); left: 0; }
-.ldhc-menu.al-end   { top: calc(100% + 5px); right: 0; }
-.ldhc-menu.al-up-start { bottom: calc(100% + 5px); left: 0; }
-.ldhc-menu.al-up-end   { bottom: calc(100% + 5px); right: 0; }
+@keyframes ac-menu-in { from { opacity: 0; transform: translateY(-4px) scale(0.99); } }
+.ac-menu.al-start { top: calc(100% + 5px); left: 0; }
+.ac-menu.al-end   { top: calc(100% + 5px); right: 0; }
+.ac-menu.al-up-start { bottom: calc(100% + 5px); left: 0; }
+.ac-menu.al-up-end   { bottom: calc(100% + 5px); right: 0; }
 
-.ldhc-menu-item {
+.ac-menu-item {
   display: flex; align-items: flex-start; gap: var(--sp-2); width: 100%;
   padding: 8px 10px; border: 0; background: transparent; cursor: pointer;
   text-align: left; border-radius: var(--r-sm);
   font-family: var(--font-sans); font-size: var(--fs-sm); color: var(--fg-1);
   transition: background var(--dur-fast) var(--ease-out-soft), color var(--dur-fast) var(--ease-out-soft);
 }
-.ldhc-menu-item:hover { background: var(--bg-hover); }
-.ldhc-menu-item:focus-visible { outline: 0; box-shadow: var(--focus-ring); }
-.ldhc-menu-item[aria-checked="true"], .ldhc-menu-item.is-selected { background: var(--bg-selected); color: var(--fg-selected); }
-.ldhc-menu-item:disabled, .ldhc-menu-item[aria-disabled="true"] { cursor: not-allowed; opacity: 0.45; pointer-events: none; }
-.ldhc-menu-item > .ldhc-menu-ic { color: var(--fg-hint); flex-shrink: 0; margin-top: 1px; }
-.ldhc-menu-item:hover > .ldhc-menu-ic { color: var(--fg-2); }
-.ldhc-menu-item-body { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-.ldhc-menu-item-lbl { font-weight: var(--fw-medium); }
-.ldhc-menu-item-sub { font-size: var(--fs-xs); color: var(--fg-hint); line-height: 1.45; }
-.ldhc-menu-item.is-danger { color: var(--danger-500); }
-.ldhc-menu-item.is-danger > .ldhc-menu-ic { color: var(--danger-500); }
-.ldhc-menu-item.is-danger:hover { background: var(--danger-50); }
-.ldhc-menu-item.is-danger .ldhc-menu-item-sub { color: color-mix(in srgb, var(--danger-500) 72%, transparent); }
-.ldhc-menu-item > .ldhc-menu-tick { margin-left: auto; flex-shrink: 0; color: var(--fg-selected); }
-.ldhc-menu-sep { height: 1px; margin: 4px 2px; background: var(--border-default); border: 0; }
-.ldhc-menu-header {
+.ac-menu-item:hover { background: var(--bg-hover); }
+.ac-menu-item:focus-visible { outline: 0; box-shadow: var(--focus-ring); }
+.ac-menu-item[aria-checked="true"], .ac-menu-item.is-selected { background: var(--bg-selected); color: var(--fg-selected); }
+.ac-menu-item:disabled, .ac-menu-item[aria-disabled="true"] { cursor: not-allowed; opacity: 0.45; pointer-events: none; }
+.ac-menu-item > .ac-menu-ic { color: var(--fg-hint); flex-shrink: 0; margin-top: 1px; }
+.ac-menu-item:hover > .ac-menu-ic { color: var(--fg-2); }
+.ac-menu-item-body { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.ac-menu-item-lbl { font-weight: var(--fw-medium); }
+.ac-menu-item-sub { font-size: var(--fs-xs); color: var(--fg-hint); line-height: 1.45; }
+.ac-menu-item.is-danger { color: var(--danger-500); }
+.ac-menu-item.is-danger > .ac-menu-ic { color: var(--danger-500); }
+.ac-menu-item.is-danger:hover { background: var(--danger-50); }
+.ac-menu-item.is-danger .ac-menu-item-sub { color: color-mix(in srgb, var(--danger-500) 72%, transparent); }
+.ac-menu-item > .ac-menu-tick { margin-left: auto; flex-shrink: 0; color: var(--fg-selected); }
+.ac-menu-sep { height: 1px; margin: 4px 2px; background: var(--border-default); border: 0; }
+.ac-menu-header {
   padding: 8px 10px 4px;
   font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: var(--fw-medium);
   letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--fg-hint);
@@ -70,24 +70,24 @@
    tooltip it can contain focusable elements, so it opens on click and traps
    nothing (the page stays usable).
    ========================================================================= */
-.ldhc-popover {
+.ac-popover {
   position: absolute; z-index: 55; box-sizing: border-box;
   max-width: 320px; padding: var(--sp-4);
   background: var(--surface-0); color: var(--fg-1);
   border: 1px solid var(--border-default); border-radius: var(--r-md);
   box-shadow: var(--shadow-lg);
-  animation: ldhc-menu-in var(--dur-fast) var(--ease-out-soft);
+  animation: ac-menu-in var(--dur-fast) var(--ease-out-soft);
 }
-.ldhc-popover.is-flush { padding: 0; overflow: hidden; }
-.ldhc-popover.va-inverse { background: var(--ink-1); color: #fff; border-color: transparent; }
-.ldhc-popover.sd-top    { bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); }
-.ldhc-popover.sd-bottom { top: calc(100% + 8px); left: 50%; transform: translateX(-50%); }
-.ldhc-popover.sd-left   { right: calc(100% + 8px); top: 50%; transform: translateY(-50%); }
-.ldhc-popover.sd-right  { left: calc(100% + 8px); top: 50%; transform: translateY(-50%); }
-.ldhc-popover-tip { position: absolute; width: 9px; height: 9px; background: inherit; border: inherit; transform: rotate(45deg); }
-.ldhc-popover.sd-top .ldhc-popover-tip    { bottom: -5px; left: 50%; margin-left: -4px; border-top: 0; border-left: 0; }
-.ldhc-popover.sd-bottom .ldhc-popover-tip { top: -5px; left: 50%; margin-left: -4px; border-bottom: 0; border-right: 0; }
-.ldhc-popover-x { position: absolute; top: 6px; right: 6px; }
+.ac-popover.is-flush { padding: 0; overflow: hidden; }
+.ac-popover.va-inverse { background: var(--ink-1); color: #fff; border-color: transparent; }
+.ac-popover.sd-top    { bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); }
+.ac-popover.sd-bottom { top: calc(100% + 8px); left: 50%; transform: translateX(-50%); }
+.ac-popover.sd-left   { right: calc(100% + 8px); top: 50%; transform: translateY(-50%); }
+.ac-popover.sd-right  { left: calc(100% + 8px); top: 50%; transform: translateY(-50%); }
+.ac-popover-tip { position: absolute; width: 9px; height: 9px; background: inherit; border: inherit; transform: rotate(45deg); }
+.ac-popover.sd-top .ac-popover-tip    { bottom: -5px; left: 50%; margin-left: -4px; border-top: 0; border-left: 0; }
+.ac-popover.sd-bottom .ac-popover-tip { top: -5px; left: 50%; margin-left: -4px; border-bottom: 0; border-right: 0; }
+.ac-popover-x { position: absolute; top: 6px; right: 6px; }
 
 /* =========================================================================
    Modal — header / body / footer / backdrop / close.
@@ -96,57 +96,57 @@
    data attribute rather than a hardcoded z-index. Each level steps the z-index
    and dims slightly less, so the stack reads as depth instead of mud.
    ========================================================================= */
-.ldhc-backdrop {
+.ac-backdrop {
   position: fixed; inset: 0; z-index: 100;
   background: rgba(15, 18, 26, 0.44);
   -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
   display: flex; align-items: flex-start; justify-content: center;
   padding: var(--sp-8) var(--sp-4);
   overflow-y: auto;
-  animation: ldhc-fade-in var(--dur-base) var(--ease-out-soft);
+  animation: ac-fade-in var(--dur-base) var(--ease-out-soft);
 }
-@keyframes ldhc-fade-in { from { opacity: 0; } }
-.ldhc-backdrop.pos-center { align-items: center; }
-.ldhc-backdrop[data-depth="2"] { z-index: 120; background: rgba(15, 18, 26, 0.32); }
-.ldhc-backdrop[data-depth="3"] { z-index: 140; background: rgba(15, 18, 26, 0.24); }
+@keyframes ac-fade-in { from { opacity: 0; } }
+.ac-backdrop.pos-center { align-items: center; }
+.ac-backdrop[data-depth="2"] { z-index: 120; background: rgba(15, 18, 26, 0.32); }
+.ac-backdrop[data-depth="3"] { z-index: 140; background: rgba(15, 18, 26, 0.24); }
 
-.ldhc-modal {
+.ac-modal {
   position: relative; display: flex; flex-direction: column;
   width: 100%; box-sizing: border-box; max-height: 100%;
   background: var(--surface-0); color: var(--fg-1);
   border: 1px solid var(--border-default); border-radius: var(--r-lg);
   box-shadow: var(--shadow-xl);
-  animation: ldhc-modal-in var(--dur-base) var(--ease-spring);
+  animation: ac-modal-in var(--dur-base) var(--ease-spring);
 }
-@keyframes ldhc-modal-in { from { opacity: 0; transform: translateY(10px) scale(0.985); } }
-.ldhc-modal.sz-sm { max-width: 420px; }
-.ldhc-modal.sz-md { max-width: 620px; }
-.ldhc-modal.sz-lg { max-width: 840px; }
-.ldhc-modal.sz-xl { max-width: 1080px; }
+@keyframes ac-modal-in { from { opacity: 0; transform: translateY(10px) scale(0.985); } }
+.ac-modal.sz-sm { max-width: 420px; }
+.ac-modal.sz-md { max-width: 620px; }
+.ac-modal.sz-lg { max-width: 840px; }
+.ac-modal.sz-xl { max-width: 1080px; }
 
-.ldhc-modal-head {
+.ac-modal-head {
   display: flex; align-items: flex-start; gap: var(--sp-3); flex-shrink: 0;
   padding: var(--sp-4) var(--sp-5);
   border-bottom: 1px solid var(--border-default);
 }
-.ldhc-modal-icon {
+.ac-modal-icon {
   width: 36px; height: 36px; flex-shrink: 0; border-radius: var(--r-md);
   display: inline-flex; align-items: center; justify-content: center;
   background: var(--bg-accent-quiet); color: var(--fg-selected);
 }
-.ldhc-modal-titles { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
-.ldhc-modal-eyebrow {
+.ac-modal-titles { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.ac-modal-eyebrow {
   font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: var(--fw-medium);
   letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--fg-hint);
 }
-.ldhc-modal-title { margin: 0; font-family: var(--font-sans); font-size: var(--fs-lg); font-weight: var(--fw-semibold); letter-spacing: var(--tracking-snug); color: var(--fg-1); }
-.ldhc-modal-sub { font-size: var(--fs-sm); color: var(--fg-muted); line-height: var(--lh-base); }
-.ldhc-modal-x { flex-shrink: 0; margin: -2px -4px 0 0; display: flex; align-items: center; gap: var(--sp-1); }
+.ac-modal-title { margin: 0; font-family: var(--font-sans); font-size: var(--fs-lg); font-weight: var(--fw-semibold); letter-spacing: var(--tracking-snug); color: var(--fg-1); }
+.ac-modal-sub { font-size: var(--fs-sm); color: var(--fg-muted); line-height: var(--lh-base); }
+.ac-modal-x { flex-shrink: 0; margin: -2px -4px 0 0; display: flex; align-items: center; gap: var(--sp-1); }
 
 /* Body — scrolls inside a fixed-height dialog with head/foot pinned. The
    shadows are painted by the scroll container itself (background-attachment
    trick), so they appear only at an edge that actually has content beyond it. */
-.ldhc-modal-body {
+.ac-modal-body {
   flex: 1; min-height: 0; overflow-y: auto;
   padding: var(--sp-5);
   background:
@@ -163,16 +163,16 @@
    inert in a block container — so the body scrolled as one piece and the pinned
    children scrolled away with it. Declaring the column here fixes every flush
    consumer at once. */
-.ldhc-modal-body.is-flush { padding: 0; display: flex; flex-direction: column; }
+.ac-modal-body.is-flush { padding: 0; display: flex; flex-direction: column; }
 /* Whole-dialog scroll instead of body scroll. */
-.ldhc-modal.is-pagescroll { max-height: none; }
-.ldhc-modal.is-pagescroll .ldhc-modal-body { overflow: visible; background: none; }
+.ac-modal.is-pagescroll { max-height: none; }
+.ac-modal.is-pagescroll .ac-modal-body { overflow: visible; background: none; }
 
-.ldhc-modal-foot {
+.ac-modal-foot {
   display: flex; align-items: center; gap: var(--sp-2); flex-shrink: 0; flex-wrap: wrap;
   padding: var(--sp-4) var(--sp-5);
   border-top: 1px solid var(--border-default);
   background: var(--surface-1);
   border-radius: 0 0 var(--r-lg) var(--r-lg);
 }
-.ldhc-modal-foot > .ldhc-modal-foot-end { margin-left: auto; display: flex; align-items: center; gap: var(--sp-2); }
+.ac-modal-foot > .ac-modal-foot-end { margin-left: auto; display: flex; align-items: center; gap: var(--sp-2); }

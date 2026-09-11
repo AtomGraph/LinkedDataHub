@@ -1177,7 +1177,7 @@ WHERE
          has less viewport space below it than above, and end-ward ('drop-left') when it has less space
          to its right than to its left, so it never opens into the nearer viewport edge on either axis -->
 
-    <xsl:template match="*[contains-token(@class, 'ldhc-menu-anchor')][*[contains-token(@class, 'drop-toggle')]]" mode="ixsl:onclick">
+    <xsl:template match="*[contains-token(@class, 'ac-menu-anchor')][*[contains-token(@class, 'drop-toggle')]]" mode="ixsl:onclick">
         <xsl:variable name="group" select="." as="element()"/>
         <xsl:variable name="rect" select="ixsl:call(., 'getBoundingClientRect', [])"/>
         <xsl:variable name="drop-up" select="(ixsl:get(ixsl:window(), 'innerHeight') - ixsl:get($rect, 'bottom')) lt ixsl:get($rect, 'top')" as="xs:boolean"/>
@@ -1185,7 +1185,7 @@ WHERE
         <xsl:variable name="open" select="not(contains-token(@class, 'is-open'))" as="xs:boolean"/>
 
         <!-- one drop-down at a time: whichever group was open yields to this one -->
-        <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ldhc-menu-anchor')][contains-token(@class, 'is-open')][not(. is $group)]" mode="ldh:CloseMenu"/>
+        <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ac-menu-anchor')][contains-token(@class, 'is-open')][not(. is $group)]" mode="ldh:CloseMenu"/>
 
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drop-up', $drop-up ])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drop-left', $drop-left ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -1194,7 +1194,7 @@ WHERE
         <!-- a core Menu panel takes its placement class on open, measured against the viewport (the
              component's autoFlip); the drop-up/drop-left stamps above stay for the app-kit menus
              (.ldh-add-menu, .ldh-of-menu, .modes-pop) whose placement rules key on the wrap -->
-        <xsl:for-each select="*[contains-token(@class, 'ldhc-menu')]">
+        <xsl:for-each select="*[contains-token(@class, 'ac-menu')]">
             <xsl:variable name="menu" select="." as="element()"/>
             <xsl:variable name="placement" select="'al-' || (if ($drop-up) then 'up-' else '') || (if ($drop-left) then 'end' else 'start')" as="xs:string"/>
             <xsl:for-each select="('al-start', 'al-end', 'al-up-start', 'al-up-end')[. ne $placement]">
@@ -1210,7 +1210,7 @@ WHERE
         </xsl:for-each>
         <!-- focus moves INTO the menu on open, so Escape has something to restore from (§20) -->
         <xsl:if test="$open">
-            <xsl:for-each select="(*[contains-token(@class, 'ldhc-menu')]//*[contains-token(@class, 'ldhc-menu-item')])[1]">
+            <xsl:for-each select="(*[contains-token(@class, 'ac-menu')]//*[contains-token(@class, 'ac-menu-item')])[1]">
                 <xsl:sequence select="ixsl:call(., 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:for-each>
         </xsl:if>
@@ -1219,7 +1219,7 @@ WHERE
     <!-- the role="menu" keyboard model (§20): Arrow/Home/End rove focus across the menu items,
          Escape dismisses and restores focus to the trigger -->
 
-    <xsl:template match="*[contains-token(@class, 'ldhc-menu-anchor')][contains-token(@class, 'is-open')]" mode="ixsl:onkeydown">
+    <xsl:template match="*[contains-token(@class, 'ac-menu-anchor')][contains-token(@class, 'is-open')]" mode="ixsl:onkeydown">
         <xsl:variable name="key" select="ixsl:get(ixsl:event(), 'key')" as="xs:string"/>
 
         <xsl:choose>
@@ -1231,7 +1231,7 @@ WHERE
                 </xsl:for-each>
             </xsl:when>
             <xsl:when test="$key = ('ArrowDown', 'ArrowUp', 'Home', 'End')">
-                <xsl:variable name="items" select=".//*[contains-token(@class, 'ldhc-menu-item')]" as="element()*"/>
+                <xsl:variable name="items" select=".//*[contains-token(@class, 'ac-menu-item')]" as="element()*"/>
                 <xsl:if test="exists($items)">
                     <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
                     <xsl:variable name="active" select="ixsl:get(ixsl:page(), 'activeElement')"/>
@@ -1249,7 +1249,7 @@ WHERE
          places a drop-down stops being current: another one opens, a press lands outside it (below), a
          click lands outside it (the body handler in view.xsl), or a menu pick mounts a modal (ldh:ShowModalForm) -->
 
-    <xsl:template match="*[contains-token(@class, 'ldhc-menu-anchor')]" mode="ldh:CloseMenu">
+    <xsl:template match="*[contains-token(@class, 'ac-menu-anchor')]" mode="ldh:CloseMenu">
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:for-each select="*[contains-token(@class, 'drop-toggle')]">
             <ixsl:set-property name="ariaExpanded" select="'false'" object="."/>
@@ -1266,7 +1266,7 @@ WHERE
         <xsl:variable name="open" select="not(contains-token(@class, 'is-open'))" as="xs:boolean"/>
 
         <!-- one drop-down at a time: whichever group or wrap was open yields to this one -->
-        <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ldhc-menu-anchor')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')][not(. is $wrap)]" mode="ldh:CloseMenu"/>
+        <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ac-menu-anchor')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')][not(. is $wrap)]" mode="ldh:CloseMenu"/>
 
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-open', $open ])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:for-each select="*[contains-token(@class, 'ldh-form-action')]">
@@ -1296,7 +1296,7 @@ WHERE
 
     <xsl:template match="body" mode="ixsl:onpointerdown">
         <xsl:variable name="target" select="ixsl:get(ixsl:event(), 'target')"/>
-        <xsl:for-each select="ixsl:page()//*[contains-token(@class, 'ldhc-menu-anchor')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]">
+        <xsl:for-each select="ixsl:page()//*[contains-token(@class, 'ac-menu-anchor')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]">
             <xsl:if test="not(ixsl:call(., 'contains', [ $target ]))">
                 <xsl:apply-templates select="." mode="ldh:CloseMenu"/>
             </xsl:if>
@@ -1323,7 +1323,7 @@ WHERE
 
     <!-- content tabs (markup from Bootstrap) -->
     
-    <xsl:template match="div[contains-token(@class, 'ldhc-tabs')]/ul[contains-token(@class, 'ldhc-tablist')]/li/a" mode="ixsl:onclick">
+    <xsl:template match="div[contains-token(@class, 'ac-tabs')]/ul[contains-token(@class, 'ac-tablist')]/li/a" mode="ixsl:onclick">
         <!-- deactivate other tabs -->
         <xsl:for-each select="../../li">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -1387,7 +1387,7 @@ WHERE
 
         <!-- seed the target graph combobox with the local dataspace document (request URI); ldh:base-uri resolves to the proxied remote resource when viewing one, which is never a valid write target -->
         <xsl:call-template name="ldh:LoadComboboxes">
-            <xsl:with-param name="comboboxes" select="(id('upload-rdf-doc', ixsl:page()), id('remote-rdf-doc', ixsl:page()))/ancestor::div[contains-token(@class, 'ldhc-combobox')][1]"/>
+            <xsl:with-param name="comboboxes" select="(id('upload-rdf-doc', ixsl:page()), id('remote-rdf-doc', ixsl:page()))/ancestor::div[contains-token(@class, 'ac-combobox')][1]"/>
             <xsl:with-param name="graph" select="ac:absolute-path(ldh:request-uri())"/>
         </xsl:call-template>
     </xsl:template>

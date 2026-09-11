@@ -436,7 +436,7 @@ exclude-result-prefixes="#all"
         <div class="ldh-pager-nav">
             <xsl:choose>
                 <xsl:when test="($offset - $limit) ge 0">
-                    <button type="button" class="ldhc-btn in-neutral ap-outline sz-sm pager-prev">
+                    <button type="button" class="ac-btn in-neutral ap-outline sz-sm pager-prev">
                         <span class="msi outline sm" aria-hidden="true">chevron_left</span>
                         <span>
                             <xsl:apply-templates select="key('resources', 'previous', ldh:translations())" mode="ac:label"/>
@@ -444,7 +444,7 @@ exclude-result-prefixes="#all"
                     </button>
                 </xsl:when>
                 <xsl:otherwise>
-                    <button type="button" class="ldhc-btn in-neutral ap-outline sz-sm" disabled="disabled" aria-disabled="true">
+                    <button type="button" class="ac-btn in-neutral ap-outline sz-sm" disabled="disabled" aria-disabled="true">
                         <span class="msi outline sm" aria-hidden="true">chevron_left</span>
                         <span>
                             <xsl:apply-templates select="key('resources', 'previous', ldh:translations())" mode="ac:label"/>
@@ -471,7 +471,7 @@ exclude-result-prefixes="#all"
             <!-- next stays active while the current page is full and, when the total is known, rows remain beyond it -->
             <xsl:choose>
                 <xsl:when test="$result-count ge $limit and (empty($total-count) or ($offset + $limit) lt $total-count)">
-                    <button type="button" class="ldhc-btn in-neutral ap-outline sz-sm pager-next">
+                    <button type="button" class="ac-btn in-neutral ap-outline sz-sm pager-next">
                         <span>
                             <xsl:apply-templates select="key('resources', 'next', ldh:translations())" mode="ac:label"/>
                         </span>
@@ -479,7 +479,7 @@ exclude-result-prefixes="#all"
                     </button>
                 </xsl:when>
                 <xsl:otherwise>
-                    <button type="button" class="ldhc-btn in-neutral ap-outline sz-sm" disabled="disabled" aria-disabled="true">
+                    <button type="button" class="ac-btn in-neutral ap-outline sz-sm" disabled="disabled" aria-disabled="true">
                         <span>
                             <xsl:apply-templates select="key('resources', 'next', ldh:translations())" mode="ac:label"/>
                         </span>
@@ -510,7 +510,7 @@ exclude-result-prefixes="#all"
 
         <!-- the same mode-switcher component as the document-level ac:ModeSwitcher, in the design's compact
              sz-sm variant: labelled trigger, full-size popover -->
-        <div class="ldh-mode sz-sm ldhc-menu-anchor">
+        <div class="ldh-mode sz-sm ac-menu-anchor">
             <button type="button" class="label-row drop-toggle" title="{ac:label(key('resources', '&ac;Mode', document(ac:document-uri('&ac;'))))}">
                 <xsl:if test="$id">
                     <xsl:attribute name="id" select="$id"/>
@@ -1056,7 +1056,7 @@ exclude-result-prefixes="#all"
                         <xsl:variable name="create-container" select="($view-block/@data-container, $container/descendant::*[@property = '&ldh;container']/@resource)[1]" as="xs:string?"/>
                         <xsl:variable name="create-for-class" select="$view-block/@data-for-class" as="xs:string?"/>
                         <xsl:if test="exists($create-container) and exists($create-for-class) and tokenize($view-block/@data-acl-modes, ' ') = '&acl;Write' and (exists($view-block/@data-inverse) or acl:mode() = '&acl;Write')">
-                            <button type="button" class="ldhc-btn in-primary ap-solid sz-sm add-instance" data-for-class="{$create-for-class}" data-container="{$create-container}" title="{ac:label(key('resources', 'create-instance-title', ldh:translations()))}">
+                            <button type="button" class="ac-btn in-primary ap-solid sz-sm add-instance" data-for-class="{$create-for-class}" data-container="{$create-container}" title="{ac:label(key('resources', 'create-instance-title', ldh:translations()))}">
                                 <xsl:value-of>
                                     <xsl:apply-templates select="key('resources', 'create', ldh:translations())" mode="ac:label"/>
                                 </xsl:value-of>
@@ -1132,7 +1132,7 @@ exclude-result-prefixes="#all"
                     <span class="ldh-pivot-glyph">
                         <!-- the pills carry their own direction arrows, so the row's own glyph stays neutral -->
                         <span class="msi sm outline" aria-hidden="true">alt_route</span>
-                        <span class="ldhc-vh">
+                        <span class="ac-vh">
                             <xsl:apply-templates select="key('resources', 'related-results', ldh:translations())" mode="ac:label"/>
                         </span>
                     </span>
@@ -1275,7 +1275,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="action" as="item()*">
                         <!-- with filters active the empty state is recoverable: the same control the toolbar's Clear-all carries -->
                         <xsl:if test="$container-id and id($container-id, ixsl:page())//button[contains-token(@class, 'opt')][contains-token(@class, 'is-on')]">
-                            <button type="button" class="ldhc-btn in-neutral ap-outline sz-sm facet-clear-all">
+                            <button type="button" class="ac-btn in-neutral ap-outline sz-sm facet-clear-all">
                                 <span class="msi outline sm" aria-hidden="true">filter_alt_off</span>
                                 <span>
                                     <xsl:apply-templates select="key('resources', 'clear-filters', ldh:translations())" mode="ac:label"/>
@@ -1460,7 +1460,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="action" as="item()*">
                         <!-- with filters active the empty state is recoverable: the same control the toolbar's Clear-all carries -->
                         <xsl:if test="$container-id and id($container-id, ixsl:page())//button[contains-token(@class, 'opt')][contains-token(@class, 'is-on')]">
-                            <button type="button" class="ldhc-btn in-neutral ap-outline sz-sm facet-clear-all">
+                            <button type="button" class="ac-btn in-neutral ap-outline sz-sm facet-clear-all">
                                 <span class="msi outline sm" aria-hidden="true">filter_alt_off</span>
                                 <span>
                                     <xsl:apply-templates select="key('resources', 'clear-filters', ldh:translations())" mode="ac:label"/>
@@ -1498,7 +1498,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="action" as="item()*">
                         <!-- with filters active the empty state is recoverable: the same control the toolbar's Clear-all carries -->
                         <xsl:if test="$container-id and id($container-id, ixsl:page())//button[contains-token(@class, 'opt')][contains-token(@class, 'is-on')]">
-                            <button type="button" class="ldhc-btn in-neutral ap-outline sz-sm facet-clear-all">
+                            <button type="button" class="ac-btn in-neutral ap-outline sz-sm facet-clear-all">
                                 <span class="msi outline sm" aria-hidden="true">filter_alt_off</span>
                                 <span>
                                     <xsl:apply-templates select="key('resources', 'clear-filters', ldh:translations())" mode="ac:label"/>
@@ -2123,7 +2123,7 @@ exclude-result-prefixes="#all"
                             <div class="facet-values">
                                 <div class="facet-loading">
                                     <xsl:apply-templates select="." mode="ldh:ProgressBar">
-                                        <xsl:with-param name="class" select="'ldhc-pbar ht-sm is-indeterminate'"/>
+                                        <xsl:with-param name="class" select="'ac-pbar ht-sm is-indeterminate'"/>
                                         <xsl:with-param name="width" select="()"/>
                                     </xsl:apply-templates>
                                 </div>
@@ -3185,9 +3185,9 @@ exclude-result-prefixes="#all"
                         <xsl:result-document href="?." method="ixsl:replace-content">
                             <!-- the count sits inline in the view toolbar, where a full alert would outweigh the row it
                                  reports on - the design system's compact negative tag is the status marker at this size -->
-                            <span class="ldhc-tag em-quiet co-negative sz-sm">
+                            <span class="ac-tag em-quiet co-negative sz-sm">
                                 <span class="msi outline" aria-hidden="true">error</span>
-                                <span class="ldhc-tag-lbl">
+                                <span class="ac-tag-lbl">
                                     <xsl:apply-templates select="key('resources', 'block-count-failed', ldh:translations())" mode="ac:label"/>
                                 </span>
                             </span>
@@ -3293,9 +3293,9 @@ exclude-result-prefixes="#all"
 
 
             <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
-            <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ldhc-menu-anchor')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseMenu"/>
+            <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ac-menu-anchor')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseMenu"/>
             <xsl:result-document href="?." method="ixsl:append-content">
-                <div class="ldhc-backdrop pos-top modal modal-constructor" about="{$doc-uri}" typeof="{$forClass}"> <!-- @about identifies the new document URL (uniform with the other modals so submit handlers can read $block/@about); the instance URI travels on @data-instance -->
+                <div class="ac-backdrop pos-top modal modal-constructor" about="{$doc-uri}" typeof="{$forClass}"> <!-- @about identifies the new document URL (uniform with the other modals so submit handlers can read $block/@about); the instance URI travels on @data-instance -->
                     <xsl:apply-templates select="." mode="ldh:Modal">
                         <xsl:with-param name="body" as="item()*">
 

@@ -2,7 +2,7 @@
 Bootstrap 2 is gone, and with it the class vocabulary application stylesheets were written against. An app's `ac:stylesheet` points at its own XSLT, which imports the platform's `xsl/bootstrap/2.3.2/layout.xsl` — that import path is unchanged, and the `bs2:` modes it defines are all still there. An override that emits Bootstrap 2 markup therefore still compiles and still runs; it just emits classes no stylesheet backs any more, and renders unstyled with no diagnostic. Hence the major version: the failure gives no signal of its own.
 
 ### Migration
-- Legacy Bootstrap buttons (`btn`, `btn-primary`, `btn-large`, …) become the `ldhc-btn` intent/appearance/size vocabulary — `ldhc-btn in-primary ap-solid sz-md`
+- Legacy Bootstrap buttons (`btn`, `btn-primary`, `btn-large`, …) become the `ac-btn` intent/appearance/size vocabulary — `ac-btn in-primary ap-solid sz-md`
 - `$ac:langs` and `$ac:lang` stylesheet parameters become the `ac:langs()` and `ac:langs()[1]` functions; an `xsl:with-param` left behind is silently ignored rather than reported
 - `pull-left` and `pull-right` have no replacement — the design system lays out with flex and grid
 - Overrides depending on `bootstrap.js`, jQuery, WYMEditor or the sprite icon layer need rewriting: dropdowns and modals are driven by IXSL templates, icons by the `msi` font, and `rdf:XMLLiteral` editing by the RDFa editor
@@ -43,7 +43,7 @@ Bootstrap 2 is gone, and with it the class vocabulary application stylesheets we
 - Language negotiation moved out of `Application` into `LanguageNegotiator`
 - Object metadata merges on the RDF term rather than the lexical form, so a tagged literal is no longer collapsed into an untagged twin
 - Document responses pass the accepted languages into entity tag computation, so tags stop colliding across languages
-- Legacy Bootstrap buttons move to the `ldhc-btn` intent/appearance/size vocabulary
+- Legacy Bootstrap buttons move to the `ac-btn` intent/appearance/size vocabulary
 - Block link columns route through the `ldh-drawer`; backlinks and copy-URI split into two placements chosen by what a click does
 - Charts draw with resolved design tokens; the HTML Table chart is skinned in CSS and fills the block width
 - Client-side HTTP moves to promise chains, retiring the legacy `ixsl:schedule-action` `http-request` form

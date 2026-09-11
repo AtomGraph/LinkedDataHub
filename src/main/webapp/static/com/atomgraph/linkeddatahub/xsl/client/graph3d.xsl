@@ -476,8 +476,8 @@ WHERE
                         <label class="sub-option"><input type="checkbox" id="show-locale-literals-{$canvas-id}" data-canvas-id="{$canvas-id}" class="graph-3d-filter" disabled="disabled"/><xsl:text> </xsl:text><xsl:apply-templates select="key('resources', 'graph-locale-literals-only', ldh:translations())" mode="ac:label"/></label>
                     </label>
                 </div>
-                <button data-canvas-id="{$canvas-id}" class="graph-3d-zoom ldhc-btn in-neutral ap-solid sz-sm"><span class="msi sm" aria-hidden="true">fit_screen</span><xsl:value-of select="ac:label(key('resources', 'zoom-to-fit', ldh:translations()))"/></button>
-                <button data-canvas-id="{$canvas-id}" class="graph-3d-fullscreen ldhc-btn in-neutral ap-solid sz-sm"><span class="msi sm" aria-hidden="true">fullscreen</span><xsl:value-of select="ac:label(key('resources', 'fullscreen', ldh:translations()))"/></button>
+                <button data-canvas-id="{$canvas-id}" class="graph-3d-zoom ac-btn in-neutral ap-solid sz-sm"><span class="msi sm" aria-hidden="true">fit_screen</span><xsl:value-of select="ac:label(key('resources', 'zoom-to-fit', ldh:translations()))"/></button>
+                <button data-canvas-id="{$canvas-id}" class="graph-3d-fullscreen ac-btn in-neutral ap-solid sz-sm"><span class="msi sm" aria-hidden="true">fullscreen</span><xsl:value-of select="ac:label(key('resources', 'fullscreen', ldh:translations()))"/></button>
             </xsl:result-document>
         </xsl:for-each>
     </xsl:template>
