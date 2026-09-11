@@ -418,6 +418,22 @@ button.tree-link { border: 0; background: transparent; width: 100%; font: inheri
 .ldh-sparql-bar .ldh-sparql-meta { flex: 1 1 auto; min-width: 0; }
 .ldh-sparql-meta .ac-combobox { flex: 1 1 auto; min-width: 0; }
 
+/* ---------- code field: the design's CodeField (a form row's sp:text control) hosts YASQE too ----------
+   The field is a flex row sized around the plain textarea it ships with - .ac-cf-gutter holds its
+   width, .ac-cf-area takes the rest. YASQE.fromTextArea() hides that textarea and mounts a stock
+   CodeMirror as a third child, which matches none of those rules: it falls to flex: 0 1 auto and to
+   yasqe.css's own height: 300px, so the editor sized itself by its measured content and left the
+   right and bottom of the field empty. The same treatment .ldh-sparql-pane gives its CodeMirror,
+   on the field's light surface: the field draws the border and the surface, so the editor drops
+   yasqe.css's, and the gutter role passes to CodeMirror's own, styled on the field's tokens.
+   .ac-cf-gutter's numbers are stamped once at render and cannot follow an edit, while CodeMirror's
+   track the lines the document has, so the static column goes wherever an editor mounted. */
+.ac-codefield .CodeMirror { flex: 1; min-width: 0; height: auto; border: 0; background: transparent; color: var(--fg-1); }
+.ac-codefield .CodeMirror-scroll { overflow-x: auto; overflow-y: hidden; }
+.ac-codefield:has(.CodeMirror) .ac-cf-gutter { display: none; }
+.ac-codefield .CodeMirror-gutters { background: var(--surface-2); border-right: 1px solid var(--border-default); }
+.ac-codefield .CodeMirror-linenumber { color: var(--ink-5); font-family: var(--font-mono); }
+
 /* the wordmark's white ink is header-bar styling; on the footer's light surface it takes body ink
    (the design sets this inline on the footer wordmark) */
 .ldh-footer .ldh-wordmark { color: var(--fg-1); }
