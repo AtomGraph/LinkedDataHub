@@ -8,7 +8,6 @@
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
-    <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
 ]>
@@ -29,7 +28,6 @@ xmlns:ldh="&ldh;"
 xmlns:rdf="&rdf;"
 xmlns:srx="&srx;"
 xmlns:acl="&acl;"
-xmlns:ldt="&ldt;"
 xmlns:sd="&sd;"
 xmlns:sioc="&sioc;"
 extension-element-prefixes="ixsl"
@@ -85,8 +83,14 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:function>
     
-    <xsl:function name="ldt:base" as="xs:anyURI">
-        <xsl:variable name="active-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]" as="element()?"/>
+    <!-- the pane a dataspace is browsed in carries its base and endpoint as dataset attributes; both
+         lapp:base() and sd:endpoint() read the active one, so the lookup lives here once -->
+    <xsl:function name="ldh:active-pane" as="element()?">
+        <xsl:sequence select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]"/>
+    </xsl:function>
+
+    <xsl:function name="lapp:base" as="xs:anyURI">
+        <xsl:variable name="active-pane" select="ldh:active-pane()" as="element()?"/>
         <xsl:sequence select="if ($active-pane and ixsl:contains($active-pane, 'dataset.base')) then xs:anyURI(ixsl:get($active-pane, 'dataset.base')) else xs:anyURI(lapp:origin(ldh:request-uri()) || '/')"/>
     </xsl:function>
 
@@ -100,8 +104,8 @@ exclude-result-prefixes="#all"
     </xsl:function>
 
     <xsl:function name="sd:endpoint" as="xs:anyURI">
-        <xsl:variable name="active-pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]" as="element()?"/>
-        <xsl:sequence select="if ($active-pane and ixsl:contains($active-pane, 'dataset.endpoint')) then xs:anyURI(ixsl:get($active-pane, 'dataset.endpoint')) else resolve-uri('sparql', ldt:base())"/>
+        <xsl:variable name="active-pane" select="ldh:active-pane()" as="element()?"/>
+        <xsl:sequence select="if ($active-pane and ixsl:contains($active-pane, 'dataset.endpoint')) then xs:anyURI(ixsl:get($active-pane, 'dataset.endpoint')) else resolve-uri('sparql', lapp:base())"/>
     </xsl:function>
 
     <xsl:function name="lapp:application" as="xs:anyURI?">
@@ -119,7 +123,7 @@ exclude-result-prefixes="#all"
     </xsl:function>
 
     <xsl:function name="lapp:origin" as="xs:anyURI">
-        <xsl:sequence select="lapp:origin(ldt:base())"/>
+        <xsl:sequence select="lapp:origin(lapp:base())"/>
     </xsl:function>
 
     <xsl:function name="ldh:label-document" as="document-node()?">
@@ -545,7 +549,7 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:load-constructed-doc" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI*"/>
-        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': ldh:constructor-query($forClass), 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
+        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', lapp:base()), map{ 'query': ldh:constructor-query($forClass), 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
         <xsl:sequence select="map:merge(($context, map{ 'constructed-doc-request': $request }))"/>
@@ -782,14 +786,6 @@ exclude-result-prefixes="#all"
                 <xsl:sequence select="ldh:error-detail($detail)"/>
             </xsl:result-document>
         </xsl:for-each>
-    </xsl:function>
-
-    <!-- target URIs of the Link header entries whose parameters contain $marker (e.g. a rel URI or 'rel=timemap') -->
-    <xsl:function name="ldh:link-targets" as="xs:anyURI*">
-        <xsl:param name="link-header" as="xs:string?"/>
-        <xsl:param name="marker" as="xs:string"/>
-
-        <xsl:sequence select="tokenize($link-header, ',')[contains(., $marker)] ! xs:anyURI(substring-before(substring-after(substring-before(., ';'), '&lt;'), '&gt;'))"/>
     </xsl:function>
 
 </xsl:stylesheet>

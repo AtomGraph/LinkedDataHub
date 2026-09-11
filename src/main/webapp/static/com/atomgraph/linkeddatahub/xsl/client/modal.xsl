@@ -10,7 +10,6 @@
     <!ENTITY owl    "http://www.w3.org/2002/07/owl#">
     <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
-    <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
@@ -37,7 +36,6 @@ xmlns:rdf="&rdf;"
 xmlns:owl="&owl;"
 xmlns:acl="&acl;"
 xmlns:srx="&srx;"
-xmlns:ldt="&ldt;"
 xmlns:sd="&sd;"
 xmlns:sioc="&sioc;"
 xmlns:dct="&dct;"
@@ -715,8 +713,8 @@ LIMIT   10
         <xsl:next-match/>
         
         <!-- set a cookie to never show it again. path=/ is scoped to the page origin (cookies are
-             always scoped to the page origin anyway); using ldt:base() here previously broke in proxy
-             mode where ldt:base() is the proxied app's base, not the page's. -->
+             always scoped to the page origin anyway); using lapp:base() here previously broke in proxy
+             mode where lapp:base() is the proxied app's base, not the page's. -->
         <ixsl:set-property name="cookie" select="'LinkedDataHub.first-time-message=true; path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT'" object="ixsl:page()"/>
     </xsl:template>
 
@@ -1066,7 +1064,7 @@ LIMIT   10
         <xsl:call-template name="ldh:ShowModalForm">
             <xsl:with-param name="form" as="element()">
                 <xsl:call-template name="ldh:AddDataForm">
-                    <xsl:with-param name="query" select="resolve-uri('queries/construct-constructors/#this', ldt:base())"/>
+                    <xsl:with-param name="query" select="resolve-uri('queries/construct-constructors/#this', lapp:base())"/>
                     <xsl:with-param name="legend-label" select="ac:label(key('resources', 'import-ontology', ldh:translations()))"/>
                 </xsl:call-template>
             </xsl:with-param>
@@ -1359,7 +1357,7 @@ LIMIT   10
                 <xsl:variable name="query-uri" select="fieldset/input[@name = 'pu'][@value = '&spin;query']/following-sibling::input[@name = 'ou'][1]/@value" as="xs:anyURI"/>
                 <xsl:choose>
                     <!-- the target must be local because the constructor derivation runs on the local /sparql endpoint scoped to the target graph via ?default-graph-uri= - another instance's graphs are invisible to it (the add/clone variant below has no such constraint and accepts foreign targets) -->
-                    <xsl:when test="not(starts-with($target, lapp:origin(ldh:request-uri()) || '/'))">
+                    <xsl:when test="not(ldh:is-local($target))">
                         <xsl:sequence select="ldh:add-data-form-error(map{ 'form': $form }, 'target-must-be-local')"/>
                     </xsl:when>
                     <xsl:otherwise>
@@ -1372,7 +1370,7 @@ LIMIT   10
                             'source-uri': $source,
                             'target-uri': $target,
                             'query-uri': $query-uri,
-                            'scratch-uri': resolve-uri(ac:uuid() || '/', ldt:base())
+                            'scratch-uri': resolve-uri(ac:uuid() || '/', lapp:base())
                           }"/>
                         <ixsl:promise select="
                           ixsl:http-request($context('request'))
@@ -1486,7 +1484,7 @@ LIMIT   10
         <xsl:variable name="service-uri" select="$context('service-uri')" as="xs:anyURI?"/>
         <xsl:choose>
             <xsl:when test="$service-uri">
-                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': ldh:href(ac:build-uri(ldt:base(), map{ 'uri': ac:document-uri($service-uri), 'accept': 'application/rdf+xml' })), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': ldh:href(ac:build-uri(lapp:base(), map{ 'uri': ac:document-uri($service-uri), 'accept': 'application/rdf+xml' })), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                 <xsl:sequence select="
                   ixsl:http-request($request)
                     => ixsl:then(ldh:rethread-response($context, ?))
@@ -2058,7 +2056,7 @@ LIMIT   10
                         <rdf:RDF>
                             <rdf:Description rdf:about="{$scratch-uri}">
                                 <rdf:type rdf:resource="&dh;Item"/>
-                                <sioc:has_container rdf:resource="{ldt:base()}"/>
+                                <sioc:has_container rdf:resource="{lapp:base()}"/>
                                 <dct:title>Import ontology scratch</dct:title>
                             </rdf:Description>
                             <xsl:copy-of select="$response?body/rdf:RDF/*"/>
@@ -2122,7 +2120,7 @@ LIMIT   10
         <xsl:choose>
             <xsl:when test="$query-string">
                 <xsl:variable name="scratch-uri" select="$context('scratch-uri')" as="xs:anyURI"/>
-                <xsl:variable name="endpoint" select="ac:build-uri(resolve-uri('sparql', ldt:base()), map{ 'default-graph-uri': string($scratch-uri) })" as="xs:anyURI"/>
+                <xsl:variable name="endpoint" select="ac:build-uri(resolve-uri('sparql', lapp:base()), map{ 'default-graph-uri': string($scratch-uri) })" as="xs:anyURI"/>
                 <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $endpoint, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                 <xsl:variable name="construct-context" select="map:put($context, 'request', $request)" as="map(*)"/>
                 <xsl:sequence select="
@@ -2236,7 +2234,7 @@ LIMIT   10
             <xsl:when test="$response?status = (200, 204)">
                 <!-- the admin app manages its parent dataspace's end-user app, whose ontology is <ns#> on the parent origin -->
                 <xsl:variable name="ontology-uri" select="resolve-uri('ns#', ldh:parent-origin(ldh:request-uri()))" as="xs:anyURI"/>
-                <xsl:variable name="request" select="map{ 'method': 'POST', 'href': resolve-uri('clear', ldt:base()), 'media-type': 'application/x-www-form-urlencoded', 'body': 'uri=' || encode-for-uri($ontology-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                <xsl:variable name="request" select="map{ 'method': 'POST', 'href': resolve-uri('clear', lapp:base()), 'media-type': 'application/x-www-form-urlencoded', 'body': 'uri=' || encode-for-uri($ontology-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                 <xsl:variable name="clear-context" select="map:put($context, 'request', $request)" as="map(*)"/>
                 <xsl:sequence select="
                   ixsl:http-request($request)

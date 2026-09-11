@@ -7,7 +7,6 @@
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
-    <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY sp     "http://spinrdf.org/sp#">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
@@ -27,7 +26,6 @@ xmlns:ldh="&ldh;"
 xmlns:lapp="&lapp;"
 xmlns:rdf="&rdf;"
 xmlns:srx="&srx;"
-xmlns:ldt="&ldt;"
 xmlns:sd="&sd;"
 xmlns:sp="&sp;"
 xmlns:sioc="&sioc;"
@@ -93,7 +91,7 @@ ORDER BY DESC(?created)
     <!-- TEMPLATES -->
     
     <xsl:template name="ldh:DataspaceDrawer">
-        <xsl:param name="base" select="ldt:base()" as="xs:anyURI"/>
+        <xsl:param name="base" select="lapp:base()" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'left-sidebar ldh-sidebar'" as="xs:string?"/>
 
@@ -817,7 +815,7 @@ ORDER BY DESC(?created)
                             <xsl:when test="exists($type-uris)">
                                 <!-- build DESCRIBE query with VALUES clause -->
                                 <xsl:variable name="query-string" select="'DESCRIBE ?type WHERE { VALUES ?type { ' || string-join(for $uri in $type-uris return '&lt;' || $uri || '&gt;', ' ') || ' } }'" as="xs:string"/>
-                                <xsl:variable name="ns-uri" select="resolve-uri('ns', ldt:base())" as="xs:anyURI"/>
+                                <xsl:variable name="ns-uri" select="resolve-uri('ns', lapp:base())" as="xs:anyURI"/>
                                 <xsl:variable name="results-uri" select="ac:build-uri($ns-uri, map{ 'query': $query-string })" as="xs:anyURI"/>
                                 <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
                                 <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>

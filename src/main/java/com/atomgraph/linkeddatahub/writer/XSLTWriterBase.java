@@ -129,7 +129,6 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
                 if (log.isDebugEnabled()) log.debug("Passing $lapp:Application to XSLT: <{}>", app);
                 params.put(new QName("ldt", LDT.base.getNameSpace(), LDT.base.getLocalName()), new XdmAtomicValue(app.getBaseURI()));
                 params.put(new QName("lapp", LAPP.origin.getNameSpace(), LAPP.origin.getLocalName()), new XdmAtomicValue(app.getOriginURI()));
-                params.put(new QName("ldt", LDT.ontology.getNameSpace(), LDT.ontology.getLocalName()), new XdmAtomicValue(URI.create(app.getOntology().getURI())));
             }
             
             if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent)
@@ -157,13 +156,6 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
             }
             params.put(new QName("ldh", LDH.httpHeaders.getNameSpace(), LDH.httpHeaders.getLocalName()), responseHeaders);
 
-            if (getHttpHeaders().getRequestHeader(HttpHeaders.REFERER) != null)
-            {
-                URI referer = URI.create(getHttpHeaders().getRequestHeader(HttpHeaders.REFERER).get(0));
-                if (log.isDebugEnabled()) log.debug("Passing $Referer URI to XSLT: {}", referer);
-                params.put(new QName("", "", "Referer"), new XdmAtomicValue(referer)); // TO-DO: move to ac: namespace
-            }
-            
             params.put(new QName("ldhc", LDHC.enableWebIDSignUp.getNameSpace(), LDHC.enableWebIDSignUp.getLocalName()), new XdmAtomicValue(getSystem().isEnableWebIDSignUp()));
             if (getSystem().getProperty(Google.clientID.getURI()) != null)
                 params.put(new QName("google", Google.clientID.getNameSpace(), Google.clientID.getLocalName()), new XdmAtomicValue((String)getSystem().getProperty(Google.clientID.getURI())));

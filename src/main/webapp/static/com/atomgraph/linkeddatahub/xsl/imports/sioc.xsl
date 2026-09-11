@@ -7,7 +7,6 @@
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY owl    "http://www.w3.org/2002/07/owl#">
-    <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
 ]>
@@ -22,7 +21,6 @@ xmlns:lapp="&lapp;"
 xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
 xmlns:owl="&owl;"
-xmlns:ldt="&ldt;"
 xmlns:sioc="&sioc;"
 xmlns:foaf="&foaf;"
 exclude-result-prefixes="#all">

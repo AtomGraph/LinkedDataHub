@@ -14,7 +14,6 @@
     <!ENTITY http   "http://www.w3.org/2011/http#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
-    <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY sh     "http://www.w3.org/ns/shacl#">
     <!ENTITY sp     "http://spinrdf.org/sp#">
@@ -41,7 +40,6 @@ xmlns:srx="&srx;"
 xmlns:http="&http;"
 xmlns:acl="&acl;"
 xmlns:sd="&sd;"
-xmlns:ldt="&ldt;"
 xmlns:sh="&sh;"
 xmlns:sp="&sp;"
 xmlns:spin="&spin;"
@@ -55,6 +53,8 @@ exclude-result-prefixes="#all"
 
     <xsl:key name="predicates-by-object" match="*[@rdf:about]/* | *[@rdf:nodeID]/*" use="@rdf:resource | @rdf:nodeID"/>
     <xsl:key name="violations-by-root" match="*[@rdf:about] | *[@rdf:nodeID]" use="spin:violationRoot/@rdf:resource | spin:violationRoot/@rdf:nodeID"/>
+    <xsl:key name="violations-by-value" match="*" use="ldh:violationValue/text()"/>
+    <xsl:key name="violations-by-focus-node" match="*" use="sh:focusNode/@rdf:resource | sh:focusNode/@rdf:nodeID"/>
     <xsl:key name="resources-by-type" match="*[*][@rdf:about] | *[*][@rdf:nodeID]" use="rdf:type/@rdf:resource"/>
 
     <xsl:param name="ac:contextUri" as="xs:anyURI?"/>
@@ -156,12 +156,149 @@ exclude-result-prefixes="#all"
     </xsl:function>
     
       
-    <xsl:function name="ldt:base" as="xs:anyURI">
-        <xsl:sequence select="$ldt:base"/>
+    <!-- the endpoint a block queries: the one its ldh:service names, else this dataspace's own -->
+    <!-- the authenticated agent: the WebID the writer supplies server-side and the SaxonJS
+         stylesheetParams supply client-side, and its description. One declaration for both
+         entry points, which previously carried byte-identical copies -->
+    <xsl:param name="acl:agent" as="xs:anyURI?"/>
+    <xsl:param name="foaf:Agent" select="if ($acl:agent) then document(ac:document-uri($acl:agent)) else ()" as="document-node()?"/>
+
+    <!-- metadata and constructor queries shared by the server and client renderers; each used to be
+         declared once per entry point, with the copies drifting only in whitespace -->
+    <xsl:param name="object-metadata-query" as="xs:string">
+        <![CDATA[
+            PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
+            PREFIX  dct:  <http://purl.org/dc/terms/>
+            PREFIX  schema2: <https://schema.org/>
+            PREFIX  schema1: <http://schema.org/>
+            PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
+            PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+            PREFIX  sioc: <http://rdfs.org/sioc/ns#>
+            PREFIX  dc:   <http://purl.org/dc/elements/1.1/>
+
+            CONSTRUCT
+              {
+                $this ?p ?literal .
+              }
+            WHERE
+              { GRAPH ?graph
+                  { $this  ?p  ?literal
+                    FILTER ( ( datatype(?literal) = xsd:string ) || ( datatype(?literal) = rdf:langString ) )
+                    FILTER ( ?p IN (rdfs:label, dc:title, dct:title, foaf:name, foaf:givenName, foaf:familyName, sioc:name, skos:prefLabel, schema1:name, schema2:name) )
+                  }
+              }
+        ]]>
+        <!-- VALUES $this goes here -->
+    </xsl:param>
+    <xsl:param name="object-metadata-ns-query" as="xs:string">
+        <![CDATA[
+            PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
+            PREFIX  dct:  <http://purl.org/dc/terms/>
+            PREFIX  schema2: <https://schema.org/>
+            PREFIX  schema1: <http://schema.org/>
+            PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
+            PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+            PREFIX  sioc: <http://rdfs.org/sioc/ns#>
+            PREFIX  dc:   <http://purl.org/dc/elements/1.1/>
+
+            CONSTRUCT
+              {
+                $this ?p ?literal .
+              }
+            WHERE
+              { $this  ?p  ?literal
+                FILTER ( ( datatype(?literal) = xsd:string ) || ( datatype(?literal) = rdf:langString ) )
+                FILTER ( ?p IN (rdfs:label, dc:title, dct:title, foaf:name, foaf:givenName, foaf:familyName, sioc:name, skos:prefLabel, schema1:name, schema2:name) )
+              }
+        ]]>
+        <!-- VALUES $this goes here -->
+    </xsl:param>
+    <xsl:param name="property-metadata-query" as="xs:string">
+        <![CDATA[
+            DESCRIBE $Type
+        ]]>
+        <!-- VALUES $Type goes here -->
+    </xsl:param>
+    <xsl:param name="constraint-query" as="xs:string">
+        <![CDATA[
+            PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
+            PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX  sp:   <http://spinrdf.org/sp#>
+            PREFIX  spin: <http://spinrdf.org/spin#>
+
+            SELECT  $Type ?property
+            WHERE
+              { $Type (rdfs:subClassOf)*/spin:constraint  ?constraint .
+                ?constraint  a             ldh:MissingPropertyValue ;
+                          sp:arg1          ?property
+              }
+        ]]>
+        <!-- VALUES $Type goes here -->
+    </xsl:param>
+    <xsl:param name="constructor-query" as="xs:string">
+        <![CDATA[
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX sp:   <http://spinrdf.org/sp#>
+            PREFIX spin: <http://spinrdf.org/spin#>
+
+            SELECT  $Type ?constructor ?construct
+            WHERE
+              { $Type (rdfs:subClassOf)*/spin:constructor  ?constructor .
+                ?constructor sp:text ?construct .
+              }
+        ]]>
+    </xsl:param>
+    <xsl:param name="shape-query" as="xs:string">
+        <![CDATA[
+            PREFIX  sh:   <http://www.w3.org/ns/shacl#>
+
+            DESCRIBE $Shape ?property
+            WHERE
+              { $Shape  sh:targetClass  $Type
+                OPTIONAL
+                  { $Shape  sh:property  ?property }
+              }
+        ]]>
+    </xsl:param>
+
+    <!-- target URIs of the Link header entries whose parameters contain $marker (a rel URI, or 'rel=timemap').
+         Entries are split by regex rather than tokenize(','), because a Link value may carry commas inside
+         quoted parameters; the marker is tested against the parameter section only, so a target URI cannot
+         match it. Shared: the server passes the whole $ldh:httpHeaders('Link') sequence, the client one
+         response header string. -->
+    <!-- is this URI served by the dataspace the reader is browsing? The test the cross-origin proxy
+         decision, the ldh:href/ldh:parse-href pair and the pane lookups all made by hand -->
+    <xsl:function name="ldh:is-local" as="xs:boolean">
+        <xsl:param name="uri" as="xs:anyURI?"/>
+
+        <xsl:sequence select="starts-with($uri, lapp:origin(ldh:request-uri()) || '/')"/>
     </xsl:function>
 
-    <xsl:function name="sd:endpoint" as="xs:anyURI">
-        <xsl:sequence select="resolve-uri('sparql', ldt:base())"/>
+    <xsl:function name="ldh:link-targets" as="xs:anyURI*">
+        <xsl:param name="link-headers" as="xs:string*"/>
+        <xsl:param name="marker" as="xs:string"/>
+
+        <xsl:variable name="entries" as="xs:string*">
+            <xsl:for-each select="$link-headers">
+                <xsl:analyze-string select="." regex="&lt;[^&gt;]+&gt;[^&lt;]*">
+                    <xsl:matching-substring>
+                        <xsl:sequence select="."/>
+                    </xsl:matching-substring>
+                </xsl:analyze-string>
+            </xsl:for-each>
+        </xsl:variable>
+
+        <xsl:sequence select="$entries[contains(substring-after(., '&gt;'), $marker)] ! xs:anyURI(replace(., '^&lt;([^&gt;]+)&gt;.*$', '$1'))"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:service-endpoint" as="xs:anyURI">
+        <xsl:param name="service" as="element()?"/>
+
+        <xsl:sequence select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]"/>
     </xsl:function>
 
     <xsl:function name="lapp:origin" as="xs:anyURI">
@@ -228,7 +365,7 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <!-- cross-origin URI - wrap in ?uri= on the page origin so the request stays same-origin (carries credentials, then ProxyRequestFilter forwards) -->
-            <xsl:when test="$uri and not(starts-with($uri, lapp:origin(ldh:request-uri()) || '/'))">
+            <xsl:when test="$uri and not(ldh:is-local($uri))">
                 <xsl:sequence select="xs:anyURI(ac:build-uri(ac:absolute-path(ldh:request-uri()), map:merge((map{ 'uri': string($uri) }, $query-params))) || (if ($fragment) then ('#' || $fragment) else ()))"/>
             </xsl:when>
             <!-- local URI -->
@@ -246,7 +383,7 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:parse-href" as="map(xs:string, item()?)">
         <xsl:param name="href" as="xs:anyURI"/>
 
-        <xsl:variable name="is-local" select="starts-with($href, lapp:origin(ldh:request-uri()) || '/')" as="xs:boolean"/>
+        <xsl:variable name="is-local" select="ldh:is-local($href)" as="xs:boolean"/>
         <xsl:variable name="query-params" select="ldh:parse-query-params(substring-after(ac:document-uri($href), '?'))" as="map(xs:string, xs:string*)"/>
         <xsl:variable name="fragment" select="ac:fragment-id($href)" as="xs:string?"/>
 
@@ -1030,7 +1167,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="href" select="$href"/>
             <xsl:with-param name="id" select="$id"/>
             <xsl:with-param name="title" select="$title"/>
-            <xsl:with-param name="class" select="$class || (if (not(starts-with(., ldt:base()))) then ' external' else())"/>
+            <xsl:with-param name="class" select="$class || (if (not(starts-with(., lapp:base()))) then ' external' else())"/>
             <xsl:with-param name="role" select="$role"/>
             <xsl:with-param name="target" select="$target"/>
         </xsl:next-match>
@@ -1050,7 +1187,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="id" select="$id"/>
             <xsl:with-param name="label" select="$label"/>
             <xsl:with-param name="title" select="$title"/>
-            <xsl:with-param name="class" select="$class || (if (not(starts-with(., ldt:base()))) then ' external' else())"/>
+            <xsl:with-param name="class" select="$class || (if (not(starts-with(., lapp:base()))) then ' external' else())"/>
             <xsl:with-param name="target" select="$target"/>
         </xsl:next-match>
     </xsl:template>
@@ -1070,7 +1207,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="href" select="$href"/>
             <xsl:with-param name="id" select="$id"/>
             <xsl:with-param name="title" select="$title"/>
-            <xsl:with-param name="class" select="$class || (if (not(starts-with(., ldt:base()))) then ' external' else())"/>
+            <xsl:with-param name="class" select="$class || (if (not(starts-with(., lapp:base()))) then ' external' else())"/>
             <xsl:with-param name="target" select="$target"/>
         </xsl:next-match>
     </xsl:template>

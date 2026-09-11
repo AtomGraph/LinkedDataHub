@@ -18,7 +18,6 @@
     <!ENTITY cert   "http://www.w3.org/ns/auth/cert#">
     <!ENTITY sh     "http://www.w3.org/ns/shacl#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
-    <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
@@ -48,7 +47,6 @@ xmlns:http="&http;"
 xmlns:acl="&acl;"
 xmlns:sd="&sd;"
 xmlns:sh="&sh;"
-xmlns:ldt="&ldt;"
 xmlns:dh="&dh;"
 xmlns:dct="&dct;"
 xmlns:foaf="&foaf;"
@@ -64,8 +62,6 @@ exclude-result-prefixes="#all"
     
     <xsl:mode name="ldh:Shape" on-no-match="deep-skip"/>
 
-    <xsl:param name="main-doc" select="/" as="document-node()"/>
-    <xsl:param name="acl:Agent" as="document-node()?"/>
 
     <!-- schema.org BREADCRUMBS -->
     
@@ -194,7 +190,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*" mode="ldh:AddData"/>
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&owl;Ontology'][$foaf:Agent//@rdf:about]" mode="ac:BlockActions">
-        <form action="{resolve-uri('clear', ldt:base())}" method="post">
+        <form action="{resolve-uri('clear', lapp:base())}" method="post">
             <input type="hidden" name="uri" value="{@rdf:about}"/>
 
             <button class="ac-btn in-primary ap-solid sz-md" type="submit">
@@ -803,7 +799,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'ac-table is-hoverable'" as="xs:string?"/>
         <xsl:param name="property-uris" select="distinct-values(*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
-        <xsl:param name="property-metadata" select="if (exists($property-uris)) then ldh:send-request(resolve-uri('ns', ldt:base()), 'POST', 'application/sparql-query', 'DESCRIBE $Type' || ' VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }', map{ 'Accept': 'application/rdf+xml' }) else ()" as="document-node()?" tunnel="yes"/>
+        <xsl:param name="property-metadata" select="if (exists($property-uris)) then ldh:send-request(resolve-uri('ns', lapp:base()), 'POST', 'application/sparql-query', 'DESCRIBE $Type' || ' VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }', map{ 'Accept': 'application/rdf+xml' }) else ()" as="document-node()?" tunnel="yes"/>
         <xsl:param name="predicates" as="element()*">
             <xsl:for-each-group select="*/*" group-by="concat(namespace-uri(), local-name())">
                 <xsl:sort select="if ($property-metadata) then ac:property-label(., $property-metadata) else ac:property-label(.)" order="ascending" lang="{ac:langs()[1]}"/>
@@ -1183,15 +1179,15 @@ exclude-result-prefixes="#all"
         <xsl:param name="create-resource" select="true()" as="xs:boolean"/>
         <xsl:param name="classes" as="element()*"/>
         <xsl:param name="types" select="distinct-values(rdf:Description/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
-        <xsl:param name="constructors" select="if (exists($types)) then (ldh:query-result(resolve-uri('ns', ldt:base()), $constructor-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }')) else ()" as="document-node()?" tunnel="yes"/>
-        <xsl:param name="constraints" select="if (exists($types)) then (ldh:query-result(resolve-uri('ns', ldt:base()), $constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }')) else ()" as="document-node()?" tunnel="yes"/>
-        <xsl:param name="shapes" select="if (exists($types)) then (ldh:query-result(resolve-uri('ns', ldt:base()), $shape-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }')) else ()" as="document-node()?" tunnel="yes"/>
-        <xsl:param name="type-metadata" select="if (exists($types)) then ldh:send-request(resolve-uri('ns', ldt:base()), 'POST', 'application/sparql-query', 'DESCRIBE $Type' || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }', map{ 'Accept': 'application/rdf+xml' }) else ()" as="document-node()?" tunnel="yes"/>
+        <xsl:param name="constructors" select="if (exists($types)) then (ldh:query-result(resolve-uri('ns', lapp:base()), $constructor-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }')) else ()" as="document-node()?" tunnel="yes"/>
+        <xsl:param name="constraints" select="if (exists($types)) then (ldh:query-result(resolve-uri('ns', lapp:base()), $constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }')) else ()" as="document-node()?" tunnel="yes"/>
+        <xsl:param name="shapes" select="if (exists($types)) then (ldh:query-result(resolve-uri('ns', lapp:base()), $shape-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }')) else ()" as="document-node()?" tunnel="yes"/>
+        <xsl:param name="type-metadata" select="if (exists($types)) then ldh:send-request(resolve-uri('ns', lapp:base()), 'POST', 'application/sparql-query', 'DESCRIBE $Type' || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }', map{ 'Accept': 'application/rdf+xml' }) else ()" as="document-node()?" tunnel="yes"/>
         <xsl:param name="property-uris" select="distinct-values(rdf:Description/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
         <!-- TO-DO: optimize using CONSTRUCT? -->
-        <xsl:param name="property-metadata" select="if (exists($property-uris)) then ldh:send-request(resolve-uri('ns', ldt:base()), 'POST', 'application/sparql-query', 'DESCRIBE $Type' || ' VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }', map{ 'Accept': 'application/rdf+xml' }) else ()" as="document-node()?" tunnel="yes"/>
+        <xsl:param name="property-metadata" select="if (exists($property-uris)) then ldh:send-request(resolve-uri('ns', lapp:base()), 'POST', 'application/sparql-query', 'DESCRIBE $Type' || ' VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }', map{ 'Accept': 'application/rdf+xml' }) else ()" as="document-node()?" tunnel="yes"/>
         <xsl:param name="object-uris" select="rdf:Description/*/@rdf:resource[not(key('resources', .))]" as="xs:anyURI*"/>
-        <xsl:param name="object-metadata" select="if (exists($object-uris)) then ldh:send-request(resolve-uri('ns', ldt:base()), 'POST', 'application/sparql-query', $object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }', map{ 'Accept': 'application/rdf+xml' }) else ()" as="document-node()?" tunnel="yes"/>
+        <xsl:param name="object-metadata" select="if (exists($object-uris)) then ldh:send-request(resolve-uri('ns', lapp:base()), 'POST', 'application/sparql-query', $object-metadata-query || ' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }', map{ 'Accept': 'application/rdf+xml' }) else ()" as="document-node()?" tunnel="yes"/>
         <!-- inner form content; default is the exception alerts + primary/non-primary Description iteration. Override via xsl:with-param name="body" to substitute a different body (e.g. ldh:DocumentForm mode for declarative suppression) while reusing the form shell. -->
         <xsl:param name="body" as="node()*">
             <xsl:apply-templates mode="ldh:Exception"/>
