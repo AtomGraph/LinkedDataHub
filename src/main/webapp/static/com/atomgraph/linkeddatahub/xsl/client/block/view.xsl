@@ -1503,14 +1503,17 @@ exclude-result-prefixes="#all"
                         </span>
                     </xsl:where-populated>
                 </div>
-                <!-- the design's hover action pins: controls inside the card anchor, so spans with their own click templates -->
+                <!-- the design's hover action pin: a control inside the card anchor, so a span with its own click template.
+                     A grid card is a result of the view's query, not the document the editor writes back to: the card is
+                     one projection of a resource whose document may hold much more, and the view's own query decides
+                     which resources appear at all. Editing is reached by following the card to that document, where the
+                     whole resource and its authorization are in view, so the card offers no edit pin - to any agent,
+                     however privileged. The list, table and grid renderers are all handed show-edit-button=false by
+                     ldh:ViewModeChoice for the same reason. -->
                 <xsl:if test="@rdf:about">
                     <span class="pin">
                         <span class="ldh-pin-ic pin-copy" role="button" tabindex="0" title="{ac:label(key('resources', 'copy-uri', ldh:translations()))}">
                             <span class="msi sm outline" aria-hidden="true">content_copy</span>
-                        </span>
-                        <span class="ldh-pin-ic pin-edit" role="button" tabindex="0" title="{ac:label(key('resources', '&ac;EditMode', document(ac:document-uri('&ac;'))))}">
-                            <span class="msi sm outline" aria-hidden="true">edit</span>
                         </span>
                     </span>
                 </xsl:if>
@@ -1518,18 +1521,11 @@ exclude-result-prefixes="#all"
         </li>
     </xsl:template>
 
-    <!-- card pin controls: copy takes the resource URI to the clipboard, edit opens the document's
-         edit mode; both cancel the card anchor's own navigation -->
+    <!-- card pin control: copy takes the resource URI to the clipboard and cancels the card anchor's own navigation -->
     <xsl:template match="a[contains-token(@class, 'card')]//span[contains-token(@class, 'pin-copy')]" mode="ixsl:onclick" priority="1">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="uri" select="ancestor::a[contains-token(@class, 'card')][1]/@title" as="xs:string"/>
         <xsl:sequence select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'navigator'), 'clipboard'), 'writeText', [ $uri ])[current-date() lt xs:date('2000-01-01')]"/>
-    </xsl:template>
-
-    <xsl:template match="a[contains-token(@class, 'card')]//span[contains-token(@class, 'pin-edit')]" mode="ixsl:onclick" priority="1">
-        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="uri" select="xs:anyURI(ancestor::a[contains-token(@class, 'card')][1]/@title)" as="xs:anyURI"/>
-        <ixsl:set-property name="location.href" select="ldh:href(ac:document-uri($uri), ldh:build-query(xs:anyURI('&ac;EditMode')))" object="ixsl:window()"/>
     </xsl:template>
 
     <xsl:template match="rdf:RDF" mode="ldh:GridViewBlock" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
