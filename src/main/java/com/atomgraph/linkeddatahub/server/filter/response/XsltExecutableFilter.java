@@ -103,26 +103,21 @@ public class XsltExecutableFilter implements ContainerResponseFilter
                 ClientStylesheetService stylesheetService = getSystem().getClientStylesheetService();
 
                 if (packages.isEmpty()) req.setProperty(AC.stylesheet.getURI(), getXsltExecutable(stylesheet));
-                else if (stylesheetService == null)
-                    // no compiler configured: compose server-side only, which is how packages behaved
-                    // before client-side composition existed
-                    req.setProperty(AC.stylesheet.getURI(), getXsltExecutable(getApplication().get(), stylesheet, packages));
                 else
                 {
-                    String key = stylesheetService.getKey(packages);
+                    // server-side composition is never withheld: a declarative import takes effect on the
+                    // next request, and it is the only rendering an instance whose compiler is unreachable
+                    // will ever get
+                    req.setProperty(AC.stylesheet.getURI(), getXsltExecutable(getApplication().get(), stylesheet, packages));
 
-                    if (stylesheetService.isPublished(key))
+                    if (stylesheetService != null)
                     {
-                        req.setProperty(LDH.clientStylesheet.getURI(), stylesheetService.getPublicPath(key));
-                        req.setProperty(AC.stylesheet.getURI(), getXsltExecutable(getApplication().get(), stylesheet, packages));
-                    }
-                    else
-                    {
-                        // both renderers stay on the uncomposed stylesheet until the compiled one exists.
-                        // Composing server-side while the client cannot is what makes a package's rules
-                        // appear on load and vanish on the first client-side navigation
-                        stylesheetService.buildAsync(key, getStylesheets(packages));
-                        req.setProperty(AC.stylesheet.getURI(), getXsltExecutable(stylesheet));
+                        String key = stylesheetService.getKey(packages);
+
+                        // until the composed stylesheet exists the client renders without the package, as it
+                        // always has; compiling one closes that window rather than opening it
+                        if (stylesheetService.isPublished(key)) req.setProperty(LDH.clientStylesheet.getURI(), stylesheetService.getPublicPath(key));
+                        else stylesheetService.buildAsync(key, getStylesheets(packages));
                     }
                 }
             }
