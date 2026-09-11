@@ -25,7 +25,6 @@ import com.atomgraph.linkeddatahub.vocabulary.LDHT;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.linkeddatahub.vocabulary.ORCID;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
-import com.atomgraph.client.vocabulary.LDT;
 import com.atomgraph.core.util.Link;
 import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
@@ -127,7 +126,6 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
             {
                 com.atomgraph.linkeddatahub.apps.model.Application app = appOpt.get();
                 if (log.isDebugEnabled()) log.debug("Passing $lapp:Application to XSLT: <{}>", app);
-                params.put(new QName("ldt", LDT.base.getNameSpace(), LDT.base.getLocalName()), new XdmAtomicValue(app.getBaseURI()));
                 params.put(new QName("lapp", LAPP.origin.getNameSpace(), LAPP.origin.getLocalName()), new XdmAtomicValue(app.getOriginURI()));
             }
             
