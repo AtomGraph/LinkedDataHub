@@ -43,6 +43,15 @@ a.external::after { content: "⤴"; padding-left: 0.2em; }
    the card edges - the table can stay flush because its border draws inside. In the design system the
    grid lives in normal flow; the page scrolls it, and the sticky pager pins to that scrollport instead */
 .container-results:has(> .ldh-grid-block) { max-height: none; overflow: visible; }
+/* the design's GridCard image slot is a decorative block with a glyph in it; LDH's card puts a real
+   <img> there whenever the resource has an ac:image(), so the image has to fill the slot's 4:3 box
+   itself. The slot is a flex item of the column-flex card, where min-height: auto resolves to the
+   image's transferred content size and outvotes the slot's own aspect-ratio - a tall source (a 400x1400
+   coat of arms) then drove the card to the image's height. min-height: 0 lets the ratio hold, and the
+   image fits the box it is given rather than sizing it - contain rather than cover, because ac:image()
+   is as often an emblem or a diagram as a photograph, and cropping one to fill a 4:3 box loses the subject */
+.ldh-grid-block .card .img { min-height: 0; }
+.ldh-grid-block .card .img img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .map-canvas { height: 45em; width: 100%; }
 #uri { height: 24px; width: 100%; }
 /* Web-Client's default resource templates emit p.description summaries LDH does not surface */
