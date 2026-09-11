@@ -720,9 +720,9 @@ LIMIT   10
         <ixsl:set-property name="cookie" select="'LinkedDataHub.first-time-message=true; path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT'" object="ixsl:page()"/>
     </xsl:template>
 
-    <!-- close modal dialog -->
+    <!-- close modal dialog: the two dismiss affordances a dialog offers - the head's .ac-modal-x slot and the footer's Close/Cancel button. The slot is matched by its own class, not by a hook class on the button it holds: the kit's IconButton carries appearance classes only, and the bare .close it used to carry was the last Bootstrap token in the anatomy -->
 
-    <xsl:template match="div[contains-token(@class, 'modal')]//button[tokenize(@class, ' ') = ('close', 'btn-close')]" mode="ixsl:onclick" name="ldh:CloseModal">
+    <xsl:template match="div[contains-token(@class, 'modal')]//span[contains-token(@class, 'ac-modal-x')]/button | div[contains-token(@class, 'modal')]//button[contains-token(@class, 'btn-close')]" mode="ixsl:onclick" name="ldh:CloseModal">
         <xsl:for-each select="ancestor::div[contains-token(@class, 'modal')]">
             <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>

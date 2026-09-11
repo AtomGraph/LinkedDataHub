@@ -511,9 +511,9 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$context"/>
     </xsl:function>
     
-    <!-- close popup overlay (info window) -->
+    <!-- close popup overlay (info window). The info window borrows the dialog head anatomy, so its dismiss slot also matches ldh:CloseModal - which would remove the whole dialog when a map renders inside one (a view in Map mode in the search dialog). Same import precedence, so priority is what separates them -->
     
-    <xsl:template match="div[contains-token(@class, 'ol-overlay-container')]//span[contains-token(@class, 'ac-modal-x')]/button" mode="ixsl:onclick">
+    <xsl:template match="div[contains-token(@class, 'ol-overlay-container')]//span[contains-token(@class, 'ac-modal-x')]/button" mode="ixsl:onclick" priority="1">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'ol-overlay-container')]/div" as="element()"/>
         <xsl:variable name="overlay" select="ixsl:get($container, 'overlay')" as="item()"/>
         <xsl:variable name="map" select="ixsl:call($overlay, 'getMap', [])" as="item()"/>
