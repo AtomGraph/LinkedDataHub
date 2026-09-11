@@ -59,7 +59,7 @@ exclude-result-prefixes="#all">
                 </xsl:analyze-string>
             </xsl:for-each>
         </xsl:variable>
-        <xsl:sequence select="(for $entry in $entries return if (matches($entry, '^&lt;[^&gt;]+&gt;\s*;.*[;\s]rel\s*=\s*&quot;?timemap&quot;?([;\s]|$)')) then xs:anyURI(replace($entry, '^&lt;([^&gt;]+)&gt;.*$', '$1')) else ())[1]"/>
+        <xsl:sequence select="(for $entry in $entries return if (matches($entry, '^&lt;[^&gt;]+&gt;\s*;.*[;\s]rel\s*=\s*&quot;?timemap&quot;?([;,\s]|$)')) then xs:anyURI(replace($entry, '^&lt;([^&gt;]+)&gt;.*$', '$1')) else ())[1]"/>
     </xsl:function>
 
     <!-- Memento-Datetime response header value, present on ?version= responses -->
