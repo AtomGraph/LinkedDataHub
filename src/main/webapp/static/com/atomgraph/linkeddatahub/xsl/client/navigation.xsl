@@ -523,7 +523,7 @@ ORDER BY DESC(?created)
                             <xsl:variable name="content" select="*" as="element()*"/>
                             <!-- we want to prepend the parent resource to the beginning of the breadcrumb list -->
                             <xsl:result-document href="?." method="ixsl:replace-content">
-                                <xsl:apply-templates select="$resource" mode="ac:BreadcrumbItem">
+                                <xsl:apply-templates select="$resource" mode="ldh:BreadcrumbItem">
                                     <xsl:with-param name="leaf" select="$leaf"/>
                                 </xsl:apply-templates>
 

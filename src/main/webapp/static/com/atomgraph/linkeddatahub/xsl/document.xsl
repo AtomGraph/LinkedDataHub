@@ -285,7 +285,7 @@ exclude-result-prefixes="#all"
 
             <xsl:if test="not($ldh:ajaxRendering)">
                 <!-- render breadcrumbs server-side -->
-                <xsl:apply-templates select="key('resources', $uri)" mode="ac:BreadcrumbItem"/>
+                <xsl:apply-templates select="key('resources', $uri)" mode="ldh:BreadcrumbItem"/>
             </xsl:if>
         </div>
     </xsl:template>

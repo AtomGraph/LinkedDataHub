@@ -325,7 +325,7 @@ exclude-result-prefixes="#all"
     
     <!-- BREADCRUMBS -->
 
-    <xsl:template match="*[@rdf:about]" mode="ac:BreadcrumbItem">
+    <xsl:template match="*[@rdf:about]" mode="ldh:BreadcrumbItem">
         <xsl:param name="leaf" select="true()" as="xs:boolean"/>
         <!-- crumb icon by document type, as in the design system's breadcrumb -->
         <xsl:param name="icon" select="ldh:class-icon(., 'link')" as="xs:string"/>
