@@ -518,30 +518,44 @@ exclude-result-prefixes="#all"
         <xsl:param name="id" select="'view-modes'" as="xs:string?"/>
 
         <!-- the same mode-switcher component as the document-level ac:ModeSwitcher, in the design's compact
-             sz-sm variant: labelled trigger, full-size popover -->
+             sz-sm variant: labelled trigger, full-size popover. Only the anchor is emitted here - everything
+             that carries the active mode lives in the template below, which the mode handler re-renders in
+             place, so a switch cannot leave the trigger and the item states disagreeing -->
         <div class="ldh-mode sz-sm ac-menu-anchor">
-            <button type="button" class="label-row drop-toggle" title="{ac:label(key('resources', '&ac;Mode', document(ac:document-uri('&ac;'))))}">
-                <xsl:if test="$id">
-                    <xsl:attribute name="id" select="$id"/>
-                </xsl:if>
+            <xsl:apply-templates select="key('resources', $active-mode, document(ac:document-uri('&ac;')))" mode="ldh:ViewModeSwitcher">
+                <xsl:with-param name="id" select="$id"/>
+            </xsl:apply-templates>
+        </div>
+    </xsl:template>
 
-                <span class="msi" aria-hidden="true"><xsl:value-of select="(map:get($ldh:mode-icons, string($active-mode)), 'view_list')[1]"/></span>
-                <span class="label">
-                    <xsl:apply-templates select="key('resources', $active-mode, document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                </span>
-                <span class="msi sm caret" aria-hidden="true">expand_more</span>
-            </button>
+    <!-- the switcher's content, in the context of the active mode: the trigger reports it, the popover
+         marks it. The DOM is the source of truth for which mode a view is in - every other view handler
+         reads it back off the item carrying 'is-active' - so trigger and items come from one emitter -->
+    <xsl:template match="*[@rdf:about]" mode="ldh:ViewModeSwitcher">
+        <xsl:param name="id" select="'view-modes'" as="xs:string?"/>
+        <xsl:variable name="active-mode" select="xs:anyURI(@rdf:about)" as="xs:anyURI"/>
 
-            <div class="modes-pop view-mode-list" role="menu">
-                <xsl:for-each select="('&ac;ReadMode', '&ac;ListMode', '&ac;TableMode', '&ac;GridMode', '&ac;ChartMode', '&ac;MapMode', '&ac;GraphMode')">
-                    <xsl:for-each select="key('resources', ., document(ac:document-uri('&ac;')))">
-                        <xsl:apply-templates select="." mode="ac:ModeSwitcherItem">
-                            <xsl:with-param name="active" select="@rdf:about = $active-mode"/>
-                            <xsl:with-param name="href" select="()"/>
-                        </xsl:apply-templates>
-                    </xsl:for-each>
+        <button type="button" class="label-row drop-toggle" title="{ac:label(key('resources', '&ac;Mode', document(ac:document-uri('&ac;'))))}">
+            <xsl:if test="$id">
+                <xsl:attribute name="id" select="$id"/>
+            </xsl:if>
+
+            <span class="msi" aria-hidden="true"><xsl:value-of select="(map:get($ldh:mode-icons, string($active-mode)), 'view_list')[1]"/></span>
+            <span class="label">
+                <xsl:apply-templates select="." mode="ac:label"/>
+            </span>
+            <span class="msi sm caret" aria-hidden="true">expand_more</span>
+        </button>
+
+        <div class="modes-pop view-mode-list" role="menu">
+            <xsl:for-each select="('&ac;ReadMode', '&ac;ListMode', '&ac;TableMode', '&ac;GridMode', '&ac;ChartMode', '&ac;MapMode', '&ac;GraphMode')">
+                <xsl:for-each select="key('resources', ., document(ac:document-uri('&ac;')))">
+                    <xsl:apply-templates select="." mode="ac:ModeSwitcherItem">
+                        <xsl:with-param name="active" select="@rdf:about = $active-mode"/>
+                        <xsl:with-param name="href" select="()"/>
+                    </xsl:apply-templates>
                 </xsl:for-each>
-            </div>
+            </xsl:for-each>
         </div>
     </xsl:template>
 
@@ -2071,13 +2085,20 @@ exclude-result-prefixes="#all"
 
         <xsl:sequence select="ldh:busy-cursor()"/>
 
-        <!-- deactivate the other mode items -->
-        <xsl:for-each select="../a">
-            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-active', false())"/>
-        </xsl:for-each>
-        <!-- activate this mode item -->
-        <xsl:for-each select=".">
-            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-active', true())"/>
+        <!-- the pick dismisses the menu and the switcher re-renders around the mode just chosen, so the
+             trigger's icon and label, the items' is-active, aria-checked and tick all move together. The
+             class alone is not a cosmetic detail: every other view handler (pager, sort, facets, parallax)
+             reads the active mode back off the item carrying it -->
+        <xsl:for-each select="ancestor::*[contains-token(@class, 'ac-menu-anchor')][1]">
+            <xsl:variable name="id" select="(*[contains-token(@class, 'drop-toggle')]/@id)[1]!string()" as="xs:string?"/>
+
+            <xsl:apply-templates select="." mode="ldh:CloseMenu"/>
+
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:apply-templates select="key('resources', $active-mode, document(ac:document-uri('&ac;')))" mode="ldh:ViewModeSwitcher">
+                    <xsl:with-param name="id" select="$id"/>
+                </xsl:apply-templates>
+            </xsl:result-document>
         </xsl:for-each>
 
         <xsl:variable name="view-context" as="map(*)">
