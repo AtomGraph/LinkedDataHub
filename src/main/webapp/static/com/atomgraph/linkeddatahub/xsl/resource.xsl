@@ -1617,26 +1617,6 @@ exclude-result-prefixes="#all"
         </div>
     </xsl:template>
     
-    <!-- VIOLATION -->
-
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;URISyntaxViolation']" mode="ac:Violation">
-        <xsl:param name="class" select="'ac-alert va-negative'" as="xs:string?"/>
-
-        <xsl:apply-templates select="." mode="ac:InlineAlert">
-            <xsl:with-param name="class" select="$class"/>
-            <xsl:with-param name="text" select="string(rdfs:label)"/>
-        </xsl:apply-templates>
-    </xsl:template>
-
-    <xsl:template match="*[rdf:type/@rdf:resource = '&sh;ValidationResult']" mode="ac:Violation">
-        <xsl:param name="class" select="'ac-alert va-negative'" as="xs:string?"/>
-
-        <xsl:apply-templates select="." mode="ac:InlineAlert">
-            <xsl:with-param name="class" select="$class"/>
-            <xsl:with-param name="text" select="string(sh:resultMessage)"/>
-        </xsl:apply-templates>
-    </xsl:template>
-    
     <!-- EXCEPTION -->
     
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ldh:Exception"/>
