@@ -2970,7 +2970,14 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   border: 1px solid var(--border-default);
   background: var(--surface-2);
   border-radius: var(--r-md);
-  overflow: hidden;
+  /* Same constraint as .ldh-block above, and for the same reason: a nested block
+     hosts a view's toolbar, and the mode switcher's .modes-pop is absolutely
+     positioned inside it. `overflow: hidden` clips it to the well — a drop-up
+     menu loses every item above the well's top edge — and the z-index the block
+     takes while a menu is open cannot rescue it, since clipping happens before
+     paint order is considered. Nothing paints into the corners to justify the
+     clip: the head is transparent and the body is inset by its own padding. */
+  overflow: visible;
   margin-top: var(--sp-4);
 }
 .ldh-text-block + .ldh-nblock { margin-top: var(--sp-5); }
