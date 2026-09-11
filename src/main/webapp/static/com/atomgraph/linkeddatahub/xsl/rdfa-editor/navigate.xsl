@@ -617,7 +617,7 @@ version="3.0">
                             <xsl:sequence select="ixsl:call(rdfae:selection(),
                                 'setBaseAndExtent', [ $node, $position - 1, $node,
                                     $position - 1 + string-length($query) ])[current-date() lt xs:date('2000-01-01')]"/>
-                            <xsl:sequence select="ixsl:call(ixsl:get($node, 'parentElement'), 'scrollIntoView',
+                            <xsl:sequence select="ixsl:call($node/parent::*, 'scrollIntoView',
                                 [ map{ 'block': 'center' } ])[current-date() lt xs:date('2000-01-01')]"/>
                             <ixsl:set-property name="findNode" select="$node" object="rdfae:editor-state()"/>
                             <ixsl:set-property name="findOffset"

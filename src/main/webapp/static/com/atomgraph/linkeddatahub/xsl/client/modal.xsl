@@ -731,9 +731,9 @@ LIMIT   10
     <!-- a press on the backdrop itself (outside the dialog card) dismisses the dialog; presses inside land on a child, which the containment test filters out -->
 
     <xsl:template match="div[contains-token(@class, 'ac-backdrop')]" mode="ixsl:onclick">
-        <xsl:variable name="target" select="ixsl:get(ixsl:event(), 'target')"/>
+        <xsl:variable name="target" select="ixsl:get(ixsl:event(), 'target')" as="node()?"/>
 
-        <xsl:if test="empty(*[ixsl:call(., 'contains', [ $target ])])">
+        <xsl:if test="empty($target/ancestor-or-self::node() intersect *)">
             <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:if>
     </xsl:template>
@@ -950,7 +950,7 @@ LIMIT   10
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="form" select="." as="element()"/>
         <xsl:variable name="method" select="upper-case(@method)" as="xs:string"/>
-        <xsl:variable name="id" select="ixsl:get($form, 'id')" as="xs:string"/>
+        <xsl:variable name="id" select="string($form/@id)" as="xs:string"/>
         <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
         <xsl:variable name="enctype" select="ixsl:get($form, 'enctype')" as="xs:string"/>
         <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
@@ -1283,17 +1283,21 @@ LIMIT   10
 
         <!-- clear the errors initially -->
         <xsl:for-each select="$prop-groups">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-violation', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-violation', false())"/>
         </xsl:for-each>
 
         <xsl:choose>
             <!-- required input values missing (parent, limit), throw an error -->
             <xsl:when test="exists($required-prop-groups/descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))])">
-                <xsl:sequence select="$required-prop-groups[descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-violation', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:for-each select="$required-prop-groups[descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))]]">
+                    <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-violation', true())"/>
+                </xsl:for-each>
             </xsl:when>
             <!-- no class checked (or schema never loaded): flag the classes prop-group -->
             <xsl:when test="empty($checked-classes)">
-                <xsl:sequence select="descendant::div[contains-token(@class, 'endpoint-classes')]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-violation', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:for-each select="descendant::div[contains-token(@class, 'endpoint-classes')]">
+                    <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-violation', true())"/>
+                </xsl:for-each>
             </xsl:when>
             <!-- all required values present: build and PUT one container document per checked class -->
             <xsl:otherwise>
@@ -1332,13 +1336,15 @@ LIMIT   10
 
         <!-- clear the errors initially -->
         <xsl:for-each select="$prop-groups">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-violation', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-violation', false())"/>
         </xsl:for-each>
 
         <xsl:choose>
             <!-- required input values missing, throw an error -->
             <xsl:when test="exists($required-prop-groups/descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))])">
-                <xsl:sequence select="$required-prop-groups[descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-violation', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:for-each select="$required-prop-groups[descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))]]">
+                    <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-violation', true())"/>
+                </xsl:for-each>
             </xsl:when>
             <!-- all required values present, orchestrate the import + constructor derivation -->
             <xsl:otherwise>
@@ -1389,13 +1395,15 @@ LIMIT   10
 
         <!-- clear the errors initially -->
         <xsl:for-each select="$prop-groups">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-violation', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-violation', false())"/>
         </xsl:for-each>
 
         <xsl:choose>
             <!-- required input values missing, throw an error -->
             <xsl:when test="exists($required-prop-groups/descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))])">
-                <xsl:sequence select="$required-prop-groups[descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-violation', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:for-each select="$required-prop-groups[descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))]]">
+                    <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-violation', true())"/>
+                </xsl:for-each>
             </xsl:when>
             <!-- all required values present, orchestrate the proxy fetch + append -->
             <xsl:otherwise>

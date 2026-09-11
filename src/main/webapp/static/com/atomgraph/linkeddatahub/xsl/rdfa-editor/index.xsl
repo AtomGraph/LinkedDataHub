@@ -60,7 +60,7 @@ version="3.0">
          LinkedDataHub's window.LinkedDataHub); reached everywhere via rdfae:editor-state().
          Hosts with their own initial template call this from there instead of main -->
     <xsl:template name="rdfae:init-state">
-        <xsl:variable name="state" select="ixsl:call(ixsl:window(), 'Object', [])"/>
+        <xsl:variable name="state" select="ixsl:new('Object', [])"/>
         <ixsl:set-property name="rdfaEditor" select="$state" object="ixsl:window()"/>
         <xsl:for-each select="('editingSpan', 'range', 'activeBlock', 'draggedBlock',
                 'editRange', 'editingLink', 'insertHost', 'lastUndoHost',

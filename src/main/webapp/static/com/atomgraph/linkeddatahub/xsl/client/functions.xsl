@@ -178,7 +178,9 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:css-token" as="xs:string">
         <xsl:param name="name" as="xs:string"/>
 
-        <xsl:sequence select="normalize-space(ixsl:call(ixsl:call(ixsl:window(), 'getComputedStyle', [ ixsl:page()/* ]), 'getPropertyValue', [ $name ]))"/>
+        <!-- getPropertyValue rather than ixsl:get on the declaration: a custom property is not exposed as a
+             property of CSSStyleDeclaration, only through the indexed accessor -->
+        <xsl:sequence select="normalize-space(ixsl:call(ixsl:style(ixsl:page()/*), 'getPropertyValue', [ $name ]))"/>
     </xsl:function>
     
     <!-- format URLs in DataTable as HTML links. !!! Saxon-JS cannot intercept Google Charts events, therefore set a full proxied URL !!! -->
@@ -594,6 +596,25 @@ exclude-result-prefixes="#all"
         "/>
     </xsl:function>
 
+    <!-- The write counterpart of contains-token(): @class with $token present iff $on. Its three uses cover
+         everything DOMTokenList offered — add is $on = true(), remove is false(), and the two-argument
+         classList.toggle(token, force) IS this function, which is what all but one of the platform's toggles
+         were. Paired with ixsl:set-attribute it keeps the whole class-state story in XPath, the same vocabulary
+         the match patterns already select on, rather than splitting it between contains-token() on the read
+         side and a DOM object on the write side.
+
+         distinct-values, not a concatenation: a token already present keeps its position and is not repeated,
+         which is what classList.add promises and what a plain `@class || ' x'` quietly breaks on the second
+         call. normalize-space absorbs the separator runs a hand-edited class attribute can carry. -->
+    <xsl:function name="ldh:set-token" as="xs:string">
+        <xsl:param name="class" as="xs:string?"/>
+        <xsl:param name="token" as="xs:string"/>
+        <xsl:param name="on" as="xs:boolean"/>
+        <xsl:variable name="tokens" select="tokenize(normalize-space($class), ' ')[. ne '']" as="xs:string*"/>
+
+        <xsl:sequence select="string-join(if ($on) then distinct-values(($tokens, $token)) else $tokens[. ne $token], ' ')"/>
+    </xsl:function>
+
     <!-- Raises the busy cursor when an interaction starts async work. Its counterpart is not a matching call at
          every terminal branch but ixsl:finally(ldh:reset-cursor#0) on the chain the work runs in, which settles
          once whatever the outcome: the branch-by-branch resets this replaced were missing from error branches
@@ -624,6 +645,16 @@ exclude-result-prefixes="#all"
         <xsl:param name="error" as="map(*)"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+
+        <!-- the same statement as the cursor reset, made about the page's results regions: a chain that
+             died between ldh:begin-view-refresh and the render (a metadata request rejecting, say) would
+             otherwise leave results dimmed and inert for the rest of the session. Page-wide rather than
+             per-view because a 0-arg failure handler cannot be told which view it was - clearing one that
+             is still legitimately loading only drops the dimming early, which the render then repairs -->
+        <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'container-results')][contains-token(@class, 'is-busy')]">
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-busy', false())"/>
+            <ixsl:remove-attribute name="aria-busy"/>
+        </xsl:for-each>
 
         <xsl:if test="$error?code ne 'Q{&ldh;}HTTPError'">
             <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ $error?message ])"/>

@@ -38,6 +38,13 @@ a.external::after { content: "⤴"; padding-left: 0.2em; }
    (it borrows the .ac-modal-head/.ac-modal-body anatomy but is not a dialog) */
 #rdfa-editor-overlay { position: absolute; min-width: 360px; max-width: 520px; z-index: 10001; background: var(--surface-0); border-radius: var(--r-lg); box-shadow: var(--shadow-xl); display: flex; flex-direction: column; overflow: hidden; }
 .container-results { max-height: 80em; overflow: auto; }
+/* A re-query (page flip, sort, facet) keeps the rendered results standing and marks them busy, rather than
+   replacing them with a skeleton: the rows are already on the screen, and emptying the region collapsed the
+   block to the placeholder's height and back on every click. Dimmed and inert, so the height cannot move and
+   a second page request cannot be queued on top of the first; the pager, being outside this region, stays
+   visible and stays put. */
+.container-results.is-busy { opacity: 0.55; pointer-events: none; transition: opacity var(--dur-fast) var(--ease-out-soft); }
+@media (prefers-reduced-motion: reduce) { .container-results.is-busy { transition: none; } }
 /* grid mode opts out of the scrollport: the m3 card draws its border as an outside box-shadow, and the
    grid sits flush in the wrapper (the list reset zeroes .ldh-grid-block padding), so any clip box cuts
    the card edges - the table can stay flush because its border draws inside. In the design system the
@@ -154,16 +161,15 @@ circle { cursor: move; }
 .ac-table th.sortable .sort-arrow { vertical-align: middle; margin-left: 2px; visibility: hidden; color: var(--fg-muted); }
 .ac-table th.sortable:hover .sort-arrow { visibility: visible; }
 .ac-table th.sortable[aria-sort] .sort-arrow { visibility: visible; color: var(--fg-1); }
-/* the pager is emitted inside .container-results beside the rows it pages (every view mode renders
-   the two together, and a mode/facet/sort/page change replaces them as one), so it pins to the
-   bottom edge of the scrollport the header pins to the top of and the rows scroll between them.
-   It keeps its place in flow, so nothing is permanently covered - at the end of the scroll it rests
-   where it sits - but above that the rows pass beneath it, so it needs its host's surface under it.
-   left: 0 holds it against the port when a wide table scrolls sideways too */
-.container-results > .ldh-pager { position: sticky; bottom: 0; left: 0; z-index: 1; background: var(--bg-card); }
-/* a view nested in a well sits on the well's surface instead of the card's, along the same depth ramp */
-.ldh-nblock .container-results > .ldh-pager { background: var(--surface-2); }
-.ldh-nblock[data-depth="2"] .container-results > .ldh-pager, .ldh-nblock[data-depth="3"] .container-results > .ldh-pager { background: var(--surface-3); }
+/* The pager's sticky pinning and the three surface-matching backgrounds under it are gone with the reason
+   for them: it was emitted INSIDE .container-results, so it scrolled with the rows and needed its host's
+   surface painted under it where they passed beneath. It is now the results region's sibling, below the
+   scrollport rather than inside it, which is the kit's own anatomy for a paged view - app.css lays that out
+   (.ldh-block-body:has(> .ldh-pager:not(:empty))) and nothing is left for the app layer to say about it.
+   Nothing scrolls under the pager in that anatomy, so it needs no opaque surface of its own, which is what
+   made the nblock overrides removable rather than merely movable: a nested view's body carries .main without
+   .ldh-block-body, so the kit's column never applied there anyway and the pager simply sits below the
+   scrollport, transparent, on whichever well surface the depth ramp has put behind it. */
 .content-body { padding: var(--sp-4) var(--sp-6); max-width: var(--ldh-content-w); margin: 0 auto; }
 /* stacking rhythm between block cards and alerts */
 .content-body .ldh-block, .content-body .ac-alert { margin-bottom: var(--sp-4); }

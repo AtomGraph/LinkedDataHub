@@ -167,7 +167,7 @@ exclude-result-prefixes="#all"
                 </xsl:choose>
             </xsl:map>
         </xsl:variable>
-        <xsl:variable name="options-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $options => serialize(map{ 'method': 'json' }) ])"/>
+        <xsl:variable name="options-obj" select="ixsl:json-parse($options => serialize(map{ 'method': 'json' }))"/>
         <xsl:sequence select="ixsl:call($chart, 'draw', [ $data-table, $options-obj ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
@@ -208,7 +208,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="container" select="." as="element()"/>
         <xsl:param name="graph" select="descendant::*[@property = '&ldh;graph']/@resource" as="xs:anyURI?"/>
         <xsl:param name="mode" select="descendant::*[@property = '&ac;mode']/@resource" as="xs:anyURI?"/>
-        <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
+        <xsl:param name="container-id" select="string($container/@id)" as="xs:string"/>
         <xsl:param name="chart-type-id" select="'chart-type-' || generate-id()" as="xs:string"/>
         <xsl:param name="category-id" select="'category-' || generate-id()" as="xs:string"/>
         <xsl:param name="series-id" select="'series-' || generate-id()" as="xs:string"/>
@@ -442,7 +442,7 @@ exclude-result-prefixes="#all"
          (resource.xsl), leaving @typeof on the inner .block-row - so matching on both never fires -->
     <xsl:template match="div[contains-token(@class, 'block')][@about]//button[contains-token(@class, 'btn-create-chart')]" mode="ixsl:onclick">
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][@about][1]" as="element()"/>
-        <xsl:variable name="textarea-id" select="$block//textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
+        <xsl:variable name="textarea-id" select="$block//textarea[@name = 'query']/@id" as="xs:string"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
         <xsl:variable name="query-type" select="ldh:query-type($query-string)" as="xs:string"/>

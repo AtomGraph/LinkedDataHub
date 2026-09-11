@@ -323,9 +323,7 @@ version="3.0">
                 </xsl:for-each>
                 <xsl:for-each select="$items[$next]">
                     <ixsl:set-attribute name="aria-selected" select="'true'"/>
-                    <xsl:variable name="opts" select="ixsl:call(ixsl:window(), 'Object', [])"/>
-                    <ixsl:set-property name="block" select="'nearest'" object="$opts"/>
-                    <xsl:sequence select="ixsl:call(., 'scrollIntoView', [ $opts ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:call(., 'scrollIntoView', [ map{ 'block': 'nearest' } ])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise/>

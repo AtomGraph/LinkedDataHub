@@ -371,26 +371,35 @@ exclude-result-prefixes="#all"
     
     <!-- pager -->
 
-    <xsl:template name="ldh:Pager">
-        <xsl:param name="container-id" as="xs:string?"/>
+    <!-- fills the persistent pager host emitted beside .container-results by ldh:RenderViewResults. The host
+         outlives every re-render - the control the reader just clicked must not vanish from under the cursor,
+         and a pager that is removed and re-added moves the page under them - so only its contents are
+         replaced. An unpaged result set empties it and .ldh-pager:empty collapses the strip -->
+    <xsl:template name="ldh:RenderPager">
+        <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="result-count" as="xs:integer?"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="total-count" as="xs:integer?"/>
+        <!-- the row-shaped modes are the ones that page: the map unsets LIMIT/OFFSET to plot every member,
+             and the chart and graph draw a whole result set rather than a page of rows -->
+        <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:variable name="offset" select="if ($select-xml/json:map/json:number[@key = 'offset']) then xs:integer($select-xml/json:map/json:number[@key = 'offset']) else 0" as="xs:integer"/>
         <xsl:variable name="limit" select="if ($select-xml/json:map/json:number[@key = 'limit']) then xs:integer($select-xml/json:map/json:number[@key = 'limit']) else 0" as="xs:integer"/>
-        <xsl:variable name="show" select="$limit gt 0 and (($offset - $limit) ge 0 or $result-count ge $limit)" as="xs:boolean"/>
+        <xsl:variable name="show" select="$active-mode = ('&ac;ListMode', '&ac;TableMode', '&ac;GridMode') and $limit gt 0 and (($offset - $limit) ge 0 or $result-count ge $limit)" as="xs:boolean"/>
 
-        <!-- do not show pagination if the children document count is less than the page limit -->
-        <xsl:if test="$show">
-            <div class="ldh-pager" role="navigation" aria-label="{ac:label(key('resources', 'pagination', ldh:translations()))}">
-                <xsl:call-template name="ldh:PagerControls">
-                    <xsl:with-param name="container-id" select="$container-id"/>
-                    <xsl:with-param name="result-count" select="$result-count"/>
-                    <xsl:with-param name="select-xml" select="$select-xml"/>
-                    <xsl:with-param name="total-count" select="$total-count"/>
-                </xsl:call-template>
-            </div>
-        </xsl:if>
+        <xsl:for-each select="id($container-id || '-pager', ixsl:page())">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <!-- do not show pagination if the children document count is less than the page limit -->
+                <xsl:if test="$show">
+                    <xsl:call-template name="ldh:PagerControls">
+                        <xsl:with-param name="container-id" select="$container-id"/>
+                        <xsl:with-param name="result-count" select="$result-count"/>
+                        <xsl:with-param name="select-xml" select="$select-xml"/>
+                        <xsl:with-param name="total-count" select="$total-count"/>
+                    </xsl:call-template>
+                </xsl:if>
+            </xsl:result-document>
+        </xsl:for-each>
     </xsl:template>
 
     <!-- the three pager zones (page-size selector · prev/status/next · page count), re-rendered by ldh:result-count-response once the COUNT total arrives -->
@@ -585,15 +594,29 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:function>
 
-    <xsl:function name="ldh:show-view-skeleton" as="empty-sequence()" ixsl:updating="yes">
+    <!-- a re-query marks the rendered results busy and leaves them standing. Emptying the results region
+         instead (a skeleton in their place) collapsed the block to the placeholder's height and back on
+         every page flip, and took the pager - which used to live inside the region - down with it -->
+    <xsl:function name="ldh:begin-view-refresh" as="empty-sequence()" ixsl:updating="yes">
         <xsl:param name="container" as="element()"/>
 
-        <xsl:variable name="skeleton" as="element()">
-            <xsl:call-template name="ldh:BlockSkeleton"/>
-        </xsl:variable>
+        <!-- [*] keeps this off the initial load, where there is nothing yet to hold in place and the
+             collapsed ldh-block-bar is the honest state -->
         <xsl:for-each select="$container//div[contains-token(@class, 'container-results')][*]">
-            <xsl:sequence select="ixsl:call(., 'replaceChildren', [])[current-date() lt xs:date('2000-01-01')]"/>
-            <xsl:sequence select="ixsl:call(., 'append', [ $skeleton ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-busy', true())"/>
+            <ixsl:set-attribute name="aria-busy" select="'true'"/>
+        </xsl:for-each>
+    </xsl:function>
+
+    <!-- by id rather than by element: the callers that end a refresh (the results render, the results error
+         handler) hold the correlation id, not the view container that ldh:begin-view-refresh is given - which
+         at that point has not been stamped with it yet -->
+    <xsl:function name="ldh:end-view-refresh" as="empty-sequence()" ixsl:updating="yes">
+        <xsl:param name="container-id" as="xs:string"/>
+
+        <xsl:for-each select="id($container-id || '-container-results', ixsl:page())">
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-busy', false())"/>
+            <ixsl:remove-attribute name="aria-busy"/>
         </xsl:for-each>
     </xsl:function>
 
@@ -611,11 +634,11 @@ exclude-result-prefixes="#all"
              emits it, so the re-render call sites (paging, sort, facets) leave it empty and lose nothing -->
         <xsl:param name="form-actions" as="element()?"/>
 
-        <!-- a re-query replaces already-rendered results: the skeleton holds their place until the
-             response lands (the initial load keeps the collapsed block bar instead). DOM calls, not
-             xsl:result-document: every RenderView call site evaluates inside the view-context variable,
-             where result-document is not allowed -->
-        <xsl:sequence select="ldh:show-view-skeleton($container)"/>
+        <!-- a re-query leaves the rendered results standing and marks them busy until the response lands.
+             A class and an attribute, so this is legal here: every RenderView call site evaluates inside
+             the view-context variable constructor, which is temporary output state (XTDE1480) and rules
+             out xsl:result-document - emitting markup from here would have to move to the handlers -->
+        <xsl:sequence select="ldh:begin-view-refresh($container)"/>
 
         <!-- wrap SELECT into a DESCRIBE -->
         <xsl:variable name="query-xml" as="element()">
@@ -641,7 +664,9 @@ exclude-result-prefixes="#all"
              query cycles and the response-side render loses its own containers; the first cycle's value is
              stamped on the container and every later cycle reuses it -->
         <xsl:variable name="container-id" select="($container/@data-view-id/string(), generate-id($container))[1]" as="xs:string"/>
-        <xsl:sequence select="if (empty($container/@data-view-id)) then ixsl:call($container, 'setAttribute', [ 'data-view-id', $container-id ])[current-date() lt xs:date('2000-01-01')] else ()"/>
+        <xsl:for-each select="$container[empty(@data-view-id)]">
+            <ixsl:set-attribute name="data-view-id" select="$container-id"/>
+        </xsl:for-each>
         <xsl:sequence select="
           map{
             'request': $request,
@@ -766,11 +791,11 @@ exclude-result-prefixes="#all"
         <xsl:param name="order-by-desc" select="$select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:boolean[@key = 'descending']" as="xs:boolean?"/>
         <xsl:param name="cache" as="item()"/>
 
+        <!-- total cached by ldh:result-count-response (or the exact-count short-circuit); empty until the first COUNT response arrives -->
+        <xsl:variable name="total-count" select="if (ixsl:contains($cache, 'result-count')) then xs:integer(ixsl:get($cache, 'result-count')) else ()" as="xs:integer?"/>
+
         <!-- Skip ViewModeChoice replace-content for GraphMode: its canvas lives in the persistent graph-host (sibling of $container), not in container-results, so re-rendering this area would only churn unused DOM. -->
         <xsl:if test="not($active-mode = '&ac;GraphMode')">
-            <!-- total cached by ldh:result-count-response (or the exact-count short-circuit); empty until the first COUNT response arrives -->
-            <xsl:variable name="total-count" select="if (ixsl:contains($cache, 'result-count')) then xs:integer(ixsl:get($cache, 'result-count')) else ()" as="xs:integer?"/>
-
             <xsl:for-each select="$container">
                 <xsl:result-document href="?." method="ixsl:replace-content">
                     <xsl:call-template name="ldh:ViewModeChoice">
@@ -788,6 +813,21 @@ exclude-result-prefixes="#all"
                 </xsl:result-document>
             </xsl:for-each>
         </xsl:if>
+
+        <!-- the pager is a sibling of the results region, not a child of it, so this render is separate from
+             the one above and the results swap can never take the pagination controls with it. Called for
+             every mode, including the ones that do not page: switching to the map has to empty the pager
+             the list left behind, which only happens if the host is rendered either way -->
+        <xsl:call-template name="ldh:RenderPager">
+            <xsl:with-param name="container-id" select="$container-id"/>
+            <xsl:with-param name="result-count" select="count($results/rdf:RDF/rdf:Description)"/>
+            <xsl:with-param name="select-xml" select="$select-xml"/>
+            <xsl:with-param name="total-count" select="$total-count"/>
+            <xsl:with-param name="active-mode" select="$active-mode"/>
+        </xsl:call-template>
+
+        <!-- the results that stood in for these are gone; drop the busy state they carried -->
+        <xsl:sequence select="ldh:end-view-refresh($container-id)"/>
 
         <!-- toggle visibility between persistent graph-host (GraphMode) and ephemeral container-results (everything else) -->
         <xsl:variable name="graph-host" select="id($container-id || '-graph-host', ixsl:page())" as="element()?"/>
@@ -942,7 +982,6 @@ exclude-result-prefixes="#all"
             <xsl:when test="$active-mode = '&ac;ListMode'">
                 <xsl:apply-templates select="$results" mode="ldh:ListViewBlock">
                     <xsl:with-param name="container-id" select="$container-id"/>
-                    <xsl:with-param name="select-xml" select="$select-xml"/>
                     <xsl:with-param name="total-count" select="$total-count"/>
                     <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
                     <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
@@ -951,7 +990,6 @@ exclude-result-prefixes="#all"
             <xsl:when test="$active-mode = '&ac;TableMode'">
                 <xsl:apply-templates select="$results" mode="ldh:TableViewBlock">
                     <xsl:with-param name="container-id" select="$container-id"/>
-                    <xsl:with-param name="select-xml" select="$select-xml"/>
                     <xsl:with-param name="total-count" select="$total-count"/>
                     <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
                     <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
@@ -964,7 +1002,6 @@ exclude-result-prefixes="#all"
             <xsl:when test="$active-mode = '&ac;GridMode'">
                 <xsl:apply-templates select="$results" mode="ldh:GridViewBlock">
                     <xsl:with-param name="container-id" select="$container-id"/>
-                    <xsl:with-param name="select-xml" select="$select-xml"/>
                     <xsl:with-param name="total-count" select="$total-count"/>
                     <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
                     <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
@@ -1144,8 +1181,14 @@ exclude-result-prefixes="#all"
                 <div id="{$container-id}-graph-host" class="graph-3d-host" style="display: none;"></div>
                 <div id="{$container-results-id}" class="container-results"></div>
 
-                <!-- outside .container-results on purpose: ldh:RenderViewMode replaces that div's content on
-                     every mode, facet, sort and page change, which would take the footer with it -->
+                <!-- the pager and the footer sit outside .container-results on purpose: ldh:RenderViewMode
+                     replaces that div's content on every mode, facet, sort and page change, and anything
+                     inside it goes with the rows. The pager used to be inside, emitted by each view-mode
+                     template beside the rows, so every page flip removed the controls that drove it and the
+                     block collapsed to the placeholder's height and back. It is the results region's sibling,
+                     which is also the design system's anatomy for a paged view -->
+                <div id="{$container-id}-pager" class="ldh-pager" role="navigation" aria-label="{ac:label(key('resources', 'pagination', ldh:translations()))}"></div>
+
                 <xsl:sequence select="$form-actions"/>
             </xsl:result-document>
         </xsl:if>
@@ -1265,7 +1308,6 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="rdf:RDF" mode="ldh:ListViewBlock" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
         <xsl:param name="container-id" as="xs:string?"/>
-        <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="total-count" as="xs:integer?"/>
         <xsl:variable name="result-count" select="count(rdf:Description)" as="xs:integer"/>
 
@@ -1289,12 +1331,6 @@ exclude-result-prefixes="#all"
                 <ul class="ldh-list-block">
                     <xsl:apply-templates select="." mode="ac:List"/>
                 </ul>
-                <xsl:call-template name="ldh:Pager">
-                    <xsl:with-param name="container-id" select="$container-id"/>
-                    <xsl:with-param name="result-count" select="$result-count"/>
-                    <xsl:with-param name="select-xml" select="$select-xml"/>
-                    <xsl:with-param name="total-count" select="$total-count"/>
-                </xsl:call-template>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -1450,7 +1486,6 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="rdf:RDF" mode="ldh:GridViewBlock" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
         <xsl:param name="container-id" as="xs:string?"/>
-        <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="total-count" as="xs:integer?"/>
         <xsl:variable name="result-count" select="count(rdf:Description)" as="xs:integer"/>
 
@@ -1474,12 +1509,6 @@ exclude-result-prefixes="#all"
                 <ul class="ldh-grid-block">
                     <xsl:apply-templates select="." mode="ac:Grid"/>
                 </ul>
-                <xsl:call-template name="ldh:Pager">
-                    <xsl:with-param name="container-id" select="$container-id"/>
-                    <xsl:with-param name="result-count" select="$result-count"/>
-                    <xsl:with-param name="select-xml" select="$select-xml"/>
-                    <xsl:with-param name="total-count" select="$total-count"/>
-                </xsl:call-template>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -1488,7 +1517,6 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="rdf:RDF" mode="ldh:TableViewBlock" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
         <xsl:param name="container-id" as="xs:string?"/>
-        <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="total-count" as="xs:integer?"/>
         <xsl:variable name="result-count" select="count(rdf:Description)" as="xs:integer"/>
 
@@ -1510,12 +1538,6 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <xsl:otherwise>
                 <xsl:apply-templates select="." mode="ac:ResultsTable"/>
-                <xsl:call-template name="ldh:Pager">
-                    <xsl:with-param name="container-id" select="$container-id"/>
-                    <xsl:with-param name="result-count" select="$result-count"/>
-                    <xsl:with-param name="select-xml" select="$select-xml"/>
-                    <xsl:with-param name="total-count" select="$total-count"/>
-                </xsl:call-template>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -1815,7 +1837,7 @@ exclude-result-prefixes="#all"
             <xsl:for-each select=".//button[contains-token(@class, 'sort-opt')]">
                 <xsl:variable name="on" select="string(@data-var-name) = $var-name" as="xs:boolean"/>
 
-                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-on', $on ])[current-date() lt xs:date('2000-01-01')]"/>
+                <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-on', $on)"/>
                 <ixsl:set-attribute name="aria-checked" select="if ($on) then 'true' else 'false'" object="."/>
                 <xsl:choose>
                     <xsl:when test="$on and not(span[contains-token(@class, 'tick')])">
@@ -1867,8 +1889,8 @@ exclude-result-prefixes="#all"
 
         <!-- visibility is the is-open state alone (ldh.css shows the popover off it) -->
         <xsl:variable name="open" select="not(contains-token($facet-container/@class, 'is-open'))" as="xs:boolean"/>
-        <xsl:sequence select="ixsl:call(ixsl:get($facet-container, 'classList'), 'toggle', [ 'is-open', $open ])[current-date() lt xs:date('2000-01-01')]"/>
-        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-open', $open ])[current-date() lt xs:date('2000-01-01')]"/>
+        <ixsl:set-attribute name="class" select="ldh:set-token($facet-container/@class, 'is-open', $open)" object="$facet-container"/>
+        <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-open', $open)"/>
         <ixsl:set-property name="ariaExpanded" select="if ($open) then 'true' else 'false'" object="."/>
     </xsl:template>
 
@@ -1971,7 +1993,7 @@ exclude-result-prefixes="#all"
             on-failure="ldh:promise-failure#1"/>
 
         <!-- toggle the arrow direction -->
-        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-order-by-desc' ])[current-date() lt xs:date('2000-01-01')]"/>
+        <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'btn-order-by-desc', not(contains-token(@class, 'btn-order-by-desc')))"/>
     </xsl:template>
 
     <!-- View sortable column header handler (generic handler for all Views): the active column toggles direction, any other column becomes the sort key -->
@@ -2051,11 +2073,11 @@ exclude-result-prefixes="#all"
 
         <!-- deactivate the other mode items -->
         <xsl:for-each select="../a">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-active', false())"/>
         </xsl:for-each>
         <!-- activate this mode item -->
         <xsl:for-each select=".">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-active', true())"/>
         </xsl:for-each>
 
         <xsl:variable name="view-context" as="map(*)">
@@ -2105,11 +2127,11 @@ exclude-result-prefixes="#all"
             <xsl:when test="not($loaded)">
                 <!-- open the popover immediately with a loading state; the response replaces it with the value list.
                      'is-open' elevates the host .ldh-block (app.css :has() rule) so the popover paints above subsequent blocks -->
-                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
+                <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-open', true())"/>
                 <ixsl:set-property name="ariaExpanded" select="'true'" object="."/>
 
                 <xsl:for-each select="$facet-container">
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-open', true())"/>
                     <xsl:result-document href="?." method="ixsl:append-content">
                         <div class="facet-pop" role="menu" aria-label="{string(button[contains-token(@class, 'facet-pill')]/span[contains-token(@class, 'pred')])}">
                             <div class="head">
@@ -2199,8 +2221,8 @@ exclude-result-prefixes="#all"
             <xsl:otherwise>
                 <!-- visibility is the is-open state alone (ldh.css shows the popover off it) -->
                 <xsl:variable name="open" select="not(contains-token($facet-container/@class, 'is-open'))" as="xs:boolean"/>
-                <xsl:sequence select="ixsl:call(ixsl:get($facet-container, 'classList'), 'toggle', [ 'is-open', $open ])[current-date() lt xs:date('2000-01-01')]"/>
-                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-open', $open ])[current-date() lt xs:date('2000-01-01')]"/>
+                <ixsl:set-attribute name="class" select="ldh:set-token($facet-container/@class, 'is-open', $open)" object="$facet-container"/>
+                <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-open', $open)"/>
                 <ixsl:set-property name="ariaExpanded" select="if ($open) then 'true' else 'false'" object="."/>
             </xsl:otherwise>
         </xsl:choose>
@@ -2209,9 +2231,9 @@ exclude-result-prefixes="#all"
     <!-- closes a facet popover: hides the value list, drops the container's 'is-open' state and resets its pill's caret -->
 
     <xsl:template match="div[contains-token(@class, 'facet-pop')]" mode="ldh:CloseFacetPopover">
-        <xsl:sequence select="ixsl:call(ixsl:get(.., 'classList'), 'remove', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
+        <ixsl:set-attribute name="class" select="ldh:set-token(../@class, 'is-open', false())" object=".."/>
         <xsl:for-each select="preceding-sibling::button[contains-token(@class, 'facet-pill')]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-open', false())"/>
             <ixsl:set-property name="ariaExpanded" select="'false'" object="."/>
         </xsl:for-each>
     </xsl:template>
@@ -2237,7 +2259,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="selected" select="child::div[contains-token(@class, 'facet-pop')]/div[contains-token(@class, 'facet-values')]/button[contains-token(@class, 'opt')][contains-token(@class, 'is-on')]" as="element()*"/>
 
         <xsl:for-each select="button[contains-token(@class, 'facet-pill')]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-active', exists($selected) ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-active', exists($selected))"/>
 
             <xsl:for-each select="span[contains-token(@class, 'val')]">
                 <xsl:result-document href="?." method="ixsl:replace-content">
@@ -2282,7 +2304,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="facet" select="ancestor::div[contains-token(@class, 'facet')][1]" as="element()"/>
 
         <xsl:for-each select="$facet//button[contains-token(@class, 'opt')][contains-token(@class, 'is-on')]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-on' ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-on', false())"/>
             <ixsl:set-property name="ariaChecked" select="'false'" object="."/>
         </xsl:for-each>
 
@@ -2295,7 +2317,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="facet" select="ancestor::div[contains-token(@class, 'facet')][1]" as="element()"/>
 
         <xsl:for-each select="$facet//button[contains-token(@class, 'opt')][contains-token(@class, 'is-on')]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-on' ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-on', false())"/>
             <ixsl:set-property name="ariaChecked" select="'false'" object="."/>
         </xsl:for-each>
 
@@ -2309,7 +2331,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="facets" select="$container//div[contains-token(@class, 'facet')][.//button[contains-token(@class, 'opt')][contains-token(@class, 'is-on')]]" as="element()*"/>
 
         <xsl:for-each select="$facets//button[contains-token(@class, 'opt')][contains-token(@class, 'is-on')]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-on' ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-on', false())"/>
             <ixsl:set-property name="ariaChecked" select="'false'" object="."/>
         </xsl:for-each>
 
@@ -2324,7 +2346,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[@typeof = '&ldh;View']//div[contains-token(@class, 'facet-values')]/button[contains-token(@class, 'opt')]" mode="ixsl:onclick">
         <xsl:variable name="on" select="not(contains-token(@class, 'is-on'))" as="xs:boolean"/>
 
-        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-on', $on ])[current-date() lt xs:date('2000-01-01')]"/>
+        <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-on', $on)"/>
         <ixsl:set-property name="ariaChecked" select="if ($on) then 'true' else 'false'" object="."/>
 
         <xsl:apply-templates select="ancestor::div[contains-token(@class, 'facet')][1]" mode="ldh:FilterFacet"/>
@@ -3166,7 +3188,12 @@ exclude-result-prefixes="#all"
 
                             <xsl:if test="$container-id">
                                 <xsl:variable name="view-results" select="if (ixsl:contains($context('cache'), 'results')) then ixsl:get($context('cache'), 'results') else ()" as="document-node()?"/>
-                                <xsl:for-each select="id($container-id || '-container-results', ixsl:page())//div[contains-token(@class, 'ldh-pager')]">
+                                <!-- the pager has its own id: it is no longer reachable by descending into the results
+                                     region, and no longer needs to be. [*] keeps the total a refresh of controls that
+                                     are already showing rather than a reason to show them - whether this view pages at
+                                     all is ldh:RenderPager's decision, and an unpaged or non-row mode leaves the host
+                                     empty for exactly that reason -->
+                                <xsl:for-each select="id($container-id || '-pager', ixsl:page())[*]">
                                     <xsl:result-document href="?." method="ixsl:replace-content">
                                         <xsl:call-template name="ldh:PagerControls">
                                             <xsl:with-param name="container-id" select="$container-id"/>

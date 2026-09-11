@@ -526,14 +526,14 @@ WHERE
     <xsl:template match="select[@name = 'datatype']" mode="ixsl:onchange">
         <xsl:variable name="custom" as="xs:boolean" select="string(ixsl:get(., 'value')) eq $rdfae:custom"/>
         <xsl:for-each select="ancestor::form//input[@name = 'custom-datatype']/ancestor::div[contains-token(@class, 'ac-field')][1]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-hidden', not($custom) ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-hidden', not($custom))"/>
         </xsl:for-each>
 
         <xsl:apply-imports/>
 
         <xsl:variable name="datatype" as="xs:boolean" select="string(ixsl:get(., 'value')) ne ''"/>
         <xsl:for-each select="ancestor::form//input[@name = 'lang']/ancestor::div[contains-token(@class, 'ac-field-box')][1]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-disabled', $datatype ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-disabled', $datatype)"/>
         </xsl:for-each>
     </xsl:template>
 
@@ -1260,7 +1260,7 @@ WHERE
         <xsl:param name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
         <xsl:param name="request-body" as="document-node()?"/> <!-- no default: built below from the parsed triples, which must follow the ldh:FormPreSubmit pass -->
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="id" select="ixsl:get($form, 'id')" as="xs:string"/>
+        <xsl:variable name="id" select="string($form/@id)" as="xs:string"/>
         <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
         <xsl:variable name="enctype" select="ixsl:get($form, 'enctype')" as="xs:string"/>
         <xsl:variable name="accept" select="'application/rdf+xml'" as="xs:string"/>
@@ -1329,7 +1329,7 @@ WHERE
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="form" select="." as="element()"/>
         <xsl:variable name="method" select="upper-case(@method)" as="xs:string"/>
-        <xsl:variable name="id" select="ixsl:get($form, 'id')" as="xs:string"/>
+        <xsl:variable name="id" select="string($form/@id)" as="xs:string"/>
         <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
         <xsl:variable name="enctype" select="ixsl:get($form, 'enctype')" as="xs:string"/>
         <xsl:variable name="about" select="$block/@about" as="xs:anyURI"/>

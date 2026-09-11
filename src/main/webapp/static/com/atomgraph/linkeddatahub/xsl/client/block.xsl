@@ -262,14 +262,14 @@ exclude-result-prefixes="#all"
         <xsl:if test="exists($panels)">
             <xsl:for-each select="../button[contains-token(@class, 'ac-tab')]">
                 <ixsl:set-attribute name="aria-selected" select="'false'"/>
-                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-on' ])[current-date() lt xs:date('2000-01-01')]"/>
+                <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-on', false())"/>
             </xsl:for-each>
             <xsl:for-each select="$panels">
                 <ixsl:set-attribute name="hidden" select="'hidden'"/>
             </xsl:for-each>
             <xsl:for-each select="$tab">
                 <ixsl:set-attribute name="aria-selected" select="'true'"/>
-                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'is-on' ])[current-date() lt xs:date('2000-01-01')]"/>
+                <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-on', true())"/>
             </xsl:for-each>
             <xsl:for-each select="$panels[@id = $tab/@aria-controls]">
                 <ixsl:remove-attribute name="hidden"/>
@@ -290,7 +290,7 @@ exclude-result-prefixes="#all"
                 <!-- opening one popover closes the others -->
                 <xsl:apply-templates select="ixsl:page()//div[contains-token(@class, 'links-nav')][contains-token(@class, 'is-open')]" mode="ldh:CloseLinksPopover"/>
 
-                <xsl:sequence select="ixsl:call(ixsl:get($links-nav, 'classList'), 'add', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
+                <ixsl:set-attribute name="class" select="ldh:set-token($links-nav/@class, 'is-open', true())" object="$links-nav"/>
                 <ixsl:set-attribute name="aria-pressed" select="'true'"/>
 
                 <!-- backlink row list is not rendered yet - load it -->
@@ -326,7 +326,7 @@ exclude-result-prefixes="#all"
     <!-- closes a block links popover and resets its button state -->
 
     <xsl:template match="div[contains-token(@class, 'links-nav')]" mode="ldh:CloseLinksPopover">
-        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
+        <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-open', false())"/>
 
         <xsl:for-each select="button[contains-token(@class, 'tb-links')]">
             <ixsl:set-attribute name="aria-pressed" select="'false'"/>
@@ -525,7 +525,7 @@ exclude-result-prefixes="#all"
             <xsl:sequence select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'setDragImage', [ ., ixsl:get(ixsl:event(), 'clientX') - ixsl:get($rect, 'x'), ixsl:get(ixsl:event(), 'clientY') - ixsl:get($rect, 'y') ])"/>
             <!-- marks the drag source so ondragover/enter can refuse the two no-op positions (drop on
                  the source itself or on its previous sibling), which ondrop would silently ignore -->
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'dragging' ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'dragging', true())"/>
         </xsl:for-each>
     </xsl:template>
     
@@ -533,10 +533,10 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="span[contains-token(@class, 'ldh-bh-drag')]" mode="ixsl:ondragend">
         <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'content-body')]/div[contains-token(@class, 'ldh-block-row')][contains-token(@class, 'drag-over')]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'drag-over', false())"/>
         </xsl:for-each>
         <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'content-body')]/div[contains-token(@class, 'ldh-block-row')][contains-token(@class, 'dragging')]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'dragging', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'dragging', false())"/>
         </xsl:for-each>
     </xsl:template>
 
@@ -570,7 +570,7 @@ exclude-result-prefixes="#all"
 
         <xsl:if test="array:flatten(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types')) = 'application/vnd.atomgraph.linkeddatahub.block'">
             <xsl:for-each select="$block/../div[contains-token(@class, 'ldh-block-row')][contains-token(@class, 'drag-over')][not(. is $block)]">
-                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'drag-over', false())"/>
             </xsl:for-each>
             <!-- the marker only advertises drops that change the order: the source block and its previous
                  sibling are no-op positions, so entering them clears the marker instead of moving it -->
@@ -578,10 +578,10 @@ exclude-result-prefixes="#all"
                 <xsl:when test="not($block[contains-token(@class, 'dragging')]) and not($block/following-sibling::*[1][contains-token(@class, 'dragging')])">
                     <!-- canceling dragenter designates the drop target per the HTML spec processing model -->
                     <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-                    <xsl:sequence select="ixsl:call(ixsl:get($block, 'classList'), 'toggle', [ 'drag-over', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <ixsl:set-attribute name="class" select="ldh:set-token($block/@class, 'drag-over', true())" object="$block"/>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:sequence select="ixsl:call(ixsl:get($block, 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <ixsl:set-attribute name="class" select="ldh:set-token($block/@class, 'drag-over', false())" object="$block"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:if>
@@ -594,7 +594,7 @@ exclude-result-prefixes="#all"
 
         <xsl:if test="array:flatten(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types')) = 'application/vnd.atomgraph.linkeddatahub.block'">
             <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-            <xsl:sequence select="ixsl:call(ixsl:get($block, 'classList'), 'toggle', [ 'drag-over', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token($block/@class, 'drag-over', false())" object="$block"/>
 
             <xsl:variable name="target-uri" select="$block/@about" as="xs:anyURI?"/>
             <xsl:variable name="source-uri" select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'getData', [ 'text/uri-list' ])" as="xs:anyURI"/>
@@ -982,19 +982,19 @@ exclude-result-prefixes="#all"
                              container listing injects the same view under each of its children, and the view URI alone
                              would give them all one @about. A space separates the two because a URI cannot contain one -->
                         <xsl:variable name="id" select="'id' || ldh:hash-code($container/@about || ' ' || $view-uri)" as="xs:string"/>
-                        <xsl:variable name="view-block-html" as="element()">
-                            <xsl:apply-templates select="$view-resource" mode="ldh:BlockRow">
-                                <xsl:with-param name="about" select="xs:anyURI($base-uri || '#' || $id)"/>
-                                <xsl:with-param name="id" select="$id"/>
-                                <xsl:with-param name="nested" select="true()"/>
-                                <xsl:with-param name="depth" select="count($container/ancestor-or-self::div[contains-token(@class, 'block') or contains-token(@class, 'ldh-block-row')])"/>
-                                <xsl:with-param name="property-metadata" select="$context('property-metadata')" tunnel="yes"/>
-                                <xsl:with-param name="object-metadata" select="$context('object-metadata')" tunnel="yes"/>
-                            </xsl:apply-templates>
-                        </xsl:variable>
-
                         <!-- append into the wrapper's .span12 so the new block's ancestor::*[@about][1] is the outer #this with @about ending in #this -->
-                        <xsl:sequence select="ixsl:call($span12, 'append', [ $view-block-html ])[current-date() lt xs:date('2000-01-01')]"/>
+                        <xsl:for-each select="$span12">
+                            <xsl:result-document href="?." method="ixsl:append-content">
+                                <xsl:apply-templates select="$view-resource" mode="ldh:BlockRow">
+                                    <xsl:with-param name="about" select="xs:anyURI($base-uri || '#' || $id)"/>
+                                    <xsl:with-param name="id" select="$id"/>
+                                    <xsl:with-param name="nested" select="true()"/>
+                                    <xsl:with-param name="depth" select="count($container/ancestor-or-self::div[contains-token(@class, 'block') or contains-token(@class, 'ldh-block-row')])"/>
+                                    <xsl:with-param name="property-metadata" select="$context('property-metadata')" tunnel="yes"/>
+                                    <xsl:with-param name="object-metadata" select="$context('object-metadata')" tunnel="yes"/>
+                                </xsl:apply-templates>
+                            </xsl:result-document>
+                        </xsl:for-each>
 
                         <!-- hydrate the freshly-injected wrapper via the existing view.xsl:62 RenderRow handler -->
                         <xsl:variable name="injected" select="$span12/*[last()]" as="element()?"/>
@@ -1193,8 +1193,8 @@ exclude-result-prefixes="#all"
             <xsl:for-each select="./div[contains-token(@class, 'ldh-block-bar')]">
                 <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:for-each>
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-loading' ])[current-date() lt xs:date('2000-01-01')]"/>
-            <xsl:sequence select="ixsl:call(., 'removeAttribute', [ 'aria-busy' ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-loading', false())"/>
+            <ixsl:remove-attribute name="aria-busy"/>
         </xsl:for-each>
 
         <xsl:sequence select="$context"/>
@@ -1253,7 +1253,7 @@ exclude-result-prefixes="#all"
             <xsl:for-each select="$container/ancestor-or-self::div[contains-token(@class, 'block')][1][contains-token(@class, 'is-loading')]">
                 <xsl:for-each select="./div[contains-token(@class, 'ldh-block-bar')]">
                     <!-- a determinate width stops the indeterminate sweep -->
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'style'), 'setProperty', [ '--p', $percent || '%' ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <ixsl:set-style name="--p" select="$percent || '%'"/>
                     <ixsl:set-attribute name="aria-valuenow" select="string(round($percent))"/>
                 </xsl:for-each>
             </xsl:for-each>

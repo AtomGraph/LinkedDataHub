@@ -72,7 +72,7 @@ exclude-result-prefixes="#all"
     <!-- render query editor -->
     
     <xsl:template match="textarea[@id][contains-token(@class, 'sparql-query-string')]" mode="ldh:RenderRowForm" priority="1">
-        <xsl:variable name="textarea-id" select="ixsl:get(., 'id')" as="xs:string"/>
+        <xsl:variable name="textarea-id" select="string(@id)" as="xs:string"/>
         <!-- initialize YASQE SPARQL editor on the textarea -->
         <xsl:variable name="js-statement" as="element()">
             <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
@@ -82,7 +82,7 @@ exclude-result-prefixes="#all"
 
     <!-- YASQE.fromTextArea() hides the textarea it was built from, so focusing it does nothing: the editor instance takes the focus instead -->
     <xsl:template match="textarea[@id][contains-token(@class, 'sparql-query-string')]" mode="ldh:FocusControl" priority="1">
-        <xsl:sequence select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), ixsl:get(., 'id')), 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), string(@id)), 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
 <!--    <xsl:template name="onQueryServiceLoad">
@@ -327,7 +327,7 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="form[contains-token(@class, 'sparql-query-form')]" mode="ldh:RunQuery">
         <xsl:sequence select="ldh:busy-cursor()"/>
-        <xsl:variable name="textarea-id" select="descendant::textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
+        <xsl:variable name="textarea-id" select="string(descendant::textarea[@name = 'query']/@id)" as="xs:string"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
         <xsl:variable name="service-meta" select="descendant::div[contains-token(@class, 'ldh-sparql-meta')][input[@name = 'pu'][@value = '&ldh;service']]" as="element()"/>
@@ -431,11 +431,11 @@ exclude-result-prefixes="#all"
              applies at once while ixsl:set-attribute is queued to the end of the transform, so clearing
              this tab and then re-setting it would hang the outcome on the order updates are applied in. -->
         <xsl:for-each select="../button except .">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-on', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-on', false())"/>
             <ixsl:set-attribute name="aria-selected" select="'false'"/>
         </xsl:for-each>
         <!-- activate this tab -->
-        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-on', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+        <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-on', true())"/>
         <ixsl:set-attribute name="aria-selected" select="'true'"/>
 
         <!-- the tabs share one panel, so its label follows the active tab -->
@@ -475,12 +475,12 @@ exclude-result-prefixes="#all"
         <xsl:variable name="sparql" select="($block//div[contains-token(@class, 'ldh-sparql')])[1]" as="element()"/>
         <xsl:variable name="show" select="contains-token($sparql/@class, 'is-collapsed')" as="xs:boolean"/>
 
-        <xsl:sequence select="ixsl:call(ixsl:get($sparql, 'classList'), 'toggle', [ 'is-collapsed', not($show) ])[current-date() lt xs:date('2000-01-01')]"/>
+        <ixsl:set-attribute name="class" select="ldh:set-token($sparql/@class, 'is-collapsed', not($show))" object="$sparql"/>
         <ixsl:set-attribute name="aria-pressed" select="if ($show) then 'true' else 'false'"/>
 
         <xsl:if test="$show">
             <!-- CodeMirror measured a hidden host when YASQE initialized, so the reveal re-measures and focuses -->
-            <xsl:variable name="textarea-id" select="($block//textarea[contains-token(@class, 'sparql-query-string')])[1]/ixsl:get(., 'id')" as="xs:string"/>
+            <xsl:variable name="textarea-id" select="($block//textarea[contains-token(@class, 'sparql-query-string')])[1]/@id" as="xs:string"/>
             <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
             <xsl:sequence select="ixsl:call($yasqe, 'refresh', [])[current-date() lt xs:date('2000-01-01')]"/>
             <xsl:sequence select="ixsl:call($yasqe, 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
@@ -493,7 +493,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
         <xsl:variable name="form" select="$container//form[contains-token(@class, 'sparql-query-form')]" as="element()"/>
-        <xsl:variable name="textarea-id" select="$form//textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
+        <xsl:variable name="textarea-id" select="$form//textarea[@name = 'query']/@id" as="xs:string"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
         <xsl:variable name="query-id" select="'id' || ac:uuid()" as="xs:string"/>
@@ -563,7 +563,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
         <xsl:variable name="about" select="$block/@about" as="xs:anyURI"/>
         <xsl:variable name="textarea" select="ancestor::form/descendant::textarea[@name = 'query']" as="element()"/>
-        <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea/ixsl:get(., 'id'))"/>
+        <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea/@id)"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string?"/> <!-- get query string from YASQE -->
         <xsl:variable name="method" select="'PATCH'" as="xs:string"/>
         <xsl:variable name="action" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
@@ -620,7 +620,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
         <xsl:variable name="content-value" select="ixsl:get($container//div[contains-token(@class, 'main')]//input[@name = 'ou'], 'value')" as="xs:anyURI"/>
         <xsl:variable name="textarea" select="ancestor::form/descendant::textarea[@name = 'query']" as="element()"/>
-        <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea/ixsl:get(., 'id'))"/>
+        <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea/@id)"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string?"/> <!-- get query string from YASQE -->
         <xsl:variable name="service-uri" select="ancestor::form[1]/descendant::div[contains-token(@class, 'ldh-sparql-meta')]/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI?"/>
         <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ()))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->

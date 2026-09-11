@@ -261,12 +261,13 @@ WHERE
         <!-- create the RDFa editor state container (editor chrome initializes lazily, on the first editable region) -->
         <xsl:call-template name="rdfae:init-state"/>
 
-        <!-- handle OAuth ID token from URL fragment -->
-        <xsl:variable name="location-hash" select="ixsl:get(ixsl:get(ixsl:window(), 'location'), 'hash')" as="xs:string?"/>
+        <!-- handle OAuth ID token from URL fragment. ixsl:location() is window.location.toString(), so the
+             fragment arrives with the rest of the URL and the leading '#' is the separator, not part of it -->
+        <xsl:variable name="fragment" select="substring-after(ixsl:location(), '#')" as="xs:string"/>
         <xsl:choose>
-            <xsl:when test="$location-hash and starts-with($location-hash, '#id_token=')">
-                <xsl:variable name="id-token" select="substring-after($location-hash, '#id_token=')" as="xs:string"/>
-                <xsl:variable name="href" select="xs:anyURI(substring-before(ixsl:get(ixsl:get(ixsl:window(), 'location'), 'href'), '#'))" as="xs:anyURI"/>
+            <xsl:when test="starts-with($fragment, 'id_token=')">
+                <xsl:variable name="id-token" select="substring-after($fragment, 'id_token=')" as="xs:string"/>
+                <xsl:variable name="href" select="xs:anyURI(substring-before(ixsl:location(), '#'))" as="xs:anyURI"/>
                 <!-- set cookie with id_token -->
                 <ixsl:set-property name="cookie" select="concat('LinkedDataHub.id_token=', $id-token, '; path=/; secure')" object="ixsl:page()"/>
                 <!-- do a full page refresh to reload with authenticated context -->
@@ -415,7 +416,7 @@ WHERE
 
                             <!-- is-active is the whole visibility contract (ldh.css owns display) -->
                             <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][./div[contains-token(@class, 'document-body')][starts-with(@about, lapp:origin(ldh:request-uri()) || '/')]]">
-                                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-active' ])[current-date() lt xs:date('2000-01-01')]"/>
+                                <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-active', false())"/>
                             </xsl:for-each>
                         </xsl:if>
 
@@ -608,7 +609,7 @@ WHERE
 
                         <!-- is-active is the whole visibility contract (ldh.css owns display) -->
                         <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][./div[contains-token(@class, 'document-body')][starts-with(@about, lapp:origin(ldh:request-uri()) || '/')]]">
-                            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-active' ])[current-date() lt xs:date('2000-01-01')]"/>
+                            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-active', false())"/>
                         </xsl:for-each>
                     </xsl:if>
 
@@ -685,24 +686,24 @@ WHERE
 
         <!-- deactivate all tab <li>s (the state rides the li so the underline spans the close button; aria-current rides the anchor) -->
         <xsl:for-each select="id('tab-bar-list', ixsl:page())/li">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-active' ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-active', false())"/>
             <xsl:for-each select="a">
-                <xsl:sequence select="ixsl:call(., 'removeAttribute', [ 'aria-current' ])[current-date() lt xs:date('2000-01-01')]"/>
+                <ixsl:remove-attribute name="aria-current"/>
             </xsl:for-each>
         </xsl:for-each>
         <!-- activate this tab <li> -->
-        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'is-active' ])[current-date() lt xs:date('2000-01-01')]"/>
+        <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-active', true())"/>
         <xsl:for-each select="a">
-            <xsl:sequence select="ixsl:call(., 'setAttribute', [ 'aria-current', 'page' ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="aria-current" select="'page'"/>
         </xsl:for-each>
 
         <!-- deactivate all tab panes; is-active is the whole visibility contract (ldh.css owns display) -->
         <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-active' ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-active', false())"/>
         </xsl:for-each>
         <!-- activate the tab pane -->
         <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][./div[contains-token(@class, 'document-body')]/@about = $doc-uri]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'is-active' ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-active', true())"/>
 
             <!-- sync acl:mode() to this pane's data-acl-modes (stamped from its document's Link header); the window flags otherwise go stale on fetch-less tab switches between panes -->
             <xsl:call-template name="ldh:SetAclModes">
@@ -756,10 +757,10 @@ WHERE
             <xsl:otherwise>
                 <!-- is-active is the whole visibility contract (ldh.css owns display) -->
                 <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')]">
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', ['is-active'])[current-date() lt xs:date('2000-01-01')]"/>
+                    <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-active', false())"/>
                 </xsl:for-each>
                 <xsl:for-each select="id($pane-id, ixsl:page())">
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', ['is-active'])[current-date() lt xs:date('2000-01-01')]"/>
+                    <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-active', true())"/>
                 </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
@@ -847,7 +848,7 @@ WHERE
                     <ixsl:set-property name="{'`' || $scroll-id || '`'}" select="$pending - 1" object="ixsl:get(ixsl:window(), 'LinkedDataHub.pending-scrolls')"/>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:sequence select="ixsl:call(ixsl:window(), 'Reflect.deleteProperty', [ ixsl:get(ixsl:window(), 'LinkedDataHub.pending-scrolls'), $scroll-id ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <ixsl:remove-property name="{'`' || $scroll-id || '`'}" object="ixsl:get(ixsl:window(), 'LinkedDataHub.pending-scrolls')"/>
                     <xsl:if test="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]/div[contains-token(@class, 'document-body')]/@about = $doc-uri">
                         <xsl:call-template name="ldh:ScrollToFragment">
                             <xsl:with-param name="doc-uri" select="$doc-uri"/>
@@ -883,10 +884,10 @@ WHERE
         <xsl:variable name="state" as="map(xs:string, item())">
             <xsl:map>
                 <xsl:map-entry key="'href'" select="$href"/>
-                <xsl:map-entry key="'container-id'" select="ixsl:get($container, 'id')"/>
+                <xsl:map-entry key="'container-id'" select="string($container/@id)"/>
             </xsl:map>
         </xsl:variable>
-        <xsl:variable name="state-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $state => serialize(map{ 'method': 'json' }) ])"/>
+        <xsl:variable name="state-obj" select="ixsl:json-parse($state => serialize(map{ 'method': 'json' }))"/>
 
         <!-- push the latest state into history, or overwrite the current entry when it already stands for this navigation (ldh:SetDocumentState) -->
         <xsl:sequence select="ixsl:call(ixsl:window(), if ($replace) then 'history.replaceState' else 'history.pushState', [ $state-obj, $title, $href ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -985,7 +986,7 @@ WHERE
              (an inline display here outlived the switch back and kept the reactivated pane hidden) -->
         <xsl:if test="not(starts-with($doc-uri, lapp:origin(ldh:request-uri()) || '/'))">
             <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][./div[contains-token(@class, 'document-body')]/@about = ac:absolute-path(ldh:request-uri())]">
-                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-active' ])[current-date() lt xs:date('2000-01-01')]"/>
+                <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-active', false())"/>
             </xsl:for-each>
         </xsl:if>
 
@@ -1187,9 +1188,9 @@ WHERE
         <!-- one drop-down at a time: whichever group was open yields to this one -->
         <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ac-menu-anchor')][contains-token(@class, 'is-open')][not(. is $group)]" mode="ldh:CloseMenu"/>
 
-        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drop-up', $drop-up ])[current-date() lt xs:date('2000-01-01')]"/>
-        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'drop-left', $drop-left ])[current-date() lt xs:date('2000-01-01')]"/>
-        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-open', $open ])[current-date() lt xs:date('2000-01-01')]"/>
+        <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'drop-up', $drop-up)"/>
+        <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'drop-left', $drop-left)"/>
+        <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-open', $open)"/>
 
         <!-- a core Menu panel takes its placement class on open, measured against the viewport (the
              component's autoFlip); the drop-up/drop-left stamps above stay for the app-kit menus
@@ -1198,15 +1199,15 @@ WHERE
             <xsl:variable name="menu" select="." as="element()"/>
             <xsl:variable name="placement" select="'al-' || (if ($drop-up) then 'up-' else '') || (if ($drop-left) then 'end' else 'start')" as="xs:string"/>
             <xsl:for-each select="('al-start', 'al-end', 'al-up-start', 'al-up-end')[. ne $placement]">
-                <xsl:sequence select="ixsl:call(ixsl:get($menu, 'classList'), 'remove', [ . ])[current-date() lt xs:date('2000-01-01')]"/>
+                <ixsl:set-attribute name="class" select="ldh:set-token($menu/@class, ., false())" object="$menu"/>
             </xsl:for-each>
-            <xsl:sequence select="ixsl:call(ixsl:get($menu, 'classList'), 'add', [ $placement ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token($menu/@class, $placement, true())" object="$menu"/>
         </xsl:for-each>
         <!-- the trigger reports the menu state, and carries it: the design keys trigger styling
              (the avatar ring) on the trigger's own is-open -->
         <xsl:for-each select="*[contains-token(@class, 'drop-toggle')]">
             <ixsl:set-property name="ariaExpanded" select="if ($open) then 'true' else 'false'" object="."/>
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-open', $open ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-open', $open)"/>
         </xsl:for-each>
         <!-- focus moves INTO the menu on open, so Escape has something to restore from (§20) -->
         <xsl:if test="$open">
@@ -1250,10 +1251,10 @@ WHERE
          click lands outside it (the body handler in view.xsl), or a menu pick mounts a modal (ldh:ShowModalForm) -->
 
     <xsl:template match="*[contains-token(@class, 'ac-menu-anchor')]" mode="ldh:CloseMenu">
-        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
+        <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-open', false())"/>
         <xsl:for-each select="*[contains-token(@class, 'drop-toggle')]">
             <ixsl:set-property name="ariaExpanded" select="'false'" object="."/>
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-open', false())"/>
         </xsl:for-each>
     </xsl:template>
 
@@ -1268,17 +1269,17 @@ WHERE
         <!-- one drop-down at a time: whichever group or wrap was open yields to this one -->
         <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ac-menu-anchor')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')][not(. is $wrap)]" mode="ldh:CloseMenu"/>
 
-        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-open', $open ])[current-date() lt xs:date('2000-01-01')]"/>
+        <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-open', $open)"/>
         <xsl:for-each select="*[contains-token(@class, 'ldh-form-action')]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-open', $open ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-open', $open)"/>
             <ixsl:set-property name="ariaExpanded" select="if ($open) then 'true' else 'false'" object="."/>
         </xsl:for-each>
     </xsl:template>
 
     <xsl:template match="*[contains-token(@class, 'ldh-form-actions-wrap')]" mode="ldh:CloseMenu">
-        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
+        <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-open', false())"/>
         <xsl:for-each select="*[contains-token(@class, 'ldh-form-action')]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-open', false())"/>
             <ixsl:set-property name="ariaExpanded" select="'false'" object="."/>
         </xsl:for-each>
     </xsl:template>
@@ -1295,9 +1296,9 @@ WHERE
          pointerdown precedes click, so closing here first would leave the toggle re-opening what it closed. -->
 
     <xsl:template match="body" mode="ixsl:onpointerdown">
-        <xsl:variable name="target" select="ixsl:get(ixsl:event(), 'target')"/>
+        <xsl:variable name="target" select="ixsl:get(ixsl:event(), 'target')" as="node()?"/>
         <xsl:for-each select="ixsl:page()//*[contains-token(@class, 'ac-menu-anchor')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]">
-            <xsl:if test="not(ixsl:call(., 'contains', [ $target ]))">
+            <xsl:if test="not($target/ancestor-or-self::node()[. is current()])">
                 <xsl:apply-templates select="." mode="ldh:CloseMenu"/>
             </xsl:if>
         </xsl:for-each>
@@ -1326,19 +1327,19 @@ WHERE
     <xsl:template match="div[contains-token(@class, 'ac-tabs')]/ul[contains-token(@class, 'ac-tablist')]/li/a" mode="ixsl:onclick">
         <!-- deactivate other tabs -->
         <xsl:for-each select="../../li">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-active', false())"/>
         </xsl:for-each>
         <!-- activate this tab -->
         <xsl:for-each select="..">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-active', true())"/>
         </xsl:for-each>
         <!-- deactivate other tab panes -->
         <xsl:for-each select="../../following-sibling::*[contains-token(@class, 'ldh-panes')]/*[contains-token(@class, 'ldh-pane')]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-active', false())"/>
         </xsl:for-each>
         <!-- activate this tab -->
         <xsl:for-each select="../../following-sibling::*[contains-token(@class, 'ldh-panes')]/*[contains-token(@class, 'ldh-pane')][count(preceding-sibling::*[contains-token(@class, 'ldh-pane')]) = count(current()/../preceding-sibling::li)]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-active', true())"/>
         </xsl:for-each>
     </xsl:template>
     
@@ -1350,7 +1351,7 @@ WHERE
         <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'navigator.clipboard'), 'writeText', [ $uri-or-bnode ])"/>
 
         <!-- transient confirmation: the glyph flips to a check and reverts after a beat -->
-        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'is-confirmed' ])[current-date() lt xs:date('2000-01-01')]"/>
+        <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-confirmed', true())"/>
         <xsl:for-each select="descendant::span[contains-token(@class, 'msi')][1]">
             <ixsl:set-property name="textContent" select="'check'" object="."/>
         </xsl:for-each>
@@ -1364,7 +1365,7 @@ WHERE
     <xsl:template name="ldh:ResetCopyUriConfirmation">
         <xsl:param name="button" as="element()"/>
 
-        <xsl:sequence select="ixsl:call(ixsl:get($button, 'classList'), 'remove', [ 'is-confirmed' ])[current-date() lt xs:date('2000-01-01')]"/>
+        <ixsl:set-attribute name="class" select="ldh:set-token($button/@class, 'is-confirmed', false())" object="$button"/>
         <xsl:for-each select="$button/descendant::span[contains-token(@class, 'msi')][1]">
             <ixsl:set-property name="textContent" select="'content_copy'" object="."/>
         </xsl:for-each>

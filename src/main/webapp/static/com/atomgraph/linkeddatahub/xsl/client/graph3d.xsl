@@ -241,8 +241,7 @@ WHERE
     <xsl:template match="button[contains-token(@class, 'graph-3d-fullscreen')]" mode="ixsl:onclick">
         <xsl:variable name="canvas-id" select="@data-canvas-id" as="xs:string"/>
         <xsl:variable name="canvas" select="id($canvas-id, ixsl:page())"/>
-        <xsl:variable name="class-list" select="ixsl:get($canvas, 'classList')"/>
-        <xsl:sequence select="ixsl:call($class-list, 'toggle', [ 'graph-3d-maximized' ])[current-date() lt xs:date('2000-01-01')]"/>
+        <ixsl:set-attribute name="class" select="ldh:set-token($canvas/@class, 'graph-3d-maximized', not(contains-token($canvas/@class, 'graph-3d-maximized')))" object="$canvas"/>
 
         <!-- resize the WebGL renderer / camera to match the new container size -->
         <xsl:variable name="graph-state" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.graphs'), $canvas-id)"/>
@@ -256,8 +255,7 @@ WHERE
         <xsl:if test="ixsl:get(ixsl:event(), 'key') = 'Escape'">
             <xsl:for-each select=".//div[contains-token(@class, 'graph-3d-maximized')]">
                 <xsl:variable name="canvas" select="." as="element()"/>
-                <xsl:variable name="class-list" select="ixsl:get($canvas, 'classList')"/>
-                <xsl:sequence select="ixsl:call($class-list, 'remove', [ 'graph-3d-maximized' ])[current-date() lt xs:date('2000-01-01')]"/>
+                <ixsl:set-attribute name="class" select="ldh:set-token($canvas/@class, 'graph-3d-maximized', false())" object="$canvas"/>
 
                 <xsl:variable name="graph-state" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.graphs'), string(@id))"/>
                 <xsl:variable name="graph-instance" select="ixsl:get($graph-state, 'instance')"/>

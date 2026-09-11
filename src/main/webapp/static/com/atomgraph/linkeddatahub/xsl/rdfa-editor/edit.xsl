@@ -898,7 +898,8 @@ version="3.0">
         <xsl:variable name="key" as="xs:string" select="string(ixsl:get($event, 'key'))"/>
         <xsl:variable name="chord" as="xs:boolean"
             select="(ixsl:get($event, 'ctrlKey') or ixsl:get($event, 'metaKey')) and not(ixsl:get($event, 'altKey'))"/>
-        <xsl:if test="ixsl:call(ixsl:get($event, 'target'), 'isSameNode', [ . ])">
+        <xsl:variable name="target" select="ixsl:get($event, 'target')" as="node()?"/>
+        <xsl:if test="$target is .">
             <xsl:choose>
                 <xsl:when test="$chord and lower-case($key) = 'z' and not(ixsl:get($event, 'shiftKey'))">
                     <xsl:sequence select="ixsl:call($event, 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
@@ -1195,7 +1196,7 @@ version="3.0">
 
         <xsl:sequence select="ixsl:call($range, 'insertNode', [ $node ])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:call-template name="rdfae:place-caret">
-            <xsl:with-param name="node" select="ixsl:get($node, 'parentNode')"/>
+            <xsl:with-param name="node" select="$node/.."/>
             <xsl:with-param name="offset" select="count($node/preceding-sibling::node()) + 1"/>
         </xsl:call-template>
     </xsl:template>
@@ -1712,7 +1713,7 @@ version="3.0">
                 <xsl:sequence select="ixsl:call($range, 'insertNode', [ $fragment ])[current-date() lt xs:date('2000-01-01')]"/>
                 <xsl:for-each select="$last">
                     <xsl:call-template name="rdfae:place-caret">
-                        <xsl:with-param name="node" select="ixsl:get(., 'parentNode')"/>
+                        <xsl:with-param name="node" select=".."/>
                         <xsl:with-param name="offset" select="count(preceding-sibling::node()) + 1"/>
                     </xsl:call-template>
                 </xsl:for-each>

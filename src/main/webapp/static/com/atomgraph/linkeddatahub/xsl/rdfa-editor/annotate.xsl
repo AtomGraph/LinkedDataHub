@@ -87,11 +87,10 @@ version="3.0">
     <xsl:function name="rdfae:selection-valid" as="xs:boolean">
         <xsl:param name="range"/>
 
-        <xsl:variable name="start" select="ixsl:get($range, 'startContainer')"/>
-        <xsl:variable name="end" select="ixsl:get($range, 'endContainer')"/>
-        <xsl:sequence select="ixsl:call($start, 'isSameNode', [ $end ])
-            or (ixsl:get($start, 'nodeType') = 3 and ixsl:get($end, 'nodeType') = 3
-                and ixsl:call(ixsl:get($start, 'parentNode'), 'isSameNode', [ ixsl:get($end, 'parentNode') ]))"/>
+        <xsl:variable name="start" select="ixsl:get($range, 'startContainer')" as="node()?"/>
+        <xsl:variable name="end" select="ixsl:get($range, 'endContainer')" as="node()?"/>
+        <xsl:sequence select="$start is $end
+            or ($start instance of text() and $end instance of text() and $start/.. is $end/..)"/>
     </xsl:function>
 
     <!-- the single write path for RDFa attributes, shared by create and edit. No modes:
@@ -189,7 +188,7 @@ version="3.0">
     <xsl:template name="rdfae:unwrap-element">
         <xsl:param name="element" as="element()"/>
 
-        <xsl:variable name="parent" select="ixsl:get($element, 'parentNode')"/>
+        <xsl:variable name="parent" select="$element/.." as="node()"/>
         <xsl:for-each select="1 to xs:integer(ixsl:get($element, 'childNodes.length'))">
             <xsl:sequence select="ixsl:call($parent, 'insertBefore', [ ixsl:get($element, 'firstChild'), $element ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
@@ -353,7 +352,8 @@ version="3.0">
 
     <!-- clicking the backdrop (not the content) closes the modal -->
     <xsl:template match="div[@id = 'output-modal']" mode="ixsl:onclick">
-        <xsl:if test="ixsl:call(ixsl:get(ixsl:event(), 'target'), 'isSameNode', [ . ])">
+        <xsl:variable name="target" select="ixsl:get(ixsl:event(), 'target')" as="node()?"/>
+        <xsl:if test="$target is .">
             <ixsl:set-style name="display" select="'none'"/>
         </xsl:if>
     </xsl:template>

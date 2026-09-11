@@ -206,17 +206,17 @@ ORDER BY DESC(?created)
         <!-- make the previously active list items inactive (the state rides the li so the ground spans
              the disclosure control; aria-current rides the anchor) -->
         <xsl:for-each select=".//li[contains-token(@class, 'is-active')]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-active', false())"/>
             <xsl:for-each select="./div/a">
-                <xsl:sequence select="ixsl:call(., 'removeAttribute', [ 'aria-current' ])[current-date() lt xs:date('2000-01-01')]"/>
+                <ixsl:remove-attribute name="aria-current"/>
             </xsl:for-each>
         </xsl:for-each>
         <!-- find li elements whose href (without query params) matches target href (without query params) -->
         <xsl:for-each select=".//li[./div/a[ac:document-uri(xs:anyURI(@href)) = $target-uri]]">
             <!-- mark the new list item as active -->
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-active', true())"/>
             <xsl:for-each select="./div/a">
-                <xsl:sequence select="ixsl:call(., 'setAttribute', [ 'aria-current', 'page' ])[current-date() lt xs:date('2000-01-01')]"/>
+                <ixsl:set-attribute name="aria-current" select="'page'"/>
             </xsl:for-each>
         </xsl:for-each>
     </xsl:template>
@@ -357,8 +357,8 @@ ORDER BY DESC(?created)
         <!-- check that the mouse is on the left edge -->
         <xsl:if test="$x = 0">
             <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]/div[contains-token(@class, 'left-sidebar')][not(contains-token(@class, 'is-open'))]">
-                <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
-                <xsl:sequence select="ixsl:call(., 'removeAttribute', [ 'inert' ])[current-date() lt xs:date('2000-01-01')]"/>
+                <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-open', true())"/>
+                <ixsl:remove-attribute name="inert"/>
             </xsl:for-each>
         </xsl:if>
 
@@ -392,8 +392,8 @@ ORDER BY DESC(?created)
     </xsl:template>
 
     <xsl:template match="div[contains-token(@class, 'ldh-sidebar')]" mode="ldh:CloseDrawer">
-        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'remove', [ 'is-open' ])[current-date() lt xs:date('2000-01-01')]"/>
-        <xsl:sequence select="ixsl:call(., 'setAttribute', [ 'inert', '' ])[current-date() lt xs:date('2000-01-01')]"/>
+        <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-open', false())"/>
+        <ixsl:set-attribute name="inert" select="''"/>
     </xsl:template>
 
     <xsl:template match="button[contains-token(@class, 'btn-close-sidebar')]" mode="ixsl:onclick">
@@ -437,9 +437,9 @@ ORDER BY DESC(?created)
         <xsl:variable name="container" select="../.." as="element()"/> <!-- the row's parent <li> -->
         <xsl:variable name="depth" select="count(ancestor::li)" as="xs:integer"/> <!-- children sit one level below this row -->
 
-        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expand-tree', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expanded-tree', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-        <xsl:sequence select="ixsl:call(., 'setAttribute', [ 'aria-expanded', 'true' ])[current-date() lt xs:date('2000-01-01')]"/>
+        <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'btn-expand-tree', false())"/>
+        <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'btn-expanded-tree', true())"/>
+        <ixsl:set-attribute name="aria-expanded" select="'true'"/>
         <xsl:for-each select="span[contains-token(@class, 'msi')]">
             <ixsl:set-property name="textContent" select="'expand_more'" object="."/>
         </xsl:for-each>
@@ -476,9 +476,9 @@ ORDER BY DESC(?created)
     <xsl:template match="button[contains-token(@class, 'btn-expanded-tree')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="../.." as="element()"/> <!-- the row's parent <li> -->
 
-        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expand-tree', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expanded-tree', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-        <xsl:sequence select="ixsl:call(., 'setAttribute', [ 'aria-expanded', 'false' ])[current-date() lt xs:date('2000-01-01')]"/>
+        <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'btn-expand-tree', true())"/>
+        <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'btn-expanded-tree', false())"/>
+        <ixsl:set-attribute name="aria-expanded" select="'false'"/>
         <xsl:for-each select="span[contains-token(@class, 'msi')]">
             <ixsl:set-property name="textContent" select="'chevron_right'" object="."/>
         </xsl:for-each>
@@ -582,9 +582,9 @@ ORDER BY DESC(?created)
 
                         <!-- Toggle button class -->
                         <xsl:for-each select="$expand-button">
-                            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expand-tree', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-expanded-tree', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-                            <xsl:sequence select="ixsl:call(., 'setAttribute', [ 'aria-expanded', 'true' ])[current-date() lt xs:date('2000-01-01')]"/>
+                            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'btn-expand-tree', false())"/>
+                            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'btn-expanded-tree', true())"/>
+                            <ixsl:set-attribute name="aria-expanded" select="'true'"/>
                             <xsl:for-each select="span[contains-token(@class, 'msi')]">
                                 <ixsl:set-property name="textContent" select="'expand_more'" object="."/>
                             </xsl:for-each>

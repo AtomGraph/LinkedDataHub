@@ -482,7 +482,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="button" select="." as="element()"/>
 
         <xsl:for-each select="../button[contains-token(@class, 'object-kind')]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'is-on', . is $button ])[current-date() lt xs:date('2000-01-01')]"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-on', . is $button)"/>
             <ixsl:set-attribute name="aria-checked" select="if (. is $button) then 'true' else 'false'" object="."/>
         </xsl:for-each>
 
@@ -549,7 +549,9 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <!-- input values missing, throw an error -->
             <xsl:when test="exists($rows/descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))])">
-                <xsl:sequence select="$rows[descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))]]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:for-each select="$rows[descendant::input[@name = ('ol', 'ou')][not(ixsl:get(., 'value'))]]">
+                    <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'error', true())"/>
+                </xsl:for-each>
             </xsl:when>
             <!-- all required values present, proceed to update the constructors -->
             <xsl:otherwise>

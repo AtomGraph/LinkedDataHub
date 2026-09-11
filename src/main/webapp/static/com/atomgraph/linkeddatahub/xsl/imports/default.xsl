@@ -1722,26 +1722,12 @@ exclude-result-prefixes="#all"
         </div>
     </xsl:template>
 
-    <!-- BLOCK SKELETON -->
-
-    <!-- the design system's skeleton loading body: rows shaped like the content they replace, for a
-         block whose shape is known (a re-queried view); a block still resolving what it is keeps the
-         collapsed ldh:BlockBar instead -->
-    <xsl:template name="ldh:BlockSkeleton">
-        <xsl:param name="rows" select="4" as="xs:integer"/>
-
-        <div class="ldh-block-loading" role="status" aria-label="{ac:label(key('resources', 'loading', ldh:translations()))}">
-            <xsl:for-each select="1 to $rows">
-                <div class="bl-row">
-                    <span class="ac-skel sh-text is-shimmer" style="width: 84px; height: 12px;"></span>
-                    <div style="flex: 1">
-                        <span class="ac-skel sh-text is-shimmer" style="width: {(92, 78, 85, 70)[(position() - 1) mod 4 + 1]}%; height: 12px;"></span>
-                    </div>
-                    <span class="ac-skel sh-text is-shimmer" style="width: 64px; height: 12px;"></span>
-                </div>
-            </xsl:for-each>
-        </div>
-    </xsl:template>
+    <!-- The skeleton loading body (.ldh-block-loading) has no emitter here. Its one caller was the view
+         block's re-query, where it was the wrong state: a skeleton stands in for content whose shape is
+         known but which is not yet drawn, and a re-query's results are already on the screen. Holding them
+         in place and marking them busy (ldh:begin-view-refresh) tells the same truth without collapsing the
+         block to the placeholder's height and back on every page flip. A block still resolving what it is
+         keeps the collapsed ldh:BlockBar. -->
 
     <!-- BLOCK BAR -->
 

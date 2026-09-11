@@ -196,7 +196,7 @@ exclude-result-prefixes="#all"
                         <xsl:map-entry key="'padding'" select="array{ $padding }"/>
                     </xsl:map>
                 </xsl:variable>
-                <xsl:variable name="fit-options-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $fit-options => serialize(map{ 'method': 'json' }) ])"/>
+                <xsl:variable name="fit-options-obj" select="ixsl:json-parse($fit-options => serialize(map{ 'method': 'json' }))"/>
 
                 <xsl:sequence select="ixsl:call(ixsl:call($map, 'getView', []), 'fit', [ $extent, $fit-options-obj ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:if>

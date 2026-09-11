@@ -2907,6 +2907,16 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
    side padding (inside .ldh-block-body), align it to the same edges. */
 .ldh-block-body > .ldh-pager { padding-left: 0; padding-right: 0; }
 
+/* A pager with nothing in it is not a pager. A client that re-renders its
+   results asynchronously cannot emit the pager as part of that render — doing
+   so destroys the control under the reader's cursor on every page flip, and
+   removing and re-adding a bordered strip moves the page under them. So it
+   renders the HOST once, beside the results region, and replaces only its
+   CONTENTS; a single-page result set leaves it empty. Without this the empty
+   host still draws its padding, margin and top border as a stray rule under
+   the rows. Pair it with the :not(:empty) scoping below. */
+.ldh-pager:empty { display: none; }
+
 .ldh-pager-size { display: flex; align-items: center; gap: var(--sp-2); }
 .ldh-pager-size label {
   font-family: var(--font-mono); font-size: var(--fs-xs);
@@ -3938,16 +3948,29 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
    and shrinks for no one, so it sits at the bottom of the container in both
    contexts — a page-flow block (capped height) and a height-constrained parent
    like the search modal (fills it).
-   Scoped with :has(> .ldh-pager) so an unpaged view is untouched.
+   Scoped with :has(> .ldh-pager:not(:empty)) so an unpaged view is untouched.
+   The :not(:empty) is what keeps that promise once a client renders the pager
+   host up front and fills it asynchronously (see .ldh-pager:empty above): the
+   host is then present on every view, paged or not, and a bare
+   :has(> .ldh-pager) would cap and scroll bodies that never page. An empty host
+   is display:none, so this reads as "lay the column out when there is a pager
+   in it", which is what the rule always meant.
+
+   A product may put its rows inside a results region of its own rather than
+   directly in the body (LDH wraps them in .container-results so one element can
+   be replaced per render). Such a wrapper needs no rule here: it is a scroll
+   container, and a scroll container's automatic minimum size is zero, so it
+   shrinks under the cap on its own — which is what the explicit min-height: 0
+   below buys for a bare ul that is not one.
    ========================================================================= */
-.ldh-block-body:has(> .ldh-pager) {
+.ldh-block-body:has(> .ldh-pager:not(:empty)) {
   display: flex; flex-direction: column; min-height: 0;
   /* Something to scroll against in page flow. Inside an already-constrained
      parent this is the ceiling, not the height. */
   max-height: min(70vh, 620px);
 }
-.ldh-block-body:has(> .ldh-pager) > .ldh-grid-block,
-.ldh-block-body:has(> .ldh-pager) > .ldh-list-block {
+.ldh-block-body:has(> .ldh-pager:not(:empty)) > .ldh-grid-block,
+.ldh-block-body:has(> .ldh-pager:not(:empty)) > .ldh-list-block {
   flex: 1 1 auto;
   /* min-height:0 is required — a flex item defaults to min-height:auto and
      refuses to shrink below its content, so the scroll box never forms. */
@@ -3956,12 +3979,12 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 }
 /* Last in the column, never compressed, and opaque so rows cannot bleed
    through as they scroll under its top border. */
-.ldh-block-body:has(> .ldh-pager) > .ldh-pager {
+.ldh-block-body:has(> .ldh-pager:not(:empty)) > .ldh-pager {
   flex: 0 0 auto;
   background: var(--bg-card);
 }
 /* The toolbar is pinned at the top of the same column for the same reason. */
-.ldh-block-body:has(> .ldh-pager) > .ldh-view-toolbar { flex: 0 0 auto; }
+.ldh-block-body:has(> .ldh-pager:not(:empty)) > .ldh-view-toolbar { flex: 0 0 auto; }
 
 
 /* =========================================================================
