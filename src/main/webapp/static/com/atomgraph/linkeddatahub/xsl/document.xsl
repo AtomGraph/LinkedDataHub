@@ -76,7 +76,12 @@ exclude-result-prefixes="#all"
          the two-column layout keys on. The filler therefore needs no layout class of its own and may
          look like anything - a card, a bare list, a full-height panel - where keying the grid on the
          filler's own class would have meant every package borrowing one component's arrangement to
-         use a general slot. -->
+         use a general slot.
+
+         The active mode is passed in rather than filtered here: which modes a column belongs in is
+         the filler's judgement, not the platform's. A taxonomy tree is a reading affordance and
+         restricts itself to ReadMode; an editor's class list might well want to stay visible while
+         its document's content is being authored. -->
     <xsl:mode name="ldh:ContentColumn" on-no-match="deep-skip"/>
 
 
@@ -637,7 +642,9 @@ exclude-result-prefixes="#all"
                  one component's private arrangement. Materialised first so an unfilled slot emits no
                  wrapper at all and the content body stays single-column. -->
             <xsl:variable name="content-column" as="item()*">
-                <xsl:apply-templates select="." mode="ldh:ContentColumn"/>
+                <xsl:apply-templates select="." mode="ldh:ContentColumn">
+                    <xsl:with-param name="mode" select="$mode"/>
+                </xsl:apply-templates>
             </xsl:variable>
             <xsl:if test="exists($content-column)">
                 <div class="ldh-content-aside">

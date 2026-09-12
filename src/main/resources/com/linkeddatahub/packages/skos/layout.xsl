@@ -73,6 +73,7 @@ exclude-result-prefixes="#all">
          Not guarded by use-when: ldh:TreeNode lives in the shared trunk precisely so the tree is in
          the server's first paint, which is the only paint a directly loaded URL gets. -->
     <xsl:template match="rdf:RDF[key('resources', key('resources', ac:absolute-path(ldh:base-uri(.)))/foaf:primaryTopic/@rdf:resource)/rdf:type/@rdf:resource = ('&skos;ConceptScheme', '&skos;Concept')]" mode="ldh:ContentColumn">
+        <xsl:param name="mode" as="xs:anyURI?"/>
         <xsl:param name="object-metadata" as="document-node()?" tunnel="yes"/>
         <xsl:variable name="topic" select="key('resources', key('resources', ac:absolute-path(ldh:base-uri(.)))/foaf:primaryTopic/@rdf:resource)" as="element()*"/>
         <xsl:variable name="scheme-uri" select="$topic/skos:inScheme/@rdf:resource" as="attribute()*"/>
@@ -83,7 +84,15 @@ exclude-result-prefixes="#all">
             $object-metadata!key('resources', $scheme-uri, .),
             $topic)[1]" as="element()?"/>
 
-        <xsl:if test="$root">
+        <!-- ReadMode only. The tree is for reading a concept in its place among the others, and the
+             other document modes have a body it does not belong beside: ContentMode is an authoring
+             surface for the document's own content blocks, and the Map, Chart and Graph canvases take
+             the whole body - ldh.css even zeroes its padding and drops its max-width for them, which a
+             two-column grid would fight. Rendering the tree there put it next to an empty authoring
+             body, which is what prompted this. ac:mode() always resolves to a concrete mode, so the
+             test can be positive: ?mode= when given, else ContentMode for a document that has content
+             blocks, else ReadMode. -->
+        <xsl:if test="$root and $mode = '&ac;ReadMode'">
             <div class="ldh-onto-list">
                 <ul class="ldh-tree concept-tree">
                     <xsl:apply-templates select="$root" mode="ldh:TreeNode">
