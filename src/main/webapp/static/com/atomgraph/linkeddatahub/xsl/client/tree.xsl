@@ -180,7 +180,10 @@ exclude-result-prefixes="#all"
                             <xsl:result-document href="?." method="ixsl:replace-content">
                                 <xsl:apply-templates select="$resources" mode="ldh:TreeNode">
                                     <xsl:sort select="ac:label(.)"/>
-                                    <xsl:with-param name="depth" select="$depth"/>
+                                    <!-- tunnelled: a domain narrows ldh:TreeNode by matching and delegating with
+                                         xsl:next-match, which forwards only the parameters it names, so a plain
+                                         parameter here arrives as its default 0 and the whole tree renders flat -->
+                                    <xsl:with-param name="depth" select="$depth" tunnel="yes"/>
                                 </xsl:apply-templates>
                             </xsl:result-document>
                         </xsl:for-each>

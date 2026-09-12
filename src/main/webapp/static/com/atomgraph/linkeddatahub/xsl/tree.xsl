@@ -60,7 +60,13 @@ exclude-result-prefixes="#all"
          on some predicate this module would have to know about; a domain narrows the match and supplies it
          through xsl:next-match. -->
     <xsl:template match="*[@rdf:about]" mode="ldh:TreeNode">
-        <xsl:param name="depth" select="0" as="xs:integer"/>
+        <!-- depth is TUNNELLED, expandable is not, and the difference is deliberate: the indent ramp is
+             ambient state belonging to the level being rendered, while whether a node opens is a
+             per-node decision the domain makes. A domain narrows this template by matching and
+             delegating with xsl:next-match, which forwards only the parameters it names - so a plain
+             depth parameter silently became 0 in every domain override and the tree rendered flat with
+             correct nesting, which is exactly how it shipped. -->
+        <xsl:param name="depth" select="0" as="xs:integer" tunnel="yes"/>
         <xsl:param name="expandable" select="false()" as="xs:boolean"/>
 
         <li>
