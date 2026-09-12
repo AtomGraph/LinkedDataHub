@@ -812,6 +812,18 @@ public class Application extends ResourceConfig
             graphVersioningService = new com.atomgraph.linkeddatahub.server.util.GraphVersioningService(ctxUnion, verifiedClient);
             servletConfig.getServletContext().setAttribute(com.atomgraph.linkeddatahub.server.util.GraphVersioningService.class.getName(), graphVersioningService); // used in GraphVersioningListener to shut down its executor
 
+
+            endUserRepositories = new ConcurrentHashMap<>();
+            // global graph repository: bundled vocabularies/ontologies mapped from the prefix-mapping config
+            repository = new PrefixGraphRepository(GraphStoreClient.create(client, mediaTypes));
+            if (prefixMappingConfig != null)
+            {
+                Model prefixMappingModel = ModelFactory.createDefaultModel();
+                RDFParser.create().source(prefixMappingConfig).streamManager(repository.getStreamManager()).build().parse(prefixMappingModel);
+                repository.processConfig(prefixMappingModel);
+            }
+            resolver = new SameSiteSourceResolver(repository, GraphStoreClient.create(client, mediaTypes), resolvingUncached, baseURI);
+
             // composing client stylesheets is optional: without a SEF root, a compiler endpoint, or the
             // stylesheet built into the webapp to fingerprint the platform with, package rules simply stay
             // server-side, which is how the platform behaved before this existed
@@ -826,7 +838,7 @@ public class Application extends ResourceConfig
                     }
                     else
                         stylesheetService = new com.atomgraph.linkeddatahub.server.util.ClientStylesheetService(
-                            java.nio.file.Paths.get(sefRoot), URI.create(sefCompilerString), client, stockSEF);
+                            java.nio.file.Paths.get(sefRoot), URI.create(sefCompilerString), client, repository, stockSEF);
                 }
                 catch (IOException ex)
                 {
@@ -836,17 +848,6 @@ public class Application extends ResourceConfig
             clientStylesheetService = stylesheetService;
             if (clientStylesheetService != null)
                 servletConfig.getServletContext().setAttribute(com.atomgraph.linkeddatahub.server.util.ClientStylesheetService.class.getName(), clientStylesheetService); // used in ClientStylesheetListener to shut down its executor
-
-            endUserRepositories = new ConcurrentHashMap<>();
-            // global graph repository: bundled vocabularies/ontologies mapped from the prefix-mapping config
-            repository = new PrefixGraphRepository(GraphStoreClient.create(client, mediaTypes));
-            if (prefixMappingConfig != null)
-            {
-                Model prefixMappingModel = ModelFactory.createDefaultModel();
-                RDFParser.create().source(prefixMappingConfig).streamManager(repository.getStreamManager()).build().parse(prefixMappingModel);
-                repository.processConfig(prefixMappingModel);
-            }
-            resolver = new SameSiteSourceResolver(repository, GraphStoreClient.create(client, mediaTypes), resolvingUncached, baseURI);
 
             if (mailUser != null && mailPassword !=  null) // enable SMTP authentication
             {

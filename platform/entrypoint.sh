@@ -1244,7 +1244,20 @@ eval "$transform"
 # /static/ by the default servlet through a Context alias. Added here rather than in context.xsl
 # because that transform has no argv budget left for another --stringparam
 if [ -n "$SEF_ROOT" ]; then
-    xmlstarlet ed --inplace --insert "/Context" --type attr --name "aliases" --value "/static/xsl/sef=$SEF_ROOT" conf/Catalina/localhost/ROOT.xml
+    # A PostResources set, not the Context "aliases" attribute: that attribute was removed after
+    # Tomcat 7 and 10 rejects it outright with "failed to set property [aliases]", leaving the path
+    # 404 with nothing else to show for it. PostResources is the supported way to mount a directory
+    # outside the WAR into the web application, and being POST it is consulted only when the WAR has
+    # no such resource, so it cannot shadow anything the platform ships.
+    # Deleted before being added because a restart reuses the container filesystem and runs this again.
+    xmlstarlet ed --inplace \
+      -d "/Context/Resources" \
+      -s "/Context" -t elem -n "Resources" \
+      -s "/Context/Resources" -t elem -n "PostResources" \
+      -i "/Context/Resources/PostResources" -t attr -n "className" -v "org.apache.catalina.webresources.DirResourceSet" \
+      -i "/Context/Resources/PostResources" -t attr -n "base" -v "$SEF_ROOT" \
+      -i "/Context/Resources/PostResources" -t attr -n "webAppMount" -v "/static/xsl/sef" \
+      conf/Catalina/localhost/ROOT.xml
 fi
 
 # change webapp (servlet) configuration

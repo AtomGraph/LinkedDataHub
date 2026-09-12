@@ -86,6 +86,7 @@ public class ClientStylesheetService
     private final Path sefRoot;
     private final URI compilerURI;
     private final Client client;
+    private final com.atomgraph.client.util.jena.PrefixGraphRepository repository;
     private final String baseDigest;
     private final Set<String> published = ConcurrentHashMap.newKeySet();
     private final Map<String, CompletableFuture<Void>> builds = new ConcurrentHashMap<>();
@@ -98,14 +99,16 @@ public class ClientStylesheetService
      * @param sefRoot directory holding compiled stylesheets
      * @param compilerURI URI of the compiler service's compile endpoint
      * @param client HTTP client
+     * @param repository graph repository, consulted for bundled package locations
      * @param stockSEF stream of the stylesheet built into the webapp, digested as the platform fingerprint
      * @throws IOException if the stock stylesheet cannot be read or the SEF root cannot be scanned
      */
-    public ClientStylesheetService(Path sefRoot, URI compilerURI, Client client, InputStream stockSEF) throws IOException
+    public ClientStylesheetService(Path sefRoot, URI compilerURI, Client client, com.atomgraph.client.util.jena.PrefixGraphRepository repository, InputStream stockSEF) throws IOException
     {
         this.sefRoot = sefRoot;
         this.compilerURI = compilerURI;
         this.client = client;
+        this.repository = repository;
         this.baseDigest = digest(stockSEF);
 
         Files.createDirectories(sefRoot);
@@ -248,6 +251,19 @@ public class ClientStylesheetService
      */
     public String expandEntities(URI stylesheet)
     {
+        // a bundled package's stylesheet never leaves the JVM: its URI is mapped to a classpath file,
+        // which is also why that URI does not have to resolve over the network at all
+        if (getRepository() != null && getRepository().isMapped(stylesheet.toString()))
+            try (InputStream is = getClass().getClassLoader().getResourceAsStream(getRepository().resolve(stylesheet.toString())))
+            {
+                if (is == null) throw new IllegalStateException("Bundled package stylesheet <" + stylesheet + "> not found on the classpath");
+                return expandEntities(is, stylesheet);
+            }
+            catch (IOException ex)
+            {
+                throw new IllegalStateException("Could not read bundled package stylesheet <" + stylesheet + ">", ex);
+            }
+
         try (Response cr = getClient().target(stylesheet).request(com.atomgraph.linkeddatahub.MediaType.TEXT_XSL_TYPE).get())
         {
             if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
@@ -255,21 +271,51 @@ public class ClientStylesheetService
 
             try (InputStream is = cr.readEntity(InputStream.class))
             {
-                // newXMLReader() tolerates a benign internal DOCTYPE; newDocumentBuilderFactory() forbids it outright
-                SAXSource source = new SAXSource(SecureXML.newXMLReader(), new InputSource(is));
-                source.setSystemId(stylesheet.toString());
-
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                Transformer transformer = TransformerFactory.newInstance().newTransformer();
-                transformer.transform(source, new StreamResult(baos));
-
-                return baos.toString(StandardCharsets.UTF_8);
+                return expandEntities(is, stylesheet);
             }
+        }
+        catch (IOException ex)
+        {
+            throw new IllegalStateException("Could not read package stylesheet <" + stylesheet + ">", ex);
+        }
+    }
+
+    /**
+     * Parses an already-opened stylesheet with the DOCTYPE-tolerant reader and serialises it with its
+     * entities expanded. The overload taking a URI decides where the bytes come from and delegates here.
+     *
+     * @param is stylesheet stream
+     * @param systemId system id to resolve relative references against
+     * @return expanded stylesheet
+     */
+    public String expandEntities(InputStream is, URI systemId)
+    {
+        try
+        {
+            // newXMLReader() tolerates a benign internal DOCTYPE; newDocumentBuilderFactory() forbids it outright
+            SAXSource source = new SAXSource(SecureXML.newXMLReader(), new InputSource(is));
+            source.setSystemId(systemId.toString());
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            Transformer transformer = TransformerFactory.newInstance().newTransformer();
+            transformer.transform(source, new StreamResult(baos));
+
+            return baos.toString(StandardCharsets.UTF_8);
         }
         catch (Exception ex)
         {
-            throw new IllegalStateException("Could not expand entities of package stylesheet <" + stylesheet + ">", ex);
+            throw new IllegalStateException("Could not expand entities of package stylesheet <" + systemId + ">", ex);
         }
+    }
+
+    /**
+     * Returns the graph repository, or null when none was supplied.
+     *
+     * @return repository
+     */
+    public com.atomgraph.client.util.jena.PrefixGraphRepository getRepository()
+    {
+        return repository;
     }
 
     private String digest(InputStream is) throws IOException

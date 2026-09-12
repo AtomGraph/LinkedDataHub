@@ -2,6 +2,7 @@
 /target
 /.env
 /uploads
+/sef
 /nb-configuration.xml
 /node
 /node_modules
