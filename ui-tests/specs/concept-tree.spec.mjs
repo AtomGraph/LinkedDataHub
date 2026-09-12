@@ -14,10 +14,15 @@ const READ_MODE = 'https://w3id.org/atomgraph/client#ReadMode';
 const pageFor = (name, mode = READ_MODE) =>
     `${document(name)}?mode=${encodeURIComponent(mode)}`;
 
+// Every row links into ReadMode explicitly, rather than to the concept's bare URI: the tree
+// only renders in ReadMode, so a row pointing at a concept document that has content blocks -
+// which resolves to ContentMode by default - would be a link out of the tree itself.
+const rowHref = name => `${pageFor(name)}#this`;
+
 const tree = page => page.locator('ul.concept-tree');
 const rootRow = page => tree(page).locator('> li > div.tree-row');
 const rowsFor = (page, name) =>
-    tree(page).locator(`li:has(> div.tree-row > a[href="${concept(name)}"])`);
+    tree(page).locator(`li:has(> div.tree-row > a[href="${rowHref(name)}"])`);
 const disclosureOf = (page, name) => rowsFor(page, name).locator('> div.tree-row > button');
 
 // Every concept-tree fetch, counted: the hops up are a SELECT for ?parent, the levels down
@@ -45,8 +50,23 @@ test.describe('concept tree', () => {
         await goto(page, pageFor('espresso'));
 
         // Three hops below the scheme, and the root is still the scheme.
-        await expect(rootRow(page).locator('a')).toHaveAttribute('href', concept(scheme));
+        await expect(rootRow(page).locator('a')).toHaveAttribute('href', rowHref(scheme));
         await expect(rootRow(page)).toContainText(labelOf(scheme));
+    });
+
+    test('links every row into ReadMode, server-rendered root and fetched child alike', async ({ page }) => {
+        await goto(page, pageFor('espresso'));
+
+        // The root is in the server's first paint and everything below it is rendered by the
+        // client out of a children fetch. The two have to agree, or navigating down the tree
+        // lands in whatever mode the document defaults to and the tree disappears.
+        await expect(rootRow(page).locator('a')).toHaveAttribute('href', rowHref(scheme));
+        await expect(rowsFor(page, 'coffee').locator('> div.tree-row > a'))
+            .toHaveAttribute('href', rowHref('coffee'));
+
+        // The row still states the concept's own URI, which is what its href no longer is.
+        await expect(rowsFor(page, 'coffee').locator('> div.tree-row > a'))
+            .toHaveAttribute('title', concept('coffee'));
     });
 
     test('opens the path down to the concept being read', async ({ page }) => {
@@ -95,7 +115,7 @@ test.describe('concept tree', () => {
         const queries = countQueries(page);
         await goto(page, pageFor(scheme));
 
-        await expect(rootRow(page).locator('a')).toHaveAttribute('href', concept(scheme));
+        await expect(rootRow(page).locator('a')).toHaveAttribute('href', rowHref(scheme));
         await expect(tree(page).locator('li:has(> div.tree-row)')).toHaveCount(1);
         await expect(disclosureOf(page, scheme)).toHaveAttribute('aria-expanded', 'false');
         expect(queries.up, 'the scheme is already the root').toBe(0);
@@ -112,7 +132,7 @@ test.describe('concept tree', () => {
             await expect(rowsFor(page, 'latte')).toHaveCount(2);
             const parents = await rowsFor(page, 'latte').evaluateAll(items => items.map(
                 item => item.parentElement.closest('li')?.querySelector(':scope > div.tree-row > a')?.getAttribute('href')));
-            expect(new Set(parents)).toEqual(new Set([concept('coffee'), concept('hot-drinks')]));
+            expect(new Set(parents)).toEqual(new Set([rowHref('coffee'), rowHref('hot-drinks')]));
 
             // Both occurrences light up: the activation pass iterates every matching row,
             // which is what makes a polyhierarchy need no special case.

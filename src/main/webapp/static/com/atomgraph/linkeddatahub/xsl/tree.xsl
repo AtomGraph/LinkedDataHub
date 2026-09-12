@@ -108,12 +108,17 @@ exclude-result-prefixes="#all"
          rendered tree - the disclosure handler asking a domain for a node's children, a domain's own
          descent - needs the RESOURCE, while the DOM only carries the navigable form. Reading @href
          directly works right up until a domain decorates it, and then fails as an empty children query
-         rather than as an error. A bare href round-trips to itself, so the document tree is unaffected. -->
-    <xsl:function name="ldh:tree-node-uri" as="xs:anyURI">
-        <xsl:param name="href" as="xs:anyURI"/>
-        <xsl:variable name="parsed" select="ldh:parse-href($href)" as="map(xs:string, item()?)"/>
+         rather than as an error. A bare href round-trips to itself, so the document tree is unaffected.
 
-        <xsl:sequence select="xs:anyURI($parsed('doc-uri') || (if ($parsed('fragment')) then '#' || $parsed('fragment') else ''))"/>
+         Empty in, empty out, because the rows this is asked about include the loading placeholder,
+         which carries no anchor at all. Every caller compares the result with =, which is false
+         against an empty sequence - the behaviour reading @href directly used to have for free, and
+         which a required cardinality turned into a runtime error mid-walk. -->
+    <xsl:function name="ldh:tree-node-uri" as="xs:anyURI?">
+        <xsl:param name="href" as="xs:anyURI?"/>
+        <xsl:variable name="parsed" select="$href!ldh:parse-href(.)" as="map(xs:string, item()?)?"/>
+
+        <xsl:sequence select="$parsed!xs:anyURI(.('doc-uri') || (if (.('fragment')) then '#' || .('fragment') else ''))"/>
     </xsl:function>
 
 </xsl:stylesheet>
