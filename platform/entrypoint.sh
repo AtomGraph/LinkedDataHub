@@ -176,16 +176,6 @@ if [ -z "$UPLOAD_ROOT" ]; then
     exit 1
 fi
 
-if [ -z "$SEF_ROOT" ]; then
-    echo '$SEF_ROOT not set'
-    exit 1
-fi
-
-if [ -z "$SEF_COMPILER" ]; then
-    echo '$SEF_COMPILER not set'
-    exit 1
-fi
-
 if [ -z "$SIGN_UP_CERT_VALIDITY" ]; then
     echo '$SIGN_UP_CERT_VALIDITY not set'
     exit 1
@@ -1051,8 +1041,6 @@ CLIENT_TRUSTSTORE_PARAM="--stringparam ldhc:clientTrustStore 'file://$CLIENT_TRU
 CLIENT_KEYSTORE_PASSWORD_PARAM="--stringparam ldhc:clientKeyStorePassword '$CLIENT_KEYSTORE_PASSWORD' "
 CLIENT_TRUSTSTORE_PASSWORD_PARAM="--stringparam ldhc:clientTrustStorePassword '$CLIENT_TRUSTSTORE_PASSWORD' "
 UPLOAD_ROOT_PARAM="--stringparam ldhc:uploadRoot 'file://$UPLOAD_ROOT' "
-SEF_ROOT_PARAM="--stringparam ldhc:sefRoot 'file://$SEF_ROOT' "
-SEF_COMPILER_PARAM="--stringparam ldhc:sefCompiler '$SEF_COMPILER' "
 SIGN_UP_CERT_VALIDITY_PARAM="--stringparam ldhc:signUpCertValidity '$SIGN_UP_CERT_VALIDITY' "
 CONTEXT_DATASET_PARAM="--stringparam ldhc:contextDataset '$webapp_context_dataset' "
 MAIL_SMTP_HOST_PARAM="--stringparam mail.smtp.host '$MAIL_SMTP_HOST' "
@@ -1126,6 +1114,18 @@ fi
 
 if [ -n "$JWKS_CACHE_EXPIRATION" ]; then
     export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.jwksCacheExpiration=$JWKS_CACHE_EXPIRATION"
+fi
+
+# where composed client stylesheets are written and which service compiles them. System properties
+# rather than --stringparam: xsltproc's MAX_PARAMETERS is a hard 64 argv slots, two per parameter,
+# and the ROOT.xml transform already sits at that ceiling once the optional mail and OAuth settings
+# are configured - adding to it takes the container down at startup rather than failing visibly
+if [ -n "$SEF_ROOT" ]; then
+    export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.sefRoot=file://$SEF_ROOT"
+fi
+
+if [ -n "$SEF_COMPILER" ]; then
+    export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.sefCompiler=$SEF_COMPILER"
 fi
 
 if [ -n "$MAX_CONTENT_LENGTH" ]; then
@@ -1211,8 +1211,6 @@ transform="xsltproc \
   $CLIENT_KEYSTORE_PASSWORD_PARAM \
   $CLIENT_TRUSTSTORE_PASSWORD_PARAM \
   $UPLOAD_ROOT_PARAM \
-  $SEF_ROOT_PARAM \
-  $SEF_COMPILER_PARAM \
   $SIGN_UP_CERT_VALIDITY_PARAM \
   $CONTEXT_DATASET_PARAM \
   $AUTH_QUERY_PARAM \
@@ -1241,6 +1239,13 @@ transform="xsltproc \
   conf/Catalina/localhost/ROOT.xml"
 
 eval "$transform"
+
+# composed client stylesheets live outside the WAR so they survive redeploys, and are served under
+# /static/ by the default servlet through a Context alias. Added here rather than in context.xsl
+# because that transform has no argv budget left for another --stringparam
+if [ -n "$SEF_ROOT" ]; then
+    xmlstarlet ed --inplace --insert "/Context" --type attr --name "aliases" --value "/static/xsl/sef=$SEF_ROOT" conf/Catalina/localhost/ROOT.xml
+fi
 
 # change webapp (servlet) configuration
 

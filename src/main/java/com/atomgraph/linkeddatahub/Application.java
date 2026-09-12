@@ -346,8 +346,11 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(LDHC.proxyHost.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.proxyHost.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.proxyPort.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.proxyPort.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.uploadRoot.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.uploadRoot.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(LDHC.sefRoot.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.sefRoot.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(LDHC.sefCompiler.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.sefCompiler.getURI()) : null,
+            // system properties rather than context parameters: the ROOT.xml transform that produces
+            // those is at xsltproc's MAX_PARAMETERS ceiling, so infrastructure settings go through
+            // CATALINA_OPTS like the HTTP client timeouts and cache expirations already do
+            System.getProperty("com.atomgraph.linkeddatahub.sefRoot"),
+            System.getProperty("com.atomgraph.linkeddatahub.sefCompiler"),
             servletConfig.getServletContext().getInitParameter(LDHC.invalidateCache.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.invalidateCache.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(LDHC.cookieMaxAge.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.cookieMaxAge.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.enableLinkedDataProxy.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.enableLinkedDataProxy.getURI())) : true,

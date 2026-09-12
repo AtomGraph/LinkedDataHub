@@ -30,8 +30,6 @@ xmlns:orcid="&orcid;"
     <xsl:param name="ldhc:clientKeyStorePassword"/>
     <xsl:param name="ldhc:clientTrustStorePassword"/>
     <xsl:param name="ldhc:uploadRoot"/>
-    <xsl:param name="ldhc:sefRoot"/>
-    <xsl:param name="ldhc:sefCompiler"/>
     <xsl:param name="ldhc:signUpCertValidity"/>
     <xsl:param name="ldhc:contextDataset"/>
     <xsl:param name="ldhc:authQuery"/>
@@ -67,16 +65,6 @@ xmlns:orcid="&orcid;"
         <xsl:copy>
             <xsl:apply-templates select="@*"/>
 
-            <!-- composed per-dataspace client stylesheets live outside the WAR but are served
-                 under /static/, so the default servlet handles them: no Jersey, no authorization
-                 filter, and nginx's immutable caching and CORS headers apply as they do to the
-                 stylesheets built into the image -->
-            <xsl:if test="$ldhc:sefRoot">
-                <xsl:attribute name="aliases">
-                    <xsl:text>/static/xsl/sef=</xsl:text>
-                    <xsl:value-of select="substring-after($ldhc:sefRoot, 'file://')"/>
-                </xsl:attribute>
-            </xsl:if>
 
             <xsl:if test="$ac:stylesheet">
                 <Parameter name="&ac;stylesheet" value="{$ac:stylesheet}" override="false"/>
@@ -116,12 +104,6 @@ xmlns:orcid="&orcid;"
             </xsl:if>
             <xsl:if test="$ldhc:uploadRoot">
                 <Parameter name="&ldhc;uploadRoot" value="{$ldhc:uploadRoot}" override="false"/>
-            </xsl:if>
-            <xsl:if test="$ldhc:sefRoot">
-                <Parameter name="&ldhc;sefRoot" value="{$ldhc:sefRoot}" override="false"/>
-            </xsl:if>
-            <xsl:if test="$ldhc:sefCompiler">
-                <Parameter name="&ldhc;sefCompiler" value="{$ldhc:sefCompiler}" override="false"/>
             </xsl:if>
             <xsl:if test="$ldhc:signUpCertValidity">
                 <Parameter name="&ldhc;signUpCertValidity" value="{$ldhc:signUpCertValidity}" override="false"/>
