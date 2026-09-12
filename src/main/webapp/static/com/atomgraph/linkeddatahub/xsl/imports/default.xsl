@@ -1707,6 +1707,65 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
 
+    <!-- A blank node typed rdf:langString is a LANGUAGE-TAGGED literal: a value input plus a language
+         field, never a datatype and never a resource. Web-Client carries the same rule, and this is a
+         deliberate shadow of it rather than a duplicate by accident: LDH imports Web-Client, so ANY
+         LDH template matching this node wins on import precedence whatever priority the Client's
+         carries. Measured while fixing it - excluding rdf:langString from LDH's non-XSD resource
+         lookup did not reach the Client's rule, it merely handed the node to LDH's generic bnode
+         control, which rendered an ob (object blank node) field for a property that takes text. The
+         xsd:* template above shadows the Client's the same way and for the same reason.
+
+         Why not a datatype: RDF 1.1 requires an rdf:langString literal to carry a language tag and
+         forbids it carrying a datatype attribute, so emitting lt=rdf:langString would encode an
+         ill-formed literal. The language field, its ll input and the annotation are all reached by
+         synthesising the value node this control produces, so the constructor-driven field and the
+         one rendered from existing data are the same emitters rather than two that can drift. It is
+         prefilled from ac:langs(), the reader's own accepted list.
+
+         What this cost before it was fixed: with the marker treated as a resource, an empty combobox
+         still submitted its generated id URI as the object, so saving the form wrote
+         skos:altLabel <...#id03f1366d-...> into the data instead of a literal. -->
+    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&rdf;langString'])]]" mode="ac:FormControl" priority="3">
+        <xsl:param name="type" select="'text'" as="xs:string"/>
+        <xsl:param name="id" select="generate-id()" as="xs:string"/>
+        <xsl:param name="class" as="xs:string?"/>
+        <xsl:param name="disabled" select="false()" as="xs:boolean"/>
+        <xsl:param name="required" select="false()" as="xs:boolean"/>
+        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
+        <xsl:variable name="value" as="element()">
+            <xsl:element name="{../name()}" namespace="{../namespace-uri()}">
+                <xsl:attribute name="xml:lang" select="ac:langs()[1]"/>
+            </xsl:element>
+        </xsl:variable>
+
+        <xsl:apply-templates select="." mode="ac:FieldShell">
+            <xsl:with-param name="type" select="$type"/>
+            <xsl:with-param name="control" as="item()*">
+                <xsl:call-template name="xhtml:Input">
+                    <xsl:with-param name="name" select="'ol'"/>
+                    <xsl:with-param name="type" select="$type"/>
+                    <xsl:with-param name="id" select="$id"/>
+                    <xsl:with-param name="class" select="$class"/>
+                    <xsl:with-param name="disabled" select="$disabled"/>
+                </xsl:call-template>
+            </xsl:with-param>
+        </xsl:apply-templates>
+
+        <xsl:if test="$type-label">
+            <xsl:apply-templates select="." mode="ac:AnnotationTag">
+                <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet co-neutral'"/>
+                <xsl:with-param name="title" select="'&rdf;langString'"/>
+                <xsl:with-param name="label" select="'rdf:langString'"/>
+            </xsl:apply-templates>
+        </xsl:if>
+
+        <xsl:apply-templates select="$value/@xml:lang" mode="ac:FormControl">
+            <xsl:with-param name="type" select="$type"/>
+            <xsl:with-param name="disabled" select="$disabled"/>
+        </xsl:apply-templates>
+    </xsl:template>
+
     <!-- special case for owl:NamedIndividual bnode instances which become comboboxes -->
     <xsl:template match="*[@rdf:nodeID]/*/@rdf:nodeID[key('resources', .)/rdf:type/@rdf:resource = '&owl;NamedIndividual']" mode="ac:FormControl" priority="2">
         <xsl:param name="type" select="'text'" as="xs:string"/>
@@ -1729,8 +1788,14 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
 
-    <!-- blank nodes that only have non-XSD rdf:type and no other properties become resource lookups -->
-    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*/@rdf:nodeID[key('resources', .)[not(* except rdf:type[not(starts-with(@rdf:resource, '&xsd;'))])]]" mode="ac:FormControl" priority="1">
+    <!-- blank nodes that only have non-XSD rdf:type and no other properties become resource lookups.
+         rdf:langString is excluded because it is a LITERAL datatype that merely happens to live outside
+         the xsd: namespace: a marker typed with it means "text with a language tag", and treating it as
+         a class handed the author a URI picker for a property that takes text - which is exactly what a
+         constructor declaring [ a rdf:langString ] got. Excluded here rather than shadowed by a second
+         copy of the literal control: with no LDH template claiming it, Web-Client's own langString rule
+         applies, so the control has one implementation in the layer that owns generic form behaviour. -->
+    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*/@rdf:nodeID[key('resources', .)[not(* except rdf:type[not(starts-with(@rdf:resource, '&xsd;'))][not(@rdf:resource = '&rdf;langString')])]]" mode="ac:FormControl" priority="1">
         <xsl:param name="type" select="'text'" as="xs:string"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" select="'resource-combobox combobox'" as="xs:string?"/>
@@ -2096,6 +2161,23 @@ exclude-result-prefixes="#all"
                     </xsl:apply-templates>
                 </xsl:otherwise>
             </xsl:choose>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- A literal carrying a language tag IS an rdf:langString, and is named as one. RDF 1.1 gives
+         every tagged literal that datatype, so "Literal" said less than the data does - and said
+         something different from the field the same property gets before a value exists, which
+         announces rdf:langString from the constructor. Same tag treatment as any other datatype,
+         because that is what it is; the untagged case keeps the plain term tag below. -->
+    <xsl:template match="text()[../@xml:lang]" mode="ac:ValueAnnotations" priority="1">
+        <xsl:param name="type" as="xs:string?"/>
+
+        <xsl:if test="not($type = 'hidden')">
+            <xsl:apply-templates select="." mode="ac:AnnotationTag">
+                <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet co-neutral'"/>
+                <xsl:with-param name="title" select="'&rdf;langString'"/>
+                <xsl:with-param name="label" select="'rdf:langString'"/>
+            </xsl:apply-templates>
         </xsl:if>
     </xsl:template>
 

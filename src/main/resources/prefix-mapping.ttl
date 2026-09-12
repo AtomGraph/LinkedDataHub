@@ -74,5 +74,6 @@
    [ lm:prefix "http://spinrdf.org/spl" ;                                        lm:altName "etc/spl.spin.ttl" ] ,
    [ lm:prefix "https://packages.linkeddatahub.com/" ;                           lm:altName "com/linkeddatahub/packages/packages.ttl" ] ,
    [ lm:prefix "https://packages.linkeddatahub.com/skos/" ;                      lm:altName "com/linkeddatahub/packages/skos/package.ttl" ] ,
-   [ lm:prefix "https://raw.githubusercontent.com/AtomGraph/LinkedDataHub-Apps/refs/heads/master/packages/skos/ns.ttl" ; lm:altName "com/linkeddatahub/packages/skos/ns.ttl" ]
+   [ lm:prefix "https://raw.githubusercontent.com/AtomGraph/LinkedDataHub-Apps/refs/heads/master/packages/skos/ns.ttl" ; lm:altName "com/linkeddatahub/packages/skos/ns.ttl" ] ,
+   [ lm:name "https://packages.linkeddatahub.com/skos/layout.xsl" ;              lm:altName "com/linkeddatahub/packages/skos/layout.xsl" ]
 .

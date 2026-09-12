@@ -371,6 +371,136 @@ exclude-result-prefixes="#all"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
     
+    <!-- container determination -->
+
+    <!-- Asks which container a new solution of this projection would be stored in, so the Create button
+         knows where to PUT. Modelled on ldh:ResultCount above, and for the same reason: the rendered rows
+         are one page, so the question has to be put to the whole result set rather than to a sample -
+         otherwise the destination could depend on which page the reader happened to be looking at.
+         LIMIT/OFFSET/ORDER BY come off first for exactly that reason; ordering is irrelevant to a set. -->
+    <xsl:template name="ldh:ViewContainer">
+        <xsl:param name="create-id" as="xs:string"/>
+        <xsl:param name="endpoint" as="xs:anyURI"/>
+        <xsl:param name="select-xml" as="document-node()"/>
+        <xsl:param name="focus-var-name" as="xs:string"/>
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:document>
+                <xsl:variable name="select-xml" as="document-node()">
+                    <xsl:document>
+                        <xsl:apply-templates select="$select-xml" mode="ldh:replace-limit"/>
+                    </xsl:document>
+                </xsl:variable>
+                <xsl:variable name="select-xml" as="document-node()">
+                    <xsl:document>
+                        <xsl:apply-templates select="$select-xml" mode="ldh:replace-offset"/>
+                    </xsl:document>
+                </xsl:variable>
+                <xsl:variable name="select-xml" as="document-node()">
+                    <xsl:document>
+                        <xsl:apply-templates select="$select-xml" mode="ldh:replace-order-by"/>
+                    </xsl:document>
+                </xsl:variable>
+                <xsl:apply-templates select="$select-xml" mode="ldh:container-select">
+                    <xsl:with-param name="focus-var-name" select="$focus-var-name" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
+        <xsl:variable name="select-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
+        <xsl:variable name="select-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $select-json-string ])"/>
+        <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $select-json ]), 'toString', [])" as="xs:string"/>
+        <xsl:variable name="request-uri" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
+        <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
+        <xsl:variable name="context" as="map(*)" select="
+          map {
+            'request': $request,
+            'create-id': $create-id
+          }"/>
+
+        <ixsl:promise select="ixsl:http-request($context('request')) =>
+            ixsl:then(ldh:rethread-response($context, ?)) =>
+            ixsl:then(ldh:handle-response#1) =>
+            ixsl:then(ldh:view-container-response#1) =>
+            ixsl:then(ldh:view-container-acl-thunk#1)"
+            on-failure="ldh:promise-failure#1"/>
+    </xsl:template>
+
+    <!-- Exactly one row means the destination is determined. None means the projection is empty - there is
+         nothing to generalise from, which is the bootstrap case - and two mean the solutions span containers,
+         so nothing here can say where a new one belongs. Both non-answers leave the slot empty rather than
+         guessing: a majority would let placement be decided by counting, and picking the host's own container
+         would key it on where the view happens to be rendered rather than on what is being created. -->
+    <xsl:function name="ldh:view-container-response" as="map(*)" ixsl:updating="no">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+
+        <xsl:choose>
+            <xsl:when test="$response?status = 200 and $response?media-type = 'application/sparql-results+xml'">
+                <xsl:variable name="containers" select="$response?body//srx:result/srx:binding/srx:uri/xs:anyURI(.)" as="xs:anyURI*"/>
+
+                <xsl:choose>
+                    <xsl:when test="count($containers) = 1">
+                        <xsl:sequence select="map:merge(($context, map{ 'create-container': $containers }))"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:sequence select="$context"/>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="$context"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <!-- A determined container still has to be writable, and only the server knows. HEAD it for the acl:mode
+         Link headers, reusing the parse ldh:ontology-view-render-thunk already uses for the same purpose. The
+         probe follows the determination rather than preceding it, because until the query answers there is no
+         container to probe - so the button appears a moment after the toolbar, which is the honest order: one
+         that appeared and then failed its PUT would be worse. -->
+    <xsl:function name="ldh:view-container-acl-thunk" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+
+        <xsl:if test="map:contains($context, 'create-container')">
+            <xsl:variable name="container-request" select="map{ 'method': 'HEAD', 'href': ldh:href($context('create-container'), map{}), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+            <xsl:variable name="container-context" select="map:merge(($context, map{ 'container-request': $container-request }))" as="map(*)"/>
+
+            <xsl:sequence select="
+                ixsl:resolve($container-context) =>
+                    ixsl:then(ldh:http-request-threaded(?, 'container-request', 'container-response')) =>
+                    ixsl:then(ldh:handle-response(?, 'container-response')) =>
+                    ixsl:then(ldh:set-container-acl-modes#1) =>
+                    ixsl:then(ldh:view-create-insert#1)
+                "/>
+        </xsl:if>
+    </xsl:function>
+
+    <!-- Fills the toolbar's create slot. The class to construct is still read off the view card, where the
+         ontology query's range/domain inference stamped it; a view whose property has no URI range cannot be
+         constructed and gets no button. A forward view additionally PATCHes the linking triple into the
+         current document, so it needs acl:Write here as well as on the container - an inverse one ships that
+         triple inside the PUT and does not. -->
+    <xsl:function name="ldh:view-create-insert" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="acl-modes" select="$context('container-acl-modes')" as="xs:anyURI*"/>
+
+        <xsl:if test="$acl-modes = '&acl;Write'">
+            <xsl:for-each select="id($context('create-id'), ixsl:page())">
+                <xsl:variable name="view-block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()?"/>
+                <xsl:variable name="create-for-class" select="$view-block/@data-for-class" as="xs:string?"/>
+
+                <xsl:if test="exists($create-for-class) and (exists($view-block/@data-inverse) or acl:mode() = '&acl;Write')">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <button type="button" class="ac-btn in-primary ap-solid sz-sm add-instance" data-for-class="{$create-for-class}" data-container="{$context('create-container')}" title="{ac:label(key('resources', 'create-instance-title', ldh:translations()))}">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'create', ldh:translations())" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
+                    </xsl:result-document>
+                </xsl:if>
+            </xsl:for-each>
+        </xsl:if>
+    </xsl:function>
+
     <!-- pager -->
 
     <!-- fills the persistent pager host emitted beside .container-results by ldh:RenderViewResults. The host
@@ -1118,17 +1248,11 @@ exclude-result-prefixes="#all"
                         <!-- facet pills are appended here by ldh:RenderFacets -->
                     </div>
                     <div class="right">
-                        <!-- inline creation: Create button for views carrying ldh:container metadata (stamped as data-* attributes by ldh:ontology-view-insert, RDFa as fallback for hand-authored view blocks). PUT into the container requires acl:Write there (checked on the parent URI for new documents); forward views additionally PATCH the linking triple into the current document, hence acl:Write here too -->
-                        <xsl:variable name="view-block" select="$container/ancestor::div[contains-token(@class, 'block')][1]" as="element()?"/>
-                        <xsl:variable name="create-container" select="($view-block/@data-container, $container/descendant::*[@property = '&ldh;container']/@resource)[1]" as="xs:string?"/>
-                        <xsl:variable name="create-for-class" select="$view-block/@data-for-class" as="xs:string?"/>
-                        <xsl:if test="exists($create-container) and exists($create-for-class) and tokenize($view-block/@data-acl-modes, ' ') = '&acl;Write' and (exists($view-block/@data-inverse) or acl:mode() = '&acl;Write')">
-                            <button type="button" class="ac-btn in-primary ap-solid sz-sm add-instance" data-for-class="{$create-for-class}" data-container="{$create-container}" title="{ac:label(key('resources', 'create-instance-title', ldh:translations()))}">
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'create', ldh:translations())" mode="ac:label"/>
-                                </xsl:value-of>
-                            </button>
-                        </xsl:if>
+                        <!-- inline creation: an empty slot, filled by ldh:view-create-insert once the container
+                             determination and its ACL probe have resolved. Nothing is declared and nothing is
+                             read off the view here - where a new solution of this projection would be stored is
+                             a question about the data, asked by ldh:ViewContainer -->
+                        <span id="{$container-id}-create"></span>
 
                         <span id="{$result-count-container-id}" class="count"/>
 
@@ -1221,6 +1345,19 @@ exclude-result-prefixes="#all"
 
                 <xsl:sequence select="$form-actions"/>
             </xsl:result-document>
+        </xsl:if>
+
+        <!-- the container a new solution of this projection would be stored in, asked once per view. Fired
+             after the toolbar is in the DOM, because the slot it fills has to exist before the response
+             arrives, and only on the initial load: the answer is a property of the query, so paging,
+             sorting and faceting cannot change it -->
+        <xsl:if test="$initial-load">
+            <xsl:call-template name="ldh:ViewContainer">
+                <xsl:with-param name="create-id" select="$container-id || '-create'"/>
+                <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
+                <xsl:with-param name="endpoint" select="$endpoint"/>
+                <xsl:with-param name="select-xml" select="$select-xml"/>
+            </xsl:call-template>
         </xsl:if>
 
         <!-- result count: stays in sync with re-queried results (e.g. modal search keyword changes). Short-circuit the COUNT HTTP request when the entire result set fits in one page — typical for narrowed search queries. -->
@@ -3268,7 +3405,8 @@ exclude-result-prefixes="#all"
         ]]>
     </xsl:variable>
 
-    <!-- open the instance creation modal form for a view carrying ldh:container metadata (stamped as data-* attributes by ldh:ontology-view-insert) -->
+    <!-- open the instance creation modal form. @data-container was written by ldh:view-create-insert from the
+         container determination, @data-for-class by ldh:ontology-view-insert from the ontology query -->
     <xsl:template match="div[contains-token(@class, 'block')]//button[contains-token(@class, 'add-instance')][@data-for-class][@data-container]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:variable name="view-block" select="ancestor::div[contains-token(@class, 'block')][@data-property][1]" as="element()"/>

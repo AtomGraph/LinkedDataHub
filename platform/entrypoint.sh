@@ -1116,6 +1116,18 @@ if [ -n "$JWKS_CACHE_EXPIRATION" ]; then
     export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.jwksCacheExpiration=$JWKS_CACHE_EXPIRATION"
 fi
 
+# where composed client stylesheets are written and which service compiles them. System properties
+# rather than --stringparam: xsltproc's MAX_PARAMETERS is a hard 64 argv slots, two per parameter,
+# and the ROOT.xml transform already sits at that ceiling once the optional mail and OAuth settings
+# are configured - adding to it takes the container down at startup rather than failing visibly
+if [ -n "$SEF_ROOT" ]; then
+    export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.sefRoot=file://$SEF_ROOT"
+fi
+
+if [ -n "$SEF_COMPILER" ]; then
+    export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.sefCompiler=$SEF_COMPILER"
+fi
+
 if [ -n "$MAX_CONTENT_LENGTH" ]; then
     MAX_CONTENT_LENGTH_PARAM="--stringparam ldhc:maxContentLength '$MAX_CONTENT_LENGTH' "
 fi
@@ -1227,6 +1239,26 @@ transform="xsltproc \
   conf/Catalina/localhost/ROOT.xml"
 
 eval "$transform"
+
+# composed client stylesheets live outside the WAR so they survive redeploys, and are served under
+# /static/ by the default servlet through a Context alias. Added here rather than in context.xsl
+# because that transform has no argv budget left for another --stringparam
+if [ -n "$SEF_ROOT" ]; then
+    # A PostResources set, not the Context "aliases" attribute: that attribute was removed after
+    # Tomcat 7 and 10 rejects it outright with "failed to set property [aliases]", leaving the path
+    # 404 with nothing else to show for it. PostResources is the supported way to mount a directory
+    # outside the WAR into the web application, and being POST it is consulted only when the WAR has
+    # no such resource, so it cannot shadow anything the platform ships.
+    # Deleted before being added because a restart reuses the container filesystem and runs this again.
+    xmlstarlet ed --inplace \
+      -d "/Context/Resources" \
+      -s "/Context" -t elem -n "Resources" \
+      -s "/Context/Resources" -t elem -n "PostResources" \
+      -i "/Context/Resources/PostResources" -t attr -n "className" -v "org.apache.catalina.webresources.DirResourceSet" \
+      -i "/Context/Resources/PostResources" -t attr -n "base" -v "$SEF_ROOT" \
+      -i "/Context/Resources/PostResources" -t attr -n "webAppMount" -v "/static/xsl/sef" \
+      conf/Catalina/localhost/ROOT.xml
+fi
 
 # change webapp (servlet) configuration
 

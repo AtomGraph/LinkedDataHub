@@ -511,6 +511,21 @@ body:has(.ldh-create-dock) .ldh-footer { margin-top: 0; }
 /* only create-bar pages need the column itself stretched (its children become flex items) */
 .document-body > .content-body:has(> .ldh-create-dock) { flex: 1 0 auto; display: flex; flex-direction: column; padding-bottom: 0; }
 
+/* ---------- ldh:ContentColumn: a filled slot turns the content body into two columns.
+   Keyed on .ldh-content-aside, the wrapper ldh:ContentBody puts around whatever fills the slot -
+   NOT on what fills it. It was keyed on the ontology editor's .ldh-onto-list at first, which made a
+   general extension point fire only for one component's class: every package would have had to
+   borrow that card to get a column, and an aside that is not a card got no layout at all.
+   The grid applies to .content-body itself rather than to an outer wrapper so the gutter, the content
+   width and the dock's containing block all stay where the rules above expect them. Written with
+   .document-body > so it outranks the flex rule directly above, which the dock's presence would
+   otherwise win. The dock spans both columns: it is the document's affordance, not the aside's. */
+.document-body > .content-body:has(> .ldh-content-aside) { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: var(--sp-5); align-items: start; }
+.document-body > .content-body:has(> .ldh-content-aside) > .ldh-create-dock { grid-column: 1 / -1; }
+@media (max-width: 900px) {
+  .document-body > .content-body:has(> .ldh-content-aside) { grid-template-columns: minmax(0, 1fr); }
+}
+
 /* ---------- .map-canvas in the design is a picture of a map: an absolute fill for a frame that
    already has a size, painted with a gradient landmass and a grid. LDH hands the same element to
    OpenLayers as a live map target, where it is an ordinary in-flow block that carries its own

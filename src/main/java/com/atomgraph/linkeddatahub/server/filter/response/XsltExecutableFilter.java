@@ -18,7 +18,9 @@ package com.atomgraph.linkeddatahub.server.filter.response;
 
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.MediaType;
+import com.atomgraph.linkeddatahub.server.util.ClientStylesheetService;
 import com.atomgraph.linkeddatahub.server.util.SecureXML;
+import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -70,7 +72,7 @@ import org.xml.sax.SAXException;
  * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-@Priority(Priorities.USER + 200)
+@Priority(Priorities.USER + 350)
 public class XsltExecutableFilter implements ContainerResponseFilter
 {
 
@@ -98,9 +100,26 @@ public class XsltExecutableFilter implements ContainerResponseFilter
             if (stylesheet != null)
             {
                 List<URI> packages = getPackages(getApplication().get());
+                ClientStylesheetService stylesheetService = getSystem().getClientStylesheetService();
 
                 if (packages.isEmpty()) req.setProperty(AC.stylesheet.getURI(), getXsltExecutable(stylesheet));
-                else req.setProperty(AC.stylesheet.getURI(), getXsltExecutable(getApplication().get(), stylesheet, packages));
+                else
+                {
+                    // server-side composition is never withheld: a declarative import takes effect on the
+                    // next request, and it is the only rendering an instance whose compiler is unreachable
+                    // will ever get
+                    req.setProperty(AC.stylesheet.getURI(), getXsltExecutable(getApplication().get(), stylesheet, packages));
+
+                    if (stylesheetService != null)
+                    {
+                        String key = stylesheetService.getKey(packages);
+
+                        // until the composed stylesheet exists the client renders without the package, as it
+                        // always has; compiling one closes that window rather than opening it
+                        if (stylesheetService.isPublished(key)) req.setProperty(LDH.clientStylesheet.getURI(), stylesheetService.getPublicPath(key));
+                        else stylesheetService.buildAsync(key, getStylesheets(packages));
+                    }
+                }
             }
             else req.setProperty(AC.stylesheet.getURI(), getSystem().getXsltExecutable());
 

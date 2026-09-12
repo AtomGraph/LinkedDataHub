@@ -262,85 +262,36 @@ ORDER BY DESC(?created)
         </xsl:choose>
     </xsl:template>
 
-    <xsl:template name="ldh:DocTreeResourceLoad">
+    <!-- the document hierarchy's relation, named once: a document points at its container with
+         sioc:has_container, a container at its parent with sioc:has_parent, and neither end carries
+         the inverse. Shared by the disclosure and by ldh:doctree-descend, which walks the same
+         relation ahead of the user -->
+    <xsl:function name="ldh:doc-tree-children-query" as="xs:string">
+        <xsl:param name="uri" as="xs:anyURI"/>
+
+        <xsl:sequence select="ldh:tree-children-query($uri, (xs:anyURI('&sioc;has_parent'), xs:anyURI('&sioc;has_container')), ())"/>
+    </xsl:function>
+
+    <!-- binds the drawer's tree to containment. client/tree.xsl dispatches on the disclosure button, so
+         matching the tree this button sits in is what selects the relation its children are loaded over -->
+    <xsl:template match="button[ancestor::div[contains-token(@class, 'document-tree')]]" mode="ldh:TreeChildrenLoad">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="uri" as="xs:anyURI"/>
-        <xsl:param name="select-xml" as="document-node()"> <!-- using the ldh:SelectChildren query -->
-            <xsl:variable name="select-string" select="key('resources', '&ldh;SelectChildren', document(ac:document-uri('&ldh;')))/sp:text" as="xs:string"/>
-            <xsl:variable name="select-string" select="replace($select-string, '$this', '&lt;' || $uri || '&gt;', 'q')" as="xs:string"/>
-            <xsl:variable name="select-json" as="item()">
-                <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
-                <xsl:sequence select="ixsl:call($select-builder, 'build', [])"/>
-            </xsl:variable>
-            <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
-            <!-- replace ?child ?thing with ?child - we don't need the topics of documents here -->
-            <xsl:variable name="select-xml" as="document-node()">
-                <xsl:document>
-                    <xsl:apply-templates select="json-to-xml($select-json-string)" mode="ldh:replace-variables">
-                        <xsl:with-param name="var-names" select="('child')" tunnel="yes"/>
-                    </xsl:apply-templates>
-                </xsl:document>
-            </xsl:variable>
-            <xsl:sequence select="$select-xml"/>
-        </xsl:param>
-        <xsl:param name="endpoint" as="xs:anyURI"/>
 
-        <xsl:sequence select="ldh:busy-cursor()"/>
-        
-        <!-- wrap SELECT into a DESCRIBE -->
-        <xsl:variable name="query-xml" as="element()">
-            <xsl:apply-templates select="$select-xml" mode="ldh:wrap-describe"/>
-        </xsl:variable>
-        <xsl:variable name="query-json-string" select="xml-to-json($query-xml)" as="xs:string"/>
-        <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
-        <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
-        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
-        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-        <xsl:variable name="context" as="map(*)" select="
-          map{
-            'request': $request,
-            'container': $container,
-            'uri': $uri
-          }"/>
-        <ixsl:promise select="ixsl:http-request($context('request')) =>
-            ixsl:then(ldh:rethread-response($context, ?)) =>
-            ixsl:then(ldh:handle-response#1) =>
-            ixsl:then(ldh:left-sidebar-resource-response#1) =>
-            ixsl:finally(ldh:reset-cursor#0)"
-            on-failure="ldh:promise-failure#1"/>
+        <xsl:call-template name="ldh:TreeChildrenFetch">
+            <xsl:with-param name="container" select="$container"/>
+            <xsl:with-param name="uri" select="$uri"/>
+            <xsl:with-param name="query" select="ldh:doc-tree-children-query($uri)"/>
+        </xsl:call-template>
     </xsl:template>
     
-    <!-- one tree node (§19): li > .tree-row > disclosure + a.tree-link; the li carries state, the row
-         carries the depth indent ramp (the depth custom property), and a leaf takes the inert spacer so labels stay aligned -->
-    <xsl:template match="*[@rdf:about]" mode="ldh:TreeNode">
-        <xsl:param name="depth" select="0" as="xs:integer"/>
-
-        <li>
-            <div class="tree-row" style="--depth: {$depth}">
-                <!-- only containers can have children resources; the disclosure is a SIBLING of the anchor,
-                     so a container can be expanded without navigating into it -->
-                <xsl:choose>
-                    <xsl:when test="sioc:has_parent">
-                        <button type="button" class="ac-iconbtn sz-xs in-neutral ap-ghost btn-expand-tree" aria-expanded="false">
-                            <span class="msi sm" aria-hidden="true">chevron_right</span>
-                        </button>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <span class="tree-spacer" aria-hidden="true"/>
-                    </xsl:otherwise>
-                </xsl:choose>
-
-                <a class="tree-link" href="{@rdf:about}" title="{@rdf:about}">
-                    <span class="msi sm tree-icon" aria-hidden="true">
-                        <xsl:value-of select="ldh:class-icon(., 'description')"/>
-                    </span>
-                    <span class="tree-label">
-                        <xsl:apply-templates select="." mode="ac:label"/>
-                    </span>
-                </a>
-            </div>
-        </li>
+    <!-- only a container can hold child documents, so only a container gets a disclosure. This is the
+         document tree's half of ldh:TreeNode - the markup itself lives in client/tree.xsl, which must not
+         know about sioc: - and the priority is what separates the two same-precedence rules -->
+    <xsl:template match="*[@rdf:about][sioc:has_parent]" mode="ldh:TreeNode" priority="1">
+        <xsl:next-match>
+            <xsl:with-param name="expandable" select="true()"/>
+        </xsl:next-match>
     </xsl:template>
     
     <!-- EVENT HANDLERS -->
@@ -428,59 +379,6 @@ ORDER BY DESC(?created)
         <xsl:next-match/>
     </xsl:template>
     
-    <!-- expands tree -->
-    
-    <xsl:template match="button[contains-token(@class, 'btn-expand-tree')]" mode="ixsl:onclick">
-        <xsl:variable name="href" select="following-sibling::a/@href" as="xs:anyURI"/>
-        <xsl:variable name="container" select="../.." as="element()"/> <!-- the row's parent <li> -->
-        <xsl:variable name="depth" select="count(ancestor::li)" as="xs:integer"/> <!-- children sit one level below this row -->
-
-        <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'btn-expand-tree', false())"/>
-        <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'btn-expanded-tree', true())"/>
-        <ixsl:set-attribute name="aria-expanded" select="'true'"/>
-        <xsl:for-each select="span[contains-token(@class, 'msi')]">
-            <ixsl:set-property name="textContent" select="'expand_more'" object="."/>
-        </xsl:for-each>
-
-        <xsl:choose>
-            <!-- if children list does not exist, create it with a lazy-loading row -->
-            <xsl:when test="not($container/ul)">
-                <xsl:for-each select="$container">
-                    <xsl:result-document href="?." method="ixsl:append-content">
-                        <ul>
-                            <!-- replaced by the list items when ldh:DocTreeResourceLoad's response lands -->
-                            <li class="tree-loading" style="--depth: {$depth}">
-                                <span class="msi sm" aria-hidden="true">progress_activity</span>
-                                <span>
-                                    <xsl:apply-templates select="key('resources', 'loading', ldh:translations())" mode="ac:label"/>
-                                </span>
-                            </li>
-                        </ul>
-                    </xsl:result-document>
-                </xsl:for-each>
-
-                <xsl:call-template name="ldh:DocTreeResourceLoad">
-                    <xsl:with-param name="container" select="$container/ul"/>
-                    <xsl:with-param name="uri" select="$href"/>
-                    <xsl:with-param name="endpoint" select="sd:endpoint()"/>
-                </xsl:call-template>
-            </xsl:when>
-            <!-- a present children list re-shows via the toggle's aria-expanded state (ldh.css) -->
-        </xsl:choose>
-    </xsl:template>
-
-    <!-- collapses tree -->
-
-    <xsl:template match="button[contains-token(@class, 'btn-expanded-tree')]" mode="ixsl:onclick">
-        <xsl:variable name="container" select="../.." as="element()"/> <!-- the row's parent <li> -->
-
-        <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'btn-expand-tree', true())"/>
-        <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'btn-expanded-tree', false())"/>
-        <ixsl:set-attribute name="aria-expanded" select="'false'"/>
-        <xsl:for-each select="span[contains-token(@class, 'msi')]">
-            <ixsl:set-property name="textContent" select="'chevron_right'" object="."/>
-        </xsl:for-each>
-    </xsl:template>
 
     <!-- backlinks load from the block links popover - the trigger is the tb-links onclick in block.xsl -->
 
@@ -569,65 +467,30 @@ ORDER BY DESC(?created)
                 <xsl:variable name="expand-button" select="$current-li/div/button[contains-token(@class, 'btn-expand-tree')]" as="element()?"/>
 
                 <xsl:choose>
-                    <!-- Case 2a: Has expand button and not expanded yet - expand and load children -->
+                    <!-- Case 2a: Has expand button and not expanded yet - expand and load children.
+
+                         Opened and fetched with the widget's own templates, so pre-expanding a level
+                         ahead of the reader is the same act as clicking it: the loading row shows, the
+                         cursor goes busy and resets, and a failure reaches ldh:promise-failure. This
+                         used to hand-roll all three and got each one wrong - a bare <ul/> with no
+                         loading row, no cursor, and no on-failure, so a failure mid-descent was silent.
+                         The next step down rides ldh:TreeChildrenFetch's continuation. -->
                     <xsl:when test="$expand-button and not($current-li/ul)">
-                        <!-- Create <ul> for children -->
-                        <xsl:for-each select="$current-li">
-                            <xsl:result-document href="?." method="ixsl:append-content">
-                                <ul/>
-                            </xsl:result-document>
-                        </xsl:for-each>
+                        <xsl:call-template name="ldh:TreeNodeDisclose">
+                            <xsl:with-param name="li" select="$current-li"/>
+                        </xsl:call-template>
 
-                        <!-- Toggle button class -->
-                        <xsl:for-each select="$expand-button">
-                            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'btn-expand-tree', false())"/>
-                            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'btn-expanded-tree', true())"/>
-                            <ixsl:set-attribute name="aria-expanded" select="'true'"/>
-                            <xsl:for-each select="span[contains-token(@class, 'msi')]">
-                                <ixsl:set-property name="textContent" select="'expand_more'" object="."/>
-                            </xsl:for-each>
-                        </xsl:for-each>
+                        <xsl:call-template name="ldh:TreeChildrenPlaceholder">
+                            <xsl:with-param name="li" select="$current-li"/>
+                        </xsl:call-template>
 
-                        <!-- Load children and continue descent after loading -->
-                        <!-- Build query to load children (inline from ldh:DocTreeResourceLoad) -->
-                        <xsl:variable name="select-string" select="key('resources', '&ldh;SelectChildren', document(ac:document-uri('&ldh;')))/sp:text" as="xs:string"/>
-                        <xsl:variable name="select-string" select="replace($select-string, '$this', '&lt;' || $current-href || '&gt;', 'q')" as="xs:string"/>
-                        <xsl:variable name="select-json" as="item()">
-                            <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
-                            <xsl:sequence select="ixsl:call($select-builder, 'build', [])"/>
-                        </xsl:variable>
-                        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
-                        <xsl:variable name="select-xml" as="document-node()">
-                            <xsl:document>
-                                <xsl:apply-templates select="json-to-xml($select-json-string)" mode="ldh:replace-variables">
-                                    <xsl:with-param name="var-names" select="('child')" tunnel="yes"/>
-                                </xsl:apply-templates>
-                            </xsl:document>
-                        </xsl:variable>
+                        <xsl:call-template name="ldh:TreeChildrenFetch">
+                            <xsl:with-param name="container" select="$current-li/ul"/>
+                            <xsl:with-param name="uri" select="$current-href"/>
+                            <xsl:with-param name="query" select="ldh:doc-tree-children-query($current-href)"/>
+                            <xsl:with-param name="then" select="ldh:doctree-descend-after-load(?, $current-li, $target-uri, $tree-container)"/>
+                        </xsl:call-template>
 
-                        <!-- Wrap SELECT into a DESCRIBE -->
-                        <xsl:variable name="query-xml" as="element()">
-                            <xsl:apply-templates select="$select-xml" mode="ldh:wrap-describe"/>
-                        </xsl:variable>
-                        <xsl:variable name="query-json-string" select="xml-to-json($query-xml)" as="xs:string"/>
-                        <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
-                        <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
-                        <xsl:variable name="results-uri" select="ac:build-uri(sd:endpoint(), map{ 'query': $query-string })" as="xs:anyURI"/>
-                        <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
-                        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-
-                        <xsl:variable name="load-context" as="map(*)" select="
-                          map{
-                            'request': $request,
-                            'container': $current-li/ul,
-                            'uri': $current-href
-                          }"/>
-
-                        <ixsl:promise select="ixsl:http-request($load-context('request')) =>
-                            ixsl:then(ldh:rethread-response($load-context, ?)) =>
-                            ixsl:then(ldh:handle-response#1) =>
-                            ixsl:then(ldh:left-sidebar-resource-response#1) =>
-                            ixsl:then(ldh:doctree-descend-after-load(?, $current-li, $target-uri, $tree-container))"/>
                         <xsl:sequence select="map{}"/>
                     </xsl:when>
 
@@ -690,43 +553,6 @@ ORDER BY DESC(?created)
         </xsl:choose>
     </xsl:function>
 
-    <xsl:function name="ldh:left-sidebar-resource-response" as="map(*)" ixsl:updating="yes">
-        <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
-        <xsl:variable name="container" select="$context('container')" as="element()"/> <!-- <ul> element -->
-        <xsl:variable name="uri" select="$context('uri')" as="xs:anyURI"/>
-
-        <xsl:message>ldh:left-sidebar-resource-response</xsl:message>
-        
-        <xsl:for-each select="$response">
-            <xsl:choose>
-                <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                    <xsl:for-each select="?body">
-                        <xsl:variable name="resources" select="rdf:RDF/*[@rdf:about]" as="element()*"/>
-                        <!-- replace the doc tree list's content (the lazy-loading row goes with it) -->
-                        <xsl:for-each select="$container">
-                            <xsl:variable name="depth" select="count(ancestor::li)" as="xs:integer"/>
-                            <xsl:result-document href="?." method="ixsl:replace-content">
-                                <xsl:apply-templates select="$resources" mode="ldh:TreeNode">
-                                    <xsl:sort select="ac:label(.)"/>
-                                    <xsl:with-param name="depth" select="$depth"/>
-                                </xsl:apply-templates>
-                            </xsl:result-document>
-                        </xsl:for-each>
-
-                        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-                    </xsl:for-each>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:message>
-                        Error loading document tree for URI :<xsl:value-of select="$uri"/>
-                    </xsl:message>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:for-each>
-        
-        <xsl:sequence select="$context"/>
-    </xsl:function>
     
     <xsl:function name="ldh:backlinks-response" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>

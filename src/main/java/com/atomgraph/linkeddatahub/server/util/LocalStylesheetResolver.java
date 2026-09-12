@@ -87,6 +87,31 @@ public class LocalStylesheetResolver extends StylesheetResolver
             }
         }
 
+        // a bundled package's stylesheet: its URI is mapped to a classpath file, so the package
+        // resolves without leaving the JVM. The graph repository owns that mapping, but it hands back
+        // RDF graphs - a stylesheet is not RDF, so the location is resolved and the bytes read directly.
+        // The repository is optional and read through a local: an application can exist without one, so
+        // an unguarded call NPEs every resolution that is not a bundled package - which is what it did
+        // to this resolver's own tests for a file: URI and for an unknown origin
+        com.atomgraph.client.util.jena.PrefixGraphRepository repository = getSystem().getRepository();
+        if (repository != null && repository.isMapped(uri.toString()))
+        {
+            String location = repository.resolve(uri.toString());
+            try (InputStream is = getClass().getClassLoader().getResourceAsStream(location))
+            {
+                if (is != null)
+                {
+                    // the URI stays the system id, so relative imports inside resolve against it
+                    byte[] bytes = IOUtils.toByteArray(is);
+                    return new StreamSource(new ByteArrayInputStream(bytes), uri.toString());
+                }
+            }
+            catch (IOException ex)
+            {
+                throw new TransformerException(ex);
+            }
+        }
+
         return super.resolve(href, base);
     }
 
