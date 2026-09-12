@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.util;
 
+import com.atomgraph.linkeddatahub.server.filter.request.ContentLengthLimitFilter;
 import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
@@ -208,6 +209,7 @@ public class ClientStylesheetService
 
         byte[] sef;
         try (Response cr = getClient().target(getCompilerURI()).request(MediaType.APPLICATION_JSON_TYPE).
+                property(ContentLengthLimitFilter.UNLIMITED, true). // the composed SEF is ~18 MiB, far past the guard that bounds proxied content
                 post(Entity.entity(request, MediaType.APPLICATION_JSON_TYPE)))
         {
             if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
