@@ -99,10 +99,15 @@ exclude-result-prefixes="#all"
             <xsl:message terminate="yes">ldh:tree-children-query requires at least one parent or child property</xsl:message>
         </xsl:if>
 
+        <!-- the link and the child's own description are in DIFFERENT graphs whenever the link is
+             asserted on the parent, because each document is its own graph: a scheme's
+             skos:hasTopConcept lives in the scheme's graph while the concept's rdf:type lives in the
+             concept's. Scoping both to one GRAPH silently drops every child linked from above -
+             measured against a fixture where it returned one top concept of two -->
         <xsl:variable name="select-string" select="
-            'SELECT DISTINCT ?child WHERE { GRAPH ?childGraph { ' ||
+            'SELECT DISTINCT ?child WHERE { GRAPH ?linkGraph { ' ||
             string-join($branches, ' UNION ') ||
-            ' ?child a ?Type } }'" as="xs:string"/>
+            ' } GRAPH ?childGraph { ?child a ?Type } }'" as="xs:string"/>
         <xsl:variable name="select-json" as="item()">
             <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
             <xsl:sequence select="ixsl:call($select-builder, 'build', [])"/>
