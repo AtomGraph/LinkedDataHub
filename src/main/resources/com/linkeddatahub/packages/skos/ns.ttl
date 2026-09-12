@@ -51,7 +51,9 @@ PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
 SELECT DISTINCT  ?narrower
 WHERE
   { GRAPH ?graph
-      { $about  skos:narrower  ?narrower .
+      {   { $about  skos:narrower  ?narrower }
+        UNION
+          { ?narrower  skos:broader  $about }
         GRAPH ?narrowerGraph
         {
           ?narrower skos:prefLabel ?prefLabel .
@@ -80,7 +82,9 @@ PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
 SELECT DISTINCT  ?broader
 WHERE
   { GRAPH ?graph
-      { $about  skos:broader  ?broader .
+      {   { $about  skos:broader  ?broader }
+        UNION
+          { ?broader  skos:narrower  $about }
         GRAPH ?broaderGraph
         {
           ?broader skos:prefLabel ?prefLabel .
@@ -165,8 +169,15 @@ skos:hasTopConcept ldh:view :TopConcepts .
     rdfs:isDefinedBy : .
 
 # the entry level of a taxonomy, and the root of the concept tree. Both directions count as a top
-# concept - a scheme may assert skos:hasTopConcept, a concept may assert skos:topConceptOf - because
-# SKOS declares them inverses and leaves the choice to the modeller
+# Every hierarchy query below reads BOTH directions, for the same reason: SKOS declares
+# skos:broader/skos:narrower and skos:hasTopConcept/skos:topConceptOf as inverse pairs and leaves the
+# choice to the modeller, so a parent may point down or a child may point up and both are correct.
+# Reading one direction made a view disagree with the concept tree, which unions them: measured on the
+# fixture, Hot drinks' Narrower block showed 1 child where the tree showed 3, because Coffee and Tea
+# assert skos:broader upwards, and Juice's Broader block showed nothing while the tree nested it under
+# Hot drinks. The union stays INSIDE the link's GRAPH rather than becoming a sibling block, because
+# SPARQLBuilder's round-trip merges sibling GRAPH blocks into one and would scope the child's label to
+# the link's document.
 :SelectTopConcepts a sp:Select ;
     rdfs:label "Select top concepts" ;
     dct:title "Select top concepts" ;
