@@ -16,16 +16,23 @@
 skos:Concept spin:constructor :ConceptConstructor ;
     spin:constraint :MissingPrefLabel , :MissingInScheme .
 
+# The labels and the definition are declared rdf:langString, not xsd:string: a SKOS label is natural
+# language, and SKOS's own integrity rules assume it carries a tag (a concept may have only one
+# prefLabel PER LANGUAGE, which is not even expressible without one). A constructor declaring
+# xsd:string produced a form field with a datatype and no language control, so a label added through
+# the form came out untagged beside the tagged ones already in the data - visible as a value with an
+# xsd:string annotation next to one showing en.
 :ConceptConstructor a ldh:Constructor ;
     rdfs:label "Concept constructor" ;
     sp:text """
         PREFIX skos:    <http://www.w3.org/2004/02/skos/core#>
+        PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
         PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
 
         CONSTRUCT {
-            $this skos:prefLabel [ a xsd:string ] ;
-                skos:altLabel [ a xsd:string ] ;
-                skos:definition [ a xsd:string ] ;
+            $this skos:prefLabel [ a rdf:langString ] ;
+                skos:altLabel [ a rdf:langString ] ;
+                skos:definition [ a rdf:langString ] ;
                 skos:broader [ a skos:Concept ] ;
                 skos:narrower [ a skos:Concept ] ;
                 skos:related [ a skos:Concept ] ;
