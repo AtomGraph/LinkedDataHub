@@ -1,4 +1,4 @@
-TARGETS := sef drop cert release tests up down cli cli-version
+TARGETS := sef drop cert release tests ui-tests ui-tests-install up down cli cli-version
 COMPOSE_TARGETS := up down
 .PHONY: $(TARGETS)
 
@@ -60,3 +60,14 @@ cli:
 # The suite builds its fixtures with ldh, so the CLI is built first and put on $PATH for run.sh
 tests: cli
 	cd http-tests && PATH="$(CURDIR)/cli/bin:$$PATH" ./run.sh ../ssl/owner/cert.pem $$(cat ../secrets/owner_cert_password.txt) ../ssl/secretary/cert.pem $$(cat ../secrets/secretary_cert_password.txt)
+
+# Install the Playwright runner and its browser. Separate from ui-tests so the common path
+# does not pay for a dependency resolution it almost never needs.
+ui-tests-install:
+	cd ui-tests && npm ci && npx playwright install chromium
+
+# Drive the browser UI against the running stack. Like the HTTP suite it builds its fixtures
+# with ldh, so the CLI is built first and put on $PATH; unlike it, it needs the stack to have
+# been published with `make sef` first - the preflight says so if it has not.
+ui-tests: cli
+	cd ui-tests && PATH="$(CURDIR)/cli/bin:$$PATH" npx playwright test
