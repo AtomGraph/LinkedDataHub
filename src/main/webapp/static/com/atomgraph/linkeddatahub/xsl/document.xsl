@@ -70,7 +70,13 @@ exclude-result-prefixes="#all"
          carries the page gutter and content width, is addressed by rules as a direct child of
          .document-body, and is the containing block the sticky create dock measures its full bleed
          against - so a column emitted around it loses the gutter and breaks the dock, while one
-         emitted into it leaves every existing rule matching. -->
+         emitted into it leaves every existing rule matching.
+
+         Whatever fills it is wrapped in .ldh-content-aside by ldh:ContentBody, and that class is what
+         the two-column layout keys on. The filler therefore needs no layout class of its own and may
+         look like anything - a card, a bare list, a full-height panel - where keying the grid on the
+         filler's own class would have meant every package borrowing one component's arrangement to
+         use a general slot. -->
     <xsl:mode name="ldh:ContentColumn" on-no-match="deep-skip"/>
 
 
@@ -626,7 +632,18 @@ exclude-result-prefixes="#all"
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
-            <xsl:apply-templates select="." mode="ldh:ContentColumn"/>
+            <!-- The wrapper is the platform's, not the filler's: a slot that only lays out when its
+                 content happens to carry one particular class is not an extension point, it is that
+                 one component's private arrangement. Materialised first so an unfilled slot emits no
+                 wrapper at all and the content body stays single-column. -->
+            <xsl:variable name="content-column" as="item()*">
+                <xsl:apply-templates select="." mode="ldh:ContentColumn"/>
+            </xsl:variable>
+            <xsl:if test="exists($content-column)">
+                <div class="ldh-content-aside">
+                    <xsl:sequence select="$content-column"/>
+                </div>
+            </xsl:if>
 
             <xsl:choose>
                 <xsl:when test="$mode = '&ldh;ContentMode'">
