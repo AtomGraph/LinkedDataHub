@@ -86,29 +86,17 @@ exclude-result-prefixes="#all"
     <xsl:template match="button[contains-token(@class, 'btn-expand-tree')]" mode="ixsl:onclick">
         <xsl:variable name="href" select="following-sibling::a/@href" as="xs:anyURI"/>
         <xsl:variable name="container" select="../.." as="element()"/> <!-- the row's parent <li> -->
-        <xsl:variable name="depth" select="count(ancestor::li)" as="xs:integer"/> <!-- children sit one level below this row -->
 
-        <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'btn-expand-tree', false())"/>
-        <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'btn-expanded-tree', true())"/>
-        <ixsl:set-attribute name="aria-expanded" select="'true'"/>
-        <xsl:for-each select="span[contains-token(@class, 'msi')]">
-            <ixsl:set-property name="textContent" select="'expand_more'" object="."/>
-        </xsl:for-each>
+        <!-- the flip is deliberately OUTSIDE the guard below: a node whose children are already in the
+             DOM re-shows through aria-expanded alone, so clicking it must still flip -->
+        <xsl:call-template name="ldh:TreeNodeDisclose">
+            <xsl:with-param name="li" select="$container"/>
+        </xsl:call-template>
 
         <xsl:if test="not($container/ul)">
-            <xsl:for-each select="$container">
-                <xsl:result-document href="?." method="ixsl:append-content">
-                    <ul>
-                        <!-- replaced by the list items when the children response lands -->
-                        <li class="tree-loading" style="--depth: {$depth}">
-                            <span class="msi sm" aria-hidden="true">progress_activity</span>
-                            <span>
-                                <xsl:apply-templates select="key('resources', 'loading', ldh:translations())" mode="ac:label"/>
-                            </span>
-                        </li>
-                    </ul>
-                </xsl:result-document>
-            </xsl:for-each>
+            <xsl:call-template name="ldh:TreeChildrenPlaceholder">
+                <xsl:with-param name="li" select="$container"/>
+            </xsl:call-template>
 
             <!-- dispatched on the button, so a domain selects its loader by matching the tree it sits in -->
             <xsl:apply-templates select="." mode="ldh:TreeChildrenLoad">
@@ -130,6 +118,44 @@ exclude-result-prefixes="#all"
 
     <!-- LOADING -->
 
+    <!-- Opening a node is two things, and both are shared: ldh:doctree-descend opens the path down to
+         the document being viewed ahead of the reader, and a pre-expanded level has to be
+         indistinguishable from a clicked one. Splitting them is what the click handler needs - it
+         flips unconditionally, because a node whose children are already loaded re-shows off
+         aria-expanded, and only appends a placeholder when there is nothing to re-show. -->
+    <xsl:template name="ldh:TreeNodeDisclose">
+        <xsl:param name="li" as="element()"/>
+
+        <xsl:for-each select="$li/div/button">
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'btn-expand-tree', false())"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'btn-expanded-tree', true())"/>
+            <ixsl:set-attribute name="aria-expanded" select="'true'"/>
+            <xsl:for-each select="span[contains-token(@class, 'msi')]">
+                <ixsl:set-property name="textContent" select="'expand_more'" object="."/>
+            </xsl:for-each>
+        </xsl:for-each>
+    </xsl:template>
+
+    <!-- the list the children are rendered into, carrying the loading row until they land -->
+    <xsl:template name="ldh:TreeChildrenPlaceholder">
+        <xsl:param name="li" as="element()"/>
+        <xsl:variable name="depth" select="count($li/ancestor::li) + 1" as="xs:integer"/> <!-- children sit one level below this row -->
+
+        <xsl:for-each select="$li">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <ul>
+                    <!-- replaced by the list items when the children response lands -->
+                    <li class="tree-loading" style="--depth: {$depth}">
+                        <span class="msi sm" aria-hidden="true">progress_activity</span>
+                        <span>
+                            <xsl:apply-templates select="key('resources', 'loading', ldh:translations())" mode="ac:label"/>
+                        </span>
+                    </li>
+                </ul>
+            </xsl:result-document>
+        </xsl:for-each>
+    </xsl:template>
+
     <!-- Fetches a node's children and renders them into the placeholder list. The SELECT is the
          caller's - this wraps it in a DESCRIBE, runs it, and applies ldh:TreeNode to whatever comes
          back - so the relation the tree follows lives entirely in the domain's query. -->
@@ -138,6 +164,10 @@ exclude-result-prefixes="#all"
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="query" as="xs:string"/> <!-- a DESCRIBE of the children, sent as given -->
         <xsl:param name="endpoint" select="sd:endpoint()" as="xs:anyURI"/>
+        <!-- what to do once the children are in the DOM. ldh:doctree-descend passes its next step here
+             rather than repeating this fetch, which is how it used to continue: its copy had no busy
+             cursor, no loading row and no failure handler, so a failure mid-descent was silent. -->
+        <xsl:param name="then" select="()" as="(function(map(*)) as item()*)?"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
 
@@ -154,6 +184,7 @@ exclude-result-prefixes="#all"
             ixsl:then(ldh:rethread-response($context, ?)) =>
             ixsl:then(ldh:handle-response#1) =>
             ixsl:then(ldh:tree-children-response#1) =>
+            ixsl:then(ldh:tree-children-continue($then, ?)) =>
             ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure#1"/>
     </xsl:template>
@@ -161,6 +192,22 @@ exclude-result-prefixes="#all"
     <!-- CALLBACKS -->
 
     <!-- replaces the placeholder list's content with the children, sorted by label -->
+    <!-- applies ldh:TreeChildrenFetch's continuation if it was given one, so the chain is written once
+         whether or not a caller carries on from it -->
+    <xsl:function name="ldh:tree-children-continue" as="item()*" ixsl:updating="yes">
+        <xsl:param name="then" as="(function(map(*)) as item()*)?"/>
+        <xsl:param name="context" as="map(*)"/>
+
+        <xsl:choose>
+            <xsl:when test="exists($then)">
+                <xsl:sequence select="$then($context)"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="$context"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
     <xsl:function name="ldh:tree-children-response" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>

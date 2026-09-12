@@ -467,43 +467,30 @@ ORDER BY DESC(?created)
                 <xsl:variable name="expand-button" select="$current-li/div/button[contains-token(@class, 'btn-expand-tree')]" as="element()?"/>
 
                 <xsl:choose>
-                    <!-- Case 2a: Has expand button and not expanded yet - expand and load children -->
+                    <!-- Case 2a: Has expand button and not expanded yet - expand and load children.
+
+                         Opened and fetched with the widget's own templates, so pre-expanding a level
+                         ahead of the reader is the same act as clicking it: the loading row shows, the
+                         cursor goes busy and resets, and a failure reaches ldh:promise-failure. This
+                         used to hand-roll all three and got each one wrong - a bare <ul/> with no
+                         loading row, no cursor, and no on-failure, so a failure mid-descent was silent.
+                         The next step down rides ldh:TreeChildrenFetch's continuation. -->
                     <xsl:when test="$expand-button and not($current-li/ul)">
-                        <!-- Create <ul> for children -->
-                        <xsl:for-each select="$current-li">
-                            <xsl:result-document href="?." method="ixsl:append-content">
-                                <ul/>
-                            </xsl:result-document>
-                        </xsl:for-each>
+                        <xsl:call-template name="ldh:TreeNodeDisclose">
+                            <xsl:with-param name="li" select="$current-li"/>
+                        </xsl:call-template>
 
-                        <!-- Toggle button class -->
-                        <xsl:for-each select="$expand-button">
-                            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'btn-expand-tree', false())"/>
-                            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'btn-expanded-tree', true())"/>
-                            <ixsl:set-attribute name="aria-expanded" select="'true'"/>
-                            <xsl:for-each select="span[contains-token(@class, 'msi')]">
-                                <ixsl:set-property name="textContent" select="'expand_more'" object="."/>
-                            </xsl:for-each>
-                        </xsl:for-each>
+                        <xsl:call-template name="ldh:TreeChildrenPlaceholder">
+                            <xsl:with-param name="li" select="$current-li"/>
+                        </xsl:call-template>
 
-                        <!-- Load children and continue descent after loading -->
-                        <xsl:variable name="query-string" select="ldh:doc-tree-children-query($current-href)" as="xs:string"/>
-                        <xsl:variable name="results-uri" select="ac:build-uri(sd:endpoint(), map{ 'query': $query-string })" as="xs:anyURI"/>
-                        <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
-                        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                        <xsl:call-template name="ldh:TreeChildrenFetch">
+                            <xsl:with-param name="container" select="$current-li/ul"/>
+                            <xsl:with-param name="uri" select="$current-href"/>
+                            <xsl:with-param name="query" select="ldh:doc-tree-children-query($current-href)"/>
+                            <xsl:with-param name="then" select="ldh:doctree-descend-after-load(?, $current-li, $target-uri, $tree-container)"/>
+                        </xsl:call-template>
 
-                        <xsl:variable name="load-context" as="map(*)" select="
-                          map{
-                            'request': $request,
-                            'container': $current-li/ul,
-                            'uri': $current-href
-                          }"/>
-
-                        <ixsl:promise select="ixsl:http-request($load-context('request')) =>
-                            ixsl:then(ldh:rethread-response($load-context, ?)) =>
-                            ixsl:then(ldh:handle-response#1) =>
-                            ixsl:then(ldh:tree-children-response#1) =>
-                            ixsl:then(ldh:doctree-descend-after-load(?, $current-li, $target-uri, $tree-container))"/>
                         <xsl:sequence select="map{}"/>
                     </xsl:when>
 
