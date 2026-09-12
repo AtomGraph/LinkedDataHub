@@ -5,6 +5,18 @@
 // visible symptom beyond a missing graphic. A spec that only asserts what it came to
 // assert would have called that page fine.
 import { test as base, expect } from '@playwright/test';
+import { adminBase, endUserBase } from './stack.mjs';
+
+// The welcome modal is shown to an authenticated agent once per browser, keyed on a
+// cookie, and it is a centred backdrop: it intercepts every click a spec tries to make
+// until it is dismissed. Seeding the cookie is what a returning reader has, and it is
+// race-free where dismissing it is not - the modal appears when Saxon-JS gets to it, so
+// a spec that clicks early loses. A spec about the welcome modal itself clears this.
+const seen = [endUserBase, adminBase].map(base => ({
+    name: 'LinkedDataHub.first-time-message',
+    value: 'true',
+    url: base,
+}));
 
 // Noise that is not this build's fault. Excluded by pattern and listed here with its
 // reason, rather than by loosening the assertion for everything.
@@ -18,6 +30,8 @@ const allowed = text => preexisting.some(({ pattern }) => pattern.test(text));
 
 export const test = base.extend({
     page: async ({ page }, use, testInfo) => {
+        await page.context().addCookies(seen);
+
         const noise = [];
         const note = entry => { if (!allowed(entry)) noise.push(entry); };
 

@@ -7,6 +7,7 @@ import { accessSync, constants } from 'node:fs';
 import { get } from './lib/http.mjs';
 import { endUserBase, localSef, sefPath } from './lib/stack.mjs';
 import { itemCount, seed, teardown } from './lib/fixtures.mjs';
+import { seedTaxonomy, skosPackage, teardownTaxonomy } from './lib/taxonomy.mjs';
 
 function onPath(command) {
     return (process.env.PATH ?? '').split(delimiter).some(dir => {
@@ -86,11 +87,27 @@ async function fixtures() {
     console.log(`  fixtures   ${container} with ${itemCount} items (${Date.now() - started} ms)`);
 }
 
+// The concept tree is the SKOS package's, not the platform's, so its fixtures carry the
+// package import too. Kept apart from the generic fixtures because it is the one seeding
+// step that changes how the whole dataspace renders, and teardown puts it back.
+async function taxonomy() {
+    if (process.env.UI_TESTS_SKIP_SEED) {
+        console.log('  taxonomy   reusing what is there (UI_TESTS_SKIP_SEED)');
+        return;
+    }
+    await teardownTaxonomy();
+    const started = Date.now();
+    const { container, addedPackage } = await seedTaxonomy();
+    console.log(`  taxonomy   ${container}`
+        + `${addedPackage ? ` (imported ${skosPackage})` : ''} (${Date.now() - started} ms)`);
+}
+
 export default async function globalSetup() {
     console.log('\nPreflight');
     await reachable();
     cli();
     await sef();
     await fixtures();
+    await taxonomy();
     console.log('');
 }

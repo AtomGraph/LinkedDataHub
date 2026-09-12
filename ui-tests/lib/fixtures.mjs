@@ -48,9 +48,14 @@ function ldhEnv() {
     };
 }
 
-export function ldh(args, { allowFailure = false } = {}) {
+// stdin, because `ldh patch` takes its SPARQL update that way and nothing else does.
+export function ldh(args, { allowFailure = false, stdin } = {}) {
     return new Promise((resolve, reject) => {
-        const child = spawn('ldh', args, { env: ldhEnv(), stdio: ['ignore', 'pipe', 'pipe'] });
+        const child = spawn('ldh', args, {
+            env: ldhEnv(),
+            stdio: [stdin === undefined ? 'ignore' : 'pipe', 'pipe', 'pipe'],
+        });
+        if (stdin !== undefined) child.stdin.end(stdin);
         let out = '', err = '';
         child.stdout.on('data', chunk => out += chunk);
         child.stderr.on('data', chunk => err += chunk);

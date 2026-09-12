@@ -55,6 +55,30 @@ not remembered.
 | `UI_TESTS_SKIP_SEED=1` | Reuse whatever is already there — for iterating on one spec |
 | `UI_TESTS_KEEP_FIXTURES=1` | Leave the container behind to inspect it in a browser |
 | `UI_TESTS_ITEMS=n` | Fewer children (default 25 — enough for a second pager page) |
+| `UI_TESTS_SKOS_PACKAGE=uri` | A different taxonomy package to import (default: the bundled SKOS one) |
+
+### The taxonomy
+
+`ui-taxonomy/` is seeded separately (`lib/taxonomy.mjs`) because the concept tree belongs
+to the SKOS **package**, not to the platform: the column, the hierarchy queries and the
+reveal are all the package stylesheet's. So the fixture imports the package when the
+dataspace does not already have it, and teardown removes it again — it is the one seeding
+step that changes how every document in the dataspace renders, and leaving it behind on an
+instance that did not ask for it is not the suite's to do.
+
+Its shape is deliberate rather than illustrative. SKOS lets either end of a hierarchy link
+carry it, so each level is asserted from a different side: `coffee` names its own
+`skos:broader`, `tea` is reached only because `hot-drinks` names it as `skos:narrower`, and
+the two top concepts arrive one from each direction. Depth is deliberate too — `espresso`
+sits three hops below the scheme, which is what makes the reveal a walk rather than a
+lookup. Polyhierarchy is *not* seeded: `addBroader()` adds a second parent for the one spec
+that needs it and returns the undo, because a fixture that stays polyhierarchical changes
+what every other spec sees.
+
+Seeding a concept writes `foaf:primaryTopic` itself, since `ldh create` writes none and the
+tree reads the scheme off the topic's `skos:inScheme` — without it the page has no topic and
+the tree renders nothing. Each concept also needs `skos:inScheme` in the *same* write: the
+package constrains it (`:MissingInScheme`), so a concept seeded without one is refused 422.
 
 ## Projects
 
@@ -80,3 +104,14 @@ only the first authenticates half the page.
   excluded by pattern, with its reason, rather than by loosening the assertion.
 - **Never inline the certificate passphrase.** `ownerPassword()` reads
   `secrets/owner_cert_password.txt`.
+- **The drawer opens at `clientX` exactly 0.** Its handler tests `$x = 0` rather than a
+  threshold, so `mouse.move(2, y)` leaves it shut — with its whole subtree still in the
+  DOM, which is how ad-hoc scripts came to assert against a hidden tree without noticing.
+  Move to `x: 0` and assert `toBeVisible()` before driving it.
+- **Avoid a relative `:has(> …)` inside a `>`-prefixed chained locator.** Playwright
+  resolves `locator('> ul > li:has(> div.tree-row)')` to nothing where `'> ul > li'` finds
+  25. At the start of a selector `li:has(> …)` is fine; chained after a `>` it is not.
+- **Record state that is transient, do not sample it.** The busy cursor is an inline style
+  set for the duration of each fetch and reset after it, so polling it races the gaps
+  between levels. A `MutationObserver` installed with `addInitScript` collects every
+  transition, and the assertion becomes what the claim actually is.
