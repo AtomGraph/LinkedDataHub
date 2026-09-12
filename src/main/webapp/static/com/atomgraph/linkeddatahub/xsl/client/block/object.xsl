@@ -7,13 +7,14 @@
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
-    <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
+    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns="http://www.w3.org/1999/xhtml"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+xmlns:lapp="&lapp;"
 xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 xmlns:prop="http://saxonica.com/ns/html-property"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
@@ -26,7 +27,6 @@ xmlns:ldh="&ldh;"
 xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
 xmlns:acl="&acl;"
-xmlns:ldt="&ldt;"
 xmlns:sd="&sd;"
 xmlns:foaf="&foaf;"
 extension-element-prefixes="ixsl"
@@ -183,13 +183,13 @@ exclude-result-prefixes="#all"
                         <xsl:choose>
                             <!-- only attempt to load object metadata for local resources -->
                             <xsl:when test="$resource">
-                                <xsl:variable name="object-uris" select="distinct-values($resource/*/@rdf:resource[starts-with(., ldt:base())][not(key('resources', ., root($resource)))])" as="xs:string*"/>
+                                <xsl:variable name="object-uris" select="distinct-values($resource/*/@rdf:resource[starts-with(., lapp:base())][not(key('resources', ., root($resource)))])" as="xs:string*"/>
                                 <xsl:variable name="values" select="' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
                                 <xsl:variable name="query-string" select="$object-metadata-query || $values" as="xs:string"/>
                                 <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(sd:endpoint()), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                                 <!-- second request resolves ontology-term object labels (rdf:type/class values etc.) from the /ns endpoint; merged with the /sparql result in ldh:block-object-metadata-response -->
                                 <xsl:variable name="ns-query-string" select="$object-metadata-ns-query || $values" as="xs:string"/>
-                                <xsl:variable name="ns-request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', ldt:base())), 'media-type': 'application/sparql-query', 'body': $ns-query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                                <xsl:variable name="ns-request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', lapp:base())), 'media-type': 'application/sparql-query', 'body': $ns-query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                                 <xsl:sequence select="map:put(map:merge(($context, map{
                                     'object-metadata-request': $request,
                                     'ns-object-metadata-request': $ns-request,

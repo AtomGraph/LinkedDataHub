@@ -15,7 +15,6 @@
     <!ENTITY http   "http://www.w3.org/2011/http#">
     <!ENTITY sc     "http://www.w3.org/2011/http-statusCodes#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
-    <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY sh     "http://www.w3.org/ns/shacl#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
@@ -45,7 +44,6 @@ xmlns:owl="&owl;"
 xmlns:srx="&srx;"
 xmlns:http="&http;"
 xmlns:acl="&acl;"
-xmlns:ldt="&ldt;"
 xmlns:dh="&dh;"
 xmlns:sd="&sd;"
 xmlns:sh="&sh;"
@@ -294,12 +292,6 @@ exclude-result-prefixes="#all"
         <xsl:attribute name="class" select="concat($class, ' ', map:get($mode-logo-classes, @rdf:about))"/>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about = '&ac;QueryEditorMode']" mode="ldh:logo">
-        <xsl:param name="class" as="xs:string?"/>
-        
-        <xsl:attribute name="class" select="concat($class, ' ', 'btn-query')"/>
-    </xsl:template>
-
     <xsl:template match="*[@rdf:about = '&acl;Access']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
@@ -333,7 +325,7 @@ exclude-result-prefixes="#all"
     
     <!-- BREADCRUMBS -->
 
-    <xsl:template match="*[@rdf:about]" mode="ac:BreadcrumbItem">
+    <xsl:template match="*[@rdf:about]" mode="ldh:BreadcrumbItem">
         <xsl:param name="leaf" select="true()" as="xs:boolean"/>
         <!-- crumb icon by document type, as in the design system's breadcrumb -->
         <xsl:param name="icon" select="ldh:class-icon(., 'link')" as="xs:string"/>
@@ -429,7 +421,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[@rdf:about]" mode="ldh:LinkRow">
         <xsl:param name="icon" select="'link'" as="xs:string"/>
 
-        <a href="{ldh:href(ac:document-uri(xs:anyURI(@rdf:about)), map{}, ac:fragment-id(@rdf:about))}" title="{@rdf:about}" class="drow{if (not(starts-with(@rdf:about, ldt:base()))) then ' external' else ''}">
+        <a href="{ldh:href(ac:document-uri(xs:anyURI(@rdf:about)), map{}, ac:fragment-id(@rdf:about))}" title="{@rdf:about}" class="drow{if (not(starts-with(@rdf:about, lapp:base()))) then ' external' else ''}">
             <span class="msi sm" aria-hidden="true">
                 <xsl:value-of select="$icon"/>
             </span>
@@ -1364,7 +1356,7 @@ exclude-result-prefixes="#all"
                     <xsl:sequence select="ldh:reserialize($constructor)"/>
                 </xsl:when>
                 <xsl:when test="exists($forClass)">
-                    <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': ldh:constructor-query($forClass), 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
+                    <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', lapp:base()), map{ 'query': ldh:constructor-query($forClass), 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
                     <xsl:variable name="results" select="document(ldh:href($results-uri, map{}))" as="document-node()"/>
                     <xsl:sequence select="ldh:construct-instance(distinct-values($results//srx:binding[@name = 'text']/srx:literal), $forClass)"/>
                 </xsl:when>
@@ -1623,26 +1615,6 @@ exclude-result-prefixes="#all"
                 </span>
             </button>
         </div>
-    </xsl:template>
-    
-    <!-- VIOLATION -->
-
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;URISyntaxViolation']" mode="ac:Violation">
-        <xsl:param name="class" select="'ac-alert va-negative'" as="xs:string?"/>
-
-        <xsl:apply-templates select="." mode="ac:InlineAlert">
-            <xsl:with-param name="class" select="$class"/>
-            <xsl:with-param name="text" select="string(rdfs:label)"/>
-        </xsl:apply-templates>
-    </xsl:template>
-
-    <xsl:template match="*[rdf:type/@rdf:resource = '&sh;ValidationResult']" mode="ac:Violation">
-        <xsl:param name="class" select="'ac-alert va-negative'" as="xs:string?"/>
-
-        <xsl:apply-templates select="." mode="ac:InlineAlert">
-            <xsl:with-param name="class" select="$class"/>
-            <xsl:with-param name="text" select="string(sh:resultMessage)"/>
-        </xsl:apply-templates>
     </xsl:template>
     
     <!-- EXCEPTION -->

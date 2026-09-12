@@ -9,7 +9,6 @@
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
-    <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY sp     "http://spinrdf.org/sp#">
     <!ENTITY spin   "http://spinrdf.org/spin#">
@@ -33,7 +32,6 @@ xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
 xmlns:srx="&srx;"
 xmlns:acl="&acl;"
-xmlns:ldt="&ldt;"
 xmlns:sd="&sd;"
 xmlns:sp="&sp;"
 xmlns:spin="&spin;"
@@ -2637,7 +2635,7 @@ exclude-result-prefixes="#all"
                         <xsl:variable name="focus-var-name" select="$initial-var-name" as="xs:string"/>
                         <!-- service can be explicitly specified on content using ldh:service -->
                         <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ()))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
-                        <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
+                        <xsl:variable name="endpoint" select="ldh:service-endpoint($service)" as="xs:anyURI"/>
 
                         <xsl:choose>
                             <!-- service URI is not specified or specified and can be loaded -->
@@ -2929,7 +2927,7 @@ exclude-result-prefixes="#all"
 
                             <xsl:variable name="values" select="' VALUES $this { ' || string-join(distinct-values($links ! ('&lt;' || ?predicate || '&gt;')), ' ') || ' }'" as="xs:string"/>
                             <xsl:variable name="query-string" select="$object-metadata-ns-query || $values" as="xs:string"/>
-                            <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', ldt:base())), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                            <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', lapp:base())), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                             <xsl:variable name="context" select="map:merge((
                               $context,
                               map{
@@ -3064,7 +3062,7 @@ exclude-result-prefixes="#all"
                                             <xsl:variable name="value-result" select="." as="element()"/>
                                             <!-- DESCRIBE the class over the application's /ns ontology endpoint (ACL-enforced) instead of proxying its vocab document -->
                                             <xsl:variable name="query-string" select="$property-metadata-query || ' VALUES $Type { &lt;' || $object-type || '&gt; }'" as="xs:string"/>
-                                            <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', ldt:base())), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                                            <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', lapp:base())), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                                             <xsl:variable name="context" as="map(*)" select="
                                               map{
                                                 'request': $request,

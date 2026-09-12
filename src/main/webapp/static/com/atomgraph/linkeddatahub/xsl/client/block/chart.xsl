@@ -8,7 +8,6 @@
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
-    <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
     <!ENTITY sp     "http://spinrdf.org/sp#">
@@ -31,7 +30,6 @@ xmlns:lapp="&lapp;"
 xmlns:rdf="&rdf;"
 xmlns:srx="&srx;"
 xmlns:acl="&acl;"
-xmlns:ldt="&ldt;"
 xmlns:sd="&sd;"
 xmlns:sp="&sp;"
 xmlns:spin="&spin;"
@@ -565,7 +563,7 @@ exclude-result-prefixes="#all"
                         <!--<xsl:variable name="query-string" select="concat($query-string, ' LIMIT 100')" as="xs:string"/>-->
                         <xsl:variable name="service-uri" select="xs:anyURI(key('resources', $query-uri)/ldh:service/@rdf:resource)" as="xs:anyURI?"/>
                         <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ()))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
-                        <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
+                        <xsl:variable name="endpoint" select="ldh:service-endpoint($service)" as="xs:anyURI"/>
                         <xsl:variable name="request-uri" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
 
                         <!-- Mark query response as complete -->

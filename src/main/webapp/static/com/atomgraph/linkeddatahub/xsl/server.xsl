@@ -4,6 +4,7 @@
     <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
+    <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -12,6 +13,7 @@ xmlns:lapp="&lapp;"
 xmlns:ldh="&ldh;"
 xmlns:ac="&ac;"
 xmlns:acl="&acl;"
+xmlns:sd="&sd;"
 exclude-result-prefixes="#all">
 
     <!-- the server-side bindings of the product-dualed functions: the servlet request context
@@ -32,16 +34,7 @@ exclude-result-prefixes="#all">
     </xsl:function>
 
     <xsl:function name="acl:mode" as="xs:anyURI*">
-        <xsl:variable name="entries" as="xs:string*">
-            <xsl:for-each select="$ldh:httpHeaders('Link')">
-                <xsl:analyze-string select="." regex="&lt;[^&gt;]+&gt;[^&lt;]*">
-                    <xsl:matching-substring>
-                        <xsl:sequence select="."/>
-                    </xsl:matching-substring>
-                </xsl:analyze-string>
-            </xsl:for-each>
-        </xsl:variable>
-        <xsl:sequence select="for $entry in $entries return if (matches($entry, '^&lt;[^&gt;]+&gt;\s*;.*[;\s]rel\s*=\s*&quot;?[^&quot;\s,;]*acl#mode&quot;?')) then xs:anyURI(replace($entry, '^&lt;([^&gt;]+)&gt;.*$', '$1')) else ()"/>
+        <xsl:sequence select="ldh:link-targets($ldh:httpHeaders('Link'), '&acl;mode')"/>
     </xsl:function>
 
     <xsl:function name="ac:uri" as="xs:anyURI?">
@@ -50,16 +43,7 @@ exclude-result-prefixes="#all">
 
     <!-- TimeMap URI from the Link response header (rel=timemap), present when the document is versioned -->
     <xsl:function name="ldh:timemap" as="xs:anyURI?">
-        <xsl:variable name="entries" as="xs:string*">
-            <xsl:for-each select="$ldh:httpHeaders('Link')">
-                <xsl:analyze-string select="." regex="&lt;[^&gt;]+&gt;[^&lt;]*">
-                    <xsl:matching-substring>
-                        <xsl:sequence select="."/>
-                    </xsl:matching-substring>
-                </xsl:analyze-string>
-            </xsl:for-each>
-        </xsl:variable>
-        <xsl:sequence select="(for $entry in $entries return if (matches($entry, '^&lt;[^&gt;]+&gt;\s*;.*[;\s]rel\s*=\s*&quot;?timemap&quot;?([;,\s]|$)')) then xs:anyURI(replace($entry, '^&lt;([^&gt;]+)&gt;.*$', '$1')) else ())[1]"/>
+        <xsl:sequence select="ldh:link-targets($ldh:httpHeaders('Link'), 'rel=timemap')[1]"/>
     </xsl:function>
 
     <!-- Memento-Datetime response header value, present on ?version= responses -->
@@ -79,6 +63,19 @@ exclude-result-prefixes="#all">
 
     <xsl:function name="lapp:origin" as="xs:anyURI?">
         <xsl:sequence select="$lapp:origin"/>
+    </xsl:function>
+
+    <!-- the dataspace base: the origin with a trailing slash. ApplicationImpl.getBaseURI() derives it the
+         same way - getOriginURI().resolve("/"), which discards any path - so there is no separate
+         writer-supplied param, and LDH no longer reads Web-Client's $ldt:base. On a request that
+         resolves to no application $lapp:origin is absent and this yields the relative '/', where the
+         former $ldt:base binding raised XTTE0780. The Saxon-JS twin reads the active pane instead. -->
+    <xsl:function name="lapp:base" as="xs:anyURI">
+        <xsl:sequence select="xs:anyURI(lapp:origin() || '/')"/>
+    </xsl:function>
+
+    <xsl:function name="sd:endpoint" as="xs:anyURI">
+        <xsl:sequence select="resolve-uri('sparql', lapp:base())"/>
     </xsl:function>
 
     <xsl:function name="ldh:parse-query" as="xs:string" override-extension-function="no">

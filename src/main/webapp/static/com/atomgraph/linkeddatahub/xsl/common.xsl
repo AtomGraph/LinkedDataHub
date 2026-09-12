@@ -14,6 +14,7 @@ exclude-result-prefixes="#all">
     <xsl:import href="merge-rdfxml.xsl"/>
     <xsl:import href="imports/default.xsl"/>
     <xsl:import href="resource.xsl"/>
+    <xsl:import href="imports/sh.xsl"/>
     <xsl:import href="imports/ac.xsl"/>
     <xsl:import href="imports/acl.xsl"/>
     <xsl:import href="imports/cert.xsl"/>

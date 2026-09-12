@@ -5,7 +5,6 @@
     <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
-    <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY nfo    "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#">
 ]>
 <xsl:stylesheet version="3.0"
@@ -17,7 +16,6 @@ xmlns:ac="&ac;"
 xmlns:ldh="&ldh;"
 xmlns:lapp="&lapp;"
 xmlns:rdf="&rdf;"
-xmlns:ldt="&ldt;"
 xmlns:nfo="&nfo;"
 exclude-result-prefixes="#all">
 

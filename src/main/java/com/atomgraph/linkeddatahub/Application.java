@@ -117,7 +117,6 @@ import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.server.util.URLValidator;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
-import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.linkeddatahub.vocabulary.LDHC;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.linkeddatahub.vocabulary.ORCID;
@@ -209,9 +208,7 @@ import net.jodah.expiringmap.ExpirationPolicy;
 import net.jodah.expiringmap.ExpiringMap;
 import net.sf.saxon.om.TreeInfo;
 import net.sf.saxon.s9api.Processor;
-import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.SaxonApiException;
-import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XsltCompiler;
 import net.sf.saxon.s9api.XsltExecutable;
 import org.apache.http.HttpClientConnection;
@@ -862,7 +859,6 @@ public class Application extends ResourceConfig
             }
             
             xsltComp = xsltProc.newXsltCompiler();
-            xsltComp.setParameter(new QName("ldh", LDH.base.getNameSpace(), LDH.base.getLocalName()), new XdmAtomicValue(baseURI));
             xsltComp.setURIResolver(new LocalStylesheetResolver(this, servletConfig.getServletContext(), client)); // resolves xsl:import to raw stylesheet sources, app-origin /static/ URLs locally
             xsltExec = xsltComp.compile(stylesheet);
         }

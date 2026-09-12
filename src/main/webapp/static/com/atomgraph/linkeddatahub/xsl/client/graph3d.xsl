@@ -145,7 +145,7 @@ WHERE
                 <xsl:variable name="query-string" select="replace($backlinks-graph-string, '$this', '&lt;' || $node-id || '&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="service-uri" select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $node-id || '`')) then (if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $node-id || '`'), 'service-uri')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $node-id || '`'), 'service-uri') else ()) else ()" as="xs:anyURI?"/>
                 <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ()))) else ()" as="element()?"/>
-                <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]" as="xs:anyURI"/>
+                <xsl:variable name="endpoint" select="ldh:service-endpoint($service)" as="xs:anyURI"/>
                 <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
                 <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
 

@@ -15,7 +15,6 @@
     <!ENTITY srx        "http://www.w3.org/2005/sparql-results#">
     <!ENTITY http       "http://www.w3.org/2011/http#">
     <!ENTITY acl        "http://www.w3.org/ns/auth/acl#">
-    <!ENTITY ldt        "https://www.w3.org/ns/ldt#">
     <!ENTITY dh         "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY sd         "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY sh         "http://www.w3.org/ns/shacl#">
@@ -26,7 +25,6 @@
     <!ENTITY nfo        "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#">
     <!ENTITY schema1    "http://schema.org/">
     <!ENTITY schema2    "https://schema.org/">
-    <!ENTITY dbpo       "http://dbpedia.org/ontology/">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns="http://www.w3.org/1999/xhtml"
@@ -51,7 +49,6 @@ xmlns:rdfs="&rdfs;"
 xmlns:owl="&owl;"
 xmlns:geo="&geo;"
 xmlns:acl="&acl;"
-xmlns:ldt="&ldt;"
 xmlns:dh="&dh;"
 xmlns:srx="&srx;"
 xmlns:http="&http;"
@@ -64,7 +61,6 @@ xmlns:sioc="&sioc;"
 xmlns:skos="&skos;"
 xmlns:schema1="&schema1;"
 xmlns:schema2="&schema2;"
-xmlns:dbpo="&dbpo;"
 xmlns:rdfae="https://w3id.org/atomgraph/rdfa-editor#"
 exclude-result-prefixes="#all"
 extension-element-prefixes="ixsl"
@@ -98,12 +94,7 @@ extension-element-prefixes="ixsl"
     <xsl:param name="ldh:renderSystemResources" select="false()" as="xs:boolean"/>
     <xsl:param name="ac:contextUri" as="xs:anyURI"/>
     <xsl:param name="lapp:origin" select="lapp:origin(ldh:request-uri())" as="xs:anyURI"/> <!-- emulates the server-side writer-set param: the shell origin serving static assets, as opposed to the pane-scoped lapp:origin() -->
-    <xsl:param name="ldt:base" as="xs:anyURI?"/> <!-- used in Web-Client TO-DO: remove -->
-    <xsl:param name="ldt:ontology" as="xs:anyURI?"/> <!-- used in Web-Client TO-DO: remove -->
-    <xsl:param name="acl:agent" as="xs:anyURI?"/>
-    <xsl:param name="foaf:Agent" select="if ($acl:agent) then document(ac:document-uri($acl:agent)) else ()" as="document-node()?"/> <!-- should be in SaxonJS documentPool -->
     <xsl:param name="ac:query" select="ldh:query-params()?query" as="xs:string?"/>
-    <xsl:param name="ac:googleMapsKey" select="''" as="xs:string"/>  <!-- cannot remove yet as it's used by container.xsl in Web-Client -->
     <xsl:param name="sparql-parser" select="ixsl:call(ixsl:window(), 'Reflect.construct', [ ixsl:get(ixsl:get(ixsl:window(), '`' || 'SPARQL.js' || '`'), 'Parser'), [] ] )"/>
     <xsl:param name="sparql-generator" select="ixsl:call(ixsl:window(), 'Reflect.construct', [ ixsl:get(ixsl:get(ixsl:window(), '`' || 'SPARQL.js' || '`'), 'Generator'), [] ] )"/>
     <xsl:param name="page-size" select="20" as="xs:integer"/>
@@ -155,81 +146,7 @@ WHERE
     LIMIT   10
   }
 ]]></xsl:param>
-    <xsl:param name="constraint-query" as="xs:string">
-        <![CDATA[
-            PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
-            PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-            PREFIX  sp:   <http://spinrdf.org/sp#>
-            PREFIX  spin: <http://spinrdf.org/spin#>
-
-            SELECT  $Type ?property
-            WHERE
-              { $Type (rdfs:subClassOf)*/spin:constraint  ?constraint .
-                ?constraint  a             ldh:MissingPropertyValue ;
-                          sp:arg1          ?property
-              }
-        ]]>
-        <!-- VALUES $Type goes here -->
-    </xsl:param>
-    <xsl:param name="object-metadata-query" as="xs:string">
-        <![CDATA[
-            PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-            PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
-            PREFIX  dct:  <http://purl.org/dc/terms/>
-            PREFIX  schema2: <https://schema.org/>
-            PREFIX  schema1: <http://schema.org/>
-            PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
-            PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-            PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
-            PREFIX  sioc: <http://rdfs.org/sioc/ns#>
-            PREFIX  dc:   <http://purl.org/dc/elements/1.1/>
-
-            CONSTRUCT
-              {
-                $this ?p ?literal .
-              }
-            WHERE
-              { GRAPH ?graph
-                  { $this  ?p  ?literal
-                    FILTER ( ( datatype(?literal) = xsd:string ) || ( datatype(?literal) = rdf:langString ) )
-                    FILTER ( ?p IN (rdfs:label, dc:title, dct:title, foaf:name, foaf:givenName, foaf:familyName, sioc:name, skos:prefLabel, schema1:name, schema2:name) )
-                  }
-              }
-        ]]>
-        <!-- VALUES $this goes here -->
-    </xsl:param>
     <!-- graph-free variant of object-metadata-query for the /ns ontology endpoint: its dataset is the in-memory OntModel served as the default graph (no named graphs), so a GRAPH ?graph pattern would match nothing -->
-    <xsl:param name="object-metadata-ns-query" as="xs:string">
-        <![CDATA[
-            PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-            PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
-            PREFIX  dct:  <http://purl.org/dc/terms/>
-            PREFIX  schema2: <https://schema.org/>
-            PREFIX  schema1: <http://schema.org/>
-            PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
-            PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-            PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
-            PREFIX  sioc: <http://rdfs.org/sioc/ns#>
-            PREFIX  dc:   <http://purl.org/dc/elements/1.1/>
-
-            CONSTRUCT
-              {
-                $this ?p ?literal .
-              }
-            WHERE
-              { $this  ?p  ?literal
-                FILTER ( ( datatype(?literal) = xsd:string ) || ( datatype(?literal) = rdf:langString ) )
-                FILTER ( ?p IN (rdfs:label, dc:title, dct:title, foaf:name, foaf:givenName, foaf:familyName, sioc:name, skos:prefLabel, schema1:name, schema2:name) )
-              }
-        ]]>
-        <!-- VALUES $this goes here -->
-    </xsl:param>
-    <xsl:param name="property-metadata-query" as="xs:string">
-        <![CDATA[
-            DESCRIBE $Type
-        ]]>
-        <!-- VALUES $Type goes here -->
-    </xsl:param>
     <xsl:param name="body-id" select="'visible-body'" as="xs:string"/>
     
     <xsl:key name="resources" match="*[*][@rdf:about] | *[*][@rdf:nodeID]" use="@rdf:about | @rdf:nodeID"/>
@@ -415,7 +332,7 @@ WHERE
                             </xsl:call-template>
 
                             <!-- is-active is the whole visibility contract (ldh.css owns display) -->
-                            <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][./div[contains-token(@class, 'document-body')][starts-with(@about, lapp:origin(ldh:request-uri()) || '/')]]">
+                            <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][./div[contains-token(@class, 'document-body')][ldh:is-local(@about)]]">
                                 <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-active', false())"/>
                             </xsl:for-each>
                         </xsl:if>
@@ -463,7 +380,7 @@ WHERE
                             <!-- no pane: create one with sidebar -->
                             <xsl:otherwise>
                                 <xsl:variable name="tab-body" as="element()">
-                                    <!-- inert class: ldh:ActivateTab (called from ldh:RenderTab below) is the single source of truth for the 'is-active' token. Defaulting to 'ldh-pane is-active' here would briefly leave two panes active (this one + the currently-active local one) and crash ldt:base()/sd:endpoint() in any code that runs between append and ActivateTab (e.g. ldh:DataspaceDrawer). -->
+                                    <!-- inert class: ldh:ActivateTab (called from ldh:RenderTab below) is the single source of truth for the 'is-active' token. Defaulting to 'ldh-pane is-active' here would briefly leave two panes active (this one + the currently-active local one) and crash lapp:base()/sd:endpoint() in any code that runs between append and ActivateTab (e.g. ldh:DataspaceDrawer). -->
                                     <xsl:apply-templates select="$render-results/rdf:RDF" mode="ldh:TabPanel">
                                         <xsl:with-param name="id" select="$tab-body-id"/>
                                         <xsl:with-param name="class" select="'ldh-pane'"/>
@@ -608,7 +525,7 @@ WHERE
                         </xsl:call-template>
 
                         <!-- is-active is the whole visibility contract (ldh.css owns display) -->
-                        <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][./div[contains-token(@class, 'document-body')][starts-with(@about, lapp:origin(ldh:request-uri()) || '/')]]">
+                        <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][./div[contains-token(@class, 'document-body')][ldh:is-local(@about)]]">
                             <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-active', false())"/>
                         </xsl:for-each>
                     </xsl:if>
@@ -984,7 +901,7 @@ WHERE
 
         <!-- deactivate the local tab pane for external URIs; is-active is the whole visibility contract
              (an inline display here outlived the switch back and kept the reactivated pane hidden) -->
-        <xsl:if test="not(starts-with($doc-uri, lapp:origin(ldh:request-uri()) || '/'))">
+        <xsl:if test="not(ldh:is-local($doc-uri))">
             <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][./div[contains-token(@class, 'document-body')]/@about = ac:absolute-path(ldh:request-uri())]">
                 <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-active', false())"/>
             </xsl:for-each>
@@ -1101,7 +1018,7 @@ WHERE
 
     <!-- intercept all HTML and SVG link clicks except to /uploads/ and those in the header (except breadcrumb bar, .ldh-wordmark and app list) and the footer -->
     <!-- resolve URLs against the current document URL because they can be relative -->
-    <xsl:template match="a[not(@target)][starts-with(resolve-uri(@href, ldh:base-uri(.)), 'http://') or starts-with(resolve-uri(@href, ldh:base-uri(.)), 'https://')][not(starts-with(resolve-uri(@href, ldh:base-uri(.)), resolve-uri('uploads/', ldt:base())))][ancestor::div[contains-token(@class, 'breadcrumb-nav')] or not(ancestor::div[tokenize(@class, ' ') = ('ldh-header', 'ldh-footer')])] | a[contains-token(@class, 'ldh-wordmark')] | div[button[contains-token(@class, 'btn-apps')]]/div//a | svg:a[not(@target)][starts-with(resolve-uri(@href, ldh:base-uri(.)), 'http://') or starts-with(resolve-uri(@href, ldh:base-uri(.)), 'https://')][not(starts-with(resolve-uri(@href, ldh:base-uri(.)), resolve-uri('uploads/', ldt:base())))]" mode="ixsl:onclick">
+    <xsl:template match="a[not(@target)][starts-with(resolve-uri(@href, ldh:base-uri(.)), 'http://') or starts-with(resolve-uri(@href, ldh:base-uri(.)), 'https://')][not(starts-with(resolve-uri(@href, ldh:base-uri(.)), resolve-uri('uploads/', lapp:base())))][ancestor::div[contains-token(@class, 'breadcrumb-nav')] or not(ancestor::div[tokenize(@class, ' ') = ('ldh-header', 'ldh-footer')])] | a[contains-token(@class, 'ldh-wordmark')] | div[button[contains-token(@class, 'btn-apps')]]/div//a | svg:a[not(@target)][starts-with(resolve-uri(@href, ldh:base-uri(.)), 'http://') or starts-with(resolve-uri(@href, ldh:base-uri(.)), 'https://')][not(starts-with(resolve-uri(@href, ldh:base-uri(.)), resolve-uri('uploads/', lapp:base())))]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="href" select="xs:anyURI(resolve-uri(@href, ldh:base-uri(.)))" as="xs:anyURI"/>
         <xsl:variable name="parsed" select="ldh:parse-href($href)" as="map(xs:string, item()?)"/>

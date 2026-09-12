@@ -7,7 +7,6 @@
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
-    <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY prov   "http://www.w3.org/ns/prov#">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
@@ -25,7 +24,6 @@ xmlns:lacl="&lacl;"
 xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
 xmlns:acl="&acl;"
-xmlns:ldt="&ldt;"
 xmlns:dh="&dh;"
 xmlns:foaf="&foaf;"
 exclude-result-prefixes="#all">
@@ -64,7 +62,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="*[rdf:type/@rdf:resource = '&lacl;AuthorizationRequest']" priority="1">
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <!-- we're not using the form's default action so we're not tunneling the param here -->
-        <xsl:param name="action" select="ldh:href(resolve-uri(ac:uuid() || '/', resolve-uri('acl/authorizations/', ldt:base())), map{ '_method': 'PUT' })" as="xs:anyURI"/> <!-- create new authorization document -->
+        <xsl:param name="action" select="ldh:href(resolve-uri(ac:uuid() || '/', resolve-uri('acl/authorizations/', lapp:base())), map{ '_method': 'PUT' })" as="xs:anyURI"/> <!-- create new authorization document -->
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" select="'ldh-prop-form'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>

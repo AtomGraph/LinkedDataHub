@@ -8,7 +8,6 @@
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY owl    "http://www.w3.org/2002/07/owl#">
     <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
-    <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY spin   "http://spinrdf.org/spin#">
 ]>
 <xsl:stylesheet version="3.0"
@@ -28,7 +27,6 @@ xmlns:lapp="&lapp;"
 xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
 xmlns:srx="&srx;"
-xmlns:ldt="&ldt;"
 xmlns:spin="&spin;"
 extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
@@ -131,7 +129,7 @@ exclude-result-prefixes="#all"
                                                 <xsl:apply-templates select="key('resources', 'constructor', ldh:translations())" mode="ac:label"/>
                                             </span>
                                             <h2 class="ac-modal-title" id="modal-title-{generate-id()}">
-                                                <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': 'DESCRIBE &lt;' || $type || '&gt;', 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
+                                                <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', lapp:base()), map{ 'query': 'DESCRIBE &lt;' || $type || '&gt;', 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
 
                                                 <xsl:apply-templates select="key('resources', $type, document(ac:document-uri($request-uri)))" mode="ac:label"/>
                                             </h2>
@@ -216,7 +214,7 @@ exclude-result-prefixes="#all"
         <div class="ctor-pred">
             <xsl:choose>
                 <xsl:when test="$predicate">
-                    <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': 'DESCRIBE &lt;' || $predicate || '&gt;', 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
+                    <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', lapp:base()), map{ 'query': 'DESCRIBE &lt;' || $predicate || '&gt;', 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
                     <xsl:variable name="ontology-doc-uri" select="ac:document-uri($predicate)" as="xs:anyURI"/>
                     <!-- /ns DESCRIBE resolves predicates from the app's ontology import closure (typically user-defined classes);
                          ixsl:doc-fetched picks up predicates whose ontology doc the page already pulled into the SaxonJS pool (typically system vocabularies) -->
@@ -315,7 +313,7 @@ exclude-result-prefixes="#all"
             <div class="ldh-ctor-card-head">
                 <span class="ttl">
                     <a href="{$constructor-uri}" title="{$constructor-uri}" target="_blank">
-                        <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': 'DESCRIBE &lt;' || $constructor-uri || '&gt;', 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
+                        <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', lapp:base()), map{ 'query': 'DESCRIBE &lt;' || $constructor-uri || '&gt;', 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
                         <xsl:apply-templates select="key('resources', $constructor-uri, document($request-uri))" mode="ac:label"/>
                     </a>
                 </span>
@@ -408,7 +406,7 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <xsl:when test="$object-type">
-                <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', ldt:base()), map{ 'query': 'DESCRIBE &lt;' || $object-type || '&gt;', 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', lapp:base()), map{ 'query': 'DESCRIBE &lt;' || $object-type || '&gt;', 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
 
                 <xsl:apply-templates select="key('resources', $object-type, document($request-uri))" mode="ldh:ComboboxChip">
                     <xsl:with-param name="class" select="'cb-chip-btn add-combobox add-class-combobox'"/>
@@ -443,7 +441,7 @@ exclude-result-prefixes="#all"
     <!-- classes and properties are looked up in the <ns> endpoint -->
     <xsl:template match="input[contains-token(@class, 'class-combobox')] | input[contains-token(@class, 'property-combobox')]" mode="ixsl:onkeyup" priority="1">
         <xsl:next-match>
-            <xsl:with-param name="endpoint" select="resolve-uri('ns', ldt:base())"/>
+            <xsl:with-param name="endpoint" select="resolve-uri('ns', lapp:base())"/>
             <xsl:with-param name="select-string" select="$select-labelled-string"/>
         </xsl:next-match>
     </xsl:template>
@@ -524,7 +522,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="button-div" select="." as="element()"/> <!-- the addctor strip button itself; new cards insert before it -->
         <xsl:variable name="type" select="ancestor::form/@about" as="xs:anyURI"/> <!-- the URI of the class that constructors are attached to -->
         <xsl:variable name="query-string" select="replace($type-graph-query, '$Type', '&lt;' || $type || '&gt;', 'q')" as="xs:string"/>
-        <xsl:variable name="admin-base-uri" select="xs:anyURI(replace(ldt:base(), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
+        <xsl:variable name="admin-base-uri" select="xs:anyURI(replace(lapp:base(), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
         <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('sparql', $admin-base-uri), map{ 'query': $query-string })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
 
@@ -631,7 +629,7 @@ exclude-result-prefixes="#all"
                 <xsl:sequence select="ixsl:call($form-data, 'append', [ 'uri', ac:document-uri($constructor-uri) ])[current-date() lt xs:date('2000-01-01')]"/>
 
                 <!-- clear the constructor's host ontology (the document the PATCH targeted) first, then proceed to clear the namespace ontology -->
-                <xsl:variable name="admin-base-uri" select="xs:anyURI(replace(ldt:base(), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
+                <xsl:variable name="admin-base-uri" select="xs:anyURI(replace(lapp:base(), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
                 <xsl:variable name="clear-uri" select="resolve-uri('clear', $admin-base-uri)" as="xs:anyURI"/>
                 <xsl:variable name="request-uri" select="ldh:href($clear-uri)" as="xs:anyURI"/>
                 <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/x-www-form-urlencoded', 'body': $form-data, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
@@ -703,11 +701,11 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <xsl:template name="ldh:ClearNamespace">
-        <xsl:param name="ontology-uri" select="resolve-uri('ns#', ldt:base())" as="xs:anyURI"/>
+        <xsl:param name="ontology-uri" select="resolve-uri('ns#', lapp:base())" as="xs:anyURI"/>
         <xsl:variable name="form-data" select="ixsl:new('URLSearchParams', [ ixsl:new('FormData', []) ])"/>
         <xsl:sequence select="ixsl:call($form-data, 'append', [ 'uri', $ontology-uri ])[current-date() lt xs:date('2000-01-01')]"/>
 
-        <xsl:variable name="admin-base-uri" select="xs:anyURI(replace(ldt:base(), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
+        <xsl:variable name="admin-base-uri" select="xs:anyURI(replace(lapp:base(), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
         <xsl:variable name="clear-uri" select="resolve-uri('clear', $admin-base-uri)" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($clear-uri)" as="xs:anyURI"/>
         <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/x-www-form-urlencoded', 'body': $form-data, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
