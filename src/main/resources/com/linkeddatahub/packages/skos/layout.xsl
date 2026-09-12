@@ -40,13 +40,33 @@ exclude-result-prefixes="#all">
          the hierarchy predicates render as the concept tree, not as statement rows -->
     <xsl:template match="skos:narrower | skos:broader | skos:related | skos:member" mode="ac:PropertyEditor"/>
 
+    <!-- Every row of this tree navigates in ReadMode explicitly, because the tree itself only renders in
+         ReadMode: a concept document that has content blocks resolves to ContentMode by default, so a row
+         linking to its bare URI is a link out of the very widget the reader is navigating with - click a
+         sibling and the tree disappears. Naming the mode in the link keeps the reading surface closed
+         over its own navigation, and leaves the URL the single source of truth for the mode.
+
+         One function rather than the expression at both call sites - the root, and every other node
+         through the override below - so the two cannot drift into linking differently. -->
+    <xsl:function name="ldh:conceptree-href" as="xs:anyURI">
+        <xsl:param name="resource" as="element()"/>
+
+        <xsl:sequence select="ldh:href(ac:document-uri($resource/@rdf:about), ldh:build-query(xs:anyURI('&ac;ReadMode')), ac:fragment-id($resource/@rdf:about))"/>
+    </xsl:function>
+
     <!-- A concept can always be expanded. Whether it has children is one query away and this template
          renders without one, so offering the disclosure and letting it resolve to an empty list beats
          either blocking the render or hiding a control the node may well need: the alternative is a
-         tree whose leaves are wrong whenever narrower is asserted only on the child. -->
+         tree whose leaves are wrong whenever narrower is asserted only on the child.
+
+         Matched on the type, so it covers every node a children fetch brings back - those responses are
+         DESCRIBEs that carry rdf:type - but NOT the scheme at the root, whose description on a concept
+         page comes from $object-metadata, a literals-only CONSTRUCT. The root is given its href at the
+         call site instead. -->
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&skos;Concept']" mode="ldh:TreeNode" priority="1">
         <xsl:next-match>
             <xsl:with-param name="expandable" select="true()"/>
+            <xsl:with-param name="href" select="ldh:conceptree-href(.)"/>
         </xsl:next-match>
     </xsl:template>
 
@@ -98,16 +118,27 @@ exclude-result-prefixes="#all">
              blocks, else ReadMode. -->
         <xsl:if test="$root and $mode = '&ac;ReadMode'">
             <div class="ldh-onto-list">
-                <!-- the concept being viewed, stamped so the reveal has its target without re-deriving
-                     it from the page; absent when the topic IS the scheme, which is already the root -->
-                <ul class="ldh-tree concept-tree">
-                    <xsl:if test="not($topic/rdf:type/@rdf:resource = '&skos;ConceptScheme')">
-                        <xsl:attribute name="data-concept" select="$topic[1]/@rdf:about"/>
-                    </xsl:if>
-                    <xsl:apply-templates select="$root" mode="ldh:TreeNode">
-                        <xsl:with-param name="expandable" select="true()"/>
-                    </xsl:apply-templates>
-                </ul>
+                <!-- headed like the drawer's document tree, in the design system's in-card vocabulary
+                     (.ldh-onto-group-h) rather than the drawer's .sb-heading: the eyebrow treatment is
+                     the same, the owning surface is not. The heading names the KIND, since the tree's
+                     root node already carries the scheme's name. -->
+                <div class="ldh-onto-group">
+                    <h3 class="ldh-onto-group-h">
+                        <xsl:apply-templates select="key('resources', 'concept-tree', ldh:translations())" mode="ac:label"/>
+                    </h3>
+
+                    <!-- the concept being viewed, stamped so the reveal has its target without re-deriving
+                         it from the page; absent when the topic IS the scheme, which is already the root -->
+                    <ul class="ldh-tree concept-tree">
+                        <xsl:if test="not($topic/rdf:type/@rdf:resource = '&skos;ConceptScheme')">
+                            <xsl:attribute name="data-concept" select="$topic[1]/@rdf:about"/>
+                        </xsl:if>
+                        <xsl:apply-templates select="$root" mode="ldh:TreeNode">
+                            <xsl:with-param name="expandable" select="true()"/>
+                            <xsl:with-param name="href" select="ldh:conceptree-href($root)"/>
+                        </xsl:apply-templates>
+                    </ul>
+                </div>
             </div>
         </xsl:if>
     </xsl:template>
@@ -238,7 +269,7 @@ exclude-result-prefixes="#all">
         <xsl:variable name="ancestors" select="$context('ancestors')" as="xs:anyURI*"/>
         <xsl:variable name="li" select="if (map:contains($context, 'li')) then $context('li') else $context('root-li')" as="element()"/>
         <xsl:variable name="wanted" select="($ancestors, $context('target'))" as="xs:anyURI*"/>
-        <xsl:variable name="next" select="$li/ul/li[div/a/@href = $wanted]" as="element()*"/>
+        <xsl:variable name="next" select="$li/ul/li[ldh:tree-node-uri(div/a/@href) = $wanted]" as="element()*"/>
 
         <xsl:choose>
             <!-- children already in the DOM: step into every matching branch without refetching -->
@@ -272,7 +303,7 @@ exclude-result-prefixes="#all">
         <xsl:variable name="li" select="$context('li')" as="element()"/>
 
         <xsl:choose>
-            <xsl:when test="$li/div/a/@href = $context('target')">
+            <xsl:when test="ldh:tree-node-uri($li/div/a/@href) = $context('target')">
                 <xsl:sequence select="ldh:conceptree-activate($context)"/>
             </xsl:when>
             <xsl:when test="empty($li/ul)">
@@ -293,7 +324,7 @@ exclude-result-prefixes="#all">
     <xsl:function name="ldh:conceptree-expand" as="map(*)" ixsl:updating="yes" use-when="system-property('xsl:product-name') = 'SaxonJS'">
         <xsl:param name="context" as="map(*)"/>
         <xsl:param name="li" as="element()"/>
-        <xsl:variable name="uri" select="xs:anyURI($li/div/a/@href)" as="xs:anyURI"/>
+        <xsl:variable name="uri" select="ldh:tree-node-uri($li/div/a/@href)" as="xs:anyURI"/>
         <xsl:variable name="depth" select="count($li/ancestor::li) + 1" as="xs:integer"/>
         <xsl:variable name="query" select="
             if (empty($li/ancestor::li)) then ldh:tree-children-query($uri, xs:anyURI('&skos;topConceptOf'), xs:anyURI('&skos;hasTopConcept'))
@@ -348,7 +379,7 @@ exclude-result-prefixes="#all">
                 <ixsl:remove-attribute name="aria-current"/>
             </xsl:for-each>
         </xsl:for-each>
-        <xsl:for-each select="$tree//li[div/a/@href = $target]">
+        <xsl:for-each select="$tree//li[ldh:tree-node-uri(div/a/@href) = $target]">
             <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-active', true())"/>
             <xsl:for-each select="div/a">
                 <ixsl:set-attribute name="aria-current" select="'page'"/>

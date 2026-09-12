@@ -68,6 +68,11 @@ exclude-result-prefixes="#all"
              correct nesting, which is exactly how it shipped. -->
         <xsl:param name="depth" select="0" as="xs:integer" tunnel="yes"/>
         <xsl:param name="expandable" select="false()" as="xs:boolean"/>
+        <!-- where the row navigates, which is not always the resource's own URI: a domain whose nodes
+             only make sense in one display mode passes an ldh:href() carrying it as a query parameter.
+             Per-node rather than tunnelled, so it reaches the nodes a later children fetch renders -
+             those are applied from ldh:tree-children-response, which tunnels depth and nothing else. -->
+        <xsl:param name="href" select="@rdf:about" as="xs:anyURI"/>
 
         <li>
             <div class="tree-row" style="--depth: {$depth}">
@@ -84,7 +89,9 @@ exclude-result-prefixes="#all"
                     </xsl:otherwise>
                 </xsl:choose>
 
-                <a class="tree-link" href="{@rdf:about}" title="{@rdf:about}">
+                <!-- the title is the resource's own URI, since it states identity rather than where the
+                     row goes -->
+                <a class="tree-link" href="{$href}" title="{@rdf:about}">
                     <span class="msi sm tree-icon" aria-hidden="true">
                         <xsl:value-of select="ldh:class-icon(., 'description')"/>
                     </span>
@@ -95,5 +102,18 @@ exclude-result-prefixes="#all"
             </div>
         </li>
     </xsl:template>
+
+    <!-- The inverse of the href param above: the resource a row links to, recovered from the row's own
+         @href. It lives here, beside the emitter that writes the href, because everything that walks the
+         rendered tree - the disclosure handler asking a domain for a node's children, a domain's own
+         descent - needs the RESOURCE, while the DOM only carries the navigable form. Reading @href
+         directly works right up until a domain decorates it, and then fails as an empty children query
+         rather than as an error. A bare href round-trips to itself, so the document tree is unaffected. -->
+    <xsl:function name="ldh:tree-node-uri" as="xs:anyURI">
+        <xsl:param name="href" as="xs:anyURI"/>
+        <xsl:variable name="parsed" select="ldh:parse-href($href)" as="map(xs:string, item()?)"/>
+
+        <xsl:sequence select="xs:anyURI($parsed('doc-uri') || (if ($parsed('fragment')) then '#' || $parsed('fragment') else ''))"/>
+    </xsl:function>
 
 </xsl:stylesheet>

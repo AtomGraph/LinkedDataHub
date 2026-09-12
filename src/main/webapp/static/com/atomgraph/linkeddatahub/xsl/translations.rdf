@@ -460,6 +460,10 @@
         <rdfs:label xml:lang="en-US">Document tree</rdfs:label>
         <rdfs:label xml:lang="es-ES">Árbol de documentos</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="concept-tree">
+        <rdfs:label xml:lang="en-US">Concept tree</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Árbol de conceptos</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="reconcile-title">
         <rdfs:label xml:lang="en-US">Reconcile this resource against resources in the selected service</rdfs:label>
         <rdfs:label xml:lang="es-ES">Reconciliar este recurso con los recursos del servicio seleccionado</rdfs:label>

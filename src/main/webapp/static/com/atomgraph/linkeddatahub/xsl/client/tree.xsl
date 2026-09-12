@@ -98,10 +98,12 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="li" select="$container"/>
             </xsl:call-template>
 
-            <!-- dispatched on the button, so a domain selects its loader by matching the tree it sits in -->
+            <!-- dispatched on the button, so a domain selects its loader by matching the tree it sits in.
+                 The loader is given the RESOURCE, not the row's href: a domain may have decorated the href
+                 with display parameters, which would otherwise arrive as the subject of its children query -->
             <xsl:apply-templates select="." mode="ldh:TreeChildrenLoad">
                 <xsl:with-param name="container" select="$container/ul"/>
-                <xsl:with-param name="uri" select="$href"/>
+                <xsl:with-param name="uri" select="ldh:tree-node-uri($href)"/>
             </xsl:apply-templates>
         </xsl:if>
     </xsl:template>
