@@ -41,6 +41,18 @@ skos:Concept spin:constructor :ConceptConstructor ;
         WHERE {}""" ;
     rdfs:isDefinedBy : .
 
+# The prefLabel every view below joins is a SORT KEY, not a selector: it is never projected, so
+# DISTINCT keeps one row per concept whatever languages it carries. These queries used to filter it to
+# English or untagged, which silently dropped every concept labelled in another language - and since
+# the form's language control follows the browser, a concept created through the UI lands in exactly
+# that state. Measured on the fixture: Juice's Broader block showed Cold drinks but not the concept
+# just created above it, while that concept's Narrower block did show Juice, which also carries an en
+# label. Which language a reader wants is decided at render time, where the label chain already picks
+# per value; a stored query has no way to know it. The join stays, because a concept with no prefLabel
+# at all has no sort key and the package makes one mandatory anyway (:MissingPrefLabel), and the order
+# among a multi-label concept's own labels is left to the engine - that is what an unprojected sort
+# key means.
+
 # narrower
 
 skos:narrower ldh:view :NarrowerConcepts .
@@ -62,10 +74,7 @@ WHERE
         UNION
           { ?narrower  skos:broader  $about }
         GRAPH ?narrowerGraph
-        {
-          ?narrower skos:prefLabel ?prefLabel .
-          FILTER (langMatches(lang(?prefLabel), "en") || lang(?prefLabel) = "")
-        }
+          { ?narrower  skos:prefLabel  ?prefLabel }
       }
   }
 ORDER BY ?prefLabel
@@ -93,10 +102,7 @@ WHERE
         UNION
           { ?broader  skos:narrower  $about }
         GRAPH ?broaderGraph
-        {
-          ?broader skos:prefLabel ?prefLabel .
-          FILTER (langMatches(lang(?prefLabel), "en") || lang(?prefLabel) = "")
-        }
+          { ?broader  skos:prefLabel  ?prefLabel }
       }
   }
 ORDER BY ?prefLabel
@@ -139,10 +145,7 @@ WHERE
   { GRAPH ?graph
       { $about  skos:member  ?member .
         GRAPH ?memberGraph
-        {
-          ?member skos:prefLabel ?prefLabel .
-          FILTER (langMatches(lang(?prefLabel), "en") || lang(?prefLabel) = "")
-        }
+          { ?member  skos:prefLabel  ?prefLabel }
       }
   }
 ORDER BY ?prefLabel
@@ -239,8 +242,7 @@ SELECT DISTINCT  ?concept
 WHERE
   { GRAPH ?graph
       { ?concept  skos:inScheme  $about ;
-            skos:prefLabel ?prefLabel .
-        FILTER (langMatches(lang(?prefLabel), "en") || lang(?prefLabel) = "")
+            skos:prefLabel  ?prefLabel
       }
   }
 ORDER BY ?prefLabel
