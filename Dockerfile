@@ -19,6 +19,48 @@ COPY src /usr/src/platform/src
 COPY pom.xml /usr/src/platform/pom.xml
 
 RUN mvn -Pstandalone clean install
+# ==============================
+
+# SEF compiler: composes each dataspace's client stylesheet with its imported package
+# stylesheets and compiles the result to a SEF.
+#
+# Out-of-process because the compile peaks around 1.5 GB resident - measured 1,495,990,272
+# bytes for client.xsl - which is fatal beside a Tomcat heap sized at 75% of a 2 GB limit.
+#
+# The static tree comes from the same Maven stage the WAR does, so the modules compiled here
+# are the deployed bytes by construction: no mount, no shared volume, and no way for the
+# compiler to drift from the application it compiles for.
+
+FROM node:22-alpine AS sef-compiler
+
+# must match the SaxonJS runtime shipped in the webapp (js/saxon-js/SaxonJS3.js). A skew
+# between compiler and runtime surfaces as "Cannot read properties of undefined (reading
+# 'principalResult')" with the compile succeeding and only the export failing
+ARG XSLT3_VERSION=3.0.0-beta2
+
+RUN npm install -g "xslt3-he@${XSLT3_VERSION}"
+
+COPY --from=maven /usr/src/platform/target/ROOT/static /static
+
+COPY platform/sef-compiler/server.js /opt/sef-compiler/server.js
+
+ENV XSL_DIR=/static/com/atomgraph/linkeddatahub/xsl
+
+ENV PORT=8080
+
+# the service writes the generated wrapper and the package modules beside client.xsl, then
+# removes them again, so the stylesheet directory has to be writable by the runtime user
+RUN chown -R node:node /static
+
+USER node
+
+EXPOSE 8080
+
+HEALTHCHECK --start-period=10s --retries=3 \
+    CMD wget -q -O- http://localhost:8080/health || exit 1
+
+CMD [ "node", "/opt/sef-compiler/server.js" ]
+
 
 # ==============================
 
@@ -34,6 +76,14 @@ ARG UPLOAD_ROOT=/var/www/linkeddatahub/uploads
 
 ARG UPLOAD_CONTAINER_PATH=uploads
 
+# composed client stylesheets are served from here through a Tomcat alias, not from the WAR,
+# so they survive redeploys and stay outside the packaged application
+ARG SEF_ROOT=/var/www/linkeddatahub/sef
+
+# the compiler runs as its own service: the compile peaks near 1.5 GB and must not share this
+# container's memory limit with Tomcat
+ARG SEF_COMPILER=http://sef-compiler:8080/compile
+
 ENV SOURCE_COMMIT=$SOURCE_COMMIT
 
 WORKDIR $CATALINA_HOME
@@ -43,6 +93,10 @@ ENV STYLESHEET=static/com/atomgraph/linkeddatahub/xsl/layout.xsl
 ENV CACHE_STYLESHEET=true
 
 ENV UPLOAD_ROOT=$UPLOAD_ROOT
+
+ENV SEF_ROOT=$SEF_ROOT
+
+ENV SEF_COMPILER=$SEF_COMPILER
 
 ENV PROXY_HOST=
 
@@ -213,6 +267,8 @@ RUN useradd --no-log-init -U ldh && \
     chown -R ldh:ldh /var/linkeddatahub && \
     mkdir -p "${UPLOAD_ROOT}/${UPLOAD_CONTAINER_PATH}" && \
     chown -R ldh:ldh "$UPLOAD_ROOT" && \
+    mkdir -p "$SEF_ROOT" && \
+    chown -R ldh:ldh "$SEF_ROOT" && \
     mkdir -p /etc/letsencrypt/staging && \
     chown -R ldh:ldh /etc/letsencrypt/staging
 

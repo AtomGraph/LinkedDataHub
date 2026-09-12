@@ -3,6 +3,7 @@
     <!ENTITY ac         "https://w3id.org/atomgraph/client#">
     <!ENTITY ldh        "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY rdf        "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <!ENTITY sioc       "http://rdfs.org/sioc/ns#">
     <!ENTITY xsd        "http://www.w3.org/2001/XMLSchema#">
 ]>
 <xsl:stylesheet version="3.0"
@@ -901,6 +902,121 @@ extension-element-prefixes="ixsl"
         </xsl:copy>
     </xsl:template>
     
+    <!-- container of the projected resource -->
+
+    <!-- Rewrites a view's SELECT into the question "which container would a new solution of this
+         projection be stored in?".
+
+         A solution's resource is described in a graph, that graph IS its document, and the document's
+         container is a triple the platform asserts on every one of them - so two joins answer it with
+         no string operations on URIs and no vocabulary knowledge. Deliberately not via
+         foaf:primaryTopic: a document's fragment entities link back to it differently from one
+         vocabulary to the next (Northwind's #delivery uses foaf:page), while every document has
+         sioc:has_container.
+
+         DISTINCT with LIMIT 2 is the whole result: one row means the destination is determined, two
+         mean it is ambiguous, and no row beyond the second carries information. DISTINCT is
+         load-bearing rather than tidy - without it two solutions in the same container return two
+         rows and read as ambiguity.
+
+         The caller strips LIMIT/OFFSET/ORDER BY first (ldh:replace-limit and friends), the same way
+         ldh:ResultCount does, so this asks about the whole result set rather than a page. -->
+
+    <!-- identity transform -->
+    <xsl:template match="@* | node()" mode="ldh:container-select">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+
+    <xsl:template match="/json:map" mode="ldh:container-select" priority="1">
+        <!-- every helper name is derived here and passed on, so no downstream template has to re-derive it
+             from $uuid - a tunnel parameter declared without a default downstream is a required one, and the
+             whole rewrite failed outright without it -->
+        <xsl:param name="uuid" select="ac:uuid()" as="xs:string" tunnel="yes"/>
+        <xsl:param name="container-var-name" select="'container' || translate($uuid, '-', '_')" as="xs:string" tunnel="yes"/>
+        <xsl:param name="doc-var-name" select="'doc' || translate($uuid, '-', '_')" as="xs:string" tunnel="yes"/>
+        <xsl:variable name="suffix" select="translate($uuid, '-', '_')" as="xs:string"/>
+
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current">
+                <xsl:with-param name="container-var-name" select="$container-var-name" tunnel="yes"/>
+                <xsl:with-param name="doc-var-name" select="$doc-var-name" tunnel="yes"/>
+                <xsl:with-param name="predicate-var-name" select="'p' || $suffix" tunnel="yes"/>
+                <xsl:with-param name="object-var-name" select="'o' || $suffix" tunnel="yes"/>
+                <xsl:with-param name="container-graph-var-name" select="'cg' || $suffix" tunnel="yes"/>
+            </xsl:apply-templates>
+
+            <!-- the projection is a set of containers, so duplicates are noise that would read as ambiguity -->
+            <xsl:if test="not(json:boolean[@key = 'distinct'])">
+                <json:boolean key="distinct">true</json:boolean>
+            </xsl:if>
+            <json:number key="limit">2</json:number>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- project the container alone -->
+    <xsl:template match="/json:map/json:array[@key = 'variables']" mode="ldh:container-select" priority="1">
+        <xsl:param name="container-var-name" as="xs:string" tunnel="yes"/>
+
+        <xsl:copy>
+            <xsl:apply-templates select="@*" mode="#current"/>
+
+            <json:string><xsl:text>?</xsl:text><xsl:value-of select="$container-var-name"/></json:string>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- the two joins, appended to the view's own pattern. Scoped to the outermost where: a nested one
+         belongs to a subquery or a group whose scope the focus variable may not even reach -->
+    <xsl:template match="/json:map/json:array[@key = 'where']" mode="ldh:container-select" priority="1">
+        <xsl:param name="focus-var-name" as="xs:string" tunnel="yes"/>
+        <xsl:param name="container-var-name" as="xs:string" tunnel="yes"/>
+        <xsl:param name="doc-var-name" as="xs:string" tunnel="yes"/>
+        <xsl:param name="predicate-var-name" as="xs:string" tunnel="yes"/>
+        <xsl:param name="object-var-name" as="xs:string" tunnel="yes"/>
+        <xsl:param name="container-graph-var-name" as="xs:string" tunnel="yes"/>
+
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+
+            <!-- the graph the solution is described in, which is its document -->
+            <json:map>
+                <json:string key="type">graph</json:string>
+                <json:array key="patterns">
+                    <json:map>
+                        <json:string key="type">bgp</json:string>
+                        <json:array key="triples">
+                            <json:map>
+                                <json:string key="subject"><xsl:text>?</xsl:text><xsl:value-of select="$focus-var-name"/></json:string>
+                                <json:string key="predicate"><xsl:text>?</xsl:text><xsl:value-of select="$predicate-var-name"/></json:string>
+                                <json:string key="object"><xsl:text>?</xsl:text><xsl:value-of select="$object-var-name"/></json:string>
+                            </json:map>
+                        </json:array>
+                    </json:map>
+                </json:array>
+                <json:string key="name"><xsl:text>?</xsl:text><xsl:value-of select="$doc-var-name"/></json:string>
+            </json:map>
+
+            <!-- that document's container -->
+            <json:map>
+                <json:string key="type">graph</json:string>
+                <json:array key="patterns">
+                    <json:map>
+                        <json:string key="type">bgp</json:string>
+                        <json:array key="triples">
+                            <json:map>
+                                <json:string key="subject"><xsl:text>?</xsl:text><xsl:value-of select="$doc-var-name"/></json:string>
+                                <json:string key="predicate">&sioc;has_container</json:string>
+                                <json:string key="object"><xsl:text>?</xsl:text><xsl:value-of select="$container-var-name"/></json:string>
+                            </json:map>
+                        </json:array>
+                    </json:map>
+                </json:array>
+                <json:string key="name"><xsl:text>?</xsl:text><xsl:value-of select="$container-graph-var-name"/></json:string>
+            </json:map>
+        </xsl:copy>
+    </xsl:template>
+
     <!-- constructor template -->
     
     <!-- identity transform -->

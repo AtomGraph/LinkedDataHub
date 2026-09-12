@@ -26,6 +26,7 @@ exclude-result-prefixes="#all">
     <xsl:import href="imports/sp.xsl"/>
     <xsl:import href="imports/memento.xsl"/>
     <xsl:import href="imports/services/youtube.xsl"/>
+    <xsl:import href="tree.xsl"/>
     <xsl:import href="document.xsl"/>
 
 </xsl:stylesheet>

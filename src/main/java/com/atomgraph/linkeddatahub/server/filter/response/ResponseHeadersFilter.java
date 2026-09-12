@@ -30,6 +30,7 @@ import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.server.util.Link;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.linkeddatahub.writer.TimeMapWriter;
 import java.io.IOException;
 import java.net.URI;
@@ -136,6 +137,13 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
             // add Link rel=ac:stylesheet, if the stylesheet URI is specified
             if (application.getStylesheet() != null)
                 response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(application.getStylesheet().getURI()), AC.stylesheet.getURI(), null));
+
+            // the compiled client stylesheet composed with this application's packages, set by
+            // XsltExecutableFilter only once it exists. Advertised rather than injected as a stylesheet
+            // parameter, so the client reads it the same way it reads acl:mode and the Memento relations
+            Object clientStylesheet = request.getProperty(LDH.clientStylesheet.getURI());
+            if (clientStylesheet != null)
+                response.getHeaders().add(HttpHeaders.LINK, new Link(application.getBaseURI().resolve(clientStylesheet.toString()), LDH.clientStylesheet.getURI(), null));
         }
 
         if (response.getHeaders().get(HttpHeaders.LINK) != null)
