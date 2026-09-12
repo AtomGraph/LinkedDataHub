@@ -25,6 +25,7 @@ import java.net.URI;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
 import picocli.CommandLine.Command;
@@ -55,13 +56,16 @@ public class CreateItem extends BaseCommand
     @Option(names = "--container", required = true, paramLabel = "CONTAINER_URI", description = "URI of the parent container")
     private URI container;
 
+    @Option(names = "--primary-topic", paramLabel = "URI", description = "URI of what the document is about, resolved against the document URI (optional)")
+    private String primaryTopic;
+
     @Override
     public Integer call() throws Exception
     {
         baseMixin.require(getSpec()); // required by the script interface
 
         URI doc = URIRewriter.childURI(container, slug != null ? slug : Slugs.defaultSlug());
-        put(getClient(), doc, buildModel(doc, title, description));
+        put(getClient(), doc, buildModel(doc, title, description, primaryTopic));
         print(doc);
 
         return 0;
@@ -73,9 +77,10 @@ public class CreateItem extends BaseCommand
      * @param doc document URI
      * @param title document title
      * @param description document description (optional)
+     * @param primaryTopic URI of the document's primary topic, relative or absolute (optional)
      * @return document model
      */
-    public static Model buildModel(URI doc, String title, String description)
+    public static Model buildModel(URI doc, String title, String description, String primaryTopic)
     {
         Model model = ModelFactory.createDefaultModel();
 
@@ -83,6 +88,11 @@ public class CreateItem extends BaseCommand
             addProperty(RDF.type, DH.Item).
             addProperty(DCTerms.title, title);
         if (description != null) item.addProperty(DCTerms.description, description);
+        // Resolved against the document, so the conventional fragment topic is "#this" and a
+        // document about something described elsewhere takes that resource's absolute URI.
+        // Singular because foaf:primaryTopic is an owl:FunctionalProperty: a second value would
+        // not mean a second topic, it would entail the two topics are the same resource.
+        if (primaryTopic != null) item.addProperty(FOAF.primaryTopic, model.createResource(doc.resolve(primaryTopic).toString()));
 
         return model;
     }

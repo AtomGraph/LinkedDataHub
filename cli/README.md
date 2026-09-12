@@ -96,7 +96,20 @@ export LDH_CERT_FILE=ssl/owner/keystore.p12 LDH_CERT_PASSWORD=... LDH_BASE=https
 
 ldh create container --parent "$LDH_BASE" --title "Some" --slug some
 ldh create item --container https://localhost:4443/some/ --title "My item" --slug my-item
+
+# what the document is about: a fragment of the document itself, or a resource described elsewhere
+ldh create item --container https://localhost:4443/some/ --title "Coffee" --slug coffee \
+    --primary-topic '#this'
+ldh create item --container https://localhost:4443/some/ --title "About Bob" --slug about-bob \
+    --primary-topic https://example.org/bob#me
 ```
+
+`--primary-topic` is resolved against the created document's URI, so `'#this'` names a fragment of
+that document and an absolute URI names a resource described somewhere else. It is one value, not a
+list: `foaf:primaryTopic` is an `owl:FunctionalProperty`, so a second value would not mean a second
+topic — it would entail that the two topics are the same resource. It writes the link only; the
+topic's own type and properties are the constructor's business, and a vocabulary may refuse a topic
+without them (the SKOS package rejects a concept with no `skos:inScheme`).
 
 ## Conventions
 
@@ -236,3 +249,6 @@ shell scripts.
 - `admin import ontology` reads the `construct-constructors` query text by dereferencing its
   document instead of going through a `SELECT` on `/sparql`; the CONSTRUCT it then runs over the
   scratch graph is unchanged.
+- `create item`/`create container` add `--primary-topic`, which the scripts have no equivalent for:
+  they could only create a document that says nothing about what it is about, leaving a `patch` as
+  the only way to assert it.
