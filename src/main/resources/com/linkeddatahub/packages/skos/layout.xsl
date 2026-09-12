@@ -52,6 +52,20 @@ exclude-result-prefixes="#all">
          column width come from the design system's ontology-editor layout (.ldh-onto-list), already
          vendored in app.css; the grid is the platform's, keyed on this slot being filled.
 
+         The tree is rooted at the SCHEME, never at the document's own topic. A tree rooted at the
+         concept you are already looking at shows one node and tells you nothing: what a taxonomy tree
+         is for is placing that concept among the others, so it has to start where the taxonomy starts.
+
+         On a scheme document the topic IS the root. On a concept document the scheme is named by
+         skos:inScheme, which is already in the rendered RDF, and its label comes from the platform's
+         $object-metadata - the same label-only CONSTRUCT that renders "Drinks" as the link text in the
+         property list beside this tree. So the root node costs no request at all. That tunnel
+         parameter does reach this mode: it is set once per render (layout.xsl server-side,
+         client.xsl per pane) and flows down through ldh:ContentBody.
+
+         Falls back to the topic when no scheme resolves - an unplaced concept still gets a tree of
+         itself rather than an empty card.
+
          Anchored on the primary topic of THIS document, not on any SKOS resource in the graph: a
          container listing concept documents describes every child's topic too, and matching those
          would hang a tree off every such listing, rooted at whichever concept happened to come first.
@@ -59,28 +73,36 @@ exclude-result-prefixes="#all">
          Not guarded by use-when: ldh:TreeNode lives in the shared trunk precisely so the tree is in
          the server's first paint, which is the only paint a directly loaded URL gets. -->
     <xsl:template match="rdf:RDF[key('resources', key('resources', ac:absolute-path(ldh:base-uri(.)))/foaf:primaryTopic/@rdf:resource)/rdf:type/@rdf:resource = ('&skos;ConceptScheme', '&skos;Concept')]" mode="ldh:ContentColumn">
+        <xsl:param name="object-metadata" as="document-node()?" tunnel="yes"/>
         <xsl:variable name="topic" select="key('resources', key('resources', ac:absolute-path(ldh:base-uri(.)))/foaf:primaryTopic/@rdf:resource)" as="element()*"/>
-        <!-- the root of a scheme's tree expands over hasTopConcept/topConceptOf, a concept's over broader/narrower;
-             the class is what the ldh:TreeChildrenLoad rules below read at click time -->
-        <xsl:variable name="scheme-root" select="$topic/rdf:type/@rdf:resource = '&skos;ConceptScheme'" as="xs:boolean"/>
+        <xsl:variable name="scheme-uri" select="$topic/skos:inScheme/@rdf:resource" as="attribute()*"/>
+        <!-- described in this document (a scheme page), else in the label metadata (a concept page) -->
+        <xsl:variable name="root" select="(
+            $topic[rdf:type/@rdf:resource = '&skos;ConceptScheme'],
+            key('resources', $scheme-uri),
+            $object-metadata!key('resources', $scheme-uri, .),
+            $topic)[1]" as="element()?"/>
 
-        <div class="ldh-onto-list">
-            <ul class="ldh-tree concept-tree{if ($scheme-root) then ' scheme-root' else ''}">
-                <xsl:apply-templates select="$topic[1]" mode="ldh:TreeNode">
-                    <xsl:with-param name="expandable" select="true()"/>
-                </xsl:apply-templates>
-            </ul>
-        </div>
+        <xsl:if test="$root">
+            <div class="ldh-onto-list">
+                <ul class="ldh-tree concept-tree">
+                    <xsl:apply-templates select="$root" mode="ldh:TreeNode">
+                        <xsl:with-param name="expandable" select="true()"/>
+                    </xsl:apply-templates>
+                </ul>
+            </div>
+        </xsl:if>
     </xsl:template>
 
     <!-- SKOS puts the hierarchy link on whichever end the modeller chose, and both are in use in the
          wild, so every relation below is given from both directions and client/tree.xsl unions them.
 
-         Which relation applies is a question of depth, not of class: the node at the root of this tree
-         is the scheme, whose children are its top concepts; every node below it is a concept, whose
-         children are narrower concepts. count(ancestor::li) tells them apart without a marker class
-         that the generic emitter would have to know how to attach. -->
-    <xsl:template match="button[ancestor::ul[contains-token(@class, 'scheme-root')]][count(ancestor::li) = 1]" mode="ldh:TreeChildrenLoad" priority="1" use-when="system-property('xsl:product-name') = 'SaxonJS'">
+         Which relation applies is a question of depth alone: the root is always the scheme, whose
+         children are its top concepts, and every node below it is a concept, whose children are
+         narrower concepts. count(ancestor::li) tells them apart - no marker class, which is why the
+         scheme-root token this used to carry is gone: with the root always a scheme it distinguished
+         nothing. -->
+    <xsl:template match="button[ancestor::ul[contains-token(@class, 'concept-tree')]][count(ancestor::li) = 1]" mode="ldh:TreeChildrenLoad" priority="1" use-when="system-property('xsl:product-name') = 'SaxonJS'">
         <xsl:param name="container" as="element()"/>
         <xsl:param name="uri" as="xs:anyURI"/>
 
