@@ -14,7 +14,7 @@
 # Concept
 
 skos:Concept spin:constructor :ConceptConstructor ;
-    spin:constraint :MissingPrefLabel .
+    spin:constraint :MissingPrefLabel , :MissingInScheme .
 
 :ConceptConstructor a ldh:Constructor ;
     rdfs:label "Concept constructor" ;
@@ -157,7 +157,55 @@ skos:ConceptScheme spin:constructor :ConceptSchemeConstructor .
         WHERE {}""" ;
     rdfs:isDefinedBy : .
 
-skos:inScheme ldh:inverseView :ConceptsInScheme .
+skos:hasTopConcept ldh:view :TopConcepts .
+
+:TopConcepts a ldh:View ;
+    dct:title "Top concepts" ;
+    spin:query :SelectTopConcepts ;
+    rdfs:isDefinedBy : .
+
+# the entry level of a taxonomy, and the root of the concept tree. Both directions count as a top
+# concept - a scheme may assert skos:hasTopConcept, a concept may assert skos:topConceptOf - because
+# SKOS declares them inverses and leaves the choice to the modeller
+:SelectTopConcepts a sp:Select ;
+    rdfs:label "Select top concepts" ;
+    dct:title "Select top concepts" ;
+    sp:text """
+PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT DISTINCT  ?concept
+WHERE
+  { GRAPH ?graph
+      {   { $about  skos:hasTopConcept  ?concept }
+        UNION
+          { ?concept  skos:topConceptOf  $about }
+      }
+  }
+""" ;
+    rdfs:isDefinedBy : .
+
+skos:inScheme ldh:view :ConceptScheme .
+
+:ConceptScheme a ldh:View ;
+    dct:title "Scheme" ;
+    spin:query :SelectConceptScheme ;
+    rdfs:isDefinedBy : .
+
+:SelectConceptScheme a sp:Select ;
+    rdfs:label "Select the scheme a concept belongs to" ;
+    dct:title "Select the scheme a concept belongs to" ;
+    sp:text """
+PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT DISTINCT  ?scheme
+WHERE
+  { GRAPH ?graph
+      { $about  skos:inScheme  ?scheme }
+  }
+""" ;
+    rdfs:isDefinedBy : .
+
+skos:inScheme ldh:inverseView :ConceptsInScheme , :OrphanConcepts .
 
 :ConceptsInScheme a ldh:View ;
     dct:title "Concepts in scheme" ;
@@ -181,9 +229,43 @@ ORDER BY ?prefLabel
 """ ;
     rdfs:isDefinedBy : .
 
+# Concepts a scheme lists but nothing places in its hierarchy: neither a top concept nor narrower
+# than anything. A taxonomy with orphans is not wrong, but they are invisible to a tree that
+# descends from the top, so the scheme surfaces them rather than letting them go unreachable
+:OrphanConcepts a ldh:View ;
+    dct:title "Unplaced concepts" ;
+    spin:query :SelectOrphanConcepts ;
+    ldh:showWhenEmpty false ;
+    rdfs:isDefinedBy : .
+
+:SelectOrphanConcepts a sp:Select ;
+    rdfs:label "Select concepts with no place in the hierarchy" ;
+    dct:title "Select concepts with no place in the hierarchy" ;
+    sp:text """
+PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT DISTINCT  ?concept
+WHERE
+  { GRAPH ?graph
+      { ?concept  skos:inScheme  $about }
+    FILTER NOT EXISTS { GRAPH ?topGraph { $about skos:hasTopConcept ?concept } }
+    FILTER NOT EXISTS { GRAPH ?topGraph { ?concept skos:topConceptOf $about } }
+    FILTER NOT EXISTS { GRAPH ?broaderGraph { ?concept skos:broader ?parent } }
+    FILTER NOT EXISTS { GRAPH ?narrowerGraph { ?parent skos:narrower ?concept } }
+  }
+""" ;
+    rdfs:isDefinedBy : .
+
 # Constraints
 
 :MissingPrefLabel a ldh:MissingPropertyValue ;
     rdfs:label "Missing skos:prefLabel" ;
     sp:arg1 skos:prefLabel ;
+    rdfs:isDefinedBy : .
+
+# a concept outside every scheme cannot be reached from a scheme's tree, so the package treats
+# skos:inScheme as mandatory even though SKOS itself does not
+:MissingInScheme a ldh:MissingPropertyValue ;
+    rdfs:label "Missing skos:inScheme" ;
+    sp:arg1 skos:inScheme ;
     rdfs:isDefinedBy : .
