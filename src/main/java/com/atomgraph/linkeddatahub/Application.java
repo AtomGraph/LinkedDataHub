@@ -108,7 +108,7 @@ import com.atomgraph.linkeddatahub.server.filter.response.ResponseHeadersFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.CacheInvalidationFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.VersioningFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.XsltExecutableFilter;
-import com.atomgraph.linkeddatahub.server.interceptor.RDFPostMediaTypeInterceptor;
+import com.atomgraph.client.interceptor.RDFPostMediaTypeInterceptor;
 import com.atomgraph.linkeddatahub.server.mapper.auth.oauth2.TokenExpiredExceptionMapper;
 import com.atomgraph.linkeddatahub.server.model.impl.Dispatcher;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
@@ -117,7 +117,6 @@ import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.server.util.URLValidator;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
-import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.linkeddatahub.vocabulary.LDHC;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.linkeddatahub.vocabulary.ORCID;
@@ -180,8 +179,9 @@ import com.apicatalog.jsonld.JsonLdOptions;
 import java.io.FileOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -208,9 +208,7 @@ import net.jodah.expiringmap.ExpirationPolicy;
 import net.jodah.expiringmap.ExpiringMap;
 import net.sf.saxon.om.TreeInfo;
 import net.sf.saxon.s9api.Processor;
-import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.SaxonApiException;
-import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XsltCompiler;
 import net.sf.saxon.s9api.XsltExecutable;
 import org.apache.http.HttpClientConnection;
@@ -228,6 +226,7 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.riot.resultset.ResultSetLang;
@@ -298,7 +297,9 @@ public class Application extends ResourceConfig
     private final String oidcRefreshTokensPropertiesPath;
     private final Properties oidcRefreshTokens;
     private final URI contextDatasetURI;
-    private final Dataset contextDataset;
+    // volatile: updateApp() replaces the dataset copy-on-write while request threads read it unsynchronized
+    private volatile Dataset contextDataset;
+    private final Object contextDatasetWriteLock = new Object();
     private final URI frontendProxy;
     private final URI backendProxyAdmin;
     private final URI backendProxyEndUser;
@@ -358,7 +359,6 @@ public class Application extends ResourceConfig
             System.getProperty("com.atomgraph.linkeddatahub.validateAfterInactivity") != null ? Integer.valueOf(System.getProperty("com.atomgraph.linkeddatahub.validateAfterInactivity")) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.maxImportThreads.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxImportThreads.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.notificationAddress.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.notificationAddress.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(LDHC.supportedLanguages.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.supportedLanguages.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.enableWebIDSignUp.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.enableWebIDSignUp.getURI())) : true,
             servletConfig.getServletContext().getInitParameter(LDHC.oidcRefreshTokens.getURI()),
             servletConfig.getServletContext().getInitParameter(LDHC.frontendProxy.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.frontendProxy.getURI()) : null,
@@ -414,7 +414,6 @@ public class Application extends ResourceConfig
      * @param maxRequestRetries maximum number of times that the HTTP client will retry a request
      * @param maxImportThreads maximum number of threads used for asynchronous imports
      * @param notificationAddressString email address used to send notifications
-     * @param supportedLanguageCodes comma-separated codes of supported languages
      * @param enableWebIDSignUp true if WebID signup is enabled
      * @param oidcRefreshTokensPropertiesPath path to the properties file with OIDC refresh tokens
      * @param mailUser username of the SMTP email server
@@ -443,7 +442,7 @@ public class Application extends ResourceConfig
             final Integer cookieMaxAge, final boolean enableLinkedDataProxy, final boolean allowInternalUrls, final Integer maxContentLength,
             final Integer maxConnPerRoute, final Integer maxTotalConn, final Integer maxRequestRetries, final Integer connectionRequestTimeout,
             final Integer socketTimeout, final Integer connectTimeout, final Long connectionTimeToLive, final Integer validateAfterInactivity, final Integer maxImportThreads,
-            final String notificationAddressString, final String supportedLanguageCodes, final boolean enableWebIDSignUp, final String oidcRefreshTokensPropertiesPath,
+            final String notificationAddressString, final boolean enableWebIDSignUp, final String oidcRefreshTokensPropertiesPath,
             final String frontendProxyString, final String backendProxyAdminString, final String backendProxyEndUserString,
             final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort,
             final String googleClientID, final String googleClientSecret,
@@ -561,12 +560,15 @@ public class Application extends ResourceConfig
         this.importThreadPool = Executors.newFixedThreadPool(maxImportThreads);
         servletConfig.getServletContext().setAttribute(LDHC.maxImportThreads.getURI(), importThreadPool); // used in ImportListener to shutdown the thread pool
         
-        if (supportedLanguageCodes == null)
+        try
         {
-            if (log.isErrorEnabled()) log.error("Supported languages ({}) not configured", LDHC.supportedLanguages.getURI());
-            throw new ConfigurationException(LDHC.supportedLanguages);
+            this.supportedLanguages = readBundleLanguages(servletConfig.getServletContext());
         }
-        this.supportedLanguages = Arrays.asList(supportedLanguageCodes.split(",")).stream().map(code -> Locale.forLanguageTag(code)).collect(Collectors.toList());
+        catch (IOException ex)
+        {
+            if (log.isErrorEnabled()) log.error("Could not read UI translations: {}", XSLTWriterBase.TRANSLATIONS_PATH, ex);
+            throw new IllegalStateException(ex);
+        }
         
         this.servletConfig = servletConfig;
         this.mediaTypes = mediaTypes;
@@ -832,13 +834,14 @@ public class Application extends ResourceConfig
             xsltProc.registerExtensionFunction(new DecodeURI());
             xsltProc.registerExtensionFunction(new com.atomgraph.linkeddatahub.writer.function.URLDecode());
             xsltProc.registerExtensionFunction(new com.atomgraph.linkeddatahub.writer.function.SendHTTPRequest(xsltProc, client));
+            xsltProc.registerExtensionFunction(new com.atomgraph.linkeddatahub.writer.function.ParseQuery());
             
             try
             {
-                for (String prefix : getRepository().getPrefixMappings().keySet())
+                for (String prefix : repository.getPrefixMappings().keySet())
                 {
                     // register mapped RDF documents in the XSLT processor so that document() returns them cached, throughout multiple transformations
-                    TreeInfo doc = xsltProc.getUnderlyingConfiguration().buildDocumentTree(getResolver().resolve("", prefix));
+                    TreeInfo doc = xsltProc.getUnderlyingConfiguration().buildDocumentTree(resolver.resolve("", prefix));
                     xsltProc.getUnderlyingConfiguration().getGlobalDocumentPool().add(doc, prefix);
                 }
 
@@ -856,7 +859,6 @@ public class Application extends ResourceConfig
             }
             
             xsltComp = xsltProc.newXsltCompiler();
-            xsltComp.setParameter(new QName("ldh", LDH.base.getNameSpace(), LDH.base.getLocalName()), new XdmAtomicValue(baseURI));
             xsltComp.setURIResolver(new LocalStylesheetResolver(this, servletConfig.getServletContext(), client)); // resolves xsl:import to raw stylesheet sources, app-origin /static/ URLs locally
             xsltExec = xsltComp.compile(stylesheet);
         }
@@ -2296,26 +2298,39 @@ public class Application extends ResourceConfig
         if (application == null) throw new IllegalArgumentException("Application cannot be null");
         if (newModel == null) throw new IllegalArgumentException("Model cannot be null");
 
-        synchronized (getContextDataset())
+        synchronized (contextDatasetWriteLock)
         {
             String dataspaceURI = application.getURI();
 
-            // Update the named graph in the dataset
-            getContextDataset().removeNamedModel(dataspaceURI).
-                addNamedModel(dataspaceURI, newModel);
+            // copy-on-write: readers (getContextModel() et al) hold live views over the current dataset from
+            // unsynchronized request threads, so mutating it in place would race them. Build a replacement
+            // dataset sharing the untouched graphs and swap the volatile reference once it is complete.
+            Dataset updated = DatasetFactory.create();
+            updated.setDefaultModel(getContextDataset().getDefaultModel());
+            getContextDataset().listModelNames().forEachRemaining(name ->
+            {
+                if (!name.getURI().equals(dataspaceURI)) updated.addNamedModel(name.getURI(), getContextDataset().getNamedModel(name.getURI()));
+            });
+            updated.addNamedModel(dataspaceURI, ModelFactory.createDefaultModel().add(newModel)); // copy so the caller's reference cannot mutate the published snapshot
 
             // Write the updated dataset back to file using RDFDataMgr
             // Support both absolute file:// URIs and relative webapp paths (like getDataset does)
-            try (java.io.OutputStream out = (getContextDatasetURI().isAbsolute() ?
-                    new FileOutputStream(new java.io.File(getContextDatasetURI())) :
-                    new FileOutputStream(getServletConfig().getServletContext().getRealPath(getContextDatasetURI().toString()))))
-            {
-                Lang lang = RDFDataMgr.determineLang(getContextDatasetURI().toString(), null, null);
-                if (lang == null) throw new IOException("Could not determine RDF format from dataset URI: " + getContextDatasetURI().toString());
+            Lang lang = RDFDataMgr.determineLang(getContextDatasetURI().toString(), null, null);
+            if (lang == null) throw new IOException("Could not determine RDF format from dataset URI: " + getContextDatasetURI().toString());
 
-                RDFDataMgr.write(out, getContextDataset(), lang);
-                if (log.isInfoEnabled()) log.info("Updated dataspace <{}> in context dataset: {}", dataspaceURI, getContextDatasetURI());
+            java.io.File targetFile = getContextDatasetURI().isAbsolute() ?
+                    new java.io.File(getContextDatasetURI()) :
+                    new java.io.File(getServletConfig().getServletContext().getRealPath(getContextDatasetURI().toString()));
+            // temp file in the target directory + atomic move: a crash mid-write must not truncate the deployment's configuration
+            java.io.File tempFile = java.io.File.createTempFile(targetFile.getName(), null, targetFile.getParentFile());
+            try (java.io.OutputStream out = new FileOutputStream(tempFile))
+            {
+                RDFDataMgr.write(out, updated, lang);
             }
+            Files.move(tempFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+
+            this.contextDataset = updated;
+            if (log.isInfoEnabled()) log.info("Updated dataspace <{}> in context dataset: {}", dataspaceURI, getContextDatasetURI());
         }
     }
 
@@ -2517,12 +2532,54 @@ public class Application extends ResourceConfig
     
     /**
      * Returns list of locales for languages supported by the UI.
-     * 
+     *
      * @return locale list
      */
     public List<Locale> getSupportedLanguages()
     {
         return supportedLanguages;
+    }
+
+    /**
+     * Reads the languages the UI translation bundle actually provides.
+     *
+     * Derived from the bundle rather than configured separately: a hand-maintained list can claim a language the bundle does
+     * not have, and the two drifted - the config said <code>en,es</code> while the bundle is tagged <code>en-US,es-ES</code>,
+     * and neither described the languages of the data being rendered.
+     *
+     * @param servletContext servlet context
+     * @return locales, ordered by language tag so variant selection is deterministic
+     * @throws IOException if the bundle cannot be read
+     */
+    public static List<Locale> readBundleLanguages(ServletContext servletContext) throws IOException
+    {
+        try (InputStream translations = servletContext.getResourceAsStream(XSLTWriterBase.TRANSLATIONS_PATH))
+        {
+            if (translations == null) throw new IOException("UI translations not found: " + XSLTWriterBase.TRANSLATIONS_PATH);
+
+            return readBundleLanguages(translations);
+        }
+    }
+
+    /**
+     * Reads the languages present in a UI translation bundle.
+     *
+     * @param translations RDF/XML translation bundle
+     * @return locales, ordered by language tag so variant selection is deterministic
+     */
+    public static List<Locale> readBundleLanguages(InputStream translations)
+    {
+        Model model = ModelFactory.createDefaultModel();
+        RDFParser.create().source(translations).lang(Lang.RDFXML).build().parse(model);
+
+        return model.listObjects().toList().stream().
+            filter(RDFNode::isLiteral).
+            map(node -> node.asLiteral().getLanguage()).
+            filter(lang -> !lang.isEmpty()).
+            distinct().
+            sorted().
+            map(Locale::forLanguageTag).
+            collect(Collectors.toList());
     }
     
     /**
@@ -2555,11 +2612,19 @@ public class Application extends ResourceConfig
      */
     public void storeRefreshToken(String clientID, String refreshToken) throws IOException
     {
-        oidcRefreshTokens.put(clientID, refreshToken);
-        
-        try (FileOutputStream fos = new FileOutputStream(oidcRefreshTokensPropertiesPath))
+        // serialized + written via temp file and atomic move: concurrent OAuth callbacks opening the same
+        // file with truncating streams would interleave and corrupt the token store
+        synchronized (oidcRefreshTokens)
         {
-            oidcRefreshTokens.store(fos, null);
+            oidcRefreshTokens.put(clientID, refreshToken);
+
+            java.io.File targetFile = new java.io.File(oidcRefreshTokensPropertiesPath);
+            java.io.File tempFile = java.io.File.createTempFile(targetFile.getName(), null, targetFile.getParentFile());
+            try (FileOutputStream fos = new FileOutputStream(tempFile))
+            {
+                oidcRefreshTokens.store(fos, null);
+            }
+            Files.move(tempFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
         }
     }
     

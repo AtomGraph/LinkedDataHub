@@ -7,12 +7,15 @@ purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
-# POST /clear without a certificate should return 401
+# POST /clear without a certificate is denied with 403 (LDH issues no 401 challenge for unauthenticated requests)
 # Only owners have access to /clear via full-control authorization in admin.trig
 
-curl -k -w "%{http_code}\n" -o /dev/null -s \
+actual=$(curl -k -w "%{http_code}" -o /dev/null -s \
   -X POST \
   -H "Content-Type: application/x-www-form-urlencoded" \
   --data-urlencode "uri=${END_USER_BASE_URL}ns#" \
-  "${ADMIN_BASE_URL}clear" \
-| grep -q "$STATUS_UNAUTHORIZED"
+  "${ADMIN_BASE_URL}clear")
+expected="$STATUS_FORBIDDEN"
+echo "DEBUG: Expected: $expected"
+echo "DEBUG: Got: $actual"
+echo "$actual" | grep -qE "^(${expected})$"

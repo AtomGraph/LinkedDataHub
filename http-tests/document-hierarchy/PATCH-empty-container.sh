@@ -9,7 +9,7 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 # add agent to the writers group
 
-ldh admin acl add-agent-to-group \
+ldh admin add agent \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
@@ -19,7 +19,7 @@ ldh admin acl add-agent-to-group \
 
 slug=$(uuidgen | tr '[:upper:]' '[:lower:]')
 
-container=$(ldh create-container \
+container=$(ldh create container \
   -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
@@ -49,10 +49,10 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
    --data-binary "$update" \
 | grep -q "$STATUS_NO_CONTENT"
 
-# verify the container was deleted
+# verify the container is gone: once deleted it is a typeless URL, so a read is now forbidden (403), not 404
 
 curl -k -w "%{http_code}\n" -o /dev/null -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: application/n-triples" \
   "$container" \
-| grep -q "$STATUS_NOT_FOUND"
+| grep -q "$STATUS_FORBIDDEN"

@@ -41,7 +41,7 @@ import picocli.CommandLine.Parameters;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "add-object-block", description = "Appends an object content block to a document.")
+@Command(name = "object-block", description = "Appends an object content block to a document.")
 public class AddObjectBlock extends BaseCommand
 {
 

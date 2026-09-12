@@ -21,6 +21,9 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * In-process HTTP server that answers every request with a canned status and body, and records
@@ -35,10 +38,13 @@ public class StubServer implements AutoCloseable
     private volatile int status = 200;
     private volatile String body = "";
     private volatile String contentType = "text/turtle";
+    private final Map<String, String> responseHeaders = new LinkedHashMap<>();
+    private final Map<String, Route> routes = new LinkedHashMap<>();
 
     private volatile String lastMethod;
     private volatile String lastTarget;
     private volatile String lastBody;
+    private volatile Map<String, String> lastHeaders = Map.of();
 
     /**
      * Starts the server on an ephemeral loopback port.
@@ -55,9 +61,15 @@ public class StubServer implements AutoCloseable
             lastTarget = exchange.getRequestURI().toString();
             lastBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
 
-            byte[] out = body.getBytes(StandardCharsets.UTF_8);
-            exchange.getResponseHeaders().add("Content-Type", contentType);
-            exchange.sendResponseHeaders(status, out.length == 0 ? -1 : out.length);
+            Map<String, String> headers = new LinkedHashMap<>();
+            exchange.getRequestHeaders().forEach((name, values) -> headers.put(name.toLowerCase(Locale.ROOT), values.get(0)));
+            lastHeaders = headers;
+
+            Route route = routes.get(exchange.getRequestURI().getPath());
+            byte[] out = (route != null ? route.body() : body).getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().add("Content-Type", route != null ? route.contentType() : contentType);
+            responseHeaders.forEach((name, value) -> exchange.getResponseHeaders().add(name, value));
+            exchange.sendResponseHeaders(route != null ? route.status() : status, out.length == 0 ? -1 : out.length);
             if (out.length > 0) exchange.getResponseBody().write(out);
             exchange.close();
         });
@@ -73,6 +85,24 @@ public class StubServer implements AutoCloseable
     public URI baseURI()
     {
         return URI.create("http://127.0.0.1:" + server.getAddress().getPort() + "/");
+    }
+
+    /** A canned response bound to one request path, for the commands that read more than one document. */
+    private record Route(int status, String contentType, String body) { }
+
+    /**
+     * Binds a canned response to a request path, taking precedence over the default one.
+     *
+     * @param path request path
+     * @param status HTTP status code
+     * @param contentType response media type
+     * @param body response body
+     * @return this server
+     */
+    public StubServer respondsTo(String path, int status, String contentType, String body)
+    {
+        routes.put(path, new Route(status, contentType, body));
+        return this;
     }
 
     /**
@@ -102,6 +132,19 @@ public class StubServer implements AutoCloseable
     }
 
     /**
+     * Adds a header to the canned response.
+     *
+     * @param name header name
+     * @param value header value
+     * @return this server
+     */
+    public StubServer respondsWithHeader(String name, String value)
+    {
+        responseHeaders.put(name, value);
+        return this;
+    }
+
+    /**
      * Returns the method of the last request.
      *
      * @return HTTP method, or null if no request was made
@@ -119,6 +162,17 @@ public class StubServer implements AutoCloseable
     public String getLastTarget()
     {
         return lastTarget;
+    }
+
+    /**
+     * Returns a request header of the last request.
+     *
+     * @param name header name, matched case-insensitively
+     * @return header value, or null if the header was not sent
+     */
+    public String getLastHeader(String name)
+    {
+        return lastHeaders.get(name.toLowerCase(Locale.ROOT));
     }
 
     /**

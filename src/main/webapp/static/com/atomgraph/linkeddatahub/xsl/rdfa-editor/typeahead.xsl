@@ -5,6 +5,8 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:rdfae="https://w3id.org/atomgraph/rdfa-editor#"
+xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#"
+xmlns:ac="https://w3id.org/atomgraph/client#"
 extension-element-prefixes="ixsl"
 xpath-default-namespace="http://www.w3.org/1999/xhtml"
 exclude-result-prefixes="xs"
@@ -142,7 +144,7 @@ version="3.0">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <button type="button" class="typeahead-value" title="{$iri}">
                     <span class="typeahead-label"><xsl:value-of select="$label"/></span>
-                    <span class="typeahead-clear" role="button" aria-label="Clear">&#215;</span>
+                    <span class="typeahead-clear" role="button" aria-label="{ac:label(key('resources', 'clear', ldh:translations()))}">&#215;</span>
                     <input type="hidden" name="{$field}" value="{$iri}"/>
                 </button>
             </xsl:result-document>
@@ -321,9 +323,7 @@ version="3.0">
                 </xsl:for-each>
                 <xsl:for-each select="$items[$next]">
                     <ixsl:set-attribute name="aria-selected" select="'true'"/>
-                    <xsl:variable name="opts" select="ixsl:call(ixsl:window(), 'Object', [])"/>
-                    <ixsl:set-property name="block" select="'nearest'" object="$opts"/>
-                    <xsl:sequence select="ixsl:call(., 'scrollIntoView', [ $opts ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:call(., 'scrollIntoView', [ map{ 'block': 'nearest' } ])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise/>

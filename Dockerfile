@@ -38,7 +38,7 @@ ENV SOURCE_COMMIT=$SOURCE_COMMIT
 
 WORKDIR $CATALINA_HOME
 
-ENV STYLESHEET=static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/layout.xsl
+ENV STYLESHEET=static/com/atomgraph/linkeddatahub/xsl/layout.xsl
 
 ENV CACHE_STYLESHEET=true
 

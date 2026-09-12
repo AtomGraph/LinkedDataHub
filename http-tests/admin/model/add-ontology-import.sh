@@ -14,7 +14,7 @@ import_uri="http://www.w3.org/ns/auth/acl"
 
 # add ontology import
 
-ldh admin add-ontology-import \
+ldh admin add ontology-import \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --import "$import_uri" \
@@ -22,7 +22,7 @@ ldh admin add-ontology-import \
 
 # clear the namespace ontology from memory
 
-ldh admin clear-ontology \
+ldh admin clear ontology \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \

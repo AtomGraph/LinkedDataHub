@@ -11,7 +11,7 @@ pwd=$(realpath "$PWD")
 
 # add agent to the writers group to be able to read/write documents
 
-ldh admin acl add-agent-to-group \
+ldh admin add agent \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \

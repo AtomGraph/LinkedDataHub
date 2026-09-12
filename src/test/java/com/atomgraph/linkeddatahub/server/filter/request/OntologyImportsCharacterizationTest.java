@@ -17,6 +17,8 @@
 package com.atomgraph.linkeddatahub.server.filter.request;
 
 import com.atomgraph.client.util.jena.PrefixGraphRepository;
+import java.net.URI;
+import java.util.List;
 import org.apache.jena.ontapi.OntModelFactory;
 import org.apache.jena.ontapi.OntSpecification;
 import org.apache.jena.ontapi.UnionGraph;
@@ -44,6 +46,7 @@ public class OntologyImportsCharacterizationTest
 
     private static final String BASE_URI = "http://example.org/base";
     private static final String IMPORT_URI = "http://example.org/imported";
+    private static final String PACKAGE_URI = "http://example.org/package";
     private static final String NS = "http://example.org/ns#";
 
     @Test
@@ -118,6 +121,91 @@ public class OntologyImportsCharacterizationTest
 
         UnionGraph union = OntologyFilter.loadOntology(repository, firstURI);
         assertTrue(ModelFactory.createModelForGraph(union).contains(term, RDF.type, OWL.Class), "cyclic imports must resolve without recursing infinitely");
+    }
+
+    /**
+     * Pins the package composition: an imported package ontology is declared as an owl:imports of the
+     * application ontology and resolved by ontapi as part of the closure — no union sub-graph is grafted.
+     */
+    @Test
+    public void testLoadOntologyDeclaresPackageOntologyAsImport()
+    {
+        PrefixGraphRepository repository = new PrefixGraphRepository(null);
+
+        Resource packageTerm = ResourceFactory.createResource(NS + "PackageTerm");
+
+        Model packageOntology = ModelFactory.createDefaultModel();
+        packageOntology.add(packageOntology.createResource(PACKAGE_URI), RDF.type, OWL.Ontology);
+        packageOntology.add(packageTerm, RDF.type, OWL.Class);
+        repository.put(PACKAGE_URI, packageOntology.getGraph());
+
+        Model base = ModelFactory.createDefaultModel();
+        Resource baseOnt = base.createResource(BASE_URI);
+        base.add(baseOnt, RDF.type, OWL.Ontology);
+        repository.put(BASE_URI, base.getGraph());
+
+        UnionGraph union = OntologyFilter.loadOntology(repository, BASE_URI, List.of(URI.create(PACKAGE_URI)));
+
+        assertTrue(ModelFactory.createModelForGraph(union).contains(packageTerm, RDF.type, OWL.Class), "package ontology terms must be visible through the closure union");
+        // the declaration is a real owl:imports on the application ontology, so it also shows up in the
+        // raw graph that document GETs of the ontology serve
+        assertTrue(ModelFactory.createModelForGraph(repository.get(BASE_URI)).contains(baseOnt, OWL.imports, base.createResource(PACKAGE_URI)), "the package ontology must be declared as an owl:imports of the application ontology");
+    }
+
+    /**
+     * A package ontology brings its own owl:imports closure with it — ontapi resolves those transitively
+     * through the same repository, which is what makes declaring the import sufficient.
+     */
+    @Test
+    public void testLoadOntologyResolvesTransitiveImportsOfPackageOntology()
+    {
+        PrefixGraphRepository repository = new PrefixGraphRepository(null);
+
+        Resource transitiveTerm = ResourceFactory.createResource(NS + "TransitiveTerm");
+
+        Model transitive = ModelFactory.createDefaultModel();
+        transitive.add(transitive.createResource(IMPORT_URI), RDF.type, OWL.Ontology);
+        transitive.add(transitiveTerm, RDF.type, OWL.Class);
+        repository.put(IMPORT_URI, transitive.getGraph());
+
+        Model packageOntology = ModelFactory.createDefaultModel();
+        Resource packageOnt = packageOntology.createResource(PACKAGE_URI);
+        packageOntology.add(packageOnt, RDF.type, OWL.Ontology);
+        packageOntology.add(packageOnt, OWL.imports, packageOntology.createResource(IMPORT_URI));
+        repository.put(PACKAGE_URI, packageOntology.getGraph());
+
+        Model base = ModelFactory.createDefaultModel();
+        base.add(base.createResource(BASE_URI), RDF.type, OWL.Ontology);
+        repository.put(BASE_URI, base.getGraph());
+
+        UnionGraph union = OntologyFilter.loadOntology(repository, BASE_URI, List.of(URI.create(PACKAGE_URI)));
+
+        assertTrue(ModelFactory.createModelForGraph(union).contains(transitiveTerm, RDF.type, OWL.Class), "a package ontology's own owl:imports must resolve into the closure");
+    }
+
+    /**
+     * A package whose ontology cannot be resolved is skipped rather than declared: ontapi is constructed
+     * with ignoreUnresolvedImports and would otherwise substitute an empty graph silently.
+     */
+    @Test
+    public void testLoadOntologySkipsUnresolvablePackageOntology()
+    {
+        PrefixGraphRepository repository = new PrefixGraphRepository(null);
+
+        Resource baseTerm = ResourceFactory.createResource(NS + "BaseTerm");
+
+        Model base = ModelFactory.createDefaultModel();
+        Resource baseOnt = base.createResource(BASE_URI);
+        base.add(baseOnt, RDF.type, OWL.Ontology);
+        base.add(baseTerm, RDF.type, OWL.Class);
+        repository.put(BASE_URI, base.getGraph());
+
+        // not in the repository and not dereferenceable — a non-HTTP scheme so the check cannot reach the network
+        URI missing = URI.create("urn:example:missing-package-ontology");
+        UnionGraph union = OntologyFilter.loadOntology(repository, BASE_URI, List.of(missing));
+
+        assertTrue(ModelFactory.createModelForGraph(union).contains(baseTerm, RDF.type, OWL.Class), "a broken package must not take the application ontology down");
+        assertFalse(ModelFactory.createModelForGraph(repository.get(BASE_URI)).contains(baseOnt, OWL.imports, base.createResource(missing.toString())), "an unresolvable package ontology must not be declared as an owl:imports");
     }
 
 }

@@ -8,10 +8,6 @@
     <description>The low-code Knowledge Graph application platform</description>
     <!-- most of the following context-params can be set in docker-compose.yml (via conf/ROOT.xml) -->
     <context-param>
-        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#supportedLanguages</param-name>
-        <param-value>en,es</param-value>
-    </context-param>
-    <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#authCacheControl</param-name>
         <param-value>max-age=69</param-value>
     </context-param>
@@ -91,6 +87,9 @@ WHERE
 
     FILTER(strstarts(str(?g), str($base)))
   }
+# fail-closed default: with no resource type injected, $Type is rdfs:Resource, which no acl:accessToClass uses,
+# so the class branches match nothing. SetResultSetValues replaces this block with the resource's real types.
+VALUES ?Type { rdfs:Resource }
 ]]></param-value>
     </context-param>
     <context-param>
@@ -142,13 +141,16 @@ WHERE
                   $Type (rdfs:subClassOf)* ?Class
                 }
               }
-            # only namespace, signup, OAuth2 login and WebID profiles can be public in admin app, nothing else
+            # only namespace, signup and WebID profiles can be public in admin app, nothing else (OAuth2 login is an end-user app flow)
             FILTER ( $this IN (uri(concat(str($base), "ns")), uri(concat(str($base), "sign%20up"))) || strstarts(str($this), concat(str($base), "acl/agents/")) || strstarts(str($this), concat(str($base), "acl/public-keys/")))
           }
       }
 
     FILTER(strstarts(str(?g), str($base)))
   }
+# fail-closed default: with no resource type injected, $Type is rdfs:Resource, which no acl:accessToClass uses,
+# so the class branches match nothing. SetResultSetValues replaces this block with the resource's real types.
+VALUES ?Type { rdfs:Resource }
 ]]></param-value>
     </context-param>
     <context-param>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xsl:stylesheet [
+    <!ENTITY ac     "https://w3id.org/atomgraph/client#">
+    <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
+    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
+    <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
+    <!ENTITY nfo    "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#">
+]>
+<xsl:stylesheet version="3.0"
+xmlns="http://www.w3.org/1999/xhtml"
+xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+xmlns:xhtml="http://www.w3.org/1999/xhtml"
+xmlns:xs="http://www.w3.org/2001/XMLSchema"
+xmlns:ac="&ac;"
+xmlns:ldh="&ldh;"
+xmlns:lapp="&lapp;"
+xmlns:rdf="&rdf;"
+xmlns:nfo="&nfo;"
+exclude-result-prefixes="#all">
+
+    <xsl:preserve-space elements="nfo:fileName"/>
+    
+    <xsl:template match="*[@rdf:about = '&nfo;FileDataObject']" mode="ac:label">
+        <xsl:apply-templates select="key('resources', 'file', ldh:translations())" mode="#current"/>
+    </xsl:template>
+
+    <xsl:template match="nfo:fileName/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="ac:FormControl">
+        <xsl:param name="id" select="generate-id()" as="xs:string"/>
+        <xsl:param name="class" as="xs:string?"/>
+        <xsl:param name="accept" as="xs:string?"/>
+        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
+
+        <div class="ac-fileinput">
+            <label class="ac-file-drop" for="{$id}" tabindex="0">
+                <span class="msi outline sm" aria-hidden="true">upload_file</span>
+                <span>
+                    <xsl:apply-templates select="key('resources', 'upload', ldh:translations())" mode="ac:label"/>
+                </span>
+                <xsl:call-template name="xhtml:Input">
+                    <xsl:with-param name="name" select="'ol'"/>
+                    <xsl:with-param name="type" select="'file'"/>
+                    <xsl:with-param name="id" select="$id"/>
+                    <xsl:with-param name="class" select="$class"/>
+                </xsl:call-template>
+            </label>
+        </div>
+
+        <xsl:if test="$type-label">
+            <xsl:apply-templates select="." mode="ac:ValueAnnotations"/>
+        </xsl:if>
+    </xsl:template>
+
+    <xsl:template match="nfo:fileName/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="ac:ValueAnnotations">
+        <xsl:param name="type" as="xs:string?"/>
+
+        <xsl:if test="not($type = 'hidden')">
+            <xsl:apply-templates select="." mode="ac:AnnotationTag">
+                <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet co-neutral'"/>
+                <xsl:with-param name="label" as="item()*">
+                    <xsl:apply-templates select="key('resources', 'upload', ldh:translations())" mode="ac:label"/>
+                </xsl:with-param>
+            </xsl:apply-templates>
+        </xsl:if>
+    </xsl:template>
+    
+</xsl:stylesheet>

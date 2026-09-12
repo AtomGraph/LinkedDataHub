@@ -27,6 +27,8 @@ import jakarta.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.concurrent.Callable;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -153,6 +155,45 @@ public abstract class BaseCommand implements Callable<Integer>
         Model model = ModelFactory.createDefaultModel();
         RDFParser.create().source(in).lang(lang).base(base.toString()).parse(model);
         return model;
+    }
+
+    /**
+     * Reads a model from a file, resolving relative URIs against the given base URI.
+     *
+     * @param contentType RDF media type
+     * @param base base URI
+     * @param file RDF file
+     * @return parsed model
+     * @throws IOException read error
+     */
+    protected Model readModel(String contentType, URI base, Path file) throws IOException
+    {
+        if (!Files.isReadable(file)) throw new ParameterException(getSpec().commandLine(), "Cannot read RDF file: '" + file + "'");
+
+        try (InputStream in = Files.newInputStream(file))
+        {
+            return readModel(contentType, base, in);
+        }
+    }
+
+    /**
+     * Resolves the RDF media type of the input: the explicit option when given, otherwise the type
+     * the file extension implies. Reading standard input leaves no extension to go by, so there the
+     * option is required.
+     *
+     * @param contentType explicit media type (optional)
+     * @param file input file (optional)
+     * @return media type
+     */
+    protected String resolveContentType(String contentType, Path file)
+    {
+        if (contentType != null) return contentType;
+        if (file == null) throw new ParameterException(getSpec().commandLine(), "Missing required option: '--content-type=MEDIA_TYPE' (required when reading from stdin)");
+
+        Lang lang = RDFLanguages.filenameToLang(file.getFileName().toString());
+        if (lang == null) throw new ParameterException(getSpec().commandLine(), "Cannot tell the RDF syntax from the file name '" + file.getFileName() + "': pass -t/--content-type");
+
+        return lang.getContentType().getContentTypeStr();
     }
 
     /**

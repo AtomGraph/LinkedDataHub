@@ -17,7 +17,7 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 # add agent to the writers group
 
-ldh admin acl add-agent-to-group \
+ldh admin add agent \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
@@ -37,13 +37,22 @@ echo "<${doc_url}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://ww
     -t "application/n-triples" \
     "$doc_url"
 
+# the poll is the assertion: re-reading the file after it succeeded only asks GitHub the same
+# question again, and a read that just returned the file can still 404 moments later
+
+found=""
+
 for i in $(seq 1 30); do
     if gh api "repos/${VERSIONING_TEST_REPO}/contents/${path}?ref=${VERSIONING_TEST_BRANCH:-main}" > /dev/null 2>&1; then
+        found=1
         break
     fi
     sleep 1
 done
-gh api "repos/${VERSIONING_TEST_REPO}/contents/${path}?ref=${VERSIONING_TEST_BRANCH:-main}" > /dev/null
+
+if [ -z "$found" ]; then
+    exit 1
+fi
 
 # delete the document and check that the file disappears
 
@@ -59,5 +68,4 @@ for i in $(seq 1 30); do
     sleep 1
 done
 
-echo "DEBUG: file '${path}' still present in ${VERSIONING_TEST_REPO} after document deletion"
 exit 1

@@ -31,7 +31,7 @@ import picocli.CommandLine.Option;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "clear-ontology", description = "Clears an ontology from memory and reloads it.")
+@Command(name = "ontology", description = "Clears an ontology from memory and reloads it.")
 public class ClearOntology extends BaseCommand
 {
 

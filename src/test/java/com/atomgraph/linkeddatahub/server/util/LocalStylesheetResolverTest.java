@@ -86,11 +86,11 @@ public class LocalStylesheetResolverTest
     @Test
     public void testResolvesRelativeHrefAgainstHTTPSBase() throws Exception
     {
-        String resolved = "https://localhost:4443/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/layout.xsl";
+        String resolved = "https://localhost:4443/static/com/atomgraph/linkeddatahub/xsl/layout.xsl";
         when(system.getAppByOrigin(any(), any(), eq(URI.create(resolved)))).thenReturn(app);
-        when(servletContext.getResourceAsStream("/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/layout.xsl")).thenReturn(stream(XSL_CONTENT));
+        when(servletContext.getResourceAsStream("/static/com/atomgraph/linkeddatahub/xsl/layout.xsl")).thenReturn(stream(XSL_CONTENT));
 
-        Source source = resolver.resolve("../com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/layout.xsl", BASE);
+        Source source = resolver.resolve("../com/atomgraph/linkeddatahub/xsl/layout.xsl", BASE);
 
         assertEquals(resolved, source.getSystemId());
     }

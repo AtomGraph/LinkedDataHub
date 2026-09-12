@@ -259,11 +259,11 @@ public class WebIDFilter extends AuthenticationFilter
      */
     public Model loadWebID(URI webID)
     {
-        if (getSystem().getWebIDModelCache().containsKey(webID)) return getSystem().getWebIDModelCache().get(webID);
-        
-        Model model = loadWebIDFromURI(webID);
-        
-        return model;
+        // single get(): with containsKey()-then-get() the entry can expire between the calls and get() returns null
+        Model cachedModel = getSystem().getWebIDModelCache().get(webID);
+        if (cachedModel != null) return cachedModel;
+
+        return loadWebIDFromURI(webID);
     }
     
     /**

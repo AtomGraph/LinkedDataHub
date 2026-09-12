@@ -36,7 +36,7 @@ import picocli.CommandLine.Parameters;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "import-rdf", description = "Imports RDF data, optionally using a transformation query.")
+@Command(name = "rdf", description = "Imports RDF data, optionally using a transformation query. Workflow composing add construct, add file and add rdf-import.")
 public class ImportRDF extends BaseCommand
 {
 

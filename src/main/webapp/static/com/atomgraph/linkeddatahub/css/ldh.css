@@ -1,0 +1,654 @@
+/* =========================================================================
+   LDH's app layer over the design system kits (fonts, colors_and_type,
+   app.css -> core.css -> controls.css/overlays.css, retro.css). Loaded last.
+   What belongs here: styling for the CSR state tokens the handlers toggle
+   (.is-open, .is-active, inline display flyouts), LDH-only components the
+   design system does not specify yet, documented divergences from a DS
+   component (each carries its decision note), and LDH-local rules recovered
+   from the vendored app.css so a re-vendor cannot lose them. Vendored DS
+   files stay pristine mirrors - LDH-specific CSS lives only here.
+   ========================================================================= */
+
+/* only the main header is sticky at the top now; tab bar + action bar are sticky inside #tab-body */
+#tab-bar { position: sticky; top: var(--ldh-header-height); z-index: 88; height: var(--ldh-tabbar-height); }
+/* the strip and the chrome offset derive from the tab count: the design renders the strip only while
+   more than one tab exists, so no handler toggles visibility */
+#tab-bar:not(:has(li:nth-child(2))) { display: none; }
+:root:has(#tab-bar-list li:nth-child(2)) { --action-bar-top: calc(var(--ldh-header-height) + var(--ldh-tabbar-height)); }
+/* keep overflow visible, else the action-bar sticks relative to #tab-content instead of the viewport */
+#tab-content { overflow: visible; }
+/* core Menu (§17a): the static markup ships the panel closed in the DOM (the design mounts it only
+   while open), so the drop-toggle handler's is-open is what shows it; the panel, items, headers and
+   separators are overlays.css's */
+.ac-menu-anchor:not(.is-open) > .ac-menu { display: none; }
+.ac-menu form { margin: 0; }
+.ac-menu form button { width: 100%; text-align: left; }
+.action-bar { position: sticky; top: var(--action-bar-top); z-index: 86; padding: 0; box-shadow: none; }
+.action-bar form { margin-bottom: 0; }
+body:has(#edit-toolbar) .action-bar { border-bottom: 1px solid var(--border-default); }
+a.external::after { content: "⤴"; padding-left: 0.2em; }
+.left-nav .ldh-nav, .right-nav .ldh-nav { max-height: 20em; overflow: auto; }
+.left-nav, .right-nav { position: sticky; top: 0; }
+/* Drop marker: the dragged block will be inserted after the block it is dropped on. A pseudo-element
+   in the inter-block gap rather than border-bottom: the skins reset the card's border shorthand at
+   equal specificity, and a border would shift layout while dragging. */
+.content-body > [about].ldh-block-row.drag-over::after { content: ""; position: absolute; left: 0; right: 0; bottom: -10px; border-top: 4px dotted var(--bg-accent); pointer-events: none; }
+.modal .ac-menu { z-index: 1100; }
+/* Annotation overlay: point-positioned by rdfae:show-at; carries its own card chrome
+   (it borrows the .ac-modal-head/.ac-modal-body anatomy but is not a dialog) */
+#rdfa-editor-overlay { position: absolute; min-width: 360px; max-width: 520px; z-index: 10001; background: var(--surface-0); border-radius: var(--r-lg); box-shadow: var(--shadow-xl); display: flex; flex-direction: column; overflow: hidden; }
+.container-results { max-height: 80em; overflow: auto; }
+/* A re-query (page flip, sort, facet) keeps the rendered results standing and marks them busy, rather than
+   replacing them with a skeleton: the rows are already on the screen, and emptying the region collapsed the
+   block to the placeholder's height and back on every click. Dimmed and inert, so the height cannot move and
+   a second page request cannot be queued on top of the first; the pager, being outside this region, stays
+   visible and stays put. */
+.container-results.is-busy { opacity: 0.55; pointer-events: none; transition: opacity var(--dur-fast) var(--ease-out-soft); }
+@media (prefers-reduced-motion: reduce) { .container-results.is-busy { transition: none; } }
+/* grid mode opts out of the scrollport: the m3 card draws its border as an outside box-shadow, and the
+   grid sits flush in the wrapper (the list reset zeroes .ldh-grid-block padding), so any clip box cuts
+   the card edges - the table can stay flush because its border draws inside. In the design system the
+   grid lives in normal flow; the page scrolls it, and the sticky pager pins to that scrollport instead */
+.container-results:has(> .ldh-grid-block) { max-height: none; overflow: visible; }
+.map-canvas { height: 45em; width: 100%; }
+#uri { height: 24px; width: 100%; }
+/* Web-Client's default resource templates emit p.description summaries LDH does not surface */
+.description { display: none; }
+div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main { font-size: larger; line-height: 25px; overflow-x: auto; }
+/* preformatted prose (code samples, Turtle listings) sits on the design system's code surface - the
+   recessed well the inline .ldh-code chip and the error-detail listing (.ldh-block-detail pre) already use,
+   so it tints with the theme instead of a literal white that would invert wrong in dark mode. Long IRIs
+   scroll the block rather than wrap, keeping a listing's line structure readable */
+div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main pre { margin: var(--sp-4) 0; padding: var(--sp-3) var(--sp-4); background: var(--surface-2); border-radius: var(--r-sm); font-family: var(--font-mono); font-size: 0.92em; line-height: var(--lh-base); color: var(--ink-2); overflow-x: auto; }
+/* click-to-edit affordance only when the pane's document grants acl:Write (mirrors the ixsl:onclick guard in block.xsl) */
+div[data-acl-modes~="http://www.w3.org/ns/auth/acl#Write"] div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"]:not(:has(form)) .main { cursor: pointer; }
+/* collapse the property grid in the XHTML block's edit form: the region spans the block as a document
+   surface, not a "value" form row - the predicate label goes, and group/row/value become plain flow */
+div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .ldh-edit-form .ldh-prop-group > .label { display: none; }
+div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .ldh-edit-form .ldh-prop-form, div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .ldh-edit-form .ldh-prop-group, div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .ldh-edit-form .ldh-prop-row, div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .ldh-edit-form .ldh-prop-row > .value, div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .ldh-edit-form .val-main { display: block; padding-left: 0; padding-right: 0; }
+div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] form fieldset { border: none; }
+object { display: block; margin: auto; max-height: 400px; overflow: hidden; width: 100%; }
+.chart-canvas { width: 100%; height: 400px; }
+/* an empty result set replaces the plot with the block empty state, which would otherwise sit stranded above 400px of nothing; its own padding supplies the inset the canvas would add */
+.chart-canvas:has(> .ldh-block-blank) { height: auto; padding: 0; }
+/* Google Charts Table specific (the ac:Table chart type renders as HTML, skinned here rather than via draw options) */
+.chart-canvas .google-visualization-table-table { font-family: var(--font-sans); font-size: var(--fs-sm); color: var(--fg-1); }
+.chart-canvas .google-visualization-table-table th { background: var(--surface-1); color: var(--fg-muted); font-weight: var(--fw-semibold); border-color: var(--border-default); }
+.chart-canvas .google-visualization-table-table td { border-color: var(--border-default); }
+.chart-canvas .google-visualization-table-tr-even, .chart-canvas .google-visualization-table-tr-odd { background: var(--surface-0); }
+.chart-canvas .google-visualization-table-tr-over td { background: var(--bg-hover); }
+.chart-canvas .google-visualization-table-tr-sel td { background: var(--bg-accent-quiet); }
+.graph-3d-canvas { width: 100%; height: 600px; overflow: hidden; background: #141414; position: relative; }
+.graph-3d-tooltip { display: none; position: absolute; background: rgba(0,0,0,0.75); color: #fff; padding: 4px 8px; border-radius: 4px; pointer-events: none; font-size: 12px; z-index: 10; }
+.graph-3d-info-panel { position: absolute; top: 10px; right: 10px; z-index: 10; background: rgba(0,0,0,0.7); color: #fff; padding: 8px 12px; border-radius: 4px; max-width: 280px; font-size: 12px; }
+.graph-3d-info-panel h4 { margin: 0 0 4px; font-size: 13px; }
+.graph-3d-info-panel dl { margin: 0; }
+.graph-3d-info-panel dt { font-weight: bold; margin-top: 4px; }
+.graph-3d-info-panel dd { margin: 0; word-break: break-all; }
+.graph-3d-info-panel a { color: #8cf; }
+.graph-3d-show-panel { position: absolute; bottom: 30px; left: 10px; z-index: 10; background: rgba(0,0,0,0.7); color: #fff; padding: 8px 12px; border-radius: 4px; font-size: 12px; }
+.graph-3d-show-panel label { display: block; cursor: pointer; }
+.graph-3d-show-panel label.sub-option { margin-left: 16px; }
+.graph-3d-zoom { position: absolute; top: 10px; left: 10px; z-index: 10; }
+.graph-3d-fullscreen { position: absolute; bottom: 10px; right: 10px; z-index: 10; }
+.graph-3d-canvas.graph-3d-maximized { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; }
+/* OpenLayers specific */
+/* the marker info window borrows the modal's head/body anatomy but its host is ol.Overlay's own
+   wrapper, not a dialog - so the panel treatment lands here: the overlay IS the card, which is why
+   the resource inside renders as a quiet block. overflow (already the scroll container) clips the
+   property-list hover's sp-6 bleed at the rounded edge */
+.ol-overlay-container { width: 60%; max-height: 75%; background: var(--bg-card); border: 1px solid var(--border-default); border-radius: var(--r-lg); box-shadow: var(--shadow-lg); overflow: auto; }
+.ol-overlay-container img { max-width: 100%; }
+/* the block has no .ldh-block-body wrapper here (the default resource template emits head + property
+   list only), so the ac-modal-body inset is the only one: drop the head's own side padding or the
+   title sits sp-6 right of the labels below it, and its top padding stacks on the body's */
+.ol-overlay-container .ldh-block-head { padding: 0 0 var(--sp-3); }
+/* SVG graph specific */
+circle { cursor: move; }
+/* RDFa editor specific */
+.editor-bar { position: sticky; top: calc(var(--action-bar-top, 51px) + var(--ldh-actionbar-height, 50px)); z-index: 84; background: var(--bg-recess); padding: 0; box-shadow: none; display: flex; align-items: center; }
+#edit-toolbar { order: -1; margin-right: auto; display: flex; gap: var(--sp-1); align-items: center; }
+#edit-toolbar button, #edit-toolbar select { padding: 4px 8px; border: 0; border-radius: var(--r-sm); background: transparent; color: var(--fg-2); font-size: var(--fs-sm); font-family: inherit; cursor: pointer; margin-top: auto; margin-bottom: auto; transition: background var(--dur-fast) var(--ease-out-soft), color var(--dur-fast) var(--ease-out-soft); }
+#edit-toolbar button:disabled { opacity: 0.4; cursor: default; }
+#edit-toolbar button:hover, #edit-toolbar select:hover { background: var(--bg-hover); color: var(--fg-1); }
+#edit-toolbar button[aria-pressed="true"] { background: var(--bg-selected); color: var(--fg-selected); }
+#edit-toolbar .tb-group { display: flex; gap: var(--sp-1); align-items: center; }
+#edit-toolbar .tb-group + .tb-group { border-left: 1px solid var(--border-default); padding-left: var(--sp-2); }
+#edit-toolbar .tb-group.table-ops.active { background: var(--bg-selected); border-radius: var(--r-sm); }
+.edit-dialog { background: white; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,.2); padding: 12px; min-width: 280px; z-index: 10000; }
+.edit-dialog .rdfa-editor-ui .action-buttons { margin-top: 10px; }
+.edit-dialog .rdfa-editor-ui .checkbox-label { display: inline-flex; gap: 6px; align-items: center; font-weight: 400; margin-top: 8px; }
+.editor-bar:not(:has(#edit-toolbar)), .ldh-pane:not(:has(.rdfa-editor-content)) .editor-bar, body:not(:has(.ldh-pane.is-active .rdfa-editor-content)) #rdfa-editor-breadcrumb { display: none; }
+/* Host-page gutter for the block drag handles (rendered at left:-1.5em, outside each block's box).
+   The editor documents this as a host requirement (padding-left >= 2.5em); LDH must reserve it since
+   the .rdfa-editor-content div is generated bare by the XMLLiteral form control. */
+.rdfa-editor-content { padding-left: 2.5em; }
+/* While a region is edited, every tab panel stacks visibly and editably: the editor presents the
+   structure; one-pane-visible is ReadMode's rendering of it. hidden reasserts itself on restore. */
+.rdfa-editor-content [role="tabpanel"][hidden] { display: block; }
+
+/* ---------- replacements for rules the retired framework stylesheet provided ---------- */
+.caret { display: inline-flex; align-items: center; opacity: 0.85; }
+/* a loading block collapses to its bar (the kit's §16 state: is-loading + aria-busy on the block,
+   both stripped when loading ends): the kit hides .ldh-block-body, but LDH's body sits inside the
+   .block-row container (the CSR anchor between card and body), so the container is what hides.
+   Blocks whose content is drawn into a sized canvas (charts, maps,
+   3D graphs - directly or inside a nested ldh:Object embed) are excluded: Google Charts and Leaflet
+   read the canvas width at draw() time and a display:none box gives a zero/negative size that never
+   redraws, so these keep their laid-out body through loading (the bar still shows) - the behaviour
+   before is-loading moved onto the block and activated this collapse */
+.ldh-block.is-loading:not(:has(.chart-canvas, .map-canvas, .graph-3d-canvas)) > .block-row { display: none; }
+/* ---------- SPARQL results table: .ac-table plus the behaviour a data-driven result set needs.
+   The base skin - surface, border, radius, header eyebrow, row rules, hover - is the core
+   DataTable's and is no longer restated here; what follows is what a result set adds on top of it:
+   a header that pins while the rows scroll, sortable columns, and cells that hold images or a
+   stack of values for one predicate ---------- */
+.ac-table td img { max-height: var(--thumb-sm); border-radius: var(--r-xs); vertical-align: middle; }
+/* a property gets one cell however many values it has, so the values stack inside it, divided the way a predicate's
+   dd's are in the property list. A table cell cannot bound its own height, so the cap rides the stack the cell holds:
+   every value stays in the DOM and reachable by scrolling, instead of an order with fifty line items setting the row
+   height for the whole table */
+.ac-table td > .values { max-height: 12em; overflow-y: auto; min-width: 0; overflow-wrap: break-word; }
+.ac-table td > .values > .value { padding: var(--sp-1) 0; }
+.ac-table td > .values > .value:first-child { padding-top: 0; }
+.ac-table td > .values > .value:last-child { padding-bottom: 0; }
+.ac-table td > .values > .value ~ .value { border-top: 1px solid var(--border-default); }
+/* view table: the header row pins under the view toolbar while the rows scroll inside .container-results */
+.container-results > .ac-table thead th { position: sticky; top: 0; z-index: 1; border-bottom: 1px solid var(--border-strong); }
+/* sortable columns read full-strength at rest so non-sortable headers (which keep the base th --fg-hint) visibly recede; the arrow surfaces on hover and stays lit on the active sort column (aria-sort) */
+.ac-table th.sortable { cursor: pointer; user-select: none; white-space: nowrap; color: var(--fg-1); }
+.ac-table th.sortable:hover { background: var(--surface-3); }
+.ac-table th.sortable .sort-arrow { vertical-align: middle; margin-left: 2px; visibility: hidden; color: var(--fg-muted); }
+.ac-table th.sortable:hover .sort-arrow { visibility: visible; }
+.ac-table th.sortable[aria-sort] .sort-arrow { visibility: visible; color: var(--fg-1); }
+/* The pager's sticky pinning and the three surface-matching backgrounds under it are gone with the reason
+   for them: it was emitted INSIDE .container-results, so it scrolled with the rows and needed its host's
+   surface painted under it where they passed beneath. It is now the results region's sibling, below the
+   scrollport rather than inside it, which is the kit's own anatomy for a paged view - app.css lays that out
+   (.ldh-block-body:has(> .ldh-pager:not(:empty))) and nothing is left for the app layer to say about it.
+   Nothing scrolls under the pager in that anatomy, so it needs no opaque surface of its own, which is what
+   made the nblock overrides removable rather than merely movable: a nested view's body carries .main without
+   .ldh-block-body, so the kit's column never applied there anyway and the pager simply sits below the
+   scrollport, transparent, on whichever well surface the depth ramp has put behind it. */
+.content-body { padding: var(--sp-4) var(--sp-6); max-width: var(--ldh-content-w); margin: 0 auto; }
+/* stacking rhythm between block cards and alerts */
+.content-body .ldh-block, .content-body .ac-alert { margin-bottom: var(--sp-4); }
+/* one card layer only: CSR hydration can re-render a row as a card inside the SSR wrapper card */
+.ldh-block .ldh-block { border: 0; box-shadow: none; border-radius: 0; background: transparent; margin-bottom: 0; }
+
+/* ---------- grouped row: a resource and the views its ontology derives from it ----------
+   client/block.xsl appends an ontology-injected view into the host resource's .row-main, so the row
+   already holds the resource and everything derived from it - the relationship is in the DOM and was
+   simply never painted. The ROW takes the card surface and its members flatten onto it: the same
+   "one card layer only" trade as above, one level up. No card ends up containing another resource,
+   so the block contract holds - every member is a peer with its own header - and the is-embedded
+   hairline keeps the meaning it has in an ldh:Object slot, marking a card whose resource was fetched
+   from somewhere else.
+   The two :has() tests together say "a row holding a block of its own AND something derived from it",
+   which is what separates this from the Object embed's inner .row-main - that one holds the embedded
+   card alone, and its surface belongs to the carrier. */
+.row-main:has(> .ldh-block:not(.is-embedded)):has(> .ldh-block.is-embedded) { background: var(--bg-card); border: 1px solid var(--border-default); border-radius: var(--r-lg); margin-bottom: var(--sp-4); }
+/* No skin rule needed: --bg-card tracks --surface-0, which every skin redefines for its own card
+   (m3 maps it to --md-surface-container-lowest), and the m3 block below already rests flat on the
+   same 1px border. */
+.row-main:has(> .ldh-block:not(.is-embedded)):has(> .ldh-block.is-embedded) > .ldh-block { background: transparent; border: 0; border-radius: 0; margin-bottom: 0; }
+/* The is-embedded hairline goes too, and the :hover pair is what takes it: app.css paints it as an
+   inset 2px on the LEFT only, which in a carrier runs the card's full height and reads as a slightly
+   heavier edge. Here it would sit immediately inside the row's own 1px left border in the same
+   --border-default, so the card's edge would step 1px -> 3px at the first derived member and back.
+   It buys nothing to pay that with: the divider already separates every member, and every member
+   below the first IS derived, so the mark states what position already states. The class stays -
+   it is what the :has() tests above read to recognise a grouped row. */
+.row-main:has(> .ldh-block:not(.is-embedded)):has(> .ldh-block.is-embedded) > .ldh-block, .row-main:has(> .ldh-block:not(.is-embedded)):has(> .ldh-block.is-embedded) > .ldh-block:hover { box-shadow: none; }
+/* Members are divided by a rule, not a gap - a gap would show the page through the card. It is also
+   what lets the shape survive multiplicity: a class can attach any number of views to a resource. */
+.row-main:has(> .ldh-block:not(.is-embedded)):has(> .ldh-block.is-embedded) > .ldh-block + .ldh-block { border-top: 1px solid var(--border-default); }
+/* ---------- cards: the m3 skin's resting M3-elevation shadow reads as a doubled bottom border;
+     the design's card preview shows the bordered treatment, so keep the m3 palette but rest flat ---------- */
+:root[data-retro^="m3"] .ldh-block {
+  border: 1px solid var(--border-default);
+  box-shadow: none;
+}
+:root[data-retro^="m3"] .ldh-block.is-quiet { border: 0; background: transparent; }
+/* A failed block used to go quiet here - the alert brought its own surface, so
+   the card chrome around it read as stray double borders. The design system
+   decided the other way (Components → Block states): the card and its header
+   stay in every state, because the header carries what a broken block needs
+   (copy IRI, edit, delete) and holding the footprint keeps the document from
+   reflowing. The failure now shows as the app.css ring instead. */
+.ldh-block .ac-alert { margin: 0; }
+
+/* ---------- sticky chrome: header on top, action bar (legacy --action-bar-top) right under it.
+   Bar heights are tokens that size the bars, not mirrors of their content, so stacked sticky
+   offsets (.editor-bar) can compose them without drifting ---------- */
+:root { --ldh-header-height: 56px; --ldh-tabbar-height: 40px; --ldh-actionbar-height: 61px; --action-bar-top: var(--ldh-header-height); --ldh-content-w: 1280px; }
+/* image caps for RDF-pointed depictions: the pixel size is whatever the dataset points at, so the
+   SURFACE picks the height. These once lived in the pre-refresh vendored app.css; a re-vendor lost
+   the definitions while the var() uses stayed, silently voiding every declaration that read them
+   (the §18 no-fallback sweep is what caught it) - so they are pinned here with the other LDH tokens */
+:root { --thumb-sm: 48px; --thumb-md: 160px; --thumb-lg: 240px; }
+/* chrome sits on the design system's stacking scale: above content dropdowns (70),
+   below the ac-backdrop overlays (100+), so open dialogs cover the sticky bars */
+.ldh-header { position: sticky; top: 0; z-index: 90; }
+.action-bar.ldh-actionbar {
+  box-sizing: border-box;
+  height: var(--ldh-actionbar-height);
+  background: var(--surface-0);
+  border-bottom: 1px solid var(--border-default);
+  padding: var(--sp-3) var(--sp-6);
+}
+
+/* ---------- dropdown menus ride the core Menu (§17a); only header-specific fit stays here ---------- */
+/* the m3 skin paints every .ldh-header descendant with the inverse (near-white) text color for the
+   dark bar; light menu panels inside the header need their ink back at higher specificity */
+:root[data-retro^="m3"] .ldh-header .ac-menu, :root[data-retro^="m3"] .ldh-header .ac-menu * { color: var(--fg-1); }
+:root[data-retro^="m3"] .ldh-header .ac-menu .ac-menu-header { color: var(--fg-hint); }
+/* ---------- action bar: design menus open via the CSR drop-wrap 'is-open' toggle ---------- */
+.ldh-actionbar > .ab-left { display: flex; align-items: center; gap: var(--sp-2); }
+.ldh-add-wrap .ldh-add-menu, .ldh-of-wrap .ldh-of-menu, .ldh-mode .modes-pop { display: none; }
+.ldh-add-wrap.is-open .ldh-add-menu, .ldh-mode.is-open .modes-pop { display: block; }
+/* The toggle handler stamps 'drop-up' when the group is closer to the viewport bottom than the top,
+   and 'drop-left' when it is closer to the right edge than the left, so a menu always opens into the
+   side that has room for it instead of being clipped. The same trigger appears in both action-bar
+   zones (the overflow menu sits left of the breadcrumb and right of it), so the horizontal alignment
+   cannot be baked into the menu class: it follows from where the group ended up on screen. */
+.ldh-add-wrap.drop-up .ldh-add-menu, .ldh-of-wrap.drop-up .ldh-of-menu, .ldh-mode.drop-up .modes-pop { top: auto; bottom: calc(100% + 6px); }
+.ldh-add-wrap.drop-left .ldh-add-menu, .ldh-of-wrap.drop-left .ldh-of-menu, .ldh-mode.drop-left .modes-pop { left: auto; right: 0; }
+.ldh-add-wrap:not(.drop-left) .ldh-add-menu, .ldh-of-wrap:not(.drop-left) .ldh-of-menu, .ldh-mode:not(.drop-left) .modes-pop { left: 0; right: auto; }
+.ldh-of-wrap.is-open .ldh-of-menu { display: flex; }
+.ldh-of-menu .it.disabled, .ldh-add-menu .it.disabled { opacity: 0.4; pointer-events: none; }
+.ldh-of-menu a.it { text-decoration: none; }
+/* the breadcrumb zone and the address bar left-align with the content column's blocks: the column
+   edge is (layout width - column)/2 + the sp-6 inset. The layout width comes from container units,
+   not 100vw: 100vw includes the classic scrollbar while the column centers via margin auto in the
+   scrollbar-less layout width, so vw math sat half a scrollbar to the right of the blocks; both
+   bars span the layout width with sp-6 side padding, so 100cqw + 2*sp-6 recovers it (their fixed
+   descendants are none, so the containment reroutes no containing blocks).
+   Widening the left zone floats ab-mid onto that edge (bar padding + grid gap cover 2*sp-6);
+   the same widening on the right zone lands ab-mid's end — the dateTime stamp — on the column's
+   right edge (flex-end keeps the action buttons on the viewport edge); the address bar trades
+   centering for a start margin discounting the 220px wordmark column (app.css header grid) plus
+   padding and gap, and spans the column width (lifting app.css's 720px cap) — width discounts the
+   margin because a grid item's 100% resolves against the area, so the margin would otherwise push
+   the bar under the header actions. Below column width all clamp to no-op. */
+.ldh-header, .ldh-actionbar--zoned { container-type: inline-size; --layout-w: calc(100cqw + 2 * var(--sp-6)); --wing: calc((var(--layout-w) - min(var(--ldh-content-w), var(--layout-w))) / 2); }
+.ldh-actionbar--zoned > .ab-left { min-width: calc(var(--wing) - var(--sp-6)); }
+.ldh-actionbar--zoned > .ldh-actions { min-width: calc(var(--wing) - var(--sp-6)); justify-content: flex-end; }
+.ldh-header .ldh-address { --address-offset: max(0px, calc(var(--wing) - 220px - var(--sp-6))); justify-self: start; margin-left: var(--address-offset); width: calc(100% - var(--address-offset)); max-width: calc(min(var(--ldh-content-w), var(--layout-w)) - 2 * var(--sp-6)); }
+
+/* ---------- block titles are anchors (resources dereference); the design's .ttl is ink,
+   so the link inherits it and keeps underline for hover ---------- */
+.ldh-block-head .ttl a { color: inherit; text-decoration: none; }
+.ldh-block-head .ttl a:hover { text-decoration: underline; }
+
+/* ---------- block header actions hydrated by CSR ---------- */
+.ldh-block-head .actions > div { display: flex; gap: var(--sp-1); }
+.ldh-block-head .actions .ac-iconbtn.disabled { opacity: 0.4; pointer-events: none; }
+
+/* ---------- modals: every dialog rides the ac-backdrop chrome (overlays.css). Two non-dialog
+   overlays borrow the modal head/body anatomy (.ac-modal-head/.ac-modal-body): the OL map
+   info window (ol.Overlay hosts it, see the .ol-overlay-container rules above) and the RDFa
+   annotation overlay. Only their host-specific fit lands here. ---------- */
+/* the map head holds only the close button; auto margin lands the lone x on the right edge */
+.ol-overlay-container .ac-modal-x { margin-left: auto; }
+/* the annotation overlay titles with a <legend>; reset the fieldset styling to the modal-title treatment */
+#rdfa-editor-overlay .ac-modal-head legend { flex: 1; min-width: 0; margin: 0; border: 0; padding: 0; font-size: var(--fs-lg); font-weight: var(--fw-semibold); line-height: var(--lh-snug); color: var(--fg-1); }
+/* app.css gives .ldh-block-foot the band chrome with space-between (hint left, buttons right);
+   LDH footers are bare button rows, so cluster them at the right edge instead */
+.ldh-block-foot {
+  display: flex; align-items: center; justify-content: flex-end; gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-5);
+  border-top: 1px solid var(--border-default);
+  background: var(--surface-1);
+  margin: 0;
+}
+
+/* the XHTML editor fills its whole value cell, so the statement hover band would paint the entire editing surface grey - rows hosting the editor don't band */
+.ldh-prop-group:has(.rdfa-editor-content):hover > .label, .ldh-prop-row:has(.rdfa-editor-content):hover > .value, .ldh-prop-row:has(.rdfa-editor-content):hover > .row-actions, .ldh-prop-row.is-interactive:has(.rdfa-editor-content) .value:hover { background: transparent; }
+
+/* the header thumbnail is an <a><img> here rather than the design's image-slot component, so the image
+   fills the .ldh-res-thumb footprint itself */
+.ldh-res-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+/* .ldh-check is designed as a standalone confirm row (margin-top for stacking); inside a table cell the
+   checkbox is the cell's only content and centers without it */
+.ac-table .ldh-check { margin-top: 0; }
+
+/* selected-file display the upload flow appends beside the file input: icon + name as a quiet chip */
+.ldh-file-sel { display: inline-flex; align-items: center; gap: var(--sp-2); max-width: 100%; padding: 2px 8px; border-radius: var(--r-sm); background: var(--surface-2); color: var(--fg-2); font-size: var(--fs-sm); }
+.ldh-file-sel .fs-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* the language tag is the core Tag at the inline xs size (§17c: ac-tag em-quiet co-accent sz-xs,
+   emitted by ac:lang-tag); the gap to the value it annotates is the one thing scoped here */
+.value > .ac-tag.sz-xs, dd > .ac-tag.sz-xs { margin-left: var(--sp-2); }
+
+/* ---------- fieldsets/legends: sections, not boxes ---------- */
+fieldset { border: 0; padding: 0; margin: 0 0 var(--sp-4); min-inline-size: 0; }
+legend {
+  display: flex; align-items: center; gap: var(--sp-2);
+  width: 100%;
+  padding: 0; margin: 0 0 var(--sp-2);
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: var(--tracking-wide); text-transform: uppercase;
+  color: var(--fg-muted);
+}
+/* subject controls (type picker, subject edit toggle) hug the legend's right edge */
+legend > .actions { display: flex; align-items: center; gap: var(--sp-1); margin-left: auto; }
+/* the edit/create form titles itself with its fieldset legend (ac:label of the subject) - the modal
+   head carries only the close button. In a modal that legend IS the heading; match .ac-modal-title
+   instead of the mono section-label treatment above */
+.ac-modal-body form > fieldset > legend { font-family: var(--font-sans); font-size: var(--fs-lg); font-weight: var(--fw-semibold); letter-spacing: normal; text-transform: none; color: var(--fg-1); }
+/* remove-resource button on legendless fieldsets rides its own top row, right-aligned */
+.chart-controls .field select[multiple] { height: auto; }
+
+/* ---------- read-mode property lists now emit the design's .ldh-prop-group grid (app.css) ---------- */
+/* the dl's UA block margin is cancelled by app.css's .ldh-prop-form { margin: 0 } - no extra rule needed.
+   The dd needs no reset either: display:contents generates no box, so its UA margin never applies */
+/* MUST be a definite width. As a stretched auto-width item of the .val-stack column, Chromium can
+   freeze the intrinsic height computed at a pre-stretch width where the annot wraps under the
+   control - the row then renders one line but keeps the two-line height, breaking app.css's
+   read-row-height promise. A definite width sizes the line as drawn */
+.ldh-prop-row .val-main { width: 100%; }
+/* a value is a whole row rather than a table cell, so the image gets more height than the cap a
+   data table's cell takes - enough to read, still short of pushing the property list off-screen.
+   This also lands in the map info window, whose overlay hosts a .ldh-block property list */
+.ldh-prop-row > .value img { max-width: 100%; max-height: var(--thumb-md); border-radius: var(--r-sm); }
+/* a block header with an image adopts the property-grid geometry (label track + gutter), so the
+   titles group left-aligns with the value cells below regardless of the image's natural size;
+   imageless headers stay flex, their titles flush at the card edge like the labels */
+.ldh-block-head:has(> a > img, > img) { display: grid; grid-template-columns: 200px minmax(0, 1fr) auto; column-gap: var(--sp-3); }
+/* both axes are caps rather than width: 100%: the track is a fixed 140-220px whatever the image
+   does, so filling it bought nothing but an upscaled logo, and a portrait source needs the height
+   bound or the header grows past the property list it heads */
+.ldh-block-head > a > img, .ldh-block-head > img { max-width: 100%; max-height: var(--thumb-lg); border-radius: var(--r-sm); }
+/* ---------- version diff decorations (?diff= view) ---------- */
+/* Block-level state rides on outline, not border: the skins legitimately zero block borders
+   (quiet prose blocks, alert-only cards, the retro card treatments) and nothing else in the
+   system sets outline, so the diff state cannot be clobbered by any skin */
+.content-body > [about].ldh-block-row.diff-added { outline: 2px solid var(--success-500); }
+.content-body > [about].ldh-block-row.diff-removed { outline: 2px solid var(--danger-500); }
+.content-body > [about].ldh-block-row.diff-changed { outline: 2px solid var(--warning-500); }
+/* sub-block values: the two XHTML literal sides inside a changed block, property values on the value cell */
+.ldh-prop-row > .value.diff-added, .main > div.diff-added { border-left: 4px solid var(--success-500); padding-left: 8px; }
+.ldh-prop-row > .value.diff-removed, .main > div.diff-removed { border-left: 4px solid var(--danger-500); padding-left: 8px; }
+/* diff decorations ride on the value cell */
+.ldh-prop-row > .value.diff-added { background: var(--success-50); }
+.ldh-prop-row > .value.diff-removed { background: var(--danger-50); }
+/* the comparing-versions banner legend (document.xsl) keys its labels to the same tokens */
+.ldh-diff-tint.va-success { color: var(--success-500); }
+.ldh-diff-tint.va-negative { color: var(--danger-500); }
+.ldh-diff-tint.va-warning { color: var(--warning-500); }
+
+/* ---------- dataspace drawer (§19-§23): anatomy, rows and the closed-state slide are app.css's;
+   only LDH's chrome geometry lands here ---------- */
+/* the drawer hangs below LDH's sticky chrome: --action-bar-top tracks the header/tab-bar boundary
+   (56px, or 96px once the document tab bar shows), replacing app.css's static --ldh-chrome-h.
+   Its z sits above the sticky action bar (86) and its own backdrop, below the modal overlays (100+) */
+.left-sidebar.ldh-sidebar { top: var(--action-bar-top); z-index: 88; }
+/* rows that open dialogs (class list, Geo/Latest) are BUTTONS where the design's rows are anchors;
+   .tree-link carries the row treatment for both, so the button only sheds its UA chrome */
+button.tree-link { border: 0; background: transparent; width: 100%; font: inherit; text-align: left; cursor: pointer; }
+/* the lazy-loading row's glyph spins (the design mounts a ProgressCircle; the glyph does the same job) */
+.ldh-tree .tree-loading .msi { animation: ac-spin 0.9s linear infinite; }
+/* a subtree's visibility is its toggle's aria-expanded - the one state the handler already maintains */
+.ldh-tree li:has(> div > button[aria-expanded="false"]) > ul { display: none; }
+/* the drawer search is a typable field (submit opens the dialog pre-populated; LDH overrides
+   §19's search button). app.css still draws the field-shaped shell; the ring moves to :focus-within
+   since the button's :focus-visible no longer fires, and the input inside stays bare */
+.sb-search { cursor: text; }
+.sb-search:focus-within { border-color: var(--ldh-blue-400); box-shadow: var(--focus-ring); }
+.sb-search input { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; padding: 0; background: transparent; font: inherit; color: var(--fg-1); }
+.sb-search input::placeholder { color: var(--fg-hint); }
+
+/* ---------- document tab bar: DataspaceTabs (§17b) — the strip anatomy and the underline-active
+   treatment are app.css's; the sticky wrapper stays a div (no HTML5 sectioning elements here), so it
+   carries the bar surface the design scopes to nav:has(> .ldh-tabs) ---------- */
+#tab-bar { display: block; background: var(--surface-1); border-bottom: 1px solid var(--border-default); }
+
+/* ---------- view toolbar: facet pills + sort + mode switcher (ViewBlocks contract) ---------- */
+.ldh-view-toolbar .facet { position: relative; }
+/* popover visibility is the is-open state the handlers already toggle (the design renders the
+   popover only while open; LDH keeps it in the DOM, pre-rendered for sort, lazily loaded for facets) */
+.facet > .facet-pop { display: none; }
+.facet.is-open > .facet-pop { display: block; }
+/* the design renders Clear-all only while some facet holds a selection; LDH keeps the button in the
+   toolbar and gates it on the same state */
+.ldh-view-toolbar .facet-clear-all { display: none; }
+.ldh-view-toolbar .left:has(.facet-pill.is-active) .facet-clear-all { display: inline-block; }
+/* the design's facet popover has no loading state; ours opens immediately and streams values in */
+.facet-pop .facet-loading { padding: 8px var(--sp-2); }
+.ldh-view-toolbar .form-inline { display: flex; align-items: center; gap: var(--sp-1); margin: 0; }
+.ldh-view-toolbar .form-inline label { display: flex; align-items: center; gap: var(--sp-1); margin: 0; }
+
+/* ---------- query block: the design's SPARQL pane (QueryBlock contract) hosts YASQE ----------
+   The pane is the dark surface app.css paints for .ldh-sparql-code; YASQE mounts a stock CodeMirror
+   beside the hidden textarea, so the CodeMirror surface takes the same treatment - transparent over
+   the pane, the pane's gutter wash, and the .t-* token palette mapped onto CodeMirror's .cm-* classes */
+.ldh-sparql-pane .CodeMirror { flex: 1; min-width: 0; height: auto; background: transparent; color: rgba(255,255,255,0.86); font-family: var(--font-mono); font-size: var(--fs-sm); line-height: 1.65; }
+.ldh-sparql-pane .CodeMirror-scroll { overflow-x: auto; overflow-y: hidden; }
+.ldh-sparql-pane .CodeMirror-lines { padding: var(--sp-4) 0; }
+.ldh-sparql-pane .CodeMirror pre { padding: 0 var(--sp-4); }
+.ldh-sparql-pane .CodeMirror-gutters { background: rgba(255,255,255,0.03); border-right: 0; }
+.ldh-sparql-pane .CodeMirror-linenumber { color: rgba(255,255,255,0.28); font-family: var(--font-mono); }
+.ldh-sparql-pane .CodeMirror-cursor { border-left: 1px solid rgba(255,255,255,0.86); }
+.ldh-sparql-pane .CodeMirror-selected { background: rgba(255,255,255,0.12); }
+.ldh-sparql-pane .CodeMirror-focused .CodeMirror-selected { background: rgba(124,199,255,0.25); }
+.ldh-sparql-pane .cm-s-default .cm-keyword { color: #ff9ec4; font-weight: var(--fw-semibold); }
+.ldh-sparql-pane .cm-s-default .cm-atom, .ldh-sparql-pane .cm-s-default .cm-meta, .ldh-sparql-pane .cm-s-default .cm-builtin { color: #7cc7ff; }
+.ldh-sparql-pane .cm-s-default .cm-variable, .ldh-sparql-pane .cm-s-default .cm-variable-2, .ldh-sparql-pane .cm-s-default .cm-variable-3, .ldh-sparql-pane .cm-s-default .cm-def { color: #ffd479; }
+.ldh-sparql-pane .cm-s-default .cm-string, .ldh-sparql-pane .cm-s-default .cm-string-2 { color: #9be29b; }
+.ldh-sparql-pane .cm-s-default .cm-number { color: #f5b06b; }
+.ldh-sparql-pane .cm-s-default .cm-comment { color: rgba(255,255,255,0.45); }
+.ldh-sparql-pane .cm-s-default .cm-operator, .ldh-sparql-pane .cm-s-default .cm-bracket, .ldh-sparql-pane .cm-s-default .cm-punctuation { color: rgba(255,255,255,0.6); }
+/* the editor folds behind the block head's code toggle (results first) */
+.ldh-sparql.is-collapsed { display: none; }
+/* the bar's meta slot carries the live service combobox, not the design's static endpoint text */
+.ldh-sparql-bar .ldh-sparql-meta { flex: 1 1 auto; min-width: 0; }
+.ldh-sparql-meta .ac-combobox { flex: 1 1 auto; min-width: 0; }
+
+/* ---------- code field: the design's CodeField (a form row's sp:text control) hosts YASQE too ----------
+   The field is a flex row sized around the plain textarea it ships with - .ac-cf-gutter holds its
+   width, .ac-cf-area takes the rest. YASQE.fromTextArea() hides that textarea and mounts a stock
+   CodeMirror as a third child, which matches none of those rules: it falls to flex: 0 1 auto and to
+   yasqe.css's own height: 300px, so the editor sized itself by its measured content and left the
+   right and bottom of the field empty. The same treatment .ldh-sparql-pane gives its CodeMirror,
+   on the field's light surface: the field draws the border and the surface, so the editor drops
+   yasqe.css's, and the gutter role passes to CodeMirror's own, styled on the field's tokens.
+   .ac-cf-gutter's numbers are stamped once at render and cannot follow an edit, while CodeMirror's
+   track the lines the document has, so the static column goes wherever an editor mounted. */
+.ac-codefield .CodeMirror { flex: 1; min-width: 0; height: auto; border: 0; background: transparent; color: var(--fg-1); }
+.ac-codefield .CodeMirror-scroll { overflow-x: auto; overflow-y: hidden; }
+.ac-codefield:has(.CodeMirror) .ac-cf-gutter { display: none; }
+.ac-codefield .CodeMirror-gutters { background: var(--surface-2); border-right: 1px solid var(--border-default); }
+.ac-codefield .CodeMirror-linenumber { color: var(--ink-5); font-family: var(--font-mono); }
+
+/* the wordmark's white ink is header-bar styling; on the footer's light surface it takes body ink
+   (the design sets this inline on the footer wordmark) */
+.ldh-footer .ldh-wordmark { color: var(--fg-1); }
+
+/* ---------- create bar: document-level creation (content mode's XHTML/Object, the row
+   modes' Create picker) sits in a full-bleed header-like row. Sticky, not fixed: it rides
+   the viewport bottom while the content scrolls, but parks at its flow position at the end
+   of the content - stacked on the footer, never over it. The negative side margins bleed
+   the row out of the centered content column to the viewport edges; the right padding brings
+   the buttons back to the content column's right edge, flush with the blocks. The margin bleed
+   and the padding must share the 100vw base: each is half a classic scrollbar off the layout
+   width, in the same direction, so the errors cancel and the buttons land exactly on the column
+   edge - rebasing one without the other breaks the alignment ---------- */
+html { overflow-x: clip; } /* the 50vw bleed overshoots by half a classic scrollbar; clip never creates a scroll container */
+.ldh-create-dock {
+  position: sticky;
+  bottom: 0;
+  display: flex; align-items: center; justify-content: flex-end; gap: var(--sp-2);
+  z-index: 24; /* above content, below popovers (40) and modal chrome */
+  margin: auto calc(50% - 50vw) 0; /* margin-top: auto parks it at the bottom of the stretched column */
+  padding: var(--sp-2) calc((100vw - min(var(--ldh-content-w), 100vw)) / 2 + var(--sp-6)) var(--sp-2) var(--sp-6);
+  background: var(--bg-card);
+  border-top: 1px solid var(--border-default);
+}
+/* the modal dim overlay is pointer-inert, so hide the dock while a modal is open */
+body:has(.ac-backdrop.modal) .ldh-create-dock { display: none; }
+/* the RDFa editor owns the bottom strip while an XHTML block is being edited — its fixed breadcrumb bar would paint over the dock */
+body:has(.rdfa-editor-content) .ldh-create-dock { display: none; }
+/* the bar sits directly on the footer - no detached gap between them */
+body:has(.ldh-create-dock) .ldh-footer { margin-top: 0; }
+
+/* ---------- sticky footer + create-bar parking: the page column is a flex stack all the
+   way down to .content-body, so short pages pin the footer to the viewport bottom and the
+   create bar parks above it instead of stranding under the action bar (position: sticky
+   can only pull an element up from its flow position, never push it down) ---------- */
+#visible-body { min-height: 100vh; display: flex; flex-direction: column; }
+#visible-body > #tab-body { flex: 1 0 auto; display: flex; flex-direction: column; }
+#tab-body > .ldh-panes { flex: 1 0 auto; display: flex; flex-direction: column; }
+/* this layer owns the tab contract (only the active pane shows), so an inactive tab's
+   content - its create bar included - never lingers */
+.ldh-panes > .ldh-pane { display: none; }
+.ldh-panes > .ldh-pane.is-active { flex: 1 0 auto; display: flex; flex-direction: column; }
+.ldh-pane > .document-body { flex: 1 0 auto; display: flex; flex-direction: column; }
+/* .content-body centers with auto side margins, which opt a flex item out of cross-axis
+   stretch (it would shrink-wrap to its widest child); explicit width restores the full column */
+.ldh-pane > .document-body > .content-body { width: 100%; }
+/* only create-bar pages need the column itself stretched (its children become flex items) */
+.document-body > .content-body:has(> .ldh-create-dock) { flex: 1 0 auto; display: flex; flex-direction: column; padding-bottom: 0; }
+
+/* ---------- .map-canvas in the design is a picture of a map: an absolute fill for a frame that
+   already has a size, painted with a gradient landmass and a grid. LDH hands the same element to
+   OpenLayers as a live map target, where it is an ordinary in-flow block that carries its own
+   height - out of flow it left its parent zero-high (the footer rode up under a view block's map)
+   and, at document level, escaped to the initial containing block and covered the viewport.
+   The gradient goes with it: OL paints its own tiles, and an empty canvas should look empty ---------- */
+.map-canvas { position: relative; inset: auto; background: none; }
+.map-canvas::before { content: none; }
+
+/* ---------- document-level graph and map modes: the canvas fills the whole space between the
+   action bar and the viewport's bottom edge at full viewport width; canvases nested inside view
+   blocks keep their fixed height (a canvas is a direct .content-body child only at document
+   level). The tab-body min-height makes header (fixed 56px) + tab-body sum to exactly one
+   viewport, so the canvas bottom lands on the viewport edge and the footer falls below the
+   fold - in flow, revealed by scroll ---------- */
+.document-body > .content-body:has(> :is(.graph-3d-canvas, .map-canvas)) { flex: 1 0 auto; display: flex; flex-direction: column; max-width: none; padding: 0; }
+.content-body > :is(.graph-3d-canvas, .map-canvas) { flex: 1 0 0; height: auto; min-height: 520px; }
+body:has(.document-body > .content-body > :is(.graph-3d-canvas, .map-canvas)) #tab-body { min-height: calc(100dvh - 56px); }
+body:has(.document-body > .content-body > :is(.graph-3d-canvas, .map-canvas)) .ldh-footer { margin-top: 0; }
+
+/* ---------- RDFa editor toolbar: the bar's inner .content-body is a flex item whose auto side
+   margins opt it out of cross-axis stretch (same as the pane rule above); full width left-aligns
+   the toolbar buttons with the content column and the breadcrumb zone. Compact vertical padding -
+   the band is chrome, not content ---------- */
+.editor-bar > .content-body { width: 100%; padding-top: var(--sp-2); padding-bottom: var(--sp-2); }
+
+/* a field shell a handler conditionally reveals (the custom-datatype input) hides by state class */
+.ac-field.is-hidden { display: none; }
+
+/* form Actions overflow: the design renders the menu only while open; the static
+   markup ships it closed, so the is-open class the onclick handler toggles is what shows it */
+.ldh-form-actions-wrap:not(.is-open) > .ldh-form-actions-menu { display: none; }
+
+/* constructor dialog: the form element sits between .ac-modal and its head/body,
+   so it must relay the modal's column layout for the body to get its scroll box */
+.ac-modal > form.constructor-template { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+/* Save validation marks value-less constructor rows */
+.ldh-ctor-row.error { box-shadow: inset 2px 0 0 var(--danger-500); background: var(--danger-50); }
+
+/* =========================================================================
+   LDH-local rules recovered from the previous vendored app.css: the vendor
+   refresh replaced the file wholesale, and these never lived in the design
+   repo. They stay here so the next re-vendor cannot lose them again.
+   ========================================================================= */
+/* hover-lift transforms (retro themes) make the card a stacking context, trapping its inline dropdowns below later positioned rows; while a popup is open the card must win the paint order over subsequent blocks (but stay under the z-70 action bar) */
+.ldh-block:has(.is-open), .ldh-nblock:has(.is-open) { position: relative; z-index: 60; }
+
+/* Links button — opens the block links popover (backlinks). It is the core
+   icon-button primitive (accent intent, aria-pressed toggle), so box, hover and
+   the "on" state come from controls.css; .tb-links stays as the handler hook. */
+
+
+/* Block links popover — backlinks as jump-off navigation, anchored to the
+   header/toolbar links button. Modeled on .facet-pop; content lazy-loads on
+   first open. */
+.links-nav { position: relative; }
+.links-pop {
+  position: absolute; top: calc(100% + 6px); right: 0;
+  min-width: 260px; max-width: 320px;
+  background: var(--surface-0); border: 1px solid var(--border-default);
+  border-radius: var(--r-md); box-shadow: var(--shadow-lg);
+  padding: var(--sp-2);
+  z-index: 40;
+  display: none;
+}
+.links-nav.is-open .links-pop { display: block; }
+.links-pop .dh2 {
+  margin: 0;
+  padding: var(--sp-2) var(--sp-2) 4px;
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: var(--tracking-wide); text-transform: uppercase;
+  font-weight: var(--fw-medium);
+  color: var(--fg-muted);
+}
+.links-pop .dgroup { display: flex; flex-direction: column; gap: 2px; }
+.links-pop .drow {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 8px;
+  border-radius: var(--r-sm);
+  text-decoration: none;
+  color: var(--fg-2);
+  font-size: var(--fs-sm);
+  transition: background var(--dur-fast) var(--ease-out-soft);
+}
+.links-pop .drow:hover { background: var(--bg-hover); color: var(--fg-1); text-decoration: none; }
+.links-pop .drow .msi { color: var(--fg-hint); flex-shrink: 0; }
+.links-pop .drow .lbl { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+
+/* The design system sets an `is-failed` class on the card. Here the ring is
+   derived from the body content instead: the failed state is a function of
+   what the error handler rendered, so :has() recomputes it on every re-render
+   and a block that later succeeds cannot keep a stale ring. Nothing needs to
+   clear it. Only block bodies get .ldh-block-error — the small hosts (facet
+   popover, result count, parallax rows) emit the bare .ac-alert, so they
+   cannot ring the card they happen to sit in.
+   An `outline`, not a border: skins differ on whether cards have borders at
+   all (m3 uses elevation and sets border-width: 0), and an outline survives
+   both without fighting the skin's shadow. Offset inward so it lands on the
+   card edge rather than outside it. */
+.ldh-block:has(.ldh-block-error), .ldh-nblock:has(.ldh-block-error) {
+  outline: 1px solid color-mix(in srgb, var(--danger-500) 38%, transparent);
+  outline-offset: -1px;
+  border-color: color-mix(in srgb, var(--danger-500) 28%, var(--border-default));
+}
+
+/* the pivot bar hides while it has no pills: the bar is derived output, and an empty band
+   would read as a broken control (the design renders it conditionally instead) */
+.ldh-pivot-bar:not(:has(.ldh-pivot-pill)) { display: none; }
+/* incoming pivots read quieter than outgoing, mirroring the retired chip treatment */
+.ldh-pivot-pill.is-in { background: var(--surface-1); }
+.ldh-pivot-pill.is-in .lbl { color: var(--fg-muted); }
+.ldh-pivot-pill.is-in:hover .lbl { color: var(--ldh-blue-700); }
+
+
+.ldh-block-body > .ldh-view-toolbar { padding-left: 0; padding-right: 0; }
+
+/* applied parallax steps read as removable chips beside the facet pills — the
+   pivot's undo affordance; clicking one rewinds the view to before that step */
+.ldh-view-toolbar .parallax-steps { display: inline-flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2); }
+.ldh-view-toolbar .parallax-steps:empty { display: none; }
+.facet-pill.parallax-step { background: var(--ldh-blue-50); color: var(--ldh-blue-700); border-color: var(--ldh-blue-200); }
+.facet-pill.parallax-step .pred, .facet-pill.parallax-step .msi { color: var(--ldh-blue-600); }
+.facet-pill.parallax-step .x {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  color: var(--ldh-blue-600);
+}
+.facet-pill.parallax-step .x:hover { background: rgba(0,0,0,0.06); }
+
+/* mode switchers (the document- and view-scoped variants share the template): the trigger is a
+   native button inside the .ldh-mode pill, so it must not paint its own chrome */
+.ldh-mode > button { background: transparent; border: 0; padding: 0; color: inherit; font: inherit; }
+/* Create/Add drop-down triggers: the caret rotates while the wrap is open (the old rule keyed on the retired .ldh-btn) */
+.ldh-add-wrap .caret { transition: transform var(--dur-fast) var(--ease-out-soft); }
+.ldh-add-wrap.is-open .caret { transform: rotate(180deg); }
+
+/* the shared form footer renders its action cluster as .fb-end in every placement, but the design
+   scopes the cluster rule to .ldh-form-bar - block-foot placements get the same right-aligned cluster */
+.ldh-block-foot .fb-end { margin-left: auto; display: flex; align-items: center; gap: var(--sp-2); }

@@ -9,7 +9,7 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 # add agent to the writers group
 
-ldh admin acl add-agent-to-group \
+ldh admin add agent \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
@@ -18,7 +18,7 @@ ldh admin acl add-agent-to-group \
 # create a container - IRIx resolves ".." on "new-item//" to "new-item/" (one segment per slash),
 # so the parent container must exist for authorization to pass and reach the // validation in put()
 
-container=$(ldh create-container \
+container=$(ldh create container \
   -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \

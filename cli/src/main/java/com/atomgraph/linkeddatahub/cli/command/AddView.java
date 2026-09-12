@@ -37,7 +37,7 @@ import picocli.CommandLine.Parameters;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "add-view", description = "Appends a view to a document.")
+@Command(name = "view", description = "Appends a view to a document.")
 public class AddView extends BaseCommand
 {
 

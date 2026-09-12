@@ -29,6 +29,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletionException;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.servlet.ServletContext;
@@ -139,17 +140,22 @@ public class XsltExecutableFilter implements ContainerResponseFilter
             Map<URI, XsltExecutable> xsltExecCache = getXsltExecutableCache();
 
             if (isCacheStylesheet())
-            {
-                // create cache entry if it does not exist
-                if (!xsltExecCache.containsKey(key))
-                    xsltExecCache.put(key, getXsltExecutable(getComposedSource(app, stylesheet, packages)));
-
-                return xsltExecCache.get(key);
-            }
+                // computeIfAbsent: a cold-start herd compiles the stylesheet once instead of once per thread
+                return xsltExecCache.computeIfAbsent(key, k ->
+                {
+                    try
+                    {
+                        return getXsltExecutable(getComposedSource(app, stylesheet, packages));
+                    }
+                    catch (SaxonApiException | IOException | ParserConfigurationException | SAXException ex)
+                    {
+                        throw new CompletionException(ex);
+                    }
+                });
 
             return getXsltExecutable(getComposedSource(app, stylesheet, packages));
         }
-        catch (SaxonApiException | IOException | ParserConfigurationException | SAXException ex)
+        catch (SaxonApiException | IOException | ParserConfigurationException | SAXException | CompletionException ex)
         {
             if (log.isErrorEnabled()) log.error("Could not compile stylesheet '{}' composed with packages {}, falling back to the stylesheet alone", stylesheet, packages, ex);
             return getXsltExecutable(stylesheet);
@@ -337,13 +343,30 @@ public class XsltExecutableFilter implements ContainerResponseFilter
     {
         if (isCacheStylesheet())
         {
-            // create cache entry if it does not exist
-            if (!xsltExecCache.containsKey(stylesheet))
-                xsltExecCache.put(stylesheet, getXsltExecutable(getSource(stylesheet.toString())));
-            
-            return xsltExecCache.get(stylesheet);
+            try
+            {
+                // computeIfAbsent: a cold-start herd compiles the stylesheet once instead of once per thread
+                return xsltExecCache.computeIfAbsent(stylesheet, key ->
+                {
+                    try
+                    {
+                        return getXsltExecutable(getSource(key.toString()));
+                    }
+                    catch (IOException | SaxonApiException ex)
+                    {
+                        throw new CompletionException(ex);
+                    }
+                });
+            }
+            catch (CompletionException ex)
+            {
+                // unwrap so callers keep seeing the declared checked exceptions
+                if (ex.getCause() instanceof IOException ioEx) throw ioEx;
+                if (ex.getCause() instanceof SaxonApiException saxonEx) throw saxonEx;
+                throw ex;
+            }
         }
-        
+
         return getXsltExecutable(getSource(stylesheet.toString()));
     }
     

@@ -9,7 +9,7 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 # create a new document to test ACL modes against
 
-doc_url=$(ldh create-item \
+doc_url=$(ldh create item \
   -b "$END_USER_BASE_URL" \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \

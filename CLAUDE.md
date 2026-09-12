@@ -148,15 +148,16 @@ The SPARQL endpoint forwarding chain ensures ContentMode blocks (charts, maps) q
 ## CLI Tools
 
 `ldh` (in `cli/`) is the command line interface for the HTTP API — one command per `bin/` script,
-same option names, `bin/` subdirectories as nested subcommand groups. Built with Maven on Java 21
+same option names, grouped by verb (`create`, `add`, `remove`, `import`) plus the `packages`
+family and the `admin` scope. Built with Maven on Java 21
 into a shaded `cli/target/ldh.jar` that `cli/bin/ldh` launches. See `cli/README.md` for the full
 script → command table and the behavioral differences from the scripts.
 
 ```bash
 cd cli && mvn package && export PATH="$PWD/bin:$PATH"
 
-ldh create-container --parent "$LDH_BASE" --title "Some" --slug some
-ldh admin acl add-agent-to-group --agent "$AGENT_URI" "${ADMIN_BASE}acl/groups/writers/"
+ldh create container --parent "$LDH_BASE" --title "Some" --slug some
+ldh admin add agent --agent "$AGENT_URI" "${ADMIN_BASE}acl/groups/writers/"
 ```
 
 `cli/` is not a module of the platform reactor (the root pom is the webapp artifact, so it cannot
@@ -165,11 +166,18 @@ around both release bumps, and `make cli-version` re-aligns it if it drifts.
 
 `LDH_CERT_FILE`, `LDH_CERT_PASSWORD`, `LDH_BASE` and `LDH_PROXY` supply defaults for `-f`, `-p`,
 `-b` and `--proxy`. Commands that create or append to a document print its URL as the only line on
-stdout (diagnostics go to stderr), so `item=$(ldh create-item ...)` works; exit codes are `0`
+stdout (diagnostics go to stderr), so `item=$(ldh create item ...)` works; exit codes are `0`
 success, `1` HTTP or runtime failure, `2` usage error.
 
-Packages have no command — an application imports one with a single `<app> ldh:import <package>`
-triple, so `ldh patch` on the application's `settings` document is the whole interface.
+Packages are declarative: an application imports one with a single `<app> ldh:import <package>`
+triple in its settings, and `ldh packages list`, `ldh packages add` and
+`ldh packages remove` write that triple through `PATCH /settings`. `packages list` reads the
+registry catalog through the Linked Data proxy, marking the imported ones.
+
+`ldh get` also addresses the RFC 7089 Memento roles of a versioned document, as mutually exclusive
+options: `--timemap` (version history), `--version <sha>` (a historical version) and `--timegate`
+with an optional `--datetime` (RFC 1123 or ISO 8601), which prints the selected version's URI as the
+only line on stdout so it pipes into another `ldh get`.
 
 The `bin/` HTTP API scripts are **deprecated** — `ldh` replaces them, and http-tests build their
 fixtures with it. Authentication moves from the `.pem` the scripts feed `curl -E` to the PKCS12
@@ -181,6 +189,22 @@ Certificate and WebID tooling stays in `bin/` and is not deprecated: `webid-keyg
 ```bash
 export PATH="$(find bin -type d -exec realpath {} \; | tr '\n' ':')$PATH"
 ```
+
+## XSLT Mode Namespaces
+
+Template mode names carry the rendering layer:
+
+- **`xhtml:` = childless element primitives.** The mode's local name is the XHTML element it emits
+  (`xhtml:Input`, `xhtml:Anchor`, `xhtml:Option`, `xhtml:Title`, `xhtml:Meta`, `xhtml:Script`): one
+  element, every attribute a parameter, content at most a text label, no design-system classes baked
+  in. If an emitter needs element children, it is a component and does not belong here.
+- **Component namespaces = structure.** Anything with internal element structure takes the owning
+  layer's namespace and, where one exists, the design system's component name: Web-Client-owned
+  surfaces use `ac:` (`ac:AppShell`, `ac:Head`, `ac:Stylesheets`, the `ac:ResultsTable*` family,
+  `ac:PropertyListLabel`/`ac:PropertyListValue`, `ac:FieldShell`), LDH-owned ones use `ldh:`
+  (`ldh:Modal`, `ldh:DataTable`, `ldh:DateTimePair`, `ldh:PropertyLabel`).
+- **The unnamed mode is the value leaf.** Mode-less `apply-templates` renders an object/literal
+  "somehow" — it lands in Web-Client's default-mode value emitters, the bottom of the dispatch tree.
 
 ## Development Notes
 - Java 21 is required for compilation (both the platform and the `cli/` project)

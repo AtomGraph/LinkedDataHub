@@ -39,7 +39,7 @@ import picocli.CommandLine.Option;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "create-container", description = "Creates a container document.")
+@Command(name = "container", description = "Creates a container document.")
 public class CreateContainer extends BaseCommand
 {
 

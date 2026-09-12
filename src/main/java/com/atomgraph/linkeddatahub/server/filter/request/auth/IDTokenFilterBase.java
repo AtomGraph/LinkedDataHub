@@ -203,7 +203,9 @@ public abstract class IDTokenFilterBase extends AuthenticationFilter
         String cacheKey = jwt.getIssuer() + jwt.getSubject();
         final Model agentModel;
         Literal userId = ResourceFactory.createStringLiteral(jwt.getSubject());
-        if (getSystem().getOIDCModelCache().containsKey(cacheKey)) agentModel = getSystem().getOIDCModelCache().get(cacheKey);
+        // single get(): with containsKey()-then-get() the entry can expire between the calls and get() returns null
+        Model cachedModel = getSystem().getOIDCModelCache().get(cacheKey);
+        if (cachedModel != null) agentModel = cachedModel;
         else
         {
             QuerySolutionMap qsm = new QuerySolutionMap();

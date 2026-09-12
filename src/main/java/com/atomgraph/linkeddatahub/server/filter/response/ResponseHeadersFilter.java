@@ -16,9 +16,11 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.response;
 
+import com.atomgraph.client.util.HTMLMediaTypePredicate;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.client.vocabulary.LDT;
 import com.atomgraph.core.vocabulary.SD;
+import com.atomgraph.linkeddatahub.server.util.LanguageNegotiator;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
@@ -64,6 +66,18 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
     {
         if (response.getStatusInfo().equals(Response.Status.NO_CONTENT))
             response.getHeaders().remove(HttpHeaders.CONTENT_TYPE); // needs to be explicitly unset for some reason
+
+        // Content-Language states the language of the representation, and must agree with the document's own <html lang>.
+        // Both come from this one computation. Variant selection cannot supply it: it matched only when the reader's top
+        // preference happened to be an offered language, so it announced es on a page holding no Spanish and said nothing
+        // at all on a page that was entirely Lithuanian
+        // only where the rendering actually depends on language. An RDF representation is byte-identical for every reader -
+        // its literals carry their own tags and none is dropped - so it is intended for all language audiences, which RFC 9110
+        // spells as no Content-Language at all. Labelling it would also contradict its own Vary, which carries no
+        // Accept-Language dimension for exactly the same reason
+        if (response.hasEntity() && response.getMediaType() != null && getApplication().isPresent() && new HTMLMediaTypePredicate().test(response.getMediaType()))
+            response.getHeaders().putSingle(HttpHeaders.CONTENT_LANGUAGE,
+                LanguageNegotiator.publishedTag(request.getAcceptableLanguages(), getSystem().getSupportedLanguages()));
 
         if (request.getSecurityContext().getUserPrincipal() instanceof Agent)
         {

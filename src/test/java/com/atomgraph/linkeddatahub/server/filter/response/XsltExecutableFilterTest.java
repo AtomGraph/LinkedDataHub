@@ -113,7 +113,7 @@ public class XsltExecutableFilterTest
     public void testAppendImportsAfterExistingImport() throws Exception
     {
         Document doc = parse("<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"" + XSL_NS + "\">" +
-            "<xsl:import href=\"../com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/layout.xsl\"/>" +
+            "<xsl:import href=\"../com/atomgraph/linkeddatahub/xsl/layout.xsl\"/>" +
             "<xsl:template match=\"/\"/>" +
             "</xsl:stylesheet>");
 
@@ -121,7 +121,7 @@ public class XsltExecutableFilterTest
 
         List<Element> children = childElements(doc);
         assertEquals(4, children.size());
-        assertEquals("../com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/layout.xsl", children.get(0).getAttribute("href"));
+        assertEquals("../com/atomgraph/linkeddatahub/xsl/layout.xsl", children.get(0).getAttribute("href"));
         assertEquals(A_XSL_URI.toString(), children.get(1).getAttribute("href"));
         assertEquals(B_XSL_URI.toString(), children.get(2).getAttribute("href"));
         assertEquals("template", children.get(3).getLocalName());

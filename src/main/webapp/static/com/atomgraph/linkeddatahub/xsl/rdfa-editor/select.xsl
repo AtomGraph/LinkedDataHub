@@ -247,12 +247,14 @@ version="3.0">
 
     <!-- mousedown in a region: Shift extends the standing selection to the
          clicked point (the anchor never moves - preventDefault stops the
-         native caret placement that would collapse it), a plain primary press
-         arms a sweep anchor for the mousemove takeover (no preventDefault:
-         native caret placement and in-host drags proceed untouched). SaxonJS
-         dispatches an event at the innermost matching template only, so a
-         press on the drag handle never reaches this (the handle owns its
-         gesture) and chrome is guarded out explicitly -->
+         native caret placement that would collapse it), a press on non-editable
+         canvas places the caret at the point itself (no native placement exists
+         there), and a plain primary press on a host arms a sweep anchor for the
+         mousemove takeover (no preventDefault: native caret placement and
+         in-host drags proceed untouched). SaxonJS dispatches an event at the
+         innermost matching template only, so a press on the drag handle never
+         reaches this (the handle owns its gesture) and chrome is guarded out
+         explicitly -->
     <xsl:template match="*[contains-token(@class, 'rdfa-editor-content')]" mode="ixsl:onmousedown">
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="region" as="element()" select="."/>
@@ -281,6 +283,32 @@ version="3.0">
                     <ixsl:set-property name="sweepAnchorOffset" select="$anchor-offset" object="rdfae:editor-state()"/>
                     <ixsl:set-property name="sweepAnchorHost" select="()" object="rdfae:editor-state()"/>
                     <ixsl:set-property name="sweepRegion" select="rdfae:root-of($anchor-node)" object="rdfae:editor-state()"/>
+                </xsl:when>
+                <!-- a press that landed outside every editable host: the surface
+                     between blocks, the handle gutter, a structural container's own
+                     box. The browser has no caret to place there and no focusable
+                     element below the region to focus, so the placement is ours -
+                     the nearest host takes focus and the caret lands at the point,
+                     rather than focus dropping off the canvas. A point that resolves
+                     into a non-editable parent (rdfae:caret-at-point escapes islands
+                     and chrome to a position beside them) has no host to focus and
+                     nothing to place: it falls through to the region's own tabindex -->
+                <xsl:when test="empty($target/ancestor-or-self::*[@contenteditable = 'true'])
+                        and exists(rdfae:host-of($point?node))">
+                    <xsl:sequence select="ixsl:call($event, 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:call-template name="rdfae:focus-caret">
+                        <xsl:with-param name="node" select="$point?node"/>
+                        <xsl:with-param name="offset" select="$point?offset"/>
+                    </xsl:call-template>
+                    <!-- the preventDefault killed the native drag session, so a sweep
+                         dragged out of here is synthetic throughout (no anchor host) -->
+                    <ixsl:set-property name="sweepAnchorNode" select="$point?node" object="rdfae:editor-state()"/>
+                    <ixsl:set-property name="sweepAnchorOffset" select="$point?offset" object="rdfae:editor-state()"/>
+                    <ixsl:set-property name="sweepAnchorHost" select="()" object="rdfae:editor-state()"/>
+                    <ixsl:set-property name="sweepRegion" select="$region" object="rdfae:editor-state()"/>
+                    <!-- focusin only fires when the host changes; a point in the same
+                         host still moves the caret, so sync from the choke point -->
+                    <xsl:call-template name="rdfae:update-breadcrumb"/>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:for-each select="$point">
@@ -445,7 +473,7 @@ version="3.0">
     <!-- a cross-host selection is copied in its storage form: the editing DOM
          (chrome, contenteditable, marker classes) would otherwise travel to the
          clipboard's HTML flavor. The fragment runs the same canonical +
-         cm-normalize pipeline as paste, in reverse; RDFa attributes survive, so
+         cm:normalize pipeline as paste, in reverse; RDFa attributes survive, so
          annotated content round-trips between documents. Within-host copy stays
          native. The union match covers both dispatch shapes: the focused host,
          or body after a background-origin sweep -->
@@ -485,7 +513,7 @@ version="3.0">
             <xsl:sequence select="ixsl:call($carrier, 'appendChild',
                 [ ixsl:call($work, 'cloneContents', []) ])[current-date() lt xs:date('2000-01-01')]"/>
             <xsl:variable name="pass1">
-                <xsl:apply-templates select="$carrier/node()" mode="canonical"/>
+                <xsl:apply-templates select="$carrier/node()" mode="cm:canonical"/>
             </xsl:variable>
             <xsl:variable name="clean">
                 <xsl:sequence select="cm:normalize($pass1/node())"/>

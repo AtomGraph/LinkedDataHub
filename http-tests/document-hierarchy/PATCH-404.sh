@@ -9,7 +9,7 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 # add agent to the writers
 
-ldh admin acl add-agent-to-group \
+ldh admin add agent \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
@@ -37,4 +37,4 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   "${END_USER_BASE_URL}non-existing/" \
    --data-binary "$update"
 ) \
-| grep -q "$STATUS_NOT_FOUND"
+| grep -q "$STATUS_FORBIDDEN"

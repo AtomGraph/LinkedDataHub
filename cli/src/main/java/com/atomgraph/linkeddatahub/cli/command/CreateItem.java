@@ -36,7 +36,7 @@ import picocli.CommandLine.Option;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "create-item", description = "Creates an item document.")
+@Command(name = "item", description = "Creates an item document.")
 public class CreateItem extends BaseCommand
 {
 

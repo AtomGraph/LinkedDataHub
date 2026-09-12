@@ -10,7 +10,7 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 # POST /access/request with a signed-up agent (no group) should succeed
 # foaf:Agent and acl:AuthenticatedAgent both have acl:Append access to /access/request
 
-curl -k -w "%{http_code}\n" -o /dev/null -s \
+actual=$(curl -k -w "%{http_code}" -o /dev/null -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: text/turtle" \
   -H "Content-Type: application/x-www-form-urlencoded" \
@@ -27,5 +27,8 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   --data-urlencode "ol=Access request" \
   --data-urlencode "pu=http://www.w3.org/ns/auth/acl#agent" \
   --data-urlencode "ou=${AGENT_URI}" \
-  "${END_USER_BASE_URL}access/request" \
-| grep -q "$STATUS_OK"
+  "${END_USER_BASE_URL}access/request")
+expected="$STATUS_OK"
+echo "DEBUG: Expected: $expected"
+echo "DEBUG: Got: $actual"
+echo "$actual" | grep -qE "^(${expected})$"

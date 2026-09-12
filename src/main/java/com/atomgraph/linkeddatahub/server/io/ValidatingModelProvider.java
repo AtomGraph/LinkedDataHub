@@ -219,12 +219,6 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
             try
             {
                 UpdateFactory.create(updateString);
-                Resource type = null;
-                if (type != null)
-                {
-                    resource.addProperty(RDF.type, type);
-                    if (log.isDebugEnabled()) log.debug("Resource: {} adding type: {}", resource, type);
-                }
             }
             catch (QueryParseException ex)
             {

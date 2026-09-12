@@ -1,0 +1,178 @@
+/* =========================================================================
+   ui_kits/core/overlays.css — Menu · Popover · Modal
+
+   All three share one positioning/dismissal model: anchored to a trigger (or
+   centred, for modals), dismissal on outside click and Escape, focus returned
+   to the trigger on close.
+   ========================================================================= */
+
+/* =========================================================================
+   Menu — trigger + surface + items. Item anatomy: icon, label, optional
+   sub-line, danger, disabled. Plus separators and section headers.
+
+   THE OVERFLOW RULE, promoted to a named pattern (it was an unwritten
+   convention inside FormActions):
+     0 actions  → render nothing
+     1 action   → a direct labelled button, no menu (a dropdown holding one
+                  item is pure friction)
+     2+ actions → collapse into this menu
+   Named `.ac-menu-overflow` so call sites can rely on it.
+   ========================================================================= */
+.ac-menu-anchor { position: relative; display: inline-flex; }
+.ac-menu {
+  position: absolute; z-index: 50; min-width: 200px; max-width: 340px;
+  max-height: 340px; overflow-y: auto;
+  padding: 4px;
+  background: var(--surface-0);
+  border: 1px solid var(--border-default); border-radius: var(--r-md);
+  box-shadow: var(--shadow-lg);
+  /* A floating panel is an independent surface: it pins its own ink so a skin
+     that recolours a region can't bleed into it. */
+  color: var(--fg-1);
+  animation: ac-menu-in var(--dur-fast) var(--ease-out-soft);
+}
+@keyframes ac-menu-in { from { opacity: 0; transform: translateY(-4px) scale(0.99); } }
+.ac-menu.al-start { top: calc(100% + 5px); left: 0; }
+.ac-menu.al-end   { top: calc(100% + 5px); right: 0; }
+.ac-menu.al-up-start { bottom: calc(100% + 5px); left: 0; }
+.ac-menu.al-up-end   { bottom: calc(100% + 5px); right: 0; }
+
+.ac-menu-item {
+  display: flex; align-items: flex-start; gap: var(--sp-2); width: 100%;
+  padding: 8px 10px; border: 0; background: transparent; cursor: pointer;
+  text-align: left; border-radius: var(--r-sm);
+  font-family: var(--font-sans); font-size: var(--fs-sm); color: var(--fg-1);
+  transition: background var(--dur-fast) var(--ease-out-soft), color var(--dur-fast) var(--ease-out-soft);
+}
+.ac-menu-item:hover { background: var(--bg-hover); }
+.ac-menu-item:focus-visible { outline: 0; box-shadow: var(--focus-ring); }
+.ac-menu-item[aria-checked="true"], .ac-menu-item.is-selected { background: var(--bg-selected); color: var(--fg-selected); }
+.ac-menu-item:disabled, .ac-menu-item[aria-disabled="true"] { cursor: not-allowed; opacity: 0.45; pointer-events: none; }
+.ac-menu-item > .ac-menu-ic { color: var(--fg-hint); flex-shrink: 0; margin-top: 1px; }
+.ac-menu-item:hover > .ac-menu-ic { color: var(--fg-2); }
+.ac-menu-item-body { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.ac-menu-item-lbl { font-weight: var(--fw-medium); }
+.ac-menu-item-sub { font-size: var(--fs-xs); color: var(--fg-hint); line-height: 1.45; }
+.ac-menu-item.is-danger { color: var(--danger-500); }
+.ac-menu-item.is-danger > .ac-menu-ic { color: var(--danger-500); }
+.ac-menu-item.is-danger:hover { background: var(--danger-50); }
+.ac-menu-item.is-danger .ac-menu-item-sub { color: color-mix(in srgb, var(--danger-500) 72%, transparent); }
+.ac-menu-item > .ac-menu-tick { margin-left: auto; flex-shrink: 0; color: var(--fg-selected); }
+.ac-menu-sep { height: 1px; margin: 4px 2px; background: var(--border-default); border: 0; }
+.ac-menu-header {
+  padding: 8px 10px 4px;
+  font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: var(--fw-medium);
+  letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--fg-hint);
+}
+
+/* =========================================================================
+   Popover — a small floating panel holding rich interactive content. Unlike a
+   tooltip it can contain focusable elements, so it opens on click and traps
+   nothing (the page stays usable).
+   ========================================================================= */
+.ac-popover {
+  position: absolute; z-index: 55; box-sizing: border-box;
+  max-width: 320px; padding: var(--sp-4);
+  background: var(--surface-0); color: var(--fg-1);
+  border: 1px solid var(--border-default); border-radius: var(--r-md);
+  box-shadow: var(--shadow-lg);
+  animation: ac-menu-in var(--dur-fast) var(--ease-out-soft);
+}
+.ac-popover.is-flush { padding: 0; overflow: hidden; }
+.ac-popover.va-inverse { background: var(--ink-1); color: #fff; border-color: transparent; }
+.ac-popover.sd-top    { bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); }
+.ac-popover.sd-bottom { top: calc(100% + 8px); left: 50%; transform: translateX(-50%); }
+.ac-popover.sd-left   { right: calc(100% + 8px); top: 50%; transform: translateY(-50%); }
+.ac-popover.sd-right  { left: calc(100% + 8px); top: 50%; transform: translateY(-50%); }
+.ac-popover-tip { position: absolute; width: 9px; height: 9px; background: inherit; border: inherit; transform: rotate(45deg); }
+.ac-popover.sd-top .ac-popover-tip    { bottom: -5px; left: 50%; margin-left: -4px; border-top: 0; border-left: 0; }
+.ac-popover.sd-bottom .ac-popover-tip { top: -5px; left: 50%; margin-left: -4px; border-bottom: 0; border-right: 0; }
+.ac-popover-x { position: absolute; top: 6px; right: 6px; }
+
+/* =========================================================================
+   Modal — header / body / footer / backdrop / close.
+
+   STACKING: the constructor dialog opens above the edit modal, so depth is a
+   data attribute rather than a hardcoded z-index. Each level steps the z-index
+   and dims slightly less, so the stack reads as depth instead of mud.
+   ========================================================================= */
+.ac-backdrop {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(15, 18, 26, 0.44);
+  -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: var(--sp-8) var(--sp-4);
+  overflow-y: auto;
+  animation: ac-fade-in var(--dur-base) var(--ease-out-soft);
+}
+@keyframes ac-fade-in { from { opacity: 0; } }
+.ac-backdrop.pos-center { align-items: center; }
+.ac-backdrop[data-depth="2"] { z-index: 120; background: rgba(15, 18, 26, 0.32); }
+.ac-backdrop[data-depth="3"] { z-index: 140; background: rgba(15, 18, 26, 0.24); }
+
+.ac-modal {
+  position: relative; display: flex; flex-direction: column;
+  width: 100%; box-sizing: border-box; max-height: 100%;
+  background: var(--surface-0); color: var(--fg-1);
+  border: 1px solid var(--border-default); border-radius: var(--r-lg);
+  box-shadow: var(--shadow-xl);
+  animation: ac-modal-in var(--dur-base) var(--ease-spring);
+}
+@keyframes ac-modal-in { from { opacity: 0; transform: translateY(10px) scale(0.985); } }
+.ac-modal.sz-sm { max-width: 420px; }
+.ac-modal.sz-md { max-width: 620px; }
+.ac-modal.sz-lg { max-width: 840px; }
+.ac-modal.sz-xl { max-width: 1080px; }
+
+.ac-modal-head {
+  display: flex; align-items: flex-start; gap: var(--sp-3); flex-shrink: 0;
+  padding: var(--sp-4) var(--sp-5);
+  border-bottom: 1px solid var(--border-default);
+}
+.ac-modal-icon {
+  width: 36px; height: 36px; flex-shrink: 0; border-radius: var(--r-md);
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--bg-accent-quiet); color: var(--fg-selected);
+}
+.ac-modal-titles { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.ac-modal-eyebrow {
+  font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: var(--fw-medium);
+  letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--fg-hint);
+}
+.ac-modal-title { margin: 0; font-family: var(--font-sans); font-size: var(--fs-lg); font-weight: var(--fw-semibold); letter-spacing: var(--tracking-snug); color: var(--fg-1); }
+.ac-modal-sub { font-size: var(--fs-sm); color: var(--fg-muted); line-height: var(--lh-base); }
+.ac-modal-x { flex-shrink: 0; margin: -2px -4px 0 0; display: flex; align-items: center; gap: var(--sp-1); }
+
+/* Body — scrolls inside a fixed-height dialog with head/foot pinned. The
+   shadows are painted by the scroll container itself (background-attachment
+   trick), so they appear only at an edge that actually has content beyond it. */
+.ac-modal-body {
+  flex: 1; min-height: 0; overflow-y: auto;
+  padding: var(--sp-5);
+  background:
+    linear-gradient(var(--surface-0) 30%, rgba(255,255,255,0)) top / 100% 14px no-repeat,
+    linear-gradient(rgba(255,255,255,0), var(--surface-0) 70%) bottom / 100% 14px no-repeat,
+    radial-gradient(farthest-side at 50% 0, rgba(15,18,26,0.10), rgba(0,0,0,0)) top / 100% 7px no-repeat,
+    radial-gradient(farthest-side at 50% 100%, rgba(15,18,26,0.10), rgba(0,0,0,0)) bottom / 100% 7px no-repeat;
+  background-attachment: local, local, scroll, scroll;
+}
+/* A flush body is a LAYOUT container, not just an unpadded one: its children
+   are pinned/scrolling regions (a search field that must not scroll away, a
+   results view that owns its own scroll box, a toolbar + list). Those recipes
+   are all written with `flex-shrink: 0` / `flex: 1` / `min-height: 0`, which are
+   inert in a block container — so the body scrolled as one piece and the pinned
+   children scrolled away with it. Declaring the column here fixes every flush
+   consumer at once. */
+.ac-modal-body.is-flush { padding: 0; display: flex; flex-direction: column; }
+/* Whole-dialog scroll instead of body scroll. */
+.ac-modal.is-pagescroll { max-height: none; }
+.ac-modal.is-pagescroll .ac-modal-body { overflow: visible; background: none; }
+
+.ac-modal-foot {
+  display: flex; align-items: center; gap: var(--sp-2); flex-shrink: 0; flex-wrap: wrap;
+  padding: var(--sp-4) var(--sp-5);
+  border-top: 1px solid var(--border-default);
+  background: var(--surface-1);
+  border-radius: 0 0 var(--r-lg) var(--r-lg);
+}
+.ac-modal-foot > .ac-modal-foot-end { margin-left: auto; display: flex; align-items: center; gap: var(--sp-2); }
