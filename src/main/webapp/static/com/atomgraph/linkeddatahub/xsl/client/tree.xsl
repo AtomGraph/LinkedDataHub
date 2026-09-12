@@ -76,6 +76,43 @@ exclude-result-prefixes="#all"
         </li>
     </xsl:template>
 
+    <!-- The children of a node, as a SELECT this module generates rather than one the domain writes.
+         A tree is defined by the relation it follows, so that relation is the parameter: properties
+         asserted on the child pointing at its parent, and - since RDF lets either end carry the link -
+         properties asserted on the parent pointing at its children. The document hierarchy has two of
+         the first kind and none of the second; a SKOS tree asserts skos:broader on the child and may
+         also carry skos:narrower on the parent, and gets both branches for free.
+
+         The type requirement keeps a tree to resources that describe themselves, which is what the
+         stored ldh:SelectChildren asked for; its ORDER BY and its ?thing binding are deliberately not
+         reproduced, because the children are sorted by ac:label() when they are rendered and the topic
+         was already being stripped out before the query ran. -->
+    <xsl:function name="ldh:tree-children-query" as="document-node()">
+        <xsl:param name="uri" as="xs:anyURI"/>
+        <xsl:param name="parent-properties" as="xs:anyURI*"/> <!-- asserted on the child: ?child P $this -->
+        <xsl:param name="child-properties" as="xs:anyURI*"/> <!-- asserted on the parent: $this P ?child -->
+
+        <xsl:variable name="branches" as="xs:string*" select="
+            (for $property in $parent-properties return '{ ?child &lt;' || $property || '&gt; &lt;' || $uri || '&gt; }'),
+            (for $property in $child-properties return '{ &lt;' || $uri || '&gt; &lt;' || $property || '&gt; ?child }')"/>
+        <xsl:if test="empty($branches)">
+            <xsl:message terminate="yes">ldh:tree-children-query requires at least one parent or child property</xsl:message>
+        </xsl:if>
+
+        <xsl:variable name="select-string" select="
+            'SELECT DISTINCT ?child WHERE { GRAPH ?childGraph { ' ||
+            string-join($branches, ' UNION ') ||
+            ' ?child a ?Type } }'" as="xs:string"/>
+        <xsl:variable name="select-json" as="item()">
+            <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
+            <xsl:sequence select="ixsl:call($select-builder, 'build', [])"/>
+        </xsl:variable>
+        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
+        <xsl:document>
+            <xsl:sequence select="json-to-xml($select-json-string)"/>
+        </xsl:document>
+    </xsl:function>
+
     <!-- EVENT HANDLERS -->
 
     <!-- expands a node: flips the disclosure, appends a placeholder list, and hands off to the domain

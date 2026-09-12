@@ -262,25 +262,14 @@ ORDER BY DESC(?created)
         </xsl:choose>
     </xsl:template>
 
-    <!-- the children of a node in the document tree, as ldh:SelectChildren asks for them: the documents
-         whose sioc:has_container is that node. Shared by the disclosure and by ldh:doctree-descend, which
-         walks the same relation ahead of the user -->
+    <!-- the document hierarchy's relation, named once: a document points at its container with
+         sioc:has_container, a container at its parent with sioc:has_parent, and neither end carries
+         the inverse. Shared by the disclosure and by ldh:doctree-descend, which walks the same
+         relation ahead of the user -->
     <xsl:function name="ldh:doc-tree-children-query" as="document-node()">
         <xsl:param name="uri" as="xs:anyURI"/>
 
-        <xsl:variable name="select-string" select="key('resources', '&ldh;SelectChildren', document(ac:document-uri('&ldh;')))/sp:text" as="xs:string"/>
-        <xsl:variable name="select-string" select="replace($select-string, '$this', '&lt;' || $uri || '&gt;', 'q')" as="xs:string"/>
-        <xsl:variable name="select-json" as="item()">
-            <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
-            <xsl:sequence select="ixsl:call($select-builder, 'build', [])"/>
-        </xsl:variable>
-        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
-        <!-- replace ?child ?thing with ?child - we don't need the topics of documents here -->
-        <xsl:document>
-            <xsl:apply-templates select="json-to-xml($select-json-string)" mode="ldh:replace-variables">
-                <xsl:with-param name="var-names" select="('child')" tunnel="yes"/>
-            </xsl:apply-templates>
-        </xsl:document>
+        <xsl:sequence select="ldh:tree-children-query($uri, (xs:anyURI('&sioc;has_parent'), xs:anyURI('&sioc;has_container')), ())"/>
     </xsl:function>
 
     <!-- binds the drawer's tree to containment. client/tree.xsl dispatches on the disclosure button, so
