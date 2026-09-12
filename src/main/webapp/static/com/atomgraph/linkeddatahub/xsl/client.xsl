@@ -80,6 +80,7 @@ extension-element-prefixes="ixsl"
     <xsl:include href="client/query-transforms.xsl"/>
     <xsl:include href="client/combobox.xsl"/>
     <xsl:include href="client/functions.xsl"/>
+    <xsl:include href="client/tree.xsl"/>
     <xsl:include href="client/navigation.xsl"/>
     <xsl:include href="client/block.xsl"/>
     <xsl:include href="client/modal.xsl"/>

@@ -65,6 +65,7 @@ xmlns:orcid="&orcid;"
         <xsl:copy>
             <xsl:apply-templates select="@*"/>
 
+
             <xsl:if test="$ac:stylesheet">
                 <Parameter name="&ac;stylesheet" value="{$ac:stylesheet}" override="false"/>
             </xsl:if>

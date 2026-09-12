@@ -62,6 +62,28 @@ exclude-result-prefixes="#all"
     
     <xsl:mode name="ldh:Shape" on-no-match="deep-skip"/>
 
+    <!-- a navigation column beside the document's content, for a vocabulary that has a shape worth
+         navigating: a taxonomy's concept tree, an ontology's class list. Empty unless something fills
+         it, and deep-skip rather than a no-op rule so an unfilled slot costs nothing.
+
+         It is a slot INSIDE the content body rather than a wrapper around it because .content-body
+         carries the page gutter and content width, is addressed by rules as a direct child of
+         .document-body, and is the containing block the sticky create dock measures its full bleed
+         against - so a column emitted around it loses the gutter and breaks the dock, while one
+         emitted into it leaves every existing rule matching.
+
+         Whatever fills it is wrapped in .ldh-content-aside by ldh:ContentBody, and that class is what
+         the two-column layout keys on. The filler therefore needs no layout class of its own and may
+         look like anything - a card, a bare list, a full-height panel - where keying the grid on the
+         filler's own class would have meant every package borrowing one component's arrangement to
+         use a general slot.
+
+         The active mode is passed in rather than filtered here: which modes a column belongs in is
+         the filler's judgement, not the platform's. A taxonomy tree is a reading affordance and
+         restricts itself to ReadMode; an editor's class list might well want to stay visible while
+         its document's content is being authored. -->
+    <xsl:mode name="ldh:ContentColumn" on-no-match="deep-skip"/>
+
 
     <!-- schema.org BREADCRUMBS -->
     
@@ -613,6 +635,21 @@ exclude-result-prefixes="#all"
             </xsl:if>
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
+            </xsl:if>
+
+            <!-- The wrapper is the platform's, not the filler's: a slot that only lays out when its
+                 content happens to carry one particular class is not an extension point, it is that
+                 one component's private arrangement. Materialised first so an unfilled slot emits no
+                 wrapper at all and the content body stays single-column. -->
+            <xsl:variable name="content-column" as="item()*">
+                <xsl:apply-templates select="." mode="ldh:ContentColumn">
+                    <xsl:with-param name="mode" select="$mode"/>
+                </xsl:apply-templates>
+            </xsl:variable>
+            <xsl:if test="exists($content-column)">
+                <div class="ldh-content-aside">
+                    <xsl:sequence select="$content-column"/>
+                </div>
             </xsl:if>
 
             <xsl:choose>

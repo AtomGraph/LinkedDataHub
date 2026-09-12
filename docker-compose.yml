@@ -41,6 +41,7 @@ services:
     depends_on:
       - fuseki-admin
       - fuseki-end-user
+      - sef-compiler
     environment:
     #  - JPDA_ADDRESS=*:8000 # debugger host - performance hit when enabled
       - CATALINA_OPTS=-XX:+UseContainerSupport -XX:MaxRAMPercentage=75 --add-exports java.base/sun.security.tools.keytool=ALL-UNNAMED # heap will use up to 75% of container's RAM
@@ -101,9 +102,21 @@ services:
       - ./datasets/owner:/var/linkeddatahub/datasets/owner
       - ./datasets/secretary:/var/linkeddatahub/datasets/secretary
       - ./uploads:/var/www/linkeddatahub/uploads
+      - ./sef:/var/www/linkeddatahub/sef
       - ./config/dev.log4j.properties:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/log4j.properties:ro
       - ./config/dataspaces.trig:/var/linkeddatahub/datasets/dataspaces.trig
       - ./config/system.trig:/var/linkeddatahub/datasets/system.trig
+  sef-compiler:
+    # composes each dataspace's client stylesheet with its package stylesheets and compiles
+    # the result to a SEF. Built from the same Dockerfile as the platform, so its copy of the
+    # static tree is the deployed one by construction
+    build:
+      context: .
+      target: sef-compiler
+    mem_limit: 3072m # the compile peaks around 1.5 GB; it must not share the platform's limit
+    restart: on-failure
+    expose:
+      - 8080 # internal only - the platform is the sole client
   fuseki-admin:
     image: atomgraph/fuseki:6.1.0
     user: root # otherwise fuseki user does not have permissions to the mounted folder which is owner by root

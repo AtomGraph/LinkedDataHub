@@ -105,13 +105,6 @@
     rdfs:comment "Attaches a view to a property for inverse relationships (?value property $about)" ;
     rdfs:isDefinedBy : .
 
-:container a owl:ObjectProperty ;
-    rdfs:domain :View ;
-    rdfs:range dh:Container ;
-    rdfs:label "Item container" ;
-    rdfs:comment "Container under which instances created inline from the view are stored as child documents" ;
-    rdfs:isDefinedBy : .
-
 :showWhenEmpty a owl:DatatypeProperty ;
     rdfs:domain :View ;
     rdfs:range xsd:boolean ;
@@ -345,7 +338,6 @@
       CONSTRUCT {
           $this spin:query [ a sp:Select ] ;
               ac:mode [ a rdfs:Resource ] ;
-              ldh:container [ a rdfs:Resource ] ;
               ldh:showWhenEmpty [ a xsd:boolean ] .
       }
       WHERE {}""" ;

@@ -13,8 +13,9 @@
     dct:description "Provides SKOS (Simple Knowledge Organization System) vocabulary support with custom templates for concept hierarchies, schemes, and collections." ;
     dct:creator <https://atomgraph.com/#company> ;
     ldt:ontology <https://raw.githubusercontent.com/AtomGraph/LinkedDataHub-Apps/refs/heads/master/packages/skos/ns.ttl#> ;
-    # the stylesheet is fetched live at import time and must match this branch's mode contract; releases point back at master
-    ac:stylesheet <https://raw.githubusercontent.com/AtomGraph/LinkedDataHub-Apps/refs/heads/develop/packages/skos/layout.xsl> .
+    # relative to this description's own URI, and mapped to a bundled file, so the package resolves
+    # entirely offline: no fetch from a branch whose content can change after review
+    ac:stylesheet <layout.xsl> .
 
 <https://atomgraph.com/#company> a foaf:Organization ;
     foaf:name "AtomGraph" ;

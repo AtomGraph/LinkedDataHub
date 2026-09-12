@@ -117,6 +117,12 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.timemap') and not(ixsl:get(ixsl:window(), 'LinkedDataHub.timemap') = '')) then xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.timemap')) else ()"/>
     </xsl:function>
 
+    <!-- the composed client stylesheet's URL is consumed when the bootstrap is written, which only
+         happens server-side; by the time this stylesheet runs, it is the one already running -->
+    <xsl:function name="ldh:client-stylesheet" as="xs:anyURI?">
+        <xsl:sequence select="()"/>
+    </xsl:function>
+
     <!-- Memento-Datetime is a response header, not available in the client context; ?version= pages render server-side -->
     <xsl:function name="ldh:memento-datetime" as="xs:string?">
         <xsl:sequence select="()"/>
