@@ -266,7 +266,7 @@ ORDER BY DESC(?created)
          sioc:has_container, a container at its parent with sioc:has_parent, and neither end carries
          the inverse. Shared by the disclosure and by ldh:doctree-descend, which walks the same
          relation ahead of the user -->
-    <xsl:function name="ldh:doc-tree-children-query" as="document-node()">
+    <xsl:function name="ldh:doc-tree-children-query" as="xs:string">
         <xsl:param name="uri" as="xs:anyURI"/>
 
         <xsl:sequence select="ldh:tree-children-query($uri, (xs:anyURI('&sioc;has_parent'), xs:anyURI('&sioc;has_container')), ())"/>
@@ -281,7 +281,7 @@ ORDER BY DESC(?created)
         <xsl:call-template name="ldh:TreeChildrenFetch">
             <xsl:with-param name="container" select="$container"/>
             <xsl:with-param name="uri" select="$uri"/>
-            <xsl:with-param name="select-xml" select="ldh:doc-tree-children-query($uri)"/>
+            <xsl:with-param name="query" select="ldh:doc-tree-children-query($uri)"/>
         </xsl:call-template>
     </xsl:template>
     
@@ -487,15 +487,7 @@ ORDER BY DESC(?created)
                         </xsl:for-each>
 
                         <!-- Load children and continue descent after loading -->
-                        <xsl:variable name="select-xml" select="ldh:doc-tree-children-query($current-href)" as="document-node()"/>
-
-                        <!-- Wrap SELECT into a DESCRIBE -->
-                        <xsl:variable name="query-xml" as="element()">
-                            <xsl:apply-templates select="$select-xml" mode="ldh:wrap-describe"/>
-                        </xsl:variable>
-                        <xsl:variable name="query-json-string" select="xml-to-json($query-xml)" as="xs:string"/>
-                        <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
-                        <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
+                        <xsl:variable name="query-string" select="ldh:doc-tree-children-query($current-href)" as="xs:string"/>
                         <xsl:variable name="results-uri" select="ac:build-uri(sd:endpoint(), map{ 'query': $query-string })" as="xs:anyURI"/>
                         <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
                         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>

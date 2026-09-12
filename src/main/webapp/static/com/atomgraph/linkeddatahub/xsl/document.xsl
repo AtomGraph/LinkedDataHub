@@ -62,6 +62,17 @@ exclude-result-prefixes="#all"
     
     <xsl:mode name="ldh:Shape" on-no-match="deep-skip"/>
 
+    <!-- a navigation column beside the document's content, for a vocabulary that has a shape worth
+         navigating: a taxonomy's concept tree, an ontology's class list. Empty unless something fills
+         it, and deep-skip rather than a no-op rule so an unfilled slot costs nothing.
+
+         It is a slot INSIDE the content body rather than a wrapper around it because .content-body
+         carries the page gutter and content width, is addressed by rules as a direct child of
+         .document-body, and is the containing block the sticky create dock measures its full bleed
+         against - so a column emitted around it loses the gutter and breaks the dock, while one
+         emitted into it leaves every existing rule matching. -->
+    <xsl:mode name="ldh:ContentColumn" on-no-match="deep-skip"/>
+
 
     <!-- schema.org BREADCRUMBS -->
     
@@ -614,6 +625,8 @@ exclude-result-prefixes="#all"
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
+
+            <xsl:apply-templates select="." mode="ldh:ContentColumn"/>
 
             <xsl:choose>
                 <xsl:when test="$mode = '&ldh;ContentMode'">

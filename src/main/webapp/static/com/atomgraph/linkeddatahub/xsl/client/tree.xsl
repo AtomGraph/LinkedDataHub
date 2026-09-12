@@ -27,56 +27,14 @@ exclude-result-prefixes="#all"
 >
 
     <!--
-        A lazily expanded tree of resources, over whatever relation the caller's domain uses.
+        The interactive half of the resource tree; the emitter it drives lives in the shared tree.xsl.
 
-        The hierarchy this renders is not the document hierarchy: the drawer's document tree is one
-        consumer, a SKOS concept tree is another, and the two share every part of the widget except
-        the query that produces a node's children and the test for whether a node has any. Those two
-        are the extension points - a domain supplies them by matching in ldh:TreeChildrenLoad and
-        ldh:TreeNode - and nothing else here knows what it is rendering.
-
-        Deliberately not a role="tree": a tree widget owes a roving tabindex and typeahead over
-        non-navigational items, while this is a nested list of links, which is what the markup says
-        and what screen readers announce.
+        Everything here needs the browser - the disclosure handlers and the fetch that appends the
+        results - which is exactly why the markup is not here: see tree.xsl for why that division is
+        load-bearing rather than cosmetic.
     -->
 
-    <!-- one tree node: li > .tree-row > disclosure + a.tree-link. The li carries state, the row carries
-         the depth indent ramp, and a node with no children takes the inert spacer so labels stay aligned.
-         Whether a node can be expanded is the domain's to decide, so it is a parameter rather than a test
-         on some predicate this module would have to know about; a domain narrows the match and supplies it
-         through xsl:next-match. -->
-    <xsl:template match="*[@rdf:about]" mode="ldh:TreeNode">
-        <xsl:param name="depth" select="0" as="xs:integer"/>
-        <xsl:param name="expandable" select="false()" as="xs:boolean"/>
-
-        <li>
-            <div class="tree-row" style="--depth: {$depth}">
-                <!-- the disclosure is a SIBLING of the anchor, so a node can be expanded without
-                     navigating into it, and so the anchor holds no nested interactive content -->
-                <xsl:choose>
-                    <xsl:when test="$expandable">
-                        <button type="button" class="ac-iconbtn sz-xs in-neutral ap-ghost btn-expand-tree" aria-expanded="false">
-                            <span class="msi sm" aria-hidden="true">chevron_right</span>
-                        </button>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <span class="tree-spacer" aria-hidden="true"/>
-                    </xsl:otherwise>
-                </xsl:choose>
-
-                <a class="tree-link" href="{@rdf:about}" title="{@rdf:about}">
-                    <span class="msi sm tree-icon" aria-hidden="true">
-                        <xsl:value-of select="ldh:class-icon(., 'description')"/>
-                    </span>
-                    <span class="tree-label">
-                        <xsl:apply-templates select="." mode="ac:label"/>
-                    </span>
-                </a>
-            </div>
-        </li>
-    </xsl:template>
-
-    <!-- The children of a node, as a SELECT this module generates rather than one the domain writes.
+    <!-- The children of a node, as a query this module generates rather than one the domain writes.
          A tree is defined by the relation it follows, so that relation is the parameter: properties
          asserted on the child pointing at its parent, and - since RDF lets either end carry the link -
          properties asserted on the parent pointing at its children. The document hierarchy has two of
@@ -87,7 +45,7 @@ exclude-result-prefixes="#all"
          stored ldh:SelectChildren asked for; its ORDER BY and its ?thing binding are deliberately not
          reproduced, because the children are sorted by ac:label() when they are rendered and the topic
          was already being stripped out before the query ran. -->
-    <xsl:function name="ldh:tree-children-query" as="document-node()">
+    <xsl:function name="ldh:tree-children-query" as="xs:string">
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="parent-properties" as="xs:anyURI*"/> <!-- asserted on the child: ?child P $this -->
         <xsl:param name="child-properties" as="xs:anyURI*"/> <!-- asserted on the parent: $this P ?child -->
@@ -103,19 +61,21 @@ exclude-result-prefixes="#all"
              asserted on the parent, because each document is its own graph: a scheme's
              skos:hasTopConcept lives in the scheme's graph while the concept's rdf:type lives in the
              concept's. Scoping both to one GRAPH silently drops every child linked from above -
-             measured against a fixture where it returned one top concept of two -->
-        <xsl:variable name="select-string" select="
-            'SELECT DISTINCT ?child WHERE { GRAPH ?linkGraph { ' ||
+             measured against a fixture where it returned one top concept of two. -->
+        <!-- A DESCRIBE, written out whole rather than a SELECT for something else to wrap, and handed
+             to the endpoint as the string it already is. It used to go through SPARQLBuilder twice -
+             parsed from a string here, re-serialised in the fetch - and that round-trip MERGED the two
+             sibling GRAPH blocks into one keeping only the last graph variable, putting the type
+             requirement back inside the link's graph and silently dropping every child linked from the
+             parent side. Measured: the query left here correctly scoped and arrived at the endpoint as
+             GRAPH ?childGraph { {..} UNION {..} ?child a ?Type }, returning one top concept of two.
+             Wrapping the second block in a group did not survive either. Nothing needed the parse -
+             this query is generated, not authored or edited - so the scoping the comment above
+             describes is now the scoping that gets sent. -->
+        <xsl:sequence select="
+            'DESCRIBE ?child WHERE { GRAPH ?linkGraph { ' ||
             string-join($branches, ' UNION ') ||
-            ' } GRAPH ?childGraph { ?child a ?Type } }'" as="xs:string"/>
-        <xsl:variable name="select-json" as="item()">
-            <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
-            <xsl:sequence select="ixsl:call($select-builder, 'build', [])"/>
-        </xsl:variable>
-        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
-        <xsl:document>
-            <xsl:sequence select="json-to-xml($select-json-string)"/>
-        </xsl:document>
+            ' } GRAPH ?childGraph { ?child a ?Type } }'"/>
     </xsl:function>
 
     <!-- EVENT HANDLERS -->
@@ -176,19 +136,12 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:TreeChildrenFetch">
         <xsl:param name="container" as="element()"/> <!-- the <ul> the children are rendered into -->
         <xsl:param name="uri" as="xs:anyURI"/>
-        <xsl:param name="select-xml" as="document-node()"/>
+        <xsl:param name="query" as="xs:string"/> <!-- a DESCRIBE of the children, sent as given -->
         <xsl:param name="endpoint" select="sd:endpoint()" as="xs:anyURI"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
 
-        <!-- wrap SELECT into a DESCRIBE -->
-        <xsl:variable name="query-xml" as="element()">
-            <xsl:apply-templates select="$select-xml" mode="ldh:wrap-describe"/>
-        </xsl:variable>
-        <xsl:variable name="query-json-string" select="xml-to-json($query-xml)" as="xs:string"/>
-        <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
-        <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
-        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
+        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
