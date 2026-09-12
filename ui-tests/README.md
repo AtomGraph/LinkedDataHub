@@ -34,10 +34,20 @@ answer. Each check fails with the command that fixes it:
 | The base URL answers | `nginx` fronts every port the suite uses, and is easy to leave stopped |
 | `ldh` is on `$PATH` | Fixtures are built with it, the way `http-tests/run.sh` builds its own |
 | The **served** SEF matches `target/ROOT` | `/static/` is Varnish-cached per encoding, so a recompiled stylesheet keeps serving stale to browser and `curl` alike. A green run against a stale SEF is worse than a red one |
+| A **composed** package SEF is published | A package's rules reach the browser only once its stylesheet has been composed with the platform's and compiled, which happens asynchronously. Until then every page is served the stock stylesheet and a concept page renders no tree at all — the specs would fail as though the feature were missing |
 
 The SEF check is local-only by construction: `target/ROOT/…` exists exactly when
 `docker-compose.override.yml` is bind-mounting the working tree over the image. CI builds
 the SEF into the image, finds no local file, and the check stands down on its own.
+
+The composed-SEF wait is the opposite: it costs milliseconds on a lived-in dev stack that
+composed one long ago, and is the whole difference between green and red on a CI instance
+importing the package for the first time. Its key covers the platform build as well as the
+import set, so `make sef` invalidates it too — and because the key is digested when the
+application starts, recompiling alone is not enough: **restart `linkeddatahub`, not just
+the Varnish layers**, or the browser keeps running the stylesheet the app started with. It
+polls the taxonomy container rather than the root, because a dataspace's root document is
+served the stock stylesheet even where its children get the composed one.
 
 ## Fixtures
 
@@ -73,7 +83,9 @@ the two top concepts arrive one from each direction. Depth is deliberate too —
 sits three hops below the scheme, which is what makes the reveal a walk rather than a
 lookup. Polyhierarchy is *not* seeded: `addBroader()` adds a second parent for the one spec
 that needs it and returns the undo, because a fixture that stays polyhierarchical changes
-what every other spec sees.
+what every other spec sees. `seedConcept()` follows the same rule for a concept
+the declared shape does not carry — an extra child, or one labelled in a single language —
+and `addTriple()`/`removeTriple()` are the same bargain for one triple.
 
 Seeding a concept writes `foaf:primaryTopic` itself, since `ldh create` writes none and the
 tree reads the scheme off the topic's `skos:inScheme` — without it the page has no topic and

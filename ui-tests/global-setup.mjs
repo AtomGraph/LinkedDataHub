@@ -7,7 +7,7 @@ import { accessSync, constants } from 'node:fs';
 import { get } from './lib/http.mjs';
 import { endUserBase, localSef, sefPath } from './lib/stack.mjs';
 import { itemCount, seed, teardown } from './lib/fixtures.mjs';
-import { seedTaxonomy, skosPackage, teardownTaxonomy } from './lib/taxonomy.mjs';
+import { seedTaxonomy, skosPackage, teardownTaxonomy, waitForPackageStylesheet } from './lib/taxonomy.mjs';
 
 function onPath(command) {
     return (process.env.PATH ?? '').split(delimiter).some(dir => {
@@ -100,6 +100,14 @@ async function taxonomy() {
     const { container, addedPackage } = await seedTaxonomy();
     console.log(`  taxonomy   ${container}`
         + `${addedPackage ? ` (imported ${skosPackage})` : ''} (${Date.now() - started} ms)`);
+
+    // Importing a package is not the same as its rules reaching the browser: the composed
+    // stylesheet is compiled asynchronously, and until it is published every page is
+    // served the stock one. Waiting here rather than in each spec keeps the timeout in one
+    // place, and out of assertions that are about the markup.
+    const composing = Date.now();
+    await waitForPackageStylesheet();
+    console.log(`  stylesheet composed package SEF published (${Date.now() - composing} ms)`);
 }
 
 export default async function globalSetup() {
