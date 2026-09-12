@@ -1094,7 +1094,8 @@ WHERE
     
     <!-- open drop-down by toggling its CSS class. The menu flips upward ('drop-up') when the group
          has less viewport space below it than above, and end-ward ('drop-left') when it has less space
-         to its right than to its left, so it never opens into the nearer viewport edge on either axis -->
+         to its right than to its left, so it never opens into the nearer viewport edge on either axis;
+         having chosen a side it is then sized to what that side holds (ldh-menu-avail below) -->
 
     <xsl:template match="*[contains-token(@class, 'ac-menu-anchor')][*[contains-token(@class, 'drop-toggle')]]" mode="ixsl:onclick">
         <xsl:variable name="group" select="." as="element()"/>
@@ -1109,6 +1110,21 @@ WHERE
         <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'drop-up', $drop-up)"/>
         <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'drop-left', $drop-left)"/>
         <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-open', $open)"/>
+
+        <!-- the flip above picks the roomier side; this measures how much room that side has, because a
+             panel taller than the gap overflows it regardless of which way it opened (the Create menu
+             grows with the ontology's class list). Upward the gap ends at the sticky chrome's lower edge
+             rather than the viewport's: the header and the action bar paint over anything that reaches
+             them, and a panel inside the create dock - a stacking context of its own - stays under them
+             at any z-index. The 12px comes off the panel's 6px offset from its trigger plus as much
+             again of breathing room. The panel rules cap their max-height against the ldh-menu-avail
+             custom property, so a long menu scrolls inside the gap instead of running out of it. The
+             declaration is written as the style attribute because ixsl:set-style compiles to an
+             assignment on the style object, which reaches the CSS properties that have an IDL name and
+             no custom property (SaxonJS3.rt.js); these wraps carry no other inline style -->
+        <xsl:variable name="chrome-bottom" select="max((0e0, for $bar in ixsl:page()//*[contains-token(@class, 'ldh-header') or contains-token(@class, 'ldh-actionbar')] return ixsl:get(ixsl:call($bar, 'getBoundingClientRect', []), 'bottom')[. le ixsl:get($rect, 'top')]))" as="xs:double"/>
+        <xsl:variable name="available" select="if ($drop-up) then ixsl:get($rect, 'top') - $chrome-bottom - 12 else ixsl:get(ixsl:window(), 'innerHeight') - ixsl:get($rect, 'bottom') - 12" as="xs:double"/>
+        <ixsl:set-attribute name="style" select="'--ldh-menu-avail: ' || round($available) || 'px'"/>
 
         <!-- a core Menu panel takes its placement class on open, measured against the viewport (the
              component's autoFlip); the drop-up/drop-left stamps above stay for the app-kit menus
