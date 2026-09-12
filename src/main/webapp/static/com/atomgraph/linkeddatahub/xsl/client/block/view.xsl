@@ -3517,36 +3517,75 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:function>
 
-    <!-- submit inline creation modal form: forward view — the linking triple <about> <property> <new> is PATCHed into the current document by the response callback -->
-    <xsl:template match="div[contains-token(@class, 'modal-constructor')][@data-property][not(@data-inverse)]//form[tokenize(@class, ' ') = ('ldh-prop-form', 'ldh-edit-form')][upper-case(@method) = 'PUT']" mode="ixsl:onsubmit" priority="3"> <!-- prioritize over modal.xsl -->
-        <xsl:next-match>
-            <xsl:with-param name="callback" select="ldh:view-instance-form-response#1"/>
-        </xsl:next-match>
-    </xsl:template>
+    <!-- Submit the inline creation modal form. The PUT creates the new document around the fragment
+         instance, so the document's own metadata ships inside the body: the graph store asserts dh:Item,
+         sioc:has_container and the created/creator/owner provenance itself, but the topic link and the
+         title are the client's to supply - without them the new document renders an empty body and the
+         list/table/grid renderers have no topic to pair it with.
 
-    <!-- submit inline creation modal form: inverse view — the linking triple <new> <property> <about> belongs in the new document's graph, so it ships inside the PUT body -->
-    <xsl:template match="div[contains-token(@class, 'modal-constructor')][@data-property][@data-inverse]//form[tokenize(@class, ' ') = ('ldh-prop-form', 'ldh-edit-form')][upper-case(@method) = 'PUT']" mode="ixsl:onsubmit" priority="3"> <!-- prioritize over modal.xsl -->
+         An inverse view additionally ships its linking triple <new> <property> <about> here, because that
+         triple belongs in the new document's graph; a forward view's <about> <property> <new> belongs in
+         the current document and is PATCHed there by the response callback. -->
+    <xsl:template match="div[contains-token(@class, 'modal-constructor')][@data-property]//form[tokenize(@class, ' ') = ('ldh-prop-form', 'ldh-edit-form')][upper-case(@method) = 'PUT']" mode="ixsl:onsubmit" priority="3"> <!-- prioritize over modal.xsl -->
         <xsl:param name="elements" select=".//input | .//textarea | .//select" as="element()*"/>
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="modal" select="ancestor::div[contains-token(@class, 'modal-constructor')][1]" as="element()"/>
+        <xsl:variable name="doc-uri" select="xs:anyURI($modal/@about)" as="xs:anyURI"/>
+        <xsl:variable name="instance" select="xs:anyURI($modal/@data-instance)" as="xs:anyURI"/>
         <!-- pre-process form before submitting it: syncs input values, so it must precede ldh:parse-rdf-post -->
         <xsl:apply-templates select="." mode="ldh:FormPreSubmit"/>
         <xsl:variable name="triples" select="ldh:parse-rdf-post($elements)" as="element()*"/>
-        <xsl:variable name="link-triple" as="element()">
+        <xsl:variable name="link-triple" as="element()?">
+            <xsl:if test="$modal/@data-inverse">
+                <json:map>
+                    <json:string key="subject"><xsl:sequence select="string($instance)"/></json:string>
+                    <json:string key="predicate"><xsl:sequence select="string($modal/@data-property)"/></json:string>
+                    <json:string key="object"><xsl:sequence select="string($modal/@data-about)"/></json:string>
+                </json:map>
+            </xsl:if>
+        </xsl:variable>
+
+        <!-- The document is titled after its topic, read with the same ac:label chain that renders the
+             instance everywhere else. That chain answers for any URI resource, falling back to the '#id…'
+             fragment when no label property is there to read, so it is applied to the properties alone:
+             the vocabulary templates are then the only ones that can match and an unlabelled topic
+             yields no title rather than a minted one. Untagged, as document titles are throughout the
+             platform, even where the topic's own label carries a language. -->
+        <xsl:variable name="topic" as="document-node()">
+            <xsl:document>
+                <xsl:for-each select="ldh:triples-to-descriptions($triples)[@rdf:about = $instance]">
+                    <xsl:copy>
+                        <xsl:copy-of select="*"/>
+                    </xsl:copy>
+                </xsl:for-each>
+            </xsl:document>
+        </xsl:variable>
+        <xsl:variable name="title" as="xs:string*">
+            <xsl:apply-templates select="$topic/*" mode="ac:label"/>
+        </xsl:variable>
+
+        <xsl:variable name="doc-triples" as="element()*">
             <json:map>
-                <json:string key="subject"><xsl:sequence select="string($modal/@data-instance)"/></json:string>
-                <json:string key="predicate"><xsl:sequence select="string($modal/@data-property)"/></json:string>
-                <json:string key="object"><xsl:sequence select="string($modal/@data-about)"/></json:string>
+                <json:string key="subject"><xsl:sequence select="string($doc-uri)"/></json:string>
+                <json:string key="predicate">&foaf;primaryTopic</json:string>
+                <json:string key="object"><xsl:sequence select="string($instance)"/></json:string>
             </json:map>
+            <xsl:if test="exists($title)">
+                <json:map>
+                    <json:string key="subject"><xsl:sequence select="string($doc-uri)"/></json:string>
+                    <json:string key="predicate">&dct;title</json:string>
+                    <json:string key="object">"<xsl:value-of select="$title[1]"/>"</json:string>
+                </json:map>
+            </xsl:if>
         </xsl:variable>
 
         <xsl:next-match>
             <xsl:with-param name="callback" select="ldh:view-instance-form-response#1"/>
-            <!-- append $link-triple to the $request-body sent with the request, but not to the $resources rendered afterwards -->
+            <!-- append the document metadata and the inverse linking triple to the $request-body sent with the request, but not to the $resources rendered afterwards -->
             <xsl:with-param name="request-body" as="document-node()">
                 <xsl:document>
                     <rdf:RDF>
-                        <xsl:sequence select="ldh:triples-to-descriptions(($triples, $link-triple))"/>
+                        <xsl:sequence select="ldh:triples-to-descriptions(($triples, $link-triple, $doc-triples))"/>
                     </rdf:RDF>
                 </xsl:document>
             </xsl:with-param>
