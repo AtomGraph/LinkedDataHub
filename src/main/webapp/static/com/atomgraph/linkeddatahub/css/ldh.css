@@ -301,6 +301,13 @@ circle { cursor: move; }
    overlays borrow the modal head/body anatomy (.ac-modal-head/.ac-modal-body): the OL map
    info window (ol.Overlay hosts it, see the .ol-overlay-container rules above) and the RDFa
    annotation overlay. Only their host-specific fit lands here. ---------- */
+/* The stacking rhythm above is the gutter BETWEEN blocks in the content body. A dialog is mounted into
+   that same element (ldh:ShowModalForm appends the backdrop to .content-body), so the one block a dialog
+   holds inherited a gutter it has no sibling to separate it from, and it read as dead space between the
+   view and the modal foot. */
+.content-body .ac-backdrop .ldh-block { margin-bottom: 0; }
+/* The column a dialog-hosted view needs (flush body down to the view body, pager pinned to the dialog's
+   bottom rather than to the kit's page-flow cap) is app.css's, beside the PAGED VIEW rules it qualifies. */
 /* the map head holds only the close button; auto margin lands the lone x on the right edge */
 .ol-overlay-container .ac-modal-x { margin-left: auto; }
 /* the annotation overlay titles with a <legend>; reset the fieldset styling to the modal-title treatment */

@@ -768,6 +768,8 @@ ORDER BY DESC(?created)
                                 </xsl:otherwise>
                             </xsl:choose>
                     </xsl:with-param>
+                    <!-- the dialog hosts one view block, and the block body carries the inset the kit designed for it; a padded dialog body would double it and stack a second bottom inset under the pager -->
+                    <xsl:with-param name="flush" select="true()"/>
                     <xsl:with-param name="body" as="item()*">
 
                     <div class="ldh-block-row">
@@ -906,6 +908,7 @@ ORDER BY DESC(?created)
                     <xsl:with-param name="title" as="item()*">
                             <xsl:apply-templates select="key('resources', 'geo', ldh:translations())" mode="ac:label"/>
                     </xsl:with-param>
+                    <xsl:with-param name="flush" select="true()"/>
                     <xsl:with-param name="body" as="item()*">
 
                     <div class="ldh-block-row">
@@ -1017,6 +1020,7 @@ ORDER BY DESC(?created)
                     <xsl:with-param name="title" as="item()*">
                             <xsl:apply-templates select="key('resources', 'latest', ldh:translations())" mode="ac:label"/>
                     </xsl:with-param>
+                    <xsl:with-param name="flush" select="true()"/>
                     <xsl:with-param name="body" as="item()*">
 
                     <div class="ldh-block-row">

@@ -3997,6 +3997,16 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 /* The toolbar is pinned at the top of the same column for the same reason. */
 .ldh-block-body:has(> .ldh-pager:not(:empty)) > .ldh-view-toolbar { flex: 0 0 auto; }
 
+/* A dialog hosting a paged view IS the constrained parent the cap above stands in for, so inside a
+   flush modal body the column runs from the body down to the view: every wrapper between the two -
+   a scroll region (the search dialog), a block row, a card - becomes a shrinkable column, and the
+   view body drops the cap and takes the slack. The rows keep their own scroll box, and the pager,
+   still the column's last unshrinkable item, pins to the bottom of the DIALOG rather than to a
+   620px ceiling inside it. Selected with :has() rather than by naming the wrappers, because the kit
+   cannot know what a consumer nests between its dialog and its view. */
+.ac-modal-body.is-flush *:has(.ldh-block-body > .ldh-pager:not(:empty)) { display: flex; flex-direction: column; min-height: 0; flex: 1 1 auto; }
+.ac-modal-body.is-flush .ldh-block-body:has(> .ldh-pager:not(:empty)) { max-height: none; flex: 1 1 auto; }
+
 
 /* =========================================================================
    BLOCK HEADER DENSITY
