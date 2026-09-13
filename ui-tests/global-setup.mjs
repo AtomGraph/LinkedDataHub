@@ -1,12 +1,12 @@
 // Preflight. Every check that fails here fails with the command that fixes it, because
 // each one has cost a session's time at least once.
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import { delimiter, join } from 'node:path';
 import { accessSync, constants } from 'node:fs';
 import { get } from './lib/http.mjs';
-import { endUserBase, localSef, sefPath } from './lib/stack.mjs';
-import { itemCount, seed, teardown } from './lib/fixtures.mjs';
+import { composedSefPrefix, endUserBase, localSef, sefDir, sefPath } from './lib/stack.mjs';
+import { fixtures as fixtureUris, itemCount, seed, teardown } from './lib/fixtures.mjs';
 import { seedTaxonomy, skosPackage, teardownTaxonomy, waitForPackageStylesheet } from './lib/taxonomy.mjs';
 
 function onPath(command) {
@@ -49,30 +49,77 @@ function cli() {
     console.log('  ldh        on $PATH');
 }
 
-// Local-only by construction. target/ROOT/... exists exactly when
-// docker-compose.override.yml is bind-mounting the working tree over the image, which is
-// the dev loop. CI builds the SEF into the image and mounts no override, so there is
-// nothing to compare and the check stands down on its own.
+// Does the browser run the code in the working tree? Local-only by construction:
+// target/ROOT/... exists exactly when docker-compose.override.yml is bind-mounting the working
+// tree over the image, which is the dev loop. CI builds the SEF into the image and mounts no
+// override, so there is nothing to compare and the check stands down on its own.
 async function sef() {
     if (!existsSync(localSef)) {
         console.log('  SEF        no local build to compare (image-baked SEF) - skipped');
         return;
     }
-    const served = await get(new URL(sefPath, endUserBase).href);
-    if (served.status !== 200) {
-        throw new Error(`The client SEF is not being served: ${served.status} for ${sefPath}`);
+
+    // Ask the page which stylesheet it runs rather than assuming. Comparing the stock SEF alone
+    // was a false guarantee: since #383 a package-importing dataspace runs a COMPOSED SEF, so the
+    // check went green while the browser executed a build hours old. That cost a session.
+    //
+    // A CHILD document, never the root: the root is served the stock stylesheet even on a dataspace
+    // whose children get the composed one, so probing it reports "stock matches" and re-lands the
+    // very false guarantee this check exists to remove. That is also why this runs after seeding -
+    // there has to be a child to ask.
+    const page = await get(fixtureUris.container);
+    const running = /stylesheetLocation:\s*"([^"]+)"/.exec(String(page.body))?.[1];
+    if (!running) {
+        throw new Error(`Could not read stylesheetLocation from ${endUserBase}.\n`
+            + `        The preflight cannot tell which stylesheet the browser would run, so it cannot\n`
+            + `        promise the suite measures the working tree. Check the page renders at all.`);
     }
-    const local = sha256(readFileSync(localSef));
-    if (sha256(served.body) === local) {
-        console.log(`  SEF        served copy matches the working tree`);
+
+    if (!running.includes(composedSefPrefix)) {
+        const served = await get(new URL(sefPath, endUserBase).href);
+        if (served.status !== 200) {
+            throw new Error(`The client SEF is not being served: ${served.status} for ${sefPath}`);
+        }
+        if (sha256(served.body) !== sha256(readFileSync(localSef))) {
+            throw new Error(`The served client SEF does not match target/ROOT.\n`
+                + `        The browser would run stale XSLT and the suite would measure the wrong build.\n`
+                + `${republish}`);
+        }
+        console.log('  SEF        served stock copy matches the working tree');
         return;
     }
-    throw new Error(`The served client SEF does not match target/ROOT.\n`
-        + `        The browser would run stale XSLT and the suite would measure the wrong build.\n`
-        + `        Recompile and republish it with:\n`
-        + `            make sef\n`
-        + `            docker compose restart varnish-frontend varnish-end-user varnish-admin`);
+
+    // Composed. Its key is SHA-1 over the stock SEF's digest plus the import set, and the app takes
+    // that digest ONCE, at startup - so after `make sef` a still-running app keeps publishing the old
+    // key, and the old composition keeps being served. Every build stamps a fresh buildDateTime into
+    // the SEF, so the digest (and the key, and the file) always change when the app is current:
+    // a key whose file predates the stock SEF is exactly the app that has not restarted.
+    const key = running.slice(running.lastIndexOf('/') + 1);
+    const composed = join(sefDir, key);
+    if (!existsSync(composed)) {
+        throw new Error(`The page runs ${running}, which is not in ${sefDir}.\n`
+            + `        Nothing local corresponds to the stylesheet the browser would execute, so the\n`
+            + `        suite cannot know what it is measuring.\n${republish}`);
+    }
+    const builtAt = statSync(composed).mtimeMs;
+    const compiledAt = statSync(localSef).mtimeMs;
+    if (builtAt < compiledAt) {
+        throw new Error(`The composed stylesheet the page runs is older than the working tree's build.\n`
+            + `        ${key} was composed ${new Date(builtAt).toISOString()},\n`
+            + `        target/ROOT was compiled ${new Date(compiledAt).toISOString()}.\n`
+            + `        The app digests the stock SEF at startup, so it is still publishing the key it\n`
+            + `        started with and the browser would run pre-'make sef' XSLT.\n${republish}`);
+    }
+    console.log(`  SEF        composed ${key.slice(0, 8)} is newer than the working tree's build`);
 }
+
+// Restarting Varnish alone cannot help when the app is publishing a stale key, and restarting the
+// app changes the Varnish container IPs that nginx resolved at startup - hence the whole sequence.
+const republish = `        Recompile and republish it with:\n`
+    + `            make sef\n`
+    + `            docker compose restart linkeddatahub\n`
+    + `            docker compose restart varnish-frontend varnish-end-user varnish-admin\n`
+    + `            docker compose restart nginx`;
 
 // Fixtures are removed and rebuilt, so a run that crashed before its teardown does not
 // leave the next one creating a slug that already exists.
@@ -114,8 +161,10 @@ export default async function globalSetup() {
     console.log('\nPreflight');
     await reachable();
     cli();
-    await sef();
     await fixtures();
     await taxonomy();
+    // Last: it asks a seeded child document what it runs, and the composed stylesheet it checks is
+    // only published once a package-importing dataspace exists.
+    await sef();
     console.log('');
 }

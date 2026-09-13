@@ -38,7 +38,16 @@ export function ownerCertificates() {
     ];
 }
 
-// The SEF the browser actually executes. The preflight compares the served copy against
-// this one to catch a working tree that has not been compiled or published yet.
+// The stock SEF `make sef` produces. Since #383 this is NOT what the browser executes on a
+// dataspace that imports a package: the app composes the platform's modules with the package's
+// and publishes the result under sefDir, and the page names that file in its bootstrap script.
+// The stock SEF still matters, because ClientStylesheetService digests it to derive the composed
+// key - so it is the fingerprint the composition is keyed on, not the artifact that runs.
 export const sefPath = 'static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json';
 export const localSef = join(repoRoot, 'target/ROOT', sefPath);
+
+// Where the app writes composed stylesheets, bind-mounted from the host (docker-compose.yml:105).
+// One file per distinct (platform build × import set), named by the key the page requests.
+export const sefDir = join(repoRoot, 'sef');
+// The public prefix of a composed stylesheet, mirroring ClientStylesheetService.PUBLIC_PATH.
+export const composedSefPrefix = 'static/xsl/sef/';
