@@ -999,6 +999,22 @@
         <rdfs:label xml:lang="en-US">Object</rdfs:label>
         <rdfs:label xml:lang="es-ES">Objeto</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-object-text">
+        <rdfs:label xml:lang="en-US">Text</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Texto</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-object-link">
+        <rdfs:label xml:lang="en-US">Link</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Enlace</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-resource-iri">
+        <rdfs:label xml:lang="en-US">Resource IRI</rdfs:label>
+        <rdfs:label xml:lang="es-ES">IRI del recurso</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-subject-iri">
+        <rdfs:label xml:lang="en-US">Subject IRI</rdfs:label>
+        <rdfs:label xml:lang="es-ES">IRI del sujeto</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="annotate">
         <rdfs:label xml:lang="en-US">Annotate</rdfs:label>
         <rdfs:label xml:lang="es-ES">Anotar</rdfs:label>

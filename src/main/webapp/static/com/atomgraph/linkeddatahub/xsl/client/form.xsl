@@ -301,7 +301,11 @@ WHERE
         </xsl:choose>
     </xsl:function>
 
-    <!-- annotation overlay on the design system's modal head/body anatomy (replaces rdfa-editor's custom HTML structure) -->
+    <!-- The annotation overlay on the design system's modal head/body anatomy. The statement's invariant
+         half - the subject it is about and the predicate it asserts - stays pinned above a two-tab strip;
+         the tabs carry the parts that elaborate it. The object tab leads because the value is what the
+         user came for. Stacked ac:FieldShell rows rather than the .ldh-prop-group grid: that grid reserves
+         a 200px label track and a 64px action track, which a 360-520px point-positioned card cannot spare -->
     <xsl:template name="rdfae:render-overlay">
         <div id="{$rdfae:overlay-id}" class="rdfa-editor-ui" role="dialog" aria-modal="true" aria-label="{ac:label(key('resources', 'rdfa-annotation', ldh:translations()))}" style="display: none;">
             <div class="ac-modal-head">
@@ -313,173 +317,153 @@ WHERE
                 </span>
             </div>
             <div class="ac-modal-body">
-                <form id="annotation-form" class="ldh-prop-form">
-                    <div class="ldh-prop-group">
-                        <xsl:apply-templates select="." mode="ldh:PropertyLabel">
-                            <xsl:with-param name="label" as="item()*">
+                <form id="annotation-form">
+                    <div class="annotation-statement">
+                        <!-- the in-scope subject, written by rdfae:show-overlay and mirrored from the @about
+                             override; read-only chrome, so it rides a field box rather than a control -->
+                        <div class="ac-field">
+                            <label class="ac-label sz-sm">
                                 <xsl:apply-templates select="key('resources', 'rdfa-subject', ldh:translations())" mode="ac:label"/>
-                            </xsl:with-param>
-                        </xsl:apply-templates>
-                        <div class="ldh-prop-row is-last">
-                            <div class="value val-stack">
-                                <div class="val-main">
-                                    <div id="stmt-subject"/>
-                                </div>
+                            </label>
+                            <div class="ac-field-box sz-sm is-readonly">
+                                <span id="stmt-subject"/>
                             </div>
-                            <div class="row-actions"></div>
                         </div>
-                    </div>
-                    <div class="ldh-prop-group">
-                        <xsl:apply-templates select="." mode="ldh:PropertyLabel">
-                            <xsl:with-param name="label" as="item()*">
+                        <!-- the combobox is its own box; wrapping it in a field shell would double the border,
+                             so the shell is hand-built without ac-field-box around it -->
+                        <div class="ac-field">
+                            <label class="ac-label sz-sm" for="annotation-property">
                                 <xsl:apply-templates select="key('resources', 'rdfa-property', ldh:translations())" mode="ac:label"/>
-                            </xsl:with-param>
-                        </xsl:apply-templates>
-                        <div class="ldh-prop-row is-last">
-                            <div class="value val-stack">
-                                <div class="val-main">
-                                    <xsl:sequence select="rdfae:typeahead-field('property')"/>
-                                </div>
-                            </div>
-                            <div class="row-actions"></div>
+                            </label>
+                            <xsl:sequence select="rdfae:typeahead-field('property')"/>
                         </div>
                     </div>
-                    <div class="ldh-prop-group">
-                        <xsl:apply-templates select="." mode="ldh:PropertyLabel">
-                            <xsl:with-param name="label" as="item()*">
-                                <xsl:apply-templates select="key('resources', 'rdfa-value', ldh:translations())" mode="ac:label"/>
-                            </xsl:with-param>
-                        </xsl:apply-templates>
-                        <div class="ldh-prop-row is-last">
-                            <div class="value val-stack">
-                                <div class="val-main">
-                                    <xsl:apply-templates select="." mode="ac:FieldShell">
-                                        <xsl:with-param name="control" as="item()*">
-                                            <input type="text" id="annotation-value" name="value" placeholder="{ac:label(key('resources', 'rdfa-value-placeholder', ldh:translations()))}"/>
-                                        </xsl:with-param>
-                                    </xsl:apply-templates>
-                                </div>
-                                <span class="ac-help sz-sm"><xsl:apply-templates select="key('resources', 'rdfa-value-help', ldh:translations())" mode="ac:label"/></span>
-                            </div>
-                            <div class="row-actions"></div>
+
+                    <div class="ac-tabs or-horizontal">
+                        <div class="ac-tablist sz-sm va-line is-fitted" role="tablist" aria-label="{ac:label(key('resources', 'rdfa-annotation', ldh:translations()))}">
+                            <button type="button" class="ac-tab is-on" id="annotation-tab-object" role="tab" aria-selected="true" aria-controls="annotation-panel-object">
+                                <span class="ac-tab-lbl">
+                                    <xsl:apply-templates select="key('resources', 'rdfa-object', ldh:translations())" mode="ac:label"/>
+                                </span>
+                            </button>
+                            <button type="button" class="ac-tab" id="annotation-tab-subject" role="tab" aria-selected="false" aria-controls="annotation-panel-subject">
+                                <span class="ac-tab-lbl">
+                                    <xsl:apply-templates select="key('resources', 'rdfa-subject', ldh:translations())" mode="ac:label"/>
+                                </span>
+                            </button>
                         </div>
-                    </div>
-                    <fieldset>
-                        <legend><xsl:apply-templates select="key('resources', 'rdfa-subject', ldh:translations())" mode="ac:label"/></legend>
-                        <div class="ldh-prop-group">
-                            <xsl:apply-templates select="." mode="ldh:PropertyLabel">
-                                <xsl:with-param name="label" as="item()*">
-                                    <xsl:apply-templates select="key('resources', 'rdfa-subject-about', ldh:translations())" mode="ac:label"/>
-                                </xsl:with-param>
-                            </xsl:apply-templates>
-                            <div class="ldh-prop-row is-last">
-                                <div class="value val-stack">
-                                    <div class="val-main">
-                                        <xsl:apply-templates select="." mode="ac:FieldShell">
-                                            <xsl:with-param name="control" as="item()*">
-                                                <input type="text" id="annotation-subject" name="subject" placeholder="{ac:label(key('resources', 'rdfa-subject-placeholder', ldh:translations()))}"/>
-                                            </xsl:with-param>
-                                        </xsl:apply-templates>
-                                    </div>
-                                    <span class="ac-help sz-sm"><xsl:apply-templates select="key('resources', 'rdfa-subject-help', ldh:translations())" mode="ac:label"/></span>
-                                </div>
-                                <div class="row-actions"></div>
+
+                        <div class="ac-tabpanel" id="annotation-panel-object" role="tabpanel" aria-labelledby="annotation-tab-object">
+                            <!-- literal and resource objects are mutually exclusive in rdfae:apply-annotation
+                                 (@resource suppresses @content/@datatype/@lang); the segmented control is that
+                                 exclusivity made visible, and rdfae:form-values reads whichever side is checked -->
+                            <div class="ac-switch sz-sm wd-fill" role="radiogroup" aria-label="{ac:label(key('resources', 'rdfa-object', ldh:translations()))}">
+                                <button type="button" class="ac-switch-seg" role="radio" aria-checked="true" data-object-kind="literal">
+                                    <xsl:apply-templates select="key('resources', 'rdfa-object-text', ldh:translations())" mode="ac:label"/>
+                                </button>
+                                <button type="button" class="ac-switch-seg" role="radio" aria-checked="false" data-object-kind="resource">
+                                    <xsl:apply-templates select="key('resources', 'rdfa-object-link', ldh:translations())" mode="ac:label"/>
+                                </button>
                             </div>
-                        </div>
-                        <div class="ldh-prop-group">
-                            <xsl:apply-templates select="." mode="ldh:PropertyLabel">
-                                <xsl:with-param name="label" as="item()*">
-                                    <xsl:apply-templates select="key('resources', 'rdfa-type-typeof', ldh:translations())" mode="ac:label"/>
-                                </xsl:with-param>
-                            </xsl:apply-templates>
-                            <div class="ldh-prop-row is-last">
-                                <div class="value val-stack">
-                                    <div class="val-main">
-                                        <xsl:sequence select="rdfae:typeahead-field('typeof')"/>
-                                    </div>
-                                    <span class="ac-help sz-sm"><xsl:apply-templates select="key('resources', 'rdfa-typeof-help', ldh:translations())" mode="ac:label"/></span>
-                                </div>
-                                <div class="row-actions"></div>
-                            </div>
-                        </div>
-                    </fieldset>
-                    <fieldset>
-                        <legend><xsl:apply-templates select="key('resources', 'rdfa-object', ldh:translations())" mode="ac:label"/></legend>
-                        <div class="ldh-prop-group">
-                            <xsl:apply-templates select="." mode="ldh:PropertyLabel">
-                                <xsl:with-param name="label" as="item()*">
-                                    <xsl:apply-templates select="key('resources', 'rdfa-object-resource', ldh:translations())" mode="ac:label"/>
-                                </xsl:with-param>
-                            </xsl:apply-templates>
-                            <div class="ldh-prop-row is-last">
-                                <div class="value val-stack">
-                                    <div class="val-main">
-                                        <xsl:apply-templates select="." mode="ac:FieldShell">
-                                            <xsl:with-param name="control" as="item()*">
-                                                <input type="text" id="annotation-object" name="object" placeholder="{ac:label(key('resources', 'rdfa-object-placeholder', ldh:translations()))}"/>
-                                            </xsl:with-param>
-                                        </xsl:apply-templates>
-                                    </div>
-                                    <span class="ac-help sz-sm"><xsl:apply-templates select="key('resources', 'rdfa-object-help', ldh:translations())" mode="ac:label"/></span>
-                                </div>
-                                <div class="row-actions"></div>
-                            </div>
-                        </div>
-                        <div class="ldh-prop-group">
-                            <xsl:apply-templates select="." mode="ldh:PropertyLabel">
-                                <xsl:with-param name="label" as="item()*">
-                                    <xsl:apply-templates select="key('resources', 'rdfa-datatype', ldh:translations())" mode="ac:label"/>
-                                </xsl:with-param>
-                            </xsl:apply-templates>
-                            <div class="ldh-prop-row is-last">
-                                <div class="value val-stack">
-                                    <div class="val-main">
-                                        <xsl:apply-templates select="." mode="ac:SelectShell">
-                                            <xsl:with-param name="select" as="item()*">
+
+                            <div id="annotation-object-literal">
+                                <xsl:apply-templates select="." mode="ac:FieldShell">
+                                    <xsl:with-param name="label-for" select="'annotation-value'"/>
+                                    <xsl:with-param name="label" as="item()*">
+                                        <xsl:apply-templates select="key('resources', 'rdfa-value', ldh:translations())" mode="ac:label"/>
+                                    </xsl:with-param>
+                                    <xsl:with-param name="control" as="item()*">
+                                        <input type="text" id="annotation-value" name="value" placeholder="{ac:label(key('resources', 'rdfa-value-placeholder', ldh:translations()))}"/>
+                                    </xsl:with-param>
+                                    <xsl:with-param name="help" as="item()*">
+                                        <xsl:apply-templates select="key('resources', 'rdfa-value-help', ldh:translations())" mode="ac:label"/>
+                                    </xsl:with-param>
+                                </xsl:apply-templates>
+
+                                <div class="ac-field">
+                                    <label class="ac-label sz-sm" for="annotation-datatype">
+                                        <xsl:apply-templates select="key('resources', 'rdfa-datatype', ldh:translations())" mode="ac:label"/>
+                                    </label>
+                                    <xsl:apply-templates select="." mode="ac:SelectShell">
+                                        <xsl:with-param name="select" as="item()*">
                                             <select id="annotation-datatype" name="datatype">
                                                 <option value=""><xsl:apply-templates select="key('resources', 'rdfa-plain-literal', ldh:translations())" mode="ac:label"/></option>
-                                                <xsl:variable name="xsd" as="xs:string" select="'http://www.w3.org/2001/XMLSchema#'"/>
+                                                <xsl:variable name="xsd" as="xs:string" select="'&xsd;'"/>
                                                 <xsl:for-each select="'string', 'date', 'dateTime', 'time', 'integer', 'decimal', 'double', 'float', 'boolean', 'anyURI'">
                                                     <option value="{$xsd || .}">xsd:<xsl:value-of select="."/></option>
                                                 </xsl:for-each>
                                                 <option value="{$rdfae:custom}"><xsl:apply-templates select="key('resources', 'rdfa-custom-datatype', ldh:translations())" mode="ac:label"/></option>
                                             </select>
-                                            </xsl:with-param>
-                                        </xsl:apply-templates>
-                                        <!-- hidden until the Custom option reveals it; the handler toggles the shell's state class, not the input -->
-                                        <xsl:apply-templates select="." mode="ac:FieldShell">
-                                            <xsl:with-param name="class" select="'is-hidden'"/>
-                                            <xsl:with-param name="control" as="item()*">
-                                                <input type="text" name="custom-datatype" placeholder="{ac:label(key('resources', 'rdfa-datatype-placeholder', ldh:translations()))}"/>
-                                            </xsl:with-param>
-                                        </xsl:apply-templates>
+                                        </xsl:with-param>
+                                    </xsl:apply-templates>
+                                    <!-- hidden until the Custom option reveals it; the handler toggles the shell's state class, not the input -->
+                                    <xsl:apply-templates select="." mode="ac:FieldShell">
+                                        <xsl:with-param name="class" select="'is-hidden'"/>
+                                        <xsl:with-param name="control" as="item()*">
+                                            <input type="text" name="custom-datatype" placeholder="{ac:label(key('resources', 'rdfa-datatype-placeholder', ldh:translations()))}"/>
+                                        </xsl:with-param>
+                                    </xsl:apply-templates>
+                                    <div class="ac-field-foot">
+                                        <span class="ac-help sz-sm"><xsl:apply-templates select="key('resources', 'rdfa-datatype-help', ldh:translations())" mode="ac:label"/></span>
                                     </div>
-                                    <span class="ac-help sz-sm"><xsl:apply-templates select="key('resources', 'rdfa-datatype-help', ldh:translations())" mode="ac:label"/></span>
                                 </div>
-                                <div class="row-actions"></div>
+
+                                <xsl:apply-templates select="." mode="ac:FieldShell">
+                                    <xsl:with-param name="label-for" select="'annotation-lang'"/>
+                                    <xsl:with-param name="label" as="item()*">
+                                        <xsl:apply-templates select="key('resources', 'rdfa-language', ldh:translations())" mode="ac:label"/>
+                                    </xsl:with-param>
+                                    <xsl:with-param name="control" as="item()*">
+                                        <input type="text" id="annotation-lang" name="lang" placeholder="{ac:label(key('resources', 'rdfa-language-placeholder', ldh:translations()))}"/>
+                                    </xsl:with-param>
+                                    <xsl:with-param name="help" as="item()*">
+                                        <xsl:apply-templates select="key('resources', 'rdfa-language-help', ldh:translations())" mode="ac:label"/>
+                                    </xsl:with-param>
+                                </xsl:apply-templates>
+                            </div>
+
+                            <div id="annotation-object-resource" hidden="hidden">
+                                <xsl:apply-templates select="." mode="ac:FieldShell">
+                                    <xsl:with-param name="label-for" select="'annotation-object'"/>
+                                    <xsl:with-param name="label" as="item()*">
+                                        <xsl:apply-templates select="key('resources', 'rdfa-resource-iri', ldh:translations())" mode="ac:label"/>
+                                    </xsl:with-param>
+                                    <xsl:with-param name="control" as="item()*">
+                                        <input type="text" id="annotation-object" name="object" placeholder="{ac:label(key('resources', 'rdfa-object-placeholder', ldh:translations()))}"/>
+                                    </xsl:with-param>
+                                    <xsl:with-param name="help" as="item()*">
+                                        <xsl:apply-templates select="key('resources', 'rdfa-object-help', ldh:translations())" mode="ac:label"/>
+                                    </xsl:with-param>
+                                </xsl:apply-templates>
                             </div>
                         </div>
-                        <div class="ldh-prop-group">
-                            <xsl:apply-templates select="." mode="ldh:PropertyLabel">
+
+                        <div class="ac-tabpanel" id="annotation-panel-subject" role="tabpanel" aria-labelledby="annotation-tab-subject" hidden="hidden">
+                            <xsl:apply-templates select="." mode="ac:FieldShell">
+                                <xsl:with-param name="label-for" select="'annotation-subject'"/>
                                 <xsl:with-param name="label" as="item()*">
-                                    <xsl:apply-templates select="key('resources', 'rdfa-language', ldh:translations())" mode="ac:label"/>
+                                    <xsl:apply-templates select="key('resources', 'rdfa-subject-iri', ldh:translations())" mode="ac:label"/>
+                                </xsl:with-param>
+                                <xsl:with-param name="control" as="item()*">
+                                    <input type="text" id="annotation-subject" name="subject" placeholder="{ac:label(key('resources', 'rdfa-subject-placeholder', ldh:translations()))}"/>
+                                </xsl:with-param>
+                                <xsl:with-param name="help" as="item()*">
+                                    <xsl:apply-templates select="key('resources', 'rdfa-subject-help', ldh:translations())" mode="ac:label"/>
                                 </xsl:with-param>
                             </xsl:apply-templates>
-                            <div class="ldh-prop-row is-last">
-                                <div class="value val-stack">
-                                    <div class="val-main">
-                                        <xsl:apply-templates select="." mode="ac:FieldShell">
-                                            <xsl:with-param name="control" as="item()*">
-                                                <input type="text" id="annotation-lang" name="lang" placeholder="{ac:label(key('resources', 'rdfa-language-placeholder', ldh:translations()))}"/>
-                                            </xsl:with-param>
-                                        </xsl:apply-templates>
-                                    </div>
-                                    <span class="ac-help sz-sm"><xsl:apply-templates select="key('resources', 'rdfa-language-help', ldh:translations())" mode="ac:label"/></span>
+
+                            <div class="ac-field">
+                                <label class="ac-label sz-sm" for="annotation-typeof">
+                                    <xsl:apply-templates select="key('resources', 'rdfa-type-typeof', ldh:translations())" mode="ac:label"/>
+                                </label>
+                                <xsl:sequence select="rdfae:typeahead-field('typeof')"/>
+                                <div class="ac-field-foot">
+                                    <span class="ac-help sz-sm"><xsl:apply-templates select="key('resources', 'rdfa-typeof-help', ldh:translations())" mode="ac:label"/></span>
                                 </div>
-                                <div class="row-actions"></div>
                             </div>
                         </div>
-                    </fieldset>
+                    </div>
+
                     <div class="ldh-block-foot">
                         <button type="button" class="ac-btn in-negative ap-solid sz-sm remove-action" style="display: none;"><xsl:value-of select="ac:label(key('resources', 'remove', ldh:translations()))"/></button>
                         <button type="button" class="ac-btn in-neutral ap-outline sz-sm cancel-action"><xsl:value-of select="ac:label(key('resources', 'cancel', ldh:translations()))"/></button>
@@ -488,6 +472,116 @@ WHERE
                 </form>
             </div>
         </div>
+    </xsl:template>
+
+    <!-- which side of the object switch is live. The attribute is set by the segment handler, never by a
+         native control, so reading it off the DOM node is the state - no live-property detour needed -->
+    <xsl:function name="rdfae:object-is-resource" as="xs:boolean">
+        <xsl:param name="form" as="element()"/>
+
+        <xsl:sequence select="exists($form//button[contains-token(@class, 'ac-switch-seg')][@data-object-kind = 'resource'][@aria-checked = 'true'])"/>
+    </xsl:function>
+
+    <!-- the imported function reads every object field unconditionally, which would let an IRI left behind
+         in the resource input emit @resource after the user switched back to Text (and void the literal).
+         The checked segment decides which side is read, so both sides keep their typed text while toggling -->
+    <xsl:function name="rdfae:form-values" as="map(xs:string, xs:string?)">
+        <xsl:param name="form" as="element()"/>
+
+        <xsl:variable name="resource" as="xs:boolean" select="rdfae:object-is-resource($form)"/>
+        <xsl:map>
+            <xsl:map-entry key="'property'" select="rdfae:typeahead-value($form, 'property')"/>
+            <xsl:map-entry key="'typeof'" select="rdfae:typeahead-value($form, 'typeof')"/>
+            <xsl:map-entry key="'subject'" select="rdfae:input-value($form, 'subject')[. ne '']"/>
+            <xsl:map-entry key="'object'" select="if ($resource) then rdfae:input-value($form, 'object')[. ne ''] else ()"/>
+            <xsl:map-entry key="'value'" select="if ($resource) then () else rdfae:input-value($form, 'value')[. ne '']"/>
+            <xsl:map-entry key="'datatype'" select="if ($resource) then () else rdfae:select-or-custom($form, 'datatype', 'custom-datatype')"/>
+            <xsl:map-entry key="'lang'" select="if ($resource) then () else rdfae:input-value($form, 'lang')[. ne '']"/>
+        </xsl:map>
+    </xsl:function>
+
+    <!-- the object switch: move aria-checked to the clicked segment and swap which group is disclosed -->
+    <xsl:template match="button[contains-token(@class, 'ac-switch-seg')][ancestor::form/@id = 'annotation-form']" mode="ixsl:onclick">
+        <xsl:call-template name="rdfae:set-object-kind">
+            <xsl:with-param name="form" select="ancestor::form"/>
+            <xsl:with-param name="kind" select="string(@data-object-kind)"/>
+        </xsl:call-template>
+    </xsl:template>
+
+    <!-- the single write point for the object switch, shared by the click handler and the edit-mode prefill -->
+    <xsl:template name="rdfae:set-object-kind">
+        <xsl:param name="form" as="element()"/>
+        <xsl:param name="kind" as="xs:string"/>
+
+        <xsl:for-each select="$form//button[contains-token(@class, 'ac-switch-seg')]">
+            <ixsl:set-attribute name="aria-checked" select="if (@data-object-kind = $kind) then 'true' else 'false'"/>
+        </xsl:for-each>
+        <xsl:for-each select="id('annotation-object-literal', ixsl:page())">
+            <xsl:choose>
+                <xsl:when test="$kind = 'resource'">
+                    <ixsl:set-attribute name="hidden" select="'hidden'"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <ixsl:remove-attribute name="hidden"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
+        <xsl:for-each select="id('annotation-object-resource', ixsl:page())">
+            <xsl:choose>
+                <xsl:when test="$kind = 'resource'">
+                    <ixsl:remove-attribute name="hidden"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <ixsl:set-attribute name="hidden" select="'hidden'"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
+    </xsl:template>
+
+    <!-- replaces the imported details/@open disclosure: this dialog discloses through the object switch and
+         the subject tab instead. The object tab stays active either way - the value is the field the user
+         came for - so a subject-side override announces itself with a count on the tab rather than by
+         stealing the panel -->
+    <xsl:template name="rdfae:reveal-fields">
+        <xsl:param name="form" as="element()"/>
+        <xsl:param name="span" as="element()?"/>
+
+        <xsl:call-template name="rdfae:set-object-kind">
+            <xsl:with-param name="form" select="$form"/>
+            <xsl:with-param name="kind" select="if (exists($span/@resource)) then 'resource' else 'literal'"/>
+        </xsl:call-template>
+
+        <!-- the overlay is a singleton, so the tab the last annotation was left on would otherwise greet
+             the next one; every opening starts on the object tab -->
+        <xsl:for-each select="$form//button[contains-token(@class, 'ac-tab')]">
+            <xsl:variable name="on" as="xs:boolean" select="@id = 'annotation-tab-object'"/>
+            <ixsl:set-attribute name="aria-selected" select="if ($on) then 'true' else 'false'"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-on', $on)"/>
+        </xsl:for-each>
+        <xsl:for-each select="$form//div[contains-token(@class, 'ac-tabpanel')]">
+            <xsl:choose>
+                <xsl:when test="@id = 'annotation-panel-object'">
+                    <ixsl:remove-attribute name="hidden"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <ixsl:set-attribute name="hidden" select="'hidden'"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
+
+        <xsl:variable name="overrides" as="xs:integer" select="count($span/(@about | @typeof))"/>
+        <xsl:for-each select="id('annotation-tab-subject', ixsl:page())">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <span class="ac-tab-lbl">
+                    <xsl:apply-templates select="key('resources', 'rdfa-subject', ldh:translations())" mode="ac:label"/>
+                </span>
+                <xsl:if test="$overrides gt 0">
+                    <span class="ac-tab-count">
+                        <xsl:value-of select="$overrides"/>
+                    </span>
+                </xsl:if>
+            </xsl:result-document>
+        </xsl:for-each>
     </xsl:template>
 
     <!-- the imported handler toggles the custom-datatype input itself (and focus/lang state); with the inputs

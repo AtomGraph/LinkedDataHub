@@ -305,6 +305,19 @@ circle { cursor: move; }
 .ol-overlay-container .ac-modal-x { margin-left: auto; }
 /* the annotation overlay titles with a <legend>; reset the fieldset styling to the modal-title treatment */
 #rdfa-editor-overlay .ac-modal-head legend { flex: 1; min-width: 0; margin: 0; border: 0; padding: 0; font-size: var(--fs-lg); font-weight: var(--fw-semibold); line-height: var(--lh-snug); color: var(--fg-1); }
+/* the overlay stacks design-system field shells rather than riding the .ldh-prop-group grid (a 200px label
+   track plus a 64px action track leaves nothing for a control in a 360-520px card). .ac-field carries no
+   outer margin by design, so the rhythm is the container's job at every level that stacks them */
+#rdfa-editor-overlay #annotation-form, #rdfa-editor-overlay .annotation-statement, #rdfa-editor-overlay .ac-tabpanel, #rdfa-editor-overlay #annotation-object-literal, #rdfa-editor-overlay #annotation-object-resource { display: flex; flex-direction: column; gap: var(--sp-4); }
+/* MUST follow the rule above and carry its specificity. The inactive tab panel and the unselected half of
+   the object switch are hidden with the `hidden` attribute, whose `display: none` comes from the UA sheet
+   (and, for panels, from core.css) - both of which an id-scoped `display: flex` silently outranks */
+#rdfa-editor-overlay .ac-tabpanel[hidden], #rdfa-editor-overlay #annotation-object-literal[hidden], #rdfa-editor-overlay #annotation-object-resource[hidden] { display: none; }
+/* the foot is a band that spans the body's inset, so it cancels the padding the .ac-modal-body already adds */
+#rdfa-editor-overlay .ldh-block-foot { margin: 0 calc(-1 * var(--sp-5)) calc(-1 * var(--sp-5)); }
+/* Remove is a destructive action on the edited annotation, not a peer of Cancel/Annotate: the auto margin
+   parks it at the opposite edge of the flex-end row */
+#rdfa-editor-overlay .ldh-block-foot .remove-action { margin-right: auto; }
 /* app.css gives .ldh-block-foot the band chrome with space-between (hint left, buttons right);
    LDH footers are bare button rows, so cluster them at the right edge instead */
 .ldh-block-foot {
