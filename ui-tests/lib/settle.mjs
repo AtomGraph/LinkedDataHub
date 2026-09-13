@@ -13,18 +13,36 @@
 
 const BLOCKS = '.ldh-block-row';
 
+// The shell renders the document's content before Saxon-JS has run its initial template, so a
+// gesture can land while no ixsl handler is bound yet - which is indistinguishable from a handler
+// that declined to match, and unrecoverable: a click or a mousemove happens once, and no amount of
+// retrying on the assertion after it will make it happen again.
+//
+// window.rdfaEditor, not window.LinkedDataHub: the latter is truthy from the FIRST line of the
+// bootstrap, several instructions before the sub-objects it goes on to create, so waiting on it
+// lands mid-way through. rdfae:init-state runs last in that template, which makes its container the
+// signal that all of it ran.
+export async function hydrated(page, { timeout = 30_000 } = {}) {
+    await page.waitForFunction(() => !!window.rdfaEditor, null, { timeout });
+}
+
 export async function settled(page, { selector = BLOCKS, quietFor = 400, timeout = 20_000 } = {}) {
     await page.waitForLoadState('domcontentloaded');
+    // A page that never hydrates is the spec's finding to report, not this helper's to throw on -
+    // the calibration probe runs settled() against pages that may well be a 403.
+    await hydrated(page, { timeout }).catch(() => {});
 
     const deadline = Date.now() + timeout;
     let previous = -1;
     while (Date.now() < deadline) {
         const count = await page.locator(selector).count();
-        if (count === previous && count > 0) return count;
+        // A stable count of zero is a settled page too. Requiring one block used to stand in for the
+        // hydration gate above, at the price of the full timeout on every page that holds no blocks.
+        if (count === previous) return count;
         previous = count;
         await page.waitForTimeout(quietFor);
     }
-    // Falling through is not an error: a page may legitimately hold no blocks at all.
+    // Falling through is not an error: the count may still be climbing when the deadline arrives.
     return page.locator(selector).count();
 }
 

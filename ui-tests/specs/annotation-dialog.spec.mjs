@@ -33,6 +33,13 @@ const PROSE = 'Alpha Bravo Charlie Delta.';
 
 let doc;
 
+// Declared before the fixture hook: hooks run in declaration order, so the skip lands before the CLI
+// builds a document that a reader who may not write could not have opened anyway.
+test.beforeEach(({}, testInfo) => {
+    test.skip(testInfo.project.name !== 'owner',
+        'the fixture container is owner-owned, and annotating is a write');
+});
+
 test.beforeEach(async ({ page }, testInfo) => {
     const slug = `annotation-${testInfo.testId}`;
     const created = await ldh(['create', 'item',
@@ -41,18 +48,7 @@ test.beforeEach(async ({ page }, testInfo) => {
     await ldh(['add', 'xhtml-block', '--title', 'Annotation prose',
         '--value', `<div xmlns="http://www.w3.org/1999/xhtml"><p>${PROSE}</p></div>`, doc]);
     await goto(page, doc);
-    await hydrated(page);
 });
-
-// The server shell renders the prose before Saxon-JS has run its initial template, so a click can land
-// while no ixsl handler is bound yet - which is indistinguishable from a handler that declined to match.
-//
-// window.rdfaEditor, not window.LinkedDataHub: the latter is truthy from the FIRST line of the bootstrap,
-// several instructions before the sub-objects it goes on to create, so waiting on it lands mid-way through.
-// rdfae:init-state runs last in that template, which makes its container the signal that all of it ran.
-async function hydrated(page) {
-    await page.waitForFunction(() => !!window.rdfaEditor, null, { timeout: 30_000 });
-}
 
 test.afterEach(async () => {
     if (doc) await ldh(['delete', doc], { allowFailure: true });
@@ -61,9 +57,10 @@ test.afterEach(async () => {
 // The XHTML block renders read-only until its Edit button is pressed. (Clicking the prose
 // itself does the same thing, but only by proxying to that button, so the button is the
 // affordance under the shortcut rather than a detour around it.)
-// The generous timeout is for the first test of a run: entering edit mode re-renders the
-// block through the client stylesheet, and on a cold page that pays for the Saxon-JS
-// warm-up the whole suite's timeouts are already sized around. Subsequent calls take ~1s.
+// The generous timeout is for the edit round-trip the click starts - fetch the resource, fold in
+// the constructor and the shapes, render the form - which is several requests deep on a cold
+// container. Not for the bootstrap: goto() has waited that out, and a click landing before it would
+// be dropped outright, where no timeout here could help.
 async function edit(page) {
     const block = page.locator('div.ldh-block').filter({ has: page.locator(XHTML_BLOCK) }).first();
     await block.locator('button.btn-edit').first().click();
