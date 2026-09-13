@@ -276,6 +276,8 @@ run_tests "document-hierarchy" $(find ./document-hierarchy/ -type f -name '*.sh'
 (( error_count += $? ))
 run_tests "misc" $(find ./misc/ -type f -name '*.sh')
 (( error_count += $? ))
+run_tests "static" $(find ./static/ -type f -name '*.sh')
+(( error_count += $? ))
 run_tests "proxy" $(find ./proxy/ -type f -name '*.sh')
 (( error_count += $? ))
 run_tests "federation" $(find ./federation/ -type f -name '*.sh')

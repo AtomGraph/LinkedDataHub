@@ -409,6 +409,29 @@ support@atomgraph.com]]></param-value>
         <filter-name>HSTS filter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
+    <!-- The text types this app serves from /static carry UTF-8: em dashes and middots in the kit
+         stylesheets' comments, a ⤴ in a content: value, translated labels in the XSL. Tomcat's default
+         mappings name no charset, so a direct fetch decodes them with the client's fallback encoding -
+         windows-1252 in a browser tab - and every multi-byte character breaks apart. A stylesheet or
+         script loaded from a page escapes this by inheriting the referencing document's encoding, which
+         is why the app rendered correctly while the files did not. .map has no default mapping at all;
+         JSON is UTF-8 by definition, so it needs the type and not a charset. -->
+    <mime-mapping>
+        <extension>css</extension>
+        <mime-type>text/css;charset=UTF-8</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+        <extension>js</extension>
+        <mime-type>text/javascript;charset=UTF-8</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+        <extension>map</extension>
+        <mime-type>application/json</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+        <extension>txt</extension>
+        <mime-type>text/plain;charset=UTF-8</mime-type>
+    </mime-mapping>
     <mime-mapping>
         <extension>xsl</extension>
         <mime-type>text/xsl;charset=UTF-8</mime-type>
