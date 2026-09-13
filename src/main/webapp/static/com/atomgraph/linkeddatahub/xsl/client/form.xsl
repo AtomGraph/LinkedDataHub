@@ -360,16 +360,15 @@ WHERE
 
                                  radiogroup/radio rather than tablist/tab because the control owns no panel of its
                                  own - the design system's ContentSwitcher makes the same call, and this markup is
-                                 its port. Pointer and Enter/Space only: the component itself binds no keys and no
-                                 roving tabindex (ui_kits/core/Status.jsx), so each segment stays a natural button
-                                 tab stop. Arrow-key selection is what the radio role leads a screen reader to
-                                 expect, and neither the component nor this port provides it - a gap to close in
-                                 the design system first, so the two do not fork -->
+                                 its port. A radiogroup is ONE tab stop with the arrows moving between its radios,
+                                 so the segments carry a roving tabindex and rdfae:move-object-kind binds the keys;
+                                 declaring the role without them promised a screen reader something nothing
+                                 answered -->
                             <div class="ac-switch sz-sm wd-fill" role="radiogroup" aria-label="{ac:label(key('resources', 'rdfa-object', ldh:translations()))}">
-                                <button type="button" class="ac-switch-seg" role="radio" aria-checked="true" data-object-kind="literal">
+                                <button type="button" class="ac-switch-seg" role="radio" aria-checked="true" tabindex="0" data-object-kind="literal">
                                     <xsl:apply-templates select="key('resources', 'rdfa-object-text', ldh:translations())" mode="ac:label"/>
                                 </button>
-                                <button type="button" class="ac-switch-seg" role="radio" aria-checked="false" data-object-kind="resource">
+                                <button type="button" class="ac-switch-seg" role="radio" aria-checked="false" tabindex="-1" data-object-kind="resource">
                                     <xsl:apply-templates select="key('resources', 'rdfa-object-link', ldh:translations())" mode="ac:label"/>
                                 </button>
                             </div>
@@ -522,7 +521,11 @@ WHERE
         <xsl:param name="kind" as="xs:string"/>
 
         <xsl:for-each select="$form//button[contains-token(@class, 'ac-switch-seg')]">
-            <ixsl:set-attribute name="aria-checked" select="if (@data-object-kind = $kind) then 'true' else 'false'"/>
+            <xsl:variable name="on" as="xs:boolean" select="@data-object-kind = $kind"/>
+            <ixsl:set-attribute name="aria-checked" select="if ($on) then 'true' else 'false'"/>
+            <!-- the roving tab stop travels with the selection, so the group is one stop and Tab
+                 always lands on the segment that is actually checked -->
+            <ixsl:set-attribute name="tabindex" select="if ($on) then '0' else '-1'"/>
         </xsl:for-each>
         <xsl:for-each select="id('annotation-object-literal', ixsl:page())">
             <xsl:choose>
@@ -544,6 +547,33 @@ WHERE
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
+    </xsl:template>
+
+    <!-- Arrow/Home/End over the object switch. Selection follows focus, which for a radiogroup is the
+         definition rather than a choice, so this routes through rdfae:set-object-kind - the same write path
+         the click handler uses - and then moves focus to match. Bound on the segment, not the group: focus
+         is on the segment, and Saxon-JS bubbles from the event target either way. -->
+    <xsl:template match="button[contains-token(@class, 'ac-switch-seg')][ancestor::form/@id = 'annotation-form']" mode="ixsl:onkeydown">
+        <xsl:variable name="key" select="string(ixsl:get(ixsl:event(), 'key'))" as="xs:string"/>
+        <xsl:if test="$key = ('ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp', 'Home', 'End')">
+            <!-- or the arrows scroll the page under the dialog -->
+            <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
+
+            <xsl:variable name="segments" as="element()*" select="../button[contains-token(@class, 'ac-switch-seg')]"/>
+            <xsl:variable name="position" as="xs:integer" select="count(preceding-sibling::button[contains-token(@class, 'ac-switch-seg')]) + 1"/>
+            <!-- the empty-sequence fallbacks are the wrap: past the last segment is the first, before the
+                 first is the last -->
+            <xsl:variable name="target" as="element()" select="if ($key = 'Home') then $segments[1]
+                else if ($key = 'End') then $segments[last()]
+                else if ($key = ('ArrowRight', 'ArrowDown')) then ($segments[$position + 1], $segments[1])[1]
+                else ($segments[$position - 1], $segments[last()])[1]"/>
+
+            <xsl:call-template name="rdfae:set-object-kind">
+                <xsl:with-param name="form" select="ancestor::form"/>
+                <xsl:with-param name="kind" select="string($target/@data-object-kind)"/>
+            </xsl:call-template>
+            <xsl:sequence select="ixsl:call($target, 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:if>
     </xsl:template>
 
     <!-- replaces the imported details/@open disclosure: this dialog discloses through the object switch and

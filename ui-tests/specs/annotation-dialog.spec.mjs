@@ -271,6 +271,39 @@ test.describe('RDFa annotation dialog', () => {
         await expect(page.locator('#annotation-tab-object')).toHaveClass(/is-on/);
     });
 
+    // A radiogroup is one tab stop whose arrows move AND select - that is the role's contract, not a
+    // nicety, and declaring role=radio without it promises a screen reader something nothing answers.
+    // Asserts the tab stop travels too: with both segments at tabindex 0 the group would be two stops,
+    // and with both at -1 it would drop out of the tab order entirely.
+    test('the object switch answers the arrow keys its role promises', async ({ page }) => {
+        await edit(page);
+        await selectAndOpen(page, 'Alpha');
+
+        const text = page.locator('.ac-switch-seg[data-object-kind="literal"]');
+        const link = page.locator('.ac-switch-seg[data-object-kind="resource"]');
+        await expect(text).toHaveAttribute('tabindex', '0');
+        await expect(link).toHaveAttribute('tabindex', '-1');
+
+        await text.focus();
+        await page.keyboard.press('ArrowRight');
+        await expect(link).toHaveAttribute('aria-checked', 'true');
+        await expect(link).toHaveAttribute('tabindex', '0');
+        await expect(text).toHaveAttribute('tabindex', '-1');
+        await expect(link).toBeFocused();
+        await expect(page.locator('#annotation-object-resource')).toBeVisible();
+        await expect(page.locator('#annotation-object-literal')).toBeHidden();
+
+        // wrapping, so the group never dead-ends
+        await page.keyboard.press('ArrowRight');
+        await expect(text).toHaveAttribute('aria-checked', 'true');
+        await expect(text).toBeFocused();
+
+        await page.keyboard.press('End');
+        await expect(link).toHaveAttribute('aria-checked', 'true');
+        await page.keyboard.press('Home');
+        await expect(text).toHaveAttribute('aria-checked', 'true');
+    });
+
     // acl:mode() reads window.LinkedDataHub['acl-modes'] through ixsl:contains(), which THROWS on a missing
     // intermediate segment rather than returning false - and Saxon-JS swallows a throw raised inside a match
     // pattern, so the rule just does not match, silently. Until the bootstrap created that object, clicking the
