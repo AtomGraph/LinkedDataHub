@@ -1986,6 +1986,9 @@ WHERE
                 <xsl:call-template name="ldh:ComboboxHide">
                     <xsl:with-param name="menu" select="$menu"/>
                 </xsl:call-template>
+
+                <!-- the deliberate cancel: it discards typed text too, which the focusout path preserves -->
+                <xsl:apply-templates select="../.." mode="ldh:CancelCombobox"/>
             </xsl:when>
             <xsl:when test="$key-code = 'Enter'">
                 <xsl:for-each select="$menu/li[contains-token(@class, 'is-active')]">
@@ -2043,6 +2046,24 @@ WHERE
         <xsl:call-template name="ldh:ComboboxHide">
             <xsl:with-param name="menu" select="$menu"/>
         </xsl:call-template>
+
+        <!-- an edit left empty is an edit abandoned. A picked item has already swapped the wrapper for its
+             chip, so the detached input's focusout must not write a stale snapshot over it -->
+        <xsl:if test="exists(ancestor::body) and not(normalize-space(ixsl:get(., 'value')))">
+            <xsl:apply-templates select="../.." mode="ldh:CancelCombobox"/>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- restores the committed chip stashed by the edit button; a combobox that was the value's own initial
+         state has no snapshot and stays put -->
+    <xsl:template match="div[contains-token(@class, 'ac-combobox')]" mode="ldh:CancelCombobox">
+        <xsl:variable name="committed-html" select="ixsl:get(., 'committed-html')" as="element()?"/>
+
+        <xsl:if test="exists($committed-html)">
+            <xsl:result-document href="?." method="ixsl:replace-element">
+                <xsl:sequence select="$committed-html"/>
+            </xsl:result-document>
+        </xsl:if>
     </xsl:template>
 
     <!-- select .type-combobox item (priority over plain .combobox) -->
@@ -2339,6 +2360,8 @@ WHERE
         <!-- the committed chip span carries the class scope; the fresh lookup replaces it wholesale -->
         <xsl:variable name="committed" select="ancestor::span[contains-token(@class, 'ac-cb-committed')][1]" as="element()"/>
         <xsl:variable name="forClass" select="$committed/@data-for-class ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
+        <!-- the replace destroys the chip; its clone is the snapshot an abandoned edit restores -->
+        <xsl:variable name="committed-html" select="ixsl:call($committed, 'cloneNode', [ true() ])"/>
 
         <xsl:for-each select="$committed">
             <xsl:result-document href="?." method="ixsl:replace-element">
@@ -2352,6 +2375,7 @@ WHERE
         </xsl:for-each>
 
         <xsl:for-each select="id('input-' || $uuid, ixsl:page())">
+            <ixsl:set-property name="committed-html" select="$committed-html" object="../.."/>
             <xsl:sequence select="ixsl:call(., 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
     </xsl:template>
