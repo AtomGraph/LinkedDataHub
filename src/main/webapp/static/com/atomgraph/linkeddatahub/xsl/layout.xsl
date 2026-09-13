@@ -91,7 +91,10 @@ exclude-result-prefixes="#all">
     <!--  To use xsl:import-schema, you need the schema-aware version of Saxon -->
     <!-- <xsl:import-schema namespace="http://www.w3.org/1999/xhtml" schema-location="http://www.w3.org/2002/08/xhtml/xhtml1-transitional.xsd"/> -->
 
-    <xsl:output method="xhtml" encoding="UTF-8" indent="yes" omit-xml-declaration="yes" doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd" doctype-public="-//W3C//DTD XHTML 1.0 Strict//EN" media-type="application/xhtml+xml"/>
+    <!-- no doctype declaration here: XSLTWriterBase overrides both doctype properties for either negotiated media type, so
+         these only ever misled a reader - and XHTML 1.0 Strict does not admit @about/@property/@typeof, so a page that did
+         carry that doctype would be invalid by it -->
+    <xsl:output method="xhtml" encoding="UTF-8" indent="yes" omit-xml-declaration="yes" media-type="application/xhtml+xml"/>
 
     <xsl:param name="lapp:origin" as="xs:anyURI?"/>
     <xsl:param name="ldh:requestUri" as="xs:anyURI"/>
@@ -201,11 +204,14 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF | srx:sparql" mode="xhtml:Meta">
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-        <meta name="og:url" content="{ac:absolute-path(ldh:base-uri(.))}"/>
+        <!-- og: rides @property, twitter: rides @name - that is each protocol's own spelling, and it is also what decides
+             whether the pair reaches RDFa at all: @name emits no triple, so og:url and og:title used to be invisible to both
+             Open Graph consumers and RDFa processors while their og: siblings below were not -->
+        <meta property="og:url" content="{ac:absolute-path(ldh:base-uri(.))}"/>
         <meta name="twitter:url" content="{ac:absolute-path(ldh:base-uri(.))}"/>
 
         <xsl:for-each select="key('resources', ac:absolute-path(ldh:base-uri(.)))">
-            <meta name="og:title" content="{ac:label(.)}"/>
+            <meta property="og:title" content="{ac:label(.)}"/>
             <meta name="twitter:title" content="{ac:label(.)}"/>
 
             <meta name="twitter:card" content="summary_large_image"/>
@@ -242,8 +248,17 @@ exclude-result-prefixes="#all">
          reporting the request here is what put lang="de" on a page written entirely in English. Deriving it from the header
          rather than recomputing it is what makes the two agree structurally instead of by two computations staying in step.
          Falls back to en, never to the request: with nothing to go on, the honest answer is the language the chrome ships in -->
+    <!-- @about pins the RDFa default subject to the canonical document URL. Without it the subject is the request URI, query
+         string and all, so every head-level assertion moved to a different subject on ?mode=/?version=/?diff=. A <base> would
+         fix the subject too, but it also re-resolves every relative URL and fetch on the page, which is a far larger blast
+         radius for the same RDF.
+
+         xml:lang beside lang because both representations of this URL have to agree: HTML+RDFa reads @lang, XHTML+RDFa reads
+         @xml:lang, and the language tag of every literal below inherits from whichever the processor honours -->
     <xsl:template match="/">
-        <html lang="{($ldh:httpHeaders('Content-Language')[1], 'en')[1]}" data-retro="m3" data-theme="light">
+        <xsl:variable name="lang" select="($ldh:httpHeaders('Content-Language')[1], 'en')[1]" as="xs:string"/>
+
+        <html lang="{$lang}" xml:lang="{$lang}" about="{ac:absolute-path(ldh:base-uri(.))}" data-retro="m3" data-theme="light">
             <xsl:apply-templates/>
         </html>
     </xsl:template>

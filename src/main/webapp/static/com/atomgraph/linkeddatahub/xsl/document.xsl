@@ -584,7 +584,30 @@ exclude-result-prefixes="#all"
             <xsl:apply-templates select="." mode="ldh:ContentBody">
                 <xsl:with-param name="mode" select="$mode"/>
             </xsl:apply-templates>
+
+            <xsl:apply-templates select="." mode="ldh:DocumentMetadata"/>
         </div>
+    </xsl:template>
+
+    <!-- DOCUMENT METADATA -->
+
+    <!-- What the page holds but does not show. No mode renders the whole graph: ldh:ContentList walks the rdf:_N members
+         and nothing else, ldh:BlockRow skips the content resources, and the document resource is suppressed outright when
+         it is a Container or an Item - so the document's own title, timestamps, creator, owner, parent, primary topic and
+         block membership were in no representation of the page at all, and neither was the topic's description under
+         ContentMode.
+
+         Every description gets a carrier rather than only the ones the active mode omits. Two reasons: which subjects a mode
+         drops is a fact about four templates that will keep moving, and a duplicated triple costs nothing - RDF is a set, so
+         a carrier that repeats what a visible block already asserts is a no-op, while a missing one is a hole in the graph.
+         What it is NOT is a second opinion: if a visible cell and a carrier ever disagree the extracted graph carries both,
+         and the surplus fails the excess check rather than passing quietly.
+
+         Placed last so no :first-child or :nth-child rule in the body shifts around it; link and meta take part in no
+         layout, so nothing else can. -->
+
+    <xsl:template match="rdf:RDF" mode="ldh:DocumentMetadata">
+        <xsl:apply-templates select="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ac:RDFaCarrier"/>
     </xsl:template>
     
     <!-- CONTENT BODY -->

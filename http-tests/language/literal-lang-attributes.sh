@@ -49,25 +49,39 @@ count()
 }
 
 # the assertions anchor on the RDFa @property carrier, whichever layout element it rides - the property grid
-# currently puts it (with @lang) on the .value cell inside the dd, not the dd itself
+# currently puts it (with @lang) on the .value cell inside the dd, not the dd itself.
+#
+# meta and link are excluded throughout: the document also carries its graph in RDFa metadata elements, which assert the
+# same statements without rendering anything. Those carry no language for a reader to hear, so every assertion about what
+# a reader is told is an assertion about the rendered cell, and counting both would count each statement twice.
+
+rendered="*[local-name() != 'meta'][local-name() != 'link']"
 
 # the page is in English and both values are on it: each says which language it is in
 
-[ "$(count "//*[@property = 'https://example.org/test#tagged'][@lang = 'lt']")" = "1" ]
-[ "$(count "//*[@property = 'https://example.org/test#tagged'][@lang = 'en']")" = "1" ]
+[ "$(count "//$rendered[@property = 'https://example.org/test#tagged'][@lang = 'lt']")" = "1" ]
+[ "$(count "//$rendered[@property = 'https://example.org/test#tagged'][@lang = 'en']")" = "1" ]
 
 # an untagged literal claims no language rather than inheriting the document's
 
-[ "$(count "//*[@property = 'https://example.org/test#plain'][@lang = '']")" = "1" ]
+[ "$(count "//$rendered[@property = 'https://example.org/test#plain'][@lang = '']")" = "1" ]
 
-# a number is not prose - it inherits, so it is read out in whatever language the reader is in
+# a number is not prose - it inherits, so it is read out in whatever language the reader is in. Its datatype says so in
+# the markup, which is also what stops an RDFa processor giving the literal the page's language
 
-[ "$(count "//*[@property = 'https://example.org/test#typed']")" = "1" ]
-[ "$(count "//*[@property = 'https://example.org/test#typed'][@lang]")" = "0" ]
+[ "$(count "//$rendered[@property = 'https://example.org/test#typed']")" = "1" ]
+[ "$(count "//$rendered[@property = 'https://example.org/test#typed'][@lang]")" = "0" ]
+[ "$(count "//$rendered[@property = 'https://example.org/test#typed'][@datatype = 'http://www.w3.org/2001/XMLSchema#integer']")" = "1" ]
 
 # both languages of the property survive to the page - suppressing one is the defect this marking exists to make safe
 
 [ "$(count "//*[local-name() = 'span'][@class = 'ac-tag em-quiet co-accent sz-xs']")" = "2" ]
+
+# the tag pill sits inside the cell that asserts the literal, so the cell's text is the value plus the pill's label. The
+# literal is what @content says, and it is the value alone - without it the extracted graph reads "Square" as "Squareen"
+
+[ "$(count "//$rendered[@property = 'https://example.org/test#tagged'][@lang = 'en'][@content = 'Square']")" = "1" ]
+[ "$(count "//$rendered[@property = 'https://example.org/test#tagged'][@lang = 'lt'][@content = 'Aikštė']")" = "1" ]
 
 ldh delete \
   -f "$OWNER_CERT_KEYSTORE" \

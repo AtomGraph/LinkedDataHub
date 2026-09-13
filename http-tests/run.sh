@@ -288,6 +288,8 @@ run_tests "versioning" $(find ./versioning/ -type f -name '*.sh')
 (( error_count += $? ))
 run_tests "language" $(find ./language/ -type f -name '*.sh')
 (( error_count += $? ))
+run_tests "rdfa" $(find ./rdfa/ -type f -name '*.sh')
+(( error_count += $? ))
 run_tests "system" $(find ./system/ -type f -name '*.sh')
 (( error_count += $? ))
 

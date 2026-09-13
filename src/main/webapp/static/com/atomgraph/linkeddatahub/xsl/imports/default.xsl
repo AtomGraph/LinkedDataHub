@@ -990,13 +990,19 @@ exclude-result-prefixes="#all"
     
     <!-- RDFa overrides -->
 
+    <!-- Every value cell takes its RDFa attributes from ac:RDFaAttributes rather than spelling them out, so the term ->
+         attribute mapping lives in one place and the anatomy here is the only thing these templates decide. It is also what
+         makes the cells faithful: a dd's literal used to be whatever text ended up inside it, which meant the language pill
+         concatenated onto the value ("Square" + "en" = "Squareen") and a formatted date replaced its own lexical form. The
+         attribute set carries @content now, so what the cell shows and what it asserts are free to differ. -->
+
     <xsl:template match="@rdf:resource" mode="ac:PropertyListValue">
         <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
         <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
-        <xsl:variable name="property-uri" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
         <xsl:variable name="diff-class" select="ldh:value-diff-class(.., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
 
-        <dd property="{$property-uri}" resource="{.}">
+        <dd>
+            <xsl:apply-templates select="." mode="ac:RDFaAttributes"/>
             <xsl:if test="$diff-class">
                 <xsl:attribute name="class" select="$diff-class"/>
             </xsl:if>
@@ -1008,10 +1014,10 @@ exclude-result-prefixes="#all"
     <xsl:template match="@rdf:nodeID" mode="ac:PropertyListValue">
         <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
         <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
-        <xsl:variable name="property-uri" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
         <xsl:variable name="diff-class" select="ldh:value-diff-class(.., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
 
-        <dd property="{$property-uri}" resource="_:{.}">
+        <dd>
+            <xsl:apply-templates select="." mode="ac:RDFaAttributes"/>
             <xsl:if test="$diff-class">
                 <xsl:attribute name="class" select="$diff-class"/>
             </xsl:if>
@@ -1023,14 +1029,14 @@ exclude-result-prefixes="#all"
     <xsl:template match="text()[../@xml:lang]" mode="ac:PropertyListValue">
         <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
         <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
-        <xsl:variable name="property-uri" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
         <xsl:variable name="diff-class" select="ldh:value-diff-class(.., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
 
         <!-- the value declares its own language rather than inheriting the document's. A property renders every language it
              carries, so the two sit side by side and the document default is wrong for at least one of them: without @lang a
              screen reader reads "Square" with Lithuanian phonetics on an lt page, and "Aikštė" with an English voice on an en
-             one. This is WCAG 3.1.2, and it also makes the RDFa faithful - the extracted literal keeps its language tag -->
-        <dd property="{$property-uri}" lang="{../@xml:lang}">
+             one. This is WCAG 3.1.2, and the attribute set says the same thing to an RDFa processor -->
+        <dd>
+            <xsl:apply-templates select="." mode="ac:RDFaAttributes"/>
             <xsl:if test="$diff-class">
                 <xsl:attribute name="class" select="$diff-class"/>
             </xsl:if>
@@ -1038,6 +1044,22 @@ exclude-result-prefixes="#all"
             <xsl:apply-templates select="."/>
 
             <xsl:apply-templates select="../@xml:lang" mode="ac:lang-tag"/>
+        </dd>
+    </xsl:template>
+
+    <!-- a property whose only value is the empty string: RDF/XML writes it as a childless element, so there is no text node
+         to dispatch and the row used to lose its value cell entirely - taking the group's RDFa @property with it, which left
+         the dt's title blank and the dl with a term and no description -->
+    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*[empty(node() | @rdf:resource | @rdf:nodeID)]" mode="ac:PropertyListValue">
+        <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
+        <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
+        <xsl:variable name="diff-class" select="ldh:value-diff-class(., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
+
+        <dd>
+            <xsl:apply-templates select="." mode="ac:RDFaAttributes"/>
+            <xsl:if test="$diff-class">
+                <xsl:attribute name="class" select="$diff-class"/>
+            </xsl:if>
         </dd>
     </xsl:template>
 
@@ -1053,20 +1075,12 @@ exclude-result-prefixes="#all"
     <xsl:template match="node()" mode="ac:PropertyListValue">
         <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
         <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
-        <xsl:variable name="property-uri" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
         <xsl:variable name="diff-class" select="ldh:value-diff-class(.., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
 
-        <dd property="{$property-uri}">
+        <dd>
+            <xsl:apply-templates select="." mode="ac:RDFaAttributes"/>
             <xsl:if test="$diff-class">
                 <xsl:attribute name="class" select="$diff-class"/>
-            </xsl:if>
-
-            <!-- an untagged literal makes no language claim, so it must not inherit the document's: lang="" is HTML's
-                 "unknown", the exact counterpart of RDF's absent tag. Only plain strings get it - a number or a date is not
-                 prose, and you do want those read out in the reader's language, so they inherit. XHTML literals are skipped
-                 too: they are markup and carry their own lang where it matters -->
-            <xsl:if test="self::text() and (not(../@rdf:datatype) or ../@rdf:datatype = '&xsd;string')">
-                <xsl:attribute name="lang" select="''"/>
             </xsl:if>
 
             <xsl:apply-templates select="."/>

@@ -672,8 +672,14 @@ exclude-result-prefixes="#all"
                 <xsl:apply-templates select="." mode="ldh:BlockBar"/>
             </xsl:if>
 
-            <!-- client-side $container; the card carries @about -->
+            <!-- client-side $container. @about rides here as well as on the card, because @typeof does not inherit a
+                 subject: on its own it mints a fresh blank node, so the carrier's type landed on a node that is in no
+                 graph. The XHTML card below carries both for the same reason, and so did this one before the design-system
+                 port dropped it -->
             <div class="block-row">
+                <xsl:if test="$about">
+                    <xsl:attribute name="about" select="$about"/>
+                </xsl:if>
                 <xsl:if test="exists($typeof)">
                     <xsl:attribute name="typeof" select="string-join($typeof, ' ')"/>
                 </xsl:if>
@@ -716,9 +722,11 @@ exclude-result-prefixes="#all"
                 <xsl:apply-templates select="." mode="ldh:BlockBar"/>
             </xsl:if>
 
-            <!-- client-side $container -->
+            <!-- client-side $container. @about is forwarded rather than dropped: the inner div takes @typeof from the
+                 resource's types, and @typeof alone mints a blank node instead of inheriting the card's subject, so nulling
+                 it here detached the type from the resource. Repeating the card's own URI is a no-op for the handlers that
+                 resolve the nearest ancestor @about, since it is the same string -->
             <xsl:next-match>
-                <xsl:with-param name="about" select="()"/> <!-- the card carries @about -->
                 <xsl:with-param name="class" select="'block-row'"/>
                 <xsl:with-param name="show-header" select="false()"/>
             </xsl:next-match>
@@ -769,6 +777,16 @@ exclude-result-prefixes="#all"
                         <xsl:attribute name="class" select="$main-class"/>
                     </xsl:if>
 
+                    <!-- the prose is the block's rdf:value, and until now it was rendered without saying so - the one triple
+                         an XHTML block exists to carry was the one absent from the page's graph. The attributes ride an
+                         element that is already here rather than a wrapper of their own: app.css styles this body by child
+                         combinator, so an extra div between it and the prose would land in a dozen rules. @content holds the
+                         serialized source, which RDFa prefers over the element's own inner XML - and has to, because the
+                         rendering strips the markup down to text -->
+                    <xsl:if test="count(rdf:value[@rdf:parseType = 'Literal']) = 1">
+                        <xsl:apply-templates select="rdf:value[@rdf:parseType = 'Literal']/xhtml:div" mode="ac:RDFaAttributes"/>
+                    </xsl:if>
+
                     <!-- the diff union can carry two values (removed and added); mark each and show the removed one first -->
                     <xsl:for-each select="rdf:value[@rdf:parseType = 'Literal']">
                         <xsl:sort select="if (ldh:value-diff-class(., $diff-added-keys, $diff-removed-keys) = 'diff-removed') then 0 else 1"/>
@@ -777,6 +795,8 @@ exclude-result-prefixes="#all"
                         <xsl:choose>
                             <xsl:when test="$value-diff-class">
                                 <div class="{$value-diff-class}">
+                                    <xsl:apply-templates select="xhtml:div" mode="ac:RDFaAttributes"/>
+
                                     <xsl:apply-templates select="xhtml:div" mode="ldh:XHTMLContent"/>
                                 </div>
                             </xsl:when>
