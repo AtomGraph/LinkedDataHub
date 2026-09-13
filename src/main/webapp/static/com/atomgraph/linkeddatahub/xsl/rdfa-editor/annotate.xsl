@@ -32,6 +32,15 @@ version="3.0">
                 intersect (descendant::* | self::*[@property]))[last()]"/>
         <xsl:sequence select="ixsl:call($event, 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
 
+        <!-- MUST come before rdfae:populate-form, which reaches the form by id() and so does nothing at all -
+             silently, over an empty sequence - when a host has re-rendered the page DOM and dropped the
+             overlay. rdfae:show-overlay rebuilds it too, but it runs after populate, so the dialog opened
+             blank in exactly that case. It keeps its own guard as the backstop for callers that reach it
+             without going through this handler -->
+        <xsl:if test="empty(id($rdfae:overlay-id, ixsl:page()))">
+            <xsl:call-template name="rdfae:init-overlay"/>
+        </xsl:if>
+
         <xsl:choose>
             <!-- edit mode -->
             <xsl:when test="exists($annotation)">

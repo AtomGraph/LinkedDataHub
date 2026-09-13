@@ -27,6 +27,8 @@ import { fixtures, ldh } from '../lib/fixtures.mjs';
 const XHTML_BLOCK = 'div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"]';
 const OVERLAY = '#rdfa-editor-overlay';
 const TITLE = 'http://purl.org/dc/terms/title';
+// the sentinel the datatype select uses for its free-text option (rdfa-editor/overlay.xsl $rdfae:custom)
+const CUSTOM = 'https://w3id.org/atomgraph/rdfa-editor#custom';
 const PROSE = 'Alpha Bravo Charlie Delta.';
 
 let doc;
@@ -39,7 +41,18 @@ test.beforeEach(async ({ page }, testInfo) => {
     await ldh(['add', 'xhtml-block', '--title', 'Annotation prose',
         '--value', `<div xmlns="http://www.w3.org/1999/xhtml"><p>${PROSE}</p></div>`, doc]);
     await goto(page, doc);
+    await hydrated(page);
 });
+
+// The server shell renders the prose before Saxon-JS has run its initial template, so a click can land
+// while no ixsl handler is bound yet - which is indistinguishable from a handler that declined to match.
+//
+// window.rdfaEditor, not window.LinkedDataHub: the latter is truthy from the FIRST line of the bootstrap,
+// several instructions before the sub-objects it goes on to create, so waiting on it lands mid-way through.
+// rdfae:init-state runs last in that template, which makes its container the signal that all of it ran.
+async function hydrated(page) {
+    await page.waitForFunction(() => !!window.rdfaEditor, null, { timeout: 30_000 });
+}
 
 test.afterEach(async () => {
     if (doc) await ldh(['delete', doc], { allowFailure: true });
@@ -199,5 +212,88 @@ test.describe('RDFa annotation dialog', () => {
         await expect(page.locator('#annotation-tab-object')).toHaveClass(/is-on/);
         await expect(page.locator('#annotation-tab-subject .ac-tab-count')).toHaveText('1');
         await expect(page.locator(`${OVERLAY} button.remove-action`)).toBeVisible();
+    });
+
+    // rdfae:populate-form writes DOM properties; the design system carries the same states as wrapper
+    // classes, and only the onchange handlers bridge the two. Setting .value from script fires no change
+    // event, so before rdfae:reveal-fields synced them a prefilled field read as live while being inert.
+    // Both assertions pair the property with the class deliberately: the property alone passed all along.
+    test('a prefilled datatype disables the language field visibly', async ({ page }) => {
+        const DATE = 'http://www.w3.org/2001/XMLSchema#date';
+        await edit(page);
+        await selectAndOpen(page, 'Bravo');
+
+        await page.locator('#annotation-property').fill(TITLE);
+        await page.locator('#annotation-datatype').selectOption(DATE);
+        await annotate(page);
+        await expect(page.locator(OVERLAY)).toBeHidden();
+        await expect(annotation(page, 'Bravo')).toHaveAttribute('datatype', DATE);
+
+        await reopen(page, 'Bravo');
+        await expect(page.locator('#annotation-datatype')).toHaveValue(DATE);
+        await expect(page.locator('#annotation-lang')).toBeDisabled();
+        await expect(page.locator('#annotation-lang').locator('xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " ac-field-box ")][1]'))
+            .toHaveClass(/is-disabled/);
+    });
+
+    test('a datatype outside the option list reveals the custom input holding it', async ({ page }) => {
+        const ODD = 'http://example.org/vocab#Temperature';
+        await edit(page);
+        await selectAndOpen(page, 'Charlie');
+
+        await page.locator('#annotation-property').fill(TITLE);
+        await page.locator('#annotation-datatype').selectOption(CUSTOM);
+        await page.locator('input[name="custom-datatype"]').fill(ODD);
+        await annotate(page);
+        await expect(page.locator(OVERLAY)).toBeHidden();
+        await expect(annotation(page, 'Charlie')).toHaveAttribute('datatype', ODD);
+
+        // the select has no option for it, so prefill routes it to the free-text input - which stayed
+        // hidden until reveal-fields cleared is-hidden on its shell
+        await reopen(page, 'Charlie');
+        const custom = page.locator('input[name="custom-datatype"]');
+        await expect(custom).toHaveValue(ODD);
+        await expect(custom).toBeVisible();
+        await expect(custom.locator('xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " ac-field ")][1]'))
+            .not.toHaveClass(/is-hidden/);
+    });
+
+    // The overlay is reached by id(), so a host that re-rendered the page DOM and dropped it made
+    // rdfae:populate-form a silent no-op over an empty sequence - and rdfae:show-overlay, which rebuilds it,
+    // runs after. The dialog then opened blank. Removing it here reproduces exactly that state.
+    test('rebuilds itself, populated, after the overlay was disposed', async ({ page }) => {
+        await edit(page);
+        await page.evaluate(() => document.getElementById('rdfa-editor-overlay')?.remove());
+        await expect(page.locator(OVERLAY)).toHaveCount(0);
+
+        await selectAndOpen(page, 'Delta');
+        await expect(page.locator('#annotation-value')).toHaveValue('Delta');
+        await expect(page.locator('#annotation-tab-object')).toHaveClass(/is-on/);
+    });
+
+    // acl:mode() reads window.LinkedDataHub['acl-modes'] through ixsl:contains(), which THROWS on a missing
+    // intermediate segment rather than returning false - and Saxon-JS swallows a throw raised inside a match
+    // pattern, so the rule just does not match, silently. Until the bootstrap created that object, clicking the
+    // prose did nothing whenever the click beat the first document response, while the pane's data-acl-modes
+    // already said Write. Measured before the fix: LinkedDataHub undefined at click time, editor never opened.
+    //
+    // This drives the shortcut rather than the Edit button the other tests use, because the shortcut is the
+    // only thing that exercises acl:mode() from a pattern.
+    test('click-to-edit opens the editor once the modes are known', async ({ page }) => {
+        // The object exists from bootstrap, which is the whole of the fix: the guard now EVALUATES
+        // (to no modes, until the response Link headers arrive) instead of throwing. It does not make
+        // the modes arrive any sooner - acl:mode() still reads a global that only a document response
+        // fills, while the pane's data-acl-modes is correct from first paint. Collapsing those two onto
+        // one source is a separate change, deliberately not made here.
+        expect(await page.evaluate(() => typeof (window.LinkedDataHub || {})['acl-modes'])).toBe('object');
+
+        await page.waitForFunction(() => {
+            const m = window.LinkedDataHub['acl-modes'];
+            return !!(m && m.write);
+        }, null, { timeout: 30_000 });
+
+        await page.locator(`${XHTML_BLOCK} div.main`).first().click();
+        await expect(page.locator('.rdfa-editor-content')).toBeVisible({ timeout: 30_000 });
+        await expect(page.locator('[contenteditable="true"]')).toHaveCount(1);
     });
 });

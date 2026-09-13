@@ -356,7 +356,15 @@ WHERE
                         <div class="ac-tabpanel" id="annotation-panel-object" role="tabpanel" aria-labelledby="annotation-tab-object">
                             <!-- literal and resource objects are mutually exclusive in rdfae:apply-annotation
                                  (@resource suppresses @content/@datatype/@lang); the segmented control is that
-                                 exclusivity made visible, and rdfae:form-values reads whichever side is checked -->
+                                 exclusivity made visible, and rdfae:form-values reads whichever side is checked.
+
+                                 radiogroup/radio rather than tablist/tab because the control owns no panel of its
+                                 own - the design system's ContentSwitcher makes the same call, and this markup is
+                                 its port. Pointer and Enter/Space only: the component itself binds no keys and no
+                                 roving tabindex (ui_kits/core/Status.jsx), so each segment stays a natural button
+                                 tab stop. Arrow-key selection is what the radio role leads a screen reader to
+                                 expect, and neither the component nor this port provides it - a gap to close in
+                                 the design system first, so the two do not fork -->
                             <div class="ac-switch sz-sm wd-fill" role="radiogroup" aria-label="{ac:label(key('resources', 'rdfa-object', ldh:translations()))}">
                                 <button type="button" class="ac-switch-seg" role="radio" aria-checked="true" data-object-kind="literal">
                                     <xsl:apply-templates select="key('resources', 'rdfa-object-text', ldh:translations())" mode="ac:label"/>
@@ -567,6 +575,23 @@ WHERE
                     <ixsl:set-attribute name="hidden" select="'hidden'"/>
                 </xsl:otherwise>
             </xsl:choose>
+        </xsl:for-each>
+
+        <!-- the imported populate-form writes DOM PROPERTIES (disabled, style.display); the design system
+             carries the same states as WRAPPER CLASSES, and only the onchange handlers bridge the two. Setting
+             .value from script fires no change event, so on prefill the bridge never runs and a field reads as
+             live while being inert. Both states are derived from $span rather than from the inputs, because
+             this runs before populate-form writes them -->
+        <xsl:variable name="datatype" as="xs:string?" select="$span/@datatype ! string(.)"/>
+        <xsl:for-each select="$form//input[@name = 'lang']/ancestor::div[contains-token(@class, 'ac-field-box')][1]">
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-disabled', exists($datatype))"/>
+        </xsl:for-each>
+        <!-- a datatype the select has no option for routes to the free-text input (rdfae:set-select-or-custom);
+             ask the option list rather than restating it, so the two cannot drift -->
+        <xsl:variable name="custom" as="xs:boolean"
+            select="exists($datatype) and empty($form//select[@name = 'datatype']/option[@value = $datatype])"/>
+        <xsl:for-each select="$form//input[@name = 'custom-datatype']/ancestor::div[contains-token(@class, 'ac-field')][1]">
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-hidden', not($custom))"/>
         </xsl:for-each>
 
         <xsl:variable name="overrides" as="xs:integer" select="count($span/(@about | @typeof))"/>

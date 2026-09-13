@@ -285,6 +285,9 @@ version="3.0">
         <xsl:for-each select="id('stmt-subject', ixsl:page())">
             <ixsl:set-attribute name="data-inherited-subject" select="($in-scope-subject, '')[1]"/>
             <ixsl:set-property name="textContent" select="($in-scope-subject, '')[1]" object="."/>
+            <!-- the readout is a single line that may be narrower than the IRI; @title is where the whole of it
+                 stays reachable. Written wherever textContent is, so the two cannot say different things -->
+            <ixsl:set-attribute name="title" select="($in-scope-subject, '')[1]"/>
         </xsl:for-each>
     </xsl:template>
 
@@ -345,6 +348,7 @@ version="3.0">
         <xsl:for-each select="id('stmt-subject', ixsl:page())">
             <ixsl:set-property name="textContent"
                 select="($value[. ne ''], string(@data-inherited-subject))[1]" object="."/>
+            <ixsl:set-attribute name="title" select="($value[. ne ''], string(@data-inherited-subject))[1]"/>
         </xsl:for-each>
     </xsl:template>
 

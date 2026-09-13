@@ -318,6 +318,10 @@ circle { cursor: move; }
 /* Remove is a destructive action on the edited annotation, not a peer of Cancel/Annotate: the auto margin
    parks it at the opposite edge of the flex-end row */
 #rdfa-editor-overlay .ldh-block-foot .remove-action { margin-right: auto; }
+/* The in-scope subject is a full document IRI with a fragment, which wraps to two lines and costs a 360-520px
+   card more height than a read-only echo is worth. One line with an ellipsis, same treatment the locked select
+   display gives its value (.ac-select-locked > .lk-val); rdfae:show-overlay writes the whole IRI to @title */
+#rdfa-editor-overlay #stmt-subject { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* app.css gives .ldh-block-foot the band chrome with space-between (hint left, buttons right);
    LDH footers are bare button rows, so cluster them at the right edge instead */
 .ldh-block-foot {

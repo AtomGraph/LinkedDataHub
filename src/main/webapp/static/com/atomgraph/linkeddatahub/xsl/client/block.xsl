@@ -249,9 +249,15 @@ exclude-result-prefixes="#all"
 
     <!-- EVENT LISTENERS -->
 
-    <!-- ARIA content tabs (design-system .ac-tabs with .ac-tabpanel panes, e.g. authored in XHTML content):
-         move is-on/aria-selected to the clicked tab and unhide only the panel it aria-controls. Paneless tablists
-         (the query block's mode tabs re-render results and carry their own priority-1 handlers) fail the panel guard -->
+    <!-- ARIA content tabs (design-system .ac-tabs with .ac-tabpanel panes, e.g. authored in XHTML content, and
+         the RDFa annotation dialog's object/subject strip): move is-on/aria-selected to the clicked tab and
+         unhide only the panel it aria-controls. Paneless tablists (the query block's mode tabs re-render results
+         and carry their own priority-1 handlers) fail the panel guard.
+
+         Pointer activation only. The design system's Tabs specifies a roving tabindex and arrow/Home/End
+         navigation (ui_kits/core/Tabs.d.ts); that half is deliberately not ported here or at the query block's
+         own tablist, because every tab is a natural <button> tab stop, so none is keyboard-unreachable and Enter
+         reaches this rule. Porting it would have to happen at both call sites at once, or the convention splits. -->
 
     <xsl:template match="button[contains-token(@class, 'ac-tab')][@role = 'tab'][not(contains-token(@class, 'is-on'))]" mode="ixsl:onclick">
         <xsl:variable name="tab" select="." as="element()"/>

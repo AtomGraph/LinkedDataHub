@@ -175,6 +175,14 @@ WHERE
         <ixsl:set-property name="graphs" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by graph3d.xsl -->
         <ixsl:set-property name="yasqe" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="pending-scrolls" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- deferred fragment scrolls awaiting block hydration, keyed by scroll id (ldh:RenderTab/ldh:block-hydrated) -->
+        <!-- MUST exist from bootstrap, empty, before any document response fills it: acl:mode() reaches it with
+             ixsl:contains(), which THROWS on a missing intermediate segment rather than returning false, and
+             Saxon-JS swallows a throw raised inside a match pattern - the rule then silently does not match, with
+             no console error. Until this was initialized here, every acl:mode()-guarded PATTERN (click-to-edit on
+             XHTML content, the Write-gated dragover/drop rules) was dead between bootstrap and the first
+             ldh:SetAclModes, while the same call in a template BODY threw visibly. Empty is the right start: it
+             reads as "no modes known yet", which fails closed -->
+        <ixsl:set-property name="acl-modes" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
         <!-- create the RDFa editor state container (editor chrome initializes lazily, on the first editable region) -->
         <xsl:call-template name="rdfae:init-state"/>
