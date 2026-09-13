@@ -484,11 +484,19 @@ button.tree-link { border: 0; background: transparent; width: 100%; font: inheri
    on the field's light surface: the field draws the border and the surface, so the editor drops
    yasqe.css's, and the gutter role passes to CodeMirror's own, styled on the field's tokens.
    .ac-cf-gutter's numbers are stamped once at render and cannot follow an edit, while CodeMirror's
-   track the lines the document has, so the static column goes wherever an editor mounted. */
+   track the lines the document has, so the static column goes wherever an editor mounted.
+   height: auto grows to the content and has no floor of its own, and both of the field's went with
+   the rules it replaced - yasqe.css's height: 300px, and .ac-cf-gutter's rows, hidden above (the
+   textarea's rows= cannot size anything once it is display: none), so a query with no text yet
+   rendered one line tall. The floor is stated in the editor's own terms instead, fifteen line boxes
+   of the line-height: 1.5em yasqe.css gives .CodeMirror, plus the 4px .CodeMirror-lines pads with
+   above and below, and it goes on the scroller, where CodeMirror's grow-to-content recipe puts it.
+   The gutter column needs a floor of its own because CodeMirror stamps its height in JS from the
+   height of the document, so it would stand one line tall inside a field of fifteen. */
 .ac-codefield .CodeMirror { flex: 1; min-width: 0; height: auto; border: 0; background: transparent; color: var(--fg-1); }
-.ac-codefield .CodeMirror-scroll { overflow-x: auto; overflow-y: hidden; }
+.ac-codefield .CodeMirror-scroll { min-height: calc(15 * 1.5em + 8px); overflow-x: auto; overflow-y: hidden; }
 .ac-codefield:has(.CodeMirror) .ac-cf-gutter { display: none; }
-.ac-codefield .CodeMirror-gutters { background: var(--surface-2); border-right: 1px solid var(--border-default); }
+.ac-codefield .CodeMirror-gutters { min-height: 100%; background: var(--surface-2); border-right: 1px solid var(--border-default); }
 .ac-codefield .CodeMirror-linenumber { color: var(--ink-5); font-family: var(--font-mono); }
 
 /* the wordmark's white ink is header-bar styling; on the footer's light surface it takes body ink
