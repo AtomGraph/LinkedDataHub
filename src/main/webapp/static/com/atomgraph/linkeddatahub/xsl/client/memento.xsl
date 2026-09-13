@@ -158,7 +158,7 @@ version="3.0"
                                     </form>
                                 </xsl:when>
                                 <xsl:otherwise>
-                                    <xsl:sequence select="ldh:error-alert('version-history-not-loaded', ldh:http-error-key($response?status), ())"/>
+                                    <xsl:sequence select="ldh:error-alert('version-history-not-loaded', ac:http-error-key($response?status), ())"/>
                                 </xsl:otherwise>
                             </xsl:choose>
                         
@@ -268,7 +268,7 @@ version="3.0"
 
         <xsl:for-each select="($context('modal')//div[contains-token(@class, 'ac-modal-body')])[1]">
             <xsl:result-document href="?." method="ixsl:prepend-content">
-                <xsl:sequence select="ldh:error-alert($title-key, ldh:http-error-key($context('response')?status), ())"/>
+                <xsl:sequence select="ldh:error-alert($title-key, ac:http-error-key($context('response')?status), ())"/>
             </xsl:result-document>
         </xsl:for-each>
     </xsl:function>

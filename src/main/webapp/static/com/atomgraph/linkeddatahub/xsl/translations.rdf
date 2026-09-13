@@ -771,10 +771,6 @@
         <rdfs:label xml:lang="en-US">The request did not complete.</rdfs:label>
         <rdfs:label xml:lang="es-ES">La solicitud no se completó.</rdfs:label>
     </rdf:Description>
-    <rdf:Description rdf:nodeID="technical-detail">
-        <rdfs:label xml:lang="en-US">Technical detail</rdfs:label>
-        <rdfs:label xml:lang="es-ES">Detalle técnico</rdfs:label>
-    </rdf:Description>
     <rdf:Description rdf:nodeID="violation-invalid-value">
         <rdfs:label xml:lang="en-US">Invalid value</rdfs:label>
         <rdfs:label xml:lang="es-ES">Valor no válido</rdfs:label>

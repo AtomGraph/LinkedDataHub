@@ -1367,6 +1367,34 @@ exclude-result-prefixes="#all"
 
     <!-- HEADER -->
 
+    <!-- A failed response is a block like any other - its card, its properties and its actions all stay. Only
+         the header carries the failure (design system: Core → Status, InlineAlert): the headline is what the
+         server called the response, and the sentence under it explains the status in the reader's own terms.
+         The response's own metadata is the block body's business, and stays there. -->
+    <xsl:template match="*[rdf:type/@rdf:resource = '&http;Response']" mode="ac:BlockHeader" priority="1">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'ldh-block-head ac-alert va-negative'" as="xs:string?"/>
+
+        <xsl:apply-templates select="." mode="ac:InlineAlert">
+            <xsl:with-param name="id" select="$id"/>
+            <xsl:with-param name="class" select="$class"/>
+            <!-- the h2 rides in $body rather than the $title slot so the document outline survives -->
+            <xsl:with-param name="body" as="item()*">
+                <div class="ldh-res-titleline">
+                    <h2 class="ac-alert-title">
+                        <xsl:apply-templates select="." mode="ac:label"/>
+                    </h2>
+
+                    <xsl:apply-templates select="." mode="ac:ResourceTypes"/>
+                </div>
+
+                <span class="ac-alert-text">
+                    <xsl:apply-templates select="key('resources', ac:http-error-key(xs:double(http:statusCodeValue)), ldh:translations())" mode="ac:label"/>
+                </span>
+            </xsl:with-param>
+        </xsl:apply-templates>
+    </xsl:template>
+
     <xsl:template match="*[rdf:type/@rdf:resource = '&http;Response'][lacl:requestAccess/@rdf:resource][$foaf:Agent]" mode="ac:BlockHeader" priority="2">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'ac-alert va-informative'" as="xs:string?"/>

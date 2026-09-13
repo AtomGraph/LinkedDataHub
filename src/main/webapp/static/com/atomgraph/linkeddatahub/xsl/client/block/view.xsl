@@ -186,7 +186,7 @@ exclude-result-prefixes="#all"
                     <xsl:sequence select="$context"/>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:sequence select="ldh:render-block-error($container, 'block-query-failed', ldh:http-error-key($response?status), $endpoint, $response)"/>
+                    <xsl:sequence select="ldh:render-block-error($container, 'block-query-failed', ac:http-error-key($response?status), $endpoint, $response)"/>
 
                     <xsl:sequence select="ldh:end-block-loading($context, ())[current-date() lt xs:date('2000-01-01')]"/>
 
@@ -2838,7 +2838,7 @@ exclude-result-prefixes="#all"
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:sequence select="ldh:render-block-error($container//div[contains-token(@class, 'main')], 'block-query-not-loaded', ldh:http-error-key($response?status), $query-uri, $response)"/>
+                    <xsl:sequence select="ldh:render-block-error($container//div[contains-token(@class, 'main')], 'block-query-not-loaded', ac:http-error-key($response?status), $query-uri, $response)"/>
 
                     <xsl:sequence select="ldh:end-block-loading($context, ())[current-date() lt xs:date('2000-01-01')]"/>
 
@@ -3088,7 +3088,7 @@ exclude-result-prefixes="#all"
                         <xsl:result-document href="?." method="ixsl:append-content">
                             <!-- appended beside the parallax rows rather than filling a block body, so the bare alert
                                  without the ldh-block-error wrapper - it must not ring the view card it sits in -->
-                            <xsl:sequence select="ldh:error-alert('block-query-failed', ldh:http-error-key($response?status), ())"/>
+                            <xsl:sequence select="ldh:error-alert('block-query-failed', ac:http-error-key($response?status), ())"/>
                         </xsl:result-document>
                     </xsl:for-each>
 
@@ -3260,7 +3260,7 @@ exclude-result-prefixes="#all"
                     <xsl:for-each select="$container/div[contains-token(@class, 'facet-pop')]/div[contains-token(@class, 'facet-values')]">
                         <xsl:result-document href="?." method="ixsl:replace-content">
                             <div>
-                                <xsl:sequence select="ldh:error-alert('block-values-failed', ldh:http-error-key($response?status), ())"/>
+                                <xsl:sequence select="ldh:error-alert('block-values-failed', ac:http-error-key($response?status), ())"/>
                             </div>
                         </xsl:result-document>
                     </xsl:for-each>

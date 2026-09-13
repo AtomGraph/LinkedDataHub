@@ -724,7 +724,7 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <xsl:otherwise>
                 <!-- error response - could not load query results -->
-                <xsl:sequence select="ldh:render-block-error($results-container, 'block-query-failed', ldh:http-error-key($response?status), (), $response)"/>
+                <xsl:sequence select="ldh:render-block-error($results-container, 'block-query-failed', ac:http-error-key($response?status), (), $response)"/>
                 
                 <xsl:sequence select="ldh:end-block-loading(map{ 'container': $results-container }, ())[current-date() lt xs:date('2000-01-01')]"/>
                 <xsl:sequence select="

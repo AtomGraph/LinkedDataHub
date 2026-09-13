@@ -319,6 +319,25 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))"/>
     </xsl:function>
 
+    <!-- The app's headline and explanation, resolved from the app's own catalog and handed to the client's
+         alert builder. The keys stay keys at every call site: which catalog a key belongs to is what
+         separates this wrapper from ac:error-alert, not the markup, which is the client's. -->
+    <xsl:function name="ldh:error-alert" as="element()">
+        <xsl:param name="title-key" as="xs:string"/> <!-- translations.rdf nodeID of the headline -->
+        <xsl:param name="explanation-key" as="xs:string"/> <!-- nodeID of the sentence under it; ac:http-error-key() derives one from a status -->
+        <xsl:param name="uri" as="xs:anyURI?"/> <!-- what could not be reached, linked under the sentence -->
+
+        <xsl:variable name="translations" select="ldh:translations()" as="document-node()"/>
+        <xsl:variable name="title" as="item()*">
+            <xsl:apply-templates select="key('resources', $title-key, $translations)" mode="ac:label"/>
+        </xsl:variable>
+        <xsl:variable name="text" as="item()*">
+            <xsl:apply-templates select="key('resources', $explanation-key, $translations)" mode="ac:label"/>
+        </xsl:variable>
+
+        <xsl:sequence select="ac:error-alert($title, $text, $uri)"/>
+    </xsl:function>
+
     <!-- the label of a class given as a bare URI: rdfs:Resource takes the app catalog's localized label,
          everything else delegates to the ac:object-label machinery over a synthesized object node, so the
          load-guarded document lookup (with its SAXON catalog / SaxonJS documentPool duals) lives in one

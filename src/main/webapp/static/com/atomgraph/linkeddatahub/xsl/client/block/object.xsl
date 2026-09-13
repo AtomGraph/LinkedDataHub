@@ -219,7 +219,7 @@ exclude-result-prefixes="#all"
                     <xsl:sequence select="$context"/>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:sequence select="ldh:render-block-error($container, 'block-resource-not-loaded', ldh:http-error-key($response?status), $resource-uri, $response)"/>
+                    <xsl:sequence select="ldh:render-block-error($container, 'block-resource-not-loaded', ac:http-error-key($response?status), $resource-uri, $response)"/>
 
                     <xsl:sequence select="ldh:end-block-loading($context, ())[current-date() lt xs:date('2000-01-01')]"/>
                     <xsl:sequence select="

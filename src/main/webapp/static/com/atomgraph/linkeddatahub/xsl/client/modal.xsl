@@ -1750,7 +1750,7 @@ LIMIT   10
                 <xsl:for-each select="$container//div[contains-token(@class, 'endpoint-classes')]//div[contains-token(@class, 'val-main')]">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <!-- a region of the modal form, not a block body, so the bare alert -->
-                        <xsl:sequence select="ldh:error-alert('classes-not-loaded', ldh:http-error-key($response?status), ())"/>
+                        <xsl:sequence select="ldh:error-alert('classes-not-loaded', ac:http-error-key($response?status), ())"/>
                     </xsl:result-document>
                 </xsl:for-each>
             </xsl:otherwise>
@@ -2287,7 +2287,7 @@ LIMIT   10
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
-        <xsl:sequence select="ldh:render-form-error($context('form'), 'data-not-added', ($explanation-key, ldh:http-error-key($response?status))[1], ldh:response-detail($response))"/>
+        <xsl:sequence select="ldh:render-form-error($context('form'), 'data-not-added', ($explanation-key, ac:http-error-key($response?status))[1], ldh:response-detail($response))"/>
     </xsl:function>
 
     <!-- Kicks off the async metadata-fetch chain for the constraint-violation re-render of a modal form (Container/Item creation and document edit). $context carries response/about/block/form from the form submit handler — $about is the resource discriminator (set by the submit handler from $block/@about or $form/@action). Harvest types/property-uris from the edited resource; object-uris from the whole body. Terminates in ldh:render-modal-form-violation. -->

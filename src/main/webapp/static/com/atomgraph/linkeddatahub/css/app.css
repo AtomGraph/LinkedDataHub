@@ -386,6 +386,19 @@ nav:has(> .ldh-tabs) {
   z-index: 50;
   animation: menu-pop var(--dur-fast) var(--ease-out-soft);
   color: var(--fg-1);
+  /* THE OVERFLOW RULE, as the core Menu states it (../core/overlays.css): a panel that outgrows the
+     side it opened on scrolls inside that side instead of running out of it. This menu is the one
+     that needs it most - its items are a data set (the ontology's classes), so its height is not
+     something the design can look at once and call settled. Flipping alone does not save it: opened
+     upward out of the create dock it ran 690px into a 280px gap, and what overran went under the
+     sticky header and action bar, which paint over it - the dock is a stacking context, so no
+     z-index on the panel can outrank them.
+     The ceiling is the core Menu's 340px. Under it, the consumer stamps --ldh-menu-avail on the
+     anchor when the menu opens, carrying the room the chosen side actually has (up to the sticky
+     chrome's lower edge, not the viewport's), which is the measurement only the running page can
+     make. Unstamped - these preview pages - the fallback leaves the flat 340px ceiling in force. */
+  max-height: clamp(120px, var(--ldh-menu-avail, 340px), 340px);
+  overflow-y: auto;
 }
 .ldh-add-menu .hd {
   padding: 6px 8px 4px;
@@ -793,6 +806,10 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   border-radius: var(--r-md); box-shadow: var(--shadow-lg);
   display: flex; flex-direction: column; gap: 2px;
   color: var(--fg-1);
+  /* the overflow rule, as on .ldh-add-menu above - this panel holds a document's actions, which a
+     package can add to, so its height is not fixed either */
+  max-height: clamp(120px, var(--ldh-menu-avail, 340px), 340px);
+  overflow-y: auto;
 }
 .ldh-of-menu .it {
   display: flex; align-items: center; gap: var(--sp-2);
@@ -889,6 +906,10 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   display: none;
   z-index: 50;
   color: var(--fg-1);
+  /* the overflow rule, as on .ldh-add-menu above - a short list today, but it opens from the action
+     bar, where a short viewport leaves little room below it */
+  max-height: clamp(120px, var(--ldh-menu-avail, 340px), 340px);
+  overflow-y: auto;
 }
 .ldh-mode.is-open .modes-pop { display: block; }
 .ldh-mode .mi {
@@ -1791,26 +1812,9 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 
 /* Error body: the alert owns the message; the raw detail is demoted. */
 .ldh-block-error { display: flex; flex-direction: column; gap: var(--sp-3); }
-/* Technical detail — collapsed by default, mono and muted when open. Never the
-   first thing read, but never hidden from the person who needs it either. */
-.ldh-block-detail { border-top: 1px dashed var(--border-default); padding-top: var(--sp-3); }
-.ldh-block-detail > summary {
-  display: inline-flex; align-items: center; gap: 5px;
-  cursor: pointer; list-style: none;
-  font-family: var(--font-sans); font-size: var(--fs-xs); font-weight: var(--fw-medium);
-  color: var(--fg-muted); border-radius: var(--r-xs);
-}
-.ldh-block-detail > summary::-webkit-details-marker { display: none; }
-.ldh-block-detail > summary:hover { color: var(--fg-1); }
-.ldh-block-detail > summary:focus-visible { outline: 0; box-shadow: var(--focus-ring); }
-.ldh-block-detail > summary .msi { font-size: 15px; transition: transform var(--dur-fast) var(--ease-out-soft); }
-.ldh-block-detail[open] > summary .msi { transform: rotate(90deg); }
-.ldh-block-detail pre {
-  margin: var(--sp-2) 0 0; padding: var(--sp-3); overflow-x: auto;
-  background: var(--surface-2); border-radius: var(--r-sm);
-  font-family: var(--font-mono); font-size: var(--fs-xs); line-height: 1.6;
-  color: var(--fg-muted); white-space: pre-wrap; word-break: break-word;
-}
+/* The technical detail the error body demotes is the core kit's Disclosure
+   (.ac-disclosure): a collapsed <details> is not block vocabulary, and the
+   client layer renders one too. */
 
 /* Empty body: literal, quiet, with the one action that resolves it. Per the
    copy rules — "No results." not "Nothing here yet 👀". */

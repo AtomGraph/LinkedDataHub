@@ -350,7 +350,7 @@ exclude-result-prefixes="#all"
                 </xsl:when>
                 <xsl:otherwise>
                     <!-- error response - could not load query results -->
-                    <xsl:sequence select="ldh:render-block-error($container, 'block-query-failed', ldh:http-error-key($response?status), (), $response)"/>
+                    <xsl:sequence select="ldh:render-block-error($container, 'block-query-failed', ac:http-error-key($response?status), (), $response)"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>

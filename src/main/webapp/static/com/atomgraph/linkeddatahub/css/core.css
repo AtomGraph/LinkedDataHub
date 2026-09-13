@@ -17,9 +17,9 @@
      core.css      Icon · Button · UtilityButton · TextLink · Label · HelpText ·
                    VisuallyHidden · TextField · TextArea · Checkbox ·
                    CheckboxGroup · RadioButton · RadioGroup · Toggle · Tag ·
-                   Badge · InlineAlert · Toast · ProgressBar · ProgressCircle ·
-                   Skeleton · Divider · ContentSwitcher · Tabs · Tooltip ·
-                   Toggletip
+                   Badge · InlineAlert · Disclosure · Toast · ProgressBar ·
+                   ProgressCircle · Skeleton · Divider · ContentSwitcher ·
+                   Tabs · Tooltip · Toggletip
      controls.css  Select · Combobox · IconButton · FileInput · CodeField
      overlays.css  Menu (+ ActionOverflow) · Popover · Modal
      surfaces.css  Card · DataTable · Avatar · Drawer · Step
@@ -475,6 +475,17 @@
 .ac-alert-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
 .ac-alert-title { font-weight: var(--fw-semibold); font-size: var(--fs-sm); color: var(--fg-1); }
 .ac-alert-text { font-size: var(--fs-sm); color: var(--fg-2); line-height: var(--lh-base); }
+/* the link slot: what could not be reached, on a row of its own so the sentence
+   above it stays a sentence. The recessed mono treatment is stated here rather
+   than borrowed from the type scale's .ldh-code, because every other slot of
+   this alert states its own — and a kit component cannot depend on a brand
+   utility to look right. break-all because the slot holds an IRI. */
+.ac-alert-uri {
+  font-family: var(--font-mono); font-size: 0.92em; line-height: var(--lh-base);
+  color: var(--ink-2); background: var(--surface-2);
+  padding: 1px 6px; border-radius: var(--r-xs);
+  word-break: break-all;
+}
 .ac-alert.va-informative { background: var(--bg-accent-quiet); border-color: color-mix(in srgb, var(--ldh-blue-500) 28%, transparent); }
 .ac-alert.va-informative > .ac-alert-ic { color: var(--ldh-blue-600); }
 .ac-alert.va-success { background: var(--success-50); border-color: color-mix(in srgb, var(--success-500) 30%, transparent); }
@@ -491,6 +502,33 @@
 .ac-alert-x:hover { background: color-mix(in srgb, currentColor 12%, transparent); color: var(--fg-1); }
 .ac-alert-x:focus-visible { outline: 0; box-shadow: var(--focus-ring); }
 .ac-alert.is-out { opacity: 0; transform: translateY(-4px); transition: opacity var(--dur-base) var(--ease-out-soft), transform var(--dur-base) var(--ease-out-soft); }
+
+/* ---------- Disclosure — demoted detail, collapsed by default ----------
+   InlineAlert's companion. An alert states what failed in the reader's terms
+   and refuses to lead with the upstream text; this is where that text goes —
+   never the first thing read, never withheld from whoever needs it. The marker
+   is the msi chevron rather than the browser's triangle, so it reads as part of
+   the kit. */
+.ac-disclosure { border-top: 1px dashed var(--border-default); padding-top: var(--sp-3); }
+.ac-disclosure > summary {
+  display: inline-flex; align-items: center; gap: 5px;
+  cursor: pointer; list-style: none;
+  font-family: var(--font-sans); font-size: var(--fs-xs); font-weight: var(--fw-medium);
+  color: var(--fg-muted); border-radius: var(--r-xs);
+}
+.ac-disclosure > summary::-webkit-details-marker { display: none; }
+.ac-disclosure > summary:hover { color: var(--fg-1); }
+.ac-disclosure > summary:focus-visible { outline: 0; box-shadow: var(--focus-ring); }
+.ac-disclosure > summary .msi { font-size: 15px; transition: transform var(--dur-fast) var(--ease-out-soft); }
+.ac-disclosure[open] > summary .msi { transform: rotate(90deg); }
+/* the recessed well. `border: 0` is stated rather than assumed: a consumer that
+   gives bare <pre> a border of its own would otherwise box this one too. */
+.ac-disclosure pre {
+  margin: var(--sp-2) 0 0; padding: var(--sp-3); overflow-x: auto;
+  background: var(--surface-2); border: 0; border-radius: var(--r-sm);
+  font-family: var(--font-mono); font-size: var(--fs-xs); line-height: 1.6;
+  color: var(--fg-muted); white-space: pre-wrap; word-break: break-word;
+}
 
 /* ---------- Toast ---------- */
 .ac-toast-region {
