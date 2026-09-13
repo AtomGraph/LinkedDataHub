@@ -31,8 +31,10 @@ a.external::after { content: "⤴"; padding-left: 0.2em; }
 .left-nav, .right-nav { position: sticky; top: 0; }
 /* Drop marker: the dragged block will be inserted after the block it is dropped on. A pseudo-element
    in the inter-block gap rather than border-bottom: the skins reset the card's border shorthand at
-   equal specificity, and a border would shift layout while dragging. */
-.content-body > [about].ldh-block-row.drag-over::after { content: ""; position: absolute; left: 0; right: 0; bottom: -10px; border-top: 4px dotted var(--bg-accent); pointer-events: none; }
+   equal specificity, and a border would shift layout while dragging. The gap is the row's own bottom
+   slack (the card's margin), so the line is drawn inside the row at bottom: 0 - the rows sit flush
+   against each other, and a line below the row would paint under the next row's opaque chrome. */
+.content-body > [about].ldh-block-row.drag-over::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; border-top: 4px dotted var(--bg-accent); pointer-events: none; }
 .modal .ac-menu { z-index: 1100; }
 /* Annotation overlay: point-positioned by rdfae:show-at; carries its own card chrome
    (it borrows the .ac-modal-head/.ac-modal-body anatomy but is not a dialog) */
