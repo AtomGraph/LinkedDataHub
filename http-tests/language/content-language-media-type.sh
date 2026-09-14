@@ -26,7 +26,10 @@ assert_labelled()
 
     # an error page is rendered through the same stylesheet and carries a Content-Language of its own, so every probe
     # confirms this is the representation rather than a failure that happens to be labelled
-    echo "$response" | grep -qE "^HTTP/[0-9.]+ 200"
+    #
+    # here-string rather than a pipe, as in content-language-by-reader.sh: the status line is the first line of a
+    # response tens of KiB long, so grep -q closes the pipe on it and the SIGPIPE'd echo fails the pipeline
+    grep -qE "^HTTP/[0-9.]+ 200" <<< "$response"
 
     actual=$(echo "$response" | grep -i "^Content-Language:" | sed 's/^Content-Language: *//i' || true)
 
@@ -39,9 +42,9 @@ assert_unlabelled()
 
     response=$(headers "$1")
 
-    echo "$response" | grep -qE "^HTTP/[0-9.]+ 200"
+    grep -qE "^HTTP/[0-9.]+ 200" <<< "$response"
 
-    ! echo "$response" | grep -qi "^Content-Language:"
+    ! grep -qi "^Content-Language:" <<< "$response"
 }
 
 # both HTML flavours are rendered through the translation bundle and so are composed in one language

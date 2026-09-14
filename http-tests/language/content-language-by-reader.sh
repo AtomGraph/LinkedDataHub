@@ -33,7 +33,12 @@ assert_language()
 
     # an error page is rendered through the same stylesheet and carries a Content-Language of its own, so every probe
     # confirms this is the document rather than a failure that happens to be labelled
-    echo "$response" | grep -qE "^HTTP/[0-9.]+ 200"
+    #
+    # here-string rather than `echo "$response" | grep -q`: the status line is the FIRST line of a response tens of KiB
+    # long, so grep matches and closes the pipe with almost all of it still unwritten, and under `set -o pipefail` the
+    # SIGPIPE'd echo fails the whole pipeline - `echo: write error: Broken pipe`, with nothing wrong with the response.
+    # The grep below reads to EOF and so cannot race.
+    grep -qE "^HTTP/[0-9.]+ 200" <<< "$response"
 
     actual=$(echo "$response" | grep -i "^Content-Language:" | sed 's/^Content-Language: *//i' || true)
 

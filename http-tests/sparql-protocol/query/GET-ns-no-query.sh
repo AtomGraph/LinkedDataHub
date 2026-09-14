@@ -38,5 +38,9 @@ response=$(curl -k -f -s \
   -H "Accept: application/n-triples" \
   "$namespace_doc")
 
-echo "$response" | grep -q "$class"
-! echo "$response" | grep -q "http://www.w3.org/2000/01/rdf-schema#Resource"
+# here-strings rather than pipes: N-Triples come back unordered, so the class can be on any line of the graph, and
+# grep -q hitting an early one closes the pipe with the rest unwritten - under `set -o pipefail` the SIGPIPE'd echo
+# then fails a test whose response was exactly right
+
+grep -q "$class" <<< "$response"
+! grep -q "http://www.w3.org/2000/01/rdf-schema#Resource" <<< "$response"
