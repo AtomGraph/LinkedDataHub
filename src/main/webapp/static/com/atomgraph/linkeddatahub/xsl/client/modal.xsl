@@ -72,7 +72,7 @@ LIMIT   10
 
                     <div class="ldh-hero">
                         <h1><xsl:apply-templates select="key('resources', 'first-time-title', ldh:translations())" mode="ac:label"/></h1>
-                        <h2><xsl:apply-templates select="key('resources', 'first-time-subtitle', ldh:translations())" mode="ac:label"/></h2>
+                        <h2 class="lede"><xsl:apply-templates select="key('resources', 'first-time-subtitle', ldh:translations())" mode="ac:label"/></h2>
                         <p><xsl:apply-templates select="key('resources', 'first-time-body', ldh:translations())" mode="ac:label"/><xsl:text> </xsl:text><em><xsl:apply-templates select="key('resources', 'first-time-body-emphasis', ldh:translations())" mode="ac:label"/></em>.</p>
                         <p>
                             <a class="ac-btn in-primary ap-solid sz-lg" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/get-started/" target="_blank"><xsl:value-of select="ac:label(key('resources', 'get-started', ldh:translations()))"/></a>

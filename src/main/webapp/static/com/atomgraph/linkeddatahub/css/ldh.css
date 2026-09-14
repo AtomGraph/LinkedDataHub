@@ -57,11 +57,13 @@ a.external::after { content: "⤴"; padding-left: 0.2em; }
 /* Web-Client's default resource templates emit p.description summaries LDH does not surface */
 .description { display: none; }
 div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main { font-size: larger; line-height: 25px; overflow-x: auto; }
-/* preformatted prose (code samples, Turtle listings) sits on the design system's code surface - the
-   recessed well the inline .ldh-code chip and the error-detail listing (.ac-disclosure pre) already use,
-   so it tints with the theme instead of a literal white that would invert wrong in dark mode. Long IRIs
-   scroll the block rather than wrap, keeping a listing's line structure readable */
-div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main pre { margin: var(--sp-4) 0; padding: var(--sp-3) var(--sp-4); background: var(--surface-2); border-radius: var(--r-sm); font-family: var(--font-mono); font-size: 0.92em; line-height: var(--lh-base); color: var(--ink-2); overflow-x: auto; }
+/* a table in an XHTML body takes its dress from the kit's `table` element rule, so what is left
+   here is only what a table sitting in PROSE needs and an app surface does not: flow spacing above
+   and below, and cells topped out because a reference row wraps to several lines where an app row
+   is one. Keyed off the element, because this content carries no class. Mirrors docs.css, which
+   dresses the same content for the static site. */
+div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main table { margin: var(--sp-4) 0; }
+div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main th, div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main td { vertical-align: top; line-height: var(--lh-base); }
 /* click-to-edit affordance only when the pane's document grants acl:Write (mirrors the ixsl:onclick guard in block.xsl) */
 div[data-acl-modes~="http://www.w3.org/ns/auth/acl#Write"] div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"]:not(:has(form)) .main { cursor: pointer; }
 /* collapse the property grid in the XHTML block's edit form: the region spans the block as a document

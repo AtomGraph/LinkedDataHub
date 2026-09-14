@@ -57,7 +57,15 @@
 .ac-card-meta { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--fg-hint); }
 
 /* =========================================================================
-   DataTable — ONE tabular surface.
+   DataTable — ONE tabular surface, and it IS the <table> element.
+
+   The base dress is on the element, not on a class: a <table> already says it is
+   a table, so a class restating that is one more thing an author can forget, and
+   one more way the same markup renders differently in two places. The .ac-table
+   class survives as the hook for what a table cannot say about itself — density,
+   ap-plain, is-hoverable, and the behaviour the platform layers on top (sortable
+   headers, sticky head, per-cell value scroll). Cell decorations stay scoped
+   under table: .num and .mono are far too generic to own globally.
 
    Real <table> markup laid out BY THE TABLE ALGORITHM. Ask for a table and you
    get table behaviour: columns negotiate their widths across every row, the
@@ -74,57 +82,70 @@
    lining up, and equal 1fr tracks shredded a UUID column into four lines. Two
    consumers left the component over it rather than pay the cost.
    ========================================================================= */
-.ac-table {
+table {
   width: 100%;
   border-collapse: collapse; border-spacing: 0; text-indent: 0;
   background: var(--surface-0);
   border: 1px solid var(--border-default);
   border-radius: var(--r-md);
 }
-.ac-table.ap-plain { border: 0; border-radius: 0; background: transparent; }
-.ac-table caption { caption-side: top; }
+table.ap-plain { border: 0; border-radius: 0; background: transparent; }
+caption { caption-side: top; }
 /* border-radius does not clip the corner cells of a border-collapse table, so the corner cells
    round themselves. overflow: hidden is not the fix and would cost: it makes the table its own
    scrollport, which leaves a position: sticky header inert — and a result set pinned under a
    toolbar is exactly where that matters. */
-.ac-table > thead > tr:first-child > *:first-child { border-top-left-radius: var(--r-md); }
-.ac-table > thead > tr:first-child > *:last-child  { border-top-right-radius: var(--r-md); }
-.ac-table.ap-plain > thead > tr:first-child > * { border-radius: 0; }
+table > thead > tr:first-child > *:first-child { border-top-left-radius: var(--r-md); }
+table > thead > tr:first-child > *:last-child  { border-top-right-radius: var(--r-md); }
+table.ap-plain > thead > tr:first-child > * { border-radius: 0; }
 /* Density is CELL padding now: under table layout a tr is not a box that takes
    padding, so the row-level rule it used to carry was inert the moment the grid
    came off. */
-.ac-table th, .ac-table td {
+th, td {
   padding: var(--sp-2) var(--sp-3);
   vertical-align: middle;
   font-weight: inherit; text-align: left;
 }
-.ac-table.dn-comfy th, .ac-table.dn-comfy td { padding: var(--sp-3); }
-.ac-table.dn-tight th, .ac-table.dn-tight td { padding: 5px var(--sp-3); }
-.ac-table thead tr {
+table.dn-comfy th, table.dn-comfy td { padding: var(--sp-3); }
+table.dn-tight th, table.dn-tight td { padding: 5px var(--sp-3); }
+thead tr {
   background: var(--surface-2);
   border-bottom: 1px solid var(--border-default);
   font-family: var(--font-mono); font-size: 10px;
   letter-spacing: var(--tracking-wide); text-transform: uppercase;
   color: var(--fg-hint);
 }
-.ac-table tbody tr {
+tbody tr {
   border-bottom: 1px solid var(--border-default);
   font-size: var(--fs-sm); color: var(--fg-2);
 }
-.ac-table tbody tr:last-child { border-bottom: 0; }
-.ac-table.is-hoverable tbody tr:hover { background: var(--surface-1); }
+tbody tr:last-child { border-bottom: 0; }
+table.is-hoverable tbody tr:hover { background: var(--surface-1); }
+/* A th in the body heads its ROW, not a column: it names the row's subject, so it
+   reads at body weight rather than borrowing the head band's mono caps. */
+tbody th { font-weight: var(--fw-medium); color: var(--fg-1); }
+/* A body th spanning the row is a group heading over the rows beneath it. It takes
+   the recessed-well fill rather than the page fill: against a --surface-0 table the
+   latter is all but invisible, and a band that cannot be seen is not a heading. Same
+   fill as the head band, which does not collide — that one is mono, uppercase and
+   --fg-hint, so the two read as different registers. */
+tbody th[colspan] { background: var(--surface-2); color: var(--fg-2); }
+/* Successive tbodies are row groups; the seam between two of them is the group's
+   rule, which the per-row border cannot draw because the last row of a group
+   suppresses its own. */
+tbody + tbody > tr:first-child > * { border-top: 1px solid var(--border-default); }
 /* Cell decorations, shared by every table rather than redefined per variant. */
-.ac-table .num { text-align: right; font-variant-numeric: tabular-nums; }
-.ac-table th.num { text-align: right; }
-.ac-table .muted { color: var(--fg-muted); }
-.ac-table .mono { font-family: var(--font-mono); font-size: var(--fs-xs); }
-.ac-table .iri {
+table .num { text-align: right; font-variant-numeric: tabular-nums; }
+th.num { text-align: right; }
+table .muted { color: var(--fg-muted); }
+table .mono { font-family: var(--font-mono); font-size: var(--fs-xs); }
+table .iri {
   font-family: var(--font-mono); font-size: var(--fs-xs);
   color: var(--ldh-blue-700); text-decoration: none;
 }
-.ac-table .iri:hover { text-decoration: underline; }
+table .iri:hover { text-decoration: underline; }
 /* A SPARQL variable name in a result-set header. */
-.ac-table .var {
+table .var {
   font-family: var(--font-mono); font-size: var(--fs-xs);
   color: var(--ldh-violet-700); font-weight: var(--fw-medium);
 }
