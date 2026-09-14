@@ -1619,4 +1619,12 @@
         <rdfs:label xml:lang="en-US">Dataspace navigation</rdfs:label>
         <rdfs:label xml:lang="es-ES">Navegación del espacio de datos</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="block-ellipsis">
+        <rdfs:label xml:lang="en-US">Block…</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Bloque…</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="failed-to-load-block-data">
+        <rdfs:label xml:lang="en-US">Failed to load block data</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudieron cargar los datos del bloque</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>

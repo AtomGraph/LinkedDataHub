@@ -8,8 +8,6 @@ xmlns:rdfae="https://w3id.org/atomgraph/rdfa-editor#"
 xmlns:rdfax="https://w3id.org/atomgraph/rdfa-editor/rdfa#"
 xmlns:lint="https://w3id.org/atomgraph/rdfa-editor/lint#"
 xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#"
-xmlns:ac="https://w3id.org/atomgraph/client#"
 extension-element-prefixes="ixsl"
 xpath-default-namespace="http://www.w3.org/1999/xhtml"
 version="3.0">
@@ -26,23 +24,23 @@ version="3.0">
     <xsl:template name="rdfae:init-navigate">
         <xsl:for-each select="ixsl:page()//body">
             <xsl:result-document href="?." method="ixsl:append-content">
-                <aside id="toc-drawer" class="rdfa-editor-ui" role="navigation" aria-label="{ac:label(key('resources', 'table-of-contents', ldh:translations()))}" style="display: none;">
-                    <button type="button" id="toc-close" class="toc-close" title="{ac:label(key('resources', 'close', ldh:translations()))}" aria-label="{ac:label(key('resources', 'close-table-of-contents', ldh:translations()))}">&#215;</button>
-                    <h2><xsl:apply-templates select="key('resources', 'contents', ldh:translations())" mode="ac:label"/></h2>
+                <aside id="toc-drawer" class="rdfa-editor-ui" role="navigation" aria-label="{rdfae:label('table-of-contents')}" style="display: none;">
+                    <button type="button" id="toc-close" class="toc-close" title="{rdfae:label('close')}" aria-label="{rdfae:label('close-table-of-contents')}">&#215;</button>
+                    <h2><xsl:value-of select="rdfae:label('contents')"/></h2>
                     <div id="toc-list"/>
                 </aside>
-                <aside id="inspector-drawer" class="rdfa-editor-ui" role="complementary" aria-label="{ac:label(key('resources', 'subject-properties', ldh:translations()))}" style="display: none;">
-                    <button type="button" id="inspector-close" class="inspector-close" title="{ac:label(key('resources', 'close', ldh:translations()))}" aria-label="{ac:label(key('resources', 'close-properties', ldh:translations()))}">&#215;</button>
-                    <h2><xsl:apply-templates select="key('resources', 'properties', ldh:translations())" mode="ac:label"/></h2>
+                <aside id="inspector-drawer" class="rdfa-editor-ui" role="complementary" aria-label="{rdfae:label('subject-properties')}" style="display: none;">
+                    <button type="button" id="inspector-close" class="inspector-close" title="{rdfae:label('close')}" aria-label="{rdfae:label('close-properties')}">&#215;</button>
+                    <h2><xsl:value-of select="rdfae:label('properties')"/></h2>
                     <div id="inspector-subject"/>
                     <div id="inspector-body"/>
                 </aside>
-                <footer id="rdfa-editor-breadcrumb" class="rdfa-editor-ui" role="navigation" aria-label="{ac:label(key('resources', 'document-position', ldh:translations()))}">
+                <footer id="rdfa-editor-breadcrumb" class="rdfa-editor-ui" role="navigation" aria-label="{rdfae:label('document-position')}">
                     <div id="rdfa-editor-breadcrumb-path"/>
                     <div id="rdfa-editor-breadcrumb-meta">
                         <span id="rdfa-editor-breadcrumb-subject"/>
                         <button type="button" id="lint-badge" class="lint-badge"
-                            aria-label="{ac:label(key('resources', 'rdfa-validation-issues', ldh:translations()))}" style="display: none;"/>
+                            aria-label="{rdfae:label('rdfa-validation-issues')}" style="display: none;"/>
                     </div>
                 </footer>
                 <xsl:call-template name="rdfae:render-find-dialog"/>
@@ -76,7 +74,7 @@ version="3.0">
                         </xsl:call-template>
                     </xsl:when>
                     <xsl:otherwise>
-                        <p class="helper-text"><xsl:apply-templates select="key('resources', 'no-headings', ldh:translations())" mode="ac:label"/></p>
+                        <p class="{$helper-text-class}"><xsl:value-of select="rdfae:label('no-headings')"/></p>
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:result-document>
@@ -380,7 +378,7 @@ version="3.0">
                             </xsl:for-each>
                         </xsl:when>
                         <xsl:otherwise>
-                            <p class="helper-text"><xsl:apply-templates select="key('resources', 'no-subject-properties', ldh:translations())" mode="ac:label"/></p>
+                            <p class="{$helper-text-class}"><xsl:value-of select="rdfae:label('no-subject-properties')"/></p>
                         </xsl:otherwise>
                     </xsl:choose>
                 </xsl:result-document>
@@ -471,7 +469,7 @@ version="3.0">
             select="rdfae:roots() ! lint:lintable(.) ! (lint:element-issues(.), lint:nesting-issues(.))
                 ! (string(@code) || ' &#x2014; ' || normalize-space(string(.)))"/>
         <xsl:call-template name="rdfae:show-output">
-            <xsl:with-param name="title" select="ac:label(key('resources', 'validation-issues', ldh:translations()))"/>
+            <xsl:with-param name="title" select="rdfae:label('validation-issues')"/>
             <xsl:with-param name="text" select="string-join($lines, '&#10;')"/>
         </xsl:call-template>
     </xsl:template>
@@ -519,23 +517,21 @@ version="3.0">
 
     <xsl:template name="rdfae:render-find-dialog">
         <div id="find-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true"
-                aria-label="{ac:label(key('resources', 'find-and-replace', ldh:translations()))}" style="display: none;">
-            <label><xsl:apply-templates select="key('resources', 'find', ldh:translations())" mode="ac:label"/></label>
-            <input type="text" name="find"/>
-            <label><xsl:apply-templates select="key('resources', 'replace-with', ldh:translations())" mode="ac:label"/></label>
-            <input type="text" name="replace"/>
-            <label class="checkbox-label">
-                <input type="checkbox" name="match-case"/>
-                <xsl:text> </xsl:text>
-                <xsl:apply-templates select="key('resources', 'match-case', ldh:translations())" mode="ac:label"/>
+                aria-label="{rdfae:label('find-and-replace')}" style="display: none;">
+            <label for="find-text"><xsl:value-of select="rdfae:label('find')"/></label>
+            <input type="text" id="find-text" name="find"/>
+            <label for="find-replace"><xsl:value-of select="rdfae:label('replace-with')"/></label>
+            <input type="text" id="find-replace" name="replace"/>
+            <label class="{$checkbox-label-class}">
+                <input type="checkbox" name="match-case"/><xsl:text> </xsl:text><xsl:value-of select="rdfae:label('match-case')"/>
             </label>
             <div class="action-buttons">
-                <button type="button" class="ac-btn in-primary ap-solid sz-sm find-next"><xsl:apply-templates select="key('resources', 'find-next', ldh:translations())" mode="ac:label"/></button>
-                <button type="button" class="ac-btn in-neutral ap-solid sz-sm replace-current"><xsl:apply-templates select="key('resources', 'replace', ldh:translations())" mode="ac:label"/></button>
-                <button type="button" class="ac-btn in-neutral ap-solid sz-sm replace-all"><xsl:apply-templates select="key('resources', 'replace-all', ldh:translations())" mode="ac:label"/></button>
-                <button type="button" class="ac-btn in-neutral ap-solid sz-sm find-close"><xsl:apply-templates select="key('resources', 'close', ldh:translations())" mode="ac:label"/></button>
+                <button type="button" class="{$button-primary-class} find-next"><xsl:value-of select="rdfae:label('find-next')"/></button>
+                <button type="button" class="{$button-secondary-class} replace-current"><xsl:value-of select="rdfae:label('replace')"/></button>
+                <button type="button" class="{$button-secondary-class} replace-all"><xsl:value-of select="rdfae:label('replace-all')"/></button>
+                <button type="button" class="{$button-secondary-class} find-close"><xsl:value-of select="rdfae:label('close')"/></button>
             </div>
-            <span id="find-status" class="helper-text"/>
+            <span id="find-status" class="{$helper-text-class}"/>
         </div>
     </xsl:template>
 
@@ -579,7 +575,7 @@ version="3.0">
         <xsl:choose>
             <xsl:when test="$query = ''">
                 <xsl:call-template name="rdfae:find-status">
-                    <xsl:with-param name="message" select="ac:label(key('resources', 'enter-search-term', ldh:translations()))"/>
+                    <xsl:with-param name="message" select="rdfae:label('enter-search-term')"/>
                 </xsl:call-template>
             </xsl:when>
             <xsl:otherwise>
@@ -599,7 +595,7 @@ version="3.0">
                 <xsl:iterate select="$plan">
                     <xsl:on-completion>
                         <xsl:call-template name="rdfae:find-status">
-                            <xsl:with-param name="message" select="ac:label(key('resources', 'no-matches', ldh:translations()))"/>
+                            <xsl:with-param name="message" select="rdfae:label('no-matches')"/>
                         </xsl:call-template>
                         <ixsl:set-property name="findNode" select="()" object="rdfae:editor-state()"/>
                         <ixsl:set-property name="findOffset" select="1" object="rdfae:editor-state()"/>
@@ -685,7 +681,7 @@ version="3.0">
             <xsl:when test="empty($matched)">
                 <xsl:call-template name="rdfae:find-status">
                     <xsl:with-param name="message"
-                        select="if ($query = '') then ac:label(key('resources', 'enter-search-term', ldh:translations())) else ac:label(key('resources', 'no-matches', ldh:translations()))"/>
+                        select="if ($query = '') then 'Enter a search term.' else 'No matches.'"/>
                 </xsl:call-template>
             </xsl:when>
             <xsl:otherwise>

@@ -373,7 +373,7 @@ version="3.0">
         </xsl:if>
     </xsl:template>
 
-    <!-- a sweep ending over the page background (the host and drag-handle
+    <!-- a sweep ending over the page background (the host and rdfa-editor-drag-handle
          mouseup templates disarm on their own paths - innermost-match
          dispatch means only one of them sees the event) -->
     <xsl:template match="body | html" mode="ixsl:onmouseup">

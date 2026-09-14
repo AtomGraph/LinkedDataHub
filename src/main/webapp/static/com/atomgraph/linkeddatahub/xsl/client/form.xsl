@@ -144,6 +144,20 @@ WHERE
         <ixsl:set-property name="value" select="$new-value" object="$old-subject"/>
     </xsl:template>
 
+    <!-- the editor's buttons and helper text wear the design system's classes, so its dialogs are the
+         editor's own templates rather than copies of them kept here for the sake of a class name -->
+    <xsl:param name="button-primary-class" as="xs:string" select="'ac-btn in-primary ap-solid sz-sm'"/>
+    <xsl:param name="button-secondary-class" as="xs:string" select="'ac-btn in-neutral ap-solid sz-sm'"/>
+    <xsl:param name="button-danger-class" as="xs:string" select="'ac-btn in-negative ap-solid sz-sm'"/>
+    <xsl:param name="helper-text-class" as="xs:string" select="'ac-help sz-sm'"/>
+
+    <!-- the editor's chrome reads its strings from the platform's catalog, which already answers the
+         editor's keys in every language LDH ships. The vendored copy keeps its own translations.rdf for
+         the standalone editor; nothing here ever reads it -->
+    <xsl:function name="rdfae:translations" as="document-node()">
+        <xsl:sequence select="ldh:translations()"/>
+    </xsl:function>
+
     <!-- the RDFa editor toolbar mounts in the active document's editor-bar, below the action bar (LDH pages have no nav element) -->
     <xsl:function name="rdfae:toolbar-host" as="element()*">
         <xsl:sequence select="(id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]//div[contains-token(@class, 'editor-bar')]/div[contains-token(@class, 'content-body')])[1]"/>
@@ -687,65 +701,9 @@ WHERE
 
     <!-- Bootstrap-styled toolbar dialogs (replace rdfa-editor's custom HTML) -->
 
-    <xsl:template name="rdfae:render-table-dialog">
-        <div id="table-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true" aria-label="{ac:label(key('resources', 'insert-table', ldh:translations()))}" style="display: none;">
-            <label for="table-rows"><xsl:apply-templates select="key('resources', 'table-body-rows', ldh:translations())" mode="ac:label"/></label>
-            <input type="number" id="table-rows" name="rows" value="3" min="1" max="50"/>
-            <label for="table-cols"><xsl:apply-templates select="key('resources', 'table-columns', ldh:translations())" mode="ac:label"/></label>
-            <input type="number" id="table-cols" name="cols" value="3" min="1" max="20"/>
-            <label class="checkbox"><input type="checkbox" name="header-row" checked="checked"/><xsl:text> </xsl:text><xsl:apply-templates select="key('resources', 'table-header-row', ldh:translations())" mode="ac:label"/></label>
-            <label for="table-caption"><xsl:apply-templates select="key('resources', 'caption', ldh:translations())" mode="ac:label"/></label>
-            <input type="text" id="table-caption" name="caption"/>
-            <div class="action-buttons">
-                <button type="button" class="ac-btn in-primary ap-solid sz-sm table-save"><xsl:value-of select="ac:label(key('resources', 'insert', ldh:translations()))"/></button>
-                <button type="button" class="ac-btn in-neutral ap-solid sz-sm table-cancel"><xsl:value-of select="ac:label(key('resources', 'cancel', ldh:translations()))"/></button>
-            </div>
-        </div>
-    </xsl:template>
 
-    <xsl:template name="rdfae:render-link-dialog">
-        <div id="link-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true" aria-label="{ac:label(key('resources', 'link', ldh:translations()))}" style="display: none;">
-            <label for="link-href"><xsl:apply-templates select="key('resources', 'link-href', ldh:translations())" mode="ac:label"/></label>
-            <input type="text" id="link-href" name="href" placeholder="https://..."/>
-            <div class="action-buttons">
-                <button type="button" class="ac-btn in-negative ap-solid sz-sm link-remove" style="display: none;"><xsl:value-of select="ac:label(key('resources', 'remove-link', ldh:translations()))"/></button>
-                <button type="button" class="ac-btn in-primary ap-solid sz-sm link-save"><xsl:value-of select="ac:label(key('resources', 'save', ldh:translations()))"/></button>
-                <button type="button" class="ac-btn in-neutral ap-solid sz-sm link-cancel"><xsl:value-of select="ac:label(key('resources', 'cancel', ldh:translations()))"/></button>
-            </div>
-        </div>
-    </xsl:template>
 
-    <xsl:template name="rdfae:render-figure-dialog">
-        <div id="figure-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true" aria-label="{ac:label(key('resources', 'insert-figure', ldh:translations()))}" style="display: none;">
-            <label for="figure-src"><xsl:apply-templates select="key('resources', 'figure-src', ldh:translations())" mode="ac:label"/></label>
-            <input type="text" id="figure-src" name="src" placeholder="{ac:label(key('resources', 'figure-src-placeholder', ldh:translations()))}"/>
-            <label for="figure-alt"><xsl:apply-templates select="key('resources', 'figure-alt', ldh:translations())" mode="ac:label"/></label>
-            <input type="text" id="figure-alt" name="alt"/>
-            <label for="figure-caption"><xsl:apply-templates select="key('resources', 'caption', ldh:translations())" mode="ac:label"/></label>
-            <input type="text" id="figure-caption" name="caption"/>
-            <div class="action-buttons">
-                <button type="button" class="ac-btn in-primary ap-solid sz-sm figure-save"><xsl:value-of select="ac:label(key('resources', 'insert', ldh:translations()))"/></button>
-                <button type="button" class="ac-btn in-neutral ap-solid sz-sm figure-cancel"><xsl:value-of select="ac:label(key('resources', 'cancel', ldh:translations()))"/></button>
-            </div>
-        </div>
-    </xsl:template>
 
-    <xsl:template name="rdfae:render-find-dialog">
-        <div id="find-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true" aria-label="{ac:label(key('resources', 'find-and-replace', ldh:translations()))}" style="display: none;">
-            <label for="find-text"><xsl:apply-templates select="key('resources', 'find', ldh:translations())" mode="ac:label"/></label>
-            <input type="text" id="find-text" name="find"/>
-            <label for="find-replace"><xsl:apply-templates select="key('resources', 'replace-with', ldh:translations())" mode="ac:label"/></label>
-            <input type="text" id="find-replace" name="replace"/>
-            <label class="checkbox"><input type="checkbox" name="match-case"/><xsl:text> </xsl:text><xsl:apply-templates select="key('resources', 'match-case', ldh:translations())" mode="ac:label"/></label>
-            <div class="action-buttons">
-                <button type="button" class="ac-btn in-primary ap-solid sz-sm find-next"><xsl:value-of select="ac:label(key('resources', 'find-next', ldh:translations()))"/></button>
-                <button type="button" class="ac-btn in-neutral ap-solid sz-sm replace-current"><xsl:value-of select="ac:label(key('resources', 'replace', ldh:translations()))"/></button>
-                <button type="button" class="ac-btn in-neutral ap-solid sz-sm replace-all"><xsl:value-of select="ac:label(key('resources', 'replace-all', ldh:translations()))"/></button>
-                <button type="button" class="ac-btn in-neutral ap-solid sz-sm find-close"><xsl:value-of select="ac:label(key('resources', 'close', ldh:translations()))"/></button>
-            </div>
-            <span id="find-status" class="ac-help sz-sm"/>
-        </div>
-    </xsl:template>
 
     <xsl:template name="rdfae:render-extra-dialogs">
         <div id="ldh-block-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true" aria-label="{ac:label(key('resources', 'insert-block', ldh:translations()))}" style="display: none;">
