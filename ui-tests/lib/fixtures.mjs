@@ -18,6 +18,12 @@ export const fixtures = {
     query: `${endUserBase}${slug}/#items-query`,
     view: `${endUserBase}${slug}/#items-view`,
     chart: `${endUserBase}${slug}/#items-chart`,
+    // The chart as CONTENT. A ldh:ResultSetChart is data until something puts it in the
+    // document's rdf:_N list, and only ldh:Object and ldh:XHTML may be values there - so a chart
+    // reaches the page wrapped in an Object, exactly as the built-in children view is. Without
+    // this the chart existed in the graph and rendered nowhere, which is how a spec asserting on
+    // .chart-controls came to wait 30s for an element that could never appear.
+    chartBlock: `${endUserBase}${slug}/#chart-block`,
     prose: `${endUserBase}${slug}/#prose-block`,
     object: `${endUserBase}${slug}/#object-block`,
 };
@@ -119,6 +125,8 @@ export async function seed() {
         fixtures.container]);
     await ldh(['add', 'object-block', '--title', 'Fixture object', '--uri', fixtures.object,
         '--value', itemUri(1), fixtures.container]);
+    await ldh(['add', 'object-block', '--title', 'Fixture chart block', '--uri', fixtures.chartBlock,
+        '--value', fixtures.chart, fixtures.container]);
 
     return fixtures;
 }

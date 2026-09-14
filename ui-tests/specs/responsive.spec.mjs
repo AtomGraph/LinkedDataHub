@@ -17,6 +17,26 @@
 // refuses a touch pan - scrollWidth is the only thing that still reports the truth, and the
 // content past the edge is unreachable rather than merely awkward. Asserting "no horizontal
 // scrollbar" would therefore have passed throughout.
+//
+// THREE THINGS THIS SPEC LEARNED ON ITS FIRST CI RUN, having shipped unexecuted:
+//
+//   1. ONE NAVIGATION PER TEST. A test that visits two documents on one page aborts the
+//      first one's in-flight SPARQL when it navigates; Saxon-JS reports that as
+//      alert("HTTP request failed: ... (Failed to fetch)"), and lib/console.mjs fails the
+//      test in teardown - after the assertion itself had passed. Being a race, it failed
+//      intermittently. Each document gets its own test, and so its own page.
+//   2. THE STATEMENT GRID LIVES ON THE FIXTURE CONTAINER. /ui-fixtures/item-01/ renders no
+//      blocks and no dl.ldh-prop-form at all, while /ui-fixtures/ renders several -
+//      calibration.spec.mjs prints the anatomy of both, which is how this was found.
+//      Asserting against the item document gave three tests that could only fail on a null.
+//   3. NEVER test.skip() ON A MISSING SELECTOR. The chart assertion did, and went green
+//      while testing nothing - hiding that `repeat(auto-fit, ...)`, half the responsive
+//      change, had no coverage at all. The controls were missing for a structural reason
+//      rather than a slow one: a ldh:ResultSetChart is data until something puts it in the
+//      document's rdf:_N list, so the fixture's chart rendered nowhere and no amount of
+//      waiting would have produced it (lib/fixtures.mjs now wraps it in an Object, which is
+//      how a chart becomes content). A missing component should fail the build rather than
+//      quietly shrink it, so this is an auto-retrying expect() now.
 import { test, expect } from '../lib/console.mjs';
 import { goto } from '../lib/settle.mjs';
 import { fixtures, itemUri } from '../lib/fixtures.mjs';
@@ -37,28 +57,48 @@ const MODAL_BODY = 372;
 const READABLE_VALUE = 240;
 const ADDRESS_MIN = 160;
 
+// The documents worth measuring for page-level overflow. Thunks, because fixtures.container
+// and itemUri() read module state that globalSetup populates.
+const DOCUMENTS = [
+    ['the fixture container', () => fixtures.container],
+    ['a fixture item', () => itemUri(1)],
+];
+
 // The fixture container is owner-owned; an anonymous context gets an error page whose
 // selectors are not the ones under test.
 test.beforeEach(({}, testInfo) => {
     test.skip(testInfo.project.name !== 'owner', 'the fixture container is owner-owned');
 });
 
-// Computed grid tracks as numbers. getComputedStyle resolves grid-template-columns to used pixel
-// values, so this reports what the browser actually laid out rather than what the stylesheet asked
-// for - which is the whole point: `200px 1fr 64px` looks fine in source and computes to
-// `200px 26px 64px` on a phone.
+// Wait for a component to exist before measuring it, and fail loudly naming it when it never
+// does. Prefer this to a fixed delay: the statement grid is server-rendered, but the chart's
+// controls are re-rendered client-side once its SPARQL results arrive, and settled() cannot see
+// that moment because the block count does not change while it happens.
+async function present(page, selector, timeout = 30_000) {
+    await expect(page.locator(selector).first(), `${selector} never rendered`)
+        .toBeVisible({ timeout });
+}
+
+// Every match of a selector, with its used track sizes and its box width.
 //
-// Zero-width tracks are dropped. `repeat(auto-fit, …)` generates as many tracks as the width
+// Zero-width tracks are dropped. `repeat(auto-fit, ...)` generates as many tracks as the width
 // allows and collapses the ones no item landed in - at 1440px the chart controls report
 // `367px 367px 367px 0px 0px 0px`. A collapsed track takes no space and neither do its gaps, so
 // counting the raw list would report six columns where three are drawn.
-async function tracks(page, selector) {
-    return page.evaluate((sel) => {
-        const el = document.querySelector(sel);
-        if (!el) return null;
-        return getComputedStyle(el).gridTemplateColumns.split(/\s+/).map(parseFloat).filter(w => w > 0);
-    }, selector);
+//
+// ALL matches, not the first: the fixture container holds several statement grids, and document
+// order says nothing about how wide any of them is. A grid nested inside a narrow block is
+// legitimately collapsed at a desktop viewport - that is the whole point of the axis - so
+// pinning querySelector() would make the desktop assertion depend on which one came first.
+async function measureAll(page, selector) {
+    return page.evaluate((sel) => [...document.querySelectorAll(sel)].map(el => ({
+        width: Math.round(el.getBoundingClientRect().width),
+        tracks: getComputedStyle(el).gridTemplateColumns.split(/\s+/).map(parseFloat).filter(t => t > 0),
+    })), selector);
 }
+
+// The widest match — the one laid out in the document column rather than in some inner well.
+const widest = list => list.reduce((a, b) => (b.width > a.width ? b : a));
 
 // Clone a live component into a box of a given width and report how it lays out there. The
 // clone is measured off-screen but IN the document, so it inherits the real cascade - a
@@ -90,22 +130,29 @@ for (const [name, viewport] of [['phone', PHONE], ['tablet', TABLET]]) {
     test.describe(`${name} (${viewport.width}px)`, () => {
         test.use({ viewport });
 
-        test('no document overflows the viewport', async ({ page }) => {
-            for (const url of [fixtures.container, itemUri(1)]) {
-                await goto(page, url);
+        // One document per test — see note 1 at the top of the file.
+        for (const [label, url] of DOCUMENTS) {
+            test(`${label} does not overflow the viewport`, async ({ page }) => {
+                await goto(page, url());
                 const { scrollWidth, innerWidth } = await overflow(page);
                 // A pixel of slack for subpixel rounding; the regression this guards was 226px.
-                expect(scrollWidth, `${url} overflows by ${scrollWidth - innerWidth}px`)
+                expect(scrollWidth, `overflows by ${scrollWidth - innerWidth}px`)
                     .toBeLessThanOrEqual(innerWidth + 1);
-            }
-        });
+            });
+        }
 
         test('the address bar keeps a usable share of the header', async ({ page }) => {
             await goto(page, fixtures.container);
-            const header = await tracks(page, '.ldh-header');
-            expect(header, '.ldh-header is not a grid').not.toBeNull();
-            // Track 2 is the address bar, between the wordmark and the header actions.
-            expect(header[1]).toBeGreaterThanOrEqual(ADDRESS_MIN);
+            // The bar's own box, not the header's middle grid track. measureAll() drops
+            // zero-width tracks (it has to, for auto-fit), so track indices shift the moment
+            // any track collapses - and a collapsed wordmark would silently move the address
+            // bar to index 0 and measure the wrong thing.
+            const width = await page.evaluate(() => {
+                const el = document.querySelector('.ldh-header .ldh-address');
+                return el ? Math.round(el.getBoundingClientRect().width) : null;
+            });
+            expect(width, 'no .ldh-address in the header').not.toBeNull();
+            expect(width, `the address bar is ${width}px`).toBeGreaterThanOrEqual(ADDRESS_MIN);
         });
 
         test('the dataspace tab strip stays inside its own box', async ({ page }) => {
@@ -116,7 +163,7 @@ for (const [name, viewport] of [['phone', PHONE], ['tablet', TABLET]]) {
                 return { scrollWidth: el.scrollWidth, clientWidth: el.clientWidth,
                          overflowX: getComputedStyle(el).overflowX };
             });
-            test.skip(strip === null, 'no tab strip on this page');
+            expect(strip, 'no .ldh-tabs on the page').not.toBeNull();
             // Either it fits or it scrolls. What it must not do is push the page wider, which
             // is what it did with neither flex-wrap nor a scrollport - and the kit's own
             // .ac-tablist has solved this with overflow-x since before the strip existed.
@@ -131,19 +178,24 @@ test.describe('phone (390px) — content components', () => {
     test.use({ viewport: PHONE });
 
     test('the statement grid gives the value room to be read', async ({ page }) => {
-        await goto(page, itemUri(1));
-        const group = await tracks(page, '.ldh-prop-group');
-        expect(group, 'no .ldh-prop-group on the item document').not.toBeNull();
+        await goto(page, fixtures.container);
+        await present(page, '.ldh-prop-group');
+
+        const group = widest(await measureAll(page, '.ldh-prop-group'));
         // Collapsed, the label is no longer a track of its own, so the value is track 1.
-        expect(group.length, 'the three-column grid did not collapse').toBeLessThan(3);
-        expect(group[0]).toBeGreaterThanOrEqual(READABLE_VALUE);
+        expect(group.tracks.length, `the three-column grid did not collapse in ${group.width}px`)
+            .toBeLessThan(3);
+        expect(group.tracks[0]).toBeGreaterThanOrEqual(READABLE_VALUE);
     });
 
     test('the chart controls stack instead of sharing 70px each', async ({ page }) => {
         await goto(page, fixtures.container);
-        const controls = await tracks(page, '.chart-controls');
-        test.skip(controls === null, 'no chart block on this page');
-        expect(controls.length).toBe(1);
+        // ldh:ChartControls re-renders these once the block's SPARQL results land.
+        await present(page, '.chart-controls');
+
+        const controls = widest(await measureAll(page, '.chart-controls'));
+        expect(controls.tracks.length, `${controls.width}px held ${controls.tracks.length} columns`)
+            .toBe(1);
     });
 });
 
@@ -152,7 +204,8 @@ test.describe('desktop (1440px)', () => {
 
     // The assertion a media-query-only implementation fails.
     test('narrow containers collapse even at a wide viewport', async ({ page }) => {
-        await goto(page, itemUri(1));
+        await goto(page, fixtures.container);
+        await present(page, '.ldh-prop-group');
 
         for (const width of [ASIDE, MODAL_BODY]) {
             const group = await tracksInBox(page, '.ldh-prop-group', width);
@@ -163,28 +216,31 @@ test.describe('desktop (1440px)', () => {
                 .toBeGreaterThan(width / 2);
         }
 
-        await goto(page, fixtures.container);
+        await present(page, '.chart-controls');
         const controls = await tracksInBox(page, '.chart-controls', ASIDE);
-        test.skip(controls === null, 'no chart block on this page');
         expect(controls.length, `.chart-controls stayed ${controls.length} columns in a ${ASIDE}px container`)
             .toBe(1);
     });
 
     // The scope was "readable, not redesigned": desktop must not move.
     test('desktop layout is unchanged', async ({ page }) => {
-        await goto(page, itemUri(1));
-        const group = await tracks(page, '.ldh-prop-group');
-        expect(group).not.toBeNull();
-        expect(group.length).toBe(3);
-        expect(group[0]).toBe(200);
-        expect(group[2]).toBe(64);
-
         await goto(page, fixtures.container);
+        await present(page, '.ldh-prop-group');
+
+        // At least one grid is laid out in the document column, still three columns on the
+        // original tracks. Others are legitimately collapsed — a grid inside a narrow block is
+        // exactly what the container query is for, so "every one of them" would be wrong.
+        const groups = await measureAll(page, '.ldh-prop-group');
+        const full = groups.filter(g => g.tracks.length === 3 && g.tracks[0] === 200 && g.tracks[2] === 64);
+        expect(full.length, `no three-column .ldh-prop-group at 1440px; measured ${JSON.stringify(groups)}`)
+            .toBeGreaterThan(0);
+
         const { scrollWidth, innerWidth } = await overflow(page);
         expect(scrollWidth).toBeLessThanOrEqual(innerWidth + 1);
 
-        const controls = await tracks(page, '.chart-controls');
-        test.skip(controls === null, 'no chart block on this page');
-        expect(controls.length).toBe(3);
+        await present(page, '.chart-controls');
+        const controls = widest(await measureAll(page, '.chart-controls'));
+        expect(controls.tracks.length, `${controls.width}px held ${controls.tracks.length} columns`)
+            .toBe(3);
     });
 });
