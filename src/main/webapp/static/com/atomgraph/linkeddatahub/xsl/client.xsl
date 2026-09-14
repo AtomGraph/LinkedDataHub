@@ -99,6 +99,18 @@ extension-element-prefixes="ixsl"
     <xsl:param name="sparql-parser" select="ixsl:call(ixsl:window(), 'Reflect.construct', [ ixsl:get(ixsl:get(ixsl:window(), '`' || 'SPARQL.js' || '`'), 'Parser'), [] ] )"/>
     <xsl:param name="sparql-generator" select="ixsl:call(ixsl:window(), 'Reflect.construct', [ ixsl:get(ixsl:get(ixsl:window(), '`' || 'SPARQL.js' || '`'), 'Generator'), [] ] )"/>
     <xsl:param name="page-size" select="20" as="xs:integer"/>
+    <!-- RDF triple syntaxes a dropped file may carry, keyed by file extension. Top-level because two
+         things read it: the drop handler, which infers the request's Content-Type, and the drop
+         overlay, which lists the extensions so they cannot drift apart -->
+    <xsl:param name="rdf-media-types" as="map(xs:string, xs:string)">
+        <xsl:map>
+            <xsl:map-entry key="'nt'" select="'application/n-triples'"/>
+            <xsl:map-entry key="'ttl'" select="'text/turtle'"/>
+            <xsl:map-entry key="'rdf'" select="'application/rdf+xml'"/>
+            <xsl:map-entry key="'owl'" select="'application/rdf+xml'"/>
+            <xsl:map-entry key="'jsonld'" select="'application/ld+json'"/>
+        </xsl:map>
+    </xsl:param>
     <xsl:param name="select-labelled-string" as="xs:string">
 <![CDATA[
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -1425,83 +1437,125 @@ WHERE
 
     <!-- file drop -->
 
-    <!-- both templates yield non-file drags (e.g. block reorder): this blanket div match has higher import
-         precedence than the block DnD handlers in block.xsl, so without the fallthrough it would consume
-         their events whenever the drag pointer is over a div (card padding, block-row gaps) -->
+    <!-- Page-level RDF import. ONE fixed overlay owns the drag, rather than rules matched on content
+         elements: it mounts on the first dragenter carrying files and, being topmost, becomes the target
+         of every dragover/dragleave/drop that follows. That keeps the enter/leave bookkeeping on a single
+         element - crossing a child boundary no longer fires dragleave on the thing holding the state -
+         and it keeps file drags away from the block DnD rules in block.xsl, which match every element
+         inside a block row at priority 1 and used to swallow them.
 
-    <xsl:template match="div[acl:mode() = '&acl;Write']" mode="ixsl:ondragover">
-        <xsl:choose>
-            <xsl:when test="not(array:flatten(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types')) = 'Files')">
-                <xsl:next-match/>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:variable name="uri" select="ac:absolute-path(ldh:request-uri())" as="xs:anyURI"/>
-                <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`'), 'results')" as="document-node()"/>
-                <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
+         Three drag gestures coexist, told apart by payload alone, each yielding on a payload it does not
+         own: Files here, application/vnd.atomgraph.linkeddatahub.block in block.xsl, and
+         application/vnd.atomgraph.rdfa-editor.block in rdfa-editor/edit.xsl.
 
-                <xsl:if test="$mode = xs:anyURI('&ac;ReadMode')">
-                    <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-                </xsl:if>
-            </xsl:otherwise>
-        </xsl:choose>
+         No layout-mode condition. Dropping RDF POSTs triples into the document's graph, which is
+         orthogonal to the mode rendering it; the ReadMode test this used to carry was avoiding the block
+         DnD collision that the payload marker now handles, and it made the drop dead on every container
+         (a container's graph carries rdf:_1 <#select-children>, so it resolves to ContentMode). What the
+         mode does decide is where you land afterwards - see ldh:onRDFFileUpload. -->
+
+    <xsl:template name="ldh:FileDropOverlay">
+        <div id="file-drop" class="ac-dropzone-overlay">
+            <div class="ac-dropzone-panel">
+                <span class="msi" aria-hidden="true">upload_file</span>
+                <span class="ac-dropzone-title">
+                    <xsl:apply-templates select="key('resources', 'drop-rdf-file', ldh:translations())" mode="ac:label"/>
+                </span>
+                <span class="ac-dropzone-sub">
+                    <xsl:value-of select="sort(map:keys($rdf-media-types)) ! ('.' || .)" separator=" "/>
+                </span>
+            </div>
+        </div>
     </xsl:template>
 
-    <xsl:template match="div[acl:mode() = '&acl;Write']" mode="ixsl:ondrop">
-        <xsl:choose>
-            <xsl:when test="not(array:flatten(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types')) = 'Files')">
-                <xsl:next-match/>
-            </xsl:when>
-            <xsl:otherwise>
-        <xsl:variable name="uri" select="ac:absolute-path(ldh:request-uri())" as="xs:anyURI"/>
-        <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $uri || '`'), 'results')" as="document-node()"/>
-        <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
-
-        <xsl:if test="$mode = xs:anyURI('&ac;ReadMode')">
-            <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-            <xsl:variable name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
-            <xsl:variable name="rdf-media-types" as="map(xs:string, xs:string)">
-                <xsl:map>
-                    <xsl:map-entry key="'nt'" select="'application/n-triples'"/>
-                    <xsl:map-entry key="'ttl'" select="'text/turtle'"/>
-                    <xsl:map-entry key="'rdf'" select="'application/rdf+xml'"/>
-                    <xsl:map-entry key="'owl'" select="'application/rdf+xml'"/>
-                    <xsl:map-entry key="'jsonld'" select="'application/ld+json'"/>
-                </xsl:map>
-            </xsl:variable>
-
-            <xsl:if test="ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'files.length') gt 0">
-                <xsl:message>
-                    <xsl:variable name="files" select="ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'files')"/>
-                    <xsl:for-each select="0 to xs:integer(ixsl:get($files, 'length')) - 1">
-                        <xsl:variable name="file" select="map:get($files, .)"/>
-                        <xsl:variable name="file-ext" select="replace(ixsl:get($file, 'name'), '.*\.', '')" as="xs:string?"/>
-                        <xsl:variable name="file-type" select="if (ixsl:contains($file, 'type')) then ixsl:get($file, 'type') else ()" as="xs:string?"/>
-
-                        <xsl:choose>
-                            <!-- file extension is a map key or media type is a map value -->
-                            <xsl:when test="map:contains($rdf-media-types, $file-ext) or $file-type = $rdf-media-types?*">
-                                <!-- attempt to infer RDF media type from file extension first, fallback to file type -->
-                                <xsl:variable name="media-type" select="if (map:contains($rdf-media-types, $file-ext)) then map:get($rdf-media-types, $file-ext) else $file-type" as="xs:string"/>
-                                <xsl:message>Importing RDF file. Name: '<xsl:value-of select="ixsl:get($file, 'name')"/>' Media type: '<xsl:value-of select="$media-type"/>'</xsl:message>
-
-                                <xsl:variable name="headers" select="ldh:new-object()"/>
-                                <ixsl:set-property name="Content-Type" select="$media-type" object="$headers"/>
-                                <ixsl:set-property name="Accept" select="'application/rdf+xml'" object="$headers"/>
-
-                                <xsl:sequence select="ldh:busy-cursor()"/>
-
-                                <xsl:sequence select="js:fetchDispatchXML($base-uri, 'POST', $headers, $file, ., (), (), (), 'RDFFileUpload')[current-date() lt xs:date('2000-01-01')]"/>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ac:label(key('resources', 'unsupported-rdf-syntax', ldh:translations())) ])[current-date() lt xs:date('2000-01-01')]"/>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                    </xsl:for-each>
-                </xsl:message>
-            </xsl:if>
+    <!-- last-resort dragenter (match="*" scores -0.5), so a region that wants file drags for itself still
+         gets them first. Mounting is idempotent: dragenter fires again for every element crossed on the
+         way to the overlay taking over -->
+    <xsl:template match="*" mode="ixsl:ondragenter">
+        <xsl:if test="array:flatten(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types')) = 'Files' and acl:mode() = '&acl;Write' and empty(id('file-drop', ixsl:page()))">
+            <xsl:for-each select="ixsl:page()//body">
+                <xsl:result-document href="?." method="ixsl:append-content">
+                    <xsl:call-template name="ldh:FileDropOverlay"/>
+                </xsl:result-document>
+            </xsl:for-each>
         </xsl:if>
-            </xsl:otherwise>
-        </xsl:choose>
+    </xsl:template>
+
+    <!-- covers the frame between the overlay mounting and the pointer landing on it. preventDefault runs
+         even where the drop will be refused, because it is also what stops the browser from navigating
+         away to the dropped file; dropEffect carries the accept/refuse signal to the cursor instead -->
+    <xsl:template match="*" mode="ixsl:ondragover">
+        <xsl:if test="array:flatten(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types')) = 'Files'">
+            <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+            <ixsl:set-property name="dataTransfer.dropEffect" select="if (acl:mode() = '&acl;Write') then 'copy' else 'none'" object="ixsl:event()"/>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- swallow a file dropped anywhere the overlay is not, so it cannot navigate the page away -->
+    <xsl:template match="*" mode="ixsl:ondrop">
+        <xsl:if test="array:flatten(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types')) = 'Files'">
+            <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        </xsl:if>
+    </xsl:template>
+
+    <xsl:template match="div[@id = 'file-drop']" mode="ixsl:ondragover" priority="1">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <ixsl:set-property name="dataTransfer.dropEffect" select="'copy'" object="ixsl:event()"/>
+    </xsl:template>
+
+    <!-- the overlay's panel is pointer-events: none, so in practice a dragleave here means the pointer
+         left the window; the relatedTarget guard keeps that true if anything inside ever takes hits.
+         This is the unmount path that matters for an external drag: dragend fires on the drag's source
+         element, and a file dragged in from the desktop has none in this document -->
+    <xsl:template match="div[@id = 'file-drop']" mode="ixsl:ondragleave" priority="1">
+        <xsl:variable name="related" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="element()?"/>
+        <xsl:if test="empty($related) or empty($related/ancestor-or-self::*[@id = 'file-drop'])">
+            <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- belt-and-braces unmount: a stuck overlay covers the whole page, so a drag that ends any other way
+         still clears it -->
+    <xsl:template match="*" mode="ixsl:ondragend">
+        <xsl:for-each select="id('file-drop', ixsl:page())">
+            <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+    </xsl:template>
+
+    <xsl:template match="div[@id = 'file-drop']" mode="ixsl:ondrop" priority="1">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+
+        <!-- resolved before the overlay leaves the DOM -->
+        <xsl:variable name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
+        <xsl:variable name="files" select="ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'files')"/>
+
+        <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+
+        <xsl:for-each select="0 to xs:integer(ixsl:get($files, 'length')) - 1">
+            <xsl:variable name="file" select="map:get($files, .)"/>
+            <xsl:variable name="file-ext" select="replace(ixsl:get($file, 'name'), '.*\.', '')" as="xs:string?"/>
+            <xsl:variable name="file-type" select="if (ixsl:contains($file, 'type')) then ixsl:get($file, 'type') else ()" as="xs:string?"/>
+
+            <xsl:choose>
+                <!-- file extension is a map key or media type is a map value -->
+                <xsl:when test="map:contains($rdf-media-types, $file-ext) or $file-type = $rdf-media-types?*">
+                    <!-- attempt to infer RDF media type from file extension first, fallback to file type -->
+                    <xsl:variable name="media-type" select="if (map:contains($rdf-media-types, $file-ext)) then map:get($rdf-media-types, $file-ext) else $file-type" as="xs:string"/>
+                    <xsl:message>Importing RDF file. Name: '<xsl:value-of select="ixsl:get($file, 'name')"/>' Media type: '<xsl:value-of select="$media-type"/>'</xsl:message>
+
+                    <xsl:variable name="headers" select="ldh:new-object()"/>
+                    <ixsl:set-property name="Content-Type" select="$media-type" object="$headers"/>
+                    <ixsl:set-property name="Accept" select="'application/rdf+xml'" object="$headers"/>
+
+                    <xsl:sequence select="ldh:busy-cursor()"/>
+
+                    <xsl:sequence select="js:fetchDispatchXML($base-uri, 'POST', $headers, $file, (), (), (), (), 'RDFFileUpload')[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ac:label(key('resources', 'unsupported-rdf-syntax', ldh:translations())) ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
     </xsl:template>
 
     <!-- this callback will be invoked for every uploaded file -->
@@ -1513,10 +1567,16 @@ WHERE
         
         <xsl:choose>
             <xsl:when test="$status = (200, 204)">
-                <!-- post-upload reload of the current document; ldh:base-uri already strips fragment -->
+                <!-- post-upload reload of the current document; ldh:base-uri already strips fragment.
+                     Lands in ReadMode: the triples just imported are the document's own properties, and
+                     ReadMode is the view that renders them - reloading a ContentMode document into
+                     ContentMode redraws the same blocks, so a successful import would look like it did
+                     nothing. On failure the branch below leaves the reader where they were, which makes
+                     the mode change read as confirmation rather than an unconditional side effect -->
                 <xsl:call-template name="ldh:DocumentNavigate">
                     <xsl:with-param name="doc-uri" select="ldh:base-uri(.)"/>
                     <xsl:with-param name="fragment" select="()"/>
+                    <xsl:with-param name="query-params" select="ldh:build-query(xs:anyURI('&ac;ReadMode'))"/>
                 </xsl:call-template>
             </xsl:when>
             <xsl:otherwise>

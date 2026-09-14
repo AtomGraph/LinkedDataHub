@@ -1319,6 +1319,10 @@
         <rdfs:label xml:lang="en-US">The file extension or media type is not a supported RDF triple syntax</rdfs:label>
         <rdfs:label xml:lang="es-ES">La extensión del archivo o el tipo de medio no es una sintaxis RDF compatible</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="drop-rdf-file">
+        <rdfs:label xml:lang="en-US">Drop RDF file to import</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Suelta un archivo RDF para importarlo</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="media-type-browser-defined">
         <rdfs:label xml:lang="en-US">[browser-defined]</rdfs:label>
         <rdfs:label xml:lang="es-ES">[definido por el navegador]</rdfs:label>

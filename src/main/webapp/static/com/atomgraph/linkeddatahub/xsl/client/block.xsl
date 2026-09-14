@@ -569,15 +569,30 @@ exclude-result-prefixes="#all"
          DnD (edit.xsl), killing its drop marks and reorder. Excluding the editor lets those events
          fall through to the editor's handlers. -->
 
-    <xsl:template match="*[ancestor-or-self::div[contains-token(@class, 'ldh-block-row')][parent::div[contains-token(@class, 'content-body')]]][not(ancestor-or-self::*[contains-token(@class, 'rdfa-editor-content')])]" mode="ixsl:ondragover" priority="1">
-        <xsl:variable name="block" select="ancestor-or-self::div[contains-token(@class, 'ldh-block-row')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()"/>
+    <!-- EVERY rule here yields on a payload it does not own. These patterns match every element inside a
+         block row and carry priority="1", and block.xsl is xsl:include'd by client.xsl - include confers no
+         import precedence, so same precedence, and priority decides. That makes these the rules that see a
+         FILE drag over the content area first. Falling off the end without xsl:next-match left nothing to
+         call preventDefault(), so the browser refused every RDF file dropped onto a document with blocks -
+         which is every container. The payload marker only separates the two gestures if both sides honour
+         it; a block payload still takes the branches below byte-identically. -->
 
-        <!-- the source block itself and its previous sibling are no-op positions ("move after" leaves the
-             order unchanged), so the drop stays refused there and the browser shows the no-drop cursor -->
-        <xsl:if test="array:flatten(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types')) = 'application/vnd.atomgraph.linkeddatahub.block' and not($block[contains-token(@class, 'dragging')]) and not($block/following-sibling::*[1][contains-token(@class, 'dragging')])">
-            <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-            <ixsl:set-property name="dataTransfer.dropEffect" select="'move'" object="ixsl:event()"/>
-        </xsl:if>
+    <xsl:template match="*[ancestor-or-self::div[contains-token(@class, 'ldh-block-row')][parent::div[contains-token(@class, 'content-body')]]][not(ancestor-or-self::*[contains-token(@class, 'rdfa-editor-content')])]" mode="ixsl:ondragover" priority="1">
+        <xsl:choose>
+            <xsl:when test="not(array:flatten(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types')) = 'application/vnd.atomgraph.linkeddatahub.block')">
+                <xsl:next-match/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="block" select="ancestor-or-self::div[contains-token(@class, 'ldh-block-row')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()"/>
+
+                <!-- the source block itself and its previous sibling are no-op positions ("move after" leaves the
+                     order unchanged), so the drop stays refused there and the browser shows the no-drop cursor -->
+                <xsl:if test="not($block[contains-token(@class, 'dragging')]) and not($block/following-sibling::*[1][contains-token(@class, 'dragging')])">
+                    <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+                    <ixsl:set-property name="dataTransfer.dropEffect" select="'move'" object="ixsl:event()"/>
+                </xsl:if>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
     <!-- move the drop marker onto the block being dragged over. The marker moves between blocks
@@ -585,67 +600,77 @@ exclude-result-prefixes="#all"
          over the gaps between cards; a cancelled drag is cleaned up by ondragend -->
 
     <xsl:template match="*[ancestor-or-self::div[contains-token(@class, 'ldh-block-row')][parent::div[contains-token(@class, 'content-body')]]][not(ancestor-or-self::*[contains-token(@class, 'rdfa-editor-content')])]" mode="ixsl:ondragenter" priority="1">
-        <xsl:variable name="block" select="ancestor-or-self::div[contains-token(@class, 'ldh-block-row')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()"/>
+        <xsl:choose>
+            <xsl:when test="not(array:flatten(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types')) = 'application/vnd.atomgraph.linkeddatahub.block')">
+                <xsl:next-match/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="block" select="ancestor-or-self::div[contains-token(@class, 'ldh-block-row')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()"/>
 
-        <xsl:if test="array:flatten(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types')) = 'application/vnd.atomgraph.linkeddatahub.block'">
-            <xsl:for-each select="$block/../div[contains-token(@class, 'ldh-block-row')][contains-token(@class, 'drag-over')][not(. is $block)]">
-                <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'drag-over', false())"/>
-            </xsl:for-each>
-            <!-- the marker only advertises drops that change the order: the source block and its previous
-                 sibling are no-op positions, so entering them clears the marker instead of moving it -->
-            <xsl:choose>
-                <xsl:when test="not($block[contains-token(@class, 'dragging')]) and not($block/following-sibling::*[1][contains-token(@class, 'dragging')])">
-                    <!-- canceling dragenter designates the drop target per the HTML spec processing model -->
-                    <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-                    <ixsl:set-attribute name="class" select="ldh:set-token($block/@class, 'drag-over', true())" object="$block"/>
-                </xsl:when>
-                <xsl:otherwise>
-                    <ixsl:set-attribute name="class" select="ldh:set-token($block/@class, 'drag-over', false())" object="$block"/>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:if>
+                <xsl:for-each select="$block/../div[contains-token(@class, 'ldh-block-row')][contains-token(@class, 'drag-over')][not(. is $block)]">
+                    <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'drag-over', false())"/>
+                </xsl:for-each>
+                <!-- the marker only advertises drops that change the order: the source block and its previous
+                     sibling are no-op positions, so entering them clears the marker instead of moving it -->
+                <xsl:choose>
+                    <xsl:when test="not($block[contains-token(@class, 'dragging')]) and not($block/following-sibling::*[1][contains-token(@class, 'dragging')])">
+                        <!-- canceling dragenter designates the drop target per the HTML spec processing model -->
+                        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+                        <ixsl:set-attribute name="class" select="ldh:set-token($block/@class, 'drag-over', true())" object="$block"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <ixsl:set-attribute name="class" select="ldh:set-token($block/@class, 'drag-over', false())" object="$block"/>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
     <!-- dropping block over other top-level block: move the dragged block after it -->
 
     <xsl:template match="*[ancestor-or-self::div[contains-token(@class, 'ldh-block-row')][parent::div[contains-token(@class, 'content-body')]]][not(ancestor-or-self::*[contains-token(@class, 'rdfa-editor-content')])]" mode="ixsl:ondrop" priority="1">
-        <xsl:variable name="block" select="ancestor-or-self::div[contains-token(@class, 'ldh-block-row')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()"/>
+        <xsl:choose>
+            <xsl:when test="not(array:flatten(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types')) = 'application/vnd.atomgraph.linkeddatahub.block')">
+                <xsl:next-match/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="block" select="ancestor-or-self::div[contains-token(@class, 'ldh-block-row')][parent::div[contains-token(@class, 'content-body')]][1]" as="element()"/>
 
-        <xsl:if test="array:flatten(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types')) = 'application/vnd.atomgraph.linkeddatahub.block'">
-            <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-            <ixsl:set-attribute name="class" select="ldh:set-token($block/@class, 'drag-over', false())" object="$block"/>
+                <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+                <ixsl:set-attribute name="class" select="ldh:set-token($block/@class, 'drag-over', false())" object="$block"/>
 
-            <xsl:variable name="target-uri" select="$block/@about" as="xs:anyURI?"/>
-            <xsl:variable name="source-uri" select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'getData', [ 'text/uri-list' ])" as="xs:anyURI"/>
-            <!-- resolve the dragged row within this document only: @about is duplicated on the inner
-                 card, and the drag can originate from another document (tab pane or window) - such
-                 drops are ignored -->
-            <xsl:variable name="document-body" select="$block/ancestor::div[contains-token(@class, 'document-body')][1]" as="element()"/>
-            <xsl:variable name="source-block" select="key('element-by-about', $source-uri, $document-body)[contains-token(@class, 'ldh-block-row')][parent::div[contains-token(@class, 'content-body')]]" as="element()?"/>
+                <xsl:variable name="target-uri" select="$block/@about" as="xs:anyURI?"/>
+                <xsl:variable name="source-uri" select="ixsl:call(ixsl:get(ixsl:event(), 'dataTransfer'), 'getData', [ 'text/uri-list' ])" as="xs:anyURI"/>
+                <!-- resolve the dragged row within this document only: @about is duplicated on the inner
+                     card, and the drag can originate from another document (tab pane or window) - such
+                     drops are ignored -->
+                <xsl:variable name="document-body" select="$block/ancestor::div[contains-token(@class, 'document-body')][1]" as="element()"/>
+                <xsl:variable name="source-block" select="key('element-by-about', $source-uri, $document-body)[contains-token(@class, 'ldh-block-row')][parent::div[contains-token(@class, 'content-body')]]" as="element()?"/>
 
-            <!-- only persist if the target block is saved (has @about) and the source is a different block of the same document -->
-            <xsl:if test="$target-uri and exists($source-block) and not($target-uri = $source-uri)">
-                <xsl:sequence select="ldh:busy-cursor()"/>
+                <!-- only persist if the target block is saved (has @about) and the source is a different block of the same document -->
+                <xsl:if test="$target-uri and exists($source-block) and not($target-uri = $source-uri)">
+                    <xsl:sequence select="ldh:busy-cursor()"/>
 
-                <!-- remember the source position so a failed PATCH can revert the optimistic move -->
-                <xsl:variable name="source-next" select="$source-block/following-sibling::*[1]" as="element()?"/>
-                <xsl:sequence select="ixsl:call($block, 'after', [ $source-block ])"/>
+                    <!-- remember the source position so a failed PATCH can revert the optimistic move -->
+                    <xsl:variable name="source-next" select="$source-block/following-sibling::*[1]" as="element()?"/>
+                    <xsl:sequence select="ixsl:call($block, 'after', [ $source-block ])"/>
 
-                <xsl:variable name="values-row" select="'(&lt;' || ac:absolute-path(ldh:base-uri(.)) || '&gt; &lt;' || $source-uri || '&gt; &lt;' || $target-uri || '&gt;)'" as="xs:string"/>
-                <xsl:variable name="update-string" select="replace($block-move-string, '($doc $source $target)', $values-row, 'q')" as="xs:string"/>
-                <xsl:variable name="request-uri" select="ldh:href(ac:absolute-path(ldh:base-uri(.)), map{})" as="xs:anyURI"/>
-                <xsl:variable name="request" select="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }" as="map(*)"/>
-                <xsl:variable name="context" select="map{ 'request': $request, 'source-block': $source-block, 'source-next': $source-next }" as="map(*)"/>
+                    <xsl:variable name="values-row" select="'(&lt;' || ac:absolute-path(ldh:base-uri(.)) || '&gt; &lt;' || $source-uri || '&gt; &lt;' || $target-uri || '&gt;)'" as="xs:string"/>
+                    <xsl:variable name="update-string" select="replace($block-move-string, '($doc $source $target)', $values-row, 'q')" as="xs:string"/>
+                    <xsl:variable name="request-uri" select="ldh:href(ac:absolute-path(ldh:base-uri(.)), map{})" as="xs:anyURI"/>
+                    <xsl:variable name="request" select="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }" as="map(*)"/>
+                    <xsl:variable name="context" select="map{ 'request': $request, 'source-block': $source-block, 'source-next': $source-next }" as="map(*)"/>
 
-                <ixsl:promise select="
-                    ixsl:resolve($context) =>
-                        ixsl:then(ldh:http-request-threaded#1) =>
-                        ixsl:then(ldh:handle-response#1) =>
-                        ixsl:then(ldh:block-moved#1) =>
-                        ixsl:finally(ldh:reset-cursor#0)"
-                    on-failure="ldh:promise-failure#1"/>
-            </xsl:if>
-        </xsl:if>
+                    <ixsl:promise select="
+                        ixsl:resolve($context) =>
+                            ixsl:then(ldh:http-request-threaded#1) =>
+                            ixsl:then(ldh:handle-response#1) =>
+                            ixsl:then(ldh:block-moved#1) =>
+                            ixsl:finally(ldh:reset-cursor#0)"
+                        on-failure="ldh:promise-failure#1"/>
+                </xsl:if>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
     <!-- the drop marker line renders in the gap between blocks (the marked block's bottom margin), so
@@ -654,22 +679,37 @@ exclude-result-prefixes="#all"
          retarget the drag to the body per the HTML processing model, refusing the drop over the line -->
 
     <xsl:template match="div[contains-token(@class, 'content-body')][not(ancestor::*[contains-token(@class, 'rdfa-editor-content')])]" mode="ixsl:ondragenter">
-        <xsl:if test="array:flatten(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types')) = 'application/vnd.atomgraph.linkeddatahub.block' and ./div[contains-token(@class, 'drag-over')]">
-            <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        </xsl:if>
+        <xsl:choose>
+            <xsl:when test="not(array:flatten(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types')) = 'application/vnd.atomgraph.linkeddatahub.block')">
+                <xsl:next-match/>
+            </xsl:when>
+            <xsl:when test="./div[contains-token(@class, 'drag-over')]">
+                <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+            </xsl:when>
+        </xsl:choose>
     </xsl:template>
 
     <xsl:template match="div[contains-token(@class, 'content-body')][not(ancestor::*[contains-token(@class, 'rdfa-editor-content')])]" mode="ixsl:ondragover">
-        <xsl:if test="array:flatten(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types')) = 'application/vnd.atomgraph.linkeddatahub.block' and ./div[contains-token(@class, 'drag-over')]">
-            <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-            <ixsl:set-property name="dataTransfer.dropEffect" select="'move'" object="ixsl:event()"/>
-        </xsl:if>
+        <xsl:choose>
+            <xsl:when test="not(array:flatten(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types')) = 'application/vnd.atomgraph.linkeddatahub.block')">
+                <xsl:next-match/>
+            </xsl:when>
+            <xsl:when test="./div[contains-token(@class, 'drag-over')]">
+                <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+                <ixsl:set-property name="dataTransfer.dropEffect" select="'move'" object="ixsl:event()"/>
+            </xsl:when>
+        </xsl:choose>
     </xsl:template>
 
     <xsl:template match="div[contains-token(@class, 'content-body')][not(ancestor::*[contains-token(@class, 'rdfa-editor-content')])]" mode="ixsl:ondrop">
-        <xsl:if test="array:flatten(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types')) = 'application/vnd.atomgraph.linkeddatahub.block'">
-            <xsl:apply-templates select="./div[contains-token(@class, 'drag-over')]" mode="#current"/>
-        </xsl:if>
+        <xsl:choose>
+            <xsl:when test="not(array:flatten(ixsl:get(ixsl:get(ixsl:event(), 'dataTransfer'), 'types')) = 'application/vnd.atomgraph.linkeddatahub.block')">
+                <xsl:next-match/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:apply-templates select="./div[contains-token(@class, 'drag-over')]" mode="#current"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
     <!-- BLOCK CREATION -->

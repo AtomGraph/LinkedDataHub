@@ -1,9 +1,10 @@
 /* =========================================================================
-   ui_kits/core/overlays.css — Menu · Popover · Modal
+   ui_kits/core/overlays.css — Menu · Popover · Modal · DropzoneOverlay
 
-   All three share one positioning/dismissal model: anchored to a trigger (or
-   centred, for modals), dismissal on outside click and Escape, focus returned
-   to the trigger on close.
+   The first three share one positioning/dismissal model: anchored to a trigger
+   (or centred, for modals), dismissal on outside click and Escape, focus
+   returned to the trigger on close. The dropzone is the odd one: it is raised
+   by a drag rather than a click, and dismissed by the drag ending.
    ========================================================================= */
 
 /* =========================================================================
@@ -186,3 +187,51 @@
   border-radius: 0 0 var(--r-lg) var(--r-lg);
 }
 .ac-modal-foot > .ac-modal-foot-end { margin-left: auto; display: flex; align-items: center; gap: var(--sp-2); }
+
+/* =========================================================================
+   DropzoneOverlay — page-scale file drop target, raised while a file is
+   dragged over the window. The third and largest of the kit's drop surfaces:
+   .ac-file-drop (controls.css) sits inside a 32px property row, .ldh-dropzone
+   fills a section of a form, this one takes the page.
+
+   It exists to answer a question the other two never have to: a row-scale
+   dropzone is visible before the drag starts, so it advertises itself. A page
+   that accepts a drop anywhere advertises nothing, and a drag over it is
+   indistinguishable from a drag over a page that accepts nothing.
+
+   Stacks above a modal at any depth (.ac-backdrop tops out at 140), since a
+   file can be dragged over a page that already has dialogs open.
+   ========================================================================= */
+.ac-dropzone-overlay {
+  position: fixed; inset: 0; z-index: 160;
+  display: flex; align-items: center; justify-content: center;
+  padding: var(--sp-8);
+  /* Tints rather than hides. A modal's scrim buries the page because the page is
+     not what you are working on any more; here it still is — you are aiming at
+     it — so the wash stays light enough to keep the document legible under it. */
+  background: color-mix(in srgb, var(--bg-accent-quiet) 62%, transparent);
+  -webkit-backdrop-filter: blur(1px); backdrop-filter: blur(1px);
+  animation: ac-fade-in var(--dur-base) var(--ease-out-soft);
+}
+
+/* The overlay must remain the ONLY hit target for the whole drag. A child that
+   takes pointer events fires dragleave on the overlay as the pointer crosses
+   into it, and the overlay unmounts from under the drop — the classic
+   drag-overlay flicker, fixed here rather than with an enter/leave counter. */
+.ac-dropzone-panel {
+  pointer-events: none;
+  display: flex; flex-direction: column; align-items: center; gap: var(--sp-2);
+  padding: var(--sp-8) var(--sp-10); text-align: center;
+  /* Solid, where the idle dropzones are dashed. A dashed edge under a file
+     that is already hovering reads as "still waiting" — the same inversion
+     .ac-fileinput.is-dragover makes at row scale. */
+  border: 2px solid var(--ldh-blue-500); border-radius: var(--r-lg);
+  background: var(--surface-0); box-shadow: var(--shadow-xl);
+}
+.ac-dropzone-panel > .msi { font-size: 40px; color: var(--ldh-blue-500); }
+.ac-dropzone-title {
+  font-family: var(--font-sans); font-size: var(--fs-lg); font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-snug); color: var(--fg-1);
+}
+/* The accepted formats, mono because they are literal file extensions. */
+.ac-dropzone-sub { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--fg-hint); }
