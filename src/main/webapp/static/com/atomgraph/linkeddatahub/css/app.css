@@ -3706,6 +3706,27 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 /* Inline placement (a form in a block) keeps the card's bottom radius; the
    modal-footer placement is .ac-modal-foot and needs neither. */
 .ldh-form-bar.pl-inline { border-radius: 0 0 var(--r-lg) var(--r-lg); }
+/* Dialog placement. A dialog hangs its actions outside the scrolling body as
+   .ac-modal-foot, but a form's actions cannot go there: the form element has to wrap
+   the fields and the buttons together, so the bar rides at the end of the body and
+   scrolled away with the fields - a long form put Save behind a scroll. Sticking it to
+   the scrollport's bottom edge lands it where .ac-modal-foot sits, in reach from the
+   first field on. A form that closes with a block foot pins the same way. */
+.ac-modal-body .ldh-form-bar, .ac-modal-body form > .ldh-block-foot { position: sticky; bottom: 0; z-index: 1; }
+.ac-modal-body .ldh-form-bar { border-radius: 0 0 var(--r-lg) var(--r-lg); }
+/* Nothing may sit below a stuck bar, or the rows scrolling under it stay visible through
+   the strip left between it and the dialog's edge: the body's own bottom inset goes, and
+   so does every wrapper's between the two. Selected with :has() rather than named,
+   because the kit cannot know what a consumer nests between its dialog and its form -
+   and guarded on the bar closing the body, because what a dialog parks after its form
+   (the add-data notice) is the dialog's content, not the form's: it keeps the inset and
+   scrolls out from under the bar at the form's end. */
+.ac-modal-body:has(> :last-child .ldh-form-bar:last-child), .ac-modal-body:has(> :last-child .ldh-form-bar:last-child) *:has(.ldh-form-bar),
+.ac-modal-body:has(> :last-child .ldh-block-foot:last-child), .ac-modal-body:has(> :last-child .ldh-block-foot:last-child) *:has(.ldh-block-foot) { padding-bottom: 0; }
+/* A form that IS the dialog's body content carries no card frame of its own, so its bar
+   is the dialog's foot and spans the body's side inset. A form nested in a block keeps
+   that card's frame and stays within it. */
+.ac-modal-body:not(.is-flush) > form > .ldh-form-bar { margin-inline: calc(-1 * var(--sp-5)); }
 .ldh-form-bar .fb-end { margin-left: auto; display: flex; align-items: center; gap: var(--sp-2); }
 /* Dirty-state readout — the form says what will happen, so Save being disabled
    is never a mystery. */
