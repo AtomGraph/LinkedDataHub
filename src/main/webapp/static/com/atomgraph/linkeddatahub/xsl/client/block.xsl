@@ -397,6 +397,11 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
 
+    <!-- the autosave above is this block's exit and it already handles the press that lands outside: it
+         saves a dirty region and cancels a clean one. The generic dismissal must not run too, or the press
+         cancels the block here and the focusout that follows it cancels a block whose snapshot is gone -->
+    <xsl:template match="div[contains-token(@class, 'block')][@about][descendant::div[contains-token(@class, 'rdfa-editor-content')]]" mode="ldh:DismissEditing" priority="1"/>
+
     <!-- rdfae:inject-chrome (edit.xsl) injects the block drag handle with class="drag-handle" -
          a leftover token from when this file's WYMeditor block handle was ported into the editor.
          In LDH that token collides with ldh.css's `.block .drag-handle { display: none }`, which hides

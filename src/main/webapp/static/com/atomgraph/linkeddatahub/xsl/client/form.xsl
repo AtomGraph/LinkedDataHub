@@ -96,6 +96,15 @@ WHERE
     
     <xsl:template match="text()" mode="ldh:RenderRowForm"/>
 
+    <!-- the form's state at activation, for the outside-press dismissal to tell an untouched form from an
+         edited one. Stashed after the children, so a control a widget replaces on the way in is already in
+         place - a baseline taken before that would leave an untouched form permanently dirty -->
+    <xsl:template match="form[tokenize(@class, ' ') = ('ldh-prop-form', 'ldh-edit-form')]" mode="ldh:RenderRowForm">
+        <xsl:apply-templates mode="#current"/>
+
+        <ixsl:set-property name="formBaseline" select="ldh:form-content(.)" object="."/>
+    </xsl:template>
+
     <!-- flip the RDF/POST input names when the subject type changes between URI ("su") and blank node ("sb"), restoring the values last stored for the new type -->
     <xsl:template match="select[contains-token(@class, 'subject-type')]" mode="ixsl:onchange">
         <xsl:variable name="new-type" select="string(ixsl:get(., 'value'))" as="xs:string"/>
@@ -150,6 +159,16 @@ WHERE
             <xsl:apply-templates select="$region/node()" mode="cm:canonical"/>
         </xsl:variable>
         <xsl:sequence select="serialize($canonical, map{ 'method': 'xml' })"/>
+    </xsl:function>
+
+    <!-- the form's RDF/POST state: the same controls, through the same parse, that the submit path sends,
+         so the dirty check and the request cannot disagree about what counts as an edit. Controls outside
+         RDF/POST - the property picker of the add row, the subject-type select - are not state the form
+         would save, and an abandoned gesture in one of them is not an edit -->
+    <xsl:function name="ldh:form-content" as="xs:string">
+        <xsl:param name="form" as="element()"/>
+
+        <xsl:sequence select="serialize(ldh:parse-rdf-post($form//input | $form//textarea | $form//select), map{ 'method': 'xml' })"/>
     </xsl:function>
 
     <!-- first editable region on the page: full editor bring-up (chrome, dialogs, drawers, all regions) -->
@@ -1330,6 +1349,28 @@ WHERE
         </xsl:apply-templates>
     </xsl:function>
 
+    <!-- a press outside the block leaves an untouched form the way Cancel does, and leaves an edited one
+         alone. Cancel is a button the author aims at; outside the block is the rest of the page, the same
+         gesture that scrolls or dismisses a tooltip, so it must not carry Cancel's consequences for work
+         that was typed. An edited form keeps Save and Cancel as its only exits. Without a baseline - a form
+         some other path rendered - the comparison is against an empty sequence and nothing is dismissed -->
+    <xsl:template match="div[contains-token(@class, 'block')][@about]" mode="ldh:DismissEditing">
+        <xsl:variable name="form" select="descendant::form[tokenize(@class, ' ') = ('ldh-prop-form', 'ldh-edit-form')][1]" as="element()"/>
+
+        <!-- focus leaves the form first, while the DOM is still: the combobox's own focusout reverts
+             an edit left abandoned, so the chip it replaced is back in the comparison and a pencil clicked
+             by mistake does not read as an edit. Reverting it from here instead would rewrite the wrapper
+             under the focused input, and the blur the browser fires for that lands in the middle of this
+             template - a rule replacing nodes that another replacement has already moved -->
+        <xsl:for-each select="$form//input[contains-token(@class, 'combobox')]">
+            <xsl:sequence select="ixsl:call(., 'blur', [])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+
+        <xsl:if test="ldh:form-content($form) = ixsl:get($form, 'formBaseline')">
+            <xsl:apply-templates select="." mode="ldh:CancelEditing"/>
+        </xsl:if>
+    </xsl:template>
+
     <!-- TO-DO: unify -->
     <xsl:template match="div[ancestor::div[contains-token(@class, 'block')]]//button[contains-token(@class, 'btn-cancel')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
@@ -2041,16 +2082,20 @@ WHERE
     </xsl:template>
 
     <xsl:template match="input[contains-token(@class, 'combobox')]" mode="ixsl:onfocusout">
-        <xsl:param name="menu" select="(following-sibling::ul, ../following-sibling::div[contains-token(@class, 'ac-cb-panel')])[1]" as="element()"/>
-        
-        <xsl:call-template name="ldh:ComboboxHide">
-            <xsl:with-param name="menu" select="$menu"/>
-        </xsl:call-template>
+        <xsl:param name="menu" select="(following-sibling::ul, ../following-sibling::div[contains-token(@class, 'ac-cb-panel')])[1]" as="element()?"/>
 
-        <!-- an edit left empty is an edit abandoned. A picked item has already swapped the wrapper for its
-             chip, so the detached input's focusout must not write a stale snapshot over it -->
-        <xsl:if test="exists(ancestor::body) and not(normalize-space(ixsl:get(., 'value')))">
-            <xsl:apply-templates select="../.." mode="ldh:CancelCombobox"/>
+        <!-- a picked item has already swapped the wrapper for its chip, taking the panel with it: the
+             focusout the browser fires for that replacement reaches a detached input, with no panel left
+             to hide and no snapshot left to write over the value just picked -->
+        <xsl:if test="exists(ancestor::body) and exists($menu)">
+            <xsl:call-template name="ldh:ComboboxHide">
+                <xsl:with-param name="menu" select="$menu"/>
+            </xsl:call-template>
+
+            <!-- an edit left empty is an edit abandoned -->
+            <xsl:if test="not(normalize-space(ixsl:get(., 'value')))">
+                <xsl:apply-templates select="../.." mode="ldh:CancelCombobox"/>
+            </xsl:if>
         </xsl:if>
     </xsl:template>
 

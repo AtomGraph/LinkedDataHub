@@ -1244,6 +1244,17 @@ WHERE
                 <xsl:apply-templates select="." mode="ldh:CloseMenu"/>
             </xsl:if>
         </xsl:for-each>
+
+        <!-- a press also leaves a block whose form it lands outside of, which ldh:DismissEditing narrows to
+             the untouched ones. A modal mounts on the body, outside the block it was opened from, so a press
+             inside one is not a press outside the block -->
+        <xsl:if test="empty($target/ancestor-or-self::*[contains-token(@class, 'modal')])">
+            <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'block')][@about][descendant::form[tokenize(@class, ' ') = ('ldh-prop-form', 'ldh-edit-form')]]">
+                <xsl:if test="not($target/ancestor-or-self::node()[. is current()])">
+                    <xsl:apply-templates select="." mode="ldh:DismissEditing"/>
+                </xsl:if>
+            </xsl:for-each>
+        </xsl:if>
     </xsl:template>
 
     <xsl:template match="button[contains-token(@class, 'btn-delete')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">

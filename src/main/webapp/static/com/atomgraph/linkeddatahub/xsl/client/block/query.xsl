@@ -83,6 +83,11 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), string(@id)), 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
+    <!-- the editor also holds the query text, copying it into the textarea only when the form submits, so
+         a query being written reads as an untouched form. A press outside the block must not dismiss it on
+         that reading: this block keeps Save and Cancel as its exits -->
+    <xsl:template match="div[contains-token(@class, 'block')][@about][descendant::textarea[contains-token(@class, 'sparql-query-string')]]" mode="ldh:DismissEditing" priority="1"/>
+
 <!--    <xsl:template name="onQueryServiceLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
