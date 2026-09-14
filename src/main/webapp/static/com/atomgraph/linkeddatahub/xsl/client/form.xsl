@@ -151,12 +151,21 @@ WHERE
 
     <!-- the region's canonical lexical form: the single canonicalization point for rdf:XMLLiteral values
          (cm:canonical, canonical-xhtml.xsl, serialized by Saxon). Shared by the ol-input serialization,
-         the activation baseline and the autosave dirty check, so their verdicts can't drift -->
+         the activation baseline and the autosave dirty check, so their verdicts can't drift.
+
+         The div the stored literal is rooted in is built here, as a node, rather than concatenated around
+         the serialized fragment afterwards: serializing the region's children on their own puts an
+         xmlns on each of them, since nothing in that sequence carries the XHTML namespace they are in,
+         and wrapping that in a div which declares it again stores a lexical form that differs from the
+         authored one by a redundant declaration - drift on the first save of prose nobody edited. Inside
+         the wrapper the children inherit the declaration and Saxon emits it once -->
     <xsl:function name="ldh:canonical-content" as="xs:string">
         <xsl:param name="region" as="element()"/>
 
-        <xsl:variable name="canonical" as="node()*">
-            <xsl:apply-templates select="$region/node()" mode="cm:canonical"/>
+        <xsl:variable name="canonical" as="element()">
+            <div>
+                <xsl:apply-templates select="$region/node()" mode="cm:canonical"/>
+            </div>
         </xsl:variable>
         <xsl:sequence select="serialize($canonical, map{ 'method': 'xml' })"/>
     </xsl:function>
