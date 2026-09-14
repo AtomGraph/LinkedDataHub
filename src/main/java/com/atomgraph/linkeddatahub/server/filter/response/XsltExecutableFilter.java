@@ -51,7 +51,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Source;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamSource;
 import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.XsltCompiler;
@@ -65,6 +69,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 /**
@@ -166,7 +171,7 @@ public class XsltExecutableFilter implements ContainerResponseFilter
                     {
                         return getXsltExecutable(getComposedSource(app, stylesheet, packages));
                     }
-                    catch (SaxonApiException | IOException | ParserConfigurationException | SAXException ex)
+                    catch (SaxonApiException | IOException | ParserConfigurationException | SAXException | TransformerException ex)
                     {
                         throw new CompletionException(ex);
                     }
@@ -174,7 +179,7 @@ public class XsltExecutableFilter implements ContainerResponseFilter
 
             return getXsltExecutable(getComposedSource(app, stylesheet, packages));
         }
-        catch (SaxonApiException | IOException | ParserConfigurationException | SAXException | CompletionException ex)
+        catch (SaxonApiException | IOException | ParserConfigurationException | SAXException | TransformerException | CompletionException ex)
         {
             if (log.isErrorEnabled()) log.error("Could not compile stylesheet '{}' composed with packages {}, falling back to the stylesheet alone", stylesheet, packages, ex);
             return getXsltExecutable(stylesheet);
@@ -196,16 +201,45 @@ public class XsltExecutableFilter implements ContainerResponseFilter
      * @throws IOException I/O error
      * @throws ParserConfigurationException parser configuration error
      * @throws SAXException XML parsing error
+     * @throws TransformerException XML parsing or serialization error
      */
-    public Source getComposedSource(com.atomgraph.linkeddatahub.apps.model.Application app, URI stylesheet, List<URI> packages) throws IOException, ParserConfigurationException, SAXException
+    public Source getComposedSource(com.atomgraph.linkeddatahub.apps.model.Application app, URI stylesheet, List<URI> packages) throws IOException, ParserConfigurationException, SAXException, TransformerException
     {
         Source source = getSource(stylesheet.toString());
         if (!(source instanceof StreamSource)) throw new IOException("XSLT stylesheet could not be loaded from URI: " + stylesheet);
 
-        Document doc = SecureXML.newDocumentBuilderFactory().newDocumentBuilder().parse(((StreamSource)source).getInputStream());
+        Document doc = getDocument(((StreamSource)source).getInputStream(), stylesheet);
         appendImports(doc, getStylesheets(packages));
 
         return new DOMSource(doc, getPublicURI(app, stylesheet).toString());
+    }
+
+    /**
+     * Parses a stylesheet into a DOM document with its entities expanded.
+     * The DOCTYPE-tolerant reader rather than {@link SecureXML#newDocumentBuilderFactory()}, which forbids
+     * a DOCTYPE outright: an application's stylesheet is authored, not built, and declaring namespaces as
+     * internal entities is the idiom every stylesheet in this repository is written in. Refusing them made
+     * a declarative import silently do nothing - the composition threw, the filter logged and fell back to
+     * the stylesheet alone, and the application rendered with none of the package's rules. The client-side
+     * composition reached the same conclusion in {@code ClientStylesheetService.expandEntities()}, so the
+     * two paths now accept the same stylesheets.
+     *
+     * @param is stylesheet stream
+     * @param systemId system id to resolve relative references against
+     * @return stylesheet document
+     * @throws ParserConfigurationException parser configuration error
+     * @throws SAXException XML parsing error
+     * @throws TransformerException XML parsing or serialization error
+     */
+    public Document getDocument(InputStream is, URI systemId) throws ParserConfigurationException, SAXException, TransformerException
+    {
+        SAXSource source = new SAXSource(SecureXML.newXMLReader(), new InputSource(is));
+        source.setSystemId(systemId.toString());
+
+        DOMResult result = new DOMResult();
+        TransformerFactory.newInstance().newTransformer().transform(source, result);
+
+        return (Document)result.getNode();
     }
 
     /**

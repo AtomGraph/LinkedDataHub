@@ -20,26 +20,64 @@ concept="${doc}#this"
 
 # The package's rule is that the SKOS hierarchy predicates render as the concept tree rather than
 # as statement rows: it binds skos:narrower/broader/related/member to an empty ac:PropertyEditor
-# template. The object of the concept's skos:broader is therefore the marker - present in the
-# rendered document while the package is not imported, absent while it is.
+# template. So what the import moves is the concept's skos:broader ROW.
+#
+# It does not move the statement, and the difference is the whole reason this test reads the markup
+# with XPath instead of grepping it for the object URI. Since a document's markup asserts the graph
+# the same URL serves, every triple also gets an RDFa carrier - a link or meta element that renders
+# nothing - and ac:PropertyEditor does not reach those, nor should it: what a document serves as RDF
+# cannot change because a package chooses to draw it differently. The object URI is therefore in the
+# markup in every phase, and a grep for it passes in both directions.
 #
 # The concept is a resource of its own that the document describes, not the document itself. A
-# dh:Item carrying skos:broader directly renders nothing: the property list belongs to the
-# described resource, so with no foaf:primaryTopic there is nothing for ac:PropertyEditor to emit
-# and the assertion would pass in both directions.
+# dh:Item carrying skos:broader directly renders nothing: the property list belongs to the described
+# resource, so with no foaf:primaryTopic there is nothing for ac:PropertyEditor to emit and the
+# assertion would pass in both directions for a second reason.
+broader="http://www.w3.org/2004/02/skos/core#broader"
 marker="http://example.org/skos-broader-probe"
 
-# The rendered document is tens of KiB. Assertions therefore read the response from a here-string
-# rather than piping curl into `grep -q`: `grep -q` closes the pipe on its first match, and with
-# `set -o pipefail` the SIGPIPE'd curl fails the whole pipeline. That only happens when curl is
-# still writing at the moment grep exits, which made this test fail randomly.
+# XHTML rather than text/html, as in rdfa/graph-in-markup.sh: the same rendering is then well-formed
+# and can be counted with XPath instead of matched as text. Attribute order is a serialization
+# detail and nothing here depends on it.
 
 function document()
 {
   curl -k -s \
-    -H "Accept: text/html" \
+    -H "Accept: application/xhtml+xml" \
+    -H "Accept-Language: en" \
     -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
     "$doc"
+}
+
+# Counts the two kinds of element that can carry the marker, from one fetch. Sets:
+#   ROWS     - the rendered property row, which the import suppresses
+#   CARRIERS - the RDFa carrier, which asserts the statement whatever the import does
+#
+# The body is read into a variable first: `xmllint -` consumes all of it, and with `set -o pipefail`
+# a reader that stopped early would SIGPIPE curl and fail the whole pipeline. That only happens when
+# curl is still writing at the moment the reader exits, which made this test fail randomly.
+function probe()
+{
+  local body
+  body=$(document)
+  ROWS=$(xmllint --xpath "count(//*[@property = '$broader'][@resource = '$marker'][local-name() != 'link'])" - <<< "$body" 2> /dev/null || echo "ERR")
+  CARRIERS=$(xmllint --xpath "count(//*[local-name() = 'link'][@property = '$broader'][@resource = '$marker'])" - <<< "$body" 2> /dev/null || echo "ERR")
+}
+
+# assert the row count for a phase, and that the carrier is there whatever the row does
+function assert_rows()
+{
+  local phase="$1" expected="$2" note="$3"
+  probe
+  echo "DEBUG: [$phase] Expected rows: $expected  Got: $ROWS  (carriers: $CARRIERS, expected >= 1)"
+  if [ "$ROWS" != "$expected" ]; then
+    echo "DEBUG: [$phase] $note" >&2
+    exit 1
+  fi
+  if [ "$CARRIERS" = "ERR" ] || [ "$CARRIERS" -lt 1 ]; then
+    echo "DEBUG: [$phase] the statement lost its RDFa carrier - the markup no longer asserts the graph the document serves" >&2
+    exit 1
+  fi
 }
 
 function patch_settings()
@@ -82,12 +120,7 @@ EOF
 
 # without the package, the broader statement renders as a property row
 
-response=$(document)
-
-if ! grep -qF "$marker" <<< "$response"; then
-  echo "DEBUG: broader row missing before import - the fixture does not exercise the package rule" >&2
-  exit 1
-fi
+assert_rows "before import" 1 "broader row missing before import - the fixture does not exercise the package rule"
 
 # declare the package import
 
@@ -98,14 +131,9 @@ if [[ ! "$status" =~ ^($STATUS_NO_CONTENT)$ ]]; then
   exit 1
 fi
 
-# the package suppresses it — on the very next request, no restart and no sleep
+# the package suppresses the row — on the very next request, no restart and no sleep
 
-response=$(document)
-
-if grep -qF "$marker" <<< "$response"; then
-  echo "DEBUG: broader row still rendered after import - the package stylesheet did not compose" >&2
-  exit 1
-fi
+assert_rows "after import" 0 "broader row still rendered after import - the package stylesheet did not compose"
 
 # remove the package import
 
@@ -118,9 +146,4 @@ fi
 
 # and the row is back
 
-response=$(document)
-
-if ! grep -qF "$marker" <<< "$response"; then
-  echo "DEBUG: broader row still suppressed after the import was removed" >&2
-  exit 1
-fi
+assert_rows "after removal" 1 "broader row still suppressed after the import was removed"

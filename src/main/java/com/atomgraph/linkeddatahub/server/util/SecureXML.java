@@ -38,7 +38,9 @@ public final class SecureXML
 
     /**
      * Returns a namespace-aware {@link DocumentBuilderFactory} with DTDs and external entities disabled.
-     * Suitable for parsing trusted internal XML (e.g. stylesheets) that never carries a DOCTYPE.
+     * Suitable for XML that carries no DOCTYPE at all: a document that has one is rejected outright rather
+     * than parsed without it. Stylesheets are not such XML - they declare their namespaces as internal
+     * entities - so parse those with {@link #newXMLReader()}, which tolerates a benign internal subset.
      *
      * @return hardened document builder factory
      * @throws ParserConfigurationException if a feature cannot be set
