@@ -109,7 +109,7 @@ that document and an absolute URI names a resource described somewhere else. It 
 list: `foaf:primaryTopic` is an `owl:FunctionalProperty`, so a second value would not mean a second
 topic — it would entail that the two topics are the same resource. It writes the link only; the
 topic's own type and properties are the constructor's business, and a vocabulary may refuse a topic
-without them (the SKOS package rejects a concept with no `skos:inScheme`).
+without them (the taxonomy editor package rejects a concept with no `skos:inScheme`).
 
 ## Conventions
 
@@ -163,10 +163,10 @@ The commands write that triple; they do not install anything of their own.
 
 ```bash
 ldh packages list
-# available	https://packages.linkeddatahub.com/skos/#this	SKOS
+# available	https://packages.linkeddatahub.com/editor/taxonomy/#this	Taxonomy Editor
 
-ldh packages add --package https://packages.linkeddatahub.com/skos/#this
-ldh packages remove --package https://packages.linkeddatahub.com/skos/#this
+ldh packages add --package https://packages.linkeddatahub.com/editor/taxonomy/#this
+ldh packages remove --package https://packages.linkeddatahub.com/editor/taxonomy/#this
 ```
 
 Both take effect on the next request, with no restart: the package ontology joins the

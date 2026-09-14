@@ -361,17 +361,17 @@ public class CommandOutputTest
     {
         String settings = """
             @prefix ldh: <https://w3id.org/atomgraph/linkeddatahub#> .
-            <urn:linkeddatahub:apps/end-user> ldh:import <https://packages.linkeddatahub.com/skos/#this> .
+            <urn:linkeddatahub:apps/end-user> ldh:import <https://packages.linkeddatahub.com/editor/taxonomy/#this> .
             """;
         String catalog = """
             <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
                 xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:dct="http://purl.org/dc/terms/">
               <rdf:Description rdf:about="https://packages.linkeddatahub.com/">
-                <rdfs:member rdf:resource="https://packages.linkeddatahub.com/skos/#this"/>
+                <rdfs:member rdf:resource="https://packages.linkeddatahub.com/editor/taxonomy/#this"/>
                 <rdfs:member rdf:resource="https://packages.linkeddatahub.com/foaf/#this"/>
               </rdf:Description>
-              <rdf:Description rdf:about="https://packages.linkeddatahub.com/skos/#this">
-                <dct:title>SKOS</dct:title>
+              <rdf:Description rdf:about="https://packages.linkeddatahub.com/editor/taxonomy/#this">
+                <dct:title>Taxonomy Editor</dct:title>
               </rdf:Description>
               <rdf:Description rdf:about="https://packages.linkeddatahub.com/foaf/#this">
                 <dct:title>FOAF</dct:title>
@@ -390,8 +390,8 @@ public class CommandOutputTest
                 "-f", keyStorePath().toString(), "-p", "changeit", "-b", base.toString());
 
             assertEquals(0, code);
-            assertEquals(List.of("available\thttps://packages.linkeddatahub.com/foaf/#this\tFOAF",
-                                 "installed\thttps://packages.linkeddatahub.com/skos/#this\tSKOS"),
+            assertEquals(List.of("installed\thttps://packages.linkeddatahub.com/editor/taxonomy/#this\tTaxonomy Editor",
+                                 "available\thttps://packages.linkeddatahub.com/foaf/#this\tFOAF"),
                 out.toString().lines().toList());
             assertEquals("", err.toString(), "stderr is not empty on success");
             // the registry is not the application's own URI, so the catalog is read through the proxy

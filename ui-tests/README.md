@@ -65,7 +65,7 @@ not remembered.
 | `UI_TESTS_SKIP_SEED=1` | Reuse whatever is already there — for iterating on one spec |
 | `UI_TESTS_KEEP_FIXTURES=1` | Leave the container behind to inspect it in a browser |
 | `UI_TESTS_ITEMS=n` | Fewer children (default 25 — enough for a second pager page) |
-| `UI_TESTS_SKOS_PACKAGE=uri` | A different taxonomy package to import (default: the bundled SKOS one) |
+| `UI_TESTS_TAXONOMY_PACKAGE=uri` | A different taxonomy package to import (default: the bundled taxonomy editor) |
 
 ### The taxonomy
 

@@ -73,7 +73,7 @@
    [ lm:prefix "http://spinrdf.org/spin" ;                                       lm:altName "etc/spin.ttl" ] ,
    [ lm:prefix "http://spinrdf.org/spl" ;                                        lm:altName "etc/spl.spin.ttl" ] ,
    [ lm:prefix "https://packages.linkeddatahub.com/" ;                           lm:altName "com/linkeddatahub/packages/packages.ttl" ] ,
-   [ lm:prefix "https://packages.linkeddatahub.com/skos/" ;                      lm:altName "com/linkeddatahub/packages/skos/package.ttl" ] ,
-   [ lm:prefix "https://raw.githubusercontent.com/AtomGraph/LinkedDataHub-Apps/refs/heads/master/packages/skos/ns.ttl" ; lm:altName "com/linkeddatahub/packages/skos/ns.ttl" ] ,
-   [ lm:name "https://packages.linkeddatahub.com/skos/layout.xsl" ;              lm:altName "com/linkeddatahub/packages/skos/layout.xsl" ]
+   [ lm:prefix "https://packages.linkeddatahub.com/editor/taxonomy/" ;           lm:altName "com/linkeddatahub/packages/editor/taxonomy/package.ttl" ] ,
+   [ lm:prefix "https://raw.githubusercontent.com/AtomGraph/LinkedDataHub-Apps/refs/heads/develop/packages/editor/taxonomy/ns.ttl" ; lm:altName "com/linkeddatahub/packages/editor/taxonomy/ns.ttl" ] ,
+   [ lm:name "https://packages.linkeddatahub.com/editor/taxonomy/skos.xsl" ;     lm:altName "com/linkeddatahub/packages/editor/taxonomy/skos.xsl" ]
 .

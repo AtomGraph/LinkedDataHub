@@ -20,8 +20,8 @@ const FOAF = 'http://xmlns.com/foaf/0.1/';
 
 // The package under test. Without it the tree does not exist at all: the column, the
 // hierarchy queries and the reveal are all the package stylesheet's, not the platform's.
-export const skosPackage = process.env.UI_TESTS_SKOS_PACKAGE
-    ?? 'https://packages.linkeddatahub.com/skos/#this';
+export const taxonomyPackage = process.env.UI_TESTS_TAXONOMY_PACKAGE
+    ?? 'https://packages.linkeddatahub.com/editor/taxonomy/#this';
 
 export const taxonomy = { container: `${endUserBase}${slug}/` };
 
@@ -89,7 +89,7 @@ async function packageInstalled() {
     const { stdout } = await ldh(['packages', 'list']);
     return stdout.split('\n').some(line => {
         const [state, uri] = line.split('\t');
-        return state === 'installed' && uri === skosPackage;
+        return state === 'installed' && uri === taxonomyPackage;
     });
 }
 
@@ -100,7 +100,7 @@ let addedPackage = false;
 
 export async function seedTaxonomy() {
     if (!await packageInstalled()) {
-        await ldh(['packages', 'add', '--package', skosPackage]);
+        await ldh(['packages', 'add', '--package', taxonomyPackage]);
         addedPackage = true;
     }
 
@@ -209,7 +209,7 @@ export async function teardownTaxonomy() {
     }
     await ldh(['delete', taxonomy.container], { allowFailure: true });
     if (addedPackage) {
-        await ldh(['packages', 'remove', '--package', skosPackage], { allowFailure: true });
+        await ldh(['packages', 'remove', '--package', taxonomyPackage], { allowFailure: true });
         addedPackage = false;
     }
 }

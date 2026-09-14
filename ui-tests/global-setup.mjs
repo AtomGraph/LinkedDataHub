@@ -7,7 +7,7 @@ import { accessSync, constants } from 'node:fs';
 import { get } from './lib/http.mjs';
 import { composedSefPrefix, endUserBase, localSef, sefDir, sefPath } from './lib/stack.mjs';
 import { fixtures as fixtureUris, itemCount, seed, teardown } from './lib/fixtures.mjs';
-import { seedTaxonomy, skosPackage, teardownTaxonomy, waitForPackageStylesheet } from './lib/taxonomy.mjs';
+import { seedTaxonomy, taxonomyPackage, teardownTaxonomy, waitForPackageStylesheet } from './lib/taxonomy.mjs';
 
 function onPath(command) {
     return (process.env.PATH ?? '').split(delimiter).some(dir => {
@@ -134,7 +134,7 @@ async function fixtures() {
     console.log(`  fixtures   ${container} with ${itemCount} items (${Date.now() - started} ms)`);
 }
 
-// The concept tree is the SKOS package's, not the platform's, so its fixtures carry the
+// The concept tree is the taxonomy editor package's, not the platform's, so its fixtures carry the
 // package import too. Kept apart from the generic fixtures because it is the one seeding
 // step that changes how the whole dataspace renders, and teardown puts it back.
 async function taxonomy() {
@@ -146,7 +146,7 @@ async function taxonomy() {
     const started = Date.now();
     const { container, addedPackage } = await seedTaxonomy();
     console.log(`  taxonomy   ${container}`
-        + `${addedPackage ? ` (imported ${skosPackage})` : ''} (${Date.now() - started} ms)`);
+        + `${addedPackage ? ` (imported ${taxonomyPackage})` : ''} (${Date.now() - started} ms)`);
 
     // Importing a package is not the same as its rules reaching the browser: the composed
     // stylesheet is compiled asynchronously, and until it is published every page is

@@ -33,7 +33,7 @@ public class UpdatesTest
     private static final URI DOC = URI.create("https://localhost:4443/some/");
     private static final URI BASE = URI.create("https://localhost:4443/");
     private static final URI ADMIN_BASE = URI.create("https://admin.localhost:4443/");
-    private static final URI PACKAGE = URI.create("https://packages.linkeddatahub.com/skos/#this");
+    private static final URI PACKAGE = URI.create("https://packages.linkeddatahub.com/editor/taxonomy/#this");
 
     @Test
     public void insertOntologyImportIsValidSPARQL11()
@@ -50,7 +50,7 @@ public class UpdatesTest
         String update = Updates.insertPackageImport(PACKAGE);
 
         assertDoesNotThrow(() -> UpdateFactory.create(update, Syntax.syntaxSPARQL_11));
-        assertTrue(update.contains("<https://packages.linkeddatahub.com/skos/#this>"));
+        assertTrue(update.contains("<https://packages.linkeddatahub.com/editor/taxonomy/#this>"));
         // the application is matched by type, never named: its URI is an opaque urn: identifier
         assertTrue(update.contains("?app"));
     }
@@ -61,7 +61,7 @@ public class UpdatesTest
         String update = Updates.deletePackageImport(PACKAGE);
 
         assertDoesNotThrow(() -> UpdateFactory.create(update, Syntax.syntaxSPARQL_11));
-        assertTrue(update.contains("<https://packages.linkeddatahub.com/skos/#this>"));
+        assertTrue(update.contains("<https://packages.linkeddatahub.com/editor/taxonomy/#this>"));
         assertFalse(update.contains("?package"));
     }
 
