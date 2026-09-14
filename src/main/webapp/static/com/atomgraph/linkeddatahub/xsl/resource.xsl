@@ -1134,8 +1134,20 @@ exclude-result-prefixes="#all"
         </div>
     </xsl:template>
     
+    <!-- A view's inline-creation slot, emitted empty and filled by ldh:view-create-insert once the container
+         determination and its ACL probe have resolved. Nothing is declared and nothing is read off the view
+         here - where a new solution of this projection would be stored is a question about the data, asked by
+         ldh:ViewContainer. It rides ahead of the block's own actions, which is where the design system's
+         header puts an extra action: the icon cluster stays pinned to the card corner, so copy and edit line
+         up down the document instead of shifting on the one block that can also create. -->
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;View']" mode="ac:BlockActions" priority="2">
+        <span class="ldh-view-create"></span>
+
+        <xsl:next-match/>
+    </xsl:template>
+
     <xsl:template match="*" mode="ac:BlockActions"/>
-    
+
     <!-- TIMESTAMP -->
 
     <!-- the single "latest of created/modified" selection, shared by ldh:Timestamp and the list row's .ts cell -->

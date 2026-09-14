@@ -679,6 +679,10 @@ body:has(.document-body > .content-body > :is(.graph-3d-canvas, .map-canvas)) .l
 /* the pivot bar hides while it has no pills: the bar is derived output, and an empty band
    would read as a broken control (the design renders it conditionally instead) */
 .ldh-pivot-bar:not(:has(.ldh-pivot-pill)) { display: none; }
+/* the view's create slot is emitted with the block's other header actions and stays empty
+   unless the container determination and its ACL probe both answer — collapse it until then,
+   or the actions cluster carries a gap for a button that may never arrive */
+.ldh-view-create:empty { display: none; }
 /* incoming pivots read quieter than outgoing, mirroring the retired chip treatment */
 .ldh-pivot-pill.is-in { background: var(--surface-1); }
 .ldh-pivot-pill.is-in .lbl { color: var(--fg-muted); }

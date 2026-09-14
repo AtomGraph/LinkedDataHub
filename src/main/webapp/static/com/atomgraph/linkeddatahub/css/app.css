@@ -1047,7 +1047,10 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
    block-heading scale, so the top of a document anchors the page. */
 .ldh-block-head .ttl--hero { font-size: var(--fs-3xl); font-weight: var(--fw-bold); line-height: var(--lh-tight); letter-spacing: var(--tracking-tight); }
 .ldh-block-head .sub { display: block; font-size: var(--fs-sm); color: var(--fg-muted); margin-top: 4px; font-weight: 400; }
-.ldh-block-head .actions { display: flex; gap: var(--sp-1); }
+/* align-items, because the cluster is not icon-only: a block that carries an
+   extra labelled action (a view's Create) sets a taller line than the icon
+   buttons beside it, and stretched icon buttons would lose their square box. */
+.ldh-block-head .actions { display: flex; align-items: center; gap: var(--sp-1); }
 /* Actions are core <IconButton>; box, hover and intents come from it. */
 
 /* Links button — opens the block-scoped drawer. It is
@@ -1998,8 +2001,9 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-block-body > .ldh-view-toolbar { padding-left: 0; padding-right: 0; }
 /* The pivot bar is the toolbar's sibling and must take the same treatment: the
    block body already supplies the --sp-6 inset, so keeping its own would push
-   the pivot pills 24px right of the facet pills. */
-.ldh-block-body > .ldh-pivot-bar { padding-left: 0; padding-right: 0; }
+   the pivot pills 24px right of the facet pills. The bar itself carries no
+   padding — its summary and its pill row do, so both are named here. */
+.ldh-block-body > .ldh-pivot-bar > summary, .ldh-block-body > .ldh-pivot-bar .ldh-pivot-pills { padding-left: 0; padding-right: 0; }
 .ldh-grid-block .card {
   position: relative;
   display: flex; flex-direction: column; align-items: stretch;
@@ -4206,41 +4210,72 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 
 /* =========================================================================
    PIVOT BAR — parallax navigation, its own row under the facet/sort toolbar.
-   One pill per predicate PER DIRECTION, all visible: pivots are the primary
-   way to travel a graph, so the whole set is worth a row rather than a click.
-   The arrow leads the label, and forward pills group before backward ones.
+   One pill per predicate PER DIRECTION: pivots are the primary way to travel a
+   graph, so the whole set is offered at once rather than behind a picker. The
+   arrow leads the label, and forward pills group before backward ones.
+
+   A DISCLOSURE, closed by default. The set is worth showing whole, but not at
+   the cost of the results: a pivot is onward navigation rather than an input to
+   the query above it, and a second full pill row (wrapping to a third on a
+   narrow card) pushed the rows themselves below the fold. Closed it states what
+   it holds and how much of it; open it is the flat bar it always was.
    ========================================================================= */
 .ldh-pivot-bar {
-  display: flex; gap: var(--sp-2);
-  /* Matches .ldh-view-toolbar exactly — same vertical padding, same inset, same
-     gap — so the two bars read as one stacked control rather than two
-     components that happen to sit together. Inside .ldh-block-body the
-     horizontal padding is zeroed alongside the toolbar's (see that rule), since
-     the body supplies the inset. */
-  padding: var(--sp-3) var(--sp-6);
   /* Same tint and same dashed divider as .ldh-view-toolbar, so the two bars
      read as one banded control stacked in two rows rather than a tinted bar
      followed by a white one. */
   background: var(--surface-1);
   border-bottom: 1px dashed var(--border-default);
   min-width: 0;
-  /* flex-start, not center: the pills wrap, and centring the glyph on a
-     two-row block floats it into the gap between rows instead of aligning it
-     with the first pill the way the facet bar's lead glyph does. */
-  align-items: flex-start;
 }
-/* Leading glyph, matching the facet bar's filter glyph — it names the row
+/* The closed line. Deliberately lighter than the toolbar above it — smaller
+   type, tighter padding, muted ink: this is a disclosure, not a second control
+   bar, and matching the toolbar's weight would restate the problem the
+   disclosure solves. Marker, chevron rotation and focus ring are the core kit's
+   Disclosure grammar (.ac-disclosure). */
+.ldh-pivot-bar > summary {
+  display: flex; align-items: center; gap: 6px;
+  padding: var(--sp-2) var(--sp-6);
+  list-style: none; cursor: pointer; user-select: none;
+  font-family: var(--font-sans); font-size: var(--fs-xs); font-weight: var(--fw-medium);
+  color: var(--fg-muted);
+}
+.ldh-pivot-bar > summary::-webkit-details-marker { display: none; }
+.ldh-pivot-bar > summary:hover { color: var(--fg-1); }
+.ldh-pivot-bar > summary:focus-visible { outline: 0; box-shadow: var(--focus-ring); }
+.ldh-pivot-bar > summary .caret { color: var(--fg-hint); transition: transform var(--dur-fast) var(--ease-out-soft); }
+.ldh-pivot-bar[open] > summary .caret { transform: rotate(90deg); }
+/* The row's own glyph, matching the facet bar's filter glyph — it names the row
    without spending a label on it. */
-/* Mirrors .facet-lead, and takes the pill's height so it centres on the FIRST
-   pill row regardless of how many rows the pills wrap to. */
-.ldh-pivot-glyph {
-  display: inline-flex; align-items: center;
-  height: 28px; margin-right: 2px;
-  color: var(--fg-hint); flex-shrink: 0;
+.ldh-pivot-bar > summary .msi.outline { color: var(--fg-hint); flex-shrink: 0; }
+/* How many pivots are behind the closed line is what decides whether opening it
+   is worth the row. Same treatment as a facet value's count. Empty until the
+   discovery query answers, so it collapses rather than drawing an empty chip. */
+.ldh-pivot-bar > summary .cnt { font-family: var(--font-mono); font-size: 10px; color: var(--fg-hint); }
+.ldh-pivot-bar > summary .cnt:empty { display: none; }
+/* Slides rather than snaps where the engine can animate a disclosure's content
+   box; elsewhere the pills simply appear, which is the same affordance without
+   the motion. interpolate-size is scoped to the bar rather than :root — it is
+   this transition that needs it, and it inherits no further than it must. */
+@supports selector(details::details-content) {
+  .ldh-pivot-bar { interpolate-size: allow-keywords; }
+  .ldh-pivot-bar::details-content {
+    block-size: 0; overflow: hidden;
+    transition: block-size var(--dur-base) var(--ease-out-soft), content-visibility var(--dur-base) allow-discrete;
+  }
+  .ldh-pivot-bar[open]::details-content { block-size: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ldh-pivot-bar::details-content { transition: none; }
+  .ldh-pivot-bar > summary .caret { transition: none; }
 }
 /* Wraps rather than scrolls: a hidden pivot is the problem this bar exists to
-   solve, so a second line is the right cost. */
-.ldh-pivot-pills { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; min-width: 0; }
+   solve, so a second line is the right cost. The inset matches the summary's,
+   with no top padding — the summary's own bottom padding is the gap. */
+.ldh-pivot-pills {
+  display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; min-width: 0;
+  padding: 0 var(--sp-6) var(--sp-3);
+}
 .ldh-pivot-pill {
   /* Metrically identical to .facet-pill: same height, padding and gap. A pivot
      and a facet are both "one tap changes the result set", so they should not

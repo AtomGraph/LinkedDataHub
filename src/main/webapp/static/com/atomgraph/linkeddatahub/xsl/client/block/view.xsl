@@ -379,7 +379,7 @@ exclude-result-prefixes="#all"
          otherwise the destination could depend on which page the reader happened to be looking at.
          LIMIT/OFFSET/ORDER BY come off first for exactly that reason; ordering is irrelevant to a set. -->
     <xsl:template name="ldh:ViewContainer">
-        <xsl:param name="create-id" as="xs:string"/>
+        <xsl:param name="create-slot" as="element()?"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
@@ -413,7 +413,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="context" as="map(*)" select="
           map {
             'request': $request,
-            'create-id': $create-id
+            'create-slot': $create-slot
           }"/>
 
         <ixsl:promise select="ixsl:http-request($context('request')) =>
@@ -455,7 +455,7 @@ exclude-result-prefixes="#all"
     <!-- A determined container still has to be writable, and only the server knows. HEAD it for the acl:mode
          Link headers, reusing the parse ldh:ontology-view-render-thunk already uses for the same purpose. The
          probe follows the determination rather than preceding it, because until the query answers there is no
-         container to probe - so the button appears a moment after the toolbar, which is the honest order: one
+         container to probe - so the button appears a moment after the header, which is the honest order: one
          that appeared and then failed its PUT would be worse. -->
     <xsl:function name="ldh:view-container-acl-thunk" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
@@ -474,9 +474,9 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:function>
 
-    <!-- Fills the toolbar's create slot. The class to construct is still read off the view card, where the
-         ontology query's range/domain inference stamped it; a view whose property has no URI range cannot be
-         constructed and gets no button. A forward view additionally PATCHes the linking triple into the
+    <!-- Fills the card header's create slot. The class to construct is still read off the view card, where
+         the ontology query's range/domain inference stamped it; a view whose property has no URI range cannot
+         be constructed and gets no button. A forward view additionally PATCHes the linking triple into the
          current document, so it needs acl:Write here as well as on the container - an inverse one ships that
          triple inside the PUT and does not. -->
     <xsl:function name="ldh:view-create-insert" as="item()*" ixsl:updating="yes">
@@ -484,7 +484,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="acl-modes" select="$context('container-acl-modes')" as="xs:anyURI*"/>
 
         <xsl:if test="$acl-modes = '&acl;Write'">
-            <xsl:for-each select="id($context('create-id'), ixsl:page())">
+            <xsl:for-each select="$context('create-slot')">
                 <xsl:variable name="view-block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()?"/>
                 <xsl:variable name="create-for-class" select="$view-block/@data-for-class" as="xs:string?"/>
 
@@ -1248,12 +1248,6 @@ exclude-result-prefixes="#all"
                         <!-- facet pills are appended here by ldh:RenderFacets -->
                     </div>
                     <div class="right">
-                        <!-- inline creation: an empty slot, filled by ldh:view-create-insert once the container
-                             determination and its ACL probe have resolved. Nothing is declared and nothing is
-                             read off the view here - where a new solution of this projection would be stored is
-                             a question about the data, asked by ldh:ViewContainer -->
-                        <span id="{$container-id}-create"></span>
-
                         <span id="{$result-count-container-id}" class="count"/>
 
                         <!-- no sortable variables means an empty order-by dropdown, so the sort controls stay out of the toolbar altogether -->
@@ -1318,18 +1312,21 @@ exclude-result-prefixes="#all"
                     </div>
                 </div>
 
-                <!-- parallax row: the second row of the view's control header. Query inputs (filters, sort, modes) stay in the toolbar above; onward pivots derived from the current result set land here, filled by ldh:ParallaxNav after every results render. Hidden by CSS while it has no chips. -->
-                <div class="ldh-pivot-bar">
-                    <span class="ldh-pivot-glyph">
+                <!-- parallax row: the second row of the view's control header. Query inputs (filters, sort, modes) stay in the toolbar above; onward pivots derived from the current result set land here, filled by ldh:ParallaxNav after every results render. It is a disclosure, closed by default: a pivot is onward navigation rather than an input to the query above it, so the whole set costs one summary line until it is asked for - the pills wrapped to a second row and the two control bars together pushed the results out of view. Hidden by CSS while it has no chips. -->
+                <details class="ldh-pivot-bar">
+                    <summary>
+                        <span class="msi sm caret" aria-hidden="true">chevron_right</span>
                         <!-- the pills carry their own direction arrows, so the row's own glyph stays neutral -->
                         <span class="msi sm outline" aria-hidden="true">alt_route</span>
-                        <span class="ac-vh">
+                        <span class="lbl">
                             <xsl:apply-templates select="key('resources', 'related-results', ldh:translations())" mode="ac:label"/>
                         </span>
-                    </span>
+                        <!-- filled by ldh:render-parallax-chips: the one thing the closed line can say about what it holds -->
+                        <span class="cnt"></span>
+                    </summary>
 
                     <div id="{$container-id}-parallax-properties" class="ldh-pivot-pills" role="group"></div>
-                </div>
+                </details>
 
                 <!-- persistent host for the 3d-force-graph canvas; lives for the lifetime of this view block so the WebGL context + simulation state survive re-renders. Hidden when active-mode is not GraphMode. -->
                 <div id="{$container-id}-graph-host" class="graph-3d-host" style="display: none;"></div>
@@ -1348,12 +1345,13 @@ exclude-result-prefixes="#all"
         </xsl:if>
 
         <!-- the container a new solution of this projection would be stored in, asked once per view. Fired
-             after the toolbar is in the DOM, because the slot it fills has to exist before the response
-             arrives, and only on the initial load: the answer is a property of the query, so paging,
-             sorting and faceting cannot change it -->
+             only on the initial load: the answer is a property of the query, so paging, sorting and faceting
+             cannot change it. The slot it fills is the card header's, emitted by ac:BlockActions with the
+             rest of the block's actions - a view rendered without a card header (a modal-hosted one) has no
+             slot and no @data-for-class to construct from either, so both say the same thing by being absent -->
         <xsl:if test="$initial-load">
             <xsl:call-template name="ldh:ViewContainer">
-                <xsl:with-param name="create-id" select="$container-id || '-create'"/>
+                <xsl:with-param name="create-slot" select="$container/ancestor::div[contains-token(@class, 'block')][1]/div[contains-token(@class, 'ldh-block-head')]/div[contains-token(@class, 'actions')]/span[contains-token(@class, 'ldh-view-create')]"/>
                 <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                 <xsl:with-param name="endpoint" select="$endpoint"/>
                 <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -1796,8 +1794,13 @@ exclude-result-prefixes="#all"
                 <xsl:if test="not(ixsl:contains($cache, 'parallax-key') and ixsl:get($cache, 'parallax-key') = $parallax-key)">
                     <ixsl:set-property name="parallax-key" select="$parallax-key" object="$cache"/>
 
-                    <!-- clear chips from the previous result set -->
+                    <!-- clear chips from the previous result set, and the count that described them: a result
+                         set with no pivots at all never reaches ldh:render-parallax-chips to overwrite it -->
                     <xsl:result-document href="?." method="ixsl:replace-content"/>
+
+                    <xsl:for-each select="../summary/span[contains-token(@class, 'cnt')]">
+                        <xsl:result-document href="?." method="ixsl:replace-content"/>
+                    </xsl:for-each>
 
                     <xsl:variable name="uuid" select="ac:uuid()" as="xs:string"/>
                     <xsl:variable name="query-xml" as="document-node()">
@@ -2568,7 +2571,7 @@ exclude-result-prefixes="#all"
 
     <!-- parallax onclick -->
 
-    <xsl:template match="div[@typeof = '&ldh;View']//div[contains-token(@class, 'ldh-pivot-bar')]//button[contains-token(@class, 'ldh-pivot-pill')]" mode="ixsl:onclick">
+    <xsl:template match="div[@typeof = '&ldh;View']//details[contains-token(@class, 'ldh-pivot-bar')]//button[contains-token(@class, 'ldh-pivot-pill')]" mode="ixsl:onclick">
         <xsl:param name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
         <xsl:param name="cache" select="ldh:view-cache($container)" as="item()"/>
         <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/*[contains-token(@class, 'mi')][contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string"/>
@@ -3144,6 +3147,14 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:sequence select="$chips"/>
+            </xsl:result-document>
+        </xsl:for-each>
+
+        <!-- the disclosure is closed until asked for, so its summary carries the count: how many pivots are
+             behind it is what decides whether opening it is worth the row -->
+        <xsl:for-each select="$container/../summary/span[contains-token(@class, 'cnt')]">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:value-of select="count($chips)"/>
             </xsl:result-document>
         </xsl:for-each>
     </xsl:function>
