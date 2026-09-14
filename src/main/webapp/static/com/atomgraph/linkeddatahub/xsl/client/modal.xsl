@@ -176,7 +176,7 @@ LIMIT   10
                     </fieldset>
 
                     <xsl:apply-templates select="." mode="ldh:FormFooter">
-                        <xsl:with-param name="class" select="'ldh-block-foot'"/>
+                        <xsl:with-param name="class" select="'ldh-form-bar'"/>
                         <xsl:with-param name="button-class" select="$button-class"/>
                         <xsl:with-param name="dismiss" select="'close'"/>
                     </xsl:apply-templates>
@@ -322,28 +322,30 @@ LIMIT   10
                                     </div>
                                 </fieldset>
 
-                                <div class="ldh-block-foot">
-                                    <button type="button" class="ac-btn in-primary ap-solid sz-md btn-load-endpoint-schema">
-                                        <xsl:value-of>
-                                            <xsl:apply-templates select="key('resources', 'load-schema', ldh:translations())" mode="ac:label"/>
-                                        </xsl:value-of>
-                                    </button>
-                                    <!-- disabled until the schema is loaded; ldh:endpoint-classes-response enables it -->
-                                    <button type="submit" class="{$button-class}" disabled="disabled">
-                                        <xsl:value-of>
-                                            <xsl:apply-templates select="key('resources', 'generate', ldh:translations())" mode="ac:label"/>
-                                        </xsl:value-of>
-                                    </button>
-                                    <button type="button" class="ac-btn in-neutral ap-outline sz-md btn-close">
-                                        <xsl:value-of>
-                                            <xsl:apply-templates select="key('resources', 'close', ldh:translations())" mode="ac:label"/>
-                                        </xsl:value-of>
-                                    </button>
-                                    <button type="reset" class="ac-btn in-neutral ap-outline sz-md btn-reset">
-                                        <xsl:value-of>
-                                            <xsl:apply-templates select="key('resources', 'reset', ldh:translations())" mode="ac:label"/>
-                                        </xsl:value-of>
-                                    </button>
+                                <div class="ldh-form-bar">
+                                    <span class="fb-end">
+                                        <button type="button" class="ac-btn in-primary ap-solid sz-md btn-load-endpoint-schema">
+                                            <xsl:value-of>
+                                                <xsl:apply-templates select="key('resources', 'load-schema', ldh:translations())" mode="ac:label"/>
+                                            </xsl:value-of>
+                                        </button>
+                                        <!-- disabled until the schema is loaded; ldh:endpoint-classes-response enables it -->
+                                        <button type="submit" class="{$button-class}" disabled="disabled">
+                                            <xsl:value-of>
+                                                <xsl:apply-templates select="key('resources', 'generate', ldh:translations())" mode="ac:label"/>
+                                            </xsl:value-of>
+                                        </button>
+                                        <button type="button" class="ac-btn in-neutral ap-outline sz-md btn-close">
+                                            <xsl:value-of>
+                                                <xsl:apply-templates select="key('resources', 'close', ldh:translations())" mode="ac:label"/>
+                                            </xsl:value-of>
+                                        </button>
+                                        <button type="reset" class="ac-btn in-neutral ap-outline sz-md btn-reset">
+                                            <xsl:value-of>
+                                                <xsl:apply-templates select="key('resources', 'reset', ldh:translations())" mode="ac:label"/>
+                                            </xsl:value-of>
+                                        </button>
+                                    </span>
                                 </div>
                             </form>
                         </div>
@@ -414,7 +416,7 @@ LIMIT   10
                     </div>
                    
                     <xsl:apply-templates select="." mode="ldh:FormFooter">
-                        <xsl:with-param name="class" select="'ldh-block-foot'"/>
+                        <xsl:with-param name="class" select="'ldh-form-bar'"/>
                         <xsl:with-param name="button-class" select="$button-class"/>
                         <xsl:with-param name="dismiss" select="'close'"/>
                         <xsl:with-param name="save-key" select="'request'"/>

@@ -513,10 +513,13 @@ WHERE
                         </div>
                     </div>
 
-                    <div class="ldh-block-foot">
+                    <div class="ldh-form-bar">
+                        <!-- Remove is a destructive action on the edited annotation, not a peer of Cancel/Annotate: it stays outside the trailing cluster, whose auto margin parks it at the opposite edge -->
                         <button type="button" class="ac-btn in-negative ap-solid sz-sm remove-action" style="display: none;"><xsl:value-of select="ac:label(key('resources', 'remove', ldh:translations()))"/></button>
-                        <button type="button" class="ac-btn in-neutral ap-outline sz-sm cancel-action"><xsl:value-of select="ac:label(key('resources', 'cancel', ldh:translations()))"/></button>
-                        <button type="button" class="ac-btn in-primary ap-solid sz-sm spo-action"><xsl:value-of select="ac:label(key('resources', 'annotate', ldh:translations()))"/></button>
+                        <span class="fb-end">
+                            <button type="button" class="ac-btn in-neutral ap-outline sz-sm cancel-action"><xsl:value-of select="ac:label(key('resources', 'cancel', ldh:translations()))"/></button>
+                            <button type="button" class="ac-btn in-primary ap-solid sz-sm spo-action"><xsl:value-of select="ac:label(key('resources', 'annotate', ldh:translations()))"/></button>
+                        </span>
                     </div>
                 </form>
             </div>

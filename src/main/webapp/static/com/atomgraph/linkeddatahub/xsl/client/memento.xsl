@@ -142,18 +142,20 @@ version="3.0"
                                                 </xsl:apply-templates>
                                             </xsl:with-param>
                                         </xsl:apply-templates>
-                                        <div class="ldh-block-foot">
-                                            <button type="button" class="ac-btn in-neutral ap-outline sz-md btn-close">
-                                                <xsl:value-of>
-                                                    <xsl:apply-templates select="key('resources', 'close', ldh:translations())" mode="ac:label"/>
-                                                </xsl:value-of>
-                                            </button>
-                                            <button type="submit" class="ac-btn in-primary ap-solid sz-md">
-                                                <span class="msi sm" aria-hidden="true">compare_arrows</span>
-                                                <xsl:value-of>
-                                                    <xsl:apply-templates select="key('resources', 'compare', ldh:translations())" mode="ac:label"/>
-                                                </xsl:value-of>
-                                            </button>
+                                        <div class="ldh-form-bar">
+                                            <span class="fb-end">
+                                                <button type="button" class="ac-btn in-neutral ap-outline sz-md btn-close">
+                                                    <xsl:value-of>
+                                                        <xsl:apply-templates select="key('resources', 'close', ldh:translations())" mode="ac:label"/>
+                                                    </xsl:value-of>
+                                                </button>
+                                                <button type="submit" class="ac-btn in-primary ap-solid sz-md">
+                                                    <span class="msi sm" aria-hidden="true">compare_arrows</span>
+                                                    <xsl:value-of>
+                                                        <xsl:apply-templates select="key('resources', 'compare', ldh:translations())" mode="ac:label"/>
+                                                    </xsl:value-of>
+                                                </button>
+                                            </span>
                                         </div>
                                     </form>
                                 </xsl:when>

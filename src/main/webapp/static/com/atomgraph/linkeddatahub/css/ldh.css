@@ -320,24 +320,16 @@ circle { cursor: move; }
    the object switch are hidden with the `hidden` attribute, whose `display: none` comes from the UA sheet
    (and, for panels, from core.css) - both of which an id-scoped `display: flex` silently outranks */
 #rdfa-editor-overlay .ac-tabpanel[hidden], #rdfa-editor-overlay #annotation-object-literal[hidden], #rdfa-editor-overlay #annotation-object-resource[hidden] { display: none; }
-/* the foot is a band that spans the body's inset, so it cancels the padding the .ac-modal-body already adds */
-#rdfa-editor-overlay .ldh-block-foot { margin: 0 calc(-1 * var(--sp-5)) calc(-1 * var(--sp-5)); }
-/* Remove is a destructive action on the edited annotation, not a peer of Cancel/Annotate: the auto margin
-   parks it at the opposite edge of the flex-end row */
-#rdfa-editor-overlay .ldh-block-foot .remove-action { margin-right: auto; }
 /* The in-scope subject is a full document IRI with a fragment, which wraps to two lines and costs a 360-520px
    card more height than a read-only echo is worth. One line with an ellipsis, same treatment the locked select
    display gives its value (.ac-select-locked > .lk-val); rdfae:show-overlay writes the whole IRI to @title */
 #rdfa-editor-overlay #stmt-subject { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* app.css gives .ldh-block-foot the band chrome with space-between (hint left, buttons right);
-   LDH footers are bare button rows, so cluster them at the right edge instead */
-.ldh-block-foot {
-  display: flex; align-items: center; justify-content: flex-end; gap: var(--sp-2);
-  padding: var(--sp-3) var(--sp-5);
-  border-top: 1px solid var(--border-default);
-  background: var(--surface-1);
-  margin: 0;
-}
+   LDH's card feet are bare button rows, so cluster them at the right edge instead. Everything else -
+   the band's fill, rule and inset - is the kit's, and the kit's inset is the one .ldh-block-body above
+   it uses; the sp-5 this rule used to redeclare left a card's foot a step tighter than its own body.
+   Form footers are .ldh-form-bar and carry their cluster in .fb-end; this class is the foot of a card. */
+.ldh-block-foot { justify-content: flex-end; gap: var(--sp-2); }
 
 /* the XHTML editor fills its whole value cell, so the statement hover band would paint the entire editing surface grey - rows hosting the editor don't band */
 .ldh-prop-group:has(.rdfa-editor-content):hover > .label, .ldh-prop-row:has(.rdfa-editor-content):hover > .value, .ldh-prop-row:has(.rdfa-editor-content):hover > .row-actions, .ldh-prop-row.is-interactive:has(.rdfa-editor-content) .value:hover { background: transparent; }
@@ -708,6 +700,3 @@ body:has(.document-body > .content-body > :is(.graph-3d-canvas, .map-canvas)) .l
 .ldh-add-wrap .caret { transition: transform var(--dur-fast) var(--ease-out-soft); }
 .ldh-add-wrap.is-open .caret { transform: rotate(180deg); }
 
-/* the shared form footer renders its action cluster as .fb-end in every placement, but the design
-   scopes the cluster rule to .ldh-form-bar - block-foot placements get the same right-aligned cluster */
-.ldh-block-foot .fb-end { margin-left: auto; display: flex; align-items: center; gap: var(--sp-2); }

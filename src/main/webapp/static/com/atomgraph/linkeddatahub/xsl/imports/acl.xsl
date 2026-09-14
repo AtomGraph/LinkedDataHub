@@ -225,13 +225,15 @@ exclude-result-prefixes="#all">
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:call-template>
 
-            <div class="ldh-block-foot">
-                <button type="submit" class="ac-btn in-primary ap-solid sz-md">
-                    <span class="msi sm" aria-hidden="true">check</span>
-                    <xsl:value-of>
-                        <xsl:apply-templates select="key('resources', 'allow', ldh:translations())" mode="ac:label"/>
-                    </xsl:value-of>
-                </button>
+            <div class="ldh-form-bar">
+                <span class="fb-end">
+                    <button type="submit" class="ac-btn in-primary ap-solid sz-md">
+                        <span class="msi sm" aria-hidden="true">check</span>
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'allow', ldh:translations())" mode="ac:label"/>
+                        </xsl:value-of>
+                    </button>
+                </span>
             </div>
         </form>
     </xsl:template>

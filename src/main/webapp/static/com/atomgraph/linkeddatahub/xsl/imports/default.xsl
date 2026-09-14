@@ -2092,8 +2092,11 @@ exclude-result-prefixes="#all"
     <!-- FORM FOOTER -->
 
     <!-- the single form footer for the reset / dismiss / save anatomy, in the design's order and sizes.
-         $class picks the DS placement wrapper (.ldh-form-bar, .ldh-block-foot, .ac-modal-foot); bespoke
-         footers (composite button sets) keep their own content inside the placement wrapper instead -->
+         $class picks the DS placement wrapper: .ldh-form-bar is the form's own action bar, inline in a
+         block (.pl-inline) or riding the end of a dialog body, and .ac-modal-foot is the dialog foot a
+         dialog with no form hangs outside its body. NOT .ldh-block-foot - that is the foot of a
+         .ldh-block card, and a form is not a card. Bespoke footers (composite button sets) keep their
+         own content inside the placement wrapper instead, clustered in the same .fb-end -->
     <xsl:template match="node() | @*" mode="ldh:FormFooter">
         <xsl:param name="class" select="'ldh-form-bar pl-inline'" as="xs:string"/>
         <xsl:param name="button-class" select="'ac-btn in-primary ap-solid sz-sm'" as="xs:string"/>
