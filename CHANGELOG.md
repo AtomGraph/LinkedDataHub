@@ -11,6 +11,7 @@ Bootstrap 2 is gone, and with it the class vocabulary application stylesheets we
 ### Added
 - Design system port: the app shell (header, sidebar, footer), content blocks, action bar, breadcrumbs, mode lists, type badges, property lists, pager, modals and forms all render the design system's class vocabulary
 - Vendored design system stylesheets and typefaces, with latin-ext subsets so Latin Extended-A no longer falls back mid-word
+- A long-form typography layer binds headings, `code`/`samp`/`kbd`, `pre`, `dl`, `blockquote`, `hr` and tables to the design system on the element itself, so `rdf:XMLLiteral` content is dressed under the XHTML block and under the documentation site alike
 - `ldh-bridge.css` carries the primitives LDH still emits, replacing the Web-Client Bootstrap stylesheet link
 - `ac:langs()` returns the reader's accepted languages, normalised to deduped primary subtags with an `en` floor — one function, an SSR body reading the writer-supplied parameter and a SaxonJS body reading `navigator.languages`
 - `ac:lang-rank()` ranks a value's language against that list, so property values sort by the reader's preference
@@ -78,6 +79,7 @@ Bootstrap 2 is gone, and with it the class vocabulary application stylesheets we
 - Reading an `ixsl:call` result of two numbers as an XDM array hung the renderer with no diagnostic; it arrives as a sequence of doubles
 - Nested cards no longer draw doubled borders, and `dl` column placement is corrected
 - The DataTable converters recognise the derived numeric and dateTime types
+- An alert an author writes inside an XHTML content block keeps its prose spacing, instead of inheriting the flush margins the block-failure alert needs
 - The violation renderer fails on an absent form again, rather than falling back to the rejected rendering
 - Concurrent writes to a versioned application silently lost commits: the commit chain was keyed by file path, while the GitHub Contents API takes its optimistic lock on the branch head — two documents committing at once conflicted and the loser was dropped with only a log line. Commits to one branch now share a single chain
 - A conflicting write is retried with a re-read blob SHA (`MAX_CONFLICT_RETRIES`) instead of being abandoned, so a writer outside this JVM no longer costs a version
