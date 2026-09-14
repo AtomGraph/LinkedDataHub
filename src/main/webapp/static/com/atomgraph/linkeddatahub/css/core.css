@@ -473,6 +473,13 @@
 }
 .ac-alert > .ac-alert-ic { flex-shrink: 0; margin-top: 1px; }
 .ac-alert-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
+/* The body is a flex column with its own gap, so a child's block margin is a
+   second spacing mechanism fighting the first — two paragraphs of alert text
+   came out further apart than the gap says, and the first and last pushed the
+   text off the padding. Consumers were resetting this per surface (the docs
+   site did it for :first-child and :last-child and still double-spaced the
+   middle); it belongs to the component. */
+.ac-alert-body > * { margin-block: 0; }
 .ac-alert-title { font-weight: var(--fw-semibold); font-size: var(--fs-sm); color: var(--fg-1); }
 .ac-alert-text { font-size: var(--fs-sm); color: var(--fg-2); line-height: var(--lh-base); }
 /* the link slot: what could not be reached, on a row of its own so the sentence

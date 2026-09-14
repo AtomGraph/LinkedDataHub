@@ -64,6 +64,12 @@ div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main { font-size: 
    dresses the same content for the static site. */
 div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main table { margin: var(--sp-4) 0; }
 div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main th, div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main td { vertical-align: top; line-height: var(--lh-base); }
+/* an alert in prose is a block in the flow and needs separating from the paragraphs
+   around it. .ldh-block .ac-alert zeroes the margin for the block-failure alert,
+   which fills its block and should not be inset; this outranks it for the prose
+   case rather than narrowing it, so that rule keeps saying what it means. Mirrors
+   docs.css for the static site. */
+div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main .ac-alert { margin: var(--sp-4) 0; }
 /* click-to-edit affordance only when the pane's document grants acl:Write (mirrors the ixsl:onclick guard in block.xsl) */
 div[data-acl-modes~="http://www.w3.org/ns/auth/acl#Write"] div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"]:not(:has(form)) .main { cursor: pointer; }
 /* collapse the property grid in the XHTML block's edit form: the region spans the block as a document
