@@ -38,7 +38,7 @@ a.external::after { content: "⤴"; padding-left: 0.2em; }
 .modal .ac-menu { z-index: 1100; }
 /* Annotation overlay: point-positioned by rdfae:show-at; carries its own card chrome
    (it borrows the .ac-modal-head/.ac-modal-body anatomy but is not a dialog) */
-#rdfa-editor-overlay { position: absolute; min-width: 360px; max-width: 520px; z-index: 10001; background: var(--surface-0); border-radius: var(--r-lg); box-shadow: var(--shadow-xl); display: flex; flex-direction: column; overflow: hidden; }
+#rdfa-editor-overlay { position: absolute; min-width: min(360px, calc(100vw - 2 * var(--sp-4))); max-width: min(520px, calc(100vw - 2 * var(--sp-4))); z-index: 10001; background: var(--surface-0); border-radius: var(--r-lg); box-shadow: var(--shadow-xl); display: flex; flex-direction: column; overflow: hidden; }
 .container-results { max-height: 80em; overflow: auto; }
 /* A re-query (page flip, sort, facet) keeps the rendered results standing and marks them busy, rather than
    replacing them with a skeleton: the rows are already on the screen, and emptying the region collapsed the
@@ -125,7 +125,7 @@ circle { cursor: move; }
 #edit-toolbar .tb-group { display: flex; gap: var(--sp-1); align-items: center; }
 #edit-toolbar .tb-group + .tb-group { border-left: 1px solid var(--border-default); padding-left: var(--sp-2); }
 #edit-toolbar .tb-group.table-ops.active { background: var(--bg-selected); border-radius: var(--r-sm); }
-.edit-dialog { background: white; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,.2); padding: 12px; min-width: 280px; z-index: 10000; }
+.edit-dialog { background: white; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,.2); padding: 12px; min-width: min(280px, calc(100vw - 2 * var(--sp-4))); z-index: 10000; }
 .edit-dialog .rdfa-editor-ui .action-buttons { margin-top: 10px; }
 .edit-dialog .rdfa-editor-ui .checkbox-label { display: inline-flex; gap: 6px; align-items: center; font-weight: 400; margin-top: 8px; }
 .editor-bar:not(:has(#edit-toolbar)), .ldh-pane:not(:has(.rdfa-editor-content)) .editor-bar, body:not(:has(.ldh-pane.is-active .rdfa-editor-content)) #rdfa-editor-breadcrumb { display: none; }
@@ -181,6 +181,9 @@ circle { cursor: move; }
    .ldh-block-body, so the kit's column never applied there anyway and the pager simply sits below the
    scrollport, transparent, on whichever well surface the depth ramp has put behind it. */
 .content-body { padding: var(--sp-4) var(--sp-6); max-width: var(--ldh-content-w); margin: 0 auto; }
+/* Narrow viewports spend 48px of a 390px screen on side gutters the content cannot afford - the
+   statement grid inside is fighting for every pixel. The gutter is chrome, so it yields first. */
+@media (max-width: 768px) { .content-body { padding: var(--sp-3); } }
 /* stacking rhythm between block cards and alerts */
 .content-body .ldh-block, .content-body .ac-alert { margin-bottom: var(--sp-4); }
 /* one card layer only: CSR hydration can re-render a row as a card inside the SSR wrapper card */
@@ -246,6 +249,14 @@ circle { cursor: move; }
   background: var(--surface-0);
   border-bottom: 1px solid var(--border-default);
   padding: var(--sp-3) var(--sp-6);
+}
+/* The bar's mid zone wraps (app.css .ab-mid carries flex-wrap), but a fixed height gives the second
+   line nowhere to go - the breadcrumb pills and the dateTime stamp overlap the first row instead of
+   pushing the bar taller. Narrow, the height becomes a floor: the token still sizes the bar when one
+   line fits, and the stacked sticky offsets below (.editor-bar) compose off that same token either
+   way, since they stack on the bar's own box rather than on the token arithmetic. */
+@media (max-width: 768px) {
+  .action-bar.ldh-actionbar { height: auto; min-height: var(--ldh-actionbar-height); padding: var(--sp-2) var(--sp-3); }
 }
 
 /* ---------- dropdown menus ride the core Menu (§17a); only header-specific fit stays here ---------- */
@@ -393,6 +404,15 @@ legend > .actions { display: flex; align-items: center; gap: var(--sp-1); margin
    titles group left-aligns with the value cells below regardless of the image's natural size;
    imageless headers stay flex, their titles flush at the card edge like the labels */
 .ldh-block-head:has(> a > img, > img) { display: grid; grid-template-columns: 200px minmax(0, 1fr) auto; column-gap: var(--sp-3); }
+/* The alignment this grid buys - titles flush with the value cells below - costs 200px, which a
+   narrow block does not have to spend: the same 200px that leaves the statement grid 26px leaves the
+   titles here just as little. Below the stop the image takes its own row and the titles run full
+   width, which is the imageless header's geometry, so the two converge where the label track dies.
+   Container, not viewport: a block inside the 300px content aside is this narrow at any screen size. */
+@container (max-width: 520px) {
+  .ldh-block-head:has(> a > img, > img) { grid-template-columns: minmax(0, 1fr) auto; }
+  .ldh-block-head:has(> a > img, > img) > :is(a, img):first-child { grid-column: 1 / -1; }
+}
 /* both axes are caps rather than width: 100%: the track is a fixed 140-220px whatever the image
    does, so filling it bought nothing but an upscaled logo, and a portrait source needs the height
    bound or the header grows past the property list it heads */
@@ -565,8 +585,17 @@ body:has(.ldh-create-dock) .ldh-footer { margin-top: 0; }
    .document-body > so it outranks the flex rule directly above, which the dock's presence would
    otherwise win. The dock spans both columns: it is the document's affordance, not the aside's. */
 .document-body > .content-body:has(> .ldh-content-aside) { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: var(--sp-5); align-items: start; }
+/* The gutter is 300px at every screen size, so anything sitting in it directly - rather than inside a
+   .ldh-block, which is its own container - needs the aside itself to be the query container, or it
+   reads the viewport and lays out for a width it does not have. NOT on .content-body: that is where
+   ldh:ShowModalForm appends .ac-backdrop (position: fixed; inset: 0), and containment is the one
+   thing that could reroute its containing block away from the viewport. */
+.ldh-content-aside { container-type: inline-size; }
 .document-body > .content-body:has(> .ldh-content-aside) > .ldh-create-dock { grid-column: 1 / -1; }
-@media (max-width: 900px) {
+/* 1024 is the shell's two-column stop (see the scale in colors_and_type.css). It was 900, chosen on
+   its own before there was a scale; the 124px it gives up are the band where the main column was
+   already down to ~576px with a 300px gutter beside it. */
+@media (max-width: 1024px) {
   .document-body > .content-body:has(> .ldh-content-aside) { grid-template-columns: minmax(0, 1fr); }
 }
 
@@ -628,7 +657,7 @@ body:has(.document-body > .content-body > :is(.graph-3d-canvas, .map-canvas)) .l
 .links-nav { position: relative; }
 .links-pop {
   position: absolute; top: calc(100% + 6px); right: 0;
-  min-width: 260px; max-width: 320px;
+  min-width: min(260px, calc(100vw - 2 * var(--sp-4))); max-width: min(320px, calc(100vw - 2 * var(--sp-4)));
   background: var(--surface-0); border: 1px solid var(--border-default);
   border-radius: var(--r-md); box-shadow: var(--shadow-lg);
   padding: var(--sp-2);

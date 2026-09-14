@@ -13,6 +13,9 @@
    ========================================================================= */
 .ac-card {
   display: flex; flex-direction: column; min-width: 0;
+  /* A card is a query container for its contents. A card in a sidebar, a grid cell or a modal is
+     narrow while the viewport is wide, and what it holds has to lay out for the card. */
+  container-type: inline-size;
   background: var(--bg-card);
   border: 1px solid var(--border-default);
   border-radius: var(--r-lg);

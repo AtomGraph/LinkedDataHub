@@ -84,6 +84,17 @@ button { font-family: inherit; cursor: pointer; }
   z-index: -1; /* sit under header children so dropdowns can overflow downward */
 }
 .ldh-header > * { position: relative; }
+/* The 220px wordmark track is load-bearing at desktop: ldh.css computes --address-offset by
+   subtracting exactly 220px from --wing so the address bar starts on the content column's edge.
+   So the track stays 220px above the stop and only the narrow branch reshapes it - which is also
+   what "readable, not redesigned" asks for. Below the stop --wing clamps to 0 and the offset
+   with it, so the arithmetic is a no-op there and nothing is left dangling.
+   220 + 120 of actions + 2 gaps + 2 paddings is 412px of chrome on a 390px screen: the address
+   bar computed 26px. Dropping the wordmark to its mark and tightening the gutters gives it ~198px. */
+@media (max-width: 768px) {
+  .ldh-header { grid-template-columns: auto minmax(0, 1fr) auto; padding: 0 var(--sp-3); gap: var(--sp-3); }
+  .ldh-wordmark > span:not(.mark) { display: none; }
+}
 
 .ldh-wordmark {
   display: flex; align-items: center; gap: var(--sp-2);
@@ -224,7 +235,7 @@ button { font-family: inherit; cursor: pointer; }
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  min-width: 248px;
+  min-width: min(248px, calc(100vw - 2 * var(--sp-4)));
   background: var(--bg-card);
   border: 1px solid var(--border-default);
   border-radius: var(--r-md);
@@ -322,7 +333,16 @@ button { font-family: inherit; cursor: pointer; }
   border-bottom: 1px solid var(--border-default);
   height: var(--ldh-tabs-h);
   box-sizing: border-box;
+  /* Tabs are nowrap by nature - a dataspace tab that wrapped mid-label would be worse than one
+     scrolled past - so the strip needs a scrollport, which it had neither of. With no flex-wrap and
+     no overflow, the SECOND open dataspace already pushed the page wider than the viewport. The
+     kit's own .ac-tablist (core.css) has solved this the same way since before this strip existed;
+     this adopts it rather than inventing a second answer. scrollbar-width: none matches it too -
+     the strip is chrome, and a scrollbar inside 40px of chrome is louder than the overflow. */
+  overflow-x: auto;
+  scrollbar-width: none;
 }
+.ldh-tabs::-webkit-scrollbar { display: none; }
 /* Sticky goes on the <nav> WRAPPER, not on the <ul>. A sticky element can only
    travel within its containing block, and the nav is exactly the ul's height —
    so sticking the ul pinned it to a box it already filled and it scrolled away
@@ -377,7 +397,7 @@ nav:has(> .ldh-tabs) {
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
-  min-width: 280px;
+  min-width: min(280px, calc(100vw - 2 * var(--sp-4)));
   background: var(--bg-card);
   border: 1px solid var(--border-default);
   border-radius: var(--r-md);
@@ -451,6 +471,34 @@ nav:has(> .ldh-tabs) {
   background: var(--surface-0);
   border-bottom: 1px solid var(--border-default);
   flex-shrink: 0;
+}
+/* Both outer tracks are `auto`, i.e. max-content clusters of nowrap buttons, and a grid track does
+   not shrink below max-content - so when the three zones no longer fit one row they OVERLAP rather
+   than compress. Measured at 390px: the Create label sat on top of the mode switcher's label and the
+   breadcrumb ran under the Actions icon. Letting the bar grow taller does not help; nothing in a
+   single grid row has anywhere to go.
+   Flex-wrap gives them somewhere. The layout it produces is the one the design system already
+   describes for a narrow bar - .ldh-actionbar--twotier, "location line above, controls line below" -
+   reached here through the zoned/contextual DOM, which has .ab-mid where twotier has .ab-context.
+   order: -1 puts the location line first without reordering the markup, and the controls keep their
+   left/right split on the line below.
+
+   Measured on the Northwind dashboard, overlapping pairs inside the bar / breadcrumb width:
+     before   390: 9 pairs, breadcrumb 0px   480: 8, 0px   560: 4, 10px   640: 2, 71px   768: 0, 71px
+     after    every width: 0 pairs, breadcrumb 71px
+   So the breadcrumb was not merely cramped below 480 - it was gone, and the zones were painting over
+   each other as far up as 640.
+
+   The stop is the shell's 768 rather than the 640 where overlap happened to stop on THIS document:
+   the width at which the zones collide depends on how deep the breadcrumb is, so any exact number is
+   right for one page and wrong for the next. 768 errs safe and stays on the scale. It costs ~23px of
+   bar height between 640 and 768, where this document had no overlap - paid deliberately. Forcing the
+   full-width line was also SHORTER than letting flex wrap naturally (87px vs 97px at 560-768), since
+   the controls then share one compact line instead of spilling onto a third. */
+@media (max-width: 768px) {
+  .ldh-actionbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-3); padding: var(--sp-2) var(--sp-3); }
+  .ldh-actionbar > .ab-mid { flex: 1 0 100%; order: -1; min-width: 0; }
+  .ldh-actionbar > .ldh-actions { margin-left: auto; }
 }
 
 /* Buttons live in ui_kits/core/core.css as .ac-btn — the ONE button system.
@@ -583,7 +631,15 @@ nav:has(> .ldh-tabs) {
      as a path. Overflow is absorbed by truncating pill labels instead. */
   flex-wrap: nowrap;
   min-width: 0;
+  /* Truncation runs out before a phone does: the current pill is flex-shrink: 0 and every
+     separator is too, so past a few levels the trail pushes the action bar wider than the screen.
+     A scrollport, not a wrap - the nowrap above is a reading decision, and the trail stays a trail
+     whether or not all of it is on screen. Same answer as the dataspace tab strip, for the same
+     reason. */
+  overflow-x: auto;
+  scrollbar-width: none;
 }
+.ldh-bc-pills::-webkit-scrollbar { display: none; }
 .ldh-bc-pills .bc-pill {
   display: inline-flex; align-items: center; gap: 6px;
   min-width: 0;
@@ -801,7 +857,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-of-wrap.is-open .ac-iconbtn { background: var(--bg-hover); color: var(--fg-1); }
 .ldh-of-menu {
   position: absolute; top: calc(100% + 6px); right: 0; z-index: 50;
-  min-width: 184px; padding: 6px;
+  min-width: min(184px, calc(100vw - 2 * var(--sp-4))); padding: 6px;
   background: var(--surface-0); border: 1px solid var(--border-default);
   border-radius: var(--r-md); box-shadow: var(--shadow-lg);
   display: flex; flex-direction: column; gap: 2px;
@@ -897,7 +953,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-mode.sz-sm .msi { font-size: 16px; }
 .ldh-mode .modes-pop {
   position: absolute; top: calc(100% + 6px); right: 0;
-  min-width: 220px;
+  min-width: min(220px, calc(100vw - 2 * var(--sp-4)));
   background: var(--surface-0);
   border: 1px solid var(--border-default);
   border-radius: var(--r-md);
@@ -993,7 +1049,12 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   max-width: var(--container-xl);
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 1.4fr repeat(4, 1fr);
+  /* auto-fit, not a fixed five: the columns are independent link lists with nothing to align
+     across them, so they can reflow into as many rows as the width allows. The fixed
+     `1.4fr repeat(4, 1fr)` never collapsed, and at 390px it alone carried the page's right edge
+     out to 616px - 226px of it unreachable, since html{overflow-x:clip} leaves no way to scroll
+     there. No breakpoint needed: this is better at every width, not just narrow ones. */
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: var(--sp-8);
 }
 .ldh-footer .col .ftitle {
@@ -1032,6 +1093,14 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
      with `border-radius: inherit`, which is what clipping was reached for. */
   position: relative;
   overflow: visible;
+  /* The block is the query container for everything it holds. A block is as wide as wherever it
+     was put - the document column, a nested block, the 300px content aside, a modal body - and its
+     contents have to lay out for THAT, not for the viewport. Measured before this existed: the
+     statement grid inside a block in the aside got a 36px value column at a 1440px desktop, worse
+     than the same grid on a 390px phone. Safe alongside the anchoring above: container-type does
+     not reroute the containing block of the absolutely positioned menus (.modes-pop,
+     .ldh-add-menu) or of any fixed descendant - verified in the browser, not assumed. */
+  container-type: inline-size;
   transition: box-shadow var(--dur-base) var(--ease-out-soft), border-color var(--dur-base) var(--ease-out-soft);
 }
 .ldh-block:hover { box-shadow: var(--shadow-sm); }
@@ -1304,7 +1373,12 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 
 /* Chart controls (re-styled <select>s) */
 .chart-controls {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-4);
+  /* Three labelled selects need ~150px each to stay legible. auto-fit lets them take 1, 2 or 3
+     columns from the width actually available instead of always splitting it three ways - which in
+     a 290px block meant three 70px selects, and in the 300px content aside three 73px ones at a
+     full desktop. No breakpoint: the track floor IS the breakpoint, and it travels with the
+     component into whatever container it lands in. */
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--sp-4);
   padding: var(--sp-4) var(--sp-6);
   background: var(--surface-1);
   border-bottom: 1px dashed var(--border-default);
@@ -1476,6 +1550,39 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
    extends only toward the value; the value extends both ways. */
 /* No bridging shadows needed now that column-gap is 0 — the three cells are
    adjacent, so their hover backgrounds already form one continuous band. */
+
+/* =========================================================================
+   NARROW CONTAINER — the label stops being a column and becomes a line.
+
+   200px of label + 64px of actions is 264px of fixed track. In a 290px block
+   that left the VALUE - the data the page exists to show - 26px, and every
+   word broke to one character per line; in the 300px content aside it is 36px
+   at a full 1440px desktop, which is why this is a container query and not a
+   media query. The label keeps its column down to ~520px, where 200 + 240 of
+   readable value + 64 stops fitting.
+
+   Collapsed, the label spans the row above its values. The three cells that
+   carry the statement hairline become two, and the label must NOT keep its
+   border: spanning the full width, its rule would land between a predicate and
+   its own value and read as a separator where there is no boundary. The
+   multi-value behaviour survives the change - the label is stated once above
+   the group, and only the value rows are delimited from each other, which is
+   the same "still the same predicate" reading the unbroken label column gave.
+   ========================================================================= */
+@container (max-width: 520px) {
+  .ldh-prop-group { grid-template-columns: minmax(0, 1fr) auto; }
+  .ldh-prop-group > .label {
+    grid-column: 1 / -1;
+    text-align: left;
+    padding: var(--sp-3) var(--sp-4) 0;
+    /* justify-content: center is for a cell stretched across spanned rows; on its own row it
+       has nothing to centre against. */
+    justify-content: flex-start;
+  }
+  .ldh-prop-form .ldh-prop-group > .label { border-bottom: 0; }
+  .ldh-prop-row > .value { padding-left: var(--sp-4); }
+  .ldh-prop-row > .row-actions { padding-right: var(--sp-4); }
+}
 
 /* Value cell — looks like plain text in read mode. Clickable interactive rows
    get a subtle hover affordance. Inputs only appear when editing. */
@@ -1849,7 +1956,14 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   flex-wrap: wrap;
 }
 .ldh-view-toolbar .left { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; }
-.ldh-view-toolbar .right { display: flex; align-items: center; gap: var(--sp-2); margin-left: auto; }
+.ldh-view-toolbar .right { display: flex; align-items: center; gap: var(--sp-2); margin-left: auto; flex-wrap: wrap; }
+/* The toolbar itself wraps, but its end cluster did not, so the mode switcher, pager and count
+   travelled as one 411-475px unit and left the block together. margin-left: auto is what pins that
+   unit to the far edge; once the group is the only thing on its line there is no far edge to pin to,
+   and keeping it turns a wrapped row into a right-aligned orphan. */
+@container (max-width: 520px) {
+  .ldh-view-toolbar .right { margin-left: 0; }
+}
 .ldh-view-toolbar .count {
   font-family: var(--font-mono); font-size: var(--fs-xs);
   color: var(--fg-muted); white-space: nowrap;
@@ -1911,7 +2025,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 /* Facet popover (anchored to a pill) */
 .facet-pop {
   position: absolute; top: calc(100% + 6px); left: 0;
-  min-width: 240px;
+  min-width: min(240px, calc(100vw - 2 * var(--sp-4)));
   background: var(--surface-0); border: 1px solid var(--border-default);
   border-radius: var(--r-md); box-shadow: var(--shadow-lg);
   padding: var(--sp-2);
@@ -2099,6 +2213,18 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
    emits it until recompile, so it keeps its placement rule. */
 .ldh-list-block .row .type { display: inline-flex; flex-shrink: 0; }
 .ldh-list-block .row .ldh-type-chip { flex-shrink: 0; }
+/* The timestamp is white-space: nowrap and the type tag is flex-shrink: 0, so columns 3 and 4 are
+   incompressible by design - correct, and the reason the row cannot simply be squeezed. Narrow, the
+   metadata drops to a second line under the title and the title takes the full remaining width.
+   All four cells are placed explicitly: with only some of them placed, auto-placement backfills the
+   others into whatever cell is free next, which is how a type tag ends up beneath the icon. */
+@container (max-width: 520px) {
+  .ldh-list-block .row { grid-template-columns: 28px minmax(0, 1fr) auto; row-gap: 2px; padding-left: var(--sp-4); padding-right: var(--sp-4); }
+  .ldh-list-block .row > .ic { grid-row: 1; grid-column: 1; align-self: start; }
+  .ldh-list-block .row > .ti { grid-row: 1; grid-column: 2 / -1; }
+  .ldh-list-block .row > .ts { grid-row: 2; grid-column: 2; justify-self: start; }
+  .ldh-list-block .row > .type { grid-row: 2; grid-column: 3; justify-self: end; }
+}
 
 /* ---------- Full-bleed mode wrappers (Graph / Map) ---------- */
 .ldh-fullbleed {
@@ -2368,7 +2494,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 70;
   background: var(--surface-0); border: 1px solid var(--border-default);
   border-radius: var(--r-md); box-shadow: var(--shadow-md);
-  overflow: hidden; min-width: 320px;
+  overflow: hidden; min-width: min(320px, calc(100vw - 2 * var(--sp-4)));
   animation: menu-pop var(--dur-fast) var(--ease-out-soft);
 }
 .ctor-pred-search {
@@ -2506,7 +2632,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-form-action.is-open .caret { transform: rotate(180deg); }
 .ldh-form-actions-menu {
   position: absolute; right: 0; top: calc(100% + 6px);
-  min-width: 264px;
+  min-width: min(264px, calc(100vw - 2 * var(--sp-4)));
   background: var(--surface-0);
   border: 1px solid var(--border-default); border-radius: var(--r-md);
   box-shadow: var(--shadow-md);
@@ -2720,7 +2846,10 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
    changes. This only holds because the chrome is sticky (see .ldh-header). */
 .ldh-sidebar {
   position: fixed; top: var(--ldh-chrome-h); left: 0; bottom: 0; z-index: 30;
-  width: var(--ldh-rail-w); box-sizing: border-box;
+  /* 264px is 68% of a 390px screen - the rail would cover the document it navigates. Capped the
+     same way the kit caps .ac-drawer (surfaces.css) and .ldh-drawer, so every sliding panel in the
+     product yields to the viewport by the same rule instead of three different ones. */
+  width: min(var(--ldh-rail-w), 92vw); box-sizing: border-box;
   display: flex; flex-direction: column;
   background: var(--surface-1);
   border-right: 1px solid var(--border-default);
@@ -2986,6 +3115,9 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
      paint order is considered. Nothing paints into the corners to justify the
      clip: the head is transparent and the body is inset by its own padding. */
   overflow: visible;
+  /* Its own query container, like .ldh-block: nesting is exactly where a component stops being as
+     wide as the document and starts needing to know it. */
+  container-type: inline-size;
   margin-top: var(--sp-4);
 }
 .ldh-text-block + .ldh-nblock { margin-top: var(--sp-5); }
@@ -3827,6 +3959,14 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   padding: var(--sp-2) 0;
   background: transparent;
 }
+/* "One more row of the description" is the whole idea, so it collapses on the same stop and in the
+   same shape as .ldh-prop-group: term type above, URI field and tools below. Diverging here would
+   put the subject row back to being a header bolted on top, which is what this replaced. */
+@container (max-width: 520px) {
+  .ldh-edit-form .ldh-subject { grid-template-columns: minmax(0, 1fr) auto; }
+  .ldh-edit-form .ldh-subject > .term-select { grid-column: 1 / -1; justify-self: start; }
+  .ldh-edit-form .ldh-subject-tools { padding-right: var(--sp-4); }
+}
 .ldh-edit-form .ldh-subject-tools { padding-right: var(--sp-6); }
 /* The term-type select acts as this row's label, so it aligns like one. */
 .ldh-edit-form .ldh-subject .term-select {
@@ -4138,6 +4278,24 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-block:hover > .ldh-block-corner,
 .ldh-block > .ldh-block-corner:focus-within,
 .ldh-block > .ldh-block-corner:has(.is-open) { opacity: 1; }
+/* Reveal-on-hover has no reveal where there is no hover. On a touch device none of the three
+   conditions above can fire before the user has already hit the thing they cannot see, so the
+   cluster stays at opacity 0 with pointer-events auto: Backlinks, Copy URI and Edit are
+   permanently invisible AND permanently tappable. Measured on an iPhone 13 profile at 390px, the
+   cluster's box is 262-366 and the block title's is 36-354 - about 90px of the title's last words
+   are a hidden tap target that opens the backlinks panel.
+   Taking it out of the overlay and into flow answers both halves at once: the controls become
+   visible and reachable, and nothing sits underneath them to collide with. The absolute placement
+   exists so the cluster can hover over content without shifting it - a trade only worth making
+   when it can actually hide again. */
+@media (hover: none) {
+  .ldh-block > .ldh-block-corner {
+    position: static;
+    opacity: 1;
+    justify-content: flex-end;
+    padding: var(--sp-2) var(--sp-3) 0;
+  }
+}
 /* The cluster is absolutely positioned, so it reserves no space — and the one
    case it exists for is a headerless block whose prose fills the width, so the
    buttons land on the first line at exactly the moment you reach for them.
@@ -4151,6 +4309,13 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 :root { --block-corner-gutter: calc(var(--sp-3) + 2 * 32px + var(--sp-1) + var(--sp-3)); }
 .ldh-block:has(> .ldh-block-corner) > .ldh-block-body {
   padding-right: var(--block-corner-gutter);
+}
+/* 92px of the 342px a phone has left is a quarter of the body spent on clearance for two buttons.
+   The corner cluster keeps its position - it is absolutely placed, so it does not need the gutter
+   to exist - and the body reclaims the width; what the buttons overlap narrow is the body's own
+   padding, not its text. */
+@container (max-width: 520px) {
+  .ldh-block:has(> .ldh-block-corner) > .ldh-block-body { padding-right: var(--sp-4); }
 }
 
 /* The embedded card — an Object carrier's `rdf:value` resource, and the one

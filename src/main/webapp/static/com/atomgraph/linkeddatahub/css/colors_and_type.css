@@ -133,10 +133,17 @@
   --fs-lg:   20px;
   --fs-xl:   24px;
   --fs-2xl:  30px;
-  --fs-3xl:  38px;
-  --fs-4xl:  48px;
-  --fs-5xl:  64px;
-  --fs-6xl:  88px;
+  /* The display end is FLUID; the UI end is not. A fixed 88px headline cannot fit a narrow
+     container - it does not shrink, it clips, and a clipped word is unreadable in a way a small
+     one is not (measured: the welcome modal's heading ran 387px inside a 356px body). The floor of
+     each clamp is the step two below it, so a display heading degrades into the scale rather than
+     out of it, and the ceiling is the value each step already had, so nothing moves at desktop.
+     Below 2xl the sizes stay fixed: body and UI text is already at its readable minimum, and
+     scaling it with the viewport is how interfaces end up with 11px labels on a phone. */
+  --fs-3xl:  clamp(30px, 6vw, 38px);
+  --fs-4xl:  clamp(34px, 7.5vw, 48px);
+  --fs-5xl:  clamp(38px, 9vw, 64px);
+  --fs-6xl:  clamp(44px, 11vw, 88px);
 
   /* ---------- Typography: Weights ---------- */
   --fw-regular: 400; /* @kind font */
@@ -208,6 +215,39 @@
   --container-md: 960px;
   --container-lg: 1200px;
   --container-xl: 1440px;
+
+  /* ---------- Layout: the responsive scale ----------
+     THREE STOPS, and which query type each belongs to. Custom properties cannot appear in a media
+     or container condition, so these are documentation and the literals are written out at each
+     use - keep the two in step.
+
+       520px   CONTAINER stop. A component collapses to one column.
+       768px   VIEWPORT stop. The page shell compacts: wordmark to its mark, tighter gutters.
+      1024px   VIEWPORT stop. Two-column page layouts drop the gutter.
+
+     WHICH ONE depends on what the component's container actually is, and getting this wrong is
+     the bug this scale was introduced to fix:
+
+       - The page shell (header, tab strip, action bar, footer, rails) sits directly under the
+         viewport, so the viewport IS its container: @media.
+       - Everything in the content column does not. The same statement grid renders at the
+         document's full width, inside a nested block, inside the 300px content aside and inside a
+         372px modal body - four widths at ONE viewport. Measured: it got a 36px value column in
+         the aside at a 1440px desktop, worse than the 26px it got on a 390px phone. @container.
+
+     520 is derived, not picked: the statement grid spends 200px on its label and 64px on its row
+     actions, so three columns need 200 + 240 of readable value + 64 to hold. Three labelled
+     selects need about the same. Two components, one number - which is what makes it a scale
+     rather than a pile of breakpoints. It replaces four one-off values (560, 640, 860, 900) that
+     shared nothing.
+
+     A component queries a container only if one is DECLARED above it. The declaring surfaces are
+     .ac-card (surfaces.css), .ac-modal-body (overlays.css), and .ldh-block / .ldh-nblock /
+     .ldh-content-aside in the app layer. Deliberately NOT .content-body: ldh:ShowModalForm appends
+     .ac-backdrop (position: fixed; inset: 0) to it. */
+  --bp-container: 520px;
+  --bp-shell-sm: 768px;
+  --bp-shell-md: 1024px;
 
   /* ---------- Semantic: Foreground tokens (consume these in components) ---------- */
   --fg-1: var(--ink-1);

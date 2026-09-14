@@ -20,7 +20,11 @@
    ========================================================================= */
 .ac-menu-anchor { position: relative; display: inline-flex; }
 .ac-menu {
-  position: absolute; z-index: 50; min-width: 200px; max-width: 340px;
+  /* Both bounds yield to the viewport. Placement (the drop-up / drop-left flip) only chooses a
+     side; it cannot make a panel narrower than its own floor, so a floor wider than the screen
+     overflows whichever side it opens into. */
+  position: absolute; z-index: 50;
+  min-width: min(200px, calc(100vw - 2 * var(--sp-4))); max-width: min(340px, calc(100vw - 2 * var(--sp-4)));
   max-height: 340px; overflow-y: auto;
   padding: 4px;
   background: var(--surface-0);
@@ -148,6 +152,12 @@
    trick), so they appear only at an edge that actually has content beyond it. */
 .ac-modal-body {
   flex: 1; min-height: 0; overflow-y: auto;
+  /* The body is a query container: a sz-sm dialog is 420px wide, so its body is ~372px at ANY
+     viewport, and a component that reads the viewport lays out for 1440px inside it. Measured
+     there before this existed: the statement grid kept its 200px label column and left the value
+     108px. Declared on the body rather than on .ac-modal so the head and foot - which are pinned,
+     not scrolled, and size to the dialog - are outside the containment. */
+  container-type: inline-size;
   padding: var(--sp-5);
   background:
     linear-gradient(var(--surface-0) 30%, rgba(255,255,255,0)) top / 100% 14px no-repeat,
