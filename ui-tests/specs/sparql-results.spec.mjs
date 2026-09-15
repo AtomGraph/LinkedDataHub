@@ -43,11 +43,6 @@ async function expectResults(page) {
 }
 
 test.describe('SPARQL results', () => {
-    test.beforeEach(({}, testInfo) => {
-        test.skip(testInfo.project.name !== 'owner',
-            'the endpoint grants acl:Read to authenticated agents; an anonymous request is a 401 and says nothing about rendering');
-    });
-
     test('renders a result set as a table that survives the client re-fetching the document', async ({ page }) => {
         const refetched = refetch(page);
         await page.goto(resultsUrl, { waitUntil: 'domcontentloaded' });

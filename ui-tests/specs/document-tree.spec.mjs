@@ -47,11 +47,6 @@ async function slowChildren(page, ms = 1500) {
 }
 
 test.describe('document tree', () => {
-    test.beforeEach(({}, testInfo) => {
-        test.skip(testInfo.project.name !== 'owner',
-            'the fixture container is owner-owned; these specs are not about authorization');
-    });
-
     test('opens the path down to the document being read and marks it', async ({ page }) => {
         await goto(page, itemUri(1));
         await openDrawer(page);
