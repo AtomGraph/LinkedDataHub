@@ -655,9 +655,20 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="source-next" select="$source-block/following-sibling::*[1]" as="element()?"/>
                     <xsl:sequence select="ixsl:call($block, 'after', [ $source-block ])"/>
 
-                    <xsl:variable name="values-row" select="'(&lt;' || ac:absolute-path(ldh:base-uri(.)) || '&gt; &lt;' || $source-uri || '&gt; &lt;' || $target-uri || '&gt;)'" as="xs:string"/>
+                    <!-- the document is resolved from the top-level row, NOT from the drop target. The
+                         context item here is whatever element the pointer was released over, and a block
+                         that embeds another resource stamps @data-base-uri on its injected subtree - so
+                         ldh:base-uri() walking ancestor-or-self from the target returns the EMBEDDED
+                         document whenever the release lands inside one. The move then rewrote rdf:_N on
+                         that resource and sent the PATCH through the Linked Data proxy (?uri=), which
+                         answers 502. $block is constrained to a child of .content-body, so it carries no
+                         such stamp and resolves to the document whose sequence is actually being
+                         reordered. Only reproducible with a real drag: dispatching the event on a chosen
+                         element lands outside the embedded subtree and hides it. -->
+                    <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri($block))" as="xs:anyURI"/>
+                    <xsl:variable name="values-row" select="'(&lt;' || $doc-uri || '&gt; &lt;' || $source-uri || '&gt; &lt;' || $target-uri || '&gt;)'" as="xs:string"/>
                     <xsl:variable name="update-string" select="replace($block-move-string, '($doc $source $target)', $values-row, 'q')" as="xs:string"/>
-                    <xsl:variable name="request-uri" select="ldh:href(ac:absolute-path(ldh:base-uri(.)), map{})" as="xs:anyURI"/>
+                    <xsl:variable name="request-uri" select="ldh:href($doc-uri, map{})" as="xs:anyURI"/>
                     <xsl:variable name="request" select="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }" as="map(*)"/>
                     <xsl:variable name="context" select="map{ 'request': $request, 'source-block': $source-block, 'source-next': $source-next }" as="map(*)"/>
 
