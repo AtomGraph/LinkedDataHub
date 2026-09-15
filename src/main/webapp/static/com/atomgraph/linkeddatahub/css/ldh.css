@@ -52,6 +52,18 @@ a.external::after { content: "⤴"; padding-left: 0.2em; }
    the card edges - the table can stay flush because its border draws inside. In the design system the
    grid lives in normal flow; the page scrolls it, and the sticky pager pins to that scrollport instead */
 .container-results:has(> .ldh-grid-block) { max-height: none; overflow: visible; }
+/* ...and the cap that scrollport was answering goes with it. app.css (PAGED VIEW) caps a paged view's
+   body at min(70vh, 620px) and hands the scroll box to its direct .ldh-grid-block / .ldh-list-block
+   child. LDH never has that child - ldh:GridViewBlock and ldh:ListViewBlock both render one level down,
+   inside .container-results - so the cap has only ever been survivable because the wrapper is itself a
+   scroll container and shrinks under it. The rule above takes that away for grid mode, and a flex item
+   with overflow: visible has a content-sized automatic minimum: it will not shrink, nothing scrolls, and
+   with overflow visible the whole way up the rows simply leave the block. Measured on /territories/ at
+   1920x1080 before this rule: a 890px grid in a 620px body, 358px of cards painted over the pager, the
+   create dock and the footer, and - because .ldh-block-row is positioned - over the next content block
+   too. An uncapped body is what the opt-out above already assumes: the page scrolls the grid, and the
+   pager sits after it in flow. */
+.ldh-block-body:has(> .ldh-pager:not(:empty)):has(.container-results > .ldh-grid-block) { max-height: none; }
 .map-canvas { height: 45em; width: 100%; }
 #uri { height: 24px; width: 100%; }
 /* Web-Client's default resource templates emit p.description summaries LDH does not surface */
