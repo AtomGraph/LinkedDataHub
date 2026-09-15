@@ -16,9 +16,11 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.response;
 
+import com.atomgraph.client.util.HTMLMediaTypePredicate;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.client.vocabulary.LDT;
 import com.atomgraph.core.vocabulary.SD;
+import com.atomgraph.linkeddatahub.server.util.LanguageNegotiator;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.Dataset;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
@@ -28,6 +30,7 @@ import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.server.util.Link;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.linkeddatahub.writer.TimeMapWriter;
 import java.io.IOException;
 import java.net.URI;
@@ -64,6 +67,18 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
     {
         if (response.getStatusInfo().equals(Response.Status.NO_CONTENT))
             response.getHeaders().remove(HttpHeaders.CONTENT_TYPE); // needs to be explicitly unset for some reason
+
+        // Content-Language states the language of the representation, and must agree with the document's own <html lang>.
+        // Both come from this one computation. Variant selection cannot supply it: it matched only when the reader's top
+        // preference happened to be an offered language, so it announced es on a page holding no Spanish and said nothing
+        // at all on a page that was entirely Lithuanian
+        // only where the rendering actually depends on language. An RDF representation is byte-identical for every reader -
+        // its literals carry their own tags and none is dropped - so it is intended for all language audiences, which RFC 9110
+        // spells as no Content-Language at all. Labelling it would also contradict its own Vary, which carries no
+        // Accept-Language dimension for exactly the same reason
+        if (response.hasEntity() && response.getMediaType() != null && getApplication().isPresent() && new HTMLMediaTypePredicate().test(response.getMediaType()))
+            response.getHeaders().putSingle(HttpHeaders.CONTENT_LANGUAGE,
+                LanguageNegotiator.publishedTag(request.getAcceptableLanguages(), getSystem().getSupportedLanguages()));
 
         if (request.getSecurityContext().getUserPrincipal() instanceof Agent)
         {
@@ -122,6 +137,13 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
             // add Link rel=ac:stylesheet, if the stylesheet URI is specified
             if (application.getStylesheet() != null)
                 response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(application.getStylesheet().getURI()), AC.stylesheet.getURI(), null));
+
+            // the compiled client stylesheet composed with this application's packages, set by
+            // XsltExecutableFilter only once it exists. Advertised rather than injected as a stylesheet
+            // parameter, so the client reads it the same way it reads acl:mode and the Memento relations
+            Object clientStylesheet = request.getProperty(LDH.clientStylesheet.getURI());
+            if (clientStylesheet != null)
+                response.getHeaders().add(HttpHeaders.LINK, new Link(application.getBaseURI().resolve(clientStylesheet.toString()), LDH.clientStylesheet.getURI(), null));
         }
 
         if (response.getHeaders().get(HttpHeaders.LINK) != null)

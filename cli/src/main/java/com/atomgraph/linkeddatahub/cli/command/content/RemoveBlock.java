@@ -29,7 +29,7 @@ import picocli.CommandLine.Parameters;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "remove-block", description = "Removes a content block from a document.")
+@Command(name = "block", description = "Removes a content block from a document.")
 public class RemoveBlock extends BaseCommand
 {
 

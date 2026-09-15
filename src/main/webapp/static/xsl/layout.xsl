@@ -5,7 +5,7 @@
     exclude-result-prefixes="xs">
 
     <!-- System stylesheet (lowest priority) -->
-    <xsl:import href="../com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/layout.xsl"/>
+    <xsl:import href="../com/atomgraph/linkeddatahub/xsl/layout.xsl"/>
 
     <!-- package stylesheet imports are composed in-memory at compile time from the application's ldh:import data; this file is never modified -->
 

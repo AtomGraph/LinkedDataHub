@@ -8,10 +8,6 @@
     <description>The low-code Knowledge Graph application platform</description>
     <!-- most of the following context-params can be set in docker-compose.yml (via conf/ROOT.xml) -->
     <context-param>
-        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#supportedLanguages</param-name>
-        <param-value>en,es</param-value>
-    </context-param>
-    <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#authCacheControl</param-name>
         <param-value>max-age=69</param-value>
     </context-param>
@@ -91,6 +87,9 @@ WHERE
 
     FILTER(strstarts(str(?g), str($base)))
   }
+# fail-closed default: with no resource type injected, $Type is rdfs:Resource, which no acl:accessToClass uses,
+# so the class branches match nothing. SetResultSetValues replaces this block with the resource's real types.
+VALUES ?Type { rdfs:Resource }
 ]]></param-value>
     </context-param>
     <context-param>
@@ -142,13 +141,16 @@ WHERE
                   $Type (rdfs:subClassOf)* ?Class
                 }
               }
-            # only namespace, signup, OAuth2 login and WebID profiles can be public in admin app, nothing else
+            # only namespace, signup and WebID profiles can be public in admin app, nothing else (OAuth2 login is an end-user app flow)
             FILTER ( $this IN (uri(concat(str($base), "ns")), uri(concat(str($base), "sign%20up"))) || strstarts(str($this), concat(str($base), "acl/agents/")) || strstarts(str($this), concat(str($base), "acl/public-keys/")))
           }
       }
 
     FILTER(strstarts(str(?g), str($base)))
   }
+# fail-closed default: with no resource type injected, $Type is rdfs:Resource, which no acl:accessToClass uses,
+# so the class branches match nothing. SetResultSetValues replaces this block with the resource's real types.
+VALUES ?Type { rdfs:Resource }
 ]]></param-value>
     </context-param>
     <context-param>
@@ -361,6 +363,9 @@ support@atomgraph.com]]></param-value>
     <listener>
         <listener-class>com.atomgraph.linkeddatahub.listener.GraphVersioningListener</listener-class>
     </listener>
+    <listener>
+        <listener-class>com.atomgraph.linkeddatahub.listener.ClientStylesheetListener</listener-class>
+    </listener>
     <servlet-mapping>
         <servlet-name>default</servlet-name>
         <url-pattern>/static/*</url-pattern>
@@ -404,6 +409,29 @@ support@atomgraph.com]]></param-value>
         <filter-name>HSTS filter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
+    <!-- The text types this app serves from /static carry UTF-8: em dashes and middots in the kit
+         stylesheets' comments, a ⤴ in a content: value, translated labels in the XSL. Tomcat's default
+         mappings name no charset, so a direct fetch decodes them with the client's fallback encoding -
+         windows-1252 in a browser tab - and every multi-byte character breaks apart. A stylesheet or
+         script loaded from a page escapes this by inheriting the referencing document's encoding, which
+         is why the app rendered correctly while the files did not. .map has no default mapping at all;
+         JSON is UTF-8 by definition, so it needs the type and not a charset. -->
+    <mime-mapping>
+        <extension>css</extension>
+        <mime-type>text/css;charset=UTF-8</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+        <extension>js</extension>
+        <mime-type>text/javascript;charset=UTF-8</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+        <extension>map</extension>
+        <mime-type>application/json</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+        <extension>txt</extension>
+        <mime-type>text/plain;charset=UTF-8</mime-type>
+    </mime-mapping>
     <mime-mapping>
         <extension>xsl</extension>
         <mime-type>text/xsl;charset=UTF-8</mime-type>

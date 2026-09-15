@@ -52,6 +52,8 @@ public final class LDH
     /** ldh:SelectChildren query resource */
     public static final Resource SelectChildren = ResourceFactory.createResource(NS + "SelectChildren");
 
+    /** ldh:import property */
+    public static final Property importPackage = ResourceFactory.createProperty(NS + "import");
     /** ldh:service property */
     public static final Property service = ResourceFactory.createProperty(NS + "service");
     /** ldh:file property */

@@ -17,7 +17,7 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 # add agent to the writers group
 
-ldh admin acl add-agent-to-group \
+ldh admin add agent \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
@@ -72,15 +72,12 @@ ldh get \
   -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
-  "${doc_url}?version=${sha1}")
-
-echo "DEBUG: Response body:"
-echo "$response_body"
+  --version "$sha1" \
+  "$doc_url")
 
 echo "$response_body" | grep -q "First version"
 
 if echo "$response_body" | grep -q "Second version"; then
-    echo "DEBUG: historical version response contains the updated title"
     exit 1
 fi
 
@@ -92,11 +89,9 @@ ldh get \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
   --head \
-  "${doc_url}?version=${sha1}" \
+  --version "$sha1" \
+  "$doc_url" \
 | tr -d '\r')
-
-echo "DEBUG: Response headers:"
-echo "$response_headers"
 
 echo "$response_headers" | grep -qi '^Memento-Datetime:'
 echo "$response_headers" | grep -qi '^Cache-Control:.*immutable'
@@ -113,12 +108,10 @@ echo "$response_headers" | grep -q 'rel=timemap'
 echo "$response_headers" | grep -q 'acl#Read'
 
 if echo "$response_headers" | grep -q 'acl#Write'; then
-    echo "DEBUG: version response advertises acl:Write"
     exit 1
 fi
 
 if echo "$response_headers" | grep -q 'acl#Append'; then
-    echo "DEBUG: version response advertises acl:Append"
     exit 1
 fi
 

@@ -7,10 +7,13 @@ purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
-# GET /settings without a certificate should return 401
-# Only owners have access to /settings via full-control authorization
+# GET /settings without a certificate is denied with 403 (LDH issues no 401 challenge for unauthenticated requests)
+# Only owners have Read access to /settings via the full-control authorization
 
-curl -k -w "%{http_code}\n" -o /dev/null -s \
+actual=$(curl -k -w "%{http_code}" -o /dev/null -s \
   -H "Accept: application/n-triples" \
-  "${END_USER_BASE_URL}settings" \
-| grep -q "$STATUS_UNAUTHORIZED"
+  "${END_USER_BASE_URL}settings")
+expected="$STATUS_FORBIDDEN"
+echo "DEBUG: Expected: $expected"
+echo "DEBUG: Got: $actual"
+echo "$actual" | grep -qE "^(${expected})$"

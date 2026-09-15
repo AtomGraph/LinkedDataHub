@@ -1,0 +1,14 @@
+{
+    "name": "linkeddatahub-ui-tests",
+    "version": "0.0.0",
+    "private": true,
+    "type": "module",
+    "description": "Playwright UI suite - drives the LinkedDataHub browser UI and asserts the design-system contract",
+    "scripts": {
+        "test": "playwright test",
+        "report": "playwright show-report out/html"
+    },
+    "devDependencies": {
+        "@playwright/test": "1.61.1"
+    }
+}

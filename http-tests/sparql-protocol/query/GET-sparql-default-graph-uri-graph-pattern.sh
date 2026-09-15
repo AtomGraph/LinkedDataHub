@@ -11,7 +11,7 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 slug=$(uuidgen | tr '[:upper:]' '[:lower:]')
 
-container=$(ldh create-container \
+container=$(ldh create container \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$END_USER_BASE_URL" \

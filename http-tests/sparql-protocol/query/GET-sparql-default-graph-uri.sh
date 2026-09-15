@@ -12,7 +12,7 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 slug_one=$(uuidgen | tr '[:upper:]' '[:lower:]')
 slug_two=$(uuidgen | tr '[:upper:]' '[:lower:]')
 
-container_one=$(ldh create-container \
+container_one=$(ldh create container \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
@@ -20,7 +20,7 @@ container_one=$(ldh create-container \
   --slug "$slug_one" \
   --parent "$END_USER_BASE_URL")
 
-container_two=$(ldh create-container \
+container_two=$(ldh create container \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$END_USER_BASE_URL" \

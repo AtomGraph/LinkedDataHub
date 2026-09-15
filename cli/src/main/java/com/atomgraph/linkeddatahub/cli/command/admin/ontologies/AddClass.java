@@ -38,7 +38,7 @@ import picocli.CommandLine.Parameters;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "add-class", description = "Adds a class to an ontology.")
+@Command(name = "class", description = "Adds a class to an ontology.")
 public class AddClass extends BaseCommand
 {
 

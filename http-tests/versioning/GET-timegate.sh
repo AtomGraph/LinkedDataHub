@@ -17,7 +17,7 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 # add agent to the writers group
 
-ldh admin acl add-agent-to-group \
+ldh admin add agent \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
@@ -76,23 +76,20 @@ ldh get \
   "$doc_url" \
 | tr -d '\r')
 
-echo "DEBUG: Original Resource headers:"
-echo "$response_headers"
-
 echo "$response_headers" | grep -q "<${doc_url}?timegate>; rel=timegate"
 
 # without Accept-Datetime the TimeGate selects the most recent Memento
 
 timegate_headers=$(
-curl -k -s -D - -o /dev/null \
-  -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
-  "${doc_url}?timegate" \
+ldh get \
+  -f "$AGENT_CERT_KEYSTORE" \
+  -p "$AGENT_CERT_PWD" \
+  --timegate \
+  --head \
+  "$doc_url" \
 | tr -d '\r')
 
-echo "DEBUG: TimeGate headers (no Accept-Datetime):"
-echo "$timegate_headers"
-
-echo "$timegate_headers" | grep -q '^HTTP/.* 302'
+echo "$timegate_headers" | grep -q '^HTTP 302'
 echo "$timegate_headers" | grep -qi "^Location: ${doc_url}?version=${sha2}"
 echo "$timegate_headers" | grep -qi '^Vary:.*accept-datetime'
 echo "$timegate_headers" | grep -q "<${doc_url}>; rel=original"
@@ -102,28 +99,32 @@ echo "$timegate_headers" | grep -qi '^Cache-Control:.*no-store'
 # a 302 TimeGate response must not carry Memento-Datetime
 
 if echo "$timegate_headers" | grep -qi '^Memento-Datetime:'; then
-    echo "DEBUG: TimeGate 302 response must not carry Memento-Datetime"
     exit 1
 fi
 
-# with Accept-Datetime at the first commit's time, the TimeGate selects the first Memento
+# the negotiated Memento is the only line the command prints, so it composes into a `ldh get`
 
-accept_datetime=$(date -u -j -f "%Y-%m-%dT%H:%M:%SZ" "$first_datetime" "+%a, %d %b %Y %H:%M:%S GMT" 2> /dev/null \
-    || date -u -d "$first_datetime" "+%a, %d %b %Y %H:%M:%S GMT")
+memento=$(
+ldh get \
+  -f "$AGENT_CERT_KEYSTORE" \
+  -p "$AGENT_CERT_PWD" \
+  --timegate \
+  "$doc_url")
 
-echo "DEBUG: Accept-Datetime: $accept_datetime (commit $sha1 at $first_datetime)"
+[ "$memento" = "${doc_url}?version=${sha2}" ]
 
-dated_headers=$(
-curl -k -s -D - -o /dev/null \
-  -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
-  -H "Accept-Datetime: ${accept_datetime}" \
-  "${doc_url}?timegate" \
-| tr -d '\r')
+# with Accept-Datetime at the first commit's time, the TimeGate selects the first Memento.
+# --datetime takes the ISO 8601 datetime the commit carries, no shell date conversion
 
-echo "DEBUG: TimeGate headers (Accept-Datetime at first commit):"
-echo "$dated_headers"
+dated_memento=$(
+ldh get \
+  -f "$AGENT_CERT_KEYSTORE" \
+  -p "$AGENT_CERT_PWD" \
+  --timegate \
+  --datetime "$first_datetime" \
+  "$doc_url")
 
-echo "$dated_headers" | grep -qi "^Location: ${doc_url}?version=${sha1}"
+[ "$dated_memento" = "${doc_url}?version=${sha1}" ]
 
 # a malformed Accept-Datetime is rejected
 
@@ -133,7 +134,6 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   -H "Accept-Datetime: yesterday afternoon" \
   "${doc_url}?timegate")
 
-echo "DEBUG: malformed Accept-Datetime status: $status (expected 400)"
 [ "$status" = "400" ]
 
 # the TimeGate is read-only
@@ -146,5 +146,4 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   --data-binary "<${doc_url}> <http://purl.org/dc/terms/title> \"Overwrite attempt\" ." \
   "${doc_url}?timegate")
 
-echo "DEBUG: PUT to TimeGate status: $status (expected 405)"
 [ "$status" = "405" ]

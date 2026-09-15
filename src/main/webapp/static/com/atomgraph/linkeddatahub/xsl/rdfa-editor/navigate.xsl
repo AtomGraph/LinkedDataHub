@@ -24,23 +24,23 @@ version="3.0">
     <xsl:template name="rdfae:init-navigate">
         <xsl:for-each select="ixsl:page()//body">
             <xsl:result-document href="?." method="ixsl:append-content">
-                <aside id="toc-drawer" class="rdfa-editor-ui" role="navigation" aria-label="Table of contents" style="display: none;">
-                    <button type="button" id="toc-close" class="toc-close" title="Close" aria-label="Close table of contents">&#215;</button>
-                    <h2>Contents</h2>
+                <aside id="toc-drawer" class="rdfa-editor-ui" role="navigation" aria-label="{rdfae:label('table-of-contents')}" style="display: none;">
+                    <button type="button" id="toc-close" class="toc-close" title="{rdfae:label('close')}" aria-label="{rdfae:label('close-table-of-contents')}">&#215;</button>
+                    <h2><xsl:value-of select="rdfae:label('contents')"/></h2>
                     <div id="toc-list"/>
                 </aside>
-                <aside id="inspector-drawer" class="rdfa-editor-ui" role="complementary" aria-label="Subject properties" style="display: none;">
-                    <button type="button" id="inspector-close" class="inspector-close" title="Close" aria-label="Close properties">&#215;</button>
-                    <h2>Properties</h2>
+                <aside id="inspector-drawer" class="rdfa-editor-ui" role="complementary" aria-label="{rdfae:label('subject-properties')}" style="display: none;">
+                    <button type="button" id="inspector-close" class="inspector-close" title="{rdfae:label('close')}" aria-label="{rdfae:label('close-properties')}">&#215;</button>
+                    <h2><xsl:value-of select="rdfae:label('properties')"/></h2>
                     <div id="inspector-subject"/>
                     <div id="inspector-body"/>
                 </aside>
-                <footer id="rdfa-editor-breadcrumb" class="rdfa-editor-ui" role="navigation" aria-label="Document position">
+                <footer id="rdfa-editor-breadcrumb" class="rdfa-editor-ui" role="navigation" aria-label="{rdfae:label('document-position')}">
                     <div id="rdfa-editor-breadcrumb-path"/>
                     <div id="rdfa-editor-breadcrumb-meta">
                         <span id="rdfa-editor-breadcrumb-subject"/>
                         <button type="button" id="lint-badge" class="lint-badge"
-                            aria-label="RDFa validation issues" style="display: none;"/>
+                            aria-label="{rdfae:label('rdfa-validation-issues')}" style="display: none;"/>
                     </div>
                 </footer>
                 <xsl:call-template name="rdfae:render-find-dialog"/>
@@ -74,7 +74,7 @@ version="3.0">
                         </xsl:call-template>
                     </xsl:when>
                     <xsl:otherwise>
-                        <p class="helper-text">No headings yet.</p>
+                        <p class="{$helper-text-class}"><xsl:value-of select="rdfae:label('no-headings')"/></p>
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:result-document>
@@ -177,14 +177,14 @@ version="3.0">
         <ixsl:set-property name="draggedSectionHeading"
             select="(ixsl:get(rdfae:editor-state(), 'tocRoot')/(h1 | h2 | h3))[$index]" object="rdfae:editor-state()"/>
         <ixsl:set-property name="effectAllowed" select="'move'" object="$transfer"/>
-        <xsl:sequence select="ixsl:call($transfer, 'setData', [ 'application/x-rdfa-editor-section', '' ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call($transfer, 'setData', [ 'application/vnd.atomgraph.rdfa-editor.section', '' ])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'add', [ 'dragging' ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
     <xsl:template match="li[contains-token(@class, 'toc-item')]" mode="ixsl:ondragover">
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:if test="exists(ixsl:get(rdfae:editor-state(), 'draggedSectionHeading'))
-                and rdfae:has-transfer-type($event, 'application/x-rdfa-editor-section')">
+                and rdfae:has-transfer-type($event, 'application/vnd.atomgraph.rdfa-editor.section')">
             <xsl:sequence select="ixsl:call($event, 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
             <ixsl:set-property name="dropEffect" select="'move'" object="ixsl:get($event, 'dataTransfer')"/>
             <xsl:call-template name="rdfae:clear-drop-marks">
@@ -203,7 +203,7 @@ version="3.0">
         <xsl:call-template name="rdfae:clear-drop-marks">
             <xsl:with-param name="scope" select="id('toc-list', ixsl:page())//li"/>
         </xsl:call-template>
-        <xsl:if test="exists($source) and rdfae:has-transfer-type($event, 'application/x-rdfa-editor-section')">
+        <xsl:if test="exists($source) and rdfae:has-transfer-type($event, 'application/vnd.atomgraph.rdfa-editor.section')">
             <xsl:sequence select="ixsl:call($event, 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
             <!-- bare-variable positional predicate: SaxonJS evaluates computed numeric
                  predicates as booleans in this context -->
@@ -319,7 +319,7 @@ version="3.0">
             <xsl:variable name="subject" as="xs:string"
                 select="((if (exists($leaf)) then rdfax:in-scope-subject($leaf, $base) else ())[. ne ''], $base)[1]"/>
             <xsl:variable name="rdf" as="element(rdf:RDF)">
-                <xsl:call-template name="extract-rdfa">
+                <xsl:call-template name="rdfax:extract-rdfa">
                     <xsl:with-param name="doc" select="ixsl:page()"/>
                     <xsl:with-param name="base" select="$base"/>
                 </xsl:call-template>
@@ -378,7 +378,7 @@ version="3.0">
                             </xsl:for-each>
                         </xsl:when>
                         <xsl:otherwise>
-                            <p class="helper-text">No properties on this subject.</p>
+                            <p class="{$helper-text-class}"><xsl:value-of select="rdfae:label('no-subject-properties')"/></p>
                         </xsl:otherwise>
                     </xsl:choose>
                 </xsl:result-document>
@@ -469,7 +469,7 @@ version="3.0">
             select="rdfae:roots() ! lint:lintable(.) ! (lint:element-issues(.), lint:nesting-issues(.))
                 ! (string(@code) || ' &#x2014; ' || normalize-space(string(.)))"/>
         <xsl:call-template name="rdfae:show-output">
-            <xsl:with-param name="title" select="'Validation issues'"/>
+            <xsl:with-param name="title" select="rdfae:label('validation-issues')"/>
             <xsl:with-param name="text" select="string-join($lines, '&#10;')"/>
         </xsl:call-template>
     </xsl:template>
@@ -517,21 +517,21 @@ version="3.0">
 
     <xsl:template name="rdfae:render-find-dialog">
         <div id="find-dialog" class="rdfa-editor-ui edit-dialog" role="dialog" aria-modal="true"
-                aria-label="Find and replace" style="display: none;">
-            <label>Find</label>
-            <input type="text" name="find"/>
-            <label>Replace with</label>
-            <input type="text" name="replace"/>
-            <label class="checkbox-label">
-                <input type="checkbox" name="match-case"/> Match case
+                aria-label="{rdfae:label('find-and-replace')}" style="display: none;">
+            <label for="find-text"><xsl:value-of select="rdfae:label('find')"/></label>
+            <input type="text" id="find-text" name="find"/>
+            <label for="find-replace"><xsl:value-of select="rdfae:label('replace-with')"/></label>
+            <input type="text" id="find-replace" name="replace"/>
+            <label class="{$checkbox-label-class}">
+                <input type="checkbox" name="match-case"/><xsl:text> </xsl:text><xsl:value-of select="rdfae:label('match-case')"/>
             </label>
             <div class="action-buttons">
-                <button type="button" class="btn-primary find-next">Find next</button>
-                <button type="button" class="btn-secondary replace-current">Replace</button>
-                <button type="button" class="btn-secondary replace-all">Replace all</button>
-                <button type="button" class="btn-secondary find-close">Close</button>
+                <button type="button" class="{$button-primary-class} find-next"><xsl:value-of select="rdfae:label('find-next')"/></button>
+                <button type="button" class="{$button-secondary-class} replace-current"><xsl:value-of select="rdfae:label('replace')"/></button>
+                <button type="button" class="{$button-secondary-class} replace-all"><xsl:value-of select="rdfae:label('replace-all')"/></button>
+                <button type="button" class="{$button-secondary-class} find-close"><xsl:value-of select="rdfae:label('close')"/></button>
             </div>
-            <span id="find-status" class="helper-text"/>
+            <span id="find-status" class="{$helper-text-class}"/>
         </div>
     </xsl:template>
 
@@ -575,7 +575,7 @@ version="3.0">
         <xsl:choose>
             <xsl:when test="$query = ''">
                 <xsl:call-template name="rdfae:find-status">
-                    <xsl:with-param name="message" select="'Enter a search term.'"/>
+                    <xsl:with-param name="message" select="rdfae:label('enter-search-term')"/>
                 </xsl:call-template>
             </xsl:when>
             <xsl:otherwise>
@@ -595,7 +595,7 @@ version="3.0">
                 <xsl:iterate select="$plan">
                     <xsl:on-completion>
                         <xsl:call-template name="rdfae:find-status">
-                            <xsl:with-param name="message" select="'No matches.'"/>
+                            <xsl:with-param name="message" select="rdfae:label('no-matches')"/>
                         </xsl:call-template>
                         <ixsl:set-property name="findNode" select="()" object="rdfae:editor-state()"/>
                         <ixsl:set-property name="findOffset" select="1" object="rdfae:editor-state()"/>
@@ -613,7 +613,7 @@ version="3.0">
                             <xsl:sequence select="ixsl:call(rdfae:selection(),
                                 'setBaseAndExtent', [ $node, $position - 1, $node,
                                     $position - 1 + string-length($query) ])[current-date() lt xs:date('2000-01-01')]"/>
-                            <xsl:sequence select="ixsl:call(ixsl:get($node, 'parentElement'), 'scrollIntoView',
+                            <xsl:sequence select="ixsl:call($node/parent::*, 'scrollIntoView',
                                 [ map{ 'block': 'center' } ])[current-date() lt xs:date('2000-01-01')]"/>
                             <ixsl:set-property name="findNode" select="$node" object="rdfae:editor-state()"/>
                             <ixsl:set-property name="findOffset"

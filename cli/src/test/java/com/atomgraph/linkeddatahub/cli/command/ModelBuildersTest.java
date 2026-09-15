@@ -87,7 +87,37 @@ public class ModelBuildersTest
                 dct:title "My item" ;
                 dct:description "Desc" .
             """),
-            CreateItem.buildModel(doc, "My item", "Desc"));
+            CreateItem.buildModel(doc, "My item", "Desc", null));
+    }
+
+    @Test
+    public void createItemWithFragmentPrimaryTopic()
+    {
+        URI doc = URI.create("https://localhost:4443/some/my-item/");
+
+        // The conventional case: the topic is a fragment of the document describing it, so the
+        // option resolves against the document rather than against the base URI.
+        assertIsomorphic(parse("""
+            <my-item/> a dh:Item ;
+                dct:title "My item" ;
+                foaf:primaryTopic <my-item/#this> .
+            """),
+            CreateItem.buildModel(doc, "My item", null, "#this"));
+    }
+
+    @Test
+    public void createItemWithAbsolutePrimaryTopic()
+    {
+        URI doc = URI.create("https://localhost:4443/some/about-bob/");
+
+        // A document about a resource described elsewhere: resolving an absolute URI leaves it
+        // alone, which is the case that has no other one-request expression.
+        assertIsomorphic(parse("""
+            <about-bob/> a dh:Item ;
+                dct:title "About Bob" ;
+                foaf:primaryTopic <https://example.org/bob#me> .
+            """),
+            CreateItem.buildModel(doc, "About Bob", null, "https://example.org/bob#me"));
     }
 
     @Test
@@ -98,7 +128,7 @@ public class ModelBuildersTest
                 dct:title "Some" ;
                 rdf:_1 [ a ldh:Object ; rdf:value ldh:ChildrenView ] .
             """),
-            CreateContainer.buildModel(TARGET, "Some", null, null, null));
+            CreateContainer.buildModel(TARGET, "Some", null, null, null, null));
     }
 
     @Test
@@ -109,7 +139,7 @@ public class ModelBuildersTest
                 dct:title "Some" ;
                 rdf:_1 [ a ldh:Object ; rdf:value [ a ldh:View ; spin:query ldh:SelectChildren ; ac:mode <https://w3id.org/atomgraph/client#GridMode> ] ] .
             """),
-            CreateContainer.buildModel(TARGET, "Some", null, null, URI.create("https://w3id.org/atomgraph/client#GridMode")));
+            CreateContainer.buildModel(TARGET, "Some", null, null, URI.create("https://w3id.org/atomgraph/client#GridMode"), null));
     }
 
     @Test
@@ -120,7 +150,21 @@ public class ModelBuildersTest
                 dct:title "Some" ;
                 rdf:_1 <https://localhost:4443/some/#block> .
             """),
-            CreateContainer.buildModel(TARGET, "Some", null, URI.create("https://localhost:4443/some/#block"), null));
+            CreateContainer.buildModel(TARGET, "Some", null, URI.create("https://localhost:4443/some/#block"), null, null));
+    }
+
+    @Test
+    public void createContainerWithPrimaryTopic()
+    {
+        // A container is a document too, and a taxonomy's scheme document is exactly this shape:
+        // a container whose topic is the thing its children are about.
+        assertIsomorphic(parse("""
+            <> a dh:Container ;
+                dct:title "Some" ;
+                rdf:_1 [ a ldh:Object ; rdf:value ldh:ChildrenView ] ;
+                foaf:primaryTopic <#this> .
+            """),
+            CreateContainer.buildModel(TARGET, "Some", null, null, null, "#this"));
     }
 
     @Test

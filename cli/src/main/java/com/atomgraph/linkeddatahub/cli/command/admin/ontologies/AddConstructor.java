@@ -38,7 +38,7 @@ import picocli.CommandLine.Parameters;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "add-constructor", description = "Adds a CONSTRUCT query to an ontology.")
+@Command(name = "constructor", description = "Adds a CONSTRUCT query to an ontology.")
 public class AddConstructor extends BaseCommand
 {
 

@@ -28,6 +28,7 @@ import java.net.URI;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
 import picocli.CommandLine.Command;
@@ -39,7 +40,7 @@ import picocli.CommandLine.Option;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "create-container", description = "Creates a container document.")
+@Command(name = "container", description = "Creates a container document.")
 public class CreateContainer extends BaseCommand
 {
 
@@ -64,13 +65,16 @@ public class CreateContainer extends BaseCommand
     @Option(names = "--mode", paramLabel = "MODE_URI", description = "URI of the layout mode of the children view (optional)")
     private URI mode;
 
+    @Option(names = "--primary-topic", paramLabel = "URI", description = "URI of what the document is about, resolved against the document URI (optional)")
+    private String primaryTopic;
+
     @Override
     public Integer call() throws Exception
     {
         baseMixin.require(getSpec()); // required by the script interface
 
         URI doc = URIRewriter.childURI(parent, slug != null ? slug : Slugs.defaultSlug());
-        put(getClient(), doc, buildModel(doc, title, description, block, mode));
+        put(getClient(), doc, buildModel(doc, title, description, block, mode, primaryTopic));
         print(doc);
 
         return 0;
@@ -85,9 +89,10 @@ public class CreateContainer extends BaseCommand
      * @param description document description (optional)
      * @param block content block URI (optional)
      * @param mode children view mode URI (optional, ignored when block is given)
+     * @param primaryTopic URI of the document's primary topic, relative or absolute (optional)
      * @return document model
      */
-    public static Model buildModel(URI doc, String title, String description, URI block, URI mode)
+    public static Model buildModel(URI doc, String title, String description, URI block, URI mode, String primaryTopic)
     {
         Model model = ModelFactory.createDefaultModel();
 
@@ -107,6 +112,8 @@ public class CreateContainer extends BaseCommand
                 addProperty(RDF.value, LDH.ChildrenView));
 
         if (description != null) container.addProperty(DCTerms.description, description);
+        // See CreateItem.buildModel: resolved against the document, and singular by the vocabulary.
+        if (primaryTopic != null) container.addProperty(FOAF.primaryTopic, model.createResource(doc.resolve(primaryTopic).toString()));
 
         return model;
     }

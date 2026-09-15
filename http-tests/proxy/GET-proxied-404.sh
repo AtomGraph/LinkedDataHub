@@ -9,7 +9,7 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 # add agent to the readers group to be able to read documents
 
-ldh admin acl add-agent-to-group \
+ldh admin add agent \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
@@ -20,11 +20,12 @@ ldh admin acl add-agent-to-group \
 uuid=$(cat /proc/sys/kernel/random/uuid 2>/dev/null || uuidgen)
 non_existing_uri="${END_USER_BASE_URL}${uuid}/"
 
-# Attempt to proxy a non-existing document on the END_USER_BASE_URL
+# Attempt to proxy a non-existing document on the END_USER_BASE_URL.
+# The upstream fetch of a typeless (non-existing) URL is now denied (403), and the proxy relays that status.
 curl -k -s -o /dev/null -w "%{http_code}" \
   -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H 'Accept: application/n-triples' \
   --data-urlencode "uri=${non_existing_uri}" \
   "$END_USER_BASE_URL" \
-| grep -q "$STATUS_NOT_FOUND"
+| grep -q "$STATUS_FORBIDDEN"

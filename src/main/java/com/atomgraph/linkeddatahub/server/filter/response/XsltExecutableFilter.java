@@ -18,7 +18,9 @@ package com.atomgraph.linkeddatahub.server.filter.response;
 
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.MediaType;
+import com.atomgraph.linkeddatahub.server.util.ClientStylesheetService;
 import com.atomgraph.linkeddatahub.server.util.SecureXML;
+import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,6 +31,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletionException;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.servlet.ServletContext;
@@ -48,7 +51,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Source;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamSource;
 import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.XsltCompiler;
@@ -62,6 +69,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 /**
@@ -69,7 +77,7 @@ import org.xml.sax.SAXException;
  * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-@Priority(Priorities.USER + 200)
+@Priority(Priorities.USER + 350)
 public class XsltExecutableFilter implements ContainerResponseFilter
 {
 
@@ -97,9 +105,26 @@ public class XsltExecutableFilter implements ContainerResponseFilter
             if (stylesheet != null)
             {
                 List<URI> packages = getPackages(getApplication().get());
+                ClientStylesheetService stylesheetService = getSystem().getClientStylesheetService();
 
                 if (packages.isEmpty()) req.setProperty(AC.stylesheet.getURI(), getXsltExecutable(stylesheet));
-                else req.setProperty(AC.stylesheet.getURI(), getXsltExecutable(getApplication().get(), stylesheet, packages));
+                else
+                {
+                    // server-side composition is never withheld: a declarative import takes effect on the
+                    // next request, and it is the only rendering an instance whose compiler is unreachable
+                    // will ever get
+                    req.setProperty(AC.stylesheet.getURI(), getXsltExecutable(getApplication().get(), stylesheet, packages));
+
+                    if (stylesheetService != null)
+                    {
+                        String key = stylesheetService.getKey(packages);
+
+                        // until the composed stylesheet exists the client renders without the package, as it
+                        // always has; compiling one closes that window rather than opening it
+                        if (stylesheetService.isPublished(key)) req.setProperty(LDH.clientStylesheet.getURI(), stylesheetService.getPublicPath(key));
+                        else stylesheetService.buildAsync(key, getStylesheets(packages));
+                    }
+                }
             }
             else req.setProperty(AC.stylesheet.getURI(), getSystem().getXsltExecutable());
 
@@ -139,17 +164,22 @@ public class XsltExecutableFilter implements ContainerResponseFilter
             Map<URI, XsltExecutable> xsltExecCache = getXsltExecutableCache();
 
             if (isCacheStylesheet())
-            {
-                // create cache entry if it does not exist
-                if (!xsltExecCache.containsKey(key))
-                    xsltExecCache.put(key, getXsltExecutable(getComposedSource(app, stylesheet, packages)));
-
-                return xsltExecCache.get(key);
-            }
+                // computeIfAbsent: a cold-start herd compiles the stylesheet once instead of once per thread
+                return xsltExecCache.computeIfAbsent(key, k ->
+                {
+                    try
+                    {
+                        return getXsltExecutable(getComposedSource(app, stylesheet, packages));
+                    }
+                    catch (SaxonApiException | IOException | ParserConfigurationException | SAXException | TransformerException ex)
+                    {
+                        throw new CompletionException(ex);
+                    }
+                });
 
             return getXsltExecutable(getComposedSource(app, stylesheet, packages));
         }
-        catch (SaxonApiException | IOException | ParserConfigurationException | SAXException ex)
+        catch (SaxonApiException | IOException | ParserConfigurationException | SAXException | TransformerException | CompletionException ex)
         {
             if (log.isErrorEnabled()) log.error("Could not compile stylesheet '{}' composed with packages {}, falling back to the stylesheet alone", stylesheet, packages, ex);
             return getXsltExecutable(stylesheet);
@@ -171,16 +201,45 @@ public class XsltExecutableFilter implements ContainerResponseFilter
      * @throws IOException I/O error
      * @throws ParserConfigurationException parser configuration error
      * @throws SAXException XML parsing error
+     * @throws TransformerException XML parsing or serialization error
      */
-    public Source getComposedSource(com.atomgraph.linkeddatahub.apps.model.Application app, URI stylesheet, List<URI> packages) throws IOException, ParserConfigurationException, SAXException
+    public Source getComposedSource(com.atomgraph.linkeddatahub.apps.model.Application app, URI stylesheet, List<URI> packages) throws IOException, ParserConfigurationException, SAXException, TransformerException
     {
         Source source = getSource(stylesheet.toString());
         if (!(source instanceof StreamSource)) throw new IOException("XSLT stylesheet could not be loaded from URI: " + stylesheet);
 
-        Document doc = SecureXML.newDocumentBuilderFactory().newDocumentBuilder().parse(((StreamSource)source).getInputStream());
+        Document doc = getDocument(((StreamSource)source).getInputStream(), stylesheet);
         appendImports(doc, getStylesheets(packages));
 
         return new DOMSource(doc, getPublicURI(app, stylesheet).toString());
+    }
+
+    /**
+     * Parses a stylesheet into a DOM document with its entities expanded.
+     * The DOCTYPE-tolerant reader rather than {@link SecureXML#newDocumentBuilderFactory()}, which forbids
+     * a DOCTYPE outright: an application's stylesheet is authored, not built, and declaring namespaces as
+     * internal entities is the idiom every stylesheet in this repository is written in. Refusing them made
+     * a declarative import silently do nothing - the composition threw, the filter logged and fell back to
+     * the stylesheet alone, and the application rendered with none of the package's rules. The client-side
+     * composition reached the same conclusion in {@code ClientStylesheetService.expandEntities()}, so the
+     * two paths now accept the same stylesheets.
+     *
+     * @param is stylesheet stream
+     * @param systemId system id to resolve relative references against
+     * @return stylesheet document
+     * @throws ParserConfigurationException parser configuration error
+     * @throws SAXException XML parsing error
+     * @throws TransformerException XML parsing or serialization error
+     */
+    public Document getDocument(InputStream is, URI systemId) throws ParserConfigurationException, SAXException, TransformerException
+    {
+        SAXSource source = new SAXSource(SecureXML.newXMLReader(), new InputSource(is));
+        source.setSystemId(systemId.toString());
+
+        DOMResult result = new DOMResult();
+        TransformerFactory.newInstance().newTransformer().transform(source, result);
+
+        return (Document)result.getNode();
     }
 
     /**
@@ -337,13 +396,30 @@ public class XsltExecutableFilter implements ContainerResponseFilter
     {
         if (isCacheStylesheet())
         {
-            // create cache entry if it does not exist
-            if (!xsltExecCache.containsKey(stylesheet))
-                xsltExecCache.put(stylesheet, getXsltExecutable(getSource(stylesheet.toString())));
-            
-            return xsltExecCache.get(stylesheet);
+            try
+            {
+                // computeIfAbsent: a cold-start herd compiles the stylesheet once instead of once per thread
+                return xsltExecCache.computeIfAbsent(stylesheet, key ->
+                {
+                    try
+                    {
+                        return getXsltExecutable(getSource(key.toString()));
+                    }
+                    catch (IOException | SaxonApiException ex)
+                    {
+                        throw new CompletionException(ex);
+                    }
+                });
+            }
+            catch (CompletionException ex)
+            {
+                // unwrap so callers keep seeing the declared checked exceptions
+                if (ex.getCause() instanceof IOException ioEx) throw ioEx;
+                if (ex.getCause() instanceof SaxonApiException saxonEx) throw saxonEx;
+                throw ex;
+            }
         }
-        
+
         return getXsltExecutable(getSource(stylesheet.toString()));
     }
     

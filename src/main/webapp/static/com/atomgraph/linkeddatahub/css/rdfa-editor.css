@@ -104,7 +104,7 @@
 /* a blockquote has no intrinsic child indentation, so its handle and its first
    block's handle would coincide; the editing view indents quote content to give
    each nesting level its own gutter column (lists and cells indent natively).
-   The quote bar (Markdown/Bootstrap convention) makes the container visible -
+   The quote bar (Markdown convention) makes the container visible -
    a normalized blockquote > p would otherwise read as a plain paragraph */
             .rdfa-editor-content blockquote {
                 padding-left: 2em;
@@ -272,7 +272,7 @@
                 color: #0d47a1;
             }
 
-/* ToC jumps land below the fixed navbar */
+/* ToC jumps land below the sticky header */
             .rdfa-editor-content > * {
                 scroll-margin-top: 76px;
                 scroll-margin-bottom: 48px;

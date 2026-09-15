@@ -9,7 +9,7 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 # add agent to the writers group
 
-ldh admin acl add-agent-to-group \
+ldh admin add agent \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
@@ -17,7 +17,7 @@ ldh admin acl add-agent-to-group \
 
 # add an explicit read/write authorization for the parent since the child document will inherit it
 
-ldh admin acl create-authorization \
+ldh admin create authorization \
   -b "$ADMIN_BASE_URL" \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \

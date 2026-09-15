@@ -9,19 +9,23 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 # Test nginx CORS headers on dynamic content (GET request)
 
+# Every assertion reads its response from a here-string rather than piping an echo into grep -q: the headers tested for
+# are at the top of a response that also carries a body, so grep matches and closes the pipe with the body still
+# unwritten, and under `set -o pipefail` the SIGPIPE'd echo fails the pipeline on a response that was correct.
+
 response=$(curl -i -k -s \
   -H "Origin: https://example.com" \
   -H "Accept: text/turtle" \
   "$END_USER_BASE_URL")
 
 # Verify Access-Control-Allow-Origin header is present
-if ! echo "$response" | grep -q "Access-Control-Allow-Origin: \*"; then
+if ! grep -q "Access-Control-Allow-Origin: \*" <<< "$response"; then
   echo "CORS header 'Access-Control-Allow-Origin' not found in GET response"
   exit 1
 fi
 
 # Verify Access-Control-Allow-Methods header is present
-if ! echo "$response" | grep -q "Access-Control-Allow-Methods:"; then
+if ! grep -q "Access-Control-Allow-Methods:" <<< "$response"; then
   echo "CORS header 'Access-Control-Allow-Methods' not found in GET response"
   exit 1
 fi
@@ -35,19 +39,19 @@ preflight=$(curl -i -k -s \
   "$END_USER_BASE_URL")
 
 # Verify preflight response has CORS headers
-if ! echo "$preflight" | grep -q "Access-Control-Allow-Origin: \*"; then
+if ! grep -q "Access-Control-Allow-Origin: \*" <<< "$preflight"; then
   echo "CORS header 'Access-Control-Allow-Origin' not found in OPTIONS response"
   exit 1
 fi
 
 # Verify preflight response has Access-Control-Max-Age
-if ! echo "$preflight" | grep -q "Access-Control-Max-Age:"; then
+if ! grep -q "Access-Control-Max-Age:" <<< "$preflight"; then
   echo "CORS header 'Access-Control-Max-Age' not found in OPTIONS response"
   exit 1
 fi
 
 # Verify OPTIONS request returns 204 No Content
-if ! echo "$preflight" | grep -q "HTTP/.* 204"; then
+if ! grep -q "HTTP/.* 204" <<< "$preflight"; then
   echo "OPTIONS preflight did not return 204 No Content"
   exit 1
 fi

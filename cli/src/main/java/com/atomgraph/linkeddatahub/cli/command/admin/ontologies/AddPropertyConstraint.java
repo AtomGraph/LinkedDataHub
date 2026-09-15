@@ -36,7 +36,7 @@ import picocli.CommandLine.Parameters;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "add-property-constraint", description = "Adds a constraint that makes a property required.")
+@Command(name = "property-constraint", description = "Adds a constraint that makes a property required.")
 public class AddPropertyConstraint extends BaseCommand
 {
 

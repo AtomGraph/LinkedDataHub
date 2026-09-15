@@ -26,6 +26,7 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.AuthorizationParams;
+import com.atomgraph.linkeddatahub.server.util.SetResultSetValues;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
@@ -43,6 +44,7 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Optional;
 import org.apache.jena.query.ParameterizedSparqlString;
+import org.apache.jena.query.Query;
 import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.query.ResultSetRewindable;
 import org.apache.jena.rdf.model.Model;
@@ -128,7 +130,12 @@ public class Access
                 final ParameterizedSparqlString authPss = getACLQuery();
                 authPss.setParams(new AuthorizationParams(getApplication().getAdminApplication().getBase(), accessTo, agent).get());
 
-                Model authModel = getSystem().getServiceContext(getApplication().getAdminApplication().getService()).getSPARQLClient().loadModel(authPss.asQuery());
+                // inject the resource's rdf:types so acl:accessToClass authorizations are reported; without this the ACL
+                // query keeps its fail-closed default (VALUES ?Type { rdfs:Resource }) and hides every class-based authorization
+                Query authQuery = authPss.asQuery();
+                if (docTypesResult.hasNext()) authQuery = new SetResultSetValues().apply(authQuery, docTypesResult);
+
+                Model authModel = getSystem().getServiceContext(getApplication().getAdminApplication().getService()).getSPARQLClient().loadModel(authQuery);
 
                 // filter out authorizations with acl:accessToClass foaf:Agent - all agents already have that access
                 ResIterator agentClassIter = authModel.listSubjectsWithProperty(ACL.agentClass, FOAF.Agent);

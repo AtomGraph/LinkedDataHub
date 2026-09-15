@@ -36,7 +36,7 @@ import picocli.CommandLine.Parameters;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "add-generic-service", description = "Appends a generic SPARQL service to a document.")
+@Command(name = "generic-service", description = "Appends a generic SPARQL service to a document.")
 public class AddGenericService extends BaseCommand
 {
 

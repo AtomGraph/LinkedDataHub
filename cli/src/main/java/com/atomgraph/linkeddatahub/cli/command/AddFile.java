@@ -42,7 +42,7 @@ import picocli.CommandLine.Parameters;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "add-file", description = "Uploads a file.")
+@Command(name = "file", description = "Uploads a file.")
 public class AddFile extends BaseCommand
 {
 

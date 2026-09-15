@@ -159,7 +159,10 @@ public class AuthorizationFilter implements ContainerRequestFilter
 
         QuerySolutionMap thisQsm = new QuerySolutionMap();
         thisQsm.add(SPIN.THIS_VAR_NAME, accessTo);
-        ResultSetRewindable docTypesResult = loadResultSet(getApplication().get().getService(), getDocumentTypeQuery(), thisQsm);  
+        ResultSetRewindable docTypesResult = loadResultSet(getApplication().get().getService(), getDocumentTypeQuery(), thisQsm);
+        // types that constrain the ACL query's acl:accessToClass matching: the document's own by default, or the parent
+        // container's when a PUT creates a new (still typeless) document and authorization falls back to the parent
+        ResultSetRewindable aclTypesResult = docTypesResult;
         try
         {
             // special case for PUT requests: if the document does not exist, check acl:Write access on the *parent* URI instead
@@ -174,33 +177,34 @@ public class AuthorizationFilter implements ContainerRequestFilter
                 QuerySolutionMap parentQsm = new QuerySolutionMap();
                 parentQsm.add(SPIN.THIS_VAR_NAME, parent);
                 ResultSetRewindable parentTypesResult = loadResultSet(getApplication().get().getService(), getDocumentTypeQuery(), parentQsm);
-                try
+                // the parent's types (not the typeless child's) must drive acl:accessToClass matching so the parent's
+                // write authorizations still apply; assigned now so the outer finally closes it on any exit path
+                aclTypesResult = parentTypesResult;
+
+                Set<Resource> parentTypes = new HashSet<>();
+                parentTypesResult.forEachRemaining(qs -> parentTypes.add(qs.getResource("Type")));
+
+                // only root and containers allow child documents. This needs to be checked before checking ownership
+                if (Collections.disjoint(parentTypes, Set.of(Default.Root, DH.Container))) return null;
+
+                // the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access
+                if (agent != null && isOwner(parent, agent))
                 {
-                    Set<Resource> parentTypes = new HashSet<>();
-                    parentTypesResult.forEachRemaining(qs -> parentTypes.add(qs.getResource("Type")));
-
-                    // only root and containers allow child documents. This needs to be checked before checking ownership
-                    if (Collections.disjoint(parentTypes, Set.of(Default.Root, DH.Container))) return null;
-
-                    // the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access
-                    if (agent != null && isOwner(parent, agent))
-                    {
-                        log.debug("Agent <{}> is the owner of <{}>, granting acl:Read/acl:Append/acl:Write access", agent, parent);
-                        createOwnerAuthorization(authorizations, parent, agent);
-                    }
-
-                    accessTo = parent; // redirect ACL query to parent URI since the document does not exist yet
+                    log.debug("Agent <{}> is the owner of <{}>, granting acl:Read/acl:Append/acl:Write access", agent, parent);
+                    createOwnerAuthorization(authorizations, parent, agent);
                 }
-                finally
-                {
-                    parentTypesResult.close();
-                }
+
+                accessTo = parent; // redirect ACL query to parent URI since the document does not exist yet
+                parentTypesResult.reset(); // rewind so the parent's types can be injected into the ACL query below
             }
          
             ParameterizedSparqlString pss = getApplication().get().canAs(EndUserApplication.class) ? getACLQuery() : getOwnerACLQuery();
-            if (docTypesResult.hasNext())
+            // the ACL query carries a fail-closed default VALUES ?Type { rdfs:Resource } (see web.xml); when the resource
+            // (or its parent, on a PUT-create) has a type, override that block with the real types so acl:accessToClass
+            // grants match. A typeless resource keeps the default, whose class no authorization uses, so it matches nothing.
+            if (aclTypesResult.hasNext())
             {
-                Query query = new SetResultSetValues().apply(pss.asQuery(), docTypesResult);
+                Query query = new SetResultSetValues().apply(pss.asQuery(), aclTypesResult);
                 pss = new ParameterizedSparqlString(query.toString()); // make sure type VALUES are now part of the query string
                 assert pss.toString().contains("VALUES");
             }
@@ -216,6 +220,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
         finally
         {
             docTypesResult.close();
+            if (aclTypesResult != docTypesResult) aclTypesResult.close(); // the parent's result set, when a PUT fell back to it
         }
     }
     
