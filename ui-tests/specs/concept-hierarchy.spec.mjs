@@ -18,11 +18,13 @@ const READ_MODE = 'https://w3id.org/atomgraph/client#ReadMode';
 const pageFor = name => `${document(name)}?mode=${encodeURIComponent(READ_MODE)}`;
 
 test.describe('concept hierarchy blocks', () => {
-    // The taxonomy fixtures are owner-owned, and these specs are about what a query
-    // returns rather than about who may see it.
+    // Not ownership - nothing is readable anonymously until an authorization says so, and these
+    // documents are dh:Items like any other. These blocks render what the hierarchy query returns,
+    // and the query returns it to whoever may run it: who that is belongs to http-tests, which
+    // covers the modes and classes directly. See concept-tree for the same reasoning at length.
     test.beforeEach(({}, testInfo) => {
         test.skip(testInfo.project.name !== 'owner',
-            'the taxonomy fixtures are owner-owned; these specs are not about authorization');
+            'the blocks render what the query returns, identically for either agent; whether a refusal happens is http-tests\' subject');
     });
 
     test('shows children asserted from either end of the link', async ({ page }) => {

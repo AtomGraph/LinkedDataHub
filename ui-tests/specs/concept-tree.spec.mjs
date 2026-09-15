@@ -39,11 +39,18 @@ function countQueries(page) {
 }
 
 test.describe('concept tree', () => {
-    // The taxonomy is owner-owned and the tree is navigation, not an authorization
-    // surface; the suite's owner/anonymous axis is exercised by the specs that are about it.
+    // Not ownership: nothing in a dataspace is readable without a certificate until an
+    // authorization says so, and a taxonomy document is a dh:Item like any other - granting the
+    // fixtures would make these run. The reason not to is the division of labour. WHETHER a
+    // refusal happens is http-tests' subject, where admin/acl/ covers the modes, the classes, the
+    // groups and make-public; asserting it again through a browser is the same claim in a slower
+    // runner. WHAT a refusal does to the client is this suite's, and has its own spec in
+    // tree-children-failure, which injects one and runs in both projects. Between those two the
+    // tree renders from the hierarchy queries alone, identically for either agent, so a granted
+    // taxonomy would buy fifteen re-measurements of the same markup.
     test.beforeEach(({}, testInfo) => {
         test.skip(testInfo.project.name !== 'owner',
-            'the taxonomy fixtures are owner-owned; these specs are not about authorization');
+            'the tree renders identically for either agent; whether a refusal happens is http-tests\' subject');
     });
 
     test('roots at the scheme, not at the concept being read', async ({ page }) => {
