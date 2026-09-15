@@ -4,8 +4,9 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { delimiter, join } from 'node:path';
 import { accessSync, constants } from 'node:fs';
+import { spawn } from 'node:child_process';
 import { get } from './lib/http.mjs';
-import { composedSefPrefix, endUserBase, localSef, sefDir, sefPath } from './lib/stack.mjs';
+import { adminBase, composedSefPrefix, endUserBase, localSef, sefDir, sefPath } from './lib/stack.mjs';
 import { fixtures as fixtureUris, itemCount, seed, teardown } from './lib/fixtures.mjs';
 import { seedTaxonomy, taxonomyPackage, teardownTaxonomy, waitForPackageStylesheet } from './lib/taxonomy.mjs';
 
@@ -134,6 +135,74 @@ async function fixtures() {
     console.log(`  fixtures   ${container} with ${itemCount} items (${Date.now() - started} ms)`);
 }
 
+// Varnish caches per URL and per Accept, and the suite reuses the same URIs every run - so a
+// response cached before a grant existed outlives the grant being created, and one cached while
+// it existed outlives it being deleted. Both were observed: with the document grant removed, the
+// anonymous spec went green on a cached HTML variant while curl was already getting 403.
+// http-tests bans the whole cache at the top of every test (run.sh); seeding happens once here,
+// so once is enough. Best-effort by design - a dev pointed at a stack they do not run locally
+// still gets a suite, with a line saying the caches are whatever the stack made them.
+function purge() {
+    const services = ['varnish-frontend', 'varnish-end-user', 'varnish-admin'];
+    return Promise.all(services.map(service => new Promise(resolve => {
+        const child = spawn('docker',
+            ['compose', 'exec', '-T', service, 'varnishadm', 'ban', 'req.url ~ /'],
+            { cwd: join(process.cwd(), '..'), stdio: 'ignore' });
+        child.on('error', () => resolve(null));
+        child.on('close', code => resolve(code === 0 ? service : null));
+    }))).then(purged => {
+        const done = purged.filter(Boolean);
+        console.log(done.length
+            ? `  caches     banned (${done.join(', ')})`
+            : '  caches     not purged - docker compose did not answer, so cached ACL decisions may persist');
+    });
+}
+
+// The suite grants access explicitly, per workflow, and asserts against what it granted. That
+// only means anything on an instance where nothing is readable by default, so the baseline is
+// checked rather than assumed - it is the one input the suite has always inherited from the
+// environment instead of seeding, and the one that made a UI failure reproduce in CI and not
+// locally. fixtures.private is never the target of any authorization the suite creates, so an
+// anonymous 200 here is a blanket grant, not a fixture of the test. Runs after seeding: a 403
+// on a document that does not exist proves nothing.
+async function baseline() {
+    const { status } = await get(fixtureUris.private);
+    if (status === 403) {
+        console.log(`  baseline   nothing is readable anonymously (${fixtureUris.private} -> 403)`);
+        return;
+    }
+
+    throw new Error(`${fixtureUris.private} is readable anonymously (HTTP ${status}).\n`
+        + `        Something is granting access to it, and every anonymous assertion in this suite\n`
+        + `        would pass vacuously against that. Two usual causes:\n`
+        + `          - a stray authorization from an interrupted run. List them and delete the one\n`
+        + `            that does not belong: ldh get ${adminBase}acl/authorizations/\n`
+        + `          - http-tests/admin/acl/make-public.sh, which fills in the shipped\n`
+        + `            acl/authorizations/public/#this and has no reverse in the CLI. Undo exactly\n`
+        + `            what it inserts with:\n`
+        + `            ldh patch -f ssl/owner/keystore.p12 -p "$(cat secrets/owner_cert_password.txt)" \\\n`
+        + `              ${adminBase}acl/authorizations/public/ <<'EOF'\n`
+        + `            PREFIX acl:  <http://www.w3.org/ns/auth/acl#>\n`
+        + `            PREFIX def:  <https://w3id.org/atomgraph/linkeddatahub/default#>\n`
+        + `            PREFIX dh:   <https://www.w3.org/ns/ldt/document-hierarchy#>\n`
+        + `            PREFIX nfo:  <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>\n`
+        + `            PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n`
+        + `            DELETE DATA {\n`
+        + `              <${adminBase}acl/authorizations/public/#this>\n`
+        + `                  acl:accessToClass def:Root, dh:Container, dh:Item, nfo:FileDataObject ;\n`
+        + `                  acl:accessTo <${endUserBase}sparql> .\n`
+        + `              <${adminBase}acl/authorizations/public/#sparql-post>\n`
+        + `                  a acl:Authorization ;\n`
+        + `                  acl:accessTo <${endUserBase}sparql> ;\n`
+        + `                  acl:mode acl:Append ;\n`
+        + `                  acl:agentClass foaf:Agent, acl:AuthenticatedAgent .\n`
+        + `            }\n`
+        + `            EOF\n`
+        + `        then purge the caches, or the ACL change is outlived by a cached 200:\n`
+        + `            docker compose exec varnish-end-user varnishadm "ban req.url ~ /"\n`
+        + `        A full reset - make drop && make up -- --build && make sef - also works.`);
+}
+
 // The concept tree is the taxonomy editor package's, not the platform's, so its fixtures carry the
 // package import too. Kept apart from the generic fixtures because it is the one seeding
 // step that changes how the whole dataspace renders, and teardown puts it back.
@@ -162,6 +231,8 @@ export default async function globalSetup() {
     await reachable();
     cli();
     await fixtures();
+    await purge();
+    await baseline();
     await taxonomy();
     // Last: it asks a seeded child document what it runs, and the composed stylesheet it checks is
     // only published once a package-importing dataspace exists.

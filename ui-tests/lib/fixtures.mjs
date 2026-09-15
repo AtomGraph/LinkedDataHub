@@ -6,12 +6,29 @@ import { spawn } from 'node:child_process';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { endUserBase, ownerKeystore, ownerPassword } from './stack.mjs';
+import { adminBase, endUserBase, ownerKeystore, ownerPassword } from './stack.mjs';
 
 const slug = 'ui-fixtures';
 
+// What an anonymous reader is granted, as two authorizations rather than one, so each scope is
+// legible on its own and either can be dropped without the other. Slugged because the suite
+// deletes what it creates - it shares a dev stack and does not snapshot the dataset the way
+// http-tests does.
+const authSlugs = { documents: `${slug}-public-docs`, endpoint: `${slug}-public-sparql` };
+
+export const publicAuthorizations =
+    Object.values(authSlugs).map(name => `${adminBase}acl/authorizations/${name}/`);
+
 export const fixtures = {
     container: `${endUserBase}${slug}/`,
+    // The control. No authorization the suite creates ever targets it, so its anonymous 403
+    // is what proves the instance grants nothing by default - and what an anonymous denial
+    // assertion is written against. Every grant the suite makes must stay document-scoped
+    // (`--to`), never class-scoped (`--to-all-in dh:Item`), or this document is caught by it.
+    //
+    // A sibling of the container, NOT a child of it: document-tree counts the container's
+    // children against itemCount, and a 26th child fails it. Nothing counts the root's.
+    private: `${endUserBase}${slug}-private/`,
     // Fragment URIs of the resources inside the container document. Passing --uri keeps
     // them addressable, so a spec can name the block it is asserting about instead of
     // fishing for the nth card on the page.
@@ -41,6 +58,13 @@ const kinds = ['alpha', 'beta', 'gamma'];
 // to be read by a test - a URI a spec needs has to be derivable, not remembered.
 export const itemSlug = n => `item-${String(n).padStart(2, '0')}`;
 export const itemUri = n => `${fixtures.container}${itemSlug(n)}/`;
+
+// The one item an anonymous reader may read, paired with fixtures.private, which nobody may.
+// Assigned here rather than in the literal above because it is derived from itemUri, and named
+// so a spec says what it means instead of rediscovering that item 1 happens to be the granted
+// one. An item and not the container: the container renders a paged view, and a view is only
+// as readable as the endpoint behind it.
+fixtures.readable = itemUri(1);
 export const itemTitle = n => `Fixture item ${String(n).padStart(2, '0')}`;
 export const itemKind = n => kinds[n % kinds.length];
 export const itemNumbers = () => Array.from({ length: itemCount }, (_, i) => i + 1);
@@ -109,6 +133,11 @@ export async function seed() {
         '--description', itemKind(n),
         '--slug', itemSlug(n)]));
 
+    await ldh(['create', 'item',
+        '--container', endUserBase,
+        '--title', 'Never granted',
+        '--slug', `${slug}-private`]);
+
     const queryFile = join(mkdtempSync(join(tmpdir(), 'ui-tests-')), 'items.rq');
     writeFileSync(queryFile, query);
 
@@ -128,12 +157,43 @@ export async function seed() {
     await ldh(['add', 'object-block', '--title', 'Fixture chart block', '--uri', fixtures.chartBlock,
         '--value', fixtures.chart, fixtures.container]);
 
+    // Everything an anonymous reader needs to render fixtures.readable, measured rather than
+    // guessed: the document itself, the ancestors the document tree walks on its way down, and
+    // the SPARQL endpoint. Without the endpoint the page raises a Saxon-JS alert
+    // ("Required cardinality of first argument of ac:document-uri()...") plus three 403s, so a
+    // document-scoped grant alone does not produce a working anonymous page.
+    await ldh(['admin', 'create', 'authorization', '-b', adminBase,
+        '--label', 'UI test public documents', '--slug', authSlugs.documents,
+        '--agent-class', FOAF_AGENT,
+        '--to', endUserBase,
+        '--to', fixtures.container,
+        '--to', fixtures.readable,
+        '--read']);
+
+    // Separate, because its scope is the one that cannot be narrowed. The endpoint enforces no
+    // per-graph ACL: with this in place an anonymous SELECT reads EVERY graph in the dataspace,
+    // including documents whose HTTP representation is 403 - fixtures.private among them. That
+    // is the platform's behaviour, not this suite's (admin/acl/make-public.sh grants the same
+    // thing), and it is why fixtures.private proves only that no blanket DOCUMENT grant is in
+    // force. Append as well as read: the client sends some queries over POST.
+    await ldh(['admin', 'create', 'authorization', '-b', adminBase,
+        '--label', 'UI test public SPARQL', '--slug', authSlugs.endpoint,
+        '--agent-class', FOAF_AGENT,
+        '--to', `${endUserBase}sparql`,
+        '--read', '--append']);
+
     return fixtures;
 }
+
+const FOAF_AGENT = 'http://xmlns.com/foaf/0.1/Agent';
 
 // Items are documents of their own, so the container does not take them with it.
 export async function teardown() {
     await inBatches(itemNumbers(), 6, n =>
         ldh(['delete', itemUri(n)], { allowFailure: true }));
+    for (const authorization of publicAuthorizations) {
+        await ldh(['delete', authorization], { allowFailure: true });
+    }
+    await ldh(['delete', fixtures.private], { allowFailure: true });
     await ldh(['delete', fixtures.container], { allowFailure: true });
 }
