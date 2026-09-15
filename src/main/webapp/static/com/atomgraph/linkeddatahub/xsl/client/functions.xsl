@@ -194,8 +194,24 @@ exclude-result-prefixes="#all"
     </xsl:function>
     
     <!-- format URLs in DataTable as HTML links. !!! Saxon-JS cannot intercept Google Charts events, therefore set a full proxied URL !!! -->
+    <!-- the Table chart is the only one whose cells are rendered as HTML (the allowHtml draw option); every other
+         chart type prints the cell as text - as a category axis tick, in the legend, in a tooltip - where the markup
+         shows through as markup, so those get the resource's label instead of a link -->
     <xsl:template match="@rdf:about[starts-with(., 'http://')] | @rdf:about[starts-with(., 'https://')] | @rdf:resource[starts-with(., 'http://')] | @rdf:resource[starts-with(., 'https://')] | srx:uri[starts-with(., 'http://')] | srx:uri[starts-with(., 'https://')]" mode="ac:DataTable">
-        <json:string key="v">&lt;a href="<xsl:value-of select="ldh:href(xs:anyURI(.), map{})"/>"&gt;<xsl:value-of select="."/>&lt;/a&gt;</json:string>
+        <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI" tunnel="yes"/>
+
+        <xsl:choose>
+            <xsl:when test="$chart-type = '&ac;Table'">
+                <json:string key="v">&lt;a href="<xsl:value-of select="ldh:href(xs:anyURI(.), map{})"/>"&gt;<xsl:value-of select="."/>&lt;/a&gt;</json:string>
+            </xsl:when>
+            <xsl:otherwise>
+                <!-- the mode, not ac:object-label(), so that the $object-metadata the caller tunnelled in reaches it -->
+                <xsl:variable name="labels" as="xs:string*">
+                    <xsl:apply-templates select="." mode="ac:object-label"/>
+                </xsl:variable>
+                <json:string key="v"><xsl:value-of select="$labels[1]"/></json:string>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
     <!-- escape < > in literals so they don't get interpreted as HTML tags -->
@@ -207,6 +223,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*"/>
+        <xsl:param name="chart-type" as="xs:anyURI"/>
+        <xsl:param name="object-metadata" as="document-node()?"/> <!-- labels of the resources the results link to, where the caller has them -->
         
         <xsl:variable name="json" as="xs:string">
             <xsl:value-of>
@@ -214,6 +232,8 @@ exclude-result-prefixes="#all"
                     <xsl:when test="$category">
                         <xsl:apply-templates select="$results" mode="ac:DataTable">
                             <xsl:with-param name="properties" select="xs:anyURI($category), for $i in $series return xs:anyURI($i)" tunnel="yes"/>
+                            <xsl:with-param name="chart-type" select="$chart-type" tunnel="yes"/>
+                            <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:when>
                     <xsl:otherwise>
@@ -221,6 +241,8 @@ exclude-result-prefixes="#all"
                         <xsl:apply-templates select="$results" mode="ac:DataTable">
                             <xsl:with-param name="resource-ids" select="true()" tunnel="yes"/>
                             <xsl:with-param name="properties" select="xs:anyURI($category), for $i in $series return xs:anyURI($i)" tunnel="yes"/>
+                            <xsl:with-param name="chart-type" select="$chart-type" tunnel="yes"/>
+                            <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:otherwise>
                 </xsl:choose>
@@ -235,11 +257,13 @@ exclude-result-prefixes="#all"
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*"/>
+        <xsl:param name="chart-type" as="xs:anyURI"/>
         
         <xsl:variable name="json" as="xs:string">
             <xsl:value-of>
                 <xsl:apply-templates select="$results" mode="ac:DataTable">
                     <xsl:with-param name="var-names" select="$category, $series" tunnel="yes"/>
+                    <xsl:with-param name="chart-type" select="$chart-type" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:value-of>
         </xsl:variable>

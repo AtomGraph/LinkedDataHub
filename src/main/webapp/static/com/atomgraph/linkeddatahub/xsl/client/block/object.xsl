@@ -329,7 +329,7 @@ exclude-result-prefixes="#all"
                                     <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
                                     <xsl:variable name="category" as="xs:string?"/>
                                     <xsl:variable name="series" select="distinct-values($resource-doc/*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
-                                    <xsl:variable name="data-table" select="ac:rdf-data-table($resource-doc, $category, $series)"/>
+                                    <xsl:variable name="data-table" select="ac:rdf-data-table($resource-doc, $category, $series, $chart-type, ())"/>
 
                                     <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block/@about || '`')"/>
 

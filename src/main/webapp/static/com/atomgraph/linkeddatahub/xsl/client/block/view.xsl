@@ -1048,7 +1048,7 @@ exclude-result-prefixes="#all"
             <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
             <xsl:variable name="category" as="xs:string?"/>
             <xsl:variable name="series" select="distinct-values($results/*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
-            <xsl:variable name="data-table" select="ac:rdf-data-table($results, $category, $series)"/>
+            <xsl:variable name="data-table" select="ac:rdf-data-table($results, $category, $series, $chart-type, $object-metadata)"/>
 
             <ixsl:set-property name="data-table" select="$data-table" object="$cache"/>
 
@@ -1223,6 +1223,11 @@ exclude-result-prefixes="#all"
 
         <!-- store sorted results as the current view results -->
         <ixsl:set-property name="results" select="$results" object="$cache"/>
+        <!-- the chart controls rebuild the data table from the cache on every change, so the labels of the
+             resources the results link to have to be reachable from there too -->
+        <xsl:if test="exists($object-metadata)">
+            <ixsl:set-property name="object-metadata" select="$object-metadata" object="$cache"/>
+        </xsl:if>
 
         <xsl:variable name="initial-load" select="empty(.//div[@id = $container-results-id])" as="xs:boolean"/>
         <xsl:message>$initial-load: <xsl:value-of select="$initial-load"/></xsl:message>
@@ -2660,6 +2665,18 @@ exclude-result-prefixes="#all"
     <!-- removing an applied step rewinds the view: the query is rebuilt from the initial SELECT string and the steps before the removed one are replayed -->
 
     <xsl:template match="div[@typeof = '&ldh;View']//span[contains-token(@class, 'parallax-steps')]/button[contains-token(@class, 'parallax-step')]" mode="ixsl:onclick">
+        <xsl:apply-templates select="." mode="ldh:RemoveParallaxStep"/>
+    </xsl:template>
+
+    <!-- the chip's x removes the same step as a click on the chip body. It has to claim the event before the
+         facet pill's inline clear, which the chip matches too (it carries 'facet-pill') but cannot serve: that
+         handler binds the div.facet the pill sits in, and a step chip has no facet ancestor -->
+
+    <xsl:template match="div[@typeof = '&ldh;View']//span[contains-token(@class, 'parallax-steps')]/button[contains-token(@class, 'parallax-step')]/span[contains-token(@class, 'x')]" mode="ixsl:onclick" priority="2">
+        <xsl:apply-templates select="parent::button" mode="ldh:RemoveParallaxStep"/>
+    </xsl:template>
+
+    <xsl:template match="div[@typeof = '&ldh;View']//span[contains-token(@class, 'parallax-steps')]/button[contains-token(@class, 'parallax-step')]" mode="ldh:RemoveParallaxStep">
         <xsl:param name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
         <xsl:param name="cache" select="ldh:view-cache($container)" as="item()"/>
         <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/*[contains-token(@class, 'mi')][contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string"/>

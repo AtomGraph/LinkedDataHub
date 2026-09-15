@@ -3,7 +3,12 @@
     <!ENTITY ac         "https://w3id.org/atomgraph/client#">
     <!ENTITY ldh        "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY rdf        "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <!ENTITY rdfs       "http://www.w3.org/2000/01/rdf-schema#">
+    <!ENTITY dc         "http://purl.org/dc/elements/1.1/">
+    <!ENTITY dct        "http://purl.org/dc/terms/">
+    <!ENTITY foaf       "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc       "http://rdfs.org/sioc/ns#">
+    <!ENTITY skos       "http://www.w3.org/2004/02/skos/core#">
     <!ENTITY xsd        "http://www.w3.org/2001/XMLSchema#">
 ]>
 <xsl:stylesheet version="3.0"
@@ -20,6 +25,9 @@ xmlns:ldh="&ldh;"
 exclude-result-prefixes="#all"
 extension-element-prefixes="ixsl"
 >
+
+    <!-- the properties a facet value's label is looked up from, in preference order -->
+    <xsl:param name="ldh:label-properties" as="xs:anyURI*" select="for $uri in ('&rdfs;label', '&dc;title', '&dct;title', '&foaf;name', '&foaf;givenName', '&foaf;familyName', '&sioc;name', '&skos;prefLabel') return xs:anyURI($uri)"/>
 
     <!-- replace projected variable(s) -->
     
@@ -583,12 +591,24 @@ extension-element-prefixes="ixsl"
         </xsl:copy>
     </xsl:template>
 
-    <!-- append OPTIONAL pattern with ?label property paths inside the BGP with object var name -->
+    <!-- append OPTIONAL pattern looking up the values' ?label inside the BGP with object var name -->
     <xsl:template match="json:map[json:string[@key = 'type'] = 'bgp']/.." mode="ldh:bgp-value-counts" priority="1">
         <xsl:param name="bgp-triples-map" as="element()" tunnel="yes"/>
         <xsl:param name="object-var-name" as="xs:string" tunnel="yes"/>
         <xsl:param name="label-var-name" as="xs:string" tunnel="yes"/>
         <xsl:param name="label-graph-var-name" select="$label-var-name || 'graph'" as="xs:string" tunnel="yes"/>
+        <xsl:param name="label-property-var-name" select="$label-var-name || 'property'" as="xs:string" tunnel="yes"/>
+        <!-- the lookup binds the label property to a variable instead of walking an alternative property path:
+             Jena evaluates a path whose graph is a variable as a scan of every graph in the store, which took
+             ~25s on a container of 830 resources (measured), against ~50ms for the same lookup with the
+             predicate bound by VALUES -->
+        <xsl:variable name="label-triple" as="element()">
+            <json:map>
+                <json:string key="subject"><xsl:text>?</xsl:text><xsl:value-of select="$object-var-name"/></json:string>
+                <json:string key="predicate"><xsl:text>?</xsl:text><xsl:value-of select="$label-property-var-name"/></json:string>
+                <json:string key="object"><xsl:text>?</xsl:text><xsl:value-of select="$label-var-name"/></json:string>
+            </json:map>
+        </xsl:variable>
 
         <xsl:copy>
             <xsl:apply-templates select="@* | node()" mode="#current"/>
@@ -598,65 +618,22 @@ extension-element-prefixes="ixsl"
                     <json:string key="type">optional</json:string>
                     <json:array key="patterns">
                         <json:map>
+                            <json:string key="type">values</json:string>
+                            <json:array key="values">
+                                <xsl:for-each select="$ldh:label-properties">
+                                    <json:map>
+                                        <json:string key="?{$label-property-var-name}"><xsl:value-of select="."/></json:string>
+                                    </json:map>
+                                </xsl:for-each>
+                            </json:array>
+                        </json:map>
+                        <json:map>
                             <json:string key="type">union</json:string>
                             <json:array key="patterns">
                                 <json:map>
                                     <json:string key="type">bgp</json:string>
                                     <json:array key="triples">
-                                        <json:map>
-                                            <json:string key="subject"><xsl:text>?</xsl:text><xsl:value-of select="$object-var-name"/></json:string>
-                                            <json:map key="predicate">
-                                                <json:string key="type">path</json:string>
-                                                <json:string key="pathType">|</json:string>
-                                                <json:array key="items">
-                                                    <json:map>
-                                                        <json:string key="type">path</json:string>
-                                                        <json:string key="pathType">|</json:string>
-                                                        <json:array key="items">
-                                                            <json:map>
-                                                                <json:string key="type">path</json:string>
-                                                                <json:string key="pathType">|</json:string>
-                                                                <json:array key="items">
-                                                                    <json:map>
-                                                                        <json:string key="type">path</json:string>
-                                                                        <json:string key="pathType">|</json:string>
-                                                                        <json:array key="items">
-                                                                            <json:map>
-                                                                                <json:string key="type">path</json:string>
-                                                                                <json:string key="pathType">|</json:string>
-                                                                                <json:array key="items">
-                                                                                    <json:map>
-                                                                                        <json:string key="type">path</json:string>
-                                                                                        <json:string key="pathType">|</json:string>
-                                                                                        <json:array key="items">
-                                                                                            <json:map>
-                                                                                                <json:string key="type">path</json:string>
-                                                                                                <json:string key="pathType">|</json:string>
-                                                                                                <json:array key="items">
-                                                                                                    <json:string>http://www.w3.org/2000/01/rdf-schema#label</json:string>
-                                                                                                    <json:string>http://purl.org/dc/elements/1.1/title</json:string>
-                                                                                                </json:array>
-                                                                                            </json:map>
-                                                                                            <json:string>http://purl.org/dc/terms/title</json:string>
-                                                                                        </json:array>
-                                                                                    </json:map>
-                                                                                    <json:string>http://xmlns.com/foaf/0.1/name</json:string>
-                                                                                </json:array>
-                                                                            </json:map>
-                                                                            <json:string>http://xmlns.com/foaf/0.1/givenName</json:string>
-                                                                        </json:array>
-                                                                    </json:map>
-                                                                    <json:string>http://xmlns.com/foaf/0.1/familyName</json:string>
-                                                                </json:array>
-                                                            </json:map>
-                                                            <json:string>http://rdfs.org/sioc/ns#name</json:string>
-                                                        </json:array>
-                                                    </json:map>
-                                                    <json:string>http://www.w3.org/2004/02/skos/core#prefLabel</json:string>
-                                                </json:array>
-                                            </json:map>
-                                            <json:string key="object"><xsl:text>?</xsl:text><xsl:value-of select="$label-var-name"/></json:string>
-                                        </json:map>
+                                        <xsl:sequence select="$label-triple"/>
                                     </json:array>
                                 </json:map>
                                 <json:map>
@@ -665,60 +642,7 @@ extension-element-prefixes="ixsl"
                                         <json:map>
                                             <json:string key="type">bgp</json:string>
                                             <json:array key="triples">
-                                                <json:map>
-                                                    <json:string key="subject"><xsl:text>?</xsl:text><xsl:value-of select="$object-var-name"/></json:string>
-                                                    <json:map key="predicate">
-                                                        <json:string key="type">path</json:string>
-                                                        <json:string key="pathType">|</json:string>
-                                                        <json:array key="items">
-                                                            <json:map>
-                                                                <json:string key="type">path</json:string>
-                                                                <json:string key="pathType">|</json:string>
-                                                                <json:array key="items">
-                                                                    <json:map>
-                                                                        <json:string key="type">path</json:string>
-                                                                        <json:string key="pathType">|</json:string>
-                                                                        <json:array key="items">
-                                                                            <json:map>
-                                                                                <json:string key="type">path</json:string>
-                                                                                <json:string key="pathType">|</json:string>
-                                                                                <json:array key="items">
-                                                                                    <json:map>
-                                                                                        <json:string key="type">path</json:string>
-                                                                                        <json:string key="pathType">|</json:string>
-                                                                                        <json:array key="items">
-                                                                                            <json:map>
-                                                                                                <json:string key="type">path</json:string>
-                                                                                                <json:string key="pathType">|</json:string>
-                                                                                                <json:array key="items">
-                                                                                                    <json:map>
-                                                                                                        <json:string key="type">path</json:string>
-                                                                                                        <json:string key="pathType">|</json:string>
-                                                                                                        <json:array key="items">
-                                                                                                            <json:string>http://www.w3.org/2000/01/rdf-schema#label</json:string>
-                                                                                                            <json:string>http://purl.org/dc/elements/1.1/title</json:string>
-                                                                                                        </json:array>
-                                                                                                    </json:map>
-                                                                                                    <json:string>http://purl.org/dc/terms/title</json:string>
-                                                                                                </json:array>
-                                                                                            </json:map>
-                                                                                            <json:string>http://xmlns.com/foaf/0.1/name</json:string>
-                                                                                        </json:array>
-                                                                                    </json:map>
-                                                                                    <json:string>http://xmlns.com/foaf/0.1/givenName</json:string>
-                                                                                </json:array>
-                                                                            </json:map>
-                                                                            <json:string>http://xmlns.com/foaf/0.1/familyName</json:string>
-                                                                        </json:array>
-                                                                    </json:map>
-                                                                    <json:string>http://rdfs.org/sioc/ns#name</json:string>
-                                                                </json:array>
-                                                            </json:map>
-                                                            <json:string>http://www.w3.org/2004/02/skos/core#prefLabel</json:string>
-                                                        </json:array>
-                                                    </json:map>
-                                                    <json:string key="object"><xsl:text>?</xsl:text><xsl:value-of select="$label-var-name"/></json:string>
-                                                </json:map>
+                                                <xsl:sequence select="$label-triple"/>
                                             </json:array>
                                         </json:map>
                                     </json:array>

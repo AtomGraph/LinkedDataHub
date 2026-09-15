@@ -129,7 +129,8 @@ exclude-result-prefixes="xs">
     <xsl:template match="*[@rdf:about or @rdf:nodeID]/*" mode="ac:DataTableColumns">
         <json:map>
             <json:string key="id"><xsl:value-of select="generate-id()"/></json:string>
-            <json:string key="label"><xsl:value-of select="concat(namespace-uri(), local-name())"/></json:string>
+            <!-- the column label is display text: it names the series in the legend and the axis it is drawn against -->
+            <json:string key="label"><xsl:value-of select="ac:property-label(.)"/></json:string>
             <json:string key="type">
                 <xsl:variable name="same-properties" select="key('properties', concat(namespace-uri(), local-name()))" as="element()*"/>
                 <xsl:variable name="same-property-count" select="count($same-properties)" as="xs:integer"/>

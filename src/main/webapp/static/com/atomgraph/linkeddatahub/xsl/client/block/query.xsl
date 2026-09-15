@@ -715,7 +715,7 @@ exclude-result-prefixes="#all"
 
                     <!-- store results and data-table in cache -->
                     <ixsl:set-property name="results" select="$results" object="$cache"/>
-                    <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series) else ac:sparql-results-data-table($results, $category, $series)"/>
+                    <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series, $chart-type, ()) else ac:sparql-results-data-table($results, $category, $series, $chart-type)"/>
                     <ixsl:set-property name="data-table" select="$data-table" object="$cache"/>
 
                     <xsl:call-template name="ldh:RenderChart">
