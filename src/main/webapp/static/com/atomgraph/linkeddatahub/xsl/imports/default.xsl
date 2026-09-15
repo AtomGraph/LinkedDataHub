@@ -148,11 +148,14 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ldh:parse-query-params(substring-after(ac:document-uri(ldh:request-uri()), '?'))"/>
     </xsl:function>
 
-    <!-- representation-selecting query params (unlike display state such as ?mode, these select a different representation of the document URI) - they must survive the RDF re-fetch and every URL rebuild -->
-    <xsl:function name="ldh:snapshot-params" as="map(xs:string, xs:string*)">
+    <!-- representation-selecting query params (unlike display state such as ?mode, these select a different representation of
+         the document URI) - they must survive the RDF re-fetch and every URL rebuild. ?version and ?timemap are the Memento
+         roles; the SPARQL protocol's three are the same thing for an endpoint document, whose representation is the result of
+         the query it is asked - dropped, the re-fetch asks the endpoint for nothing and is answered 400 -->
+    <xsl:function name="ldh:representation-params" as="map(xs:string, xs:string*)">
         <xsl:param name="query-params" as="map(xs:string, xs:string*)"/>
 
-        <xsl:sequence select="map:merge((if (map:contains($query-params, 'version')) then map{ 'version': $query-params?version } else (), if (map:contains($query-params, 'timemap')) then map{ 'timemap': $query-params?timemap } else ()))"/>
+        <xsl:sequence select="map:merge(for $name in ('version', 'timemap', 'query', 'default-graph-uri', 'named-graph-uri') return if (map:contains($query-params, $name)) then map{ $name: $query-params($name) } else ())"/>
     </xsl:function>
     
       

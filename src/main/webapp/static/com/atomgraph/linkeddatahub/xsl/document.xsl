@@ -460,7 +460,7 @@ exclude-result-prefixes="#all"
 
     <!-- TAB BODY -->
     
-    <xsl:template match="rdf:RDF" mode="ldh:TabPanel">
+    <xsl:template match="rdf:RDF | srx:sparql" mode="ldh:TabPanel">
         <xsl:param name="id" select="'ldh-pane-' || ac:uuid()" as="xs:string?"/>
         <xsl:param name="class" select="'ldh-pane is-active'" as="xs:string?"/>
         <xsl:param name="mode" as="xs:anyURI"/>
@@ -500,7 +500,7 @@ exclude-result-prefixes="#all"
     
     <!-- DOCUMENT BODY -->
     
-     <xsl:template match="rdf:RDF" mode="ldh:DocumentBody">
+     <xsl:template match="rdf:RDF | srx:sparql" mode="ldh:DocumentBody">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'document-body'" as="xs:string?"/>
         <xsl:param name="mode" as="xs:anyURI"/>
@@ -609,6 +609,10 @@ exclude-result-prefixes="#all"
     <xsl:template match="rdf:RDF" mode="ldh:DocumentMetadata">
         <xsl:apply-templates select="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ac:RDFaCarrier"/>
     </xsl:template>
+
+    <!-- a result set carries no descriptions: its bindings are already the whole representation, and without this rule
+         the built-in template would copy their text into the page -->
+    <xsl:template match="srx:sparql" mode="ldh:DocumentMetadata"/>
     
     <!-- CONTENT BODY -->
 

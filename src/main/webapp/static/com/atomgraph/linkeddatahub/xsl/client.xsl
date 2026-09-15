@@ -291,7 +291,11 @@ WHERE
             <xsl:variable name="etag" select="?headers?etag" as="xs:string?"/>
 
             <xsl:choose>
-                <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                <!-- both shapes a document can answer in take this path: ldh:DocumentBody and ldh:TabPanel match srx:sparql as
+                     well as rdf:RDF, and everything between here and them dispatches on the document element rather than
+                     assuming one. The RDF-only steps inside guard themselves - a result set has no diff, no object metadata,
+                     no blocks and no canvas -->
+                <xsl:when test="?status = 200 and ?media-type = ('application/rdf+xml', 'application/sparql-results+xml')">
                     <!-- store external SPARQL endpoint from Link header, same pattern as acl:mode above -->
                     <xsl:variable name="endpoint" select="ldh:link-targets(?headers?link, '&sd;endpoint')[1]" as="xs:anyURI?"/>
                     <xsl:if test="$endpoint">
@@ -367,7 +371,7 @@ WHERE
                                 <xsl:if test="not($server-rendered and $old-about = string($doc-uri))">
                                     <xsl:for-each select="$reuse-pane/div[contains-token(@class, 'document-body')]">
                                         <xsl:result-document href="?." method="ixsl:replace-element">
-                                            <xsl:apply-templates select="$render-results/rdf:RDF" mode="ldh:DocumentBody">
+                                            <xsl:apply-templates select="$render-results/*" mode="ldh:DocumentBody">
                                                 <xsl:with-param name="mode" select="$mode"/>
                                                 <xsl:with-param name="about" select="$doc-uri"/>
                                                 <xsl:with-param name="object-metadata" select="$context('object-metadata')" tunnel="yes"/>
@@ -402,7 +406,7 @@ WHERE
                             <xsl:otherwise>
                                 <xsl:variable name="tab-body" as="element()">
                                     <!-- inert class: ldh:ActivateTab (called from ldh:RenderTab below) is the single source of truth for the 'is-active' token. Defaulting to 'ldh-pane is-active' here would briefly leave two panes active (this one + the currently-active local one) and crash lapp:base()/sd:endpoint() in any code that runs between append and ActivateTab (e.g. ldh:DataspaceDrawer). -->
-                                    <xsl:apply-templates select="$render-results/rdf:RDF" mode="ldh:TabPanel">
+                                    <xsl:apply-templates select="$render-results/*" mode="ldh:TabPanel">
                                         <xsl:with-param name="id" select="$tab-body-id"/>
                                         <xsl:with-param name="class" select="'ldh-pane'"/>
                                         <xsl:with-param name="mode" select="$mode"/>
@@ -959,21 +963,25 @@ WHERE
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="server-rendered" select="false()" as="xs:boolean"/>
         <xsl:param name="controller" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')"/>
-        <!-- representation-selecting params (?version=, ?timemap) ride along on the RDF request; display params do not -->
-        <xsl:variable name="snapshot-params" select="ldh:snapshot-params($query-params)" as="map(xs:string, xs:string*)"/>
+        <!-- representation-selecting params (?version=, ?timemap, the SPARQL protocol's) ride along on the request; display params do not -->
+        <xsl:variable name="representation-params" select="ldh:representation-params($query-params)" as="map(xs:string, xs:string*)"/>
         <!-- ?diff= is display state (like ?mode=): the compared version is fetched client-side, the param never reaches the server but must survive into ldh:PushState -->
         <xsl:variable name="diff-version" select="if (map:contains($query-params, 'diff')) then $query-params('diff')[1] else ()" as="xs:string?"/>
         <!-- if the URI is external, dereference it through the proxy -->
         <!-- HTTP requests carry no fragment (protocol-level) -->
-        <xsl:variable name="request-uri" select="ldh:href($doc-uri, $snapshot-params, ())" as="xs:anyURI"/>
-        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+        <xsl:variable name="request-uri" select="ldh:href($doc-uri, $representation-params, ())" as="xs:anyURI"/>
+        <!-- a document asked a query answers in whichever of the two shapes the query form has - a result set for SELECT and
+             ASK, a graph for CONSTRUCT and DESCRIBE - and which one is not knowable without parsing it, so both are accepted
+             and the response's own media type decides how it is rendered. Asking for RDF alone is answered 406 by half of them -->
+        <xsl:variable name="accept" select="if (map:contains($representation-params, 'query')) then 'application/sparql-results+xml,application/rdf+xml' else 'application/rdf+xml'" as="xs:string"/>
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': $accept } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
           map:merge((
             map{
               'request': $request,
               'doc-uri': $doc-uri,
               'fragment': $fragment,
-              'query-params': map:merge(($snapshot-params, if (exists($diff-version)) then map{ 'diff': $diff-version } else map{})),
+              'query-params': map:merge(($representation-params, if (exists($diff-version)) then map{ 'diff': $diff-version } else map{})),
               'refresh-content': $refresh-content,
               'server-rendered': $server-rendered,
               'endpoint': sd:endpoint()
