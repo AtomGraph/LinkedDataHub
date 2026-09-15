@@ -26,14 +26,24 @@ const preexisting = [
     { pattern: /sparql\?query=DESCRIBE[\s\S]*has_parent/i, reason: 'pre-existing 502 on unlimited DESCRIBE' },
 ];
 
-const allowed = text => preexisting.some(({ pattern }) => pattern.test(text));
+const allowed = (text, declared) =>
+    [...preexisting, ...declared].some(({ pattern }) => pattern.test(text));
 
 export const test = base.extend({
-    page: async ({ page }, use, testInfo) => {
+    // Noise a spec causes ON PURPOSE. A spec that injects a failure - a route fulfilled 403 to
+    // prove the client survives it - would otherwise be failed by the very guard that makes the
+    // injection worth doing. Declared per test, per pattern, with a reason, so it stays as narrow
+    // as the `preexisting` list above and cannot quietly cover a defect it did not cause.
+    allowNoise: async ({}, use) => {
+        const declared = [];
+        await use(declared);
+    },
+
+    page: async ({ page, allowNoise }, use, testInfo) => {
         await page.context().addCookies(seen);
 
         const noise = [];
-        const note = entry => { if (!allowed(entry)) noise.push(entry); };
+        const note = entry => { if (!allowed(entry, allowNoise)) noise.push(entry); };
 
         page.on('console', message => {
             if (message.type() === 'error') note(`console.error: ${message.text()}`);

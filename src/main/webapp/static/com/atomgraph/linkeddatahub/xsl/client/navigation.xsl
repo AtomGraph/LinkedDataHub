@@ -497,7 +497,7 @@ ORDER BY DESC(?created)
                     <!-- Case 2b: Already expanded - find next child to descend into -->
                     <xsl:when test="$current-li/ul/li[./div/a]">
                         <!-- Find which child's href (without query params) is a prefix of target-uri -->
-                        <xsl:variable name="next-li" select="$current-li/ul/li[starts-with(string($target-uri), string(ac:document-uri(xs:anyURI(./div/a/@href))))][1]" as="element()?"/>
+                        <xsl:variable name="next-li" select="$current-li/ul/li[./div/a/@href][starts-with(string($target-uri), string(ac:document-uri(xs:anyURI(./div/a/@href))))][1]" as="element()?"/>
 
                         <xsl:choose>
                             <xsl:when test="$next-li">
@@ -535,8 +535,13 @@ ORDER BY DESC(?created)
         <xsl:param name="target-uri" as="xs:anyURI"/>
         <xsl:param name="tree-container" as="element()"/>
 
-        <!-- Find which child's href (without query params) is a prefix of target-uri -->
-        <xsl:variable name="next-li" select="$current-li/ul/li[starts-with(string($target-uri), string(ac:document-uri(xs:anyURI(./div/a/@href))))][1]" as="element()?"/>
+        <!-- Find which child's href (without query params) is a prefix of target-uri. A row carrying no
+             anchor is not a child to descend into: the loading placeholder is exactly that, and it is
+             still in the list whenever the children never landed - an anonymous reader's children query
+             is refused by the endpoint - where ac:document-uri() of its absent @href ended the walk in a
+             cardinality error that ldh:promise-failure alerted raw. ldh:tree-node-uri is empty-tolerant
+             for the same reason, and says so; the descent never adopted it. -->
+        <xsl:variable name="next-li" select="$current-li/ul/li[./div/a/@href][starts-with(string($target-uri), string(ac:document-uri(xs:anyURI(./div/a/@href))))][1]" as="element()?"/>
 
         <xsl:choose>
             <xsl:when test="$next-li">
