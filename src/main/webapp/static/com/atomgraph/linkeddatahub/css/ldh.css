@@ -80,8 +80,13 @@ div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main th, div[typeo
    of rendering at its natural pixel size. Documentation stills are published at twice the
    column width so they stay sharp on a retina display; unconstrained they render double-size
    and .main (overflow-x: auto, above) scrolls sideways with half the image out of view.
+   The editable region renders this same content inside .main, so it takes the same sizing from
+   the same declaration: what the author sees while editing is what the reader gets. Its branch
+   spells out the .rdfa-editor-content step only to win the cascade - at .main img it ties the
+   property-value thumbnail cap (--thumb-md, below) on specificity and loses on source order,
+   and prose images come out as 160px thumbnails. max-height: none is what releases that cap.
    Mirrors docs.css for the static site. */
-div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main img, div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main video { max-width: 100%; height: auto; }
+div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main img, div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main video, div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main .rdfa-editor-content img, div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main .rdfa-editor-content video { max-width: 100%; height: auto; max-height: none; }
 /* an alert in prose is a block in the flow and needs separating from the paragraphs
    around it. .ldh-block .ac-alert zeroes the margin for the block-failure alert,
    which fills its block and should not be inset; this outranks it for the prose

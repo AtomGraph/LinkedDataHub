@@ -122,9 +122,16 @@
                 margin: 16px 0;
             }
 
+/* a figure image is content, so its size belongs to the host page's content styles, the same
+   way .ck-content or content_css owns it in every other editor - this stylesheet is the editing
+   UI contract and must not pick a width the host did not ask for. A hardcoded cap fights whatever
+   column the host lays out: LinkedDataHub publishes documentation stills at twice the column width
+   for retina, and 400px shrank them to thumbnails inside a full-width prose column. max-width is
+   the one constraint worth asserting here - it keeps an oversized image inside the editable box
+   whatever the host does, without deciding how large the image should be. */
 .rdfa-editor-content figure img {
                 display: block;
-                max-width: 400px;
+                max-width: 100%;
             }
 
 /* Table blocks: cell borders make empty cells clickable while editing.
