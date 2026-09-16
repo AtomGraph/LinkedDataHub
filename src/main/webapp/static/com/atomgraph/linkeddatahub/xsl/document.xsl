@@ -481,6 +481,10 @@ exclude-result-prefixes="#all"
             <xsl:if test="$base">
                 <xsl:attribute name="data-base" select="$base"/>
             </xsl:if>
+            <!-- the document layout the pane was rendered in, not the layout of any view inside it: the
+                 client reads it from here rather than resolving it again, the way it reads the base and
+                 the endpoint -->
+            <xsl:attribute name="data-mode" select="$mode"/>
             <xsl:if test="$endpoint">
                 <xsl:attribute name="data-endpoint" select="$endpoint"/>
             </xsl:if>

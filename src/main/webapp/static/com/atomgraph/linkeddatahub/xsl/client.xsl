@@ -383,9 +383,11 @@ WHERE
                                     </xsl:for-each>
                                 </xsl:if>
 
-                                <!-- re-stamp the pane's modes: acl:mode is per-document, and the reused pane now shows a different document -->
+                                <!-- re-stamp the pane's modes: acl:mode is per-document, and the reused pane now shows a different document -
+                                     as is the document layout, which the same navigation is free to change -->
                                 <xsl:for-each select="$reuse-pane">
                                     <ixsl:set-attribute name="data-acl-modes" select="string-join($acl-modes, ' ')" object="."/>
+                                    <ixsl:set-attribute name="data-mode" select="string($mode)" object="."/>
                                 </xsl:for-each>
 
                                 <!-- sync the corresponding tab <li> to the new doc URI; data-uri keys downstream lookups -->

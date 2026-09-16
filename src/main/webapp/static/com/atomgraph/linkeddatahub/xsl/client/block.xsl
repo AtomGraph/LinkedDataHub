@@ -743,6 +743,11 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:variable name="id" select="'id' || ac:uuid()" as="xs:string"/>
+        <!-- the new block is a member of the document, so the form goes beside the block's row rather than
+             beside the card inside it: a row form inserted into the anchor's row is what the save then
+             replaces, since ldh:form-horizontal-submit-success renders a whole row and swaps out the row
+             the submitted block sits in - the block the create was launched from, not the new one -->
+        <xsl:variable name="anchor" select="($block/ancestor::div[contains-token(@class, 'ldh-block-row')][parent::div[contains-token(@class, 'content-body')]][1], $block)[1]" as="element()"/>
 
         <xsl:variable name="context" as="map(*)" select="map{
             'method': 'post',
@@ -751,7 +756,7 @@ exclude-result-prefixes="#all"
             'base-uri': $doc-uri,
             'this': xs:anyURI($doc-uri || '#' || $id),
             'properties': $properties,
-            'insert-anchor': $block,
+            'insert-anchor': $anchor,
             'insert-method': 'ixsl:insert-after'
         }"/>
 

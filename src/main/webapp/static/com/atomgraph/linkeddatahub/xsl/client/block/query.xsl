@@ -329,6 +329,10 @@ exclude-result-prefixes="#all"
          cancel - ixsl:event() is only in scope while an event is being handled -->
 
     <xsl:template match="form[contains-token(@class, 'sparql-query-form')]" mode="ldh:RunQuery">
+        <!-- the document layout the pane was rendered in - not this block's ac:mode, which is the layout of
+             its results. Defaulted off the pane the form is in so the event handlers that run a query need
+             nothing in scope, and overridable by a caller that already knows it -->
+        <xsl:param name="document-mode" select="ancestor::div[contains-token(@class, 'ldh-pane')]/@data-mode" as="xs:anyURI?"/>
         <xsl:sequence select="ldh:busy-cursor()"/>
         <xsl:variable name="textarea-id" select="string(descendant::textarea[@name = 'query']/@id)" as="xs:string"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
@@ -415,6 +419,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="chart-canvas-id" select="$block-id || '-chart-canvas'"/>
                     <xsl:with-param name="results-container" select="id($results-container-id, ixsl:page())"/>
                     <xsl:with-param name="query-string" select="$query-string"/>
+                    <xsl:with-param name="document-mode" select="$document-mode"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
@@ -530,9 +535,11 @@ exclude-result-prefixes="#all"
         
         <!-- the view counterpart of the chart tab's Create button, stamped here rather than derived inside
              the view: only this flow renders a view that is not yet a block of its own. Creating POSTs a new
-             view block into the current document, so it only appears to an agent who may append to it -->
+             view into the current document, so it only appears to an agent who may append to it - and only
+             in the layout that renders the document's resources, for the reason given at the chart button -->
+        <xsl:variable name="document-mode" select="ancestor::div[contains-token(@class, 'ldh-pane')]/@data-mode" as="xs:anyURI?"/>
         <xsl:variable name="form-actions" as="element()?">
-            <xsl:if test="acl:mode() = '&acl;Append'">
+            <xsl:if test="acl:mode() = '&acl;Append' and $document-mode = '&ac;ReadMode'">
                 <div class="ldh-block-foot">
                     <button class="ac-btn in-primary ap-solid sz-md btn-create-view" type="button">
                         <xsl:value-of>
@@ -680,14 +687,15 @@ exclude-result-prefixes="#all"
         <xsl:param name="show-editor" select="true()" as="xs:boolean"/>
         <xsl:param name="show-chart-save" select="true()" as="xs:boolean"/>
         <xsl:param name="results-container" as="element()"/>
+        <xsl:param name="document-mode" as="xs:anyURI?"/>
         
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = ('application/rdf+xml', 'application/sparql-results+xml')">
                 <xsl:for-each select="?body">
                     <xsl:variable name="results" select="." as="document-node()"/>
-                    <xsl:variable name="category" select="if (exists($category)) then $category else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name()))[1] else srx:sparql/srx:head/srx:variable[1]/@name)" as="xs:string?"/>
-                    <xsl:variable name="series" select="if (exists($series)) then $series else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name())) else srx:sparql/srx:head/srx:variable/@name)" as="xs:string*"/>
+                    <xsl:variable name="category" select="if (exists($category)) then $category else ldh:default-category($results)" as="xs:string?"/>
+                    <xsl:variable name="series" select="if (exists($series)) then $series else ldh:default-series($results, $category)" as="xs:string*"/>
 
                     <xsl:for-each select="$results-container">
                         <xsl:result-document href="?." method="ixsl:replace-content">
@@ -698,8 +706,12 @@ exclude-result-prefixes="#all"
                                 <xsl:with-param name="category" select="$category"/>
                                 <xsl:with-param name="series" select="$series"/>
                                 <xsl:with-param name="form-actions" as="element()?">
-                                    <!-- creating POSTs a new chart block into the current document, so the button only appears to an agent who may append to it -->
-                                    <xsl:if test="acl:mode() = '&acl;Append'">
+                                    <!-- creating POSTs a new chart into the current document, so the button only appears to an agent who may
+                                         append to it. Only the Properties layout offers it: what this creates is a resource of the document,
+                                         which is what Properties renders, while the content layout renders the rdf:_N sequence, whose members
+                                         are ldh:Object and ldh:XHTML blocks - a chart is reached from content by an ldh:Object block pointing
+                                         at it, which is the same rule the document's own Create menu follows -->
+                                    <xsl:if test="acl:mode() = '&acl;Append' and $document-mode = '&ac;ReadMode'">
                                         <div class="ldh-block-foot">
                                             <button class="ac-btn in-primary ap-solid sz-md btn-create-chart" type="button">
                                                 <xsl:value-of>

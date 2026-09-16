@@ -38,8 +38,71 @@ extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
 
+    <!-- FUNCTIONS -->
+
+    <!-- the columns of a result set, whichever shape the results came in: the variables of SPARQL results,
+         or one property element per distinct property of an RDF graph -->
+    <xsl:function name="ldh:result-columns" as="element()*">
+        <xsl:param name="results" as="document-node()"/>
+
+        <xsl:sequence select="if ($results/rdf:RDF) then (for $name in distinct-values($results/rdf:RDF/*/*/concat(namespace-uri(), local-name())) return ($results/rdf:RDF/*/*[concat(namespace-uri(), local-name()) = $name])[1]) else $results/srx:sparql/srx:head/srx:variable"/>
+    </xsl:function>
+
+    <!-- what a column is called where a chart names it: a variable name, or a property URI -->
+    <xsl:function name="ldh:column-name" as="xs:string">
+        <xsl:param name="column" as="element()"/>
+
+        <xsl:sequence select="if ($column/self::srx:variable) then string($column/@name) else concat(namespace-uri($column), local-name($column))"/>
+    </xsl:function>
+
+    <!-- the data table type of a column, asked of the converter that builds the table rather than decided
+         again here: the datatype sets the two converters group into 'number' are the chart's own notion of
+         what is chartable, and a second copy of them would be free to drift from what the chart is handed -->
+    <xsl:function name="ldh:column-type" as="xs:string">
+        <xsl:param name="column" as="element()"/>
+
+        <xsl:variable name="json" as="element()">
+            <xsl:choose>
+                <xsl:when test="$column/self::srx:variable">
+                    <xsl:apply-templates select="$column" mode="ac:DataTable"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:apply-templates select="$column" mode="ac:DataTableColumns"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+
+        <xsl:sequence select="string($json/json:string[@key = 'type'])"/>
+    </xsl:function>
+
+    <!-- the axis a chart draws its series against, when the chart does not name one: the first column the
+         data table does not type as a number, since that is the one the numbers are read by -->
+    <xsl:function name="ldh:default-category" as="xs:string?">
+        <xsl:param name="results" as="document-node()"/>
+
+        <xsl:variable name="columns" select="ldh:result-columns($results)" as="element()*"/>
+
+        <xsl:sequence select="for $column in ($columns[not(ldh:column-type(.) = 'number')], $columns)[1] return ldh:column-name($column)"/>
+    </xsl:function>
+
+    <!-- and the series it draws, when the chart does not name them: the number columns, minus the category.
+         One axis holds one data type, so offering every column at once is what Google Charts rejects with
+         "All series on a given axis must be of the same data type" - a default no agent asked for and one
+         that a chart created from it then carries. Results with no number column keep every column but the
+         category, which a table renders and a plotted chart cannot. -->
+    <xsl:function name="ldh:default-series" as="xs:string*">
+        <xsl:param name="results" as="document-node()"/>
+        <xsl:param name="category" as="xs:string?"/>
+
+        <xsl:variable name="columns" select="ldh:result-columns($results)" as="element()*"/>
+        <xsl:variable name="numbers" select="for $column in $columns[ldh:column-type(.) = 'number'] return ldh:column-name($column)" as="xs:string*"/>
+        <xsl:variable name="names" select="for $column in $columns return ldh:column-name($column)" as="xs:string*"/>
+
+        <xsl:sequence select="(if (exists($numbers)) then $numbers else $names)[not(. = $category)]"/>
+    </xsl:function>
+
     <!-- TEMPLATES -->
-    
+
     <!-- update the chart resource before saving. A mode of its own, not shared with the query save. -->
 
     <!-- identity transform -->
@@ -637,8 +700,8 @@ exclude-result-prefixes="#all"
                 <xsl:when test="?status = 200 and ?media-type = ('application/rdf+xml', 'application/sparql-results+xml')">
                     <xsl:for-each select="?body">
                         <xsl:variable name="results" select="." as="document-node()"/>
-                        <xsl:variable name="category" select="if (exists($category)) then $category else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name()))[1] else srx:sparql/srx:head/srx:variable[1]/@name)" as="xs:string?"/>
-                        <xsl:variable name="series" select="if (exists($series)) then $series else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name())) else srx:sparql/srx:head/srx:variable/@name)" as="xs:string*"/>
+                        <xsl:variable name="category" select="if (exists($category)) then $category else ldh:default-category($results)" as="xs:string?"/>
+                        <xsl:variable name="series" select="if (exists($series)) then $series else ldh:default-series($results, $category)" as="xs:string*"/>
 
                         <!-- re-render the chart header with the category/series options from the results -->
                         <xsl:for-each select="$container//div[contains-token(@class, 'chart-controls')]">
