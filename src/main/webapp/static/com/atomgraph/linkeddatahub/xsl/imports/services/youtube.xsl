@@ -33,12 +33,8 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[contains(@rdf:about, 'youtube.com/watch') or contains(@rdf:about, 'youtu.be/')][rdf:type/@rdf:resource = '&schema;VideoObject']">
         <xsl:variable name="video-id" select="analyze-string(@rdf:about, '^.*(?:youtube\.com/(?:watch\?v=|embed/)|youtu\.be/)([^&amp;?]+).*$')//fn:group[@nr='1']/text()" as="xs:string"/>
 
-        <div>
-            <iframe width="560" height="315" 
-                    src="https://www.youtube.com/embed/{$video-id}" 
-                    frameborder="0" 
-                    allowfullscreen="allowfullscreen">
-            </iframe>
+        <div class="ldh-video-embed">
+            <iframe src="https://www.youtube.com/embed/{$video-id}" allowfullscreen="allowfullscreen"></iframe>
         </div>
     </xsl:template>
     

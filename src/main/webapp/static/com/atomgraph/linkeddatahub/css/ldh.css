@@ -440,6 +440,19 @@ legend > .actions { display: flex; align-items: center; gap: var(--sp-1); margin
    does, so filling it bought nothing but an upscaled logo, and a portrait source needs the height
    bound or the header grows past the property list it heads */
 .ldh-block-head > a > img, .ldh-block-head > img { max-width: 100%; max-height: var(--thumb-lg); border-radius: var(--r-sm); }
+/* ---------- video embed (schema:VideoObject) ---------- */
+/* the embed sits in a recessed well rather than bare on the card. A player paints its own
+   letterbox black, and black straight against the card's --surface-0 reads as a hole punched
+   in the surface; the well gives the frame an edge to end at. --surface-2 + --border-default
+   + --r-md is .ldh-nblock's well vocabulary, so this recession and block-in-block nesting look
+   like the same system - and the radius steps down one stop for the inset player, which is the
+   depth ramp that section already follows.
+   The box is CSS's now: the iframe carried width="560" height="315" and sized itself from them,
+   so it stranded at the left edge of a body two columns wider with the rest of the card white
+   beside it. 16/9 is what an /embed/ URL serves; a portrait source letterboxes inside the
+   player, where the ratio it wants is the player's business and not the card's. */
+.ldh-video-embed { display: grid; padding: var(--sp-4); border: 1px solid var(--border-default); border-radius: var(--r-md); background: var(--surface-2); }
+.ldh-video-embed > iframe { display: block; width: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: var(--r-sm); }
 /* ---------- version diff decorations (?diff= view) ---------- */
 /* Block-level state rides on outline, not border: the skins legitimately zero block borders
    (quiet prose blocks, alert-only cards, the retro card treatments) and nothing else in the
