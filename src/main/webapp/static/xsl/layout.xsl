@@ -7,6 +7,8 @@
     <!-- System stylesheet (lowest priority) -->
     <xsl:import href="../com/atomgraph/linkeddatahub/xsl/layout.xsl"/>
 
-    <!-- package stylesheet imports are composed in-memory at compile time from the application's ldh:import data; this file is never modified -->
+    <!-- the package stylesheets the application imports (its ldh:import data) are composed in memory at compile time - not
+         here but into the platform layout stylesheet this file imports, at its hooks.xsl marker, so that they outrank the
+         open modes' fallbacks and nothing else; this file is never modified -->
 
 </xsl:stylesheet>

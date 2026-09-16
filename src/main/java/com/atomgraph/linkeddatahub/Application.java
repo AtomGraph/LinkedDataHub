@@ -261,6 +261,8 @@ public class Application extends ResourceConfig
 
     /** Webapp path of the client stylesheet built at package time. Its digest fingerprints the platform build, so a composed stylesheet is invalidated by an upgrade */
     public static final String CLIENT_SEF_PATH = "/static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json";
+    /** Path of the client stylesheet source in the webapp, composed with package stylesheets per import set */
+    public static final String CLIENT_XSL_PATH = "/static/com/atomgraph/linkeddatahub/xsl/client.xsl";
 
     private final ExecutorService importThreadPool;
     private final ServletConfig servletConfig;
@@ -837,8 +839,16 @@ public class Application extends ResourceConfig
                         if (log.isWarnEnabled()) log.warn("Client stylesheet '{}' not found in the webapp, package stylesheets will not reach the client", CLIENT_SEF_PATH);
                     }
                     else
-                        stylesheetService = new com.atomgraph.linkeddatahub.server.util.ClientStylesheetService(
-                            java.nio.file.Paths.get(sefRoot), URI.create(sefCompilerString), client, repository, stockSEF);
+                    {
+                        java.net.URL clientStylesheet = servletConfig.getServletContext().getResource(CLIENT_XSL_PATH);
+                        if (clientStylesheet == null)
+                        {
+                            if (log.isWarnEnabled()) log.warn("Client stylesheet source '{}' not found in the webapp, package stylesheets will not reach the client", CLIENT_XSL_PATH);
+                        }
+                        else
+                            stylesheetService = new com.atomgraph.linkeddatahub.server.util.ClientStylesheetService(
+                                java.nio.file.Paths.get(sefRoot), URI.create(sefCompilerString), client, repository, clientStylesheet, stockSEF);
+                    }
                 }
                 catch (IOException ex)
                 {

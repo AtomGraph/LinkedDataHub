@@ -54,54 +54,9 @@ exclude-result-prefixes="#all"
          this template emits: the server paints it, the client binds it. -->
 
 
-    <!-- one tree node: li > .tree-row > disclosure + a.tree-link. The li carries state, the row carries
-         the depth indent ramp, and a node with no children takes the inert spacer so labels stay aligned.
-         Whether a node can be expanded is the domain's to decide, so it is a parameter rather than a test
-         on some predicate this module would have to know about; a domain narrows the match and supplies it
-         through xsl:next-match. -->
-    <xsl:template match="*[@rdf:about]" mode="ldh:TreeNode">
-        <!-- depth is TUNNELLED, expandable is not, and the difference is deliberate: the indent ramp is
-             ambient state belonging to the level being rendered, while whether a node opens is a
-             per-node decision the domain makes. A domain narrows this template by matching and
-             delegating with xsl:next-match, which forwards only the parameters it names - so a plain
-             depth parameter silently became 0 in every domain override and the tree rendered flat with
-             correct nesting, which is exactly how it shipped. -->
-        <xsl:param name="depth" select="0" as="xs:integer" tunnel="yes"/>
-        <xsl:param name="expandable" select="false()" as="xs:boolean"/>
-        <!-- where the row navigates, which is not always the resource's own URI: a domain whose nodes
-             only make sense in one display mode passes an ldh:href() carrying it as a query parameter.
-             Per-node rather than tunnelled, so it reaches the nodes a later children fetch renders -
-             those are applied from ldh:tree-children-response, which tunnels depth and nothing else. -->
-        <xsl:param name="href" select="@rdf:about" as="xs:anyURI"/>
-
-        <li>
-            <div class="tree-row" style="--depth: {$depth}">
-                <!-- the disclosure is a SIBLING of the anchor, so a node can be expanded without
-                     navigating into it, and so the anchor holds no nested interactive content -->
-                <xsl:choose>
-                    <xsl:when test="$expandable">
-                        <button type="button" class="ac-iconbtn sz-xs in-neutral ap-ghost btn-expand-tree" aria-expanded="false">
-                            <span class="msi sm" aria-hidden="true">chevron_right</span>
-                        </button>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <span class="tree-spacer" aria-hidden="true"/>
-                    </xsl:otherwise>
-                </xsl:choose>
-
-                <!-- the title is the resource's own URI, since it states identity rather than where the
-                     row goes -->
-                <a class="tree-link" href="{$href}" title="{@rdf:about}">
-                    <span class="msi sm tree-icon" aria-hidden="true">
-                        <xsl:value-of select="ldh:class-icon(., 'description')"/>
-                    </span>
-                    <span class="tree-label">
-                        <xsl:apply-templates select="." mode="ac:label"/>
-                    </span>
-                </a>
-            </div>
-        </li>
-    </xsl:template>
+    <!-- the per-node renderer - the fallback a domain narrows and decorates - is not here but in
+         hooks.xsl, the open-mode layer below the package stylesheets: that is what lets a package's
+         narrower ldh:TreeNode rule outrank it. -->
 
     <!-- The inverse of the href param above: the resource a row links to, recovered from the row's own
          @href. It lives here, beside the emitter that writes the href, because everything that walks the

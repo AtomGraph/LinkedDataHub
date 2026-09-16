@@ -977,26 +977,9 @@ exclude-result-prefixes="#all"
     <!-- suppress types in property list - we show them in the ac:BlockHeader instead -->
     <xsl:template match="rdf:type[@rdf:resource]" mode="ac:PropertyEditor"/>
 
-    <!-- override outer ac:PropertyEditor so sort keys consume tunneled $property-metadata and $object-metadata
-         (tunnel params don't cross xsl:function boundaries, so 1-arg ac:property-label/ac:object-label can't see them) -->
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ac:PropertyEditor">
-        <xsl:param name="property-metadata" as="document-node()?" tunnel="yes"/>
-        <xsl:param name="object-metadata" as="document-node()?" tunnel="yes"/>
-
-        <xsl:variable name="definitions" as="document-node()">
-            <xsl:document>
-                <dl>
-                    <xsl:apply-templates select="*" mode="#current">
-                        <xsl:sort select="if ($property-metadata) then ac:property-label(., $property-metadata) else ac:property-label(.)" order="ascending" lang="{ac:langs()[1]}"/>
-                        <xsl:sort select="ac:lang-rank(.)" order="ascending"/>
-                        <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then (if ($object-metadata) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1], $object-metadata) else ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1])) else ()" order="ascending" lang="{ac:langs()[1]}"/>
-                    </xsl:apply-templates>
-                </dl>
-            </xsl:document>
-        </xsl:variable>
-
-        <xsl:apply-templates select="$definitions" mode="ac:PropertyGroups"/>
-    </xsl:template>
+    <!-- the resource-level property list (the override of Web-Client's rule of the same match) lives in
+         hooks.xsl, the open-mode layer below the package stylesheets, so that a package can specialise
+         it for its own types -->
 
     <!-- project the intermediate dt/dd list onto the design's property grid, keeping the dl/dt/dd
          carriers: a resource description is an association list, which is exactly what dl is specified

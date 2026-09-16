@@ -62,27 +62,8 @@ exclude-result-prefixes="#all"
     
     <xsl:mode name="ldh:Shape" on-no-match="deep-skip"/>
 
-    <!-- a navigation column beside the document's content, for a vocabulary that has a shape worth
-         navigating: a taxonomy's concept tree, an ontology's class list. Empty unless something fills
-         it, and deep-skip rather than a no-op rule so an unfilled slot costs nothing.
-
-         It is a slot INSIDE the content body rather than a wrapper around it because .content-body
-         carries the page gutter and content width, is addressed by rules as a direct child of
-         .document-body, and is the containing block the sticky create dock measures its full bleed
-         against - so a column emitted around it loses the gutter and breaks the dock, while one
-         emitted into it leaves every existing rule matching.
-
-         Whatever fills it is wrapped in .ldh-content-aside by ldh:ContentBody, and that class is what
-         the two-column layout keys on. The filler therefore needs no layout class of its own and may
-         look like anything - a card, a bare list, a full-height panel - where keying the grid on the
-         filler's own class would have meant every package borrowing one component's arrangement to
-         use a general slot.
-
-         The active mode is passed in rather than filtered here: which modes a column belongs in is
-         the filler's judgement, not the platform's. A taxonomy tree is a reading affordance and
-         restricts itself to ReadMode; an editor's class list might well want to stay visible while
-         its document's content is being authored. -->
-    <xsl:mode name="ldh:ContentColumn" on-no-match="deep-skip"/>
+    <!-- ldh:ContentColumn, the navigation slot beside the content body that packages fill, is declared in
+         hooks.xsl with the other open modes -->
 
 
     <!-- schema.org BREADCRUMBS -->

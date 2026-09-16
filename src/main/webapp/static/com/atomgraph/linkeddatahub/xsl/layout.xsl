@@ -78,9 +78,12 @@ xmlns:schema="&schema;"
 exclude-result-prefixes="#all">
 
     <!-- the import tree, not this list, is the precedence order: Web-Client's internal-layout (its
-         common layer + page layout) below LinkedDataHub's shared layer (common.xsl) - see §3.10.3 -->
+         common layer + page layout) below the open modes (hooks.xsl) below LinkedDataHub's shared layer
+         (common.xsl) - see §3.10.3. The package stylesheets an application imports are composed in
+         right after hooks.xsl, so they outrank the open modes' fallbacks and nothing else -->
     <xsl:import href="../../client/xsl/converters/RDFXML2JSON-LD.xsl"/>
     <xsl:import href="../../client/xsl/internal-layout.xsl"/>
+    <xsl:import href="hooks.xsl"/>
     <xsl:import href="common.xsl"/>
     <xsl:import href="server.xsl"/> <!-- the server-side bindings of the product-dualed functions (client/functions.xsl mirrors them) -->
 
@@ -264,6 +267,22 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- STYLE -->
+
+    <!-- the document head, owned here rather than inherited from Web-Client's layout.xsl (whose root
+         template applies this mode): Web-Client sits below the package stylesheets, so a rule left to it
+         is a rule a package could replace - and a package that owns the head owns the page. Same body as
+         Web-Client's; this copy exists to seal the mode. -->
+    <xsl:template match="rdf:RDF | srx:sparql" mode="ac:Head">
+        <head>
+            <xsl:apply-templates select="." mode="xhtml:Meta"/>
+
+            <xsl:apply-templates select="." mode="xhtml:Title"/>
+
+            <xsl:apply-templates select="." mode="ac:Stylesheets"/>
+
+            <xsl:apply-templates select="." mode="xhtml:Script"/>
+        </head>
+    </xsl:template>
 
     <xsl:template match="rdf:RDF[lapp:origin()] | srx:sparql[lapp:origin()]" mode="ac:Stylesheets">
         <xsl:param name="load-rdfa-editor" select="exists($foaf:Agent//@rdf:about)" as="xs:boolean"/>

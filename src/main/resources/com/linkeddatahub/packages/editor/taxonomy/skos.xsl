@@ -148,16 +148,17 @@ exclude-result-prefixes="#all">
          The tree roots at the scheme, so on a concept page it must open the path down to that concept
          or the reader is left at the top of a taxonomy with no idea where they are.
 
-         Triggered from ldh:RenderRow, which the platform already applies to every direct child of
-         .content-body after the pane is in the DOM - on a direct load AND on a client-side navigation
-         alike. That is the whole reason no new platform hook was needed, and why there is one
+         Triggered through ldh:RowHook, the open mode the platform's ldh:RenderRow walk applies to every
+         element under .content-body after the pane is in the DOM - on a direct load AND on a client-side
+         navigation alike. That is the whole reason no new platform hook was needed, and why there is one
          implementation rather than a synchronous server walk beside an asynchronous client one: this
-         mode is the only place both paths meet after the markup exists.
+         mode is the only place both paths meet after the markup exists. The walk itself is sealed; this
+         rule only returns work for the aside and never descends, so nothing under it is skipped.
 
          The mode's contract is a FACTORY, not work: it is evaluated inside a non-updating variable
          binding and the factories are invoked later inside ixsl:promise, which is also what gives
          ixsl:http-request the active promise it requires. -->
-    <xsl:template match="div[contains-token(@class, 'ldh-content-aside')][descendant::ul[contains-token(@class, 'concept-tree')][@data-concept]]" mode="ldh:RenderRow" as="(function(item()?) as map(*))*" priority="2" use-when="system-property('xsl:product-name') = 'SaxonJS'">
+    <xsl:template match="div[contains-token(@class, 'ldh-content-aside')][descendant::ul[contains-token(@class, 'concept-tree')][@data-concept]]" mode="ldh:RowHook" as="(function(item()?) as map(*))*" use-when="system-property('xsl:product-name') = 'SaxonJS'">
         <!-- descendant, not child: the platform owns the .ldh-content-aside wrapper and the package puts
              its own card treatment (.ldh-onto-list) inside it, so the tree sits a level deeper than the
              slot - and a package that wanted no card would have it one level up. Either way the tree is

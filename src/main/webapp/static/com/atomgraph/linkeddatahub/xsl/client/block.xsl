@@ -190,32 +190,15 @@ exclude-result-prefixes="#all"
 
     <!-- render row -->
 
+    <!-- the walk over rendered rows. SEALED and pure: it descends through every element and asks the
+         open mode ldh:RowHook (client/hooks.xsl) what to schedule for each one, contributing nothing
+         itself - the platform's own view injection is a hook rule like any package's. Splitting the
+         two is what makes a hook safe: a rule that wins in ldh:RowHook adds work for its node and
+         cannot take the node's subtree out of the walk, which a rule winning HERE would. -->
     <xsl:template match="*" mode="ldh:RenderRow" as="(function(item()?) as map(*))*">
+        <xsl:apply-templates select="." mode="ldh:RowHook"/>
+
         <xsl:apply-templates mode="#current"/>
-
-        <!--
-            inject ontology-driven view blocks for any row wrapper produced by resource.xsl:
-            outer div.ldh-block-row[@about] whose div.row-main child contains the inner typed resource
-            block (class='block ldh-block').
-
-            Typed-block rows (Object/View/Query/Chart) are excluded automatically: their card carries
-            no @typeof (the typeof rides the inner .block-row container), so the inner
-            [@typeof] predicate excludes them.
-        -->
-        <xsl:for-each select="self::div[contains-token(@class, 'ldh-block-row')][@about]/div[contains-token(@class, 'row-main')]/div[contains-token(@class, 'block')][@typeof]">
-            <xsl:variable name="typeof-uris" select="tokenize(@typeof, ' ') ! xs:anyURI(.)" as="xs:anyURI*"/>
-            <xsl:variable name="values-clause" select="' VALUES ?type { ' || string-join(for $t in $typeof-uris return '&lt;' || $t || '&gt;', ' ') || ' }'" as="xs:string"/>
-            <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', lapp:base()), map{ 'query': $ontology-view-query || $values-clause }), map{})" as="xs:anyURI"/>
-            <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
-            <xsl:variable name="context" as="map(*)" select="
-                map{
-                    'request': $request,
-                    'container': ../..,
-                    'base-uri': ac:absolute-path(ldh:base-uri(.)),
-                    'endpoint': sd:endpoint()
-                }"/>
-            <xsl:sequence select="ldh:load-block#3($context, ldh:ontology-view-self-thunk#1, ?)"/>
-        </xsl:for-each>
     </xsl:template>
 
     <xsl:template match="text()" mode="ldh:RenderRow" as="(function(item()?) as map(*))*"/>

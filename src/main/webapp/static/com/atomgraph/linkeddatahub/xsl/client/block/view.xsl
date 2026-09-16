@@ -59,7 +59,7 @@ exclude-result-prefixes="#all"
 
     <!-- render view -->
 
-    <xsl:template match="*[@typeof = '&ldh;View'][descendant::*[@property = '&spin;query'][@resource]]" mode="ldh:RenderRow" as="function(item()?) as map(*)" priority="2"> <!-- prioritize above block.xsl -->
+    <xsl:template match="*[@typeof = '&ldh;View'][descendant::*[@property = '&spin;query'][@resource]]" mode="ldh:RowHook" as="function(item()?) as map(*)">
         <xsl:param name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][1]" as="element()"/>
         <!-- the hosting document's URL, derived page-level: ldh:base-uri() would resolve an embed's data-base-uri stamp, which names the content's source document (the edit target), while $this anchors the query to the document the view is embedded in -->
         <xsl:param name="this" select="if (ac:uri()) then ac:document-uri(ac:uri()) else ac:absolute-path(ldh:request-uri())" as="xs:anyURI"/>

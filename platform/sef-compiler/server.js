@@ -10,10 +10,12 @@
  * around 1.5 GB of resident memory - measured 1,495,990,272 bytes for client.xsl - which would
  * be fatal next to a Tomcat heap sized at 75% of a 2 GB limit.
  *
- * The service is stateless: the caller sends the package modules inline, and the static tree
- * this image was built from supplies client.xsl and everything it imports. That tree arrives by
- * COPY --from the same Maven stage the WAR comes from, so the modules compiled here are the
- * deployed bytes by construction - no mount, no volume, and no way to drift.
+ * The service is stateless: the caller sends the composed entry - client.xsl with the package
+ * imports inserted at its marker, so that they outrank the open modes' fallbacks and nothing
+ * else - and the package modules inline; the static tree this image was built from supplies
+ * everything the entry imports. That tree arrives by COPY --from the same Maven stage the WAR
+ * comes from, so the modules compiled here are the deployed bytes by construction - no mount,
+ * no volume, and no way to drift.
  */
 
 import { createServer } from 'node:http';
@@ -23,14 +25,14 @@ import { writeFile, unlink, readFile, access } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const PORT = Number(process.env.PORT ?? 8080);
-// the directory client.xsl lives in: the wrapper is written beside it so that -relocate:on
-// records every module's base URI the same way the build's own SEF does
+// the directory client.xsl lives in: the composed entry is written beside it so that its relative
+// imports resolve and -relocate:on records every module's base URI the same way the build's own SEF does
 const XSL_DIR = process.env.XSL_DIR ?? '/static/com/atomgraph/linkeddatahub/xsl';
 const TIMEOUT_MS = Number(process.env.COMPILE_TIMEOUT_MS ?? 120_000);
 const MAX_OLD_SPACE_MB = Number(process.env.COMPILE_MAX_OLD_SPACE_MB ?? 2560);
 const MAX_BODY_BYTES = Number(process.env.MAX_BODY_BYTES ?? 8 * 1024 * 1024);
 
-const WRAPPER = 'ldh-composed.xsl';
+const ENTRY = 'ldh-composed.xsl';
 const OUTPUT = 'ldh-composed.sef.json';
 
 // One compile at a time. Two concurrent 1.5 GB compiles is the OOM this service exists to avoid,
@@ -39,20 +41,6 @@ let busy = false;
 
 const gzipAsync = (buf) => new Promise((resolve, reject) =>
     gzip(buf, (err, out) => err ? reject(err) : resolve(out)));
-
-/** Composes the wrapper: client.xsl first, then each package, so packages take higher precedence. */
-function wrapper(names)
-{
-    const imports = ['client.xsl', ...names].
-        map((href) => `    <xsl:import href="${href}"/>`).
-        join('\n');
-
-    return `<?xml version="1.0" encoding="UTF-8"?>
-<xsl:stylesheet version="3.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-${imports}
-</xsl:stylesheet>
-`;
-}
 
 function readBody(req)
 {
@@ -89,7 +77,7 @@ function compile()
     {
         execFile('xslt3-he',
             [
-                `-xsl:${join(XSL_DIR, WRAPPER)}`,
+                `-xsl:${join(XSL_DIR, ENTRY)}`,
                 `-export:${join(XSL_DIR, OUTPUT)}`,
                 '-nogo',
                 '-ns:##html5',
@@ -125,11 +113,12 @@ async function handleCompile(req, res)
         return;
     }
 
+    const entry = typeof body?.entry === 'string' && body.entry.length > 0 ? body.entry : null;
     const imports = Array.isArray(body?.imports) ? body.imports : null;
-    if (!imports || !imports.every((imp) => validName(imp?.name) && typeof imp?.content === 'string'))
+    if (!entry || !imports || !imports.every((imp) => validName(imp?.name) && typeof imp?.content === 'string'))
     {
         res.writeHead(400, { 'content-type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Expected { imports: [ { name: "<name>.xsl", content: "..." } ] }' }));
+        res.end(JSON.stringify({ error: 'Expected { entry: "<composed client.xsl>", imports: [ { name: "<name>.xsl", content: "..." } ] }' }));
         return;
     }
 
@@ -144,9 +133,9 @@ async function handleCompile(req, res)
             written.push(path);
         }
 
-        const wrapperPath = join(XSL_DIR, WRAPPER);
-        await writeFile(wrapperPath, wrapper(imports.map((imp) => imp.name)), 'utf-8');
-        written.push(wrapperPath);
+        const entryPath = join(XSL_DIR, ENTRY);
+        await writeFile(entryPath, entry, 'utf-8');
+        written.push(entryPath);
 
         const started = Date.now();
         const { error, stderr } = await compile();
@@ -189,7 +178,7 @@ async function handleCompile(req, res)
     }
     finally
     {
-        // the static tree is this container's private copy, but a leftover wrapper would be
+        // the static tree is this container's private copy, but a leftover entry or module would be
         // picked up by the next compile, so the directory is always returned to its built state
         await Promise.all(written.map((path) => unlink(path).catch(() => {})));
         busy = false;

@@ -52,6 +52,11 @@ import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.InputSource;
+import java.net.URL;
+import java.util.ArrayList;
+import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.dom.DOMSource;
+import org.w3c.dom.Document;
 
 /**
  * Composes and compiles the client stylesheet of applications that import packages.
@@ -88,6 +93,7 @@ public class ClientStylesheetService
     private final URI compilerURI;
     private final Client client;
     private final com.atomgraph.client.util.jena.PrefixGraphRepository repository;
+    private final URL clientStylesheet;
     private final String baseDigest;
     private final Set<String> published = ConcurrentHashMap.newKeySet();
     private final Map<String, CompletableFuture<Void>> builds = new ConcurrentHashMap<>();
@@ -101,15 +107,17 @@ public class ClientStylesheetService
      * @param compilerURI URI of the compiler service's compile endpoint
      * @param client HTTP client
      * @param repository graph repository, consulted for bundled package locations
+     * @param clientStylesheet the client stylesheet source built into the webapp, composed with the packages on every build
      * @param stockSEF stream of the stylesheet built into the webapp, digested as the platform fingerprint
      * @throws IOException if the stock stylesheet cannot be read or the SEF root cannot be scanned
      */
-    public ClientStylesheetService(Path sefRoot, URI compilerURI, Client client, com.atomgraph.client.util.jena.PrefixGraphRepository repository, InputStream stockSEF) throws IOException
+    public ClientStylesheetService(Path sefRoot, URI compilerURI, Client client, com.atomgraph.client.util.jena.PrefixGraphRepository repository, URL clientStylesheet, InputStream stockSEF) throws IOException
     {
         this.sefRoot = sefRoot;
         this.compilerURI = compilerURI;
         this.client = client;
         this.repository = repository;
+        this.clientStylesheet = clientStylesheet;
         this.baseDigest = digest(stockSEF);
 
         Files.createDirectories(sefRoot);
@@ -199,13 +207,25 @@ public class ClientStylesheetService
 
     private void build(String key, List<URI> stylesheets)
     {
+        List<String> names = new ArrayList<>();
         JsonArrayBuilder imports = Json.createArrayBuilder();
         for (int i = 0; i < stylesheets.size(); i++)
+        {
+            String name = "pkg-" + i + ".xsl";
+            names.add(name);
             imports.add(Json.createObjectBuilder().
-                add("name", "pkg-" + i + ".xsl").
+                add("name", name).
                 add("content", expandEntities(stylesheets.get(i))));
+        }
 
-        JsonObject request = Json.createObjectBuilder().add("imports", imports).build();
+        // the entry is client.xsl with the package imports inserted at its marker, the same composition
+        // the server applies to its own stylesheet: the packages outrank the open modes' fallbacks and
+        // nothing else. Sent composed rather than wrapped, because a wrapper importing client.xsl and then
+        // the packages would put them above the whole client tree
+        JsonObject request = Json.createObjectBuilder().
+            add("entry", composeEntry(names)).
+            add("imports", imports).
+            build();
 
         byte[] sef;
         try (Response cr = getClient().target(getCompilerURI()).request(MediaType.APPLICATION_JSON_TYPE).
@@ -240,6 +260,48 @@ public class ClientStylesheetService
 
         published.add(key);
         if (log.isInfoEnabled()) log.info("Compiled client stylesheet '{}' from {} package stylesheet(s), {} bytes", key, stylesheets.size(), sef.length);
+    }
+
+    /**
+     * Composes the client stylesheet with the given package modules: parses the stylesheet built into the
+     * webapp, inserts an <code>xsl:import</code> per module at the marker (see {@link StylesheetComposer})
+     * and serialises the result with its entities expanded, ready to be written beside the stock
+     * <code>client.xsl</code> so that every relative href in it still resolves.
+     *
+     * @param names package module file names, as the compiler will write them
+     * @return composed stylesheet
+     */
+    public String composeEntry(List<String> names)
+    {
+        try (InputStream is = getClientStylesheet().openStream())
+        {
+            SAXSource source = new SAXSource(SecureXML.newXMLReader(), new InputSource(is));
+            source.setSystemId(getClientStylesheet().toString());
+            DOMResult result = new DOMResult();
+            TransformerFactory.newInstance().newTransformer().transform(source, result);
+            Document entry = (Document)result.getNode();
+
+            if (!StylesheetComposer.insertImports(entry, names))
+                if (log.isWarnEnabled()) log.warn("Client stylesheet <{}> declares no '{}' import to mark where package imports go: {} are imported after its last import and outrank all of it", getClientStylesheet(), StylesheetComposer.MARKER_SUFFIX, names);
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            TransformerFactory.newInstance().newTransformer().transform(new DOMSource(entry), new StreamResult(baos));
+            return baos.toString(StandardCharsets.UTF_8);
+        }
+        catch (Exception ex)
+        {
+            throw new IllegalStateException("Could not compose client stylesheet <" + getClientStylesheet() + ">", ex);
+        }
+    }
+
+    /**
+     * Returns the client stylesheet source built into the webapp.
+     *
+     * @return stylesheet URL
+     */
+    public URL getClientStylesheet()
+    {
+        return clientStylesheet;
     }
 
     /**

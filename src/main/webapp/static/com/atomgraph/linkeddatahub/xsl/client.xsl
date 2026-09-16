@@ -67,8 +67,13 @@ extension-element-prefixes="ixsl"
 >
 
     <!-- the import tree, not this list, is the precedence order: Web-Client's common layer (no page
-         layout - the client bootstraps its own) below LinkedDataHub's shared layer - see §3.10.3 -->
+         layout - the client bootstraps its own) below the open modes (hooks.xsl and its browser-only
+         half) below LinkedDataHub's shared layer - see §3.10.3. The package stylesheets an application
+         imports are composed in right after client/hooks.xsl, so they outrank the open modes' fallbacks
+         and nothing else -->
     <xsl:import href="../../../../com/atomgraph/client/xsl/common.xsl"/>
+    <xsl:import href="hooks.xsl"/>
+    <xsl:import href="client/hooks.xsl"/>
     <xsl:import href="common.xsl"/>
     <xsl:import href="converters/RDFXML2DataTable.xsl"/>
     <xsl:import href="converters/SPARQLXMLResults2DataTable.xsl"/>
