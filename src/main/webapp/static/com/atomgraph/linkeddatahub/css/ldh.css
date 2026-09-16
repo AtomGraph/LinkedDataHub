@@ -469,6 +469,8 @@ legend > .actions { display: flex; align-items: center; gap: var(--sp-1); margin
 button.tree-link { border: 0; background: transparent; width: 100%; font: inherit; text-align: left; cursor: pointer; }
 /* the lazy-loading row's glyph spins (the design mounts a ProgressCircle; the glyph does the same job) */
 .ldh-tree .tree-loading .msi { animation: ac-spin 0.9s linear infinite; }
+/* a drawer list that could not load its rows reports in their place, at the depth of the rows it stands in for (ldh:render-tree-error) */
+.ldh-sidebar .tree-error { list-style: none; padding: var(--sp-1) var(--sp-2) var(--sp-1) calc(var(--depth, 0) * 14px + var(--sp-2)); }
 /* a subtree's visibility is its toggle's aria-expanded - the one state the handler already maintains */
 .ldh-tree li:has(> div > button[aria-expanded="false"]) > ul { display: none; }
 /* the drawer search is a typable field (submit opens the dialog pre-populated; LDH overrides
@@ -727,6 +729,11 @@ body:has(.document-body > .content-body > :is(.graph-3d-canvas, .map-canvas)) .l
   outline-offset: -1px;
   border-color: color-mix(in srgb, var(--danger-500) 28%, var(--border-default));
 }
+/* a failure reported in place (ldh:RenderFailure) stacks its alert over its technical detail the way a block body's does,
+   and stands off whatever it was prepended to */
+div.ldh-failure { display: flex; flex-direction: column; gap: var(--sp-3); margin-bottom: var(--sp-4); }
+/* the gap spaces the alert from its detail; the content body's own alert margin would double it */
+div.ldh-failure > .ac-alert { margin: 0; }
 
 /* the pivot bar hides while it has no pills: the bar is derived output, and an empty band
    would read as a broken control (the design renders it conditionally instead) */

@@ -46,7 +46,7 @@ version="3.0"
             => ixsl:then(ldh:load-document-modes#1)
             => ixsl:then(ldh:timemap-response#1) =>
             ixsl:finally(ldh:reset-cursor#0)
-        " on-failure="ldh:promise-failure#1"/>
+        " on-failure="ldh:promise-failure($container, 'version-history-not-loaded', ?)"/>
     </xsl:template>
 
     <!-- reads the live document's access modes, which decide whether a version can be restored.
@@ -215,7 +215,7 @@ version="3.0"
                 => ixsl:then(ldh:handle-response#1)
                 => ixsl:then(ldh:restore-version#1) =>
                 ixsl:finally(ldh:reset-cursor#0)
-            " on-failure="ldh:promise-failure#1"/>
+            " on-failure="ldh:promise-failure(($modal//div[contains-token(@class, 'ac-modal-body')])[1], 'version-not-restored', ?)"/>
         </xsl:if>
     </xsl:template>
 
@@ -268,11 +268,9 @@ version="3.0"
         <xsl:param name="context" as="map(*)"/>
         <xsl:param name="title-key" as="xs:string"/> <!-- translations.rdf nodeID naming which step of the restore failed -->
 
-        <xsl:for-each select="($context('modal')//div[contains-token(@class, 'ac-modal-body')])[1]">
-            <xsl:result-document href="?." method="ixsl:prepend-content">
-                <xsl:sequence select="ldh:error-alert($title-key, ac:http-error-key($context('response')?status), ())"/>
-            </xsl:result-document>
-        </xsl:for-each>
+        <!-- the shared failure report, which also replaces an earlier one: SaxonJS has no prepend-content method, so the
+             result document this wrote raised instead of reporting -->
+        <xsl:sequence select="ldh:render-failure(($context('modal')//div[contains-token(@class, 'ac-modal-body')])[1], $title-key, ac:http-error-key($context('response')?status), ldh:response-detail($context('response')))"/>
     </xsl:function>
 
     <!-- fetches the ?diff= comparison version when the context carries a diff request; passes the context through otherwise -->

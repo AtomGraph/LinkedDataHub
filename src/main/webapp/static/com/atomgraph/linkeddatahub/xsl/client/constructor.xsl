@@ -82,6 +82,7 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:LoadConstructors">
         <xsl:context-item as="element()" use="required"/> <!-- container element -->
         <xsl:param name="type" as="xs:anyURI"/> <!-- the URI of the class that constructors are attached to -->
+        <xsl:param name="form" as="element()?"/> <!-- the form the editor was opened from, where a failure to open it reports: the container is behind that form's dialog -->
         <xsl:variable name="container" select="." as="element()"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="."/>
@@ -98,12 +99,12 @@ exclude-result-prefixes="#all"
             ixsl:then(ldh:handle-response(?, 'constructors-response')) =>
             ixsl:then(ldh:set-constructors#1) =>
             ixsl:then(ldh:render-constructor-mode#1)"
-            on-failure="ldh:promise-failure#1"/>
+            on-failure="ldh:promise-failure($form, 'constructors-not-loaded', ?)"/>
     </xsl:template>
 
     <!-- Terminal callback for the LoadConstructors promise chain. Renders the constructor-edit modal
-         from context('constructors'); falls back to an alert when the fetch returned a non-success status
-         (ldh:set-constructors leaves the 'constructors' key absent in that case). -->
+         from context('constructors'); a fetch that failed never gets here, since ldh:set-constructors raises it
+         for the chain's failure handler to report. -->
     <xsl:function name="ldh:render-constructor-mode" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
@@ -184,9 +185,6 @@ exclude-result-prefixes="#all"
                     </xsl:result-document>
                 </xsl:for-each>
             </xsl:when>
-            <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ac:label(key('resources', 'constructors-not-loaded', ldh:translations())) || ' &quot;' || $type || '&quot;' ])[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:otherwise>
         </xsl:choose>
 
         <ixsl:set-style name="cursor" select="'default'" object="$container"/>
@@ -431,9 +429,12 @@ exclude-result-prefixes="#all"
     <xsl:template match="button[contains-token(@class, 'btn-edit-constructors')]" mode="ixsl:onclick">"
         <xsl:variable name="type" select="ixsl:get(., 'dataset.resourceType')" as="xs:anyURI"/>
 
+        <xsl:variable name="form" select="ancestor::form[1]" as="element()?"/>
+
         <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]">
             <xsl:call-template name="ldh:LoadConstructors">
                 <xsl:with-param name="type" select="$type"/>
+                <xsl:with-param name="form" select="$form"/>
             </xsl:call-template>
         </xsl:for-each>
     </xsl:template>
@@ -637,7 +638,7 @@ exclude-result-prefixes="#all"
                 </ixsl:schedule-action>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ac:label(key('resources', 'constructor-not-updated', ldh:translations())) ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ldh:render-failure(($container//div[contains-token(@class, 'ac-modal-body')])[1], 'constructor-not-updated', ac:http-error-key(?status), ldh:response-detail(.))"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -671,7 +672,7 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ac:label(key('resources', 'ontology-graphs-not-loaded', ldh:translations())) ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ldh:render-failure($button-div, 'ontology-graphs-not-loaded', ac:http-error-key(?status), ldh:response-detail(.))"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -693,7 +694,7 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ac:label(key('resources', 'constructor-not-appended', ldh:translations())) ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ldh:render-failure($button-div, 'constructor-not-appended', ac:http-error-key(?status), ldh:response-detail(.))"/>
             </xsl:otherwise>
         </xsl:choose>
         

@@ -733,6 +733,74 @@
         <rdfs:label xml:lang="en-US">This version could not be restored</rdfs:label>
         <rdfs:label xml:lang="es-ES">No se pudo restaurar esta versión</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="document-not-loaded">
+        <rdfs:label xml:lang="en-US">The document could not be loaded</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo cargar el documento</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="document-not-deleted">
+        <rdfs:label xml:lang="en-US">The document could not be deleted</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo eliminar el documento</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="file-not-imported">
+        <rdfs:label xml:lang="en-US">The file could not be imported</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo importar el archivo</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="breadcrumbs-not-loaded">
+        <rdfs:label xml:lang="en-US">The document path could not be loaded</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo cargar la ruta del documento</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="tree-children-not-loaded">
+        <rdfs:label xml:lang="en-US">The documents could not be loaded</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudieron cargar los documentos</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="results-not-loaded">
+        <rdfs:label xml:lang="en-US">The results could not be loaded</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudieron cargar los resultados</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="backlinks-not-loaded">
+        <rdfs:label xml:lang="en-US">The backlinks could not be loaded</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudieron cargar los enlaces entrantes</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="views-not-loaded">
+        <rdfs:label xml:lang="en-US">The views could not be loaded</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudieron cargar las vistas</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="create-unavailable">
+        <rdfs:label xml:lang="en-US">Create is unavailable</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Crear no está disponible</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="form-not-loaded">
+        <rdfs:label xml:lang="en-US">The form could not be loaded</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo cargar el formulario</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="form-not-submitted">
+        <rdfs:label xml:lang="en-US">The form could not be saved</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo guardar el formulario</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="query-not-saved">
+        <rdfs:label xml:lang="en-US">The query could not be saved</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo guardar la consulta</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="chart-not-saved">
+        <rdfs:label xml:lang="en-US">The chart could not be saved</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo guardar el gráfico</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="resource-not-deleted">
+        <rdfs:label xml:lang="en-US">The resource could not be deleted</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo eliminar el recurso</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="resource-not-linked">
+        <rdfs:label xml:lang="en-US">The new resource could not be linked</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo enlazar el nuevo recurso</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="access-not-loaded">
+        <rdfs:label xml:lang="en-US">The access settings could not be loaded</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo cargar la configuración de acceso</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="packages-not-loaded">
+        <rdfs:label xml:lang="en-US">The packages could not be loaded</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudieron cargar los paquetes</rdfs:label>
+    </rdf:Description>
     <!-- block failure explanations: the sentence under the headline. The two below are specific to a
          failure that has no HTTP status behind it; the http-error-* set covers the ones that do -->
     <rdf:Description rdf:nodeID="block-self-reference-explanation">
@@ -770,6 +838,11 @@
     <rdf:Description rdf:nodeID="http-error-unknown">
         <rdfs:label xml:lang="en-US">The request did not complete.</rdfs:label>
         <rdfs:label xml:lang="es-ES">La solicitud no se completó.</rdfs:label>
+    </rdf:Description>
+    <!-- a failure that is the page's own rather than a response's: the technical detail carries its message -->
+    <rdf:Description rdf:nodeID="client-error">
+        <rdfs:label xml:lang="en-US">The page ran into an unexpected error.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">La página encontró un error inesperado.</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="violation-invalid-value">
         <rdfs:label xml:lang="en-US">Invalid value</rdfs:label>

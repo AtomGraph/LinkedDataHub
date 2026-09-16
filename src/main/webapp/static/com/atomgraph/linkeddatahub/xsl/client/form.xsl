@@ -904,7 +904,7 @@ WHERE
             => ixsl:then(ldh:merge-object-metadata#1)
             => ixsl:then(ldh:render-row-form#1) =>
             ixsl:finally(ldh:reset-cursor#0)
-        " on-failure="ldh:promise-failure#1"/>
+        " on-failure="ldh:promise-failure(($block//div[contains-token(@class, 'main')])[1], 'form-not-loaded', ?)"/>
     </xsl:template>
 
     <!-- Async type-metadata fetch pair (DESCRIBE against /ns for type URIs). Reads context('types'),
@@ -936,8 +936,9 @@ WHERE
                 <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
                     <xsl:sequence select="map:merge(($context, map{ 'constraints': ?body }))"/>
                 </xsl:when>
+                <!-- a form built without them would look complete and not be, so the chain fails instead -->
                 <xsl:otherwise>
-                    <xsl:sequence select="$context"/>
+                    <xsl:sequence select="ldh:response-error(.)"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
@@ -1030,8 +1031,9 @@ WHERE
                 <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
                     <xsl:sequence select="map:merge(($context, map{ 'constructors': ?body }))"/>
                 </xsl:when>
+                <!-- a form built without them would look complete and not be, so the chain fails instead -->
                 <xsl:otherwise>
-                    <xsl:sequence select="$context"/>
+                    <xsl:sequence select="ldh:response-error(.)"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
@@ -1055,8 +1057,9 @@ WHERE
                 <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                     <xsl:sequence select="map:merge(($context, map{ 'shapes': ?body }))"/>
                 </xsl:when>
+                <!-- a form built without them would look complete and not be, so the chain fails instead -->
                 <xsl:otherwise>
-                    <xsl:sequence select="$context"/>
+                    <xsl:sequence select="ldh:response-error(.)"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
@@ -1306,6 +1309,7 @@ WHERE
         <xsl:apply-templates select="$body" mode="ldh:AppSettingsForm">
             <xsl:with-param name="about"             select="$ctx('about')"             tunnel="yes"/>
             <xsl:with-param name="package-catalog"   select="$ctx('package-catalog')"   tunnel="yes"/>
+            <xsl:with-param name="package-catalog-error" select="$ctx('package-catalog-error')" tunnel="yes"/>
             <xsl:with-param name="method"            select="$ctx('method')"/>
             <xsl:with-param name="action"            select="$ctx('action')"            tunnel="yes"/>
             <xsl:with-param name="base-uri"          select="if (map:contains($ctx, 'base-uri')) then $ctx('base-uri') else $ctx('about')" tunnel="yes"/>
@@ -1448,7 +1452,7 @@ WHERE
                     => ixsl:then(ldh:handle-response#1)
                     => ixsl:then($callback) =>
                     ixsl:finally(ldh:reset-cursor#0)
-                " on-failure="ldh:promise-failure#1"/>
+                " on-failure="ldh:promise-failure($form, 'form-not-submitted', ?)"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -1499,7 +1503,7 @@ WHERE
             => ixsl:then(ldh:handle-response#1)
             => ixsl:then(ldh:row-form-response#1) =>
             ixsl:finally(ldh:reset-cursor#0)
-        " on-failure="ldh:promise-failure#1"/>
+        " on-failure="ldh:promise-failure($form, 'form-not-submitted', ?)"/>
     </xsl:template>
     
     <!-- add new property to form -->
@@ -1580,7 +1584,7 @@ WHERE
             ])) =>
             ixsl:then(ldh:render-add-value#1) =>
             ixsl:finally(ldh:reset-cursor#0)"
-            on-failure="ldh:promise-failure#1"/>
+            on-failure="ldh:promise-failure($property-addrow, 'form-not-loaded', ?)"/>
     </xsl:template>
 
     <!-- sync open editing forms with the constructor structure -->
@@ -1602,7 +1606,7 @@ WHERE
                 [ ldh:load-shapes#1,          'shapes-request',          'shapes-response',          ldh:set-shapes#1 ]
             ])) =>
             ixsl:then(ldh:sync-form-with-constructor#1)"
-            on-failure="ldh:promise-failure#1"/>
+            on-failure="ldh:promise-failure(., 'form-not-loaded', ?)"/>
     </xsl:template>
 
     <!-- Terminal callback for the constructor-sync promise chain. Folds context('shapes') + context('constructed-doc')
@@ -1675,7 +1679,7 @@ WHERE
               <xsl:sequence select="ldh:row-form-submit-violation($context)"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ldh:error-response-alert($context)"/>
+                <xsl:sequence select="ldh:response-error($response)"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -1794,7 +1798,7 @@ WHERE
             ixsl:then(ldh:merge-object-metadata#1) =>
             ixsl:then(ldh:render-row-form-violation#1) =>
             ixsl:finally(ldh:reset-cursor#0)"
-            on-failure="ldh:promise-failure#1"/>
+            on-failure="ldh:promise-failure(($block//div[contains-token(@class, 'main')])[1], 'form-not-loaded', ?)"/>
     </xsl:function>
 
     <!-- Terminal callback for the row-form-submit-violation promise chain. Renders the form with violation feedback by applying ldh:RowForm to the response body and replacing block content. All metadata is fetched async by the upstream chain steps; this function reads from context and folds $shapes + $constructed-doc into the pure merged constructor passed as the ac:FormControl 'constructor' tunnel. Without this fold, ac:FormControl's param default fires and its SHACL branch silently drops the SPIN-defined property templates for any class that has both SHACL shapes and SPIN constructor properties (e.g. skos:Concept). -->
@@ -1915,7 +1919,7 @@ WHERE
             ixsl:then(ldh:set-shapes#1) =>
             ixsl:then(ldh:render-add-row-form#1) =>
             ixsl:finally(ldh:reset-cursor#0)"
-            on-failure="ldh:promise-failure#1"/>
+            on-failure="ldh:promise-failure($container, 'form-not-loaded', ?)"/>
     </xsl:template>
     
     <!-- types (classes with constructors) are looked up in the <ns> endpoint -->
@@ -2215,7 +2219,7 @@ WHERE
             ])) =>
             ixsl:then(ldh:render-combobox-row-form#1) =>
             ixsl:finally(ldh:reset-cursor#0)"
-            on-failure="ldh:promise-failure#1"/>
+            on-failure="ldh:promise-failure($fieldset, 'form-not-loaded', ?)"/>
     </xsl:template>
     
     <!-- select combobox item -->
@@ -2293,7 +2297,9 @@ WHERE
                     <xsl:variable name="request" as="item()*">
                         <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile --> 
                         <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': map{ 'If-Match': $etag, 'Accept': 'application/rdf+xml', 'Cache-Control': 'no-cache' } }">
-                            <xsl:call-template name="ldh:ResourceDeleted"/>
+                            <xsl:call-template name="ldh:ResourceDeleted">
+                                <xsl:with-param name="block" select="$block"/>
+                            </xsl:call-template>
                         </ixsl:schedule-action>
                     </xsl:variable>
                     <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
@@ -2310,13 +2316,14 @@ WHERE
 
     <xsl:template name="ldh:ResourceDeleted">
         <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="block" as="element()"/> <!-- the block the resource was deleted from, which stays when the PATCH fails -->
 
         <xsl:choose>
             <xsl:when test="?status = 204">
                 <xsl:message>Resource deleted</xsl:message>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+                <xsl:sequence select="ldh:render-failure(($block//div[contains-token(@class, 'main')])[1], 'resource-not-deleted', ac:http-error-key(?status), ldh:response-detail(.))"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -2506,7 +2513,9 @@ WHERE
             'form': $form,
             'resources': $resources
           }"/>
-        <xsl:sequence select="ldh:row-form-response($context)"/>
+        <!-- through a promise rather than a call, like the submits that are not multipart: a failed response is raised by
+             ldh:row-form-response, and only a chain has a failure handler to report it in the form -->
+        <ixsl:promise select="ixsl:resolve($context) => ixsl:then(ldh:row-form-response#1)" on-failure="ldh:promise-failure($form, 'form-not-submitted', ?)"/>
     </xsl:template>
     
 </xsl:stylesheet>

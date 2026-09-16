@@ -18,6 +18,10 @@
 // a tree that is told nothing about its children must not raise, whatever the reason it was told
 // nothing.
 //
+// And it must say so. The loading row used to be left spinning for the rest of the session, because
+// the failure branch only logged; it is now replaced by an alert in the list it stood in, which is
+// what the second half of each test asserts.
+//
 // Injected rather than seeded. The condition is a refused children query, and the suite grants the
 // endpoint to everyone - which is why no spec here could have caught this. Routing the query to a
 // 403 reproduces it for either project without touching an authorization, and keeps the spec
@@ -64,6 +68,10 @@ test('the tree survives a children query it is refused', async ({ page, allowNoi
     // exactly 0, and the descent - the code that raised - runs either way. Opening the drawer would
     // add a moving part this spec has no claim about.
     await expect(page.locator('.ldh-tree')).toHaveCount(1);
+    // the refusal is reported where the children would have been, and nothing is left loading
+    await expect(page.locator('.ldh-tree li.tree-error')).toHaveCount(1);
+    await expect(page.locator('.ldh-tree li.tree-error')).toContainText('The documents could not be loaded');
+    await expect(page.locator('.ldh-tree li.tree-loading')).toHaveCount(0);
 });
 
 test('the root document survives it too', async ({ page, allowNoise }) => {
@@ -84,4 +92,5 @@ test('the root document survives it too', async ({ page, allowNoise }) => {
 
     await expect(page.locator('body')).toContainText('UI test fixtures');
     await expect(page.locator('.ldh-tree')).toHaveCount(1);
+    await expect(page.locator('.ldh-tree li.tree-loading')).toHaveCount(0);
 });

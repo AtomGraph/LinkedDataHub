@@ -52,8 +52,10 @@ version="3.0"
                 <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                     <xsl:sequence select="map:merge(($context, map{ 'package-catalog': ?body }))"/>
                 </xsl:when>
+                <!-- the registry is another dataspace, and the settings are still editable without it: the form renders and
+                     says where its package list would have been -->
                 <xsl:otherwise>
-                    <xsl:sequence select="$context"/>
+                    <xsl:sequence select="map:merge(($context, map{ 'package-catalog-error': ac:http-error-key(?status) }))"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>

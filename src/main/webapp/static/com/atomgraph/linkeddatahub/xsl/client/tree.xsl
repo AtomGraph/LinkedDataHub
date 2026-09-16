@@ -188,7 +188,7 @@ exclude-result-prefixes="#all"
             ixsl:then(ldh:tree-children-response#1) =>
             ixsl:then(ldh:tree-children-continue($then, ?)) =>
             ixsl:finally(ldh:reset-cursor#0)"
-            on-failure="ldh:promise-failure#1"/>
+            on-failure="ldh:promise-failure($container, 'tree-children-not-loaded', ?)"/>
     </xsl:template>
 
     <!-- CALLBACKS -->
@@ -241,9 +241,8 @@ exclude-result-prefixes="#all"
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:message>
-                        Error loading tree children for URI: <xsl:value-of select="$uri"/>
-                    </xsl:message>
+                    <!-- replaces the loading row, which would otherwise spin for the rest of the session -->
+                    <xsl:sequence select="ldh:render-tree-error($container, 'tree-children-not-loaded', ac:http-error-key(?status))"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>

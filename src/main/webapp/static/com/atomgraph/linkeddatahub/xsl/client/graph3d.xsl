@@ -126,7 +126,7 @@ WHERE
                         ixsl:http-request($request)
                             => ixsl:then(ldh:handle-graph3d-rdf-response($context, ?)) =>
                             ixsl:finally(ldh:reset-cursor#0)
-                        " on-failure="ldh:promise-failure#1"/>
+                        " on-failure="ldh:promise-failure(id($canvas-id, ixsl:page())/.., 'block-resource-not-loaded', ?)"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:if>
@@ -167,7 +167,7 @@ WHERE
                     ixsl:http-request($request)
                         => ixsl:then(ldh:handle-graph3d-backlinks-response($context, ?)) =>
                         ixsl:finally(ldh:reset-cursor#0)
-                    " on-failure="ldh:promise-failure#1"/>
+                    " on-failure="ldh:promise-failure(id($canvas-id, ixsl:page())/.., 'backlinks-not-loaded', ?)"/>
             </xsl:if>
         </xsl:if>
     </xsl:template>
@@ -354,24 +354,32 @@ WHERE
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
-        <xsl:for-each select="$response?body">
-            <xsl:variable name="base-uri" select="if (contains($document-uri, '#')) then xs:anyURI(substring-before($document-uri, '#')) else $document-uri" as="xs:anyURI"/>
-            <xsl:variable name="normalized-rdf" as="document-node()">
-                <xsl:apply-templates select="." mode="ldh:normalize-rdfxml">
-                    <xsl:with-param name="base-uri" select="$base-uri"/>
-                </xsl:apply-templates>
-            </xsl:variable>
+        <xsl:choose>
+            <xsl:when test="$response?status = 200 and starts-with($response?media-type, 'application/rdf+xml')">
+                <xsl:for-each select="$response?body">
+                    <xsl:variable name="base-uri" select="if (contains($document-uri, '#')) then xs:anyURI(substring-before($document-uri, '#')) else $document-uri" as="xs:anyURI"/>
+                    <xsl:variable name="normalized-rdf" as="document-node()">
+                        <xsl:apply-templates select="." mode="ldh:normalize-rdfxml">
+                            <xsl:with-param name="base-uri" select="$base-uri"/>
+                        </xsl:apply-templates>
+                    </xsl:variable>
 
-            <xsl:sequence select="ixsl:call($loaded-uris, 'push', [ string($document-uri) ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:call($loaded-uris, 'push', [ string($document-uri) ])[current-date() lt xs:date('2000-01-01')]"/>
 
-            <xsl:call-template name="ldh:UpdateForceGraph3D">
-                <xsl:with-param name="new-descriptions" select="$normalized-rdf"/>
-                <xsl:with-param name="current-doc" select="$current-doc"/>
-                <xsl:with-param name="graph-instance" select="$graph-instance"/>
-                <xsl:with-param name="graph-state" select="$graph-state"/>
-                <xsl:with-param name="canvas-id" select="$canvas-id"/>
-            </xsl:call-template>
-        </xsl:for-each>
+                    <xsl:call-template name="ldh:UpdateForceGraph3D">
+                        <xsl:with-param name="new-descriptions" select="$normalized-rdf"/>
+                        <xsl:with-param name="current-doc" select="$current-doc"/>
+                        <xsl:with-param name="graph-instance" select="$graph-instance"/>
+                        <xsl:with-param name="graph-state" select="$graph-state"/>
+                        <xsl:with-param name="canvas-id" select="$canvas-id"/>
+                    </xsl:call-template>
+                </xsl:for-each>
+            </xsl:when>
+            <!-- a document that could not be read is not a graph to add: its error description would join the canvas as nodes -->
+            <xsl:otherwise>
+                <xsl:sequence select="ldh:response-error($response)"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
 
     <xsl:function name="ldh:handle-graph3d-backlinks-response" ixsl:updating="yes">
@@ -387,24 +395,32 @@ WHERE
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
-        <xsl:for-each select="$response?body">
-            <xsl:variable name="base-uri" select="if (contains($document-uri, '#')) then xs:anyURI(substring-before($document-uri, '#')) else $document-uri" as="xs:anyURI"/>
-            <xsl:variable name="normalized-rdf" as="document-node()">
-                <xsl:apply-templates select="." mode="ldh:normalize-rdfxml">
-                    <xsl:with-param name="base-uri" select="$base-uri"/>
-                </xsl:apply-templates>
-            </xsl:variable>
+        <xsl:choose>
+            <xsl:when test="$response?status = 200 and starts-with($response?media-type, 'application/rdf+xml')">
+                <xsl:for-each select="$response?body">
+                    <xsl:variable name="base-uri" select="if (contains($document-uri, '#')) then xs:anyURI(substring-before($document-uri, '#')) else $document-uri" as="xs:anyURI"/>
+                    <xsl:variable name="normalized-rdf" as="document-node()">
+                        <xsl:apply-templates select="." mode="ldh:normalize-rdfxml">
+                            <xsl:with-param name="base-uri" select="$base-uri"/>
+                        </xsl:apply-templates>
+                    </xsl:variable>
 
-            <xsl:sequence select="ixsl:call($loaded-backlink-uris, 'push', [ string($document-uri) ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:call($loaded-backlink-uris, 'push', [ string($document-uri) ])[current-date() lt xs:date('2000-01-01')]"/>
 
-            <xsl:call-template name="ldh:UpdateForceGraph3D">
-                <xsl:with-param name="new-descriptions" select="$normalized-rdf"/>
-                <xsl:with-param name="current-doc" select="$current-doc"/>
-                <xsl:with-param name="graph-instance" select="$graph-instance"/>
-                <xsl:with-param name="graph-state" select="$graph-state"/>
-                <xsl:with-param name="canvas-id" select="$canvas-id"/>
-            </xsl:call-template>
-        </xsl:for-each>
+                    <xsl:call-template name="ldh:UpdateForceGraph3D">
+                        <xsl:with-param name="new-descriptions" select="$normalized-rdf"/>
+                        <xsl:with-param name="current-doc" select="$current-doc"/>
+                        <xsl:with-param name="graph-instance" select="$graph-instance"/>
+                        <xsl:with-param name="graph-state" select="$graph-state"/>
+                        <xsl:with-param name="canvas-id" select="$canvas-id"/>
+                    </xsl:call-template>
+                </xsl:for-each>
+            </xsl:when>
+            <!-- a document that could not be read is not a graph to add: its error description would join the canvas as nodes -->
+            <xsl:otherwise>
+                <xsl:sequence select="ldh:response-error($response)"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
 
     <!-- TOOLTIP RENDERING -->

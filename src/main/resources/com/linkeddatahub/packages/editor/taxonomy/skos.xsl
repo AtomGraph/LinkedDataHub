@@ -228,7 +228,7 @@ exclude-result-prefixes="#all">
                 ixsl:then(ldh:http-request-threaded(?, 'request', 'parents-response')) =>
                 ixsl:then(ldh:handle-response(?, 'parents-response')) =>
                 ixsl:then(ldh:conceptree-climbed#1)
-            " on-failure="ldh:promise-failure#1"/>
+            " on-failure="ldh:promise-failure($context('root-li'), 'tree-children-not-loaded', ?)"/>
         <xsl:sequence select="$context"/>
     </xsl:function>
 
@@ -278,7 +278,7 @@ exclude-result-prefixes="#all">
                      N branches cannot be N return values. Firing each as an instruction also gives every
                      branch of a polyhierarchy its own chain and its own failure handler. -->
                 <xsl:for-each select="$next">
-                    <ixsl:promise select="ixsl:resolve(map:merge(($context, map{ 'li': . }), map{ 'duplicates': 'use-last' })) => ixsl:then(ldh:conceptree-step#1)" on-failure="ldh:promise-failure#1"/>
+                    <ixsl:promise select="ixsl:resolve(map:merge(($context, map{ 'li': . }), map{ 'duplicates': 'use-last' })) => ixsl:then(ldh:conceptree-step#1)" on-failure="ldh:promise-failure(., 'tree-children-not-loaded', ?)"/>
                 </xsl:for-each>
                 <xsl:sequence select="$context"/>
             </xsl:when>
@@ -360,7 +360,7 @@ exclude-result-prefixes="#all">
                 ixsl:then(ldh:handle-response#1) =>
                 ixsl:then(ldh:tree-children-response#1) =>
                 ixsl:then(ldh:conceptree-descend#1)
-            " on-failure="ldh:promise-failure#1"/>
+            " on-failure="ldh:promise-failure($li/ul, 'tree-children-not-loaded', ?)"/>
         <xsl:sequence select="$context"/>
     </xsl:function>
 

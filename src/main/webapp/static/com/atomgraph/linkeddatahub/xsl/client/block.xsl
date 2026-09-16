@@ -331,7 +331,7 @@ exclude-result-prefixes="#all"
                         ixsl:then(ldh:handle-response#1) =>
                         ixsl:then(ldh:backlinks-response#1) =>
                         ixsl:finally(ldh:reset-cursor#0)"
-                        on-failure="ldh:promise-failure#1"/>
+                        on-failure="ldh:promise-failure($backlinks-container, 'backlinks-not-loaded', ?)"/>
                 </xsl:if>
             </xsl:otherwise>
         </xsl:choose>
@@ -514,7 +514,7 @@ exclude-result-prefixes="#all"
                         ixsl:then(ldh:rethread-response($context, ?)) =>
                         ixsl:then(ldh:block-delete-response#1) =>
                         ixsl:finally(ldh:reset-cursor#0)"
-                        on-failure="ldh:promise-failure#1"/>
+                        on-failure="ldh:promise-failure(($block//div[contains-token(@class, 'main')])[1], 'block-not-deleted', ?)"/>
                 </xsl:if>
             </xsl:when>
             <!-- remove block that hasn't been saved yet. The whole row goes: removing only the card would leave an empty .ldh-block-row shell in the content flow -->
@@ -678,7 +678,7 @@ exclude-result-prefixes="#all"
                             ixsl:then(ldh:handle-response#1) =>
                             ixsl:then(ldh:block-moved#1) =>
                             ixsl:finally(ldh:reset-cursor#0)"
-                        on-failure="ldh:promise-failure#1"/>
+                        on-failure="ldh:promise-failure(($source-block//div[contains-token(@class, 'main')])[1], 'could-not-move-block', ?)"/>
                 </xsl:if>
             </xsl:otherwise>
         </xsl:choose>
@@ -777,7 +777,7 @@ exclude-result-prefixes="#all"
             ixsl:then(ldh:set-shapes#1) =>
             ixsl:then(ldh:render-add-row-form#1) =>
             ixsl:finally(ldh:reset-cursor#0)"
-            on-failure="ldh:promise-failure#1"/>
+            on-failure="ldh:promise-failure(($anchor//div[contains-token(@class, 'main')])[1], 'form-not-loaded', ?)"/>
     </xsl:template>
 
     <!-- folds context('properties') into the constructor prototype for context('forClass'), between the
@@ -931,6 +931,16 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:ontology-view-fanout" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+
+        <!-- the views are joined onto a resource that has already rendered, so a query that could not name them reports
+             beside it rather than failing the resource's own block -->
+        <xsl:if test="not($response?status = 200 and $response?media-type = 'application/sparql-results+xml')">
+            <xsl:for-each select="$context('container')/div[contains-token(@class, 'row-main')]">
+                <xsl:result-document href="?." method="ixsl:append-content">
+                    <xsl:sequence select="ldh:error-alert('views-not-loaded', ac:http-error-key($response?status), ())"/>
+                </xsl:result-document>
+            </xsl:for-each>
+        </xsl:if>
 
         <xsl:variable name="view-contexts" as="map(*)*">
             <xsl:if test="$response?status = 200 and $response?media-type = 'application/sparql-results+xml'">
@@ -1111,13 +1121,20 @@ exclude-result-prefixes="#all"
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:when>
+            <!-- one view that could not be read: the others still join, so it reports where it would have been appended -->
             <xsl:otherwise>
+                <xsl:for-each select="$span12">
+                    <xsl:result-document href="?." method="ixsl:append-content">
+                        <xsl:sequence select="ldh:error-alert('views-not-loaded', ac:http-error-key($response?status), $view-uri)"/>
+                    </xsl:result-document>
+                </xsl:for-each>
+
                 <xsl:sequence select="$context"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
 
-    <!-- object-metadata fetch helpers: shared between view.xsl's view-results chain and client.xsl's document-load chain. Build a metadata-request from the cross-doc object URIs in the response RDF (read from $response-key in context); the chain then fires it via ldh:http-request-threaded(?, 'metadata-request', 'metadata-response') and ldh:set-object-metadata stores the result body under 'object-metadata' for the $object-metadata tunnel consumed by ac:object-label. -->
+    <!-- object-metadata fetch helpers:shared between view.xsl's view-results chain and client.xsl's document-load chain. Build a metadata-request from the cross-doc object URIs in the response RDF (read from $response-key in context); the chain then fires it via ldh:http-request-threaded(?, 'metadata-request', 'metadata-response') and ldh:set-object-metadata stores the result body under 'object-metadata' for the $object-metadata tunnel consumed by ac:object-label. -->
 
     <xsl:function name="ldh:load-object-metadata" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
@@ -1351,7 +1368,7 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ac:label(key('resources', 'block-not-deleted', ldh:translations())) ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ldh:response-error($response)"/>
             </xsl:otherwise>
         </xsl:choose>
 
@@ -1378,7 +1395,7 @@ exclude-result-prefixes="#all"
                 </xsl:otherwise>
             </xsl:choose>
 
-            <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ac:label(key('resources', 'could-not-move-block', ldh:translations())) ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ldh:response-error($response)"/>
         </xsl:if>
 
         <xsl:sequence select="$context"/>

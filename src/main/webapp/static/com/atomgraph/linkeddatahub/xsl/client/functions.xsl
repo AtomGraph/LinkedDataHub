@@ -594,8 +594,9 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="texts" select="distinct-values(?body//srx:binding[@name = 'text']/srx:literal)" as="xs:string*"/>
                     <xsl:sequence select="map:merge(($context, map{ 'constructed-doc': ldh:construct-instance($texts, $context('forClass')) }))"/>
                 </xsl:when>
+                <!-- every step after this one reads the constructed document, so the chain fails here rather than a step later on its absence -->
                 <xsl:otherwise>
-                    <xsl:sequence select="$context"/>
+                    <xsl:sequence select="ldh:response-error(.)"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
@@ -675,7 +676,12 @@ exclude-result-prefixes="#all"
         "/>
     </xsl:function>
 
+    <!-- Reports a chain's failure in the element the chain was working for. A step that rendered its own failure
+         raised ldh:HTTPError and needs nothing more; ldh:response-error carries the response, whose status explains
+         the failure; anything else is the client failing, and its message is the only detail there is. -->
     <xsl:function name="ldh:promise-failure" ixsl:updating="yes">
+        <xsl:param name="host" as="element()*"/> <!-- where the chain reports; ldh:RenderFailure decides how by what the host is -->
+        <xsl:param name="title-key" as="xs:string"/> <!-- translations.rdf nodeID naming what the chain was doing -->
         <xsl:param name="error" as="map(*)"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
@@ -683,28 +689,140 @@ exclude-result-prefixes="#all"
         <!-- the same statement as the cursor reset, made about the page's results regions: a chain that
              died between ldh:begin-view-refresh and the render (a metadata request rejecting, say) would
              otherwise leave results dimmed and inert for the rest of the session. Page-wide rather than
-             per-view because a 0-arg failure handler cannot be told which view it was - clearing one that
-             is still legitimately loading only drops the dimming early, which the render then repairs -->
+             per-view because the host names where the failure reports, not which region the chain dimmed -
+             clearing one that is still legitimately loading only drops the dimming early, which the render
+             then repairs -->
         <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'container-results')][contains-token(@class, 'is-busy')]">
             <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-busy', false())"/>
             <ixsl:remove-attribute name="aria-busy"/>
         </xsl:for-each>
 
-        <xsl:if test="$error?code ne 'Q{&ldh;}HTTPError'">
-            <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ $error?message ])"/>
+        <!-- an aborted request was superseded (a navigation that started another), which is not a failure -->
+        <xsl:if test="not($error?code = 'Q{&ldh;}HTTPError' or $error?code = 'SXJS0008' and starts-with($error?message, 'HTTP request aborted'))">
+            <!-- fn:error's third argument survives into the failure map as the JS error's errorObject -->
+            <xsl:variable name="response" select="if ($error?code = 'Q{&ldh;}ResponseError') then ixsl:get($error?error, 'errorObject') else ()" as="map(*)?"/>
+            <!-- SaxonJS raises SXJS0008 for a timed-out request and SXJS0009 for one that never got a response -->
+            <xsl:variable name="explanation-key" select="if (exists($response)) then ac:http-error-key($response?status) else if ($error?code = ('SXJS0008', 'SXJS0009')) then 'http-error-unknown' else 'client-error'" as="xs:string"/>
+
+            <xsl:sequence select="ldh:render-failure($host, $title-key, $explanation-key, $error?message)"/>
         </xsl:if>
     </xsl:function>
 
-    <xsl:function name="ldh:error-response-alert" ixsl:updating="yes">
-        <xsl:param name="context" as="map(*)"/>
-        <xsl:variable name="response" select="$context('response')" as="map(*)?"/>
+    <!-- Reports a failure in its host (ldh:RenderFailure decides how by what the host is). No host at all is a caller
+         with nowhere to report, which says nothing. alert() is the last resort, for a failure whose host has left the
+         page by the time it reports - a dialog closed while its request was in flight - and it says what the inline
+         alert would have said, not the upstream text. -->
+    <xsl:function name="ldh:render-failure" as="item()*" ixsl:updating="yes">
+        <xsl:param name="host" as="element()*"/>
+        <xsl:param name="title-key" as="xs:string"/>
+        <xsl:param name="explanation-key" as="xs:string"/>
+        <xsl:param name="detail" as="xs:string?"/>
+        <xsl:variable name="attached" select="$host[ancestor::body]" as="element()*"/>
 
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-        <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ $response?message ])"/>
+        <xsl:choose>
+            <xsl:when test="exists($attached)">
+                <xsl:apply-templates select="$attached" mode="ldh:RenderFailure">
+                    <xsl:with-param name="title-key" select="$title-key"/>
+                    <xsl:with-param name="explanation-key" select="$explanation-key"/>
+                    <xsl:with-param name="detail" select="$detail"/>
+                </xsl:apply-templates>
+            </xsl:when>
+            <xsl:when test="exists($host)">
+                <xsl:variable name="translations" select="ldh:translations()" as="document-node()"/>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ac:label(key('resources', $title-key, $translations)) || '&#xA;' || ac:label(key('resources', $explanation-key, $translations)) ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:when>
+        </xsl:choose>
     </xsl:function>
+
+    <!-- Raises a failed response as the rejection of the chain it arrived in, from a step that has no element of its
+         own to report into; the chain's ldh:promise-failure knows its host and reads the response back off the error -->
+    <xsl:function name="ldh:response-error" as="item()*">
+        <xsl:param name="response" as="map(*)"/>
+
+        <xsl:sequence select="error(QName('&ldh;', 'ldh:ResponseError'), ldh:response-detail($response), $response)"/>
+    </xsl:function>
+
+    <!-- A failure prepended to its host, whatever the host holds: an action that failed leaves the content it acted on
+         in place, and so does a load that failed. The failure it replaces is the host's previous one, so an action
+         retried and failed again reports once. -->
+    <xsl:template match="*" mode="ldh:RenderFailure">
+        <xsl:param name="title-key" as="xs:string"/>
+        <xsl:param name="explanation-key" as="xs:string"/>
+        <xsl:param name="detail" as="xs:string?"/>
+
+        <xsl:variable name="failure" as="element()">
+            <div class="ldh-failure">
+                <xsl:sequence select="ldh:error-alert($title-key, $explanation-key, ())"/>
+                <xsl:sequence select="ac:error-detail($detail)"/>
+            </div>
+        </xsl:variable>
+        <xsl:variable name="first" select="*[not(contains-token(@class, 'ldh-failure'))][1]" as="element()?"/>
+
+        <xsl:for-each select="*[contains-token(@class, 'ldh-failure')]">
+            <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+
+        <!-- SaxonJS has no prepend-content method: the failure goes before the host's first child, or into a host that has none -->
+        <xsl:choose>
+            <xsl:when test="exists($first)">
+                <xsl:for-each select="$first">
+                    <xsl:result-document href="?." method="ixsl:insert-before">
+                        <xsl:sequence select="$failure"/>
+                    </xsl:result-document>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:result-document href="?." method="ixsl:append-content">
+                    <xsl:sequence select="$failure"/>
+                </xsl:result-document>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
+    <!-- an inline host - a slot in a header or a toolbar - reports as a Tag, the shape its line has room for -->
+    <xsl:template match="span" mode="ldh:RenderFailure">
+        <xsl:param name="title-key" as="xs:string"/>
+        <xsl:param name="explanation-key" as="xs:string"/>
+
+        <xsl:result-document href="?." method="ixsl:replace-content">
+            <xsl:sequence select="ldh:failure-tag($title-key, $explanation-key)"/>
+        </xsl:result-document>
+    </xsl:template>
+
+    <!-- a list reports in place of the rows it was waiting for -->
+    <xsl:template match="ul" mode="ldh:RenderFailure">
+        <xsl:param name="title-key" as="xs:string"/>
+        <xsl:param name="explanation-key" as="xs:string"/>
+
+        <xsl:sequence select="ldh:render-tree-error(., $title-key, $explanation-key)"/>
+    </xsl:template>
+
+    <!-- a form reports in its fieldset, where its submit failures do; one without a fieldset takes the failure the way any
+         other host does -->
+    <xsl:template match="form[.//fieldset]" mode="ldh:RenderFailure">
+        <xsl:param name="title-key" as="xs:string"/>
+        <xsl:param name="explanation-key" as="xs:string"/>
+        <xsl:param name="detail" as="xs:string?"/>
+
+        <xsl:sequence select="ldh:render-form-error(., $title-key, $explanation-key, $detail)"/>
+    </xsl:template>
 
     <!-- ERROR UI: the alert and detail builders are shared (imports/default.xsl); what follows composes
          them per client host (block body, modal form) -->
+
+    <!-- The failure a host with one line of room shows: the headline as a negative Tag, the explanation as its title -->
+    <xsl:function name="ldh:failure-tag" as="element()">
+        <xsl:param name="title-key" as="xs:string"/>
+        <xsl:param name="explanation-key" as="xs:string"/>
+        <xsl:variable name="translations" select="ldh:translations()" as="document-node()"/>
+
+        <span class="ac-tag em-quiet co-negative sz-sm ldh-failure" title="{ac:label(key('resources', $explanation-key, $translations))}">
+            <span class="msi outline" aria-hidden="true">error</span>
+            <span class="ac-tag-lbl">
+                <xsl:apply-templates select="key('resources', $title-key, $translations)" mode="ac:label"/>
+            </span>
+        </span>
+    </xsl:function>
 
     <!-- The status line and message a failed response contributes to the technical detail. -->
     <xsl:function name="ldh:response-detail" as="xs:string">
@@ -747,6 +865,23 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:function>
 
+    <!-- Replaces a drawer list's rows with the alert: the document tree's lazy children, the class list. The <ul>
+         stays, so the alert rides in an item indented to the rows it stands in for; bare, since a drawer list is a
+         small host rather than a block body. -->
+    <xsl:function name="ldh:render-tree-error" as="empty-sequence()" ixsl:updating="yes">
+        <xsl:param name="container" as="element()"/> <!-- the <ul> the rows would have been rendered into -->
+        <xsl:param name="title-key" as="xs:string"/>
+        <xsl:param name="explanation-key" as="xs:string"/>
+
+        <xsl:for-each select="$container">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <li class="tree-error" style="--depth: {count(ancestor::li)}">
+                    <xsl:sequence select="ldh:error-alert($title-key, $explanation-key, ())"/>
+                </li>
+            </xsl:result-document>
+        </xsl:for-each>
+    </xsl:function>
+
     <!-- Appends the same alert to a modal form's fieldset, which is where form-level failures report. No
          .ldh-block-error wrapper: a form is not a block body, and the wrapper is what app.css rings a card on. -->
     <xsl:function name="ldh:render-form-error" as="empty-sequence()" ixsl:updating="yes">
@@ -755,7 +890,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="explanation-key" as="xs:string"/>
         <xsl:param name="detail" as="xs:string?"/>
 
-        <xsl:for-each select="$form//fieldset">
+        <!-- the first fieldset only: a form describing several resources has one per resource, and the failure is the form's -->
+        <xsl:for-each select="($form//fieldset)[1]">
             <xsl:result-document href="?." method="ixsl:append-content">
                 <xsl:sequence select="ldh:error-alert($title-key, $explanation-key, ())"/>
                 <xsl:sequence select="ac:error-detail($detail)"/>

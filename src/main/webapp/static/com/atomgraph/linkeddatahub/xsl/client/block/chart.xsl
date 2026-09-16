@@ -612,7 +612,7 @@ exclude-result-prefixes="#all"
             => ixsl:then(ldh:handle-response#1)
             => ixsl:then(ldh:row-form-response#1) =>
             ixsl:finally(ldh:reset-cursor#0)
-        "/>
+        " on-failure="ldh:promise-failure(($container//div[contains-token(@class, 'main')])[1], 'chart-not-saved', ?)"/>
     </xsl:template>
     
     <!-- CALLBACKS -->

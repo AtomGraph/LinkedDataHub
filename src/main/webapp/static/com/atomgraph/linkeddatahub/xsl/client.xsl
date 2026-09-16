@@ -450,6 +450,11 @@ WHERE
                             <xsl:with-param name="refresh-content" select="$refresh-content"/>
                         </xsl:call-template>
 
+                        <!-- a ?diff= whose compared version could not be read renders this version alone, which would read as nothing having changed -->
+                        <xsl:if test="map:contains($context, 'diff-response') and empty($diff-results)">
+                            <xsl:sequence select="ldh:render-failure(id($effective-pane-id, ixsl:page())/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')], 'version-not-read', ac:http-error-key($context('diff-response')?status), ldh:response-detail($context('diff-response')))"/>
+                        </xsl:if>
+
                         <!-- initialize maps -->
                         <xsl:if test="key('elements-by-class', 'map-canvas', ixsl:page())">
                             <xsl:variable name="canvas-id" select="key('elements-by-class', 'map-canvas', ixsl:page())/@id" as="xs:string"/>
@@ -715,8 +720,9 @@ WHERE
         </xsl:call-template>
 
         <!-- fire factories for top-level content blocks in the rendered pane -->
+        <xsl:variable name="content-body" select="id($pane-id, ixsl:page())/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()?"/>
         <xsl:variable name="factories" as="(function(item()?) as item()*)*">
-            <xsl:for-each select="id($pane-id, ixsl:page())/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]/div">
+            <xsl:for-each select="$content-body/div">
                 <xsl:apply-templates select="." mode="ldh:RenderRow">
                     <xsl:with-param name="refresh-content" select="$refresh-content"/>
                 </xsl:apply-templates>
@@ -729,13 +735,13 @@ WHERE
                 <ixsl:set-property name="{'`' || $scroll-id || '`'}" select="count($factories)" object="ixsl:get(ixsl:window(), 'LinkedDataHub.pending-scrolls')"/>
                 <xsl:for-each select="$factories">
                     <xsl:variable name="factory" select="."/>
-                    <ixsl:promise select="$factory(()) => ixsl:then(ldh:block-hydrated($scroll-id, $doc-uri, $fragment, ?))" on-failure="ldh:block-hydration-failure($scroll-id, $doc-uri, $fragment, ?)"/>
+                    <ixsl:promise select="$factory(()) => ixsl:then(ldh:block-hydrated($scroll-id, $doc-uri, $fragment, ?))" on-failure="ldh:block-hydration-failure($content-body, $scroll-id, $doc-uri, $fragment, ?)"/>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:for-each select="$factories">
                     <xsl:variable name="factory" select="."/>
-                    <ixsl:promise select="$factory(())" on-failure="ldh:promise-failure#1"/>
+                    <ixsl:promise select="$factory(())" on-failure="ldh:promise-failure($content-body, 'failed-to-load-block-data', ?)"/>
                 </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
@@ -806,12 +812,13 @@ WHERE
 
     <!-- failure twin of ldh:block-hydrated: reports the error like ldh:promise-failure would, then counts the block down all the same so the deferred scroll is not stuck pending -->
     <xsl:function name="ldh:block-hydration-failure" ixsl:updating="yes">
+        <xsl:param name="host" as="element()?"/> <!-- the pane's content body -->
         <xsl:param name="scroll-id" as="xs:string"/>
         <xsl:param name="doc-uri" as="xs:anyURI"/>
         <xsl:param name="fragment" as="xs:string"/>
         <xsl:param name="error" as="map(*)"/>
 
-        <xsl:sequence select="ldh:promise-failure($error)"/>
+        <xsl:sequence select="ldh:promise-failure($host, 'failed-to-load-block-data', $error)"/>
         <xsl:sequence select="ldh:block-hydrated($scroll-id, $doc-uri, $fragment, ())"/>
     </xsl:function>
 
@@ -919,6 +926,11 @@ WHERE
         <xsl:variable name="controller" select="ixsl:abort-controller()"/>
         <ixsl:set-property name="saxonController" select="$controller" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
+        <!-- a navigation that could not load its document reports above the panes (ldh:RDFDocumentLoad); the next one clears it -->
+        <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-failure')]">
+            <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+
         <xsl:variable name="href" select="ldh:href($doc-uri, $query-params, $fragment)" as="xs:anyURI"/>
 
         <!-- address bar always shows the document URI (with fragment), as in the design system's Header -->
@@ -1007,7 +1019,7 @@ WHERE
             ixsl:then(ldh:handle-response(?, 'property-metadata-response')) =>
             ixsl:then(ldh:set-property-metadata#1) =>
             ixsl:then(ldh:rdf-document-response#1)"
-            on-failure="ldh:promise-failure#1"/>
+            on-failure="ldh:promise-failure(id('tab-content', ixsl:page()), 'document-not-loaded', ?)"/>
     </xsl:template>
 
     <!-- EVENT LISTENERS -->
@@ -1114,8 +1126,7 @@ WHERE
                 </xsl:call-template>
             </xsl:when>
             <xsl:otherwise>
-                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ $response?message ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ldh:response-error($response)"/>
             </xsl:otherwise>
         </xsl:choose>
 
@@ -1281,6 +1292,7 @@ WHERE
 
     <xsl:template match="button[contains-token(@class, 'btn-delete')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:variable name="request-uri" select="ldh:href(ac:absolute-path(ldh:base-uri(.)), map{})" as="xs:anyURI"/>
+        <xsl:variable name="content-body" select="ancestor::div[contains-token(@class, 'ldh-pane')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()?"/>
 
         <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', ldh:translations())) ])">
             <xsl:variable name="context" as="map(*)" select="
@@ -1293,7 +1305,7 @@ WHERE
             <ixsl:promise select="ixsl:http-request($context('request')) =>
                 ixsl:then(ldh:rethread-response($context, ?)) =>
                 ixsl:then(ldh:delete-response#1)"
-                on-failure="ldh:promise-failure#1"/>
+                on-failure="ldh:promise-failure($content-body, 'document-not-deleted', ?)"/>
         </xsl:if>
     </xsl:template>
 
@@ -1562,7 +1574,8 @@ WHERE
                     <xsl:sequence select="js:fetchDispatchXML($base-uri, 'POST', $headers, $file, (), (), (), (), 'RDFFileUpload')[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ac:label(key('resources', 'unsupported-rdf-syntax', ldh:translations())) ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <!-- reported on the document the file was dropped on, which is still the one being read -->
+                    <xsl:sequence select="ldh:render-failure(ldh:active-pane()/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')], 'file-not-imported', 'unsupported-rdf-syntax', ixsl:get($file, 'name'))"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
@@ -1591,8 +1604,8 @@ WHERE
             </xsl:when>
             <xsl:otherwise>
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-                <xsl:variable name="message" select="ixsl:get($response, 'statusText')" as="xs:string"/>
-                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ $message ])[current-date() lt xs:date('2000-01-01')]"/>
+
+                <xsl:sequence select="ldh:render-failure(ldh:active-pane()/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')], 'file-not-imported', ac:http-error-key($status), ldh:response-detail(map{ 'status': $status, 'message': ixsl:get($response, 'statusText') }))"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>

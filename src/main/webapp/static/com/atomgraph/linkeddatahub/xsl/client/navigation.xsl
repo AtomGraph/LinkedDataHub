@@ -380,6 +380,24 @@ ORDER BY DESC(?created)
     </xsl:template>
     
 
+    <!-- The crumbs are one line of pills, so their failure takes a Tag's shape (as the result count's does), prepended
+         like the crumb it stands in for so the crumbs already loaded stay. It replaces the failure before it. -->
+    <xsl:template match="*[contains-token(@class, 'ldh-bc')]" mode="ldh:RenderFailure">
+        <xsl:param name="title-key" as="xs:string"/>
+        <xsl:param name="explanation-key" as="xs:string"/>
+        <xsl:variable name="crumbs" select="*[not(contains-token(@class, 'ldh-failure'))]" as="element()*"/>
+
+        <xsl:result-document href="?." method="ixsl:replace-content">
+            <xsl:sequence select="ldh:failure-tag($title-key, $explanation-key)"/>
+
+            <xsl:if test="exists($crumbs)">
+                <span class="msi sm bc-sep ldh-failure" aria-hidden="true">chevron_right</span>
+            </xsl:if>
+
+            <xsl:copy-of select="$crumbs"/>
+        </xsl:result-document>
+    </xsl:template>
+
     <!-- backlinks load from the block links popover - the trigger is the tb-links onclick in block.xsl -->
 
     <!-- CALLBACKS -->
@@ -413,7 +431,7 @@ ORDER BY DESC(?created)
                                 ixsl:then(ldh:rethread-response($context, ?)) =>
                                 ixsl:then(ldh:handle-response#1) =>
                                 ixsl:then(ldh:breadcrumb-resource-response#1)"
-                                on-failure="ldh:promise-failure#1"/>
+                                on-failure="ldh:promise-failure($container, 'breadcrumbs-not-loaded', ?)"/>
                         </xsl:if>
 
                         <!-- append to the breadcrumb list (the container is the pills list itself) -->
@@ -431,9 +449,10 @@ ORDER BY DESC(?created)
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:message>
-                        Error loading breadcrumbs for URI: <xsl:value-of select="$uri"/>
-                    </xsl:message>
+                    <xsl:apply-templates select="$container" mode="ldh:RenderFailure">
+                        <xsl:with-param name="title-key" select="'breadcrumbs-not-loaded'"/>
+                        <xsl:with-param name="explanation-key" select="ac:http-error-key(?status)"/>
+                    </xsl:apply-templates>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
@@ -583,7 +602,14 @@ ORDER BY DESC(?created)
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ?message ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:variable name="response" select="." as="map(*)"/>
+
+                    <xsl:for-each select="$backlinks-container">
+                        <!-- the popover is a small host, so the bare alert -->
+                        <xsl:result-document href="?." method="ixsl:append-content">
+                            <xsl:sequence select="ldh:error-alert('backlinks-not-loaded', ac:http-error-key($response?status), ())"/>
+                        </xsl:result-document>
+                    </xsl:for-each>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
@@ -621,7 +647,7 @@ ORDER BY DESC(?created)
             ixsl:then(ldh:handle-response#1) =>
             ixsl:then(ldh:class-list-response#1) =>
             ixsl:finally(ldh:reset-cursor#0)"
-            on-failure="ldh:promise-failure#1"/>
+            on-failure="ldh:promise-failure($container, 'classes-not-loaded', ?)"/>
     </xsl:template>
 
     <!-- handle the response from loading classes - extract type URIs and query ns endpoint. Returns the DESCRIBE
@@ -669,9 +695,7 @@ ORDER BY DESC(?created)
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:message>
-                        Error loading class types from sparql endpoint
-                    </xsl:message>
+                    <xsl:sequence select="ldh:render-tree-error($container, 'classes-not-loaded', ac:http-error-key(?status))"/>
                     <xsl:sequence select="ixsl:resolve($context)"/>
                 </xsl:otherwise>
             </xsl:choose>
@@ -688,42 +712,35 @@ ORDER BY DESC(?created)
         <xsl:message>ldh:class-list-describe-response</xsl:message>
 
         <xsl:for-each select="$response">
-            <xsl:choose>
-                <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                    <xsl:variable name="class-doc" select="?body" as="document-node()"/>
+            <!-- the descriptions only label the classes, so a failed request still renders the list: every class is then
+                 labelled the way an undescribed one already is -->
+            <xsl:variable name="class-doc" select="if (?status = 200 and ?media-type = 'application/rdf+xml') then ?body else ()" as="document-node()?"/>
 
-                    <!-- append to the class tree list -->
-                    <xsl:for-each select="$container">
-                        <xsl:result-document href="?." method="ixsl:replace-content">
-                            <xsl:for-each select="$type-results//srx:result">
-                                <xsl:sort select="xs:integer(srx:binding[@name = 'count']/srx:literal)" order="descending"/>
+            <!-- append to the class tree list -->
+            <xsl:for-each select="$container">
+                <xsl:result-document href="?." method="ixsl:replace-content">
+                    <xsl:for-each select="$type-results//srx:result">
+                        <xsl:sort select="xs:integer(srx:binding[@name = 'count']/srx:literal)" order="descending"/>
+                        <xsl:variable name="class" select="if (exists($class-doc)) then key('resources', srx:binding[@name = 'type']/srx:uri, $class-doc) else ()" as="element()*"/>
 
-                                <xsl:choose>
-                                    <xsl:when test="key('resources', srx:binding[@name = 'type']/srx:uri, $class-doc)">
-                                        <xsl:apply-templates select="key('resources', srx:binding[@name = 'type']/srx:uri, $class-doc)" mode="ldh:ClassListItem">
-                                            <xsl:with-param name="count" select="xs:integer(srx:binding[@name = 'count']/srx:literal)"/>
-                                        </xsl:apply-templates>
-                                    </xsl:when>
-                                    <xsl:otherwise>
-                                        <xsl:variable name="temp-class" as="element()">
-                                            <rdf:Description rdf:about="{srx:binding[@name = 'type']/srx:uri}"/>
-                                        </xsl:variable>
-                                        <xsl:apply-templates select="$temp-class" mode="ldh:ClassListItem">
-                                            <xsl:with-param name="count" select="xs:integer(srx:binding[@name = 'count']/srx:literal)"/>
-                                        </xsl:apply-templates>
-                                    </xsl:otherwise>
-                                </xsl:choose>
-                            </xsl:for-each>                                
-                        </xsl:result-document>
+                        <xsl:choose>
+                            <xsl:when test="$class">
+                                <xsl:apply-templates select="$class" mode="ldh:ClassListItem">
+                                    <xsl:with-param name="count" select="xs:integer(srx:binding[@name = 'count']/srx:literal)"/>
+                                </xsl:apply-templates>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:variable name="temp-class" as="element()">
+                                    <rdf:Description rdf:about="{srx:binding[@name = 'type']/srx:uri}"/>
+                                </xsl:variable>
+                                <xsl:apply-templates select="$temp-class" mode="ldh:ClassListItem">
+                                    <xsl:with-param name="count" select="xs:integer(srx:binding[@name = 'count']/srx:literal)"/>
+                                </xsl:apply-templates>
+                            </xsl:otherwise>
+                        </xsl:choose>
                     </xsl:for-each>
-
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:message>
-                        Error loading class descriptions from ns endpoint
-                    </xsl:message>
-                </xsl:otherwise>
-            </xsl:choose>
+                </xsl:result-document>
+            </xsl:for-each>
         </xsl:for-each>
 
         <xsl:sequence select="$context"/>
@@ -883,7 +900,7 @@ ORDER BY DESC(?created)
             ixsl:resolve($context) =>
                 ixsl:then(ldh:view-results-thunk#1) =>
                 ixsl:finally(ldh:reset-cursor#0)"
-            on-failure="ldh:promise-failure#1"/>
+            on-failure="ldh:promise-failure($container, 'results-not-loaded', ?)"/>
     </xsl:template>
 
     <!-- close modals when a link inside them is clicked -->
@@ -1007,7 +1024,7 @@ ORDER BY DESC(?created)
             ixsl:resolve($context) =>
                 ixsl:then(ldh:view-results-thunk#1) =>
                 ixsl:finally(ldh:reset-cursor#0)"
-            on-failure="ldh:promise-failure#1"/>
+            on-failure="ldh:promise-failure($container, 'results-not-loaded', ?)"/>
     </xsl:template>
 
     <!-- opens modal dialog to show latest resources -->
@@ -1129,7 +1146,7 @@ ORDER BY DESC(?created)
             ixsl:resolve($context) =>
                 ixsl:then(ldh:view-results-thunk#1) =>
                 ixsl:finally(ldh:reset-cursor#0)"
-            on-failure="ldh:promise-failure#1"/>
+            on-failure="ldh:promise-failure($container, 'results-not-loaded', ?)"/>
     </xsl:template>
 
     <!-- sidebar search form: open the search dialog pre-populated with the typed value and run the
@@ -1368,7 +1385,7 @@ ORDER BY DESC(?created)
             ixsl:resolve($context) =>
                 ixsl:then(ldh:view-results-thunk#1) =>
                 ixsl:finally(ldh:reset-cursor#0)"
-            on-failure="ldh:promise-failure#1"/>
+            on-failure="ldh:promise-failure($container, 'results-not-loaded', ?)"/>
     </xsl:template>
 
 </xsl:stylesheet>

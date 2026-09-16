@@ -368,7 +368,7 @@ exclude-result-prefixes="#all"
             ixsl:then(ldh:rethread-response($context, ?)) =>
             ixsl:then(ldh:handle-response#1) =>
             ixsl:then(ldh:result-count-response#1)"
-            on-failure="ldh:promise-failure#1"/>
+            on-failure="ldh:promise-failure(., 'block-count-failed', ?)"/>
     </xsl:template>
     
     <!-- container determination -->
@@ -379,7 +379,7 @@ exclude-result-prefixes="#all"
          otherwise the destination could depend on which page the reader happened to be looking at.
          LIMIT/OFFSET/ORDER BY come off first for exactly that reason; ordering is irrelevant to a set. -->
     <xsl:template name="ldh:ViewContainer">
-        <xsl:param name="create-slot" as="element()?"/>
+        <xsl:param name="create-slot" as="element()?"/> <!-- also where a failed query reports, if the view has a class to create at all -->
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="select-xml" as="document-node()"/>
@@ -423,7 +423,7 @@ exclude-result-prefixes="#all"
             ixsl:then(ldh:handle-response#1) =>
             ixsl:then(ldh:view-container-response#1) =>
             ixsl:then(ldh:view-container-acl-thunk#1)"
-            on-failure="ldh:promise-failure#1"/>
+            on-failure="ldh:promise-failure($create-slot[ancestor::div[contains-token(@class, 'block')][1]/@data-for-class], 'create-unavailable', ?)"/>
     </xsl:template>
 
     <!-- Exactly one row means the destination is determined. None means the projection is empty - there is
@@ -448,8 +448,9 @@ exclude-result-prefixes="#all"
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:when>
+            <!-- a query that failed is not a non-answer: left empty, the slot would read as there being nowhere to create -->
             <xsl:otherwise>
-                <xsl:sequence select="$context"/>
+                <xsl:sequence select="ldh:response-error($response)"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -1853,7 +1854,7 @@ exclude-result-prefixes="#all"
                         ixsl:then(ldh:rethread-response($context, ?)) =>
                         ixsl:then(ldh:handle-response#1) =>
                         ixsl:then(ldh:parallax-response#1)"
-                        on-failure="ldh:promise-failure#1"/>
+                        on-failure="ldh:promise-failure(., 'block-query-failed', ?)"/>
                 </xsl:if>
             </xsl:if>
         </xsl:for-each>
@@ -1926,7 +1927,7 @@ exclude-result-prefixes="#all"
             ixsl:resolve($context) =>
                 ixsl:then(ldh:view-results-thunk#1) =>
                 ixsl:finally(ldh:reset-cursor#0)"
-            on-failure="ldh:promise-failure#1"/>
+            on-failure="ldh:promise-failure($container, 'results-not-loaded', ?)"/>
     </xsl:template>
 
     <!-- View pagination - next page (generic handler for all Views) -->
@@ -1968,7 +1969,7 @@ exclude-result-prefixes="#all"
             ixsl:resolve($context) =>
                 ixsl:then(ldh:view-results-thunk#1) =>
                 ixsl:finally(ldh:reset-cursor#0)"
-            on-failure="ldh:promise-failure#1"/>
+            on-failure="ldh:promise-failure($container, 'results-not-loaded', ?)"/>
     </xsl:template>
 
     <!-- View page size - rows per page (generic handler for all Views) -->
@@ -2011,7 +2012,7 @@ exclude-result-prefixes="#all"
             ixsl:resolve($context) =>
                 ixsl:then(ldh:view-results-thunk#1) =>
                 ixsl:finally(ldh:reset-cursor#0)"
-            on-failure="ldh:promise-failure#1"/>
+            on-failure="ldh:promise-failure($container, 'results-not-loaded', ?)"/>
     </xsl:template>
 
     <!-- keeps the toolbar sort controls in agreement with the query state, whichever control drove the
@@ -2130,7 +2131,7 @@ exclude-result-prefixes="#all"
             ixsl:resolve($context) =>
                 ixsl:then(ldh:view-results-thunk#1) =>
                 ixsl:finally(ldh:reset-cursor#0)"
-            on-failure="ldh:promise-failure#1"/>
+            on-failure="ldh:promise-failure($container, 'results-not-loaded', ?)"/>
     </xsl:template>
 
     <!-- View sort-direction handler (generic handler for all Views) -->
@@ -2178,7 +2179,7 @@ exclude-result-prefixes="#all"
             ixsl:resolve($context) =>
                 ixsl:then(ldh:view-results-thunk#1) =>
                 ixsl:finally(ldh:reset-cursor#0)"
-            on-failure="ldh:promise-failure#1"/>
+            on-failure="ldh:promise-failure($container, 'results-not-loaded', ?)"/>
 
         <!-- toggle the arrow direction -->
         <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'btn-order-by-desc', not(contains-token(@class, 'btn-order-by-desc')))"/>
@@ -2243,7 +2244,7 @@ exclude-result-prefixes="#all"
             ixsl:resolve($context) =>
                 ixsl:then(ldh:view-results-thunk#1) =>
                 ixsl:finally(ldh:reset-cursor#0)"
-            on-failure="ldh:promise-failure#1"/>
+            on-failure="ldh:promise-failure($container, 'results-not-loaded', ?)"/>
     </xsl:template>
 
     <!-- View mode handler (generic handler for all Views) -->
@@ -2292,7 +2293,7 @@ exclude-result-prefixes="#all"
             ixsl:resolve($context) =>
                 ixsl:then(ldh:view-results-thunk#1) =>
                 ixsl:finally(ldh:reset-cursor#0)"
-            on-failure="ldh:promise-failure#1"/>
+            on-failure="ldh:promise-failure($container, 'results-not-loaded', ?)"/>
     </xsl:template>
 
     <!-- facet header onclick -->
@@ -2410,7 +2411,7 @@ exclude-result-prefixes="#all"
                         ixsl:then(ldh:handle-response#1) =>
                         ixsl:then(ldh:facet-value-response#1) =>
                         ixsl:finally(ldh:reset-cursor#0)"
-                        on-failure="ldh:promise-failure#1"/>
+                        on-failure="ldh:promise-failure($facet-container, 'block-values-failed', ?)"/>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
@@ -2592,7 +2593,7 @@ exclude-result-prefixes="#all"
             ixsl:resolve($context) =>
                 ixsl:then(ldh:view-results-thunk#1) =>
                 ixsl:finally(ldh:reset-cursor#0)"
-            on-failure="ldh:promise-failure#1"/>
+            on-failure="ldh:promise-failure($container, 'results-not-loaded', ?)"/>
     </xsl:template>
 
     <!-- parallax onclick -->
@@ -2648,7 +2649,7 @@ exclude-result-prefixes="#all"
             ixsl:resolve($context) =>
                 ixsl:then(ldh:view-results-thunk#1) =>
                 ixsl:finally(ldh:reset-cursor#0)"
-            on-failure="ldh:promise-failure#1"/>
+            on-failure="ldh:promise-failure($container, 'results-not-loaded', ?)"/>
     </xsl:template>
 
     <!-- applied parallax steps render as removable chips in the toolbar, next to the facet pills -->
@@ -2744,7 +2745,7 @@ exclude-result-prefixes="#all"
             ixsl:resolve($context) =>
                 ixsl:then(ldh:view-results-thunk#1) =>
                 ixsl:finally(ldh:reset-cursor#0)"
-            on-failure="ldh:promise-failure#1"/>
+            on-failure="ldh:promise-failure($container, 'results-not-loaded', ?)"/>
     </xsl:template>
 
     <!-- re-applies parallax steps to the query XML one at a time, each in its recorded direction -->
@@ -3118,7 +3119,7 @@ exclude-result-prefixes="#all"
                                 ixsl:then(ldh:rethread-response($context, ?)) =>
                                 ixsl:then(ldh:handle-response#1) =>
                                 ixsl:then(ldh:parallax-property-response#1)"
-                                on-failure="ldh:promise-failure#1"/>
+                                on-failure="ldh:promise-failure($container, 'block-query-failed', ?)"/>
                         </xsl:if>
                     </xsl:for-each>
                 </xsl:when>
@@ -3262,7 +3263,7 @@ exclude-result-prefixes="#all"
                                                 ixsl:then(ldh:rethread-response($context, ?)) =>
                                                 ixsl:then(ldh:handle-response#1) =>
                                                 ixsl:then(ldh:facet-value-type-response#1)"
-                                                on-failure="ldh:promise-failure#1"/>
+                                                on-failure="ldh:promise-failure($container, 'block-values-failed', ?)"/>
                                         </xsl:for-each>
                                     </xsl:when>
                                     <xsl:otherwise>
@@ -3427,12 +3428,7 @@ exclude-result-prefixes="#all"
                         <xsl:result-document href="?." method="ixsl:replace-content">
                             <!-- the count sits inline in the view toolbar, where a full alert would outweigh the row it
                                  reports on - the design system's compact negative tag is the status marker at this size -->
-                            <span class="ac-tag em-quiet co-negative sz-sm">
-                                <span class="msi outline" aria-hidden="true">error</span>
-                                <span class="ac-tag-lbl">
-                                    <xsl:apply-templates select="key('resources', 'block-count-failed', ldh:translations())" mode="ac:label"/>
-                                </span>
-                            </span>
+                            <xsl:sequence select="ldh:failure-tag('block-count-failed', ac:http-error-key($response?status))"/>
                         </xsl:result-document>
                     </xsl:for-each>
                 </xsl:otherwise>
@@ -3494,7 +3490,7 @@ exclude-result-prefixes="#all"
             ])) =>
             ixsl:then(ldh:render-view-instance-modal-form#1) =>
             ixsl:finally(ldh:reset-cursor#0)"
-            on-failure="ldh:promise-failure#1"/>
+            on-failure="ldh:promise-failure(($view-block//div[contains-token(@class, 'main')])[1], 'form-not-loaded', ?)"/>
     </xsl:template>
 
     <!-- Terminal callback for the add-instance onclick chain. Renders the instantiated resource with the same ac:ResourceForm pipeline as the type-combobox row form (ldh:render-combobox-row-form), but with method='put' targeting the new document — the RDF/POST body then describes the fragment instance and the PUT auto-creates the containing Item document around it. Stamps the linkage metadata on the modal element so the submit and response handlers (separate events) can read it. -->
@@ -3681,7 +3677,7 @@ exclude-result-prefixes="#all"
                                 ixsl:then(ldh:handle-response#1) =>
                                 ixsl:then(ldh:view-instance-link-response#1)
                             "
-                            on-failure="ldh:promise-failure#1"/>
+                            on-failure="ldh:promise-failure((id($block-id, ixsl:page())//div[contains-token(@class, 'main')])[1], 'resource-not-linked', ?)"/>
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:when>
@@ -3713,9 +3709,7 @@ exclude-result-prefixes="#all"
                 <xsl:sequence select="ldh:refresh-view($block-id)"/>
             </xsl:when>
             <xsl:otherwise>
-                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-
-                <xsl:sequence select="ldh:error-response-alert($context)"/>
+                <xsl:sequence select="ldh:response-error($response)"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -3756,7 +3750,7 @@ exclude-result-prefixes="#all"
                 ixsl:resolve($context) =>
                     ixsl:then(ldh:view-results-thunk#1) =>
                     ixsl:finally(ldh:reset-cursor#0)"
-                on-failure="ldh:promise-failure#1"/>
+                on-failure="ldh:promise-failure($container, 'results-not-loaded', ?)"/>
         </xsl:for-each>
     </xsl:function>
 

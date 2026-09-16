@@ -571,7 +571,7 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         
         <!-- invoke the factory -->
-        <ixsl:promise select="$factory(()) => ixsl:finally(ldh:reset-cursor#0)"/>
+        <ixsl:promise select="$factory(()) => ixsl:finally(ldh:reset-cursor#0)" on-failure="ldh:promise-failure($view-container, 'results-not-loaded', ?)"/>
     </xsl:template>
     
     <!-- save query onclick -->
@@ -631,7 +631,7 @@ exclude-result-prefixes="#all"
             => ixsl:then(ldh:handle-response#1)
             => ixsl:then(ldh:row-form-response#1) =>
             ixsl:finally(ldh:reset-cursor#0)
-        "/>
+        " on-failure="ldh:promise-failure(($container//div[contains-token(@class, 'main')])[1], 'query-not-saved', ?)"/>
     </xsl:template>
     
     <!-- open query onclick -->
@@ -676,7 +676,7 @@ exclude-result-prefixes="#all"
                     => ixsl:then(ldh:handle-response#1)
                     => ixsl:then(ldh:rdf-document-response#1) =>
                     ixsl:finally(ldh:reset-cursor#0)
-                " on-failure="ldh:promise-failure#1"/>
+                " on-failure="ldh:promise-failure(($container//div[contains-token(@class, 'main')])[1], 'document-not-loaded', ?)"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>

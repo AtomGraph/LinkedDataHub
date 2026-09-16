@@ -865,7 +865,7 @@ LIMIT   10
             ])) =>
             ixsl:then(ldh:render-add-modal-form#1) =>
             ixsl:finally(ldh:reset-cursor#0)"
-            on-failure="ldh:promise-failure#1"/>
+            on-failure="ldh:promise-failure($content-body, 'form-not-loaded', ?)"/>
     </xsl:template>
     
     <!-- open a form for document editing -->
@@ -937,7 +937,7 @@ LIMIT   10
             => ixsl:then(ldh:merge-object-metadata#1)
             => ixsl:then(ldh:render-form#1) =>
             ixsl:finally(ldh:reset-cursor#0)
-        " on-failure="ldh:promise-failure#1"/>
+        " on-failure="ldh:promise-failure($block, 'form-not-loaded', ?)"/>
     </xsl:template>
 
     <!-- submit document update modal form using PATCH TO-DO: unify!!! -->
@@ -1056,7 +1056,7 @@ LIMIT   10
             => ixsl:then(ldh:handle-response#1)
             => ixsl:then($callback) =>
             ixsl:finally(ldh:reset-cursor#0)
-        " on-failure="ldh:promise-failure#1"/>
+        " on-failure="ldh:promise-failure($form, 'form-not-submitted', ?)"/>
     </xsl:template>
     
     <xsl:template match="button[contains-token(@class, 'btn-add-ontology')]" mode="ixsl:onclick">
@@ -1158,7 +1158,7 @@ LIMIT   10
             => ixsl:then(ldh:merge-object-metadata#1)
             => ixsl:then(ldh:render-app-settings-form#1) =>
             ixsl:finally(ldh:reset-cursor#0)
-        " on-failure="ldh:promise-failure#1"/>
+        " on-failure="ldh:promise-failure($block, 'form-not-loaded', ?)"/>
     </xsl:template>
 
     <!-- submit application settings modal form using PATCH with custom callback -->
@@ -1174,6 +1174,7 @@ LIMIT   10
         <xsl:param name="method" select="'patch'" as="xs:string"/>
         <xsl:param name="form-actions-class" select="'ldh-form-bar'" as="xs:string?"/>
         <xsl:param name="package-catalog" as="document-node()?" tunnel="yes"/>
+        <xsl:param name="package-catalog-error" as="xs:string?" tunnel="yes"/> <!-- the explanation key of a catalog that could not be loaded -->
         <xsl:call-template name="ac:ResourceForm">
             <xsl:with-param name="method" select="$method"/>
             <xsl:with-param name="form-actions-class" select="$form-actions-class"/>
@@ -1186,6 +1187,9 @@ LIMIT   10
                 <xsl:apply-templates select="$package-catalog/rdf:RDF" mode="ldh:PackageList">
                     <xsl:with-param name="installed" select="for $import in */ldh:import/@rdf:resource return xs:anyURI($import)"/>
                 </xsl:apply-templates>
+                <xsl:if test="$package-catalog-error">
+                    <xsl:sequence select="ldh:error-alert('packages-not-loaded', $package-catalog-error, $ldh:package-catalog)"/>
+                </xsl:if>
             </xsl:with-param>
         </xsl:call-template>
     </xsl:template>
@@ -1253,7 +1257,7 @@ LIMIT   10
             => ixsl:then(ldh:rethread-response($context, ?))
             => ixsl:then(ldh:handle-response#1)
             => ixsl:then(ldh:access-response#1)
-        " on-failure="ldh:promise-failure#1"/>
+        " on-failure="ldh:promise-failure(ldh:active-pane()/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')], 'access-not-loaded', ?)"/>
     </xsl:template>
     
     <xsl:template match="button[contains-token(@class, 'btn-reconcile')]" mode="ixsl:onclick">
@@ -1323,7 +1327,7 @@ LIMIT   10
                   ixsl:resolve($context)
                     => ixsl:then(ldh:generate-containers-fanout#1) =>
                     ixsl:finally(ldh:reset-cursor#0)
-                " on-failure="ldh:promise-failure#1"/>
+                " on-failure="ldh:promise-failure($form, 'containers-not-created', ?)"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -1380,7 +1384,7 @@ LIMIT   10
                             => ixsl:then(ldh:handle-response#1)
                             => ixsl:then(ldh:import-ontology-source-response#1) =>
                             ixsl:finally(ldh:reset-cursor#0)
-                        " on-failure="ldh:promise-failure#1"/>
+                        " on-failure="ldh:promise-failure($form, 'data-not-added', ?)"/>
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:otherwise>
@@ -1429,7 +1433,7 @@ LIMIT   10
                     => ixsl:then(ldh:handle-response#1)
                     => ixsl:then(ldh:add-data-source-response#1) =>
                     ixsl:finally(ldh:reset-cursor#0)
-                " on-failure="ldh:promise-failure#1"/>
+                " on-failure="ldh:promise-failure($form, 'data-not-added', ?)"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -1477,7 +1481,7 @@ LIMIT   10
             => ixsl:then(ldh:load-schema-endpoint#1)
             => ixsl:then(ldh:load-schema-results#1) =>
             ixsl:finally(ldh:reset-cursor#0)
-        " on-failure="ldh:promise-failure#1"/>
+        " on-failure="ldh:promise-failure($fieldset, 'classes-not-loaded', ?)"/>
     </xsl:template>
 
     <!-- resolve the SPARQL endpoint for schema discovery: when a service is selected, asynchronously fetch its description and read sd:endpoint; otherwise use the local endpoint. Returns a promise of the context with 'endpoint' set. -->
@@ -1500,13 +1504,23 @@ LIMIT   10
         </xsl:choose>
     </xsl:function>
 
-    <!-- extract the sd:endpoint of the selected service from its fetched description -->
+    <!-- extract the sd:endpoint of the selected service from its fetched description. A description that could not be read
+         is raised as the failure it is: read as if it had been, its absent body and endpoint fail the cardinality checks
+         below with a message about XPath rather than about the service -->
     <xsl:function name="ldh:load-schema-endpoint-from-service" as="map(*)">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="service-uri" select="$context('service-uri')" as="xs:anyURI"/>
-        <xsl:variable name="body" select="$context('response')?body" as="document-node()"/>
-        <xsl:variable name="endpoint" select="key('resources', $service-uri, $body)/sd:endpoint/@rdf:resource" as="xs:anyURI"/>
-        <xsl:sequence select="map:put($context, 'endpoint', $endpoint)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+
+        <xsl:choose>
+            <xsl:when test="$response?status = 200 and $response?media-type = 'application/rdf+xml'">
+                <xsl:variable name="endpoint" select="key('resources', $service-uri, $response?body)/sd:endpoint/@rdf:resource" as="xs:anyURI"/>
+                <xsl:sequence select="map:put($context, 'endpoint', $endpoint)"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ldh:response-error($response)"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
 
     <!-- fetch the class-discovery SELECT results from the resolved endpoint and render the class list -->
@@ -1555,7 +1569,7 @@ LIMIT   10
             => ixsl:then(ldh:handle-response#1)
             => ixsl:then($callback) =>
             ixsl:finally(ldh:reset-cursor#0)
-        " on-failure="ldh:promise-failure#1"/>
+        " on-failure="ldh:promise-failure($form, 'form-not-submitted', ?)"/>
     </xsl:template>
 
     <xsl:template match="input[contains-token(@class, 'subject-slug')]" mode="ixsl:onkeyup" priority="1">
@@ -1625,7 +1639,7 @@ LIMIT   10
               <xsl:sequence select="ldh:modal-form-submit-violation($context)"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ldh:error-response-alert($context)"/>
+                <xsl:sequence select="ldh:response-error($response)"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -1672,7 +1686,7 @@ LIMIT   10
                 => ixsl:then(ldh:rethread-response($context, ?))
                 => ixsl:then(ldh:handle-response#1)
                 => ixsl:then(ldh:combobox-resource-response#1)
-            " on-failure="ldh:promise-failure#1"/>
+            " on-failure="ldh:promise-failure(., 'block-resource-not-loaded', ?)"/>
         </xsl:for-each>
     </xsl:template>
 
@@ -1771,44 +1785,37 @@ LIMIT   10
 
         <xsl:message>ldh:combobox-resource-response</xsl:message>
 
+        <!-- a target document that could not be read leaves the lookup in place with the raw URI as its value, as one that does
+             not describe the resource does: the form is still usable, and the value is only its label away from a chip -->
+        <xsl:variable name="resource" select="if ($status = 200 and $media-type = 'application/rdf+xml') then key('resources', $resource-uri, $response?body) else ()" as="element()?"/>
+
         <xsl:choose>
-            <xsl:when test="$status = 200 and $media-type = 'application/rdf+xml'">
-                <xsl:for-each select="$response?body">
-                    <xsl:variable name="resource" select="key('resources', $resource-uri)" as="element()?"/>
+            <xsl:when test="$resource">
+                <!-- the committed chip stands in for the whole combobox, mirroring the edit button's replace-element in the other direction -->
+                <xsl:for-each select="$combobox">
+                    <xsl:variable name="combobox" as="element()">
+                        <xsl:apply-templates select="$resource" mode="ldh:ComboboxChip">
+                            <xsl:with-param name="forClass" select="$forClass"/>
+                        </xsl:apply-templates>
+                    </xsl:variable>
 
-                    <xsl:choose>
-                        <xsl:when test="$resource">
-                            <!-- the committed chip stands in for the whole combobox, mirroring the edit button's replace-element in the other direction -->
-                            <xsl:for-each select="$combobox">
-                                <xsl:variable name="combobox" as="element()">
-                                    <xsl:apply-templates select="$resource" mode="ldh:ComboboxChip">
-                                        <xsl:with-param name="forClass" select="$forClass"/>
-                                    </xsl:apply-templates>
-                                </xsl:variable>
-
-                                <xsl:result-document href="?." method="ixsl:replace-element">
-                                    <xsl:sequence select="$combobox"/>
-                                </xsl:result-document>
-                            </xsl:for-each>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <!-- resource description not found: keep a lookup, with the raw URI as its value -->
-                            <xsl:for-each select="$combobox">
-                                <xsl:result-document href="?." method="ixsl:replace-element">
-                                    <xsl:call-template name="ldh:Combobox">
-                                        <xsl:with-param name="class" select="'resource-combobox combobox'"/>
-                                        <xsl:with-param name="list-class" select="'resource-combobox combobox ac-cb-panel'"/>
-                                        <xsl:with-param name="value" select="$resource-uri"/>
-                                        <xsl:with-param name="forClass" select="$forClass"/>
-                                    </xsl:call-template>
-                                </xsl:result-document>
-                            </xsl:for-each>
-                        </xsl:otherwise>
-                    </xsl:choose>
+                    <xsl:result-document href="?." method="ixsl:replace-element">
+                        <xsl:sequence select="$combobox"/>
+                    </xsl:result-document>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ldh:error-response-alert($context)"/>
+                <!-- resource description not found: keep a lookup, with the raw URI as its value -->
+                <xsl:for-each select="$combobox">
+                    <xsl:result-document href="?." method="ixsl:replace-element">
+                        <xsl:call-template name="ldh:Combobox">
+                            <xsl:with-param name="class" select="'resource-combobox combobox'"/>
+                            <xsl:with-param name="list-class" select="'resource-combobox combobox ac-cb-panel'"/>
+                            <xsl:with-param name="value" select="$resource-uri"/>
+                            <xsl:with-param name="forClass" select="$forClass"/>
+                        </xsl:call-template>
+                    </xsl:result-document>
+                </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
 
@@ -1850,7 +1857,7 @@ LIMIT   10
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ldh:error-response-alert($context)"/>
+                <xsl:sequence select="ldh:response-error($response)"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -1875,7 +1882,7 @@ LIMIT   10
             </xsl:when>
             <!-- other errors -->
             <xsl:otherwise>
-                <xsl:sequence select="ldh:error-response-alert($context)"/>
+                <xsl:sequence select="ldh:response-error($response)"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -1899,7 +1906,7 @@ LIMIT   10
             </xsl:when>
             <!-- Error -->
             <xsl:otherwise>
-                <xsl:sequence select="ldh:error-response-alert($context)"/>
+                <xsl:sequence select="ldh:response-error($response)"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -2331,7 +2338,7 @@ LIMIT   10
             ixsl:then(ldh:merge-object-metadata#1) =>
             ixsl:then(ldh:render-modal-form-violation#1) =>
             ixsl:finally(ldh:reset-cursor#0)"
-            on-failure="ldh:promise-failure#1"/>
+            on-failure="ldh:promise-failure($context('form'), 'form-not-loaded', ?)"/>
     </xsl:function>
 
     <!-- Terminal callback for the modal-form-submit-violation chain. All metadata is in $context from the upstream chain steps. constructors/shapes/constructed-doc arrive per flow: a flow that stamps them as 'load-pairs' in its response handler (the document-edit flow) gets the same constructor input as its initial render; the other flows leave them unset and ac:FormControl's constructor param default sources the constructor client-side. $context('render-fn') and $context('required') are uniformly populated by each flow's response handler — ldh:constructor-form-response stamps ldh:render-constructor-form#2 (mode="ac:ResourceForm") for Container/Item creation (PUT), ldh:edit-form-response stamps ldh:render-document-form#2 (mode="ldh:DocumentForm") for Container/Item edit (PATCH), ldh:settings-form-response stamps ldh:render-app-settings-form#2 for app-settings — so the violation re-render uses the same mode as the initial render. The mode-per-flow split keeps the edit form's narrow @rdf:about=$about filter while letting the creation flow surface co-shipped peer Descriptions (content blocks). -->

@@ -151,7 +151,7 @@ exclude-result-prefixes="#all"
             ixsl:then(ldh:handle-response#1) =>
             ixsl:then(ldh:geo-results-response#1) =>
             ixsl:finally(ldh:reset-cursor#0)"
-            on-failure="ldh:promise-failure#1"/>
+            on-failure="ldh:promise-failure($container, 'block-query-failed', ?)"/>
     </xsl:template>
     
     <!-- create and render OpenLayers map -->
@@ -393,7 +393,7 @@ exclude-result-prefixes="#all"
                     ixsl:then(ldh:rethread-response($context, ?)) =>
                     ixsl:then(ldh:feature-description-response#1) =>
                     ixsl:finally(ldh:reset-cursor#0)"
-                    on-failure="ldh:promise-failure#1"/>
+                    on-failure="ldh:promise-failure(ixsl:call($map, 'getTargetElement', [])/.., 'block-resource-not-loaded', ?)"/>
             </xsl:if>
         </xsl:if>
     </xsl:template>
@@ -502,7 +502,7 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ $response?message ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ldh:response-error($response)"/>
             </xsl:otherwise>
         </xsl:choose>
 
