@@ -62,6 +62,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <!-- empty by default: the loaded document's own acl:mode Link headers decide in ldh:block-object-value-response; a caller passes an explicit value only to force the button off (or on) -->
         <xsl:param name="show-edit-button" as="xs:boolean?"/>
+        <!-- the pane's endpoint, carried in the context so the metadata fetch below does not read the window -->
+        <xsl:param name="endpoint" select="(ancestor::div[contains-token(@class, 'ldh-pane')], ldh:active-pane())[1]/@data-endpoint/xs:anyURI(.)" as="xs:anyURI?"/>
 
         <xsl:variable name="base-uri" select="($graph, ac:document-uri($resource-uri))[1]" as="xs:anyURI"/>
         <!-- stamp the loaded document's URI on the persistent container: ldh:base-uri() resolves it for every
@@ -78,7 +80,8 @@ exclude-result-prefixes="#all"
             'container': $container,
             'resource-uri': $resource-uri,
             'mode': $mode,
-            'show-edit-button': $show-edit-button
+            'show-edit-button': $show-edit-button,
+            'endpoint': $endpoint
           }"/>
         
         <xsl:sequence select="
@@ -186,7 +189,7 @@ exclude-result-prefixes="#all"
                                 <xsl:variable name="object-uris" select="distinct-values($resource/*/@rdf:resource[starts-with(., lapp:base())][not(key('resources', ., root($resource)))])" as="xs:string*"/>
                                 <xsl:variable name="values" select="' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
                                 <xsl:variable name="query-string" select="$object-metadata-query || $values" as="xs:string"/>
-                                <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(sd:endpoint()), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                                <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href($context('endpoint')), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                                 <!-- second request resolves ontology-term object labels (rdf:type/class values etc.) from the /ns endpoint; merged with the /sparql result in ldh:block-object-metadata-response -->
                                 <xsl:variable name="ns-query-string" select="$object-metadata-ns-query || $values" as="xs:string"/>
                                 <xsl:variable name="ns-request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', lapp:base())), 'media-type': 'application/sparql-query', 'body': $ns-query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>

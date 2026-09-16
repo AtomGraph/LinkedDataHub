@@ -861,7 +861,7 @@ ORDER BY DESC(?created)
         <ixsl:set-property name="select-xml" select="$select-xml" object="$cache"/>
         <ixsl:set-property name="select-string" select="$select-string" object="$cache"/>
         <ixsl:set-property name="initial-var-name" select="'s'" object="$cache"/> <!-- has to match ldh:SelectInstancesInGraphs -->
-        <ixsl:set-property name="endpoint" select="sd:endpoint()" object="$cache"/>
+        <ixsl:set-property name="endpoint" select="$endpoint" object="$cache"/>
 
         <!-- Initialize progress counters: 3 steps (metadata, render-view, result-count) -->
         <xsl:sequence select="ldh:update-progress-counter($cache, map{'container': $container}, 'init', 3)"/>
@@ -1274,6 +1274,7 @@ ORDER BY DESC(?created)
                         <xsl:with-param name="input" select="."/>
                         <xsl:with-param name="text" select="$text"/>
                         <xsl:with-param name="container-id" select="$container-id"/>
+                        <xsl:with-param name="endpoint" select="sd:endpoint()"/>
                         <xsl:with-param name="cache" select="$cache"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
@@ -1290,6 +1291,7 @@ ORDER BY DESC(?created)
          (drops stale debounce hits when the user keeps typing) -->
     <xsl:template name="ldh:SearchLoadDeferred">
         <xsl:param name="input" as="element()"/>
+        <xsl:param name="endpoint" as="xs:anyURI"/>
         <xsl:param name="text" as="xs:string"/>
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="cache" as="item()"/>
@@ -1298,7 +1300,7 @@ ORDER BY DESC(?created)
             <xsl:call-template name="ldh:SearchLoad">
                 <xsl:with-param name="container" select="id($container-id, ixsl:page())"/>
                 <xsl:with-param name="text" select="$text"/>
-                <xsl:with-param name="endpoint" select="sd:endpoint()"/>
+                <xsl:with-param name="endpoint" select="$endpoint"/>
                 <xsl:with-param name="cache" select="$cache"/>
             </xsl:call-template>
         </xsl:if>

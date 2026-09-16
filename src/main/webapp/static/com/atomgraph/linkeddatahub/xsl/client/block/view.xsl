@@ -947,6 +947,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="container" as="element()"/>
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
+        <xsl:param name="local-endpoint" as="xs:anyURI?"/>
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="object-metadata" as="document-node()?"/>
         <xsl:param name="active-mode" as="xs:anyURI"/>
@@ -967,6 +968,7 @@ exclude-result-prefixes="#all"
                         <xsl:with-param name="container-id" select="$container-id"/>
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                         <xsl:with-param name="endpoint" select="$endpoint"/>
+                        <xsl:with-param name="local-endpoint" select="$local-endpoint"/>
                         <xsl:with-param name="results" select="$results"/>
                         <xsl:with-param name="active-mode" select="$active-mode"/>
                         <xsl:with-param name="object-metadata" select="$object-metadata"/>
@@ -1135,6 +1137,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
+        <!-- the endpoint of the pane this view is rendered in, handed down rather than read off the window -->
+        <xsl:param name="local-endpoint" as="xs:anyURI?"/>
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="object-metadata" as="document-node()?"/>
         <xsl:param name="active-mode" as="xs:anyURI"/>
@@ -1143,13 +1147,17 @@ exclude-result-prefixes="#all"
         <xsl:param name="order-by-var-name" select="$select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:string[@key = 'expression']/substring-after(., '?')" as="xs:string?"/>
         <xsl:param name="order-by-desc" select="$select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:boolean[@key = 'descending']" as="xs:boolean?"/>
 
+        <!-- a view reading its results from somewhere else carries that endpoint into the rendering, so its
+             links and lookups follow the results; one drawn from this pane's own endpoint carries nothing -->
+        <xsl:variable name="remote-endpoint" select="if (not($endpoint = $local-endpoint)) then $endpoint else ()" as="xs:anyURI?"/>
+
         <xsl:choose>
             <xsl:when test="$active-mode = '&ac;ListMode'">
                 <xsl:apply-templates select="$results" mode="ldh:ListViewBlock">
                     <xsl:with-param name="container-id" select="$container-id"/>
                     <xsl:with-param name="total-count" select="$total-count"/>
                     <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
-                    <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
+                    <xsl:with-param name="endpoint" select="$remote-endpoint" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:when test="$active-mode = '&ac;TableMode'">
@@ -1157,7 +1165,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="container-id" select="$container-id"/>
                     <xsl:with-param name="total-count" select="$total-count"/>
                     <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
-                    <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
+                    <xsl:with-param name="endpoint" select="$remote-endpoint" tunnel="yes"/>
                     <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
                     <xsl:with-param name="var-predicates" select="$var-predicates" tunnel="yes"/>
                     <xsl:with-param name="order-by-var-name" select="$order-by-var-name" tunnel="yes"/>
@@ -1169,34 +1177,34 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="container-id" select="$container-id"/>
                     <xsl:with-param name="total-count" select="$total-count"/>
                     <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
-                    <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
+                    <xsl:with-param name="endpoint" select="$remote-endpoint" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:when test="$active-mode = '&ac;ChartMode'">
                 <xsl:apply-templates select="$results" mode="ldh:Chart">
                     <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
                     <xsl:with-param name="canvas-id" select="$container-id || '-chart-canvas'"/>
-                    <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
+                    <xsl:with-param name="endpoint" select="$remote-endpoint" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:when test="$active-mode = '&ac;MapMode'">
                 <xsl:apply-templates select="$results" mode="ac:Map">
                     <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
                     <xsl:with-param name="id" select="$container-id || '-map-canvas'"/>
-                    <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
+                    <xsl:with-param name="endpoint" select="$remote-endpoint" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:when test="$active-mode = '&ac;GraphMode'">
                 <xsl:apply-templates select="$results" mode="ac:Graph">
                     <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
                     <xsl:with-param name="canvas-id" select="$container-id || '-graph-canvas'"/>
-                    <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
+                    <xsl:with-param name="endpoint" select="$remote-endpoint" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:apply-templates select="$results">
                     <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
-                    <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
+                    <xsl:with-param name="endpoint" select="$remote-endpoint" tunnel="yes"/>
                     <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:otherwise>
@@ -1216,6 +1224,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
+        <!-- the pane's own endpoint, beside its access modes: both are read off the pane the view is in
+             rather than the window, and both are handed to everything below -->
+        <xsl:param name="local-endpoint" select="($container/ancestor::div[contains-token(@class, 'ldh-pane')], ldh:active-pane())[1]/@data-endpoint/xs:anyURI(.)" as="xs:anyURI?"/>
         <!-- the access the agent has to the document this view is rendered in, off its pane: what reaches
              ldh:view-create-insert as the document half of its two access tests -->
         <xsl:param name="acl-modes" select="for $mode in tokenize($container/(ancestor::div[contains-token(@class, 'ldh-pane')], ldh:active-pane())[1]/@data-acl-modes, ' ') return xs:anyURI($mode)" as="xs:anyURI*"/>
@@ -1419,6 +1430,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="container" select=".//div[contains-token(@class, 'container-results')]"/>
             <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="endpoint" select="$endpoint"/>
+            <xsl:with-param name="local-endpoint" select="$local-endpoint"/>
             <xsl:with-param name="results" select="$results"/>
             <xsl:with-param name="object-metadata" select="$object-metadata"/>
             <xsl:with-param name="active-mode" select="$active-mode"/>

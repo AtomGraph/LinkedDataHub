@@ -339,6 +339,7 @@ exclude-result-prefixes="#all"
              nothing in scope, and overridable by a caller that already knows it -->
         <xsl:param name="document-mode" select="(ancestor::div[contains-token(@class, 'ldh-pane')], ldh:active-pane())[1]/@data-mode" as="xs:anyURI?"/>
         <xsl:param name="acl-modes" select="for $mode in tokenize((ancestor::div[contains-token(@class, 'ldh-pane')], ldh:active-pane())[1]/@data-acl-modes, ' ') return xs:anyURI($mode)" as="xs:anyURI*"/>
+        <xsl:param name="local-endpoint" select="(ancestor::div[contains-token(@class, 'ldh-pane')], ldh:active-pane())[1]/@data-endpoint/xs:anyURI(.)" as="xs:anyURI?"/>
         <xsl:sequence select="ldh:busy-cursor()"/>
         <xsl:variable name="textarea-id" select="string(descendant::textarea[@name = 'query']/@id)" as="xs:string"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
@@ -427,6 +428,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="query-string" select="$query-string"/>
                     <xsl:with-param name="document-mode" select="$document-mode"/>
                     <xsl:with-param name="acl-modes" select="$acl-modes"/>
+                    <xsl:with-param name="local-endpoint" select="$local-endpoint"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
@@ -697,6 +699,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="results-container" as="element()"/>
         <xsl:param name="document-mode" as="xs:anyURI?"/>
         <xsl:param name="acl-modes" as="xs:anyURI*"/>
+        <xsl:param name="local-endpoint" as="xs:anyURI?"/>
         
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
@@ -709,7 +712,7 @@ exclude-result-prefixes="#all"
                     <xsl:for-each select="$results-container">
                         <xsl:result-document href="?." method="ixsl:replace-content">
                             <xsl:apply-templates select="$results" mode="ldh:Chart">
-                                <xsl:with-param name="endpoint" select="if (not($endpoint = sd:endpoint())) then $endpoint else ()" tunnel="yes"/>
+                                <xsl:with-param name="endpoint" select="if (not($endpoint = $local-endpoint)) then $endpoint else ()" tunnel="yes"/>
                                 <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
                                 <xsl:with-param name="chart-type" select="$chart-type"/>
                                 <xsl:with-param name="category" select="$category"/>
