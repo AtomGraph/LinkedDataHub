@@ -450,7 +450,7 @@ WHERE
             <dd>
                 <xsl:choose>
                     <xsl:when test="starts-with($node-id, 'http://') or starts-with($node-id, 'https://')">
-                        <a href="{$node-id}" target="_blank"><xsl:value-of select="$node-id"/></a>
+                        <a href="{$node-id}"><xsl:value-of select="$node-id"/></a>
                     </xsl:when>
                     <xsl:otherwise><xsl:value-of select="$node-id"/></xsl:otherwise>
                 </xsl:choose>
