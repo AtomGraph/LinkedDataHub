@@ -76,6 +76,12 @@ div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main { font-size: 
    dresses the same content for the static site. */
 div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main table { margin: var(--sp-4) 0; }
 div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main th, div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main td { vertical-align: top; line-height: var(--lh-base); }
+/* an image or clip in an XHTML body is content, not chrome: it scales to the column instead
+   of rendering at its natural pixel size. Documentation stills are published at twice the
+   column width so they stay sharp on a retina display; unconstrained they render double-size
+   and .main (overflow-x: auto, above) scrolls sideways with half the image out of view.
+   Mirrors docs.css for the static site. */
+div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main img, div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main video { max-width: 100%; height: auto; }
 /* an alert in prose is a block in the flow and needs separating from the paragraphs
    around it. .ldh-block .ac-alert zeroes the margin for the block-failure alert,
    which fills its block and should not be inset; this outranks it for the prose
