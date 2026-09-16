@@ -241,8 +241,9 @@ exclude-result-prefixes="#all"
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>
-                    <!-- replaces the loading row, which would otherwise spin for the rest of the session -->
-                    <xsl:sequence select="ldh:render-tree-error($container, 'tree-children-not-loaded', ac:http-error-key(?status))"/>
+                    <!-- the loading row would otherwise spin for the rest of the session: a tree in the content replaces it with
+                         the failure, the drawer's tree goes (client/navigation.xsl) -->
+                    <xsl:sequence select="ldh:render-failure($container, 'tree-children-not-loaded', ac:http-error-key(?status), ldh:response-detail(.))"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>

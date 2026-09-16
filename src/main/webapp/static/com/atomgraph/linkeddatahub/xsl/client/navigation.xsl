@@ -380,23 +380,23 @@ ORDER BY DESC(?created)
     </xsl:template>
     
 
-    <!-- The crumbs are one line of pills, so their failure takes a Tag's shape (as the result count's does), prepended
-         like the crumb it stands in for so the crumbs already loaded stay. It replaces the failure before it. -->
-    <xsl:template match="*[contains-token(@class, 'ldh-bc')]" mode="ldh:RenderFailure">
-        <xsl:param name="title-key" as="xs:string"/>
-        <xsl:param name="explanation-key" as="xs:string"/>
-        <xsl:variable name="crumbs" select="*[not(contains-token(@class, 'ldh-failure'))]" as="element()*"/>
+    <!-- NAVIGATION DEGRADES
 
-        <xsl:result-document href="?." method="ixsl:replace-content">
-            <xsl:sequence select="ldh:failure-tag($title-key, $explanation-key)"/>
+         Navigation is how a reader moves, not what they came to read, so a failure there is not reported: the component
+         does what it still can and says nothing (ldh:RenderFailure; content reports inline, client/functions.xsl). -->
 
-            <xsl:if test="exists($crumbs)">
-                <span class="msi sm bc-sep ldh-failure" aria-hidden="true">chevron_right</span>
-            </xsl:if>
-
-            <xsl:copy-of select="$crumbs"/>
-        </xsl:result-document>
+    <!-- A drawer section whose query failed cannot work at all - the tree cannot open, the class list has no classes -
+         so the section goes. Removed rather than hidden: the sections' dividers stay right, and ldh:NavigationUpdate
+         stops re-asking a query that was refused, since it finds no section to fill. A reload brings it back. -->
+    <xsl:template match="*[ancestor::div[contains-token(@class, 'ldh-sidebar')]]" mode="ldh:RenderFailure" priority="1">
+        <xsl:for-each select="ancestor::div[contains-token(@class, 'sb-section')][1]">
+            <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
     </xsl:template>
+
+    <!-- The crumbs that loaded are the breadcrumb: an ancestor that could not be read ends it, and a reader who cannot read
+         it could not navigate to it either -->
+    <xsl:template match="*[contains-token(@class, 'ldh-bc')]" mode="ldh:RenderFailure" priority="1"/>
 
     <!-- backlinks load from the block links popover - the trigger is the tb-links onclick in block.xsl -->
 
@@ -449,10 +449,7 @@ ORDER BY DESC(?created)
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:apply-templates select="$container" mode="ldh:RenderFailure">
-                        <xsl:with-param name="title-key" select="'breadcrumbs-not-loaded'"/>
-                        <xsl:with-param name="explanation-key" select="ac:http-error-key(?status)"/>
-                    </xsl:apply-templates>
+                    <xsl:sequence select="ldh:render-failure($container, 'breadcrumbs-not-loaded', ac:http-error-key(?status), ldh:response-detail(.))"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
@@ -695,7 +692,7 @@ ORDER BY DESC(?created)
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:sequence select="ldh:render-tree-error($container, 'classes-not-loaded', ac:http-error-key(?status))"/>
+                    <xsl:sequence select="ldh:render-failure($container, 'classes-not-loaded', ac:http-error-key(?status), ldh:response-detail(.))"/>
                     <xsl:sequence select="ixsl:resolve($context)"/>
                 </xsl:otherwise>
             </xsl:choose>

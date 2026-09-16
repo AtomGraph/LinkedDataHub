@@ -482,8 +482,8 @@ legend > .actions { display: flex; align-items: center; gap: var(--sp-1); margin
 button.tree-link { border: 0; background: transparent; width: 100%; font: inherit; text-align: left; cursor: pointer; }
 /* the lazy-loading row's glyph spins (the design mounts a ProgressCircle; the glyph does the same job) */
 .ldh-tree .tree-loading .msi { animation: ac-spin 0.9s linear infinite; }
-/* a drawer list that could not load its rows reports in their place, at the depth of the rows it stands in for (ldh:render-tree-error) */
-.ldh-sidebar .tree-error { list-style: none; padding: var(--sp-1) var(--sp-2) var(--sp-1) calc(var(--depth, 0) * 14px + var(--sp-2)); }
+/* a tree in the content that could not load its rows reports in their place, at the depth of the rows it stands in for (ldh:render-tree-error); the drawer's tree removes its section instead */
+.ldh-tree .tree-error { list-style: none; padding: var(--sp-1) var(--sp-2) var(--sp-1) calc(var(--depth, 0) * 14px + var(--sp-2)); }
 /* a subtree's visibility is its toggle's aria-expanded - the one state the handler already maintains */
 .ldh-tree li:has(> div > button[aria-expanded="false"]) > ul { display: none; }
 /* the drawer search is a typable field (submit opens the dialog pre-populated; LDH overrides

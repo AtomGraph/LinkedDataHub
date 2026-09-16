@@ -708,30 +708,20 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:function>
 
-    <!-- Reports a failure in its host (ldh:RenderFailure decides how by what the host is). No host at all is a caller
-         with nowhere to report, which says nothing. alert() is the last resort, for a failure whose host has left the
-         page by the time it reports - a dialog closed while its request was in flight - and it says what the inline
-         alert would have said, not the upstream text. -->
+    <!-- Reports a failure in its host; ldh:RenderFailure decides how by what the host is, down to whether it reports at
+         all - navigation degrades instead (client/navigation.xsl). No host is a caller with nowhere to report, which
+         says nothing. -->
     <xsl:function name="ldh:render-failure" as="item()*" ixsl:updating="yes">
         <xsl:param name="host" as="element()*"/>
         <xsl:param name="title-key" as="xs:string"/>
         <xsl:param name="explanation-key" as="xs:string"/>
         <xsl:param name="detail" as="xs:string?"/>
-        <xsl:variable name="attached" select="$host[ancestor::body]" as="element()*"/>
 
-        <xsl:choose>
-            <xsl:when test="exists($attached)">
-                <xsl:apply-templates select="$attached" mode="ldh:RenderFailure">
-                    <xsl:with-param name="title-key" select="$title-key"/>
-                    <xsl:with-param name="explanation-key" select="$explanation-key"/>
-                    <xsl:with-param name="detail" select="$detail"/>
-                </xsl:apply-templates>
-            </xsl:when>
-            <xsl:when test="exists($host)">
-                <xsl:variable name="translations" select="ldh:translations()" as="document-node()"/>
-                <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ac:label(key('resources', $title-key, $translations)) || '&#xA;' || ac:label(key('resources', $explanation-key, $translations)) ])[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:when>
-        </xsl:choose>
+        <xsl:apply-templates select="$host" mode="ldh:RenderFailure">
+            <xsl:with-param name="title-key" select="$title-key"/>
+            <xsl:with-param name="explanation-key" select="$explanation-key"/>
+            <xsl:with-param name="detail" select="$detail"/>
+        </xsl:apply-templates>
     </xsl:function>
 
     <!-- Raises a failed response as the rejection of the chain it arrived in, from a step that has no element of its
@@ -777,6 +767,17 @@ exclude-result-prefixes="#all"
                 </xsl:result-document>
             </xsl:otherwise>
         </xsl:choose>
+    </xsl:template>
+
+    <!-- alert() is the last resort, for a host that has left the page by the time its failure reports - a dialog closed
+         while its request was in flight. It says what the inline alert would have said, not the upstream text. Ranked
+         under navigation (priority 1), which degrades silently whether or not its host is still in the page. -->
+    <xsl:template match="*[not(ancestor::body)]" mode="ldh:RenderFailure" priority="0.9">
+        <xsl:param name="title-key" as="xs:string"/>
+        <xsl:param name="explanation-key" as="xs:string"/>
+        <xsl:variable name="translations" select="ldh:translations()" as="document-node()"/>
+
+        <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ ac:label(key('resources', $title-key, $translations)) || '&#xA;' || ac:label(key('resources', $explanation-key, $translations)) ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
     <!-- an inline host - a slot in a header or a toolbar - reports as a Tag, the shape its line has room for -->
@@ -865,9 +866,9 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:function>
 
-    <!-- Replaces a drawer list's rows with the alert: the document tree's lazy children, the class list. The <ul>
-         stays, so the alert rides in an item indented to the rows it stands in for; bare, since a drawer list is a
-         small host rather than a block body. -->
+    <!-- Replaces a list's rows with the alert: a content tree's lazy children, a lookup's suggestions (the drawer's lists
+         remove their section instead, client/navigation.xsl). The <ul> stays, so the alert rides in an item indented to
+         the rows it stands in for; bare, since a list is a small host rather than a block body. -->
     <xsl:function name="ldh:render-tree-error" as="empty-sequence()" ixsl:updating="yes">
         <xsl:param name="container" as="element()"/> <!-- the <ul> the rows would have been rendered into -->
         <xsl:param name="title-key" as="xs:string"/>
