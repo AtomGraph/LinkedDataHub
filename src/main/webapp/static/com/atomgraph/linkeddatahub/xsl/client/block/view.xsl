@@ -381,6 +381,7 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:ViewContainer">
         <xsl:param name="create-slot" as="element()?"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
+        <xsl:param name="acl-modes" as="xs:anyURI*"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:variable name="select-xml" as="document-node()">
@@ -413,7 +414,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="context" as="map(*)" select="
           map {
             'request': $request,
-            'create-slot': $create-slot
+            'create-slot': $create-slot,
+            'acl-modes': $acl-modes
           }"/>
 
         <ixsl:promise select="ixsl:http-request($context('request')) =>
@@ -482,13 +484,16 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:view-create-insert" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="acl-modes" select="$context('container-acl-modes')" as="xs:anyURI*"/>
+        <!-- the container's access is one test, the current document's the other: a forward view PATCHes the
+             linking triple into this document, so it needs acl:Write here too -->
+        <xsl:variable name="document-acl-modes" select="$context('acl-modes')" as="xs:anyURI*"/>
 
         <xsl:if test="$acl-modes = '&acl;Write'">
             <xsl:for-each select="$context('create-slot')">
                 <xsl:variable name="view-block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()?"/>
                 <xsl:variable name="create-for-class" select="$view-block/@data-for-class" as="xs:string?"/>
 
-                <xsl:if test="exists($create-for-class) and (exists($view-block/@data-inverse) or acl:mode() = '&acl;Write')">
+                <xsl:if test="exists($create-for-class) and (exists($view-block/@data-inverse) or $document-acl-modes = '&acl;Write')">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <button type="button" class="ac-btn in-primary ap-solid sz-sm add-instance" data-for-class="{$create-for-class}" data-container="{$context('create-container')}" title="{ac:label(key('resources', 'create-instance-title', ldh:translations()))}">
                             <xsl:value-of>
@@ -1211,6 +1216,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
+        <!-- the access the agent has to the document this view is rendered in, off its pane: what reaches
+             ldh:view-create-insert as the document half of its two access tests -->
+        <xsl:param name="acl-modes" select="for $mode in tokenize($container/(ancestor::div[contains-token(@class, 'ldh-pane')], ldh:active-pane())[1]/@data-acl-modes, ' ') return xs:anyURI($mode)" as="xs:anyURI*"/>
         <xsl:param name="result-count-container-id" as="xs:string"/>
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="object-metadata" as="document-node()?"/>
@@ -1358,6 +1366,7 @@ exclude-result-prefixes="#all"
             <xsl:call-template name="ldh:ViewContainer">
                 <xsl:with-param name="create-slot" select="$container/ancestor::div[contains-token(@class, 'block')][1]/div[contains-token(@class, 'ldh-block-head')]/div[contains-token(@class, 'actions')]/span[contains-token(@class, 'ldh-view-create')]"/>
                 <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
+                <xsl:with-param name="acl-modes" select="$acl-modes"/>
                 <xsl:with-param name="endpoint" select="$endpoint"/>
                 <xsl:with-param name="select-xml" select="$select-xml"/>
             </xsl:call-template>

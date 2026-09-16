@@ -151,6 +151,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="query" select="string(descendant::*[@property = '&sp;text']/pre)" as="xs:string"/>
         <xsl:param name="show-properties" select="false()" as="xs:boolean"/>
         <xsl:param name="forClass" select="xs:anyURI('&sd;Service')" as="xs:anyURI"/>
+        <!-- the access the agent has to this document, off the pane it is rendered in -->
+        <xsl:param name="acl-modes" select="for $mode in tokenize((ancestor::div[contains-token(@class, 'ldh-pane')], ldh:active-pane())[1]/@data-acl-modes, ' ') return xs:anyURI($mode)" as="xs:anyURI*"/>
         
         <xsl:variable name="context" as="map(*)" select="
           map{
@@ -161,7 +163,8 @@ exclude-result-prefixes="#all"
             'textarea-rows': $textarea-rows,
             'query': $query,
             'service-uri': $service-uri,
-            'forClass': $forClass
+            'forClass': $forClass,
+            'acl-modes': $acl-modes
           }"/>
   
         <xsl:sequence select="
@@ -193,6 +196,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="service-uri" select="$context('service-uri')" as="xs:anyURI?"/>
         <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI"/>
         
+        <xsl:variable name="acl-modes" select="$context('acl-modes')" as="xs:anyURI*"/>
+
         <xsl:message>ldh:render-query</xsl:message>
 
         <!-- the head is the card's own child (sibling of the body): it stays in place and only gains the editor toggle -->
@@ -259,7 +264,7 @@ exclude-result-prefixes="#all"
                                     </xsl:value-of>
                                 </button>
                                 <!-- saving PATCHes the query back into the current document, so the button only appears to an agent who may write to it -->
-                                <xsl:if test="acl:mode() = '&acl;Write'">
+                                <xsl:if test="$acl-modes = '&acl;Write'">
                                     <button type="button" class="ac-btn in-neutral ap-outline sz-md btn-save btn-save-query">
                                         <xsl:value-of>
                                             <xsl:apply-templates select="key('resources', 'save', ldh:translations())" mode="ac:label"/>
@@ -332,7 +337,8 @@ exclude-result-prefixes="#all"
         <!-- the document layout the pane was rendered in - not this block's ac:mode, which is the layout of
              its results. Defaulted off the pane the form is in so the event handlers that run a query need
              nothing in scope, and overridable by a caller that already knows it -->
-        <xsl:param name="document-mode" select="ancestor::div[contains-token(@class, 'ldh-pane')]/@data-mode" as="xs:anyURI?"/>
+        <xsl:param name="document-mode" select="(ancestor::div[contains-token(@class, 'ldh-pane')], ldh:active-pane())[1]/@data-mode" as="xs:anyURI?"/>
+        <xsl:param name="acl-modes" select="for $mode in tokenize((ancestor::div[contains-token(@class, 'ldh-pane')], ldh:active-pane())[1]/@data-acl-modes, ' ') return xs:anyURI($mode)" as="xs:anyURI*"/>
         <xsl:sequence select="ldh:busy-cursor()"/>
         <xsl:variable name="textarea-id" select="string(descendant::textarea[@name = 'query']/@id)" as="xs:string"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
@@ -420,6 +426,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="results-container" select="id($results-container-id, ixsl:page())"/>
                     <xsl:with-param name="query-string" select="$query-string"/>
                     <xsl:with-param name="document-mode" select="$document-mode"/>
+                    <xsl:with-param name="acl-modes" select="$acl-modes"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
@@ -537,9 +544,10 @@ exclude-result-prefixes="#all"
              the view: only this flow renders a view that is not yet a block of its own. Creating POSTs a new
              view into the current document, so it only appears to an agent who may append to it - and only
              in the layout that renders the document's resources, for the reason given at the chart button -->
-        <xsl:variable name="document-mode" select="ancestor::div[contains-token(@class, 'ldh-pane')]/@data-mode" as="xs:anyURI?"/>
+        <xsl:variable name="document-mode" select="(ancestor::div[contains-token(@class, 'ldh-pane')], ldh:active-pane())[1]/@data-mode" as="xs:anyURI?"/>
+        <xsl:variable name="acl-modes" select="for $mode in tokenize((ancestor::div[contains-token(@class, 'ldh-pane')], ldh:active-pane())[1]/@data-acl-modes, ' ') return xs:anyURI($mode)" as="xs:anyURI*"/>
         <xsl:variable name="form-actions" as="element()?">
-            <xsl:if test="acl:mode() = '&acl;Append' and $document-mode = '&ac;ReadMode'">
+            <xsl:if test="$acl-modes = '&acl;Append' and $document-mode = '&ac;ReadMode'">
                 <div class="ldh-block-foot">
                     <button class="ac-btn in-primary ap-solid sz-md btn-create-view" type="button">
                         <xsl:value-of>
@@ -688,6 +696,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="show-chart-save" select="true()" as="xs:boolean"/>
         <xsl:param name="results-container" as="element()"/>
         <xsl:param name="document-mode" as="xs:anyURI?"/>
+        <xsl:param name="acl-modes" as="xs:anyURI*"/>
         
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
@@ -711,7 +720,7 @@ exclude-result-prefixes="#all"
                                          which is what Properties renders, while the content layout renders the rdf:_N sequence, whose members
                                          are ldh:Object and ldh:XHTML blocks - a chart is reached from content by an ldh:Object block pointing
                                          at it, which is the same rule the document's own Create menu follows -->
-                                    <xsl:if test="acl:mode() = '&acl;Append' and $document-mode = '&ac;ReadMode'">
+                                    <xsl:if test="$acl-modes = '&acl;Append' and $document-mode = '&ac;ReadMode'">
                                         <div class="ldh-block-foot">
                                             <button class="ac-btn in-primary ap-solid sz-md btn-create-chart" type="button">
                                                 <xsl:value-of>

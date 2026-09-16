@@ -277,6 +277,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="graph" select="descendant::*[@property = '&ldh;graph']/@resource" as="xs:anyURI?"/>
         <xsl:param name="mode" select="descendant::*[@property = '&ac;mode']/@resource" as="xs:anyURI?"/>
         <xsl:param name="container-id" select="string($container/@id)" as="xs:string"/>
+        <!-- the access the agent has to this document, off the pane it is rendered in: the callbacks below
+             are handed the value rather than resolving it -->
+        <xsl:param name="acl-modes" select="for $mode in tokenize((ancestor::div[contains-token(@class, 'ldh-pane')], ldh:active-pane())[1]/@data-acl-modes, ' ') return xs:anyURI($mode)" as="xs:anyURI*"/>
         <xsl:param name="chart-type-id" select="'chart-type-' || generate-id()" as="xs:string"/>
         <xsl:param name="category-id" select="'category-' || generate-id()" as="xs:string"/>
         <xsl:param name="series-id" select="'series-' || generate-id()" as="xs:string"/>
@@ -314,6 +317,7 @@ exclude-result-prefixes="#all"
             'series': $series,
             'canvas-id': $canvas-id,
             'canvas-class': $canvas-class,
+            'acl-modes': $acl-modes,
             'cache': $cache
           }"/>
         
@@ -377,6 +381,8 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
 
+        <xsl:variable name="acl-modes" select="$context('acl-modes')" as="xs:anyURI*"/>
+
         <xsl:message>ldh:render-chart</xsl:message>
 
         <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
@@ -388,7 +394,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="series-id" select="$series-id"/>
                     <xsl:with-param name="canvas-id" select="$canvas-id"/>
                     <xsl:with-param name="canvas-class" select="$canvas-class"/>
-                    <xsl:with-param name="show-save" select="acl:mode() = '&acl;Write'"/>
+                    <xsl:with-param name="show-save" select="$acl-modes = '&acl;Write'"/>
                 </xsl:apply-templates>
             </xsl:result-document>
         </xsl:for-each>
