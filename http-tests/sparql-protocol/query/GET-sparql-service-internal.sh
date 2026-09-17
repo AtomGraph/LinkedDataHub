@@ -14,7 +14,7 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 # SERVICE SILENT turns a refused call into a single empty solution, so the results are checked for data rather than
 # the response for a status code: a target that answered binds ?g
 
-for endpoint in "http://fuseki-admin:3030/ds/" "http://varnish-admin/ds/" "http://localhost:3030/ds/"
+for endpoint in "http://fuseki:3030/admin/" "http://varnish-admin/admin/" "http://localhost:3030/admin/"
 do
     results=$(curl -k -f -s -G \
       -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \

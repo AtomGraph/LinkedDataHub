@@ -10,8 +10,8 @@ export const repoRoot = fileURLToPath(new URL('../..', import.meta.url));
 
 export const endUserBase = process.env.END_USER_BASE_URL ?? 'https://localhost:4443/';
 export const adminBase = process.env.ADMIN_BASE_URL ?? 'https://admin.localhost:4443/';
-export const endUserEndpoint = process.env.END_USER_ENDPOINT_URL ?? 'http://localhost:3031/ds';
-export const adminEndpoint = process.env.ADMIN_ENDPOINT_URL ?? 'http://localhost:3030/ds';
+export const endUserEndpoint = process.env.END_USER_ENDPOINT_URL ?? 'http://localhost:3030/end-user';
+export const adminEndpoint = process.env.ADMIN_ENDPOINT_URL ?? 'http://localhost:3030/admin';
 
 // ldh reads the PKCS12 keystore; the PEM beside it is what curl -E takes. Playwright
 // wants the keystore too, so the suite never touches the PEM.

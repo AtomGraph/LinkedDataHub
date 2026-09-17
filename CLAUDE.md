@@ -105,9 +105,9 @@ Multiple dataspaces can share the same backend SPARQL service.
 The application runs as a multi-container setup:
 - **nginx**: Reverse proxy and SSL termination (wildcard subdomain routing for dataspaces)
 - **linkeddatahub**: Main Java application (Tomcat)
-- **fuseki-admin/fuseki-end-user**: Separate SPARQL stores
-- **egress**: Squid forward proxy for the stores' outbound requests (SPARQL `SERVICE`, `LOAD`): public destinations only, so a query cannot reach the other store, Varnish or the platform
-- **varnish-frontend/varnish-admin/varnish-end-user**: Caching layers
+- **fuseki**: One SPARQL server holding a TDB2 dataset per dataspace role (`config/fuseki/config.ttl`), named after the dataspace origin (deployment host dropped, role appended: `end-user`, `admin`, `northwind-traders.demo.end-user`, …), each under `fuseki/<dataset>/`; bound to apps in `config/system.trig`
+- **egress**: Squid forward proxy for the store's and platform's outbound requests (SPARQL `SERVICE`, `LOAD`): public destinations only, so a query cannot reach another dataset, Varnish or the platform
+- **varnish-frontend/varnish-admin/varnish-end-user**: Caching layers (admin and end-user caches both front the single `fuseki`)
 
 ### Data Flow
 1. Requests come through nginx proxy

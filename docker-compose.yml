@@ -39,8 +39,7 @@ services:
     build: .
     mem_limit: 2048m
     depends_on:
-      - fuseki-admin
-      - fuseki-end-user
+      - fuseki
       - sef-compiler
       - egress
     environment:
@@ -120,41 +119,25 @@ services:
     restart: on-failure
     expose:
       - 8080 # internal only - the platform is the sole client
-  fuseki-admin:
+  fuseki: # one server; every dataspace role is its own dataset in config/fuseki/config.ttl, stored under ./fuseki/<dataset>
     image: atomgraph/fuseki:6.1.0
     user: root # otherwise fuseki user does not have permissions to the mounted folder which is owner by root
-    mem_limit: 1536m # leave headroom above heap for TDB mmap/native memory
+    mem_limit: 4608m # the former fuseki-admin (1536m) and fuseki-end-user (3072m) combined
     restart: on-failure
     depends_on:
       - egress
     environment:
-      - JAVA_OPTIONS=-Xmx768m -Xms768m
+      - JAVA_OPTIONS=-Xmx2304m -Xms2304m # the former heaps combined: 768m admin + 1536m end-user
       # every outbound request (SPARQL SERVICE, LOAD) goes through egress, which only lets it reach public addresses.
       # JAVA_TOOL_OPTIONS rather than JAVA_OPTIONS, which an override setting the heap would replace. The empty
-      # nonProxyHosts is load-bearing: by default the JVM bypasses the proxy for localhost
+      # nonProxyHosts is load-bearing: by default the JVM bypasses the proxy for localhost, and
+      # SERVICE <http://localhost:3030/other-dataset/> would read a sibling dataset in this same server
       - JAVA_TOOL_OPTIONS=-Dhttp.proxyHost=${EGRESS_PROXY_HOST:-egress} -Dhttp.proxyPort=3128 -Dhttps.proxyHost=${EGRESS_PROXY_HOST:-egress} -Dhttps.proxyPort=3128 -Dhttp.nonProxyHosts=
     expose:
       - 3030
     volumes:
       - ./config/fuseki/config.ttl:/fuseki/config.ttl:ro
-      - ./fuseki/admin:/fuseki/databases
-    command: [ "--config", "/fuseki/config.ttl" ]
-  fuseki-end-user:
-    image: atomgraph/fuseki:6.1.0
-    user: root # otherwise the fuseki user does not have permissions to the mounted folder which is owner by root
-    mem_limit: 3072m # leave headroom above heap for TDB mmap/native memory
-    restart: on-failure
-    depends_on:
-      - egress
-    environment:
-      - JAVA_OPTIONS=-Xmx1536m -Xms1536m
-      # see fuseki-admin: outbound requests only reach public addresses, and not localhost either
-      - JAVA_TOOL_OPTIONS=-Dhttp.proxyHost=${EGRESS_PROXY_HOST:-egress} -Dhttp.proxyPort=3128 -Dhttps.proxyHost=${EGRESS_PROXY_HOST:-egress} -Dhttps.proxyPort=3128 -Dhttp.nonProxyHosts=
-    expose:
-      - 3030
-    volumes:
-      - ./config/fuseki/config.ttl:/fuseki/config.ttl:ro
-      - ./fuseki/end-user:/fuseki/databases
+      - ./fuseki:/fuseki/databases
     command: [ "--config", "/fuseki/config.ttl" ]
   egress: # forward proxy for the triplestores' outbound requests: refuses loopback, private and link-local destinations
     image: ubuntu/squid:6.6-24.04_beta
@@ -497,7 +480,7 @@ configs:
       import xkey;
 
       backend default {
-          .host = "${VARNISH_ADMIN_BACKEND_HOST:-fuseki-admin}";
+          .host = "${VARNISH_ADMIN_BACKEND_HOST:-fuseki}";
           .port = "${VARNISH_ADMIN_BACKEND_PORT:-3030}";
           .first_byte_timeout = 60s;
       }
@@ -580,7 +563,7 @@ configs:
       import std;
 
       backend default {
-          .host = "${VARNISH_END_USER_BACKEND_HOST:-fuseki-end-user}";
+          .host = "${VARNISH_END_USER_BACKEND_HOST:-fuseki}";
           .port = "${VARNISH_END_USER_BACKEND_PORT:-3030}";
           .first_byte_timeout = 60s;
       }

@@ -11,7 +11,7 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 # through SPARQL SERVICE either. SERVICE SILENT turns a refused call into a single empty solution, so a bound ?g means
 # the admin store answered
 
-endpoint="http://fuseki-admin:3030/ds/"
+endpoint="http://fuseki:3030/admin/"
 
 results=$(curl -k -f -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \

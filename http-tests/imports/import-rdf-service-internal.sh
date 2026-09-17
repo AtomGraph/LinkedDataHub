@@ -78,6 +78,6 @@ echo "DEBUG: ${imported}: ${document}"
 # check that nothing from the admin store was imported
 
 if grep -q '<urn:test:leak>' <<< "$document"; then
-    echo "SERVICE <http://fuseki-admin:3030/ds/> in an import mapping returned data"
+    echo "SERVICE <http://fuseki:3030/admin/> in an import mapping returned data"
     exit 1
 fi
