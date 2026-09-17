@@ -99,6 +99,7 @@ Bootstrap 2 is gone, and with it the class vocabulary application stylesheets we
 
 ### Security
 - A SPARQL `SERVICE` clause in a query to `/sparql` could read the admin store — agents, authorizations — because the triplestore executes it from inside the stack. The triplestores' outbound requests now go through an `egress` Squid proxy that refuses loopback, private and link-local destinations, so federation with public endpoints keeps working. Deployments with their own compose files need the `egress` service and the stores' `JAVA_TOOL_OPTIONS`, including the empty `http.nonProxyHosts`
+- A `SERVICE` clause in a PATCH update or an import mapping runs in the platform's own JVM, which the triplestores' egress proxy does not front, so it could still reach an internal service. The platform now routes its own `SERVICE` requests through the egress proxy too (`EGRESS_PROXY`, default `egress:3128`, set on the global ARQ context so only `SERVICE` is affected) — federation with public endpoints keeps working, internal addresses are refused, and `ProxySelector` covers loopback as well. With no proxy configured and `ALLOW_INTERNAL_URLS` unset, in-JVM `SERVICE` is disabled rather than left open
 - CSV/RDF imports now validate the `ldh:file` source and `spin:query` URIs via `URLValidator` before fetching, closing a previously unguarded SSRF surface on the import path (same class as LNK-002; the import client carries delegation/client-cert). Loopback stays allowed; `ALLOW_INTERNAL_URLS` remains the escape hatch
 
 ### Known limitations

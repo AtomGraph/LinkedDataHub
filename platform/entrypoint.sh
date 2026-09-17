@@ -1114,6 +1114,12 @@ if [ -n "$ALLOW_INTERNAL_URLS" ]; then
     export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.allowInternalUrls=$ALLOW_INTERNAL_URLS"
 fi
 
+# host:port of the egress forward proxy that the platform's in-JVM SPARQL SERVICE requests (PATCH, imports) go through;
+# without it SERVICE is disabled in those paths (unless ALLOW_INTERNAL_URLS)
+if [ -n "$EGRESS_PROXY" ]; then
+    export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.egressProxy=$EGRESS_PROXY"
+fi
+
 if [ -n "$CONNECTION_REQUEST_TIMEOUT" ]; then
     export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.connectionRequestTimeout=$CONNECTION_REQUEST_TIMEOUT"
 fi

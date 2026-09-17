@@ -142,8 +142,11 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
+import java.net.ProxySelector;
 import java.net.URISyntaxException;
+import java.net.http.HttpClient;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -165,6 +168,7 @@ import jakarta.servlet.ServletContext;
 import javax.xml.transform.Source;
 import org.apache.jena.ontapi.UnionGraph;
 import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.query.ARQ;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
@@ -592,6 +596,7 @@ public class Application extends ResourceConfig
         this.enableLinkedDataProxy = enableLinkedDataProxy;
         this.allowInternalUrls = allowInternalUrls;
         this.urlValidator = new URLValidator(allowInternalUrls);
+        configureServiceExecution(allowInternalUrls);
         this.maxContentLength = maxContentLength;
         this.invalidateCache = invalidateCache;
         this.enableWebIDSignUp = enableWebIDSignUp;
@@ -964,6 +969,46 @@ public class Application extends ResourceConfig
         }
     }
     
+    /**
+     * Restricts SPARQL <code>SERVICE</code> execution in the platform's own JVM (PATCH updates and import mappings run
+     * their queries here, in-process, so the triplestore's egress proxy never sees them). Without this, a
+     * <code>SERVICE</code> clause a writer supplies could reach an internal service — the admin store, Varnish — and copy
+     * data the ACL never grants into a document. Consistent with the SSRF model of {@link URLValidator}: with
+     * {@code allowInternalUrls} the check is off entirely; otherwise, if an egress proxy is configured
+     * (system property {@code com.atomgraph.linkeddatahub.egressProxy}, {@code host:port}), <code>SERVICE</code> requests
+     * go through it — so public federation still works while internal addresses are refused, redirect hops and DNS
+     * answers included — and if no proxy is configured, <code>SERVICE</code> is disabled outright.
+     *
+     * Applies only to <code>SERVICE</code> execution: it is set on the global ARQ context, which the in-JVM query/update
+     * execution reads, and the platform's own SPARQL calls to its stores use their own HTTP clients, not this one.
+     *
+     * @param allowInternalUrls true if SSRF protection is disabled for this deployment
+     */
+    protected final void configureServiceExecution(boolean allowInternalUrls)
+    {
+        if (allowInternalUrls) return; // SSRF protection disabled; leave SERVICE unrestricted
+
+        String egressProxy = System.getProperty("com.atomgraph.linkeddatahub.egressProxy");
+        if (egressProxy != null && !egressProxy.isBlank())
+        {
+            URI proxyURI = URI.create(egressProxy.contains("://") ? egressProxy : "http://" + egressProxy);
+            int port = proxyURI.getPort() != -1 ? proxyURI.getPort() : 3128;
+            // ProxySelector.of() proxies every request, localhost included, so SERVICE cannot bypass the proxy the way
+            // the JVM-wide http.nonProxyHosts default would let it
+            HttpClient serviceClient = HttpClient.newBuilder().
+                proxy(ProxySelector.of(new InetSocketAddress(proxyURI.getHost(), port))).
+                followRedirects(HttpClient.Redirect.NORMAL).
+                build();
+            ARQ.getContext().set(org.apache.jena.sparql.exec.http.Service.httpQueryClient, serviceClient);
+            if (log.isDebugEnabled()) log.debug("SPARQL SERVICE requests routed through egress proxy: {}", proxyURI);
+        }
+        else
+        {
+            ARQ.getContext().setFalse(org.apache.jena.sparql.exec.http.Service.httpServiceAllowed);
+            if (log.isWarnEnabled()) log.warn("SPARQL SERVICE execution disabled (no egress proxy configured); set com.atomgraph.linkeddatahub.egressProxy to allow federation");
+        }
+    }
+
     /**
      * Post-construct initialization.
      * Additional initialization (e.g. registering JAX-RS providers and factories) that cannot be cleanly done in the class constructor.
