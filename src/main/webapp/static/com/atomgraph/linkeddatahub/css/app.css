@@ -3254,7 +3254,10 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   display: flex; flex-direction: column; gap: var(--sp-4);
   background: var(--bg-card); border: 1px solid var(--border-default);
   border-radius: var(--r-lg); padding: var(--sp-4);
-  position: sticky; top: var(--sp-4);
+  /* Where the card parks is the COLUMN's to say, not the card's: a host with sticky chrome of its
+     own has to clear it, and the kit cannot know how tall that is. The slot sets --ldh-aside-top;
+     the kit's own value stays the fallback, so the ontology editor here is unchanged. */
+  position: sticky; top: var(--ldh-aside-top, var(--sp-4));
 }
 .ldh-onto-group { display: flex; flex-direction: column; gap: 2px; }
 .ldh-onto-group-h {

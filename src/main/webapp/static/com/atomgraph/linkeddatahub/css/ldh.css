@@ -622,19 +622,51 @@ body:has(.ldh-create-dock) .ldh-footer { margin-top: 0; }
    width and the dock's containing block all stay where the rules above expect them. Written with
    .document-body > so it outranks the flex rule directly above, which the dock's presence would
    otherwise win. The dock spans both columns: it is the document's affordance, not the aside's. */
-.document-body > .content-body:has(> .ldh-content-aside) { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: var(--sp-5); align-items: start; }
+/* row-gap is ZERO, and that is the plain document's spacing, not a reduction of it: without an aside
+   .content-body is a flex column whose .ldh-block-row children carry no margin and sit flush, which
+   is what the drop marker is drawn against (it renders inside the row at bottom: 0). The gap
+   shorthand was separating the rows by --sp-5 here and nowhere else. It also has to go for the span
+   below to be affordable: a row gap applies between every implicit row, so gap x span is real height. */
+.document-body > .content-body:has(> .ldh-content-aside) { display: grid; grid-template-columns: 300px minmax(0, 1fr); column-gap: var(--sp-5); row-gap: 0; align-items: start; }
+/* Auto-flow places the aside in column 1 of row 1 and then keeps filling column 1 on every row after
+   it, so a document describing more than one resource put its second block row in the 300px gutter,
+   squeezed to 300px wide. Only the dock used to be placed explicitly; every child names its column
+   now. */
+.document-body > .content-body:has(> .ldh-content-aside) > * { grid-column: 2; }
+/* The aside spans every row and fills the area it spans, so that a sticky filler travels the whole
+   document rather than as far as the first block row - the concept tree scrolled away after one
+   resource, because align-items: start had shrink-wrapped its wrapper to the tree's own height and
+   left the sticky card nothing to travel in.
+   The span is a literal because there is nothing else to write: -1 counts back from the end of the
+   EXPLICIT grid, which has no rows here, so 1 / -1 resolves to a single row. A number this far above
+   any real document costs nothing measurable (forced layout over 40 block rows: 0.02 ms at span 50,
+   0.03 ms at span 9999) now that the row gap is gone, and overshooting only leaves empty zero-high
+   tracks. The aside stays IN FLOW on purpose: taken out of it, a tree taller than a short document's
+   content contributed no height and painted over the footer. */
+.document-body > .content-body:has(> .ldh-content-aside) > .ldh-content-aside { grid-column: 1; grid-row: 1 / span 9999; align-self: stretch; }
 /* The gutter is 300px at every screen size, so anything sitting in it directly - rather than inside a
    .ldh-block, which is its own container - needs the aside itself to be the query container, or it
    reads the viewport and lays out for a width it does not have. NOT on .content-body: that is where
    ldh:ShowModalForm appends .ac-backdrop (position: fixed; inset: 0), and containment is the one
    thing that could reroute its containing block away from the viewport. */
 .ldh-content-aside { container-type: inline-size; }
+/* How far down a sticky filler parks. The aside now spans the whole body, so anything sticky in it
+   travels the whole document - and would travel straight under LDH's sticky chrome, which is where
+   the concept tree went: pinned at the kit's own top: var(--sp-4), i.e. behind the header. Composed
+   from the bar tokens exactly as .editor-bar composes them, so it tracks the tab bar appearing
+   (--action-bar-top) instead of restating a height. The kit reads it with its own value as the
+   fallback, so the ontology editor's use of the same card is untouched. */
+.ldh-content-aside { --ldh-aside-top: calc(var(--action-bar-top) + var(--ldh-actionbar-height) + var(--sp-4)); }
 .document-body > .content-body:has(> .ldh-content-aside) > .ldh-create-dock { grid-column: 1 / -1; }
 /* 1024 is the shell's two-column stop (see the scale in colors_and_type.css). It was 900, chosen on
    its own before there was a scale; the 124px it gives up are the band where the main column was
    already down to ~576px with a 300px gutter beside it. */
 @media (max-width: 1024px) {
   .document-body > .content-body:has(> .ldh-content-aside) { grid-template-columns: minmax(0, 1fr); }
+  /* one column: a child still pinned to column 2 would conjure an implicit second one, and an aside
+     still spanning 9999 rows would sit on top of every one of them instead of above them */
+  .document-body > .content-body:has(> .ldh-content-aside) > * { grid-column: 1; }
+  .document-body > .content-body:has(> .ldh-content-aside) > .ldh-content-aside { grid-row: auto; }
 }
 
 /* ---------- .map-canvas in the design is a picture of a map: an absolute fill for a frame that
