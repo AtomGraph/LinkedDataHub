@@ -159,12 +159,18 @@ public class OntologyFilter implements ContainerRequestFilter
         UnionGraph union = getSystem().getOntologyGraphs().get(uri);
         if (union == null)
         {
+            // the package descriptions are resolved BEFORE the lock is taken: one that is neither bundled
+            // nor cached is I/O - a remote fetch, or a read of this instance's own store - and nothing
+            // about it needs the monitor, which exists to serialise the union build, not to hold every
+            // other cold request behind a slow package server
+            List<URI> packageOntologies = getSystem().getPackageOntologies(app);
+
             synchronized (repository)
             {
                 union = getSystem().getOntologyGraphs().get(uri);
                 if (union == null)
                 {
-                    union = loadOntology(repository, uri, getSystem().getPackageOntologies(app));
+                    union = loadOntology(repository, uri, packageOntologies);
                     getSystem().getOntologyGraphs().put(uri, union);
                 }
             }

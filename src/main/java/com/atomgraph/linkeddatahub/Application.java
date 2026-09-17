@@ -200,6 +200,7 @@ import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.ClientRequestFilter;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriBuilder;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -1991,7 +1992,8 @@ public class Application extends ResourceConfig
     /**
      * Loads the package description from its URI.
      * Mapped locations (e.g. bundled package descriptions) and cached graphs are read from the graph
-     * repository; other URIs are dereferenced over HTTP.
+     * repository; a description that is a document of one of this instance's applications is read from
+     * that application's store; other URIs are dereferenced over HTTP.
      *
      * @param packageURI package URI
      * @return package resource, or null if the description could not be resolved
@@ -2006,10 +2008,26 @@ public class Application extends ResourceConfig
         {
             try
             {
-                // validate package URI to prevent SSRF attacks
-                getURLValidator().validate(URI.create(packageURI));
+                // a package described by a document on THIS instance is a named graph in the instance's own
+                // store, and is read there. Fetched over HTTP instead, the request would come back through
+                // this application: its ontology filter, finding the ontology just evicted by the settings
+                // update that declared the import, resolves the package descriptions in turn and issues the
+                // same fetch - the requests nest until the proxy times out, the loop the filter already
+                // guards against for uploaded ontologies
+                URI docURI = UriBuilder.fromUri(packageURI).fragment(null).build(); // skip fragment from the package URI to get its graph URI
+                Resource appResource = matchApp(docURI);
+                if (appResource != null && appResource.canAs(com.atomgraph.linkeddatahub.apps.model.Application.class))
+                {
+                    com.atomgraph.linkeddatahub.apps.model.Application app = appResource.as(com.atomgraph.linkeddatahub.apps.model.Application.class);
+                    model = getServiceContext(app.getService()).getGraphStoreClient().getModel(docURI.toString());
+                }
+                else
+                {
+                    // validate package URI to prevent SSRF attacks
+                    getURLValidator().validate(URI.create(packageURI));
 
-                model = GraphStoreClient.create(getClient(), getMediaTypes()).getModel(packageURI);
+                    model = GraphStoreClient.create(getClient(), getMediaTypes()).getModel(packageURI);
+                }
             }
             catch (RuntimeException ex) // invalid URI, 404 from the package server, connection refused, timeout...
             {

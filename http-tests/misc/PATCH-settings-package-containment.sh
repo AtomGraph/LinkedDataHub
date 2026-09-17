@@ -23,7 +23,7 @@ pwd=$(realpath "$PWD")
 
 app_uri="urn:linkeddatahub:apps/end-user"
 
-stylesheet_file="$pwd/misc/containment-probe.xsl"
+stylesheet_file="$pwd/containment-probe.xsl"
 stylesheet_type="text/xsl"
 sha1sum=$(shasum -a 1 "$stylesheet_file" | awk '{print $1}')
 stylesheet_uri="${END_USER_BASE_URL}uploads/${sha1sum}"
