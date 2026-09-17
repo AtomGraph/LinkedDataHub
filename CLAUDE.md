@@ -206,12 +206,16 @@ Template mode names carry the rendering layer:
   (`ldh:Modal`, `ldh:DataTable`, `ldh:DateTimePair`, `ldh:PropertyLabel`).
 - **The unnamed mode is the value leaf.** Mode-less `apply-templates` renders an object/literal
   "somehow" — it lands in Web-Client's default-mode value emitters, the bottom of the dispatch tree.
-- **Open modes live in `hooks.xsl`.** Package stylesheets are composed into the import tree right
-  after the `hooks.xsl` import (`client/hooks.xsl` on the client), so they outrank the open modes'
-  generic fallbacks declared there and nothing else. An open mode is a leaf: it renders or contributes
-  for one node and carries no control flow (`ldh:RenderRow` walks, `ldh:RowHook` is what it asks).
-  Every other mode is sealed by precedence; a core fallback a package should be able to specialise
-  moves into `hooks.xsl`, never the other way round.
+- **Open modes live in `hooks.xsl` and `imports/values.xsl`.** Package stylesheets are composed into
+  the import tree right after the `hooks.xsl` import (`client/hooks.xsl` on the client), so they
+  outrank the open modes' generic fallbacks declared there and nothing else. `hooks.xsl` holds the
+  structural hooks; `imports/values.xsl`, which it imports, holds the value leaves (property row, value
+  cell, form control, annotation), so a package's rule for its own property or datatype wins. An open
+  mode is a leaf: it renders or contributes for one node and carries no control flow (`ldh:RenderRow`
+  walks, `ldh:RowHook` is what it asks). Everything else is sealed by precedence, including
+  `imports/default.xsl`, which is the library (keys, params, functions, component emitters, rewriters);
+  a core fallback a package should be able to specialise moves down into the open tier, never the
+  other way round.
 
 ## Development Notes
 - Java 21 is required for compilation (both the platform and the `cli/` project)

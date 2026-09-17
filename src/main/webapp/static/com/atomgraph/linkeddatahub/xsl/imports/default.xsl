@@ -51,15 +51,31 @@ xmlns:svg="http://www.w3.org/2000/svg"
 exclude-result-prefixes="#all"
 >
 
+    <!--
+        The platform's shared library: keys, global params, functions, the design-system component
+        emitters (ldh:Modal, ldh:DataTable, ldh:PropertyLabel, ldh:BlockBlank, ldh:BlockBar,
+        ldh:ProgressBar, ldh:FormFooter, ac:AnnotationTag), the ldh:Combobox widget and the RDF/XML
+        rewriters (ldh:RenameBnode, ldh:Reserialize, ldh:SetResourceID, ldh:SetPrimaryTopic,
+        ldh:XHTMLContent). Imported through common.xsl, ABOVE the package stylesheets, so none of it can
+        be redefined by a package.
+
+        The generic value rendering - property rows, value cells, form controls, annotations - used to
+        live here too and now lives in imports/values.xsl, the open tier under the packages, precisely so
+        that a vocabulary package can specialise it. A rule belongs here only if it is typed on core
+        vocabulary (the dh: document slug control) or is not a value at all.
+    -->
+
     <xsl:key name="predicates-by-object" match="*[@rdf:about]/* | *[@rdf:nodeID]/*" use="@rdf:resource | @rdf:nodeID"/>
+
     <xsl:key name="violations-by-root" match="*[@rdf:about] | *[@rdf:nodeID]" use="spin:violationRoot/@rdf:resource | spin:violationRoot/@rdf:nodeID"/>
+
     <xsl:key name="violations-by-value" match="*" use="ldh:violationValue/text()"/>
+
     <xsl:key name="violations-by-focus-node" match="*" use="sh:focusNode/@rdf:resource | sh:focusNode/@rdf:nodeID"/>
+
     <xsl:key name="resources-by-type" match="*[*][@rdf:about] | *[*][@rdf:nodeID]" use="rdf:type/@rdf:resource"/>
 
     <xsl:param name="ac:contextUri" as="xs:anyURI?"/>
-
-
 
     <xsl:function name="ac:property-label" as="xs:string?">
         <xsl:param name="property" as="element()"/>
@@ -85,38 +101,6 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$labels[1]"/>
     </xsl:function>
 
-    <xsl:template match="@rdf:resource | @rdf:nodeID | srx:uri" mode="ac:object-label" priority="1">
-        <xsl:param name="object-metadata" as="document-node()?" tunnel="yes"/>
-        <xsl:variable name="this" select="." as="xs:anyURI"/>
-
-        <xsl:choose>
-            <xsl:when test="key('resources', .)">
-                <xsl:apply-templates select="key('resources', .)" mode="ac:label"/>
-            </xsl:when>
-            <xsl:when test="$object-metadata!key('resources', $this, .)">
-                <!-- <xsl:message>ac:object-label(<xsl:value-of select="."/>) $object-metadata: <xsl:value-of select="serialize($object-metadata)"/></xsl:message> -->
-                <xsl:apply-templates select="$object-metadata!key('resources', $this, .)" mode="ac:label"/>
-            </xsl:when>
-            <xsl:when test="ldh:label-document(ac:document-uri(.))!key('resources', $this, .)">
-                <xsl:apply-templates select="ldh:label-document(ac:document-uri(.))!key('resources', $this, .)" mode="ac:label"/>
-            </xsl:when>
-            <xsl:when test="contains(., '#') and not(ends-with(., '#'))">
-                <xsl:sequence select="substring-after(., '#')"/>
-            </xsl:when>
-            <xsl:when test="string-length(tokenize(., '/')[last()]) &gt; 0">
-                <xsl:sequence select="translate(tokenize(., '/')[last()], '_', ' ')"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:sequence select="."/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-    
-
-
-
-
-
     <!-- Strips the leftmost subdomain and returns parent dataspace origin (scheme + host + port) -->
     <xsl:function name="ldh:parent-origin" as="xs:anyURI?">
         <xsl:param name="uri" as="xs:anyURI"/>
@@ -141,8 +125,7 @@ exclude-result-prefixes="#all"
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
-    
-    
+
     <xsl:function name="ldh:query-params" as="map(xs:string, xs:string*)">
         <!-- ac:document-uri strips the URL's #fragment so it doesn't get glued onto the last query value -->
         <xsl:sequence select="ldh:parse-query-params(substring-after(ac:document-uri(ldh:request-uri()), '?'))"/>
@@ -157,13 +140,13 @@ exclude-result-prefixes="#all"
 
         <xsl:sequence select="map:merge(for $name in ('version', 'timemap', 'query', 'default-graph-uri', 'named-graph-uri') return if (map:contains($query-params, $name)) then map{ $name: $query-params($name) } else ())"/>
     </xsl:function>
-    
-      
+
     <!-- the endpoint a block queries: the one its ldh:service names, else this dataspace's own -->
     <!-- the authenticated agent: the WebID the writer supplies server-side and the SaxonJS
          stylesheetParams supply client-side, and its description. One declaration for both
          entry points, which previously carried byte-identical copies -->
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
+
     <xsl:param name="foaf:Agent" select="if ($acl:agent) then document(ac:document-uri($acl:agent)) else ()" as="document-node()?"/>
 
     <!-- metadata and constructor queries shared by the server and client renderers; each used to be
@@ -195,6 +178,7 @@ exclude-result-prefixes="#all"
         ]]>
         <!-- VALUES $this goes here -->
     </xsl:param>
+
     <xsl:param name="object-metadata-ns-query" as="xs:string">
         <![CDATA[
             PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -220,12 +204,14 @@ exclude-result-prefixes="#all"
         ]]>
         <!-- VALUES $this goes here -->
     </xsl:param>
+
     <xsl:param name="property-metadata-query" as="xs:string">
         <![CDATA[
             DESCRIBE $Type
         ]]>
         <!-- VALUES $Type goes here -->
     </xsl:param>
+
     <xsl:param name="constraint-query" as="xs:string">
         <![CDATA[
             PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
@@ -242,6 +228,7 @@ exclude-result-prefixes="#all"
         ]]>
         <!-- VALUES $Type goes here -->
     </xsl:param>
+
     <xsl:param name="constructor-query" as="xs:string">
         <![CDATA[
             PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -255,6 +242,7 @@ exclude-result-prefixes="#all"
               }
         ]]>
     </xsl:param>
+
     <xsl:param name="shape-query" as="xs:string">
         <![CDATA[
             PREFIX  sh:   <http://www.w3.org/ns/shacl#>
@@ -309,7 +297,6 @@ exclude-result-prefixes="#all"
         <!-- no trailing slash -->
         <xsl:sequence select="xs:anyURI(replace($uri, '^(https?://[^/]+).*$', '$1'))"/>
     </xsl:function>
-
 
     <!-- Web-Client's label catalog resolves against the shell origin here, like the app's own translations.rdf:
          the same-origin URL works for the same-site server resolver and in the browser alike -->
@@ -379,7 +366,7 @@ exclude-result-prefixes="#all"
         
         <xsl:sequence select="ldh:href($uri, $query-params, ())"/>
     </xsl:function>
-    
+
     <xsl:function name="ldh:href" as="xs:anyURI">
         <xsl:param name="uri" as="xs:anyURI?"/>
         <xsl:param name="query-params" as="map(xs:string, xs:string*)"/>
@@ -454,15 +441,13 @@ exclude-result-prefixes="#all"
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
-    
+
     <!-- fetches the spin:constructor query texts for the whole type set (subclass closure, DISTINCT). Shared with the SaxonJS constructor machinery in client/functions.xsl -->
     <xsl:function name="ldh:constructor-query" as="xs:string">
         <xsl:param name="types" as="xs:anyURI*"/>
 
         <xsl:sequence select="'SELECT DISTINCT ?constructor ?text WHERE { VALUES ?type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' } ?type &lt;http://www.w3.org/2000/01/rdf-schema#subClassOf&gt;* ?class . ?class &lt;http://spinrdf.org/spin#constructor&gt; ?constructor . ?constructor &lt;http://spinrdf.org/sp#text&gt; ?text . }'"/>
     </xsl:function>
-
-
 
     <!-- constructor instantiation: the template mirrors the instance. One SELECT fetches the
     spin:constructor query texts for the whole type set (subclass closure, DISTINCT), and the
@@ -749,7 +734,7 @@ exclude-result-prefixes="#all"
             <xsl:apply-templates select="$doc" mode="ldh:Reserialize"/>
         </xsl:document>
     </xsl:function>
-    
+
     <xsl:template match="rdf:RDF" mode="ldh:Reserialize" priority="1">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()" mode="#current"/>
@@ -763,7 +748,7 @@ exclude-result-prefixes="#all"
             </xsl:for-each>
         </xsl:copy>
     </xsl:template>
-    
+
     <xsl:template match="rdf:Description/*[rdf:Description]" mode="ldh:Reserialize" priority="1">
         <xsl:copy>
             <xsl:attribute name="rdf:nodeID" select="generate-id(rdf:Description)"/>
@@ -851,8 +836,6 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:function>
 
-
-
     <xsl:function name="ldh:parse-query-params" as="map(xs:string, xs:string*)">
         <xsl:param name="query-string" as="xs:string"/>
 
@@ -870,7 +853,7 @@ exclude-result-prefixes="#all"
             map { 'duplicates': 'combine' }
         )"/>
     </xsl:function>
-    
+
     <!-- function stub so that Saxon-EE doesn't complain when compiling SEF -->
     <xsl:function name="ldh:send-request" as="document-node()?" override-extension-function="no" cache="yes">
         <xsl:param name="href" as="xs:anyURI"/>
@@ -883,7 +866,7 @@ exclude-result-prefixes="#all"
             Not implemented -- com.atomgraph.linkeddatahub.writer.function.SendHTTPRequest needs to be registered as an extension function
         </xsl:message>
     </xsl:function>
-    
+
     <!-- SHARED FUNCTIONS -->
 
     <!-- TO-DO: move down to Web-Client -->
@@ -895,28 +878,7 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:sequence select="$images"/>
     </xsl:function>
-    
-    <!-- override makes $property-metadata lookup take precedence over Linked Data -->
-    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*" mode="ac:property-label">
-        <xsl:param name="property-metadata" as="document-node()?"/>
-        <xsl:variable name="this" select="concat(namespace-uri(), local-name())"/>
-        
-        <xsl:choose>
-            <xsl:when test="key('resources', $this)">
-                <xsl:apply-templates select="key('resources', $this)" mode="ac:label"/>
-            </xsl:when>
-            <xsl:when test="$property-metadata/key('resources', $this, .)">
-                <xsl:apply-templates select="$property-metadata/key('resources', $this, .)" mode="ac:label"/>
-            </xsl:when>
-            <xsl:when test="ldh:label-document(ac:document-uri(namespace-uri()))!key('resources', $this, .)">
-                <xsl:apply-templates select="ldh:label-document(ac:document-uri(namespace-uri()))!key('resources', $this, .)" mode="ac:label"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:sequence select="local-name()"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-    
+
     <!-- SET DOCUMENT URI -->
     
     <!-- resource has to have properties other than rdf:type -->
@@ -952,7 +914,7 @@ exclude-result-prefixes="#all"
             <xsl:apply-templates select="@* | node()" mode="#current"/>
         </xsl:copy>
     </xsl:template>
-    
+
     <!-- SET PRIMARY TOPIC -->
 
     <xsl:template match="rdf:Description[@rdf:nodeID]" mode="ldh:SetPrimaryTopic" priority="1">
@@ -964,7 +926,7 @@ exclude-result-prefixes="#all"
             <xsl:next-match/>
         </xsl:if>
     </xsl:template>
-    
+
     <!-- link document instance to the topic instance using foaf:primaryTopic -->
     <xsl:template match="rdf:Description/foaf:primaryTopic[@rdf:nodeID]" mode="ldh:SetPrimaryTopic" priority="1">
         <xsl:param name="topic-id" as="xs:string?" tunnel="yes"/>
@@ -990,105 +952,6 @@ exclude-result-prefixes="#all"
             <xsl:apply-templates select="@* | node()" mode="#current"/>
         </xsl:copy>
     </xsl:template>
-    
-    <!-- RDFa overrides -->
-
-    <!-- Every value cell takes its RDFa attributes from ac:RDFaAttributes rather than spelling them out, so the term ->
-         attribute mapping lives in one place and the anatomy here is the only thing these templates decide. It is also what
-         makes the cells faithful: a dd's literal used to be whatever text ended up inside it, which meant the language pill
-         concatenated onto the value ("Square" + "en" = "Squareen") and a formatted date replaced its own lexical form. The
-         attribute set carries @content now, so what the cell shows and what it asserts are free to differ. -->
-
-    <xsl:template match="@rdf:resource" mode="ac:PropertyListValue">
-        <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
-        <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
-        <xsl:variable name="diff-class" select="ldh:value-diff-class(.., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
-
-        <dd>
-            <xsl:apply-templates select="." mode="ac:RDFaAttributes"/>
-            <xsl:if test="$diff-class">
-                <xsl:attribute name="class" select="$diff-class"/>
-            </xsl:if>
-
-            <xsl:apply-templates select="."/>
-        </dd>
-    </xsl:template>
-
-    <xsl:template match="@rdf:nodeID" mode="ac:PropertyListValue">
-        <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
-        <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
-        <xsl:variable name="diff-class" select="ldh:value-diff-class(.., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
-
-        <dd>
-            <xsl:apply-templates select="." mode="ac:RDFaAttributes"/>
-            <xsl:if test="$diff-class">
-                <xsl:attribute name="class" select="$diff-class"/>
-            </xsl:if>
-
-            <xsl:apply-templates select="."/>
-        </dd>
-    </xsl:template>
-
-    <xsl:template match="text()[../@xml:lang]" mode="ac:PropertyListValue">
-        <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
-        <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
-        <xsl:variable name="diff-class" select="ldh:value-diff-class(.., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
-
-        <!-- the value declares its own language rather than inheriting the document's. A property renders every language it
-             carries, so the two sit side by side and the document default is wrong for at least one of them: without @lang a
-             screen reader reads "Square" with Lithuanian phonetics on an lt page, and "Aikštė" with an English voice on an en
-             one. This is WCAG 3.1.2, and the attribute set says the same thing to an RDFa processor -->
-        <dd>
-            <xsl:apply-templates select="." mode="ac:RDFaAttributes"/>
-            <xsl:if test="$diff-class">
-                <xsl:attribute name="class" select="$diff-class"/>
-            </xsl:if>
-
-            <xsl:apply-templates select="."/>
-
-            <xsl:apply-templates select="../@xml:lang" mode="ac:lang-tag"/>
-        </dd>
-    </xsl:template>
-
-    <!-- a property whose only value is the empty string: RDF/XML writes it as a childless element, so there is no text node
-         to dispatch and the row used to lose its value cell entirely - taking the group's RDFa @property with it, which left
-         the dt's title blank and the dl with a term and no description -->
-    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*[empty(node() | @rdf:resource | @rdf:nodeID)]" mode="ac:PropertyListValue">
-        <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
-        <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
-        <xsl:variable name="diff-class" select="ldh:value-diff-class(., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
-
-        <dd>
-            <xsl:apply-templates select="." mode="ac:RDFaAttributes"/>
-            <xsl:if test="$diff-class">
-                <xsl:attribute name="class" select="$diff-class"/>
-            </xsl:if>
-        </dd>
-    </xsl:template>
-
-    <!-- the property list and the table cell both put a value's languages side by side, so the pill that tells them apart
-         is written once here and applied from wherever the values are laid out. The core Tag at the inline xs size,
-         in the system's structural-annotation violet (§17c) -->
-    <xsl:template match="@xml:lang" mode="ac:lang-tag">
-        <span class="ac-tag em-quiet co-accent sz-xs">
-            <xsl:value-of select="."/>
-        </span>
-    </xsl:template>
-
-    <xsl:template match="node()" mode="ac:PropertyListValue">
-        <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
-        <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
-        <xsl:variable name="diff-class" select="ldh:value-diff-class(.., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
-
-        <dd>
-            <xsl:apply-templates select="." mode="ac:RDFaAttributes"/>
-            <xsl:if test="$diff-class">
-                <xsl:attribute name="class" select="$diff-class"/>
-            </xsl:if>
-
-            <xsl:apply-templates select="."/>
-        </dd>
-    </xsl:template>
 
     <!-- version-diff status of a single property value -->
     <xsl:function name="ldh:value-diff-class" as="xs:string?">
@@ -1102,7 +965,7 @@ exclude-result-prefixes="#all"
             <xsl:sequence select="if ($triple-key = $added-keys) then 'diff-added' else if ($triple-key = $removed-keys) then 'diff-removed' else ()"/>
         </xsl:if>
     </xsl:function>
-    
+
     <!-- reduces an RDF literal's datatype to the XSD type that processing keys off: the derived types collapse onto the primitive
          that carries their ordering and value space, so consumers switch on a handful of families instead of enumerating XSD.
          'string' is the fallback for datatypes with no ordering of their own - xs:string and its subtypes, xs:anyURI, the binaries,
@@ -1137,117 +1000,6 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="if ($value castable as xs:dateTime) then xs:dateTime($value) else if ($value castable as xs:date) then xs:dateTime(xs:date($value)) else ()"/>
     </xsl:function>
 
-    <!-- DEFAULT -->
-
-    <!-- property -->
-    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*">
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="title" select="concat(namespace-uri(), local-name())" as="xs:string?"/>
-        <xsl:param name="class" as="xs:string?"/>
-        <xsl:param name="property-metadata" as="document-node()?" tunnel="yes"/>
-
-        <span>
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-            <xsl:if test="$title">
-                <xsl:attribute name="title" select="$title"/>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-
-            <!-- the predicate label declares the language it was negotiated into, the same as a value does. Without it the
-                 label inherits the document language, which is the language the page is composed in and not necessarily the
-                 one the ontology had: a Lithuanian reader gets Lithuanian predicates inside a document whose chrome, and so
-                 whose lang, is English. Resolved through the mode rather than ac:property-label() because the function is
-                 declared as xs:string? and drops the winning literal's tag at its own boundary -->
-            <xsl:variable name="label" as="item()*">
-                <xsl:apply-templates select="." mode="ac:property-label">
-                    <xsl:with-param name="property-metadata" select="$property-metadata"/>
-                </xsl:apply-templates>
-            </xsl:variable>
-            <!-- item()*, not node()*: the fallback branches of ac:property-label return computed strings rather than the
-                 label node - substring-after($this, '#') for a predicate the ontology does not describe - and binding an
-                 atomic value to node()* is XTTE0570 at run time, which compiles clean and fails on a real page -->
-            <xsl:variable name="label-node" select="$label[1][. instance of node()]" as="node()?"/>
-            <xsl:if test="$label-node/../@xml:lang">
-                <xsl:attribute name="lang" select="$label-node/../@xml:lang"/>
-            </xsl:if>
-
-            <xsl:choose>
-                <xsl:when test="$property-metadata">
-                    <xsl:sequence select="ac:property-label(., $property-metadata)"/>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:sequence select="ac:property-label(.)"/>
-                </xsl:otherwise>
-            </xsl:choose>
-        </span>
-    </xsl:template>
-    
-    <!-- ANCHOR -->
-    
-    <!-- subject resource -->
-    <xsl:template match="@rdf:about" mode="xhtml:Anchor">
-<!--        <xsl:param name="graph" as="xs:anyURI?" tunnel="yes"/>-->
-        <xsl:param name="fragment" select="ac:fragment-id(.)" as="xs:string?"/>
-        <xsl:param name="href" select="ldh:href(ac:document-uri(xs:anyURI(.)), map{}, $fragment)" as="xs:anyURI"/>
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="title" select="." as="xs:string?"/>
-        <xsl:param name="class" as="xs:string?"/>
-        <xsl:param name="role" as="xs:string?"/>
-        <xsl:param name="target" as="xs:string?"/>
-
-        <xsl:next-match>
-            <xsl:with-param name="href" select="$href"/>
-            <xsl:with-param name="id" select="$id"/>
-            <xsl:with-param name="title" select="$title"/>
-            <xsl:with-param name="class" select="$class || (if (not(starts-with(., lapp:base()))) then ' external' else())"/>
-            <xsl:with-param name="role" select="$role"/>
-            <xsl:with-param name="target" select="$target"/>
-        </xsl:next-match>
-    </xsl:template>
-    
-    <xsl:template match="@rdf:about | @rdf:resource" mode="svg:Anchor">
-        <xsl:param name="fragment" select="ac:fragment-id(.)" as="xs:string?"/>
-        <xsl:param name="href" select="ldh:href(ac:document-uri(xs:anyURI(.)), map{}, $fragment)" as="xs:anyURI"/>
-        <xsl:param name="id" select="$fragment" as="xs:string?"/>
-        <xsl:param name="label" select="if (parent::rdf:Description) then ac:svg-label(..) else ac:svg-object-label(.)" as="xs:string"/>
-        <xsl:param name="title" select="$label" as="xs:string"/>
-        <xsl:param name="class" as="xs:string?"/>
-        <xsl:param name="target" as="xs:string?"/>
-
-        <xsl:next-match>
-            <xsl:with-param name="href" select="$href"/>
-            <xsl:with-param name="id" select="$id"/>
-            <xsl:with-param name="label" select="$label"/>
-            <xsl:with-param name="title" select="$title"/>
-            <xsl:with-param name="class" select="$class || (if (not(starts-with(., lapp:base()))) then ' external' else())"/>
-            <xsl:with-param name="target" select="$target"/>
-        </xsl:next-match>
-    </xsl:template>
-    
-    <!-- DEFAULT -->
-
-    <!-- proxy link URIs if they are external -->
-    <xsl:template match="@rdf:resource | srx:uri" priority="2">
-        <xsl:param name="fragment" select="ac:fragment-id(.)" as="xs:string?"/>
-        <xsl:param name="href" select="ldh:href(ac:document-uri(xs:anyURI(.)), map{}, $fragment)" as="xs:anyURI"/>
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="title" select="." as="xs:string?"/>
-        <xsl:param name="class" as="xs:string?"/>
-        <xsl:param name="target" as="xs:string?"/>
-        
-        <xsl:next-match>
-            <xsl:with-param name="href" select="$href"/>
-            <xsl:with-param name="id" select="$id"/>
-            <xsl:with-param name="title" select="$title"/>
-            <xsl:with-param name="class" select="$class || (if (not(starts-with(., lapp:base()))) then ' external' else())"/>
-            <xsl:with-param name="target" select="$target"/>
-        </xsl:next-match>
-    </xsl:template>
-
     <!-- COMBOBOX -->
 
     <xsl:template name="ldh:Combobox">
@@ -1280,23 +1032,6 @@ exclude-result-prefixes="#all"
             <div class="ac-cb-panel {$list-class}" id="{$list-id}" role="listbox" style="display: none;"></div>
         </div>
     </xsl:template>
-
-    <!-- TABLE CELLS -->
-
-    <!-- the semantic-markup contract's th scope, on top of Web-Client's emitter -->
-    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*" mode="ac:ResultsTableHeaderCell">
-        <th scope="col">
-            <xsl:apply-templates select="."/>
-        </th>
-    </xsl:template>
-
-    <!-- TYPE -->
-
-    <!-- property -->
-    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*" mode="ldh:TypeControl"/>
-
-    <!-- object -->
-    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*/@*" mode="ldh:TypeControl"/>
 
     <!-- FORM CONTROL -->
     
@@ -1346,63 +1081,6 @@ exclude-result-prefixes="#all"
             </div>
         </div>
     </xsl:template>
-    
-    <!-- resource -->
-    <xsl:template match="*[*]/@rdf:about | *[*]/@rdf:nodeID" mode="ac:FormControl">
-        <xsl:param name="type" select="'text'" as="xs:string"/>
-        <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <xsl:param name="class" select="'subject'" as="xs:string?"/>
-        <xsl:param name="disabled" select="false()" as="xs:boolean"/>
-        <xsl:param name="document-uri" as="xs:anyURI?" tunnel="yes"/>
-        <xsl:param name="about" select="xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#id' || ac:uuid())" as="xs:anyURI?"/>
-        <xsl:param name="tools" as="element()*"/>
-
-        <div class="ldh-subject">
-            <xsl:if test="$type = 'hidden'">
-                <xsl:attribute name="style" select="'display: none'"/>
-            </xsl:if>
-
-            <input type="hidden" class="old subject-type" value="{if (local-name() = 'about') then 'su' else if (local-name() = 'nodeID') then 'sb' else ()}"/>
-            <select class="term-select subject-type">
-                <option value="su">
-                    <xsl:if test="local-name() = 'about'">
-                        <xsl:attribute name="selected" select="'selected'"/>
-                    </xsl:if>
-                    <xsl:apply-templates select="key('resources', 'term-uri', ldh:translations())" mode="ac:label"/>
-                </option>
-                <option value="sb">
-                    <xsl:if test="local-name() = 'nodeID'">
-                        <xsl:attribute name="selected" select="'selected'"/>
-                    </xsl:if>
-                    <xsl:apply-templates select="key('resources', 'term-blank-node', ldh:translations())" mode="ac:label"/>
-                </option>
-            </select>
-
-            <label class="uri-field">
-                <span class="msi outline sm" aria-hidden="true">link</span>
-                <!-- hidden inputs in which we store the old values of the visible input -->
-                <input type="hidden" class="old su">
-                    <xsl:attribute name="value" select="if (local-name() = 'about') then . else $about"/>
-                </input>
-                <input type="hidden" class="old sb">
-                    <xsl:attribute name="value" select="if (local-name() = 'nodeID') then . else generate-id()"/>
-                </input>
-                <xsl:apply-templates select="." mode="xhtml:Input">
-                    <xsl:with-param name="type" select="'text'"/>
-                    <!-- <xsl:with-param name="id" select="$id"/> -->
-                    <xsl:with-param name="class" select="$class"/>
-                    <xsl:with-param name="disabled" select="$disabled"/>
-                </xsl:apply-templates>
-            </label>
-
-            <div class="ldh-subject-tools">
-                <xsl:sequence select="$tools"/>
-            </div>
-        </div>
-    </xsl:template>
-
-    <!-- turn off default form controls for rdf:type as we are handling it specially with ldh:TypeControl -->
-    <xsl:template match="rdf:type[@rdf:resource]" mode="ac:FormControl" priority="1"/>
 
     <!-- translations.rdf key for a violation without an authored message, chosen by what the violation carries -->
     <xsl:function name="ldh:violation-key" as="xs:string">
@@ -1411,478 +1089,6 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="if ($violation/spin:violationValue) then 'violation-invalid-value' else 'violation-constraint'"/>
     </xsl:function>
 
-    <!-- property -->
-    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*" mode="ac:FormControl">
-        <xsl:param name="this" select="xs:anyURI(concat(namespace-uri(), local-name()))" as="xs:anyURI"/>
-        <xsl:param name="violations" as="element()*"/>
-        <xsl:param name="error" select="@rdf:resource = $violations/ldh:violationValue or $violations/spin:violationPath/@rdf:resource = $this or $violations/sh:resultPath/@rdf:resource = $this" as="xs:boolean"/>
-        <xsl:param name="property-metadata" as="document-node()?" tunnel="yes"/>
-        <xsl:param name="label" as="xs:string?">
-            <xsl:sequence select="if ($property-metadata) then ac:property-label(., $property-metadata) else ac:property-label(.)"/> <!-- function upper-cases first letter, unlike mode="ac:label" -->
-        </xsl:param>
-        <xsl:param name="description" as="xs:string?">
-            <xsl:for-each select="$property-metadata/key('resources', $this)">
-                <xsl:sequence select="ac:description(.)"/> <!-- use function instead of mode="ac:description" as there might be multiple descriptions -->
-            </xsl:for-each>
-        </xsl:param>
-        <xsl:param name="show-label" select="true()" as="xs:boolean"/>
-        <xsl:param name="constructor" as="document-node()?"/>
-        <xsl:param name="template" as="element()*"/>
-        <xsl:param name="cloneable" select="false()" as="xs:boolean"/>
-        <xsl:param name="type-constraints" as="element()*"/>
-        <xsl:param name="type-shapes" as="element()*"/>
-        <!-- only the first property that has a mandatory constraint is required, the following ones are not -->
-        <xsl:param name="required" select="($type-shapes[sh:path/@rdf:resource = $this][sh:minCount &gt;= count(preceding-sibling::*[concat(namespace-uri(), local-name()) = $this])]) or ($type-constraints//srx:binding[@name = 'property'][srx:uri = $this] and not(preceding-sibling::*[concat(namespace-uri(), local-name()) = $this]))" as="xs:boolean"/>
-        <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <xsl:param name="for" select="generate-id((node() | @rdf:resource | @rdf:nodeID)[1])" as="xs:string"/>
-        <!-- inline messages for this row's violations, except the missing-mandatory-property kind, where the .is-violation decoration already says everything. The kind is read off the violation's spin:violationSource description (included in the response by the exception mapper) resp. the SHACL constraint component -->
-        <xsl:param name="row-violations" select="$violations[spin:violationPath/@rdf:resource = $this or sh:resultPath/@rdf:resource = $this or ldh:violationValue = current()/@rdf:resource][not(key('resources', (spin:violationSource/@rdf:resource, spin:violationSource/@rdf:nodeID))/rdf:type/@rdf:resource = '&ldh;MissingPropertyValue')][not(sh:sourceConstraintComponent/@rdf:resource = '&sh;MinCountConstraintComponent')]" as="element()*"/>
-        <xsl:param name="class" select="concat('ldh-prop-group', if ($error or exists($row-violations)) then ' is-violation' else (), if ($required) then ' required' else ())" as="xs:string?"/>
-
-        <div>
-            <xsl:if test="$class">
-                <xsl:attribute name="class" select="$class"/>
-            </xsl:if>
-
-            <xsl:apply-templates select="." mode="xhtml:Input">
-                <xsl:with-param name="type" select="'hidden'"/>
-            </xsl:apply-templates>
-            <xsl:if test="$show-label">
-                <xsl:apply-templates select="." mode="ldh:PropertyLabel">
-                    <xsl:with-param name="this" select="$this"/>
-                    <xsl:with-param name="label" select="$label"/>
-                    <xsl:with-param name="required" select="$required"/>
-                    <xsl:with-param name="description" select="$description"/>
-                </xsl:apply-templates>
-            </xsl:if>
-
-            <div class="ldh-prop-row{if (position() = last()) then ' is-last' else ()}{if ($error or exists($row-violations)) then ' is-violation' else ()}">
-                <div class="value val-stack">
-                    <div class="val-main">
-                        <xsl:apply-templates select="node() | @rdf:resource | @rdf:nodeID" mode="#current"> <!-- not @rdf:* because that would apply to @rdf:parseType -->
-                            <xsl:with-param name="id" select="$for"/>
-                            <xsl:with-param name="required" select="$required"/>
-                            <xsl:with-param name="constructor" select="$constructor"/>
-                        </xsl:apply-templates>
-
-                        <xsl:if test="@xml:lang or @rdf:datatype">
-                            <div class="ldh-annot">
-                                <xsl:apply-templates select="@xml:lang | @rdf:datatype" mode="#current"/>
-                            </div>
-                        </xsl:if>
-                    </div>
-
-                    <!-- authored labels/messages render verbatim; unlabeled violations fall back to a localized generic keyed by ldh:violation-key() -->
-                    <xsl:if test="exists($row-violations)">
-                        <div class="ldh-vmsgs">
-                            <xsl:for-each select="$row-violations">
-                                <span class="ac-help va-negative sz-sm" role="alert">
-                                    <span class="msi outline sm" aria-hidden="true">error</span>
-                                    <span>
-                                        <xsl:choose>
-                                            <xsl:when test="sh:resultMessage">
-                                                <xsl:value-of select="sh:resultMessage[1]"/>
-                                            </xsl:when>
-                                            <xsl:when test="rdfs:label">
-                                                <xsl:value-of>
-                                                    <xsl:apply-templates select="." mode="ac:label"/>
-                                                </xsl:value-of>
-                                            </xsl:when>
-                                            <xsl:otherwise>
-                                                <xsl:value-of>
-                                                    <xsl:apply-templates select="key('resources', ldh:violation-key(.), ldh:translations())" mode="ac:label"/>
-                                                </xsl:value-of>
-                                            </xsl:otherwise>
-                                        </xsl:choose>
-                                    </span>
-                                </span>
-                            </xsl:for-each>
-                        </div>
-                    </xsl:if>
-                </div>
-
-                <div class="row-actions">
-                    <xsl:if test="$cloneable">
-                        <button type="button" class="ac-iconbtn sz-xs in-accent ap-ghost btn-add">
-                            <xsl:attribute name="title">
-                                <xsl:apply-templates select="key('resources', 'add-stmt', ldh:translations())" mode="ac:label"/>
-                            </xsl:attribute>
-
-                            <span class="msi sm" aria-hidden="true">add</span>
-                        </button>
-                    </xsl:if>
-
-                    <xsl:if test="not($required)">
-                        <button type="button" tabindex="-1" class="ac-iconbtn sz-xs in-destructive ap-ghost btn-remove-property">
-                            <xsl:attribute name="title">
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', 'remove-stmt', ldh:translations())" mode="ac:label"/>
-                                </xsl:value-of>
-                            </xsl:attribute>
-
-                            <span class="msi sm" aria-hidden="true">remove</span>
-                        </button>
-                    </xsl:if>
-                </div>
-            </div>
-        </div>
-    </xsl:template>
-
-    <!-- object resource -->
-    <!-- object resource: committed values render as combobox chips, open values as the combobox lookup -->
-    <xsl:template match="@rdf:resource" mode="ac:FormControl">
-        <xsl:param name="type" select="'text'" as="xs:string"/>
-        <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <xsl:param name="class" as="xs:string?"/>
-        <xsl:param name="disabled" select="false()" as="xs:boolean"/>
-        <xsl:param name="traversed-ids" as="xs:string*" tunnel="yes"/>
-        <xsl:param name="inline" select="false()" as="xs:boolean" tunnel="yes"/>
-        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
-        <xsl:param name="constructor" as="document-node()?"/>
-        <xsl:param name="object-metadata" as="document-node()?" tunnel="yes"/>
-        <xsl:param name="forClass" select="if ($constructor) then distinct-values(key('resources', key('resources-by-type', ../../rdf:type/@rdf:resource, $constructor)/*[concat(namespace-uri(), local-name()) = current()/../concat(namespace-uri(), local-name())]/@rdf:nodeID, $constructor)/rdf:type/@rdf:resource[not(. = '&rdfs;Class')]) else ()" as="xs:anyURI*"/>
-
-        <xsl:choose>
-            <xsl:when test="$type = 'hidden'">
-                <xsl:apply-templates select="." mode="xhtml:Input">
-                    <xsl:with-param name="type" select="$type"/>
-                    <xsl:with-param name="id" select="$id"/>
-                    <xsl:with-param name="class" select="$class"/>
-                    <xsl:with-param name="disabled" select="$disabled"/>
-                </xsl:apply-templates>
-            </xsl:when>
-            <!-- object resource exists in the current document -->
-            <xsl:when test="key('resources', .)">
-                <xsl:apply-templates select="key('resources', .)" mode="ldh:ComboboxChip">
-                    <xsl:with-param name="forClass" select="$forClass"/>
-                </xsl:apply-templates>
-
-                <xsl:if test="$type-label">
-                    <xsl:apply-templates select="." mode="ac:ValueAnnotations">
-                        <xsl:with-param name="type" select="$type"/>
-                        <xsl:with-param name="forClass" select="$forClass"/>
-                    </xsl:apply-templates>
-                </xsl:if>
-            </xsl:when>
-            <xsl:when test="exists($object-metadata)">
-                <xsl:choose>
-                    <xsl:when test="key('resources', ., $object-metadata)">
-                        <xsl:apply-templates select="key('resources', ., $object-metadata)" mode="ldh:ComboboxChip">
-                            <xsl:with-param name="forClass" select="$forClass"/>
-                        </xsl:apply-templates>
-
-                        <xsl:if test="$type-label">
-                            <xsl:apply-templates select="." mode="ac:ValueAnnotations">
-                                <xsl:with-param name="type" select="$type"/>
-                                <xsl:with-param name="forClass" select="$forClass"/>
-                            </xsl:apply-templates>
-                        </xsl:if>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:call-template name="ldh:Combobox">
-                            <xsl:with-param name="value" select="."/>
-                            <xsl:with-param name="forClass" select="$forClass"/>
-                        </xsl:call-template>
-
-                        <xsl:if test="$type-label">
-                            <xsl:apply-templates select="." mode="ac:ValueAnnotations">
-                                <xsl:with-param name="type" select="$type"/>
-                            </xsl:apply-templates>
-                        </xsl:if>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:call-template name="ldh:Combobox">
-                    <xsl:with-param name="value" select="."/>
-                    <xsl:with-param name="forClass" select="$forClass"/>
-                </xsl:call-template>
-
-                <xsl:if test="$type-label">
-                    <xsl:apply-templates select="." mode="ac:ValueAnnotations">
-                        <xsl:with-param name="type" select="$type"/>
-                    </xsl:apply-templates>
-                </xsl:if>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-
-    <xsl:template match="@rdf:resource" mode="ac:ValueAnnotations">
-        <xsl:param name="type" as="xs:string?"/>
-        <xsl:param name="forClass" as="xs:anyURI*"/>
-
-        <xsl:if test="not($type = 'hidden')">
-            <xsl:apply-templates select="." mode="ac:AnnotationTag">
-                <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet an-term is-resource'"/>
-                <xsl:with-param name="label" as="item()*">
-                    <xsl:choose>
-                        <xsl:when test="exists($forClass)">
-                            <xsl:value-of select="$forClass ! ldh:class-label(xs:anyURI(.))" separator=""/>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:apply-templates select="key('resources', 'resource', ldh:translations())" mode="ac:label"/>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:with-param>
-            </xsl:apply-templates>
-        </xsl:if>
-    </xsl:template>
-
-    <!-- object blank node -->
-    <xsl:template match="*[@rdf:about]/*/@rdf:nodeID | *[@rdf:nodeID]/*/@rdf:nodeID" mode="ac:FormControl">
-        <xsl:param name="type" select="'text'" as="xs:string"/>
-        <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <xsl:param name="class" as="xs:string?"/>
-        <xsl:param name="disabled" select="false()" as="xs:boolean"/>
-        <xsl:param name="traversed-ids" as="xs:string*" tunnel="yes"/>
-        <xsl:param name="inline" select="false()" as="xs:boolean" tunnel="yes"/>
-        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
-        <xsl:param name="constructor" as="document-node()?"/>
-        <xsl:variable name="resource" select="key('resources', .)"/>
-
-        <xsl:choose>
-            <xsl:when test="$type = 'hidden'">
-                <xsl:apply-templates select="." mode="xhtml:Input">
-                    <xsl:with-param name="type" select="$type"/>
-                    <xsl:with-param name="id" select="$id"/>
-                    <xsl:with-param name="class" select="$class"/>
-                    <xsl:with-param name="disabled" select="$disabled"/>
-                </xsl:apply-templates>
-            </xsl:when>
-            <xsl:when test="$inline and $resource and not(. = $traversed-ids)">
-                <xsl:apply-templates select="." mode="xhtml:Input">
-                    <xsl:with-param name="type" select="'hidden'"/>
-                </xsl:apply-templates>
-
-                <xsl:apply-templates select="$resource" mode="#current">
-                    <xsl:with-param name="traversed-ids" select="(., $traversed-ids)" tunnel="yes"/>
-                </xsl:apply-templates>
-
-                <!-- restore subject context -->
-                <xsl:apply-templates select="../../@rdf:about | ../../@rdf:nodeID" mode="#current">
-                    <xsl:with-param name="type" select="'hidden'"/>
-                </xsl:apply-templates>
-            </xsl:when>
-            <xsl:when test="$resource">
-                <xsl:variable name="forClass" select="if ($constructor) then distinct-values(key('resources', key('resources-by-type', ../../rdf:type/@rdf:resource, $constructor)/*[concat(namespace-uri(), local-name()) = current()/../concat(namespace-uri(), local-name())]/@rdf:nodeID, $constructor)/rdf:type/@rdf:resource[not(. = '&rdfs;Class')]) else ()" as="xs:anyURI*"/>
-                <xsl:apply-templates select="$resource" mode="ldh:ComboboxChip">
-                    <xsl:with-param name="forClass" select="$forClass"/>
-                </xsl:apply-templates>
-
-                <xsl:if test="$type-label">
-                    <xsl:apply-templates select="." mode="ac:ValueAnnotations">
-                        <xsl:with-param name="type" select="$type"/>
-                        <xsl:with-param name="forClass" select="$forClass"/>
-                    </xsl:apply-templates>
-                </xsl:if>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:apply-templates select="." mode="xhtml:Input">
-                    <xsl:with-param name="type" select="$type"/>
-                    <xsl:with-param name="id" select="$id"/>
-                    <xsl:with-param name="class" select="$class"/>
-                    <xsl:with-param name="disabled" select="$disabled"/>
-                </xsl:apply-templates>
-
-                <xsl:if test="$type-label">
-                    <xsl:apply-templates select="." mode="ac:ValueAnnotations">
-                        <xsl:with-param name="type" select="$type"/>
-                    </xsl:apply-templates>
-                </xsl:if>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-
-    <!-- blank nodes that only have rdf:type xsd:* and no other properties become literal inputs.
-         Duplicates Web-Client's generic on purpose: this layer's object-bnode template above would
-         otherwise swallow the match by import precedence, so the priority ladder must resolve here -->
-    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*/@rdf:nodeID[key('resources', .)[not(* except rdf:type[starts-with(@rdf:resource, '&xsd;')])]]" mode="ac:FormControl" priority="2">
-        <xsl:param name="type" select="'text'" as="xs:string"/>
-        <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <xsl:param name="class" as="xs:string?"/>
-        <xsl:param name="disabled" select="false()" as="xs:boolean"/>
-        <xsl:param name="required" select="false()" as="xs:boolean"/>
-        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
-
-        <!-- the field shell keeps this input on the shared control width; a bare input here sat at its
-             UA-intrinsic width beside the capped fields (the §5d diagnostic) -->
-        <xsl:apply-templates select="." mode="ac:FieldShell">
-            <xsl:with-param name="type" select="$type"/>
-            <xsl:with-param name="control" as="item()*">
-                <xsl:call-template name="xhtml:Input">
-                    <xsl:with-param name="name" select="'ol'"/>
-                    <xsl:with-param name="type" select="$type"/>
-                    <xsl:with-param name="id" select="$id"/>
-                    <xsl:with-param name="class" select="$class"/>
-                    <xsl:with-param name="disabled" select="$disabled"/>
-                </xsl:call-template>
-            </xsl:with-param>
-        </xsl:apply-templates>
-
-        <!-- datatype -->
-        <xsl:call-template name="xhtml:Input">
-            <xsl:with-param name="name" select="'lt'"/>
-            <xsl:with-param name="type" select="'hidden'"/>
-            <xsl:with-param name="value" select="key('resources', .)/rdf:type/@rdf:resource"/>
-        </xsl:call-template>
-
-        <xsl:if test="$type-label">
-            <xsl:variable name="datatype" as="document-node()">
-                <xsl:document>
-                    <rdf:Description>
-                        <xsl:element name="{../name()}" namespace="{../namespace-uri()}">
-                            <xsl:attribute name="rdf:datatype" select="key('resources', .)/rdf:type/@rdf:resource"/>
-                        </xsl:element>
-                    </rdf:Description>
-                </xsl:document>
-            </xsl:variable>
-
-            <xsl:apply-templates select="$datatype//@rdf:datatype" mode="ac:ValueAnnotations">
-                <xsl:with-param name="type" select="$type"/>
-            </xsl:apply-templates>
-        </xsl:if>
-    </xsl:template>
-
-    <!-- A blank node typed rdf:langString is a LANGUAGE-TAGGED literal: a value input plus a language
-         field, never a datatype and never a resource. Web-Client carries the same rule, and this is a
-         deliberate shadow of it rather than a duplicate by accident: LDH imports Web-Client, so ANY
-         LDH template matching this node wins on import precedence whatever priority the Client's
-         carries. Measured while fixing it - excluding rdf:langString from LDH's non-XSD resource
-         lookup did not reach the Client's rule, it merely handed the node to LDH's generic bnode
-         control, which rendered an ob (object blank node) field for a property that takes text. The
-         xsd:* template above shadows the Client's the same way and for the same reason.
-
-         Why not a datatype: RDF 1.1 requires an rdf:langString literal to carry a language tag and
-         forbids it carrying a datatype attribute, so emitting lt=rdf:langString would encode an
-         ill-formed literal. The language field, its ll input and the annotation are all reached by
-         synthesising the value node this control produces, so the constructor-driven field and the
-         one rendered from existing data are the same emitters rather than two that can drift. It is
-         prefilled from ac:langs(), the reader's own accepted list.
-
-         What this cost before it was fixed: with the marker treated as a resource, an empty combobox
-         still submitted its generated id URI as the object, so saving the form wrote
-         skos:altLabel <...#id03f1366d-...> into the data instead of a literal. -->
-    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&rdf;langString'])]]" mode="ac:FormControl" priority="3">
-        <xsl:param name="type" select="'text'" as="xs:string"/>
-        <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <xsl:param name="class" as="xs:string?"/>
-        <xsl:param name="disabled" select="false()" as="xs:boolean"/>
-        <xsl:param name="required" select="false()" as="xs:boolean"/>
-        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
-        <xsl:variable name="value" as="element()">
-            <xsl:element name="{../name()}" namespace="{../namespace-uri()}">
-                <xsl:attribute name="xml:lang" select="ac:langs()[1]"/>
-            </xsl:element>
-        </xsl:variable>
-
-        <xsl:apply-templates select="." mode="ac:FieldShell">
-            <xsl:with-param name="type" select="$type"/>
-            <xsl:with-param name="control" as="item()*">
-                <xsl:call-template name="xhtml:Input">
-                    <xsl:with-param name="name" select="'ol'"/>
-                    <xsl:with-param name="type" select="$type"/>
-                    <xsl:with-param name="id" select="$id"/>
-                    <xsl:with-param name="class" select="$class"/>
-                    <xsl:with-param name="disabled" select="$disabled"/>
-                </xsl:call-template>
-            </xsl:with-param>
-        </xsl:apply-templates>
-
-        <xsl:if test="$type-label">
-            <xsl:apply-templates select="." mode="ac:AnnotationTag">
-                <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet co-neutral'"/>
-                <xsl:with-param name="title" select="'&rdf;langString'"/>
-                <xsl:with-param name="label" select="'rdf:langString'"/>
-            </xsl:apply-templates>
-        </xsl:if>
-
-        <xsl:apply-templates select="$value/@xml:lang" mode="ac:FormControl">
-            <xsl:with-param name="type" select="$type"/>
-            <xsl:with-param name="disabled" select="$disabled"/>
-        </xsl:apply-templates>
-    </xsl:template>
-
-    <!-- special case for owl:NamedIndividual bnode instances which become comboboxes -->
-    <xsl:template match="*[@rdf:nodeID]/*/@rdf:nodeID[key('resources', .)/rdf:type/@rdf:resource = '&owl;NamedIndividual']" mode="ac:FormControl" priority="2">
-        <xsl:param name="type" select="'text'" as="xs:string"/>
-        <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <xsl:param name="class" select="'resource-combobox combobox'" as="xs:string?"/>
-        <xsl:param name="disabled" select="false()" as="xs:boolean"/>
-        <xsl:param name="required" select="false()" as="xs:boolean"/>
-        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
-        <xsl:variable name="forClass" select="key('resources', .)/rdf:type/@rdf:resource" as="xs:anyURI"/>
-
-        <xsl:apply-templates select="key('resources', .)" mode="ldh:ComboboxChip">
-            <xsl:with-param name="forClass" select="$forClass"/>
-        </xsl:apply-templates>
-
-        <xsl:if test="$type-label">
-            <xsl:apply-templates select="." mode="ac:ValueAnnotations">
-                <xsl:with-param name="type" select="$type"/>
-                <xsl:with-param name="forClass" select="$forClass"/>
-            </xsl:apply-templates>
-        </xsl:if>
-    </xsl:template>
-
-    <!-- blank nodes that only have non-XSD rdf:type and no other properties become resource lookups.
-         rdf:langString is excluded because it is a LITERAL datatype that merely happens to live outside
-         the xsd: namespace: a marker typed with it means "text with a language tag", and treating it as
-         a class handed the author a URI picker for a property that takes text - which is exactly what a
-         constructor declaring [ a rdf:langString ] got. Excluded here rather than shadowed by a second
-         copy of the literal control: with no LDH template claiming it, Web-Client's own langString rule
-         applies, so the control has one implementation in the layer that owns generic form behaviour. -->
-    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*/@rdf:nodeID[key('resources', .)[not(* except rdf:type[not(starts-with(@rdf:resource, '&xsd;'))][not(@rdf:resource = '&rdf;langString')])]]" mode="ac:FormControl" priority="1">
-        <xsl:param name="type" select="'text'" as="xs:string"/>
-        <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <xsl:param name="class" select="'resource-combobox combobox'" as="xs:string?"/>
-        <xsl:param name="disabled" select="false()" as="xs:boolean"/>
-        <xsl:param name="required" select="false()" as="xs:boolean"/>
-        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
-        <xsl:param name="forClass" select="key('resources', .)/rdf:type/@rdf:resource" as="xs:anyURI*"/>
-
-        <xsl:call-template name="ldh:Combobox">
-            <xsl:with-param name="type" select="$type"/>
-            <xsl:with-param name="id" select="$id"/>
-            <xsl:with-param name="class" select="$class"/>
-            <xsl:with-param name="forClass" select="$forClass"/>
-        </xsl:call-template>
-
-        <xsl:if test="$type-label">
-            <xsl:apply-templates select="." mode="ac:ValueAnnotations">
-                <xsl:with-param name="type" select="$type"/>
-                <xsl:with-param name="forClass" select="$forClass"/>
-            </xsl:apply-templates>
-        </xsl:if>
-    </xsl:template>
-
-    <!-- RDFa editor for XMLLiteral objects -->
-
-    <xsl:template match="*[@rdf:parseType = 'Literal']/xhtml:*" mode="ac:FormControl">
-        <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <xsl:param name="type" select="'textarea'" as="xs:string?"/> <!-- 'textarea' is not a valid <input> type -->
-        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
-
-        <div class="rdfa-editor-content">
-            <xsl:copy-of select="node()" copy-namespaces="no"/>
-        </div>
-        <xsl:call-template name="xhtml:Input">
-            <xsl:with-param name="type" select="'hidden'"/>
-            <xsl:with-param name="name" select="'ol'"/>
-            <xsl:with-param name="id" select="$id"/>
-        </xsl:call-template>
-        <xsl:call-template name="xhtml:Input">
-            <xsl:with-param name="type" select="'hidden'"/>
-            <xsl:with-param name="name" select="'lt'"/>
-            <xsl:with-param name="value" select="'&rdf;XMLLiteral'"/>
-        </xsl:call-template>
-
-        <xsl:if test="$type-label">
-            <xsl:apply-templates select="." mode="ac:ValueAnnotations">
-                <xsl:with-param name="type" select="$type"/>
-            </xsl:apply-templates>
-        </xsl:if>
-    </xsl:template>
-    
     <!-- PROPERTY LABEL -->
 
     <!-- the single-label cell of a property group: predicate label, required marker, description toggletip.
@@ -2160,293 +1366,6 @@ exclude-result-prefixes="#all"
         </div>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*/@rdf:nodeID" mode="ac:ValueAnnotations">
-        <xsl:param name="type" as="xs:string?"/>
-        <xsl:param name="forClass" as="xs:anyURI*"/>
-
-        <xsl:if test="not($type = 'hidden')">
-            <xsl:apply-templates select="." mode="ac:AnnotationTag">
-                <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet an-term is-blank'"/>
-                <xsl:with-param name="label" as="item()*">
-                    <xsl:choose>
-                        <xsl:when test="exists($forClass)">
-                            <xsl:value-of select="$forClass ! ldh:class-label(xs:anyURI(.))" separator=""/>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:apply-templates select="key('resources', 'resource', ldh:translations())" mode="ac:label"/>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:with-param>
-            </xsl:apply-templates>
-        </xsl:if>
-    </xsl:template>
-
-    <!-- literal term-kind / datatype / language annotations (shadow the Web-Client help-inline emitters) -->
-
-    <xsl:template match="text()" mode="ac:ValueAnnotations">
-        <xsl:param name="type" as="xs:string?"/>
-
-        <xsl:if test="not($type = 'hidden')">
-            <xsl:choose>
-                <xsl:when test="../@rdf:datatype">
-                    <xsl:apply-templates select="../@rdf:datatype" mode="#current"/>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:apply-templates select="." mode="ac:AnnotationTag">
-                        <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet an-term is-literal'"/>
-                        <xsl:with-param name="label" as="item()*">
-                            <xsl:apply-templates select="key('resources', 'literal', ldh:translations())" mode="ac:label"/>
-                        </xsl:with-param>
-                    </xsl:apply-templates>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:if>
-    </xsl:template>
-
-    <!-- A literal carrying a language tag IS an rdf:langString, and is named as one. RDF 1.1 gives
-         every tagged literal that datatype, so "Literal" said less than the data does - and said
-         something different from the field the same property gets before a value exists, which
-         announces rdf:langString from the constructor. Same tag treatment as any other datatype,
-         because that is what it is; the untagged case keeps the plain term tag below. -->
-    <xsl:template match="text()[../@xml:lang]" mode="ac:ValueAnnotations" priority="1">
-        <xsl:param name="type" as="xs:string?"/>
-
-        <xsl:if test="not($type = 'hidden')">
-            <xsl:apply-templates select="." mode="ac:AnnotationTag">
-                <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet co-neutral'"/>
-                <xsl:with-param name="title" select="'&rdf;langString'"/>
-                <xsl:with-param name="label" select="'rdf:langString'"/>
-            </xsl:apply-templates>
-        </xsl:if>
-    </xsl:template>
-
-    <xsl:template match="@rdf:datatype" mode="ac:ValueAnnotations">
-        <xsl:param name="type" as="xs:string?"/>
-
-        <xsl:if test="not($type = 'hidden')">
-            <xsl:apply-templates select="." mode="ac:AnnotationTag">
-                <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet co-neutral'"/>
-                <xsl:with-param name="title" select="."/>
-                <xsl:with-param name="label" select="if (starts-with(., '&xsd;')) then 'xsd:' || substring-after(., '&xsd;') else string(.)"/>
-            </xsl:apply-templates>
-        </xsl:if>
-    </xsl:template>
-
-    <!-- the field-shell emitters live in Web-Client now; the language field only takes the design's app-kit wrapper class -->
-    <xsl:template match="@xml:lang" mode="ac:FormControl">
-        <xsl:next-match>
-            <xsl:with-param name="class" select="'ldh-lang'"/>
-        </xsl:next-match>
-    </xsl:template>
-    
-    <!-- real numbers -->
-    
-    <xsl:template match="text()[../@rdf:datatype = '&xsd;float'] | text()[../@rdf:datatype = '&xsd;double']" mode="xhtml:Input" priority="1">
-        <xsl:param name="type" select="'text'" as="xs:string"/>
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" as="xs:string?"/>
-        <xsl:param name="disabled" select="false()" as="xs:boolean"/>
-
-        <xsl:call-template name="xhtml:Input">
-            <xsl:with-param name="name" select="'ol'"/>
-            <xsl:with-param name="type" select="$type"/>
-            <xsl:with-param name="id" select="$id"/>
-            <xsl:with-param name="class" select="$class"/>
-            <xsl:with-param name="disabled" select="$disabled"/>
-            <xsl:with-param name="value" select="format-number(., '#####.00000')"/>
-        </xsl:call-template>
-        
-        <xsl:call-template name="xhtml:Input">
-            <xsl:with-param name="type" select="'hidden'"/>
-            <xsl:with-param name="name" select="'lt'"/>
-            <xsl:with-param name="value" select="../@rdf:datatype"/>
-        </xsl:call-template>
-    </xsl:template>
-
-    <!-- datetimes -->
-
-    <!-- the pair emits its own field shells, so it must not ride the generic text() field-shell wrapper;
-         the hidden variant is a plain element, so it stays on the xhtml:Input primitive -->
-    <xsl:template match="text()[../@rdf:datatype = '&xsd;dateTime'][. castable as xs:dateTime]" mode="ac:FormControl" priority="1">
-        <xsl:param name="type" select="'datetime-local'" as="xs:string"/>
-        <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <xsl:param name="class" as="xs:string?"/>
-        <xsl:param name="disabled" select="false()" as="xs:boolean"/>
-        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
-
-        <xsl:choose>
-            <xsl:when test="$type = 'datetime-local'">
-                <xsl:apply-templates select="." mode="ldh:DateTimePair">
-                    <xsl:with-param name="type" select="$type"/>
-                    <xsl:with-param name="id" select="$id"/>
-                    <xsl:with-param name="class" select="$class"/>
-                    <xsl:with-param name="disabled" select="$disabled"/>
-                </xsl:apply-templates>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:apply-templates select="." mode="xhtml:Input">
-                    <xsl:with-param name="type" select="$type"/>
-                    <xsl:with-param name="id" select="$id"/>
-                    <xsl:with-param name="class" select="$class"/>
-                    <xsl:with-param name="disabled" select="$disabled"/>
-                </xsl:apply-templates>
-            </xsl:otherwise>
-        </xsl:choose>
-
-        <xsl:if test="$type-label">
-            <xsl:apply-templates select="." mode="ac:ValueAnnotations">
-                <xsl:with-param name="type" select="$type"/>
-            </xsl:apply-templates>
-        </xsl:if>
-    </xsl:template>
-
-    <!-- value and timezone offset as two TextFields sitting together, as in the design: a composite
-         component (the app kit's .ldh-dt-pair), so it carries a component mode rather than living
-         inside xhtml:Input, whose modes stay childless element primitives -->
-    <xsl:template match="text()[../@rdf:datatype = '&xsd;dateTime'][. castable as xs:dateTime]" mode="ldh:DateTimePair">
-        <xsl:param name="type" select="'datetime-local'" as="xs:string"/>
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" as="xs:string?"/>
-        <xsl:param name="disabled" select="false()" as="xs:boolean"/>
-
-        <span class="ldh-dt-pair">
-            <xsl:apply-templates select="." mode="ac:FieldShell">
-                <xsl:with-param name="control" as="item()*">
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'ol'"/>
-                        <xsl:with-param name="type" select="$type"/>
-                        <xsl:with-param name="id" select="$id"/>
-                        <xsl:with-param name="class" select="$class"/>
-                        <xsl:with-param name="disabled" select="$disabled"/>
-                        <xsl:with-param name="value" select="format-dateTime(xs:dateTime(.), '[Y0001]-[M01]-[D01]T[H01]:[m01]:[s01]')"/>
-                    </xsl:call-template>
-                </xsl:with-param>
-            </xsl:apply-templates>
-
-            <xsl:call-template name="xhtml:Input">
-                <xsl:with-param name="type" select="'hidden'"/>
-                <xsl:with-param name="name" select="'lt'"/>
-                <xsl:with-param name="value" select="../@rdf:datatype"/>
-            </xsl:call-template>
-
-            <xsl:apply-templates select="." mode="ac:FieldShell">
-                <xsl:with-param name="control" as="item()*">
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="class" select="'input-timezone'"/>
-                        <xsl:with-param name="type" select="'text'"/>
-                        <xsl:with-param name="value" select="format-dateTime(xs:dateTime(.), '[Z]')"/>
-                    </xsl:call-template>
-                </xsl:with-param>
-            </xsl:apply-templates>
-        </span>
-    </xsl:template>
-
-    <!-- booleans -->
-
-    <xsl:template match="text()[../@rdf:datatype = '&xsd;boolean']" mode="ac:FormControl" priority="1">
-        <xsl:param name="type" select="'text'" as="xs:string"/>
-        <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <xsl:param name="class" as="xs:string?"/>
-        <xsl:param name="disabled" select="false()" as="xs:boolean"/>
-        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
-
-        <xsl:choose>
-            <xsl:when test="$type = 'hidden'">
-                <xsl:call-template name="xhtml:Input">
-                    <xsl:with-param name="name" select="'ol'"/>
-                    <xsl:with-param name="type" select="'hidden'"/>
-                    <xsl:with-param name="id" select="$id"/>
-                    <xsl:with-param name="value" select="."/>
-                </xsl:call-template>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:apply-templates select="." mode="ac:SelectShell">
-                    <xsl:with-param name="select" as="item()*">
-                <select name="ol">
-                    <xsl:if test="$id"><xsl:attribute name="id" select="$id"/></xsl:if>
-                    <xsl:if test="$class"><xsl:attribute name="class" select="$class"/></xsl:if>
-                    <xsl:if test="$disabled"><xsl:attribute name="disabled" select="'disabled'"/></xsl:if>
-                    <option value="true">
-                        <xsl:if test=". = 'true'"><xsl:attribute name="selected" select="'selected'"/></xsl:if>
-                        <xsl:text>true</xsl:text>
-                    </option>
-                    <option value="false">
-                        <xsl:if test=". = 'false'"><xsl:attribute name="selected" select="'selected'"/></xsl:if>
-                        <xsl:text>false</xsl:text>
-                    </option>
-                </select>
-                    </xsl:with-param>
-                </xsl:apply-templates>
-            </xsl:otherwise>
-        </xsl:choose>
-
-        <xsl:call-template name="xhtml:Input">
-            <xsl:with-param name="type" select="'hidden'"/>
-            <xsl:with-param name="name" select="'lt'"/>
-            <xsl:with-param name="value" select="../@rdf:datatype"/>
-        </xsl:call-template>
-
-        <xsl:if test="$type-label and not($type = 'hidden')">
-            <xsl:apply-templates select="." mode="ac:ValueAnnotations">
-                <xsl:with-param name="type" select="$type"/>
-            </xsl:apply-templates>
-        </xsl:if>
-    </xsl:template>
-
-    <!-- boolean placeholder via constructor's blank-node form: property → bnode whose only child is rdf:type xsd:boolean -->
-    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;boolean'])]]" mode="ac:FormControl" priority="3">
-        <xsl:param name="type" select="'text'" as="xs:string"/>
-        <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <xsl:param name="class" as="xs:string?"/>
-        <xsl:param name="disabled" select="false()" as="xs:boolean"/>
-        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
-
-        <xsl:choose>
-            <xsl:when test="$type = 'hidden'">
-                <xsl:call-template name="xhtml:Input">
-                    <xsl:with-param name="name" select="'ol'"/>
-                    <xsl:with-param name="type" select="'hidden'"/>
-                    <xsl:with-param name="id" select="$id"/>
-                </xsl:call-template>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:apply-templates select="." mode="ac:SelectShell">
-                    <xsl:with-param name="select" as="item()*">
-                <select name="ol">
-                    <xsl:if test="$id"><xsl:attribute name="id" select="$id"/></xsl:if>
-                    <xsl:if test="$class"><xsl:attribute name="class" select="$class"/></xsl:if>
-                    <xsl:if test="$disabled"><xsl:attribute name="disabled" select="'disabled'"/></xsl:if>
-                    <option value="true">true</option>
-                    <option value="false">false</option>
-                </select>
-                    </xsl:with-param>
-                </xsl:apply-templates>
-            </xsl:otherwise>
-        </xsl:choose>
-
-        <xsl:call-template name="xhtml:Input">
-            <xsl:with-param name="name" select="'lt'"/>
-            <xsl:with-param name="type" select="'hidden'"/>
-            <xsl:with-param name="value" select="key('resources', .)/rdf:type/@rdf:resource"/>
-        </xsl:call-template>
-
-        <xsl:if test="$type-label and not($type = 'hidden')">
-            <xsl:variable name="datatype" as="document-node()">
-                <xsl:document>
-                    <rdf:Description>
-                        <xsl:element name="{../name()}" namespace="{../namespace-uri()}">
-                            <xsl:attribute name="rdf:datatype" select="key('resources', .)/rdf:type/@rdf:resource"/>
-                        </xsl:element>
-                    </rdf:Description>
-                </xsl:document>
-            </xsl:variable>
-
-            <xsl:apply-templates select="$datatype//@rdf:datatype" mode="ac:ValueAnnotations">
-                <xsl:with-param name="type" select="$type"/>
-            </xsl:apply-templates>
-        </xsl:if>
-    </xsl:template>
-
     <!-- XHTML CONTENT IDENTITY TRANSFORM -->
 
     <xsl:template match="@* | node()" mode="ldh:XHTMLContent">
@@ -2454,7 +1373,7 @@ exclude-result-prefixes="#all"
             <xsl:apply-templates select="@* | node()" mode="#current"/>
         </xsl:copy>
     </xsl:template>
-    
+
     <!-- resolve relative @href URIs against base in proxy mode -->
     <xsl:template match="@href[not(ac:absolute-path(ldh:base-uri(.)) = ac:absolute-path(ldh:request-uri()))][not(starts-with(., '/')) and not(starts-with(., '#')) and not(contains(., ':'))]" mode="ldh:XHTMLContent" priority="1">
         <xsl:attribute name="{name()}" select="resolve-uri(., ldh:base-uri(.))"/>

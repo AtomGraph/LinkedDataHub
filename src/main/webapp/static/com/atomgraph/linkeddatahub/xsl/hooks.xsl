@@ -66,14 +66,24 @@ exclude-result-prefixes="#all"
             ldh:RowHook           (client only, see client/hooks.xsl) factories of deferred work for one
                                   rendered row. Contribute; there is nothing to inherit unless another
                                   package claimed the same node.
+            the value leaves      (imports/values.xsl, imported below) ac:FormControl, ac:PropertyListValue,
+                                  ac:ValueAnnotations, ldh:TypeControl, ac:property-label, ac:object-label,
+                                  ac:lang-tag, ac:ResultsTableHeaderCell, xhtml:Anchor/svg:Anchor and the
+                                  unnamed mode's property row and value link. A rule for the package's own
+                                  property or datatype replaces the generic one, or decorates it with
+                                  xsl:next-match; the platform's typed vocabulary modules above the
+                                  packages still win for their terms.
 
-        Deliberately still sealed in this version: the value-leaf modes (ac:FormControl,
-        ac:PropertyListValue, ldh:TypeControl, ldh:PropertyControl and the unnamed mode) and every
-        component mode (ldh:Modal, ldh:DataTable, ac:FieldShell...). Web-Client's own leaf and shell
-        modes that this platform does not re-declare (ac:FieldShell, ac:SelectShell, ac:InlineAlert,
-        xhtml:Option, ac:RDFaAttributes, ac:image) sit below the packages and can still be reached;
-        closing that needs Web-Client's default module split into leaves and shells.
+        Deliberately sealed: every component mode (ldh:Modal, ldh:DataTable, ldh:PropertyLabel,
+        ac:FieldShell...), the ldh:Combobox widget, and the library in imports/default.xsl - keys, global
+        params, functions - which a package must not be able to redefine. Web-Client's own leaf and
+        shell modes that this platform does not re-declare (ac:FieldShell, ac:SelectShell,
+        ac:InlineAlert, xhtml:Option, ac:RDFaAttributes, ac:image) sit below the packages and can still
+        be reached; closing that needs Web-Client's default module split into leaves and shells.
     -->
+
+    <!-- the value tier is its own module for size; it is part of this contract and sits below it -->
+    <xsl:import href="imports/values.xsl"/>
 
     <xsl:mode name="ldh:TreeNode"/>
     <xsl:mode name="ac:PropertyEditor"/>

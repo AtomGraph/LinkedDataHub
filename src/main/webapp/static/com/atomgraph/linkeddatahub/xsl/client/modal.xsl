@@ -1210,7 +1210,7 @@ LIMIT   10
     <!-- suppress unrelated Descriptions in the response graph (mirrors ldh:DocumentForm's @rdf:about = $about filter) -->
     <xsl:template match="*" mode="ldh:AppSettingsForm"/>
 
-    <!-- restrict the application settings form UI to dct:title / dct:description; render every other app property as hidden inputs so the PATCH still carries them and they're preserved server-side. The value-bearing children (text / @rdf:resource / @rdf:nodeID / @xml:lang / @rdf:datatype) are dispatched in mode="ac:FormControl" — that's where the per-type hidden-input renderers live (imports/default.xsl @rdf:resource, @rdf:datatype, text() templates). Using mode="#current" would dispatch them in ldh:AppSettingsForm mode where they have no template and XSLT defaults emit raw text. -->
+    <!-- restrict the application settings form UI to dct:title / dct:description; render every other app property as hidden inputs so the PATCH still carries them and they're preserved server-side. The value-bearing children (text / @rdf:resource / @rdf:nodeID / @xml:lang / @rdf:datatype) are dispatched in mode="ac:FormControl" — that's where the per-type hidden-input renderers live (imports/values.xsl @rdf:resource, @rdf:datatype, text() templates). Using mode="#current" would dispatch them in ldh:AppSettingsForm mode where they have no template and XSLT defaults emit raw text. -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&lapp;Application']/*[not(self::dct:title or self::dct:description or self::rdf:type)]" mode="ldh:AppSettingsForm" priority="1">
         <xsl:apply-templates select="." mode="xhtml:Input">
             <xsl:with-param name="type" select="'hidden'"/>
@@ -1226,7 +1226,7 @@ LIMIT   10
     <!-- ldh:import is represented by the package checkboxes in the same form, not round-tripped as hidden inputs -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&lapp;Application']/ldh:import" mode="ldh:AppSettingsForm" priority="2"/>
 
-    <!-- dct:title / dct:description / rdf:type fall through to the generic ac:FormControl rendering. Forward the with-params from the shell's default body iteration (violations / constructor / type-constraints / type-shapes) so the per-property template at imports/default.xsl:744 can compute $required correctly (required-class bolding) and render constraint violations. -->
+    <!-- dct:title / dct:description / rdf:type fall through to the generic ac:FormControl rendering. Forward the with-params from the shell's default body iteration (violations / constructor / type-constraints / type-shapes) so the per-property template in imports/values.xsl can compute $required correctly (required-class bolding) and render constraint violations. -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&lapp;Application']/*" mode="ldh:AppSettingsForm">
         <xsl:param name="violations" as="element()*"/>
         <xsl:param name="constructor" as="document-node()?"/>

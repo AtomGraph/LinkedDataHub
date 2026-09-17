@@ -330,7 +330,7 @@ exclude-result-prefixes="#all"
         <!-- crumb icon by document type, as in the design system's breadcrumb -->
         <xsl:param name="icon" select="ldh:class-icon(., 'link')" as="xs:string"/>
 
-        <!-- same href recipe as the xhtml:Anchor override in imports/default.xsl; the crumb builds its
+        <!-- same href recipe as the xhtml:Anchor override in imports/values.xsl; the crumb builds its
              own <a> because the design puts a glyph inside it, which the anchor mode cannot emit -->
         <xsl:variable name="fragment" select="ac:fragment-id(@rdf:about)" as="xs:string?"/>
 
@@ -1516,7 +1516,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="hidden" select="$type-hidden"/>
                 </xsl:apply-templates>
 
-                <!-- no fieldset-level alert stack: violations surface at the affected rows - .error decoration for missing mandatory properties, inline .ac-help messages for every other kind (see the property template in imports/default.xsl) -->
+                <!-- no fieldset-level alert stack: violations surface at the affected rows - .error decoration for missing mandatory properties, inline .ac-help messages for every other kind (see the property template in imports/values.xsl) -->
                 <xsl:sequence select="$body"/>
             </div>
 

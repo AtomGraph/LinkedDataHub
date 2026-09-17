@@ -14,6 +14,10 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 # So a package rule in a sealed mode loses however high its priority, while a rule in an open mode wins.
 # The probe package (containment-probe.xsl) tries both: it claims ac:Head and ldh:ContentBody at
 # priority 100, and fills ldh:ContentColumn. The first two must leave no trace; the third must render.
+# It also replaces the ac:PropertyListValue cell of dct:title - the open VALUE tier, whose generic
+# rules the platform keeps in imports/values.xsl below the packages - so the property list of the
+# probe document's topic must carry that marker with the import and not without. The property list
+# belongs to the described resource, so the probe document names a topic with a title.
 #
 # The package lives on the instance itself: a document describing a lapp:Package whose ac:stylesheet is
 # an uploaded file. Both are fetched by the server through its own origin, the way an uploaded ontology
@@ -57,13 +61,14 @@ function probe()
   BODY=$(xmllint --xpath "count(//*[@id = 'containment-probe-body'])" - <<< "$body" 2> /dev/null || echo "ERR")
   COLUMN=$(xmllint --xpath "count(//*[@id = 'containment-probe-column'])" - <<< "$body" 2> /dev/null || echo "ERR")
   TITLE=$(xmllint --xpath "count(//*[local-name() = 'title'][. = 'containment probe'])" - <<< "$body" 2> /dev/null || echo "ERR")
+  VALUE=$(xmllint --xpath "count(//*[@data-containment-probe = 'title'])" - <<< "$body" 2> /dev/null || echo "ERR")
 }
 
 function assert_markers()
 {
   local phase="$1" expected_column="$2"
   probe
-  echo "DEBUG: [$phase] head marker: $HEAD (expected 0)  probe title: $TITLE (expected 0)  body marker: $BODY (expected 0)  column marker: $COLUMN (expected $expected_column)"
+  echo "DEBUG: [$phase] head marker: $HEAD (expected 0)  probe title: $TITLE (expected 0)  body marker: $BODY (expected 0)  column marker: $COLUMN (expected $expected_column)  value cell marker: $VALUE (expected $expected_column)"
   if [ "$HEAD" != "0" ] || [ "$TITLE" != "0" ]; then
     echo "DEBUG: [$phase] the package replaced the document head - ac:Head is not sealed" >&2
     exit 1
@@ -77,6 +82,14 @@ function assert_markers()
       echo "DEBUG: [$phase] the package's ldh:ContentColumn rule did not render - either the package stylesheet did not compose (check the server log for the composition fallback) or the open mode is not reachable" >&2
     else
       echo "DEBUG: [$phase] the package's column is still rendered after the import was removed" >&2
+    fi
+    exit 1
+  fi
+  if [ "$VALUE" != "$expected_column" ]; then
+    if [ "$expected_column" = "1" ]; then
+      echo "DEBUG: [$phase] the package's ac:PropertyListValue rule for dct:title did not replace the cell - the value tier is not below the packages" >&2
+    else
+      echo "DEBUG: [$phase] the package's value cell marker is still rendered after the import was removed" >&2
     fi
     exit 1
   fi
@@ -148,6 +161,8 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
 <${probe_doc}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item> .
 <${probe_doc}> <http://purl.org/dc/terms/title> "Containment probe" .
 <${probe_doc}> <http://rdfs.org/sioc/ns#has_container> <${END_USER_BASE_URL}> .
+<${probe_doc}> <http://xmlns.com/foaf/0.1/primaryTopic> <${probe_doc}#this> .
+<${probe_doc}#this> <http://purl.org/dc/terms/title> "Containment probe topic" .
 EOT
 
 # without the package: no markers at all
