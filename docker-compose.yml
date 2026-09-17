@@ -122,8 +122,14 @@ services:
     user: root # otherwise fuseki user does not have permissions to the mounted folder which is owner by root
     mem_limit: 1536m # leave headroom above heap for TDB mmap/native memory
     restart: on-failure
+    depends_on:
+      - egress
     environment:
       - JAVA_OPTIONS=-Xmx768m -Xms768m
+      # every outbound request (SPARQL SERVICE, LOAD) goes through egress, which only lets it reach public addresses.
+      # JAVA_TOOL_OPTIONS rather than JAVA_OPTIONS, which an override setting the heap would replace. The empty
+      # nonProxyHosts is load-bearing: by default the JVM bypasses the proxy for localhost
+      - JAVA_TOOL_OPTIONS=-Dhttp.proxyHost=${EGRESS_PROXY_HOST:-egress} -Dhttp.proxyPort=3128 -Dhttps.proxyHost=${EGRESS_PROXY_HOST:-egress} -Dhttps.proxyPort=3128 -Dhttp.nonProxyHosts=
     expose:
       - 3030
     volumes:
@@ -135,14 +141,27 @@ services:
     user: root # otherwise the fuseki user does not have permissions to the mounted folder which is owner by root
     mem_limit: 3072m # leave headroom above heap for TDB mmap/native memory
     restart: on-failure
+    depends_on:
+      - egress
     environment:
       - JAVA_OPTIONS=-Xmx1536m -Xms1536m
+      # see fuseki-admin: outbound requests only reach public addresses, and not localhost either
+      - JAVA_TOOL_OPTIONS=-Dhttp.proxyHost=${EGRESS_PROXY_HOST:-egress} -Dhttp.proxyPort=3128 -Dhttps.proxyHost=${EGRESS_PROXY_HOST:-egress} -Dhttps.proxyPort=3128 -Dhttp.nonProxyHosts=
     expose:
       - 3030
     volumes:
       - ./config/fuseki/config.ttl:/fuseki/config.ttl:ro
       - ./fuseki/end-user:/fuseki/databases
     command: [ "--config", "/fuseki/config.ttl" ]
+  egress: # forward proxy for the triplestores' outbound requests: refuses loopback, private and link-local destinations
+    image: ubuntu/squid:6.6-24.04_beta
+    mem_limit: 256m
+    restart: on-failure
+    configs:
+      - source: egress_squid_conf
+        target: /etc/squid/squid.conf
+    expose:
+      - 3128
   varnish-frontend:
     image: varnish:7.7.3
     user: root # otherwise varnish user does not have permissions to the mounted folder which is owner by root
@@ -619,3 +638,16 @@ configs:
 
           return (deliver);
       }
+  egress_squid_conf:
+    content: |
+      # The triplestores reach the outside world only through here, so a SPARQL SERVICE or LOAD can federate with public
+      # endpoints but cannot reach this deployment's own services - the admin store, Varnish, the platform - or the
+      # host's and cloud's internal addresses. dst resolves the host where the connection is made, so every redirect
+      # hop and every DNS answer is checked, not just the IRI written in the query.
+      http_port 3128
+
+      acl internal dst 0.0.0.0/8 10.0.0.0/8 100.64.0.0/10 127.0.0.0/8 169.254.0.0/16 172.16.0.0/12 192.168.0.0/16 ::1 fc00::/7 fe80::/10
+      http_access deny internal
+      http_access allow all
+
+      cache deny all

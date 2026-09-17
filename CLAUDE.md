@@ -106,6 +106,7 @@ The application runs as a multi-container setup:
 - **nginx**: Reverse proxy and SSL termination (wildcard subdomain routing for dataspaces)
 - **linkeddatahub**: Main Java application (Tomcat)
 - **fuseki-admin/fuseki-end-user**: Separate SPARQL stores
+- **egress**: Squid forward proxy for the stores' outbound requests (SPARQL `SERVICE`, `LOAD`): public destinations only, so a query cannot reach the other store, Varnish or the platform
 - **varnish-frontend/varnish-admin/varnish-end-user**: Caching layers
 
 ### Data Flow

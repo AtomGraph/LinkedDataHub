@@ -98,6 +98,7 @@ Bootstrap 2 is gone, and with it the class vocabulary application stylesheets we
 - An error page renders without the action bar, which had nothing left to act on
 
 ### Security
+- A SPARQL `SERVICE` clause in a query to `/sparql` could read the admin store — agents, authorizations — because the triplestore executes it from inside the stack. The triplestores' outbound requests now go through an `egress` Squid proxy that refuses loopback, private and link-local destinations, so federation with public endpoints keeps working. Deployments with their own compose files need the `egress` service and the stores' `JAVA_TOOL_OPTIONS`, including the empty `http.nonProxyHosts`
 - CSV/RDF imports now validate the `ldh:file` source and `spin:query` URIs via `URLValidator` before fetching, closing a previously unguarded SSRF surface on the import path (same class as LNK-002; the import client carries delegation/client-cert). Loopback stays allowed; `ALLOW_INTERNAL_URLS` remains the escape hatch
 
 ### Known limitations
