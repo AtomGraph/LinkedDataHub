@@ -235,7 +235,9 @@ COPY platform/datasets/admin.trig /var/linkeddatahub/datasets/admin.trig
 
 COPY platform/datasets/end-user.trig /var/linkeddatahub/datasets/end-user.trig
 
-# copy sitemap query & stylesheet
+# copy sitemap queries & stylesheet
+
+COPY platform/sitemap/public-rules.rq /var/linkeddatahub/sitemap/public-rules.rq
 
 COPY platform/sitemap/sitemap.rq.template /var/linkeddatahub/sitemap/sitemap.rq.template
 

@@ -72,6 +72,8 @@ Bootstrap 2 is gone, and with it the class vocabulary application stylesheets we
 - `DEBUG:` output from `http-tests`, with the diagnostic-only `gh api` and `curl` calls and the helper that fed them
 
 ### Fixed
+- Sitemap generation no longer joins the admin service into the end-user query through SPARQL `SERVICE`, which a deployment that isolates its stores refuses — the entrypoint then failed to parse the error and the container exited. The public read rules are queried on the admin service and passed to the end-user query as `VALUES`, and a sitemap that cannot be generated is logged instead of stopping the platform
+- The sitemap lists a document once, with its latest date, and only when a public rule of its own dataspace covers it: rules were matched across dataspaces sharing a store, subclasses were never matched, and a document repeated once per matching rule
 - `curl ... | grep -q` was a race under `pipefail`: `grep -q` closes the pipe on its first match and `curl` dies with 141, failing the pipeline even though the assertion passed
 - View sort's numeric keys yield an empty sequence rather than `NaN` for non-numeric values
 - `DataTransfer.types` marshals to an XDM array under SaxonJS, so payload guards compare via `array:flatten`
