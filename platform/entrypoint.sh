@@ -1140,6 +1140,8 @@ write_robots()
             printf "Disallow: /\n"
         fi
     } > "${SITEMAP_ROOT}/${host}.txt"
+
+    printf "\n### Wrote %s:\n%s\n" "${SITEMAP_ROOT}/${host}.txt" "$(cat "${SITEMAP_ROOT}/${host}.txt")"
 }
 
 if [ "$GENERATE_SITEMAP" = true ] && [ -n "$SITEMAP_ROOT" ]; then

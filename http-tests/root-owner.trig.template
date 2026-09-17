@@ -86,37 +86,3 @@
         acl:agent <${OWNER_URI}> .
 
 }
-
-# public read access to the root document of each dataspace (for HTTP tests)
-# A class rule rather than a document one, because that is the shape a rule of one dataspace can leak into another's
-# sitemap with: both dataspaces here share a store, so the sitemap of each must still carry only its own root.
-
-<acl/authorizations/public-root/>
-{
-
-    <acl/authorizations/public-root/> a dh:Item ;
-        foaf:primaryTopic <acl/authorizations/public-root/#auth> ;
-        sioc:has_container <acl/authorizations/> ;
-        dct:title "Public root" .
-
-    <acl/authorizations/public-root/#auth> a acl:Authorization ;
-        acl:accessToClass <https://w3id.org/atomgraph/linkeddatahub/default#Root> ;
-        acl:mode acl:Read ;
-        acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
-
-}
-
-<https://admin.test.localhost:4443/acl/authorizations/public-root/>
-{
-
-    <https://admin.test.localhost:4443/acl/authorizations/public-root/> a dh:Item ;
-        foaf:primaryTopic <https://admin.test.localhost:4443/acl/authorizations/public-root/#auth> ;
-        sioc:has_container <https://admin.test.localhost:4443/acl/authorizations/> ;
-        dct:title "Public root" .
-
-    <https://admin.test.localhost:4443/acl/authorizations/public-root/#auth> a acl:Authorization ;
-        acl:accessToClass <https://w3id.org/atomgraph/linkeddatahub/default#Root> ;
-        acl:mode acl:Read ;
-        acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
-
-}
