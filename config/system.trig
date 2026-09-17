@@ -24,9 +24,9 @@
     <urn:linkeddatahub:services/admin> a sd:Service ;
         dct:title "LinkedDataHub admin service" ;
         sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
-        sd:endpoint <http://fuseki-admin:3030/ds/> ;
-        a:graphStore <http://fuseki-admin:3030/ds/> ;
-        a:quadStore <http://fuseki-admin:3030/ds/> .
+        sd:endpoint <http://fuseki:3030/admin/> ;
+        a:graphStore <http://fuseki:3030/admin/> ;
+        a:quadStore <http://fuseki:3030/admin/> .
 }
 
 # root end-user - type + service binding
@@ -59,23 +59,47 @@
     <urn:linkeddatahub:services/end-user> a sd:Service ;
         dct:title "LinkedDataHub service" ;
         sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
-        sd:endpoint <http://fuseki-end-user:3030/ds/> ;
-        a:graphStore <http://fuseki-end-user:3030/ds/> ;
-        a:quadStore <http://fuseki-end-user:3030/ds/> .
+        sd:endpoint <http://fuseki:3030/end-user/> ;
+        a:graphStore <http://fuseki:3030/end-user/> ;
+        a:quadStore <http://fuseki:3030/end-user/> .
 }
 
-# northwind-traders admin - type + service binding (reuses root admin service)
+# northwind-traders admin - type + service binding
 
 <urn:linkeddatahub:apps/northwind-traders/admin>
 {
     <urn:linkeddatahub:apps/northwind-traders/admin> a lapp:AdminApplication ;
-        ldt:service <urn:linkeddatahub:services/admin> .
+        ldt:service <urn:linkeddatahub:services/northwind-traders/admin> .
 }
 
-# northwind-traders end-user - type + service binding (reuses root end-user service)
+# northwind-traders admin - service description
+
+<urn:linkeddatahub:services/northwind-traders/admin>
+{
+    <urn:linkeddatahub:services/northwind-traders/admin> a sd:Service ;
+        dct:title "Northwind Traders admin service" ;
+        sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
+        sd:endpoint <http://fuseki:3030/northwind-traders.demo.admin/> ;
+        a:graphStore <http://fuseki:3030/northwind-traders.demo.admin/> ;
+        a:quadStore <http://fuseki:3030/northwind-traders.demo.admin/> .
+}
+
+# northwind-traders end-user - type + service binding
 
 <urn:linkeddatahub:apps/northwind-traders/end-user>
 {
     <urn:linkeddatahub:apps/northwind-traders/end-user> a lapp:EndUserApplication ;
-        ldt:service <urn:linkeddatahub:services/end-user> .
+        ldt:service <urn:linkeddatahub:services/northwind-traders/end-user> .
+}
+
+# northwind-traders end-user - service description
+
+<urn:linkeddatahub:services/northwind-traders/end-user>
+{
+    <urn:linkeddatahub:services/northwind-traders/end-user> a sd:Service ;
+        dct:title "Northwind Traders service" ;
+        sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
+        sd:endpoint <http://fuseki:3030/northwind-traders.demo.end-user/> ;
+        a:graphStore <http://fuseki:3030/northwind-traders.demo.end-user/> ;
+        a:quadStore <http://fuseki:3030/northwind-traders.demo.end-user/> .
 }

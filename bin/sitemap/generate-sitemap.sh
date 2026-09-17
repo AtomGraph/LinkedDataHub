@@ -1,20 +1,20 @@
-# This script directly queries the fuseki-admin and fuseki-end-user endpoints exposed on localhost, as the entrypoint does
-# inside the stack. You can expose them in docker-compose.override.yml like this:
-#  fuseki-admin:
+# This script directly queries the single fuseki endpoint exposed on localhost, as the entrypoint does inside the
+# stack. You can expose it in docker-compose.override.yml like this:
+#  fuseki:
 #    ports:
 #      - 3030:3030
-#  fuseki-end-user:
-#    ports:
-#      - 3031:3030
 #
-# One dataspace per run, because a sitemap may only list the documents of the origin serving it. Pass that origin:
+# One dataspace per run, because a sitemap may only list the documents of the origin serving it. Pass that origin
+# (its host, minus the deployment host `.localhost`, is the dataset name; the root origin's datasets are end-user/admin):
 #  ./generate-sitemap.sh https://northwind-traders.demo.localhost:4443
 
 origin="${1:-https://localhost:4443}"
 admin_origin=$(echo "$origin" | sed 's|://|://admin.|')
 
-admin_endpoint="http://localhost:3030/ds/"
-end_user_endpoint="http://localhost:3031/ds/"
+# the dataspace's datasets in the single fuseki: <host minus .localhost>.<role>, or plain end-user/admin for root
+prefix=$(echo "$origin" | sed -E 's|^https?://||; s|:[0-9]+$||; s|\.?localhost$||')
+admin_endpoint="http://localhost:3030/${prefix:+$prefix.}admin/"
+end_user_endpoint="http://localhost:3030/${prefix:+$prefix.}end-user/"
 
 admin_base="${admin_origin}/" envsubst '$admin_base' < ../../platform/sitemap/public-rules.rq > public-rules.rq
 

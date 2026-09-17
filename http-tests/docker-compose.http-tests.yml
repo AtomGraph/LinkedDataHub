@@ -20,13 +20,8 @@ services:
       - ./http-tests/ssl/server:/var/linkeddatahub/ssl/server
       - ./http-tests/ssl/owner:/var/linkeddatahub/ssl/owner
       - ./http-tests/ssl/secretary:/var/linkeddatahub/ssl/secretary
-  fuseki-admin:
+  fuseki:
     ports:
       - 3030:3030
     #volumes:
-    #  -./http-tests/data/admin:/fuseki/databases
-  fuseki-end-user:
-    ports:
-      - 3031:3030
-    #volumes:
-    #  - ./http-tests/data/end-user:/fuseki/databases
+    #  - ./http-tests/data:/fuseki/databases

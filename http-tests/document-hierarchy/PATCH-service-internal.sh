@@ -30,7 +30,7 @@ item=$(ldh create item \
   --title "SERVICE PATCH target" \
   --container "$END_USER_BASE_URL")
 
-endpoint="http://fuseki-admin:3030/ds/"
+endpoint="http://fuseki:3030/admin/"
 
 update=$(cat <<EOF
 INSERT

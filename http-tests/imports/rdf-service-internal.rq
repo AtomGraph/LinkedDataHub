@@ -22,7 +22,7 @@ WHERE
 
     OPTIONAL
     {
-        SERVICE SILENT <http://fuseki-admin:3030/ds/>
+        SERVICE SILENT <http://fuseki:3030/admin/>
         {
             SELECT ?g
             {
