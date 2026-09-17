@@ -1,0 +1,22 @@
+PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+
+# Public read rules, each with the base URI of the dataspace it governs: a rule stored under https://admin.X/ applies
+# to documents under https://X/, as in the ACL query. A document rule is kept only if its target lies in that dataspace.
+
+SELECT DISTINCT  ?base ?to ?Type
+WHERE
+  { GRAPH ?authGraph
+      { ?auth  acl:mode        acl:Read ;
+               acl:agentClass  foaf:Agent
+          { ?auth  acl:accessTo  ?to }
+        UNION
+          { ?auth  acl:accessToClass  ?Class
+            GRAPH <urn:x-arq:UnionGraph>
+              { ?Type (rdfs:subClassOf)* ?Class }
+          }
+      }
+    BIND(IRI(replace(str(?authGraph), "^(https?://)admin\\.([^/]+/).*$", "$1$2")) AS ?base)
+    FILTER ( ! bound(?to) || strstarts(str(?to), str(?base)) )
+  }

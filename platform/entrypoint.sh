@@ -1018,18 +1018,44 @@ if [ -n "$OIDC_REFRESH_TOKENS" ] && [ ! -f "$OIDC_REFRESH_TOKENS" ]; then
 fi
 
 # if configured, generate XML sitemap: https://www.sitemaps.org/protocol.html
+# The public read rules are queried on the admin service and passed to the end-user query as VALUES, instead of the
+# end-user store fetching them itself through SPARQL SERVICE - a call a deployment isolating its stores refuses.
+# A subshell, so the temp directory is removed on every exit path.
+
+generate_sitemap()
+(
+    dir=$(mktemp -d)
+    trap 'rm -rf "$dir"' EXIT
+
+    curl -k -f -sS -H "Content-Type: application/sparql-query" -H "Accept: application/sparql-results+xml" \
+        --data-binary @/var/linkeddatahub/sitemap/public-rules.rq "$root_admin_endpoint_url" -o "$dir/public-rules.srx" || exit 1
+
+    # (<base> <class>) and (<base> <document>) rows. Only IRI bindings are selected, so nothing else is pasted into the
+    # query. xmlstarlet exits 1 when nothing matches, which only means there are no rules of that kind
+    class_rules=$(xmlstarlet sel -N srx="http://www.w3.org/2005/sparql-results#" -T -t \
+        -m "/srx:sparql/srx:results/srx:result[srx:binding[@name = 'base']/srx:uri][srx:binding[@name = 'Type']/srx:uri]" \
+        -o "(<" -v "srx:binding[@name = 'base']/srx:uri" -o "> <" -v "srx:binding[@name = 'Type']/srx:uri" -o ">) " \
+        "$dir/public-rules.srx") || [ $? -eq 1 ] || exit 1
+    document_rules=$(xmlstarlet sel -N srx="http://www.w3.org/2005/sparql-results#" -T -t \
+        -m "/srx:sparql/srx:results/srx:result[srx:binding[@name = 'base']/srx:uri][srx:binding[@name = 'to']/srx:uri]" \
+        -o "(<" -v "srx:binding[@name = 'base']/srx:uri" -o "> <" -v "srx:binding[@name = 'to']/srx:uri" -o ">) " \
+        "$dir/public-rules.srx") || [ $? -eq 1 ] || exit 1
+
+    class_rules="$class_rules" document_rules="$document_rules" \
+        envsubst '$class_rules $document_rules' < /var/linkeddatahub/sitemap/sitemap.rq.template > "$dir/sitemap.rq" || exit 1
+
+    # POST, because the VALUES rows grow with the number of public rules
+    curl -k -f -sS -H "Content-Type: application/sparql-query" -H "Accept: application/sparql-results+xml" \
+        --data-binary @"$dir/sitemap.rq" "$root_end_user_endpoint_url" -o "$dir/sitemap.srx" || exit 1
+
+    xsltproc --output "${PWD}/webapps/ROOT/sitemap.xml" /var/linkeddatahub/sitemap/sitemap.xsl "$dir/sitemap.srx"
+)
 
 if [ "$GENERATE_SITEMAP" = true ]; then
-    admin_endpoint_url="$root_admin_endpoint_url"
-    export admin_endpoint_url
-    envsubst < /var/linkeddatahub/sitemap/sitemap.rq.template > /var/linkeddatahub/sitemap/sitemap.rq
-    sitemap_results=$(mktemp)
-
-    curl -k -G -H "Accept: application/sparql-results+xml" "$root_end_user_endpoint_url" --data-urlencode "query@/var/linkeddatahub/sitemap/sitemap.rq" -o "$sitemap_results"
-
-    xsltproc --output "${PWD}/webapps/ROOT/sitemap.xml" /var/linkeddatahub/sitemap/sitemap.xsl "$sitemap_results"
-
-    rm "$sitemap_results"
+    # a sitemap is not worth a platform that does not start: under set -e a failed query used to exit the container
+    if ! generate_sitemap; then
+        printf "\n### Could not generate the sitemap, continuing without it\n"
+    fi
 fi
 
 # change context configuration
