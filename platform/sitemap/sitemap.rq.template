@@ -1,20 +1,21 @@
 PREFIX  dct:  <http://purl.org/dc/terms/>
 
-# A document is listed if a public read rule of its own dataspace grants access to it or to one of its classes.
-# The entrypoint fills both VALUES blocks with (base, class) and (base, document) rows from public-rules.rq.
+# A document is listed if a public read rule of this dataspace grants access to it or to one of its
+# classes. The entrypoint fills both VALUES blocks with rows from public-rules.rq and $base with the
+# dataspace's own origin, so a store shared between dataspaces yields only this dataspace's documents.
 
 SELECT  ?loc (max(?date) AS ?lastmod)
 WHERE
-  {   { VALUES ( ?base ?Type ) { $class_rules }
+  {   { VALUES ?Type { $class_rules }
         GRAPH ?loc
           { ?loc  a  ?Type }
-        FILTER strstarts(str(?loc), str(?base))
+        FILTER strstarts(str(?loc), "$base")
       }
     UNION
-      { VALUES ( ?base ?loc ) { $document_rules }
+      { VALUES ?loc { $document_rules }
         GRAPH ?loc
           { ?loc  a  ?any }
-        FILTER strstarts(str(?loc), str(?base))
+        FILTER strstarts(str(?loc), "$base")
       }
     OPTIONAL
       { GRAPH ?loc

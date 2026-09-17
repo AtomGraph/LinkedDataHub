@@ -2,10 +2,13 @@ PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 
-# Public read rules, each with the base URI of the dataspace it governs: a rule stored under https://admin.X/ applies
-# to documents under https://X/, as in the ACL query. A document rule is kept only if its target lies in that dataspace.
+# The public read rules of one dataspace, read from the admin service the entrypoint pairs with it.
+# $admin_base is that dataspace's admin origin: the rules are stored under it, and restricting the
+# graph keeps one dataspace's rules out of another's sitemap when both share an admin store.
+# Targets outside the dataspace need no filtering here - the sitemap query looks its documents up in
+# the dataspace's own store and filters them by its base.
 
-SELECT DISTINCT  ?base ?to ?Type
+SELECT DISTINCT  ?to ?Type
 WHERE
   { GRAPH ?authGraph
       { ?auth  acl:mode        acl:Read ;
@@ -17,6 +20,5 @@ WHERE
               { ?Type (rdfs:subClassOf)* ?Class }
           }
       }
-    BIND(IRI(replace(str(?authGraph), "^(https?://)admin\\.([^/]+/).*$", "$1$2")) AS ?base)
-    FILTER ( ! bound(?to) || strstarts(str(?to), str(?base)) )
+    FILTER strstarts(str(?authGraph), "$admin_base")
   }

@@ -84,6 +84,10 @@ ARG SEF_ROOT=/var/www/linkeddatahub/sef
 # container's memory limit with Tomcat
 ARG SEF_COMPILER=http://sef-compiler:8080/compile
 
+# one generated sitemap and robots.txt per dataspace, kept outside the WAR for the same reason and
+# mounted under /static/sitemaps, where WEB-INF/rewrite.config sends the requests for them
+ARG SITEMAP_ROOT=/var/www/linkeddatahub/sitemaps
+
 ENV SOURCE_COMMIT=$SOURCE_COMMIT
 
 WORKDIR $CATALINA_HOME
@@ -97,6 +101,8 @@ ENV UPLOAD_ROOT=$UPLOAD_ROOT
 ENV SEF_ROOT=$SEF_ROOT
 
 ENV SEF_COMPILER=$SEF_COMPILER
+
+ENV SITEMAP_ROOT=$SITEMAP_ROOT
 
 ENV PROXY_HOST=
 
@@ -271,6 +277,8 @@ RUN useradd --no-log-init -U ldh && \
     chown -R ldh:ldh "$UPLOAD_ROOT" && \
     mkdir -p "$SEF_ROOT" && \
     chown -R ldh:ldh "$SEF_ROOT" && \
+    mkdir -p "$SITEMAP_ROOT" && \
+    chown -R ldh:ldh "$SITEMAP_ROOT" && \
     mkdir -p /etc/letsencrypt/staging && \
     chown -R ldh:ldh /etc/letsencrypt/staging
 
