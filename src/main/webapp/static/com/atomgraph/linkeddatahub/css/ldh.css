@@ -148,7 +148,7 @@ circle { cursor: move; }
 #edit-toolbar .tb-group { display: flex; gap: var(--sp-1); align-items: center; }
 #edit-toolbar .tb-group + .tb-group { border-left: 1px solid var(--border-default); padding-left: var(--sp-2); }
 #edit-toolbar .tb-group.table-ops.active { background: var(--bg-selected); border-radius: var(--r-sm); }
-.edit-dialog { background: white; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,.2); padding: 12px; min-width: min(280px, calc(100vw - 2 * var(--sp-4))); z-index: 10000; }
+.edit-dialog { background: var(--bg-card); border: 1px solid var(--border-default); border-radius: var(--r-xs); box-shadow: var(--shadow-md); padding: 12px; min-width: min(280px, calc(100vw - 2 * var(--sp-4))); z-index: 10000; }
 .edit-dialog .rdfa-editor-ui .action-buttons { margin-top: 10px; }
 .edit-dialog .rdfa-editor-ui .checkbox-label { display: inline-flex; gap: 6px; align-items: center; font-weight: 400; margin-top: 8px; }
 .editor-bar:not(:has(#edit-toolbar)), .ldh-pane:not(:has(.rdfa-editor-content)) .editor-bar, body:not(:has(.ldh-pane.is-active .rdfa-editor-content)) #rdfa-editor-breadcrumb { display: none; }
@@ -676,6 +676,14 @@ body:has(.ldh-create-dock) .ldh-footer { margin-top: 0; }
    and, at document level, escaped to the initial containing block and covered the viewport.
    The gradient goes with it: OL paints its own tiles, and an empty canvas should look empty ---------- */
 .map-canvas { position: relative; inset: auto; background: none; }
+/* The map STAYS LIGHT in both schemes, and that is a decision rather than an
+   omission. What fills it is raster tiles fetched from a tile server: they are
+   photographs of a light map, the platform cannot recolour them, and OpenLayers'
+   own controls (--ol-* in ol.css) are drawn to read against exactly those tiles.
+   Tinting the frame around them would leave a bright rectangle in a dark page
+   with a dark surround, which reads worse than a light panel that is honestly
+   light. If a dark basemap is ever wanted it comes from the tile source, not
+   from CSS. */
 .map-canvas::before { content: none; }
 
 /* ---------- document-level graph and map modes: the canvas fills the whole space between the
@@ -807,7 +815,7 @@ div.ldh-failure > .ac-alert { margin: 0; }
   border-radius: 50%;
   color: var(--ldh-blue-600);
 }
-.facet-pill.parallax-step .x:hover { background: rgba(0,0,0,0.06); }
+.facet-pill.parallax-step .x:hover { background: color-mix(in srgb, var(--fg-1) 6%, transparent); }
 
 /* mode switchers (the document- and view-scoped variants share the template): the trigger is a
    native button inside the .ldh-mode pill, so it must not paint its own chrome */
@@ -816,3 +824,103 @@ div.ldh-failure > .ac-alert { margin: 0; }
 .ldh-add-wrap .caret { transition: transform var(--dur-fast) var(--ease-out-soft); }
 .ldh-add-wrap.is-open .caret { transform: rotate(180deg); }
 
+
+/* =========================================================================
+   THIRD-PARTY SURFACES IN THE DARK SCHEME
+
+   Three stylesheets the platform links do not belong to the design system and
+   cannot be edited here: yasqe.css and CodeMirror ship their own chrome, and
+   rdfa-editor.css must stay byte-identical to RDFa-Editor's source. Their
+   values are literals, so they stayed light while everything around them
+   learned to follow the reader.
+
+   This is the app layer answering for them. Where a rule states a value the
+   design system has a token for, the token replaces it outright; where the
+   literal IS the design (CodeMirror's syntax palette), the light side is kept
+   verbatim in a light-dark() pair so nothing moves in light.
+   ========================================================================= */
+
+/* ---------- CodeMirror's autocomplete popup ----------
+   It floats above whatever surface invoked it, so it cannot inherit one. The
+   stock chrome is white / silver / black / #08f — CodeMirror defaults rather
+   than chosen values — and it takes the system's menu vocabulary instead. */
+.CodeMirror-hints {
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-sm);
+  box-shadow: var(--shadow-md);
+  font-family: var(--font-mono);
+}
+.CodeMirror-hint { color: var(--fg-1); border-radius: var(--r-xs); }
+.CodeMirror-hint-active { background: var(--bg-accent); color: var(--fg-on-accent); }
+
+/* ---------- the code field's syntax palette ----------
+   .ldh-sparql-pane paints a dark editor in both schemes, so its palette is
+   fixed. The code field is different: it sits on the form's own surface, which
+   follows the reader, and a palette tuned for white goes muddy on a dark one.
+   The light column is exactly what yasqe.css ships; the dark column is the
+   pane's palette, so the two editors speak the same colours where they can. */
+.ac-codefield {
+  --cm-keyword: light-dark(#708, #ff9ec4);
+  --cm-atom:    light-dark(#219, #7cc7ff);
+  --cm-meta:    light-dark(#555, #7cc7ff);
+  --cm-builtin: light-dark(#30a, #7cc7ff);
+  --cm-var:     light-dark(#05a, #ffd479);
+  --cm-var3:    light-dark(#085, #ffd479);
+  --cm-def:     light-dark(#00f, #ffd479);
+  --cm-string:  light-dark(#a11, #9be29b);
+  --cm-string2: light-dark(#f50, #9be29b);
+  --cm-number:  light-dark(#164, #f5b06b);
+  --cm-comment: light-dark(#a50, rgba(255,255,255,0.45));
+  --cm-bracket: light-dark(#997, rgba(255,255,255,0.6));
+}
+.ac-codefield .cm-s-default .cm-keyword    { color: var(--cm-keyword); }
+.ac-codefield .cm-s-default .cm-atom       { color: var(--cm-atom); }
+.ac-codefield .cm-s-default .cm-meta       { color: var(--cm-meta); }
+.ac-codefield .cm-s-default .cm-builtin    { color: var(--cm-builtin); }
+.ac-codefield .cm-s-default .cm-variable-2 { color: var(--cm-var); }
+.ac-codefield .cm-s-default .cm-variable-3 { color: var(--cm-var3); }
+.ac-codefield .cm-s-default .cm-def        { color: var(--cm-def); }
+.ac-codefield .cm-s-default .cm-string     { color: var(--cm-string); }
+.ac-codefield .cm-s-default .cm-string-2   { color: var(--cm-string2); }
+.ac-codefield .cm-s-default .cm-number     { color: var(--cm-number); }
+.ac-codefield .cm-s-default .cm-comment    { color: var(--cm-comment); }
+.ac-codefield .cm-s-default .cm-bracket    { color: var(--cm-bracket); }
+.ac-codefield .CodeMirror-cursor           { border-left-color: var(--fg-1); }
+.ac-codefield .CodeMirror-selected         { background: var(--bg-selected); }
+.ac-codefield .CodeMirror-focused .cm-matchhighlight { background-color: var(--bg-active); }
+
+/* ---------- RDFa-Editor chrome ----------
+   rdfa-editor.css is vendored verbatim and carries Material literals: white
+   drawers, #e0e0e0 hairlines, #fafafa wells, grey inks. The RDF-type outlines
+   it draws (the dashed green / purple / blue / amber rings and their 10% fills)
+   are deliberately left alone — they read on either ground, and they are the
+   editor's own semantics rather than platform chrome. What follows is the
+   chrome: panels, drawers, the slash menu, the breadcrumb, the modal. */
+#slash-menu,
+#toc-drawer,
+#inspector-drawer,
+#rdfa-editor-breadcrumb,
+.rdfa-editor-ui .modal-content { background: var(--bg-card); color: var(--fg-1); }
+#slash-menu,
+.rdfa-editor-ui .modal-content { border-color: var(--border-default); }
+#toc-drawer { border-right-color: var(--border-default); }
+#inspector-drawer { border-left-color: var(--border-default); }
+#rdfa-editor-breadcrumb { border-top-color: var(--border-default); }
+#inspector-subject { border-bottom-color: var(--border-default); }
+.rdfa-editor-ui .slash-filter { border-color: var(--border-default); background: var(--bg-card); color: var(--fg-1); }
+.rdfa-editor-ui .slash-item { color: var(--fg-1); }
+.rdfa-editor-ui .slash-item[aria-selected="true"],
+.rdfa-editor-ui .toc-label:hover { background: var(--bg-selected); color: var(--fg-selected); }
+.rdfa-editor-ui .crumb-sep,
+.rdfa-editor-ui .inspector-obj-lang,
+.rdfa-editor-content [data-role="chrome"] { color: var(--fg-muted); }
+.rdfa-editor-ui #output-download { background: var(--bg-card); }
+.rdfa-editor-ui .modal-content pre { background-color: var(--bg-recess); border-color: var(--border-default); }
+/* Editor CONTENT, not chrome: the prose a document is written in, which the
+   platform renders with the same element dress everywhere else. */
+.rdfa-editor-content blockquote { border-left-color: var(--border-strong); color: var(--fg-muted); }
+.rdfa-editor-content td { border-color: var(--border-default); }
+.rdfa-editor-content th { background: var(--bg-recess); }
+.rdfa-editor-content caption { color: var(--fg-muted); }
+.rdfa-editor-content .rdfa-editor-island { border-color: var(--border-default); background: var(--bg-recess); }

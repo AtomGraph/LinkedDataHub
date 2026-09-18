@@ -8,78 +8,112 @@
 /* Geist / Geist Mono / Instrument Serif vendored locally in fonts.css */
 
 :root {
+  /* ---------- Color scheme ----------
+     The page supports both schemes and follows the reader's browser preference.
+     Every token below that differs between them is written once as
+     light-dark(<light>, <dark>); nothing is duplicated into a second block.
+     This declaration is also what makes native UA surfaces — form controls,
+     scrollbars, the canvas behind the page, autofill — follow the scheme, which
+     a token flip alone can never reach. */
+  color-scheme: light dark;
+
   /* ---------- Color: Brand / Primary ---------- */
   /* Pulled from the live product. The blue is the action color, the violet the
      "structured / semantic" accent (used historically on RDF-typed labels). */
-  --ldh-blue-50:  #eef5ff;
-  --ldh-blue-100: #dbeafe;
-  --ldh-blue-200: #b8d3fd;
+  /* The 50-200 tints are BACKGROUNDS and the 600/700 steps are accent TEXT, so
+     both invert in dark: a tint has to stay darker than the ink on it, and a
+     text step has to stay lighter. 300-500 are non-text accents (dots, focus
+     glints, chart marks) and read on either ground unchanged. */
+  --ldh-blue-50:  light-dark(#eef5ff, #11243d);
+  --ldh-blue-100: light-dark(#dbeafe, #173558);
+  --ldh-blue-200: light-dark(#b8d3fd, #1f4d7a);
   --ldh-blue-300: #8bb7fb;
   --ldh-blue-400: #4d94f8;
   --ldh-blue-500: #0f82f5;   /* Brand primary — matches legacy product */
-  --ldh-blue-600: #086ad6;
-  --ldh-blue-700: #0a55a8;
+  --ldh-blue-600: light-dark(#086ad6, #6aa6f7);
+  --ldh-blue-700: light-dark(#0a55a8, #93bdfb);
   --ldh-blue-800: #0d4382;
   --ldh-blue-900: #0a2d57;
 
-  --ldh-violet-50:  #faf5ff;
-  --ldh-violet-100: #f1e6fb;
+  --ldh-violet-50:  light-dark(#faf5ff, #241836);
+  --ldh-violet-100: light-dark(#f1e6fb, #33214d);
   --ldh-violet-200: #e1cdf6;
   --ldh-violet-300: #c9a6ed;
   --ldh-violet-400: #ad7adf;
   --ldh-violet-500: #9954bb;   /* Brand accent — historical RDF tag color */
   --ldh-violet-600: #803fa1;
-  --ldh-violet-700: #63307c;
+  --ldh-violet-600: light-dark(#803fa1, #b98ade);
+  --ldh-violet-700: light-dark(#63307c, #c9a6ed);
   --ldh-violet-800: #482358;
   --ldh-violet-900: #2e1638;
 
   /* ---------- Color: Pastel surface palette ---------- */
   /* These wash backgrounds for hero / landing / category surfaces. Always paired
      with --ink-1 text. Use as `background: var(--surf-lavender)` or composed in
-     a mesh gradient (see Visual Foundations in README). */
-  --surf-lavender: #efeaff;
-  --surf-mint:     #e6f6ee;
-  --surf-peach:    #ffece1;
-  --surf-sky:      #e3f1ff;
-  --surf-blush:    #ffe6ee;
-  --surf-sand:     #fcf5e7;
+     a mesh gradient (see Visual Foundations in README).
 
-  /* Pre-built gradients — used on hero / featured cards. */
-  --grad-aurora: linear-gradient(135deg, #efeaff 0%, #e3f1ff 50%, #e6f6ee 100%); /* @kind color */
-  --grad-dawn:   linear-gradient(135deg, #ffece1 0%, #ffe6ee 60%, #efeaff 100%); /* @kind color */
-  --grad-noon:   linear-gradient(135deg, #e3f1ff 0%, #ffffff 50%, #efeaff 100%); /* @kind color */
+     "Always paired with --ink-1" is exactly why each one needs a dark twin: the
+     ink flips to near-white in dark, and a pastel that stayed pale would be
+     carrying white text. The dark side holds the same hue at the low end of the
+     lightness range, so a wash still reads as ITS colour rather than as grey. */
+  --surf-lavender: light-dark(#efeaff, #241d3a);
+  --surf-mint:     light-dark(#e6f6ee, #12291f);
+  --surf-peach:    light-dark(#ffece1, #33231a);
+  --surf-sky:      light-dark(#e3f1ff, #16263a);
+  --surf-blush:    light-dark(#ffe6ee, #341a24);
+  --surf-sand:     light-dark(#fcf5e7, #2b2517);
+
+  /* Pre-built gradients — used on hero / featured cards. The pairs live on the
+     colour STOPS, not on the token: light-dark() takes colours, and a gradient
+     is an image, so a token holding one cannot be switched as a whole. Writing
+     the stops this way keeps each gradient's geometry declared once. The stops
+     are the pastels above spelled out rather than var() references, so a skin
+     that remaps the pastels without remapping the gradients keeps the gradient
+     it has today. --grad-deep is already a dark wash and reads on either ground. */
+  --grad-aurora: linear-gradient(135deg, light-dark(#efeaff, #241d3a) 0%, light-dark(#e3f1ff, #16263a) 50%, light-dark(#e6f6ee, #12291f) 100%); /* @kind color */
+  --grad-dawn:   linear-gradient(135deg, light-dark(#ffece1, #33231a) 0%, light-dark(#ffe6ee, #341a24) 60%, light-dark(#efeaff, #241d3a) 100%); /* @kind color */
+  --grad-noon:   linear-gradient(135deg, light-dark(#e3f1ff, #16263a) 0%, light-dark(#ffffff, #171b24) 50%, light-dark(#efeaff, #241d3a) 100%); /* @kind color */
   --grad-deep:   linear-gradient(135deg, #0a2d57 0%, #482358 100%);  /* @kind color */
-  --grad-radial-spot: radial-gradient(60% 60% at 30% 20%, #efeaff 0%, transparent 60%),
-                     radial-gradient(50% 50% at 80% 70%, #e3f1ff 0%, transparent 65%),
-                     #ffffff; /* @kind color */
+  --grad-radial-spot: radial-gradient(60% 60% at 30% 20%, light-dark(#efeaff, #241d3a) 0%, transparent 60%),
+                     radial-gradient(50% 50% at 80% 70%, light-dark(#e3f1ff, #16263a) 0%, transparent 65%),
+                     light-dark(#ffffff, #0f131a); /* @kind color */
 
   /* ---------- Color: Neutrals ---------- */
   /* Warm-white surfaces, near-black ink. NOT pure greys — slight blue undertone
      to harmonise with the brand blue. */
-  --ink-1:  #0b0e14;   /* primary text, headings */
-  --ink-2:  #2b3245;   /* body text */
-  --ink-3:  #545b6e;   /* secondary text, meta */
-  --ink-4:  #8a91a3;   /* tertiary / hint */
-  --ink-5:  #b6bccc;   /* disabled */
+  --ink-1:  light-dark(#0b0e14, #f3f6fc);   /* primary text, headings */
+  --ink-2:  light-dark(#2b3245, #cfd6e3);   /* body text */
+  --ink-3:  light-dark(#545b6e, #9aa3b5);   /* secondary text, meta */
+  --ink-4:  light-dark(#8a91a3, #717a8d);   /* tertiary / hint */
+  --ink-5:  light-dark(#b6bccc, #4c5365);   /* disabled */
 
-  --surface-0: #ffffff;          /* card / dialog */
-  --surface-1: #fafbfd;          /* page */
-  --surface-2: #f3f5f9;          /* recessed wells, table stripes */
-  --surface-3: #e8ebf2;          /* dividers, subtle borders */
-  --line-1:    #e2e6ee;          /* default border */
-  --line-2:    #cdd3df;          /* stronger border, focus ring outer */
+  /* The dark surfaces are a cool slate carrying the same blue undertone, and
+     they climb rather than descend: the page is the darkest ground and a card
+     sits ABOVE it, which is how elevation reads without a shadow to cast. */
+  --surface-0: light-dark(#ffffff, #171b24);   /* card / dialog */
+  --surface-1: light-dark(#fafbfd, #0f131a);   /* page */
+  --surface-2: light-dark(#f3f5f9, #1e2430);   /* recessed wells, table stripes */
+  --surface-3: light-dark(#e8ebf2, #2b323f);   /* dividers, subtle borders */
+  --line-1:    light-dark(#e2e6ee, #272e3a);   /* default border */
+  --line-2:    light-dark(#cdd3df, #39414f);   /* stronger border, focus ring outer */
 
   /* ---------- Color: Semantic ---------- */
-  --success-500: #14a06a;
-  --success-50:  #e6f6ee;
-  --warning-500: #d48a08;
-  --warning-50:  #fff4dc;
-  --danger-500:  #d63a3a;
-  --danger-600:  #b62f2f;
-  --danger-50:   #ffe6e6;
-  /* Ink for text/icons sitting ON a --danger-500 fill. A token, not a literal:
-     skins whose danger is a light tint need dark ink here instead of white. */
-  --fg-on-danger: #ffffff;
+  --success-500: light-dark(#14a06a, #3ecb8f);
+  --success-50:  light-dark(#e6f6ee, #102619);
+  --warning-500: light-dark(#d48a08, #e6a52a);
+  --warning-50:  light-dark(#fff4dc, #2c2410);
+  --danger-500:  light-dark(#d63a3a, #f06a6a);
+  --danger-600:  light-dark(#b62f2f, #d94f4f);
+  --danger-50:   light-dark(#ffe6e6, #2e1414);
+  /* Ink for text/icons sitting ON a semantic fill. Tokens, not literals: a skin
+     or a scheme whose semantic colour is a light TINT needs dark ink here
+     instead of white. That is not hypothetical — it is what the dark scheme is:
+     success arrives as #7fd99a and warning as #f4bd6a, and white on either is
+     unreadable. Every component that paints one of these fills reads the
+     matching ink rather than spelling #fff, or it only works in one scheme. */
+  --fg-on-danger:  light-dark(#ffffff, #2e0f0f);
+  --fg-on-success: light-dark(#ffffff, #07291a);
+  --fg-on-warning: light-dark(#ffffff, #2a1f00);
   --info-500:    var(--ldh-blue-500);
   --info-50:     var(--ldh-blue-50);
 
@@ -189,17 +223,20 @@
   --sp-32: 128px;
 
   /* ---------- Elevation (shadows) ---------- */
-  /* Soft, low-contrast shadows — Base44 / glass vibe, not Material's harder cast. */
-  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow-md: 0 8px 24px -8px rgba(15, 23, 42, 0.10), 0 2px 4px rgba(15, 23, 42, 0.04);
-  --shadow-lg: 0 24px 48px -16px rgba(15, 23, 42, 0.18), 0 4px 12px rgba(15, 23, 42, 0.05);
-  --shadow-xl: 0 40px 80px -24px rgba(15, 23, 42, 0.22), 0 8px 16px rgba(15, 23, 42, 0.06);
+  /* Soft, low-contrast shadows — Base44 / glass vibe, not Material's harder cast.
+     The geometry is written once and only the cast colour takes a light-dark()
+     pair, so the two schemes cannot drift into different elevations. Dark casts
+     are heavier because a shadow on a dark ground has less room to read. */
+  --shadow-xs: 0 1px 2px light-dark(rgba(15, 23, 42, 0.04), rgba(0, 0, 0, 0.40));
+  --shadow-sm: 0 2px 8px light-dark(rgba(15, 23, 42, 0.05), rgba(0, 0, 0, 0.45)), 0 1px 2px light-dark(rgba(15, 23, 42, 0.04), rgba(0, 0, 0, 0.40));
+  --shadow-md: 0 8px 24px -8px light-dark(rgba(15, 23, 42, 0.10), rgba(0, 0, 0, 0.55)), 0 2px 4px light-dark(rgba(15, 23, 42, 0.04), rgba(0, 0, 0, 0.40));
+  --shadow-lg: 0 24px 48px -16px light-dark(rgba(15, 23, 42, 0.18), rgba(0, 0, 0, 0.60)), 0 4px 12px light-dark(rgba(15, 23, 42, 0.05), rgba(0, 0, 0, 0.45));
+  --shadow-xl: 0 40px 80px -24px light-dark(rgba(15, 23, 42, 0.22), rgba(0, 0, 0, 0.66)), 0 8px 16px light-dark(rgba(15, 23, 42, 0.06), rgba(0, 0, 0, 0.45));
   --shadow-glow-blue:   0 0 0 4px rgba(15, 130, 245, 0.18);
   --shadow-glow-violet: 0 0 0 4px rgba(153, 84, 187, 0.16);
 
   /* Hairline inset highlight for cards on dark backgrounds */
-  --inset-hairline: inset 0 1px 0 rgba(255,255,255,0.6);
+  --inset-hairline: inset 0 1px 0 light-dark(rgba(255,255,255,0.6), rgba(255,255,255,0.06));
 
   /* ---------- Motion ---------- */
   --ease-out-soft:  cubic-bezier(0.22, 1, 0.36, 1); /* @kind other */
@@ -257,7 +294,7 @@
      fails WCAG AA for text. ink-4 is reserved for non-text use (icons that pair
      with a label, hairline borders, disabled glyphs). For actual hint *text*
      use this AA-safe value (~5.7:1 on the page surface). */
-  --fg-hint:  #5f6677;
+  --fg-hint:  light-dark(#5f6677, #8a92a4);   /* ~5.7:1 on the light page, ~4.8:1 on the dark one */
   --fg-on-accent: #ffffff;
   --fg-link: var(--ldh-blue-600);
 
@@ -267,9 +304,13 @@
   /* Action color for text-bearing fills (filled buttons). blue-500 (#0f82f5)
      is only ~3.3:1 against white text — it FAILS AA. blue-600 (#086ad6) clears
      it at ~4.6:1, so the accent fill is pinned to 600, not 500. blue-500 stays
-     available as a primitive for non-text accents (dots, focus glints). */
-  --bg-accent:       var(--ldh-blue-600);
-  --bg-accent-hover: var(--ldh-blue-700);
+     available as a primitive for non-text accents (dots, focus glints).
+
+     In dark the fill parts company with the ramp: blue-600 has flipped to a
+     light tint for text use, so the fill pins the saturated blue as a literal
+     and keeps its ~4.6:1 against white button ink in both schemes. */
+  --bg-accent:       light-dark(var(--ldh-blue-600), #086ad6);
+  --bg-accent-hover: light-dark(var(--ldh-blue-700), #0a55a8);
   --bg-accent-quiet: var(--ldh-blue-50);
 
   /* Inverse ground — a FIXED white, identical in every theme, for controls that
@@ -292,57 +333,55 @@
 }
 
 /* =========================================================================
-   DARK THEME  —  set [data-theme="dark"] on <html>.
-   The light theme funnels nearly everything through the neutral primitives
-   (ink-*, surface-*, line-*) and a small set of accent tints, so dark mode is
-   mostly a re-mapping of those primitives — the semantic layer and components
-   inherit it automatically. Accent *text* tints (blue/violet 600/700) flip
-   light; accent *fills* are pinned to literals so filled buttons keep AA.
+   FORCING A SCHEME  —  set [data-theme="light"|"dark"] on <html>.
+
+   The scheme is the reader's, taken from the browser: `color-scheme: light dark`
+   above says the page renders in either, and every token that differs carries
+   its two values in one light-dark() declaration. There is no second token block
+   to keep in step, and no switch in the product — the same stance the platform
+   takes on language.
+
+   These two rules exist for the design-system previews and for screenshots,
+   where a card has to show one scheme regardless of the machine rendering it.
+   `only` also opts out of any UA auto-darkening, so a forced light really is light.
+
+   A difference that is NOT a colour — an opacity, a gradient geometry, a border
+   width — cannot ride light-dark(), because it only takes colours. Such a case
+   needs three rules rather than one: the light value, the same declaration under
+   @media (prefers-color-scheme: dark) guarded by :not([data-theme="light"]), and
+   a twin under [data-theme="dark"] so forcing still wins. Reach for a colour
+   token first; retro.css's header scrim is the one place this is unavoidable.
    ========================================================================= */
-:root[data-theme="dark"] {
-  /* Neutrals — cool dark slate, mirroring the light theme's blue undertone. */
-  --ink-1:  #f3f6fc;
-  --ink-2:  #cfd6e3;
-  --ink-3:  #9aa3b5;
-  --ink-4:  #717a8d;
-  --ink-5:  #4c5365;
+:root[data-theme="light"] { color-scheme: only light; }
+:root[data-theme="dark"]  { color-scheme: only dark; }
 
-  --surface-0: #171b24;   /* card / dialog */
-  --surface-1: #0f131a;   /* page */
-  --surface-2: #1e2430;   /* recessed wells, hover */
-  --surface-3: #2b323f;   /* pressed, dividers */
-  --line-1:    #272e3a;
-  --line-2:    #39414f;
+/* =========================================================================
+   TOKENS READ BY SCRIPT
 
-  /* Accent TEXT tints flip light so they stay legible on dark surfaces. */
-  --ldh-blue-50:   #11243d;
-  --ldh-blue-100:  #173558;
-  --ldh-blue-200:  #1f4d7a;
-  --ldh-blue-600:  #6aa6f7;
-  --ldh-blue-700:  #93bdfb;
-  --ldh-violet-50:  #241836;
-  --ldh-violet-100: #33214d;
-  --ldh-violet-700: #c9a6ed;
-  --success-500: #3ecb8f;  --success-50: #102619;
-  --warning-500: #e6a52a;  --warning-50: #2c2410;
-  --danger-500:  #f06a6a;  --danger-600: #d94f4f;  --danger-50:  #2e1414;
-  --fg-on-danger: #2e0f0f;
+   A custom property's computed value is the tokens it was written with, not a
+   colour: getComputedStyle on --fg-muted hands back the string
+   "light-dark(#3e4852, #bcc8d5)" — the same string in both schemes — and a
+   consumer that feeds it to a canvas gets an unparseable value rather than a
+   colour that follows the reader.
 
-  /* Accent FILL stays a literal saturated blue so white button text keeps
-     AA (≈4.6:1) — independent of the now-light blue-600 text primitive. */
-  --bg-accent:       #086ad6;
-  --bg-accent-hover: #0a55a8;
-
-  --fg-hint: #8a92a4;   /* ~4.8:1 on the dark page */
-
-  /* Shadows need more weight to read on dark surfaces. */
-  --shadow-xs: 0 1px 2px rgba(0,0,0,0.40);
-  --shadow-sm: 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.40);
-  --shadow-md: 0 8px 24px -8px rgba(0,0,0,0.55), 0 2px 4px rgba(0,0,0,0.40);
-  --shadow-lg: 0 24px 48px -16px rgba(0,0,0,0.60), 0 4px 12px rgba(0,0,0,0.45);
-  --shadow-xl: 0 40px 80px -24px rgba(0,0,0,0.66), 0 8px 16px rgba(0,0,0,0.45);
-  --inset-hairline: inset 0 1px 0 rgba(255,255,255,0.06);
-}
+   Registering a property with a <color> syntax is what makes the browser
+   compute it, so the same read returns rgb(62, 72, 82) in light and
+   rgb(188, 200, 213) in dark. Only the tokens something outside CSS actually
+   reads need this — today that is the chart block, which styles axes,
+   gridlines and series from these eleven. A new token read from script belongs
+   in this list, or it will silently theme charts in one scheme only.
+   ========================================================================= */
+@property --fg-2           { syntax: "<color>"; inherits: true; initial-value: #2b3245; }
+@property --fg-muted       { syntax: "<color>"; inherits: true; initial-value: #545b6e; }
+@property --border-default { syntax: "<color>"; inherits: true; initial-value: #e2e6ee; }
+@property --border-strong  { syntax: "<color>"; inherits: true; initial-value: #cdd3df; }
+@property --ldh-blue-300   { syntax: "<color>"; inherits: true; initial-value: #8bb7fb; }
+@property --ldh-blue-500   { syntax: "<color>"; inherits: true; initial-value: #0f82f5; }
+@property --ldh-violet-300 { syntax: "<color>"; inherits: true; initial-value: #c9a6ed; }
+@property --ldh-violet-500 { syntax: "<color>"; inherits: true; initial-value: #9954bb; }
+@property --success-500    { syntax: "<color>"; inherits: true; initial-value: #14a06a; }
+@property --warning-500    { syntax: "<color>"; inherits: true; initial-value: #d48a08; }
+@property --danger-500     { syntax: "<color>"; inherits: true; initial-value: #d63a3a; }
 
 /* =========================================================================
    Semantic typography classes — apply directly, or use as a reference for

@@ -220,8 +220,8 @@ table .var {
   background: var(--bg-accent); color: var(--fg-on-accent);
   font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: var(--fw-bold);
 }
-.ac-step-n.is-done { background: var(--success-500); color: #fff; }
+.ac-step-n.is-done { background: var(--success-500); color: var(--fg-on-success); }
 .ac-step-n.is-todo { background: var(--surface-3); color: var(--fg-muted); }
-.ac-step-n.is-error { background: var(--danger-500); color: #fff; }
+.ac-step-n.is-error { background: var(--danger-500); color: var(--fg-on-danger); }
 .ac-step-title { margin: 0; font-size: var(--fs-md); font-weight: var(--fw-semibold); color: var(--fg-1); }
 .ac-step-hint { font-size: var(--fs-sm); color: var(--fg-muted); }

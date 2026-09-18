@@ -84,7 +84,8 @@
   animation: ac-menu-in var(--dur-fast) var(--ease-out-soft);
 }
 .ac-popover.is-flush { padding: 0; overflow: hidden; }
-.ac-popover.va-inverse { background: var(--ink-1); color: #fff; border-color: transparent; }
+/* Inverse: ground and ink are the two tokens that swap together (see .ac-tip). */
+.ac-popover.va-inverse { background: var(--ink-1); color: var(--surface-0); border-color: transparent; }
 .ac-popover.sd-top    { bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); }
 .ac-popover.sd-bottom { top: calc(100% + 8px); left: 50%; transform: translateX(-50%); }
 .ac-popover.sd-left   { right: calc(100% + 8px); top: 50%; transform: translateY(-50%); }

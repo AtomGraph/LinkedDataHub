@@ -108,7 +108,9 @@
 /* intents — each declares its colour role once */
 .ac-btn.in-primary  { --btn-bg: var(--bg-accent);      --btn-bg-hover: var(--bg-accent-hover); --btn-fg: var(--fg-on-accent); }
 .ac-btn.in-neutral  { --btn-bg: var(--surface-2);      --btn-bg-hover: var(--surface-3);       --btn-fg: var(--fg-1); }
-.ac-btn.in-accent   { --btn-bg: var(--ldh-violet-600); --btn-bg-hover: var(--ldh-violet-700);  --btn-fg: #ffffff; }
+/* in-accent's ink is a pair for the same reason in-primary's is a token: its
+   fill is an accent-text step, which flips to a tint in dark. */
+.ac-btn.in-accent   { --btn-bg: var(--ldh-violet-600); --btn-bg-hover: var(--ldh-violet-700);  --btn-fg: light-dark(#ffffff, #2e1638); }
 .ac-btn.in-negative { --btn-bg: var(--danger-500);     --btn-bg-hover: var(--danger-600); --btn-fg: var(--fg-on-danger); }
 .ac-btn.in-inverse  { --btn-bg: var(--bg-inverse);    --btn-bg-hover: var(--bg-inverse-hover); --btn-fg: var(--ink-1); }
 
@@ -304,8 +306,8 @@
 .ac-box { border-radius: var(--r-xs); }
 .ac-dot { border-radius: 50%; }
 .ac-choice:hover .ac-box, .ac-choice:hover .ac-dot { border-color: var(--ldh-blue-400); }
-.ac-choice input:checked + .ac-box { background: var(--bg-accent); border-color: var(--bg-accent); color: #fff; }
-.ac-choice input:indeterminate + .ac-box { background: var(--bg-accent); border-color: var(--bg-accent); color: #fff; }
+.ac-choice input:checked + .ac-box { background: var(--bg-accent); border-color: var(--bg-accent); color: var(--fg-on-accent); }
+.ac-choice input:indeterminate + .ac-box { background: var(--bg-accent); border-color: var(--bg-accent); color: var(--fg-on-accent); }
 .ac-choice input:checked + .ac-dot { border-color: var(--bg-accent); border-width: 5px; }
 .ac-choice input:focus-visible + .ac-box,
 .ac-choice input:focus-visible + .ac-dot { box-shadow: var(--focus-ring); }
@@ -420,15 +422,17 @@
 .ac-tag.em-quiet.co-warning     { background: var(--warning-50);       color: var(--warning-500); }
 .ac-tag.em-quiet.co-negative    { background: var(--danger-50);        color: var(--danger-500); }
 /* strong emphasis (filled) */
-.ac-tag.em-strong { color: #fff; }
-.ac-tag.em-strong.co-neutral     { background: var(--ink-3); }
+/* A filled tag states its ink beside its fill. The single shared #fff that used
+   to sit above these was the same defect the badge had, split across rules:
+   seven fills, six of which become tints in dark, all wearing white. */
+.ac-tag.em-strong.co-neutral     { background: var(--ink-3);          color: var(--surface-0); }
 .ac-tag.em-strong.co-primary,
 .ac-tag.em-strong.co-brand,
-.ac-tag.em-strong.co-informative { background: var(--bg-accent); }
-.ac-tag.em-strong.co-accent      { background: var(--ldh-violet-600); }
-.ac-tag.em-strong.co-positive    { background: var(--success-500); }
-.ac-tag.em-strong.co-warning     { background: var(--warning-500); }
-.ac-tag.em-strong.co-negative    { background: var(--danger-500); }
+.ac-tag.em-strong.co-informative { background: var(--bg-accent);       color: var(--fg-on-accent); }
+.ac-tag.em-strong.co-accent      { background: var(--ldh-violet-600);  color: light-dark(#ffffff, #2e1638); }
+.ac-tag.em-strong.co-positive    { background: var(--success-500);     color: var(--fg-on-success); }
+.ac-tag.em-strong.co-warning     { background: var(--warning-500);     color: var(--fg-on-warning); }
+.ac-tag.em-strong.co-negative    { background: var(--danger-500);      color: var(--fg-on-danger); }
 .ac-tag-x {
   display: inline-flex; align-items: center; justify-content: center;
   width: 16px; height: 16px; padding: 0; margin-right: -3px;
@@ -447,18 +451,20 @@
   display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;
   font-family: var(--font-mono); font-weight: var(--fw-bold); line-height: 1;
   border-radius: var(--r-pill); border: 2px solid var(--surface-0);
-  color: #fff; background: var(--danger-500);
+  color: var(--fg-on-danger); background: var(--danger-500);
   transition: transform var(--dur-base) var(--ease-spring), opacity var(--dur-fast) var(--ease-out-soft);
 }
 .ac-badge.sz-sm { min-width: 16px; height: 16px; padding: 0 4px; font-size: 9px; }
 .ac-badge.sz-md { min-width: 20px; height: 20px; padding: 0 6px; font-size: 11px; }
 .ac-badge.is-dot.sz-sm { min-width: 8px; width: 8px; height: 8px; padding: 0; }
 .ac-badge.is-dot.sz-md { min-width: 10px; width: 10px; height: 10px; padding: 0; }
-.ac-badge.co-default  { background: var(--danger-500); }
-.ac-badge.co-neutral  { background: var(--ink-3); }
-.ac-badge.co-positive { background: var(--success-500); }
-.ac-badge.co-warning  { background: var(--warning-500); }
-.ac-badge.co-negative { background: var(--danger-500); }
+/* Each variant carries its fill AND the ink that fill takes. A single shared
+   #fff was right only while every one of these colours was dark. */
+.ac-badge.co-default  { background: var(--danger-500);  color: var(--fg-on-danger); }
+.ac-badge.co-neutral  { background: var(--ink-3);       color: var(--surface-0); }
+.ac-badge.co-positive { background: var(--success-500); color: var(--fg-on-success); }
+.ac-badge.co-warning  { background: var(--warning-500); color: var(--fg-on-warning); }
+.ac-badge.co-negative { background: var(--danger-500);  color: var(--fg-on-danger); }
 .ac-badge.pl-top-right    { position: absolute; top: 0; right: 0; transform: translate(40%, -40%); }
 .ac-badge.pl-bottom-right { position: absolute; bottom: 0; right: 0; transform: translate(40%, 40%); }
 .ac-badge.pl-inline { position: static; transform: none; border-width: 0; }
@@ -596,7 +602,13 @@
   width: 35% !important; animation: ac-indet 1.3s var(--ease-in-out) infinite;
 }
 @keyframes ac-indet { 0% { margin-left: -35%; } 100% { margin-left: 100%; } }
-.ac-pbar-inval { font-family: var(--font-mono); font-size: 9px; color: #fff; padding-right: 5px; }
+/* Printed inside the fill, so it takes the fill's on-colour — which fill that is
+   depends on the variant, exactly as with Tag and Badge. */
+.ac-pbar-inval { font-family: var(--font-mono); font-size: 9px; color: var(--fg-on-accent); padding-right: 5px; }
+.ac-pbar.co-neutral  .ac-pbar-inval { color: var(--surface-0); }
+.ac-pbar.co-success  .ac-pbar-inval { color: var(--fg-on-success); }
+.ac-pbar.co-warning  .ac-pbar-inval { color: var(--fg-on-warning); }
+.ac-pbar.co-negative .ac-pbar-inval { color: var(--fg-on-danger); }
 
 /* ---------- ProgressCircle ---------- */
 .ac-pcircle { display: inline-flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; }
@@ -632,7 +644,10 @@
   padding: 7px 10px; border-radius: var(--r-sm);
   font-family: var(--font-sans); font-size: var(--fs-xs); line-height: 1.45;
   max-width: 240px; width: max-content;
-  background: var(--ink-1); color: #fff; box-shadow: var(--shadow-md);
+  /* An inverse surface: the ground is the ink token and the ink is the surface
+     token, so the pair swaps together instead of pinning white against a ground
+     that turns near-white in dark. */
+  background: var(--ink-1); color: var(--surface-0); box-shadow: var(--shadow-md);
   animation: ac-tip-in var(--dur-fast) var(--ease-out-soft);
 }
 @keyframes ac-tip-in { from { opacity: 0; transform: translateY(2px); } }

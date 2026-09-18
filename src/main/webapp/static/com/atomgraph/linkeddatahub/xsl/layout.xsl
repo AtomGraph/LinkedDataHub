@@ -207,6 +207,11 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF | srx:sparql" mode="xhtml:Meta">
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
+        <!-- the page renders in whichever scheme the reader's browser asks for. colors_and_type.css says the same thing in
+             CSS, and that is what actually themes the page; this declares it early enough to matter, because the UA paints
+             the canvas before any stylesheet has loaded and a dark reader would otherwise get a white flash first -->
+        <meta name="color-scheme" content="light dark"/>
+
         <!-- og: rides @property, twitter: rides @name - that is each protocol's own spelling, and it is also what decides
              whether the pair reaches RDFa at all: @name emits no triple, so og:url and og:title used to be invisible to both
              Open Graph consumers and RDFa processors while their og: siblings below were not -->
@@ -246,6 +251,11 @@ exclude-result-prefixes="#all">
 
     <!-- the m3 skin selector on the root element (retro.css keys on it) is the product's shipped look, not an optional theme.
 
+         There is deliberately no @data-theme here. The skin says which design the page wears; the light/dark scheme is the
+         reader's, and pinning it to light is what kept a dark-preference browser on a white page. Absent the attribute the
+         base tokens' light-dark() pairs resolve from prefers-color-scheme. The attribute still WORKS - the design system
+         keeps [data-theme="light"|"dark"] as a forcing override - it is just not something this page has an opinion on.
+
          lang is the language the page is composed in, taken from the Content-Language this response already carries rather
          than from the languages the reader accepts - asking for German does not make the page German, and
          reporting the request here is what put lang="de" on a page written entirely in English. Deriving it from the header
@@ -261,7 +271,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="/">
         <xsl:variable name="lang" select="($ldh:httpHeaders('Content-Language')[1], 'en')[1]" as="xs:string"/>
 
-        <html lang="{$lang}" xml:lang="{$lang}" about="{ac:absolute-path(ldh:base-uri(.))}" data-retro="m3" data-theme="light">
+        <html lang="{$lang}" xml:lang="{$lang}" about="{ac:absolute-path(ldh:base-uri(.))}" data-retro="m3">
             <xsl:apply-templates/>
         </html>
     </xsl:template>

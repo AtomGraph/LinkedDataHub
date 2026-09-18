@@ -23,6 +23,11 @@
    1 · TERMINAL DUSK  (Halt & Catch Fire)
    ========================================================================= */
 :root[data-retro="dusk"] {
+  /* A skin committed to one scheme says so, rather than leaving the base tokens
+     to follow the browser underneath it: the tokens it does not remap, and every
+     native control the UA paints, would otherwise come out the other way round. */
+  color-scheme: dark;
+
   /* Neutrals — cool teal-navy with warm cream ink */
   --ink-1:  #ece3d2;
   --ink-2:  #c2cdc9;
@@ -106,6 +111,11 @@
    2 · ROSSO CORSA  (Italian classic car — light cream)
    ========================================================================= */
 :root[data-retro="corsa"] {
+  /* A skin committed to one scheme says so, rather than leaving the base tokens
+     to follow the browser underneath it: the tokens it does not remap, and every
+     native control the UA paints, would otherwise come out the other way round. */
+  color-scheme: light;
+
   /* Neutrals — warm ivory / cream surfaces, near-black warm ink */
   --ink-1:  #1a1714;
   --ink-2:  #3a332c;
@@ -178,6 +188,11 @@
    3 · NEON GRID  (synthwave Miami — dark purple)
    ========================================================================= */
 :root[data-retro="neon"] {
+  /* A skin committed to one scheme says so, rather than leaving the base tokens
+     to follow the browser underneath it: the tokens it does not remap, and every
+     native control the UA paints, would otherwise come out the other way round. */
+  color-scheme: dark;
+
   /* Neutrals — deep violet-black */
   --ink-1:  #f3ecff;
   --ink-2:  #d2c6ee;
@@ -400,6 +415,11 @@
    page wallpaper refracts through every panel.
    ========================================================================= */
 :root[data-retro="glass"] {
+  /* A skin committed to one scheme says so, rather than leaving the base tokens
+     to follow the browser underneath it: the tokens it does not remap, and every
+     native control the UA paints, would otherwise come out the other way round. */
+  color-scheme: light;
+
   /* Neutrals — dark slate ink on luminous frosted-white surfaces */
   --ink-1:  #0b1524;
   --ink-2:  #243245;
@@ -605,6 +625,11 @@ blue glow — overrides the
    Result: stands out as futuristic, stays functional where the work happens.
    ========================================================================= */
 :root[data-retro="glasspro"] {
+  /* A skin committed to one scheme says so, rather than leaving the base tokens
+     to follow the browser underneath it: the tokens it does not remap, and every
+     native control the UA paints, would otherwise come out the other way round. */
+  color-scheme: light;
+
   /* Slate ink on bright surfaces */
   --ink-1:  #0b1524;
   --ink-2:  #243245;
@@ -809,6 +834,11 @@ but a touch more solid ---- */
   background-attachment: fixed;
 }
 
+/* The lobes above are pastels washed over --surface-1, which follows the reader's
+   browser under the base tokens. Aurora is a light design, so it pins the scheme
+   rather than letting bright pastels land on a dark floor. */
+:root[data-retro="aurora"] { color-scheme: light; }
+
 /* The blocks already float; nudge their depth a touch cooler/softer so the
    "glass over colour" read is unmistakable — surfaces themselves stay solid. */
 :root[data-retro="aurora"] .ldh-block {
@@ -854,39 +884,45 @@ but a touch more solid ---- */
    NOT covered (these are architecture, not a theme — phase 2 if we go full M3):
      adaptive window-size classes, canonical layouts, HCT dynamic-colour gen.
    ========================================================================= */
-:root[data-retro="m3"] {
-  /* ===== M3 tonalSpot LIGHT scheme — generated from seed #0061a4 (OKLab tonal palettes, tone = CIE L*) ===== */
-  --md-primary: #0061a4;
-  --md-on-primary: #ffffff;
-  --md-primary-container: #cde6ff;
-  --md-on-primary-container: #001d37;
-  --md-secondary: #48617a;
-  --md-on-secondary: #ffffff;
-  --md-secondary-container: #cde6ff;
-  --md-on-secondary-container: #061d32;
-  --md-tertiary: #704b8d;
-  --md-on-tertiary: #ffffff;
-  --md-tertiary-container: #edd9ff;
-  --md-on-tertiary-container: #2a0241;
-  --md-error: #b30011;
-  --md-on-error: #ffffff;
-  --md-error-container: #ffd8d3;
-  --md-on-error-container: #3c0002;
-  --md-surface: #f5faff;
-  --md-surface-dim: #d4dbe2;
-  --md-surface-bright: #f5faff;
-  --md-surface-container-lowest: #ffffff;
-  --md-surface-container-low: #eef5fc;
-  --md-surface-container: #e8eff6;
-  --md-surface-container-high: #e2e9f0;
-  --md-surface-container-highest: #dde3ea;
-  --md-on-surface: #171c21;
-  --md-on-surface-variant: #3e4852;
-  --md-outline: #6d7884;
-  --md-outline-variant: #bcc8d5;
-  --md-inverse-surface: #2c3136;
-  --md-inverse-on-surface: #ebf2f9;
-  --md-inverse-primary: #98ccff;
+:root[data-retro^="m3"] {
+  /* ===== M3 tonalSpot scheme — generated from seed #0061a4 (OKLab tonal palettes, tone = CIE L*) =====
+     ONE set of roles carrying both schemes. M3 already separates palette from
+     scheme: the tonal ramps below are the palette and belong to neither mode,
+     while a role picks a different TONE off the same ramp per mode (primary is
+     tone 40 in light and tone 80 in dark). light-dark() is that pick, written
+     where the role is declared. Because every component rule in this file reads
+     the roles rather than the ramps, the dark scheme costs no component CSS. */
+  --md-primary: light-dark(#0061a4, #98ccff);
+  --md-on-primary: light-dark(#ffffff, #003259);
+  --md-primary-container: light-dark(#cde6ff, #00497e);
+  --md-on-primary-container: light-dark(#001d37, #cde6ff);
+  --md-secondary: light-dark(#48617a, #aecae6);
+  --md-on-secondary: light-dark(#ffffff, #1b3249);
+  --md-secondary-container: light-dark(#cde6ff, #314961);
+  --md-on-secondary-container: light-dark(#061d32, #cde6ff);
+  --md-tertiary: light-dark(#704b8d, #dbb3fd);
+  --md-on-tertiary: light-dark(#ffffff, #401b5a);
+  --md-tertiary-container: light-dark(#edd9ff, #583373);
+  --md-on-tertiary-container: light-dark(#2a0241, #edd9ff);
+  --md-error: light-dark(#b30011, #ffafa5);
+  --md-on-error: light-dark(#ffffff, #610005);
+  --md-error-container: light-dark(#ffd8d3, #89000a);
+  --md-on-error-container: light-dark(#3c0002, #ffd8d3);
+  --md-surface: light-dark(#f5faff, #0f1419);
+  --md-surface-dim: light-dark(#d4dbe2, #0f1419);
+  --md-surface-bright: light-dark(#f5faff, #343a3f);
+  --md-surface-container-lowest: light-dark(#ffffff, #0a0f13);
+  --md-surface-container-low: light-dark(#eef5fc, #171c21);
+  --md-surface-container: light-dark(#e8eff6, #1b2025);
+  --md-surface-container-high: light-dark(#e2e9f0, #252b30);
+  --md-surface-container-highest: light-dark(#dde3ea, #30353b);
+  --md-on-surface: light-dark(#171c21, #dde3ea);
+  --md-on-surface-variant: light-dark(#3e4852, #bcc8d5);
+  --md-outline: light-dark(#6d7884, #87929e);
+  --md-outline-variant: light-dark(#bcc8d5, #3e4852);
+  --md-inverse-surface: light-dark(#2c3136, #dde3ea);
+  --md-inverse-on-surface: light-dark(#ebf2f9, #2c3136);
+  --md-inverse-primary: light-dark(#98ccff, #0061a4);
 
   /* ---- Full tonal palettes (HCT-style, generated from the seed) ---- */
   --md-primary-0: #000001;
@@ -963,8 +999,13 @@ but a touch more solid ---- */
   --ink-4:  var(--md-outline);
   --ink-5:  var(--md-outline-variant);
 
-  --surface-0: var(--md-surface-container-lowest);  /* card body */
-  --surface-1: #e4e7ef;                              /* page floor — clearly greyer so white cards separate */
+  /* The card/floor relationship inverts between the schemes rather than merely
+     darkening. In light the card is the lightest thing on the page and the floor
+     steps down to a grey so the card separates; in dark the floor is the plain
+     surface and the card steps UP, which is how M3 reads elevation without a
+     shadow that a dark ground would swallow. */
+  --surface-0: light-dark(var(--md-surface-container-lowest), var(--md-surface-container-low));
+  --surface-1: light-dark(#e4e7ef, var(--md-surface));
   --surface-2: var(--md-surface-container-high);     /* recessed / hover well */
   --surface-3: var(--md-surface-container-highest);  /* pressed / dividers */
   --line-1:    var(--md-outline-variant);
@@ -972,42 +1013,42 @@ but a touch more solid ---- */
 
   /* Accent ramp → primary role */
   --ldh-blue-50:   var(--md-primary-container);
-  --ldh-blue-100:  #b8d6fb;
-  --ldh-blue-200:  #9ecaff;
+  --ldh-blue-100:  light-dark(#b8d6fb, #1d3a57);
+  --ldh-blue-200:  light-dark(#9ecaff, #00497d);
   --ldh-blue-300:  #5b9ee0;
-  --ldh-blue-400:  #2a7fc4;
-  --ldh-blue-500:  #0a6cae;
+  --ldh-blue-400:  light-dark(#2a7fc4, #7fb4ee);
+  --ldh-blue-500:  light-dark(#0a6cae, #9ecaff);
   --ldh-blue-600:  var(--md-primary);
-  --ldh-blue-700:  #00497d;
+  --ldh-blue-700:  light-dark(#00497d, #c7e0ff);
 
   /* Violet ramp → tertiary role */
   --ldh-violet-50:  var(--md-tertiary-container);
-  --ldh-violet-100: #ecccff;
-  --ldh-violet-400: #9a73b5;
+  --ldh-violet-100: light-dark(#ecccff, #4a2d63);
+  --ldh-violet-400: light-dark(#9a73b5, #c79bdf);
   --ldh-violet-500: var(--md-tertiary);
-  --ldh-violet-600: #5d3e77;
-  --ldh-violet-700: #472a60;
+  --ldh-violet-600: light-dark(#5d3e77, #cfa3e8);
+  --ldh-violet-700: light-dark(#472a60, #e0b6ff);
 
   /* Semantic → M3 system colours */
-  --success-500: #2e6c4a;  --success-50: #b6f2c9;
-  --warning-500: #7d5800;  --warning-50: #ffdea8;
+  --success-500: light-dark(#2e6c4a, #7fd99a);  --success-50: light-dark(#b6f2c9, #0c3a22);
+  --warning-500: light-dark(#7d5800, #f4bd6a);  --warning-50: light-dark(#ffdea8, #3a2a00);
   --danger-500:  var(--md-error);  --danger-600: color-mix(in srgb, var(--md-error) 82%, black);  --danger-50: var(--md-error-container);
   --fg-on-danger: var(--md-on-error);
 
   /* RDF node coding → M3 key colours */
   --rdf-class:    var(--md-tertiary);   /* tertiary  */
   --rdf-resource: var(--md-primary);    /* primary   */
-  --rdf-literal:  #2e6c4a;              /* green     */
-  --rdf-blank:    var(--md-outline);    /* outline   */
-  --rdf-named:    #8e4ec2;              /* purple    */
+  --rdf-literal:  light-dark(#2e6c4a, #7fd99a);  /* green     */
+  --rdf-blank:    var(--md-outline);             /* outline   */
+  --rdf-named:    light-dark(#8e4ec2, #d6a4ff);  /* purple    */
 
   /* Pastel chips → M3 container tints */
   --surf-lavender: var(--md-primary-container);
-  --surf-mint:     #b6f2c9;
-  --surf-peach:    #ffdea8;
+  --surf-mint:     light-dark(#b6f2c9, #0c3a22);
+  --surf-peach:    light-dark(#ffdea8, #3a2a00);
   --surf-sky:      var(--md-secondary-container);
   --surf-blush:    var(--md-error-container);
-  --surf-sand:     #f2daff;
+  --surf-sand:     light-dark(#f2daff, #5b3b76);
 
   /* No mesh gradients in M3 — flatten heroes/dark surfaces to tonal fills. */
   --grad-aurora: var(--md-primary-container);   /* @kind color */
@@ -1017,7 +1058,7 @@ but a touch more solid ---- */
 
   /* Semantic re-derivations */
   --bg-accent:       var(--md-primary);
-  --bg-accent-hover: #00558f;
+  --bg-accent-hover: light-dark(#00558f, #b6d8ff);
   --bg-accent-quiet: var(--md-primary-container);
   --fg-on-accent:    var(--md-on-primary);
   --fg-hint:         var(--md-on-surface-variant);
@@ -1042,8 +1083,8 @@ but a touch more solid ---- */
   --shadow-md: 0 1px 2px rgba(0,0,0,0.30), 0 2px 6px 2px rgba(0,0,0,0.15);          /* level 2 */
   --shadow-lg: 0 4px 8px 3px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.30);          /* level 3 */
   --shadow-xl: 0 6px 10px 4px rgba(0,0,0,0.15), 0 2px 3px rgba(0,0,0,0.30);         /* level 4 */
-  --shadow-glow-blue:   0 0 0 3px rgba(0,97,164,0.40);
-  --shadow-glow-violet: 0 0 0 3px rgba(116,84,143,0.40);
+  --shadow-glow-blue:   0 0 0 3px light-dark(rgba(0,97,164,0.40), rgba(158,202,255,0.40));
+  --shadow-glow-violet: 0 0 0 3px light-dark(rgba(116,84,143,0.40), rgba(224,182,255,0.40));
   --inset-hairline: none;
 
   /* ---- M3 MOTION: easing + duration system (M3 Expressive curves) ---- */
@@ -1068,15 +1109,20 @@ but a touch more solid ---- */
 
 /* ---- Page floor: a soft, tonal M3 gradient built from the scheme's own
         container colours (primary / tertiary / secondary container). Subtle and
-        on-palette — M3 Expressive permits richer surfaces; cards stay white. ---- */
+        on-palette — M3 Expressive permits richer surfaces; cards stay white.
+
+        The wash is the same four lobes in both schemes, with only their colours
+        paired: geometry written once cannot drift into two different floors, and
+        the dark lobes are the same hues held near the floor's own luminance so
+        the gradient reads as depth rather than as coloured patches. ---- */
 :root[data-retro^="m3"] body,
 :root[data-retro^="m3"] .app {
   background:
-    radial-gradient(62% 72% at 8% 4%,   #c2dcff 0%, transparent 62%),
-    radial-gradient(56% 64% at 95% 2%,  #e6d4ff 0%, transparent 62%),
-    radial-gradient(64% 74% at 88% 98%, #cfe0f7 0%, transparent 64%),
-    radial-gradient(50% 60% at 40% 60%, #d8e6ff 0%, transparent 70%),
-    #dfe6f2;
+    radial-gradient(62% 72% at 8% 4%,   light-dark(#c2dcff, #14283f) 0%, transparent 62%),
+    radial-gradient(56% 64% at 95% 2%,  light-dark(#e6d4ff, #221a33) 0%, transparent 62%),
+    radial-gradient(64% 74% at 88% 98%, light-dark(#cfe0f7, #15202c) 0%, transparent 64%),
+    radial-gradient(50% 60% at 40% 60%, light-dark(#d8e6ff, #141b26) 0%, transparent 70%),
+    light-dark(#dfe6f2, #111418);
   background-attachment: fixed;
 }
 
@@ -1084,7 +1130,10 @@ but a touch more solid ---- */
         elevation level 1; hover lifts to level 2 + 8% on-surface state layer. ---- */
 :root[data-retro^="m3"] .ldh-block,
 :root[data-retro^="m3"] .ldh-grid-block .card {
-  background: var(--md-surface-container-lowest);
+  /* --surface-0 rather than the role directly: the card token already carries
+     which M3 surface a card takes in each scheme, and reading it here is what
+     lets one rule serve both. */
+  background: var(--surface-0);
   border: 0;
   border-radius: 12px;
   box-shadow: 0 1px 2px rgba(0,0,0,0.30), 0 1px 3px 1px rgba(0,0,0,0.15);
@@ -1092,7 +1141,8 @@ but a touch more solid ---- */
               transform var(--md-duration-medium) var(--md-easing-emphasized);
 }
 :root[data-retro^="m3"] .ldh-block:hover {
-  box-shadow: 0 2px 4px rgba(0,0,0,0.18), 0 8px 18px 1px rgba(0,0,0,0.14);
+  box-shadow: 0 2px 4px light-dark(rgba(0,0,0,0.18), rgba(0,0,0,0.40)),
+              0 8px 18px 1px light-dark(rgba(0,0,0,0.14), rgba(0,0,0,0.34));
   transform: translateY(-1px);
 }
 
@@ -1112,7 +1162,7 @@ but a touch more solid ---- */
    elevated card in flow mode — they're data surfaces, like the grid cards and
    chart plots that already retain theirs. */
 :root[data-retro^="m3"][data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
-  background: var(--md-surface-container-lowest);
+  background: var(--surface-0);
   border: 0;
   border-radius: 12px;
   box-shadow: 0 1px 2px rgba(0,0,0,0.30), 0 1px 3px 1px rgba(0,0,0,0.15);
@@ -1128,21 +1178,25 @@ but a touch more solid ---- */
   border-radius: inherit;
   box-shadow: inset 2px 0 0 var(--md-outline-variant, var(--border-default));
 }
-/* The slot bar takes the skin's own toolbar tint. */
+/* The slot bar takes the skin's own toolbar tint. It has to be a step away from
+   whatever the card underneath it is, and the card moves between schemes — in
+   dark, container-low IS the card, so a bar painted with it would vanish. The
+   pair steps the same direction in both: one container level above the card. */
 :root[data-retro^="m3"] .ldh-slot-bar {
-  background: var(--md-surface-container-low, var(--surface-1));
+  background: light-dark(var(--md-surface-container-low), var(--md-surface-container-high));
   border-bottom-color: var(--md-outline-variant, var(--border-default));
 }
 :root[data-retro^="m3"] .ldh-grid-block .card { overflow: hidden; }
 
-/* ---- Top app bar (M3): surface-container, on-surface text, hairline divider,
-        NO shadow at rest. Force the header's white chrome back to on-surface. ---- */
-/* ---- Top app bar (M3): a DARK neutral bar (inverse-surface) with light text —
-        keeps the strong header the product is known for. Dark scheme overrides
-        below to an elevated dark surface so it doesn't vanish into the floor. ---- */
+/* ---- Top app bar (M3): a DARK neutral bar with light text — keeps the strong
+        header the product is known for. The bar is dark in BOTH schemes, so what
+        changes is which dark it is: in light it is inverse-surface, the one dark
+        thing on a light page; in dark that role has flipped to a light tint, so
+        the bar takes an elevated dark surface instead and reads as raised
+        against the floor rather than vanishing into it. ---- */
 :root[data-retro^="m3"] .ldh-header {
-  background: var(--md-inverse-surface);
-  border-bottom: 1px solid rgba(0,0,0,0.22);
+  background: light-dark(var(--md-inverse-surface), var(--md-surface-container-high));
+  border-bottom: 1px solid light-dark(rgba(0,0,0,0.22), var(--md-outline-variant));
 }
 /* Chrome ink: set on the bar and INHERITED by chrome-level elements. Deliberately
    not `.ldh-header *` — a forced literal on every descendant cannot tell chrome
@@ -1151,9 +1205,26 @@ but a touch more solid ---- */
    it. `color: inherit` on the elements that would otherwise lose to base rules
    (link colour, UA button styles) keeps the win; any panel that pins its own
    colour now beats it naturally, because its descendants inherit from the panel. */
-:root[data-retro^="m3"] .ldh-header { color: var(--md-inverse-on-surface); }
-:root[data-retro^="m3"] .ldh-header :is(a, button, input, .msi) { color: inherit; }
+:root[data-retro^="m3"] .ldh-header { color: light-dark(var(--md-inverse-on-surface), var(--md-on-surface)); }
+/* A filled button is the exception, and it has to be: it paints its own ground,
+   so its ink is the ground's on-colour rather than the bar's. Inheriting was
+   harmless while the bar's ink was near-white and the fill was a dark blue —
+   the two happened to agree. In the dark scheme the fill is a PALE blue and the
+   bar's ink is light, so the same rule put light grey on light blue at 1.3:1.
+   The caret and icon inside such a button are excluded with it; they are part
+   of the button's face, not chrome sitting on the bar. */
+:root[data-retro^="m3"] .ldh-header :is(a, button, input, .msi):not(.ap-solid, .ap-solid *) { color: inherit; }
+/* The dot scrim is the one difference in this file that is not a colour, and
+   opacity cannot ride light-dark(). It therefore takes the three-rule form
+   documented in colors_and_type.css: the light value, the dark value under the
+   media query guarded against an explicit light, and a twin under an explicit
+   dark so forcing still wins. The dark bar is a shade lighter than the light
+   scheme's, so the same dots over it need dialling back. */
 :root[data-retro^="m3"] .ldh-header::before { opacity: 0.10; }
+@media (prefers-color-scheme: dark) {
+  :root[data-retro^="m3"]:not([data-theme="light"]) .ldh-header::before { opacity: 0.06; }
+}
+:root[data-retro^="m3"][data-theme="dark"] .ldh-header::before { opacity: 0.06; }
 
 /* ---- Hero → primary-container surface, on-primary-container text, 28 radius,
         flat (no mesh, no specular). ---- */
@@ -1169,7 +1240,7 @@ but a touch more solid ---- */
 /* ---- Dialogs / drawers / menus. The dialog uses the SAME surface as cards
         (surface-container-lowest = white in light) so the embedded ResourceEditForm
         reads identically whether inline in a card or inside the modal. ---- */
-:root[data-retro^="m3"] .ldh-modal { background: var(--md-surface-container-lowest); border-radius: 28px; }
+:root[data-retro^="m3"] .ldh-modal { background: var(--surface-0); border-radius: 28px; }
 :root[data-retro^="m3"] .ldh-add-menu,
 :root[data-retro^="m3"] .ldh-form-actions-menu,
 :root[data-retro^="m3"] .ldh-mode .modes-pop {
@@ -1196,25 +1267,32 @@ pressed 10%). ---- */
   font-weight: 500;
   letter-spacing: 0.1px;
 }
-/* Filled (primary) button — on-primary state layer (white). */
+/* Filled (primary) button — on-primary state layer. M3 defines a state layer as
+   the ON-colour of the surface it covers, so it inverts with the scheme for free:
+   on-primary is white on a light scheme's blue fill and near-black on a dark
+   scheme's pale-blue fill, and a white overlay on the latter would wash it out. */
 :root[data-retro^="m3"] .ac-btn.ap-solid { box-shadow: none; }
 :root[data-retro^="m3"] .ac-btn.ap-solid:hover {
   box-shadow: 0 1px 2px rgba(0,0,0,0.30), 0 1px 3px 1px rgba(0,0,0,0.15),
-              inset 0 0 0 999px rgba(255,255,255,0.10);
+              inset 0 0 0 999px light-dark(rgba(255,255,255,0.10), rgba(0,0,0,0.08));
 }
 :root[data-retro^="m3"] .ac-btn.ap-solid:active {
-  box-shadow: inset 0 0 0 999px rgba(255,255,255,0.14);
+  box-shadow: inset 0 0 0 999px light-dark(rgba(255,255,255,0.14), rgba(0,0,0,0.12));
 }
 /* Text / ghost button — primary state layer. */
 :root[data-retro^="m3"] .ac-btn.ap-outline,
 :root[data-retro^="m3"] .ac-btn.ap-ghost { border-radius: 999px; }
+/* Mixed from the role rather than written as the role's literal at 8%: the
+   literal was the light primary spelled out, which meant the dark scheme had to
+   restate the same rule with its own. Mixing follows whichever tone the role
+   currently holds, so one declaration is exact in both. */
 :root[data-retro^="m3"] .ac-btn.ap-outline:hover,
-:root[data-retro^="m3"] .ac-btn.ap-ghost:hover { box-shadow: inset 0 0 0 999px rgba(0,97,164,0.08); }
+:root[data-retro^="m3"] .ac-btn.ap-ghost:hover { box-shadow: inset 0 0 0 999px color-mix(in srgb, var(--md-primary) 8%, transparent); }
 :root[data-retro^="m3"] .ac-btn.ap-outline:active,
-:root[data-retro^="m3"] .ac-btn.ap-ghost:active { box-shadow: inset 0 0 0 999px rgba(0,97,164,0.12); }
+:root[data-retro^="m3"] .ac-btn.ap-ghost:active { box-shadow: inset 0 0 0 999px color-mix(in srgb, var(--md-primary) 12%, transparent); }
 /* Icon buttons — circular, on-surface-variant state layer. */
 :root[data-retro^="m3"] .ac-iconbtn { border-radius: 999px; }
-:root[data-retro^="m3"] .ac-iconbtn:hover { box-shadow: inset 0 0 0 999px rgba(67,71,78,0.08); }
+:root[data-retro^="m3"] .ac-iconbtn:hover { box-shadow: inset 0 0 0 999px color-mix(in srgb, var(--md-on-surface-variant) 8%, transparent); }
 /* Mode-switcher trigger is a button-like control — give it the M3 pill shape so
    it shares the shape language of the Create button instead of a 12px chip. */
 :root[data-retro^="m3"] .ldh-mode { border-radius: 999px; }
@@ -1305,208 +1383,12 @@ pressed 10%). ---- */
 }
 
 /* =========================================================================
-   M3 — DARK SCHEME  (equal-citizen counterpart; honours the light/dark tweak)
-   Same primary seed; tonal palettes shifted to the M3 dark roles. Because every
-   component above reads the md role vars and the remapped surface/ink tokens,
-   redefining the roles here re-themes the whole app with no extra component CSS.
-   A self-contained scope, applied when the light/dark tweak is dark under M3.
+   M3 — the dark scheme used to live here as a ninth skin, data-retro="m3-dark",
+   restating every token and every component rule the light one declares. It is
+   gone: dark is a MODE of the m3 skin now, carried by the light-dark() pairs
+   above, and reached by the reader's browser preference rather than by picking
+   a different skin. The value is kept working as an alias so saved states and
+   the design system's preview cards still resolve — it selects the same skin
+   (every selector here matches ^="m3") and pins it to dark.
    ========================================================================= */
-:root[data-retro="m3-dark"] {
-  /* ===== M3 tonalSpot DARK scheme — generated from the same seed ===== */
-  --md-primary: #98ccff;
-  --md-on-primary: #003259;
-  --md-primary-container: #00497e;
-  --md-on-primary-container: #cde6ff;
-  --md-secondary: #aecae6;
-  --md-on-secondary: #1b3249;
-  --md-secondary-container: #314961;
-  --md-on-secondary-container: #cde6ff;
-  --md-tertiary: #dbb3fd;
-  --md-on-tertiary: #401b5a;
-  --md-tertiary-container: #583373;
-  --md-on-tertiary-container: #edd9ff;
-  --md-error: #ffafa5;
-  --md-on-error: #610005;
-  --md-error-container: #89000a;
-  --md-on-error-container: #ffd8d3;
-  --md-surface: #0f1419;
-  --md-surface-dim: #0f1419;
-  --md-surface-bright: #343a3f;
-  --md-surface-container-lowest: #0a0f13;
-  --md-surface-container-low: #171c21;
-  --md-surface-container: #1b2025;
-  --md-surface-container-high: #252b30;
-  --md-surface-container-highest: #30353b;
-  --md-on-surface: #dde3ea;
-  --md-on-surface-variant: #bcc8d5;
-  --md-outline: #87929e;
-  --md-outline-variant: #3e4852;
-  --md-inverse-surface: #dde3ea;
-  --md-inverse-on-surface: #2c3136;
-  --md-inverse-primary: #0061a4;
-
-  /* ---- Same role→system remaps as the light scheme (self-contained) ---- */
-  --ink-1:  var(--md-on-surface);
-  --ink-2:  var(--md-on-surface-variant);
-  --ink-3:  var(--md-on-surface-variant);
-  --ink-4:  var(--md-outline);
-  --ink-5:  var(--md-outline-variant);
-
-  --surface-0: var(--md-surface-container-low);     /* card body (dark elevated) */
-  --surface-1: var(--md-surface);                    /* page floor */
-  --surface-2: var(--md-surface-container-high);
-  --surface-3: var(--md-surface-container-highest);
-  --line-1:    var(--md-outline-variant);
-  --line-2:    var(--md-outline);
-
-  --ldh-blue-50:   var(--md-primary-container);
-  --ldh-blue-100:  #1d3a57;
-  --ldh-blue-200:  #00497d;
-  --ldh-blue-300:  #5b9ee0;
-  --ldh-blue-400:  #7fb4ee;
-  --ldh-blue-500:  #9ecaff;
-  --ldh-blue-600:  var(--md-primary);
-  --ldh-blue-700:  #c7e0ff;
-
-  --ldh-violet-50:  var(--md-tertiary-container);
-  --ldh-violet-100: #4a2d63;
-  --ldh-violet-400: #c79bdf;
-  --ldh-violet-500: var(--md-tertiary);
-  --ldh-violet-600: #cfa3e8;
-  --ldh-violet-700: #e0b6ff;
-
-  --success-500: #7fd99a;  --success-50: #0c3a22;
-  --warning-500: #f4bd6a;  --warning-50: #3a2a00;
-  --danger-500:  var(--md-error);  --danger-600: color-mix(in srgb, var(--md-error) 82%, black);  --danger-50: var(--md-error-container);
-  --fg-on-danger: var(--md-on-error);
-
-  --rdf-class:    var(--md-tertiary);
-  --rdf-resource: var(--md-primary);
-  --rdf-literal:  #7fd99a;
-  --rdf-blank:    var(--md-outline);
-  --rdf-named:    #d6a4ff;
-
-  --surf-lavender: var(--md-primary-container);
-  --surf-mint:     #0c3a22;
-  --surf-peach:    #3a2a00;
-  --surf-sky:      var(--md-secondary-container);
-  --surf-blush:    var(--md-error-container);
-  --surf-sand:     #5b3b76;
-
-  --grad-aurora: var(--md-primary-container);   /* @kind color */
-  --grad-dawn:   var(--md-secondary-container);  /* @kind color */
-  --grad-noon:   var(--md-surface-container);    /* @kind color */
-  --grad-deep:   var(--md-inverse-surface);      /* @kind color */
-
-  --bg-accent:       var(--md-primary);
-  --bg-accent-hover: #b6d8ff;
-  --bg-accent-quiet: var(--md-primary-container);
-  --fg-on-accent:    var(--md-on-primary);
-  --fg-hint:         var(--md-on-surface-variant);
-  --fg-link:         var(--md-primary);
-  --bg-selected:     var(--md-secondary-container);
-  --fg-selected:     var(--md-on-secondary-container);
-
-  --font-display: var(--font-sans);
-
-  --r-xs:  4px;
-  --r-sm:  8px;
-  --r-md:  12px;
-  --r-lg:  16px;
-  --r-xl:  28px;
-  --r-2xl: 28px;
-
-  --shadow-xs: 0 1px 2px rgba(0,0,0,0.30), 0 1px 3px 1px rgba(0,0,0,0.15);
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.30), 0 1px 3px 1px rgba(0,0,0,0.15);
-  --shadow-md: 0 1px 2px rgba(0,0,0,0.30), 0 2px 6px 2px rgba(0,0,0,0.15);
-  --shadow-lg: 0 4px 8px 3px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.30);
-  --shadow-xl: 0 6px 10px 4px rgba(0,0,0,0.15), 0 2px 3px rgba(0,0,0,0.30);
-  --shadow-glow-blue:   0 0 0 3px rgba(158,202,255,0.40);
-  --shadow-glow-violet: 0 0 0 3px rgba(224,182,255,0.40);
-  --inset-hairline: none;
-
-  /* ---- M3 MOTION (same curves/durations as light — motion is scheme-independent) ---- */
-  --md-easing-emphasized:            cubic-bezier(0.2, 0.0, 0, 1.0); /* @kind other */
-  --md-easing-emphasized-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1.0); /* @kind other */
-  --md-easing-emphasized-accelerate: cubic-bezier(0.3, 0.0, 0.8, 0.15); /* @kind other */
-  --md-easing-standard:              cubic-bezier(0.2, 0.0, 0, 1.0); /* @kind other */
-  --md-easing-standard-decelerate:   cubic-bezier(0, 0, 0, 1); /* @kind other */
-  --md-easing-standard-accelerate:   cubic-bezier(0.3, 0, 1, 1); /* @kind other */
-  --md-duration-short:  150ms; /* @kind other */
-  --md-duration-medium: 300ms; /* @kind other */
-  --md-duration-long:   500ms; /* @kind other */
-  --ease-out-soft: var(--md-easing-emphasized-decelerate); /* @kind other */
-  --ease-in-out:   var(--md-easing-emphasized); /* @kind other */
-  --ease-spring:   var(--md-easing-emphasized); /* @kind other */
-  --dur-fast:  150ms; /* @kind other */
-  --dur-base:  200ms; /* @kind other */
-  --dur-slow:  350ms; /* @kind other */
-  --dur-xslow: 500ms; /* @kind other */
-}
-/* Dark page floor — subtle tonal gradient from the dark container tones */
-:root[data-retro="m3-dark"] body,
-:root[data-retro="m3-dark"] .app {
-  background:
-    radial-gradient(58% 68% at 10% 6%,  #14283f 0%, transparent 60%),
-    radial-gradient(52% 60% at 92% 4%,  #221a33 0%, transparent 60%),
-    radial-gradient(60% 70% at 86% 96%, #15202c 0%, transparent 62%),
-    #111418;
-  background-attachment: fixed;
-}
-
-/* Dark scheme: cards = elevated dark surface (lighter than the floor) */
-:root[data-retro="m3-dark"] .ldh-block,
-:root[data-retro="m3-dark"] .ldh-grid-block .card,
-:root[data-retro="m3-dark"] .ldh-modal { background: var(--md-surface-container-low); }
-
-/* Dark scheme app bar: an elevated dark surface with light text + hairline,
-   so it reads as a distinct bar instead of an inverse (light) one. */
-:root[data-retro="m3-dark"] .ldh-header {
-  background: var(--md-surface-container-high);
-  border-bottom: 1px solid var(--md-outline-variant);
-}
-:root[data-retro="m3-dark"] .ldh-header { color: var(--md-on-surface); }
-:root[data-retro="m3-dark"] .ldh-header :is(a, button, input, .msi) { color: inherit; }
-:root[data-retro="m3-dark"] .ldh-header::before { opacity: 0.06; }
-
-/* State layers flip to LIGHT overlays in dark (state layer = on-colour) */
-:root[data-retro="m3-dark"] .ldh-block:hover {
-  box-shadow: 0 2px 4px rgba(0,0,0,0.40), 0 8px 18px 1px rgba(0,0,0,0.34);
-  transform: translateY(-1px);
-}
-/* m3-dark restates .ldh-block AFTER the [data-retro^="m3"] rules at the same
-   specificity, so it wins on load order — the quiet/embedded exemptions have to
-   be repeated here or a dark embedded card gets a surface and a lift. */
-:root[data-retro="m3-dark"] .ldh-block.is-quiet,
-:root[data-retro="m3-dark"] .ldh-block.is-quiet:hover { background: transparent; box-shadow: none; transform: none; }
-:root[data-retro="m3-dark"] .ldh-block.is-embedded,
-:root[data-retro="m3-dark"] .ldh-block.is-embedded:hover {
-  background: transparent; border: 0; /* inherit, not 0: the carrier is rounded and no longer clips, so a
-     square-cornered inset hairline escapes past its corners. */
-  border-radius: inherit; transform: none;
-  box-shadow: inset 2px 0 0 var(--md-outline-variant, var(--border-default));
-}
-/* The slot bar's job is to be tinted APART from the card it sits on. The
-   [data-retro^="m3"] rule gives it --md-surface-container-low — which is
-   exactly what m3-dark's own .ldh-block uses, so the two collide at #171c21
-   and the nesting signal vanishes. A step up reads clearly against it.
-   The `^="m3"` prefix looks like coverage but isn't when the dark variant
-   restates the token: check the value, not just the selector. */
-:root[data-retro="m3-dark"] .ldh-slot-bar {
-  background: var(--md-surface-container-high, var(--surface-2));
-}
-:root[data-retro="m3-dark"] .ac-btn.ap-outline:hover,
-:root[data-retro="m3-dark"] .ac-btn.ap-ghost:hover { box-shadow: inset 0 0 0 999px rgba(158,202,255,0.08); }
-:root[data-retro="m3-dark"] .ac-btn.ap-outline:active,
-:root[data-retro="m3-dark"] .ac-btn.ap-ghost:active { box-shadow: inset 0 0 0 999px rgba(158,202,255,0.12); }
-:root[data-retro="m3-dark"] .ac-iconbtn:hover { box-shadow: inset 0 0 0 999px rgba(195,198,207,0.08); }
-/* Filled button in dark: on-primary is dark,
-so its state layer is a dark overlay */
-so its state layer is a dark overlay */
-:root[data-retro="m3-dark"] .ac-btn.ap-solid:hover {
-  box-shadow: 0 1px 2px rgba(0,0,0,0.30), 0 1px 3px 1px rgba(0,0,0,0.15),
-              inset 0 0 0 999px rgba(0,0,0,0.08);
-}
-:root[data-retro="m3-dark"] .ac-btn.ap-solid:active {
-  box-shadow: inset 0 0 0 999px rgba(0,0,0,0.12);
-}
+:root[data-retro="m3-dark"] { color-scheme: only dark; }

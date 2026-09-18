@@ -1065,8 +1065,15 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   color: var(--fg-muted);
   margin: 0 0 var(--sp-3);
 }
-.ldh-footer .col a { display: block; padding: 4px 0; font-size: var(--fs-sm); color: var(--fg-2); }
-.ldh-footer .col a:hover { color: var(--fg-link); }
+/* The link COLUMNS stack their anchors as blocks. The brand column holds one
+   anchor too, and it is not a footer link — it is the wordmark, whose own rule
+   lays it out as a flex lockup. This selector outranks that rule (0,2,1 against
+   0,1,0), so it was flattening the lockup to display: block; the mark inside it
+   became an inline box, which cannot take a width, and collapsed from 24px to
+   zero — leaving its gradient as a sliver painted over the first letter. It was
+   taking the wordmark's type down to the footer-link size with it. */
+.ldh-footer .col a:not(.ldh-wordmark) { display: block; padding: 4px 0; font-size: var(--fs-sm); color: var(--fg-2); }
+.ldh-footer .col a:not(.ldh-wordmark):hover { color: var(--fg-link); }
 .ldh-footer .brand-col p {
   font-size: var(--fs-sm); color: var(--fg-muted); line-height: var(--lh-base); max-width: 280px; margin: var(--sp-3) 0 0;
 }
@@ -1138,11 +1145,14 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
    card. Scoped to .ac-iconbtn — this rule still said `.tb-links`, a class
    retired when the icon buttons were unified, so it had been dead. */
 .hero-actions .ac-iconbtn {
-  background: rgba(255,255,255,0.72);
+  /* A frosted plate of the CARD surface rather than of white: the hero wash it
+     floats over is dark in the dark scheme, where a white plate reads as a hole
+     punched in it. Mixing toward transparent keeps the frosting. */
+  background: color-mix(in srgb, var(--surface-0) 72%, transparent);
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
 }
-.hero-actions .ac-iconbtn:hover { background: rgba(255,255,255,0.9); }
+.hero-actions .ac-iconbtn:hover { background: color-mix(in srgb, var(--surface-0) 90%, transparent); }
 
 /* Block drawer — fixed to the viewport's right edge so it sits FLUSH against
    the page edge regardless of where the block lives inside the centered
@@ -1334,15 +1344,17 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 /* Hero block — uses pastel gradient for the document intro */
 .ldh-hero {
   position: relative;
+  /* --grad-aurora carries its own dark stops, so the wash follows the scheme and
+     the border firms up a step to hold an edge against a dark page. */
   background: var(--grad-aurora);
-  border: 1px solid var(--border-default);
+  border: 1px solid light-dark(var(--border-default), var(--border-strong));
   border-radius: var(--r-lg);
   padding: var(--sp-10) var(--sp-8);
   overflow: hidden;
 }
 .ldh-hero::before {
   content: ""; position: absolute; inset: 0;
-  background-image: radial-gradient(circle at 1px 1px, rgba(11,14,20,0.06) 1px, transparent 1.4px);
+  background-image: radial-gradient(circle at 1px 1px, light-dark(rgba(11,14,20,0.06), rgba(255,255,255,0.08)) 1px, transparent 1.4px);
   background-size: 24px 24px;
   opacity: 0.7;
   pointer-events: none;
@@ -1351,13 +1363,6 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 
 /* Dark theme: pastel hero would strand light text on a light wash — swap to the
    dark accent gradient (governance: pastels/gradients are hero-only anyway). */
-:root[data-theme="dark"] .ldh-hero {
-  background: var(--grad-deep);
-  border-color: var(--line-2);
-}
-:root[data-theme="dark"] .ldh-hero::before {
-  background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.08) 1px, transparent 1.4px);
-}
 .ldh-hero .eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--ldh-violet-700); }
 .ldh-hero h1 {
   margin: var(--sp-2) 0 var(--sp-3);
@@ -1770,7 +1775,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   width: 24px; height: 24px; border-radius: 4px;
   background: var(--surf-peach);
   display: inline-flex; align-items: center; justify-content: center;
-  color: #c25c00;
+  color: light-dark(#c25c00, #f0b27a);
 }
 .ldh-prop-row .value .iri-link {
   font-family: var(--font-mono);
@@ -1859,9 +1864,18 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
    card and the graph detail panel. */
 .ldh-rdf-type.class    { color: var(--ldh-violet-700); background: var(--ldh-violet-50); border-color: var(--ldh-violet-100); }
 .ldh-rdf-type.resource { color: var(--ldh-blue-700);   background: var(--ldh-blue-50);   border-color: var(--ldh-blue-100); }
-.ldh-rdf-type.literal  { color: var(--success-500);    background: var(--success-50);    border-color: #c8eedb; }
-.ldh-rdf-type.blank    { color: var(--warning-500);    background: var(--warning-50);    border-color: #f6e1ad; }
-.ldh-rdf-type.named    { color: var(--ldh-violet-700); background: #f4ecfb; border-color: #e1cdf6; }
+/* Three chips whose fills follow the scheme were wearing three edges that do not:
+   each border, and the named chip's fill, is a literal. The dark side therefore
+   derives from the tokens the chip already sits on — the fill carried a step
+   toward its own ink — while the light side keeps its literal untouched.
+   Deriving light the same way is the obvious tidy-up and deliberately NOT done
+   here: these literals were tuned against the BASE palette, and the shipped m3
+   skin remaps success/warning/violet, so the mix lands a visibly deeper edge
+   (#c8eedb becomes rgb(162,222,182)). That is a light-scheme redesign of a
+   component, not part of making it work in dark, so it is left to ask. */
+.ldh-rdf-type.literal  { color: var(--success-500);    background: var(--success-50);    border-color: light-dark(#c8eedb, color-mix(in srgb, var(--success-500) 15%, var(--success-50))); }
+.ldh-rdf-type.blank    { color: var(--warning-500);    background: var(--warning-50);    border-color: light-dark(#f6e1ad, color-mix(in srgb, var(--warning-500) 20%, var(--warning-50))); }
+.ldh-rdf-type.named    { color: var(--ldh-violet-700); background: light-dark(#f4ecfb, var(--ldh-violet-100)); border-color: light-dark(#e1cdf6, color-mix(in srgb, var(--ldh-violet-500) 22%, var(--ldh-violet-100))); }
 .ldh-rdf-type::before {
   content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.85;
 }
@@ -1998,7 +2012,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   color: var(--fg-muted);
   margin-left: 2px;
 }
-.facet-pill .x:hover { background: rgba(0,0,0,0.06); color: var(--fg-1); }
+.facet-pill .x:hover { background: color-mix(in srgb, var(--fg-1) 6%, transparent); color: var(--fg-1); }
 .facet-pill .caret { color: var(--fg-muted); margin-left: 1px; }
 .facet-pill.is-open { border-color: var(--ldh-blue-300); background: var(--surface-2); }
 .facet-pill.add {
@@ -2046,7 +2060,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   width: 14px; height: 14px; border-radius: 3px;
   border: 1.5px solid var(--border-strong);
   display: inline-flex; align-items: center; justify-content: center;
-  color: #fff; background: var(--surface-0);
+  color: var(--fg-on-accent); background: var(--surface-0);
   flex-shrink: 0;
 }
 .facet-pop .opt.is-on .check { background: var(--ldh-blue-500); border-color: var(--ldh-blue-500); }
@@ -2166,7 +2180,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   width: 28px; height: 28px;
   display: inline-flex; align-items: center; justify-content: center;
   border-radius: var(--r-sm);
-  background: rgba(255,255,255,0.92); backdrop-filter: blur(6px);
+  background: color-mix(in srgb, var(--surface-0) 92%, transparent); backdrop-filter: blur(6px);
   border: 1px solid var(--border-default); border-radius: var(--r-sm);
   color: var(--fg-2);
   display: inline-flex; align-items: center; justify-content: center;
@@ -2238,7 +2252,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-fullbleed .overlay {
   position: absolute;
   z-index: 5;
-  background: rgba(255,255,255,0.92);
+  background: color-mix(in srgb, var(--surface-0) 92%, transparent);
   backdrop-filter: blur(8px);
   border: 1px solid var(--border-default);
   border-radius: var(--r-md);
@@ -2777,7 +2791,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 }
 .ac-modal .mtoolbar .count b {
   display: inline-block; min-width: 20px; padding: 2px 6px;
-  background: var(--ink-1); color: #fff; border-radius: var(--r-pill);
+  background: var(--ink-1); color: var(--surface-0); border-radius: var(--r-pill);
   font-family: var(--font-mono); font-size: 10px; font-weight: 600; text-align: center;
   margin-left: 6px;
 }
@@ -3010,7 +3024,9 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 8px 12px;
   background: var(--ink-1);
-  color: #fff;
+  /* The ground is the ink token, so the text on it is the surface token — the two
+     swap together and the chip stays legible in either scheme. */
+  color: var(--surface-0);
   border: 0;
   border-radius: var(--r-pill);
   font-family: var(--font-mono);
@@ -3023,7 +3039,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 }
 .sidebar-toggle:hover { transform: translateY(-1px); background: var(--ldh-blue-700); }
 .sidebar-toggle[aria-pressed="true"] { background: var(--ldh-blue-600); }
-.sidebar-toggle .msi { color: rgba(255,255,255,0.9); }
+.sidebar-toggle .msi { color: color-mix(in srgb, var(--surface-0) 90%, transparent); }
 
 /* Parallax navigation is <PivotBar> — its own row under the facet toolbar,
    one pill per predicate per direction. The old .ldh-parallax two-column rail
@@ -3415,10 +3431,9 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-sparql-newtab { width: 30px; padding: 0 !important; justify-content: center; }
 
 .ldh-sparql-pane {
-  display: flex; background: #0d1220; border: 1px solid var(--border-default);
+  display: flex; background: light-dark(#0d1220, #0a0e17); border: 1px solid var(--border-default);
   border-radius: var(--r-md) var(--r-md) 0 0; overflow: hidden;
 }
-:root[data-theme="dark"] .ldh-sparql-pane { background: #0a0e17; }
 .ldh-sparql-gutter {
   display: flex; flex-direction: column; padding: var(--sp-4) var(--sp-3); text-align: right;
   font-family: var(--font-mono); font-size: var(--fs-sm); line-height: 1.65;
@@ -3518,7 +3533,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 }
 .ldh-auth-dots {
   position: absolute; inset: 0; pointer-events: none;
-  background-image: radial-gradient(circle at 1px 1px, rgba(11,14,20,0.10) 1px, transparent 1.6px);
+  background-image: radial-gradient(circle at 1px 1px, light-dark(rgba(11,14,20,0.10), rgba(255,255,255,0.08)) 1px, transparent 1.6px);
   background-size: 22px 22px;
   mask-image: radial-gradient(120% 100% at 100% 0%, #000 30%, transparent 75%);
   -webkit-mask-image: radial-gradient(120% 100% at 100% 0%, #000 30%, transparent 75%);
@@ -3530,7 +3545,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-auth-hero-lede { font-size: var(--fs-md); line-height: var(--lh-base); color: var(--ink-2); margin: 0 0 var(--sp-8); }
 .ldh-auth-points { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-3); }
 .ldh-auth-points li { display: flex; align-items: center; gap: var(--sp-3); font-size: var(--fs-base); color: var(--ink-2); }
-.ldh-auth-points li .msi { color: var(--ldh-violet-600); background: rgba(255,255,255,0.6); border-radius: var(--r-sm); padding: 5px; }
+.ldh-auth-points li .msi { color: var(--ldh-violet-600); background: color-mix(in srgb, var(--surface-0) 60%, transparent); border-radius: var(--r-sm); padding: 5px; }
 
 .ldh-auth-main { display: flex; align-items: center; justify-content: center; padding: var(--sp-8); }
 .ldh-auth-card { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: var(--sp-4); }
