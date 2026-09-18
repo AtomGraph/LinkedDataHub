@@ -9,21 +9,21 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 # add agent to the readers group to be able to read documents
 
-ldh admin acl add-agent-to-group \
+ldh admin add agent \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/readers/"
 
 # LNK-009: Test that internal Docker services are blocked via SSRF protection
-# Attempt to access the internal fuseki-admin SPARQL endpoint via the proxy
+# Attempt to access the internal fuseki admin dataset endpoint via the proxy
 # This should be blocked and return 400 Bad Request
 
 http_status=$(curl -k -s -o /dev/null -w "%{http_code}" \
   -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H 'Accept: application/n-triples' \
-  --data-urlencode "uri=http://fuseki-admin:3030/ds" \
+  --data-urlencode "uri=http://fuseki:3030/admin" \
   "$END_USER_BASE_URL" || true)
 
 # Verify that access was rejected (400)

@@ -39,7 +39,7 @@ import picocli.CommandLine.Parameters;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "add-construct", description = "Adds a CONSTRUCT query to a document.")
+@Command(name = "construct", description = "Adds a CONSTRUCT query to a document.")
 public class AddConstruct extends BaseCommand
 {
 

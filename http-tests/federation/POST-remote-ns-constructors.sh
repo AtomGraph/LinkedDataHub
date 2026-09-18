@@ -32,6 +32,5 @@ echo "$results" | grep -q "https://w3id.org/atomgraph/linkeddatahub#TitleConstru
 
 count=$(echo "$results" | xmllint --xpath "count(//*[local-name() = 'binding'][@name = 'text']/*[local-name() = 'literal'][contains(., 'CONSTRUCT')])" -)
 if [ "$count" -lt 1 ]; then
-  echo "DEBUG: Expected at least 1 constructor text from the remote ns, got: $count"
   exit 1
 fi

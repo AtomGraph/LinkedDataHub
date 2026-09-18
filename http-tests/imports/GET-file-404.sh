@@ -8,7 +8,7 @@ purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 # add agent to the writers group
-ldh admin acl add-agent-to-group \
+ldh admin add agent \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
@@ -20,4 +20,4 @@ file="${END_USER_BASE_URL}uploads/0000000000000000000000000000000000000000"
 curl -k -w "%{http_code}\n" -o /dev/null -s -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   "$file" \
-| grep -q "$STATUS_NOT_FOUND"
+| grep -q "$STATUS_FORBIDDEN"

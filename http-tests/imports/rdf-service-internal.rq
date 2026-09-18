@@ -1,0 +1,34 @@
+PREFIX dh:    <https://www.w3.org/ns/ldt/document-hierarchy#>
+PREFIX sioc:  <http://rdfs.org/sioc/ns#>
+PREFIX dct:   <http://purl.org/dc/terms/>
+
+# An import mapping that reaches for the internal admin store through SERVICE. The item is always constructed; the
+# leak triple only gets a value if the admin store answered, since SERVICE SILENT otherwise yields one empty solution
+
+CONSTRUCT
+{
+    GRAPH ?item
+    {
+        ?item a dh:Item ;
+            sioc:has_container ?container ;
+            dct:title "SERVICE import target" ;
+            <urn:test:leak> ?g .
+    }
+}
+WHERE
+{
+    BIND (uri(concat(str($base), "service-internal/")) AS ?container)
+    BIND (uri(concat(str(?container), "item/")) AS ?item)
+
+    OPTIONAL
+    {
+        SERVICE SILENT <http://fuseki:3030/admin/>
+        {
+            SELECT ?g
+            {
+                GRAPH ?g { ?s ?p ?o }
+            }
+            LIMIT 1
+        }
+    }
+}

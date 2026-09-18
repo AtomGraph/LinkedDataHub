@@ -42,6 +42,10 @@ public class ContentLengthLimitFilter implements ContainerRequestFilter, ClientR
 {
 
     private static final Logger log = LoggerFactory.getLogger(ContentLengthLimitFilter.class);
+
+    /** Request property that exempts the response of a single client request from the limit */
+    public static final String UNLIMITED = ContentLengthLimitFilter.class.getName() + ".unlimited";
+
     private final int maxContentLength;
     
     /**
@@ -80,6 +84,10 @@ public class ContentLengthLimitFilter implements ContainerRequestFilter, ClientR
     @Override
     public void filter(ClientRequestContext requestContext, ClientResponseContext responseContext) throws IOException
     {
+        // the limit bounds untrusted content the proxy and the imports pull in; a configured internal
+        // service whose payload is large by design opts out per request instead of widening it for all
+        if (Boolean.TRUE.equals(requestContext.getProperty(UNLIMITED))) return;
+
         if (!responseContext.hasEntity()) return;
         
         String contentLengthString = responseContext.getHeaders().getFirst(HttpHeaders.CONTENT_LENGTH);

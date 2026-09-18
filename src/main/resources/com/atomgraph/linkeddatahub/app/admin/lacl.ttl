@@ -76,7 +76,7 @@
     rdfs:isDefinedBy : .
 
 :MissingRequestMode a ldh:MissingPropertyValue ;
-    rdfs:label "Missing request agent" ;
+    rdfs:label "Missing request mode" ;
     sp:arg1 :requestMode ;
     rdfs:isDefinedBy : .
 

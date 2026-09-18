@@ -43,6 +43,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
@@ -113,7 +115,7 @@ public class XsltExecutableFilterTest
     public void testAppendImportsAfterExistingImport() throws Exception
     {
         Document doc = parse("<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"" + XSL_NS + "\">" +
-            "<xsl:import href=\"../com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/layout.xsl\"/>" +
+            "<xsl:import href=\"../com/atomgraph/linkeddatahub/xsl/layout.xsl\"/>" +
             "<xsl:template match=\"/\"/>" +
             "</xsl:stylesheet>");
 
@@ -121,10 +123,44 @@ public class XsltExecutableFilterTest
 
         List<Element> children = childElements(doc);
         assertEquals(4, children.size());
-        assertEquals("../com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/layout.xsl", children.get(0).getAttribute("href"));
+        assertEquals("../com/atomgraph/linkeddatahub/xsl/layout.xsl", children.get(0).getAttribute("href"));
         assertEquals(A_XSL_URI.toString(), children.get(1).getAttribute("href"));
         assertEquals(B_XSL_URI.toString(), children.get(2).getAttribute("href"));
         assertEquals("template", children.get(3).getLocalName());
+    }
+
+    @Test
+    public void testAppendImportsAtMarker() throws Exception
+    {
+        // the marker is the last import whose href ends in hooks.xsl: packages land right after it, so
+        // they outrank the open modes' fallbacks and nothing that follows
+        Document doc = parse("<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"" + XSL_NS + "\">" +
+            "<xsl:import href=\"../../../../com/atomgraph/client/xsl/common.xsl\"/>" +
+            "<xsl:import href=\"hooks.xsl\"/>" +
+            "<xsl:import href=\"client/hooks.xsl\"/>" +
+            "<xsl:import href=\"common.xsl\"/>" +
+            "<xsl:template match=\"/\"/>" +
+            "</xsl:stylesheet>");
+
+        assertTrue(filter.appendImports(doc, List.of(A_XSL_URI, B_XSL_URI)));
+
+        List<Element> children = childElements(doc);
+        assertEquals(7, children.size());
+        assertEquals("client/hooks.xsl", children.get(2).getAttribute("href"));
+        assertEquals(A_XSL_URI.toString(), children.get(3).getAttribute("href"));
+        assertEquals(B_XSL_URI.toString(), children.get(4).getAttribute("href"));
+        assertEquals("common.xsl", children.get(5).getAttribute("href"));
+        assertEquals("template", children.get(6).getLocalName());
+    }
+
+    @Test
+    public void testAppendImportsWithoutMarkerReportsIt() throws Exception
+    {
+        Document doc = parse("<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"" + XSL_NS + "\">" +
+            "<xsl:import href=\"../com/atomgraph/linkeddatahub/xsl/layout.xsl\"/>" +
+            "</xsl:stylesheet>");
+
+        assertFalse(filter.appendImports(doc, List.of(A_XSL_URI)));
     }
 
     @Test

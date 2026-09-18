@@ -230,8 +230,8 @@ export -f purge_cache
 export HTTP_TEST_ROOT="$PWD"
 export TEST_RESULTS_DIR="${TEST_RESULTS_DIR:-$HTTP_TEST_ROOT/out}"
 mkdir -p "$TEST_RESULTS_DIR"
-export END_USER_ENDPOINT_URL="http://localhost:3031/ds/"
-export ADMIN_ENDPOINT_URL="http://localhost:3030/ds/"
+export END_USER_ENDPOINT_URL="http://localhost:3030/end-user/"
+export ADMIN_ENDPOINT_URL="http://localhost:3030/admin/"
 export END_USER_BASE_URL="https://localhost:4443/"
 export ADMIN_BASE_URL="https://admin.localhost:4443/"
 export END_USER_VARNISH_SERVICE="varnish-end-user"
@@ -276,6 +276,8 @@ run_tests "document-hierarchy" $(find ./document-hierarchy/ -type f -name '*.sh'
 (( error_count += $? ))
 run_tests "misc" $(find ./misc/ -type f -name '*.sh')
 (( error_count += $? ))
+run_tests "static" $(find ./static/ -type f -name '*.sh')
+(( error_count += $? ))
 run_tests "proxy" $(find ./proxy/ -type f -name '*.sh')
 (( error_count += $? ))
 run_tests "federation" $(find ./federation/ -type f -name '*.sh')
@@ -283,6 +285,12 @@ run_tests "federation" $(find ./federation/ -type f -name '*.sh')
 run_tests "sparql-protocol" $(find ./sparql-protocol/ -type f -name '*.sh')
 (( error_count += $? ))
 run_tests "versioning" $(find ./versioning/ -type f -name '*.sh')
+(( error_count += $? ))
+run_tests "language" $(find ./language/ -type f -name '*.sh')
+(( error_count += $? ))
+run_tests "rdfa" $(find ./rdfa/ -type f -name '*.sh')
+(( error_count += $? ))
+run_tests "system" $(find ./system/ -type f -name '*.sh')
 (( error_count += $? ))
 
 end_time=$(date +%s)

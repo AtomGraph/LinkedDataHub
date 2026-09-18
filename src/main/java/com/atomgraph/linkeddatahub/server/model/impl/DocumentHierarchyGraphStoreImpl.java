@@ -38,7 +38,10 @@ import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import com.atomgraph.linkeddatahub.vocabulary.SIOC;
 import com.atomgraph.linkeddatahub.writer.TimeMapWriter;
+import com.atomgraph.server.exception.SHACLConstraintViolationException;
+import com.atomgraph.server.exception.SPINConstraintViolationException;
 import static com.atomgraph.server.status.UnprocessableEntityStatus.UNPROCESSABLE_ENTITY;
+import com.atomgraph.spinrdf.constraints.ConstraintViolation;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.MessageDigest;
@@ -104,11 +107,13 @@ import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
+import org.apache.jena.shacl.validation.ReportEntry;
 import org.apache.jena.sparql.modify.request.UpdateDeleteWhere;
 import org.apache.jena.sparql.modify.request.UpdateModify;
 import org.apache.jena.sparql.vocabulary.FOAF;
@@ -197,9 +202,9 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
         @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context HttpHeaders httpHeaders)
     {
-        super(request, system.getServiceContext(service.get()).getGraphStoreClient(), mediaTypes, uriInfo);
+        // orElseThrow: the super() call dereferences the service before any statement can check emptiness
+        super(request, system.getServiceContext(service.orElseThrow(() -> new InternalServerErrorException("Service is not specified"))).getGraphStoreClient(), mediaTypes, uriInfo);
         if (ontology.isEmpty()) throw new InternalServerErrorException("Ontology is not specified");
-        if (service.isEmpty()) throw new InternalServerErrorException("Service is not specified");
         this.application = application;
         this.ontology = ontology.get();
         this.service = service.get();
@@ -561,7 +566,29 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
                 throw new WebApplicationException("rdf:type cannot be removed from resource <" + resource + ">", UNPROCESSABLE_ENTITY.getStatusCode());
         }
 
-        validate(dataset.getDefaultModel()); // this would normally be done transparently by the ValidatingModelProvider
+        try
+        {
+            validate(dataset.getDefaultModel()); // this would normally be done transparently by the ValidatingModelProvider
+        }
+        catch (SPINConstraintViolationException ex)
+        {
+            // the whole post-PATCH graph gets validated, but the 422 body must describe only the
+            // violating resources - the full graph would leak every sibling resource into the
+            // error response, unlike POST/PUT whose echoed model is the request payload
+            Set<Resource> roots = new HashSet<>();
+            for (ConstraintViolation cv : ex.getConstraintViolations())
+                if (cv.getRoot() != null) roots.add(cv.getRoot());
+
+            throw new SPINConstraintViolationException(ex.getConstraintViolations(), describeResources(roots, dataset.getDefaultModel()));
+        }
+        catch (SHACLConstraintViolationException ex)
+        {
+            Set<Resource> roots = new HashSet<>();
+            for (ReportEntry entry : ex.getValidationReport().getEntries())
+                if (!entry.focusNode().isLiteral()) roots.add(dataset.getDefaultModel().asRDFNode(entry.focusNode()).asResource());
+
+            throw new SHACLConstraintViolationException(ex.getValidationReport(), describeResources(roots, dataset.getDefaultModel()));
+        }
         put(dataset.getDefaultModel(), Boolean.FALSE, getURI());
         
         return getInternalResponse(dataset.getDefaultModel(), null).getResponseBuilder(). // entity tag of the updated graph
@@ -746,7 +773,10 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
                 getWritableMediaTypes(Model.class),
                 getLanguages(),
                 getEncodings(),
-                new HTMLMediaTypePredicate());
+                new HTMLMediaTypePredicate(),
+                // the HTML rendering negotiates over the whole accepted-language list, so two requests selecting the same
+                // variant can still differ; passing it makes the entity tag tell those representations apart
+                getHttpHeaders().getAcceptableLanguages());
     }
     
     /**
@@ -1039,8 +1069,47 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     {
         MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE);
         if (reader instanceof ValidatingModelProvider validatingModelProvider) return validatingModelProvider.processRead(model);
-        
+
         throw new InternalServerErrorException("Could not obtain ValidatingModelProvider instance");
+    }
+
+    /**
+     * Copies the concise bounded descriptions of the given resources from a model.
+     *
+     * @param resources described resources
+     * @param model source model
+     * @return model with the descriptions
+     */
+    public Model describeResources(Set<Resource> resources, Model model)
+    {
+        Model description = ModelFactory.createDefaultModel();
+        for (Resource resource : resources) addDescription(resource.inModel(model), description);
+        return description;
+    }
+
+    /**
+     * Adds a resource's properties to the description model, following anonymous objects.
+     *
+     * @param resource described resource
+     * @param description target model
+     */
+    protected void addDescription(Resource resource, Model description)
+    {
+        StmtIterator it = resource.listProperties();
+        try
+        {
+            while (it.hasNext())
+            {
+                Statement stmt = it.next();
+                description.add(stmt);
+                if (stmt.getObject().isAnon() && !description.contains(stmt.getResource(), null, (RDFNode)null))
+                    addDescription(stmt.getResource(), description);
+            }
+        }
+        finally
+        {
+            it.close();
+        }
     }
     
     /**

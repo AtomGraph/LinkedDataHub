@@ -1,0 +1,664 @@
+/* =========================================================================
+   LinkedDataHub Design System — Tokens
+   Base palette + typography for the LinkedDataHub Knowledge Graph platform.
+   Remix of the platform's legacy palette and Material UI with Base44-style whitespace,
+   pastel gradients and modern variable-font typography.
+   ========================================================================= */
+
+/* Geist / Geist Mono / Instrument Serif vendored locally in fonts.css */
+
+:root {
+  /* ---------- Color scheme ----------
+     The page supports both schemes and follows the reader's browser preference.
+     Every token below that differs between them is written once as
+     light-dark(<light>, <dark>); nothing is duplicated into a second block.
+     This declaration is also what makes native UA surfaces — form controls,
+     scrollbars, the canvas behind the page, autofill — follow the scheme, which
+     a token flip alone can never reach. */
+  color-scheme: light dark;
+
+  /* ---------- Color: Brand / Primary ---------- */
+  /* Pulled from the live product. The blue is the action color, the violet the
+     "structured / semantic" accent (used historically on RDF-typed labels). */
+  /* The 50-200 tints are BACKGROUNDS and the 600/700 steps are accent TEXT, so
+     both invert in dark: a tint has to stay darker than the ink on it, and a
+     text step has to stay lighter. 300-500 are non-text accents (dots, focus
+     glints, chart marks) and read on either ground unchanged. */
+  --ldh-blue-50:  light-dark(#eef5ff, #11243d);
+  --ldh-blue-100: light-dark(#dbeafe, #173558);
+  --ldh-blue-200: light-dark(#b8d3fd, #1f4d7a);
+  --ldh-blue-300: #8bb7fb;
+  --ldh-blue-400: #4d94f8;
+  --ldh-blue-500: #0f82f5;   /* Brand primary — matches legacy product */
+  --ldh-blue-600: light-dark(#086ad6, #6aa6f7);
+  --ldh-blue-700: light-dark(#0a55a8, #93bdfb);
+  --ldh-blue-800: #0d4382;
+  --ldh-blue-900: #0a2d57;
+
+  --ldh-violet-50:  light-dark(#faf5ff, #241836);
+  --ldh-violet-100: light-dark(#f1e6fb, #33214d);
+  --ldh-violet-200: #e1cdf6;
+  --ldh-violet-300: #c9a6ed;
+  --ldh-violet-400: #ad7adf;
+  --ldh-violet-500: #9954bb;   /* Brand accent — historical RDF tag color */
+  --ldh-violet-600: #803fa1;
+  --ldh-violet-600: light-dark(#803fa1, #b98ade);
+  --ldh-violet-700: light-dark(#63307c, #c9a6ed);
+  --ldh-violet-800: #482358;
+  --ldh-violet-900: #2e1638;
+
+  /* ---------- Color: Pastel surface palette ---------- */
+  /* These wash backgrounds for hero / landing / category surfaces. Always paired
+     with --ink-1 text. Use as `background: var(--surf-lavender)` or composed in
+     a mesh gradient (see Visual Foundations in README).
+
+     "Always paired with --ink-1" is exactly why each one needs a dark twin: the
+     ink flips to near-white in dark, and a pastel that stayed pale would be
+     carrying white text. The dark side holds the same hue at the low end of the
+     lightness range, so a wash still reads as ITS colour rather than as grey. */
+  --surf-lavender: light-dark(#efeaff, #241d3a);
+  --surf-mint:     light-dark(#e6f6ee, #12291f);
+  --surf-peach:    light-dark(#ffece1, #33231a);
+  --surf-sky:      light-dark(#e3f1ff, #16263a);
+  --surf-blush:    light-dark(#ffe6ee, #341a24);
+  --surf-sand:     light-dark(#fcf5e7, #2b2517);
+
+  /* Pre-built gradients — used on hero / featured cards. The pairs live on the
+     colour STOPS, not on the token: light-dark() takes colours, and a gradient
+     is an image, so a token holding one cannot be switched as a whole. Writing
+     the stops this way keeps each gradient's geometry declared once. The stops
+     are the pastels above spelled out rather than var() references, so a skin
+     that remaps the pastels without remapping the gradients keeps the gradient
+     it has today. --grad-deep is already a dark wash and reads on either ground. */
+  --grad-aurora: linear-gradient(135deg, light-dark(#efeaff, #241d3a) 0%, light-dark(#e3f1ff, #16263a) 50%, light-dark(#e6f6ee, #12291f) 100%); /* @kind color */
+  --grad-dawn:   linear-gradient(135deg, light-dark(#ffece1, #33231a) 0%, light-dark(#ffe6ee, #341a24) 60%, light-dark(#efeaff, #241d3a) 100%); /* @kind color */
+  --grad-noon:   linear-gradient(135deg, light-dark(#e3f1ff, #16263a) 0%, light-dark(#ffffff, #171b24) 50%, light-dark(#efeaff, #241d3a) 100%); /* @kind color */
+  --grad-deep:   linear-gradient(135deg, #0a2d57 0%, #482358 100%);  /* @kind color */
+  --grad-radial-spot: radial-gradient(60% 60% at 30% 20%, light-dark(#efeaff, #241d3a) 0%, transparent 60%),
+                     radial-gradient(50% 50% at 80% 70%, light-dark(#e3f1ff, #16263a) 0%, transparent 65%),
+                     light-dark(#ffffff, #0f131a); /* @kind color */
+
+  /* ---------- Color: Neutrals ---------- */
+  /* Warm-white surfaces, near-black ink. NOT pure greys — slight blue undertone
+     to harmonise with the brand blue. */
+  --ink-1:  light-dark(#0b0e14, #f3f6fc);   /* primary text, headings */
+  --ink-2:  light-dark(#2b3245, #cfd6e3);   /* body text */
+  --ink-3:  light-dark(#545b6e, #9aa3b5);   /* secondary text, meta */
+  --ink-4:  light-dark(#8a91a3, #717a8d);   /* tertiary / hint */
+  --ink-5:  light-dark(#b6bccc, #4c5365);   /* disabled */
+
+  /* The dark surfaces are a cool slate carrying the same blue undertone, and
+     they climb rather than descend: the page is the darkest ground and a card
+     sits ABOVE it, which is how elevation reads without a shadow to cast. */
+  --surface-0: light-dark(#ffffff, #171b24);   /* card / dialog */
+  --surface-1: light-dark(#fafbfd, #0f131a);   /* page */
+  --surface-2: light-dark(#f3f5f9, #1e2430);   /* recessed wells, table stripes */
+  --surface-3: light-dark(#e8ebf2, #2b323f);   /* dividers, subtle borders */
+  --line-1:    light-dark(#e2e6ee, #272e3a);   /* default border */
+  --line-2:    light-dark(#cdd3df, #39414f);   /* stronger border, focus ring outer */
+
+  /* ---------- Color: Semantic ---------- */
+  --success-500: light-dark(#14a06a, #3ecb8f);
+  --success-50:  light-dark(#e6f6ee, #102619);
+  --warning-500: light-dark(#d48a08, #e6a52a);
+  --warning-50:  light-dark(#fff4dc, #2c2410);
+  --danger-500:  light-dark(#d63a3a, #f06a6a);
+  --danger-600:  light-dark(#b62f2f, #d94f4f);
+  --danger-50:   light-dark(#ffe6e6, #2e1414);
+  /* Ink for text/icons sitting ON a semantic fill. Tokens, not literals: a skin
+     or a scheme whose semantic colour is a light TINT needs dark ink here
+     instead of white. That is not hypothetical — it is what the dark scheme is:
+     success arrives as #7fd99a and warning as #f4bd6a, and white on either is
+     unreadable. Every component that paints one of these fills reads the
+     matching ink rather than spelling #fff, or it only works in one scheme. */
+  --fg-on-danger:  light-dark(#ffffff, #2e0f0f);
+  --fg-on-success: light-dark(#ffffff, #07291a);
+  --fg-on-warning: light-dark(#ffffff, #2a1f00);
+  --info-500:    var(--ldh-blue-500);
+  --info-50:     var(--ldh-blue-50);
+
+  /* ---------- RDF semantic colors ----------
+     Used to colour-code RDF node types in graph / list / table views.
+     Pulled from the live product (force-graph palette).               */
+  --rdf-class:    #9954bb;  /* purple — owl:Class instances */
+  --rdf-resource: #4d94f8;  /* blue   — generic resources */
+  --rdf-literal:  #14a06a;  /* green  — literals / values */
+  --rdf-blank:    #d48a08;  /* amber  — blank nodes */
+  --rdf-named:    #ad7adf;  /* light violet — named graphs */
+
+  /* ===========================================================================
+     PALETTE GOVERNANCE — how to choose among the many hues without drift.
+     ---------------------------------------------------------------------------
+     1. BLUE is the only interaction color. Buttons, links, focus, selected
+        state — all blue. Nothing else means "clickable".
+     2. VIOLET is decoration ONLY where it overlaps RDF: note that --ldh-violet-500
+        and --rdf-class are the SAME purple by design. Use the violet ramp for
+        chrome accents *sparingly* (it reads as "structured/semantic"); use the
+        --rdf-* tokens whenever the color is ENCODING a node type in data/viz.
+        Never use violet as a second action color — that competes with blue.
+     3. RDF-* tokens are DATA ENCODING, not decoration. Only use them where the
+        hue carries meaning (graph nodes, type pills, legends).
+     4. SEMANTIC (success/warning/danger) = status only, never decoration.
+     5. PASTEL surfaces + GRADIENTS are HERO-ONLY: document intros, landing /
+        category wash, empty-state art. Never behind body content or as a
+        default card background — that's the fastest route to "gradient slop".
+     =========================================================================== */
+
+  /* ---------- Typography: Families ---------- */
+  --font-sans:    'Geist', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono:    'Geist Mono', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-display: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+
+  /* ---------- Typography: Scale ---------- */
+  /* Modular scale ~1.25 (major third). Tuned for dense info-dense UI plus the
+     big-headline pastel hero moments.
+     ROLE MAP (the low end is tight on purpose — assign by role, don't eyeball):
+       --fs-xs   12  mono meta: IRIs, counts, timestamps, eyebrows, tags
+       --fs-sm   13  secondary UI: labels, table cells, buttons, captions
+       --fs-base 15  DEFAULT body & UI text  ← start here
+       --fs-md   17  lead paragraphs / emphasised body only
+       --fs-lg+  20+ headings (use the .ldh-h* classes, not raw sizes)
+     Rule: body/UI is base; drop to sm only for genuinely secondary text; xs is
+     mono-meta only. If you reach for md on plain UI, you probably want base. */
+  --fs-xs:   12px;
+  --fs-sm:   13px;
+  --fs-base: 15px;
+  --fs-md:   17px;
+  --fs-lg:   20px;
+  --fs-xl:   24px;
+  --fs-2xl:  30px;
+  /* The display end is FLUID; the UI end is not. A fixed 88px headline cannot fit a narrow
+     container - it does not shrink, it clips, and a clipped word is unreadable in a way a small
+     one is not (measured: the welcome modal's heading ran 387px inside a 356px body). The floor of
+     each clamp is the step two below it, so a display heading degrades into the scale rather than
+     out of it, and the ceiling is the value each step already had, so nothing moves at desktop.
+     Below 2xl the sizes stay fixed: body and UI text is already at its readable minimum, and
+     scaling it with the viewport is how interfaces end up with 11px labels on a phone. */
+  --fs-3xl:  clamp(30px, 6vw, 38px);
+  --fs-4xl:  clamp(34px, 7.5vw, 48px);
+  --fs-5xl:  clamp(38px, 9vw, 64px);
+  --fs-6xl:  clamp(44px, 11vw, 88px);
+
+  /* ---------- Typography: Weights ---------- */
+  --fw-regular: 400; /* @kind font */
+  --fw-medium:  500; /* @kind font */
+  --fw-semibold: 600; /* @kind font */
+  --fw-bold:    700; /* @kind font */
+
+  /* ---------- Typography: Line heights ---------- */
+  --lh-tight:   1.1; /* @kind font */
+  --lh-snug:    1.25; /* @kind font */
+  --lh-base:    1.55; /* @kind font */
+  --lh-relaxed: 1.7; /* @kind font */
+
+  /* ---------- Typography: Letter spacing ---------- */
+  --tracking-tight:  -0.03em;   /* display */
+  --tracking-snug:   -0.015em;  /* headings */
+  --tracking-normal: 0;
+  --tracking-wide:   0.04em;    /* eyebrows, all-caps labels */
+  --tracking-widest: 0.18em;    /* big over-line labels */
+
+  /* ---------- Radius ---------- */
+  --r-xs:  4px;
+  --r-sm:  6px;
+  --r-md:  10px;
+  --r-lg:  16px;
+  --r-xl:  20px;
+  --r-2xl: 28px;
+  --r-pill: 999px;
+
+  /* ---------- Spacing scale (4px base) ---------- */
+  --sp-1:  4px;
+  --sp-2:  8px;
+  --sp-3:  12px;
+  --sp-4:  16px;
+  --sp-5:  20px;
+  --sp-6:  24px;
+  --sp-8:  32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+  --sp-20: 80px;
+  --sp-24: 96px;
+  --sp-32: 128px;
+
+  /* ---------- Elevation (shadows) ---------- */
+  /* Soft, low-contrast shadows — Base44 / glass vibe, not Material's harder cast.
+     The geometry is written once and only the cast colour takes a light-dark()
+     pair, so the two schemes cannot drift into different elevations. Dark casts
+     are heavier because a shadow on a dark ground has less room to read. */
+  --shadow-xs: 0 1px 2px light-dark(rgba(15, 23, 42, 0.04), rgba(0, 0, 0, 0.40));
+  --shadow-sm: 0 2px 8px light-dark(rgba(15, 23, 42, 0.05), rgba(0, 0, 0, 0.45)), 0 1px 2px light-dark(rgba(15, 23, 42, 0.04), rgba(0, 0, 0, 0.40));
+  --shadow-md: 0 8px 24px -8px light-dark(rgba(15, 23, 42, 0.10), rgba(0, 0, 0, 0.55)), 0 2px 4px light-dark(rgba(15, 23, 42, 0.04), rgba(0, 0, 0, 0.40));
+  --shadow-lg: 0 24px 48px -16px light-dark(rgba(15, 23, 42, 0.18), rgba(0, 0, 0, 0.60)), 0 4px 12px light-dark(rgba(15, 23, 42, 0.05), rgba(0, 0, 0, 0.45));
+  --shadow-xl: 0 40px 80px -24px light-dark(rgba(15, 23, 42, 0.22), rgba(0, 0, 0, 0.66)), 0 8px 16px light-dark(rgba(15, 23, 42, 0.06), rgba(0, 0, 0, 0.45));
+  --shadow-glow-blue:   0 0 0 4px rgba(15, 130, 245, 0.18);
+  --shadow-glow-violet: 0 0 0 4px rgba(153, 84, 187, 0.16);
+
+  /* Hairline inset highlight for cards on dark backgrounds */
+  --inset-hairline: inset 0 1px 0 light-dark(rgba(255,255,255,0.6), rgba(255,255,255,0.06));
+
+  /* ---------- Motion ---------- */
+  --ease-out-soft:  cubic-bezier(0.22, 1, 0.36, 1); /* @kind other */
+  --ease-in-out:    cubic-bezier(0.65, 0, 0.35, 1); /* @kind other */
+  --ease-spring:    cubic-bezier(0.34, 1.56, 0.64, 1); /* @kind other */
+  --dur-fast:   120ms; /* @kind other */
+  --dur-base:   200ms; /* @kind other */
+  --dur-slow:   360ms; /* @kind other */
+  --dur-xslow:  640ms; /* @kind other */
+
+  /* ---------- Layout ---------- */
+  --container-sm: 720px;
+  --container-md: 960px;
+  --container-lg: 1200px;
+  --container-xl: 1440px;
+
+  /* ---------- Layout: the responsive scale ----------
+     THREE STOPS, and which query type each belongs to. Custom properties cannot appear in a media
+     or container condition, so these are documentation and the literals are written out at each
+     use - keep the two in step.
+
+       520px   CONTAINER stop. A component collapses to one column.
+       768px   VIEWPORT stop. The page shell compacts: wordmark to its mark, tighter gutters.
+      1024px   VIEWPORT stop. Two-column page layouts drop the gutter.
+
+     WHICH ONE depends on what the component's container actually is, and getting this wrong is
+     the bug this scale was introduced to fix:
+
+       - The page shell (header, tab strip, action bar, footer, rails) sits directly under the
+         viewport, so the viewport IS its container: @media.
+       - Everything in the content column does not. The same statement grid renders at the
+         document's full width, inside a nested block, inside the 300px content aside and inside a
+         372px modal body - four widths at ONE viewport. Measured: it got a 36px value column in
+         the aside at a 1440px desktop, worse than the 26px it got on a 390px phone. @container.
+
+     520 is derived, not picked: the statement grid spends 200px on its label and 64px on its row
+     actions, so three columns need 200 + 240 of readable value + 64 to hold. Three labelled
+     selects need about the same. Two components, one number - which is what makes it a scale
+     rather than a pile of breakpoints. It replaces four one-off values (560, 640, 860, 900) that
+     shared nothing.
+
+     A component queries a container only if one is DECLARED above it. The declaring surfaces are
+     .ac-card (surfaces.css), .ac-modal-body (overlays.css), and .ldh-block / .ldh-nblock /
+     .ldh-content-aside in the app layer. Deliberately NOT .content-body: ldh:ShowModalForm appends
+     .ac-backdrop (position: fixed; inset: 0) to it. */
+  --bp-container: 520px;
+  --bp-shell-sm: 768px;
+  --bp-shell-md: 1024px;
+
+  /* ---------- Semantic: Foreground tokens (consume these in components) ---------- */
+  --fg-1: var(--ink-1);
+  --fg-2: var(--ink-2);
+  --fg-muted: var(--ink-3);
+  /* Hint text: deliberately NOT ink-4 — ink-4 (#8a91a3) is ~3:1 on white and
+     fails WCAG AA for text. ink-4 is reserved for non-text use (icons that pair
+     with a label, hairline borders, disabled glyphs). For actual hint *text*
+     use this AA-safe value (~5.7:1 on the page surface). */
+  --fg-hint:  light-dark(#5f6677, #8a92a4);   /* ~5.7:1 on the light page, ~4.8:1 on the dark one */
+  --fg-on-accent: #ffffff;
+  --fg-link: var(--ldh-blue-600);
+
+  --bg-page:    var(--surface-1);
+  --bg-card:    var(--surface-0);
+  --bg-recess:  var(--surface-2);
+  /* Action color for text-bearing fills (filled buttons). blue-500 (#0f82f5)
+     is only ~3.3:1 against white text — it FAILS AA. blue-600 (#086ad6) clears
+     it at ~4.6:1, so the accent fill is pinned to 600, not 500. blue-500 stays
+     available as a primitive for non-text accents (dots, focus glints).
+
+     In dark the fill parts company with the ramp: blue-600 has flipped to a
+     light tint for text use, so the fill pins the saturated blue as a literal
+     and keeps its ~4.6:1 against white button ink in both schemes. */
+  --bg-accent:       light-dark(var(--ldh-blue-600), #086ad6);
+  --bg-accent-hover: light-dark(var(--ldh-blue-700), #0a55a8);
+  --bg-accent-quiet: var(--ldh-blue-50);
+
+  /* Inverse ground — a FIXED white, identical in every theme, for controls that
+     sit on a dark bar or over imagery where the surrounding theme cannot be
+     relied on. Deliberately not --surface-0, which flips with the theme. */
+  --bg-inverse:       #ffffff;                /* @kind color */
+  --bg-inverse-hover: rgba(255,255,255,0.88); /* @kind color */
+
+  /* ---------- Semantic: Interactive states ----------
+     First-class state tokens so components stop hand-rolling `surface-2` for
+     every hover. Use these for any hoverable/selectable surface.            */
+  --bg-hover:    var(--surface-2);   /* neutral hover (rows, ghost buttons, tabs) */
+  --bg-active:   var(--surface-3);   /* pressed / held */
+  --bg-selected: var(--bg-accent-quiet);   /* current / on / selected surface */
+  --fg-selected: var(--ldh-blue-700);      /* text/icon on a selected surface */
+
+  --border-default: var(--line-1);
+  --border-strong:  var(--line-2);
+  --focus-ring:     var(--shadow-glow-blue);
+}
+
+/* =========================================================================
+   FORCING A SCHEME  —  set [data-theme="light"|"dark"] on <html>.
+
+   The scheme is the reader's, taken from the browser: `color-scheme: light dark`
+   above says the page renders in either, and every token that differs carries
+   its two values in one light-dark() declaration. There is no second token block
+   to keep in step, and no switch in the product — the same stance the platform
+   takes on language.
+
+   These two rules exist for the design-system previews and for screenshots,
+   where a card has to show one scheme regardless of the machine rendering it.
+   `only` also opts out of any UA auto-darkening, so a forced light really is light.
+
+   A difference that is NOT a colour — an opacity, a gradient geometry, a border
+   width — cannot ride light-dark(), because it only takes colours. Such a case
+   needs three rules rather than one: the light value, the same declaration under
+   @media (prefers-color-scheme: dark) guarded by :not([data-theme="light"]), and
+   a twin under [data-theme="dark"] so forcing still wins. Reach for a colour
+   token first; retro.css's header scrim is the one place this is unavoidable.
+   ========================================================================= */
+:root[data-theme="light"] { color-scheme: only light; }
+:root[data-theme="dark"]  { color-scheme: only dark; }
+
+/* =========================================================================
+   TOKENS READ BY SCRIPT
+
+   A custom property's computed value is the tokens it was written with, not a
+   colour: getComputedStyle on --fg-muted hands back the string
+   "light-dark(#3e4852, #bcc8d5)" — the same string in both schemes — and a
+   consumer that feeds it to a canvas gets an unparseable value rather than a
+   colour that follows the reader.
+
+   Registering a property with a <color> syntax is what makes the browser
+   compute it, so the same read returns rgb(62, 72, 82) in light and
+   rgb(188, 200, 213) in dark. Only the tokens something outside CSS actually
+   reads need this — today that is the chart block, which styles axes,
+   gridlines and series from these eleven. A new token read from script belongs
+   in this list, or it will silently theme charts in one scheme only.
+   ========================================================================= */
+@property --fg-2           { syntax: "<color>"; inherits: true; initial-value: #2b3245; }
+@property --fg-muted       { syntax: "<color>"; inherits: true; initial-value: #545b6e; }
+@property --border-default { syntax: "<color>"; inherits: true; initial-value: #e2e6ee; }
+@property --border-strong  { syntax: "<color>"; inherits: true; initial-value: #cdd3df; }
+@property --ldh-blue-300   { syntax: "<color>"; inherits: true; initial-value: #8bb7fb; }
+@property --ldh-blue-500   { syntax: "<color>"; inherits: true; initial-value: #0f82f5; }
+@property --ldh-violet-300 { syntax: "<color>"; inherits: true; initial-value: #c9a6ed; }
+@property --ldh-violet-500 { syntax: "<color>"; inherits: true; initial-value: #9954bb; }
+@property --success-500    { syntax: "<color>"; inherits: true; initial-value: #14a06a; }
+@property --warning-500    { syntax: "<color>"; inherits: true; initial-value: #d48a08; }
+@property --danger-500     { syntax: "<color>"; inherits: true; initial-value: #d63a3a; }
+
+/* =========================================================================
+   Semantic typography classes — apply directly, or use as a reference for
+   component-level styles.
+   ========================================================================= */
+
+.ldh-display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--fs-6xl);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--fg-1);
+  font-style: italic;
+}
+
+.ldh-h1 {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-4xl);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--fg-1);
+}
+
+.ldh-h2 {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-3xl);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-snug);
+  color: var(--fg-1);
+}
+
+.ldh-h3 {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-2xl);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-snug);
+  color: var(--fg-1);
+}
+
+.ldh-h4 {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-xl);
+  line-height: var(--lh-snug);
+  color: var(--fg-1);
+}
+
+.ldh-h5 {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-medium);
+  font-size: var(--fs-lg);
+  line-height: var(--lh-snug);
+  color: var(--fg-1);
+}
+
+.ldh-body {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-regular);
+  font-size: var(--fs-base);
+  line-height: var(--lh-base);
+  color: var(--fg-2);
+}
+
+.ldh-body-lg {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-regular);
+  font-size: var(--fs-md);
+  line-height: var(--lh-base);
+  color: var(--fg-2);
+}
+
+.ldh-small {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-regular);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-base);
+  color: var(--fg-muted);
+}
+
+.ldh-meta {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-medium);
+  font-size: var(--fs-xs);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+
+.ldh-eyebrow {
+  font-family: var(--font-mono);
+  font-weight: var(--fw-medium);
+  font-size: var(--fs-xs);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--ldh-blue-600);
+}
+
+.ldh-code {
+  font-family: var(--font-mono);
+  font-weight: var(--fw-regular);
+  font-size: 0.92em;
+  line-height: var(--lh-base);
+  color: var(--ink-2);
+  background: var(--surface-2);
+  padding: 1px 6px;
+  border-radius: var(--r-xs);
+}
+
+/* Inline IRI / URI styling — a recurring element across LDH. */
+.ldh-iri {
+  font-family: var(--font-mono);
+  font-size: 0.94em;
+  color: var(--ldh-blue-700);
+  word-break: break-all;
+}
+
+/* Reset-ish baseline for design previews */
+html, body { background: var(--bg-page); color: var(--fg-1); }
+body {
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  line-height: var(--lh-base);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* =========================================================================
+   LONG-FORM ELEMENTS
+
+   Documentation pages, XHTML content blocks and marketing copy are authored as
+   plain semantic XHTML, so their dress belongs on the ELEMENT. A class earns
+   its place in that markup only when the author is choosing something the tag
+   cannot express — a lede paragraph, a table density — never to restate what
+   the tag already says. <code> already says it is code.
+
+   There is a second reason it has to be the element rather than a class or a
+   wrapper scope. The same literal renders in two places: the documentation
+   site, wrapped in .docs-main, and the product, wrapped in the XHTML block. An
+   element rule is the only form that works in both without either stylesheet
+   having to know the other's wrapper — which is exactly what the docs site's
+   own element layer was standing in for.
+
+   Everything here binds to the .ldh-* roles above rather than inventing values,
+   so the two cannot drift. The classes keep no margin of their own, so they
+   stay usable inline on a component; flow spacing lives on the element.
+
+   NOT covered yet, deliberately: ul/ol/li, because one emitter (the endpoint
+   class list in the search modal) is a bare <ul> with no class to outrank a
+   prose rule — a control list wearing list bullets. And p, which renders
+   acceptably on UA margins today; giving it one would hand every alert and card
+   body a trailing margin to undo.
+   ========================================================================= */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-sans);
+  color: var(--fg-1);
+  text-wrap: balance;
+}
+
+/* Sizes match the .ldh-h* role of the same name — the classes are named after
+   the levels, so an h2 that is not .ldh-h2 would make the names lie. */
+h1 {
+  font-size: var(--fs-4xl);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tight);
+  margin: 0 0 var(--sp-6);
+}
+h2 {
+  font-size: var(--fs-3xl);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-snug);
+  margin: var(--sp-10) 0 var(--sp-4);
+}
+h3 {
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-snug);
+  margin: var(--sp-8) 0 var(--sp-3);
+}
+h4 {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-snug);
+  margin: var(--sp-6) 0 var(--sp-2);
+}
+h5, h6 {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-medium);
+  line-height: var(--lh-snug);
+  margin: var(--sp-5) 0 var(--sp-2);
+}
+/* A heading opening its section has nothing above it to be spaced from. */
+h1:first-child, h2:first-child, h3:first-child,
+h4:first-child, h5:first-child, h6:first-child { margin-top: 0; }
+
+/* Inline code, sample output and key caps. The README's content rule — "inline
+   code, file paths and IRIs are set in mono" — applied to the tags that say so.
+   kbd adds the cap edge; samp and code are the same treatment because the
+   distinction between them is semantic, not visual. */
+code, samp, kbd {
+  font-family: var(--font-mono);
+  font-weight: var(--fw-regular);
+  font-size: 0.92em;
+  color: var(--ink-2);
+  background: var(--surface-2);
+  padding: 1px 6px;
+  border-radius: var(--r-xs);
+}
+kbd {
+  border: 1px solid var(--border-default);
+  /* the cap edge is a shadow, not a thicker border — the system has no 2px border */
+  box-shadow: 0 1px 0 var(--border-strong);
+  padding: 1px 5px;
+}
+
+/* Code blocks sit in a recessed well with no border: the fill already separates
+   them, and a border plus a fill reads as two containers. */
+pre {
+  margin: var(--sp-4) 0;
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--surface-2);
+  border-radius: var(--r-sm);
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  line-height: var(--lh-base);
+  color: var(--ink-2);
+  overflow-x: auto;
+}
+/* Inside a block the chip would be a second well. */
+pre code, pre samp, pre kbd {
+  background: none;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  font-size: inherit;
+}
+
+/* Description lists. The app's property lists are a dl too — read mode and the
+   edit form both emit dl.ldh-prop-form > dt.label + dd.ldh-prop-row — and they
+   are immune to these rules by construction: .ldh-prop-form already sets
+   margin: 0 to cancel the UA block margin, .ldh-prop-row is display: contents so
+   it generates no box for a margin to land on, and the label cell is reached at
+   .ldh-prop-group > .label. The graph panels scope their own dl/dt/dd. So what
+   is left for these rules is prose. */
+dl { margin: var(--sp-4) 0; }
+dt { font-weight: var(--fw-medium); color: var(--fg-1); }
+dt:not(:first-child) { margin-top: var(--sp-3); }
+dd { margin: var(--sp-1) 0 0; margin-inline-start: var(--sp-5); color: var(--fg-2); }
+
+/* A term at its point of definition. */
+dfn { font-style: italic; font-weight: var(--fw-medium); color: var(--fg-1); }
+
+/* A highlighted run. Amber rather than the action blue: marking is not a link. */
+mark { background: var(--warning-50); color: var(--fg-1); padding: 0 2px; border-radius: var(--r-xs); }
+
+/* A quotation is set off by a rule and a step down in colour, not by italics —
+   the quoted text sets its own voice. */
+blockquote {
+  margin: var(--sp-4) 0;
+  padding: var(--sp-1) 0 var(--sp-1) var(--sp-4);
+  border-left: 1px solid var(--border-strong);
+  color: var(--fg-muted);
+}
+
+/* A thematic break is the element form of .ac-divider wt-muted. */
+hr {
+  height: 1px;
+  margin: var(--sp-8) 0;
+  border: 0;
+  background: var(--border-default);
+}

@@ -1,0 +1,96 @@
+name: UI-tests
+
+# Separate from HTTP-tests rather than a second job in it. The two share a ~3.5 minute
+# prelude (image build, CLI, certificates) out of a run that is mostly suite, and they pay
+# it in parallel, so folding them together would serialise ~19 minutes to save ~4 of runner
+# time. It would also couple a suite that snapshots and restores the whole dataset to one
+# that owns the instance and reseeds it, and leave one red X to say which of the two broke.
+
+on: push
+
+jobs:
+  ui-tests:
+    name: Build Docker image and run the browser UI suite against it
+    runs-on: ubuntu-latest
+    env:
+      # As http-tests/run.sh exports them, so both suites can be pointed at one instance
+      END_USER_BASE_URL: https://localhost:4443/
+      ADMIN_BASE_URL: https://admin.localhost:4443/
+    steps:
+      - name: Set up Java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+      - name: Checkout code
+        uses: actions/checkout@v7
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: ui-tests/package-lock.json
+      - name: Add bin/ and its subdirectories to PATH
+        run: |
+          find "$GITHUB_WORKSPACE/bin" -type d >> "$GITHUB_PATH"
+      - name: Build the ldh CLI
+        run: mvn -B package # the suite builds its fixtures with ldh, the way http-tests does
+        working-directory: cli
+      - name: Add the ldh launcher to PATH
+        run: echo "$GITHUB_WORKSPACE/cli/bin" >> "$GITHUB_PATH"
+      - name: Generating server certificate
+        run: |
+          server-cert-gen.sh .env nginx ssl
+        working-directory: http-tests
+      - name: Writing secrets to files
+        # All three, not just the owner's: the base compose file declares each of them as a
+        # secret, and `up` fails outright on a missing source file.
+        run: |
+          mkdir -p ./secrets
+          printf "%s" "${{ secrets.HTTP_TEST_OWNER_CERT_PASSWORD }}" > ./secrets/owner_cert_password.txt
+          printf "%s" "${{ secrets.HTTP_TEST_SECRETARY_CERT_PASSWORD }}" > ./secrets/secretary_cert_password.txt
+          printf "%s" "${{ secrets.HTTP_TEST_SECRETARY_CERT_PASSWORD }}" > ./secrets/client_truststore_password.txt
+        shell: bash
+      - name: Build Docker image & Run Docker containers
+        # No service list: the sef-compiler container has to be up, because importing a
+        # package recomposes the client SEF and the suite's taxonomy fixture imports one.
+        run: docker compose -f docker-compose.yml -f ./http-tests/docker-compose.http-tests.yml --env-file ./http-tests/.env up --build -d
+      - name: Wait for the server to start...
+        run: while ! (status=$(curl -k -s -w "%{http_code}\n" https://localhost:4443 -o /dev/null) && echo "$status" && echo "$status" | grep "403") ; do sleep 1 ; done # wait for the webapp to start (returns 403 by default)
+      - name: Fix certificate permissions on the host
+        # The entrypoint generates the keystore inside the mounted volume as root, and
+        # Playwright reads it as the runner user.
+        run: |
+          sudo chmod 644 ./ssl/owner/keystore.p12
+        working-directory: http-tests
+      - name: Install the Playwright runner and its browser
+        run: npm ci && npx playwright install --with-deps chromium
+        working-directory: ui-tests
+      - name: Run the UI test suite
+        run: npx playwright test
+        working-directory: ui-tests
+        env:
+          # The keystore the http-tests stack generates, rather than the repository root
+          # copy the dev loop uses. OWNER_CERT_PWD keeps the password out of a file the
+          # suite would have to be told about separately.
+          OWNER_CERT_KEYSTORE: ${{ github.workspace }}/http-tests/ssl/owner/keystore.p12
+          OWNER_CERT_PWD: ${{ secrets.HTTP_TEST_OWNER_CERT_PASSWORD }}
+      - name: Upload the HTML report and traces
+        if: always() && hashFiles('ui-tests/out/**', 'ui-tests/test-results/**') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-test-results
+          path: |
+            ui-tests/out/
+            ui-tests/test-results/
+          if-no-files-found: ignore
+      - name: Dump container logs on failure
+        if: failure()
+        run: docker compose --env-file ./http-tests/.env logs --no-color
+      - name: Dump Tomcat logs from linkeddatahub container on failure
+        if: failure()
+        run: docker compose --env-file ./http-tests/.env exec -T linkeddatahub sh -c 'for f in /usr/local/tomcat/logs/*; do echo "=== $f ==="; cat "$f"; done' || true
+      - name: Stop Docker containers and remove volumes
+        run: docker compose --env-file ./http-tests/.env down -v
+      - name: Remove Docker containers
+        run: docker compose --env-file ./http-tests/.env rm -f

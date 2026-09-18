@@ -108,7 +108,7 @@ import com.atomgraph.linkeddatahub.server.filter.response.ResponseHeadersFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.CacheInvalidationFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.VersioningFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.XsltExecutableFilter;
-import com.atomgraph.linkeddatahub.server.interceptor.RDFPostMediaTypeInterceptor;
+import com.atomgraph.client.interceptor.RDFPostMediaTypeInterceptor;
 import com.atomgraph.linkeddatahub.server.mapper.auth.oauth2.TokenExpiredExceptionMapper;
 import com.atomgraph.linkeddatahub.server.model.impl.Dispatcher;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
@@ -117,7 +117,6 @@ import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.server.util.URLValidator;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
-import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.linkeddatahub.vocabulary.LDHC;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.linkeddatahub.vocabulary.ORCID;
@@ -143,8 +142,11 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
+import java.net.ProxySelector;
 import java.net.URISyntaxException;
+import java.net.http.HttpClient;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -166,6 +168,7 @@ import jakarta.servlet.ServletContext;
 import javax.xml.transform.Source;
 import org.apache.jena.ontapi.UnionGraph;
 import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.query.ARQ;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
@@ -180,8 +183,9 @@ import com.apicatalog.jsonld.JsonLdOptions;
 import java.io.FileOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -200,6 +204,7 @@ import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.ClientRequestFilter;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriBuilder;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -208,9 +213,7 @@ import net.jodah.expiringmap.ExpirationPolicy;
 import net.jodah.expiringmap.ExpiringMap;
 import net.sf.saxon.om.TreeInfo;
 import net.sf.saxon.s9api.Processor;
-import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.SaxonApiException;
-import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XsltCompiler;
 import net.sf.saxon.s9api.XsltExecutable;
 import org.apache.http.HttpClientConnection;
@@ -228,6 +231,7 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.riot.resultset.ResultSetLang;
@@ -260,6 +264,11 @@ public class Application extends ResourceConfig
 
     private static final Logger log = LoggerFactory.getLogger(Application.class);
 
+    /** Webapp path of the client stylesheet built at package time. Its digest fingerprints the platform build, so a composed stylesheet is invalidated by an upgrade */
+    public static final String CLIENT_SEF_PATH = "/static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json";
+    /** Path of the client stylesheet source in the webapp, composed with package stylesheets per import set */
+    public static final String CLIENT_XSL_PATH = "/static/com/atomgraph/linkeddatahub/xsl/client.xsl";
+
     private final ExecutorService importThreadPool;
     private final ServletConfig servletConfig;
     private final EventBus eventBus = new EventBus();
@@ -275,7 +284,7 @@ public class Application extends ResourceConfig
     private final XsltExecutable xsltExec;
     private final boolean cacheStylesheet;
     private final boolean resolvingUncached;
-    private final URI baseURI, uploadRoot;
+    private final URI baseURI, uploadRoot, sefRoot;
     private final boolean invalidateCache;
     private final Integer cookieMaxAge;
     private final boolean enableLinkedDataProxy;
@@ -298,12 +307,15 @@ public class Application extends ResourceConfig
     private final String oidcRefreshTokensPropertiesPath;
     private final Properties oidcRefreshTokens;
     private final URI contextDatasetURI;
-    private final Dataset contextDataset;
+    // volatile: updateApp() replaces the dataset copy-on-write while request threads read it unsynchronized
+    private volatile Dataset contextDataset;
+    private final Object contextDatasetWriteLock = new Object();
     private final URI frontendProxy;
     private final URI backendProxyAdmin;
     private final URI backendProxyEndUser;
     private Map<String, com.atomgraph.linkeddatahub.model.ServiceContext> serviceContextMap;
     private final com.atomgraph.linkeddatahub.server.util.GraphVersioningService graphVersioningService;
+    private final com.atomgraph.linkeddatahub.server.util.ClientStylesheetService clientStylesheetService;
 
     /**
      * Constructs system application and configures it using sevlet config.
@@ -341,6 +353,11 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(LDHC.proxyHost.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.proxyHost.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.proxyPort.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.proxyPort.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.uploadRoot.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.uploadRoot.getURI()) : null,
+            // system properties rather than context parameters: the ROOT.xml transform that produces
+            // those is at xsltproc's MAX_PARAMETERS ceiling, so infrastructure settings go through
+            // CATALINA_OPTS like the HTTP client timeouts and cache expirations already do
+            System.getProperty("com.atomgraph.linkeddatahub.sefRoot"),
+            System.getProperty("com.atomgraph.linkeddatahub.sefCompiler"),
             servletConfig.getServletContext().getInitParameter(LDHC.invalidateCache.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.invalidateCache.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(LDHC.cookieMaxAge.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.cookieMaxAge.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.enableLinkedDataProxy.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.enableLinkedDataProxy.getURI())) : true,
@@ -358,7 +375,6 @@ public class Application extends ResourceConfig
             System.getProperty("com.atomgraph.linkeddatahub.validateAfterInactivity") != null ? Integer.valueOf(System.getProperty("com.atomgraph.linkeddatahub.validateAfterInactivity")) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.maxImportThreads.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxImportThreads.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.notificationAddress.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.notificationAddress.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(LDHC.supportedLanguages.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.supportedLanguages.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.enableWebIDSignUp.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.enableWebIDSignUp.getURI())) : true,
             servletConfig.getServletContext().getInitParameter(LDHC.oidcRefreshTokens.getURI()),
             servletConfig.getServletContext().getInitParameter(LDHC.frontendProxy.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.frontendProxy.getURI()) : null,
@@ -404,6 +420,8 @@ public class Application extends ResourceConfig
      * @param proxyHostname client's URI rewrite hostname
      * @param proxyPort client's URI rewrite port
      * @param uploadRootString location of the root folder for file uploads
+     * @param sefRootString location of the root folder for composed client stylesheets
+     * @param sefCompilerString endpoint of the client stylesheet compiler service
      * @param invalidateCache true if Varnish proxy cache should be invalidated
      * @param cookieMaxAge max age of auth cookies
      * @param enableLinkedDataProxy true if Linked Data proxy is enabled
@@ -414,7 +432,6 @@ public class Application extends ResourceConfig
      * @param maxRequestRetries maximum number of times that the HTTP client will retry a request
      * @param maxImportThreads maximum number of threads used for asynchronous imports
      * @param notificationAddressString email address used to send notifications
-     * @param supportedLanguageCodes comma-separated codes of supported languages
      * @param enableWebIDSignUp true if WebID signup is enabled
      * @param oidcRefreshTokensPropertiesPath path to the properties file with OIDC refresh tokens
      * @param mailUser username of the SMTP email server
@@ -439,11 +456,11 @@ public class Application extends ResourceConfig
             final String documentTypeQueryString, final String documentOwnerQueryString, final String aclQueryString, final String ownerAclQueryString,
             final String webIDQueryString, final String agentQueryString, final String userAccountQueryString, final String ontologyQueryString,
             final String baseURIString, final String proxyScheme, final String proxyHostname, final Integer proxyPort,
-            final String uploadRootString, final boolean invalidateCache,
+            final String uploadRootString, final String sefRootString, final String sefCompilerString, final boolean invalidateCache,
             final Integer cookieMaxAge, final boolean enableLinkedDataProxy, final boolean allowInternalUrls, final Integer maxContentLength,
             final Integer maxConnPerRoute, final Integer maxTotalConn, final Integer maxRequestRetries, final Integer connectionRequestTimeout,
             final Integer socketTimeout, final Integer connectTimeout, final Long connectionTimeToLive, final Integer validateAfterInactivity, final Integer maxImportThreads,
-            final String notificationAddressString, final String supportedLanguageCodes, final boolean enableWebIDSignUp, final String oidcRefreshTokensPropertiesPath,
+            final String notificationAddressString, final boolean enableWebIDSignUp, final String oidcRefreshTokensPropertiesPath,
             final String frontendProxyString, final String backendProxyAdminString, final String backendProxyEndUserString,
             final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort,
             final String googleClientID, final String googleClientSecret,
@@ -561,12 +578,15 @@ public class Application extends ResourceConfig
         this.importThreadPool = Executors.newFixedThreadPool(maxImportThreads);
         servletConfig.getServletContext().setAttribute(LDHC.maxImportThreads.getURI(), importThreadPool); // used in ImportListener to shutdown the thread pool
         
-        if (supportedLanguageCodes == null)
+        try
         {
-            if (log.isErrorEnabled()) log.error("Supported languages ({}) not configured", LDHC.supportedLanguages.getURI());
-            throw new ConfigurationException(LDHC.supportedLanguages);
+            this.supportedLanguages = readBundleLanguages(servletConfig.getServletContext());
         }
-        this.supportedLanguages = Arrays.asList(supportedLanguageCodes.split(",")).stream().map(code -> Locale.forLanguageTag(code)).collect(Collectors.toList());
+        catch (IOException ex)
+        {
+            if (log.isErrorEnabled()) log.error("Could not read UI translations: {}", XSLTWriterBase.TRANSLATIONS_PATH, ex);
+            throw new IllegalStateException(ex);
+        }
         
         this.servletConfig = servletConfig;
         this.mediaTypes = mediaTypes;
@@ -576,6 +596,7 @@ public class Application extends ResourceConfig
         this.enableLinkedDataProxy = enableLinkedDataProxy;
         this.allowInternalUrls = allowInternalUrls;
         this.urlValidator = new URLValidator(allowInternalUrls);
+        configureServiceExecution(allowInternalUrls);
         this.maxContentLength = maxContentLength;
         this.invalidateCache = invalidateCache;
         this.enableWebIDSignUp = enableWebIDSignUp;
@@ -593,6 +614,18 @@ public class Application extends ResourceConfig
         catch (URISyntaxException ex)
         {
             if (log.isErrorEnabled()) log.error("Upload root URI syntax error: {}", ex);
+            throw new IllegalStateException(ex);
+        }
+
+        try
+        {
+            // optional: an instance whose applications import no packages never composes a client
+            // stylesheet, so a missing SEF root disables that feature rather than failing startup
+            this.sefRoot = sefRootString != null ? new URI(sefRootString) : null;
+        }
+        catch (URISyntaxException ex)
+        {
+            if (log.isErrorEnabled()) log.error("SEF root URI syntax error: {}", ex);
             throw new IllegalStateException(ex);
         }
         
@@ -787,6 +820,7 @@ public class Application extends ResourceConfig
             graphVersioningService = new com.atomgraph.linkeddatahub.server.util.GraphVersioningService(ctxUnion, verifiedClient);
             servletConfig.getServletContext().setAttribute(com.atomgraph.linkeddatahub.server.util.GraphVersioningService.class.getName(), graphVersioningService); // used in GraphVersioningListener to shut down its executor
 
+
             endUserRepositories = new ConcurrentHashMap<>();
             // global graph repository: bundled vocabularies/ontologies mapped from the prefix-mapping config
             repository = new PrefixGraphRepository(GraphStoreClient.create(client, mediaTypes));
@@ -797,6 +831,39 @@ public class Application extends ResourceConfig
                 repository.processConfig(prefixMappingModel);
             }
             resolver = new SameSiteSourceResolver(repository, GraphStoreClient.create(client, mediaTypes), resolvingUncached, baseURI);
+
+            // composing client stylesheets is optional: without a SEF root, a compiler endpoint, or the
+            // stylesheet built into the webapp to fingerprint the platform with, package rules simply stay
+            // server-side, which is how the platform behaved before this existed
+            com.atomgraph.linkeddatahub.server.util.ClientStylesheetService stylesheetService = null;
+            if (sefRoot != null && sefCompilerString != null)
+            {
+                try (InputStream stockSEF = servletConfig.getServletContext().getResourceAsStream(CLIENT_SEF_PATH))
+                {
+                    if (stockSEF == null)
+                    {
+                        if (log.isWarnEnabled()) log.warn("Client stylesheet '{}' not found in the webapp, package stylesheets will not reach the client", CLIENT_SEF_PATH);
+                    }
+                    else
+                    {
+                        java.net.URL clientStylesheet = servletConfig.getServletContext().getResource(CLIENT_XSL_PATH);
+                        if (clientStylesheet == null)
+                        {
+                            if (log.isWarnEnabled()) log.warn("Client stylesheet source '{}' not found in the webapp, package stylesheets will not reach the client", CLIENT_XSL_PATH);
+                        }
+                        else
+                            stylesheetService = new com.atomgraph.linkeddatahub.server.util.ClientStylesheetService(
+                                java.nio.file.Paths.get(sefRoot), URI.create(sefCompilerString), client, repository, clientStylesheet, stockSEF);
+                    }
+                }
+                catch (IOException ex)
+                {
+                    if (log.isErrorEnabled()) log.error("Could not start the client stylesheet service, package stylesheets will not reach the client", ex);
+                }
+            }
+            clientStylesheetService = stylesheetService;
+            if (clientStylesheetService != null)
+                servletConfig.getServletContext().setAttribute(com.atomgraph.linkeddatahub.server.util.ClientStylesheetService.class.getName(), clientStylesheetService); // used in ClientStylesheetListener to shut down its executor
 
             if (mailUser != null && mailPassword !=  null) // enable SMTP authentication
             {
@@ -832,13 +899,14 @@ public class Application extends ResourceConfig
             xsltProc.registerExtensionFunction(new DecodeURI());
             xsltProc.registerExtensionFunction(new com.atomgraph.linkeddatahub.writer.function.URLDecode());
             xsltProc.registerExtensionFunction(new com.atomgraph.linkeddatahub.writer.function.SendHTTPRequest(xsltProc, client));
+            xsltProc.registerExtensionFunction(new com.atomgraph.linkeddatahub.writer.function.ParseQuery());
             
             try
             {
-                for (String prefix : getRepository().getPrefixMappings().keySet())
+                for (String prefix : repository.getPrefixMappings().keySet())
                 {
                     // register mapped RDF documents in the XSLT processor so that document() returns them cached, throughout multiple transformations
-                    TreeInfo doc = xsltProc.getUnderlyingConfiguration().buildDocumentTree(getResolver().resolve("", prefix));
+                    TreeInfo doc = xsltProc.getUnderlyingConfiguration().buildDocumentTree(resolver.resolve("", prefix));
                     xsltProc.getUnderlyingConfiguration().getGlobalDocumentPool().add(doc, prefix);
                 }
 
@@ -856,7 +924,6 @@ public class Application extends ResourceConfig
             }
             
             xsltComp = xsltProc.newXsltCompiler();
-            xsltComp.setParameter(new QName("ldh", LDH.base.getNameSpace(), LDH.base.getLocalName()), new XdmAtomicValue(baseURI));
             xsltComp.setURIResolver(new LocalStylesheetResolver(this, servletConfig.getServletContext(), client)); // resolves xsl:import to raw stylesheet sources, app-origin /static/ URLs locally
             xsltExec = xsltComp.compile(stylesheet);
         }
@@ -902,6 +969,46 @@ public class Application extends ResourceConfig
         }
     }
     
+    /**
+     * Restricts SPARQL <code>SERVICE</code> execution in the platform's own JVM (PATCH updates and import mappings run
+     * their queries here, in-process, so the triplestore's egress proxy never sees them). Without this, a
+     * <code>SERVICE</code> clause a writer supplies could reach an internal service — the admin store, Varnish — and copy
+     * data the ACL never grants into a document. Consistent with the SSRF model of {@link URLValidator}: with
+     * {@code allowInternalUrls} the check is off entirely; otherwise, if an egress proxy is configured
+     * (system property {@code com.atomgraph.linkeddatahub.egressProxy}, {@code host:port}), <code>SERVICE</code> requests
+     * go through it — so public federation still works while internal addresses are refused, redirect hops and DNS
+     * answers included — and if no proxy is configured, <code>SERVICE</code> is disabled outright.
+     *
+     * Applies only to <code>SERVICE</code> execution: it is set on the global ARQ context, which the in-JVM query/update
+     * execution reads, and the platform's own SPARQL calls to its stores use their own HTTP clients, not this one.
+     *
+     * @param allowInternalUrls true if SSRF protection is disabled for this deployment
+     */
+    protected final void configureServiceExecution(boolean allowInternalUrls)
+    {
+        if (allowInternalUrls) return; // SSRF protection disabled; leave SERVICE unrestricted
+
+        String egressProxy = System.getProperty("com.atomgraph.linkeddatahub.egressProxy");
+        if (egressProxy != null && !egressProxy.isBlank())
+        {
+            URI proxyURI = URI.create(egressProxy.contains("://") ? egressProxy : "http://" + egressProxy);
+            int port = proxyURI.getPort() != -1 ? proxyURI.getPort() : 3128;
+            // ProxySelector.of() proxies every request, localhost included, so SERVICE cannot bypass the proxy the way
+            // the JVM-wide http.nonProxyHosts default would let it
+            HttpClient serviceClient = HttpClient.newBuilder().
+                proxy(ProxySelector.of(new InetSocketAddress(proxyURI.getHost(), port))).
+                followRedirects(HttpClient.Redirect.NORMAL).
+                build();
+            ARQ.getContext().set(org.apache.jena.sparql.exec.http.Service.httpQueryClient, serviceClient);
+            if (log.isDebugEnabled()) log.debug("SPARQL SERVICE requests routed through egress proxy: {}", proxyURI);
+        }
+        else
+        {
+            ARQ.getContext().setFalse(org.apache.jena.sparql.exec.http.Service.httpServiceAllowed);
+            if (log.isWarnEnabled()) log.warn("SPARQL SERVICE execution disabled (no egress proxy configured); set com.atomgraph.linkeddatahub.egressProxy to allow federation");
+        }
+    }
+
     /**
      * Post-construct initialization.
      * Additional initialization (e.g. registering JAX-RS providers and factories) that cannot be cleanly done in the class constructor.
@@ -1930,7 +2037,8 @@ public class Application extends ResourceConfig
     /**
      * Loads the package description from its URI.
      * Mapped locations (e.g. bundled package descriptions) and cached graphs are read from the graph
-     * repository; other URIs are dereferenced over HTTP.
+     * repository; a description that is a document of one of this instance's applications is read from
+     * that application's store; other URIs are dereferenced over HTTP.
      *
      * @param packageURI package URI
      * @return package resource, or null if the description could not be resolved
@@ -1945,10 +2053,26 @@ public class Application extends ResourceConfig
         {
             try
             {
-                // validate package URI to prevent SSRF attacks
-                getURLValidator().validate(URI.create(packageURI));
+                // a package described by a document on THIS instance is a named graph in the instance's own
+                // store, and is read there. Fetched over HTTP instead, the request would come back through
+                // this application: its ontology filter, finding the ontology just evicted by the settings
+                // update that declared the import, resolves the package descriptions in turn and issues the
+                // same fetch - the requests nest until the proxy times out, the loop the filter already
+                // guards against for uploaded ontologies
+                URI docURI = UriBuilder.fromUri(packageURI).fragment(null).build(); // skip fragment from the package URI to get its graph URI
+                Resource appResource = matchApp(docURI);
+                if (appResource != null && appResource.canAs(com.atomgraph.linkeddatahub.apps.model.Application.class))
+                {
+                    com.atomgraph.linkeddatahub.apps.model.Application app = appResource.as(com.atomgraph.linkeddatahub.apps.model.Application.class);
+                    model = getServiceContext(app.getService()).getGraphStoreClient().getModel(docURI.toString());
+                }
+                else
+                {
+                    // validate package URI to prevent SSRF attacks
+                    getURLValidator().validate(URI.create(packageURI));
 
-                model = GraphStoreClient.create(getClient(), getMediaTypes()).getModel(packageURI);
+                    model = GraphStoreClient.create(getClient(), getMediaTypes()).getModel(packageURI);
+                }
             }
             catch (RuntimeException ex) // invalid URI, 404 from the package server, connection refused, timeout...
             {
@@ -2236,6 +2360,16 @@ public class Application extends ResourceConfig
     {
         return uploadRoot;
     }
+
+    /**
+     * Returns URL of the server directory holding composed client stylesheets, or null if not configured.
+     *
+     * @return path as URI, or null
+     */
+    public URI getSEFRoot()
+    {
+        return sefRoot;
+    }
     
     /**
      * Returns RDF dataset with LinkedDataHub application descriptions.
@@ -2296,26 +2430,39 @@ public class Application extends ResourceConfig
         if (application == null) throw new IllegalArgumentException("Application cannot be null");
         if (newModel == null) throw new IllegalArgumentException("Model cannot be null");
 
-        synchronized (getContextDataset())
+        synchronized (contextDatasetWriteLock)
         {
             String dataspaceURI = application.getURI();
 
-            // Update the named graph in the dataset
-            getContextDataset().removeNamedModel(dataspaceURI).
-                addNamedModel(dataspaceURI, newModel);
+            // copy-on-write: readers (getContextModel() et al) hold live views over the current dataset from
+            // unsynchronized request threads, so mutating it in place would race them. Build a replacement
+            // dataset sharing the untouched graphs and swap the volatile reference once it is complete.
+            Dataset updated = DatasetFactory.create();
+            updated.setDefaultModel(getContextDataset().getDefaultModel());
+            getContextDataset().listModelNames().forEachRemaining(name ->
+            {
+                if (!name.getURI().equals(dataspaceURI)) updated.addNamedModel(name.getURI(), getContextDataset().getNamedModel(name.getURI()));
+            });
+            updated.addNamedModel(dataspaceURI, ModelFactory.createDefaultModel().add(newModel)); // copy so the caller's reference cannot mutate the published snapshot
 
             // Write the updated dataset back to file using RDFDataMgr
             // Support both absolute file:// URIs and relative webapp paths (like getDataset does)
-            try (java.io.OutputStream out = (getContextDatasetURI().isAbsolute() ?
-                    new FileOutputStream(new java.io.File(getContextDatasetURI())) :
-                    new FileOutputStream(getServletConfig().getServletContext().getRealPath(getContextDatasetURI().toString()))))
-            {
-                Lang lang = RDFDataMgr.determineLang(getContextDatasetURI().toString(), null, null);
-                if (lang == null) throw new IOException("Could not determine RDF format from dataset URI: " + getContextDatasetURI().toString());
+            Lang lang = RDFDataMgr.determineLang(getContextDatasetURI().toString(), null, null);
+            if (lang == null) throw new IOException("Could not determine RDF format from dataset URI: " + getContextDatasetURI().toString());
 
-                RDFDataMgr.write(out, getContextDataset(), lang);
-                if (log.isInfoEnabled()) log.info("Updated dataspace <{}> in context dataset: {}", dataspaceURI, getContextDatasetURI());
+            java.io.File targetFile = getContextDatasetURI().isAbsolute() ?
+                    new java.io.File(getContextDatasetURI()) :
+                    new java.io.File(getServletConfig().getServletContext().getRealPath(getContextDatasetURI().toString()));
+            // temp file in the target directory + atomic move: a crash mid-write must not truncate the deployment's configuration
+            java.io.File tempFile = java.io.File.createTempFile(targetFile.getName(), null, targetFile.getParentFile());
+            try (java.io.OutputStream out = new FileOutputStream(tempFile))
+            {
+                RDFDataMgr.write(out, updated, lang);
             }
+            Files.move(tempFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+
+            this.contextDataset = updated;
+            if (log.isInfoEnabled()) log.info("Updated dataspace <{}> in context dataset: {}", dataspaceURI, getContextDatasetURI());
         }
     }
 
@@ -2440,6 +2587,16 @@ public class Application extends ResourceConfig
     }
 
     /**
+     * Returns the service that composes and compiles client stylesheets, or null if not configured.
+     *
+     * @return client stylesheet service, or null
+     */
+    public com.atomgraph.linkeddatahub.server.util.ClientStylesheetService getClientStylesheetService()
+    {
+        return clientStylesheetService;
+    }
+
+    /**
      * The email address from which notification emails are sent.
      * 
      * @return email address
@@ -2517,12 +2674,54 @@ public class Application extends ResourceConfig
     
     /**
      * Returns list of locales for languages supported by the UI.
-     * 
+     *
      * @return locale list
      */
     public List<Locale> getSupportedLanguages()
     {
         return supportedLanguages;
+    }
+
+    /**
+     * Reads the languages the UI translation bundle actually provides.
+     *
+     * Derived from the bundle rather than configured separately: a hand-maintained list can claim a language the bundle does
+     * not have, and the two drifted - the config said <code>en,es</code> while the bundle is tagged <code>en-US,es-ES</code>,
+     * and neither described the languages of the data being rendered.
+     *
+     * @param servletContext servlet context
+     * @return locales, ordered by language tag so variant selection is deterministic
+     * @throws IOException if the bundle cannot be read
+     */
+    public static List<Locale> readBundleLanguages(ServletContext servletContext) throws IOException
+    {
+        try (InputStream translations = servletContext.getResourceAsStream(XSLTWriterBase.TRANSLATIONS_PATH))
+        {
+            if (translations == null) throw new IOException("UI translations not found: " + XSLTWriterBase.TRANSLATIONS_PATH);
+
+            return readBundleLanguages(translations);
+        }
+    }
+
+    /**
+     * Reads the languages present in a UI translation bundle.
+     *
+     * @param translations RDF/XML translation bundle
+     * @return locales, ordered by language tag so variant selection is deterministic
+     */
+    public static List<Locale> readBundleLanguages(InputStream translations)
+    {
+        Model model = ModelFactory.createDefaultModel();
+        RDFParser.create().source(translations).lang(Lang.RDFXML).build().parse(model);
+
+        return model.listObjects().toList().stream().
+            filter(RDFNode::isLiteral).
+            map(node -> node.asLiteral().getLanguage()).
+            filter(lang -> !lang.isEmpty()).
+            distinct().
+            sorted().
+            map(Locale::forLanguageTag).
+            collect(Collectors.toList());
     }
     
     /**
@@ -2555,11 +2754,19 @@ public class Application extends ResourceConfig
      */
     public void storeRefreshToken(String clientID, String refreshToken) throws IOException
     {
-        oidcRefreshTokens.put(clientID, refreshToken);
-        
-        try (FileOutputStream fos = new FileOutputStream(oidcRefreshTokensPropertiesPath))
+        // serialized + written via temp file and atomic move: concurrent OAuth callbacks opening the same
+        // file with truncating streams would interleave and corrupt the token store
+        synchronized (oidcRefreshTokens)
         {
-            oidcRefreshTokens.store(fos, null);
+            oidcRefreshTokens.put(clientID, refreshToken);
+
+            java.io.File targetFile = new java.io.File(oidcRefreshTokensPropertiesPath);
+            java.io.File tempFile = java.io.File.createTempFile(targetFile.getName(), null, targetFile.getParentFile());
+            try (FileOutputStream fos = new FileOutputStream(tempFile))
+            {
+                oidcRefreshTokens.store(fos, null);
+            }
+            Files.move(tempFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
         }
     }
     
