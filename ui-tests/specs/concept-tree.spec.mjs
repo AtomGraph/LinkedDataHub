@@ -26,14 +26,20 @@ const rowsFor = (page, name) =>
 const disclosureOf = (page, name) => rowsFor(page, name).locator('> div.tree-row > button');
 
 // Every concept-tree fetch, counted: the hops up are a SELECT for ?parent, the levels down
-// are the shared DESCRIBE of a node's children.
+// are the shared CONSTRUCT of a node's children.
+//
+// The down pattern matches the projection, not the verb: the verb stopped being distinctive
+// when the children query became a CONSTRUCT, and CONSTRUCT alone would also count whatever
+// else the page constructs. Matching what only this query projects is also what keeps the
+// counter honest - while it matched nothing, `the DOM is the cache` compared 0 against 0 and
+// passed without asserting anything.
 function countQueries(page) {
     const counts = { up: 0, down: 0 };
     page.on('response', response => {
         const url = decodeURIComponent(response.url());
         if (!url.includes('/sparql?')) return;
         if (/SELECT DISTINCT \?parent WHERE/.test(url)) counts.up++;
-        else if (/DESCRIBE \?child/.test(url)) counts.down++;
+        else if (/CONSTRUCT \{ \?child a \?Type/.test(url)) counts.down++;
     });
     return counts;
 }

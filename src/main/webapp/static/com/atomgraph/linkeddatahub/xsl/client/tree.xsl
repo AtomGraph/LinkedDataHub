@@ -34,6 +34,12 @@ exclude-result-prefixes="#all"
         load-bearing rather than cosmetic.
     -->
 
+    <!-- How many children one fetch returns. A tree is a navigation aid, not a listing: a container
+         with more children than this shows the first page of them (plus the one being opened to), and
+         the alternative is not "all of them" but the response-size failure that unbounded DESCRIBEs
+         produced over large containers. Raise it in an app stylesheet if its containers warrant it. -->
+    <xsl:param name="ldh:tree-page-size" select="1000" as="xs:integer"/>
+
     <!-- The children of a node, as a query this module generates rather than one the domain writes.
          A tree is defined by the relation it follows, so that relation is the parameter: properties
          asserted on the child pointing at its parent, and - since RDF lets either end carry the link -
@@ -50,6 +56,18 @@ exclude-result-prefixes="#all"
         <xsl:param name="parent-properties" as="xs:anyURI*"/> <!-- asserted on the child: ?child P $this -->
         <xsl:param name="child-properties" as="xs:anyURI*"/> <!-- asserted on the parent: $this P ?child -->
 
+        <xsl:sequence select="ldh:tree-children-query($uri, $parent-properties, $child-properties, ())"/>
+    </xsl:function>
+
+    <!-- $path-uri is the document the tree is opening to, if any: the child leading to it is included
+         whatever the page holds, so a descent through a container larger than the page still finds its
+         next step (ldh:doctree-descend picks it by prefix, and would otherwise stop silently). -->
+    <xsl:function name="ldh:tree-children-query" as="xs:string">
+        <xsl:param name="uri" as="xs:anyURI"/>
+        <xsl:param name="parent-properties" as="xs:anyURI*"/>
+        <xsl:param name="child-properties" as="xs:anyURI*"/>
+        <xsl:param name="path-uri" as="xs:anyURI?"/>
+
         <xsl:variable name="branches" as="xs:string*" select="
             (for $property in $parent-properties return '{ ?child &lt;' || $property || '&gt; &lt;' || $uri || '&gt; }'),
             (for $property in $child-properties return '{ &lt;' || $uri || '&gt; &lt;' || $property || '&gt; ?child }')"/>
@@ -57,25 +75,39 @@ exclude-result-prefixes="#all"
             <xsl:message terminate="yes">ldh:tree-children-query requires at least one parent or child property</xsl:message>
         </xsl:if>
 
+        <xsl:variable name="links" select="string-join($branches, ' UNION ')" as="xs:string"/>
+        <!-- the relation the tree follows, echoed back on each child: it is what a domain's
+             ldh:TreeNode rule reads to decide whether a node opens (the document tree keys on
+             sioc:has_parent, which only a container has). Generic because the relation is the
+             parameter - whatever a tree is built on is what its nodes are judged by. -->
+        <xsl:variable name="tree-properties" select="distinct-values(($parent-properties, $child-properties))" as="xs:anyURI*"/>
+
         <!-- the link and the child's own description are in DIFFERENT graphs whenever the link is
              asserted on the parent, because each document is its own graph: a scheme's
              skos:hasTopConcept lives in the scheme's graph while the concept's rdf:type lives in the
              concept's. Scoping both to one GRAPH silently drops every child linked from above -
              measured against a fixture where it returned one top concept of two. -->
-        <!-- A DESCRIBE, written out whole rather than a SELECT for something else to wrap, and handed
-             to the endpoint as the string it already is. It used to go through SPARQLBuilder twice -
-             parsed from a string here, re-serialised in the fetch - and that round-trip MERGED the two
+        <!-- Written out whole rather than a SELECT for something else to wrap, and handed to the
+             endpoint as the string it already is. It used to go through SPARQLBuilder twice - parsed
+             from a string here, re-serialised in the fetch - and that round-trip MERGED the two
              sibling GRAPH blocks into one keeping only the last graph variable, putting the type
              requirement back inside the link's graph and silently dropping every child linked from the
-             parent side. Measured: the query left here correctly scoped and arrived at the endpoint as
-             GRAPH ?childGraph { {..} UNION {..} ?child a ?Type }, returning one top concept of two.
-             Wrapping the second block in a group did not survive either. Nothing needed the parse -
-             this query is generated, not authored or edited - so the scoping the comment above
-             describes is now the scoping that gets sent. -->
+             parent side. Nothing needed the parse - this query is generated, not authored or edited. -->
+        <!-- A CONSTRUCT of exactly what a node renders - its type for the icon, its labels, and the
+             tree relation for the disclosure - not a DESCRIBE of everything the child happens to say.
+             A DESCRIBE returns whole documents: measured over a container of 28k children it was
+             20.5 MB against 6.6 MB here, and over one of 65k it exceeded the platform's response limit
+             outright, so the tree answered 502 on every page under it. The page bound is what makes
+             that independent of container size; the children are sorted by ac:label() as they are
+             rendered, so ORDER BY only has to make the page itself deterministic. -->
         <xsl:sequence select="
-            'DESCRIBE ?child WHERE { GRAPH ?linkGraph { ' ||
-            string-join($branches, ' UNION ') ||
-            ' } GRAPH ?childGraph { ?child a ?Type } }'"/>
+            'CONSTRUCT { ?child a ?Type . ?child ?labelProp ?label . ?child ?treeProp ?treeValue }&#10;' ||
+            'WHERE { { SELECT DISTINCT ?child WHERE { GRAPH ?linkGraph { ' || $links || ' } } ORDER BY ?child LIMIT ' || $ldh:tree-page-size || ' }' ||
+            (if (exists($path-uri)) then ' UNION { GRAPH ?pathGraph { ' || $links || ' } FILTER (strstarts(&quot;' || $path-uri || '&quot;, str(?child))) }' else '') ||
+            '&#10;GRAPH ?childGraph { ?child a ?Type' ||
+            ' OPTIONAL { ?child ?labelProp ?label FILTER (?labelProp IN (' || string-join(for $property in $ldh:label-properties return '&lt;' || $property || '&gt;', ', ') || ')) }' ||
+            (if (exists($tree-properties)) then ' OPTIONAL { ?child ?treeProp ?treeValue FILTER (?treeProp IN (' || string-join(for $property in $tree-properties return '&lt;' || $property || '&gt;', ', ') || ')) }' else '') ||
+            ' } }'"/>
     </xsl:function>
 
     <!-- EVENT HANDLERS -->

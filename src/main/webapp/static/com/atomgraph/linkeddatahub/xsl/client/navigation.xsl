@@ -269,7 +269,16 @@ ORDER BY DESC(?created)
     <xsl:function name="ldh:doc-tree-children-query" as="xs:string">
         <xsl:param name="uri" as="xs:anyURI"/>
 
-        <xsl:sequence select="ldh:tree-children-query($uri, (xs:anyURI('&sioc;has_parent'), xs:anyURI('&sioc;has_container')), ())"/>
+        <xsl:sequence select="ldh:doc-tree-children-query($uri, ())"/>
+    </xsl:function>
+
+    <!-- $path-uri: the document being opened to, so the child leading to it is in the page even when
+         the container holds more children than one fetch returns -->
+    <xsl:function name="ldh:doc-tree-children-query" as="xs:string">
+        <xsl:param name="uri" as="xs:anyURI"/>
+        <xsl:param name="path-uri" as="xs:anyURI?"/>
+
+        <xsl:sequence select="ldh:tree-children-query($uri, (xs:anyURI('&sioc;has_parent'), xs:anyURI('&sioc;has_container')), (), $path-uri)"/>
     </xsl:function>
 
     <!-- binds the drawer's tree to containment. client/tree.xsl dispatches on the disclosure button, so
@@ -503,7 +512,7 @@ ORDER BY DESC(?created)
                         <xsl:call-template name="ldh:TreeChildrenFetch">
                             <xsl:with-param name="container" select="$current-li/ul"/>
                             <xsl:with-param name="uri" select="$current-href"/>
-                            <xsl:with-param name="query" select="ldh:doc-tree-children-query($current-href)"/>
+                            <xsl:with-param name="query" select="ldh:doc-tree-children-query($current-href, $target-uri)"/>
                             <xsl:with-param name="then" select="ldh:doctree-descend-after-load(?, $current-li, $target-uri, $tree-container)"/>
                         </xsl:call-template>
 
