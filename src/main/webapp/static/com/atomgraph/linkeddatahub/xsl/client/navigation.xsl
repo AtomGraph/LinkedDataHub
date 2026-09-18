@@ -396,9 +396,19 @@ ORDER BY DESC(?created)
 
     <!-- A drawer section whose query failed cannot work at all - the tree cannot open, the class list has no classes -
          so the section goes. Removed rather than hidden: the sections' dividers stay right, and ldh:NavigationUpdate
-         stops re-asking a query that was refused, since it finds no section to fill. A reload brings it back. -->
+         stops re-asking a query that was refused, since it finds no section to fill. A reload brings it back.
+
+         A query the endpoint REFUSED says nothing about the section that asked it: every entry in the drawer is
+         endpoint-backed, so the whole drawer goes. The two sections that load eagerly are the only ones that would
+         otherwise learn this - Geo, Latest and search defer their query to the click, survive a degradation they never
+         saw, and report in a modal, which is the one failure navigation is not supposed to be able to show. The class
+         list reloads on every navigation, so the refusal arrives on the first one, while the drawer is still closed
+         and inert: nothing flashes, and the edge-hover opener then finds nothing to open. -->
     <xsl:template match="*[ancestor::div[contains-token(@class, 'ldh-sidebar')]]" mode="ldh:RenderFailure" priority="1">
-        <xsl:for-each select="ancestor::div[contains-token(@class, 'sb-section')][1]">
+        <xsl:param name="explanation-key" as="xs:string"/>
+
+        <xsl:variable name="host" select="if ($explanation-key = ('http-error-unauthorized', 'http-error-forbidden')) then ancestor::div[contains-token(@class, 'ldh-sidebar')][1] else ancestor::div[contains-token(@class, 'sb-section')][1]" as="element()?"/>
+        <xsl:for-each select="$host">
             <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
     </xsl:template>
