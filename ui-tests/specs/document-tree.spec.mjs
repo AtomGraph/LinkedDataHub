@@ -46,11 +46,64 @@ async function slowChildren(page, ms = 1500) {
         });
 }
 
+// Empties the children page on the wire, so a fixture container behaves like one holding more
+// children than a single fetch returns - without needing thousands of documents to build one.
+//
+// LIMIT 0 rather than a small number because the bound applies to the inner subselect alone:
+// with it at zero the page contributes nothing and every row that still appears got there
+// through the branch that pins the document being opened to. That makes the spec below a
+// statement about that branch rather than about the page size, and it fails the way the
+// missing branch would - a tree that stops before it reaches you.
+async function emptyChildrenPage(page) {
+    await page.route(
+        url => url.href.includes('/sparql?') && decodeURIComponent(url.href).includes('has_parent'),
+        route => route.continue({ url: route.request().url().replace(/LIMIT%20\d+/i, 'LIMIT%200') }));
+}
+
 test.describe('document tree', () => {
     test('opens the path down to the document being read and marks it', async ({ page }) => {
         await goto(page, itemUri(1));
         await openDrawer(page);
 
+        await expect(disclosureOf(page, fixtures.container)).toHaveAttribute('aria-expanded', 'true');
+        await expect(rowsFor(page, itemUri(1))).toHaveClass(/is-active/);
+        await expect(rowsFor(page, itemUri(1)).locator('> div.tree-row > a'))
+            .toHaveAttribute('aria-current', 'page');
+    });
+
+    test('asks for a bounded page of children, and only what a node renders', async ({ page }) => {
+        const queries = [];
+        page.on('request', request => {
+            const url = decodeURIComponent(request.url());
+            if (url.includes('/sparql?') && url.includes('has_parent')) queries.push(url);
+        });
+
+        await goto(page, itemUri(1));
+        await openDrawer(page);
+        await expect(rowsFor(page, itemUri(1))).toHaveClass(/is-active/);
+
+        // The query this replaced was an unbounded DESCRIBE, which returns whole child
+        // documents: 20.5 MB over a container of 28k, and past the response limit over one of
+        // 65k, so the tree answered 502 on every page beneath it. Both halves matter - a
+        // CONSTRUCT that lost its bound would still grow without limit, and a bounded DESCRIBE
+        // would still carry every triple of every child it returned.
+        expect(queries.length, 'the descent should have fetched children').toBeGreaterThan(0);
+        for (const query of queries) {
+            expect(query, 'the children query must stay bounded').toMatch(/LIMIT \d+/);
+            expect(query, 'a DESCRIBE returns whole child documents').not.toMatch(/DESCRIBE/);
+        }
+    });
+
+    test('opens the path even when it falls outside the page of children', async ({ page }) => {
+        await emptyChildrenPage(page);
+
+        await goto(page, itemUri(1));
+        await openDrawer(page);
+
+        // ldh:doctree-descend picks its next step out of the rendered children and falls
+        // through silently when it is absent - so bounding the page without pinning the path
+        // would leave the reader at the top of a hierarchy with no sign of where they are,
+        // and nothing in the console to say so.
         await expect(disclosureOf(page, fixtures.container)).toHaveAttribute('aria-expanded', 'true');
         await expect(rowsFor(page, itemUri(1))).toHaveClass(/is-active/);
         await expect(rowsFor(page, itemUri(1)).locator('> div.tree-row > a'))

@@ -32,7 +32,12 @@ import { goto } from '../lib/settle.mjs';
 import { fixtures, itemTitle, itemUri } from '../lib/fixtures.mjs';
 
 // The query the tree asks for one node's children, as ldh:TreeChildrenFetch sends it.
-const CHILDREN_QUERY = /\/sparql\?query=DESCRIBE[\s\S]*has_parent/i;
+//
+// It routes on the wire form, so it has to track the query's shape: this matched DESCRIBE
+// until the children query became a bounded CONSTRUCT, and a route pattern that matches
+// nothing fails open - the 403 below is never injected and every assertion here passes
+// against a tree that was never refused anything.
+const CHILDREN_QUERY = /\/sparql\?query=CONSTRUCT[\s\S]*has_parent/i;
 
 // What the server really answers when the endpoint is refused: an http:Response whose subject is a
 // blank node. Served verbatim so the client meets the body it would meet in production, not an

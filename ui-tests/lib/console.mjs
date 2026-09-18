@@ -20,11 +20,11 @@ const seen = [endUserBase, adminBase].map(base => ({
 
 // Noise that is not this build's fault. Excluded by pattern and listed here with its
 // reason, rather than by loosening the assertion for everything.
-const preexisting = [
-    // The unlimited DESCRIBE over a large container 502s on the dev stack, and reproduces
-    // on builds predating this suite. Tracked separately; see commit 3305741ac.
-    { pattern: /sparql\?query=DESCRIBE[\s\S]*has_parent/i, reason: 'pre-existing 502 on unlimited DESCRIBE' },
-];
+// Empty, and worth keeping so: it held one entry, for the 502 the unlimited DESCRIBE of a
+// large container produced. That query is now a bounded CONSTRUCT, so the 502 is gone and the
+// suppression with it - an allowance that outlives its defect stops being an allowance and
+// becomes a blind spot over exactly the request the fix was about.
+const preexisting = [];
 
 const allowed = (text, declared) =>
     [...preexisting, ...declared].some(({ pattern }) => pattern.test(text));
