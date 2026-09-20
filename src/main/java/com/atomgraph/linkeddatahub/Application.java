@@ -358,6 +358,7 @@ public class Application extends ResourceConfig
             // CATALINA_OPTS like the HTTP client timeouts and cache expirations already do
             System.getProperty("com.atomgraph.linkeddatahub.sefRoot"),
             System.getProperty("com.atomgraph.linkeddatahub.sefCompiler"),
+            System.getProperty("com.atomgraph.linkeddatahub.clientStylesheet"),
             servletConfig.getServletContext().getInitParameter(LDHC.invalidateCache.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.invalidateCache.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(LDHC.cookieMaxAge.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.cookieMaxAge.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.enableLinkedDataProxy.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.enableLinkedDataProxy.getURI())) : true,
@@ -422,6 +423,7 @@ public class Application extends ResourceConfig
      * @param uploadRootString location of the root folder for file uploads
      * @param sefRootString location of the root folder for composed client stylesheets
      * @param sefCompilerString endpoint of the client stylesheet compiler service
+     * @param clientStylesheetString webapp path of the client stylesheet the page bootstraps, composed with the packages; the stock one if null
      * @param invalidateCache true if Varnish proxy cache should be invalidated
      * @param cookieMaxAge max age of auth cookies
      * @param enableLinkedDataProxy true if Linked Data proxy is enabled
@@ -456,7 +458,7 @@ public class Application extends ResourceConfig
             final String documentTypeQueryString, final String documentOwnerQueryString, final String aclQueryString, final String ownerAclQueryString,
             final String webIDQueryString, final String agentQueryString, final String userAccountQueryString, final String ontologyQueryString,
             final String baseURIString, final String proxyScheme, final String proxyHostname, final Integer proxyPort,
-            final String uploadRootString, final String sefRootString, final String sefCompilerString, final boolean invalidateCache,
+            final String uploadRootString, final String sefRootString, final String sefCompilerString, final String clientStylesheetString, final boolean invalidateCache,
             final Integer cookieMaxAge, final boolean enableLinkedDataProxy, final boolean allowInternalUrls, final Integer maxContentLength,
             final Integer maxConnPerRoute, final Integer maxTotalConn, final Integer maxRequestRetries, final Integer connectionRequestTimeout,
             final Integer socketTimeout, final Integer connectTimeout, final Long connectionTimeToLive, final Integer validateAfterInactivity, final Integer maxImportThreads,
@@ -846,14 +848,22 @@ public class Application extends ResourceConfig
                     }
                     else
                     {
-                        java.net.URL clientStylesheet = servletConfig.getServletContext().getResource(CLIENT_XSL_PATH);
-                        if (clientStylesheet == null)
+                        // the entry composed is the stylesheet the page bootstraps: the stock one, or the
+                        // deployment's own when it names it - which then imports the stock one
+                        String clientXslPath = clientStylesheetString != null ? clientStylesheetString : CLIENT_XSL_PATH;
+                        java.net.URL stockStylesheet = servletConfig.getServletContext().getResource(CLIENT_XSL_PATH);
+                        java.net.URL clientStylesheet = servletConfig.getServletContext().getResource(clientXslPath);
+                        if (stockStylesheet == null)
                         {
                             if (log.isWarnEnabled()) log.warn("Client stylesheet source '{}' not found in the webapp, package stylesheets will not reach the client", CLIENT_XSL_PATH);
                         }
+                        else if (clientStylesheet == null)
+                        {
+                            if (log.isWarnEnabled()) log.warn("Client stylesheet '{}' not found in the webapp, package stylesheets will not reach the client", clientXslPath);
+                        }
                         else
                             stylesheetService = new com.atomgraph.linkeddatahub.server.util.ClientStylesheetService(
-                                java.nio.file.Paths.get(sefRoot), URI.create(sefCompilerString), client, repository, clientStylesheet, stockSEF);
+                                java.nio.file.Paths.get(sefRoot), URI.create(sefCompilerString), client, repository, clientStylesheet, stockStylesheet, stockSEF);
                     }
                 }
                 catch (IOException ex)

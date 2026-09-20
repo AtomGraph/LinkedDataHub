@@ -1270,6 +1270,10 @@ if [ -n "$SEF_COMPILER" ]; then
     export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.sefCompiler=$SEF_COMPILER"
 fi
 
+if [ -n "$CLIENT_STYLESHEET" ]; then
+    export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.clientStylesheet=$CLIENT_STYLESHEET"
+fi
+
 if [ -n "$MAX_CONTENT_LENGTH" ]; then
     MAX_CONTENT_LENGTH_PARAM="--stringparam ldhc:maxContentLength '$MAX_CONTENT_LENGTH' "
 fi

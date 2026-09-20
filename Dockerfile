@@ -84,6 +84,11 @@ ARG SEF_ROOT=/var/www/linkeddatahub/sef
 # container's memory limit with Tomcat
 ARG SEF_COMPILER=http://sef-compiler:8080/compile
 
+# webapp path of the client stylesheet the page bootstraps, which the package SEF is composed from: a
+# deployment that mounts its own client stylesheet importing the platform's points this at it, so its
+# rules and the packages' reach the browser together
+ARG CLIENT_STYLESHEET=/static/com/atomgraph/linkeddatahub/xsl/client.xsl
+
 # one generated sitemap and robots.txt per dataspace, kept outside the WAR for the same reason and
 # mounted under /static/sitemaps, where WEB-INF/rewrite.config sends the requests for them
 ARG SITEMAP_ROOT=/var/www/linkeddatahub/sitemaps
@@ -101,6 +106,8 @@ ENV UPLOAD_ROOT=$UPLOAD_ROOT
 ENV SEF_ROOT=$SEF_ROOT
 
 ENV SEF_COMPILER=$SEF_COMPILER
+
+ENV CLIENT_STYLESHEET=$CLIENT_STYLESHEET
 
 ENV SITEMAP_ROOT=$SITEMAP_ROOT
 

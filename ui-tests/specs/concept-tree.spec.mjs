@@ -183,6 +183,23 @@ test.describe('concept tree', () => {
         expect(namespaces).toEqual(['http://www.w3.org/1999/xhtml']);
     });
 
+    test('survives client-side navigation', async ({ page }) => {
+        await goto(page, pageFor('espresso'));
+        await expect(rowsFor(page, 'espresso')).toHaveClass(/is-active/);
+
+        // The first paint is the server's, composed with the package. A click re-renders the
+        // body in the browser out of whichever SEF the page bootstrapped: if that is the stock
+        // one, the column and every package rule go with the first navigation, and only a
+        // reload brings them back.
+        await rowsFor(page, 'coffee').locator('> div.tree-row > a').click();
+        await expect(page).toHaveURL(rowHref('coffee'));
+
+        await expect(tree(page)).toHaveCount(1);
+        await expect(rowsFor(page, 'coffee')).toHaveClass(/is-active/);
+        await expect(rowsFor(page, 'coffee').locator('> div.tree-row > a'))
+            .toHaveAttribute('aria-current', 'page');
+    });
+
     for (const mode of ['EditMode', 'ContentMode']) {
         test(`renders no tree in ${mode}`, async ({ page }) => {
             await goto(page, pageFor('espresso', `https://w3id.org/atomgraph/client#${mode}`));
