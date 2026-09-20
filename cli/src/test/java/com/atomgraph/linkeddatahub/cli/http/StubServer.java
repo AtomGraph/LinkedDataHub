@@ -23,11 +23,13 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Locale;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * In-process HTTP server that answers every request with a canned status and body, and records
- * the last request it saw. Lets the tests drive the real client stack - Jersey, the Apache
+ * every request it saw, in order. Lets the tests drive the real client stack - Jersey, the Apache
  * connector, the PKCS12 client certificate - without a LinkedDataHub instance.
  */
 public class StubServer implements AutoCloseable
@@ -41,10 +43,31 @@ public class StubServer implements AutoCloseable
     private final Map<String, String> responseHeaders = new LinkedHashMap<>();
     private final Map<String, Route> routes = new LinkedHashMap<>();
 
-    private volatile String lastMethod;
-    private volatile String lastTarget;
-    private volatile String lastBody;
-    private volatile Map<String, String> lastHeaders = Map.of();
+    private final List<Request> requests = new CopyOnWriteArrayList<>();
+
+    /**
+     * One request the server saw.
+     *
+     * @param method HTTP method
+     * @param target request target (path and query)
+     * @param headers request headers, names lowercased
+     * @param body request body
+     */
+    public record Request(String method, String target, Map<String, String> headers, String body)
+    {
+
+        /**
+         * Returns a request header.
+         *
+         * @param name header name, matched case-insensitively
+         * @return header value, or null if the header was not sent
+         */
+        public String header(String name)
+        {
+            return headers.get(name.toLowerCase(Locale.ROOT));
+        }
+
+    }
 
     /**
      * Starts the server on an ephemeral loopback port.
@@ -57,13 +80,10 @@ public class StubServer implements AutoCloseable
 
         server.createContext("/", exchange ->
         {
-            lastMethod = exchange.getRequestMethod();
-            lastTarget = exchange.getRequestURI().toString();
-            lastBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-
             Map<String, String> headers = new LinkedHashMap<>();
             exchange.getRequestHeaders().forEach((name, values) -> headers.put(name.toLowerCase(Locale.ROOT), values.get(0)));
-            lastHeaders = headers;
+            requests.add(new Request(exchange.getRequestMethod(), exchange.getRequestURI().toString(),
+                headers, new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8)));
 
             Route route = routes.get(exchange.getRequestURI().getPath());
             byte[] out = (route != null ? route.body() : body).getBytes(StandardCharsets.UTF_8);
@@ -145,13 +165,28 @@ public class StubServer implements AutoCloseable
     }
 
     /**
+     * Returns every request the server saw, in order.
+     *
+     * @return requests
+     */
+    public List<Request> getRequests()
+    {
+        return List.copyOf(requests);
+    }
+
+    private Request last()
+    {
+        return requests.isEmpty() ? null : requests.get(requests.size() - 1);
+    }
+
+    /**
      * Returns the method of the last request.
      *
      * @return HTTP method, or null if no request was made
      */
     public String getLastMethod()
     {
-        return lastMethod;
+        return last() != null ? last().method() : null;
     }
 
     /**
@@ -161,7 +196,7 @@ public class StubServer implements AutoCloseable
      */
     public String getLastTarget()
     {
-        return lastTarget;
+        return last() != null ? last().target() : null;
     }
 
     /**
@@ -172,7 +207,7 @@ public class StubServer implements AutoCloseable
      */
     public String getLastHeader(String name)
     {
-        return lastHeaders.get(name.toLowerCase(Locale.ROOT));
+        return last() != null ? last().header(name) : null;
     }
 
     /**
@@ -182,7 +217,7 @@ public class StubServer implements AutoCloseable
      */
     public String getLastBody()
     {
-        return lastBody;
+        return last() != null ? last().body() : null;
     }
 
     @Override

@@ -1,0 +1,11 @@
+@prefix dh:     <https://www.w3.org/ns/ldt/document-hierarchy#> .
+@prefix ldh:    <https://w3id.org/atomgraph/linkeddatahub#> .
+@prefix dct:    <http://purl.org/dc/terms/> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# describes the pushed directory's own document: the target of the push
+
+<> a dh:Container ;
+    dct:title "Pushed" ;
+    rdf:_1 [ a ldh:Object ;
+        rdf:value ldh:ChildrenView ] .

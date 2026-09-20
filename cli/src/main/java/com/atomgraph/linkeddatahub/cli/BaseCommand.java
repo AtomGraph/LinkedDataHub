@@ -222,6 +222,16 @@ public abstract class BaseCommand implements Callable<Integer>
     }
 
     /**
+     * Prints a line to standard error. Diagnostics and progress go through here.
+     *
+     * @param value printed value
+     */
+    protected void printErr(Object value)
+    {
+        getSpec().commandLine().getErr().println(value);
+    }
+
+    /**
      * Returns the command spec.
      *
      * @return command spec

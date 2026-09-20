@@ -23,6 +23,7 @@ import com.atomgraph.linkeddatahub.cli.command.Get;
 import com.atomgraph.linkeddatahub.cli.command.Packages;
 import com.atomgraph.linkeddatahub.cli.command.Patch;
 import com.atomgraph.linkeddatahub.cli.command.Post;
+import com.atomgraph.linkeddatahub.cli.command.Push;
 import com.atomgraph.linkeddatahub.cli.command.Put;
 import com.atomgraph.linkeddatahub.cli.command.Remove;
 import com.atomgraph.linkeddatahub.cli.command.admin.Admin;
@@ -44,7 +45,7 @@ import picocli.CommandLine.ScopeType;
     versionProvider = LDH.ManifestVersion.class,
     description = "Command line interface for the LinkedDataHub HTTP API.",
     subcommands = {
-        Get.class, Post.class, Put.class, Patch.class, Delete.class,
+        Get.class, Post.class, Put.class, Patch.class, Delete.class, Push.class,
         Create.class, Add.class, Remove.class, Import.class,
         Packages.class, Admin.class,
         AutoComplete.GenerateCompletion.class

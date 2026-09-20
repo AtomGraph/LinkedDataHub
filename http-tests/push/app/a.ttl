@@ -1,0 +1,11 @@
+@prefix dh:     <https://www.w3.org/ns/ldt/document-hierarchy#> .
+@prefix ldh:    <https://w3id.org/atomgraph/linkeddatahub#> .
+@prefix dct:    <http://purl.org/dc/terms/> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# the document of the a/ directory beside it
+
+<> a dh:Container ;
+    dct:title "A" ;
+    rdf:_1 [ a ldh:Object ;
+        rdf:value ldh:ChildrenView ] .

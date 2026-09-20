@@ -47,7 +47,7 @@ public class CommandParsingTest
     {
         CommandLine root = commandLine();
 
-        List.of("get", "post", "put", "patch", "delete", "create", "add", "remove", "import", "packages", "admin").
+        List.of("get", "post", "put", "patch", "delete", "push", "create", "add", "remove", "import", "packages", "admin").
             forEach(name -> assertTrue(root.getSubcommands().containsKey(name), name));
 
         List.of("item", "container").
@@ -102,6 +102,13 @@ public class CommandParsingTest
     public void unrecognizedRDFFileExtensionIsUsageError()
     {
         assertEquals(CommandLine.ExitCode.USAGE, commandLine().execute("put", "https://localhost:4443/some/", "categories.foo"));
+    }
+
+    @Test
+    public void pushRequiresATrailingSlashOnTheTarget()
+    {
+        assertEquals(CommandLine.ExitCode.USAGE, commandLine().execute("push", "-b", "https://localhost:4443/", "--dry-run", "https://localhost:4443/some"));
+        assertEquals(CommandLine.ExitCode.USAGE, commandLine().execute("push", "-b", "https://localhost:4443/", "--dry-run", "--dir", "/nonexistent/dir", "https://localhost:4443/some/"));
     }
 
     @Test

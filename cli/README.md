@@ -15,6 +15,7 @@ compose the atomic commands. `admin` scopes the same verbs to the admin applicat
 ldh create container --parent "$LDH_BASE" --title "Some" --slug some
 ldh add view ...
 ldh import csv ...                # workflow: add construct + add file + add csv-import
+ldh push "$LDH_BASE"              # a directory of RDF documents and files, recursively
 ldh admin create ontology ...
 ldh packages list
 ```
@@ -116,6 +117,10 @@ without them (the taxonomy editor package rejects a concept with no `skos:inSche
 - Commands that create or append to a document print its URL as the only line on stdout, so shell
   pipelines keep working: `item=$(ldh create item ...)`. `add file` prints the content-addressed
   upload URI (`{base}uploads/{sha1}`). All diagnostics go to stderr.
+- `push` writes many documents in one run and prints one line per written document URL or upload
+  URI, in write order, so the listing greps and cuts like `packages list` does. Progress
+  (`PUT <url> <- <path>`, `POST <url> <- <path>`) and `Skipping <path>` lines go to stderr. On the
+  first failed request the run stops with exit code `1`; stdout holds what was written before it.
 - Exit codes: `0` success, `1` HTTP error status or runtime failure (message on stderr, stack trace
   with `--verbose`), `2` usage error.
 - `--proxy` rewrites the request URI's origin to the proxy's origin, like the scripts do; printed
@@ -189,6 +194,50 @@ The commands go through `PATCH /settings`, which is the live path: the change is
 immediately but lives in the running application's context dataset. Declaring the same
 `ldh:import` triple in `config/dataspaces.trig` is the permanent one, applied on restart.
 
+## Push
+
+`push` replays a directory into the document tree it maps to, the [app as a
+repository](https://github.com/AtomGraph/LinkedDataHub-Apps) convention: one RDF file per document,
+a folder beside it for the files that document holds, and subfolders for its children.
+
+```bash
+ldh push "$LDH_BASE"                       # the current directory
+ldh push --dir demo/northwind-traders "$LDH_BASE"
+ldh push --dry-run "$LDH_BASE"             # print the plan, send nothing
+```
+
+With `D` the URL of the directory being walked (`TARGET_URI` for the pushed directory itself):
+
+- `root.ttl` at the top of the tree is `PUT` to `TARGET_URI`. It describes the target document
+  itself, so there is no separate step for it.
+- Any other RDF file `name.ext` is `PUT` to `D/name/`, with its relative URIs resolved against
+  that URL (the same `turtle --base` resolution `put` applies).
+- Every other file is uploaded into `D`, as `add file` would: title = file name, media type
+  detected, upload URI `{base}uploads/{sha1}`.
+- A subdirectory `name` maps to `D/name/`: its document is the RDF file `name.ext` beside it, its
+  files are uploaded into that document, and its subdirectories recurse.
+
+A file is a document when Jena tells its RDF syntax from the file name and can parse it: `.ttl`,
+`.nt`, `.rdf`, `.jsonld`, `.n3`, `.trig`, `.nq` and the other registered extensions, case
+insensitively. `.csv`, `.rq`, `.md`, images and the like are uploads. `.xml` counts as RDF/XML, so
+an XML file that is not RDF has to be listed in `.ldhignore`.
+
+Within a directory the order is the root document, then documents, then uploads, then
+subdirectories, each sorted by name — a subdirectory's document exists before anything is uploaded
+into it. `PUT` replaces a document, so a repeated push converges: the document is rewritten and its
+uploads re-appended, not duplicated.
+
+Entries whose name starts with `.` are never pushed. A `.ldhignore` file in any directory excludes
+entries from that directory's whole subtree, gitignore-style: blank lines and `#` comments are
+skipped; a pattern without a `/` matches an entry's name at any depth beneath (`*.sh`, `Makefile`,
+`screenshot*.png`); a pattern with a `/` matches the path relative to the ignore file's directory
+(`categories/unesco-mappings.ttl`, `/root.ttl`); a trailing `/` restricts the pattern to directories
+(`admin/`). Patterns are globs (`*`, `?`, `[ab]`, `**`); negation is not supported. Skipped entries
+are reported on stderr.
+
+`--dry-run` walks the tree, parses every document (so a syntax error fails the dry run too),
+computes every upload URI and prints the plan, without sending a request or loading a certificate.
+
 ## Script → command migration
 
 | Script | Command |
@@ -226,6 +275,7 @@ immediately but lives in the running application's context dataset. Declaring th
 | `imports/add-rdf-import.sh` | `ldh add rdf-import` |
 | `imports/import-csv.sh` | `ldh import csv` |
 | `imports/import-rdf.sh` | `ldh import rdf` |
+| `update-folder.sh` (LinkedDataHub-Apps, one copy per app) | `ldh push` |
 
 Local certificate tooling (`webid-keygen.sh`, `webid-keygen-pem.sh`, `webid-uri.sh`,
 `webid-modulus.sh`, `server-cert-gen.sh`) and the experimental `sitemap/` generator remain
@@ -252,3 +302,10 @@ shell scripts.
 - `create item`/`create container` add `--primary-topic`, which the scripts have no equivalent for:
   they could only create a document that says nothing about what it is about, leaving a `patch` as
   the only way to assert it.
+- `push` replaces the apps' `update-folder.sh` together with the `root.ttl` step of their
+  `install.sh`: `root.ttl` maps to the target document, so it needs neither the separate `put` nor
+  its `.ldhignore` entry. `.ldhignore` applies to the whole subtree, as the apps documentation
+  describes (the script matched names in its own folder only); any RDF syntax Jena parses is a
+  document, not only `.ttl`; there is no `git check-ignore` and no built-in `target`/`*.sh`
+  exclusion, so an app lists those in `.ldhignore`; directory and file names are percent-encoded in
+  the URLs; and the run stops at the first failed request instead of carrying on.

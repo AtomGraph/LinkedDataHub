@@ -99,6 +99,19 @@ public class AddFile extends BaseCommand
             HttpException.check(target, client.post(target, Entity.entity(multiPart, multiPart.getMediaType()), ACCEPT_TURTLE)).close();
         }
 
+        return uploadURI(base, file);
+    }
+
+    /**
+     * Returns the content-addressed URI an upload gets, <code>{base}uploads/{sha1}</code>. It is
+     * derived from the file content alone, so it can be computed without sending the file.
+     *
+     * @param base application base URI
+     * @param file file path
+     * @return upload URI
+     */
+    public static URI uploadURI(URI base, Path file)
+    {
         return URI.create(base.toString() + "uploads/" + Digests.sha1Hex(file));
     }
 

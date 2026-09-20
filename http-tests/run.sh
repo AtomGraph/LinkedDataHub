@@ -271,6 +271,8 @@ run_tests "dataspaces" $(find ./dataspaces/ -type f -name '*.sh')
 run_tests "access" $(find ./access/ -type f -name '*.sh')
 (( error_count += $? ))
 run_tests "imports" $(find ./imports/ -type f -name '*.sh')
+
+run_tests "push" $(find ./push/ -type f -name '*.sh')
 (( error_count += $? ))
 run_tests "document-hierarchy" $(find ./document-hierarchy/ -type f -name '*.sh')
 (( error_count += $? ))
