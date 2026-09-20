@@ -44,13 +44,20 @@ planned=$(ldh push --dry-run \
   --dir "$pwd/app" \
   "$container")
 
-[ "$planned" = "$expected" ]
+if [ "$planned" != "$expected" ]; then
+  echo "DEBUG: Expected plan: $expected"
+  echo "DEBUG: Got plan: $planned"
+  exit 1
+fi
+
+# a non-existing document is forbidden (403), not 404: a typeless URL matches no authorization, so the gate
+# denies before the request reaches the handler that would report not-found (see document-hierarchy/GET-404.sh)
 
 curl -k -w "%{http_code}\n" -o /dev/null -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: application/n-triples" \
   "${container}a/" \
-| grep -q "$STATUS_NOT_FOUND"
+| grep -q "$STATUS_FORBIDDEN"
 
 # push the tree
 
@@ -61,7 +68,11 @@ pushed=$(ldh push \
   --dir "$pwd/app" \
   "$container")
 
-[ "$pushed" = "$expected" ]
+if [ "$pushed" != "$expected" ]; then
+  echo "DEBUG: Expected: $expected"
+  echo "DEBUG: Got: $pushed"
+  exit 1
+fi
 
 # root.ttl replaced the container's own description
 
@@ -100,13 +111,13 @@ curl --head -k -w "%{http_code}\n" -o /dev/null -f -s \
   "${END_USER_BASE_URL}uploads/${sha1sum}" \
 | grep -q "$STATUS_OK"
 
-# the ignored document was never created
+# the ignored document was never created (forbidden rather than not found, as above)
 
 curl -k -w "%{http_code}\n" -o /dev/null -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: application/n-triples" \
   "${container}a/c/" \
-| grep -q "$STATUS_NOT_FOUND"
+| grep -q "$STATUS_FORBIDDEN"
 
 # a second push converges: the document is rewritten before its upload is re-appended, so nothing duplicates
 
