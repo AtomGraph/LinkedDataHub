@@ -657,6 +657,15 @@ body:has(.ldh-create-dock) .ldh-footer { margin-top: 0; }
    (--action-bar-top) instead of restating a height. The kit reads it with its own value as the
    fallback, so the ontology editor's use of the same card is untouched. */
 .ldh-content-aside { --ldh-aside-top: calc(var(--action-bar-top) + var(--ldh-actionbar-height) + var(--sp-4)); }
+/* A tree with thousands of top-level rows (a thesaurus) makes the card taller than the viewport and
+   taller than any document beside it: a sticky card that tall has nowhere to park, and the page
+   becomes the tree's height, with the content a short strip at the top of a long empty column. The
+   card is capped at what is left of the viewport below the chrome it parks under, and the TREE scrolls
+   inside it - not the card, so the group heading stays put. min-height: 0 on the flex column and the
+   tree lets them shrink below their content, which a flex item will not do on its own. */
+.ldh-content-aside > .ldh-onto-list { max-height: calc(100dvh - var(--ldh-aside-top) - var(--sp-4)); }
+.ldh-content-aside > .ldh-onto-list > .ldh-onto-group { min-height: 0; }
+.ldh-content-aside > .ldh-onto-list > .ldh-onto-group > .ldh-tree { min-height: 0; overflow-y: auto; }
 .document-body > .content-body:has(> .ldh-content-aside) > .ldh-create-dock { grid-column: 1 / -1; }
 /* 1024 is the shell's two-column stop (see the scale in colors_and_type.css). It was 900, chosen on
    its own before there was a scale; the 124px it gives up are the band where the main column was
