@@ -1236,13 +1236,16 @@ but a touch more solid ---- */
 :root[data-retro^="m3"] .ldh-hero,
 :root[data-retro^="m3"] .ldh-hero h1,
 :root[data-retro^="m3"] .ldh-hero p { color: var(--md-on-primary-container); }
-/* The modal's hero variant is the same surface in dialog form: tonal fill, the
-   dialog's 28 radius, no dot grid, on-primary-container text throughout. */
-:root[data-retro^="m3"] .ac-modal.va-hero { background: var(--md-primary-container); border: 0; border-radius: 28px; }
-:root[data-retro^="m3"] .ac-modal.va-hero::before { content: none; }
-:root[data-retro^="m3"] .ac-modal.va-hero .ac-modal-title,
-:root[data-retro^="m3"] .ac-modal.va-hero .ac-modal-sub,
-:root[data-retro^="m3"] .ac-modal.va-hero .ac-modal-body p { color: var(--md-on-primary-container); }
+/* The modal's hero variant keeps the base kit's aurora wash under this skin: it
+   is a moment rather than a working surface, so it gets the same licence as the
+   page floor above, and a flat primary-container fill read as a plain blue box.
+   The stops are the base --grad-aurora's, written out because the skin remaps
+   that token to the flat fill for every other hero; the text stays on the base
+   ink, which the wash was designed for. Only the dialog shape is the skin's. */
+:root[data-retro^="m3"] .ac-modal.va-hero {
+  background: linear-gradient(135deg, light-dark(#efeaff, #241d3a) 0%, light-dark(#e3f1ff, #16263a) 50%, light-dark(#e6f6ee, #12291f) 100%);
+  border: 0; border-radius: 28px;
+}
 
 /* ---- Dialogs / drawers / menus. The dialog uses the SAME surface as cards
         (surface-container-lowest = white in light) so the embedded ResourceEditForm
