@@ -1201,12 +1201,14 @@ exclude-result-prefixes="#all"
 
     <!-- MODAL -->
 
-    <!-- the design system's modal dialog shell: sized dialog with head (icon/eyebrow/title/sub slots
-         and the close button emitted once) and body; the backdrop stays at the call site, which owns
+    <!-- the design system's modal dialog shell: sized dialog, optionally in a variant (va-hero), with
+         head (icon/eyebrow/title/sub slots and the close button emitted once) and body; the backdrop
+         stays at the call site, which owns
          placement and the modal-* marker classes. The constructor-template modal keeps its own shell -
          its form element wraps head and body, which this anatomy cannot express -->
     <xsl:template match="node() | @*" mode="ldh:Modal">
         <xsl:param name="size" select="'sz-lg'" as="xs:string"/>
+        <xsl:param name="variant" as="xs:string?"/>
         <xsl:param name="icon" as="item()*"/>
         <xsl:param name="eyebrow" as="item()*"/>
         <xsl:param name="title" as="item()*"/>
@@ -1216,7 +1218,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="body" as="item()*"/>
         <xsl:param name="foot" as="item()*"/>
 
-        <div class="ac-modal {$size}" role="dialog" aria-modal="true">
+        <div class="ac-modal {$size}{if ($variant) then ' ' || $variant else ''}" role="dialog" aria-modal="true">
             <xsl:if test="exists($title) and $title-id">
                 <xsl:attribute name="aria-labelledby" select="$title-id"/>
             </xsl:if>

@@ -179,6 +179,24 @@
 /* Whole-dialog scroll instead of body scroll. */
 .ac-modal.is-pagescroll { max-height: none; }
 .ac-modal.is-pagescroll .ac-modal-body { overflow: visible; background: none; }
+/* Hero variant — the one modal that is a moment rather than a task (the welcome
+   dialog). The aurora wash and dot grid run under head, body and foot; the
+   three parts drop their seams and grounds so the dialog reads as one composed
+   surface, the title steps up a size, and every line of text takes the primary
+   ink so it holds on the wash in both schemes. */
+.ac-modal.va-hero { background: var(--grad-aurora); border-color: light-dark(var(--border-default), var(--border-strong)); overflow: hidden; }
+.ac-modal.va-hero::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image: radial-gradient(circle at 1px 1px, light-dark(rgba(11,14,20,0.06), rgba(255,255,255,0.08)) 1px, transparent 1.4px);
+  background-size: 24px 24px; opacity: 0.7;
+}
+.ac-modal.va-hero > * { position: relative; }
+.ac-modal.va-hero .ac-modal-head { border-bottom-color: transparent; padding: var(--sp-8) var(--sp-8) 0; }
+.ac-modal.va-hero .ac-modal-body { background: none; padding: var(--sp-4) var(--sp-8); }
+.ac-modal.va-hero .ac-modal-foot { border-top-color: transparent; background: none; padding: var(--sp-2) var(--sp-8) var(--sp-8); }
+.ac-modal.va-hero .ac-modal-title { font-size: var(--fs-2xl); letter-spacing: var(--tracking-tight); line-height: var(--lh-tight); }
+.ac-modal.va-hero .ac-modal-sub { font-size: var(--fs-md); color: var(--fg-1); margin-top: var(--sp-1); }
+.ac-modal.va-hero .ac-modal-body p { margin: 0; font-size: var(--fs-md); line-height: var(--lh-base); color: var(--fg-1); max-width: 56ch; }
 
 .ac-modal-foot {
   display: flex; align-items: center; gap: var(--sp-2); flex-shrink: 0; flex-wrap: wrap;

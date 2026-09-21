@@ -66,18 +66,27 @@ LIMIT   10
     
     <xsl:template name="ldh:FirstTimeMessage">
         <div class="ac-backdrop pos-center modal modal-first-time-message">
+            <!-- the welcome message is composed from the modal's own anatomy in its hero variant: title
+                 and subtitle in the head, the pitch in the body, the two calls to action in the foot,
+                 the wash running under all three. A document hero inside a flush body doubled the
+                 chrome - its own border and radius against the dialog's - under a head that held
+                 nothing but the close button -->
             <xsl:apply-templates select="." mode="ldh:Modal">
-                <xsl:with-param name="flush" select="true()"/>
+                <xsl:with-param name="size" select="'sz-md'"/>
+                <xsl:with-param name="variant" select="'va-hero'"/>
+                <xsl:with-param name="title" as="item()*">
+                    <xsl:apply-templates select="key('resources', 'first-time-title', ldh:translations())" mode="ac:label"/>
+                </xsl:with-param>
+                <xsl:with-param name="sub" as="item()*">
+                    <xsl:apply-templates select="key('resources', 'first-time-subtitle', ldh:translations())" mode="ac:label"/>
+                </xsl:with-param>
                 <xsl:with-param name="body" as="item()*">
-
-                    <div class="ldh-hero">
-                        <h1><xsl:apply-templates select="key('resources', 'first-time-title', ldh:translations())" mode="ac:label"/></h1>
-                        <h2 class="lede"><xsl:apply-templates select="key('resources', 'first-time-subtitle', ldh:translations())" mode="ac:label"/></h2>
-                        <p><xsl:apply-templates select="key('resources', 'first-time-body', ldh:translations())" mode="ac:label"/><xsl:text> </xsl:text><em><xsl:apply-templates select="key('resources', 'first-time-body-emphasis', ldh:translations())" mode="ac:label"/></em>.</p>
-                        <p>
-                            <a class="ac-btn in-primary ap-solid sz-lg" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/get-started/" target="_blank"><xsl:value-of select="ac:label(key('resources', 'get-started', ldh:translations()))"/></a>
-                            <a class="ac-btn in-neutral ap-solid sz-lg" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank"><xsl:value-of select="ac:label(key('resources', 'learn-more', ldh:translations()))"/></a>
-                        </p>
+                    <p><xsl:apply-templates select="key('resources', 'first-time-body', ldh:translations())" mode="ac:label"/><xsl:text> </xsl:text><em><xsl:apply-templates select="key('resources', 'first-time-body-emphasis', ldh:translations())" mode="ac:label"/></em>.</p>
+                </xsl:with-param>
+                <xsl:with-param name="foot" as="item()*">
+                    <div class="ac-modal-foot">
+                        <a class="ac-btn in-primary ap-solid sz-md" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/get-started/" target="_blank"><xsl:value-of select="ac:label(key('resources', 'get-started', ldh:translations()))"/></a>
+                        <a class="ac-btn in-neutral ap-outline sz-md" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank"><xsl:value-of select="ac:label(key('resources', 'learn-more', ldh:translations()))"/></a>
                     </div>
                 </xsl:with-param>
             </xsl:apply-templates>
