@@ -1236,6 +1236,13 @@ but a touch more solid ---- */
 :root[data-retro^="m3"] .ldh-hero,
 :root[data-retro^="m3"] .ldh-hero h1,
 :root[data-retro^="m3"] .ldh-hero p { color: var(--md-on-primary-container); }
+/* The modal's hero variant is the same surface in dialog form: tonal fill, the
+   dialog's 28 radius, no dot grid, on-primary-container text throughout. */
+:root[data-retro^="m3"] .ac-modal.va-hero { background: var(--md-primary-container); border: 0; border-radius: 28px; }
+:root[data-retro^="m3"] .ac-modal.va-hero::before { content: none; }
+:root[data-retro^="m3"] .ac-modal.va-hero .ac-modal-title,
+:root[data-retro^="m3"] .ac-modal.va-hero .ac-modal-sub,
+:root[data-retro^="m3"] .ac-modal.va-hero .ac-modal-body p { color: var(--md-on-primary-container); }
 
 /* ---- Dialogs / drawers / menus. The dialog uses the SAME surface as cards
         (surface-container-lowest = white in light) so the embedded ResourceEditForm
