@@ -88,9 +88,14 @@ public class OntologyRepository extends PrefixGraphRepository
     @Override
     public Graph get(String uri)
     {
-        // bundled system vocabularies (mapped to shipped files) and already-materialized ontologies bypass the
-        // admin SPARQL query — the bundled file is authoritative, and querying it would be a wasted round-trip
-        if (isMapped(uri) || isCached(uri)) return super.get(uri);
+        // Only an already-loaded graph bypasses the query. A bundled mapping does NOT: an application may
+        // hold its own graph for the very URI a shipped file is mapped to - an imported vocabulary carrying
+        // its annotations, a materialized package ontology - and letting the mapping win there would
+        // silently shadow the application's own data with a read-only copy. The store is therefore asked
+        // first and the mapping is the fallback. This costs one empty query per bundled vocabulary per
+        // repository, not per closure build, because super.get() caches what it loads and isCached() then
+        // short-circuits every later call
+        if (isCached(uri)) return super.get(uri);
 
         // attempt to load the ontology from the admin endpoint
         ParameterizedSparqlString ontologyPss = new ParameterizedSparqlString(getOntologyQuery().toString());

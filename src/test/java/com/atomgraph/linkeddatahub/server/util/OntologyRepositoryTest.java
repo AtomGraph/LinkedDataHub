@@ -91,6 +91,25 @@ public class OntologyRepositoryTest
         verify(gsc, never()).getModel(any());
     }
 
+    /**
+     * A URI mapped to a bundled file still goes to the store first. An application may hold its own graph
+     * for exactly that URI - an imported vocabulary carrying its annotations, a materialized package
+     * ontology - and the shipped copy must not shadow it.
+     */
+    @Test
+    public void testStoreOutranksBundledMapping()
+    {
+        Model sparqlResult = ModelFactory.createDefaultModel();
+        sparqlResult.createResource(ONTOLOGY_URI).addProperty(RDFS.label, "from the store");
+        stubSPARQLChain(sparqlResult);
+
+        OntologyRepository repository = new OntologyRepository(app, system, gsc, ONTOLOGY_QUERY);
+        repository.addLocationMapping(ONTOLOGY_URI, "com/atomgraph/client/skos.owl"); // a bundled file for the same URI
+        Graph result = repository.get(ONTOLOGY_URI);
+
+        assertTrue(result.contains(NodeFactory.createURI(ONTOLOGY_URI), RDFS.label.asNode(), NodeFactory.createLiteralString("from the store")));
+    }
+
     /** An empty SPARQL result falls back to the Graph Store client (HTTP) load. */
     @Test
     public void testFallsBackToHttpWhenSPARQLEmpty()

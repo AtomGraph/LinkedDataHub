@@ -331,11 +331,6 @@ support@atomgraph.com]]></param-value>
         <param-name>https://w3id.org/atomgraph/client#prefixMapping</param-name>
         <param-value>prefix-mapping.ttl</param-value>
     </context-param>
-    <!-- bundled package ontologies; global repository only, so a materialized copy in the store outranks them -->
-    <context-param>
-        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#packageMapping</param-name>
-        <param-value>package-mapping.ttl</param-value>
-    </context-param>
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#cookieMaxAge</param-name>
         <param-value>86400</param-value>

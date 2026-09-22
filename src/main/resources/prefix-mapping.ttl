@@ -41,8 +41,9 @@
    [ lm:prefix "http://www.w3.org/2011/http-statusCodes" ;                       lm:altName "com/atomgraph/linkeddatahub/http-statusCodes.rdf" ] ,
 
    # packages - the bundled copies stand in until they are served from packages.linkeddatahub.com.
-   # The package ONTOLOGY is deliberately absent: it is mapped in package-mapping.ttl, for the global
-   # repository alone, so that an application resolves it through its own materialized copy instead
+   # These are a fallback, not an override: OntologyRepository asks the store before it consults a
+   # mapping, so an application's own materialized copy of a package ontology wins over the shipped file
    [ lm:prefix "https://packages.linkeddatahub.com/" ;                           lm:altName "com/linkeddatahub/packages/packages.ttl" ] ,
-   [ lm:prefix "https://packages.linkeddatahub.com/editor/taxonomy/" ;           lm:altName "com/linkeddatahub/packages/editor/taxonomy/package.ttl" ]
+   [ lm:prefix "https://packages.linkeddatahub.com/editor/taxonomy/" ;           lm:altName "com/linkeddatahub/packages/editor/taxonomy/package.ttl" ] ,
+   [ lm:prefix "https://raw.githubusercontent.com/AtomGraph/LinkedDataHub-Apps/refs/heads/develop/packages/editor/taxonomy/ns.ttl" ; lm:altName "com/linkeddatahub/packages/editor/taxonomy/ns.ttl" ]
 .

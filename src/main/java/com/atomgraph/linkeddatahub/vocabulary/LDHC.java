@@ -145,9 +145,6 @@ public class LDHC
     /** Context dataset property */
     public static final Property contextDataset = m_model.createObjectProperty( NS + "contextDataset" );
 
-    /** Bundled package mapping configuration property */
-    public static final Property packageMapping = m_model.createObjectProperty( NS + "packageMapping" );
-
     /** Max connections per route property */
     public static final Property maxConnPerRoute = m_model.createDataProperty( NS + "maxConnPerRoute" );
     
