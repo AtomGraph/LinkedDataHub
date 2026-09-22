@@ -24,6 +24,7 @@ import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,6 +39,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -511,16 +513,15 @@ public class ClientStylesheetService
     {
         // a bundled package's stylesheet never leaves the JVM: its URI is mapped to a classpath file,
         // which is also why that URI does not have to resolve over the network at all
-        if (getRepository() != null && getRepository().isMapped(stylesheet.toString()))
-            try (InputStream is = getClass().getClassLoader().getResourceAsStream(getRepository().resolve(stylesheet.toString())))
-            {
-                if (is == null) throw new IllegalStateException("Bundled package stylesheet <" + stylesheet + "> not found on the classpath");
-                return expandEntities(is, stylesheet);
-            }
-            catch (IOException ex)
-            {
-                throw new IllegalStateException("Could not read bundled package stylesheet <" + stylesheet + ">", ex);
-            }
+        try
+        {
+            Optional<byte[]> bundled = MappedLocation.read(getRepository(), stylesheet.toString());
+            if (bundled.isPresent()) return expandEntities(new ByteArrayInputStream(bundled.get()), stylesheet);
+        }
+        catch (IOException ex)
+        {
+            throw new IllegalStateException("Could not read bundled package stylesheet <" + stylesheet + ">", ex);
+        }
 
         try (Response cr = getClient().target(stylesheet).request(com.atomgraph.linkeddatahub.MediaType.TEXT_XSL_TYPE).get())
         {
