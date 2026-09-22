@@ -58,6 +58,10 @@ xmlns:schema="&schema;"
 exclude-result-prefixes="#all"
 >
     
+    <!-- the constructor actions render for one described resource and contribute nothing for anything
+         else, so an unmatched node yields no output rather than the built-in rule's text -->
+    <xsl:mode name="ldh:ConstructorActions" on-no-match="deep-skip"/>
+
     <xsl:key name="shapes-by-target-class" match="*[@rdf:about] | *[@rdf:nodeID]" use="sh:targetClass/@rdf:resource | sh:targetClass/@rdf:resource"/>
 
     <!-- Material Symbols glyph per layout mode (shared by the action-bar mode switcher and the mode list) -->
@@ -1261,6 +1265,16 @@ exclude-result-prefixes="#all"
         <xsl:param name="show-cancel-button" select="true()" as="xs:boolean"/>
         <xsl:param name="show-form-actions" select="true()" as="xs:boolean"/>
         <xsl:param name="main-class" select="'main ldh-block-body'" as="xs:string?"/>
+        <!-- this shell builds its own form and footer rather than going through the ac:ResourceForm
+             rdf:RDF shell, so it has to place the constructor actions itself -->
+        <xsl:param name="constructors" as="document-node()?" tunnel="yes"/>
+        <xsl:param name="type-metadata" as="document-node()?" tunnel="yes"/>
+        <xsl:variable name="constructor-actions" as="element()*">
+            <xsl:apply-templates select="." mode="ldh:ConstructorActions">
+                <xsl:with-param name="constructors" select="$constructors"/>
+                <xsl:with-param name="type-metadata" select="$type-metadata"/>
+            </xsl:apply-templates>
+        </xsl:variable>
 
         <div>
             <xsl:if test="$id">
@@ -1310,6 +1324,7 @@ exclude-result-prefixes="#all"
                         <xsl:apply-templates select="." mode="ldh:FormFooter">
                             <xsl:with-param name="button-class" select="$button-class"/>
                             <xsl:with-param name="dismiss" select="if ($show-cancel-button) then 'cancel' else ()"/>
+                            <xsl:with-param name="tools" select="$constructor-actions"/>
                         </xsl:apply-templates>
                     </xsl:if>
                 </form>
@@ -1330,6 +1345,77 @@ exclude-result-prefixes="#all"
         </xsl:apply-templates>
     </xsl:template>
     
+    <!-- CONSTRUCTOR ACTIONS -->
+
+    <!-- The form's constructor affordance, rendered into the footer's leading cluster.
+
+         Form-scoped, not fieldset-scoped: a SPIN constructor is attached to a CLASS, and the onclick handler
+         in client/constructor.xsl reads nothing but @data-resource-type, so the edited subject never enters
+         into it. Building it per fieldset produced one identical button per Description sharing a type.
+
+         The editor it opens stays a modal dialog (client/constructor.xsl appends .modal-constructor at
+         data-depth="2") because constructors live in the ontology graph rather than in the document being
+         edited, and the content body renders the current document only. Moving the trigger changes where the
+         agent clicks and nothing about where the editor appears.
+
+         One class renders a direct labelled button, two or more collapse into the Actions menu whose
+         lifecycle client.xsl drives off the .ldh-form-action trigger inside .ldh-form-actions-wrap - keep
+         both class names on those two elements. -->
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ldh:ConstructorActions">
+        <xsl:param name="constructors" as="document-node()?"/>
+        <xsl:param name="type-metadata" as="document-node()?"/>
+        <!-- classes that carry a constructor, minus the built-in system ones an agent never edits -->
+        <xsl:param name="constructor-classes" select="if (exists($type-metadata) and exists($constructors)) then distinct-values($constructors//srx:binding[@name = 'Type']/srx:uri)[not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&def;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))] else ()" as="xs:anyURI*"/>
+
+        <xsl:choose>
+            <xsl:when test="count($constructor-classes) = 1">
+                <button type="button" class="ldh-form-action btn-edit-constructors" data-resource-type="{$constructor-classes}">
+                    <!-- only admins should see the button as only they have access to the ontologies with constructors in them -->
+                    <xsl:if test="not(acl:mode() = '&acl;Control')">
+                        <xsl:attribute name="style" select="'display: none'"/>
+                    </xsl:if>
+
+                    <span class="msi outline sm" aria-hidden="true">tune</span>
+                    <span>
+                        <xsl:apply-templates select="key('resources', 'edit-constructors', ldh:translations())" mode="ac:label"/>
+                    </span>
+                </button>
+            </xsl:when>
+            <xsl:when test="count($constructor-classes) gt 1">
+                <div class="ldh-form-actions-wrap">
+                    <!-- only admins should see the menu as only they have access to the ontologies with constructors in them -->
+                    <xsl:if test="not(acl:mode() = '&acl;Control')">
+                        <xsl:attribute name="style" select="'display: none'"/>
+                    </xsl:if>
+
+                    <button type="button" class="ldh-form-action" aria-haspopup="menu" aria-expanded="false">
+                        <span class="msi outline sm" aria-hidden="true">bolt</span>
+                        <span>
+                            <xsl:apply-templates select="key('resources', 'actions', ldh:translations())" mode="ac:label"/>
+                        </span>
+                        <span class="msi sm caret" aria-hidden="true">expand_more</span>
+                    </button>
+                    <div class="ldh-form-actions-menu" role="menu">
+                        <xsl:for-each select="$constructor-classes">
+                            <button type="button" role="menuitem" class="it btn-edit-constructors" data-resource-type="{.}">
+                                <span class="ico"><span class="msi outline sm" aria-hidden="true">tune</span></span>
+                                <span class="body">
+                                    <span class="lbl">
+                                        <!-- query class description from the namespace ontology (because it might not be available as Linked Data) -->
+                                        <xsl:apply-templates select="key('resources', ., $type-metadata)" mode="ac:label"/>
+                                    </span>
+                                    <span class="sub">
+                                        <xsl:apply-templates select="key('resources', 'edit-constructors', ldh:translations())" mode="ac:label"/>
+                                    </span>
+                                </span>
+                            </button>
+                        </xsl:for-each>
+                    </div>
+                </div>
+            </xsl:when>
+        </xsl:choose>
+    </xsl:template>
+
     <!-- EXCEPTION -->
     
     <xsl:template match="*[http:sc/@rdf:resource = '&sc;Conflict']" mode="ldh:Exception" priority="1">
@@ -1352,7 +1438,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="violations" select="key('violations-by-value', */@rdf:resource) | key('violations-by-root', (@rdf:about, @rdf:nodeID)) | key('violations-by-focus-node', (@rdf:about, @rdf:nodeID))" as="element()*"/>
         <xsl:param name="forClass" select="distinct-values(rdf:type/@rdf:resource)" as="xs:anyURI*"/>
         <xsl:param name="type-metadata" as="document-node()?" tunnel="yes"/>
-        <xsl:param name="constructors" as="document-node()?" tunnel="yes"/> <!-- not used to build $constructor -->
+        <xsl:param name="constructors" as="document-node()?" tunnel="yes"/> <!-- declared so the tunnel value is visible here; not used to build $constructor, and the constructor actions it drives are built once per form by ldh:ConstructorActions -->
         <xsl:param name="constraints" as="document-node()?" tunnel="yes"/>
         <xsl:param name="shapes" as="document-node()?" tunnel="yes"/>
         <!-- include both sh:NodeShape and its connected sh:PropertyShapes in $type-shapes -->
@@ -1416,61 +1502,15 @@ exclude-result-prefixes="#all"
             </xsl:if>
             <xsl:attribute name="class" select="string-join(('ldh-fieldset', $class), ' ')"/>
 
-            <!-- list of types that have constructors (excluding built-in system classes) -->
-            <xsl:variable name="constructor-classes" select="if (exists($type-metadata) and exists($constructors)) then distinct-values($constructors//srx:binding[@name = 'Type']/srx:uri)[not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&def;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))] else ()" as="xs:anyURI*"/>
-            <!-- subject-row tools, revealed together with the subject row: copy-URI (keeps the btn-copy-uri class the clipboard handler matches on) and the constructor actions. One action renders as a direct labelled button, two or more collapse into the overflow menu -->
+            <!-- subject-row tools, revealed together with the subject row. Copy-URI only: it keeps the
+                 btn-copy-uri class the clipboard handler matches on. The constructor actions are NOT here -
+                 a constructor is attached to a class rather than to this subject, so the same class in two
+                 Descriptions would render the action twice. They live in the form footer instead, built once
+                 per form by ldh:ConstructorActions in document.xsl. -->
             <xsl:variable name="subject-tools" as="element()*">
                 <xsl:apply-templates select="." mode="ldh:CopyUriButton">
                     <xsl:with-param name="class" select="'ldh-subject-copy btn-copy-uri'"/>
                 </xsl:apply-templates>
-
-                <xsl:choose>
-                    <xsl:when test="count($constructor-classes) = 1">
-                        <button type="button" class="ldh-form-action btn-edit-constructors" data-resource-type="{$constructor-classes}">
-                            <!-- only admins should see the button as only they have access to the ontologies with constructors in them -->
-                            <xsl:if test="not(acl:mode() = '&acl;Control')">
-                                <xsl:attribute name="style" select="'display: none'"/>
-                            </xsl:if>
-
-                            <span class="msi outline sm" aria-hidden="true">tune</span>
-                            <span>
-                                <xsl:apply-templates select="key('resources', 'edit-constructors', ldh:translations())" mode="ac:label"/>
-                            </span>
-                        </button>
-                    </xsl:when>
-                    <xsl:when test="count($constructor-classes) gt 1">
-                        <div class="ldh-form-actions-wrap">
-                            <!-- only admins should see the menu as only they have access to the ontologies with constructors in them -->
-                            <xsl:if test="not(acl:mode() = '&acl;Control')">
-                                <xsl:attribute name="style" select="'display: none'"/>
-                            </xsl:if>
-
-                            <button type="button" class="ldh-form-action" aria-haspopup="menu" aria-expanded="false">
-                                <span class="msi outline sm" aria-hidden="true">bolt</span>
-                                <span>
-                                    <xsl:apply-templates select="key('resources', 'actions', ldh:translations())" mode="ac:label"/>
-                                </span>
-                                <span class="msi sm caret" aria-hidden="true">expand_more</span>
-                            </button>
-                            <div class="ldh-form-actions-menu" role="menu">
-                                <xsl:for-each select="$constructor-classes">
-                                    <button type="button" role="menuitem" class="it btn-edit-constructors" data-resource-type="{.}">
-                                        <span class="ico"><span class="msi outline sm" aria-hidden="true">tune</span></span>
-                                        <span class="body">
-                                            <span class="lbl">
-                                                <!-- query class description from the namespace ontology (because it might not be available as Linked Data) -->
-                                                <xsl:apply-templates select="key('resources', ., $type-metadata)" mode="ac:label"/>
-                                            </span>
-                                            <span class="sub">
-                                                <xsl:apply-templates select="key('resources', 'edit-constructors', ldh:translations())" mode="ac:label"/>
-                                            </span>
-                                        </span>
-                                    </button>
-                                </xsl:for-each>
-                            </div>
-                        </div>
-                    </xsl:when>
-                </xsl:choose>
             </xsl:variable>
 
             <xsl:if test="$legend">

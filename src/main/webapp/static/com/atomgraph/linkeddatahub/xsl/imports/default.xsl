@@ -1315,8 +1315,18 @@ exclude-result-prefixes="#all"
         <xsl:param name="save-key" select="'save'" as="xs:string"/>
         <xsl:param name="show-reset" select="true()" as="xs:boolean"/>
         <xsl:param name="show-save" select="true()" as="xs:boolean"/>
+        <!-- leading cluster: actions that act on the form as a whole rather than submitting it. The trailing
+             .fb-end cluster carries margin-left: auto, so these sit at the opposite end of the bar. Empty for
+             every caller that does not pass one, which leaves those footers byte-identical -->
+        <xsl:param name="tools" as="node()*"/>
 
         <div class="{$class}">
+            <xsl:if test="exists($tools)">
+                <span class="fb-start">
+                    <xsl:sequence select="$tools"/>
+                </span>
+            </xsl:if>
+
             <span class="{if (starts-with($class, 'ac-modal-foot')) then 'ac-modal-foot-end' else 'fb-end'}">
                 <xsl:if test="$show-reset">
                     <button type="reset" class="ac-btn in-neutral ap-ghost sz-sm btn-reset">

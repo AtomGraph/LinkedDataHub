@@ -3881,6 +3881,14 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
    form's footer rather than the dialog's - same guard as the inset above. */
 .ac-modal-body:has(> :last-child .ldh-form-bar:last-child):not(.is-flush) > form > .ldh-form-bar { margin-inline: calc(-1 * var(--sp-5)); }
 .ldh-form-bar .fb-end { margin-left: auto; display: flex; align-items: center; gap: var(--sp-2); }
+/* Leading cluster: actions on the form as a whole, opposite the submit cluster. It needs no margin of
+   its own — .fb-end's margin-left: auto does the separating. */
+.ldh-form-bar .fb-start { display: flex; align-items: center; gap: var(--sp-2); }
+/* The standalone .ldh-form-action chrome is 34px; in the bar it sits beside .ac-btn.sz-sm buttons. */
+.ldh-form-bar .ldh-form-action { height: 30px; }
+/* A footer menu drops out of the card, so it opens upward, and it anchors to the trigger's left edge
+   because the cluster sits at the start of the bar rather than the end. */
+.ldh-form-bar .ldh-form-actions-menu { top: auto; bottom: calc(100% + 6px); left: 0; right: auto; }
 /* Dirty-state readout — the form says what will happen, so Save being disabled
    is never a mystery. */
 .ldh-form-status {
@@ -3962,37 +3970,53 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 /* =========================================================================
    SUBJECT ROW IN FORM MODE
    The standalone .ldh-subject bar is a chunky bordered strip — it reads as a
-   legacy form header bolted above a description block. In form mode it sits on
-   the SAME grid as the property rows instead: term type in the label column,
-   the URI field in the value column, tools at the right. It becomes "one more
-   row of the description" that happens to describe the subject itself.
-   Column 3 is auto rather than the grid's 64px because the constructor action
-   is a labelled button, and 64px clipped it outside the card.
+   legacy form header bolted above a description block. In form mode it keeps
+   the SAME grid as the property rows: term type in the label column, the URI
+   field in the value column, tools in the 64px action column, so the columns
+   line up down the whole fieldset.
+   Alignment is not sameness, though. The row states the resource's IDENTITY
+   rather than one of its properties: there is exactly one of it, it is the
+   head of the description, and editing it re-addresses the resource. So it
+   takes three quiet marks of its own — a heavier closing rule than the
+   separators between property rows, a term-type control that reads as an
+   identity label at rest, and tools that stay visible instead of fading with
+   a hover. The fade is there to stop N property rows repeating the same
+   chrome N times; a singleton row has no repetition to suppress.
    ========================================================================= */
 .ldh-edit-form .ldh-subject {
   display: grid;
-  grid-template-columns: 200px minmax(0, 1fr) auto;
+  grid-template-columns: 200px minmax(0, 1fr) 64px;
   column-gap: var(--sp-3);
   align-items: center;
   padding: var(--sp-2) 0;
   background: transparent;
+  border-bottom: 1px solid var(--border-default);
 }
-/* "One more row of the description" is the whole idea, so it collapses on the same stop and in the
-   same shape as .ldh-prop-group: term type above, URI field and tools below. Diverging here would
-   put the subject row back to being a header bolted on top, which is what this replaced. */
+/* The row is marked as the head of the description, not detached from it, so it collapses on the same
+   stop and in the same shape as .ldh-prop-group: term type above, URI field and tools below. Diverging
+   here would put the subject row back to being a header bolted on top, which is what this replaced. */
 @container (max-width: 520px) {
   .ldh-edit-form .ldh-subject { grid-template-columns: minmax(0, 1fr) auto; }
   .ldh-edit-form .ldh-subject > .term-select { grid-column: 1 / -1; justify-self: start; }
   .ldh-edit-form .ldh-subject-tools { padding-right: var(--sp-4); }
 }
 .ldh-edit-form .ldh-subject-tools { padding-right: var(--sp-6); }
-/* The term-type select acts as this row's label, so it aligns like one. */
+/* The term-type select acts as this row's label, so it aligns like one — and at rest it reads as one:
+   the identity caption of the row, in the same muted mono the fieldset legend uses, rather than a
+   control competing with the property labels. It picks up select chrome on hover and focus exactly as
+   the URI field beside it does, so nothing is lost. */
 .ldh-edit-form .ldh-subject .term-select {
   justify-self: end;
   height: 28px; padding: 0 6px 0 8px;
   background: transparent; border-color: transparent;
-  font-size: var(--fs-sm); color: var(--fg-2);
+  font-family: var(--font-mono); font-size: var(--fs-xs); letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--fg-muted);
   transition: background var(--dur-fast) var(--ease-out-soft), border-color var(--dur-fast) var(--ease-out-soft);
+}
+.ldh-edit-form .ldh-subject:hover .term-select,
+.ldh-edit-form .ldh-subject:focus-within .term-select {
+  font-family: inherit; font-size: var(--fs-sm); letter-spacing: normal; text-transform: none;
+  color: var(--fg-2);
 }
 .ldh-edit-form .ldh-subject:hover .term-select { background: var(--surface-0); border-color: var(--border-default); }
 .ldh-edit-form .ldh-subject .term-select:focus-visible { background: var(--surface-0); border-color: var(--ldh-blue-400); box-shadow: var(--focus-ring); }
@@ -4014,18 +4038,11 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-edit-form .ldh-subject .uri-field.invalid { border-color: var(--danger-500); }
 .ldh-edit-form .ldh-subject .uri-field.invalid > .msi.warn { opacity: 1; }
 .ldh-edit-form .ldh-subject-tools { justify-self: end; }
-/* Copy + constructor reveal with the row, like the property rows' actions. */
-.ldh-edit-form .ldh-subject .ldh-subject-copy,
-.ldh-edit-form .ldh-subject .ldh-form-action,
-.ldh-edit-form .ldh-subject .ldh-form-actions-wrap {
-  opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft);
-}
-.ldh-edit-form .ldh-subject:hover .ldh-subject-copy,
-.ldh-edit-form .ldh-subject:hover .ldh-form-action,
-.ldh-edit-form .ldh-subject:hover .ldh-form-actions-wrap,
-.ldh-edit-form .ldh-subject:focus-within .ldh-subject-copy,
-.ldh-edit-form .ldh-subject:focus-within .ldh-form-action,
-.ldh-edit-form .ldh-subject:focus-within .ldh-form-actions-wrap { opacity: 1; }
+/* The row's tools stay put. Property-row chrome fades because it repeats once per row and the repetition
+   is the noise; there is one subject row, so there is nothing to suppress. The constructor action that
+   used to sit here is now in the form footer (ldh:ConstructorActions), which is why this rule names only
+   the copy button. */
+.ldh-edit-form .ldh-subject .ldh-subject-copy { opacity: 1; }
 
 
 /* The tabular markup reset lives in core surfaces.css with .ac-table. */
