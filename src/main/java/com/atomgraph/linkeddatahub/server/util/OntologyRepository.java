@@ -16,7 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.util;
 
-import com.atomgraph.client.vocabulary.LDT;
+import com.atomgraph.server.vocabulary.LDT;
 import com.atomgraph.core.client.GraphStoreClient;
 import com.atomgraph.client.util.jena.PrefixGraphRepository;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;

@@ -18,7 +18,7 @@ package com.atomgraph.linkeddatahub.server.filter.response;
 
 import com.atomgraph.client.util.HTMLMediaTypePredicate;
 import com.atomgraph.client.vocabulary.AC;
-import com.atomgraph.client.vocabulary.LDT;
+import com.atomgraph.server.vocabulary.LDT;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.server.util.LanguageNegotiator;
 import com.atomgraph.linkeddatahub.apps.model.Application;

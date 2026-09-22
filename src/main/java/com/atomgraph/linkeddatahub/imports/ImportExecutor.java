@@ -17,7 +17,7 @@
 package com.atomgraph.linkeddatahub.imports;
 
 import com.atomgraph.client.MediaTypes;
-import com.atomgraph.client.vocabulary.LDT;
+import com.atomgraph.server.vocabulary.LDT;
 import com.atomgraph.core.model.DatasetAccessor;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.imports.stream.RDFGraphStoreOutput;
