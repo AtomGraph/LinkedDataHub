@@ -21,11 +21,11 @@ import com.atomgraph.core.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.vocabulary.DH;
+import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.SIOC;
 import jakarta.ws.rs.core.UriBuilder;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -34,10 +34,8 @@ import org.apache.jena.enhanced.UnsupportedPolymorphismException;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.DCTerms;
-import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -122,7 +120,19 @@ public class PackageService
      */
     public List<URI> getStylesheets(com.atomgraph.linkeddatahub.apps.model.Application app)
     {
-        return getPackages(app).stream().
+        return getStylesheets(getPackages(app));
+    }
+
+    /**
+     * Returns the stylesheet URLs of already-resolved packages, for a caller that holds the descriptions
+     * and must not pay for resolving them twice.
+     *
+     * @param packages package resources
+     * @return list of stylesheet URLs
+     */
+    public List<URI> getStylesheets(List<com.atomgraph.linkeddatahub.apps.model.Package> packages)
+    {
+        return packages.stream().
             map(com.atomgraph.linkeddatahub.apps.model.Package::getStylesheet).
             filter(Objects::nonNull).
             filter(Resource::isURIResource).
@@ -139,7 +149,19 @@ public class PackageService
      */
     public List<URI> getOntologies(com.atomgraph.linkeddatahub.apps.model.Application app)
     {
-        return getPackages(app).stream().
+        return getOntologies(getPackages(app));
+    }
+
+    /**
+     * Returns the ontology URIs of already-resolved packages, for a caller that holds the descriptions
+     * and must not pay for resolving them twice.
+     *
+     * @param packages package resources
+     * @return list of package ontology URIs
+     */
+    public List<URI> getOntologies(List<com.atomgraph.linkeddatahub.apps.model.Package> packages)
+    {
+        return packages.stream().
             map(com.atomgraph.linkeddatahub.apps.model.Package::getOntology).
             filter(Objects::nonNull).
             filter(Resource::isURIResource).
@@ -148,55 +170,40 @@ public class PackageService
     }
 
     /**
-     * Returns the ontology URIs to import for an application's packages: the materialized local document
-     * where one exists, the package ontology itself otherwise.
-     *
-     * A materialized document is the application's own annotation document over the same vocabulary,
-     * carrying a copy of what the package ontology says. Importing it instead of the package ontology is
-     * what keeps the original out of the closure, so a class ends up with exactly one constructor rather
-     * than the package's and the local copy of it.
-     *
-     * The end-user application is passed in rather than derived from <code>app</code>: on the settings path
-     * the application is re-read from the dataspace model, which types it only as <code>lapp:Application</code>
-     * because the end-user/admin distinction is inferred from the system dataset, so it cannot be cast.
-     *
-     * @param app application resource carrying the import set
-     * @param endUserApp end-user application whose admin application holds the documents, or null
-     * @return list of ontology URIs to import
-     */
-    public List<URI> getResolvedOntologies(com.atomgraph.linkeddatahub.apps.model.Application app, EndUserApplication endUserApp)
-    {
-        if (endUserApp == null) return getOntologies(app);
-
-        return getPackages(app).stream().
-            filter(pkg -> pkg.getOntology() != null && pkg.getOntology().isURIResource()).
-            map(pkg ->
-            {
-                URI docURI = getDocumentURI(endUserApp, pkg);
-                return docURI != null && containsGraph(endUserApp, docURI) ? docURI : URI.create(pkg.getOntology().getURI());
-            }).
-            collect(Collectors.toList());
-    }
-
-    /**
      * Materializes the ontology of every package an application imports as a document in its admin
      * application, so that constructors delivered by a package can be edited like any other.
      *
-     * The copy declares the document itself as the ontology and carries over whatever the package ontology
-     * imported - the vocabulary, not the package - so it never claims the package ontology's URI and never
-     * competes with the bundled copy of it. Everything else the package says is copied unchanged,
-     * constraints and views included: copying only the constructors would leave the document making half
-     * the package's claims and force the package ontology back into the closure to supply the rest.
+     * The package ontology is stored verbatim, under a <code>dh:Item</code> document that names it as its
+     * <code>foaf:primaryTopic</code>. The document is the document and the ontology is the ontology, which
+     * is how every other ontology document on this instance is shaped - the namespace ontology included -
+     * and it means the copy says exactly what the package says, with nothing rewritten.
      *
-     * Idempotent, and offline: the model is read through the repository, which resolves a package ontology
-     * from its bundled copy.
+     * The ontology therefore keeps its own URI, and resolving that URI is what picks the copy up: an
+     * application's repository does not map the bundled package copies, so it asks the admin store, and
+     * the store answers with this graph because the graph declares the ontology. Nothing has to substitute
+     * one URI for another.
+     *
+     * Idempotent, and offline: the model is read through the global repository, which does map the bundled
+     * package copies.
      *
      * @param app application resource carrying the import set
      * @param endUserApp end-user application whose admin application holds the documents
      */
     public void materialize(com.atomgraph.linkeddatahub.apps.model.Application app, EndUserApplication endUserApp)
     {
-        for (com.atomgraph.linkeddatahub.apps.model.Package pkg : getPackages(app))
+        materialize(getPackages(app), endUserApp);
+    }
+
+    /**
+     * Materializes the ontologies of already-resolved packages, for a caller that holds the descriptions
+     * and must not pay for resolving them twice.
+     *
+     * @param packages package resources
+     * @param endUserApp end-user application whose admin application holds the documents
+     */
+    public void materialize(List<com.atomgraph.linkeddatahub.apps.model.Package> packages, EndUserApplication endUserApp)
+    {
+        for (com.atomgraph.linkeddatahub.apps.model.Package pkg : packages)
         {
             if (pkg.getOntology() == null || !pkg.getOntology().isURIResource()) continue;
 
@@ -215,24 +222,14 @@ public class PackageService
                     continue;
                 }
 
+                // the ontology goes in as it is; only the document describing it is added
                 Model model = ModelFactory.createDefaultModel().add(ModelFactory.createModelForGraph(graph));
-                Resource packageOntology = model.getResource(ontologyURI);
-
-                // the package ontology's own header is replaced by the local document's; its imports carry
-                // over, since they name the vocabulary this document annotates
-                List<RDFNode> imports = model.listObjectsOfProperty(packageOntology, OWL.imports).toList();
-                model.removeAll(packageOntology, null, (RDFNode)null);
 
                 Resource doc = model.createResource(docURI.toString()).
-                    addProperty(RDF.type, OWL.Ontology).
                     addProperty(RDF.type, DH.Item).
                     addProperty(SIOC.HAS_CONTAINER, model.createResource(endUserApp.getAdminApplication().getBaseURI().resolve(ONTOLOGIES_PATH).toString())).
-                    addProperty(DCTerms.source, packageOntology);
-                imports.forEach(imported -> doc.addProperty(OWL.imports, imported));
+                    addProperty(FOAF.primaryTopic, model.getResource(ontologyURI));
                 if (pkg.hasProperty(DCTerms.title)) doc.addProperty(DCTerms.title, pkg.getProperty(DCTerms.title).getObject());
-
-                // skolemize here because this Model does not go through SkolemizingModelProvider
-                new Skolemizer(docURI.toString()).apply(model);
 
                 getSystem().getServiceContext(endUserApp.getAdminApplication().getService()).getGraphStoreClient().putModel(docURI.toString(), model);
 
@@ -240,8 +237,9 @@ public class PackageService
             }
             catch (RuntimeException ex)
             {
-                // a package that cannot be materialized keeps resolving to its bundled copy, read-only, which
-                // is the behaviour before this existed - so it must not fail the request
+                // a package whose ontology was never materialized is not resolvable for the application at
+                // all, so OntologyFilter logs it and leaves it out of the closure rather than composing a
+                // read-only copy of it that an agent would find uneditable
                 if (log.isErrorEnabled()) log.error("Could not materialize package ontology as <{}>", docURI, ex);
             }
         }

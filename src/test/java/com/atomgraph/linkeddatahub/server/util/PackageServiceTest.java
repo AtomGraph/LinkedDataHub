@@ -117,23 +117,6 @@ public class PackageServiceTest
     }
 
     /**
-     * Without an end-user application there is nowhere to hold a copy, so the package ontologies are
-     * imported as they are - which is the behaviour before materialization existed.
-     */
-    @Test
-    public void testResolvedOntologiesFallBackWithoutEndUserApplication()
-    {
-        URI pkgA = URI.create("https://packages.example.org/a#this");
-        model.createResource(pkgA.toString()).addProperty(com.atomgraph.server.vocabulary.LDT.ontology, model.createResource(A_NS_URI.toString()));
-        when(application.getImportedPackages()).thenReturn(new HashSet<>(List.of(model.createResource(pkgA.toString()))));
-
-        PackageService spied = spy(service);
-        doReturn(asPackage(pkgA)).when(spied).getPackage(pkgA.toString());
-
-        assertEquals(List.of(A_NS_URI), spied.getResolvedOntologies(application, null));
-    }
-
-    /**
      * The document URI is derived from the package URI's path, so a materialized copy is recognizable in
      * the ontologies container rather than being named by a digest.
      */

@@ -276,6 +276,11 @@ public class Application extends ResourceConfig
     private final PrefixGraphRepository repository;
     private final SameSiteSourceResolver resolver;
     private final Map<String, OntologyRepository> endUserRepositories;
+    /** The subset of the global repository's mappings that the per-application repositories inherit: the
+     * bundled vocabularies, but not the bundled package ontologies. Snapshotted before those mappings are
+     * processed, because a package ontology has to stay unmapped for an application so that its own
+     * materialized copy in the store is what resolves. */
+    private final Map<String, String> vocabularyLocationMappings, vocabularyPrefixMappings;
     private final PackageService packageService = new PackageService(this);
     private final MediaTypes mediaTypes;
     private final Client client, externalClient, importClient, noCertClient, verifiedClient;
@@ -833,6 +838,22 @@ public class Application extends ResourceConfig
                 Model prefixMappingModel = ModelFactory.createDefaultModel();
                 RDFParser.create().source(prefixMappingConfig).streamManager(repository.getStreamManager()).build().parse(prefixMappingModel);
                 repository.processConfig(prefixMappingModel);
+            }
+
+            // everything mapped so far is a bundled vocabulary, and that is what an application inherits
+            vocabularyLocationMappings = Map.copyOf(repository.getLocationMappings());
+            vocabularyPrefixMappings = Map.copyOf(repository.getPrefixMappings());
+
+            // the bundled package ontologies are mapped for the global repository alone. An application
+            // resolves a package ontology through its admin store instead, where materialization put a
+            // copy it can edit; mapping it there as well would short-circuit that and serve the shipped
+            // file forever. Materialization itself reads the global repository, so it still works offline
+            String packageMappingConfig = servletConfig.getServletContext().getInitParameter(LDHC.packageMapping.getURI());
+            if (packageMappingConfig != null)
+            {
+                Model packageMappingModel = ModelFactory.createDefaultModel();
+                RDFParser.create().source(packageMappingConfig).streamManager(repository.getStreamManager()).build().parse(packageMappingModel);
+                repository.processConfig(packageMappingModel);
             }
             resolver = new SameSiteSourceResolver(repository, GraphStoreClient.create(client, mediaTypes), resolvingUncached, baseURI);
 
@@ -1985,6 +2006,28 @@ public class Application extends ResourceConfig
     }
 
     /**
+     * Returns the bundled location mappings a per-application repository inherits. Excludes the bundled
+     * package ontologies, which are mapped for the global repository alone.
+     *
+     * @return location mappings by URI
+     */
+    public Map<String, String> getVocabularyLocationMappings()
+    {
+        return vocabularyLocationMappings;
+    }
+
+    /**
+     * Returns the bundled prefix mappings a per-application repository inherits. Excludes the bundled
+     * package ontologies, which are mapped for the global repository alone.
+     *
+     * @return location mappings by URI prefix
+     */
+    public Map<String, String> getVocabularyPrefixMappings()
+    {
+        return vocabularyPrefixMappings;
+    }
+
+    /**
      * Returns the global XSLT source resolver.
      *
      * @return source resolver
@@ -2026,9 +2069,9 @@ public class Application extends ResourceConfig
     public OntologyRepository createRepository(EndUserApplication app)
     {
         OntologyRepository appRepository = new OntologyRepository(app, this, GraphStoreClient.create(getClient(), getMediaTypes()), getOntologyQuery());
-        // seed bundled vocabulary/ontology mappings from the global repository
-        getRepository().getLocationMappings().forEach(appRepository::addLocationMapping);
-        getRepository().getPrefixMappings().forEach(appRepository::addPrefixMapping);
+        // bundled vocabulary mappings only - see vocabularyLocationMappings
+        getVocabularyLocationMappings().forEach(appRepository::addLocationMapping);
+        getVocabularyPrefixMappings().forEach(appRepository::addPrefixMapping);
 
         return appRepository;
     }

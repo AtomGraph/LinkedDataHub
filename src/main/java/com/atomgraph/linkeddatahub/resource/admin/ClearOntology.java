@@ -142,7 +142,7 @@ public class ClearOntology
             // its import set is stale. Re-read the app from the current (post-write) dataspace model -
             // getDataspaceModel reads the volatile contextDataset fresh, keyed by URI - so the rebuilt closure
             // reflects the persisted import set rather than the pre-write snapshot.
-            getSystem().getOntologyGraphs().put(ontologyURI, OntologyFilter.loadOntology(repository, ontologyURI, getSystem().getPackageService().getResolvedOntologies(currentApp, endUserApp)));
+            getSystem().getOntologyGraphs().put(ontologyURI, OntologyFilter.loadOntology(repository, ontologyURI, getSystem().getPackageService().getOntologies(currentApp)));
         }
         
         if (referer != null) return Response.seeOther(referer).build();

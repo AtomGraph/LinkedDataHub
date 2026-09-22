@@ -1,0 +1,21 @@
+@prefix lm: <http://jena.hpl.hp.com/2004/08/location-mapping#> .
+
+# Bundled copies of package ONTOLOGIES, standing in until the packages are served from
+# packages.linkeddatahub.com.
+#
+# Loaded into the GLOBAL graph repository only. The per-application repositories are seeded from
+# prefix-mapping.ttl alone, so a package ontology is unmapped there and resolves through the admin
+# store instead - which is what lets the application's own materialized copy be the graph the imports
+# closure reads, and therefore the one an agent can edit. Mapping it for them as well would
+# short-circuit that lookup and serve this read-only file forever.
+#
+# Only the ontology belongs here. The package description and its stylesheet stay in prefix-mapping.ttl,
+# because the request-scoped source resolver is backed by the application's repository and has to keep
+# resolving the stylesheet from the bundled copy.
+#
+# When the packages are served, this file and the context-param that names it both go away.
+
+[] lm:mapping
+
+   [ lm:prefix "https://raw.githubusercontent.com/AtomGraph/LinkedDataHub-Apps/refs/heads/develop/packages/editor/taxonomy/ns.ttl" ; lm:altName "com/linkeddatahub/packages/editor/taxonomy/ns.ttl" ]
+.

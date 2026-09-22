@@ -163,7 +163,16 @@ public class OntologyFilter implements ContainerRequestFilter
             // nor cached is I/O - a remote fetch, or a read of this instance's own store - and nothing
             // about it needs the monitor, which exists to serialise the union build, not to hold every
             // other cold request behind a slow package server
-            List<URI> packageOntologies = getSystem().getPackageService().getResolvedOntologies(app, app.canAs(EndUserApplication.class) ? app.as(EndUserApplication.class) : null);
+            List<com.atomgraph.linkeddatahub.apps.model.Package> packages = getSystem().getPackageService().getPackages(app);
+
+            // A package ontology is not mapped for an application, so it resolves only once this application
+            // holds its own copy. Materializing here rather than only on a settings change or a Clear is
+            // what makes a package declared in the dataspace config work on a cold start, with no operator
+            // step; it is idempotent, so every later miss costs one ASK per package
+            if (app.canAs(EndUserApplication.class))
+                getSystem().getPackageService().materialize(packages, app.as(EndUserApplication.class));
+
+            List<URI> packageOntologies = getSystem().getPackageService().getOntologies(packages);
 
             synchronized (repository)
             {
