@@ -207,14 +207,9 @@ CONSTRUCT
     ?s ?p ?o .
   }
 WHERE
-  {   { GRAPH ?g
-          { $ontology  a  owl:Ontology .
-            ?s        ?p  ?o
-          }
-      }
-    UNION
-      { GRAPH $ontology
-          { ?s  ?p  ?o }
+  { GRAPH ?g
+      { $ontology  a  owl:Ontology .
+        ?s        ?p  ?o
       }
   }
 ]]></param-value>
