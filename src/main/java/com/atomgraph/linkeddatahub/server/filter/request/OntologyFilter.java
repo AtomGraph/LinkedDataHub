@@ -163,7 +163,7 @@ public class OntologyFilter implements ContainerRequestFilter
             // nor cached is I/O - a remote fetch, or a read of this instance's own store - and nothing
             // about it needs the monitor, which exists to serialise the union build, not to hold every
             // other cold request behind a slow package server
-            List<URI> packageOntologies = getSystem().getPackageOntologies(app);
+            List<URI> packageOntologies = getSystem().getPackageService().getResolvedOntologies(app, app.canAs(EndUserApplication.class) ? app.as(EndUserApplication.class) : null);
 
             synchronized (repository)
             {

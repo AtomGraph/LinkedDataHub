@@ -103,7 +103,7 @@ public class XsltExecutableFilter implements ContainerResponseFilter
 
             if (stylesheet != null)
             {
-                List<URI> packages = getPackages(getApplication().get());
+                List<URI> packages = getSystem().getPackageService().getPackageURIs(getApplication().get());
                 ClientStylesheetService stylesheetService = getSystem().getClientStylesheetService();
 
                 if (packages.isEmpty()) req.setProperty(AC.stylesheet.getURI(), getXsltExecutable(stylesheet));
@@ -121,28 +121,13 @@ public class XsltExecutableFilter implements ContainerResponseFilter
                         // until the composed stylesheet exists the client renders without the package, as it
                         // always has; compiling one closes that window rather than opening it
                         if (stylesheetService.isPublished(key)) req.setProperty(LDH.clientStylesheet.getURI(), stylesheetService.getPublicPath(key));
-                        else stylesheetService.buildAsync(key, getStylesheets(packages));
+                        else stylesheetService.buildAsync(key, getSystem().getPackageService().getStylesheets(getApplication().get()));
                     }
                 }
             }
             else req.setProperty(AC.stylesheet.getURI(), getSystem().getXsltExecutable());
 
         }
-    }
-
-    /**
-     * Returns URIs of the packages imported by the application, ordered by URI.
-     *
-     * @param app application resource
-     * @return list of package URIs
-     */
-    public List<URI> getPackages(com.atomgraph.linkeddatahub.apps.model.Application app)
-    {
-        return app.getImportedPackages().stream().
-            filter(Resource::isURIResource).
-            map(pkg -> URI.create(pkg.getURI())).
-            sorted().
-            collect(Collectors.toList());
     }
 
     /**
@@ -226,7 +211,7 @@ public class XsltExecutableFilter implements ContainerResponseFilter
      */
     public Composition getComposition(com.atomgraph.linkeddatahub.apps.model.Application app, URI stylesheet, List<URI> packages) throws IOException, ParserConfigurationException, SAXException, TransformerException
     {
-        List<String> hrefs = getStylesheets(packages).stream().map(URI::toString).collect(Collectors.toList());
+        List<String> hrefs = getSystem().getPackageService().getStylesheets(app).stream().map(URI::toString).collect(Collectors.toList());
         URI entryURI = getPublicURI(app, stylesheet);
 
         Source source = getSource(stylesheet.toString());
@@ -374,38 +359,6 @@ public class XsltExecutableFilter implements ContainerResponseFilter
         TransformerFactory.newInstance().newTransformer().transform(source, result);
 
         return (Document)result.getNode();
-    }
-
-    /**
-     * Resolves the package descriptions and returns their stylesheet URLs, in package order.
-     * Packages whose description cannot be resolved, or without a stylesheet (ontology-only),
-     * are skipped.
-     *
-     * @param packages package URIs
-     * @return list of stylesheet URLs
-     */
-    public List<URI> getStylesheets(List<URI> packages)
-    {
-        return packages.stream().
-            map(pkg -> getPackage(pkg.toString())).
-            filter(Objects::nonNull).
-            map(com.atomgraph.linkeddatahub.apps.model.Package::getStylesheet).
-            filter(Objects::nonNull).
-            map(stylesheet -> URI.create(stylesheet.getURI())).
-            collect(Collectors.toList());
-    }
-
-    /**
-     * Loads the package description from its URI.
-     * Mapped locations (e.g. bundled package descriptions) and cached graphs are read from the graph
-     * repository; other URIs are dereferenced over HTTP.
-     *
-     * @param packageURI package URI
-     * @return package resource, or null if the description could not be resolved
-     */
-    public com.atomgraph.linkeddatahub.apps.model.Package getPackage(String packageURI)
-    {
-        return getSystem().getPackage(packageURI);
     }
 
     /**

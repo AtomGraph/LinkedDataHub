@@ -91,6 +91,18 @@ public class ClearOntology
             adminApp = endUserApp.getAdminApplication();
         }
         OntologyRepository repository = getSystem().getRepository(endUserApp);
+
+        // The request-scoped app is a snapshot ApplicationFilter captured before Settings.updateApp swapped
+        // the context dataset copy-on-write, so on a PATCH /settings that just added an ldh:import its import
+        // set is stale. Re-read from the current dataspace model, which reads the volatile contextDataset fresh
+        com.atomgraph.linkeddatahub.apps.model.Application currentApp = getSystem().getDataspaceModel(endUserApp).getResource(endUserApp.getURI()).as(com.atomgraph.linkeddatahub.apps.model.Application.class);
+
+        // A package's ontology becomes editable by being copied into this application's own ontologies
+        // container. Above the cache guard on purpose: the guard skips everything when the ontology was never
+        // loaded, which is every cold start, and materializing has to happen there too. Idempotent, and a
+        // failure leaves the package resolving to its bundled copy read-only, as before this existed
+        getSystem().getPackageService().materialize(currentApp, endUserApp);
+
         if (repository.isCached(ontologyURI) || getSystem().getOntologyGraphs().containsKey(ontologyURI))
         {
             if (log.isDebugEnabled()) log.debug("Clearing ontology with URI '{}' from memory", ontologyURI);
@@ -130,8 +142,7 @@ public class ClearOntology
             // its import set is stale. Re-read the app from the current (post-write) dataspace model -
             // getDataspaceModel reads the volatile contextDataset fresh, keyed by URI - so the rebuilt closure
             // reflects the persisted import set rather than the pre-write snapshot.
-            com.atomgraph.linkeddatahub.apps.model.Application currentApp = getSystem().getDataspaceModel(endUserApp).getResource(endUserApp.getURI()).as(com.atomgraph.linkeddatahub.apps.model.Application.class);
-            getSystem().getOntologyGraphs().put(ontologyURI, OntologyFilter.loadOntology(repository, ontologyURI, getSystem().getPackageOntologies(currentApp)));
+            getSystem().getOntologyGraphs().put(ontologyURI, OntologyFilter.loadOntology(repository, ontologyURI, getSystem().getPackageService().getResolvedOntologies(currentApp, endUserApp)));
         }
         
         if (referer != null) return Response.seeOther(referer).build();
