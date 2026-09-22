@@ -45,6 +45,8 @@
    # repository alone, so that an application resolves it through its own materialized copy instead
    [ lm:prefix "https://packages.linkeddatahub.com/" ;                           lm:altName "com/linkeddatahub/packages/packages.ttl" ] ,
    [ lm:prefix "https://packages.linkeddatahub.com/editor/taxonomy/" ;           lm:altName "com/linkeddatahub/packages/editor/taxonomy/package.ttl" ] ,
-   # overrides the broader taxonomy prefix above: without it the stylesheet resolves to package.ttl
+   # Read by LocalStylesheetResolver and ClientStylesheetService, which take the location and read the
+   # bytes off the classpath rather than asking for the graph, since a stylesheet is not RDF. The exact
+   # lm:name overrides the broader taxonomy prefix above: without it the location resolves to package.ttl
    [ lm:name "https://packages.linkeddatahub.com/editor/taxonomy/skos.xsl" ;     lm:altName "com/linkeddatahub/packages/editor/taxonomy/skos.xsl" ]
 .

@@ -9,9 +9,16 @@
 # closure reads, and therefore the one an agent can edit. Mapping it for them as well would
 # short-circuit that lookup and serve this read-only file forever.
 #
-# Only the ontology belongs here. The package description and its stylesheet stay in prefix-mapping.ttl,
-# because the request-scoped source resolver is backed by the application's repository and has to keep
-# resolving the stylesheet from the bundled copy.
+# The copy is not an optimisation. The ontology's URL is on a raw file host, which serves
+# text/plain regardless of Accept, and Jena does not recognise text/plain as an RDF language - so
+# readEntity(Model.class) finds no reader and the graph cannot be fetched over HTTP at all. A location
+# mapping sidesteps content negotiation entirely: it resolves the URI to a file whose syntax comes from
+# its extension. Serving the package properly means correct media types, which an LDH instance gives
+# and a file host never will.
+#
+# Only the ontology HAS to be here. Its mapping is the one that must not reach a per-application
+# repository. The package description and its stylesheet are never materialized, so a mapping for them
+# is harmless wherever it sits; they stay in prefix-mapping.ttl because nothing requires moving them.
 #
 # When the packages are served, this file and the context-param that names it both go away.
 
