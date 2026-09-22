@@ -60,6 +60,7 @@ public class ModelBuildersTest
         @prefix acl:	<http://www.w3.org/ns/auth/acl#> .
         @prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .
         @prefix owl:	<http://www.w3.org/2002/07/owl#> .
+        @prefix foaf:	<http://xmlns.com/foaf/0.1/> .
         @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
         @prefix foaf:	<http://xmlns.com/foaf/0.1/> .
         """;
@@ -419,24 +420,15 @@ public class ModelBuildersTest
                 "Block", "Desc", URI.create("https://w3id.org/atomgraph/client#ReadMode")));
     }
 
-    @Test
-    public void importOntologyScratch()
-    {
-        URI scratch = URI.create("https://admin.localhost:4443/9a1e4b7c-0d2f-4a63-8b51-6c7d8e9f0a1b/");
-
-        assertIsomorphic(parse("""
-            <https://admin.localhost:4443/9a1e4b7c-0d2f-4a63-8b51-6c7d8e9f0a1b/> a dh:Item ;
-                dct:title "Import ontology scratch" .
-            """),
-            ImportOntology.buildScratchModel(scratch));
-    }
-
+    /**
+     * The document says what it is about and nothing more. It is not typed owl:Ontology: the vocabulary
+     * stored alongside it carries its own header, which is what resolving the ontology URI finds.
+     */
     @Test
     public void importOntologyAnnotation()
     {
         assertIsomorphic(parse("""
-            <> a owl:Ontology ;
-                owl:imports <http://www.w3.org/2004/02/skos/core#> .
+            <> foaf:primaryTopic <http://www.w3.org/2004/02/skos/core#> .
             """),
             ImportOntology.buildAnnotationModel(TARGET, URI.create("http://www.w3.org/2004/02/skos/core#")));
     }

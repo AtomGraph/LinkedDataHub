@@ -19,7 +19,6 @@ package com.atomgraph.linkeddatahub.cli.command.admin.ontologies;
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
 import com.atomgraph.linkeddatahub.cli.http.HttpException;
 import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
-import com.atomgraph.linkeddatahub.cli.vocab.DH;
 import com.atomgraph.linkeddatahub.cli.vocab.SP;
 import jakarta.ws.rs.core.Form;
 import jakarta.ws.rs.core.MediaType;
@@ -27,32 +26,30 @@ import jakarta.ws.rs.core.Response;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.UUID;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.DCTerms;
-import org.apache.jena.vocabulary.OWL;
-import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.sparql.vocabulary.FOAF;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 
 /**
- * Imports an external ontology: derives class constructors from its triples and appends them,
- * together with an <code>owl:imports</code> of the source, to a document.
+ * Imports an external ontology into a document: the vocabulary itself, the class constructors derived
+ * from it, and a <code>foaf:primaryTopic</code> naming what the document is about.
  * Mirrors <code>bin/admin/ontologies/import-ontology.sh</code>.
  *
- * The vocabulary itself is scaffolding: it is fetched through the Linked Data proxy into a scratch
- * document that scopes the <code>construct-constructors</code> CONSTRUCT via the SPARQL Protocol
- * dataset specification, then deleted - on the error paths too. Only the derived annotations
- * persist; the vocabulary resolves live through the graph repository.
+ * The vocabulary is fetched through the Linked Data proxy and stays in the target, which is what makes
+ * the import an import: the graph carries the vocabulary's own header, so resolving its URI finds this
+ * document with the derived annotations on it. The document remains a <code>dh:Item</code> and never
+ * claims to be the ontology. The same shape the browser's import produces, and the one a materialized
+ * package ontology has.
  *
  * The base URI is the base of the <em>admin</em> application.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "ontology", description = "Derives class constructors from an external ontology and appends them, with an owl:imports of the source, to a document.")
+@Command(name = "ontology", description = "Imports an external ontology into a document: the vocabulary, the class constructors derived from it, and a foaf:primaryTopic of the source.")
 public class ImportOntology extends BaseCommand
 {
 
@@ -76,20 +73,11 @@ public class ImportOntology extends BaseCommand
         URI base = baseMixin.require(getSpec());
         Model vocabulary = getVocabulary(base, source);
         String query = getConstructorQuery(base);
-        URI scratch = URI.create(base + UUID.randomUUID().toString() + "/");
 
-        put(getClient(), scratch, buildScratchModel(scratch));
-
-        try
-        {
-            post(getClient(), scratch, vocabulary);
-            post(getClient(), graph, construct(base, query, scratch));
-            post(getClient(), graph, buildAnnotationModel(graph, source));
-        }
-        finally
-        {
-            deleteScratch(scratch);
-        }
+        // the vocabulary goes into the target first, so the CONSTRUCT has it to read and it stays afterwards
+        post(getClient(), graph, vocabulary);
+        post(getClient(), graph, construct(base, query, graph));
+        post(getClient(), graph, buildAnnotationModel(graph, source));
 
         print(graph);
 
@@ -134,17 +122,18 @@ public class ImportOntology extends BaseCommand
     }
 
     /**
-     * Runs the CONSTRUCT over the scratch graph, scoping it via the SPARQL Protocol dataset specification.
+     * Runs the CONSTRUCT over the target graph, which now holds the vocabulary, scoping it via the
+     * SPARQL Protocol dataset specification.
      *
      * @param base admin application base URI
      * @param query SPARQL CONSTRUCT query string
-     * @param scratch scratch document URI
+     * @param graph target document URI
      * @return derived constructor model
      */
-    protected Model construct(URI base, String query, URI scratch)
+    protected Model construct(URI base, String query, URI graph)
     {
         URI endpoint = URI.create(base + "sparql");
-        Form form = new Form("query", query).param("default-graph-uri", scratch.toString());
+        Form form = new Form("query", query).param("default-graph-uri", graph.toString());
 
         try (Response response = HttpException.check(endpoint, getClient().postForm(endpoint, form, ACCEPT_RDF_XML)))
         {
@@ -153,55 +142,19 @@ public class ImportOntology extends BaseCommand
     }
 
     /**
-     * Deletes the scratch document, best-effort: a failure here is reported but never masks the
-     * outcome of the derivation itself.
-     *
-     * @param scratch scratch document URI
-     */
-    protected void deleteScratch(URI scratch)
-    {
-        try
-        {
-            getClient().delete(scratch).close();
-        }
-        catch (Exception e)
-        {
-            getSpec().commandLine().getErr().println("Could not delete the scratch document <" + scratch + ">: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Builds the description of the scratch document that holds the vocabulary during the derivation.
-     *
-     * @param scratch scratch document URI
-     * @return scratch document model
-     */
-    public static Model buildScratchModel(URI scratch)
-    {
-        Model model = ModelFactory.createDefaultModel();
-
-        model.createResource(scratch.toString()).
-            addProperty(RDF.type, DH.Item).
-            addProperty(DCTerms.title, "Import ontology scratch");
-
-        return model;
-    }
-
-    /**
-     * Builds the annotation ontology header: the document imports the source vocabulary, which
-     * resolves live through the graph repository.
+     * Builds the arc saying what the document is about. The document is not the ontology, so it takes
+     * no owl:Ontology type of its own: the vocabulary stored alongside carries that.
      *
      * @param graph target document URI
      * @param source imported ontology URI
-     * @return annotation header model
+     * @return primary topic model
      */
     public static Model buildAnnotationModel(URI graph, URI source)
     {
         Model model = ModelFactory.createDefaultModel();
 
         model.createResource(graph.toString()).
-            addProperty(RDF.type, OWL.Ontology).
-            addProperty(OWL.imports, model.createResource(source.toString()));
+            addProperty(FOAF.primaryTopic, model.createResource(source.toString()));
 
         return model;
     }

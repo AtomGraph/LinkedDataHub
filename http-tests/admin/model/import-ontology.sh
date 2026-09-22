@@ -23,8 +23,8 @@ item=$(ldh create item \
   --slug "$slug" \
   --container "${ADMIN_BASE_URL}ontologies/")
 
-# import the ontology: derive class constructors into the item document; the vocabulary itself only
-# passes through a scratch document and is not persisted
+# import the ontology: the vocabulary, the class constructors derived from it, and a foaf:primaryTopic
+# naming what the document is about, all into the item document
 
 ldh admin import ontology \
   -f "$OWNER_CERT_KEYSTORE" \
@@ -33,18 +33,20 @@ ldh admin import ontology \
   --source "$import_uri" \
   --graph "$item"
 
-# check that the item graph does NOT hold the raw vocabulary, using a query scoped to it via the
-# SPARQL Protocol dataset specification
+# check that the item graph DOES hold the vocabulary, using a query scoped to it via the SPARQL
+# Protocol dataset specification. The vocabulary staying is what makes the import an import: the graph
+# then declares the ontology, so resolving its URI finds this document and the annotations on it
 
 result=$(curl -k -f -s \
   -G \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
   -H 'Accept: application/sparql-results+xml' \
-  --data-urlencode "query=SELECT * { <${import_uri}> ?p ?o }" \
+  --data-urlencode "query=SELECT * { <${import_uri}> a <http://www.w3.org/2002/07/owl#Ontology> }" \
   --data-urlencode "default-graph-uri=${item}" \
   "${ADMIN_BASE_URL}sparql")
 count=$(echo "$result" | xmllint --xpath "count(//*[local-name() = 'result'])" -)
-if [ "$count" != "0" ]; then
+echo "DEBUG: vocabulary header in the item graph. Expected: 1  Got: $count"
+if [ "$count" != "1" ]; then
   exit 1
 fi
 
@@ -59,24 +61,40 @@ curl -k -f -s \
   "${ADMIN_BASE_URL}sparql" \
 | grep '<result>' > /dev/null
 
-# check that the item carries the annotation-ontology header importing the source vocabulary
+# check that the item says what it is about
 
 curl -k -f -s \
   -G \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
   -H 'Accept: application/sparql-results+xml' \
-  --data-urlencode "query=SELECT * { <${item}> a <http://www.w3.org/2002/07/owl#Ontology> ; <http://www.w3.org/2002/07/owl#imports> <${import_uri}> }" \
+  --data-urlencode "query=SELECT * { <${item}> <http://xmlns.com/foaf/0.1/primaryTopic> <${import_uri}> }" \
   --data-urlencode "default-graph-uri=${item}" \
   "${ADMIN_BASE_URL}sparql" \
 | grep '<result>' > /dev/null
 
-# make the annotation document part of the application ontology (the vocabulary rides in via the
-# document's own owl:imports)
+# and that the document does NOT claim to be the ontology - the vocabulary stored alongside carries
+# that, and a document conflated with its ontology is the shape this replaced
+
+result=$(curl -k -f -s \
+  -G \
+  -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+  -H 'Accept: application/sparql-results+xml' \
+  --data-urlencode "query=SELECT * { <${item}> a <http://www.w3.org/2002/07/owl#Ontology> }" \
+  --data-urlencode "default-graph-uri=${item}" \
+  "${ADMIN_BASE_URL}sparql")
+count=$(echo "$result" | xmllint --xpath "count(//*[local-name() = 'result'])" -)
+echo "DEBUG: document typed owl:Ontology. Expected: 0  Got: $count"
+if [ "$count" != "0" ]; then
+  exit 1
+fi
+
+# import the VOCABULARY into the application ontology, not the document holding it. Resolving that
+# URI is what finds the imported document, because its graph declares the vocabulary an owl:Ontology
 
 ldh admin add ontology-import \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  --import "$item" \
+  --import "$import_uri" \
   "$ontology_doc"
 
 # clear the namespace ontology from memory
@@ -87,8 +105,7 @@ ldh admin clear ontology \
   -b "$ADMIN_BASE_URL" \
   --ontology "$namespace"
 
-# check that the vocabulary is present in the ontology closure (resolved through the graph
-# repository - SKOS is a bundled vocabulary - via the annotation document's owl:imports)
+# check that the vocabulary is present in the ontology closure
 
 curl -k -f -s \
   -G \
@@ -98,8 +115,9 @@ curl -k -f -s \
   "$namespace_doc" \
 | grep '<literal xml:lang="en">SKOS Vocabulary</literal>' > /dev/null
 
-# check that the derived constructors reached the closure too - impossible under the old model for
-# bundled vocabularies, where the shipped file shadowed the local copy that held the constructors
+# check that the derived constructors reached the closure too. This is the store-first precedence:
+# SKOS is a bundled vocabulary, so under a mapping-first lookup the shipped file would answer and the
+# constructors, which exist only in the imported document, would be invisible
 
 curl -k -f -s \
   -G \
