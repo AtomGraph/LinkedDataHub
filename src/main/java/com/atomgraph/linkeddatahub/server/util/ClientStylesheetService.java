@@ -20,11 +20,11 @@ import com.atomgraph.linkeddatahub.server.filter.request.ContentLengthLimitFilte
 import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
+import jakarta.servlet.ServletContext;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,7 +39,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -115,7 +114,7 @@ public class ClientStylesheetService
     private final Path sefRoot;
     private final URI compilerURI;
     private final Client client;
-    private final com.atomgraph.client.util.jena.PrefixGraphRepository repository;
+    private final ServletContext servletContext;
     private final URL clientStylesheet;
     private final URL stockStylesheet;
     private final String baseDigest;
@@ -131,18 +130,18 @@ public class ClientStylesheetService
      * @param sefRoot directory holding compiled stylesheets
      * @param compilerURI URI of the compiler service's compile endpoint
      * @param client HTTP client
-     * @param repository graph repository, consulted for bundled package locations
+     * @param servletContext servlet context, where a copied package stylesheet is read from
      * @param clientStylesheet the client stylesheet the page bootstraps, composed with the packages on every build - the stock one unless the deployment names its own
      * @param stockStylesheet the client stylesheet source built into the webapp, the module that carries the package marker
      * @param stockSEF stream of the stylesheet built into the webapp, digested as the platform fingerprint
      * @throws IOException if a stylesheet cannot be read or the SEF root cannot be scanned
      */
-    public ClientStylesheetService(Path sefRoot, URI compilerURI, Client client, com.atomgraph.client.util.jena.PrefixGraphRepository repository, URL clientStylesheet, URL stockStylesheet, InputStream stockSEF) throws IOException
+    public ClientStylesheetService(Path sefRoot, URI compilerURI, Client client, ServletContext servletContext, URL clientStylesheet, URL stockStylesheet, InputStream stockSEF) throws IOException
     {
         this.sefRoot = sefRoot;
         this.compilerURI = compilerURI;
         this.client = client;
-        this.repository = repository;
+        this.servletContext = servletContext;
         this.clientStylesheet = clientStylesheet;
         this.stockStylesheet = stockStylesheet;
         this.baseDigest = digest(stockSEF);
@@ -511,17 +510,20 @@ public class ClientStylesheetService
      */
     public String expandEntities(URI stylesheet)
     {
-        // a bundled package's stylesheet never leaves the JVM: its URI is mapped to a classpath file,
-        // which is also why that URI does not have to resolve over the network at all
-        try
-        {
-            Optional<byte[]> bundled = MappedLocation.read(getRepository(), stylesheet.toString());
-            if (bundled.isPresent()) return expandEntities(new ByteArrayInputStream(bundled.get()), stylesheet);
-        }
-        catch (IOException ex)
-        {
-            throw new IllegalStateException("Could not read bundled package stylesheet <" + stylesheet + ">", ex);
-        }
+        // this application's own copy of the package stylesheet, served from its origin: read out of the
+        // webapp rather than fetched back through HTTP from the server making the request
+        String path = stylesheet.getPath();
+        if (getServletContext() != null && path != null && path.startsWith("/" + PackageService.PUBLIC_PATH))
+            try (InputStream is = getServletContext().getResourceAsStream(path))
+            {
+                if (is == null) throw new IllegalStateException("Package stylesheet <" + stylesheet + "> is not in the webapp at '" + path + "'");
+
+                return expandEntities(is, stylesheet);
+            }
+            catch (IOException ex)
+            {
+                throw new IllegalStateException("Could not read package stylesheet <" + stylesheet + ">", ex);
+            }
 
         try (Response cr = getClient().target(stylesheet).request(com.atomgraph.linkeddatahub.MediaType.TEXT_XSL_TYPE).get())
         {
@@ -568,13 +570,13 @@ public class ClientStylesheetService
     }
 
     /**
-     * Returns the graph repository, or null when none was supplied.
+     * Returns the servlet context, or null when none was supplied.
      *
-     * @return repository
+     * @return servlet context
      */
-    public com.atomgraph.client.util.jena.PrefixGraphRepository getRepository()
+    public ServletContext getServletContext()
     {
-        return repository;
+        return servletContext;
     }
 
     private String digest(InputStream is) throws IOException

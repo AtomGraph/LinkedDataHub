@@ -292,6 +292,8 @@ public class Application extends ResourceConfig
     private final boolean cacheStylesheet;
     private final boolean resolvingUncached;
     private final URI baseURI, uploadRoot, sefRoot;
+    /** Where an imported package's stylesheet is copied to, served under {@link PackageService#PUBLIC_PATH}. */
+    private final URI packageRoot;
     private final boolean invalidateCache;
     private final Integer cookieMaxAge;
     private final boolean enableLinkedDataProxy;
@@ -841,6 +843,11 @@ public class Application extends ResourceConfig
             }
 
             // everything mapped so far is a bundled vocabulary, and that is what an application inherits
+            // read here rather than threaded through the constructor, which is already at the size where
+            // another positional argument costs more than it explains
+            String packageRootString = System.getProperty("com.atomgraph.linkeddatahub.packageRoot");
+            this.packageRoot = packageRootString != null ? URI.create(packageRootString) : null;
+
             vocabularyLocationMappings = Map.copyOf(repository.getLocationMappings());
             vocabularyPrefixMappings = Map.copyOf(repository.getPrefixMappings());
 
@@ -886,7 +893,7 @@ public class Application extends ResourceConfig
                         }
                         else
                             stylesheetService = new com.atomgraph.linkeddatahub.server.util.ClientStylesheetService(
-                                java.nio.file.Paths.get(sefRoot), URI.create(sefCompilerString), client, repository, clientStylesheet, stockStylesheet, stockSEF);
+                                java.nio.file.Paths.get(sefRoot), URI.create(sefCompilerString), client, servletConfig.getServletContext(), clientStylesheet, stockStylesheet, stockSEF);
                     }
                 }
                 catch (IOException ex)
@@ -2003,6 +2010,17 @@ public class Application extends ResourceConfig
     public PrefixGraphRepository getRepository()
     {
         return repository;
+    }
+
+    /**
+     * Returns the directory imported packages' stylesheets are copied into, or null when this deployment
+     * has none - in which case a package stylesheet is used at the URL its description declares.
+     *
+     * @return package root URI, or null
+     */
+    public URI getPackageRoot()
+    {
+        return packageRoot;
     }
 
     /**

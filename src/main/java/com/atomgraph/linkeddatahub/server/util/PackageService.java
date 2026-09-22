@@ -23,9 +23,15 @@ import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.vocabulary.DH;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.SIOC;
+import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -61,6 +67,9 @@ public class PackageService
 
     /** Path of the ontologies container in the admin application. */
     public static final String ONTOLOGIES_PATH = "ontologies/";
+
+    /** Webapp path the copies of imported packages' stylesheets are served under. */
+    public static final String PUBLIC_PATH = "static/com/linkeddatahub/packages/";
 
     private final com.atomgraph.linkeddatahub.Application system;
 
@@ -120,24 +129,95 @@ public class PackageService
      */
     public List<URI> getStylesheets(com.atomgraph.linkeddatahub.apps.model.Application app)
     {
-        return getStylesheets(getPackages(app));
+        return getStylesheets(getPackages(app), app);
     }
 
     /**
      * Returns the stylesheet URLs of already-resolved packages, for a caller that holds the descriptions
      * and must not pay for resolving them twice.
      *
+     * Each is the URL of this application's own copy, taken the first time the stylesheet is asked for
+     * and served from the application's origin, so it resolves the way every other stylesheet the
+     * platform compiles does: the XSLT resolver reads it out of the webapp rather than going over HTTP.
+     * A deployment with no package root, and a package whose stylesheet cannot be copied, fall back to
+     * the URL the description declares.
+     *
      * @param packages package resources
+     * @param app application resource whose origin serves the copies
      * @return list of stylesheet URLs
      */
-    public List<URI> getStylesheets(List<com.atomgraph.linkeddatahub.apps.model.Package> packages)
+    public List<URI> getStylesheets(List<com.atomgraph.linkeddatahub.apps.model.Package> packages, com.atomgraph.linkeddatahub.apps.model.Application app)
     {
         return packages.stream().
-            map(com.atomgraph.linkeddatahub.apps.model.Package::getStylesheet).
-            filter(Objects::nonNull).
-            filter(Resource::isURIResource).
-            map(stylesheet -> URI.create(stylesheet.getURI())).
+            filter(pkg -> pkg.getStylesheet() != null && pkg.getStylesheet().isURIResource()).
+            map(pkg -> materializeStylesheet(pkg, app)).
             collect(Collectors.toList());
+    }
+
+    /**
+     * Copies a package's stylesheet into this deployment's package root, unless it is already there, and
+     * returns the URL it is served at. Returns the declared URL when there is nowhere to put a copy or
+     * the copy fails, which is how the stylesheet resolved before any of this existed.
+     *
+     * @param pkg package resource
+     * @param app application resource whose origin serves the copy
+     * @return URL to import the stylesheet from
+     */
+    public URI materializeStylesheet(com.atomgraph.linkeddatahub.apps.model.Package pkg, com.atomgraph.linkeddatahub.apps.model.Application app)
+    {
+        URI declared = URI.create(pkg.getStylesheet().getURI());
+        if (getSystem() == null || getSystem().getPackageRoot() == null || app == null) return declared;
+
+        String path = getStylesheetPath(pkg, declared);
+
+        try
+        {
+            Path copy = Path.of(getSystem().getPackageRoot()).resolve(path);
+            if (!Files.exists(copy))
+            {
+                Files.createDirectories(copy.getParent());
+
+                try (Response cr = getSystem().getClient().target(declared).request(com.atomgraph.linkeddatahub.MediaType.TEXT_XSL_TYPE).get())
+                {
+                    if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                        throw new IOException("Status " + cr.getStatus());
+
+                    // written beside the target and moved, so a reader never sees a half-copied stylesheet
+                    Path temp = Files.createTempFile(copy.getParent(), "stylesheet", ".part");
+                    try (InputStream is = cr.readEntity(InputStream.class))
+                    {
+                        Files.copy(is, temp, StandardCopyOption.REPLACE_EXISTING);
+                    }
+                    Files.move(temp, copy, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+                }
+
+                if (log.isInfoEnabled()) log.info("Copied package stylesheet <{}> to '{}'", declared, copy);
+            }
+
+            return app.getBaseURI().resolve(PUBLIC_PATH + path);
+        }
+        catch (IOException | RuntimeException ex)
+        {
+            if (log.isErrorEnabled()) log.error("Could not copy package stylesheet <{}>, importing it where it is", declared, ex);
+
+            return declared;
+        }
+    }
+
+    /**
+     * Returns the path a package's stylesheet copy is stored and served under, relative to the package
+     * root: the package's slug and the stylesheet's own file name, so two packages shipping a
+     * <code>skos.xsl</code> do not collide and a copy is recognizable on disk.
+     *
+     * @param pkg package resource
+     * @param stylesheet declared stylesheet URL
+     * @return relative path
+     */
+    public String getStylesheetPath(com.atomgraph.linkeddatahub.apps.model.Package pkg, URI stylesheet)
+    {
+        String name = stylesheet.getPath().substring(stylesheet.getPath().lastIndexOf('/') + 1);
+
+        return getSlug(URI.create(pkg.getURI())) + "/" + (name.isEmpty() ? "stylesheet.xsl" : name);
     }
 
     /**
@@ -259,11 +339,23 @@ public class PackageService
         AdminApplication adminApp = endUserApp.getAdminApplication();
         if (adminApp == null) return null;
 
-        String path = URI.create(pkg.getURI()).getPath();
-        String slug = path == null ? "" : path.replaceAll("^/+|/+$", "").replace('/', '-');
-        if (slug.isEmpty()) slug = UUID.nameUUIDFromBytes(pkg.getURI().getBytes(StandardCharsets.UTF_8)).toString();
+        return adminApp.getUriBuilder().path(ONTOLOGIES_PATH).path("{slug}/").build(getSlug(URI.create(pkg.getURI())));
+    }
 
-        return adminApp.getUriBuilder().path(ONTOLOGIES_PATH).path("{slug}/").build(slug);
+    /**
+     * Returns a package's slug: its URI path flattened, so a copy of one of its artifacts is recognizable
+     * rather than named by a digest. A package URI with no usable path falls back to a UUID derived from
+     * the URI, so two of them cannot collide on an empty slug.
+     *
+     * @param packageURI package URI
+     * @return slug
+     */
+    public String getSlug(URI packageURI)
+    {
+        String path = packageURI.getPath();
+        String slug = path == null ? "" : path.replaceAll("^/+|/+$", "").replace('/', '-');
+
+        return slug.isEmpty() ? UUID.nameUUIDFromBytes(packageURI.toString().getBytes(StandardCharsets.UTF_8)).toString() : slug;
     }
 
     /**

@@ -1270,6 +1270,11 @@ if [ -n "$SEF_COMPILER" ]; then
     export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.sefCompiler=$SEF_COMPILER"
 fi
 
+# where an imported package's stylesheet is copied to, and served from under /static/ (see below)
+if [ -n "$PACKAGE_ROOT" ]; then
+    export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.packageRoot=file://$PACKAGE_ROOT"
+fi
+
 if [ -n "$CLIENT_STYLESHEET" ]; then
     export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.clientStylesheet=$CLIENT_STYLESHEET"
 fi
@@ -1411,7 +1416,7 @@ add_post_resources()
       conf/Catalina/localhost/ROOT.xml
 }
 
-if [ -n "$SEF_ROOT" ] || [ -n "$SITEMAP_ROOT" ]; then
+if [ -n "$SEF_ROOT" ] || [ -n "$SITEMAP_ROOT" ] || [ -n "$PACKAGE_ROOT" ]; then
     # Deleted before being added because a restart reuses the container filesystem and runs this again.
     xmlstarlet ed --inplace \
       -d "/Context/Resources" \
@@ -1425,6 +1430,12 @@ if [ -n "$SEF_ROOT" ] || [ -n "$SITEMAP_ROOT" ]; then
     # where rewrite.config sends /sitemap.xml and /robots.txt, each to the file named after the requested host
     if [ -n "$SITEMAP_ROOT" ]; then
         add_post_resources "$SITEMAP_ROOT" "/static/sitemaps"
+    fi
+
+    # copies of imported packages' stylesheets, so that ac:stylesheet names a URL on the application's
+    # own origin and the XSLT resolver reads it from the webapp instead of going out over HTTP
+    if [ -n "$PACKAGE_ROOT" ]; then
+        add_post_resources "$PACKAGE_ROOT" "/static/com/linkeddatahub/packages"
     fi
 fi
 

@@ -13,9 +13,9 @@
     dct:description "Turns a dataspace into a taxonomy editor: SKOS concepts, schemes and collections gain a concept tree beside the content, hierarchy views that read both assertion directions, and constructors and constraints that keep a concept labelled and in a scheme." ;
     dct:creator <https://atomgraph.com/#company> ;
     ldt:ontology <https://raw.githubusercontent.com/AtomGraph/LinkedDataHub-Apps/refs/heads/develop/packages/editor/taxonomy/ns.ttl#> ;
-    # relative to this description's own URI, and mapped to a bundled file, so the package resolves
-    # entirely offline: no fetch from a branch whose content can change after review
-    ac:stylesheet <skos.xsl> .
+    # the published copy, which the application takes its own copy of at import and then serves from
+    # its own origin - so what a running instance compiles cannot change under it afterwards
+    ac:stylesheet <https://raw.githubusercontent.com/AtomGraph/LinkedDataHub-Apps/refs/heads/develop/packages/editor/taxonomy/skos.xsl> .
 
 <https://atomgraph.com/#company> a foaf:Organization ;
     foaf:name "AtomGraph" ;

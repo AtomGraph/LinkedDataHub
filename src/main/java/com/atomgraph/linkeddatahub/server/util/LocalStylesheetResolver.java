@@ -24,7 +24,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.Optional;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamSource;
@@ -86,18 +85,6 @@ public class LocalStylesheetResolver extends StylesheetResolver
             {
                 throw new TransformerException(ex);
             }
-        }
-
-        // a bundled package's stylesheet, mapped to a classpath file so the package resolves without
-        // leaving the JVM. The URI stays the system id, so relative imports inside resolve against it
-        try
-        {
-            Optional<byte[]> bundled = MappedLocation.read(getSystem().getRepository(), uri.toString());
-            if (bundled.isPresent()) return new StreamSource(new ByteArrayInputStream(bundled.get()), uri.toString());
-        }
-        catch (IOException ex)
-        {
-            throw new TransformerException(ex);
         }
 
         return super.resolve(href, base);
