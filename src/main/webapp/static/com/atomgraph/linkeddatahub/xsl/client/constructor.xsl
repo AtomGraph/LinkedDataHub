@@ -41,6 +41,21 @@ exclude-result-prefixes="#all"
               }
         ]]>
     </xsl:variable>
+    <!-- Which graph holds each constructor. A resource's URI does not tell you which document describes it -
+         the add path already asks this question about the class, and the save path has to ask it about the
+         constructor rather than stripping the fragment off its URI. Runs against the admin endpoint, since
+         that is where the named graphs are; /ns serves the merged closure and has none. -->
+    <xsl:variable name="constructor-graph-query" as="xs:string">
+        <![CDATA[
+            PREFIX sp: <http://spinrdf.org/sp#>
+
+            SELECT DISTINCT  $constructor ?graph
+            WHERE
+              { GRAPH ?graph
+                  { $constructor  sp:text  ?text }
+              }
+        ]]>
+    </xsl:variable>
     <xsl:variable name="constructor-update-string" as="xs:string">
         <![CDATA[
             PREFIX sp: <http://spinrdf.org/sp#>
@@ -98,9 +113,43 @@ exclude-result-prefixes="#all"
             ixsl:then(ldh:http-request-threaded(?, 'constructors-request', 'constructors-response')) =>
             ixsl:then(ldh:handle-response(?, 'constructors-response')) =>
             ixsl:then(ldh:set-constructors#1) =>
+            ixsl:then(ldh:load-constructor-graphs#1) =>
+            ixsl:then(ldh:http-request-threaded(?, 'constructor-graphs-request', 'constructor-graphs-response')) =>
+            ixsl:then(ldh:handle-response(?, 'constructor-graphs-response')) =>
+            ixsl:then(ldh:set-constructor-graphs#1) =>
             ixsl:then(ldh:render-constructor-mode#1)"
             on-failure="ldh:promise-failure($form, 'constructors-not-loaded', ?)"/>
     </xsl:template>
+
+    <!-- Async constructor-to-graph pair. Reads context('constructors'), stores parsed sparql-results at
+         context('constructor-graphs'). It has to be a real request rather than a document() call: SaxonJS
+         resolves document() out of its document pool and returns empty for a URI nothing has fetched, with
+         no error and no network request, which is exactly what it did here. -->
+    <xsl:function name="ldh:load-constructor-graphs" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="constructors" select="$context('constructors')" as="document-node()?"/>
+        <xsl:variable name="constructor-uris" select="distinct-values($constructors//srx:binding[@name = 'constructor']/srx:uri)" as="xs:string*"/>
+        <xsl:variable name="query-string" select="$constructor-graph-query || ' VALUES $constructor { ' || string-join(for $uri in $constructor-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
+        <xsl:variable name="admin-base-uri" select="xs:anyURI(replace(lapp:base(), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
+        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('sparql', $admin-base-uri), map{ 'query': $query-string })" as="xs:anyURI"/>
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': ldh:href($results-uri, map{}), 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
+        <xsl:sequence select="map:merge(($context, map{ 'constructor-graphs-request': $request }))"/>
+    </xsl:function>
+
+    <!-- A failed lookup is not fatal: the editor still renders and the save path falls back to deriving the
+         document from the constructor URI, which is the behaviour before the lookup existed. -->
+    <xsl:function name="ldh:set-constructor-graphs" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('constructor-graphs-response')" as="map(*)?"/>
+        <xsl:choose>
+            <xsl:when test="exists($response) and $response?status = 200 and $response?media-type = 'application/sparql-results+xml'">
+                <xsl:sequence select="map:merge(($context, map{ 'constructor-graphs': $response?body }))"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="$context"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
 
     <!-- Terminal callback for the LoadConstructors promise chain. Renders the constructor-edit modal
          from context('constructors'); a fetch that failed never gets here, since ldh:set-constructors raises it
@@ -113,6 +162,10 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <xsl:when test="map:contains($context, 'constructors') and exists($context('constructors'))">
                 <xsl:variable name="constructors" select="$context('constructors')" as="document-node()"/>
+                <!-- resolved once by the chain rather than per save: one query maps each constructor to the
+                     graph that holds it. Absent when the lookup failed, and the save path then falls back to
+                     deriving the document from the constructor URI. -->
+                <xsl:variable name="constructor-graphs" select="if (map:contains($context, 'constructor-graphs')) then $context('constructor-graphs') else ()" as="document-node()?"/>
 
                 <xsl:for-each select="$container">
 
@@ -154,6 +207,7 @@ exclude-result-prefixes="#all"
                                                 <xsl:call-template name="ldh:ConstructorFieldset">
                                                     <xsl:with-param name="constructor-uri" select="$constructor-uri"/>
                                                     <xsl:with-param name="construct-xml" select="$construct-xml"/>
+                                                    <xsl:with-param name="graph" select="$constructor-graphs//srx:result[srx:binding[@name = 'constructor']/srx:uri = $constructor-uri]/srx:binding[@name = 'graph']/srx:uri/xs:anyURI(.)"/>
                                                 </xsl:call-template>
                                             </xsl:for-each>
 
@@ -306,8 +360,14 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:ConstructorFieldset">
         <xsl:param name="constructor-uri" as="xs:anyURI"/>
         <xsl:param name="construct-xml" as="document-node()?"/>
+        <!-- the document to PATCH on save. Stamped because the constructor URI does not identify it: a
+             document describes resources it does not own, as an imported vocabulary's annotations do. -->
+        <xsl:param name="graph" as="xs:anyURI?"/>
 
         <fieldset class="ldh-ctor-card" about="{$constructor-uri}">
+            <xsl:if test="$graph">
+                <xsl:attribute name="data-graph" select="$graph"/>
+            </xsl:if>
             <div class="ldh-ctor-card-head">
                 <span class="ttl">
                     <a href="{$constructor-uri}" title="{$constructor-uri}" target="_blank">
@@ -593,13 +653,17 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="construct-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'fromQuery', [ $construct-json ]), 'toString', [])" as="xs:string"/>
                     <xsl:variable name="update-string" select="replace($constructor-update-string, '$this', '&lt;' || $constructor-uri || '&gt;', 'q')" as="xs:string"/>
                     <xsl:variable name="update-string" select="replace($update-string, '$text', '&quot;&quot;&quot;' || $construct-string || '&quot;&quot;&quot;', 'q')" as="xs:string"/>
-                    <!-- what if the constructor URI is not relative to the document URI? -->
-                    <xsl:variable name="request-uri" select="ldh:href(ac:document-uri($constructor-uri), map{})" as="xs:anyURI"/>
+                    <!-- the graph the constructor was found in, stamped when the editor was built. The URI is
+                         only a fallback: stripping its fragment is right when the constructor is a fragment of
+                         its own document, and wrong whenever a document describes a resource it does not own. -->
+                    <xsl:variable name="document-uri" select="($container/@data-graph/xs:anyURI(.), ac:document-uri($constructor-uri))[1]" as="xs:anyURI"/>
+                    <xsl:variable name="request-uri" select="ldh:href($document-uri, map{})" as="xs:anyURI"/>
                     <xsl:variable name="request" as="item()*">
                         <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
                             <xsl:call-template name="onConstructorUpdate">
                                 <xsl:with-param name="container" select="$container"/>
                                 <xsl:with-param name="constructor-uri" select="$constructor-uri"/>
+                                <xsl:with-param name="document-uri" select="$document-uri"/>
                             </xsl:call-template>
                         </ixsl:schedule-action>
                     </xsl:variable>
@@ -615,6 +679,9 @@ exclude-result-prefixes="#all"
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="constructor-uri" as="xs:anyURI"/>
+        <!-- the document the PATCH targeted, so the clear below evicts that ontology and not one derived
+             from the constructor URI, which may name a document nobody wrote to -->
+        <xsl:param name="document-uri" select="ac:document-uri($constructor-uri)" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
@@ -627,7 +694,7 @@ exclude-result-prefixes="#all"
                 <!-- clear the ontology. TO-DO: only clear after *all* constructors are saved: https://saxonica.plan.io/issues/5596 -->
                 <!-- TO-DO: make sure we're in the end-user application -->
                 <xsl:variable name="form-data" select="ixsl:new('URLSearchParams', [ ixsl:new('FormData', []) ])"/>
-                <xsl:sequence select="ixsl:call($form-data, 'append', [ 'uri', ac:document-uri($constructor-uri) ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call($form-data, 'append', [ 'uri', $document-uri ])[current-date() lt xs:date('2000-01-01')]"/>
 
                 <!-- clear the constructor's host ontology (the document the PATCH targeted) first, then proceed to clear the namespace ontology -->
                 <xsl:variable name="admin-base-uri" select="xs:anyURI(replace(lapp:base(), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
@@ -649,27 +716,34 @@ exclude-result-prefixes="#all"
         <xsl:param name="button-div" as="element()"/>
 
         <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
+            <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml' and exists(?body//srx:result)">
                 <xsl:for-each select="?body">
                     <xsl:for-each select="//srx:result">
                         <xsl:variable name="graph" select="srx:binding[@name = 'graph']/srx:uri" as="xs:anyURI"/>
                         <xsl:variable name="uuid" select="ac:uuid()" as="xs:string"/>
+                        <!-- minted as a fragment of the graph, so this one document derivation is sound -->
                         <xsl:variable name="constructor-uri" select="xs:anyURI($graph || '#id' || $uuid)" as="xs:anyURI"/>
                         <xsl:variable name="update-string" select="replace($constructor-insert-string, '$this', '&lt;' || $constructor-uri || '&gt;', 'q')" as="xs:string"/>
                         <xsl:variable name="update-string" select="replace($update-string, '$Type', '&lt;' || $type || '&gt;', 'q')" as="xs:string"/>
-                        <!-- what if the constructor URI is not relative to the document URI? -->
-                        <xsl:variable name="request-uri" select="ldh:href(ac:document-uri($constructor-uri), map{})" as="xs:anyURI"/>
+                        <xsl:variable name="request-uri" select="ldh:href($graph, map{})" as="xs:anyURI"/>
                         <xsl:variable name="request" as="item()*">
                             <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
                                 <xsl:call-template name="onConstructorAppend">
                                     <xsl:with-param name="button-div" select="$button-div"/>
                                     <xsl:with-param name="constructor-uri" select="$constructor-uri"/>
+                                    <xsl:with-param name="graph" select="$graph"/>
                                 </xsl:call-template>
                             </ixsl:schedule-action>
                         </xsl:variable>
                         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:for-each>
                 </xsl:for-each>
+            </xsl:when>
+            <!-- the request succeeded and no graph declares the class. It reaches the form through an imported
+                 document this application cannot write to, so there is nowhere to put a constructor. Reported
+                 rather than passed over, which is what made the button look dead. -->
+            <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
+                <xsl:sequence select="ldh:render-failure($button-div, 'ontology-graphs-not-loaded', 'ontology-graph-not-found', string($type))"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:sequence select="ldh:render-failure($button-div, 'ontology-graphs-not-loaded', ac:http-error-key(?status), ldh:response-detail(.))"/>
@@ -681,14 +755,21 @@ exclude-result-prefixes="#all"
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="button-div" as="element()"/>
         <xsl:param name="constructor-uri" as="xs:anyURI"/>
+        <!-- the graph the constructor was just written into, carried through so the new fieldset is stamped
+             like the ones the editor rendered and its first save targets the same document -->
+        <xsl:param name="graph" as="xs:anyURI?"/>
 
         <xsl:choose>
-            <xsl:when test="?status = 200">
+            <!-- a PATCH that writes returns 204, as onConstructorUpdate already allows for. Testing 200 alone
+                 reported a successful write as a failure and skipped the fieldset, which is what made the
+                 button look inert even once it had somewhere to write. -->
+            <xsl:when test="?status = (200, 204)">
                 <!-- insert the fieldset above the "Add constructor" button, which stays at the bottom of the form -->
                 <xsl:for-each select="$button-div">
                     <xsl:result-document href="?." method="ixsl:insert-before">
                         <xsl:call-template name="ldh:ConstructorFieldset">
                             <xsl:with-param name="constructor-uri" select="$constructor-uri"/>
+                            <xsl:with-param name="graph" select="$graph"/>
                         </xsl:call-template>
                     </xsl:result-document>
                 </xsl:for-each>
