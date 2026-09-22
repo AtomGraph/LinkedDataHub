@@ -119,7 +119,7 @@ public class ClientStylesheetServiceTest
 
     private ClientStylesheetService service(URL entry) throws Exception
     {
-        return new ClientStylesheetService(sefRoot, URI.create("http://sef-compiler:8080/compile"), client(), null,
+        return new ClientStylesheetService(sefRoot, URI.create("http://sef-compiler:8080/compile"), client(),
             entry, resource("xsl/stock/client.xsl"), new ByteArrayInputStream("stock sef".getBytes(StandardCharsets.UTF_8)));
     }
 

@@ -17,7 +17,6 @@
 package com.atomgraph.linkeddatahub;
 
 import com.atomgraph.client.util.jena.PrefixGraphRepository;
-import com.atomgraph.linkeddatahub.server.util.LocalStylesheetResolver;
 import com.atomgraph.linkeddatahub.writer.impl.SameSiteSourceResolver;
 import com.atomgraph.linkeddatahub.server.util.OntologyRepository;
 import org.apache.jena.riot.RDFParser;
@@ -893,7 +892,7 @@ public class Application extends ResourceConfig
                         }
                         else
                             stylesheetService = new com.atomgraph.linkeddatahub.server.util.ClientStylesheetService(
-                                java.nio.file.Paths.get(sefRoot), URI.create(sefCompilerString), client, servletConfig.getServletContext(), clientStylesheet, stockStylesheet, stockSEF);
+                                java.nio.file.Paths.get(sefRoot), URI.create(sefCompilerString), client, clientStylesheet, stockStylesheet, stockSEF);
                     }
                 }
                 catch (IOException ex)
@@ -964,7 +963,7 @@ public class Application extends ResourceConfig
             }
             
             xsltComp = xsltProc.newXsltCompiler();
-            xsltComp.setURIResolver(new LocalStylesheetResolver(this, servletConfig.getServletContext(), client)); // resolves xsl:import to raw stylesheet sources, app-origin /static/ URLs locally
+            xsltComp.setURIResolver(new com.atomgraph.client.util.StylesheetResolver(client)); // xsl:import over HTTP; ClientUriRewriteFilter sends this instance's own URLs to the internal proxy
             xsltExec = xsltComp.compile(stylesheet);
         }
         catch (FileNotFoundException ex)

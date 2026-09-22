@@ -20,7 +20,6 @@ import com.atomgraph.linkeddatahub.server.filter.request.ContentLengthLimitFilte
 import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
-import jakarta.servlet.ServletContext;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
@@ -114,7 +113,6 @@ public class ClientStylesheetService
     private final Path sefRoot;
     private final URI compilerURI;
     private final Client client;
-    private final ServletContext servletContext;
     private final URL clientStylesheet;
     private final URL stockStylesheet;
     private final String baseDigest;
@@ -130,18 +128,16 @@ public class ClientStylesheetService
      * @param sefRoot directory holding compiled stylesheets
      * @param compilerURI URI of the compiler service's compile endpoint
      * @param client HTTP client
-     * @param servletContext servlet context, where a copied package stylesheet is read from
      * @param clientStylesheet the client stylesheet the page bootstraps, composed with the packages on every build - the stock one unless the deployment names its own
      * @param stockStylesheet the client stylesheet source built into the webapp, the module that carries the package marker
      * @param stockSEF stream of the stylesheet built into the webapp, digested as the platform fingerprint
      * @throws IOException if a stylesheet cannot be read or the SEF root cannot be scanned
      */
-    public ClientStylesheetService(Path sefRoot, URI compilerURI, Client client, ServletContext servletContext, URL clientStylesheet, URL stockStylesheet, InputStream stockSEF) throws IOException
+    public ClientStylesheetService(Path sefRoot, URI compilerURI, Client client, URL clientStylesheet, URL stockStylesheet, InputStream stockSEF) throws IOException
     {
         this.sefRoot = sefRoot;
         this.compilerURI = compilerURI;
         this.client = client;
-        this.servletContext = servletContext;
         this.clientStylesheet = clientStylesheet;
         this.stockStylesheet = stockStylesheet;
         this.baseDigest = digest(stockSEF);
@@ -510,21 +506,6 @@ public class ClientStylesheetService
      */
     public String expandEntities(URI stylesheet)
     {
-        // this application's own copy of the package stylesheet, served from its origin: read out of the
-        // webapp rather than fetched back through HTTP from the server making the request
-        String path = stylesheet.getPath();
-        if (getServletContext() != null && path != null && path.startsWith("/" + PackageService.PUBLIC_PATH))
-            try (InputStream is = getServletContext().getResourceAsStream(path))
-            {
-                if (is == null) throw new IllegalStateException("Package stylesheet <" + stylesheet + "> is not in the webapp at '" + path + "'");
-
-                return expandEntities(is, stylesheet);
-            }
-            catch (IOException ex)
-            {
-                throw new IllegalStateException("Could not read package stylesheet <" + stylesheet + ">", ex);
-            }
-
         try (Response cr = getClient().target(stylesheet).request(com.atomgraph.linkeddatahub.MediaType.TEXT_XSL_TYPE).get())
         {
             if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
@@ -567,16 +548,6 @@ public class ClientStylesheetService
         {
             throw new IllegalStateException("Could not expand entities of package stylesheet <" + systemId + ">", ex);
         }
-    }
-
-    /**
-     * Returns the servlet context, or null when none was supplied.
-     *
-     * @return servlet context
-     */
-    public ServletContext getServletContext()
-    {
-        return servletContext;
     }
 
     private String digest(InputStream is) throws IOException
