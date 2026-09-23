@@ -103,6 +103,41 @@ exclude-result-prefixes="#all"
         )"/>
     </xsl:function>
 
+    <!-- acl:mode() above answers "what may this agent do HERE". These two answer it about ANOTHER document,
+         which is what an affordance writing somewhere else has to ask: a constructor editor PATCHing an
+         ontology graph, a version restore PATCHing the live document behind a snapshot view, a create
+         button PUTting into a container.
+
+         The request builder is named for what it is rather than for what its callers want out of it: there
+         is no "modes request" on the server, only a HEAD whose response happens to carry them.
+
+         The server already knows. AuthorizationFilter maps HEAD to acl:Read but deliberately does not narrow
+         the ACL query to the requested mode - "we want to provide the AuthorizationContext with all of the
+         agent's authorizations" - so a HEAD comes back carrying every mode the agent holds on that document,
+         and ResponseHeadersFilter writes them out as acl:mode link relations. Asking beats re-deriving the
+         ACLs here, which would be a second implementation of authorization to keep in step with the first.
+
+         The Accept is load-bearing, not decoration. A document on another origin - an ontology graph on the
+         admin app, say - is wrapped by ldh:href in ?uri= on the page origin, which is what keeps the request
+         same-origin and therefore carrying the agent's credentials, but also hands it to ProxyRequestFilter,
+         which BYPASSES the proxy for HTML and returns the local application shell. Measured: the same HEAD
+         sent with Accept */* comes back text/html carrying the modes for the CURRENT document, which for an
+         owner says Write - passing a gate while answering about the wrong document entirely. -->
+    <xsl:function name="ldh:head-request" as="map(*)">
+        <xsl:param name="uri" as="xs:anyURI"/>
+
+        <xsl:sequence select="map{ 'method': 'HEAD', 'href': ldh:href($uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }"/>
+    </xsl:function>
+
+    <!-- Whether the agent may PATCH the document such a response came from. A response that is not 200 has no
+         modes to read and is not writable, which is the safe reading of an authorization that could not be
+         established. -->
+    <xsl:function name="ldh:writable-response" as="xs:boolean">
+        <xsl:param name="response" as="map(*)"/>
+
+        <xsl:sequence select="$response?status = 200 and xs:anyURI('&acl;Write') = ldh:link-targets($response?headers?link, '&acl;mode')"/>
+    </xsl:function>
+
     <xsl:function name="sd:endpoint" as="xs:anyURI">
         <xsl:variable name="active-pane" select="ldh:active-pane()" as="element()?"/>
         <xsl:sequence select="if ($active-pane and ixsl:contains($active-pane, 'dataset.endpoint')) then xs:anyURI(ixsl:get($active-pane, 'dataset.endpoint')) else resolve-uri('sparql', lapp:base())"/>

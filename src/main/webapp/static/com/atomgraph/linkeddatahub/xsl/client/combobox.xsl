@@ -197,22 +197,19 @@ version="3.0"
 
             <xsl:choose>
                 <!-- a panel is fixed (see .ac-cb-panel), so it carries no offsets of its own and lands at
-                     its static position, which inside the combobox's flex column is the combobox origin -
-                     over the field rather than under it. It therefore opens hidden and is revealed by the
-                     placement, which cannot run here: ixsl:set-style is a pending update, so neither the
-                     display above nor a reset transform is measurable until this transform completes.
-                     The reset matters because the placement measures where the panel actually sits, and a
-                     translation left over from the previous open would be measured as part of that. -->
+                     its static position, which inside the combobox's flex column is the container's origin
+                     rather than below the field; the placement below corrects that. Both the display above
+                     and this transform reset take effect at once - Saxon-JS 3 applies updates immediately -
+                     so the panel is laid out and measurable by the time ldh:ComboboxPlace reads it. The
+                     reset matters because the placement measures where the panel actually sits, and a
+                     translation left from the previous open would be measured as part of that. -->
                 <xsl:when test="contains-token(@class, 'ac-cb-panel')">
-                    <ixsl:set-style name="visibility" select="'hidden'"/>
                     <ixsl:set-style name="transform" select="'none'"/>
 
-                    <ixsl:schedule-action wait="1">
-                        <xsl:call-template name="ldh:ComboboxPlace">
-                            <xsl:with-param name="anchor" select="$element/.."/>
-                            <xsl:with-param name="menu" select="."/>
-                        </xsl:call-template>
-                    </ixsl:schedule-action>
+                    <xsl:call-template name="ldh:ComboboxPlace">
+                        <xsl:with-param name="anchor" select="$element/.."/>
+                        <xsl:with-param name="menu" select="."/>
+                    </xsl:call-template>
                 </xsl:when>
                 <!-- the legacy ul menus are absolutely positioned and take their offsets from the input -->
                 <xsl:otherwise>
@@ -224,7 +221,7 @@ version="3.0"
     </xsl:template>
 
     <!-- Aligns an open panel with the field it drops from, flipping it above when it would otherwise run
-         past the bottom of the viewport, and reveals it.
+         past the bottom of the viewport.
 
          The correction is a translation rather than a top/left pair because a fixed box is not always
          positioned against the viewport: an ancestor carrying a transform, a filter or containment - and
@@ -248,7 +245,6 @@ version="3.0"
         <xsl:for-each select="$menu">
             <ixsl:set-style name="width" select="round(ixsl:get($box, 'width')) || 'px'"/>
             <ixsl:set-style name="transform" select="'translate(' || round(ixsl:get($box, 'left') - ixsl:get($panel, 'left')) || 'px, ' || round($top - ixsl:get($panel, 'top')) || 'px)'"/>
-            <ixsl:set-style name="visibility" select="'visible'"/>
         </xsl:for-each>
     </xsl:template>
 

@@ -55,9 +55,8 @@ version="3.0"
     <xsl:function name="ldh:load-document-modes" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
 
-        <xsl:variable name="request" select="map{ 'method': 'HEAD', 'href': ldh:href($context('doc-uri')), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <xsl:sequence select="
-          ixsl:http-request($request)
+          ixsl:http-request(ldh:head-request($context('doc-uri')))
             => ixsl:then(ldh:rethread-response($context, ?, 'doc-response'))
         "/>
     </xsl:function>
@@ -67,9 +66,7 @@ version="3.0"
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
-        <!-- same Link header parse as client.xsl uses to seed acl:mode(), but against the live document's response -->
-        <xsl:variable name="acl-modes" select="ldh:link-targets($context('doc-response')?headers?link, '&acl;mode')" as="xs:anyURI*"/>
-        <xsl:variable name="writable" select="$acl-modes = '&acl;Write'" as="xs:boolean"/>
+        <xsl:variable name="writable" select="ldh:writable-response($context('doc-response'))" as="xs:boolean"/>
 
         <xsl:for-each select="$response">
             <xsl:for-each select="$container">
