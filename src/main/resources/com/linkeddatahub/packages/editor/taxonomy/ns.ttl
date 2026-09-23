@@ -1,5 +1,6 @@
 @prefix :	<#> .
 @prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .
+@prefix ac:	<https://w3id.org/atomgraph/client#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix owl:    <http://www.w3.org/2002/07/owl#> .
 @prefix sp: 	<http://spinrdf.org/sp#> .
@@ -60,6 +61,7 @@ skos:narrower ldh:view :NarrowerConcepts .
 :NarrowerConcepts a ldh:View ;
     dct:title "Narrower concepts" ;
     spin:query :SelectNarrowerConcepts ;
+    ac:mode ac:TableMode ;
     rdfs:isDefinedBy : .
 
 :SelectNarrowerConcepts a sp:Select ;
@@ -88,6 +90,7 @@ skos:broader ldh:view :BroaderConcepts .
 :BroaderConcepts a ldh:View ;
     dct:title "Broader concepts" ;
     spin:query :SelectBroaderConcepts ;
+    ac:mode ac:TableMode ;
     rdfs:isDefinedBy : .
 
 :SelectBroaderConcepts a sp:Select ;
@@ -133,6 +136,7 @@ skos:member ldh:view :CollectionMembers .
 :CollectionMembers a ldh:View ;
     dct:title "Collection members" ;
     spin:query :SelectCollectionMembers ;
+    ac:mode ac:TableMode ;
     rdfs:isDefinedBy : .
 
 :SelectCollectionMembers a sp:Select ;
@@ -176,6 +180,7 @@ skos:hasTopConcept ldh:view :TopConcepts .
 :TopConcepts a ldh:View ;
     dct:title "Top concepts" ;
     spin:query :SelectTopConcepts ;
+    ac:mode ac:TableMode ;
     rdfs:isDefinedBy : .
 
 # the entry level of a taxonomy, and the root of the concept tree. Both directions count as a top
@@ -210,6 +215,7 @@ skos:inScheme ldh:view :ConceptScheme .
 :ConceptScheme a ldh:View ;
     dct:title "Scheme" ;
     spin:query :SelectConceptScheme ;
+    ac:mode ac:TableMode ;
     rdfs:isDefinedBy : .
 
 :SelectConceptScheme a sp:Select ;
@@ -231,6 +237,7 @@ skos:inScheme ldh:inverseView :ConceptsInScheme , :OrphanConcepts .
 :ConceptsInScheme a ldh:View ;
     dct:title "Concepts in scheme" ;
     spin:query :SelectConceptsInScheme ;
+    ac:mode ac:TableMode ;
     rdfs:isDefinedBy : .
 
 :SelectConceptsInScheme a sp:Select ;
@@ -255,6 +262,7 @@ ORDER BY ?prefLabel
 :OrphanConcepts a ldh:View ;
     dct:title "Unplaced concepts" ;
     spin:query :SelectOrphanConcepts ;
+    ac:mode ac:TableMode ;
     ldh:showWhenEmpty false ;
     rdfs:isDefinedBy : .
 
