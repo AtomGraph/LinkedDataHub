@@ -119,34 +119,39 @@ public class ClearOntology
         // on their next request from a repository still warm, which is wasted work rather than staleness
         getSystem().getOntologyGraphs().clear();
 
+        // Emptying the JVM caches is only half a clear: the closures rebuild by re-querying the admin SPARQL
+        // endpoint, and that read goes through the backend proxy, which was left holding everything it had, so
+        // the rebuild pulls the discarded graphs straight back in. Purging the key of the one ontology named
+        // here would not cover it, for the same reason the graph cache above is emptied wholesale rather than
+        // by key: assembling a closure resolves every URI it imports, each cached under its own graph URI.
+        // Hence the shared key every ontology response also carries - one purge, every ontology response, and
+        // nothing else, which a URL ban of this proxy could not manage since it fronts the store itself and
+        // holds every other read the platform makes. Measured: a vocabulary's document deleted and /clear
+        // posted, and the closure came back still holding the deleted graph, served by the proxy rather than
+        // by the store. Unconditional, because the reload below re-reads every import too, and refilling a
+        // warm JVM with a stale answer is worse than rebuilding lazily from a cold one
+        URI adminBackendProxy = getSystem().getServiceContext(adminApp.getService()).getBackendProxy();
+        if (adminBackendProxy != null)
+        {
+            // A URL-pattern BAN cannot single these out: on a SPARQL proxy every req.url is /ds/?query=...,
+            // which never contains the ontology URI, and that is why ontology reloads were reading stale
+            // CONSTRUCTs before any of this existed. The xkey index is the only handle on them
+            if (log.isDebugEnabled()) log.debug("XKEY-PURGE every ontology response from the admin backend proxy cache");
+            xkeyPurge(adminBackendProxy, OntologyRepository.ONTOLOGY_XKEY);
+        }
+
         if (ontologyURI != null)
         {
             URI ontologyDocURI = UriBuilder.fromUri(ontologyURI).fragment(null).build(); // skip fragment from the ontology URI to get its graph URI
-            // frontend proxy still uses URL-pattern BAN for direct document GETs (until Stage 3 brings xkey tagging to varnish-frontend).
-            // xkey purge covers proxied SPARQL CONSTRUCT/SELECT responses tagged by their backend (varnish-admin / varnish-end-user).
+            // the frontend caches whole documents rather than SPARQL responses and carries no xkey tags, so the
+            // ontology document is evicted there by URL pattern (until Stage 3 brings xkey tagging to varnish-frontend)
             URI frontendProxy = getSystem().getFrontendProxy();
             if (frontendProxy != null)
             {
                 if (log.isDebugEnabled()) log.debug("Purge ontology document with URI '{}' from frontend proxy cache", ontologyDocURI);
                 ban(frontendProxy, ontologyDocURI.toString(), false);
             }
-            URI adminBackendProxy = getSystem().getServiceContext(adminApp.getService()).getBackendProxy();
-            if (adminBackendProxy != null)
-            {
-                // URL-pattern BAN of the ontology URI is a no-op on the SPARQL proxy (its req.url namespace is /ds/?query=...,
-                // never containing the ontology URI as path), which is exactly why ontology reloads were getting stale CONSTRUCTs.
-                // xkey-purge of the same tag set by OntologyModelGetter's X-Xkey-Promote is what actually invalidates here.
-                if (log.isDebugEnabled()) log.debug("XKEY-PURGE ontology with URI '{}' from admin backend proxy cache", ontologyURI);
-                xkeyPurge(adminBackendProxy, ontologyURI);
-            }
-            URI endUserBackendProxy = getSystem().getServiceContext(endUserApp.getService()).getBackendProxy();
-            if (endUserBackendProxy != null)
-            {
-                // same reasoning as adminBackendProxy above. End-user proxy xkey-purge is no-op until Stage 2 lights up its VCL.
-                if (log.isDebugEnabled()) log.debug("XKEY-PURGE ontology with URI '{}' from end-user backend proxy cache", ontologyURI);
-                xkeyPurge(endUserBackendProxy, ontologyURI);
-            }
-            
+
             // !!! we need to reload the ontology model before returning a response, to make sure the next request already gets the new version !!!
             // The request-scoped endUserApp is a snapshot ApplicationFilter captured before Settings.updateApp
             // swapped the context dataset copy-on-write, so on a PATCH /settings that just added an ldh:import
