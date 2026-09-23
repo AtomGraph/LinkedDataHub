@@ -20,6 +20,8 @@ Bootstrap 2 is gone, and with it the class vocabulary and the `bs2:` template mo
 - The ACL query fails closed on a typeless resource (see Security), so a non-owner request for a URL that does not exist is answered 403 rather than 404
 - The `oauth2-login` and `oauth2-authorize` grants move from the admin store to the end-user app's `namespace-ontology.trig.template` as `acl:accessTo` on the login and callback URLs; an existing deployment re-seeds or migrates them
 - `ldh:container` leaves the ontology, the `ldh:ViewConstructor` form and the view query: a view's Create button determines the container from the view's own solutions
+- A deployment with its own compose file adds the `./packages` bind mount at `/var/www/linkeddatahub/packages` (`PACKAGE_ROOT`), where copies of imported package stylesheets survive a redeploy
+- A package ontology imported before this release is materialized under `admin/ontologies/` on the next request and edited there from then on; a later change to the published package reaches the application only after that document is deleted
 
 ### Added
 - Design system port: the app shell, content blocks, action bar, breadcrumbs, mode lists, type badges, property lists, pager, modals and forms all render the design system's class vocabulary
@@ -32,51 +34,39 @@ Bootstrap 2 is gone, and with it the class vocabulary and the `bs2:` template mo
 - `Vary: Accept-Language` and language-sensitive entity tags on language-negotiated representations, so a shared cache cannot serve one reader's rendering to another
 - Every rendered literal declares its own language: lang-tagged values carry their tag, untagged values carry `lang=""`, typed non-string values inherit
 - Predicate labels, object links and table cells declare the language their label was chosen in
-- `http-tests/language/`: six scripts covering `Content-Language`, `Vary`, per-language entity tags, `<html lang>` agreement and per-literal marking
-- `ResponseHeadersFilterTest` covers the response filter's hypermedia (snapshot read-only modes, proxy suppression, RFC 7089 relations, `Link` folding) and the language labelling
-- `BundleLanguagesTest` covers deriving the supported languages from the translation bundle and the RFC 4647 matching behind it
 - Spanish translations completed
 - View table columns are sortable, keyed off each column's XSD datatype through `ldh:sort-key()`
 - Facet toolbar, three-zone pager, chart controls grid, design-system list and grid modes
-- Block drag-and-drop is payload-typed with an app MIME marker, with a single moving drop marker
-- Copy-URI button reaches every block type through a context-free `ldh:CopyUriButton` mode
 - Empty blocks and empty chart result sets say so through the design system's block-state component
-- `ldh:date-time()`, `ldh:datatype-family()`, `ldh:css-token()` and `ldh:view-cache()` replace logic written out at every call site
 - Package ontologies are declared as `owl:imports` instead of grafted, with an imports characterization test
 - `ldh packages list`, `ldh packages add` and `ldh packages remove`: the catalog read through the Linked Data proxy with imported packages marked, the `ldh:import` declaration written through `PATCH /settings`
 - `ldh get` reaches a versioned document's Memento roles through `--timemap`, `--version <sha>` and `--timegate` (with `--datetime` in RFC 1123 or ISO 8601, printing the negotiated version's URI)
 - `ldh put` and `ldh post` take an optional `FILE` argument and recognize the RDF syntax from its extension; `-t/--content-type` stays required on stdin
 - Every dataspace serves its own `/sitemap.xml`, generated at startup from the public read rules of its own admin service
 - `/robots.txt` per dataspace: one with a sitemap names it and allows crawling, one without (an admin dataspace, or nothing public) disallows everything
-- A `RewriteValve` and `WEB-INF/rewrite.config` answer both paths from the file generated for the requested host, since a servlet mapping cannot dispatch on `Host`
-- `http-tests/dataspaces/sitemap.sh` pins both paths answering per origin; the cross-dataspace assertion cannot run on that stack yet and the script says so
 - `ldh push` replays a directory into the document tree it maps to — the apps' `update-folder.sh` as a CLI command: RDF files are `PUT` to the document their path spells, `root.ttl` is the target document, other files are uploaded, subdirectories recurse
 - `ldh push` honours a gitignore-style `.ldhignore`, prints its plan with `--dry-run`, writes one URL per line to stdout and stops at the first failed request; `http-tests/push/` covers the mapping, skips, upload and convergence
 - `ldh create item` and `ldh create container` take `--primary-topic`, resolved against the created document (`'#this'` for a fragment, an absolute URI for a resource described elsewhere)
 - The page renders in the colour scheme the reader's browser asks for: `color-scheme: light dark`, differing tokens written once as `light-dark()`, a `<meta name="color-scheme">` against the white flash, `data-theme` only as a forcing override
-- Chart tokens are registered with `@property` so `getComputedStyle` resolves them per scheme; CodeMirror, YASQE and the RDFa editor chrome take the tokens; the map stays light
 - A responsive axis: the shell queries `@media` at 768 and 1024, content components query `@container` at 520; the action bar wraps into two tiers below 640 and the page stops overflowing at phone width
-- Block corner affordances join the flow where the device cannot hover
 - A document's markup asserts the graph the same URL serves: value cells carry `@content` where display and lexical form differ, `ldh:DocumentMetadata` carries the document's own statements as `link`/`meta`, an XHTML block says it is `rdf:value`, and `@about` on the root pins the default subject
-- `http-tests/rdfa/` pins the RDFa round trip
 - Package stylesheets reach the client: a wrapper importing `client.xsl` and the imported packages is compiled by `sef-compiler` and published under `/static/xsl/sef/<key>`, announced to the page as a `Link` header; server-side composition is never withheld
 - `ldh:ContentColumn`, a declared slot in `ldh:ContentBody` that the platform wraps in `.ldh-content-aside` when a package fills it
-- A tree component (`xsl/tree.xsl` in the shared trunk, `client/tree.xsl` for the handlers) the document tree is one consumer of
 - The taxonomy editor package fills the content column with a concept tree rooted at the scheme and opened down to the concept being read, a polyhierarchical concept under each of its parents
-- The SKOS ontology gains views for `skos:hasTopConcept` and `skos:inScheme`, an orphan-concepts view, a missing-`inScheme` constraint and `rdf:langString` constructors for the label properties
+- The SKOS ontology gains views for `skos:hasTopConcept` and `skos:inScheme`, an orphan-concepts view, a missing-`inScheme` constraint and `rdf:langString` constructors for every natural-language property; every view carries `ldh:showWhenEmpty false`, so a leaf or root concept renders no empty Narrower or Broader block
+- Editable package ontologies: an imported package's ontology is materialized verbatim as a document under `admin/ontologies/`, naming it as `foaf:primaryTopic`, so its constructors, constraints and views are edited like the namespace ontology's
 - A document created from a view's Create button carries `foaf:primaryTopic` and a `dct:title` taken from the topic's label, so it renders with a body and pairs with its topic in list, table and grid rows
 - Dropping an RDF file anywhere on a document imports it: a fixed overlay raised on the first file `dragenter` takes the drop, and a successful import lands in `ReadMode`
 - An HTTP error document tells the reader what the status means: the block header becomes an inline alert with the sentence `ac:http-error-key()` picks; the error builders move to Web-Client
 - Every failed client request reports where it was made: `ldh:promise-failure` takes the host element and a headline, `ldh:RenderFailure` picks the shape by host, and `alert()` remains only for a host that has left the page
 - Keyboard operability: menus take the `role=menu` model with roving focus and Escape restoring the trigger, the RDFa annotation object switch answers the arrow keys, and the pager's previous and next become buttons
-- Static `.css`, `.js` and `.txt` files are served with `charset=UTF-8` and `.map` with its JSON type; `http-tests/static/` keeps it so and gathers the CORS and gzip tests
 - `ui-tests/`: a Playwright suite driving the running stack as owner and anonymous, with a console/page-error/alert/4xx collector, a hydration gate on Saxon-JS's listener binding, `ldh`-seeded fixtures and a stale-SEF preflight; its own CI workflow (`make ui-tests`)
-- `http-tests/system/`: 19 auth-boundary scripts over `/settings`, `/sparql`, `/ns`, `/access` and `/clear` for the owner, an agent, a reader and an unauthenticated client
-- `http-tests/sparql-protocol/query/GET-sparql-xhtml.sh` asks the endpoint for a rendered result set, the first test to reach the XSLT writer on that path
-- An import test declares a stylesheet-only package described on the instance and requires the settings `PATCH` and the first render to answer within 30 s
 
 ### Changed
 - `POST /clear` takes an optional `uri`: without one it empties the cache and reloads nothing, with one it also purges that URI's proxy caches and reassembles its closure before responding. `ldh admin clear ontology --ontology` is optional to match
+- Ontology resolution asks the store before the bundled mappings, so an application's own graph declaring an ontology outranks the copy the platform ships
+- `Import ontology` and `ldh admin import ontology` keep the vocabulary in the target document beside the derived constructors, with `foaf:primaryTopic` naming it; the document is no longer typed `owl:Ontology`
+- An imported package's stylesheet is copied once under `PACKAGE_ROOT` and served from the application's own origin under `/static/com/linkeddatahub/packages/`, so what a running instance compiles cannot change under it
 - **BREAKING**: the bundled package `https://packages.linkeddatahub.com/skos/#this` becomes `https://packages.linkeddatahub.com/editor/taxonomy/#this` and its stylesheet `skos.xsl`; an `ldh:import` naming the old URI resolves to nothing and must be re-declared
 - **BREAKING**: `ldh` commands regroup by verb, dropping the `bin/` mirror: `create`, `add` and `remove` groups (`ldh create item`, `ldh add view`, `ldh remove block`), `import` for the composite workflows, `admin` for the admin scope; `cli/README.md` maps every old name
 - `<html lang>` is taken from the `Content-Language` the response carries, so header and document agree by construction
@@ -84,30 +74,20 @@ Bootstrap 2 is gone, and with it the class vocabulary and the `bs2:` template mo
 - Published language tags are the shortest the bundle justifies (`en`, not `en-US`)
 - Supported UI languages are derived from `translations.rdf` rather than declared in `web.xml`
 - Property lists and table cells order their values by the reader's language instead of hiding the ones that do not match
-- Language negotiation moved out of `Application` into `LanguageNegotiator`
 - Object metadata merges on the RDF term rather than the lexical form, so a tagged literal is no longer collapsed into an untagged twin
 - Document responses pass the accepted languages into entity tag computation, so tags stop colliding across languages
 - Legacy Bootstrap buttons move to the `ac-btn` intent/appearance/size vocabulary
 - Block link columns route through the `ldh-drawer`; backlinks and copy-URI split into two placements chosen by what a click does
 - Charts draw with resolved design tokens; the HTML Table chart is skinned in CSS and fills the block width
-- Client-side HTTP moves to promise chains, retiring the legacy `ixsl:schedule-action` `http-request` form
-- The busy cursor becomes a promise concern rather than 53 copies of the same `ixsl:set-style`
-- Dropdown dismissal moves into IXSL, and the `DOMContentLoaded` block retires into an `ldh:CloseDropdown` mode
-- Subject-control change handlers move from JavaScript into `ixsl:onchange` templates
-- `ac:uuid()` generates through the platform, and the seven call sites that went around it stop doing so
 - One navigation leaves one history entry
 - CSR failures render through the design system's block states instead of `div.alert.alert-block`
-- The RDFa editor's XMLLiteral canonicalization runs as a single `cm:canonical` pass in `ldh:FormPreSubmit`
-- RDFa editor template names and modes move into their module namespaces
 - Document-level map and graph modes fill the space between action bar and footer
 - The map marker info window is the card itself, fitted into the map viewport and panning the least it can to reveal itself
 - Editing forms already open on the page reconcile with the constructor after a constructor save
 - The edit pencil on a resource description appears only under `acl:Write`
-- `http-tests` assertions read captured responses from a here-string instead of piping `curl` into `grep -q`
 - A view's parallax row becomes a closed-by-default `<details>` disclosure, and the toolbar states what the query shows (filters, sort, count, mode)
 - A view's Create button moves out of the view toolbar into the block header beside Copy
 - The query block runs its stored query on render, results first, with the editor folded behind a toggle in the block head and Run as the one primary action
-- The SPARQL editor fills the code field on both axes, with a fifteen-line floor so an empty query field opens at a height a query gets written in
 - The add-data items (RDF import, CSV import, …) move into the Actions menu, offered on the Root document and on containers where `acl:Append` applies
 - XHTML prose blocks render without a header: the drag grip is a hover-surfaced strip on the card's edge, and links, Copy and Edit a corner cluster
 - An `ldh:Object` block is a chrome-less carrier with a slot bar over the embedded card, so a block has one header
@@ -115,73 +95,44 @@ Bootstrap 2 is gone, and with it the class vocabulary and the `bs2:` template mo
 - A collection of resources renders as `ul`/`li` and a read-mode property list as `dl`/`dt`/`dd`, the markup the RDFa is carried on
 - The design system's DataTable gets table layout back (`colgroup` instead of grid tracks, no restated `role` attributes), so the SPARQL results table stops being a second table component
 - Paging or re-sorting a view no longer collapses the block: the pager lives in its own host and the rows stay standing, dimmed, while the query runs
-- Class state on the client is one vocabulary — `contains-token()` to read, `ldh:set-token()` to write — and the client XSL uses `ixsl:` instructions where it called DOM methods
 - The floating Edit pill retires; every block carries the edit pencil in its own control cluster, and click-anywhere-to-edit lands on that button
-- The object-position lookups, `sh.xsl` and `RDFPostMediaTypeInterceptor` move down to Web-Client, and the SSR and CSR import chains align so a generic resolves identically in both
-- The combobox cluster takes design-system names (`ldh:Combobox`, `ldh:ComboboxChip`, `ldh:ComboboxItem`, …), taking the last `graphity.org` namespace out of the codebase
 - The last hard-coded English leaves the client: the RDFa editor's chrome, the media-type option groups, the 3D graph's panels and the block drag and delete strings read from `translations.rdf`
-- The vendored RDFa editor is a byte-identical copy of `RDFa-Editor/src` again; LDH's integration is four parameters and one function
 - The RDFa annotation dialog pins the statement's subject and predicate and tabs the rest: an object tab with a Text or Link switch and a subject tab for the `@about` and `@typeof` overrides
 - Constraint violations decorate the affected fields with the inline message instead of stacking generic alerts
 - An XHTML block clicked out of unedited restores its snapshot without a save, so no version is minted for a no-op
 - A press outside a whole-resource edit form dismisses an untouched form and leaves an edited one to Save or Cancel; a press between blocks moves the caret instead of exiting
 - A grid card no longer offers an edit pin: a card is one projection of a result row, and the whole resource is one hop away
 - A 3D graph node's link navigates in the page, through the Linked Data proxy for an external URI, instead of opening a browser tab
-- A video embed fills a 16:9 well sized by CSS instead of a fixed 560×315 box
 - The document tree's children query is a bounded `CONSTRUCT` of what a node renders, paged by `ldh:tree-page-size` (default 1000) and always including the child leading to the document being opened
 - The shell carries its landmark roles (`banner`, `main`, `contentinfo`), the tab strip and breadcrumbs are labelled navigations, and the address bar is a `role=search` with a `type=url` input that works without CSR
 - Constructor instantiation is one shared pipeline behind a dual `ldh:parse-query` (SPARQL.js in the browser, a `ParseQuery` Jena extension on the server), so the sign-up form appears on a direct page load
-- `ldh:is-local()`, `ldh:service-endpoint()`, `lapp:application-description()` and one shared `Link` header parser replace the copies at every call site; six SPARQL queries duplicated between `layout.xsl` and `client.xsl` are single-sourced
 - `sh:name` and `sh:description` labelling moves into LDH, where it outranks `dc:title` and `foaf:name`
-- Jersey components are pinned to the version Core declares
-- The seed authorizations drop the retired `/add` and `/generate` endpoints
 - Web-Client dependency bumped to 6.0.0, twirl to 2.0.1
 
 ### Removed
 - Bootstrap 2: the framework stylesheets, `bootstrap.js`, jQuery, WYMEditor, the sprite icon layer and the `pull-left`/`pull-right` tokens
 - The Bootstrap 2 class vocabulary that no stylesheet backed
 - `$ac:langs` and `$ac:lang` parameters, replaced by `ac:langs()` and `ac:langs()[1]` at 36 call sites
-- `ldt:lang`, which nothing declared, read or wrote
-- `DEBUG:` output from `http-tests`, with the diagnostic-only `gh api` and `curl` calls and the helper that fed them
 - `$ldt:base`, `$ldt:ontology`, `$ac:httpHeaders`, `$ac:method`, `$Referer`, `$ac:googleMapsKey`, `$doc-types`, `$main-doc` and `$acl:Agent` — parameters read by nothing or never populated; the `ldt:` prefix leaves the LDH stylesheets
-- `ldh-bridge.css`, merged into `ldh.css`, and the dead Bootstrap residue it carried
 - `ldh:container` (see Migration) and the stored `ldh:SelectChildren` query, which the generated tree query replaces
 - `ac:ConstructMode` from both ontologies, its Create label becoming a catalog entry, and the `graphity.org` typeahead namespace
+- `LocalStylesheetResolver`, the bundled package stylesheet copy and its mapping, `location-mapping.ttl`, and the namespace mappings no ontology imports and no stylesheet uses
 
 ### Fixed
 - Clearing an ontology discards every cached graph and assembled closure, not just the keys derived from the URI it was given: a closure caches each URI it imports, so a vocabulary or package ontology kept answering from a document that had been edited or deleted until the container restarted
+- Clearing also purges every ontology response the admin proxy holds, through a surrogate key stamped on each ontology query, so the closure no longer rebuilds from the responses the clear was meant to discard
+- Adding a constructor to a class delivered by a package did nothing: the editor now writes to the graph that holds the constructor and accepts the `204` a PATCH answers
+- Opening a constructor that declares `rdf:langString` and pressing Save silently deleted those rows; the editor reads the object kind from the datatype rather than its namespace
 - The sitemap covers every dataspace rather than the root one, and an origin is served its own: one file per host, generated against that dataspace's own services
 - The sitemap queries carry the service credentials, so a store that requires authentication no longer answers them 401
 - Sitemap generation no longer joins the admin service through SPARQL `SERVICE`, which an isolated store refuses; the public read rules are passed as `VALUES`, and a failed generation is logged instead of stopping the platform
 - The sitemap lists a document once, with its latest date, and only when a public rule of its own dataspace covers it
-- `curl ... | grep -q` was a race under `pipefail`: `grep -q` closed the pipe on its first match and `curl` died with 141
-- View sort's numeric keys yield an empty sequence rather than `NaN` for non-numeric values
-- `DataTransfer.types` marshals to an XDM array under SaxonJS, so payload guards compare via `array:flatten`
-- The content-body drag-and-drop guards spell the child step `./div`, since after `and` a bare `div` parses as the division operator
-- Reading an `ixsl:call` result of two numbers as an XDM array hung the renderer with no diagnostic; it arrives as a sequence of doubles
-- Nested cards no longer draw doubled borders, and `dl` column placement is corrected
-- The DataTable converters recognise the derived numeric and dateTime types
-- An alert an author writes inside an XHTML content block keeps its prose spacing
-- The violation renderer fails on an absent form again, rather than falling back to the rejected rendering
 - Concurrent writes to a versioned application silently lost commits: the commit chain was keyed by file path while GitHub locks on the branch head; commits to one branch now share a single chain
 - A conflicting write is retried with a re-read blob SHA (`MAX_CONFLICT_RETRIES`) instead of being abandoned
 - A rate-limited commit retried with an empty request body, since `JsonObjectBuilder` yields its object only once
-- `release.sh` published to Maven Central before its `git checkout master`; the switches are proven possible first, and the trap prints recovery steps instead of deleting the tag
-- `release.sh`'s clean check could not see `skip-worktree`/`assume-unchanged` files; they are warned about at startup and checked before publishing
-- `release.sh` derived the release and snapshot commits positionally (`git log -2`); they are derived from an anchor taken before `release:prepare`
-- A drop-down flips to whichever side of its trigger has room, on both axes, and caps its height to the room on that side
-- The language tag renders as a pill wherever a value is laid out, not only inside a property list
 - A view block derived from the ontology keeps its URI across reloads: the fragment is hashed from the host resource and the view instead of drawn from `ac:uuid()`
-- A fragment scroll waits for the injected blocks to hydrate
-- An injected view block's subject keeps the hash that makes it a fragment
-- A `pre` in an `ldh:XHTML` block takes the recessed code surface the inline chip and error listing share
-- The property-list grid keys on the wrapped `dt`/`dd` shape, leaving prose `dl`s to their own layout
-- An error page renders without the action bar, which had nothing left to act on
 - The context dataset's read/write race, a `ConcurrentModificationException` or a torn model on a `PATCH /settings` concurrent with any request: writes are copy-on-write behind a volatile swap and the file is written atomically
 - The expiring auth caches' check-then-get races, an intermittent login 500
-- `EMailListener` no longer runs SMTP on the common pool
-- `GraphVersioningService` no longer leaks one commit-chain entry per branch
-- `XsltExecutableFilter` no longer compiles each stylesheet once per thread on a cold start
 - A `PATCH /settings` adding an `ldh:import` returned 204 but the package ontology never joined the `/ns` closure; the rebuild re-reads the app from the current dataspace model
 - Importing a package described on this instance answered 504 from a self-resolving loop; a local package's named graph is read from the store, and only foreign URIs are dereferenced
 - A `DOCTYPE` in an application's `ac:stylesheet` silently disabled package composition; the server parses through the same entity-tolerant reader the client uses
@@ -190,7 +141,6 @@ Bootstrap 2 is gone, and with it the class vocabulary and the `bs2:` template mo
 - Asking the SPARQL endpoint for a document (`Accept: text/html`) answered 500 since the document tabs; the tab panel and body match a result set too, and the client's re-fetch keeps the query parameters
 - The drawer tree fetched an unbounded `DESCRIBE` of every child of a container on every render, so large containers answered 502 — 343 KB now where 20.5 MB was
 - A facet on a large container never returned: the label lookup's eight-alternative property path under `GRAPH ?labelGraph` scanned the store (24.9 s); binding the predicate with `VALUES` takes 0.055 s
-- The x on a parallax step chip did nothing and raised an error
 - A chart axis bound to a URI-valued variable printed escaped anchor markup; only the Table chart keeps the anchor
 - Filtering a facet on a language-tagged value matched nothing, since the tag was dropped at every step of the chain
 - Clearing a facet filter left "No results." over the rows in hand, and the empty state's Clear filters button never rendered
@@ -198,18 +148,11 @@ Bootstrap 2 is gone, and with it the class vocabulary and the `bs2:` template mo
 - A chart pane's default series excluded nothing, so any plotted type raised "All series on a given axis must be of the same data type"; the default is the number columns minus the category
 - An ontology-defined view (`ldh:view`, `ldh:inverseView`) rendered as a nested well that missed every block-body layout rule; it comes out of the same emitter as an authored view
 - Reordering a block on a document with an embedded block `PATCH`ed the embedded document; the target is the dragged block's document, not the one under the pointer
-- A paged view's grid mode escaped its block and painted over the footer
-- The class-instances, Geo and Latest dialogs left a 60px band under the pager
-- A dialog's form actions scrolled away with the fields; the bar sticks to the scrollport's bottom
 - The first save of prose nobody had edited rewrote the `rdf:XMLLiteral`, adding an `xmlns` to its first child; the wrapper is built as a node
 - An XHTML literal longer than the JS stack allows (about 6–7K characters) took the client transform down with "too much recursion"; `ldh:bounded-key()` folds long keys into prefix, length and hash
 - The pencil on a committed object value emptied the row when clicked by accident; the chip is stashed and Escape or an empty focusout restores it
 - `acl:mode()` threw inside a match pattern, which Saxon-JS discards, so click-to-edit and the Write-gated drag rules were dead until the first document response
-- A document describing two resources beside a content aside put the second resource in the gutter; the aside spans every row
-- An image in document content scales to its column instead of its pixel size, while editing too
 - A `PATCH` 422 echoed the entire would-be document graph rather than the violating resources, crashing the client on YASQE init; the response carries the violation roots' bounded descriptions
-- The shipped Sign up document's seed content rendered an unstyled lead paragraph and a notice with no background
-- The view mode menu inside an embedded view was clipped to one item by the nested block's `overflow: hidden`
 - Opening any document on an instance nobody had made public raised a modal alert with raw Saxon text: the tree descent walked the loading placeholder as a child
 - Navigation that cannot work degrades quietly: a drawer section whose query is refused is removed, breadcrumbs stop at the ancestor that could not be read, and Geo, Latest and search defer their query to the click
 - A block's affordances gate on the pane's access modes rather than the window's, which answered for whichever dataspace tab was active
@@ -226,7 +169,6 @@ Bootstrap 2 is gone, and with it the class vocabulary and the `bs2:` template mo
 - The in-place editor edits tab-group content but cannot create tab groups; that markup is authored via the HTTP API (e.g. `ldh put`) for now
 - When a result set fits one page the view's total counts the related resources the `DESCRIBE` pulled in, so one row can read "Total results 2"
 - While a composed SEF key is unpublished every render submits a build, so a persistently unreachable `sef-compiler` costs one attempt per request
-- List row separators are gone until the kit rule targets the `li` rather than the row inside it
 
 ## [5.10.0] - 2026-08-30
 ### Added
