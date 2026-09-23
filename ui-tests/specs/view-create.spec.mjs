@@ -25,7 +25,7 @@ import { ldh } from '../lib/fixtures.mjs';
 import { concept, document, removeTriple, scheme } from '../lib/taxonomy.mjs';
 import {
     IN_SCHEME, NARROWER, PREF_LABEL,
-    constructorModal, createButton, fillResource, fillText, rowFor, rows, save, viewBlock,
+    constructorModal, createButton, fillResource, fillText, rowFor, rowLabel, rows, save, viewBlock,
 } from '../lib/blocks.mjs';
 
 const READ_MODE = 'https://w3id.org/atomgraph/client#ReadMode';
@@ -81,8 +81,8 @@ test.describe('creating from a view block', () => {
             // The modal closes, the linking triple is PATCHed into the document being read,
             // and the view re-queries itself.
             await expect(modal).toHaveCount(0);
-            await expect(rowFor(narrower, newDocument)).toHaveCount(1);
-            await expect(rowFor(narrower, newDocument).locator('span.ti')).toHaveText(label);
+            await expect(rowFor(narrower, newConcept)).toHaveCount(1);
+            await expect(rowLabel(rowFor(narrower, newConcept))).toHaveText(label);
             // One new row, beside the one that was already there: no duplicate from the
             // document and its topic arriving as separate solutions.
             await expect(rows(narrower)).toHaveCount(2);

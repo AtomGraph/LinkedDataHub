@@ -12,7 +12,7 @@
 import { test, expect } from '../lib/console.mjs';
 import { goto } from '../lib/settle.mjs';
 import { addTriple, concept, document, labelOf, removeTriple, seedConcept } from '../lib/taxonomy.mjs';
-import { BROADER, NARROWER, PREF_LABEL, rowFor, rows, viewBlock } from '../lib/blocks.mjs';
+import { BROADER, NARROWER, PREF_LABEL, rowFor, rowLabel, rows, viewBlock } from '../lib/blocks.mjs';
 
 const READ_MODE = 'https://w3id.org/atomgraph/client#ReadMode';
 const pageFor = name => `${document(name)}?mode=${encodeURIComponent(READ_MODE)}`;
@@ -33,21 +33,22 @@ test.describe('concept hierarchy blocks', () => {
 
         // coffee names hot-drinks as its skos:broader; tea is named by hot-drinks as
         // skos:narrower, in hot-drinks' own graph. One block, both directions.
-        await expect(rowFor(narrower, document('coffee'))).toHaveCount(1);
-        await expect(rowFor(narrower, document('tea'))).toHaveCount(1);
+        await expect(rowFor(narrower, concept('coffee'))).toHaveCount(1);
+        await expect(rowFor(narrower, concept('tea'))).toHaveCount(1);
         await expect(rows(narrower)).toHaveCount(2);
     });
 
     test('pairs each document with its topic into one row', async ({ page }) => {
         await goto(page, pageFor('hot-drinks'));
-        const coffee = rowFor(viewBlock(page, NARROWER), document('coffee'));
+        const coffee = rowFor(viewBlock(page, NARROWER), concept('coffee'));
 
         // The results hold the document AND its topic. Unpaired they render as two rows -
         // one unlabelled document, one inert topic - so the count in the test above is
-        // half of this assertion; the label is the other half. It comes off the TOPIC,
-        // while the href goes to the document that describes it.
-        await expect(coffee.locator('span.ti')).toHaveText(labelOf('coffee'));
-        await expect(coffee).toHaveAttribute('title', concept('coffee'));
+        // half of this assertion; the label is the other half. The view drops the document
+        // that names the topic, so the surviving row is the topic's: it anchors the CONCEPT
+        // and takes its label from it.
+        await expect(coffee).toHaveCount(1);
+        await expect(rowLabel(coffee)).toHaveText(labelOf('coffee'));
     });
 
     test('shows a concept labelled in a language the reader did not ask for', async ({ page }) => {
@@ -59,18 +60,18 @@ test.describe('concept hierarchy blocks', () => {
             await goto(page, pageFor('cold-drinks'));
             const narrower = viewBlock(page, NARROWER);
 
-            await expect(rowFor(narrower, document('sula'))).toHaveCount(1);
-            await expect(rowFor(narrower, document('sula')).locator('span.ti')).toHaveText('Sula');
+            await expect(rowFor(narrower, concept('sula'))).toHaveCount(1);
+            await expect(rowLabel(rowFor(narrower, concept('sula')))).toHaveText('Sula');
             // Its English-labelled sibling is still there: this is about what the filter
             // excluded, not about swapping one exclusion for another.
-            await expect(rowFor(narrower, document('juice'))).toHaveCount(1);
+            await expect(rowFor(narrower, concept('juice'))).toHaveCount(1);
             // One row per concept, which is what the label being an unprojected sort key
             // rather than a selector buys - and what the filter was mistaken for doing.
             await expect(rows(narrower)).toHaveCount(2);
 
             // And from its own page, the same link read from the other end.
             await goto(page, pageFor('sula'));
-            await expect(rowFor(viewBlock(page, BROADER), document('cold-drinks'))).toHaveCount(1);
+            await expect(rowFor(viewBlock(page, BROADER), concept('cold-drinks'))).toHaveCount(1);
         } finally {
             await undo();
         }
@@ -85,10 +86,10 @@ test.describe('concept hierarchy blocks', () => {
         try {
             await goto(page, pageFor('cold-drinks'));
 
-            const juice = rowFor(viewBlock(page, NARROWER), document('juice'));
+            const juice = rowFor(viewBlock(page, NARROWER), concept('juice'));
             await expect(juice).toHaveCount(1);
             // The reader asked for English, so the English label is the one shown.
-            await expect(juice.locator('span.ti')).toHaveText(labelOf('juice'));
+            await expect(rowLabel(juice)).toHaveText(labelOf('juice'));
         } finally {
             await removeTriple(document('juice'), second);
         }

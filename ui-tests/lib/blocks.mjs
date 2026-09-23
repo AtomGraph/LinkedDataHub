@@ -16,11 +16,14 @@ export const IN_SCHEME = `${SKOS}inScheme`;
 export const viewBlock = (page, property) =>
     page.locator(`div.block.ldh-block[data-property="${property}"]`);
 
-// List mode: one li per solution, and a solution paired with its document renders as one
-// row whose href is the DOCUMENT and whose title is the topic.
-export const rows = block => block.locator('ul.ldh-list-block > li > a.row');
-export const rowFor = (block, href) => rows(block).and(block.page().locator(`[href="${href}"]`));
-export const rowLabels = block => rows(block).locator('span.ti');
+// Table mode: one tr per solution, and a solution paired with its document renders as one
+// row for the TOPIC - the view suppresses the document that names it as its primary topic
+// (client/block/view.xsl, "hide documents that are paired with resources"). The row's first
+// cell anchors the topic, so a row is addressed by the CONCEPT URI, not the document's.
+export const rows = block => block.locator('table > tbody > tr');
+export const rowFor = (block, href) => rows(block).filter({ has: block.page().locator(`a[href="${href}"]`) });
+export const rowLabel = row => row.locator('td:first-child a');
+export const rowLabels = block => rowLabel(rows(block));
 
 export const createButton = block => block.locator('button.add-instance');
 
