@@ -315,17 +315,25 @@ exclude-result-prefixes="#all"
     <xsl:template match="json:map/json:string[@key = 'object']" mode="ldh:ConstructorTripleFormControl" name="ldh:ConstructorObject">
         <xsl:param name="object-bnode-id" select="." as="xs:string"/>
         <xsl:param name="object-type" select="../../json:map[json:string[@key = 'subject'] = $object-bnode-id]/json:string[@key = 'object']" as="xs:anyURI?"/>
+        <!-- rdf:langString is a LITERAL datatype that merely lives outside the XSD namespace, so the object
+             kind cannot be read off the namespace alone - imports/values.xsl excludes it from its non-XSD
+             resource lookup for the same reason. Read as a resource it lit the Resource toggle, left the
+             range slot empty (nothing DESCRIBEs rdf:langString, and the resource branch has no fallback for
+             a type it cannot resolve) and, because the save path keeps only rows whose slot carries a
+             control, silently dropped the row: opening the SKOS Concept constructor and pressing Save
+             deleted prefLabel, altLabel and definition from its template. -->
+        <xsl:variable name="literal" select="starts-with($object-type, '&xsd;') or $object-type = '&rdf;langString'" as="xs:boolean"/>
 
         <div class="ctor-term" role="radiogroup">
             <button type="button" role="radio" data-kind="&rdfs;Resource">
-                <xsl:attribute name="class" select="concat('object-kind', if (not(starts-with($object-type, '&xsd;'))) then ' is-on' else ())"/>
-                <xsl:attribute name="aria-checked" select="if (not(starts-with($object-type, '&xsd;'))) then 'true' else 'false'"/>
+                <xsl:attribute name="class" select="concat('object-kind', if (not($literal)) then ' is-on' else ())"/>
+                <xsl:attribute name="aria-checked" select="if (not($literal)) then 'true' else 'false'"/>
 
                 <xsl:apply-templates select="key('resources', 'resource', ldh:translations())" mode="ac:label"/>
             </button>
             <button type="button" role="radio" data-kind="&rdfs;Literal">
-                <xsl:attribute name="class" select="concat('object-kind', if (starts-with($object-type, '&xsd;')) then ' is-on' else ())"/>
-                <xsl:attribute name="aria-checked" select="if (starts-with($object-type, '&xsd;')) then 'true' else 'false'"/>
+                <xsl:attribute name="class" select="concat('object-kind', if ($literal) then ' is-on' else ())"/>
+                <xsl:attribute name="aria-checked" select="if ($literal) then 'true' else 'false'"/>
 
                 <xsl:apply-templates select="key('resources', 'literal', ldh:translations())" mode="ac:label"/>
             </button>
@@ -333,7 +341,7 @@ exclude-result-prefixes="#all"
 
         <span class="ctor-range-slot">
             <xsl:choose>
-                <xsl:when test="starts-with($object-type, '&xsd;')">
+                <xsl:when test="$literal">
                     <xsl:call-template name="ldh:ConstructorLiteralObject">
                         <xsl:with-param name="object-type" select="$object-type"/>
                     </xsl:call-template>
@@ -404,6 +412,15 @@ exclude-result-prefixes="#all"
                         </xsl:if>
                             
                         <xsl:apply-templates select="key('resources', 'datatype-string', ldh:translations())" mode="ac:label"/>
+                    </option>
+                    <!-- a language-tagged literal: the constructor declares [ a rdf:langString ] and the form
+                         control it drives renders a value input plus a language field, never a datatype -->
+                    <option value="&rdf;langString">
+                        <xsl:if test="$object-type = '&rdf;langString'">
+                            <xsl:attribute name="selected" select="'selected'"/>
+                        </xsl:if>
+
+                        <xsl:apply-templates select="key('resources', 'datatype-langstring', ldh:translations())" mode="ac:label"/>
                     </option>
                     <option value="&xsd;boolean">
                         <xsl:if test="$object-type = '&xsd;boolean'">

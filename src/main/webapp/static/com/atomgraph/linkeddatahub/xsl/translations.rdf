@@ -1332,6 +1332,10 @@
         <rdfs:label xml:lang="en-US">String</rdfs:label>
         <rdfs:label xml:lang="es-ES">Cadena</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="datatype-langstring">
+        <rdfs:label xml:lang="en-US">Language-tagged string</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Cadena con idioma</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="datatype-boolean">
         <rdfs:label xml:lang="en-US">Boolean</rdfs:label>
         <rdfs:label xml:lang="es-ES">Booleano</rdfs:label>

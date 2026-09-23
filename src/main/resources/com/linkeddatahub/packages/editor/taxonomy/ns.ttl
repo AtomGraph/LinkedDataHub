@@ -17,9 +17,10 @@
 skos:Concept spin:constructor :ConceptConstructor ;
     spin:constraint :MissingPrefLabel , :MissingInScheme .
 
-# The labels and the definition are declared rdf:langString, not xsd:string: a SKOS label is natural
-# language, and SKOS's own integrity rules assume it carries a tag (a concept may have only one
-# prefLabel PER LANGUAGE, which is not even expressible without one). A constructor declaring
+# Every natural-language value the constructors below construct - the labels, the title, the
+# definitions and the description - is declared rdf:langString, not xsd:string: such a value is
+# natural language, and SKOS's own integrity rules assume it carries a tag (a concept may have only
+# one prefLabel PER LANGUAGE, which is not even expressible without one). A constructor declaring
 # xsd:string produced a form field with a datatype and no language control, so a label added through
 # the form came out untagged beside the tagged ones already in the data - visible as a value with an
 # xsd:string annotation next to one showing en.
@@ -28,7 +29,6 @@ skos:Concept spin:constructor :ConceptConstructor ;
     sp:text """
         PREFIX skos:    <http://www.w3.org/2004/02/skos/core#>
         PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
 
         CONSTRUCT {
             $this skos:prefLabel [ a rdf:langString ] ;
@@ -121,11 +121,11 @@ skos:Collection spin:constructor :CollectionConstructor ;
     rdfs:label "Collection constructor" ;
     sp:text """
         PREFIX skos:    <http://www.w3.org/2004/02/skos/core#>
-        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+        PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
         CONSTRUCT {
-            $this skos:prefLabel [ a xsd:string ] ;
-                skos:definition [ a xsd:string ] ;
+            $this skos:prefLabel [ a rdf:langString ] ;
+                skos:definition [ a rdf:langString ] ;
                 skos:member [ a skos:Concept ] .
         }
         WHERE {}""" ;
@@ -164,12 +164,12 @@ skos:ConceptScheme spin:constructor :ConceptSchemeConstructor .
     rdfs:label "Concept scheme constructor" ;
     sp:text """
         PREFIX skos:    <http://www.w3.org/2004/02/skos/core#>
-        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+        PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
         PREFIX dct:     <http://purl.org/dc/terms/>
 
         CONSTRUCT {
-            $this dct:title [ a xsd:string ] ;
-                dct:description [ a xsd:string ] ;
+            $this dct:title [ a rdf:langString ] ;
+                dct:description [ a rdf:langString ] ;
                 skos:hasTopConcept [ a skos:Concept ] .
         }
         WHERE {}""" ;
