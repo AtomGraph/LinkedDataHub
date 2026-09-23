@@ -42,7 +42,9 @@ exclude-result-prefixes="#all"
 
             PREFIX dct: <http://purl.org/dc/terms/>
 
-            SELECT DISTINCT  $constructor ?graph ?title
+            PREFIX spin: <http://spinrdf.org/spin#>
+
+            SELECT  $constructor ?graph ?title (COUNT(DISTINCT ?class) AS ?classes)
             WHERE
               { GRAPH ?graph
                   { $constructor  sp:text  ?text }
@@ -50,7 +52,12 @@ exclude-result-prefixes="#all"
                   { GRAPH ?graph
                       { ?graph  dct:title  ?title }
                   }
+                OPTIONAL
+                  { GRAPH ?classGraph
+                      { ?class  spin:constructor  $constructor }
+                  }
               }
+            GROUP BY $constructor ?graph ?title
         ]]>
     </xsl:variable>
     <!-- Which documents hold a class's constructors. The gate needs the documents rather than the
@@ -298,25 +305,21 @@ exclude-result-prefixes="#all"
                                     </div>
                                     <div class="ac-modal-body is-flush">
                                         <div class="ldh-ctor-body">
-                                            <xsl:for-each select="$constructors//srx:result">
-                                                <xsl:variable name="constructor-uri" select="srx:binding[@name = 'constructor']/srx:uri" as="xs:anyURI"/>
-                                                <xsl:variable name="construct-string" select="srx:binding[@name = 'construct']/srx:literal" as="xs:string"/>
-                                                <xsl:variable name="construct-json" as="item()">
-                                                    <xsl:variable name="construct-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'fromString', [ $construct-string ])"/>
-                                                    <xsl:sequence select="ixsl:call($construct-builder, 'build', [])"/>
-                                                </xsl:variable>
-                                                <xsl:variable name="construct-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $construct-json ])" as="xs:string"/>
-                                                <xsl:variable name="construct-xml" select="json-to-xml($construct-json-string)" as="document-node()"/>
-
-                                                <xsl:variable name="graph-result" select="$constructor-graphs//srx:result[srx:binding[@name = 'constructor']/srx:uri = $constructor-uri]" as="element()*"/>
+                                            <!-- One fieldset per DOCUMENT, holding the rows of every constructor that document
+                                                 has for the class. Constructor identity is not actionable within a document -
+                                                 the texts are unioned onto one instance, so which one holds a property changes
+                                                 nothing the author can observe - while the document boundary decides ownership,
+                                                 ACLs and what a package update overwrites. So that is where the merge stops. -->
+                                            <xsl:for-each-group select="$constructors//srx:result" group-by="string(ldh:constructor-graph($constructor-graphs, srx:binding[@name = 'constructor']/srx:uri))">
+                                                <xsl:sort select="current-grouping-key()"/>
 
                                                 <xsl:call-template name="ldh:ConstructorFieldset">
-                                                    <xsl:with-param name="constructor-uri" select="$constructor-uri"/>
-                                                    <xsl:with-param name="construct-xml" select="$construct-xml"/>
-                                                    <xsl:with-param name="graph" select="$graph-result/srx:binding[@name = 'graph']/srx:uri/xs:anyURI(.)"/>
-                                                    <xsl:with-param name="title" select="($graph-result/srx:binding[@name = 'title']/srx:literal)[1]"/>
+                                                    <xsl:with-param name="graph" select="xs:anyURI(current-grouping-key())"/>
+                                                    <xsl:with-param name="title" select="ldh:constructor-graph-title($constructor-graphs, current-group()[1]/srx:binding[@name = 'constructor']/srx:uri)"/>
+                                                    <xsl:with-param name="results" select="current-group()"/>
+                                                    <xsl:with-param name="graphs" select="$constructor-graphs"/>
                                                 </xsl:call-template>
-                                            </xsl:for-each>
+                                            </xsl:for-each-group>
 
                                             <!-- A class whose constructors all live in documents this agent does not own still needs
                                                  somewhere to put its own. One empty fieldset on the application's ontology provides it,
@@ -325,11 +328,8 @@ exclude-result-prefixes="#all"
                                                  document already holds a constructor for the class: its fieldset is the destination. -->
                                             <xsl:if test="exists($ontology-doc-uri) and not($ontology-doc-uri = $constructor-graph-uris)">
                                                 <xsl:call-template name="ldh:ConstructorFieldset">
-                                                    <xsl:with-param name="constructor-uri" select="xs:anyURI($ontology-doc-uri || '#id' || ac:uuid())"/>
-                                                    <xsl:with-param name="construct-xml" select="()"/>
                                                     <xsl:with-param name="graph" select="$ontology-doc-uri"/>
                                                     <xsl:with-param name="title" select="$ontology-doc-title"/>
-                                                    <xsl:with-param name="new" select="true()"/>
                                                 </xsl:call-template>
                                             </xsl:if>
                                         </div>
@@ -365,13 +365,32 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="json:array[@key = 'template']/json:map[json:string[@key = 'subject'] = '?this']" mode="ldh:ConstructorTripleForm" priority="1">
         <xsl:param name="class" select="'ldh-ctor-row constructor-triple'" as="xs:string?"/>
+        <!-- the constructor this row belongs to. The fieldset merges a document's constructors into one
+             list, so the row is what carries the identity the save path groups by. -->
+        <xsl:param name="constructor-uri" as="xs:anyURI?" tunnel="yes"/>
+        <!-- an ordinal, set only when the document holds more than one constructor: on every other row it
+             would name a choice that could not have gone otherwise -->
+        <xsl:param name="source" as="xs:integer?" tunnel="yes"/>
+        <xsl:param name="shared" select="false()" as="xs:boolean" tunnel="yes"/>
 
         <div>
             <xsl:if test="$class">
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
+            <xsl:if test="$constructor-uri">
+                <xsl:attribute name="about" select="$constructor-uri"/>
+            </xsl:if>
+            <xsl:if test="$shared">
+                <xsl:attribute name="data-shared" select="'true'"/>
+            </xsl:if>
 
             <xsl:apply-templates select="json:string[@key = 'predicate']" mode="ldh:ConstructorTripleFormControl"/>
+
+            <xsl:if test="$source">
+                <span class="ctor-src" title="{$constructor-uri}">
+                    <xsl:value-of select="$source"/>
+                </span>
+            </xsl:if>
 
             <xsl:apply-templates select="json:string[@key = 'object']" mode="ldh:ConstructorTripleFormControl"/>
         </div>
@@ -484,47 +503,88 @@ exclude-result-prefixes="#all"
         </button>
     </xsl:template>
     
+    <!-- Which document holds a constructor, and its title: both answered by the lookup the chain already ran. -->
+    <xsl:function name="ldh:constructor-graph" as="xs:anyURI?">
+        <xsl:param name="graphs" as="document-node()?"/>
+        <xsl:param name="constructor" as="xs:anyURI"/>
+
+        <xsl:sequence select="($graphs//srx:result[srx:binding[@name = 'constructor']/srx:uri = $constructor]/srx:binding[@name = 'graph']/srx:uri/xs:anyURI(.))[1]"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:constructor-graph-title" as="xs:string?">
+        <xsl:param name="graphs" as="document-node()?"/>
+        <xsl:param name="constructor" as="xs:anyURI"/>
+
+        <xsl:sequence select="($graphs//srx:result[srx:binding[@name = 'constructor']/srx:uri = $constructor]/srx:binding[@name = 'title']/srx:literal)[1]"/>
+    </xsl:function>
+
+    <!-- How many classes a constructor serves. More than one and it is held back: rewriting it from this
+         class's editor would change the other class's form, and with its source merged into the document's
+         list the author has no way to anticipate that. -->
+    <xsl:function name="ldh:constructor-classes" as="xs:integer">
+        <xsl:param name="graphs" as="document-node()?"/>
+        <xsl:param name="constructor" as="xs:anyURI"/>
+
+        <xsl:sequence select="xs:integer((($graphs//srx:result[srx:binding[@name = 'constructor']/srx:uri = $constructor]/srx:binding[@name = 'classes']/srx:literal)[1], '1')[1])"/>
+    </xsl:function>
+
     <xsl:template name="ldh:ConstructorFieldset">
-        <xsl:param name="constructor-uri" as="xs:anyURI"/>
-        <xsl:param name="construct-xml" as="document-node()?"/>
-        <!-- the document to PATCH on save. Stamped because the constructor URI does not identify it: a
+        <!-- the document to PATCH on save. Stamped because a constructor's URI does not identify it: a
              document describes resources it does not own, as an imported vocabulary's annotations do. -->
-        <xsl:param name="graph" as="xs:anyURI?"/>
+        <xsl:param name="graph" as="xs:anyURI"/>
         <!-- that document's title, fetched with the graph so the heading needs no second lookup -->
         <xsl:param name="title" as="xs:string?"/>
-        <!-- nothing is stored for this constructor yet: the save path creates it rather than rewriting it -->
-        <xsl:param name="new" select="false()" as="xs:boolean"/>
+        <!-- the constructors this document holds for the class; empty for a document that holds none, which
+             is how the application's own ontology offers a destination for a class's first property -->
+        <xsl:param name="results" select="()" as="element()*"/>
+        <xsl:param name="graphs" as="document-node()?"/>
 
-        <fieldset class="ldh-ctor-card" about="{$constructor-uri}">
-            <xsl:if test="$graph">
-                <xsl:attribute name="data-graph" select="$graph"/>
-            </xsl:if>
-            <xsl:if test="$new">
-                <xsl:attribute name="data-new" select="'true'"/>
+        <xsl:variable name="existing" select="sort($results/srx:binding[@name = 'constructor']/srx:uri/xs:anyURI(.))" as="xs:anyURI*"/>
+        <!-- Where a new property goes. The first constructor this document already holds, by URI, or a newly
+             minted one when it holds none. Deterministic on purpose: an arbitrary pick would scatter
+             properties across constructors and make diffs unreadable, even though the rendered form - which
+             unions every template - would look identical either way. -->
+        <xsl:variable name="target" select="($existing[1], xs:anyURI($graph || '#id' || ac:uuid()))[1]" as="xs:anyURI"/>
+
+        <fieldset class="ldh-ctor-card" data-graph="{$graph}" data-target="{$target}">
+            <!-- every constructor rendered here, so the save path can tell one whose rows were all removed
+                 (delete it) from one that never existed (write nothing) -->
+            <xsl:if test="exists($existing)">
+                <xsl:attribute name="data-constructors" select="string-join($existing, ' ')"/>
             </xsl:if>
             <div class="ldh-ctor-card-head">
-                <!-- The heading names the DOCUMENT, not the constructor. A constructor's own label is either
-                     absent or an id, and what the author needs to know is where the properties are stored:
-                     which of them a package update will overwrite, and which are their own. -->
+                <!-- The heading names the DOCUMENT. A constructor's own label is absent or an id, and what
+                     the author needs to know is where these properties are stored: which of them a package
+                     update will overwrite, and which are their own. -->
                 <span class="ttl">
-                    <a href="{($graph, $constructor-uri)[1]}" title="{($graph, $constructor-uri)[1]}" target="_blank">
-                        <xsl:choose>
-                            <xsl:when test="$title">
-                                <xsl:value-of select="$title"/>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', lapp:base()), map{ 'query': 'DESCRIBE &lt;' || $constructor-uri || '&gt;', 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
-                                <xsl:apply-templates select="key('resources', $constructor-uri, document($request-uri))" mode="ac:label"/>
-                            </xsl:otherwise>
-                        </xsl:choose>
+                    <a href="{$graph}" title="{$graph}" target="_blank">
+                        <xsl:value-of select="($title, $graph)[1]"/>
                     </a>
                 </span>
             </div>
 
             <div class="ldh-ctor-rows">
-                <xsl:apply-templates select="$construct-xml/json:map/json:array[@key = 'template']/json:map" mode="ldh:ConstructorTripleForm">
-                    <xsl:sort select="json:string[@key = 'predicate']"/>
-                </xsl:apply-templates>
+                <xsl:for-each select="$results">
+                    <xsl:sort select="srx:binding[@name = 'constructor']/srx:uri"/>
+
+                    <xsl:variable name="constructor-uri" select="srx:binding[@name = 'constructor']/srx:uri" as="xs:anyURI"/>
+                    <xsl:variable name="construct-string" select="srx:binding[@name = 'construct']/srx:literal" as="xs:string"/>
+                    <xsl:variable name="construct-json" as="item()">
+                        <xsl:variable name="construct-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'fromString', [ $construct-string ])"/>
+                        <xsl:sequence select="ixsl:call($construct-builder, 'build', [])"/>
+                    </xsl:variable>
+                    <xsl:variable name="construct-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $construct-json ])" as="xs:string"/>
+                    <xsl:variable name="construct-xml" select="json-to-xml($construct-json-string)" as="document-node()"/>
+
+                    <xsl:apply-templates select="$construct-xml/json:map/json:array[@key = 'template']/json:map" mode="ldh:ConstructorTripleForm">
+                        <xsl:sort select="json:string[@key = 'predicate']"/>
+                        <xsl:with-param name="constructor-uri" select="$constructor-uri" tunnel="yes"/>
+                        <!-- only worth naming when the document holds more than one: otherwise every row here
+                             came from the same place and the tag would be noise on every line -->
+                        <xsl:with-param name="source" select="if (count($existing) gt 1) then position() else ()" tunnel="yes"/>
+                        <xsl:with-param name="shared" select="ldh:constructor-classes($graphs, $constructor-uri) gt 1" tunnel="yes"/>
+                    </xsl:apply-templates>
+                </xsl:for-each>
             </div>
 
             <button type="button" class="ldh-ctor-addprop create-action add-triple-template">
@@ -864,8 +924,10 @@ exclude-result-prefixes="#all"
 
     <!-- appends new triple template to the card's row list -->
     <xsl:template match="button[contains-token(@class, 'create-action')][contains-token(@class, 'add-triple-template')]" mode="ixsl:onclick">
+        <!-- the constructor a new property joins: the fieldset resolved it once, deterministically -->
+        <xsl:variable name="target" select="ancestor::fieldset[1]/@data-target" as="attribute()?"/>
         <xsl:variable name="row" as="node()*">
-            <div class="ldh-ctor-row constructor-triple">
+            <div class="ldh-ctor-row constructor-triple" about="{$target}">
                 <xsl:call-template name="ldh:ConstructorPredicate">
                     <xsl:with-param name="predicate" select="()"/>
                 </xsl:call-template>
@@ -901,80 +963,87 @@ exclude-result-prefixes="#all"
             <xsl:otherwise>
                 <xsl:sequence select="ldh:busy-cursor()"/>
 
+                <!-- One fieldset is one DOCUMENT and may hold several constructors, so the unit of work is the
+                     constructor a row belongs to, not the box it is displayed in. @data-constructors records
+                     what was rendered, which is how a constructor whose rows were all removed (delete it) is
+                     told from one that never existed (write nothing). -->
                 <xsl:for-each select="$form//fieldset[not(@disabled)]">
                     <xsl:variable name="container" select="." as="element()"/>
-                    <xsl:variable name="constructor-uri" select="@about" as="xs:anyURI"/>
-                    <!-- not all controls might have value, filter to those that have -->
-                    <xsl:variable name="valid-rows" select="./div[contains-token(@class, 'ldh-ctor-rows')]/div[contains-token(@class, 'ldh-ctor-row')][./div[contains-token(@class, 'ctor-pred')]//input[@name = 'ou']/@value][span[contains-token(@class, 'ctor-range-slot')]//input[@name = 'ou']/@value or span[contains-token(@class, 'ctor-range-slot')]//select[@name = 'ou']]" as="element()*"/>
-                    <xsl:variable name="construct-xml" as="document-node()">
-                        <xsl:iterate select="$valid-rows">
-                            <xsl:param name="construct-xml" as="document-node()">
-                                <xsl:document>
-                                    <json:map>
-                                        <json:string key="queryType">CONSTRUCT</json:string>
-                                        <json:array key="template"/>
-                                        <json:array key="where"/>
-                                        <json:string key="type">query</json:string>
-                                        <json:map key="prefixes"/>
-                                    </json:map>
-                                </xsl:document>
-                            </xsl:param>
+                    <xsl:variable name="document-uri" select="@data-graph/xs:anyURI(.)" as="xs:anyURI"/>
+                    <xsl:variable name="rendered" select="if (@data-constructors) then (for $uri in tokenize(@data-constructors, ' ')[normalize-space()] return xs:anyURI($uri)) else ()" as="xs:anyURI*"/>
+                    <!-- not all controls might have value, filter to those that have; a shared constructor's
+                         rows are never written, since rewriting it would change another class's form -->
+                    <xsl:variable name="valid-rows" select="./div[contains-token(@class, 'ldh-ctor-rows')]/div[contains-token(@class, 'ldh-ctor-row')][not(@data-shared)][./div[contains-token(@class, 'ctor-pred')]//input[@name = 'ou']/@value][span[contains-token(@class, 'ctor-range-slot')]//input[@name = 'ou']/@value or span[contains-token(@class, 'ctor-range-slot')]//select[@name = 'ou']]" as="element()*"/>
 
-                            <xsl:on-completion>
-                                <xsl:sequence select="$construct-xml"/>
-                            </xsl:on-completion>
+                    <xsl:for-each select="distinct-values(($rendered, $valid-rows/@about/xs:anyURI(.)))">
+                        <xsl:variable name="constructor-uri" select="xs:anyURI(.)" as="xs:anyURI"/>
+                        <xsl:variable name="rows" select="$valid-rows[@about = $constructor-uri]" as="element()*"/>
+                        <xsl:variable name="construct-xml" as="document-node()">
+                            <xsl:iterate select="$rows">
+                                <xsl:param name="construct-xml" as="document-node()">
+                                    <xsl:document>
+                                        <json:map>
+                                            <json:string key="queryType">CONSTRUCT</json:string>
+                                            <json:array key="template"/>
+                                            <json:array key="where"/>
+                                            <json:string key="type">query</json:string>
+                                            <json:map key="prefixes"/>
+                                        </json:map>
+                                    </xsl:document>
+                                </xsl:param>
 
-                            <xsl:next-iteration>
-                                <xsl:with-param name="construct-xml">
-                                    <xsl:apply-templates select="$construct-xml" mode="ldh:add-constructor-triple">
-                                        <xsl:with-param name="predicate" select="./div[contains-token(@class, 'ctor-pred')]//input[@name = 'ou']/@value/xs:anyURI(.)" tunnel="yes"/>
-                                        <xsl:with-param name="object-type" select="(span[contains-token(@class, 'ctor-range-slot')]//input[@name = 'ou']/@value/xs:anyURI(.), xs:anyURI(span[contains-token(@class, 'ctor-range-slot')]//select[@name = 'ou']/ixsl:get(., 'value')))[1]" tunnel="yes"/>
-                                    </xsl:apply-templates>
-                                </xsl:with-param>
-                            </xsl:next-iteration>
-                        </xsl:iterate>
-                    </xsl:variable>
-                    <xsl:variable name="construct-json-string" select="xml-to-json($construct-xml)" as="xs:string"/>
-                    <xsl:variable name="construct-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $construct-json-string ])"/>
-                    <xsl:variable name="construct-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'fromQuery', [ $construct-json ]), 'toString', [])" as="xs:string"/>
-                    <!-- Three outcomes, by what the fieldset holds and whether it exists yet: a constructor
-                         with properties is created or rewritten, one whose last property was removed is
-                         deleted, and one that never existed and still has no properties is left alone - so
-                         opening the dialog and closing it writes nothing. -->
-                    <xsl:variable name="update-string" as="xs:string?">
-                        <xsl:choose>
-                            <xsl:when test="exists($valid-rows) and $container/@data-new">
-                                <xsl:variable name="create" select="replace($constructor-create-string, '$this', '&lt;' || $constructor-uri || '&gt;', 'q')" as="xs:string"/>
-                                <xsl:variable name="create" select="replace($create, '$Type', '&lt;' || $form/@about || '&gt;', 'q')" as="xs:string"/>
-                                <xsl:variable name="create" select="replace($create, '$Ontology', '&lt;' || resolve-uri('ns#', lapp:base()) || '&gt;', 'q')" as="xs:string"/>
-                                <xsl:sequence select="replace($create, '$text', '&quot;&quot;&quot;' || $construct-string || '&quot;&quot;&quot;', 'q')"/>
-                            </xsl:when>
-                            <xsl:when test="exists($valid-rows)">
-                                <xsl:variable name="update" select="replace($constructor-update-string, '$this', '&lt;' || $constructor-uri || '&gt;', 'q')" as="xs:string"/>
-                                <xsl:sequence select="replace($update, '$text', '&quot;&quot;&quot;' || $construct-string || '&quot;&quot;&quot;', 'q')"/>
-                            </xsl:when>
-                            <xsl:when test="not($container/@data-new)">
-                                <xsl:variable name="delete" select="replace($constructor-delete-string, '$this', '&lt;' || $constructor-uri || '&gt;', 'q')" as="xs:string"/>
-                                <xsl:sequence select="replace($delete, '$Type', '&lt;' || $form/@about || '&gt;', 'q')"/>
-                            </xsl:when>
-                        </xsl:choose>
-                    </xsl:variable>
+                                <xsl:on-completion>
+                                    <xsl:sequence select="$construct-xml"/>
+                                </xsl:on-completion>
 
-                    <xsl:if test="exists($update-string)">
-                        <!-- the graph the constructor was found in, stamped when the editor was built. The URI is
-                             only a fallback: stripping its fragment is right when the constructor is a fragment of
-                             its own document, and wrong whenever a document describes a resource it does not own. -->
-                        <xsl:variable name="document-uri" select="($container/@data-graph/xs:anyURI(.), ac:document-uri($constructor-uri))[1]" as="xs:anyURI"/>
-                        <xsl:variable name="request-uri" select="ldh:href($document-uri, map{})" as="xs:anyURI"/>
-                        <xsl:variable name="request" as="item()*">
-                            <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
-                                <xsl:call-template name="ldh:ConstructorUpdate">
-                                    <xsl:with-param name="container" select="$container"/>
-                                </xsl:call-template>
-                            </ixsl:schedule-action>
+                                <xsl:next-iteration>
+                                    <xsl:with-param name="construct-xml">
+                                        <xsl:apply-templates select="$construct-xml" mode="ldh:add-constructor-triple">
+                                            <xsl:with-param name="predicate" select="./div[contains-token(@class, 'ctor-pred')]//input[@name = 'ou']/@value/xs:anyURI(.)" tunnel="yes"/>
+                                            <xsl:with-param name="object-type" select="(span[contains-token(@class, 'ctor-range-slot')]//input[@name = 'ou']/@value/xs:anyURI(.), xs:anyURI(span[contains-token(@class, 'ctor-range-slot')]//select[@name = 'ou']/ixsl:get(., 'value')))[1]" tunnel="yes"/>
+                                        </xsl:apply-templates>
+                                    </xsl:with-param>
+                                </xsl:next-iteration>
+                            </xsl:iterate>
                         </xsl:variable>
-                        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-                    </xsl:if>
+                        <xsl:variable name="construct-json-string" select="xml-to-json($construct-xml)" as="xs:string"/>
+                        <xsl:variable name="construct-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $construct-json-string ])"/>
+                        <xsl:variable name="construct-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'fromQuery', [ $construct-json ]), 'toString', [])" as="xs:string"/>
+
+                        <!-- A constructor exists exactly when it templates at least one property: the first
+                             one creates it, the last one removed deletes it, and a target nobody added to is
+                             never written - so opening the dialog and closing it leaves the data untouched. -->
+                        <xsl:variable name="update-string" as="xs:string?">
+                            <xsl:choose>
+                                <xsl:when test="exists($rows) and not($constructor-uri = $rendered)">
+                                    <xsl:variable name="create" select="replace($constructor-create-string, '$this', '&lt;' || $constructor-uri || '&gt;', 'q')" as="xs:string"/>
+                                    <xsl:variable name="create" select="replace($create, '$Type', '&lt;' || $form/@about || '&gt;', 'q')" as="xs:string"/>
+                                    <xsl:variable name="create" select="replace($create, '$Ontology', '&lt;' || resolve-uri('ns#', lapp:base()) || '&gt;', 'q')" as="xs:string"/>
+                                    <xsl:sequence select="replace($create, '$text', '&quot;&quot;&quot;' || $construct-string || '&quot;&quot;&quot;', 'q')"/>
+                                </xsl:when>
+                                <xsl:when test="exists($rows)">
+                                    <xsl:variable name="update" select="replace($constructor-update-string, '$this', '&lt;' || $constructor-uri || '&gt;', 'q')" as="xs:string"/>
+                                    <xsl:sequence select="replace($update, '$text', '&quot;&quot;&quot;' || $construct-string || '&quot;&quot;&quot;', 'q')"/>
+                                </xsl:when>
+                                <xsl:when test="$constructor-uri = $rendered">
+                                    <xsl:variable name="delete" select="replace($constructor-delete-string, '$this', '&lt;' || $constructor-uri || '&gt;', 'q')" as="xs:string"/>
+                                    <xsl:sequence select="replace($delete, '$Type', '&lt;' || $form/@about || '&gt;', 'q')"/>
+                                </xsl:when>
+                            </xsl:choose>
+                        </xsl:variable>
+
+                        <xsl:if test="exists($update-string)">
+                            <xsl:variable name="request-uri" select="ldh:href($document-uri, map{})" as="xs:anyURI"/>
+                            <xsl:variable name="request" as="item()*">
+                                <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
+                                    <xsl:call-template name="ldh:ConstructorUpdate">
+                                        <xsl:with-param name="container" select="$container"/>
+                                    </xsl:call-template>
+                                </ixsl:schedule-action>
+                            </xsl:variable>
+                            <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                        </xsl:if>
+                    </xsl:for-each>
                 </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
