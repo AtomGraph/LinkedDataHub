@@ -25,6 +25,14 @@ export const taxonomyPackage = process.env.UI_TESTS_TAXONOMY_PACKAGE
 
 export const taxonomy = { container: `${endUserBase}${slug}/` };
 
+// Where the application keeps its own copy of the package ontology, which is the document the
+// package's constructors are edited in: PackageService.getDocumentURI flattens the package URI's
+// path into a slug under the admin ontologies container (editor/taxonomy -> editor-taxonomy).
+export const packageOntologyDocument = (() => {
+    const path = new URL(taxonomyPackage).pathname.replace(/^\/+|\/+$/g, '').replace(/\//g, '-');
+    return `${adminBase}ontologies/${path}/`;
+})();
+
 export const document = name => `${taxonomy.container}${name}/`;
 // A concept is the document's topic, not the document. The tree links to the topic URI,
 // which is what every assertion addresses rows by.

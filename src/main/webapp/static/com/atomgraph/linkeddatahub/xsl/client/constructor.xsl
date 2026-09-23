@@ -679,8 +679,6 @@ exclude-result-prefixes="#all"
                         <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
                             <xsl:call-template name="ldh:ConstructorUpdate">
                                 <xsl:with-param name="container" select="$container"/>
-                                <xsl:with-param name="constructor-uri" select="$constructor-uri"/>
-                                <xsl:with-param name="document-uri" select="$document-uri"/>
                             </xsl:call-template>
                         </ixsl:schedule-action>
                     </xsl:variable>
@@ -695,10 +693,6 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:ConstructorUpdate">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
-        <xsl:param name="constructor-uri" as="xs:anyURI"/>
-        <!-- the document the PATCH targeted, so the clear below evicts that ontology and not one derived
-             from the constructor URI, which may name a document nobody wrote to -->
-        <xsl:param name="document-uri" select="ac:document-uri($constructor-uri)" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
@@ -708,18 +702,13 @@ exclude-result-prefixes="#all"
                     <xsl:call-template name="ldh:CloseModal"/>
                 </xsl:for-each>
 
-                <!-- clear the ontology. TO-DO: only clear after *all* constructors are saved: https://saxonica.plan.io/issues/5596 -->
-                <!-- TO-DO: make sure we're in the end-user application -->
-                <xsl:variable name="form-data" select="ixsl:new('URLSearchParams', [ ixsl:new('FormData', []) ])"/>
-                <xsl:sequence select="ixsl:call($form-data, 'append', [ 'uri', $document-uri ])[current-date() lt xs:date('2000-01-01')]"/>
-
-                <!-- clear the constructor's host ontology (the document the PATCH targeted) first, then proceed to clear the namespace ontology -->
-                <xsl:variable name="admin-base-uri" select="xs:anyURI(replace(lapp:base(), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
-                <xsl:variable name="clear-uri" select="resolve-uri('clear', $admin-base-uri)" as="xs:anyURI"/>
-                <xsl:variable name="request-uri" select="ldh:href($clear-uri)" as="xs:anyURI"/>
-                <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/x-www-form-urlencoded', 'body': $form-data, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                    <xsl:call-template name="ldh:ClearNamespace"/>
-                </ixsl:schedule-action>
+                <!-- One clear, of the namespace ontology. It used to be preceded by a clear naming the document the
+                     PATCH went to, which /clear takes as an ontology to reassemble - and a package's copy of its
+                     ontology is a dh:Item ABOUT the ontology, not an owl:Ontology, so that reload answered 500 and
+                     this one never ran. Nothing is lost with it: a clear discards every cached graph and closure
+                     whatever URI it is given, so the namespace reload below re-reads the edited document as well.
+                     TO-DO: only clear after *all* constructors are saved: https://saxonica.plan.io/issues/5596 -->
+                <xsl:call-template name="ldh:ClearNamespace"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:sequence select="ldh:render-failure(($container//div[contains-token(@class, 'ac-modal-body')])[1], 'constructor-not-updated', ac:http-error-key(?status), ldh:response-detail(.))"/>
