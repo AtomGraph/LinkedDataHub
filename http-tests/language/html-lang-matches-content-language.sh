@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+initialize_dataset "$END_USER_BASE_URL" "$TMP_END_USER_DATASET" "$END_USER_ENDPOINT_URL"
+initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
+purge_cache "$END_USER_VARNISH_SERVICE"
+purge_cache "$ADMIN_VARNISH_SERVICE"
+purge_cache "$FRONTEND_VARNISH_SERVICE"
+reset_packages
+clear_ontology
+
 # The header and the document have to agree about what language the page is in. They do because both read the same
 # computation: the stylesheet takes the root lang straight from Content-Language rather than from the request. A reader whose
 # language the bundle lacks is the case that used to disagree - the header said nothing while the document claimed lt.
-
-purge_cache "$END_USER_VARNISH_SERVICE"
-purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 assert_agrees()
 {

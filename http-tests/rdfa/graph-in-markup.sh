@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+initialize_dataset "$END_USER_BASE_URL" "$TMP_END_USER_DATASET" "$END_USER_ENDPOINT_URL"
+initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
+purge_cache "$END_USER_VARNISH_SERVICE"
+purge_cache "$ADMIN_VARNISH_SERVICE"
+purge_cache "$FRONTEND_VARNISH_SERVICE"
+reset_packages
+clear_ontology
+
 # The graph a document serves as RDF and the graph its markup asserts are meant to be the same graph: what the page shows
 # is what the page says. Three things used to break that and each is pinned here - a value's rendered text stood in for its
 # literal, so a formatted date or a language pill became the value; @typeof without a subject minted a blank node, so a
@@ -9,9 +17,6 @@ set -euo pipefail
 #
 # XHTML rather than text/html because the same rendering is then well-formed and can be queried with XPath. Attribute
 # order is a serialization detail and nothing here depends on it.
-
-purge_cache "$END_USER_VARNISH_SERVICE"
-purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 slug=$(uuidgen | tr '[:upper:]' '[:lower:]')
 doc_url="${END_USER_BASE_URL}${slug}/"

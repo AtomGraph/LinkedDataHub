@@ -12,7 +12,7 @@
 // the reveal a walk rather than a single lookup.
 import { get } from './http.mjs';
 import { ldh } from './fixtures.mjs';
-import { endUserBase } from './stack.mjs';
+import { adminBase, endUserBase } from './stack.mjs';
 
 const slug = 'ui-taxonomy';
 const SKOS = 'http://www.w3.org/2004/02/skos/core#';
@@ -103,6 +103,13 @@ export async function seedTaxonomy() {
         await ldh(['packages', 'add', '--package', taxonomyPackage]);
         addedPackage = true;
     }
+
+    // Importing the package clears the imports closure on the way through; finding it already
+    // imported does not, so on a second run the specs would read whatever closure was left
+    // cached - including graphs from fixtures this setup has just torn down. Clearing here makes
+    // the starting state the same either way. No ontology is named: nothing needs reloading, and
+    // the closures rebuild on the first page the suite opens.
+    await ldh(['admin', 'clear', 'ontology', '-b', adminBase]);
 
     const container = await ldh(['create', 'container',
         '--parent', endUserBase, '--title', 'UI test taxonomy', '--slug', slug]);

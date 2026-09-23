@@ -6,6 +6,8 @@ initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
+reset_packages
+clear_ontology
 
 # Public OAuth2 login must stay reachable without a certificate. The end-user oauth2 authorization
 # (namespace-ontology.trig.template) grants foaf:Agent Read to the login endpoints via acl:accessTo.

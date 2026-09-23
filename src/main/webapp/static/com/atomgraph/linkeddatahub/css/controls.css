@@ -107,8 +107,15 @@
 .ac-cb-clear:focus-visible { outline: 0; box-shadow: var(--focus-ring); }
 
 /* Result panel */
+/* Fixed, not absolute. An absolutely positioned panel is clipped by every ancestor that
+   establishes a scroll box or sets overflow: hidden - a dialog body, a card - and no z-index
+   lifts a box out of an ancestor's clip, because clipping is not part of the paint order.
+   Taken out of that flow it is clipped by nothing, at the cost of its offsets: a fixed box with
+   auto offsets lands at its static position, which inside a flex column is the container's own
+   origin rather than below the field. So it opens hidden and ldh:ComboboxPlace measures the
+   field and puts it there, one frame later - see there for why the correction is a translation. */
 .ac-cb-panel {
-  position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 40;
+  position: fixed; z-index: 40;
   max-height: 268px; overflow-y: auto;
   background: var(--surface-0);
   border: 1px solid var(--border-default); border-radius: var(--r-md);

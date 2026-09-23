@@ -1,79 +1,49 @@
 @prefix lm: <http://jena.hpl.hp.com/2004/08/location-mapping#> .
 
 [] lm:mapping
-   
-   [ lm:name "https://w3id.org/atomgraph/linkeddatahub#" ;                       lm:altName "com/atomgraph/linkeddatahub/ldh.ttl" ] ,
-   [ lm:name "https://w3id.org/atomgraph/linkeddatahub/default#" ;               lm:altName "com/atomgraph/linkeddatahub/def.ttl" ] ,
-   [ lm:name "https://w3id.org/atomgraph/linkeddatahub/apps#" ;                  lm:altName "com/atomgraph/linkeddatahub/lapp.ttl" ] ,
-   [ lm:name "https://w3id.org/atomgraph/linkeddatahub/admin#" ;                 lm:altName "com/atomgraph/linkeddatahub/app/admin/adm.ttl" ] ,
-   [ lm:name "https://w3id.org/atomgraph/linkeddatahub/admin/acl#" ;             lm:altName "com/atomgraph/linkeddatahub/app/admin/lacl.ttl" ] ,
-   [ lm:name "http://www.w3.org/ns/auth/acl#" ;                                  lm:altName "com/atomgraph/linkeddatahub/acl.rdf" ] ,
-   [ lm:name "http://www.w3.org/ns/auth/cert#" ;                                 lm:altName "com/atomgraph/linkeddatahub/cert.rdf" ] ,
-   [ lm:name "http://www.w3.org/ns/prov#" ;                                      lm:altName "com/atomgraph/linkeddatahub/prov-o.ttl" ] ,
-   [ lm:name "http://www.w3.org/ns/shacl#" ;                                     lm:altName "com/atomgraph/linkeddatahub/shacl.ttl" ] ,
-   [ lm:name "http://xmlns.com/foaf/0.1/" ;                                      lm:altName "com/atomgraph/linkeddatahub/foaf.owl" ] ,
-   [ lm:name "http://rdfs.org/sioc/ns#" ;                                        lm:altName "com/atomgraph/linkeddatahub/sioc.owl" ] ,
-   [ lm:name "http://rdfs.org/ns/void#" ;                                        lm:altName "com/atomgraph/linkeddatahub/void.owl" ] ,
-   [ lm:name "http://www.semanticdesktop.org/ontologies/2007/01/19/nie#" ;       lm:altName "com/atomgraph/linkeddatahub/nie.rdf" ] ,
-   [ lm:name "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#" ;       lm:altName "com/atomgraph/linkeddatahub/nfo.rdf" ] ,
-   [ lm:name "http://purl.org/dc/dcmitype/" ;                                    lm:altName "com/atomgraph/linkeddatahub/dcmitype.rdf" ] ,
-   [ lm:name "https://www.w3.org/ns/ldt#" ;                                      lm:altName "com/atomgraph/linkeddatahub/ldt.ttl" ] ,
-   [ lm:name "https://www.w3.org/ns/ldt/document-hierarchy#" ;                   lm:altName "com/atomgraph/linkeddatahub/dh.ttl" ] ,
-   [ lm:name "http://www.w3.org/2011/http#" ;                                    lm:altName "com/atomgraph/linkeddatahub/http.owl" ] ,
-   [ lm:name "http://www.w3.org/2011/http-statusCodes#" ;                        lm:altName "com/atomgraph/linkeddatahub/http-statusCodes.rdf" ] ,
-   [ lm:name "https://w3id.org/atomgraph/client#" ;                              lm:altName "com/atomgraph/client/ns.ttl" ] ,
-   [ lm:name "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ;                     lm:altName "com/atomgraph/client/rdf.ttl" ] ,
-   [ lm:name "http://www.w3.org/2000/01/rdf-schema#" ;                           lm:altName "com/atomgraph/client/rdfs.owl" ] ,
-   [ lm:name "http://www.w3.org/2002/07/owl#" ;                                  lm:altName "com/atomgraph/client/owl2.owl" ] ,
-   [ lm:name "http://www.w3.org/2003/01/geo/wgs84_pos#" ;                        lm:altName "com/atomgraph/client/geo.owl" ] ,
-   [ lm:name "http://www.w3.org/2004/02/skos/core#" ;                            lm:altName "com/atomgraph/client/skos.owl" ] ,
-   [ lm:name "http://www.w3.org/2006/time#" ;                                    lm:altName "com/atomgraph/client/time.owl" ] ,
-   [ lm:name "http://www.w3.org/ns/sparql-service-description#" ;                lm:altName "com/atomgraph/client/sparql-service.owl" ] ,
-   [ lm:name "http://purl.org/dc/elements/1.1/" ;                                lm:altName "com/atomgraph/client/dcelements.rdf" ] ,
-   [ lm:name "http://purl.org/dc/terms/" ;                                       lm:altName "com/atomgraph/client/dcterms.rdf" ] ,
-   [ lm:name "http://purl.org/goodrelations/v1#" ;                               lm:altName "com/atomgraph/client/goodrelations.owl" ] ,
-   [ lm:name "http://usefulinc.com/ns/doap#" ;                                   lm:altName "com/atomgraph/client/doap.owl" ] ,
-   [ lm:name "http://spinrdf.org/sp#" ;                                          lm:altName "etc/sp.ttl" ] ,
-   [ lm:name "http://spinrdf.org/spin#" ;                                        lm:altName "etc/spin.ttl" ] ,
-   [ lm:name "http://spinrdf.org/spl#" ;                                         lm:altName "etc/spl.spin.ttl" ] ,
 
+   # LinkedDataHub's own vocabularies - the application ontology closure starts at default#
    [ lm:prefix "https://w3id.org/atomgraph/linkeddatahub" ;                      lm:altName "com/atomgraph/linkeddatahub/ldh.ttl" ] ,
    [ lm:prefix "https://w3id.org/atomgraph/linkeddatahub/default" ;              lm:altName "com/atomgraph/linkeddatahub/def.ttl" ] ,
    [ lm:prefix "https://w3id.org/atomgraph/linkeddatahub/apps" ;                 lm:altName "com/atomgraph/linkeddatahub/lapp.ttl" ] ,
    [ lm:prefix "https://w3id.org/atomgraph/linkeddatahub/admin" ;                lm:altName "com/atomgraph/linkeddatahub/app/admin/adm.ttl" ] ,
    [ lm:prefix "https://w3id.org/atomgraph/linkeddatahub/admin/acl" ;            lm:altName "com/atomgraph/linkeddatahub/app/admin/lacl.ttl" ] ,
-   [ lm:prefix "http://www.w3.org/ns/auth/acl" ;                                 lm:altName "com/atomgraph/linkeddatahub/acl.rdf" ] ,
-   [ lm:prefix "http://www.w3.org/ns/auth/cert" ;                                lm:altName "com/atomgraph/linkeddatahub/cert.rdf" ] ,
-   [ lm:prefix "http://www.w3.org/ns/prov" ;                                     lm:altName "com/atomgraph/linkeddatahub/prov-o.ttl" ] ,
-   [ lm:prefix "http://www.w3.org/ns/shacl" ;                                    lm:altName "com/atomgraph/linkeddatahub/shacl.ttl" ] ,
-   [ lm:prefix "http://xmlns.com/foaf/0.1/" ;                                    lm:altName "com/atomgraph/linkeddatahub/foaf.owl" ] ,
-   [ lm:prefix "http://rdfs.org/sioc/ns" ;                                       lm:altName "com/atomgraph/linkeddatahub/sioc.owl" ] ,
-   [ lm:prefix "http://rdfs.org/ns/void" ;                                       lm:altName "com/atomgraph/linkeddatahub/void.owl" ] ,
-   [ lm:prefix "http://www.semanticdesktop.org/ontologies/2007/01/19/nie" ;      lm:altName "com/atomgraph/linkeddatahub/nie.rdf" ] ,
-   [ lm:prefix "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo" ;      lm:altName "com/atomgraph/linkeddatahub/nfo.rdf" ] ,
-   [ lm:prefix "http://purl.org/dc/dcmitype/" ;                                  lm:altName "com/atomgraph/linkeddatahub/dcmitype.rdf" ] ,
-   [ lm:prefix "https://www.w3.org/ns/ldt" ;                                     lm:altName "com/atomgraph/linkeddatahub/ldt.ttl" ] ,
-   [ lm:prefix "https://www.w3.org/ns/ldt/core/domain" ;                         lm:altName "com/atomgraph/linkeddatahub/c.ttl" ] ,
-   [ lm:prefix "https://www.w3.org/ns/ldt/document-hierarchy" ;                  lm:altName "com/atomgraph/linkeddatahub/dh.ttl" ] ,
-   [ lm:prefix "http://www.w3.org/2011/http" ;                                   lm:altName "com/atomgraph/linkeddatahub/http.owl" ] ,
-   [ lm:prefix "http://www.w3.org/2011/http-statusCodes" ;                       lm:altName "com/atomgraph/linkeddatahub/http-statusCodes.rdf" ] ,
    [ lm:prefix "https://w3id.org/atomgraph/client" ;                             lm:altName "com/atomgraph/client/ns.ttl" ] ,
-   [ lm:prefix "http://www.w3.org/1999/02/22-rdf-syntax-ns" ;                    lm:altName "com/atomgraph/client/rdf.ttl" ] ,
-   [ lm:prefix "http://www.w3.org/2000/01/rdf-schema" ;                          lm:altName "com/atomgraph/client/rdfs.owl" ] ,
-   [ lm:prefix "http://www.w3.org/2002/07/owl" ;                                 lm:altName "com/atomgraph/client/owl2.owl" ] ,
-   [ lm:prefix "http://www.w3.org/2003/01/geo/wgs84_pos" ;                       lm:altName "com/atomgraph/client/geo.owl" ] ,
-   [ lm:prefix "http://www.w3.org/2004/02/skos/core" ;                           lm:altName "com/atomgraph/client/skos.owl" ] ,
-   [ lm:prefix "http://www.w3.org/2006/time" ;                                   lm:altName "com/atomgraph/client/time.owl" ] ,
-   [ lm:prefix "http://usefulinc.com/ns/doap" ;                                  lm:altName "com/atomgraph/client/doap.owl" ] ,
-   [ lm:prefix "http://www.w3.org/ns/sparql-service-description" ;               lm:altName "com/atomgraph/client/sparql-service.owl" ] ,
-   [ lm:prefix "http://purl.org/dc/elements/1.1/" ;                              lm:altName "com/atomgraph/client/dcelements.rdf" ] ,
-   [ lm:prefix "http://purl.org/dc/terms/" ;                                     lm:altName "com/atomgraph/client/dcterms.rdf" ] ,
-   [ lm:prefix "http://purl.org/goodrelations/v1" ;                              lm:altName "com/atomgraph/client/goodrelations.owl" ] ,
+
+   # Linked Data Templates
+   [ lm:prefix "https://www.w3.org/ns/ldt" ;                                     lm:altName "com/atomgraph/linkeddatahub/ldt.ttl" ] ,
+   [ lm:prefix "https://www.w3.org/ns/ldt/document-hierarchy" ;                  lm:altName "com/atomgraph/linkeddatahub/dh.ttl" ] ,
+
+   # SPIN - imported by ldh, def, lapp, ldt, dh and lacl
    [ lm:prefix "http://spinrdf.org/sp" ;                                         lm:altName "etc/sp.ttl" ] ,
    [ lm:prefix "http://spinrdf.org/spin" ;                                       lm:altName "etc/spin.ttl" ] ,
-   [ lm:prefix "http://spinrdf.org/spl" ;                                        lm:altName "etc/spl.spin.ttl" ] ,
+
+   # imported by the system ontologies
+   [ lm:prefix "http://www.w3.org/ns/auth/acl" ;                                 lm:altName "com/atomgraph/linkeddatahub/acl.rdf" ] ,
+   [ lm:prefix "http://www.w3.org/ns/auth/cert" ;                                lm:altName "com/atomgraph/linkeddatahub/cert.rdf" ] ,
+   [ lm:prefix "http://xmlns.com/foaf/0.1/" ;                                    lm:altName "com/atomgraph/linkeddatahub/foaf.owl" ] ,
+   [ lm:prefix "http://rdfs.org/sioc/ns" ;                                       lm:altName "com/atomgraph/linkeddatahub/sioc.owl" ] ,
+   [ lm:prefix "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo" ;      lm:altName "com/atomgraph/linkeddatahub/nfo.rdf" ] ,
+   [ lm:prefix "http://www.w3.org/ns/sparql-service-description" ;               lm:altName "com/atomgraph/client/sparql-service.owl" ] ,
+   [ lm:prefix "http://www.w3.org/2002/07/owl" ;                                 lm:altName "com/atomgraph/client/owl2.owl" ] ,
+
+   # used by the stylesheets
+   [ lm:prefix "http://www.w3.org/1999/02/22-rdf-syntax-ns" ;                    lm:altName "com/atomgraph/client/rdf.ttl" ] ,
+   [ lm:prefix "http://www.w3.org/2000/01/rdf-schema" ;                          lm:altName "com/atomgraph/client/rdfs.owl" ] ,
+   [ lm:prefix "http://purl.org/dc/terms/" ;                                     lm:altName "com/atomgraph/client/dcterms.rdf" ] ,
+   [ lm:prefix "http://purl.org/dc/elements/1.1/" ;                              lm:altName "com/atomgraph/client/dcelements.rdf" ] ,
+   [ lm:prefix "http://www.w3.org/ns/shacl" ;                                    lm:altName "com/atomgraph/linkeddatahub/shacl.ttl" ] ,
+   [ lm:prefix "http://www.w3.org/ns/prov" ;                                     lm:altName "com/atomgraph/linkeddatahub/prov-o.ttl" ] ,
+   [ lm:prefix "http://www.w3.org/2003/01/geo/wgs84_pos" ;                       lm:altName "com/atomgraph/client/geo.owl" ] ,
+   [ lm:prefix "http://www.w3.org/2004/02/skos/core" ;                           lm:altName "com/atomgraph/client/skos.owl" ] ,
+   [ lm:prefix "http://usefulinc.com/ns/doap" ;                                  lm:altName "com/atomgraph/client/doap.owl" ] ,
+   [ lm:prefix "http://www.w3.org/2011/http" ;                                   lm:altName "com/atomgraph/linkeddatahub/http.owl" ] ,
+   [ lm:prefix "http://www.w3.org/2011/http-statusCodes" ;                       lm:altName "com/atomgraph/linkeddatahub/http-statusCodes.rdf" ] ,
+
+   # packages - the bundled copies stand in until they are served from packages.linkeddatahub.com.
+   # These are a fallback, not an override: OntologyRepository asks the store before it consults a
+   # mapping, so an application's own materialized copy of a package ontology wins over the shipped file
    [ lm:prefix "https://packages.linkeddatahub.com/" ;                           lm:altName "com/linkeddatahub/packages/packages.ttl" ] ,
    [ lm:prefix "https://packages.linkeddatahub.com/editor/taxonomy/" ;           lm:altName "com/linkeddatahub/packages/editor/taxonomy/package.ttl" ] ,
-   [ lm:prefix "https://raw.githubusercontent.com/AtomGraph/LinkedDataHub-Apps/refs/heads/develop/packages/editor/taxonomy/ns.ttl" ; lm:altName "com/linkeddatahub/packages/editor/taxonomy/ns.ttl" ] ,
-   [ lm:name "https://packages.linkeddatahub.com/editor/taxonomy/skos.xsl" ;     lm:altName "com/linkeddatahub/packages/editor/taxonomy/skos.xsl" ]
+   [ lm:prefix "https://raw.githubusercontent.com/AtomGraph/LinkedDataHub-Apps/refs/heads/develop/packages/editor/taxonomy/ns.ttl" ; lm:altName "com/linkeddatahub/packages/editor/taxonomy/ns.ttl" ]
 .

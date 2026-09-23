@@ -17,7 +17,6 @@
 package com.atomgraph.linkeddatahub;
 
 import com.atomgraph.client.util.jena.PrefixGraphRepository;
-import com.atomgraph.linkeddatahub.server.util.LocalStylesheetResolver;
 import com.atomgraph.linkeddatahub.writer.impl.SameSiteSourceResolver;
 import com.atomgraph.linkeddatahub.server.util.OntologyRepository;
 import org.apache.jena.riot.RDFParser;
@@ -121,6 +120,7 @@ import com.atomgraph.linkeddatahub.vocabulary.LDHC;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.linkeddatahub.vocabulary.ORCID;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import com.atomgraph.linkeddatahub.server.util.PackageService;
 import com.atomgraph.linkeddatahub.writer.Mode;
 import com.atomgraph.linkeddatahub.writer.ResultSetXSLTWriter;
 import com.atomgraph.linkeddatahub.writer.XSLTWriterBase;
@@ -275,6 +275,7 @@ public class Application extends ResourceConfig
     private final PrefixGraphRepository repository;
     private final SameSiteSourceResolver resolver;
     private final Map<String, OntologyRepository> endUserRepositories;
+    private final PackageService packageService = new PackageService(this);
     private final MediaTypes mediaTypes;
     private final Client client, externalClient, importClient, noCertClient, verifiedClient;
     private final Query documentTypeQuery, documentOwnerQuery, aclQuery, ownerAclQuery, webIDQuery, agentQuery, userAccountQuery, ontologyQuery; // no relative URIs
@@ -285,6 +286,8 @@ public class Application extends ResourceConfig
     private final boolean cacheStylesheet;
     private final boolean resolvingUncached;
     private final URI baseURI, uploadRoot, sefRoot;
+    /** Where an imported package's stylesheet is copied to, served under {@link PackageService#PUBLIC_PATH}. */
+    private final URI packageRoot;
     private final boolean invalidateCache;
     private final Integer cookieMaxAge;
     private final boolean enableLinkedDataProxy;
@@ -832,6 +835,11 @@ public class Application extends ResourceConfig
                 RDFParser.create().source(prefixMappingConfig).streamManager(repository.getStreamManager()).build().parse(prefixMappingModel);
                 repository.processConfig(prefixMappingModel);
             }
+
+            // read here rather than threaded through the constructor, which is already at the size where
+            // another positional argument costs more than it explains
+            String packageRootString = System.getProperty("com.atomgraph.linkeddatahub.packageRoot");
+            this.packageRoot = packageRootString != null ? URI.create(packageRootString) : null;
             resolver = new SameSiteSourceResolver(repository, GraphStoreClient.create(client, mediaTypes), resolvingUncached, baseURI);
 
             // composing client stylesheets is optional: without a SEF root, a compiler endpoint, or the
@@ -863,7 +871,7 @@ public class Application extends ResourceConfig
                         }
                         else
                             stylesheetService = new com.atomgraph.linkeddatahub.server.util.ClientStylesheetService(
-                                java.nio.file.Paths.get(sefRoot), URI.create(sefCompilerString), client, repository, clientStylesheet, stockStylesheet, stockSEF);
+                                java.nio.file.Paths.get(sefRoot), URI.create(sefCompilerString), client, clientStylesheet, stockStylesheet, stockSEF);
                     }
                 }
                 catch (IOException ex)
@@ -934,7 +942,7 @@ public class Application extends ResourceConfig
             }
             
             xsltComp = xsltProc.newXsltCompiler();
-            xsltComp.setURIResolver(new LocalStylesheetResolver(this, servletConfig.getServletContext(), client)); // resolves xsl:import to raw stylesheet sources, app-origin /static/ URLs locally
+            xsltComp.setURIResolver(new com.atomgraph.client.util.StylesheetResolver(client)); // xsl:import over HTTP; ClientUriRewriteFilter sends this instance's own URLs to the internal proxy
             xsltExec = xsltComp.compile(stylesheet);
         }
         catch (FileNotFoundException ex)
@@ -1983,6 +1991,17 @@ public class Application extends ResourceConfig
     }
 
     /**
+     * Returns the directory imported packages' stylesheets are copied into, or null when this deployment
+     * has none - in which case a package stylesheet is used at the URL its description declares.
+     *
+     * @return package root URI, or null
+     */
+    public URI getPackageRoot()
+    {
+        return packageRoot;
+    }
+
+    /**
      * Returns the global XSLT source resolver.
      *
      * @return source resolver
@@ -2024,7 +2043,8 @@ public class Application extends ResourceConfig
     public OntologyRepository createRepository(EndUserApplication app)
     {
         OntologyRepository appRepository = new OntologyRepository(app, this, GraphStoreClient.create(getClient(), getMediaTypes()), getOntologyQuery());
-        // seed bundled vocabulary/ontology mappings from the global repository
+        // seed bundled vocabulary/ontology mappings from the global repository. They are the fallback now,
+        // not a short-circuit: OntologyRepository asks the store before it consults them
         getRepository().getLocationMappings().forEach(appRepository::addLocationMapping);
         getRepository().getPrefixMappings().forEach(appRepository::addPrefixMapping);
 
@@ -2045,83 +2065,13 @@ public class Application extends ResourceConfig
     }
 
     /**
-     * Loads the package description from its URI.
-     * Mapped locations (e.g. bundled package descriptions) and cached graphs are read from the graph
-     * repository; a description that is a document of one of this instance's applications is read from
-     * that application's store; other URIs are dereferenced over HTTP.
+     * Returns the service that resolves imported packages and the artifacts they deliver.
      *
-     * @param packageURI package URI
-     * @return package resource, or null if the description could not be resolved
+     * @return package service
      */
-    public com.atomgraph.linkeddatahub.apps.model.Package getPackage(String packageURI)
+    public PackageService getPackageService()
     {
-        final Model model;
-
-        if (getRepository().isCached(packageURI) || getRepository().isMapped(packageURI))
-            model = ModelFactory.createModelForGraph(getRepository().get(packageURI));
-        else
-        {
-            try
-            {
-                // a package described by a document on THIS instance is a named graph in the instance's own
-                // store, and is read there. Fetched over HTTP instead, the request would come back through
-                // this application: its ontology filter, finding the ontology just evicted by the settings
-                // update that declared the import, resolves the package descriptions in turn and issues the
-                // same fetch - the requests nest until the proxy times out, the loop the filter already
-                // guards against for uploaded ontologies
-                URI docURI = UriBuilder.fromUri(packageURI).fragment(null).build(); // skip fragment from the package URI to get its graph URI
-                Resource appResource = matchApp(docURI);
-                if (appResource != null && appResource.canAs(com.atomgraph.linkeddatahub.apps.model.Application.class))
-                {
-                    com.atomgraph.linkeddatahub.apps.model.Application app = appResource.as(com.atomgraph.linkeddatahub.apps.model.Application.class);
-                    model = getServiceContext(app.getService()).getGraphStoreClient().getModel(docURI.toString());
-                }
-                else
-                {
-                    // validate package URI to prevent SSRF attacks
-                    getURLValidator().validate(URI.create(packageURI));
-
-                    model = GraphStoreClient.create(getClient(), getMediaTypes()).getModel(packageURI);
-                }
-            }
-            catch (RuntimeException ex) // invalid URI, 404 from the package server, connection refused, timeout...
-            {
-                if (log.isErrorEnabled()) log.error("Loading package description failed: {}", packageURI, ex);
-                return null;
-            }
-        }
-
-        try
-        {
-            return model.getResource(packageURI).as(com.atomgraph.linkeddatahub.apps.model.Package.class);
-        }
-        catch (ConversionException ex)
-        {
-            if (log.isErrorEnabled()) log.error("Resource <{}> cannot be converted to a Package", packageURI, ex);
-            return null;
-        }
-    }
-
-    /**
-     * Resolves the descriptions of the packages imported by the application and returns their
-     * ontology URIs, ordered by package URI. Packages whose description cannot be resolved, or
-     * without an ontology (stylesheet-only), are skipped.
-     *
-     * @param app application resource
-     * @return list of package ontology URIs
-     */
-    public List<URI> getPackageOntologies(com.atomgraph.linkeddatahub.apps.model.Application app)
-    {
-        return app.getImportedPackages().stream().
-            filter(Resource::isURIResource).
-            map(Resource::getURI).
-            sorted().
-            map(this::getPackage).
-            filter(Objects::nonNull).
-            map(com.atomgraph.linkeddatahub.apps.model.Package::getOntology).
-            filter(Objects::nonNull).
-            map(ontology -> URI.create(ontology.getURI())).
-            collect(Collectors.toList());
+        return packageService;
     }
 
     /**

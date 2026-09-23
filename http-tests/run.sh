@@ -198,6 +198,73 @@ function initialize_dataset()
       "$3" > /dev/null
 }
 
+# Packages are declared in the application's settings, and no dataset restore touches those: the import
+# set is the one piece of application state a test can change and leave behind. It is also the most
+# consequential, since a package changes how every document renders and which constraints a write is
+# held to - a leaked import turned one failing test into two, the second dying on a 422 from a
+# constraint the package brought with it. Removing every ldh:import here means a test cannot poison the
+# next one, and none has to remember to clean up after itself.
+#
+# Unconditional rather than restored from a snapshot: the suite tests the committed configuration,
+# which declares no packages. A deployment whose own config declares one loses it for the run and gets
+# it back on the next restart.
+#
+# Read first, and PATCH only when there is something to remove: a settings PATCH clears and rebuilds
+# the imports closure on the way through, which is not a cost worth paying 210 times for a no-op.
+function reset_packages()
+{
+    local settings code
+    settings=$(curl -k -s -w '\n%{http_code}' \
+      -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+      -H "Accept: application/n-triples" \
+      "${END_USER_BASE_URL}settings")
+    code="${settings##*$'\n'}"
+
+    if [ "$code" != "200" ]; then
+        echo "DEBUG: reset_packages: GET ${END_USER_BASE_URL}settings returned $code" >&2
+        return 1
+    fi
+    if ! grep -q 'linkeddatahub#import' <<< "$settings"; then
+        return 0
+    fi
+
+    code=$(curl -k -s -o /dev/null -w "%{http_code}" \
+      -X PATCH \
+      -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+      -H "Content-Type: application/sparql-update" \
+      -d "DELETE { ?app <https://w3id.org/atomgraph/linkeddatahub#import> ?package } WHERE { ?app <https://w3id.org/atomgraph/linkeddatahub#import> ?package }" \
+      "${END_USER_BASE_URL}settings")
+
+    if [ "$code" != "204" ]; then
+        echo "DEBUG: reset_packages: PATCH ${END_USER_BASE_URL}settings returned $code" >&2
+        return 1
+    fi
+}
+
+# Empties the platform's in-JVM graph cache and every assembled imports closure. The datasets and the
+# Varnish layers are the other two caches a test restores; this is the third, and the only one a test
+# could not reach before /clear stopped requiring an ontology URI. Without it, a graph the repository
+# cached under a vocabulary URI survives the dataset being replaced and answers for the next test.
+# No URI is passed on purpose: nothing needs reloading here, and the closures rebuild lazily.
+function clear_ontology()
+{
+    # An empty form body, not a bodyless POST. /clear is @Consumes(APPLICATION_FORM_URLENCODED), and a
+    # request carrying no Content-Type fails it before the method is reached - measured as a 500, which
+    # under curl -f aborted every test in the suite with no output at all. Hence also the code check:
+    # a helper every test depends on has to say what went wrong rather than end it silently.
+    local code
+    code=$(curl -k -s -o /dev/null -w "%{http_code}" \
+      -X POST \
+      -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+      --data "" \
+      "${ADMIN_BASE_URL}clear")
+
+    if [[ ! "$code" =~ ^(200|204)$ ]]; then
+        echo "DEBUG: clear_ontology: POST ${ADMIN_BASE_URL}clear returned $code" >&2
+        return 1
+    fi
+}
+
 function purge_cache()
 {
     local service_name="$1"
@@ -226,6 +293,8 @@ printf "### Secretary agent URI: %s\n" "$SECRETARY_URI"
 
 export -f initialize_dataset
 export -f purge_cache
+export -f reset_packages
+export -f clear_ontology
 
 export HTTP_TEST_ROOT="$PWD"
 export TEST_RESULTS_DIR="${TEST_RESULTS_DIR:-$HTTP_TEST_ROOT/out}"

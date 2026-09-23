@@ -93,6 +93,12 @@ ARG CLIENT_STYLESHEET=/static/com/atomgraph/linkeddatahub/xsl/client.xsl
 # mounted under /static/sitemaps, where WEB-INF/rewrite.config sends the requests for them
 ARG SITEMAP_ROOT=/var/www/linkeddatahub/sitemaps
 
+# an imported package's stylesheet is copied here and served from the application's own origin, so it
+# resolves like every other stylesheet the platform compiles: an absolute URL under /static/ that never
+# leaves the container. Outside the WAR for the same reason as the others - a copy taken at import
+# outlives a redeploy, and nothing an application imports is baked into the packaged application
+ARG PACKAGE_ROOT=/var/www/linkeddatahub/packages
+
 ENV SOURCE_COMMIT=$SOURCE_COMMIT
 
 WORKDIR $CATALINA_HOME
@@ -110,6 +116,8 @@ ENV SEF_COMPILER=$SEF_COMPILER
 ENV CLIENT_STYLESHEET=$CLIENT_STYLESHEET
 
 ENV SITEMAP_ROOT=$SITEMAP_ROOT
+
+ENV PACKAGE_ROOT=$PACKAGE_ROOT
 
 ENV PROXY_HOST=
 
@@ -286,6 +294,8 @@ RUN useradd --no-log-init -U ldh && \
     chown -R ldh:ldh "$SEF_ROOT" && \
     mkdir -p "$SITEMAP_ROOT" && \
     chown -R ldh:ldh "$SITEMAP_ROOT" && \
+    mkdir -p "$PACKAGE_ROOT" && \
+    chown -R ldh:ldh "$PACKAGE_ROOT" && \
     mkdir -p /etc/letsencrypt/staging && \
     chown -R ldh:ldh /etc/letsencrypt/staging
 

@@ -3,6 +3,7 @@
 /.env
 /uploads
 /sef
+/packages
 /nb-configuration.xml
 /node
 /node_modules

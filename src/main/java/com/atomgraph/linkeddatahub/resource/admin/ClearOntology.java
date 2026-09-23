@@ -22,7 +22,6 @@ import com.atomgraph.linkeddatahub.server.filter.response.CacheInvalidationFilte
 import com.atomgraph.linkeddatahub.server.util.OntologyRepository;
 import java.net.URI;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.HeaderParam;
@@ -64,9 +63,14 @@ public class ClearOntology
     }
     
     /**
-     * Clears the specified ontology from memory.
-     * 
-     * @param ontologyURI ontology URI
+     * Clears this application's cached graphs and every assembled imports closure from memory.
+     *
+     * With an ontology URI, the proxy caches for it are purged as well and its closure is reassembled
+     * before the response returns, so the next request already reads the new version. Without one,
+     * nothing is reassembled and the closures rebuild lazily - which is what a caller wanting only a
+     * cold cache, such as a test harness, should ask for.
+     *
+     * @param ontologyURI ontology URI, or null to clear without reloading anything
      * @param referer the referring URL
      * @return JAX-RS response
      */
@@ -74,8 +78,6 @@ public class ClearOntology
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response post(@FormParam("uri") String ontologyURI, @HeaderParam("Referer") URI referer)
     {
-        if (ontologyURI == null) throw new BadRequestException("Ontology URI not specified");
-
         // resolve both apps regardless of which one the request matched: /clear is admin, but Settings
         // delegates here on the end-user app (its PATCH origin), and both backends need purging either way
         final EndUserApplication endUserApp;
@@ -91,47 +93,72 @@ public class ClearOntology
             adminApp = endUserApp.getAdminApplication();
         }
         OntologyRepository repository = getSystem().getRepository(endUserApp);
-        if (repository.isCached(ontologyURI) || getSystem().getOntologyGraphs().containsKey(ontologyURI))
-        {
-            if (log.isDebugEnabled()) log.debug("Clearing ontology with URI '{}' from memory", ontologyURI);
-            repository.remove(ontologyURI);
-            getSystem().getOntologyGraphs().remove(ontologyURI);
 
+        // The request-scoped app is a snapshot ApplicationFilter captured before Settings.updateApp swapped
+        // the context dataset copy-on-write, so on a PATCH /settings that just added an ldh:import its import
+        // set is stale. Re-read from the current dataspace model, which reads the volatile contextDataset fresh
+        com.atomgraph.linkeddatahub.apps.model.Application currentApp = getSystem().getDataspaceModel(endUserApp).getResource(endUserApp.getURI()).as(com.atomgraph.linkeddatahub.apps.model.Application.class);
+
+        // A package's ontology becomes editable by being copied into this application's own ontologies
+        // container. Above the cache guard on purpose: the guard skips everything when the ontology was never
+        // loaded, which is every cold start, and materializing has to happen there too. Idempotent, and a
+        // failure leaves the package resolving to its bundled copy read-only, as before this existed
+        getSystem().getPackageService().materialize(currentApp, endUserApp);
+
+        // Everything cached goes, not the keys derived from this one URI. Assembling a closure resolves and
+        // caches every URI it imports - vocabularies, package ontologies - and those were evicted by nothing,
+        // so a graph outlived the document it came from and kept answering until the JVM restarted. A tracked
+        // set of what a closure resolved would be correct only as far as the set is, and an incomplete one
+        // fails silently, which is the failure this replaces. A clear is explicit, owner-only and rare
+        if (log.isDebugEnabled()) log.debug("Clearing the graph cache of application <{}>", endUserApp.getURI());
+        repository.clear();
+        // the union graphs are keyed by ontology URI in a map the whole webapp shares, and an application
+        // contributes more than one: ClearOntology caches a union under whatever URI was posted, and the
+        // constructor editor posts a document URI. So there is no key that means "this application's union",
+        // and the unions built over the graphs just discarded have to go with them. Other dataspaces rebuild
+        // on their next request from a repository still warm, which is wasted work rather than staleness
+        getSystem().getOntologyGraphs().clear();
+
+        // Emptying the JVM caches is only half a clear: the closures rebuild by re-querying the admin SPARQL
+        // endpoint, and that read goes through the backend proxy, which was left holding everything it had, so
+        // the rebuild pulls the discarded graphs straight back in. Purging the key of the one ontology named
+        // here would not cover it, for the same reason the graph cache above is emptied wholesale rather than
+        // by key: assembling a closure resolves every URI it imports, each cached under its own graph URI.
+        // Hence the shared key every ontology response also carries - one purge, every ontology response, and
+        // nothing else, which a URL ban of this proxy could not manage since it fronts the store itself and
+        // holds every other read the platform makes. Measured: a vocabulary's document deleted and /clear
+        // posted, and the closure came back still holding the deleted graph, served by the proxy rather than
+        // by the store. Unconditional, because the reload below re-reads every import too, and refilling a
+        // warm JVM with a stale answer is worse than rebuilding lazily from a cold one
+        URI adminBackendProxy = getSystem().getServiceContext(adminApp.getService()).getBackendProxy();
+        if (adminBackendProxy != null)
+        {
+            // A URL-pattern BAN cannot single these out: on a SPARQL proxy every req.url is /ds/?query=...,
+            // which never contains the ontology URI, and that is why ontology reloads were reading stale
+            // CONSTRUCTs before any of this existed. The xkey index is the only handle on them
+            if (log.isDebugEnabled()) log.debug("XKEY-PURGE every ontology response from the admin backend proxy cache");
+            xkeyPurge(adminBackendProxy, OntologyRepository.ONTOLOGY_XKEY);
+        }
+
+        if (ontologyURI != null)
+        {
             URI ontologyDocURI = UriBuilder.fromUri(ontologyURI).fragment(null).build(); // skip fragment from the ontology URI to get its graph URI
-            repository.remove(ontologyDocURI.toString()); // the raw graph is also aliased under the fragment-stripped document URI
-            // frontend proxy still uses URL-pattern BAN for direct document GETs (until Stage 3 brings xkey tagging to varnish-frontend).
-            // xkey purge covers proxied SPARQL CONSTRUCT/SELECT responses tagged by their backend (varnish-admin / varnish-end-user).
+            // the frontend caches whole documents rather than SPARQL responses and carries no xkey tags, so the
+            // ontology document is evicted there by URL pattern (until Stage 3 brings xkey tagging to varnish-frontend)
             URI frontendProxy = getSystem().getFrontendProxy();
             if (frontendProxy != null)
             {
                 if (log.isDebugEnabled()) log.debug("Purge ontology document with URI '{}' from frontend proxy cache", ontologyDocURI);
                 ban(frontendProxy, ontologyDocURI.toString(), false);
             }
-            URI adminBackendProxy = getSystem().getServiceContext(adminApp.getService()).getBackendProxy();
-            if (adminBackendProxy != null)
-            {
-                // URL-pattern BAN of the ontology URI is a no-op on the SPARQL proxy (its req.url namespace is /ds/?query=...,
-                // never containing the ontology URI as path), which is exactly why ontology reloads were getting stale CONSTRUCTs.
-                // xkey-purge of the same tag set by OntologyModelGetter's X-Xkey-Promote is what actually invalidates here.
-                if (log.isDebugEnabled()) log.debug("XKEY-PURGE ontology with URI '{}' from admin backend proxy cache", ontologyURI);
-                xkeyPurge(adminBackendProxy, ontologyURI);
-            }
-            URI endUserBackendProxy = getSystem().getServiceContext(endUserApp.getService()).getBackendProxy();
-            if (endUserBackendProxy != null)
-            {
-                // same reasoning as adminBackendProxy above. End-user proxy xkey-purge is no-op until Stage 2 lights up its VCL.
-                if (log.isDebugEnabled()) log.debug("XKEY-PURGE ontology with URI '{}' from end-user backend proxy cache", ontologyURI);
-                xkeyPurge(endUserBackendProxy, ontologyURI);
-            }
-            
+
             // !!! we need to reload the ontology model before returning a response, to make sure the next request already gets the new version !!!
             // The request-scoped endUserApp is a snapshot ApplicationFilter captured before Settings.updateApp
             // swapped the context dataset copy-on-write, so on a PATCH /settings that just added an ldh:import
             // its import set is stale. Re-read the app from the current (post-write) dataspace model -
             // getDataspaceModel reads the volatile contextDataset fresh, keyed by URI - so the rebuilt closure
             // reflects the persisted import set rather than the pre-write snapshot.
-            com.atomgraph.linkeddatahub.apps.model.Application currentApp = getSystem().getDataspaceModel(endUserApp).getResource(endUserApp.getURI()).as(com.atomgraph.linkeddatahub.apps.model.Application.class);
-            getSystem().getOntologyGraphs().put(ontologyURI, OntologyFilter.loadOntology(repository, ontologyURI, getSystem().getPackageOntologies(currentApp)));
+            getSystem().getOntologyGraphs().put(ontologyURI, OntologyFilter.loadOntology(repository, ontologyURI, getSystem().getPackageService().getOntologies(currentApp)));
         }
         
         if (referer != null) return Response.seeOther(referer).build();

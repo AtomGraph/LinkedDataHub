@@ -155,7 +155,11 @@ public class Settings
         // clear and reload the ontology so the next request re-derives with the updated ldh:import set.
         // Delegate to ClearOntology (context-agnostic) for the full eviction - repository graph + closure
         // union + proxy cache purges - rather than duplicating it: clearing only the in-memory caches
-        // would leave stale /ns SPARQL responses in varnish after a package add/remove
+        // would leave stale /ns SPARQL responses in varnish after a package add/remove.
+        // This call does not re-enter the JAX-RS filter chain, so /clear's own authorization is NOT
+        // evaluated again: what guarded it is the authorization on this PATCH. Both are owner-only today
+        // (acl/groups/owners/#this in admin.trig), so they agree - but widening the settings ACL would
+        // widen the clear with it, silently, without touching /clear or any of its tests
         if (getApplication().getOntology() != null)
             getResourceContext().getResource(ClearOntology.class).post(getApplication().getOntology().getURI(), null);
 

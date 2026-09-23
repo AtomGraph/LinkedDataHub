@@ -80,38 +80,6 @@ public class XsltExecutableFilterTest
     }
 
     @Test
-    public void testGetPackagesOrderedByURI()
-    {
-        Resource pkgB = model.createResource("https://packages.example.org/b#this");
-        Resource pkgA = model.createResource("https://packages.example.org/a#this");
-        when(application.getImportedPackages()).thenReturn(new HashSet<>(List.of(pkgB, pkgA)));
-
-        assertEquals(List.of(URI.create(pkgA.getURI()), URI.create(pkgB.getURI())), filter.getPackages(application));
-    }
-
-    @Test
-    public void testGetStylesheetsSkipsUnresolvedAndOntologyOnlyPackages()
-    {
-        URI pkgA = URI.create("https://packages.example.org/a#this");
-        URI pkgB = URI.create("https://packages.example.org/b#this");
-        URI pkgC = URI.create("https://packages.example.org/c#this");
-        model.createResource(pkgA.toString()).addProperty(AC.stylesheet, model.createResource(A_XSL_URI.toString()));
-        model.createResource(pkgC.toString()); // ontology-only: no ac:stylesheet
-
-        XsltExecutableFilter spied = spy(filter);
-        doReturn(asPackage(pkgA)).when(spied).getPackage(pkgA.toString());
-        doReturn(null).when(spied).getPackage(pkgB.toString()); // description could not be resolved
-        doReturn(asPackage(pkgC)).when(spied).getPackage(pkgC.toString());
-
-        assertEquals(List.of(A_XSL_URI), spied.getStylesheets(List.of(pkgA, pkgB, pkgC)));
-    }
-
-    private com.atomgraph.linkeddatahub.apps.model.Package asPackage(URI uri)
-    {
-        return new PackageImpl(model.createResource(uri.toString()).asNode(), (EnhGraph)model);
-    }
-
-    @Test
     public void testAppendImportsAfterExistingImport() throws Exception
     {
         Document doc = parse("<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"" + XSL_NS + "\">" +

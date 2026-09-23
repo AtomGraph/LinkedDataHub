@@ -113,7 +113,6 @@ public class ClientStylesheetService
     private final Path sefRoot;
     private final URI compilerURI;
     private final Client client;
-    private final com.atomgraph.client.util.jena.PrefixGraphRepository repository;
     private final URL clientStylesheet;
     private final URL stockStylesheet;
     private final String baseDigest;
@@ -129,18 +128,16 @@ public class ClientStylesheetService
      * @param sefRoot directory holding compiled stylesheets
      * @param compilerURI URI of the compiler service's compile endpoint
      * @param client HTTP client
-     * @param repository graph repository, consulted for bundled package locations
      * @param clientStylesheet the client stylesheet the page bootstraps, composed with the packages on every build - the stock one unless the deployment names its own
      * @param stockStylesheet the client stylesheet source built into the webapp, the module that carries the package marker
      * @param stockSEF stream of the stylesheet built into the webapp, digested as the platform fingerprint
      * @throws IOException if a stylesheet cannot be read or the SEF root cannot be scanned
      */
-    public ClientStylesheetService(Path sefRoot, URI compilerURI, Client client, com.atomgraph.client.util.jena.PrefixGraphRepository repository, URL clientStylesheet, URL stockStylesheet, InputStream stockSEF) throws IOException
+    public ClientStylesheetService(Path sefRoot, URI compilerURI, Client client, URL clientStylesheet, URL stockStylesheet, InputStream stockSEF) throws IOException
     {
         this.sefRoot = sefRoot;
         this.compilerURI = compilerURI;
         this.client = client;
-        this.repository = repository;
         this.clientStylesheet = clientStylesheet;
         this.stockStylesheet = stockStylesheet;
         this.baseDigest = digest(stockSEF);
@@ -509,19 +506,6 @@ public class ClientStylesheetService
      */
     public String expandEntities(URI stylesheet)
     {
-        // a bundled package's stylesheet never leaves the JVM: its URI is mapped to a classpath file,
-        // which is also why that URI does not have to resolve over the network at all
-        if (getRepository() != null && getRepository().isMapped(stylesheet.toString()))
-            try (InputStream is = getClass().getClassLoader().getResourceAsStream(getRepository().resolve(stylesheet.toString())))
-            {
-                if (is == null) throw new IllegalStateException("Bundled package stylesheet <" + stylesheet + "> not found on the classpath");
-                return expandEntities(is, stylesheet);
-            }
-            catch (IOException ex)
-            {
-                throw new IllegalStateException("Could not read bundled package stylesheet <" + stylesheet + ">", ex);
-            }
-
         try (Response cr = getClient().target(stylesheet).request(com.atomgraph.linkeddatahub.MediaType.TEXT_XSL_TYPE).get())
         {
             if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
@@ -564,16 +548,6 @@ public class ClientStylesheetService
         {
             throw new IllegalStateException("Could not expand entities of package stylesheet <" + systemId + ">", ex);
         }
-    }
-
-    /**
-     * Returns the graph repository, or null when none was supplied.
-     *
-     * @return repository
-     */
-    public com.atomgraph.client.util.jena.PrefixGraphRepository getRepository()
-    {
-        return repository;
     }
 
     private String digest(InputStream is) throws IOException

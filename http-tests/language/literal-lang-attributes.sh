@@ -1,14 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+initialize_dataset "$END_USER_BASE_URL" "$TMP_END_USER_DATASET" "$END_USER_ENDPOINT_URL"
+initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
+purge_cache "$END_USER_VARNISH_SERVICE"
+purge_cache "$ADMIN_VARNISH_SERVICE"
+purge_cache "$FRONTEND_VARNISH_SERVICE"
+reset_packages
+clear_ontology
+
 # RDF carries language per literal, HTML per element, so every rendered value declares its own rather than inheriting the
 # document's. A property renders every language it has, side by side, and the root value is wrong for at least one of them:
 # without this a screen reader says "Square" with Lithuanian phonetics and "Aikštė" with an English voice. An untagged
 # literal makes no language claim at all, which HTML spells lang="" - the exact counterpart of RDF's absent tag - while a
 # number is not prose and inherits, so it is read out in the reader's own language.
-
-purge_cache "$END_USER_VARNISH_SERVICE"
-purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 slug=$(uuidgen | tr '[:upper:]' '[:lower:]')
 doc_url="${END_USER_BASE_URL}${slug}/"

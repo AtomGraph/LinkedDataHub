@@ -52,9 +52,9 @@ public class OntologyClosureCIReproTest
     {
         PrefixGraphRepository repository = new PrefixGraphRepository(null);
 
-        // real bundled mappings
+        // real bundled mappings (prefix-mapping.ttl is the file the webapp loads, see web.xml)
         Model mappingModel = ModelFactory.createDefaultModel();
-        RDFParser.create().source("location-mapping.ttl").streamManager(repository.getStreamManager()).build().parse(mappingModel);
+        RDFParser.create().source("prefix-mapping.ttl").streamManager(repository.getStreamManager()).build().parse(mappingModel);
         repository.processConfig(mappingModel);
 
         // mimic SPARQL-first load result: the ldh# vocabulary as a store graph

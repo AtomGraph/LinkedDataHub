@@ -105,6 +105,7 @@ services:
       - ./datasets/secretary:/var/linkeddatahub/datasets/secretary
       - ./uploads:/var/www/linkeddatahub/uploads
       - ./sef:/var/www/linkeddatahub/sef
+      - ./packages:/var/www/linkeddatahub/packages
       - ./config/dev.log4j.properties:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/log4j.properties:ro
       - ./config/dataspaces.trig:/var/linkeddatahub/datasets/dataspaces.trig
       - ./config/system.trig:/var/linkeddatahub/datasets/system.trig

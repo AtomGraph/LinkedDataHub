@@ -12,7 +12,6 @@
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY a      "https://w3id.org/atomgraph/core#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-    <!ENTITY xhv    "http://www.w3.org/1999/xhtml/vocab#">
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY owl    "http://www.w3.org/2002/07/owl#">
@@ -24,7 +23,6 @@
     <!ENTITY cert   "http://www.w3.org/ns/auth/cert#">
     <!ENTITY sh     "http://www.w3.org/ns/shacl#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
-    <!ENTITY c      "https://www.w3.org/ns/ldt/core/domain#">
     <!ENTITY ct     "https://www.w3.org/ns/ldt/core/templates#">
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
@@ -32,8 +30,6 @@
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
     <!ENTITY sp     "http://spinrdf.org/sp#">
     <!ENTITY spin   "http://spinrdf.org/spin#">
-    <!ENTITY spl    "http://spinrdf.org/spl#">
-    <!ENTITY void   "http://rdfs.org/ns/void#">
     <!ENTITY nfo    "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#">
     <!ENTITY schema "https://schema.org/">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
@@ -52,7 +48,6 @@ xmlns:ldh="&ldh;"
 xmlns:ldhc="&ldhc;"
 xmlns:ldht="&ldht;"
 xmlns:rdf="&rdf;"
-xmlns:xhv="&xhv;"
 xmlns:rdfs="&rdfs;"
 xmlns:owl="&owl;"
 xmlns:http="&http;"
@@ -60,15 +55,12 @@ xmlns:acl="&acl;"
 xmlns:cert="&cert;"
 xmlns:sd="&sd;"
 xmlns:sh="&sh;"
-xmlns:core="&c;"
 xmlns:dh="&dh;"
 xmlns:dct="&dct;"
 xmlns:foaf="&foaf;"
 xmlns:sioc="&sioc;"
 xmlns:spin="&spin;"
 xmlns:sp="&sp;"
-xmlns:spl="&spl;"
-xmlns:void="&void;"
 xmlns:nfo="&nfo;"
 xmlns:geo="&geo;"
 xmlns:srx="&srx;"
@@ -109,26 +101,28 @@ exclude-result-prefixes="#all">
     <xsl:param name="ldh:renderSystemResources" select="false()" as="xs:boolean"/>
     <xsl:param name="google:clientID" as="xs:string?"/>
     <xsl:param name="orcid:clientID" as="xs:string?"/>
-    <!-- the ontologies the client resolves through the proxy rather than over the network; every one
-         is fetched by the same recipe, so the list is data and the entry is written once -->
     <!-- the application this origin resolves to, as described in the system context -->
     <xsl:function name="lapp:application-description" as="element()*">
         <xsl:sequence select="key('apps-by-origin', lapp:origin(), $lapp:Context)"/>
     </xsl:function>
 
+    <!-- The client-side half of prefix-mapping.ttl: each namespace here is resolved through the ?uri= proxy
+         rather than over the network. Keep the two lists in step - a namespace dropped from the mapping file
+         and left here asks the proxy for something the server no longer maps. A namespace earns a place by
+         being imported by a system ontology or used by the stylesheets. -->
     <xsl:param name="ontology-namespaces" as="xs:anyURI*" select="(
         xs:anyURI('&ac;'), xs:anyURI('&adm;'), xs:anyURI('&lacl;'),
         xs:anyURI('&lapp;'), xs:anyURI('&ldh;'), xs:anyURI('&def;'),
         xs:anyURI('&dh;'), xs:anyURI('&sp;'), xs:anyURI('&spin;'),
         xs:anyURI('&rdf;'), xs:anyURI('&rdfs;'), xs:anyURI('&owl;'),
         xs:anyURI('&acl;'), xs:anyURI('&sd;'), xs:anyURI('&sh;'),
-        xs:anyURI('&nfo;'), xs:anyURI('http://www.semanticdesktop.org/ontologies/2007/01/19/nie#'), xs:anyURI('&http;'),
-        xs:anyURI('&sc;'), xs:anyURI('&ldt;'), xs:anyURI('&c;'),
-        xs:anyURI('&sioc;'), xs:anyURI('&void;'), xs:anyURI('&foaf;'),
-        xs:anyURI('&spl;'), xs:anyURI('&cert;'), xs:anyURI('http://www.w3.org/ns/prov#'),
-        xs:anyURI('&geo;'), xs:anyURI('http://www.w3.org/2004/02/skos/core#'), xs:anyURI('http://www.w3.org/2006/time#'),
-        xs:anyURI('http://purl.org/dc/elements/1.1/'), xs:anyURI('&dct;'), xs:anyURI('http://purl.org/dc/dcmitype/'),
-        xs:anyURI('http://purl.org/goodrelations/v1#'), xs:anyURI('http://usefulinc.com/ns/doap#')
+        xs:anyURI('&nfo;'), xs:anyURI('&http;'),
+        xs:anyURI('&sc;'), xs:anyURI('&ldt;'),
+        xs:anyURI('&sioc;'), xs:anyURI('&foaf;'),
+        xs:anyURI('&cert;'), xs:anyURI('http://www.w3.org/ns/prov#'),
+        xs:anyURI('&geo;'), xs:anyURI('http://www.w3.org/2004/02/skos/core#'),
+        xs:anyURI('http://purl.org/dc/elements/1.1/'), xs:anyURI('&dct;'),
+        xs:anyURI('http://usefulinc.com/ns/doap#')
     )"/>
 
     <xsl:param name="location-mapping" as="map(xs:anyURI, xs:anyURI)">

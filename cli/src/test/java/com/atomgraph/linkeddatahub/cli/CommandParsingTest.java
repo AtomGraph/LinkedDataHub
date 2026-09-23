@@ -79,6 +79,20 @@ public class CommandParsingTest
         assertTrue(admin.getSubcommands().get("import").getSubcommands().containsKey("ontology"));
     }
 
+    /**
+     * Clearing takes no ontology: the cache is emptied either way, and the URI only says what to reload
+     * afterwards. A caller that wants a cold cache and nothing rebuilt asks for exactly that.
+     */
+    @Test
+    public void clearOntologyTakesNoRequiredOption()
+    {
+        CommandLine clear = commandLine().getSubcommands().get("admin").
+            getSubcommands().get("clear").getSubcommands().get("ontology");
+
+        assertTrue(clear.getCommandSpec().options().stream().
+            noneMatch(option -> option.required() && List.of(option.names()).contains("--ontology")));
+    }
+
     @Test
     public void missingRequiredOptionIsUsageError()
     {
