@@ -22,7 +22,6 @@ import com.atomgraph.linkeddatahub.server.filter.response.CacheInvalidationFilte
 import com.atomgraph.linkeddatahub.server.util.OntologyRepository;
 import java.net.URI;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.HeaderParam;
@@ -64,9 +63,14 @@ public class ClearOntology
     }
     
     /**
-     * Clears the specified ontology from memory.
-     * 
-     * @param ontologyURI ontology URI
+     * Clears this application's cached graphs and every assembled imports closure from memory.
+     *
+     * With an ontology URI, the proxy caches for it are purged as well and its closure is reassembled
+     * before the response returns, so the next request already reads the new version. Without one,
+     * nothing is reassembled and the closures rebuild lazily - which is what a caller wanting only a
+     * cold cache, such as a test harness, should ask for.
+     *
+     * @param ontologyURI ontology URI, or null to clear without reloading anything
      * @param referer the referring URL
      * @return JAX-RS response
      */
@@ -74,8 +78,6 @@ public class ClearOntology
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response post(@FormParam("uri") String ontologyURI, @HeaderParam("Referer") URI referer)
     {
-        if (ontologyURI == null) throw new BadRequestException("Ontology URI not specified");
-
         // resolve both apps regardless of which one the request matched: /clear is admin, but Settings
         // delegates here on the end-user app (its PATCH origin), and both backends need purging either way
         final EndUserApplication endUserApp;
@@ -103,14 +105,23 @@ public class ClearOntology
         // failure leaves the package resolving to its bundled copy read-only, as before this existed
         getSystem().getPackageService().materialize(currentApp, endUserApp);
 
-        if (repository.isCached(ontologyURI) || getSystem().getOntologyGraphs().containsKey(ontologyURI))
-        {
-            if (log.isDebugEnabled()) log.debug("Clearing ontology with URI '{}' from memory", ontologyURI);
-            repository.remove(ontologyURI);
-            getSystem().getOntologyGraphs().remove(ontologyURI);
+        // Everything cached goes, not the keys derived from this one URI. Assembling a closure resolves and
+        // caches every URI it imports - vocabularies, package ontologies - and those were evicted by nothing,
+        // so a graph outlived the document it came from and kept answering until the JVM restarted. A tracked
+        // set of what a closure resolved would be correct only as far as the set is, and an incomplete one
+        // fails silently, which is the failure this replaces. A clear is explicit, owner-only and rare
+        if (log.isDebugEnabled()) log.debug("Clearing the graph cache of application <{}>", endUserApp.getURI());
+        repository.clear();
+        // the union graphs are keyed by ontology URI in a map the whole webapp shares, and an application
+        // contributes more than one: ClearOntology caches a union under whatever URI was posted, and the
+        // constructor editor posts a document URI. So there is no key that means "this application's union",
+        // and the unions built over the graphs just discarded have to go with them. Other dataspaces rebuild
+        // on their next request from a repository still warm, which is wasted work rather than staleness
+        getSystem().getOntologyGraphs().clear();
 
+        if (ontologyURI != null)
+        {
             URI ontologyDocURI = UriBuilder.fromUri(ontologyURI).fragment(null).build(); // skip fragment from the ontology URI to get its graph URI
-            repository.remove(ontologyDocURI.toString()); // the raw graph is also aliased under the fragment-stripped document URI
             // frontend proxy still uses URL-pattern BAN for direct document GETs (until Stage 3 brings xkey tagging to varnish-frontend).
             // xkey purge covers proxied SPARQL CONSTRUCT/SELECT responses tagged by their backend (varnish-admin / varnish-end-user).
             URI frontendProxy = getSystem().getFrontendProxy();

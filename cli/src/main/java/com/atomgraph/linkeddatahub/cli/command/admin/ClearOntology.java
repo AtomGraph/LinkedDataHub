@@ -26,19 +26,25 @@ import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 
 /**
- * Clears an ontology from memory so it gets reloaded. Mirrors <code>bin/admin/clear-ontology.sh</code>.
+ * Clears the application's cached graphs and assembled imports closures from memory.
+ * Mirrors <code>bin/admin/clear-ontology.sh</code>.
+ *
+ * With <code>--ontology</code> the named ontology is also reloaded before the response returns, so the
+ * next request already reads the new version. Without it nothing is reloaded and the closures rebuild
+ * lazily, which is what a caller wanting only a cold cache should ask for.
+ *
  * The base URI is the base of the <em>admin</em> application.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "ontology", description = "Clears an ontology from memory and reloads it.")
+@Command(name = "ontology", description = "Clears cached graphs and imports closures from memory, reloading the named ontology if one is given.")
 public class ClearOntology extends BaseCommand
 {
 
     @Mixin
     private BaseMixin baseMixin;
 
-    @Option(names = "--ontology", required = true, paramLabel = "ONTOLOGY_URI", description = "URI of the ontology")
+    @Option(names = "--ontology", paramLabel = "ONTOLOGY_URI", description = "URI of the ontology to reload after clearing; without it nothing is reloaded")
     private URI ontology;
 
     @Override
@@ -46,8 +52,9 @@ public class ClearOntology extends BaseCommand
     {
         URI base = baseMixin.require(getSpec());
         URI target = URI.create(base + "clear");
+        Form form = ontology != null ? new Form("uri", ontology.toString()) : new Form();
 
-        printBody(HttpException.check(target, getClient().postForm(target, new Form("uri", ontology.toString()), ACCEPT_TURTLE)));
+        printBody(HttpException.check(target, getClient().postForm(target, form, ACCEPT_TURTLE)));
 
         return 0;
     }

@@ -76,6 +76,7 @@ Bootstrap 2 is gone, and with it the class vocabulary and the `bs2:` template mo
 - An import test declares a stylesheet-only package described on the instance and requires the settings `PATCH` and the first render to answer within 30 s
 
 ### Changed
+- `POST /clear` takes an optional `uri`: without one it empties the cache and reloads nothing, with one it also purges that URI's proxy caches and reassembles its closure before responding. `ldh admin clear ontology --ontology` is optional to match
 - **BREAKING**: the bundled package `https://packages.linkeddatahub.com/skos/#this` becomes `https://packages.linkeddatahub.com/editor/taxonomy/#this` and its stylesheet `skos.xsl`; an `ldh:import` naming the old URI resolves to nothing and must be re-declared
 - **BREAKING**: `ldh` commands regroup by verb, dropping the `bin/` mirror: `create`, `add` and `remove` groups (`ldh create item`, `ldh add view`, `ldh remove block`), `import` for the composite workflows, `admin` for the admin scope; `cli/README.md` maps every old name
 - `<html lang>` is taken from the `Content-Language` the response carries, so header and document agree by construction
@@ -148,6 +149,7 @@ Bootstrap 2 is gone, and with it the class vocabulary and the `bs2:` template mo
 - `ac:ConstructMode` from both ontologies, its Create label becoming a catalog entry, and the `graphity.org` typeahead namespace
 
 ### Fixed
+- Clearing an ontology discards every cached graph and assembled closure, not just the keys derived from the URI it was given: a closure caches each URI it imports, so a vocabulary or package ontology kept answering from a document that had been edited or deleted until the container restarted
 - The sitemap covers every dataspace rather than the root one, and an origin is served its own: one file per host, generated against that dataspace's own services
 - The sitemap queries carry the service credentials, so a store that requires authentication no longer answers them 401
 - Sitemap generation no longer joins the admin service through SPARQL `SERVICE`, which an isolated store refuses; the public read rules are passed as `VALUES`, and a failed generation is logged instead of stopping the platform

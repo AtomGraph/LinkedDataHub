@@ -110,6 +110,27 @@ public class OntologyRepositoryTest
         assertTrue(result.contains(NodeFactory.createURI(ONTOLOGY_URI), RDFS.label.asNode(), NodeFactory.createLiteralString("from the store")));
     }
 
+    /**
+     * Clearing discards what the store supplied. The cache is keyed by ontology URI and outlives the
+     * document a graph came from - a dataset replaced wholesale, a document deleted, a constructor
+     * edited - so an eviction that missed these keys kept serving a document that no longer exists.
+     */
+    @Test
+    public void clearDiscardsStoreDerivedGraphs()
+    {
+        Model sparqlResult = ModelFactory.createDefaultModel();
+        sparqlResult.createResource(ONTOLOGY_URI).addProperty(RDF.type, OWL.Ontology);
+        stubSPARQLChain(sparqlResult);
+
+        OntologyRepository repository = new OntologyRepository(app, system, gsc, ONTOLOGY_QUERY);
+        repository.get(ONTOLOGY_URI);
+        assertTrue(repository.isCached(ONTOLOGY_URI), "the store result should have been cached");
+
+        repository.clear();
+
+        assertFalse(repository.isCached(ONTOLOGY_URI), "the cached graph should not survive a clear");
+    }
+
     /** An empty SPARQL result falls back to the Graph Store client (HTTP) load. */
     @Test
     public void testFallsBackToHttpWhenSPARQLEmpty()

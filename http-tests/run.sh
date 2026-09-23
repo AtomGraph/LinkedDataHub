@@ -198,6 +198,19 @@ function initialize_dataset()
       "$3" > /dev/null
 }
 
+# Empties the platform's in-JVM graph cache and every assembled imports closure. The datasets and the
+# Varnish layers are the other two caches a test restores; this is the third, and the only one a test
+# could not reach before /clear stopped requiring an ontology URI. Without it, a graph the repository
+# cached under a vocabulary URI survives the dataset being replaced and answers for the next test.
+# No URI is passed on purpose: nothing needs reloading here, and the closures rebuild lazily.
+function clear_ontology()
+{
+    curl -k -f -s \
+      -X POST \
+      -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+      "${ADMIN_BASE_URL}clear" > /dev/null
+}
+
 function purge_cache()
 {
     local service_name="$1"
@@ -226,6 +239,7 @@ printf "### Secretary agent URI: %s\n" "$SECRETARY_URI"
 
 export -f initialize_dataset
 export -f purge_cache
+export -f clear_ontology
 
 export HTTP_TEST_ROOT="$PWD"
 export TEST_RESULTS_DIR="${TEST_RESULTS_DIR:-$HTTP_TEST_ROOT/out}"
