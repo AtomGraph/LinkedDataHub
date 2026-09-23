@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+initialize_dataset "$END_USER_BASE_URL" "$TMP_END_USER_DATASET" "$END_USER_ENDPOINT_URL"
+initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
+purge_cache "$END_USER_VARNISH_SERVICE"
+purge_cache "$ADMIN_VARNISH_SERVICE"
+purge_cache "$FRONTEND_VARNISH_SERVICE"
+
 # Regression: ProxyRequestFilter's server-side fetch attaches On-Behalf-Of
 # (via WebIDDelegationFilter), and the backend response carries the asserted
 # agent's WebID in the Link header (acl#agent). varnish-frontend must not
@@ -8,10 +14,6 @@ set -euo pipefail
 # anonymous request to the same URL+Accept replays the cached 200 and reads
 # back the previous agent's identity (and inherits whatever ACL grant they
 # had).
-
-purge_cache "$END_USER_VARNISH_SERVICE"
-purge_cache "$ADMIN_VARNISH_SERVICE"
-purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 # Step A: authenticated owner fires a proxy request from the end-user
 # dataspace to the admin dataspace. This triggers WebIDDelegationFilter →

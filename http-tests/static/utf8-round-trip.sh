@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+initialize_dataset "$END_USER_BASE_URL" "$TMP_END_USER_DATASET" "$END_USER_ENDPOINT_URL"
+initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
+purge_cache "$END_USER_VARNISH_SERVICE"
+purge_cache "$ADMIN_VARNISH_SERVICE"
+purge_cache "$FRONTEND_VARNISH_SERVICE"
+
 # The bytes behind the charset are the ones the file was written with.
 #
 # content-type-charset.sh asserts what the response CLAIMS; this asserts what it delivers. The two

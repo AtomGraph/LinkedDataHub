@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+initialize_dataset "$END_USER_BASE_URL" "$TMP_END_USER_DATASET" "$END_USER_ENDPOINT_URL"
+initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
+purge_cache "$END_USER_VARNISH_SERVICE"
+purge_cache "$ADMIN_VARNISH_SERVICE"
+purge_cache "$FRONTEND_VARNISH_SERVICE"
+
 # A SELECT result set asked for as a document renders as the application shell with a results table in it, the same way an
 # RDF document does. What makes that worth pinning rather than assuming: the shell binds its content pane as="element()",
 # so a result set no ldh:TabPanel rule matches does not degrade to an unstyled page - the whole response becomes a 500.
@@ -10,9 +16,6 @@ set -euo pipefail
 # The query binds its own values, so what the table shows is a function of the query alone and the assertions hold against
 # any dataset. XHTML rather than text/html because the same rendering is then well-formed and can be queried with XPath;
 # text/html is asserted too, because that is the Accept a browser sends and the one the 500 was reported against.
-
-purge_cache "$END_USER_VARNISH_SERVICE"
-purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 query='SELECT ?s ?label WHERE { VALUES (?s ?label) { (<https://example.org/results-table> "Results table") } }'
 

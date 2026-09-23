@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+initialize_dataset "$END_USER_BASE_URL" "$TMP_END_USER_DATASET" "$END_USER_ENDPOINT_URL"
+initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
+purge_cache "$END_USER_VARNISH_SERVICE"
+purge_cache "$ADMIN_VARNISH_SERVICE"
+purge_cache "$FRONTEND_VARNISH_SERVICE"
+
 # Only a representation whose rendering depends on language gets labelled with one. An RDF representation is byte-identical
 # for every reader - its literals carry their own tags and none is dropped - so it is intended for all language audiences,
 # which RFC 9110 spells as no Content-Language at all.
-
-purge_cache "$END_USER_VARNISH_SERVICE"
-purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 headers()
 {
