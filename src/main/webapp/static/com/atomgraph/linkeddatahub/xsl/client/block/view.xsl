@@ -73,6 +73,17 @@ exclude-result-prefixes="#all"
              Empty for a saved view block; the query block fills it with its Create button -->
         <xsl:param name="form-actions" as="element()?"/>
 
+        <!-- ldh:showWhenEmpty false: the view stays out of the flow until its results say it has anything to
+             show. Its card is already in the DOM - client/block.xsl appended it and builds these factories in
+             the same turn, so nothing has painted yet - and it is shown again by ldh:RenderViewResults when the
+             first page comes back non-empty, or by ldh:show-view-block when the load fails instead of returning
+             results. Keyed on the data-* stamp, which only an injected view carries: a block authored into a
+             document declares the same property in its own RDFa, and hiding those would leave them defined in
+             the content flow but never rendered -->
+        <xsl:if test="$block/@data-show-when-empty = ('false', '0')">
+            <ixsl:set-style name="display" select="'none'" object="$block"/>
+        </xsl:if>
+
         <!-- create cache entry for the block -->
         <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block/@about || '`'))">
             <ixsl:set-property name="{'`' || $block/@about || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
@@ -186,6 +197,8 @@ exclude-result-prefixes="#all"
                     <xsl:sequence select="$context"/>
                 </xsl:when>
                 <xsl:otherwise>
+                    <xsl:sequence select="ldh:show-view-block($container)"/>
+
                     <xsl:sequence select="ldh:render-block-error($container, 'block-query-failed', ac:http-error-key($response?status), $endpoint, $response)"/>
 
                     <xsl:sequence select="ldh:end-block-loading($context, ())[current-date() lt xs:date('2000-01-01')]"/>
@@ -201,6 +214,19 @@ exclude-result-prefixes="#all"
                     "/>
                 </xsl:otherwise>
             </xsl:choose>
+        </xsl:for-each>
+    </xsl:function>
+
+    <!-- A view declaring ldh:showWhenEmpty false is injected hidden (ldh:ontology-view-insert, client/block.xsl)
+         and shown by ldh:RenderViewResults once its first page comes back non-empty. A view that fails never
+         reaches that point, so every failure path in this module shows it first: a failure body rendered into a
+         hidden card is a block that reports nothing at all. Keyed on the stamp that hid it, so a view that was
+         never hidden - a stored block, or one that shows when empty - is left as it is. -->
+    <xsl:function name="ldh:show-view-block" as="empty-sequence()" ixsl:updating="yes">
+        <xsl:param name="container" as="element()*"/>
+
+        <xsl:for-each select="$container/ancestor-or-self::div[contains-token(@class, 'block')][@data-show-when-empty][1]">
+            <ixsl:set-style name="display" select="''" object="."/>
         </xsl:for-each>
     </xsl:function>
 
@@ -2870,6 +2896,8 @@ exclude-result-prefixes="#all"
                                 <xsl:sequence select="map:merge((map{ 'block': $block }, $view-context))"/>
                             </xsl:when>
                             <xsl:otherwise>
+                                <xsl:sequence select="ldh:show-view-block($container)"/>
+
                                 <!-- the query document loaded (200); the service resource is simply absent from it, so there is no
                                      HTTP failure to report and passing $response here would head the detail with a misleading 'HTTP 200' -->
                                 <xsl:sequence select="ldh:render-block-error($container//div[contains-token(@class, 'main')], 'block-service-not-loaded', 'block-resource-not-described-explanation', $service-uri, ())"/>
@@ -2880,6 +2908,8 @@ exclude-result-prefixes="#all"
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>
+                    <xsl:sequence select="ldh:show-view-block($container)"/>
+
                     <xsl:sequence select="ldh:render-block-error($container//div[contains-token(@class, 'main')], 'block-query-not-loaded', ac:http-error-key($response?status), $query-uri, $response)"/>
 
                     <xsl:sequence select="ldh:end-block-loading($context, ())[current-date() lt xs:date('2000-01-01')]"/>
