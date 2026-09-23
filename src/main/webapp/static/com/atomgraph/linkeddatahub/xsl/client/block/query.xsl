@@ -88,7 +88,7 @@ exclude-result-prefixes="#all"
          that reading: this block keeps Save and Cancel as its exits -->
     <xsl:template match="div[contains-token(@class, 'block')][@about][descendant::textarea[contains-token(@class, 'sparql-query-string')]]" mode="ldh:DismissEditing" priority="1"/>
 
-<!--    <xsl:template name="onQueryServiceLoad">
+<!--    <xsl:template name="ldh:QueryServiceLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="forClass" as="xs:anyURI"/>
@@ -419,7 +419,7 @@ exclude-result-prefixes="#all"
         <!-- TO-DO: refactor as promise -->
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="$request">
-                <xsl:call-template name="onSPARQLResultsLoad">
+                <xsl:call-template name="ldh:SPARQLResultsLoad">
                     <xsl:with-param name="endpoint" select="$endpoint"/>
                     <xsl:with-param name="cache" select="$cache"/>
                     <xsl:with-param name="container" select="$container"/>
@@ -683,7 +683,7 @@ exclude-result-prefixes="#all"
     
     <!-- callbacks -->
     
-    <xsl:template name="onSPARQLResultsLoad">
+    <xsl:template name="ldh:SPARQLResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="cache" as="item()"/>

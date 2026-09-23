@@ -608,7 +608,7 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
-                <xsl:call-template name="onTypeGraphLoad">
+                <xsl:call-template name="ldh:TypeGraphLoad">
                     <xsl:with-param name="type" select="$type"/>
                     <xsl:with-param name="button-div" select="$button-div"/>
                 </xsl:call-template>
@@ -677,7 +677,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="request-uri" select="ldh:href($document-uri, map{})" as="xs:anyURI"/>
                     <xsl:variable name="request" as="item()*">
                         <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
-                            <xsl:call-template name="onConstructorUpdate">
+                            <xsl:call-template name="ldh:ConstructorUpdate">
                                 <xsl:with-param name="container" select="$container"/>
                                 <xsl:with-param name="constructor-uri" select="$constructor-uri"/>
                                 <xsl:with-param name="document-uri" select="$document-uri"/>
@@ -692,7 +692,7 @@ exclude-result-prefixes="#all"
     
     <!-- CALLBACKS -->
     
-    <xsl:template name="onConstructorUpdate">
+    <xsl:template name="ldh:ConstructorUpdate">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="constructor-uri" as="xs:anyURI"/>
@@ -727,7 +727,7 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
     
-    <xsl:template name="onTypeGraphLoad">
+    <xsl:template name="ldh:TypeGraphLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="type" as="xs:anyURI"/> <!-- the URI of the class that constructors are attached to -->
         <xsl:param name="button-div" as="element()"/>
@@ -745,7 +745,7 @@ exclude-result-prefixes="#all"
                         <xsl:variable name="request-uri" select="ldh:href($graph, map{})" as="xs:anyURI"/>
                         <xsl:variable name="request" as="item()*">
                             <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
-                                <xsl:call-template name="onConstructorAppend">
+                                <xsl:call-template name="ldh:ConstructorAppend">
                                     <xsl:with-param name="button-div" select="$button-div"/>
                                     <xsl:with-param name="constructor-uri" select="$constructor-uri"/>
                                     <xsl:with-param name="graph" select="$graph"/>
@@ -768,7 +768,7 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
     
-    <xsl:template name="onConstructorAppend">
+    <xsl:template name="ldh:ConstructorAppend">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="button-div" as="element()"/>
         <xsl:param name="constructor-uri" as="xs:anyURI"/>
@@ -777,7 +777,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="graph" as="xs:anyURI?"/>
 
         <xsl:choose>
-            <!-- a PATCH that writes returns 204, as onConstructorUpdate already allows for. Testing 200 alone
+            <!-- a PATCH that writes returns 204, as ldh:ConstructorUpdate already allows for. Testing 200 alone
                  reported a successful write as a failure and skipped the fieldset, which is what made the
                  button look inert even once it had somewhere to write. -->
             <xsl:when test="?status = (200, 204)">

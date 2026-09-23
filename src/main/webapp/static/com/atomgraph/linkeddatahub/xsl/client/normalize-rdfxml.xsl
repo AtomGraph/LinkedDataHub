@@ -152,7 +152,7 @@
                 <xsl:copy>
                     <rdf:Description rdf:nodeID="{$first-node-id}">
                         <!-- This will be expanded into the full list structure -->
-                        <xsl:call-template name="build-rdf-list">
+                        <xsl:call-template name="ldh:BuildRDFList">
                             <xsl:with-param name="items" select="$list-items"/>
                             <xsl:with-param name="position" select="1"/>
                             <xsl:with-param name="node-id" select="$first-node-id"/>
@@ -164,7 +164,7 @@
     </xsl:template>
 
     <!-- Helper template to build RDF list structure -->
-    <xsl:template name="build-rdf-list">
+    <xsl:template name="ldh:BuildRDFList">
         <xsl:param name="items" as="element()*"/>
         <xsl:param name="position" as="xs:integer"/>
         <xsl:param name="node-id" as="xs:string"/>
@@ -209,7 +209,7 @@
                     <xsl:variable name="next-node-id" select="concat('c', generate-id(), '_', $position + 1)"/>
                     <rdf:rest>
                         <rdf:Description rdf:nodeID="{$next-node-id}">
-                            <xsl:call-template name="build-rdf-list">
+                            <xsl:call-template name="ldh:BuildRDFList">
                                 <xsl:with-param name="items" select="$items"/>
                                 <xsl:with-param name="position" select="$position + 1"/>
                                 <xsl:with-param name="node-id" select="$next-node-id"/>
@@ -322,7 +322,7 @@
                             <xsl:variable name="list-items" select="*" as="element()*"/>
                             <xsl:variable name="first-node-id" select="concat('c', generate-id(), '_1')"/>
                             <rdf:Description rdf:nodeID="{$first-node-id}">
-                                <xsl:call-template name="build-rdf-list">
+                                <xsl:call-template name="ldh:BuildRDFList">
                                     <xsl:with-param name="items" select="$list-items"/>
                                     <xsl:with-param name="position" select="1"/>
                                     <xsl:with-param name="node-id" select="$first-node-id"/>
