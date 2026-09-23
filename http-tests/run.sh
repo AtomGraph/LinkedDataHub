@@ -213,19 +213,31 @@ function initialize_dataset()
 # the imports closure on the way through, which is not a cost worth paying 210 times for a no-op.
 function reset_packages()
 {
-    local imports
-    imports=$(curl -k -f -s \
+    local settings code
+    settings=$(curl -k -s -w '\n%{http_code}' \
       -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
       -H "Accept: application/n-triples" \
-      "${END_USER_BASE_URL}settings" | grep -c 'linkeddatahub#import' || true)
+      "${END_USER_BASE_URL}settings")
+    code="${settings##*$'\n'}"
 
-    if [ "$imports" != "0" ]; then
-        curl -k -f -s \
-          -X PATCH \
-          -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
-          -H "Content-Type: application/sparql-update" \
-          -d "DELETE { ?app <https://w3id.org/atomgraph/linkeddatahub#import> ?package } WHERE { ?app <https://w3id.org/atomgraph/linkeddatahub#import> ?package }" \
-          "${END_USER_BASE_URL}settings" > /dev/null
+    if [ "$code" != "200" ]; then
+        echo "DEBUG: reset_packages: GET ${END_USER_BASE_URL}settings returned $code" >&2
+        return 1
+    fi
+    if ! grep -q 'linkeddatahub#import' <<< "$settings"; then
+        return 0
+    fi
+
+    code=$(curl -k -s -o /dev/null -w "%{http_code}" \
+      -X PATCH \
+      -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+      -H "Content-Type: application/sparql-update" \
+      -d "DELETE { ?app <https://w3id.org/atomgraph/linkeddatahub#import> ?package } WHERE { ?app <https://w3id.org/atomgraph/linkeddatahub#import> ?package }" \
+      "${END_USER_BASE_URL}settings")
+
+    if [ "$code" != "204" ]; then
+        echo "DEBUG: reset_packages: PATCH ${END_USER_BASE_URL}settings returned $code" >&2
+        return 1
     fi
 }
 
@@ -236,10 +248,21 @@ function reset_packages()
 # No URI is passed on purpose: nothing needs reloading here, and the closures rebuild lazily.
 function clear_ontology()
 {
-    curl -k -f -s \
+    # An empty form body, not a bodyless POST. /clear is @Consumes(APPLICATION_FORM_URLENCODED), and a
+    # request carrying no Content-Type fails it before the method is reached - measured as a 500, which
+    # under curl -f aborted every test in the suite with no output at all. Hence also the code check:
+    # a helper every test depends on has to say what went wrong rather than end it silently.
+    local code
+    code=$(curl -k -s -o /dev/null -w "%{http_code}" \
       -X POST \
       -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
-      "${ADMIN_BASE_URL}clear" > /dev/null
+      --data "" \
+      "${ADMIN_BASE_URL}clear")
+
+    if [[ ! "$code" =~ ^(200|204)$ ]]; then
+        echo "DEBUG: clear_ontology: POST ${ADMIN_BASE_URL}clear returned $code" >&2
+        return 1
+    fi
 }
 
 function purge_cache()

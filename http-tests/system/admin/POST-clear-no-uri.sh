@@ -23,6 +23,7 @@ actual=$(curl -k -w "%{http_code}" -o /dev/null -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -X POST \
   -H "Content-Type: application/x-www-form-urlencoded" \
+  --data "" \
   "${ADMIN_BASE_URL}clear")
 expected="$STATUS_FORBIDDEN"
 echo "DEBUG: [writer] Expected: $expected"
@@ -36,6 +37,7 @@ actual=$(curl -k -w "%{http_code}" -o /dev/null -s \
   -X POST \
   -H "Accept: text/turtle" \
   -H "Content-Type: application/x-www-form-urlencoded" \
+  --data "" \
   "${ADMIN_BASE_URL}clear")
 expected="$STATUS_OK|$STATUS_NO_CONTENT"
 echo "DEBUG: [owner] Expected: $expected"
