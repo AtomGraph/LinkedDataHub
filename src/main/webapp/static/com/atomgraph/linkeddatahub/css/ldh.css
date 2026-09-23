@@ -724,6 +724,11 @@ body:has(.document-body > .content-body > :is(.graph-3d-canvas, .map-canvas)) .l
 .ac-modal > form.constructor-template { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
 /* Save validation marks value-less constructor rows */
 .ldh-ctor-row.error { box-shadow: inset 2px 0 0 var(--danger-500); background: var(--danger-50); }
+/* A constructor whose document this agent may not PATCH. The fieldset carries disabled, which makes its
+   controls inert on its own; this is only the reading of that state, and it stays visible because the
+   constructor is still part of what the class declares. */
+.ldh-ctor-card.is-readonly { opacity: 0.55; }
+.ldh-ctor-card.is-readonly .ldh-ctor-card-head { background: var(--surface-2); }
 
 /* =========================================================================
    LDH-local rules recovered from the previous vendored app.css: the vendor

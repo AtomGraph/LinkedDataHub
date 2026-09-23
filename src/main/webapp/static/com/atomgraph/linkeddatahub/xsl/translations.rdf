@@ -1372,18 +1372,6 @@
         <rdfs:label xml:lang="en-US">Could not update constructor</rdfs:label>
         <rdfs:label xml:lang="es-ES">No se pudo actualizar el constructor</rdfs:label>
     </rdf:Description>
-    <rdf:Description rdf:nodeID="ontology-graphs-not-loaded">
-        <rdfs:label xml:lang="en-US">Could not load ontology graph URI(s)</rdfs:label>
-        <rdfs:label xml:lang="es-ES">No se pudieron cargar los URI de los grafos de la ontología</rdfs:label>
-    </rdf:Description>
-    <rdf:Description rdf:nodeID="ontology-graph-not-found">
-        <rdfs:label xml:lang="en-US">This class is defined by an imported document, so there is nowhere in this application to add a constructor to it.</rdfs:label>
-        <rdfs:label xml:lang="es-ES">Esta clase está definida por un documento importado, por lo que no hay ningún lugar en esta aplicación donde añadirle un constructor.</rdfs:label>
-    </rdf:Description>
-    <rdf:Description rdf:nodeID="constructor-not-appended">
-        <rdfs:label xml:lang="en-US">Could not append constructor</rdfs:label>
-        <rdfs:label xml:lang="es-ES">No se pudo añadir el constructor</rdfs:label>
-    </rdf:Description>
     <rdf:Description rdf:nodeID="drag-to-reorder">
         <rdfs:label xml:lang="en-US">Drag to reorder</rdfs:label>
         <rdfs:label xml:lang="es-ES">Arrastre para reordenar</rdfs:label>

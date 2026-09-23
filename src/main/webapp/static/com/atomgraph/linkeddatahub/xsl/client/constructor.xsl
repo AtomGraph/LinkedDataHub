@@ -32,15 +32,6 @@ extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
 
-    <xsl:variable name="type-graph-query" as="xs:string">
-        <![CDATA[
-            SELECT DISTINCT  ?graph
-            WHERE
-              { GRAPH ?graph
-                  { $Type  ?p  ?o }
-              }
-        ]]>
-    </xsl:variable>
     <!-- Which graph holds each constructor. A resource's URI does not tell you which document describes it -
          the add path already asks this question about the class, and the save path has to ask it about the
          constructor rather than stripping the fragment off its URI. Runs against the admin endpoint, since
@@ -53,6 +44,25 @@ exclude-result-prefixes="#all"
             WHERE
               { GRAPH ?graph
                   { $constructor  sp:text  ?text }
+              }
+        ]]>
+    </xsl:variable>
+    <!-- Which documents hold a class's constructors. The gate needs the documents rather than the
+         constructors, because a document is what a PATCH is authorized against. Runs against the admin
+         endpoint for the same reason $constructor-graph-query does: /ns serves the merged closure and has
+         no named graphs. An agent without admin access cannot run it at all, which is what makes the gate
+         built on it fail closed. -->
+    <xsl:variable name="type-constructor-graph-query" as="xs:string">
+        <![CDATA[
+            PREFIX spin: <http://spinrdf.org/spin#>
+            PREFIX sp: <http://spinrdf.org/sp#>
+
+            SELECT DISTINCT  ?graph
+            WHERE
+              { GRAPH ?typeGraph
+                  { $Type  spin:constructor  ?constructor }
+                GRAPH ?graph
+                  { ?constructor  sp:text  ?text }
               }
         ]]>
     </xsl:variable>
@@ -210,13 +220,6 @@ exclude-result-prefixes="#all"
                                                     <xsl:with-param name="graph" select="$constructor-graphs//srx:result[srx:binding[@name = 'constructor']/srx:uri = $constructor-uri]/srx:binding[@name = 'graph']/srx:uri/xs:anyURI(.)"/>
                                                 </xsl:call-template>
                                             </xsl:for-each>
-
-                                            <button type="button" class="ldh-ctor-addctor create-action add-constructor">
-                                                <span class="msi sm" aria-hidden="true">add</span>
-                                                <span>
-                                                    <xsl:apply-templates select="key('resources', 'constructor', ldh:translations())" mode="ac:label"/>
-                                                </span>
-                                            </button>
                                         </div>
 
                                         <div class="mhint">
@@ -240,6 +243,10 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:when>
         </xsl:choose>
+
+        <!-- the result-document above has already applied - Saxon-JS 3 updates the page immediately - so
+             the dialog is in the DOM and its fieldsets are there to gate -->
+        <xsl:call-template name="ldh:GateConstructorDialog"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="$container"/>
     </xsl:function>
@@ -500,6 +507,157 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
     
+    <!-- GATES -->
+
+    <!-- Every constructor affordance is gated by the authorization of the request IT issues, at the
+         granularity requests are issued: the save loop sends one PATCH per fieldset to that fieldset's own
+         @data-graph, so a dialog can write several documents and the fieldset is the unit. The three
+         affordances therefore ask about three different documents - the button about any of the class's
+         constructor graphs, a fieldset about its own, and the create button about the graph holding the
+         CLASS, which is where a new constructor is inserted.
+
+         None of it is enforcement. The PATCH is authorized again server-side, so a gate stale by the time
+         Save is pressed degrades to an error to report rather than a hole. -->
+
+    <!-- A gate that cannot answer leaves its affordance closed, which is the safe reading of an unknown
+         authorization. For an agent without admin access the graph lookup 403s - the expected path, not a
+         failure worth reporting: the affordance simply never appears. -->
+    <xsl:function name="ldh:gate-failure" ixsl:updating="yes">
+        <xsl:param name="error" as="map(*)"/>
+    </xsl:function>
+
+    <!-- The affordance is emitted hidden by ldh:ConstructorActions, which cannot evaluate the condition
+         itself (see there). Overriding rather than inlining keeps resource.xsl free of ixsl, which the
+         server-side transform shares. -->
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ldh:ConstructorActions">
+        <xsl:param name="constructors" as="document-node()?"/>
+        <xsl:param name="type-metadata" as="document-node()?"/>
+
+        <xsl:next-match>
+            <xsl:with-param name="constructors" select="$constructors"/>
+            <xsl:with-param name="type-metadata" select="$type-metadata"/>
+        </xsl:next-match>
+
+        <!-- Not inline, and not for the reason the dialog's gate is: updates apply immediately, but this
+             template runs INSIDE the enclosing xsl:result-document that is still building the form, so the
+             buttons next-match just emitted are not in the page yet. A resolved promise is the smallest
+             correct wait - its continuation runs once the stack unwinds, after that result-document has
+             applied - where a timer would be an arbitrary guess at the same thing. -->
+        <ixsl:promise select="ixsl:resolve(()) => ixsl:then(ldh:gate-constructor-actions#1)"
+            on-failure="ldh:gate-failure#1"/>
+    </xsl:template>
+
+    <!-- One promise per affordance, so a class whose lookup fails gates only itself, and reveals need no
+         coordination: the first writable document reveals and a second is a no-op. -->
+    <xsl:function name="ldh:gate-constructor-actions" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="item()?"/>
+
+        <xsl:for-each select="ixsl:page()//button[contains-token(@class, 'btn-edit-constructors')][not(@data-gated)]">
+            <xsl:variable name="button" select="." as="element()"/>
+            <xsl:variable name="type" select="xs:anyURI(@data-resource-type)" as="xs:anyURI"/>
+
+            <ixsl:set-attribute name="data-gated" select="'true'"/>
+
+            <ixsl:promise select="ixsl:resolve(map{ 'button': $button, 'type': $type }) =>
+                ixsl:then(ldh:load-type-constructor-graphs#1) =>
+                ixsl:then(ldh:http-request-threaded(?, 'type-constructor-graphs-request', 'type-constructor-graphs-response')) =>
+                ixsl:then(ldh:handle-response(?, 'type-constructor-graphs-response')) =>
+                ixsl:then(ldh:gate-constructor-action#1)"
+                on-failure="ldh:gate-failure#1"/>
+        </xsl:for-each>
+    </xsl:function>
+
+    <xsl:function name="ldh:load-type-constructor-graphs" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+
+        <xsl:sequence select="map:merge(($context, map{ 'type-constructor-graphs-request': ldh:graph-query-request($type-constructor-graph-query, $context('type')) }))"/>
+    </xsl:function>
+
+    <!-- shared by both graph lookups: same endpoint, same $Type substitution, same result media type -->
+    <xsl:function name="ldh:graph-query-request" as="map(*)">
+        <xsl:param name="query" as="xs:string"/>
+        <xsl:param name="type" as="xs:anyURI"/>
+
+        <xsl:variable name="query-string" select="replace($query, '$Type', '&lt;' || $type || '&gt;', 'q')" as="xs:string"/>
+        <xsl:variable name="admin-base-uri" select="xs:anyURI(replace(lapp:base(), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
+        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('sparql', $admin-base-uri), map{ 'query': $query-string })" as="xs:anyURI"/>
+
+        <xsl:sequence select="map{ 'method': 'GET', 'href': ldh:href($results-uri, map{}), 'headers': map{ 'Accept': 'application/sparql-results+xml' } }"/>
+    </xsl:function>
+
+    <!-- One HEAD per document the class's constructors live in. -->
+    <xsl:function name="ldh:gate-constructor-action" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="button" select="$context('button')" as="element()"/>
+
+        <xsl:for-each select="ldh:response-graphs($context('type-constructor-graphs-response'))">
+            <ixsl:promise select="ixsl:http-request(ldh:head-request(.)) =>
+                ixsl:then(ldh:reveal-constructor-action($button, ?))"
+                on-failure="ldh:gate-failure#1"/>
+        </xsl:for-each>
+    </xsl:function>
+
+    <xsl:function name="ldh:response-graphs" as="xs:anyURI*">
+        <xsl:param name="response" as="map(*)?"/>
+
+        <xsl:sequence select="
+            if (exists($response) and $response?status = 200 and $response?media-type = 'application/sparql-results+xml')
+            then distinct-values($response?body//srx:binding[@name = 'graph']/srx:uri/xs:anyURI(.))
+            else ()"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:reveal-constructor-action" ixsl:updating="yes">
+        <xsl:param name="button" as="element()"/>
+        <xsl:param name="response" as="map(*)"/>
+
+        <xsl:if test="ldh:writable-response($response)">
+            <xsl:for-each select="$button">
+                <ixsl:set-style name="display" select="''"/>
+
+                <!-- a menu item also reveals the menu it sits in; the single-class button has no wrap -->
+                <xsl:for-each select="ancestor::div[contains-token(@class, 'ldh-form-actions-wrap')][1]">
+                    <ixsl:set-style name="display" select="''"/>
+                </xsl:for-each>
+            </xsl:for-each>
+        </xsl:if>
+    </xsl:function>
+
+    <!-- An unwritable constructor is DISABLED rather than hidden: it is still information about the class,
+         and hiding it would say the class has fewer constructors than it does. disabled on the fieldset is
+         both the rendering and the mechanism - HTML makes every control inside it inert, and the save loop
+         skips it by the same attribute. -->
+    <xsl:template name="ldh:GateConstructorDialog">
+        <xsl:for-each select="ixsl:page()//form[contains-token(@class, 'constructor-template')]//fieldset[@data-graph][not(@data-gated)]">
+            <xsl:variable name="fieldset" select="." as="element()"/>
+
+            <ixsl:set-attribute name="data-gated" select="'true'"/>
+
+            <ixsl:promise select="ixsl:http-request(ldh:head-request(xs:anyURI(@data-graph))) =>
+                ixsl:then(ldh:gate-constructor-fieldset($fieldset, ?))"
+                on-failure="ldh:disable-constructor-fieldset($fieldset, ?)"/>
+        </xsl:for-each>
+    </xsl:template>
+
+    <xsl:function name="ldh:gate-constructor-fieldset" ixsl:updating="yes">
+        <xsl:param name="fieldset" as="element()"/>
+        <xsl:param name="response" as="map(*)"/>
+
+        <xsl:if test="not(ldh:writable-response($response))">
+            <xsl:sequence select="ldh:disable-constructor-fieldset($fieldset, map{})"/>
+        </xsl:if>
+    </xsl:function>
+
+    <!-- also the lookup's failure handler, which is why it takes the error map it ignores -->
+    <xsl:function name="ldh:disable-constructor-fieldset" ixsl:updating="yes">
+        <xsl:param name="fieldset" as="element()"/>
+        <xsl:param name="error" as="map(*)"/>
+
+        <xsl:for-each select="$fieldset">
+            <ixsl:set-attribute name="disabled" select="'disabled'"/>
+            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-readonly', true())"/>
+        </xsl:for-each>
+    </xsl:function>
+
     <!-- EVENT HANDLERS -->
     
     <!-- open modal form with constructor editing mode -->
@@ -595,32 +753,12 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
 
-    <!-- appends new constructor -->
-    <xsl:template match="div[contains-token(@class, 'ac-modal-body')]//button[contains-token(@class, 'create-action')][contains-token(@class, 'add-constructor')]" mode="ixsl:onclick">
-        <xsl:variable name="button-div" select="." as="element()"/> <!-- the addctor strip button itself; new cards insert before it -->
-        <xsl:variable name="type" select="ancestor::form/@about" as="xs:anyURI"/> <!-- the URI of the class that constructors are attached to -->
-        <xsl:variable name="query-string" select="replace($type-graph-query, '$Type', '&lt;' || $type || '&gt;', 'q')" as="xs:string"/>
-        <xsl:variable name="admin-base-uri" select="xs:anyURI(replace(lapp:base(), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
-        <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('sparql', $admin-base-uri), map{ 'query': $query-string })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
-
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
-                <xsl:call-template name="ldh:TypeGraphLoad">
-                    <xsl:with-param name="type" select="$type"/>
-                    <xsl:with-param name="button-div" select="$button-div"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-    </xsl:template>
-    
     <!-- save constructor form onclick. Validate it before update updating constructors -->
     <xsl:template match="form[contains-token(@class, 'constructor-template')]//div[contains-token(@class, 'mhint')]/button[contains-token(@class, 'btn-save')]" mode="ixsl:onclick">
         <xsl:variable name="form" select="ancestor::form" as="element()"/>
-        <xsl:variable name="rows" select="$form/descendant::div[contains-token(@class, 'ldh-ctor-row')]" as="element()*"/>
+        <!-- a fieldset the gate disabled is skipped by both: its rows cannot have been edited, and its
+             document is one this agent may not PATCH -->
+        <xsl:variable name="rows" select="$form/descendant::fieldset[not(@disabled)]/descendant::div[contains-token(@class, 'ldh-ctor-row')]" as="element()*"/>
 
         <xsl:choose>
             <!-- input values missing, throw an error -->
@@ -633,7 +771,7 @@ exclude-result-prefixes="#all"
             <xsl:otherwise>
                 <xsl:sequence select="ldh:busy-cursor()"/>
 
-                <xsl:for-each select="$form//fieldset">
+                <xsl:for-each select="$form//fieldset[not(@disabled)]">
                     <xsl:variable name="container" select="." as="element()"/>
                     <xsl:variable name="constructor-uri" select="@about" as="xs:anyURI"/>
                     <xsl:variable name="construct-xml" as="document-node()">
@@ -714,78 +852,6 @@ exclude-result-prefixes="#all"
                 <xsl:sequence select="ldh:render-failure(($container//div[contains-token(@class, 'ac-modal-body')])[1], 'constructor-not-updated', ac:http-error-key(?status), ldh:response-detail(.))"/>
             </xsl:otherwise>
         </xsl:choose>
-    </xsl:template>
-    
-    <xsl:template name="ldh:TypeGraphLoad">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="type" as="xs:anyURI"/> <!-- the URI of the class that constructors are attached to -->
-        <xsl:param name="button-div" as="element()"/>
-
-        <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml' and exists(?body//srx:result)">
-                <xsl:for-each select="?body">
-                    <xsl:for-each select="//srx:result">
-                        <xsl:variable name="graph" select="srx:binding[@name = 'graph']/srx:uri" as="xs:anyURI"/>
-                        <xsl:variable name="uuid" select="ac:uuid()" as="xs:string"/>
-                        <!-- minted as a fragment of the graph, so this one document derivation is sound -->
-                        <xsl:variable name="constructor-uri" select="xs:anyURI($graph || '#id' || $uuid)" as="xs:anyURI"/>
-                        <xsl:variable name="update-string" select="replace($constructor-insert-string, '$this', '&lt;' || $constructor-uri || '&gt;', 'q')" as="xs:string"/>
-                        <xsl:variable name="update-string" select="replace($update-string, '$Type', '&lt;' || $type || '&gt;', 'q')" as="xs:string"/>
-                        <xsl:variable name="request-uri" select="ldh:href($graph, map{})" as="xs:anyURI"/>
-                        <xsl:variable name="request" as="item()*">
-                            <ixsl:schedule-action http-request="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }">
-                                <xsl:call-template name="ldh:ConstructorAppend">
-                                    <xsl:with-param name="button-div" select="$button-div"/>
-                                    <xsl:with-param name="constructor-uri" select="$constructor-uri"/>
-                                    <xsl:with-param name="graph" select="$graph"/>
-                                </xsl:call-template>
-                            </ixsl:schedule-action>
-                        </xsl:variable>
-                        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-                    </xsl:for-each>
-                </xsl:for-each>
-            </xsl:when>
-            <!-- the request succeeded and no graph declares the class. It reaches the form through an imported
-                 document this application cannot write to, so there is nowhere to put a constructor. Reported
-                 rather than passed over, which is what made the button look dead. -->
-            <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
-                <xsl:sequence select="ldh:render-failure($button-div, 'ontology-graphs-not-loaded', 'ontology-graph-not-found', string($type))"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:sequence select="ldh:render-failure($button-div, 'ontology-graphs-not-loaded', ac:http-error-key(?status), ldh:response-detail(.))"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-    
-    <xsl:template name="ldh:ConstructorAppend">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="button-div" as="element()"/>
-        <xsl:param name="constructor-uri" as="xs:anyURI"/>
-        <!-- the graph the constructor was just written into, carried through so the new fieldset is stamped
-             like the ones the editor rendered and its first save targets the same document -->
-        <xsl:param name="graph" as="xs:anyURI?"/>
-
-        <xsl:choose>
-            <!-- a PATCH that writes returns 204, as ldh:ConstructorUpdate already allows for. Testing 200 alone
-                 reported a successful write as a failure and skipped the fieldset, which is what made the
-                 button look inert even once it had somewhere to write. -->
-            <xsl:when test="?status = (200, 204)">
-                <!-- insert the fieldset above the "Add constructor" button, which stays at the bottom of the form -->
-                <xsl:for-each select="$button-div">
-                    <xsl:result-document href="?." method="ixsl:insert-before">
-                        <xsl:call-template name="ldh:ConstructorFieldset">
-                            <xsl:with-param name="constructor-uri" select="$constructor-uri"/>
-                            <xsl:with-param name="graph" select="$graph"/>
-                        </xsl:call-template>
-                    </xsl:result-document>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:sequence select="ldh:render-failure($button-div, 'constructor-not-appended', ac:http-error-key(?status), ldh:response-detail(.))"/>
-            </xsl:otherwise>
-        </xsl:choose>
-        
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
     
     <xsl:template name="ldh:ClearNamespace">

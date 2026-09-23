@@ -1360,7 +1360,15 @@ exclude-result-prefixes="#all"
 
          One class renders a direct labelled button, two or more collapse into the Actions menu whose
          lifecycle client.xsl drives off the .ldh-form-action trigger inside .ldh-form-actions-wrap - keep
-         both class names on those two elements. -->
+         both class names on those two elements.
+
+         Every affordance is emitted HIDDEN and revealed by ldh:GateConstructorActions once it establishes
+         that the agent may PATCH at least one of that class's constructors. The condition cannot be
+         evaluated here: a constructor lives in an ontology graph, and which graph that is - plus the
+         agent's modes on it - are admin-side facts, while this pass runs on the end-user app against /ns,
+         which serves the merged closure and has no named graphs at all. It used to test acl:Control on the
+         CURRENT document, which is the wrong resource and the wrong mode: writing a constructor is
+         acl:Write on the ontology document, and acl:Control is the mode for changing ACLs. -->
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ldh:ConstructorActions">
         <xsl:param name="constructors" as="document-node()?"/>
         <xsl:param name="type-metadata" as="document-node()?"/>
@@ -1369,12 +1377,7 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <xsl:when test="count($constructor-classes) = 1">
-                <button type="button" class="ldh-form-action btn-edit-constructors" data-resource-type="{$constructor-classes}">
-                    <!-- only admins should see the button as only they have access to the ontologies with constructors in them -->
-                    <xsl:if test="not(acl:mode() = '&acl;Control')">
-                        <xsl:attribute name="style" select="'display: none'"/>
-                    </xsl:if>
-
+                <button type="button" class="ldh-form-action btn-edit-constructors" data-resource-type="{$constructor-classes}" style="display: none">
                     <span class="msi outline sm" aria-hidden="true">tune</span>
                     <span>
                         <xsl:apply-templates select="key('resources', 'edit-constructors', ldh:translations())" mode="ac:label"/>
@@ -1382,12 +1385,7 @@ exclude-result-prefixes="#all"
                 </button>
             </xsl:when>
             <xsl:when test="count($constructor-classes) gt 1">
-                <div class="ldh-form-actions-wrap">
-                    <!-- only admins should see the menu as only they have access to the ontologies with constructors in them -->
-                    <xsl:if test="not(acl:mode() = '&acl;Control')">
-                        <xsl:attribute name="style" select="'display: none'"/>
-                    </xsl:if>
-
+                <div class="ldh-form-actions-wrap" style="display: none">
                     <button type="button" class="ldh-form-action" aria-haspopup="menu" aria-expanded="false">
                         <span class="msi outline sm" aria-hidden="true">bolt</span>
                         <span>
@@ -1397,7 +1395,7 @@ exclude-result-prefixes="#all"
                     </button>
                     <div class="ldh-form-actions-menu" role="menu">
                         <xsl:for-each select="$constructor-classes">
-                            <button type="button" role="menuitem" class="it btn-edit-constructors" data-resource-type="{.}">
+                            <button type="button" role="menuitem" class="it btn-edit-constructors" data-resource-type="{.}" style="display: none">
                                 <span class="ico"><span class="msi outline sm" aria-hidden="true">tune</span></span>
                                 <span class="body">
                                     <span class="lbl">
