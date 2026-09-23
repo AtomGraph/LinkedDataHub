@@ -6,6 +6,7 @@ initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
+clear_ontology
 
 # Exercises the client-orchestrated "Generate containers" flow that replaced the server-side
 # /generate endpoint. The client builds one container document per checked class -- a dh:Container

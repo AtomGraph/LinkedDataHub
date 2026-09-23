@@ -6,6 +6,7 @@ initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
+clear_ontology
 
 # The header and the document have to agree about what language the page is in. They do because both read the same
 # computation: the stylesheet takes the root lang straight from Content-Language rather than from the request. A reader whose

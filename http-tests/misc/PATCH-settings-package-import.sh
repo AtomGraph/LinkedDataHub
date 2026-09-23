@@ -6,6 +6,7 @@ initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
+clear_ontology
 
 # Test: declarative package install — a single ldh:import triple PATCHed into the dataspace
 # settings composes the package stylesheet into the app stylesheet on the next request.

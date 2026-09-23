@@ -6,6 +6,7 @@ initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
+clear_ontology
 
 # The POST form of GET-sparql-service-internal.sh: a query sent in the request body must not reach the admin store
 # through SPARQL SERVICE either. SERVICE SILENT turns a refused call into a single empty solution, so a bound ?g means

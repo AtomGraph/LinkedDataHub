@@ -6,6 +6,7 @@ initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
+clear_ontology
 
 # Each dataspace answers /sitemap.xml and /robots.txt from a file named after the requested host, written at
 # container startup and rewritten to by WEB-INF/rewrite.config. That is what this pins: a configured origin
