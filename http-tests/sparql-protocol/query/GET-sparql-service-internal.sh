@@ -6,6 +6,7 @@ initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
+reset_packages
 clear_ontology
 
 # A SPARQL SERVICE clause in a query to /sparql must not reach the deployment's internal services: the triplestore

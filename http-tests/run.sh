@@ -198,6 +198,37 @@ function initialize_dataset()
       "$3" > /dev/null
 }
 
+# Packages are declared in the application's settings, and no dataset restore touches those: the import
+# set is the one piece of application state a test can change and leave behind. It is also the most
+# consequential, since a package changes how every document renders and which constraints a write is
+# held to - a leaked import turned one failing test into two, the second dying on a 422 from a
+# constraint the package brought with it. Removing every ldh:import here means a test cannot poison the
+# next one, and none has to remember to clean up after itself.
+#
+# Unconditional rather than restored from a snapshot: the suite tests the committed configuration,
+# which declares no packages. A deployment whose own config declares one loses it for the run and gets
+# it back on the next restart.
+#
+# Read first, and PATCH only when there is something to remove: a settings PATCH clears and rebuilds
+# the imports closure on the way through, which is not a cost worth paying 210 times for a no-op.
+function reset_packages()
+{
+    local imports
+    imports=$(curl -k -f -s \
+      -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+      -H "Accept: application/n-triples" \
+      "${END_USER_BASE_URL}settings" | grep -c 'linkeddatahub#import' || true)
+
+    if [ "$imports" != "0" ]; then
+        curl -k -f -s \
+          -X PATCH \
+          -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+          -H "Content-Type: application/sparql-update" \
+          -d "DELETE { ?app <https://w3id.org/atomgraph/linkeddatahub#import> ?package } WHERE { ?app <https://w3id.org/atomgraph/linkeddatahub#import> ?package }" \
+          "${END_USER_BASE_URL}settings" > /dev/null
+    fi
+}
+
 # Empties the platform's in-JVM graph cache and every assembled imports closure. The datasets and the
 # Varnish layers are the other two caches a test restores; this is the third, and the only one a test
 # could not reach before /clear stopped requiring an ontology URI. Without it, a graph the repository
@@ -239,6 +270,7 @@ printf "### Secretary agent URI: %s\n" "$SECRETARY_URI"
 
 export -f initialize_dataset
 export -f purge_cache
+export -f reset_packages
 export -f clear_ontology
 
 export HTTP_TEST_ROOT="$PWD"
