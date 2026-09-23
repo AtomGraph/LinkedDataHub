@@ -62,6 +62,7 @@ skos:narrower ldh:view :NarrowerConcepts .
     dct:title "Narrower concepts" ;
     spin:query :SelectNarrowerConcepts ;
     ac:mode ac:TableMode ;
+    ldh:showWhenEmpty false ;
     rdfs:isDefinedBy : .
 
 :SelectNarrowerConcepts a sp:Select ;
@@ -91,6 +92,7 @@ skos:broader ldh:view :BroaderConcepts .
     dct:title "Broader concepts" ;
     spin:query :SelectBroaderConcepts ;
     ac:mode ac:TableMode ;
+    ldh:showWhenEmpty false ;
     rdfs:isDefinedBy : .
 
 :SelectBroaderConcepts a sp:Select ;
@@ -137,6 +139,7 @@ skos:member ldh:view :CollectionMembers .
     dct:title "Collection members" ;
     spin:query :SelectCollectionMembers ;
     ac:mode ac:TableMode ;
+    ldh:showWhenEmpty false ;
     rdfs:isDefinedBy : .
 
 :SelectCollectionMembers a sp:Select ;
@@ -181,6 +184,7 @@ skos:hasTopConcept ldh:view :TopConcepts .
     dct:title "Top concepts" ;
     spin:query :SelectTopConcepts ;
     ac:mode ac:TableMode ;
+    ldh:showWhenEmpty false ;
     rdfs:isDefinedBy : .
 
 # the entry level of a taxonomy, and the root of the concept tree. Both directions count as a top
@@ -216,6 +220,7 @@ skos:inScheme ldh:view :ConceptScheme .
     dct:title "Scheme" ;
     spin:query :SelectConceptScheme ;
     ac:mode ac:TableMode ;
+    ldh:showWhenEmpty false ;
     rdfs:isDefinedBy : .
 
 :SelectConceptScheme a sp:Select ;
@@ -238,6 +243,7 @@ skos:inScheme ldh:inverseView :ConceptsInScheme , :OrphanConcepts .
     dct:title "Concepts in scheme" ;
     spin:query :SelectConceptsInScheme ;
     ac:mode ac:TableMode ;
+    ldh:showWhenEmpty false ;
     rdfs:isDefinedBy : .
 
 :SelectConceptsInScheme a sp:Select ;
