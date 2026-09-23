@@ -1372,8 +1372,11 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ldh:ConstructorActions">
         <xsl:param name="constructors" as="document-node()?"/>
         <xsl:param name="type-metadata" as="document-node()?"/>
-        <!-- classes that carry a constructor, minus the built-in system ones an agent never edits -->
-        <xsl:param name="constructor-classes" select="if (exists($type-metadata) and exists($constructors)) then distinct-values($constructors//srx:binding[@name = 'Type']/srx:uri)[not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&def;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))] else ()" as="xs:anyURI*"/>
+        <!-- The resource's own classes, minus the built-in system ones an agent never edits. Read off the
+             resource rather than off $constructors - which lists the classes that ALREADY have one - because
+             a class with no constructor is exactly the one an author needs to reach: it would otherwise offer
+             no button, hence no dialog, hence nowhere to add its first property. -->
+        <xsl:param name="constructor-classes" select="distinct-values(rdf:type/@rdf:resource)[not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&def;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))]" as="xs:anyURI*"/>
 
         <xsl:choose>
             <xsl:when test="count($constructor-classes) = 1">
