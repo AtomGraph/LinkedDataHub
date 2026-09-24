@@ -32,6 +32,7 @@ const SP = 'http://spinrdf.org/sp#';
 const SPIN = 'http://spinrdf.org/spin#';
 const LDH = 'https://w3id.org/atomgraph/linkeddatahub#';
 const CONCEPT = `${SKOS}Concept`;
+const RESOURCE = 'http://www.w3.org/2000/01/rdf-schema#Resource';
 const COLLECTION = `${SKOS}Collection`;
 // sp:text is a multi-line literal, and a spec file cannot nest those inside a template literal
 const TRIPLE_QUOTE = '"'.repeat(3);
@@ -149,10 +150,10 @@ DELETE { <${forClass}> spin:constructor <${constructor}> . <${constructor}> ?p ?
 WHERE { OPTIONAL { <${constructor}> ?p ?o } }`,
 });
 
-// Adds a property row and gives it a literal range, the way an author does: type into the predicate
-// combobox, take the first suggestion, then switch the object kind and pick a datatype. fill() would
-// set the value without the keyup the lookup listens on, and the panel would never open.
-async function addLiteralRow(page, card, predicate) {
+// Adds a property row and commits its predicate, the way an author does: type into the combobox and
+// take the first suggestion. fill() would set the value without the keyup the lookup listens on, and
+// the panel would never open. The range is left at whatever the editor defaults it to.
+async function addRow(page, card, predicate) {
     await card.locator('button.ldh-ctor-addprop').click();
     const row = rowsOf(card).last();
     const input = row.locator('div.ctor-pred input.property-combobox');
@@ -164,6 +165,12 @@ async function addLiteralRow(page, card, predicate) {
     await expect(panel).toBeVisible({ timeout: 20_000 });
     await panel.locator(`li[about="${predicate}"], li`).first().click();
     await expect(row.locator('div.ctor-pred input[name="ou"]')).toHaveValue(predicate, { timeout: 15_000 });
+    return row;
+}
+
+// ...and then switches the object kind and picks a datatype.
+async function addLiteralRow(page, card, predicate) {
+    const row = await addRow(page, card, predicate);
 
     await row.locator('div.ctor-term button[data-kind$="Literal"]').click();
     await row.locator('span.ctor-range-slot select.ctor-range')
@@ -276,6 +283,97 @@ test.describe('the constructor editor', () => {
                 .toBe(Math.max(before.length, 1));
         } finally {
             await dropConstructor(ontologyDocument, CONCEPT, target);
+            await clearOntologies();
+        }
+    });
+
+    // A resource row's range starts at rdfs:Resource - any resource - and narrowing it is an edit on
+    // the committed chip, whose lookup is scoped by the @data-for-class it carries. What the save
+    // writes has to be the class the author picked, not the default it replaced.
+    test('narrows the default rdfs:Resource range to a class, and saves it', async ({ page }) => {
+        const ontologyDocument = await appOntologyDocument(page);
+        const form = await openEditor(page);
+        const card = form.locator(`fieldset.ldh-ctor-card[data-graph="${ontologyDocument}"]`);
+        await expect(card).toHaveCount(1);
+        const target = await card.getAttribute('about');
+
+        try {
+            const row = await addRow(page, card, `${SKOS}notation`);
+            const slot = row.locator('span.ctor-range-slot');
+            await expect(slot.locator('input[name="ou"]'), 'a range nobody declared is any resource')
+                .toHaveValue(RESOURCE);
+
+            await slot.locator('button.add-class-combobox').click();
+            const input = slot.locator('input.class-combobox');
+            await expect(input).toBeVisible({ timeout: 15_000 });
+            await input.click();
+            await input.pressSequentially('Concept', { delay: 110 });
+            const panel = page.locator('div.ac-cb-panel.class-combobox');
+            await expect(panel).toBeVisible({ timeout: 20_000 });
+            // a panel item carries its URI as the hidden input the commit handler reads, not as @about
+            await panel.locator(`li:has(input[name="ou"][value="${CONCEPT}"])`).first().click();
+            await expect(slot.locator('input[name="ou"]'), 'the picked class replaces the default')
+                .toHaveValue(CONCEPT, { timeout: 15_000 });
+
+            await form.locator('button.btn-save').click();
+            await expect(form, 'the dialog closes on a successful save').toHaveCount(0, { timeout: 30_000 });
+
+            await expect.poll(() => storedText(page, ontologyDocument, target).then(text => text.includes('notation')),
+                'the row reached the constructor').toBe(true);
+            const saved = await storedText(page, ontologyDocument, target);
+            expect(saved, 'ranged by the class the author picked').toContain(CONCEPT);
+            expect(saved, 'and not by the default it replaced').not.toContain(RESOURCE);
+        } finally {
+            await dropConstructor(ontologyDocument, CONCEPT, target);
+            await clearOntologies();
+        }
+    });
+
+    // The same narrowing, on a range that was STORED as rdfs:Resource rather than defaulted into the
+    // row a moment earlier: the constructor already exists, so the save rewrites it under the
+    // document's own validator instead of creating one.
+    test('narrows a stored rdfs:Resource range to a class, and saves it', async ({ page }) => {
+        const ontologyDocument = await appOntologyDocument(page);
+        const constructor = `${ontologyDocument}#idResourceRangeFixture`;
+        await ldh(['patch', ontologyDocument], { stdin: [
+            `PREFIX sp: <${SP}>`, `PREFIX spin: <${SPIN}>`, `PREFIX ldh: <${LDH}>`,
+            `INSERT {`,
+            `  <${CONCEPT}> spin:constructor <${constructor}> .`,
+            `  <${constructor}> a ldh:Constructor .`,
+            `  <${constructor}> sp:text ${TRIPLE_QUOTE}CONSTRUCT { $this <${SKOS}broader> [ a <${RESOURCE}> ] . } WHERE {}${TRIPLE_QUOTE} .`,
+            `} WHERE {}`,
+        ].join('\n') });
+        await clearOntologies();
+
+        try {
+            const form = await openEditor(page);
+            const card = form.locator(`fieldset.ldh-ctor-card[about="${constructor}"]`);
+            await expect(card, 'the seeded constructor has a fieldset of its own').toHaveCount(1);
+
+            const row = rowFor(card, `${SKOS}broader`);
+            const slot = row.locator('span.ctor-range-slot');
+            await expect(slot.locator('input[name="ou"]'), 'the stored rdfs:Resource renders as a chip')
+                .toHaveValue(RESOURCE);
+
+            await slot.locator('button.add-class-combobox').click();
+            const input = slot.locator('input.class-combobox');
+            await expect(input).toBeVisible({ timeout: 15_000 });
+            await input.click();
+            await input.pressSequentially('Concept', { delay: 110 });
+            const panel = page.locator('div.ac-cb-panel.class-combobox');
+            await expect(panel).toBeVisible({ timeout: 20_000 });
+            await panel.locator(`li:has(input[name="ou"][value="${CONCEPT}"])`).first().click();
+            await expect(slot.locator('input[name="ou"]')).toHaveValue(CONCEPT, { timeout: 15_000 });
+
+            await form.locator('button.btn-save').click();
+            await expect(form, 'the dialog closes on a successful save').toHaveCount(0, { timeout: 30_000 });
+
+            await expect.poll(() => storedText(page, ontologyDocument, constructor).then(text => text.includes(CONCEPT)),
+                'the narrowed range was written').toBe(true);
+            expect(await storedText(page, ontologyDocument, constructor), 'and the default is gone')
+                .not.toContain(RESOURCE);
+        } finally {
+            await dropConstructor(ontologyDocument, CONCEPT, constructor);
             await clearOntologies();
         }
     });

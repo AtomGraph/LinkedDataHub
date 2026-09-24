@@ -455,10 +455,12 @@ exclude-result-prefixes="#all"
         <!-- rdf:langString is a LITERAL datatype that merely lives outside the XSD namespace, so the object
              kind cannot be read off the namespace alone - imports/values.xsl excludes it from its non-XSD
              resource lookup for the same reason. Read as a resource it lit the Resource toggle, left the
-             range slot empty (nothing DESCRIBEs rdf:langString, and the resource branch has no fallback for
+             range slot empty (nothing DESCRIBEs rdf:langString, and the resource branch had no fallback for
              a type it cannot resolve) and, because the save path keeps only rows whose slot carries a
              control, silently dropped the row: opening the SKOS Concept constructor and pressing Save
-             deleted prefLabel, altLabel and definition from its template. -->
+             deleted prefLabel, altLabel and definition from its template. The slot no longer empties -
+             ldh:ConstructorResourceObject synthesizes a chip for a type /ns cannot resolve - so such a row
+             would now be saved with a resource range instead of vanishing, which is why the test stays. -->
         <xsl:variable name="literal" select="starts-with($object-type, '&xsd;') or $object-type = '&rdf;langString'" as="xs:boolean"/>
 
         <div class="ctor-term" role="radiogroup">
@@ -685,26 +687,56 @@ exclude-result-prefixes="#all"
         </xsl:apply-templates>
     </xsl:template>
     
+    <!-- The range slot is the class combobox in its committed state: a chip holding the class, its edit
+         button reopening the lookup. A row whose range is undeclared gets rdfs:Resource rather than an empty
+         slot - the idiom the platform's own constructors write for an object that is any resource
+         (owl:imports on owl:Ontology, sd:endpoint, ac:mode, foaf:primaryTopic), and the one client/form.xsl
+         reads as "no type filter" when it is the only forClass. Defaulting here rather than in the save path
+         keeps a value in the slot, so nothing downstream needs a notion of a range left open:
+         ldh:constructor-valid-rows still asks for a control and still finds one. -->
     <xsl:template name="ldh:ConstructorResourceObject">
         <xsl:param name="object-type" as="xs:anyURI?"/>
+        <!-- a variable rather than a param default: both callers pass a value that can be empty - the row
+             renderer passes the parsed object type, the object-kind toggle passes nothing at all - and a
+             param default only covers the second -->
+        <xsl:variable name="range" select="($object-type, xs:anyURI('&rdfs;Resource'))[1]" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', lapp:base()), map{ 'query': 'DESCRIBE &lt;' || $range || '&gt;', 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
+        <!-- ontologies are served without inference, so owl:Class subjects do not carry the rdfs:Class type.
+             The chip carries the scope its lookup was made with, which is what the edit button reopens with -
+             ldh:ComboboxChip puts it on @data-for-class. -->
+        <xsl:variable name="forClass" select="(xs:anyURI('&rdfs;Class'), xs:anyURI('&owl;Class'))" as="xs:anyURI*"/>
+        <xsl:variable name="resource" select="key('resources', $range, document($request-uri))[*][@rdf:about or @rdf:nodeID]" as="element()?"/>
 
         <xsl:choose>
-            <xsl:when test="$object-type">
-                <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', lapp:base()), map{ 'query': 'DESCRIBE &lt;' || $object-type || '&gt;', 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
-
-                <xsl:apply-templates select="key('resources', $object-type, document($request-uri))" mode="ldh:ComboboxChip">
+            <xsl:when test="exists($resource)">
+                <xsl:apply-templates select="$resource" mode="ldh:ComboboxChip">
                     <xsl:with-param name="class" select="'cb-chip-btn add-combobox add-class-combobox'"/>
+                    <xsl:with-param name="forClass" select="$forClass"/>
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:variable name="uuid" select="ac:uuid()" as="xs:string"/>
+                <!-- nothing in /ns describes $range - rdfs:Resource never does, nor does a class from a
+                     vocabulary the app does not import - so synthesize the node the chip renders from, the
+                     way the predicate slot does. ldh:class-label() names it: the localized word for
+                     rdfs:Resource, so the chip reads like the Resource toggle beside it, the URI tail
+                     otherwise. Without it the slot rendered empty and the save path dropped the row. -->
+                <xsl:variable name="synthetic" as="document-node()">
+                    <xsl:document>
+                        <rdf:RDF>
+                            <rdf:Description rdf:about="{$range}">
+                                <rdf:type rdf:resource="&rdfs;Class"/>
+                                <rdfs:label>
+                                    <xsl:value-of select="ldh:class-label($range)"/>
+                                </rdfs:label>
+                            </rdf:Description>
+                        </rdf:RDF>
+                    </xsl:document>
+                </xsl:variable>
 
-                <xsl:call-template name="ldh:Combobox">
-                    <xsl:with-param name="forClass" select="(xs:anyURI('&rdfs;Class'), xs:anyURI('&owl;Class'))"/> <!-- ontologies are served without inference, so owl:Class subjects do not carry the rdfs:Class type -->
-                    <xsl:with-param name="class" select="'class-combobox combobox'"/>
-                    <xsl:with-param name="id" select="'input-' || $uuid"/>
-                    <xsl:with-param name="list-class" select="'class-combobox combobox ac-cb-panel'"/>
-                </xsl:call-template>
+                <xsl:apply-templates select="$synthetic/rdf:RDF/rdf:Description" mode="ldh:ComboboxChip">
+                    <xsl:with-param name="class" select="'cb-chip-btn add-combobox add-class-combobox'"/>
+                    <xsl:with-param name="forClass" select="$forClass"/>
+                </xsl:apply-templates>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
