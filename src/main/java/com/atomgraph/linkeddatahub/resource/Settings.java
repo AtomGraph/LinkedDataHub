@@ -20,7 +20,9 @@ import com.atomgraph.core.util.ModelUtils;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.resource.admin.ClearOntology;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
+import com.atomgraph.linkeddatahub.server.util.EntityTags;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import java.net.URI;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
@@ -240,7 +242,11 @@ public class Settings
      */
     public EntityTag getEntityTag(Model model)
     {
-        return new EntityTag(Long.toHexString(ModelUtils.hashModel(model)));
+        // digested with the URI and not folded from the triples, for the reason given on
+        // DocumentHierarchyGraphStoreImpl#getEntityTag: settings are PATCHable by an agent holding
+        // acl:Write without acl:Read, who can therefore move this tag without being able to read
+        // what it describes - and with an XOR fold that difference tells them what is in it
+        return EntityTags.entityTag(URI.create(getApplication().getURI()), model);
     }
 
 }

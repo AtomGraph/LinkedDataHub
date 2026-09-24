@@ -31,6 +31,7 @@ import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
 import com.atomgraph.linkeddatahub.server.model.Patchable;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.PatchUpdateVisitor;
+import com.atomgraph.linkeddatahub.server.util.EntityTags;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.DH;
@@ -1112,6 +1113,26 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         }
     }
     
+    /**
+     * Returns the entity tag of a graph, digested with its URI rather than folded from its triples.
+     *
+     * Core's implementation XORs a hash per triple, which makes the tag linear in the set: appending
+     * a triple moves it by a value the appender can compute. Since HEAD is answered for any access
+     * mode - so that an agent with acl:Append and no acl:Read can obtain the validator its writes
+     * must quote - that turns a dropbox into a membership oracle: append a triple, see whether the
+     * tag moved by its hash, learn whether it was already there. The URI goes into the digest for
+     * the same reason: without it, identical content in two documents shares a tag, and a guess can
+     * be materialized somewhere readable and compared.
+     *
+     * @param model RDF model
+     * @return entity tag
+     */
+    @Override
+    public EntityTag getEntityTag(Model model)
+    {
+        return EntityTags.entityTag(getURI(), model);
+    }
+
     /**
      * Evaluates the state of the given graph against the request preconditions.
      * Checks the last modified data (if any) and calculates an <code>ETag</code> value.
