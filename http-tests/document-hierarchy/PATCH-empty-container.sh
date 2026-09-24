@@ -46,6 +46,8 @@ EOF
 curl -k -w "%{http_code}\n" -o /dev/null -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -X PATCH \
+  -H "Accept: application/n-triples" \
+  -H "If-Match: $(etag "$container" "$AGENT_CERT_FILE" "$AGENT_CERT_PWD" "application/n-triples")" \
   -H "Content-Type: application/sparql-update" \
   "$container" \
    --data-binary "$update" \

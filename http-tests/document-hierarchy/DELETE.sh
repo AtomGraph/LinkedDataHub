@@ -38,6 +38,8 @@ ldh admin create authorization \
 curl -k -w "%{http_code}\n" -o /dev/null -f -s -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -X DELETE \
+  -H "Accept: application/n-triples" \
+  -H "If-Match: $(etag "$container" "$AGENT_CERT_FILE" "$AGENT_CERT_PWD" "application/n-triples")" \
   "$container" \
 | grep -q "$STATUS_NO_CONTENT"
 

@@ -50,6 +50,8 @@ source_rdfxml=$(curl -k -f -s -G \
 echo "$source_rdfxml" | curl -k -w "%{http_code}\n" -o /dev/null -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -X POST \
+  -H "Accept: application/n-triples" \
+  -H "If-Match: $(etag "$container" "$AGENT_CERT_FILE" "$AGENT_CERT_PWD" "application/n-triples")" \
   -H "Content-Type: application/rdf+xml" \
   --data-binary @- \
   "$container" \

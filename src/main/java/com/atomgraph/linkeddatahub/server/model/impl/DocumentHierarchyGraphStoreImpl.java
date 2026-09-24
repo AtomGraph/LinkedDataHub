@@ -1130,7 +1130,10 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         // in the constructor editor: one save's DELETE was correct in every detail, answered 204, and was
         // reinstated by a second write that had read the graph before it landed. A document that does not exist
         // yet has no validator to match, so creating one is exempt.
-        if (model != null && !model.isEmpty() && httpHeaders.getHeaderString(HttpHeaders.IF_MATCH) == null)
+        // blank counts as absent: an empty If-Match is not a validator, and reading it as one let a client opt
+        // out of the precondition entirely by sending the header with nothing in it - measured, 204 not 428
+        String ifMatch = httpHeaders.getHeaderString(HttpHeaders.IF_MATCH);
+        if (model != null && !model.isEmpty() && (ifMatch == null || ifMatch.isBlank()))
             throw new WebApplicationException("Writing an existing document requires the If-Match header",
                 Response.status(Response.Status.PRECONDITION_REQUIRED).build());
 

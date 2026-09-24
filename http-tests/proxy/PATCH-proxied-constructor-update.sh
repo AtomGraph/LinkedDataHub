@@ -35,6 +35,8 @@ updated_text="CONSTRUCT { ?this a <https://example.com/TestClassUpdated> . } WHE
 curl -k -f -s -o /dev/null \
   -X PATCH \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+  -H "Accept: application/n-triples" \
+  -H "If-Match: $(etag "$ontology_doc" "$OWNER_CERT_FILE" "$OWNER_CERT_PWD" "application/n-triples")" \
   -H "Content-Type: application/sparql-update" \
   --data-binary "
     PREFIX sp: <http://spinrdf.org/sp#>
@@ -62,6 +64,8 @@ EOF
 status=$(curl -k -w "%{http_code}" -o /dev/null -s \
   -X PATCH \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+  -H "Accept: application/n-triples" \
+  -H "If-Match: $(etag "${END_USER_BASE_URL}?uri=${ontology_doc}" "$OWNER_CERT_FILE" "$OWNER_CERT_PWD" "application/n-triples")" \
   -H "Content-Type: application/sparql-update" \
   --url-query "uri=${ontology_doc}" \
   --data-binary "$update" \
