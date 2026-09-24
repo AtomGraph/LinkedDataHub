@@ -548,6 +548,10 @@ configs:
           if ((beresp.status == 200 || beresp.status == 201 || beresp.status == 204) && bereq.method ~ "POST|PUT|DELETE|PATCH") {
               set beresp.http.X-LinkedDataHub = "Banned";
               ban("req.url == " + bereq.url + " && req.http.host == " + bereq.http.host);
+              /* SPARQL query results depend on dataset state — any write invalidates every cached query. xkey below
+                 covers only the responses LDH stamps (ontology CONSTRUCTs); a client SELECT carries no key, so
+                 without this it keeps its pre-write answer for the whole 24h TTL. */
+              ban("req.url ~ \?(query|default-graph-uri|named-graph-uri)=");
           }
 
           /* promote outbound surrogate-key hint from LDH into the indexed xkey header on the cached response */
