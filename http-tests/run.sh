@@ -79,7 +79,6 @@ function run_tests()
     local suite_name="$1"
     shift
 
-    local error_count=0
     local suite_start_ms suite_end_ms
     suite_start_ms=$(now_ms)
 
@@ -120,6 +119,9 @@ function run_tests()
             echo "   failed";
             status="failed"
             (( tests_failed += 1 ))
+            # the suite's own tally, and the run's: each caller used to add the return value itself, and one
+            # of the sixteen did not - so every failure under imports/ was printed, counted here, and dropped,
+            # leaving "### Failed tests: 0" and a green workflow over a red test
             (( error_count += 1 ))
             # Echo the captured output so CI logs still show the failure.
             cat "$log_file"
@@ -177,7 +179,7 @@ function run_tests()
         rm -f "$results_file.tests"
     fi
 
-    return $error_count
+    return $tests_failed
 }
 
 function download_dataset()
@@ -318,7 +320,6 @@ export AGENT_CERT_PWD="changeit"
 start_time=$(date +%s)
 
 run_tests "signup" "signup.sh"
-(( error_count += $? ))
 
 export AGENT_URI="$(webid-uri.sh "$AGENT_CERT_FILE")"
 printf "### Signed up agent URI: %s\n" "$AGENT_URI"
@@ -332,37 +333,21 @@ download_dataset "$ADMIN_ENDPOINT_URL" > "$TMP_ADMIN_DATASET"
 ### Other tests ###
 
 run_tests "add" $(find ./add/ -type f -name '*.sh')
-(( error_count += $? ))
 run_tests "admin" $(find ./admin/ -type f -name '*.sh')
-(( error_count += $? ))
 run_tests "dataspaces" $(find ./dataspaces/ -type f -name '*.sh')
-(( error_count += $? ))
 run_tests "access" $(find ./access/ -type f -name '*.sh')
-(( error_count += $? ))
 run_tests "imports" $(find ./imports/ -type f -name '*.sh')
-
 run_tests "push" $(find ./push/ -type f -name '*.sh')
-(( error_count += $? ))
 run_tests "document-hierarchy" $(find ./document-hierarchy/ -type f -name '*.sh')
-(( error_count += $? ))
 run_tests "misc" $(find ./misc/ -type f -name '*.sh')
-(( error_count += $? ))
 run_tests "static" $(find ./static/ -type f -name '*.sh')
-(( error_count += $? ))
 run_tests "proxy" $(find ./proxy/ -type f -name '*.sh')
-(( error_count += $? ))
 run_tests "federation" $(find ./federation/ -type f -name '*.sh')
-(( error_count += $? ))
 run_tests "sparql-protocol" $(find ./sparql-protocol/ -type f -name '*.sh')
-(( error_count += $? ))
 run_tests "versioning" $(find ./versioning/ -type f -name '*.sh')
-(( error_count += $? ))
 run_tests "language" $(find ./language/ -type f -name '*.sh')
-(( error_count += $? ))
 run_tests "rdfa" $(find ./rdfa/ -type f -name '*.sh')
-(( error_count += $? ))
 run_tests "system" $(find ./system/ -type f -name '*.sh')
-(( error_count += $? ))
 
 end_time=$(date +%s)
 runtime=$((end_time-start_time))
