@@ -311,6 +311,15 @@ public class PackageService
                     addProperty(FOAF.primaryTopic, model.getResource(ontologyURI));
                 if (pkg.hasProperty(DCTerms.title)) doc.addProperty(DCTerms.title, pkg.getProperty(DCTerms.title).getObject());
 
+                // the data LDH writes is blank-node-free, which every write through the document resource
+                // enforces by skolemizing. This one goes straight to the graph store - to avoid a
+                // self-request deadlock from inside OntologyFilter - so it has to uphold the invariant
+                // itself, or a vocabulary carrying an owl:Restriction or an rdf:List would put blank
+                // nodes in the store. The entity tag is a digest of a sorted N-Triples serialization,
+                // which is canonical only while that holds: Jena's _:bN labels are not stable across
+                // reads, so a stored blank node means a different tag on every read.
+                new Skolemizer(docURI.toString()).apply(model);
+
                 getSystem().getServiceContext(endUserApp.getAdminApplication().getService()).getGraphStoreClient().putModel(docURI.toString(), model);
 
                 if (log.isInfoEnabled()) log.info("Materialized package ontology <{}> as <{}>", ontologyURI, docURI);

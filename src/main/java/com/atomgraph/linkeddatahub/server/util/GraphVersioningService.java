@@ -25,13 +25,11 @@ import com.atomgraph.linkeddatahub.vocabulary.PROV;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.client.Client;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -364,17 +362,7 @@ public class GraphVersioningService
      */
     public static byte[] toSortedNTriples(Model model)
     {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        RDFDataMgr.write(out, model, Lang.NTRIPLES);
-
-        String[] lines = out.toString(StandardCharsets.UTF_8).split("\n");
-        Arrays.sort(lines);
-
-        StringBuilder sorted = new StringBuilder();
-        for (String line : lines)
-            if (!line.isBlank()) sorted.append(line.stripTrailing()).append('\n');
-
-        return sorted.toString().getBytes(StandardCharsets.UTF_8);
+        return EntityTags.toSortedNTriples(model); // shared with the entity tag, which is a digest of exactly this
     }
 
     /**
