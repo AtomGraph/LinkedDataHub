@@ -129,6 +129,31 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="map{ 'method': 'HEAD', 'href': ldh:href($uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }"/>
     </xsl:function>
 
+    <!-- The validator of a document the browser has loaded, for a conditional write. The server requires
+         If-Match of any write to a document that already exists, because it applies one by reading the graph,
+         changing it in memory and writing the whole thing back - two unconditional writers overwrite each
+         other with nothing to show for it. LinkedDataHub.contents only holds documents this browser fetched,
+         so a write to a document it never loaded gets nothing here and has to HEAD for the tag instead
+         (ldh:head-request above), which is what the constructor dialog and the import chain do. -->
+    <xsl:function name="ldh:document-etag" as="xs:string?">
+        <xsl:param name="doc-uri" as="xs:anyURI"/>
+
+        <xsl:variable name="contents" select="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+        <xsl:variable name="entry" select="if (ixsl:contains($contents, '`' || $doc-uri || '`')) then ixsl:get($contents, '`' || $doc-uri || '`') else ()"/>
+
+        <xsl:sequence select="if (exists($entry) and ixsl:contains($entry, 'etag')) then ixsl:get($entry, 'etag') else ()"/>
+    </xsl:function>
+
+    <!-- The headers a conditional write sends. An absent validator sends no If-Match rather than an empty one:
+         the server reads a blank header as no header at all, so the write is refused with 428 and says so,
+         where an empty value would have looked like a precondition that passed. -->
+    <xsl:function name="ldh:conditional-headers" as="map(*)">
+        <xsl:param name="headers" as="map(*)"/>
+        <xsl:param name="etag" as="xs:string?"/>
+
+        <xsl:sequence select="map:merge(($headers, $etag[. ne ''] ! map{ 'If-Match': . }), map{ 'duplicates': 'use-last' })"/>
+    </xsl:function>
+
     <!-- Whether the agent may PATCH the document such a response came from. A response that is not 200 has no
          modes to read and is not writable, which is the safe reading of an authorization that could not be
          established. -->

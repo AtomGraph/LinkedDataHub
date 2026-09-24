@@ -224,7 +224,10 @@ version="3.0"
         <xsl:choose>
             <xsl:when test="$response?status = 200 and exists($response?body)">
                 <!-- the graph store takes the document node directly; the server restamps dct:modified -->
-                <xsl:variable name="request" select="map{ 'method': 'PUT', 'href': ldh:href($context('doc-uri')), 'media-type': 'application/rdf+xml', 'body': $response?body, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                <!-- conditional on the live document's current state: restoring a version overwrites the whole
+                     graph, so without a validator it would silently discard anything written since the timemap
+                     was rendered -->
+                <xsl:variable name="request" select="map{ 'method': 'PUT', 'href': ldh:href($context('doc-uri')), 'media-type': 'application/rdf+xml', 'body': $response?body, 'headers': ldh:conditional-headers(map{ 'Accept': 'application/rdf+xml' }, ldh:document-etag($context('doc-uri'))) }" as="map(*)"/>
                 <xsl:sequence select="
                   ixsl:http-request($request)
                     => ixsl:then(ldh:rethread-response(map:remove($context, 'response'), ?))

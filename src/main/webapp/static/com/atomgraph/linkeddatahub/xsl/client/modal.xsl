@@ -2036,14 +2036,11 @@ LIMIT   10
             <!-- source fetched as RDF/XML: append it to the target document graph -->
             <xsl:when test="$status = 200 and starts-with($media-type, 'application/rdf+xml')">
                 <xsl:variable name="target-uri" select="$context('target-uri')" as="xs:anyURI"/>
-                <xsl:variable name="post-request" select="map{ 'method': 'POST', 'href': ldh:href($target-uri), 'media-type': 'application/rdf+xml', 'body': $response?body, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-                <!-- re-thread 'request' so ldh:handle-response's 429/Retry-After retry re-issues the POST, not the original GET -->
-                <xsl:variable name="post-context" select="map:put($context, 'request', $post-request)" as="map(*)"/>
+                <!-- same as the import chain: the target is named in the form rather than loaded, so its
+                     validator has to be read before a write the server will otherwise refuse -->
                 <xsl:sequence select="
-                  ixsl:http-request($post-request)
-                    => ixsl:then(ldh:rethread-response($post-context, ?))
-                    => ixsl:then(ldh:handle-response#1)
-                    => ixsl:then(ldh:add-data-form-response#1)
+                  ixsl:http-request(ldh:head-request($target-uri))
+                    => ixsl:then(ldh:add-data-append(map:put($context, 'append-body', $response?body), ?))
                 "/>
             </xsl:when>
             <!-- 200 but not RDF/XML (e.g. the source URI returned an HTML page): explicit error, do NOT fall through to the success navigation of ldh:add-data-form-response -->
@@ -2055,6 +2052,24 @@ LIMIT   10
                 <xsl:sequence select="ldh:add-data-form-error($context, ())"/>
             </xsl:otherwise>
         </xsl:choose>
+    </xsl:function>
+
+    <!-- the add/clone append, conditional on the tag its HEAD returned -->
+    <xsl:function name="ldh:add-data-append" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="head-response" as="map(*)"/>
+
+        <xsl:variable name="target-uri" select="$context('target-uri')" as="xs:anyURI"/>
+        <xsl:variable name="post-request" select="map{ 'method': 'POST', 'href': ldh:href($target-uri), 'media-type': 'application/rdf+xml', 'body': $context('append-body'), 'headers': ldh:conditional-headers(map{ 'Accept': 'application/rdf+xml' }, $head-response?headers?etag) }" as="map(*)"/>
+        <!-- re-thread 'request' so ldh:handle-response's 429/Retry-After retry re-issues the POST, not the original GET -->
+        <xsl:variable name="post-context" select="map:put($context, 'request', $post-request)" as="map(*)"/>
+
+        <xsl:sequence select="
+          ixsl:http-request($post-request)
+            => ixsl:then(ldh:rethread-response($post-context, ?))
+            => ixsl:then(ldh:handle-response#1)
+            => ixsl:then(ldh:add-data-form-response#1)
+        "/>
     </xsl:function>
 
     <!-- import-ontology chain, step 1 (source fetched): GSP-append the raw vocabulary to the target document, where it stays. Appended rather than PUT so the target keeps the metadata it already has. -->
@@ -2079,14 +2094,14 @@ LIMIT   10
                         </rdf:RDF>
                     </xsl:document>
                 </xsl:variable>
-                <xsl:variable name="post-request" select="map{ 'method': 'POST', 'href': ldh:href($target-uri), 'media-type': 'application/rdf+xml', 'body': $vocabulary-body, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-                <!-- re-thread 'request' so ldh:handle-response's 429/Retry-After retry re-issues the POST, not the original GET -->
-                <xsl:variable name="post-context" select="map:put($context, 'request', $post-request)" as="map(*)"/>
+                <!-- The target is a document the agent named in the form, not one this browser loaded, so
+                     LinkedDataHub.contents holds no validator for it - and the server refuses an unconditional
+                     write to a document that already exists. A HEAD is the smallest read that answers, and the
+                     second append later in this chain needs no read of its own: a GSP write responds with the
+                     entity tag of the graph it just wrote. -->
                 <xsl:sequence select="
-                  ixsl:http-request($post-request)
-                    => ixsl:then(ldh:rethread-response($post-context, ?))
-                    => ixsl:then(ldh:handle-response#1)
-                    => ixsl:then(ldh:import-ontology-query-thunk#1)
+                  ixsl:http-request(ldh:head-request($target-uri))
+                    => ixsl:then(ldh:import-ontology-append(map:put($context, 'append-body', $vocabulary-body), ?))
                 "/>
             </xsl:when>
             <!-- 200 but not RDF/XML (e.g. the source URI returned an HTML page): explicit error -->
@@ -2100,6 +2115,26 @@ LIMIT   10
         </xsl:choose>
     </xsl:function>
 
+    <!-- import-ontology chain, step 1b: the append itself, conditional on the tag the HEAD just returned. An
+         absent tag sends no If-Match and the write is refused with 428, which is the honest outcome - the
+         alternative, writing unconditionally, is what silently overwrote a concurrent edit. -->
+    <xsl:function name="ldh:import-ontology-append" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="head-response" as="map(*)"/>
+
+        <xsl:variable name="target-uri" select="$context('target-uri')" as="xs:anyURI"/>
+        <xsl:variable name="post-request" select="map{ 'method': 'POST', 'href': ldh:href($target-uri), 'media-type': 'application/rdf+xml', 'body': $context('append-body'), 'headers': ldh:conditional-headers(map{ 'Accept': 'application/rdf+xml' }, $head-response?headers?etag) }" as="map(*)"/>
+        <!-- re-thread 'request' so ldh:handle-response's 429/Retry-After retry re-issues the POST, not the original GET -->
+        <xsl:variable name="post-context" select="map:put($context, 'request', $post-request)" as="map(*)"/>
+
+        <xsl:sequence select="
+          ixsl:http-request($post-request)
+            => ixsl:then(ldh:rethread-response($post-context, ?))
+            => ixsl:then(ldh:handle-response#1)
+            => ixsl:then(ldh:import-ontology-query-thunk#1)
+        "/>
+    </xsl:function>
+
     <!-- import-ontology chain, step 2 (vocabulary appended to the target): fetch the spin:query document as RDF/XML so its sp:text can be read -->
     <xsl:function name="ldh:import-ontology-query-thunk" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
@@ -2111,6 +2146,9 @@ LIMIT   10
             <xsl:when test="$response?status = (200, 201, 204)">
                 <xsl:variable name="query-uri" select="$context('query-uri')" as="xs:anyURI"/>
                 <xsl:variable name="request" select="map{ 'method': 'GET', 'href': ldh:href(ac:document-uri($query-uri)), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                <!-- the append answered with the entity tag of the graph it wrote, which is what the second
+                     append is conditional on: carrying it forward saves that step a read of its own -->
+                <xsl:variable name="context" select="map:put($context, 'target-etag', $response?headers?etag)" as="map(*)"/>
                 <xsl:variable name="query-context" select="map:put($context, 'request', $request)" as="map(*)"/>
                 <xsl:sequence select="
                   ixsl:http-request($request)
@@ -2172,7 +2210,7 @@ LIMIT   10
                         </rdf:RDF>
                     </xsl:document>
                 </xsl:variable>
-                <xsl:variable name="post-request" select="map{ 'method': 'POST', 'href': ldh:href($target-uri), 'media-type': 'application/rdf+xml', 'body': $target-body, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                <xsl:variable name="post-request" select="map{ 'method': 'POST', 'href': ldh:href($target-uri), 'media-type': 'application/rdf+xml', 'body': $target-body, 'headers': ldh:conditional-headers(map{ 'Accept': 'application/rdf+xml' }, $context?target-etag) }" as="map(*)"/>
                 <xsl:variable name="post-context" select="map:put($context, 'request', $post-request)" as="map(*)"/>
                 <xsl:sequence select="
                   ixsl:http-request($post-request)
