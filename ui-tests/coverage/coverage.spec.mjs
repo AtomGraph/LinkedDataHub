@@ -112,11 +112,40 @@ test('the inventory is well formed', () => {
     const paths = declared.map(component => component.path);
     expect(paths, 'two components share a path').toEqual([...new Set(paths)]);
 
+    const pathOf = xsl => (xsl.startsWith('packages/') ? join(repoRoot, xsl) : join(xslBase, xsl));
+
     const missing = declared
         .map(component => ({ path: component.path, xsl: component.xsl }))
-        .filter(({ xsl }) => !existsSync(xsl.startsWith('packages/') ? join(repoRoot, xsl) : join(xslBase, xsl)));
-    // A class styled in app.css and emitted by nothing is not a component, and this is what says so.
+        .filter(({ xsl }) => !existsSync(pathOf(xsl)));
     expect(missing, 'a component names an XSL module that does not exist').toEqual([]);
+
+    // And SOME stylesheet has to emit it. Checking only that the file exists is not enough: a
+    // class styled in app.css and emitted by nothing can be declared against a real module all
+    // day, which is how `.ldh-rdf-type` got in - `client/block.xsl` exists and never mentions it.
+    //
+    // The search is over every stylesheet rather than the one the record names, because the two
+    // are often different on purpose: the drawer's tree is emitted by client/navigation.xsl while
+    // client/tree.xsl owns its lazy loading, and the record names the module that owns the
+    // component. What is being caught here is a class the product never writes at all.
+    const stylesheets = readdirSync(xslBase, { recursive: true })
+        .map(entry => String(entry).split('\\').join('/'))
+        .filter(entry => entry.endsWith('.xsl'))
+        .map(entry => join(xslBase, entry))
+        .concat(readdirSync(join(repoRoot, 'packages'), { recursive: true })
+            .map(entry => String(entry).split('\\').join('/'))
+            .filter(entry => entry.endsWith('.xsl'))
+            .map(entry => join(repoRoot, 'packages', entry)));
+    const emitted = stylesheets.map(file => readFileSync(file, 'utf8')).join('\n');
+
+    const unemitted = declared
+        .map(component => ({
+            path: component.path,
+            selector: component.selector,
+            tokens: [...component.selector.matchAll(/[.#]([A-Za-z][\w-]*)/g)].map(match => match[1]),
+        }))
+        .filter(({ tokens }) => tokens.length && !tokens.some(token => emitted.includes(token)))
+        .map(({ path, selector }) => ({ path, selector }));
+    expect(unemitted, 'a component names a class no stylesheet emits').toEqual([]);
 });
 
 test('no spec imports the inventory', () => {
@@ -167,6 +196,9 @@ test('reports what is covered, what is a gap, and what has never been seen', asy
 
     const statusOf = component => {
         if (specsByComponent.has(component.path)) return 'covered';
+        // A node that exists to nest others carries no behaviour of its own, so its children ARE
+        // its coverage. Saying otherwise would print four permanent gaps nobody should close.
+        if (component.grouping) return 'grouping';
         const below = declared.some(other =>
             other.path.startsWith(`${component.path}/`) && specsByComponent.has(other.path));
         if (below) return 'covered-below';
@@ -197,7 +229,8 @@ test('reports what is covered, what is a gap, and what has never been seen', asy
         '',
         '`covered` a spec in its own folder · `covered-below` only a descendant has one · '
         + '`GAP` it renders and nothing asserts it · `unprobed` it renders on no probe page, so '
-        + 'coverage is unknowable until a fixture shows it.',
+        + 'coverage is unknowable until a fixture shows it · `grouping` a node that only nests '
+        + 'others, whose children are its coverage.',
         '',
         '| Component | Path | Owner | XSL | Specs | Renders on | Status |',
         '| --- | --- | --- | --- | --- | --- | --- |',

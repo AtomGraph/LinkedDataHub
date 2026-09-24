@@ -18,6 +18,7 @@ import { goto, settled } from '../../lib/settle.mjs';
 import { fixtures, itemTitle, itemUri } from '../../lib/fixtures.mjs';
 import { concept, document } from '../../lib/taxonomy.mjs';
 import { READ_MODE, inMode } from '../../lib/mode.mjs';
+import { openDocumentForm } from '../../lib/modal.mjs';
 
 const SKOS = 'http://www.w3.org/2004/02/skos/core#';
 const RELATED = `${SKOS}related`;
@@ -30,12 +31,7 @@ const LOOKUP = /\/sparql\?query=DESCRIBE/i;
 async function documentForm(page, url) {
     await goto(page, url);
     await settled(page);
-    await page.locator('div.ldh-of-wrap button.drop-toggle').first().click();
-    await page.locator('div.ldh-of-menu button.btn-edit').first().click();
-
-    const modal = page.locator('div.modal').filter({ has: page.locator('form') }).first();
-    await expect(modal).toBeVisible({ timeout: 30_000 });
-    return modal;
+    return openDocumentForm(page);
 }
 
 // A concept's edit form, which is inline in its block because the concept is described by the

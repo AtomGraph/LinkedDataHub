@@ -23,10 +23,9 @@ import { test, expect } from '../../../../lib/console.mjs';
 import { goto } from '../../../../lib/settle.mjs';
 import { ldh } from '../../../../lib/fixtures.mjs';
 import { concept, document, removeTriple, scheme } from '../../../../lib/taxonomy.mjs';
-import {
-    IN_SCHEME, NARROWER, PREF_LABEL,
-    constructorModal, createButton, fillResource, fillText, rowFor, rowLabel, rows, save, viewBlock,
-} from '../../../../lib/view.mjs';
+import { IN_SCHEME, NARROWER, PREF_LABEL, createButton, rowFor, rowLabel, rows, viewBlock } from '../../../../lib/view.mjs';
+import { fillResource, fillText, save } from '../../../../lib/form.mjs';
+import { constructorModal } from '../../../../lib/modal.mjs';
 import { READ_MODE, inMode } from '../../../../lib/mode.mjs';
 
 const pageFor = name => inMode(document(name), READ_MODE);

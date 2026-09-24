@@ -101,7 +101,9 @@ the content body, `resource.xsl` emits the block card and `client/block/*.xsl` t
 ```
 specs/
   axes/                     a claim that crosses components, not a component
+  controls/                 kit controls with no host of their own (the dropdown)
   document/                 document.xsl - the pane inwards
+    action-bar/             create, breadcrumb, mode, overflow, timestamp
     content-aside/          the ldh:ContentColumn slot
     blocks/                 the card shell, kind-agnostic
       view/                 one folder per block kind
@@ -110,7 +112,15 @@ specs/
     modal/
   shell/                    layout.xsl - outside the pane
     drawer/
+    header/
 ```
+
+`controls/` is the one region that is not a place on the page. A dropdown menu appears in the
+header, in the action bar and in a block head, and behaves identically in all three because they
+share one handler — so it is asserted once, and each host's own spec says only what its menu
+holds. The rule for which layer such a control belongs to is what it does: a control that writes a
+value into a form is a form control and lives under `forms/` (the combobox); a chrome control
+lives here.
 
 Two rules decide where a spec goes, and they are what make the tree answer a question a flat
 directory cannot: *which components has nobody tested?*
@@ -158,6 +168,7 @@ Each component ends up in one of four states:
 | `covered-below` | only a descendant has one — the region is entered, the component itself is not |
 | `GAP` | it renders, and nothing asserts it |
 | `unprobed` | it renders on no probe page, so its coverage is unknowable until a fixture shows it |
+| `grouping` | a node that only nests others — its children are its coverage, and it owes no spec |
 
 That last state is the one worth reading twice. A `ldh:ResultSetChart` is data until something
 puts it in the document's `rdf:_N` list, so the fixture's chart once existed in the graph and
@@ -167,10 +178,12 @@ is that condition, named: not "untested" but "not yet visible to the suite at al
 The inventory lives in `coverage/`, not in `lib/`, and a spec that imports from it fails the run.
 A `selector` there answers *did this component render* and nothing else; the moment a spec wants
 one, it has found a locator too specific to be shared, and it belongs inline at the assertion.
-Each record also names the XSL module that emits it, which must exist — that check is what keeps
-a class styled in `app.css` and emitted by nothing (`.ldh-nblock`, `.ldh-query-block`,
-`.ldh-auth`) out of the inventory, where it would print a permanent gap for a component that does
-not exist.
+Each record also names the XSL module that emits it, and the module must both exist **and mention
+one of the selector's own tokens**. That is what keeps a class styled in `app.css` and emitted by
+nothing (`.ldh-nblock`, `.ldh-query-block`, `.ldh-auth`, `.ldh-rdf-type`) out of the inventory,
+where it would print a permanent gap for a component that does not exist. Checking only that the
+file exists is not enough — `.ldh-rdf-type` was declared against a real module that never mentions
+it, and survived until the token check went in.
 
 A declared component with no spec never fails the run. It is the report's subject.
 

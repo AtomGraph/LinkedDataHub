@@ -27,21 +27,3 @@ export const rowLabels = block => rowLabel(rows(block));
 
 export const createButton = block => block.locator('button.add-instance');
 
-export const constructorModal = page => page.locator('div.modal.modal-constructor');
-
-// One property's control group inside a constructor form: the group whose hidden RDF/POST
-// predicate input names that property.
-export const fieldFor = (modal, property) =>
-    modal.locator(`div.ldh-prop-group:has(input[name="pu"][value="${property}"])`);
-
-// A resource control is an `ou` input with a type-ahead attached, and the type-ahead only
-// helps you FIND a URI - nothing validates or rewrites what is in the box, and focusout
-// merely hides the panel. So a spec that already knows the URI fills it, and stays a spec
-// about what the save produces rather than about the type-ahead.
-export const fillResource = (modal, property, uri) =>
-    fieldFor(modal, property).locator('input[name="ou"]').fill(uri);
-
-export const fillText = (modal, property, text) =>
-    fieldFor(modal, property).locator('input[name="ol"]').fill(text);
-
-export const save = modal => modal.locator('button.btn-save').click();
