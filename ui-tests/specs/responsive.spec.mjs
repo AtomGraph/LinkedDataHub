@@ -80,11 +80,57 @@ async function present(page, selector, timeout = 30_000) {
 }
 
 // A block keeps its control chrome collapsed until the header's tune button is pressed, so a
-// measurement of .chart-controls has to ask for it first. Every toggle on the page, not one:
-// these assertions measure whichever grid is widest or fits a given box, and deciding which
-// block that is belongs to the assertion rather than to this helper.
-async function revealControls(page) {
-    for (const toggle of await page.locator('.ldh-block-head .tb-controls').all()) await toggle.click();
+// measurement of .chart-controls has to ask for it first. Every block, not one: these assertions
+// measure whichever grid is widest or fits a given box, and deciding which block that is belongs
+// to the assertion rather than to this helper.
+//
+// Two things make this more than a click, and both were found by a CI failure that ran green on
+// every laptop:
+//
+//   - THE BANDS HAVE TO EXIST FIRST. The toggle is in the server's first paint but a view's bars
+//     are rendered client-side, and the handler is explicitly a no-op while they are missing
+//     (client/block.xsl). A click that lands early does nothing and is not replayed, so waiting on
+//     the button is not enough - the wait is for a band. settled() cannot stand in: its signal is
+//     the .ldh-block-row count, which on a slow machine goes quiet BETWEEN injections. Throttling
+//     the CPU 10x reproduces the whole failure, down to ".chart-controls never rendered" 30s later
+//     against a grid nothing had revealed.
+//   - IT IS A TOGGLE, NOT A REVEAL. It reads its state off the block's first band and drives every
+//     band under that block to match, so pressing it twice puts the chrome back. Each block is
+//     therefore pressed only while its own first band still reads collapsed, which is also what
+//     makes repeating the pass safe: an expanded block is never pressed a second time. Repeating is
+//     what covers the blocks that arrive AFTER the first band does - waiting for one band says the
+//     page has begun rendering chrome, not that it has finished, and under a 10x throttle the
+//     fixture container was still two blocks short at that moment.
+const TOGGLE = '.ldh-block-head .tb-controls';
+const BANDS = '.chart-controls, .ldh-view-toolbar, .ldh-pivot-bar';
+const COLLAPSED_BANDS = '.chart-controls.is-collapsed, .ldh-view-toolbar.is-collapsed, .ldh-pivot-bar.is-collapsed';
+
+async function revealControls(page, timeout = 30_000) {
+    // attached, not visible: a collapsed band is hidden, which is the state being waited for
+    await expect(page.locator(BANDS).first(), 'no block control band ever rendered')
+        .toBeAttached({ timeout });
+    await expect(page.locator(TOGGLE).first(), 'no block control toggle ever rendered')
+        .toBeAttached({ timeout });
+
+    const collapsed = page.locator(COLLAPSED_BANDS);
+    const deadline = Date.now() + timeout;
+    do {
+        for (const toggle of await page.locator(TOGGLE).all()) {
+            // the handler drives the bands under the button's nearest block ancestor, and reads the
+            // state it is flipping off the first of them. The class is matched as a TOKEN, the way
+            // contains-token() does in the stylesheet: a substring test lands on .ldh-block-head,
+            // the button's own wrapper, which holds no bands at all.
+            const first = toggle.locator('xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " block ")][1]')
+                .locator(BANDS).first();
+            if (await first.count() === 0) continue;
+            if (((await first.getAttribute('class')) ?? '').includes('is-collapsed')) await toggle.click();
+        }
+        if (await collapsed.count() === 0) break;
+        await page.waitForTimeout(250);
+    } while (Date.now() < deadline);
+
+    await expect(collapsed, 'a block band stayed collapsed after its toggle was pressed')
+        .toHaveCount(0);
 }
 
 // Every match of a selector, with its used track sizes and its box width.
