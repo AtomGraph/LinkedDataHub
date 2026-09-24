@@ -946,6 +946,13 @@ exclude-result-prefixes="#all"
                         <xsl:apply-templates select="." mode="ac:description"/>
                     </p>
                 </xsl:where-populated>
+
+                <!-- the block's status line: what a block still has to state about itself once its
+                     control chrome is collapsed out of the way. Emitted empty and filled by the block,
+                     as the create slot is - the header cannot know the container id the view addresses
+                     its count by. Only a view overrides it: a chart states its own configuration in its
+                     axes, so it has nothing to put here -->
+                <xsl:apply-templates select="." mode="ldh:BlockStatus"/>
             </div>
 
             <div class="actions">
@@ -1130,10 +1137,47 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;View']" mode="ac:BlockActions" priority="2">
         <span class="ldh-view-create"></span>
 
+        <xsl:call-template name="ldh:ControlsToggle"/>
+
+        <xsl:next-match/>
+    </xsl:template>
+
+    <!-- the chart block's controls toggle, the view's twin: ldh:ChartControls ships collapsed, so
+         both chart types need the affordance that clears it -->
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&ldh;ResultSetChart', '&ldh;GraphChart')]" mode="ac:BlockActions" priority="2">
+        <xsl:call-template name="ldh:ControlsToggle"/>
+
         <xsl:next-match/>
     </xsl:template>
 
     <xsl:template match="*" mode="ac:BlockActions"/>
+
+    <!-- CONTROLS TOGGLE -->
+
+    <!-- The header affordance that reveals a block's control chrome. The chrome ships with
+         is-collapsed and this is what clears it - the same token and the same button vocabulary as the
+         query block's editor toggle (button.tb-query over div.ldh-sparql.is-collapsed), so a block's
+         "show me the controls" gesture is one gesture across the product. aria-pressed is the only
+         state: the handlers read it back off the button rather than keeping a second copy. -->
+    <xsl:template name="ldh:ControlsToggle">
+        <xsl:variable name="label" select="key('resources', 'block-controls', ldh:translations())" as="element()*"/>
+
+        <button type="button" class="ac-iconbtn sz-sm in-neutral ap-ghost tb-controls" aria-pressed="false" title="{ac:label($label)}" aria-label="{ac:label($label)}">
+            <span class="msi sm outline" aria-hidden="true">tune</span>
+        </button>
+    </xsl:template>
+
+    <!-- STATUS -->
+
+    <!-- no status line by default: a block whose chrome states nothing it has to restate -->
+    <xsl:template match="*" mode="ldh:BlockStatus"/>
+
+    <!-- a view's toolbar is collapsed by default, and with it the count and the applied filters go out
+         of sight - the one thing the rows themselves cannot say. The slot is emitted empty here and
+         filled by ldh:RenderViewResults, which owns the container id the count is addressed by -->
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;View']" mode="ldh:BlockStatus">
+        <p class="ldh-view-status"></p>
+    </xsl:template>
 
     <!-- TIMESTAMP -->
 

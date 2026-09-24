@@ -448,6 +448,14 @@
         <rdfs:label xml:lang="en-US">Related results</rdfs:label>
         <rdfs:label xml:lang="es-ES">Resultados relacionados</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="block-controls">
+        <rdfs:label xml:lang="en-US">Block controls</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Controles del bloque</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="filtered-by">
+        <rdfs:label xml:lang="en-US">filtered by</rdfs:label>
+        <rdfs:label xml:lang="es-ES">filtrado por</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="via">
         <rdfs:label xml:lang="en-US">via</rdfs:label>
         <rdfs:label xml:lang="es-ES">vía</rdfs:label>

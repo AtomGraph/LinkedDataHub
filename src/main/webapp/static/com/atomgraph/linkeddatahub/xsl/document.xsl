@@ -935,6 +935,12 @@ exclude-result-prefixes="#all"
         <xsl:param name="category-id" select="'category'" as="xs:string"/>
         <xsl:param name="series-id" select="'series'" as="xs:string"/>
         <xsl:param name="show-save" select="true()" as="xs:boolean"/>
+        <!-- whether the controls ship collapsed. A BLOCK collapses them: it has a card header, and so
+             an ldh:ControlsToggle to clear the token with. A document or a resource card rendered in
+             ChartMode is not a block - it has no such header, and the controls are the whole of the
+             mode's interaction - so it keeps them, which is why this is false by default and opted
+             into by the two block call sites rather than out of by everyone else -->
+        <xsl:param name="collapsed" select="false()" as="xs:boolean"/>
         <xsl:param name="form-actions" as="element()?">
             <!-- saving PATCHes the current document, so the button only appears to an agent who may write to it -->
             <xsl:if test="$show-save and acl:mode() = '&acl;Write'">
@@ -954,6 +960,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="chart-type-id" select="$chart-type-id"/>
             <xsl:with-param name="category-id" select="$category-id"/>
             <xsl:with-param name="series-id" select="$series-id"/>
+            <xsl:with-param name="collapsed" select="$collapsed"/>
         </xsl:apply-templates>
 
         <div>
@@ -977,8 +984,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="chart-type-id" select="'chart-type'" as="xs:string"/>
         <xsl:param name="category-id" select="'category'" as="xs:string"/>
         <xsl:param name="series-id" select="'series'" as="xs:string"/>
+        <xsl:param name="collapsed" select="false()" as="xs:boolean"/>
 
-        <div class="chart-controls">
+        <div class="chart-controls{' is-collapsed'[$collapsed]}">
             <div class="field">
                 <label class="ac-label sz-sm" for="{$chart-type-id}">
                     <span>
@@ -1073,8 +1081,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="chart-type-id" select="'chart-type'" as="xs:string"/>
         <xsl:param name="category-id" select="'category'" as="xs:string"/>
         <xsl:param name="series-id" select="'series'" as="xs:string"/>
+        <xsl:param name="collapsed" select="false()" as="xs:boolean"/>
 
-        <div class="chart-controls">
+        <div class="chart-controls{' is-collapsed'[$collapsed]}">
             <div class="field">
                 <label class="ac-label sz-sm" for="{$chart-type-id}">
                     <span>

@@ -274,6 +274,34 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
 
+    <!-- The block controls toggle. A view block's toolbar and pivot bar and a chart block's control
+         grid all ship carrying is-collapsed; this is the single affordance that clears it, and it
+         clears every band the block holds at once - a view in ChartMode has all three, and revealing
+         its toolbar while leaving the chart's selects hidden would be half a gesture.
+
+         One handler for both block types, because the gesture is the block's rather than the view's or
+         the chart's: the bands are found by class under the block, not by knowing what kind of block
+         this is. The state is read back off the first band, as the query block's editor toggle reads
+         it off div.ldh-sparql, so aria-pressed stays a report of the DOM rather than a second copy of
+         it that can drift. -->
+
+    <xsl:template match="div[contains-token(@class, 'block')]//button[contains-token(@class, 'tb-controls')]" mode="ixsl:onclick">
+        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
+        <xsl:variable name="bands" select="$block//div[contains-token(@class, 'ldh-view-toolbar')] | $block//div[contains-token(@class, 'ldh-pivot-bar')] | $block//div[contains-token(@class, 'chart-controls')]" as="element()*"/>
+
+        <!-- nothing to reveal before the block has hydrated: a view's bars are rendered client-side,
+             so the button can exist in the server's first paint while the bands do not yet -->
+        <xsl:if test="exists($bands)">
+            <xsl:variable name="show" select="contains-token($bands[1]/@class, 'is-collapsed')" as="xs:boolean"/>
+
+            <xsl:for-each select="$bands">
+                <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-collapsed', not($show))" object="."/>
+            </xsl:for-each>
+
+            <ixsl:set-attribute name="aria-pressed" select="if ($show) then 'true' else 'false'"/>
+        </xsl:if>
+    </xsl:template>
+
     <!-- toggle the block links popover (backlinks) from the header/toolbar links button -->
 
     <xsl:template match="div[contains-token(@class, 'links-nav')]/button[contains-token(@class, 'tb-links')]" mode="ixsl:onclick">

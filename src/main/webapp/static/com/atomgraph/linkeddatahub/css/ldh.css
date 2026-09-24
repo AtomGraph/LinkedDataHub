@@ -822,6 +822,25 @@ div.ldh-failure > .ac-alert { margin: 0; }
 
 .ldh-block-body > .ldh-view-toolbar { padding-left: 0; padding-right: 0; }
 
+/* Chrome on demand. A BLOCK's control bands - a view's toolbar and pivot bar, a
+   chart block's select grid - are rendered carrying is-collapsed, and the card
+   header's button.tb-controls is the one thing that clears it. Same token as the
+   query block's editor pane (.ldh-sparql.is-collapsed), so "show me this block's
+   controls" is one gesture and one state name across the product. A document or a
+   resource card in ChartMode is not a block: it has no such header to hang the
+   toggle on, so it never gets the token and keeps its controls. */
+.ldh-view-toolbar.is-collapsed,
+.ldh-pivot-bar.is-collapsed,
+.chart-controls.is-collapsed { display: none; }
+
+/* The toggle is in the server's first paint; a view's bands are not, arriving
+   only once the block hydrates. Until then there is nothing for it to act on. */
+.ldh-block[aria-busy="true"] .tb-controls { display: none; }
+
+/* No results counted yet, nothing applied: an empty line would read as a gap
+   between the title and the rows rather than as information. */
+.ldh-view-status:empty { display: none; }
+
 /* applied parallax steps read as removable chips beside the facet pills — the
    pivot's undo affordance; clicking one rewinds the view to before that step */
 .ldh-view-toolbar .parallax-steps { display: inline-flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2); }

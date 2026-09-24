@@ -1212,6 +1212,9 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
                     <xsl:with-param name="canvas-id" select="$container-id || '-chart-canvas'"/>
                     <xsl:with-param name="endpoint" select="$remote-endpoint" tunnel="yes"/>
+                    <!-- a block: the same ldh:ControlsToggle that hides the toolbar above hides these,
+                         so the two halves of the view's chrome cannot disagree about being shown -->
+                    <xsl:with-param name="collapsed" select="true()"/>
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:when test="$active-mode = '&ac;MapMode'">
@@ -1277,11 +1280,21 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="initial-load" select="empty(.//div[@id = $container-results-id])" as="xs:boolean"/>
         <xsl:message>$initial-load: <xsl:value-of select="$initial-load"/></xsl:message>
+
+        <!-- the card header this view hangs under, and the two slots ac:BlockHeader emits for it. Both
+             are absent for a view with no card header - a modal-hosted one (search, geo, latest, class
+             instances) - and that absence is the test for everything below: with no ldh:ControlsToggle
+             to clear the token there is nothing that could ever reveal a collapsed bar, so such a view
+             keeps its chrome open and its count in the toolbar, exactly as before. Same slot-by-class
+             resolution ldh:ViewContainer uses for the create slot. -->
+        <xsl:variable name="block-head" select="$container/ancestor::div[contains-token(@class, 'block')][1]/div[contains-token(@class, 'ldh-block-head')]" as="element()?"/>
+        <xsl:variable name="status-slot" select="$block-head/div[contains-token(@class, 'ldh-res-text')]/p[contains-token(@class, 'ldh-view-status')]" as="element()?"/>
+        <xsl:variable name="controls-collapsed" select="exists($block-head/div[contains-token(@class, 'actions')]//button[contains-token(@class, 'tb-controls')])" as="xs:boolean"/>
         <!-- first time rendering the view results -->
         <xsl:if test="$initial-load">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <!-- no body title: the card's own ldh-block-head carries it, derived and authored alike -->
-                <div class="ldh-view-toolbar">
+                <div class="ldh-view-toolbar{' is-collapsed'[$controls-collapsed]}">
                     <div class="left">
                         <span class="facet-lead">
                             <xsl:attribute name="title">
@@ -1299,7 +1312,13 @@ exclude-result-prefixes="#all"
                         <!-- facet pills are appended here by ldh:RenderFacets -->
                     </div>
                     <div class="right">
-                        <span id="{$result-count-container-id}" class="count"/>
+                        <!-- with a status line to live in, the count goes there: it is the one thing a
+                             collapsed toolbar must keep saying, and the rows cannot say it themselves.
+                             Same element and same id either way, so every writer that addresses it with
+                             id($result-count-container-id, ixsl:page()) is indifferent to which -->
+                        <xsl:if test="empty($status-slot)">
+                            <span id="{$result-count-container-id}" class="count"/>
+                        </xsl:if>
 
                         <!-- no sortable variables means an empty order-by dropdown, so the sort controls stay out of the toolbar altogether -->
                         <xsl:if test="map:size($var-predicates) gt 0">
@@ -1363,21 +1382,35 @@ exclude-result-prefixes="#all"
                     </div>
                 </div>
 
-                <!-- parallax row: the second row of the view's control header. Query inputs (filters, sort, modes) stay in the toolbar above; onward pivots derived from the current result set land here, filled by ldh:ParallaxNav after every results render. It is a disclosure, closed by default: a pivot is onward navigation rather than an input to the query above it, so the whole set costs one summary line until it is asked for - the pills wrapped to a second row and the two control bars together pushed the results out of view. Hidden by CSS while it has no chips. -->
-                <details class="ldh-pivot-bar">
-                    <summary>
-                        <span class="msi sm caret" aria-hidden="true">chevron_right</span>
-                        <!-- the pills carry their own direction arrows, so the row's own glyph stays neutral -->
-                        <span class="msi sm outline" aria-hidden="true">alt_route</span>
-                        <span class="lbl">
-                            <xsl:apply-templates select="key('resources', 'related-results', ldh:translations())" mode="ac:label"/>
-                        </span>
-                        <!-- filled by ldh:render-parallax-chips: the one thing the closed line can say about what it holds -->
-                        <span class="cnt"></span>
-                    </summary>
+                <!-- Parallax row: the second row of the view's control header. Query inputs (filters,
+                     sort, modes) stay in the toolbar above; onward pivots derived from the current
+                     result set land here, filled by ldh:ParallaxNav after every results render.
 
-                    <div id="{$container-id}-parallax-properties" class="ldh-pivot-pills" role="group"></div>
-                </details>
+                     It stopped being a disclosure when the card header's ldh:ControlsToggle took that
+                     job over. Closed-by-default was the answer to a full pill row pushing the results
+                     below the fold; with the whole control header now off the card until it is asked
+                     for, a second disclosure inside the first only meant asking twice. What is left is
+                     what a bar of pills needs: a lead glyph naming the row, laid out on the same
+                     padding as the toolbar above so the two leads line up down the card's left edge,
+                     and the pills. Hidden by CSS while it has no chips. -->
+                <div class="ldh-pivot-bar{' is-collapsed'[$controls-collapsed]}">
+                    <!-- the pills carry their own direction arrows, so the row's own glyph stays neutral -->
+                    <span class="pivot-lead">
+                        <xsl:attribute name="title">
+                            <xsl:apply-templates select="key('resources', 'related-results', ldh:translations())" mode="ac:label"/>
+                        </xsl:attribute>
+
+                        <span class="msi sm outline" aria-hidden="true">alt_route</span>
+                    </span>
+
+                    <!-- the group keeps the name the row no longer spells out: the glyph beside it is
+                         aria-hidden, so without this the pills would reach a screen reader unlabelled -->
+                    <div id="{$container-id}-parallax-properties" class="ldh-pivot-pills" role="group">
+                        <xsl:attribute name="aria-label">
+                            <xsl:apply-templates select="key('resources', 'related-results', ldh:translations())" mode="ac:label"/>
+                        </xsl:attribute>
+                    </div>
+                </div>
 
                 <!-- persistent host for the 3d-force-graph canvas; lives for the lifetime of this view block so the WebGL context + simulation state survive re-renders. Hidden when active-mode is not GraphMode. -->
                 <div id="{$container-id}-graph-host" class="graph-3d-host" style="display: none;"></div>
@@ -1393,6 +1426,17 @@ exclude-result-prefixes="#all"
 
                 <xsl:sequence select="$form-actions"/>
             </xsl:result-document>
+
+            <!-- the status line proper: the count element the toolbar gave up, and a sibling the applied
+                 filters and pivot steps are written into. Two spans rather than one, because they have
+                 two writers on two clocks - the count arrives asynchronously from its own COUNT query,
+                 the applied state at the end of every render -->
+            <xsl:for-each select="$status-slot">
+                <xsl:result-document href="?." method="ixsl:replace-content">
+                    <span id="{$result-count-container-id}" class="count"/>
+                    <span class="ldh-view-applied"></span>
+                </xsl:result-document>
+            </xsl:for-each>
         </xsl:if>
 
         <!-- the container a new solution of this projection would be stored in, asked once per view. Fired
@@ -2624,7 +2668,7 @@ exclude-result-prefixes="#all"
 
     <!-- parallax onclick -->
 
-    <xsl:template match="div[@typeof = '&ldh;View']//details[contains-token(@class, 'ldh-pivot-bar')]//button[contains-token(@class, 'ldh-pivot-pill')]" mode="ixsl:onclick">
+    <xsl:template match="div[@typeof = '&ldh;View']//div[contains-token(@class, 'ldh-pivot-bar')]//button[contains-token(@class, 'ldh-pivot-pill')]" mode="ixsl:onclick">
         <xsl:param name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
         <xsl:param name="cache" select="ldh:view-cache($container)" as="item()"/>
         <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/*[contains-token(@class, 'mi')][contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string"/>
@@ -2678,6 +2722,42 @@ exclude-result-prefixes="#all"
             on-failure="ldh:promise-failure($container, 'results-not-loaded', ?)"/>
     </xsl:template>
 
+    <!-- The view's status line, restating what a collapsed toolbar has stopped showing. It reads the
+         toolbar rather than the query: the facet pills and the step chips have just been rendered from
+         that state and carry their labels resolved, so reading them back is what keeps the line and the
+         pills incapable of disagreeing - and costs no second label lookup. Both chip kinds are
+         .facet-pill with .pred and .val, which is why one loop serves them. The count is NOT touched
+         here; it has its own element and its own writer. -->
+    <xsl:template name="ldh:ViewStatus">
+        <xsl:param name="container" as="element()"/>
+
+        <xsl:variable name="toolbar" select="($container//div[contains-token(@class, 'ldh-view-toolbar')])[1]" as="element()?"/>
+        <xsl:variable name="applied-slot" select="($container/ancestor::div[contains-token(@class, 'block')][1]/div[contains-token(@class, 'ldh-block-head')]//span[contains-token(@class, 'ldh-view-applied')])[1]" as="element()?"/>
+        <xsl:variable name="chips" select="$toolbar/div[contains-token(@class, 'left')]//button[contains-token(@class, 'facet-pill')][contains-token(@class, 'is-active') or contains-token(@class, 'parallax-step')]" as="element()*"/>
+
+        <xsl:for-each select="$applied-slot">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:if test="exists($chips)">
+                    <xsl:text> &#183; </xsl:text>
+                    <xsl:apply-templates select="key('resources', 'filtered-by', ldh:translations())" mode="ac:label"/>
+                    <xsl:text> </xsl:text>
+
+                    <xsl:for-each select="$chips">
+                        <xsl:if test="position() gt 1">
+                            <xsl:text>, </xsl:text>
+                        </xsl:if>
+
+                        <b>
+                            <xsl:value-of select="span[contains-token(@class, 'pred')]"/>
+                        </b>
+                        <xsl:text> </xsl:text>
+                        <xsl:value-of select="span[contains-token(@class, 'val')]"/>
+                    </xsl:for-each>
+                </xsl:if>
+            </xsl:result-document>
+        </xsl:for-each>
+    </xsl:template>
+
     <!-- applied parallax steps render as removable chips in the toolbar, next to the facet pills -->
 
     <xsl:template match="*" mode="ldh:RenderParallaxSteps">
@@ -2708,6 +2788,12 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:result-document>
         </xsl:for-each>
+
+        <!-- the chips change on the click, ahead of the re-query that will refresh the line again;
+             without this the status line lags one interaction behind while the results are in flight -->
+        <xsl:call-template name="ldh:ViewStatus">
+            <xsl:with-param name="container" select="."/>
+        </xsl:call-template>
     </xsl:template>
 
     <!-- removing an applied step rewinds the view: the query is rebuilt from the initial SELECT string and the steps before the removed one are replayed -->
@@ -3096,6 +3182,11 @@ exclude-result-prefixes="#all"
                 <xsl:with-param name="properties-container-id" select="$container-id || '-parallax-properties'"/>
             </xsl:call-template>
 
+            <!-- last, so it reads a toolbar whose facet pills and step chips are already current -->
+            <xsl:call-template name="ldh:ViewStatus">
+                <xsl:with-param name="container" select="$container"/>
+            </xsl:call-template>
+
             <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
         </xsl:for-each>
 
@@ -3216,14 +3307,6 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:sequence select="$chips"/>
-            </xsl:result-document>
-        </xsl:for-each>
-
-        <!-- the disclosure is closed until asked for, so its summary carries the count: how many pivots are
-             behind it is what decides whether opening it is worth the row -->
-        <xsl:for-each select="$container/../summary/span[contains-token(@class, 'cnt')]">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:value-of select="count($chips)"/>
             </xsl:result-document>
         </xsl:for-each>
     </xsl:function>

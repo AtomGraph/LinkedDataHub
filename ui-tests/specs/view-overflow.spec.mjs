@@ -77,6 +77,12 @@ for (const mode of MODES) {
         const body = pagedBody(page);
         await expect(body).toBeVisible();
 
+        // The mode switcher lives in the view toolbar, which the block now keeps collapsed
+        // until the header's tune button is pressed. Resolved off the body rather than off the
+        // page so it is the toggle of THIS block, keeping the spec self-addressing.
+        await body.locator('xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " ldh-block ")][1]')
+            .locator('.ldh-block-head .tb-controls').click();
+
         // The switcher is a popover: the mode buttons are in the DOM from the first render
         // and are not clickable until it is open, so this is two clicks rather than one.
         await body.locator('button#view-modes').click();

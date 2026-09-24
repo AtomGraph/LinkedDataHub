@@ -79,6 +79,14 @@ async function present(page, selector, timeout = 30_000) {
         .toBeVisible({ timeout });
 }
 
+// A block keeps its control chrome collapsed until the header's tune button is pressed, so a
+// measurement of .chart-controls has to ask for it first. Every toggle on the page, not one:
+// these assertions measure whichever grid is widest or fits a given box, and deciding which
+// block that is belongs to the assertion rather than to this helper.
+async function revealControls(page) {
+    for (const toggle of await page.locator('.ldh-block-head .tb-controls').all()) await toggle.click();
+}
+
 // Every match of a selector, with its used track sizes and its box width.
 //
 // Zero-width tracks are dropped. `repeat(auto-fit, ...)` generates as many tracks as the width
@@ -191,6 +199,7 @@ test.describe('phone (390px) — content components', () => {
     test('the chart controls stack instead of sharing 70px each', async ({ page }) => {
         await goto(page, fixtures.container);
         // ldh:ChartControls re-renders these once the block's SPARQL results land.
+        await revealControls(page);
         await present(page, '.chart-controls');
 
         const controls = widest(await measureAll(page, '.chart-controls'));
@@ -216,6 +225,7 @@ test.describe('desktop (1440px)', () => {
                 .toBeGreaterThan(width / 2);
         }
 
+        await revealControls(page);
         await present(page, '.chart-controls');
         const controls = await tracksInBox(page, '.chart-controls', ASIDE);
         expect(controls.length, `.chart-controls stayed ${controls.length} columns in a ${ASIDE}px container`)
@@ -238,6 +248,7 @@ test.describe('desktop (1440px)', () => {
         const { scrollWidth, innerWidth } = await overflow(page);
         expect(scrollWidth).toBeLessThanOrEqual(innerWidth + 1);
 
+        await revealControls(page);
         await present(page, '.chart-controls');
         const controls = widest(await measureAll(page, '.chart-controls'));
         expect(controls.tracks.length, `${controls.width}px held ${controls.tracks.length} columns`)

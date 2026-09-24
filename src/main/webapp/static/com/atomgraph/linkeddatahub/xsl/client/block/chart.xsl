@@ -388,6 +388,8 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$container//div[contains-token(@class, 'main')]">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:apply-templates select="$results/rdf:RDF" mode="ldh:Chart">
+                    <!-- a block, so its controls ship collapsed behind the header's ldh:ControlsToggle -->
+                    <xsl:with-param name="collapsed" select="true()"/>
                     <xsl:with-param name="chart-type" select="($chart-type, xs:anyURI('&ac;Table'))[1]"/>
                     <xsl:with-param name="chart-type-id" select="$chart-type-id"/>
                     <xsl:with-param name="category-id" select="$category-id"/>
@@ -713,6 +715,13 @@ exclude-result-prefixes="#all"
                         <xsl:for-each select="$container//div[contains-token(@class, 'chart-controls')]">
                             <xsl:result-document href="?." method="ixsl:replace-element">
                                 <xsl:apply-templates select="$results/*" mode="ldh:ChartControls">
+                                    <!-- replace-element, so the context here is the grid being replaced and
+                                         its class is where the collapsed state lives. Carrying it across
+                                         rather than re-deriving it is what keeps a results response from
+                                         undoing the reader: every category or series pick lands here, and
+                                         re-rendering a revealed grid as collapsed would shut the controls
+                                         under the hand that was using them -->
+                                    <xsl:with-param name="collapsed" select="contains-token(@class, 'is-collapsed')"/>
                                     <xsl:with-param name="chart-type" select="$chart-type"/>
                                     <xsl:with-param name="category" select="$category"/>
                                     <xsl:with-param name="series" select="$series"/>
