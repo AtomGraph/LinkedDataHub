@@ -1132,12 +1132,26 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         // yet has no validator to match, so creating one is exempt.
         // blank counts as absent: an empty If-Match is not a validator, and reading it as one let a client opt
         // out of the precondition entirely by sending the header with nothing in it - measured, 204 not 428
+        // If-None-Match satisfies the requirement in its own right: "only if this does not exist" is a
+        // precondition, and a write carrying it is asking to CREATE - it cannot also quote an entity tag it is
+        // asserting there is none of. The import writer uses exactly that idiom, PUT with If-None-Match: * and
+        // then POST on the 412 that says the document is already there; demanding If-Match of it answered 428,
+        // which is not 412, so the fallback never ran and every RDF import failed.
         String ifMatch = httpHeaders.getHeaderString(HttpHeaders.IF_MATCH);
-        if (model != null && !model.isEmpty() && (ifMatch == null || ifMatch.isBlank()))
+        String ifNoneMatch = httpHeaders.getHeaderString(HttpHeaders.IF_NONE_MATCH);
+        if (model != null && !model.isEmpty() && (ifMatch == null || ifMatch.isBlank()) && (ifNoneMatch == null || ifNoneMatch.isBlank()))
             throw new WebApplicationException("Writing an existing document requires the If-Match header",
                 Response.status(Response.Status.PRECONDITION_REQUIRED).build());
 
-        return getInternalResponse(model, getURI()).evaluatePreconditions();
+        com.atomgraph.core.model.impl.Response internalResponse = getInternalResponse(model, getURI());
+        Response.ResponseBuilder rb = internalResponse.evaluatePreconditions();
+
+        // a precondition that failed says what the current validator IS, so the client can retry against it
+        // without a second read - the create-or-append idiom (PUT If-None-Match: *, POST on the 412) has no
+        // other way to learn it, and a 304 is supposed to carry its entity tag in any case
+        if (rb != null) rb.tag(internalResponse.getVariantEntityTag());
+
+        return rb;
     }
     
     /**
