@@ -92,6 +92,88 @@ tree reads the scheme off the topic's `skos:inScheme` — without it the page ha
 the tree renders nothing. Each concept also needs `skos:inScheme` in the *same* write: the
 package constrains it (`:MissingInScheme`), so a concept seeded without one is refused 422.
 
+## The spec tree
+
+`specs/` mirrors the anatomy of the rendered page, which is already named three emitters deep:
+`layout.xsl` owns everything outside the pane, `document.xsl` owns the pane, the action bar and
+the content body, `resource.xsl` emits the block card and `client/block/*.xsl` the kinds.
+
+```
+specs/
+  axes/                     a claim that crosses components, not a component
+  document/                 document.xsl - the pane inwards
+    content-aside/          the ldh:ContentColumn slot
+    blocks/                 the card shell, kind-agnostic
+      view/                 one folder per block kind
+  forms/                    the write layer rendered in place
+  overlays/                 surfaces mounted outside the document flow
+    modal/
+  shell/                    layout.xsl - outside the pane
+    drawer/
+```
+
+Two rules decide where a spec goes, and they are what make the tree answer a question a flat
+directory cannot: *which components has nobody tested?*
+
+- **A spec lives under the component it asserts *about*, never the one it navigates *through*.**
+  `overlays/annotation-dialog` creates an XHTML block to reach `#rdfa-editor-overlay` and then
+  asserts ten times on the overlay, so it is an overlay spec — and the XHTML block stays an
+  honestly untested component rather than a covered-looking one.
+- **A component's specs live in its folder; a leaf component with one spec may be that file.**
+  `forms/combobox.spec.mjs` becomes `forms/combobox/*.spec.mjs` the day it has two, and the
+  component it belongs to does not change.
+
+`axes/` is the exception the tree needs to stay truthful. `responsive` measures the statement
+grid, the chart controls, the address bar and the tab strip at three viewports;
+`anonymous-affordances` asserts six write controls across three components. Filing either under
+one component would claim coverage of five it happens to touch. The repo already calls these
+axes in its own prose, so the folder is the README's vocabulary rather than a catch-all.
+
+Two things that are *not* in the path, because neither is a fact about the component:
+which app serves the fixture (`overlays/modal/ontology-import` runs against the admin origin,
+`constructor-editor` against both), and who owns the markup (`document/content-aside/concept-tree`
+is the SKOS package's, rendered in the platform's slot).
+
+Helpers stay flat in `lib/`, named for the component whose vocabulary they carry. `specs/` is
+containment; `lib/` is vocabulary. A helper is reached across regions — a block spec opens the
+shell's drawer — so it must not live inside one region's subtree.
+
+## Coverage
+
+A folder cannot represent an absence — git does not track an empty directory — so the components
+that have no specs are declared in `coverage/components.mjs`, and `npm run coverage` joins the
+three things that together say what is tested: what is declared, which folders hold specs, and
+what actually renders on five probe pages (the dataspace root, a container, an item, a concept in
+ReadMode, and a result set asked for as a document).
+
+```bash
+npm run coverage          # writes out/coverage.md, also attached to the HTML report
+```
+
+Each component ends up in one of four states:
+
+| | |
+| --- | --- |
+| `covered` | a spec in its own folder |
+| `covered-below` | only a descendant has one — the region is entered, the component itself is not |
+| `GAP` | it renders, and nothing asserts it |
+| `unprobed` | it renders on no probe page, so its coverage is unknowable until a fixture shows it |
+
+That last state is the one worth reading twice. A `ldh:ResultSetChart` is data until something
+puts it in the document's `rdf:_N` list, so the fixture's chart once existed in the graph and
+rendered nowhere, and a spec waited 30s for `.chart-controls` that could never appear. `unprobed`
+is that condition, named: not "untested" but "not yet visible to the suite at all".
+
+The inventory lives in `coverage/`, not in `lib/`, and a spec that imports from it fails the run.
+A `selector` there answers *did this component render* and nothing else; the moment a spec wants
+one, it has found a locator too specific to be shared, and it belongs inline at the assertion.
+Each record also names the XSL module that emits it, which must exist — that check is what keeps
+a class styled in `app.css` and emitted by nothing (`.ldh-nblock`, `.ldh-query-block`,
+`.ldh-auth`) out of the inventory, where it would print a permanent gap for a component that does
+not exist.
+
+A declared component with no spec never fails the run. It is the report's subject.
+
 ## Projects
 
 The same specs run twice, as `owner` (holding the WebID client certificate) and as
@@ -102,6 +184,10 @@ itself.
 The owner context carries the certificate for **both** origins, end-user and admin. The
 end-user page issues XHR against the admin origin while it loads, so a context holding
 only the first authenticates half the page.
+
+A third project, `coverage`, is not a test project: it runs `coverage/` rather than `specs/` and
+produces the report above. It runs as the owner, because a reader who may not read a document
+cannot tell an absent component from a forbidden one.
 
 ## Conventions
 

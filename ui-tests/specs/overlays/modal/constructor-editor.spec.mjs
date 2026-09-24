@@ -17,15 +17,14 @@
 // package ontology, and its template carries every object kind the editor has to round-trip.
 // Every write is undone from the stored text, and the ontology cache cleared, so the constructor
 // every other spec renders forms from is the one they expect.
-import { test, expect } from '../lib/console.mjs';
-import { goto } from '../lib/settle.mjs';
-import { ldh } from '../lib/fixtures.mjs';
-import { adminBase } from '../lib/stack.mjs';
-import { concept, document, packageOntologyDocument } from '../lib/taxonomy.mjs';
-import { endUserBase } from '../lib/stack.mjs';
+import { test, expect } from '../../../lib/console.mjs';
+import { goto } from '../../../lib/settle.mjs';
+import { ldh } from '../../../lib/fixtures.mjs';
+import { adminBase, endUserBase } from '../../../lib/stack.mjs';
+import { concept, document, packageOntologyDocument } from '../../../lib/taxonomy.mjs';
+import { READ_MODE, inMode } from '../../../lib/mode.mjs';
 
-const READ_MODE = 'https://w3id.org/atomgraph/client#ReadMode';
-const pageFor = name => `${document(name)}?mode=${encodeURIComponent(READ_MODE)}`;
+const pageFor = name => inMode(document(name), READ_MODE);
 
 const SKOS = 'http://www.w3.org/2004/02/skos/core#';
 const SP = 'http://spinrdf.org/sp#';

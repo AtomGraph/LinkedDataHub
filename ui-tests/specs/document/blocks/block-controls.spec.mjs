@@ -23,15 +23,16 @@
 // The bars are present in the DOM throughout - hidden, not absent - which is the whole point of
 // the design: no anatomy changed, so every facet, sort, pivot and mode handler still binds the
 // same elements. `toBeHidden()` rather than `toHaveCount(0)` is therefore the assertion.
-import { test, expect } from '../lib/console.mjs';
-import { goto, settled } from '../lib/settle.mjs';
-import { fixtures } from '../lib/fixtures.mjs';
+import { test, expect } from '../../../lib/console.mjs';
+import { goto, settled } from '../../../lib/settle.mjs';
+import { fixtures } from '../../../lib/fixtures.mjs';
+import { controlToggle } from '../../../lib/block.mjs';
+import { openDrawer } from '../../../lib/drawer.mjs';
 
 // The view block the fixture container renders, addressed by the chrome it owns rather than by
 // a fixture URI: the document holds several view blocks and any of them makes this point.
 const viewBlock = page => page.locator('.block.ldh-block:has(.ldh-view-toolbar)').first();
 const chartBlock = page => page.locator('.block.ldh-block:has(.chart-controls)').first();
-const toggle = block => block.locator('.ldh-block-head .tb-controls');
 
 // A chrome assertion, not an authorization one - and anonymously the fixture may not be
 // readable at all, which would measure something else entirely.
@@ -55,7 +56,7 @@ test('a view block draws no control bars until its toggle is pressed', async ({ 
     await expect(toolbar).toBeAttached();
     await expect(toolbar).toBeHidden();
     await expect(pivotBar).toBeHidden();
-    await expect(toggle(block)).toHaveAttribute('aria-pressed', 'false');
+    await expect(controlToggle(block)).toHaveAttribute('aria-pressed', 'false');
 
     // The count survives the collapse, in the header rather than the toolbar.
     const status = block.locator('.ldh-view-status');
@@ -65,17 +66,17 @@ test('a view block draws no control bars until its toggle is pressed', async ({ 
 
     // One press, everything. The pills, not just the bar that holds them: a pivot row that
     // arrived closed would satisfy an assertion on the bar and still cost a second gesture.
-    await toggle(block).click();
+    await controlToggle(block).click();
     await expect(toolbar).toBeVisible();
     await expect(pivotBar).toBeVisible();
     await expect(pivotPill).toBeVisible();
-    await expect(toggle(block)).toHaveAttribute('aria-pressed', 'true');
+    await expect(controlToggle(block)).toHaveAttribute('aria-pressed', 'true');
 
     // And it closes again.
-    await toggle(block).click();
+    await controlToggle(block).click();
     await expect(toolbar).toBeHidden();
     await expect(pivotBar).toBeHidden();
-    await expect(toggle(block)).toHaveAttribute('aria-pressed', 'false');
+    await expect(controlToggle(block)).toHaveAttribute('aria-pressed', 'false');
 });
 
 test('a chart block draws no control grid until its toggle is pressed', async ({ page }) => {
@@ -87,14 +88,14 @@ test('a chart block draws no control grid until its toggle is pressed', async ({
 
     await expect(controls).toBeAttached();
     await expect(controls).toBeHidden();
-    await expect(toggle(block)).toHaveAttribute('aria-pressed', 'false');
+    await expect(controlToggle(block)).toHaveAttribute('aria-pressed', 'false');
 
-    await toggle(block).click();
+    await controlToggle(block).click();
     await expect(controls).toBeVisible();
     // The selects are what the grid exists for; a revealed grid with no controls in it would
     // mean the results response had re-rendered it from a state this gesture never reached.
     await expect(controls.locator('select.chart-type')).toBeVisible();
-    await expect(toggle(block)).toHaveAttribute('aria-pressed', 'true');
+    await expect(controlToggle(block)).toHaveAttribute('aria-pressed', 'true');
 });
 
 test('an applied facet is named on the status line, with the toolbar closed again', async ({ page }) => {
@@ -107,7 +108,7 @@ test('an applied facet is named on the status line, with the toolbar closed agai
     // Nothing applied, nothing said - an empty line would read as a gap, not as information.
     await expect(applied).toBeEmpty();
 
-    await toggle(block).click();
+    await controlToggle(block).click();
     const facet = block.locator('.ldh-view-toolbar .facet').first();
     await facet.locator('button.facet-pill').click();
     const option = facet.locator('.facet-pop button.opt').first();
@@ -121,7 +122,7 @@ test('an applied facet is named on the status line, with the toolbar closed agai
 
     // Closing the chrome must not take the statement with it: that is the whole reason the
     // line exists rather than the toolbar simply being hidden.
-    await toggle(block).click();
+    await controlToggle(block).click();
     await expect(block.locator('.ldh-view-toolbar')).toBeHidden();
     await expect(applied).toContainText(value);
 });
@@ -131,7 +132,7 @@ test('a pivot still re-centres the view, now that the row is not a disclosure', 
     await settled(page);
 
     const block = viewBlock(page);
-    await toggle(block).click();
+    await controlToggle(block).click();
 
     // The row opens with a lead glyph and no label text - the pills say what each pivot is.
     await expect(block.locator('.ldh-pivot-bar .pivot-lead')).toBeVisible();
@@ -159,8 +160,7 @@ test('a view with no card header keeps its chrome, having nothing that could rev
     // header - so no ldh:ControlsToggle, and nothing that could ever clear the token. Collapsing
     // it there would hide the controls permanently, which is why the token is emitted only where
     // the header slot exists. This is the assertion that keeps that conditional honest.
-    await page.mouse.move(200, 600);
-    await page.mouse.move(0, 620);
+    await openDrawer(page);
     const search = page.locator('.ldh-sidebar input').first();
     await expect(search).toBeVisible();
     await search.fill('Fixture');

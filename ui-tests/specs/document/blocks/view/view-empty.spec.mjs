@@ -9,13 +9,13 @@
 // microtask checkpoint that follows the insertion and precedes any paint, so the display it reads
 // IS the one the browser would first have rendered. The per-frame sampler beside it is the
 // independent witness: it asks whether any frame of the whole load ever gave the block a box.
-import { test, expect } from '../lib/console.mjs';
-import { goto } from '../lib/settle.mjs';
-import { concept, document as conceptDocument } from '../lib/taxonomy.mjs';
-import { BROADER, NARROWER, rowFor, rows, viewBlock } from '../lib/blocks.mjs';
+import { test, expect } from '../../../../lib/console.mjs';
+import { goto } from '../../../../lib/settle.mjs';
+import { concept, document as conceptDocument } from '../../../../lib/taxonomy.mjs';
+import { BROADER, NARROWER, rowFor, rows, viewBlock } from '../../../../lib/view.mjs';
+import { READ_MODE, inMode } from '../../../../lib/mode.mjs';
 
-const READ_MODE = 'https://w3id.org/atomgraph/client#ReadMode';
-const pageFor = name => `${conceptDocument(name)}?mode=${encodeURIComponent(READ_MODE)}`;
+const pageFor = name => inMode(conceptDocument(name), READ_MODE);
 
 // Installed before any of the page's own script runs, so the first injected block is seen.
 const watchInjectedViews = page => page.addInitScript(() => {

@@ -6,6 +6,7 @@
     "description": "Playwright UI suite - drives the LinkedDataHub browser UI and asserts the design-system contract",
     "scripts": {
         "test": "playwright test",
+        "coverage": "playwright test --project=coverage",
         "report": "playwright show-report out/html"
     },
     "devDependencies": {

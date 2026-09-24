@@ -16,12 +16,12 @@
 // rejections run and never shows it; location.reload() is what F5 does, and does. Every block
 // request is held open so the reload is certain to land while one is in flight, and what the OLD
 // document paints is recorded through a binding, because anything kept on its window dies with it.
-import { test, expect } from '../lib/console.mjs';
-import { goto, hydrated } from '../lib/settle.mjs';
-import { document } from '../lib/taxonomy.mjs';
+import { test, expect } from '../../../lib/console.mjs';
+import { goto, hydrated } from '../../../lib/settle.mjs';
+import { document } from '../../../lib/taxonomy.mjs';
+import { READ_MODE, inMode } from '../../../lib/mode.mjs';
 
-const READ_MODE = 'https://w3id.org/atomgraph/client#ReadMode';
-const pageFor = name => `${document(name)}?mode=${encodeURIComponent(READ_MODE)}`;
+const pageFor = name => inMode(document(name), READ_MODE);
 
 test.describe('leaving the page mid-flight', () => {
     test.beforeEach(({}, testInfo) => {

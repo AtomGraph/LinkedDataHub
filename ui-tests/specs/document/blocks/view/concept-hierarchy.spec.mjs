@@ -9,13 +9,13 @@
 //   - the label is joined as a SORT KEY and never filtered, because filtering it to English
 //     dropped every concept labelled in another language - silently, with the triple sitting
 //     in the graph and the tree showing the concept the block denied.
-import { test, expect } from '../lib/console.mjs';
-import { goto } from '../lib/settle.mjs';
-import { addTriple, concept, document, labelOf, removeTriple, seedConcept } from '../lib/taxonomy.mjs';
-import { BROADER, NARROWER, PREF_LABEL, rowFor, rowLabel, rows, viewBlock } from '../lib/blocks.mjs';
+import { test, expect } from '../../../../lib/console.mjs';
+import { goto } from '../../../../lib/settle.mjs';
+import { addTriple, concept, document, labelOf, removeTriple, seedConcept } from '../../../../lib/taxonomy.mjs';
+import { BROADER, NARROWER, PREF_LABEL, rowFor, rowLabel, rows, viewBlock } from '../../../../lib/view.mjs';
+import { READ_MODE, inMode } from '../../../../lib/mode.mjs';
 
-const READ_MODE = 'https://w3id.org/atomgraph/client#ReadMode';
-const pageFor = name => `${document(name)}?mode=${encodeURIComponent(READ_MODE)}`;
+const pageFor = name => inMode(document(name), READ_MODE);
 
 test.describe('concept hierarchy blocks', () => {
     // Not ownership - nothing is readable anonymously until an authorization says so, and these

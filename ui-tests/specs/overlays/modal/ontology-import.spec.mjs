@@ -11,10 +11,10 @@
 // PROV-O rather than SKOS: it is bundled, so the import runs offline like the rest of the suite,
 // and nothing on the instance imports it, so the closure is not reshaped for the specs that follow.
 // The document is deleted afterwards and the caches cleared regardless.
-import { test, expect } from '../lib/console.mjs';
-import { goto } from '../lib/settle.mjs';
-import { ldh } from '../lib/fixtures.mjs';
-import { adminBase } from '../lib/stack.mjs';
+import { test, expect } from '../../../lib/console.mjs';
+import { goto } from '../../../lib/settle.mjs';
+import { ldh } from '../../../lib/fixtures.mjs';
+import { adminBase } from '../../../lib/stack.mjs';
 
 const SOURCE = 'http://www.w3.org/ns/prov#';
 const OWL = 'http://www.w3.org/2002/07/owl#';

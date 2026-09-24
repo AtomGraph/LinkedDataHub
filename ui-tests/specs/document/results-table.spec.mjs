@@ -12,9 +12,9 @@
 //
 // The query binds its own values, so what the table shows is a function of the query alone and the
 // assertions hold against any dataset.
-import { test, expect } from '../lib/console.mjs';
-import { settled } from '../lib/settle.mjs';
-import { endUserBase } from '../lib/stack.mjs';
+import { test, expect } from '../../lib/console.mjs';
+import { settled } from '../../lib/settle.mjs';
+import { endUserBase } from '../../lib/stack.mjs';
 
 const query = 'SELECT ?s ?label WHERE { VALUES (?s ?label) { (<https://example.org/results-table> "Results table") } }';
 const resultsUrl = `${endUserBase}sparql?query=${encodeURIComponent(query)}`;

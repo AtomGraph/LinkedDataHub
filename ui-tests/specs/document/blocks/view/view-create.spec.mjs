@@ -19,17 +19,17 @@
 // Driven against the taxonomy, which is where the platform ships a view whose property has
 // a URI range AND a container with results to determine it from. The behaviour under test
 // is the platform's, not the package's.
-import { test, expect } from '../lib/console.mjs';
-import { goto } from '../lib/settle.mjs';
-import { ldh } from '../lib/fixtures.mjs';
-import { concept, document, removeTriple, scheme } from '../lib/taxonomy.mjs';
+import { test, expect } from '../../../../lib/console.mjs';
+import { goto } from '../../../../lib/settle.mjs';
+import { ldh } from '../../../../lib/fixtures.mjs';
+import { concept, document, removeTriple, scheme } from '../../../../lib/taxonomy.mjs';
 import {
     IN_SCHEME, NARROWER, PREF_LABEL,
     constructorModal, createButton, fillResource, fillText, rowFor, rowLabel, rows, save, viewBlock,
-} from '../lib/blocks.mjs';
+} from '../../../../lib/view.mjs';
+import { READ_MODE, inMode } from '../../../../lib/mode.mjs';
 
-const READ_MODE = 'https://w3id.org/atomgraph/client#ReadMode';
-const pageFor = name => `${document(name)}?mode=${encodeURIComponent(READ_MODE)}`;
+const pageFor = name => inMode(document(name), READ_MODE);
 
 const SKOS = 'http://www.w3.org/2004/02/skos/core#';
 const FOAF = 'http://xmlns.com/foaf/0.1/';

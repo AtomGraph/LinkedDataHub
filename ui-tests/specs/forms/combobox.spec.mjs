@@ -13,12 +13,12 @@
 //
 // Typing is done with pressSequentially throughout, never fill(): the lookup listens on keyup and
 // fill() sets the value without one, so a filled field never opens a panel at all.
-import { test, expect } from '../lib/console.mjs';
-import { goto, settled } from '../lib/settle.mjs';
-import { fixtures, itemTitle, itemUri } from '../lib/fixtures.mjs';
-import { concept, document } from '../lib/taxonomy.mjs';
+import { test, expect } from '../../lib/console.mjs';
+import { goto, settled } from '../../lib/settle.mjs';
+import { fixtures, itemTitle, itemUri } from '../../lib/fixtures.mjs';
+import { concept, document } from '../../lib/taxonomy.mjs';
+import { READ_MODE, inMode } from '../../lib/mode.mjs';
 
-const READ_MODE = 'https://w3id.org/atomgraph/client#ReadMode';
 const SKOS = 'http://www.w3.org/2004/02/skos/core#';
 const RELATED = `${SKOS}related`;
 const IN_SCHEME = `${SKOS}inScheme`;
@@ -42,7 +42,7 @@ async function documentForm(page, url) {
 // document being viewed. Inline matters for the Escape tests: Escape inside a modal closes the
 // dialog before the combobox's own handler is observable.
 async function conceptForm(page, name = 'coffee') {
-    await goto(page, `${document(name)}?mode=${encodeURIComponent(READ_MODE)}`);
+    await goto(page, inMode(document(name), READ_MODE));
     await settled(page);
 
     const block = page.locator(`div.block.ldh-block[about="${concept(name)}"]`);

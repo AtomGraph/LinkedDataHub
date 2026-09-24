@@ -49,5 +49,16 @@ export default defineConfig({
             name: 'anonymous',
             use: { ...devices['Desktop Chrome'] },
         },
+        // Not a test project: it reports which components the tree covers, and runs as the owner
+        // because a reader who may not read a document cannot tell an absent component from a
+        // forbidden one. Its own directory keeps specs/ a pure mirror of the component tree, so
+        // the "every folder is a declared component" rule needs no exemption for it. No retries -
+        // a report that disagrees with itself twice is a finding, not a flake.
+        {
+            name: 'coverage',
+            testDir: './coverage',
+            retries: 0,
+            use: { ...devices['Desktop Chrome'], clientCertificates: ownerCertificates() },
+        },
     ],
 });

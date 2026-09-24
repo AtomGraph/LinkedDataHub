@@ -25,9 +25,10 @@
 // Both halves are asserted. The containment is where the defect is; the footer is what a
 // reader saw. A fix that contained the rows but left the page's own height wrong would pass
 // the first and fail the second.
-import { test, expect } from '../lib/console.mjs';
-import { goto } from '../lib/settle.mjs';
-import { fixtures } from '../lib/fixtures.mjs';
+import { test, expect } from '../../../../lib/console.mjs';
+import { goto } from '../../../../lib/settle.mjs';
+import { fixtures } from '../../../../lib/fixtures.mjs';
+import { blockOf, controlToggle } from '../../../../lib/block.mjs';
 
 // The rows each mode renders, and the button that switches to it. The fixture container
 // seeds 25 items against a 20-row page, so every one of these pages - which is what puts a
@@ -80,8 +81,7 @@ for (const mode of MODES) {
         // The mode switcher lives in the view toolbar, which the block now keeps collapsed
         // until the header's tune button is pressed. Resolved off the body rather than off the
         // page so it is the toggle of THIS block, keeping the spec self-addressing.
-        await body.locator('xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " ldh-block ")][1]')
-            .locator('.ldh-block-head .tb-controls').click();
+        await controlToggle(blockOf(body)).click();
 
         // The switcher is a popover: the mode buttons are in the DOM from the first render
         // and are not clickable until it is open, so this is two clicks rather than one.

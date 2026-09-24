@@ -27,9 +27,9 @@
 // endpoint to everyone - which is why no spec here could have caught this. Routing the query to a
 // 403 reproduces it for either project without touching an authorization, and keeps the spec
 // honest about what it is testing: not "anonymous", but "the children never arrived".
-import { test, expect } from '../lib/console.mjs';
-import { goto } from '../lib/settle.mjs';
-import { fixtures, itemTitle, itemUri } from '../lib/fixtures.mjs';
+import { test, expect } from '../../../../lib/console.mjs';
+import { goto } from '../../../../lib/settle.mjs';
+import { fixtures, itemTitle, itemUri } from '../../../../lib/fixtures.mjs';
 
 // The query the tree asks for one node's children, as ldh:TreeChildrenFetch sends it.
 //

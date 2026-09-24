@@ -6,25 +6,17 @@
 // row, no busy cursor and no failure handler - so a failed request during pre-expansion
 // produced a branch that simply stayed shut, with nothing in the console. The two specs
 // that hold the response back exist to assert the states that omission made unobservable.
-import { test, expect } from '../lib/console.mjs';
-import { goto, settled } from '../lib/settle.mjs';
-import { fixtures, itemCount, itemTitle, itemUri } from '../lib/fixtures.mjs';
-import { endUserBase } from '../lib/stack.mjs';
+import { test, expect } from '../../../../lib/console.mjs';
+import { goto, settled } from '../../../../lib/settle.mjs';
+import { fixtures, itemCount, itemTitle, itemUri } from '../../../../lib/fixtures.mjs';
+import { endUserBase } from '../../../../lib/stack.mjs';
+import { disclosureOf, linkOf, rowFor } from '../../../../lib/tree.mjs';
+import { openDrawer } from '../../../../lib/drawer.mjs';
 
 const tree = page => page.locator('div.document-tree');
-const rowsFor = (page, uri) => tree(page).locator(`li:has(> div.tree-row > a[href="${uri}"])`);
-const disclosureOf = (page, uri) => rowsFor(page, uri).locator('> div.tree-row > button');
-
-// The drawer opens on a mousemove at the left edge of the viewport and closes when the
-// pointer leaves it, so there is no button to press. clientX has to be exactly 0 - the
-// handler tests `$x = 0`, not a threshold - and a move to x=2 leaves it shut with its
-// subtree still in the DOM, which is how ad-hoc scripts came to assert against a hidden
-// tree without noticing.
-async function openDrawer(page) {
-    await page.mouse.move(200, 600);
-    await page.mouse.move(0, 620);
-    await expect(tree(page)).toBeVisible();
-}
+const rowsFor = (page, uri) => rowFor(tree(page), uri);
+const linkFor = (page, uri) => linkOf(rowsFor(page, uri));
+const disclosureFor = (page, uri) => disclosureOf(rowsFor(page, uri));
 
 function countChildrenQueries(page) {
     const counts = { n: 0 };
@@ -65,9 +57,9 @@ test.describe('document tree', () => {
         await goto(page, itemUri(1));
         await openDrawer(page);
 
-        await expect(disclosureOf(page, fixtures.container)).toHaveAttribute('aria-expanded', 'true');
+        await expect(disclosureFor(page, fixtures.container)).toHaveAttribute('aria-expanded', 'true');
         await expect(rowsFor(page, itemUri(1))).toHaveClass(/is-active/);
-        await expect(rowsFor(page, itemUri(1)).locator('> div.tree-row > a'))
+        await expect(linkFor(page, itemUri(1)))
             .toHaveAttribute('aria-current', 'page');
     });
 
@@ -104,9 +96,9 @@ test.describe('document tree', () => {
         // through silently when it is absent - so bounding the page without pinning the path
         // would leave the reader at the top of a hierarchy with no sign of where they are,
         // and nothing in the console to say so.
-        await expect(disclosureOf(page, fixtures.container)).toHaveAttribute('aria-expanded', 'true');
+        await expect(disclosureFor(page, fixtures.container)).toHaveAttribute('aria-expanded', 'true');
         await expect(rowsFor(page, itemUri(1))).toHaveClass(/is-active/);
-        await expect(rowsFor(page, itemUri(1)).locator('> div.tree-row > a'))
+        await expect(linkFor(page, itemUri(1)))
             .toHaveAttribute('aria-current', 'page');
     });
 
@@ -174,12 +166,12 @@ test.describe('document tree', () => {
 
         // On the root document the descent has nowhere to go - the target IS the root - so
         // nothing is pre-expanded and every level here is opened by a click.
-        const root = disclosureOf(page, endUserBase);
+        const root = disclosureFor(page, endUserBase);
         await expect(root).toHaveAttribute('aria-expanded', 'false');
         await root.click();
         await expect(rowsFor(page, fixtures.container)).toHaveCount(1);
 
-        const disclosure = disclosureOf(page, fixtures.container);
+        const disclosure = disclosureFor(page, fixtures.container);
         await expect(disclosure).toHaveAttribute('aria-expanded', 'false');
         await disclosure.click();
 

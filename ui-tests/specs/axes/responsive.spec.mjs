@@ -27,7 +27,7 @@
 //      intermittently. Each document gets its own test, and so its own page.
 //   2. THE STATEMENT GRID LIVES ON THE FIXTURE CONTAINER. /ui-fixtures/item-01/ renders no
 //      blocks and no dl.ldh-prop-form at all, while /ui-fixtures/ renders several -
-//      calibration.spec.mjs prints the anatomy of both, which is how this was found.
+//      the coverage report prints the anatomy of both, which is how this was found.
 //      Asserting against the item document gave three tests that could only fail on a null.
 //   3. NEVER test.skip() ON A MISSING SELECTOR. The chart assertion did, and went green
 //      while testing nothing - hiding that `repeat(auto-fit, ...)`, half the responsive
@@ -37,9 +37,10 @@
 //      waiting would have produced it (lib/fixtures.mjs now wraps it in an Object, which is
 //      how a chart becomes content). A missing component should fail the build rather than
 //      quietly shrink it, so this is an auto-retrying expect() now.
-import { test, expect } from '../lib/console.mjs';
-import { goto } from '../lib/settle.mjs';
-import { fixtures, itemUri } from '../lib/fixtures.mjs';
+import { test, expect } from '../../lib/console.mjs';
+import { goto } from '../../lib/settle.mjs';
+import { fixtures, itemUri } from '../../lib/fixtures.mjs';
+import { blockOf } from '../../lib/block.mjs';
 
 const PHONE = { width: 390, height: 844 };
 const TABLET = { width: 768, height: 1024 };
@@ -116,12 +117,9 @@ async function revealControls(page, timeout = 30_000) {
     const deadline = Date.now() + timeout;
     do {
         for (const toggle of await page.locator(TOGGLE).all()) {
-            // the handler drives the bands under the button's nearest block ancestor, and reads the
-            // state it is flipping off the first of them. The class is matched as a TOKEN, the way
-            // contains-token() does in the stylesheet: a substring test lands on .ldh-block-head,
-            // the button's own wrapper, which holds no bands at all.
-            const first = toggle.locator('xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " block ")][1]')
-                .locator(BANDS).first();
+            // the handler drives the bands under the button's nearest block ancestor, and reads
+            // the state it is flipping off the first of them.
+            const first = blockOf(toggle).locator(BANDS).first();
             if (await first.count() === 0) continue;
             if (((await first.getAttribute('class')) ?? '').includes('is-collapsed')) await toggle.click();
         }

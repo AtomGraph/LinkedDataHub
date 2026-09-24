@@ -15,9 +15,9 @@
 // The selectors below are measured, not guessed: both contexts were loaded against a granted
 // document and their buttons diffed. The two share the chrome - apps menu, sidebar, tree - and
 // the owner alone gets the six write affordances.
-import { test, expect } from '../lib/console.mjs';
-import { goto } from '../lib/settle.mjs';
-import { fixtures, itemTitle } from '../lib/fixtures.mjs';
+import { test, expect } from '../../lib/console.mjs';
+import { goto } from '../../lib/settle.mjs';
+import { fixtures, itemTitle } from '../../lib/fixtures.mjs';
 
 // Everything that mutates: edit and delete the document, copy it elsewhere, change who may read
 // it, add a resource to it - and the avatar, which stands for having an identity at all.

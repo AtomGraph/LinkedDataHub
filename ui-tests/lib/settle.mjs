@@ -29,7 +29,7 @@ export async function hydrated(page, { timeout = 30_000 } = {}) {
 export async function settled(page, { selector = BLOCKS, quietFor = 400, timeout = 20_000 } = {}) {
     await page.waitForLoadState('domcontentloaded');
     // A page that never hydrates is the spec's finding to report, not this helper's to throw on -
-    // the calibration probe runs settled() against pages that may well be a 403.
+    // the coverage probe runs settled() against pages that may well be a 403.
     await hydrated(page, { timeout }).catch(() => {});
 
     const deadline = Date.now() + timeout;

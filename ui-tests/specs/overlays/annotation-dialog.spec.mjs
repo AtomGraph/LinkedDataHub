@@ -20,9 +20,9 @@
 // region, so tests sharing one would inherit each other's annotations - and a word that is
 // already annotated opens the dialog in edit mode instead of create mode, which is a
 // different code path from the one the test means to drive.
-import { test, expect } from '../lib/console.mjs';
-import { goto } from '../lib/settle.mjs';
-import { fixtures, ldh } from '../lib/fixtures.mjs';
+import { test, expect } from '../../lib/console.mjs';
+import { goto } from '../../lib/settle.mjs';
+import { fixtures, ldh } from '../../lib/fixtures.mjs';
 
 const XHTML_BLOCK = 'div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"]';
 const OVERLAY = '#rdfa-editor-overlay';
