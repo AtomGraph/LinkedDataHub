@@ -729,19 +729,11 @@ body:has(.document-body > .content-body > :is(.graph-3d-canvas, .map-canvas)) .l
    constructor is still part of what the class declares. */
 .ldh-ctor-card.is-readonly { opacity: 0.55; }
 .ldh-ctor-card.is-readonly .ldh-ctor-card-head { background: var(--surface-2); }
-/* Which constructor a row belongs to, shown ONLY when its document holds more than one - on every other
-   row it would name a choice that could not have gone otherwise. An ordinal rather than a fragment of the
-   URI, since a URI is opaque; the URI itself is the title. The row grows a column only where the tag is
-   present, so the common case keeps its four-column grid. */
-.ldh-ctor-row:has(> .ctor-src) { grid-template-columns: minmax(0, 1.4fr) auto auto minmax(0, 1fr) 32px; }
-.ctor-src {
-  justify-self: center; min-width: 18px; padding: 1px 5px; border-radius: var(--r-pill);
-  background: var(--surface-2); color: var(--fg-hint);
-  font-family: var(--font-mono); font-size: 10px; text-align: center; cursor: help;
-}
-/* a constructor several classes share: rendered, never written */
-.ldh-ctor-row[data-shared] { opacity: 0.55; }
-.ldh-ctor-row[data-shared] button, .ldh-ctor-row[data-shared] input, .ldh-ctor-row[data-shared] select { pointer-events: none; }
+/* Why a constructor is inert: the classes other than this one that also have it, whether attached
+   directly or reached through rdfs:subClassOf*. Rewriting it would change their forms too. */
+.ldh-ctor-card-head { justify-content: space-between; gap: var(--sp-3); }
+.ctor-owners { font-size: var(--fs-xs); color: var(--fg-hint); }
+.ctor-owners a { color: var(--fg-hint); text-decoration: underline; text-underline-offset: 2px; }
 
 /* =========================================================================
    LDH-local rules recovered from the previous vendored app.css: the vendor

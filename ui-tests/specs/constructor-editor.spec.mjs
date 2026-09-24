@@ -22,13 +22,19 @@ import { goto } from '../lib/settle.mjs';
 import { ldh } from '../lib/fixtures.mjs';
 import { adminBase } from '../lib/stack.mjs';
 import { concept, document, packageOntologyDocument } from '../lib/taxonomy.mjs';
+import { endUserBase } from '../lib/stack.mjs';
 
 const READ_MODE = 'https://w3id.org/atomgraph/client#ReadMode';
 const pageFor = name => `${document(name)}?mode=${encodeURIComponent(READ_MODE)}`;
 
 const SKOS = 'http://www.w3.org/2004/02/skos/core#';
 const SP = 'http://spinrdf.org/sp#';
+const SPIN = 'http://spinrdf.org/spin#';
+const LDH = 'https://w3id.org/atomgraph/linkeddatahub#';
 const CONCEPT = `${SKOS}Concept`;
+const COLLECTION = `${SKOS}Collection`;
+// sp:text is a multi-line literal, and a spec file cannot nest those inside a template literal
+const TRIPLE_QUOTE = '"'.repeat(3);
 
 // What the package's Concept constructor templates, by property. The three literals are
 // rdf:langString, which is the datatype the editor used to lose.
@@ -43,13 +49,15 @@ const cards = form => form.locator('fieldset.ldh-ctor-card');
 // class from other documents, and those are cards of their own beside this one.
 const packageCard = form =>
     form.locator(`fieldset.ldh-ctor-card[data-graph="${packageOntologyDocument}"]`)
-        .filter({ has: form.page().locator('div.ldh-ctor-row') });
+        .filter({ has: form.page().locator(`div.ctor-pred input[name="ou"][value="${SKOS}prefLabel"]`) });
 const rowsOf = card => card.locator('div.ldh-ctor-row');
 // A row is addressed by its predicate: the chip the editor renders for a known property carries it
 // as the hidden ou input the save path reads.
 const rowFor = (card, predicate) =>
     rowsOf(card).filter({ has: card.page().locator(`div.ctor-pred input[name="ou"][value="${predicate}"]`) });
 const kindOn = row => row.locator('div.ctor-term button.object-kind.is-on');
+// The fieldset IS the constructor: one per constructor, carrying its URI and the document to PATCH.
+const constructorOf = card => card.getAttribute('about');
 
 // Open the Concept editor from the concept's own edit form. The Edit constructors button is emitted
 // hidden and revealed once the gate has asked which documents the class's constructors live in and
@@ -107,6 +115,62 @@ const clearOntologies = () => ldh(['admin', 'clear', 'ontology', '-b', adminBase
 const uris = text => TEMPLATED.filter(uri =>
     new RegExp(`(?:skos:|${SKOS.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})${uri.slice(SKOS.length)}\\b`).test(text));
 
+
+// The document describing the application's own ontology - where a class's first constructor goes.
+// Resolved the way the editor resolves it, from the ontology URI the page advertises to the dh:Item
+// that has it as foaf:primaryTopic, rather than assembled from a path this test happens to know.
+async function appOntologyDocument(page) {
+    const query = `PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+SELECT ?graph WHERE { GRAPH ?graph { ?graph foaf:primaryTopic <${endUserBase}ns#> } } # ${Date.now()}`;
+    const response = await page.request.get(`${adminBase}sparql?query=${encodeURIComponent(query)}`,
+        { headers: { Accept: 'application/sparql-results+json' } });
+    expect(response.status(), 'the admin endpoint answers the owner').toBe(200);
+    const { results } = await response.json();
+    expect(results.bindings, 'the application has exactly one ontology document').toHaveLength(1);
+    return results.bindings[0].graph.value;
+}
+
+// Which constructors a document attaches to a class.
+async function constructorsIn(page, graph, forClass) {
+    const query = `PREFIX spin: <${SPIN}>
+SELECT ?c WHERE { GRAPH <${graph}> { <${forClass}> spin:constructor ?c } } # ${Date.now()}`;
+    const response = await page.request.get(`${adminBase}sparql?query=${encodeURIComponent(query)}`,
+        { headers: { Accept: 'application/sparql-results+json' } });
+    expect(response.status()).toBe(200);
+    const { results } = await response.json();
+    return results.bindings.map(binding => binding.c.value);
+}
+
+// Undo a constructor this spec created: the link that attaches it and everything it says.
+const dropConstructor = (graph, forClass, constructor) => ldh(['patch', graph], {
+    allowFailure: true,
+    stdin: `PREFIX spin: <${SPIN}>
+DELETE { <${forClass}> spin:constructor <${constructor}> . <${constructor}> ?p ?o }
+WHERE { OPTIONAL { <${constructor}> ?p ?o } }`,
+});
+
+// Adds a property row and gives it a literal range, the way an author does: type into the predicate
+// combobox, take the first suggestion, then switch the object kind and pick a datatype. fill() would
+// set the value without the keyup the lookup listens on, and the panel would never open.
+async function addLiteralRow(page, card, predicate) {
+    await card.locator('button.ldh-ctor-addprop').click();
+    const row = rowsOf(card).last();
+    const input = row.locator('div.ctor-pred input.property-combobox');
+    await expect(input).toBeVisible({ timeout: 15_000 });
+    await input.click();
+    await input.pressSequentially(predicate.slice(SKOS.length), { delay: 110 });
+
+    const panel = page.locator('div.ac-cb-panel.property-combobox');
+    await expect(panel).toBeVisible({ timeout: 20_000 });
+    await panel.locator(`li[about="${predicate}"], li`).first().click();
+    await expect(row.locator('div.ctor-pred input[name="ou"]')).toHaveValue(predicate, { timeout: 15_000 });
+
+    await row.locator('div.ctor-term button[data-kind$="Literal"]').click();
+    await row.locator('span.ctor-range-slot select.ctor-range')
+        .selectOption('http://www.w3.org/2001/XMLSchema#string');
+    return row;
+}
+
 test.describe('the constructor editor', () => {
     test.beforeEach(({}, testInfo) => {
         test.skip(testInfo.project.name !== 'owner',
@@ -123,7 +187,7 @@ test.describe('the constructor editor', () => {
         await expect(card, 'which the owner may edit').not.toHaveAttribute('disabled', /.*/);
 
         const graph = packageOntologyDocument;
-        const constructor = await card.getAttribute('about');
+        const constructor = await constructorOf(card);
         const original = await storedText(page, graph, constructor);
         expect(uris(original), 'the fixture templates every property').toEqual(TEMPLATED);
 
@@ -165,7 +229,7 @@ test.describe('the constructor editor', () => {
         const card = packageCard(form);
         await expect(card).toHaveCount(1);
         const graph = packageOntologyDocument;
-        const constructor = await card.getAttribute('about');
+        const constructor = await constructorOf(card);
         const original = await storedText(page, graph, constructor);
 
         try {
@@ -183,4 +247,120 @@ test.describe('the constructor editor', () => {
             await clearOntologies();
         }
     });
+
+    // Where a class's first property goes when the document has no constructor for it yet. The editor
+    // renders a fieldset for the application's own ontology whatever it holds, and stamps the constructor
+    // a new row joins on @data-target - resolved once, deterministically, so repeated adds land in the
+    // same place instead of scattering across constructors that render identically anyway.
+    test('adds a property to the application\'s own ontology, creating its constructor if needed', async ({ page }) => {
+        const ontologyDocument = await appOntologyDocument(page);
+        const form = await openEditor(page);
+        const card = form.locator(`fieldset.ldh-ctor-card[data-graph="${ontologyDocument}"]`);
+        await expect(card, 'the application\'s own ontology is always offered as a destination').toHaveCount(1);
+
+        const target = await card.getAttribute('about');
+        expect(target, 'the fieldset names the constructor a new property will join').toContain(ontologyDocument);
+        const before = await constructorsIn(page, ontologyDocument, CONCEPT);
+
+        try {
+            await addLiteralRow(page, card, `${SKOS}notation`);
+
+            await form.locator('button.btn-save').click();
+            await expect(form, 'the dialog closes on a successful save').toHaveCount(0, { timeout: 30_000 });
+
+            await expect.poll(() => storedText(page, ontologyDocument, target).then(text => text.includes('notation')),
+                'the property reached the constructor the fieldset named').toBe(true);
+            const after = await constructorsIn(page, ontologyDocument, CONCEPT);
+            expect(after, 'and it is the one the fieldset targeted').toContain(target);
+            expect(after.length, 'one constructor here, not one per document describing the class')
+                .toBe(Math.max(before.length, 1));
+        } finally {
+            await dropConstructor(ontologyDocument, CONCEPT, target);
+            await clearOntologies();
+        }
+    });
+
+    // Two constructors in one document are two fieldsets. Grouping by document was tried and reverted:
+    // what decides whether editing is safe is the constructor's attachment, not where it is stored, and
+    // a fieldset that hides which constructor it writes cannot show that.
+    test('renders a fieldset per constructor, and saves each on its own', async ({ page }) => {
+        const graph = packageOntologyDocument;
+        const second = `${graph}#idSecondConstructorFixture`;
+        await ldh(['patch', graph], { stdin: [
+            `PREFIX sp: <${SP}>`, `PREFIX spin: <${SPIN}>`, `PREFIX ldh: <${LDH}>`,
+            `INSERT {`,
+            `  <${CONCEPT}> spin:constructor <${second}> .`,
+            `  <${second}> a ldh:Constructor .`,
+            `  <${second}> sp:text ${TRIPLE_QUOTE}CONSTRUCT { $this <${SKOS}notation> [ a <http://www.w3.org/2001/XMLSchema#string> ] . } WHERE {}${TRIPLE_QUOTE} .`,
+            `} WHERE {}`,
+        ].join('\n') });
+        await clearOntologies();
+
+        try {
+            const form = await openEditor(page);
+            await expect(cards(form).filter({ has: page.locator('div.ldh-ctor-row') }),
+                'one fieldset per constructor, not one per document').toHaveCount(2);
+
+            const addedCard = cards(form).filter({ has: page.locator(`div.ctor-pred input[name="ou"][value="${SKOS}notation"]`) });
+            await expect(addedCard, 'each names the constructor it writes').toHaveAttribute('about', second);
+            await expect(addedCard, 'and the document that holds it').toHaveAttribute('data-graph', graph);
+
+            const packageConstructor = await constructorOf(packageCard(form));
+            const packageBefore = await storedText(page, graph, packageConstructor);
+
+            await rowFor(addedCard, `${SKOS}notation`).locator('button.ctor-rm').click();
+            await form.locator('button.btn-save').click();
+            await expect(form).toHaveCount(0, { timeout: 30_000 });
+
+            // that was its only row, so the constructor goes; its neighbour in the same document, which
+            // Save rewrites too, keeps every property it had
+            await expect.poll(() => constructorsIn(page, graph, CONCEPT).then(uris => uris.includes(second)),
+                'the emptied constructor was deleted, not stored as an empty CONSTRUCT').toBe(false);
+            expect(uris(await storedText(page, graph, packageConstructor)),
+                'and the constructor beside it was untouched').toEqual(uris(packageBefore));
+        } finally {
+            await dropConstructor(graph, CONCEPT, second);
+            await clearOntologies();
+        }
+    });
+
+    // A constructor several classes share is the one case where its identity reaches beyond its document:
+    // rewriting it from this class's editor would change the other class's form too. With the source
+    // merged into the document's list the author cannot anticipate that, so its rows are inert and Save
+    // skips them.
+    test('will not write a constructor that another class also uses', async ({ page }) => {
+        const graph = packageOntologyDocument;
+        const opened = await openEditor(page);
+        const shared = await constructorOf(packageCard(opened));
+        await opened.locator('button.btn-close').click();
+        await expect(opened).toHaveCount(0, { timeout: 15_000 });
+
+        await ldh(['patch', graph], { stdin:
+            `PREFIX spin: <${SPIN}>\nINSERT { <${COLLECTION}> spin:constructor <${shared}> . } WHERE {}` });
+        await clearOntologies();
+
+        try {
+            const before = await storedText(page, graph, shared);
+            const form = await openEditor(page);
+            const card = form.locator(`fieldset.ldh-ctor-card[about="${shared}"]`);
+
+            await expect(card, 'the fieldset is inert, because another class has this constructor too')
+                .toHaveAttribute('disabled', /.*/);
+            await expect(card.locator('span.ctor-owners'), 'and says which class that is').toHaveCount(1);
+            await expect(card.locator('button.ldh-ctor-addprop'), 'with nothing to add to it').toHaveCount(0);
+
+            await form.locator('button.btn-save').click();
+            await expect(form).toHaveCount(0, { timeout: 30_000 });
+
+            // the builder re-serializes any text it is given, so an unchanged stored text proves the save
+            // skipped this constructor rather than happening to produce the same string
+            await page.waitForTimeout(3_000);
+            expect(await storedText(page, graph, shared), 'and Save left it exactly as it was').toBe(before);
+        } finally {
+            await ldh(['patch', graph], { allowFailure: true, stdin:
+                `PREFIX spin: <${SPIN}>\nDELETE { <${COLLECTION}> spin:constructor <${shared}> . } WHERE {}` });
+            await clearOntologies();
+        }
+    });
 });
+
