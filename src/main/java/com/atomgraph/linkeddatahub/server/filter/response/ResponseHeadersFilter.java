@@ -41,6 +41,7 @@ import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerResponseContext;
 import jakarta.ws.rs.container.ContainerResponseFilter;
+import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import org.slf4j.Logger;
@@ -90,6 +91,18 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
         boolean isTimeGate = request.getUriInfo().getQueryParameters().containsKey(DocumentHierarchyGraphStoreImpl.TIMEGATE_PARAM_NAME);
         // historical version, TimeMap and TimeGate views are read-only: advertise acl:Read at most, so the UI disables edit affordances
         boolean isSnapshotRequest = DocumentHierarchyGraphStoreImpl.isSnapshotRequest(request.getUriInfo());
+
+        // A HEAD is granted to any agent with a mode on the document, so that a writer can learn the entity tag a
+        // conditional write has to quote (see AuthorizationFilter). One that may not read gets the validator and
+        // its own modes and nothing else: Last-Modified and Content-Length describe the representation it is not
+        // allowed to have, and Last-Modified in particular narrows the dct:modified inside the graph - which the
+        // entity tag is a hash of - from milliseconds to seconds.
+        if (HttpMethod.HEAD.equals(request.getMethod()) && getAuthorizationContext().isPresent() &&
+                !getAuthorizationContext().get().getModeURIs().contains(URI.create(ACL.Read.getURI())))
+        {
+            response.getHeaders().remove(HttpHeaders.LAST_MODIFIED);
+            response.getHeaders().remove(HttpHeaders.CONTENT_LENGTH);
+        }
 
         if (getAuthorizationContext().isPresent())
             getAuthorizationContext().get().getModeURIs().stream().
