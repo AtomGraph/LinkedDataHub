@@ -371,7 +371,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
 
         final Model existingModel = getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(getURI().toString());
         
-        Response.ResponseBuilder rb = evaluatePreconditions(existingModel);
+        Response.ResponseBuilder rb = evaluatePreconditions(existingModel, getHttpHeaders());
         if (rb != null) return rb.build(); // preconditions not met
         
         model.createResource(getURI().toString()).
@@ -441,7 +441,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         {
             existingModel = getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(getURI().toString());
             
-            Response.ResponseBuilder rb = evaluatePreconditions(existingModel);
+            Response.ResponseBuilder rb = evaluatePreconditions(existingModel, getHttpHeaders());
             if (rb != null) return rb.build(); // preconditions not met
         }
         catch (NotFoundException ex)
@@ -546,7 +546,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         final Model existingModel = getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(getURI().toString());
         if (existingModel == null) throw new NotFoundException("Named graph with URI <" + getURI() + "> not found");
 
-        Response.ResponseBuilder rb = evaluatePreconditions(existingModel);
+        Response.ResponseBuilder rb = evaluatePreconditions(existingModel, getHttpHeaders());
         if (rb != null) return rb.build(); // preconditions not met
 
         Model beforeUpdateModel = ModelFactory.createDefaultModel().add(existingModel);
@@ -720,7 +720,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         {
             Model existingModel = getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(getURI().toString());
             
-            Response.ResponseBuilder rb = evaluatePreconditions(existingModel);
+            Response.ResponseBuilder rb = evaluatePreconditions(existingModel, getHttpHeaders());
             if (rb != null) return rb.build(); // preconditions not met
         }
         catch (NotFoundException ex)
@@ -1115,13 +1115,43 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     /**
      * Evaluates the state of the given graph against the request preconditions.
      * Checks the last modified data (if any) and calculates an <code>ETag</code> value.
+     * A write to a graph that already exists must carry <code>If-Match</code>; one that does not is answered
+     * <code>428 Precondition Required</code>.
      * 
      * @param model RDF model
+     * @param httpHeaders the request headers the preconditions are read from
      * @return {@code jakarta.ws.rs.core.Response.ResponseBuilder} instance. <code>null</code> if preconditions are not met.
      */
-    public Response.ResponseBuilder evaluatePreconditions(Model model)
+    public Response.ResponseBuilder evaluatePreconditions(Model model, HttpHeaders httpHeaders)
     {
-        return getInternalResponse(model, getURI()).evaluatePreconditions();
+        // A write to a document that already exists has to say which state it was written against. Every write
+        // here is a whole-graph read-modify-write - the graph is read, changed in memory and written back - so
+        // two unconditional writers overwrite each other with nothing to show that anything was lost. Measured
+        // in the constructor editor: one save's DELETE was correct in every detail, answered 204, and was
+        // reinstated by a second write that had read the graph before it landed. A document that does not exist
+        // yet has no validator to match, so creating one is exempt.
+        // blank counts as absent: an empty If-Match is not a validator, and reading it as one let a client opt
+        // out of the precondition entirely by sending the header with nothing in it - measured, 204 not 428
+        // If-None-Match satisfies the requirement in its own right: "only if this does not exist" is a
+        // precondition, and a write carrying it is asking to CREATE - it cannot also quote an entity tag it is
+        // asserting there is none of. The import writer uses exactly that idiom, PUT with If-None-Match: * and
+        // then POST on the 412 that says the document is already there; demanding If-Match of it answered 428,
+        // which is not 412, so the fallback never ran and every RDF import failed.
+        String ifMatch = httpHeaders.getHeaderString(HttpHeaders.IF_MATCH);
+        String ifNoneMatch = httpHeaders.getHeaderString(HttpHeaders.IF_NONE_MATCH);
+        if (model != null && !model.isEmpty() && (ifMatch == null || ifMatch.isBlank()) && (ifNoneMatch == null || ifNoneMatch.isBlank()))
+            throw new WebApplicationException("Writing an existing document requires the If-Match header",
+                Response.status(Response.Status.PRECONDITION_REQUIRED).build());
+
+        com.atomgraph.core.model.impl.Response internalResponse = getInternalResponse(model, getURI());
+        Response.ResponseBuilder rb = internalResponse.evaluatePreconditions();
+
+        // a precondition that failed says what the current validator IS, so the client can retry against it
+        // without a second read - the create-or-append idiom (PUT If-None-Match: *, POST on the 412) has no
+        // other way to learn it, and a 304 is supposed to carry its entity tag in any case
+        if (rb != null) rb.tag(internalResponse.getVariantEntityTag());
+
+        return rb;
     }
     
     /**

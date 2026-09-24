@@ -31,6 +31,7 @@ import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import jakarta.annotation.PostConstruct;
@@ -127,6 +128,20 @@ public class AuthorizationFilter implements ContainerRequestFilter
         else agent = null; // public access
 
         Model authorizations = authorize(request, agent, accessMode);
+
+        // HEAD is how a client learns a document's entity tag, and a conditional write needs one. Requiring
+        // acl:Read for it would leave an agent that may write but not read unable to satisfy the precondition
+        // the graph store demands of every write to a document that already exists - quietly turning acl:Write
+        // into acl:Write AND acl:Read, a coupling no authorization document states. So a HEAD is granted to any
+        // agent with a mode on the document: it carries no body, and a non-reader's is trimmed to the validator
+        // and the modes by ResponseHeadersFilter. GET is untouched - content still needs acl:Read.
+        if (authorizations == null && HttpMethod.HEAD.equals(request.getMethod()))
+            for (Resource writeMode : List.of(ACL.Append, ACL.Write))
+            {
+                authorizations = authorize(request, agent, writeMode);
+                if (authorizations != null) break;
+            }
+
         if (authorizations == null)
         {
             if (log.isTraceEnabled()) log.trace("Access not authorized for request URI: {} and access mode: {}", request.getUriInfo().getAbsolutePath(), accessMode);

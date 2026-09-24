@@ -1300,10 +1300,11 @@ WHERE
         <xsl:variable name="content-body" select="ancestor::div[contains-token(@class, 'ldh-pane')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()?"/>
 
         <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', ldh:translations())) ])">
+            <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
             <xsl:variable name="context" as="map(*)" select="
               map{
-                'request': map{ 'method': 'DELETE', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } },
-                'doc-uri': ac:absolute-path(ldh:base-uri(.))
+                'request': map{ 'method': 'DELETE', 'href': $request-uri, 'headers': ldh:conditional-headers(map{ 'Accept': 'application/xhtml+xml' }, ldh:document-etag($doc-uri)) },
+                'doc-uri': $doc-uri
               }"/>
             <!-- no ixsl:finally here: on success the chain hands over to ldh:DocumentNavigate, which raises the busy
                  cursor for its own load, and a finally would settle first and clear it. The failure branch resets. -->
@@ -1573,6 +1574,12 @@ WHERE
                     <xsl:variable name="headers" select="ldh:new-object()"/>
                     <ixsl:set-property name="Content-Type" select="$media-type" object="$headers"/>
                     <ixsl:set-property name="Accept" select="'application/rdf+xml'" object="$headers"/>
+
+                    <!-- the drop appends to the document being read, which is one this browser loaded, so its
+                         validator is already cached and the append can say which state it was made against -->
+                    <xsl:for-each select="ldh:document-etag(ac:absolute-path($base-uri))">
+                        <ixsl:set-property name="If-Match" select="." object="$headers"/>
+                    </xsl:for-each>
 
                     <xsl:sequence select="ldh:busy-cursor()"/>
 

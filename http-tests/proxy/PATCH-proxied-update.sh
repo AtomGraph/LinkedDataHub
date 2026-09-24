@@ -42,6 +42,8 @@ EOF
 
 curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -X PATCH \
+  -H "Accept: application/n-triples" \
+  -H "If-Match: $(etag "${END_USER_BASE_URL}?uri=${item}" "$AGENT_CERT_FILE" "$AGENT_CERT_PWD" "application/n-triples")" \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H 'Content-Type: application/sparql-update' \
   --url-query "uri=${item}" \

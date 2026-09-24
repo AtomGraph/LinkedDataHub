@@ -33,6 +33,7 @@ EOF
 response=$(curl -k -w "%{http_code}\n" -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -X PATCH \
+  -H "If-Match: $(etag "$END_USER_BASE_URL" "$AGENT_CERT_FILE" "$AGENT_CERT_PWD" "application/n-triples")" \
   -H "Accept: application/n-triples" \
   -H "Content-Type: application/sparql-update" \
   "$END_USER_BASE_URL" \

@@ -58,6 +58,8 @@ _:import spin:query <${query}> ."
     response=$(printf '%s' "$body" | curl -k -s -w $'\n%{http_code}' \
       -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
       -X POST \
+      -H "Accept: application/n-triples" \
+      -H "If-Match: $(etag "$item" "$OWNER_CERT_FILE" "$OWNER_CERT_PWD" "application/n-triples")" \
       -H "Content-Type: text/turtle" \
       --data-binary @- \
       "$item") || true

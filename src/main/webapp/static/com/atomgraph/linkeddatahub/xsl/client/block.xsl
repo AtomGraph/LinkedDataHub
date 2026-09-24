@@ -517,7 +517,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="request-uri" select="ldh:href(ac:absolute-path(ldh:base-uri(.)), map{})" as="xs:anyURI"/>
                     <xsl:variable name="context" as="map(*)" select="
                       map{
-                        'request': map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string },
+                        'request': map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': ldh:conditional-headers(map{}, ldh:document-etag(ac:absolute-path(ldh:base-uri(.)))) },
                         'block': $block
                       }"/>
                     <!-- no ldh:handle-response in the chain: a failed PATCH is reported here rather than raised, so it must reach the callback -->
@@ -680,7 +680,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="values-row" select="'(&lt;' || $doc-uri || '&gt; &lt;' || $source-uri || '&gt; &lt;' || $target-uri || '&gt;)'" as="xs:string"/>
                     <xsl:variable name="update-string" select="replace($block-move-string, '($doc $source $target)', $values-row, 'q')" as="xs:string"/>
                     <xsl:variable name="request-uri" select="ldh:href($doc-uri, map{})" as="xs:anyURI"/>
-                    <xsl:variable name="request" select="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string }" as="map(*)"/>
+                    <xsl:variable name="request" select="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': ldh:conditional-headers(map{}, ldh:document-etag($doc-uri)) }" as="map(*)"/>
                     <xsl:variable name="context" select="map{ 'request': $request, 'source-block': $source-block, 'source-next': $source-next }" as="map(*)"/>
 
                     <ixsl:promise select="

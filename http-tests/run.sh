@@ -46,6 +46,7 @@ export STATUS_PRECONDITION_FAILED=412
 export STATUS_REQUEST_ENTITY_TOO_LARGE=413
 export STATUS_UNSUPPORTED_MEDIA=415
 export STATUS_UNPROCESSABLE_ENTITY=422
+export STATUS_PRECONDITION_REQUIRED=428
 export STATUS_INTERNAL_SERVER_ERROR=500
 export STATUS_NOT_IMPLEMENTED=501
 export STATUS_BAD_GATEWAY=502
@@ -189,6 +190,32 @@ function download_dataset()
       "$1"
 }
 
+# The entity tag of a document, for a conditional write. A write to a document that already exists must
+# carry If-Match: the graph store applies one by reading the graph, changing it in memory and writing the
+# whole thing back, so two unconditional writers overwrite each other with nothing to show for it.
+# The tag identifies a NEGOTIATED VARIANT rather than the graph alone - the same document answers a
+# different tag as RDF/XML than as Turtle - so it is read with the Accept the write will send, and the
+# write has to send that same Accept.
+function etag()
+{
+    local uri="$1" cert_file="$2" cert_pwd="$3" accept="${4:-application/n-triples}"
+
+    local tag
+    tag=$(curl -k -s -I \
+      -E "$cert_file":"$cert_pwd" \
+      -H "Accept: $accept" \
+      "$uri" \
+    | grep -i '^etag:' | tr -d '\r' | sed 's/^[Ee][Tt][Aa][Gg]: *//')
+
+    # say so rather than hand back an empty If-Match: the server refuses a blank one, so a silent empty
+    # tag would surface as an unexplained 428 on the write instead of naming the document it came from
+    if [ -z "$tag" ]; then
+        echo "### etag: no entity tag for <$uri> as $accept" >&2
+    fi
+
+    printf '%s' "$tag"
+}
+
 function initialize_dataset()
 {
     echo "@base <$1> ." \
@@ -293,6 +320,7 @@ fi
 
 printf "### Secretary agent URI: %s\n" "$SECRETARY_URI"
 
+export -f etag
 export -f initialize_dataset
 export -f purge_cache
 export -f reset_packages

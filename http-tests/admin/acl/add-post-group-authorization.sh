@@ -85,6 +85,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   -H "Content-Type: application/n-triples" \
   -H "Accept: application/n-triples" \
   -X POST \
+  -H "If-Match: $(etag "$END_USER_BASE_URL" "$AGENT_CERT_FILE" "$AGENT_CERT_PWD" "application/n-triples")" \
    --data-binary @- \
   "$END_USER_BASE_URL" <<EOF
 <http://s> <http://p> <http://o> .
