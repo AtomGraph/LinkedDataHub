@@ -200,6 +200,9 @@ WHERE
              ldh:SetAclModes, while the same call in a template BODY threw visibly. Empty is the right start: it
              reads as "no modes known yet", which fails closed -->
         <ixsl:set-property name="acl-modes" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <!-- raised by ixsl:onbeforeunload below, read by ldh:promise-failure: a rejection arriving after the page started
+             leaving is the browser cancelling the page's requests, not a failure to report -->
+        <ixsl:set-property name="unloading" select="false()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
         <!-- create the RDFa editor state container (editor chrome initializes lazily, on the first editable region) -->
         <xsl:call-template name="rdfae:init-state"/>
@@ -1028,6 +1031,17 @@ WHERE
     </xsl:template>
 
     <!-- EVENT LISTENERS -->
+
+    <!-- beforeunload -->
+
+    <!-- The page is being left: every request still in flight is about to be cancelled by the browser, and the fetch it
+         rejects with is a plain TypeError - SXJS0009, the code of a request that never got a response. ldh:promise-failure
+         reads this flag to say nothing for those, as it already does for a request the abort controller superseded.
+         beforeunload rather than pagehide: the browsers cancel the old document's loads between the two events, so only
+         the earlier one is raised by the time the rejections run -->
+    <xsl:template match="." mode="ixsl:onbeforeunload">
+        <ixsl:set-property name="unloading" select="true()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+    </xsl:template>
 
     <!-- popstate -->
     

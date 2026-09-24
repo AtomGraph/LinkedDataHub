@@ -757,8 +757,11 @@ exclude-result-prefixes="#all"
             <ixsl:remove-attribute name="aria-busy"/>
         </xsl:for-each>
 
-        <!-- an aborted request was superseded (a navigation that started another), which is not a failure -->
-        <xsl:if test="not($error?code = 'Q{&ldh;}HTTPError' or $error?code = 'SXJS0008' and starts-with($error?message, 'HTTP request aborted'))">
+        <!-- a superseded request is not a failure: aborted by the controller when a navigation started another, or
+             cancelled by the browser when the page itself is being left (ixsl:onbeforeunload raises
+             LinkedDataHub.unloading; the cancelled fetch rejects as SXJS0009, indistinguishable by code from a network
+             failure) -->
+        <xsl:if test="not($error?code = 'Q{&ldh;}HTTPError' or $error?code = 'SXJS0008' and starts-with($error?message, 'HTTP request aborted') or ixsl:get(ixsl:window(), 'LinkedDataHub.unloading'))">
             <!-- fn:error's third argument survives into the failure map as the JS error's errorObject -->
             <xsl:variable name="response" select="if ($error?code = 'Q{&ldh;}ResponseError') then ixsl:get($error?error, 'errorObject') else ()" as="map(*)?"/>
             <!-- SaxonJS raises SXJS0008 for a timed-out request and SXJS0009 for one that never got a response -->
