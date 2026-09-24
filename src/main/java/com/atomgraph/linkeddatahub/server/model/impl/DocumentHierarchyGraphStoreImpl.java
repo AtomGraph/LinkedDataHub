@@ -371,7 +371,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
 
         final Model existingModel = getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(getURI().toString());
         
-        Response.ResponseBuilder rb = evaluatePreconditions(existingModel);
+        Response.ResponseBuilder rb = evaluatePreconditions(existingModel, getHttpHeaders());
         if (rb != null) return rb.build(); // preconditions not met
         
         model.createResource(getURI().toString()).
@@ -441,7 +441,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         {
             existingModel = getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(getURI().toString());
             
-            Response.ResponseBuilder rb = evaluatePreconditions(existingModel);
+            Response.ResponseBuilder rb = evaluatePreconditions(existingModel, getHttpHeaders());
             if (rb != null) return rb.build(); // preconditions not met
         }
         catch (NotFoundException ex)
@@ -546,7 +546,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         final Model existingModel = getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(getURI().toString());
         if (existingModel == null) throw new NotFoundException("Named graph with URI <" + getURI() + "> not found");
 
-        Response.ResponseBuilder rb = evaluatePreconditions(existingModel);
+        Response.ResponseBuilder rb = evaluatePreconditions(existingModel, getHttpHeaders());
         if (rb != null) return rb.build(); // preconditions not met
 
         Model beforeUpdateModel = ModelFactory.createDefaultModel().add(existingModel);
@@ -720,7 +720,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         {
             Model existingModel = getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(getURI().toString());
             
-            Response.ResponseBuilder rb = evaluatePreconditions(existingModel);
+            Response.ResponseBuilder rb = evaluatePreconditions(existingModel, getHttpHeaders());
             if (rb != null) return rb.build(); // preconditions not met
         }
         catch (NotFoundException ex)
@@ -1115,12 +1115,25 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     /**
      * Evaluates the state of the given graph against the request preconditions.
      * Checks the last modified data (if any) and calculates an <code>ETag</code> value.
+     * A write to a graph that already exists must carry <code>If-Match</code>; one that does not is answered
+     * <code>428 Precondition Required</code>.
      * 
      * @param model RDF model
+     * @param httpHeaders the request headers the preconditions are read from
      * @return {@code jakarta.ws.rs.core.Response.ResponseBuilder} instance. <code>null</code> if preconditions are not met.
      */
-    public Response.ResponseBuilder evaluatePreconditions(Model model)
+    public Response.ResponseBuilder evaluatePreconditions(Model model, HttpHeaders httpHeaders)
     {
+        // A write to a document that already exists has to say which state it was written against. Every write
+        // here is a whole-graph read-modify-write - the graph is read, changed in memory and written back - so
+        // two unconditional writers overwrite each other with nothing to show that anything was lost. Measured
+        // in the constructor editor: one save's DELETE was correct in every detail, answered 204, and was
+        // reinstated by a second write that had read the graph before it landed. A document that does not exist
+        // yet has no validator to match, so creating one is exempt.
+        if (model != null && !model.isEmpty() && httpHeaders.getHeaderString(HttpHeaders.IF_MATCH) == null)
+            throw new WebApplicationException("Writing an existing document requires the If-Match header",
+                Response.status(Response.Status.PRECONDITION_REQUIRED).build());
+
         return getInternalResponse(model, getURI()).evaluatePreconditions();
     }
     

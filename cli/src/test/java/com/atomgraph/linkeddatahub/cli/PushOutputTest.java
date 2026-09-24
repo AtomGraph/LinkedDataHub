@@ -77,11 +77,15 @@ public class PushOutputTest
 
             assertEquals(0, code, err.toString());
             List<Request> requests = server.getRequests();
-            assertEquals(List.of("PUT /", "PUT /a/", "PUT /a/b/", "POST /a/"),
+            // every write is preceded by the conditional read that gives it its If-Match: the server requires
+            // one of any write to a document that already exists
+            assertEquals(List.of("HEAD /", "PUT /", "HEAD /a/", "PUT /a/", "HEAD /a/b/", "PUT /a/b/", "HEAD /a/", "POST /a/"),
                 requests.stream().map(request -> request.method() + " " + request.target()).toList());
-            assertTrue(requests.get(2).body().contains(base + "a/b/"), "relative subject was not resolved against the document: " + requests.get(2).body());
-            assertTrue(requests.get(3).header("content-type").startsWith("multipart/form-data"), requests.get(3).header("content-type"));
-            assertTrue(requests.get(3).body().contains("image.png"), requests.get(3).body());
+
+            List<Request> writes = requests.stream().filter(request -> !"HEAD".equals(request.method())).toList();
+            assertTrue(writes.get(2).body().contains(base + "a/b/"), "relative subject was not resolved against the document: " + writes.get(2).body());
+            assertTrue(writes.get(3).header("content-type").startsWith("multipart/form-data"), writes.get(3).header("content-type"));
+            assertTrue(writes.get(3).body().contains("image.png"), writes.get(3).body());
 
             assertEquals(expectedURLs(base, root), out.toString().lines().toList());
             assertTrue(err.toString().contains("PUT " + base + " <- root.ttl"), err.toString());
@@ -126,7 +130,10 @@ public class PushOutputTest
                 "--dir", root.toString(), base.toString());
 
             assertEquals(CommandLine.ExitCode.SOFTWARE, code);
-            assertEquals(1, server.getRequests().size(), "the run did not stop at the first error");
+            // the write that failed and the conditional read before it, and nothing of the next document
+            assertEquals(List.of("HEAD /", "PUT /"),
+                server.getRequests().stream().map(request -> request.method() + " " + request.target()).toList(),
+                "the run did not stop at the first error");
             assertEquals("", out.toString(), "a failed write must not print its URL");
             assertTrue(err.toString().contains("HTTP 403"), err.toString());
         }
