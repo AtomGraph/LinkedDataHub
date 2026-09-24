@@ -2007,7 +2007,8 @@ WHERE
             </xsl:when>
             <xsl:when test="$key-code = 'Enter'">
                 <xsl:for-each select="$menu/li[contains-token(@class, 'is-active')]">
-                    <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/> <!-- prevent form submit -->
+                    <!-- the submit this commit must not also perform is refused on keydown, below: by
+                         the time keyup runs the form has already been asked to submit -->
                 
                     <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:anyURI"/>
                     <xsl:variable name="chip-class" select="'cb-chip-btn add-combobox'" as="xs:string"/>
@@ -2053,6 +2054,21 @@ WHERE
                 </xsl:call-template>
             </xsl:otherwise>
         </xsl:choose>
+    </xsl:template>
+
+    <!-- A form's implicit submission rides Enter's KEYDOWN, so the keyup branch that commits the
+         keyboard-active suggestion cannot prevent it - it runs after the form has already been asked to
+         submit, and the request goes out with the row half-edited. Measured before this handler existed:
+         committing skos:related with Enter sent a PATCH of the open form, which the endpoint answered
+         400. The default is refused here instead, under exactly the condition that commit runs under - a
+         panel with an active item - so an Enter with nothing active stays an ordinary Enter and still
+         submits the form. -->
+    <xsl:template match="input[contains-token(@class, 'combobox')]" mode="ixsl:onkeydown">
+        <xsl:param name="menu" select="(following-sibling::ul, ../following-sibling::div[contains-token(@class, 'ac-cb-panel')])[1]" as="element()?"/>
+
+        <xsl:if test="ixsl:get(ixsl:event(), 'code') = 'Enter' and exists($menu/li[contains-token(@class, 'is-active')])">
+            <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:if>
     </xsl:template>
 
     <xsl:template match="input[contains-token(@class, 'combobox')]" mode="ixsl:onfocusout">
@@ -2402,45 +2418,6 @@ WHERE
         </xsl:for-each>
     </xsl:template>
     
-    <!-- show a combobox panel with instances in the form -->
-    
-    <xsl:template match="form//input[contains-token(@class, 'resource-combobox')]" mode="ixsl:onfocusin">
-        <xsl:variable name="menu" select="(following-sibling::ul, ../following-sibling::div[contains-token(@class, 'ac-cb-panel')])[1]" as="element()"/>
-        <xsl:variable name="forClass" select="../ixsl:get(., 'dataset.forClass')" as="xs:anyURI*"/>
-        <xsl:variable name="item-doc" as="document-node()">
-            <xsl:document>
-                <rdf:RDF>
-                    <!-- convert instances in the RDF/POST form to RDF/XML -->
-                    <xsl:for-each select="ancestor::form//input[@name = ('sb', 'su')][@value]">
-                        <!-- filter resources by type if $forClass is provided -->
-                        <xsl:if test="empty($forClass) or $forClass = '&rdfs;Resource' or following-sibling::div[input[@name = 'pu'][@value = '&rdf;type']]//input[@name = 'ou']/@value = $forClass">
-                            <rdf:Description>
-                                <xsl:if test="@name = 'sb'">
-                                     <xsl:attribute name="rdf:nodeID" select="@value"/>
-                                </xsl:if>
-                                <xsl:if test="@name = 'su'">
-                                     <xsl:attribute name="rdf:about" select="@value"/>
-                                </xsl:if>
-                                
-                                <dct:title>
-                                    <xsl:value-of select="@value"/>
-                                </dct:title>
-                            </rdf:Description>
-                        </xsl:if>
-                    </xsl:for-each>
-                </rdf:RDF>
-            </xsl:document>
-        </xsl:variable>
-
-        <ixsl:set-property name="LinkedDataHub.combobox.rdfXml" select="$item-doc"/>
-
-        <xsl:call-template name="ldh:ComboboxProcess">
-            <xsl:with-param name="menu" select="$menu"/>
-            <xsl:with-param name="items" select="$item-doc/rdf:RDF/rdf:Description"/>
-            <xsl:with-param name="element" select="."/>
-        </xsl:call-template>
-    </xsl:template>
-
     <!-- file picked: surface the selected-file chip below the drop zone (the hidden input keeps serializing into the multipart body) -->
 
     <xsl:template match="div[contains-token(@class, 'ac-fileinput')]//input[@type = 'file']" mode="ixsl:onchange">

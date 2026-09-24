@@ -112,8 +112,16 @@
    lifts a box out of an ancestor's clip, because clipping is not part of the paint order.
    Taken out of that flow it is clipped by nothing, at the cost of its offsets: a fixed box with
    auto offsets lands at its static position, which inside a flex column is the container's own
-   origin rather than below the field. So it opens hidden and ldh:ComboboxPlace measures the
-   field and puts it there, one frame later - see there for why the correction is a translation. */
+   origin rather than below the field. So ldh:ComboboxPlace measures the field and translates the
+   panel onto it - see there for why the correction is a translation rather than a top/left pair.
+
+   Which is why the entry animation fades and does not move. A keyframe that animates transform
+   animates the very property that correction is expressed in: it overrides the placement for the
+   length of the animation, and - because the placement reads getBoundingClientRect() while it is
+   mid-flight - the origin it measures from is displaced by however far the animation has got, so
+   the panel settles up to that many pixels away from the field it was aimed at. Measured: a 3px
+   translateY put the panel 3.3px below its intended gap, varying run to run. Any moving entry
+   animation on this element has the same effect, so keep this one to opacity. */
 .ac-cb-panel {
   position: fixed; z-index: 40;
   max-height: 268px; overflow-y: auto;
@@ -123,7 +131,7 @@
   padding: 4px;
   animation: ac-cb-in var(--dur-fast) var(--ease-out-soft);
 }
-@keyframes ac-cb-in { from { opacity: 0; transform: translateY(-3px); } }
+@keyframes ac-cb-in { from { opacity: 0; } }
 .ac-cb-section {
   padding: 7px 10px 4px;
   font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: var(--fw-medium);
