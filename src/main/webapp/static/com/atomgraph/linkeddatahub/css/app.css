@@ -2147,6 +2147,13 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
    the pivot pills 24px right of the facet pills. The bar itself carries no
    padding — its summary and its pill row do, so both are named here. */
 .ldh-block-body > .ldh-pivot-bar { padding-left: 0; padding-right: 0; }
+/* A block's control bands are rendered carrying is-collapsed and the card header's
+   controls toggle is what clears it - the same token the query block's editor pane
+   uses. A surface with no such header (a document in ChartMode, a modal-hosted view)
+   never gets the token, because nothing there could ever clear it. */
+.ldh-view-toolbar.is-collapsed,
+.ldh-pivot-bar.is-collapsed,
+.chart-controls.is-collapsed { display: none; }
 .ldh-grid-block .card {
   position: relative;
   display: flex; flex-direction: column; align-items: stretch;
@@ -2464,13 +2471,10 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 }
 
 /* ---------- Constructor modal ---------- */
+.ldh-ctor-modal { width: min(760px, calc(100vw - var(--sp-12))); max-height: calc(100vh - 96px); display: flex; flex-direction: column; }
 .ldh-ctor-body { flex: 1; overflow: auto; padding: var(--sp-5) var(--sp-6); display: flex; flex-direction: column; gap: var(--sp-4); }
-/* flex: none because overflow below is not visible, and a flex item whose overflow is not visible
-   has an automatic minimum size of ZERO rather than its content size - so in .ldh-ctor-body's column
-   the cards shrank to absorb whatever height the dialog was short of, clipping their own rows,
-   instead of letting the body scroll. The overflow is what keeps the rows inside the radius. */
+.ldh-ctor-lede { margin: 0; font-size: var(--fs-sm); color: var(--fg-2); line-height: var(--lh-base); }
 .ldh-ctor-card {
-  flex: none;
   border: 1px solid var(--border-default); border-radius: var(--r-lg);
   background: var(--surface-1); overflow: hidden;
 }
@@ -2484,7 +2488,13 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   font-family: var(--font-mono); font-size: var(--fs-xs); letter-spacing: 0.02em;
   color: var(--ldh-blue-700); font-weight: var(--fw-semibold);
 }
+.ldh-ctor-rmctor {
+  width: 28px; height: 28px; border: 0; background: transparent; border-radius: var(--r-sm);
+  display: inline-flex; align-items: center; justify-content: center; color: var(--fg-muted); cursor: pointer;
+}
+.ldh-ctor-rmctor:hover { background: var(--danger-50); color: var(--danger-500); }
 .ldh-ctor-rows { display: flex; flex-direction: column; }
+.ldh-ctor-empty { padding: var(--sp-4); font-size: var(--fs-sm); color: var(--fg-muted); text-align: center; }
 .ldh-ctor-row {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) auto minmax(0, 1fr) 32px;
@@ -2503,6 +2513,48 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-ctor-row select.ctor-range { font-family: var(--font-mono); }
 .ldh-ctor-row select:focus-visible { outline: 0; border-color: var(--ldh-blue-400); box-shadow: 0 0 0 3px rgba(77,148,248,0.18); }
 
+/* Predicate typeahead (combobox) */
+.ctor-pred-ta { position: relative; min-width: 0; }
+.ctor-pred-btn {
+  display: flex; align-items: baseline; gap: 8px; width: 100%;
+  height: 36px; padding: 0 8px 0 10px;
+  border: 1px solid var(--border-default); border-radius: var(--r-sm);
+  background: var(--surface-0); cursor: pointer; font: inherit; text-align: left;
+}
+.ctor-pred-btn:hover { border-color: var(--border-strong); }
+.ctor-pred-btn.is-open { border-color: var(--ldh-blue-400); box-shadow: 0 0 0 3px rgba(77,148,248,0.18); }
+.ctor-pred-btn .lbl { font-size: var(--fs-sm); font-weight: var(--fw-medium); color: var(--fg-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ctor-pred-btn .curie { font-family: var(--font-mono); font-size: 10px; color: var(--fg-hint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; min-width: 0; }
+.ctor-pred-btn .caret { color: var(--fg-muted); align-self: center; flex-shrink: 0; }
+.ctor-pred-pop {
+  position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 70;
+  background: var(--surface-0); border: 1px solid var(--border-default);
+  border-radius: var(--r-md); box-shadow: var(--shadow-md);
+  overflow: hidden; min-width: min(320px, calc(100vw - 2 * var(--sp-4)));
+  animation: menu-pop var(--dur-fast) var(--ease-out-soft);
+}
+.ctor-pred-search {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 10px; border-bottom: 1px solid var(--border-default);
+}
+.ctor-pred-search .msi { color: var(--fg-muted); }
+.ctor-pred-search input {
+  flex: 1; border: 0; outline: none; background: transparent;
+  font: inherit; font-size: var(--fs-sm); color: var(--fg-1);
+}
+.ctor-pred-list { max-height: 264px; overflow: auto; padding: 4px; }
+.ctor-pred-opt {
+  display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 8px;
+  width: 100%; text-align: left;
+  padding: 7px 8px; border: 0; background: transparent; border-radius: var(--r-sm); cursor: pointer;
+}
+.ctor-pred-opt:hover, .ctor-pred-opt.is-active { background: var(--surface-1); }
+.ctor-pred-opt.is-sel { background: var(--bg-accent-quiet); }
+.ctor-pred-opt .lbl { font-size: var(--fs-sm); color: var(--fg-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ctor-pred-opt .curie { font-family: var(--font-mono); font-size: 11px; color: var(--ldh-blue-700); }
+.ctor-pred-opt .chk { color: var(--ldh-blue-700); }
+.ctor-pred-empty { padding: 10px; display: flex; flex-direction: column; gap: 2px; font-size: var(--fs-sm); color: var(--fg-2); }
+.ctor-pred-empty .hint { font-size: var(--fs-xs); color: var(--fg-muted); }
 .ctor-term {
   display: inline-flex; padding: 2px; gap: 2px;
   background: var(--surface-2); border: 1px solid var(--border-default); border-radius: var(--r-md);
