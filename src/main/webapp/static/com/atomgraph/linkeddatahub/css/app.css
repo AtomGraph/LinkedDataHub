@@ -3791,6 +3791,9 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
    own bordered input; the only thing it needed was a width. */
 .ldh-annot > .ac-tag.sz-xs { flex-shrink: 0; }
 .ldh-lang { display: inline-flex; min-width: 0; }
+/* The strip clips (overflow hidden) and its chips do not shrink, so without this
+   the language INPUT was the first thing to lose width in a short strip. */
+.ldh-annot > .ldh-lang { flex-shrink: 0; }
 .ldh-lang > .ac-field { width: 11ch; }
 .ldh-lang > .ac-field .ac-field-box { min-height: 24px; padding: 0 6px; }
 .ldh-lang > .ac-field .ac-field-box input {

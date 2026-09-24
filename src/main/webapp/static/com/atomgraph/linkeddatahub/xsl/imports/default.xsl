@@ -354,6 +354,18 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:function>
 
+    <!-- the classes a constructor declares for the objects of this property: the marker the subject's own class
+         constructor puts under the same predicate, minus rdfs:Class, which every marker carries. The row asks
+         once per property and hands the answer to the control (to scope its combobox) and to the value's
+         annotation (to name the chip) as $forClass -->
+    <xsl:function name="ldh:constructor-range" as="xs:anyURI*">
+        <xsl:param name="property" as="element()"/>
+        <xsl:param name="constructor" as="document-node()?"/>
+        <xsl:variable name="property-uri" select="$property/concat(namespace-uri(), local-name())" as="xs:string"/>
+
+        <xsl:sequence select="if ($constructor) then distinct-values(key('resources', key('resources-by-type', $property/../rdf:type/@rdf:resource, $constructor)/*[concat(namespace-uri(), local-name()) = $property-uri]/@rdf:nodeID, $constructor)/rdf:type/@rdf:resource[not(. = '&rdfs;Class')]) else ()"/>
+    </xsl:function>
+
     <xsl:function name="ldh:href" as="xs:anyURI">
         <xsl:param name="uri" as="xs:anyURI?"/>
 
@@ -1359,8 +1371,9 @@ exclude-result-prefixes="#all"
 
     <!-- FORM CONTROL TYPE LABEL -->
 
-    <!-- the app skin of the annotation Tag: every chip rides the .ldh-annot slot the whole-form mode
-         hover-reveals; the chip markup itself stays Web-Client's single emitter -->
+    <!-- the app skin of the annotation Tag: the quiet neutral chip. The chip markup stays Web-Client's single
+         emitter, and the chip carries no strip of its own - the .ldh-annot slot the whole-form mode hover-reveals
+         is the value row's, one per row, holding every annotation of the value (imports/values.xsl) -->
     <xsl:template match="node() | @*" mode="ac:AnnotationTag">
         <xsl:param name="class" select="'ac-tag sz-sm em-quiet'" as="xs:string"/>
         <xsl:param name="key" as="xs:string?"/>
@@ -1369,13 +1382,11 @@ exclude-result-prefixes="#all"
             <xsl:apply-templates select="key('resources', $key, ac:translations())" mode="ac:label"/>
         </xsl:param>
 
-        <div class="ldh-annot">
-            <xsl:next-match>
-                <xsl:with-param name="class" select="$class"/>
-                <xsl:with-param name="title" select="$title"/>
-                <xsl:with-param name="label" select="$label"/>
-            </xsl:next-match>
-        </div>
+        <xsl:next-match>
+            <xsl:with-param name="class" select="$class"/>
+            <xsl:with-param name="title" select="$title"/>
+            <xsl:with-param name="label" select="$label"/>
+        </xsl:next-match>
     </xsl:template>
 
     <!-- XHTML CONTENT IDENTITY TRANSFORM -->
