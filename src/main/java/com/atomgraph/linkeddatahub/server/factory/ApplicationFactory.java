@@ -16,7 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.factory;
 
-import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import com.atomgraph.linkeddatahub.vocabulary.LDS;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.ext.Provider;
@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
  * @see com.atomgraph.linkeddatahub.server.model.impl.Dispatcher
  */
 @Provider
-public class ApplicationFactory implements Factory<Optional<com.atomgraph.linkeddatahub.apps.model.Application>>
+public class ApplicationFactory implements Factory<Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace>>
 {
 
     private static final Logger log = LoggerFactory.getLogger(ApplicationFactory.class);
@@ -41,13 +41,13 @@ public class ApplicationFactory implements Factory<Optional<com.atomgraph.linked
     @Context private ServiceLocator serviceLocator;
 
     @Override
-    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> provide()
+    public Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace> provide()
     {
-        return getApplication();
+        return getDataspace();
     }
 
     @Override
-    public void dispose(Optional<com.atomgraph.linkeddatahub.apps.model.Application> t)
+    public void dispose(Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace> t)
     {
     }
     
@@ -56,9 +56,9 @@ public class ApplicationFactory implements Factory<Optional<com.atomgraph.linked
      *
      * @return optional application resource
      */
-    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
+    public Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace> getDataspace()
     {
-        return (Optional<com.atomgraph.linkeddatahub.apps.model.Application>)getContainerRequestContext().getProperty(LAPP.Application.getURI());
+        return (Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace>)getContainerRequestContext().getProperty(LDS.Dataspace.getURI());
     }
     
     /**

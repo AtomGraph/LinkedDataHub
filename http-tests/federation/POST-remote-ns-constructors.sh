@@ -11,13 +11,13 @@ clear_ontology
 
 # Federation ontology leg: the constructor SELECT that drives A's client-side form derivation,
 # posed against B's ns endpoint through A's proxy. On a remote pane the client resolves ns
-# against the pane's data-base (B's base from the forwarded lapp:application Link), so forms
+# against the pane's data-base (B's base from the forwarded lds:dataspace Link), so forms
 # for B's resources derive from B's ontology closure - this pins that contract on the wire.
 
 remote_base="https://test.localhost:4443/"
 remote_ns="${remote_base}ns"
 
-query='SELECT DISTINCT ?constructor ?text WHERE { VALUES ?type { <https://w3id.org/atomgraph/linkeddatahub/apps#Application> <https://w3id.org/atomgraph/linkeddatahub/apps#EndUserApplication> } ?type <http://www.w3.org/2000/01/rdf-schema#subClassOf>* ?class . ?class <http://spinrdf.org/spin#constructor> ?constructor . ?constructor <http://spinrdf.org/sp#text> ?text . }'
+query='SELECT DISTINCT ?constructor ?text WHERE { VALUES ?type { <https://w3id.org/atomgraph/linkeddatahub/dataspaces#Dataspace> <https://w3id.org/atomgraph/linkeddatahub/dataspaces#EndUserDataspace> } ?type <http://www.w3.org/2000/01/rdf-schema#subClassOf>* ?class . ?class <http://spinrdf.org/spin#constructor> ?constructor . ?constructor <http://spinrdf.org/sp#text> ?text . }'
 
 results=$(curl -k -f -s \
   -X POST \

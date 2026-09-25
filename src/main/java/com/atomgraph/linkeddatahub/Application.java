@@ -50,7 +50,6 @@ import com.atomgraph.core.io.UpdateRequestProvider;
 import com.atomgraph.core.mapper.BadGatewayExceptionMapper;
 import com.atomgraph.core.provider.QueryParamProvider;
 import com.atomgraph.linkeddatahub.writer.factory.SourceResolverFactory;
-import com.atomgraph.server.vocabulary.LDT;
 import com.atomgraph.server.mapper.NotFoundExceptionMapper;
 import com.atomgraph.core.riot.RDFLanguages;
 import com.atomgraph.core.riot.lang.RDFPostReaderFactory;
@@ -60,10 +59,10 @@ import com.atomgraph.linkeddatahub.server.mapper.ModelExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.OntClassNotFoundExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.jena.QueryExecExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.jena.RiotParseExceptionMapper;
-import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
+import com.atomgraph.linkeddatahub.dataspaces.model.AdminDataspace;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.model.CSVImport;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.writer.factory.xslt.XsltExecutableSupplier;
 import com.atomgraph.linkeddatahub.writer.factory.XsltExecutableSupplierFactory;
@@ -120,8 +119,8 @@ import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LDHC;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
+import com.atomgraph.linkeddatahub.vocabulary.LDS;
 import com.atomgraph.linkeddatahub.vocabulary.ORCID;
-import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.linkeddatahub.server.util.PackageService;
 import com.atomgraph.linkeddatahub.writer.Mode;
 import com.atomgraph.linkeddatahub.writer.ResultSetXSLTWriter;
@@ -786,11 +785,11 @@ public class Application extends ResourceConfig
             BuiltinPersonalities.model.add(Authorization.class, AuthorizationImpl.factory);
             BuiltinPersonalities.model.add(Agent.class, AgentImpl.factory);
             BuiltinPersonalities.model.add(UserAccount.class, UserAccountImpl.factory);
-            BuiltinPersonalities.model.add(AdminApplication.class, new com.atomgraph.linkeddatahub.apps.model.admin.impl.ApplicationImplementation());
-            BuiltinPersonalities.model.add(EndUserApplication.class, new com.atomgraph.linkeddatahub.apps.model.end_user.impl.ApplicationImplementation());
-            BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.apps.model.Application.class, new com.atomgraph.linkeddatahub.apps.model.impl.ApplicationImplementation());
-            BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.apps.model.Dataset.class, new com.atomgraph.linkeddatahub.apps.model.impl.DatasetImplementation());
-            BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.apps.model.Package.class, new com.atomgraph.linkeddatahub.apps.model.impl.PackageImplementation());
+            BuiltinPersonalities.model.add(AdminDataspace.class, new com.atomgraph.linkeddatahub.dataspaces.model.admin.impl.AdminDataspaceImplementation());
+            BuiltinPersonalities.model.add(EndUserDataspace.class, new com.atomgraph.linkeddatahub.dataspaces.model.end_user.impl.EndUserDataspaceImplementation());
+            BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.dataspaces.model.Dataspace.class, new com.atomgraph.linkeddatahub.dataspaces.model.impl.DataspaceImplementation());
+            BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.dataspaces.model.Dataset.class, new com.atomgraph.linkeddatahub.dataspaces.model.impl.DatasetImplementation());
+            BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.dataspaces.model.Package.class, new com.atomgraph.linkeddatahub.dataspaces.model.impl.PackageImplementation());
             BuiltinPersonalities.model.add(Service.class, new com.atomgraph.linkeddatahub.model.impl.ServiceImplementation());
             BuiltinPersonalities.model.add(Import.class, ImportImpl.factory);
             BuiltinPersonalities.model.add(RDFImport.class, RDFImportImpl.factory);
@@ -798,10 +797,10 @@ public class Application extends ResourceConfig
             BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.model.File.class, FileImpl.factory);
 
             // Build ServiceContext map: keyed by service URI, proxy derived from the app type that references each service.
-            // Iterating ldt:service statements (app → service) naturally excludes orphan services.
+            // Iterating lds:service statements (app → service) naturally excludes orphan services.
             serviceContextMap = new HashMap<>();
             org.apache.jena.rdf.model.Model ctxUnion = getContextDataset().getUnionModel();
-            org.apache.jena.rdf.model.StmtIterator serviceIt = ctxUnion.listStatements(null, LDT.service, (org.apache.jena.rdf.model.RDFNode) null);
+            org.apache.jena.rdf.model.StmtIterator serviceIt = ctxUnion.listStatements(null, LDS.service, (org.apache.jena.rdf.model.RDFNode) null);
             try
             {
                 while (serviceIt.hasNext())
@@ -811,9 +810,9 @@ public class Application extends ResourceConfig
                     Resource svcResource = stmt.getResource();
                     URI proxy;
                     
-                    if (app.hasProperty(RDF.type, LAPP.AdminApplication))
+                    if (app.hasProperty(RDF.type, LDS.AdminDataspace))
                         proxy = backendProxyAdmin;
-                    else if (app.hasProperty(RDF.type, LAPP.EndUserApplication))
+                    else if (app.hasProperty(RDF.type, LDS.EndUserDataspace))
                         proxy = backendProxyEndUser;
                     else
                         continue;
@@ -1107,7 +1106,7 @@ public class Application extends ResourceConfig
             @Override
             protected void configure()
             {
-                bindFactory(ApplicationFactory.class).to(new TypeLiteral<Optional<com.atomgraph.linkeddatahub.apps.model.Application>>() {}).
+                bindFactory(ApplicationFactory.class).to(new TypeLiteral<Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace>>() {}).
                 in(RequestScoped.class);
             }
         });
@@ -1116,7 +1115,7 @@ public class Application extends ResourceConfig
             @Override
             protected void configure()
             {
-                bindFactory(com.atomgraph.linkeddatahub.server.factory.UnwrappedApplicationFactory.class).to(com.atomgraph.linkeddatahub.apps.model.Application.class).
+                bindFactory(com.atomgraph.linkeddatahub.server.factory.UnwrappedApplicationFactory.class).to(com.atomgraph.linkeddatahub.dataspaces.model.Dataspace.class).
                 in(RequestScoped.class);
             }
         });
@@ -1125,7 +1124,7 @@ public class Application extends ResourceConfig
             @Override
             protected void configure()
             {
-                bindFactory(com.atomgraph.linkeddatahub.server.factory.DatasetFactory.class).to(new TypeLiteral<Optional<com.atomgraph.linkeddatahub.apps.model.Dataset>>() {}).
+                bindFactory(com.atomgraph.linkeddatahub.server.factory.DatasetFactory.class).to(new TypeLiteral<Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataset>>() {}).
                 in(RequestScoped.class);
             }
         });
@@ -1368,7 +1367,7 @@ public class Application extends ResourceConfig
         String emailText = servletConfig.getServletContext().getInitParameter(LDHC.authorizationEMailText.getURI());
         if (emailText == null) throw new InternalServerErrorException(new ConfigurationException(LDHC.authorizationEMailText));
 
-        Resource owner = event.getApplication().getMaker();
+        Resource owner = event.getDataspace().getMaker();
         Resource auth = event.getAuthorization();
         if (auth.hasProperty(ACL.agent))
         {
@@ -1398,9 +1397,9 @@ public class Application extends ResourceConfig
 
             MessageBuilder builder = getMessageBuilder().
                 subject(String.format(emailSubject,
-                    event.getApplication().getProperty(DCTerms.title).getString())).
+                    event.getDataspace().getProperty(DCTerms.title).getString())).
                 to(mbox, name).
-                textBodyPart(String.format(emailText, owner.getURI(), accessToList, accessToClassList, event.getApplication().getBaseURI()));
+                textBodyPart(String.format(emailText, owner.getURI(), accessToList, accessToClassList, event.getDataspace().getBaseURI()));
 
             if (getNotificationAddress() != null) builder = builder.from(getNotificationAddress());
 
@@ -1416,7 +1415,7 @@ public class Application extends ResourceConfig
      */
     public Resource matchApp(URI absolutePath)
     {
-        return getAppByOrigin(getContextModel(), LAPP.Application, absolutePath); // make sure we return an immutable model
+        return getAppByOrigin(getContextModel(), LDS.Dataspace, absolutePath); // make sure we return an immutable model
     }
     
     /**
@@ -1427,7 +1426,7 @@ public class Application extends ResourceConfig
      */
     public Resource getLongestURIResource(Map<Integer, Resource> lengthMap)
     {
-        // select the app with the longest URI match, as the model contains a pair of EndUserApplication/AdminApplication
+        // select the app with the longest URI match, as the model contains a pair of EndUserDataspace/AdminDataspace
         TreeMap<Integer, Resource> apps = new TreeMap(lengthMap);
         if (!apps.isEmpty()) return apps.lastEntry().getValue();
         
@@ -1485,9 +1484,9 @@ public class Application extends ResourceConfig
                 Resource app = it.next();
 
                 // Use origin-based matching - return immediately on match since origins are unique
-                if (app.hasProperty(LAPP.origin))
+                if (app.hasProperty(LDS.origin))
                 {
-                    URI appOriginURI = URI.create(app.getPropertyResourceValue(LAPP.origin).getURI());
+                    URI appOriginURI = URI.create(app.getPropertyResourceValue(LDS.origin).getURI());
                     String normalizedAppOrigin = normalizeOrigin(appOriginURI);
 
                     if (requestOrigin.equals(normalizedAppOrigin)) return app;
@@ -1552,10 +1551,10 @@ public class Application extends ResourceConfig
             {
                 Resource dataset = it.next();
                 
-                if (!dataset.hasProperty(LAPP.prefix))
-                    throw new InternalServerErrorException(new IllegalStateException("Dataset resource <" + dataset.getURI() + "> has no lapp:prefix value"));
+                if (!dataset.hasProperty(LDS.prefix))
+                    throw new InternalServerErrorException(new IllegalStateException("Dataset resource <" + dataset.getURI() + "> has no lds:prefix value"));
                 
-                URI prefix = URI.create(dataset.getPropertyResourceValue(LAPP.prefix).getURI());
+                URI prefix = URI.create(dataset.getPropertyResourceValue(LDS.prefix).getURI());
                 URI relative = prefix.relativize(absolutePath);
                 if (!relative.isAbsolute() && !relative.toString().equals("")) datasets.put(prefix, dataset);
             }
@@ -1597,7 +1596,7 @@ public class Application extends ResourceConfig
      * @param baseURI application's base URI
      * @param gsc Graph Store client
      */
-    public void submitImport(CSVImport csvImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, GraphStoreClient gsc)
+    public void submitImport(CSVImport csvImport, com.atomgraph.linkeddatahub.dataspaces.model.Dataspace app, Service service, Service adminService, String baseURI, GraphStoreClient gsc)
     {
         new ImportExecutor(importThreadPool).start(service, adminService, this, baseURI, gsc, csvImport);
     }
@@ -1612,7 +1611,7 @@ public class Application extends ResourceConfig
      * @param baseURI application's base URI
      * @param gsc Graph Store client
      */
-    public void submitImport(RDFImport rdfImport, com.atomgraph.linkeddatahub.apps.model.Application app, Service service, Service adminService, String baseURI, GraphStoreClient gsc)
+    public void submitImport(RDFImport rdfImport, com.atomgraph.linkeddatahub.dataspaces.model.Dataspace app, Service service, Service adminService, String baseURI, GraphStoreClient gsc)
     {
         new ImportExecutor(importThreadPool).start(service, adminService, this, baseURI, gsc, rdfImport);
     }
@@ -2048,7 +2047,7 @@ public class Application extends ResourceConfig
      * @param app end-user application resource
      * @return ontology repository
      */
-    public OntologyRepository getRepository(EndUserApplication app)
+    public OntologyRepository getRepository(EndUserDataspace app)
     {
         return getEndUserRepositories().computeIfAbsent(app.getURI(), uri -> createRepository(app));
     }
@@ -2061,7 +2060,7 @@ public class Application extends ResourceConfig
      * @param app end-user application resource
      * @return ontology repository
      */
-    public OntologyRepository createRepository(EndUserApplication app)
+    public OntologyRepository createRepository(EndUserDataspace app)
     {
         OntologyRepository appRepository = new OntologyRepository(app, this, GraphStoreClient.create(getClient(), getMediaTypes()), getOntologyQuery());
         // seed bundled vocabulary/ontology mappings from the global repository. They are the fallback now,
@@ -2399,7 +2398,7 @@ public class Application extends ResourceConfig
      * @param application the dataspace application
      * @return the model for the specified dataspace, or null if not found
      */
-    public Model getDataspaceModel(com.atomgraph.linkeddatahub.apps.model.Application application)
+    public Model getDataspaceModel(com.atomgraph.linkeddatahub.dataspaces.model.Dataspace application)
     {
         if (application == null) throw new IllegalArgumentException("Application cannot be null");
         return ModelFactory.createModelForGraph(new GraphReadOnly(getContextDataset().getNamedModel(application.getURI()).getGraph()));
@@ -2416,7 +2415,7 @@ public class Application extends ResourceConfig
      * @param newModel the new RDF model to replace the existing named graph
      * @throws IOException if an I/O error occurs
      */
-    public void updateApp(com.atomgraph.linkeddatahub.apps.model.Application application, Model newModel) throws IOException
+    public void updateApp(com.atomgraph.linkeddatahub.dataspaces.model.Dataspace application, Model newModel) throws IOException
     {
         if (application == null) throw new IllegalArgumentException("Application cannot be null");
         if (newModel == null) throw new IllegalArgumentException("Model cannot be null");

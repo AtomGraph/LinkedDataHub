@@ -2,14 +2,14 @@
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY def    "https://w3id.org/atomgraph/linkeddatahub/default#">
     <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
-    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
+    <!ENTITY lds    "https://w3id.org/atomgraph/linkeddatahub/dataspaces#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY geo    "http://www.w3.org/2003/01/geo/wgs84_pos#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
-    <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
+    <!ENTITY dh     "https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
     <!ENTITY sp     "http://spinrdf.org/sp#">
@@ -30,7 +30,7 @@ xmlns:json="http://www.w3.org/2005/xpath-functions"
 xmlns:array="http://www.w3.org/2005/xpath-functions/array"
 xmlns:ac="&ac;"
 xmlns:ldh="&ldh;"
-xmlns:lapp="&lapp;"
+xmlns:lds="&lds;"
 xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
 xmlns:geo="&geo;"
@@ -1170,7 +1170,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href($endpoint), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <!-- second request resolves labels of object URIs that are ontology terms (rdf:type/class values etc.) from the /ns endpoint, whose graph-free query targets the in-memory ontology default graph; merged with the /sparql result by ldh:merge-object-metadata -->
         <xsl:variable name="ns-query-string" select="$object-metadata-ns-query || $values" as="xs:string"/>
-        <xsl:variable name="ns-request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', lapp:base())), 'media-type': 'application/sparql-query', 'body': $ns-query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+        <xsl:variable name="ns-request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', lds:base())), 'media-type': 'application/sparql-query', 'body': $ns-query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
 
         <xsl:message>ldh:load-object-metadata</xsl:message>
 
@@ -1254,7 +1254,7 @@ exclude-result-prefixes="#all"
                        then distinct-values($response?body/rdf:RDF/rdf:Description/*/concat(namespace-uri(), local-name()))
                        else ()"/>
         <xsl:variable name="query-string" select="$property-metadata-query || ' VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
-        <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', lapp:base())), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+        <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', lds:base())), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
 
         <xsl:message>ldh:load-property-metadata</xsl:message>
 

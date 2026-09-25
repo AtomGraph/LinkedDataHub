@@ -16,7 +16,7 @@
 package com.atomgraph.linkeddatahub.writer;
 
 import com.atomgraph.client.util.RDFSourceResolver;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
 import java.lang.annotation.Annotation;
@@ -129,7 +129,7 @@ public class ModelXSLTWriter extends XSLTWriterBase implements MessageBodyWriter
     public Model processWrite(Model model)
     {
         // show foaf:mbox in end-user apps
-        if (getApplication().get().isPresent() && getApplication().get().get().canAs(EndUserApplication.class)) return model;
+        if (getDataspace().get().isPresent() && getDataspace().get().get().canAs(EndUserDataspace.class)) return model;
         // show foaf:mbox for authenticated agents
         if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent) return model;
 

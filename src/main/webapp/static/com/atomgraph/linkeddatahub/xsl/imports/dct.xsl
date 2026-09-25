@@ -7,7 +7,7 @@
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
-    <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
+    <!ENTITY dh     "https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
     <!ENTITY dct    "http://purl.org/dc/terms/">
 ]>

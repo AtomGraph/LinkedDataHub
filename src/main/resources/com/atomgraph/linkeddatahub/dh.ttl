@@ -1,11 +1,10 @@
-@base           <https://www.w3.org/ns/ldt/document-hierarchy> .
+@base           <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy> .
 
 @prefix :	<#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
 @prefix owl:	<http://www.w3.org/2002/07/owl#> .
-@prefix ldt:	<https://www.w3.org/ns/ldt#> .
 @prefix sp:	<http://spinrdf.org/sp#> .
 @prefix spin:	<http://spinrdf.org/spin#> .
 @prefix dct:	<http://purl.org/dc/terms/> .
@@ -15,11 +14,11 @@
 
 : a owl:Ontology ;
     owl:imports foaf:, sioc:, sp: ;
-    owl:versionInfo "1.1.5" ;
+    owl:versionInfo "2.0.0" ;
     rdfs:label "Document hierarchy" ;
     dct:created "2016-08-31T21:54:00+02:00"^^xsd:dateTime ;
-    dct:modified "2019-12-13T12:06:00+01:00"^^xsd:dateTime ;
-    vann:preferredNamespaceUri "https://www.w3.org/ns/ldt/document-hierarchy#" ;
+    dct:modified "2026-09-25T00:00:00+02:00"^^xsd:dateTime ;
+    vann:preferredNamespaceUri "https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#" ;
     vann:preferredNamespacePrefix "dh";
     dct:license <http://www.opendatacommons.org/licenses/pddl/1.0/> .
 
@@ -36,7 +35,6 @@
 
 :Document a rdfs:Class, owl:Class ;
     rdfs:subClassOf foaf:Document ;
-    # ldt:path "{slug}/" ;
     rdfs:label "Document" ;
     # spin:constructor :DocumentConstructor ;
     rdfs:isDefinedBy : .
@@ -60,7 +58,7 @@
 :DocumentConstructor a sp:Construct, sp:Query ;
   sp:text """
       PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
-      PREFIX dh:      <https://www.w3.org/ns/ldt/document-hierarchy#>
+      PREFIX dh:      <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#>
 
       CONSTRUCT {
         ?this dh:slug ?slug .
@@ -73,7 +71,7 @@
 
 :ContainerConstructor a sp:Construct, sp:Query ;
   sp:text """
-      PREFIX dh:      <https://www.w3.org/ns/ldt/document-hierarchy#>
+      PREFIX dh:      <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#>
       PREFIX sioc:    <http://rdfs.org/sioc/ns#>
 
       CONSTRUCT {
@@ -85,7 +83,7 @@
 
 :ItemConstructor a sp:Construct, sp:Query ;
   sp:text """
-      PREFIX dh:      <https://www.w3.org/ns/ldt/document-hierarchy#>
+      PREFIX dh:      <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#>
       PREFIX sioc:    <http://rdfs.org/sioc/ns#>
 
       CONSTRUCT {

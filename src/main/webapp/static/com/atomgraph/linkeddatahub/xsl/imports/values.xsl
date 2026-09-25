@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <!DOCTYPE xsl:stylesheet [
-    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
+    <!ENTITY lds    "https://w3id.org/atomgraph/linkeddatahub/dataspaces#">
     <!ENTITY adm    "https://w3id.org/atomgraph/linkeddatahub/admin#">
     <!ENTITY def    "https://w3id.org/atomgraph/linkeddatahub/default#">
     <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
@@ -29,7 +29,7 @@ limitations under the License.
     <!ENTITY http   "http://www.w3.org/2011/http#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
-    <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
+    <!ENTITY dh     "https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#">
     <!ENTITY sh     "http://www.w3.org/ns/shacl#">
     <!ENTITY sp     "http://spinrdf.org/sp#">
     <!ENTITY spin   "http://spinrdf.org/spin#">
@@ -43,7 +43,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:json="http://www.w3.org/2005/xpath-functions"
-xmlns:lapp="&lapp;"
+xmlns:lds="&lds;"
 xmlns:ldh="&ldh;"
 xmlns:ac="&ac;"
 xmlns:a="&a;"
@@ -76,7 +76,7 @@ exclude-result-prefixes="#all"
         still outrank the package. The rules are the value leaves and nothing else: one property row,
         one value cell, one form control, one annotation. The functions, keys and global params they
         call live in imports/default.xsl, which stays sealed above the packages on purpose - a module
-        down here is overridable in everything it declares, and lapp:origin() or $acl:agent must not be.
+        down here is overridable in everything it declares, and lds:origin() or $acl:agent must not be.
 
         Every rule here is the generic fallback of an open mode: ac:FormControl, ac:PropertyListValue,
         ac:ValueAnnotations, ldh:TypeControl, ac:property-label, ac:object-label, ac:lang-tag,
@@ -297,7 +297,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="href" select="$href"/>
             <xsl:with-param name="id" select="$id"/>
             <xsl:with-param name="title" select="$title"/>
-            <xsl:with-param name="class" select="$class || (if (not(starts-with(., lapp:base()))) then ' external' else())"/>
+            <xsl:with-param name="class" select="$class || (if (not(starts-with(., lds:base()))) then ' external' else())"/>
             <xsl:with-param name="role" select="$role"/>
             <xsl:with-param name="target" select="$target"/>
         </xsl:next-match>
@@ -317,7 +317,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="id" select="$id"/>
             <xsl:with-param name="label" select="$label"/>
             <xsl:with-param name="title" select="$title"/>
-            <xsl:with-param name="class" select="$class || (if (not(starts-with(., lapp:base()))) then ' external' else())"/>
+            <xsl:with-param name="class" select="$class || (if (not(starts-with(., lds:base()))) then ' external' else())"/>
             <xsl:with-param name="target" select="$target"/>
         </xsl:next-match>
     </xsl:template>
@@ -337,7 +337,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="href" select="$href"/>
             <xsl:with-param name="id" select="$id"/>
             <xsl:with-param name="title" select="$title"/>
-            <xsl:with-param name="class" select="$class || (if (not(starts-with(., lapp:base()))) then ' external' else())"/>
+            <xsl:with-param name="class" select="$class || (if (not(starts-with(., lds:base()))) then ' external' else())"/>
             <xsl:with-param name="target" select="$target"/>
         </xsl:next-match>
     </xsl:template>

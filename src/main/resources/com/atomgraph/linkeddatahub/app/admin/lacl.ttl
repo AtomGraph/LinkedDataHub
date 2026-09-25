@@ -8,8 +8,7 @@
 @prefix owl:	<http://www.w3.org/2002/07/owl#> .
 @prefix acl:	<http://www.w3.org/ns/auth/acl#> .
 @prefix cert:	<http://www.w3.org/ns/auth/cert#> .
-@prefix c:	<https://www.w3.org/ns/ldt/core/domain#> .
-@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .
+@prefix dh:	<https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#> .
 @prefix dct:	<http://purl.org/dc/terms/> .
 @prefix sp:	<http://spinrdf.org/sp#> .
 @prefix spin:	<http://spinrdf.org/spin#> .
@@ -61,7 +60,7 @@
     rdfs:isDefinedBy : .
 
 :requestAccess a owl:ObjectProperty ;
-    rdfs:range c:Document ;
+    rdfs:range foaf:Document ;
     rdfs:label "Request access" ;
     rdfs:isDefinedBy : .
 

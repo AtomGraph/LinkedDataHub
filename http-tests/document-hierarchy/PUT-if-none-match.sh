@@ -27,7 +27,7 @@ ldh admin add agent \
 uuid=$(uuidgen | tr '[:upper:]' '[:lower:]')
 document="${END_USER_BASE_URL}${uuid}/"
 
-body="<${document}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item> .
+body="<${document}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Item> .
 <${document}> <http://purl.org/dc/terms/title> \"Conditional create\" ."
 
 # the document does not exist yet: creating it needs no validator, and If-None-Match: * is satisfied

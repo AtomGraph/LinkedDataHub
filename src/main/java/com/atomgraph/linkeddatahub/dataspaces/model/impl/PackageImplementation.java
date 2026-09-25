@@ -1,5 +1,5 @@
 /**
- *  Copyright 2021 Martynas Jusevičius <martynas@atomgraph.com>
+ *  Copyright 2025 Martynas Jusevičius <martynas@atomgraph.com>
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,9 +14,9 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.apps.model.impl;
+package com.atomgraph.linkeddatahub.dataspaces.model.impl;
 
-import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import com.atomgraph.linkeddatahub.vocabulary.LDS;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.enhanced.Implementation;
@@ -25,23 +25,23 @@ import org.apache.jena.ontology.ConversionException;
 import org.apache.jena.vocabulary.RDF;
 
 /**
- * Jena's implementation factory.
- * 
- * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
+ * Jena's implementation factory for Package.
+ *
+ * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class ApplicationImplementation extends Implementation
+public class PackageImplementation extends Implementation
 {
-    
+
     @Override
     public EnhNode wrap(Node node, EnhGraph enhGraph)
     {
         if (canWrap(node, enhGraph))
         {
-            return new ApplicationImpl(node, enhGraph);
+            return new PackageImpl(node, enhGraph);
         }
         else
         {
-            throw new ConversionException("Cannot convert node " + node.toString() + " to Application: it does not have rdf:type lapp:Application or equivalent");
+            throw new ConversionException("Cannot convert node " + node.toString() + " to Package: it does not have rdf:type lds:Package");
         }
     }
 
@@ -50,7 +50,7 @@ public class ApplicationImplementation extends Implementation
     {
         if (eg == null) throw new IllegalArgumentException("EnhGraph cannot be null");
 
-        return eg.asGraph().contains(node, RDF.type.asNode(), LAPP.Application.asNode());
+        return eg.asGraph().contains(node, RDF.type.asNode(), LDS.Package.asNode());
     }
-    
+
 }

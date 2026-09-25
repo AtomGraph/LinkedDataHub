@@ -45,7 +45,7 @@ item_ntriples=$(ldh get \
 
 # check that the default RDF type was assigned to the new document
 
-echo "$item_ntriples" | grep "<${item}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item>"
+echo "$item_ntriples" | grep "<${item}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Item>"
 
 # check that sioc:has_container was assigned to the new document
 
@@ -71,7 +71,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   --data-binary @- \
   "$item" <<EOF
 <${item}> <http://example.com/default-predicate> "named object PUT" .
-<${item}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item> .
+<${item}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Item> .
 <${item}> <http://purl.org/dc/terms/title> "Title" .
 EOF
 ) \
@@ -86,7 +86,7 @@ item_ntriples=$(ldh get \
 
 # check that the default RDF type is still assigned to the document
 
-echo "$item_ntriples" | grep "<${item}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item>"
+echo "$item_ntriples" | grep "<${item}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Item>"
 
 # check that sioc:has_container is still assigned to the document
 

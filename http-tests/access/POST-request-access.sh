@@ -23,8 +23,8 @@ curl -w "%{http_code}\n" -o /dev/null -k -s \
   --data-urlencode "ou=${END_USER_BASE_URL}sparql" \
   --data-urlencode "pu=http://www.w3.org/ns/auth/acl#accessToClass" \
   --data-urlencode "ou=https://w3id.org/atomgraph/linkeddatahub/default#Root" \
-  --data-urlencode "ou=https://www.w3.org/ns/ldt/document-hierarchy#Container" \
-  --data-urlencode "ou=https://www.w3.org/ns/ldt/document-hierarchy#Item" \
+  --data-urlencode "ou=https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Container" \
+  --data-urlencode "ou=https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Item" \
   --data-urlencode "ou=http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject" \
   --data-urlencode "pu=http://www.w3.org/ns/auth/acl#mode" \
   --data-urlencode "ou=http://www.w3.org/ns/auth/acl#Read" \

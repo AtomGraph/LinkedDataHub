@@ -17,7 +17,7 @@
 package com.atomgraph.linkeddatahub.server.filter.response;
 
 import com.atomgraph.client.vocabulary.AC;
-import com.atomgraph.linkeddatahub.apps.model.impl.PackageImpl;
+import com.atomgraph.linkeddatahub.dataspaces.model.impl.PackageImpl;
 import com.atomgraph.linkeddatahub.server.util.SecureXML;
 import jakarta.servlet.ServletContext;
 import java.io.ByteArrayInputStream;
@@ -66,7 +66,7 @@ public class XsltExecutableFilterTest
     private static final URI B_XSL_URI = URI.create("https://packages.example.org/b/layout.xsl");
 
     @Mock private ServletContext servletContext;
-    @Mock private com.atomgraph.linkeddatahub.apps.model.Application application;
+    @Mock private com.atomgraph.linkeddatahub.dataspaces.model.Dataspace application;
 
     private XsltExecutableFilter filter;
     private Model model;

@@ -17,7 +17,7 @@
 package com.atomgraph.linkeddatahub.server.util;
 
 import com.atomgraph.client.vocabulary.AC;
-import com.atomgraph.linkeddatahub.apps.model.impl.PackageImpl;
+import com.atomgraph.linkeddatahub.dataspaces.model.impl.PackageImpl;
 import jakarta.ws.rs.core.UriBuilder;
 import java.net.URI;
 import java.util.HashSet;
@@ -56,9 +56,9 @@ public class PackageServiceTest
     private static final URI A_XSL_URI = URI.create("https://packages.example.org/a/a.xsl");
     private static final URI A_NS_URI = URI.create("https://packages.example.org/a/ns.ttl#");
 
-    @Mock private com.atomgraph.linkeddatahub.apps.model.Application application;
-    @Mock private com.atomgraph.linkeddatahub.apps.model.EndUserApplication endUserApp;
-    @Mock private com.atomgraph.linkeddatahub.apps.model.AdminApplication adminApp;
+    @Mock private com.atomgraph.linkeddatahub.dataspaces.model.Dataspace application;
+    @Mock private com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace endUserApp;
+    @Mock private com.atomgraph.linkeddatahub.dataspaces.model.AdminDataspace adminApp;
 
     private Model model;
     private PackageService service;
@@ -104,8 +104,8 @@ public class PackageServiceTest
     {
         URI pkgA = URI.create("https://packages.example.org/a#this");
         URI pkgB = URI.create("https://packages.example.org/b#this");
-        model.createResource(pkgA.toString()).addProperty(com.atomgraph.server.vocabulary.LDT.ontology, model.createResource(A_NS_URI.toString()));
-        model.createResource(pkgB.toString()); // stylesheet-only: no ldt:ontology
+        model.createResource(pkgA.toString()).addProperty(com.atomgraph.linkeddatahub.vocabulary.LDS.ontology, model.createResource(A_NS_URI.toString()));
+        model.createResource(pkgB.toString()); // stylesheet-only: no lds:ontology
         when(application.getImportedPackages()).thenReturn(new HashSet<>(List.of(
             model.createResource(pkgA.toString()), model.createResource(pkgB.toString()))));
 
@@ -123,7 +123,7 @@ public class PackageServiceTest
     @Test
     public void testDocumentURIDerivedFromPackagePath()
     {
-        when(endUserApp.getAdminApplication()).thenReturn(adminApp);
+        when(endUserApp.getAdminDataspace()).thenReturn(adminApp);
         when(adminApp.getUriBuilder()).thenReturn(UriBuilder.fromUri("https://admin.example.org/"));
 
         URI docURI = service.getDocumentURI(endUserApp, asPackage(URI.create("https://packages.example.org/editor/taxonomy/#this")));
@@ -134,7 +134,7 @@ public class PackageServiceTest
     @Test
     public void testDocumentURINullWithoutAdminApplication()
     {
-        when(endUserApp.getAdminApplication()).thenReturn(null);
+        when(endUserApp.getAdminDataspace()).thenReturn(null);
 
         assertNull(service.getDocumentURI(endUserApp, asPackage(URI.create("https://packages.example.org/a#this"))));
     }
@@ -146,7 +146,7 @@ public class PackageServiceTest
     @Test
     public void testDocumentURIFallsBackToUUIDSlug()
     {
-        when(endUserApp.getAdminApplication()).thenReturn(adminApp);
+        when(endUserApp.getAdminDataspace()).thenReturn(adminApp);
         when(adminApp.getUriBuilder()).thenReturn(UriBuilder.fromUri("https://admin.example.org/"));
 
         URI docURI = service.getDocumentURI(endUserApp, asPackage(URI.create("https://packages.example.org/#this")));
@@ -155,7 +155,7 @@ public class PackageServiceTest
         assertTrue(docURI.toString().endsWith("/"), docURI.toString());
     }
 
-    private com.atomgraph.linkeddatahub.apps.model.Package asPackage(URI uri)
+    private com.atomgraph.linkeddatahub.dataspaces.model.Package asPackage(URI uri)
     {
         return new PackageImpl(model.createResource(uri.toString()).asNode(), (EnhGraph)model);
     }

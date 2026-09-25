@@ -2,7 +2,7 @@
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY def    "https://w3id.org/atomgraph/linkeddatahub/default#">
     <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
-    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
+    <!ENTITY lds    "https://w3id.org/atomgraph/linkeddatahub/dataspaces#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
@@ -27,7 +27,7 @@ xmlns:json="http://www.w3.org/2005/xpath-functions"
 xmlns:array="http://www.w3.org/2005/xpath-functions/array"
 xmlns:ac="&ac;"
 xmlns:ldh="&ldh;"
-xmlns:lapp="&lapp;"
+xmlns:lds="&lds;"
 xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
 xmlns:srx="&srx;"
@@ -3227,7 +3227,7 @@ exclude-result-prefixes="#all"
 
                             <xsl:variable name="values" select="' VALUES $this { ' || string-join(distinct-values($links ! ('&lt;' || ?predicate || '&gt;')), ' ') || ' }'" as="xs:string"/>
                             <xsl:variable name="query-string" select="$object-metadata-ns-query || $values" as="xs:string"/>
-                            <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', lapp:base())), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                            <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', lds:base())), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                             <xsl:variable name="context" select="map:merge((
                               $context,
                               map{
@@ -3362,7 +3362,7 @@ exclude-result-prefixes="#all"
                                             <xsl:variable name="value-result" select="." as="element()"/>
                                             <!-- DESCRIBE the class over the application's /ns ontology endpoint (ACL-enforced) instead of proxying its vocab document -->
                                             <xsl:variable name="query-string" select="$property-metadata-query || ' VALUES $Type { &lt;' || $object-type || '&gt; }'" as="xs:string"/>
-                                            <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', lapp:base())), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                                            <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', lds:base())), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                                             <xsl:variable name="context" as="map(*)" select="
                                               map{
                                                 'request': $request,

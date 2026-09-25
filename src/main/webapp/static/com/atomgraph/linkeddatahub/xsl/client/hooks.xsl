@@ -16,7 +16,7 @@ limitations under the License.
 -->
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
-    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
+    <!ENTITY lds    "https://w3id.org/atomgraph/linkeddatahub/dataspaces#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
@@ -29,7 +29,7 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:ac="&ac;"
 xmlns:ldh="&ldh;"
-xmlns:lapp="&lapp;"
+xmlns:lds="&lds;"
 xmlns:sd="&sd;"
 exclude-result-prefixes="#all"
 >
@@ -71,7 +71,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="block" select="child::div[contains-token(@class, 'row-main')]/div[contains-token(@class, 'block')][@typeof]" as="element()"/>
         <xsl:variable name="typeof-uris" select="tokenize($block/@typeof, ' ') ! xs:anyURI(.)" as="xs:anyURI*"/>
         <xsl:variable name="values-clause" select="' VALUES ?type { ' || string-join(for $t in $typeof-uris return '&lt;' || $t || '&gt;', ' ') || ' }'" as="xs:string"/>
-        <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', lapp:base()), map{ 'query': $ontology-view-query || $values-clause }), map{})" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', lds:base()), map{ 'query': $ontology-view-query || $values-clause }), map{})" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
             map{

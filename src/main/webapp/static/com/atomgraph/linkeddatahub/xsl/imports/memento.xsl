@@ -3,14 +3,14 @@
     <!ENTITY rdf     "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY prov    "http://www.w3.org/ns/prov#">
     <!ENTITY dct     "http://purl.org/dc/terms/">
-    <!ENTITY lapp    "https://w3id.org/atomgraph/linkeddatahub/apps#">
+    <!ENTITY lds     "https://w3id.org/atomgraph/linkeddatahub/dataspaces#">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#"
-xmlns:lapp="&lapp;"
+xmlns:lds="&lds;"
 xmlns:ac="https://w3id.org/atomgraph/client#"
 xmlns:rdf="&rdf;"
 xmlns:prov="&prov;"

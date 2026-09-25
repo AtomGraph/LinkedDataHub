@@ -21,14 +21,14 @@ import com.atomgraph.client.util.HTMLMediaTypePredicate;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.exception.BadGatewayException;
 import com.atomgraph.core.util.ModelUtils;
-import com.atomgraph.linkeddatahub.apps.model.Dataset;
+import com.atomgraph.linkeddatahub.dataspaces.model.Dataset;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
 import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
 import com.atomgraph.linkeddatahub.server.security.WebIDSecurityContext;
-import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import com.atomgraph.linkeddatahub.vocabulary.LDS;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -79,7 +79,7 @@ import com.atomgraph.core.util.ResultSetUtils;
  *   <li>Explicit {@code ?uri=} query parameter pointing to an external URI (not relative to the
  *       current application base). Requests relative to the app base are ignored here because
  *       {@link ApplicationFilter} already rewrote the request URI for those.</li>
- *   <li>{@code lapp:Dataset} proxy: the request URI matched a URL-path pattern defined in the
+ *   <li>{@code lds:Dataset} proxy: the request URI matched a URL-path pattern defined in the
  *       system dataset configuration, and the dataset provides a proxied target URI.</li>
  * </ol>
  * ACL is not checked for proxy requests: the proxy is a global transport function, not a document
@@ -272,8 +272,8 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         URI proxyTarget = (URI) requestContext.getProperty(AC.uri.getURI());
         if (proxyTarget != null) return Optional.of(proxyTarget);
 
-        // Case 2: lapp:Dataset proxy
-        Optional<Dataset> datasetOpt = (Optional<Dataset>) requestContext.getProperty(LAPP.Dataset.getURI());
+        // Case 2: lds:Dataset proxy
+        Optional<Dataset> datasetOpt = (Optional<Dataset>) requestContext.getProperty(LDS.Dataset.getURI());
         if (datasetOpt != null && datasetOpt.isPresent())
         {
             URI proxied = datasetOpt.get().getProxied(requestContext.getUriInfo().getAbsolutePath());

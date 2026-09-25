@@ -20,7 +20,7 @@
 
 ### END-USER-SPECIFIC
 
-@prefix dh:	    <https://www.w3.org/ns/ldt/document-hierarchy#> .
+@prefix dh:	    <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#> .
 @prefix sd:     <http://www.w3.org/ns/sparql-service-description#> .
 
 <services/dbpedia/>

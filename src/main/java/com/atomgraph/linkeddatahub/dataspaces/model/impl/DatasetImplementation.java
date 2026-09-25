@@ -14,9 +14,9 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.apps.model.impl;
+package com.atomgraph.linkeddatahub.dataspaces.model.impl;
 
-import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import com.atomgraph.linkeddatahub.vocabulary.LDS;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.enhanced.Implementation;
@@ -41,7 +41,7 @@ public class DatasetImplementation extends Implementation
         }
         else
         {
-            throw new ConversionException("Cannot convert node " + node.toString() + " to Application: it does not have rdf:type lapp:Application or equivalent");
+            throw new ConversionException("Cannot convert node " + node.toString() + " to Dataspace: it does not have rdf:type lds:Dataspace or equivalent");
         }
     }
 
@@ -50,7 +50,7 @@ public class DatasetImplementation extends Implementation
     {
         if (eg == null) throw new IllegalArgumentException("EnhGraph cannot be null");
 
-        return eg.asGraph().contains(node, RDF.type.asNode(), LAPP.Dataset.asNode());
+        return eg.asGraph().contains(node, RDF.type.asNode(), LDS.Dataset.asNode());
     }
 
 }

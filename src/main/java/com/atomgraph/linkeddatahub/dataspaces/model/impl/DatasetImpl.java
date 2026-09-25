@@ -14,12 +14,11 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.apps.model.impl;
+package com.atomgraph.linkeddatahub.dataspaces.model.impl;
 
-import com.atomgraph.linkeddatahub.apps.model.Dataset;
+import com.atomgraph.linkeddatahub.dataspaces.model.Dataset;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.vocabulary.LAPP;
-import com.atomgraph.server.vocabulary.LDT;
+import com.atomgraph.linkeddatahub.vocabulary.LDS;
 import java.net.URI;
 import jakarta.ws.rs.core.UriBuilder;
 import org.apache.jena.enhanced.EnhGraph;
@@ -50,13 +49,13 @@ public class DatasetImpl extends ResourceImpl implements Dataset
     @Override
     public Resource getPrefix()
     {
-        return getPropertyResourceValue(LAPP.prefix);
+        return getPropertyResourceValue(LDS.prefix);
     }
 
     @Override
     public Resource getBackendProxy()
     {
-        return getPropertyResourceValue(LAPP.backendProxy);
+        return getPropertyResourceValue(LDS.backendProxy);
     }
 
     @Override
@@ -80,7 +79,7 @@ public class DatasetImpl extends ResourceImpl implements Dataset
     @Override
     public Service getService()
     {
-        Resource service = getPropertyResourceValue(LDT.service);
+        Resource service = getPropertyResourceValue(LDS.service);
         
         if (service != null) return service.as(Service.class);
         

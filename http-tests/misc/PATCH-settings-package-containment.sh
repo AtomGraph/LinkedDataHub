@@ -21,7 +21,7 @@ clear_ontology
 # probe document's topic must carry that marker with the import and not without. The property list
 # belongs to the described resource, so the probe document names a topic with a title.
 #
-# The package lives on the instance itself: a document describing a lapp:Package whose ac:stylesheet is
+# The package lives on the instance itself: a document describing a lds:Package whose ac:stylesheet is
 # an uploaded file. Both are fetched by the server through its own origin, the way an uploaded ontology
 # is (admin/model/ontology-import-upload-no-deadlock.sh).
 
@@ -116,7 +116,7 @@ function remove_import()
 
 trap remove_import EXIT
 
-# the package description: a document whose primary topic is the lapp:Package, naming the uploaded
+# the package description: a document whose primary topic is the lds:Package, naming the uploaded
 # stylesheet - the upload URI is content-addressed, so it is known before the file is uploaded
 
 curl -k -w "%{http_code}\n" -o /dev/null -f -s \
@@ -126,11 +126,11 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   --data-binary @- \
   "$package_doc" <<EOT \
 | grep -q "$STATUS_CREATED"
-<${package_doc}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item> .
+<${package_doc}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Item> .
 <${package_doc}> <http://purl.org/dc/terms/title> "Containment probe package" .
 <${package_doc}> <http://rdfs.org/sioc/ns#has_container> <${END_USER_BASE_URL}> .
 <${package_doc}> <http://xmlns.com/foaf/0.1/primaryTopic> <${package_uri}> .
-<${package_uri}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/apps#Package> .
+<${package_uri}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/dataspaces#Package> .
 <${package_uri}> <http://purl.org/dc/terms/title> "Containment probe package" .
 <${package_uri}> <https://w3id.org/atomgraph/client#stylesheet> <${stylesheet_uri}> .
 EOT
@@ -160,7 +160,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   --data-binary @- \
   "$probe_doc" <<EOT \
 | grep -q "$STATUS_CREATED"
-<${probe_doc}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item> .
+<${probe_doc}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Item> .
 <${probe_doc}> <http://purl.org/dc/terms/title> "Containment probe" .
 <${probe_doc}> <http://rdfs.org/sioc/ns#has_container> <${END_USER_BASE_URL}> .
 <${probe_doc}> <http://xmlns.com/foaf/0.1/primaryTopic> <${probe_doc}#this> .

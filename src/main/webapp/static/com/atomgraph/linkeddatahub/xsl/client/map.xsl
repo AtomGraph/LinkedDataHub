@@ -5,7 +5,7 @@
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY geo    "http://www.w3.org/2003/01/geo/wgs84_pos#">
-    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
+    <!ENTITY lds    "https://w3id.org/atomgraph/linkeddatahub/dataspaces#">
     <!ENTITY gs     "http://www.opengis.net/ont/geosparql#">
 ]>
 <xsl:stylesheet version="3.0"
@@ -21,7 +21,7 @@ xmlns:json="http://www.w3.org/2005/xpath-functions"
 xmlns:array="http://www.w3.org/2005/xpath-functions/array"
 xmlns:ac="&ac;"
 xmlns:ldh="&ldh;"
-xmlns:lapp="&lapp;"
+xmlns:lds="&lds;"
 xmlns:rdf="&rdf;"
 xmlns:geo="&geo;"
 xmlns:gs="&gs;"

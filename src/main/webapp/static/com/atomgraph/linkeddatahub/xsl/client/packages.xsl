@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY ldh     "https://w3id.org/atomgraph/linkeddatahub#">
-    <!ENTITY lapp    "https://w3id.org/atomgraph/linkeddatahub/apps#">
+    <!ENTITY lds     "https://w3id.org/atomgraph/linkeddatahub/dataspaces#">
     <!ENTITY ac      "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf     "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs    "http://www.w3.org/2000/01/rdf-schema#">
@@ -13,7 +13,7 @@ xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:ldh="&ldh;"
-xmlns:lapp="&lapp;"
+xmlns:lds="&lds;"
 xmlns:ac="&ac;"
 xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
@@ -82,7 +82,7 @@ version="3.0"
                     <xsl:with-param name="head" as="item()*">
                             <th scope="col">
                                 <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', '&lapp;Package', document(ac:document-uri('&lapp;')))" mode="ac:label"/>
+                                    <xsl:apply-templates select="key('resources', '&lds;Package', document(ac:document-uri('&lds;')))" mode="ac:label"/>
                                 </xsl:value-of>
                             </th>
                             <th scope="col">

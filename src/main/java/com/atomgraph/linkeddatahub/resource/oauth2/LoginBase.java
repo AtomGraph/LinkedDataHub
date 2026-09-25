@@ -16,9 +16,9 @@
  */package com.atomgraph.linkeddatahub.resource.oauth2;
 
 import com.atomgraph.core.exception.ConfigurationException;
-import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
-import com.atomgraph.linkeddatahub.apps.model.Application;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.dataspaces.model.AdminDataspace;
+import com.atomgraph.linkeddatahub.dataspaces.model.Dataspace;
+import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.model.Service;
 import static com.atomgraph.linkeddatahub.resource.admin.SignUp.AGENT_PATH;
@@ -88,7 +88,7 @@ public abstract class LoginBase
 
     private final UriInfo uriInfo;
     private final HttpHeaders httpHeaders;
-    private final com.atomgraph.linkeddatahub.apps.model.Application application;
+    private final com.atomgraph.linkeddatahub.dataspaces.model.Dataspace application;
     private final com.atomgraph.linkeddatahub.Application system;
     private final String emailSubject;
     private final String emailText;
@@ -108,11 +108,11 @@ public abstract class LoginBase
      * @param clientSecret OAuth client secret;
      */
     public LoginBase(@Context Request request, @Context UriInfo uriInfo, @Context HttpHeaders httpHeaders,
-            com.atomgraph.linkeddatahub.apps.model.Application application,
+            com.atomgraph.linkeddatahub.dataspaces.model.Dataspace application,
             com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig,
             String clientID, String clientSecret)
     {
-        if (!application.canAs(EndUserApplication.class))
+        if (!application.canAs(EndUserDataspace.class))
             throw new IllegalStateException("The " + getClass() + " endpoint is only available on end-user applications");
         
         this.uriInfo = uriInfo;
@@ -202,11 +202,11 @@ public abstract class LoginBase
                 Optional<Resource> mbox = email.map(e -> "mailto:" + e).map(ResourceFactory::createResource);
 
                 Model accountModel = ModelFactory.createDefaultModel();
-                URI userAccountGraphUri = getAdminApplication().getUriBuilder().path(ACCOUNT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
+                URI userAccountGraphUri = getAdminDataspace().getUriBuilder().path(ACCOUNT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
 
                 createUserAccount(accountModel,
                     userAccountGraphUri,
-                    accountModel.createResource(getAdminApplication().getBaseURI().resolve(ACCOUNT_PATH).toString()),
+                    accountModel.createResource(getAdminDataspace().getBaseURI().resolve(ACCOUNT_PATH).toString()),
                     jwt.getSubject(),
                     jwt.getIssuer(),
                     Optional.ofNullable(userInfo.get("name")),
@@ -223,11 +223,11 @@ public abstract class LoginBase
                 if (existingAgent.isEmpty())
                 {
                     Model agentModel = ModelFactory.createDefaultModel();
-                    URI agentGraphUri = getAdminApplication().getUriBuilder().path(AGENT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
+                    URI agentGraphUri = getAdminDataspace().getUriBuilder().path(AGENT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
 
                     agent = createAgent(agentModel,
                         agentGraphUri,
-                        agentModel.createResource(getAdminApplication().getBaseURI().resolve(AGENT_PATH).toString()),
+                        agentModel.createResource(getAdminDataspace().getBaseURI().resolve(AGENT_PATH).toString()),
                         Optional.ofNullable(userInfo.get("name")),
                         Optional.ofNullable(userInfo.get("given_name")),
                         Optional.ofNullable(userInfo.get("family_name")),
@@ -249,12 +249,12 @@ public abstract class LoginBase
                         ban(agentSvcProxy, mbox.get().getURI());
 
                     Model authModel = ModelFactory.createDefaultModel();
-                    URI authGraphUri = getAdminApplication().getUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
+                    URI authGraphUri = getAdminDataspace().getUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
 
                     // creating authorization for the Agent document
                     createAuthorization(authModel,
                         authGraphUri,
-                        accountModel.createResource(getAdminApplication().getBaseURI().resolve(AUTHORIZATION_PATH).toString()),
+                        accountModel.createResource(getAdminDataspace().getBaseURI().resolve(AUTHORIZATION_PATH).toString()),
                         agentGraphUri,
                         userAccountGraphUri);
                     new Skolemizer(authGraphUri.toString()).apply(authModel);
@@ -264,7 +264,7 @@ public abstract class LoginBase
                     try
                     {
                         // purge agent lookup from proxy cache
-                        URI adminSvcProxy = getSystem().getServiceContext(getAdminApplication().getService()).getBackendProxy();
+                        URI adminSvcProxy = getSystem().getServiceContext(getAdminDataspace().getService()).getBackendProxy();
                         if (adminSvcProxy != null) ban(adminSvcProxy, jwt.getSubject());
 
                         // remove secretary WebID from cache
@@ -489,12 +489,12 @@ public abstract class LoginBase
         // labels and links need to come from the end-user app
         MessageBuilder builder = getSystem().getMessageBuilder().
             subject(String.format(getEmailSubject(),
-                getEndUserApplication().getProperty(DCTerms.title).getString(),
+                getEndUserDataspace().getProperty(DCTerms.title).getString(),
                 fullName)).
             to(mbox, fullName).
             textBodyPart(String.format(getEmailText(),
-                getEndUserApplication().getProperty(DCTerms.title).getString(),
-                getEndUserApplication().getBase(),
+                getEndUserDataspace().getProperty(DCTerms.title).getString(),
+                getEndUserDataspace().getBase(),
                 agent.getURI()));
         
         if (getSystem().getNotificationAddress() != null) builder = builder.from(getSystem().getNotificationAddress());
@@ -555,12 +555,12 @@ public abstract class LoginBase
      * 
      * @return end-user application resource
      */
-    public EndUserApplication getEndUserApplication()
+    public EndUserDataspace getEndUserDataspace()
     {
-        if (getApplication().canAs(EndUserApplication.class))
-            return getApplication().as(EndUserApplication.class);
+        if (getDataspace().canAs(EndUserDataspace.class))
+            return getDataspace().as(EndUserDataspace.class);
         else
-            return getApplication().as(AdminApplication.class).getEndUserApplication();
+            return getDataspace().as(AdminDataspace.class).getEndUserDataspace();
     }
     
     /**
@@ -568,12 +568,12 @@ public abstract class LoginBase
      * 
      * @return admin application resource
      */
-    public AdminApplication getAdminApplication()
+    public AdminDataspace getAdminDataspace()
     {
-        if (getApplication().canAs(AdminApplication.class))
-            return getApplication().as(AdminApplication.class);
+        if (getDataspace().canAs(AdminDataspace.class))
+            return getDataspace().as(AdminDataspace.class);
         else
-            return getApplication().as(EndUserApplication.class).getAdminApplication();
+            return getDataspace().as(EndUserDataspace.class).getAdminDataspace();
     }
 
     /**
@@ -601,7 +601,7 @@ public abstract class LoginBase
      *
      * @return application resource
      */
-    public Application getApplication()
+    public Dataspace getDataspace()
     {
         return application;
     }
@@ -623,7 +623,7 @@ public abstract class LoginBase
      */
     public Service getAgentService()
     {
-        return getApplication().as(EndUserApplication.class).getAdminApplication().getService();
+        return getDataspace().as(EndUserDataspace.class).getAdminDataspace().getService();
     }
     
     /**

@@ -17,8 +17,8 @@
 package com.atomgraph.linkeddatahub.server.mapper.auth.oauth2;
 
 import com.atomgraph.core.MediaTypes;
-import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.dataspaces.model.AdminDataspace;
+import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import static com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize.REFERER_PARAM_NAME;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.google.IDTokenFilter;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
@@ -45,7 +45,7 @@ public class TokenExpiredExceptionMapper extends ExceptionMapperBase implements 
 {
 
     @Context UriInfo uriInfo;
-    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> application;
+    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace>> application;
 
     /**
      * Constructs mapper from media types.
@@ -61,7 +61,7 @@ public class TokenExpiredExceptionMapper extends ExceptionMapperBase implements 
     @Override
     public Response toResponse(TokenExpiredException ex)
     {
-        if (!getApplication().isPresent())
+        if (!getDataspace().isPresent())
         {
             // If no application is present, just return a BAD_REQUEST response without redirect
             return getResponseBuilder(toResource(ex, Response.Status.BAD_REQUEST,
@@ -70,7 +70,7 @@ public class TokenExpiredExceptionMapper extends ExceptionMapperBase implements 
                 build();
         }
 
-        String path = getApplication().get().getBaseURI().getPath();
+        String path = getDataspace().get().getBaseURI().getPath();
         NewCookie expiredCookie = new NewCookie.Builder(IDTokenFilter.COOKIE_NAME).
             value("").
             path(path).
@@ -82,7 +82,7 @@ public class TokenExpiredExceptionMapper extends ExceptionMapperBase implements 
                 getModel()).
             cookie(expiredCookie);
 
-        URI redirectUri = UriBuilder.fromUri(getAdminApplication().getBaseURI()).
+        URI redirectUri = UriBuilder.fromUri(getAdminDataspace().getBaseURI()).
             path("/oauth2/authorize/google"). // TO-DO: move to config?
             queryParam(REFERER_PARAM_NAME, getUriInfo().getRequestUri()). // we need to retain URL query parameters
             build();
@@ -99,12 +99,12 @@ public class TokenExpiredExceptionMapper extends ExceptionMapperBase implements 
      *
      * @return admin application resource
      */
-    public AdminApplication getAdminApplication()
+    public AdminDataspace getAdminDataspace()
     {
-        if (getApplication().get().canAs(EndUserApplication.class))
-            return getApplication().get().as(EndUserApplication.class).getAdminApplication();
+        if (getDataspace().get().canAs(EndUserDataspace.class))
+            return getDataspace().get().as(EndUserDataspace.class).getAdminDataspace();
         else
-            return getApplication().get().as(AdminApplication.class);
+            return getDataspace().get().as(AdminDataspace.class);
     }
 
     /**
@@ -112,7 +112,7 @@ public class TokenExpiredExceptionMapper extends ExceptionMapperBase implements 
      *
      * @return optional application resource
      */
-    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
+    public Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace> getDataspace()
     {
         return application.get();
     }

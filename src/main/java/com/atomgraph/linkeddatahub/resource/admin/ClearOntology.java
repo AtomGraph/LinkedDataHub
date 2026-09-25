@@ -16,8 +16,8 @@
  */
 package com.atomgraph.linkeddatahub.resource.admin;
 
-import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.dataspaces.model.AdminDataspace;
+import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import com.atomgraph.linkeddatahub.server.filter.response.CacheInvalidationFilter;
 import com.atomgraph.linkeddatahub.server.util.OntologyRepository;
 import java.net.URI;
@@ -46,7 +46,7 @@ public class ClearOntology
     
     private static final Logger log = LoggerFactory.getLogger(ClearOntology.class);
 
-    private final com.atomgraph.linkeddatahub.apps.model.Application application;
+    private final com.atomgraph.linkeddatahub.dataspaces.model.Dataspace application;
     private final com.atomgraph.linkeddatahub.Application system;
 
     /**
@@ -56,7 +56,7 @@ public class ClearOntology
      * @param system system application
      */
     @Inject
-    public ClearOntology(com.atomgraph.linkeddatahub.apps.model.Application application, com.atomgraph.linkeddatahub.Application system)
+    public ClearOntology(com.atomgraph.linkeddatahub.dataspaces.model.Dataspace application, com.atomgraph.linkeddatahub.Application system)
     {
         this.application = application;
         this.system = system;
@@ -80,24 +80,24 @@ public class ClearOntology
     {
         // resolve both apps regardless of which one the request matched: /clear is admin, but Settings
         // delegates here on the end-user app (its PATCH origin), and both backends need purging either way
-        final EndUserApplication endUserApp;
-        final AdminApplication adminApp;
-        if (getApplication().canAs(AdminApplication.class))
+        final EndUserDataspace endUserApp;
+        final AdminDataspace adminApp;
+        if (getDataspace().canAs(AdminDataspace.class))
         {
-            adminApp = getApplication().as(AdminApplication.class);
-            endUserApp = adminApp.getEndUserApplication();
+            adminApp = getDataspace().as(AdminDataspace.class);
+            endUserApp = adminApp.getEndUserDataspace();
         }
         else
         {
-            endUserApp = getApplication().as(EndUserApplication.class);
-            adminApp = endUserApp.getAdminApplication();
+            endUserApp = getDataspace().as(EndUserDataspace.class);
+            adminApp = endUserApp.getAdminDataspace();
         }
         OntologyRepository repository = getSystem().getRepository(endUserApp);
 
         // The request-scoped app is a snapshot ApplicationFilter captured before Settings.updateApp swapped
         // the context dataset copy-on-write, so on a PATCH /settings that just added an ldh:import its import
         // set is stale. Re-read from the current dataspace model, which reads the volatile contextDataset fresh
-        com.atomgraph.linkeddatahub.apps.model.Application currentApp = getSystem().getDataspaceModel(endUserApp).getResource(endUserApp.getURI()).as(com.atomgraph.linkeddatahub.apps.model.Application.class);
+        com.atomgraph.linkeddatahub.dataspaces.model.Dataspace currentApp = getSystem().getDataspaceModel(endUserApp).getResource(endUserApp.getURI()).as(com.atomgraph.linkeddatahub.dataspaces.model.Dataspace.class);
 
         // A package's ontology becomes editable by being copied into this application's own ontologies
         // container. Above the cache guard on purpose: the guard skips everything when the ontology was never
@@ -227,7 +227,7 @@ public class ClearOntology
      * 
      * @return application resource
      */
-    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
+    public com.atomgraph.linkeddatahub.dataspaces.model.Dataspace getDataspace()
     {
         return application;
     }

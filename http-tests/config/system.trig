@@ -1,7 +1,6 @@
-@prefix lapp:	<https://w3id.org/atomgraph/linkeddatahub/apps#> .
+@prefix lds:	<https://w3id.org/atomgraph/linkeddatahub/dataspaces#> .
 @prefix a:	<https://w3id.org/atomgraph/core#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix ldt:	<https://www.w3.org/ns/ldt#> .
 @prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .
 @prefix dct:	<http://purl.org/dc/terms/> .
 
@@ -12,8 +11,8 @@
 
 <urn:linkeddatahub:apps/admin>
 {
-    <urn:linkeddatahub:apps/admin> a lapp:AdminApplication ;
-        ldt:service <urn:linkeddatahub:services/admin> .
+    <urn:linkeddatahub:apps/admin> a lds:AdminDataspace ;
+        lds:service <urn:linkeddatahub:services/admin> .
 }
 
 # root admin - service description
@@ -32,8 +31,8 @@
 
 <urn:linkeddatahub:apps/end-user>
 {
-    <urn:linkeddatahub:apps/end-user> a lapp:EndUserApplication ;
-        ldt:service <urn:linkeddatahub:services/end-user> .
+    <urn:linkeddatahub:apps/end-user> a lds:EndUserDataspace ;
+        lds:service <urn:linkeddatahub:services/end-user> .
 }
 
 # root end-user - service description
@@ -52,8 +51,8 @@
 
 <urn:linkeddatahub:apps/test/admin>
 {
-    <urn:linkeddatahub:apps/test/admin> a lapp:AdminApplication ;
-        ldt:service <urn:linkeddatahub:services/test/admin> .
+    <urn:linkeddatahub:apps/test/admin> a lds:AdminDataspace ;
+        lds:service <urn:linkeddatahub:services/test/admin> .
 }
 
 # test admin - service description
@@ -72,8 +71,8 @@
 
 <urn:linkeddatahub:apps/test/end-user>
 {
-    <urn:linkeddatahub:apps/test/end-user> a lapp:EndUserApplication ;
-        ldt:service <urn:linkeddatahub:services/test/end-user> .
+    <urn:linkeddatahub:apps/test/end-user> a lds:EndUserDataspace ;
+        lds:service <urn:linkeddatahub:services/test/end-user> .
 }
 
 # test end-user - service description

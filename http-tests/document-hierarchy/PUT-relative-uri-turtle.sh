@@ -49,7 +49,7 @@ response=$(curl -k -f -G -s \
   "$item")
 
 for triple in \
-  "<${item}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item>" \
+  "<${item}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Item>" \
   "<${item}named-subject-put> <http://example.com/default-predicate> \"named object PUT\" ."
 do
   if ! grep -qF "$triple" <<< "$response"; then

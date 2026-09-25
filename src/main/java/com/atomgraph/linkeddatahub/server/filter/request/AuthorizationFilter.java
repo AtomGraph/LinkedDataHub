@@ -16,7 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.request;
 
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
 import com.atomgraph.linkeddatahub.server.exception.auth.AuthorizationException;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
@@ -83,8 +83,8 @@ public class AuthorizationFilter implements ContainerRequestFilter
     );
     
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> app;
-    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Dataset>> dataset;
+    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace>> app;
+    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataset>> dataset;
     
     private ParameterizedSparqlString documentTypeQuery, documentOwnerQuery, aclQuery, ownerAclQuery;
 
@@ -114,7 +114,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
             return;
         }
 
-        if (getApplication().isPresent() && getApplication().get().isReadAllowed())
+        if (getDataspace().isPresent() && getDataspace().get().isReadAllowed())
         {
             if (request.getMethod().equals(HttpMethod.GET) || request.getMethod().equals(HttpMethod.HEAD)) // allow read-only methods
             {
@@ -174,7 +174,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
 
         QuerySolutionMap thisQsm = new QuerySolutionMap();
         thisQsm.add(SPIN.THIS_VAR_NAME, accessTo);
-        ResultSetRewindable docTypesResult = loadResultSet(getApplication().get().getService(), getDocumentTypeQuery(), thisQsm);
+        ResultSetRewindable docTypesResult = loadResultSet(getDataspace().get().getService(), getDocumentTypeQuery(), thisQsm);
         // types that constrain the ACL query's acl:accessToClass matching: the document's own by default, or the parent
         // container's when a PUT creates a new (still typeless) document and authorization falls back to the parent
         ResultSetRewindable aclTypesResult = docTypesResult;
@@ -191,7 +191,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
 
                 QuerySolutionMap parentQsm = new QuerySolutionMap();
                 parentQsm.add(SPIN.THIS_VAR_NAME, parent);
-                ResultSetRewindable parentTypesResult = loadResultSet(getApplication().get().getService(), getDocumentTypeQuery(), parentQsm);
+                ResultSetRewindable parentTypesResult = loadResultSet(getDataspace().get().getService(), getDocumentTypeQuery(), parentQsm);
                 // the parent's types (not the typeless child's) must drive acl:accessToClass matching so the parent's
                 // write authorizations still apply; assigned now so the outer finally closes it on any exit path
                 aclTypesResult = parentTypesResult;
@@ -213,7 +213,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
                 parentTypesResult.reset(); // rewind so the parent's types can be injected into the ACL query below
             }
          
-            ParameterizedSparqlString pss = getApplication().get().canAs(EndUserApplication.class) ? getACLQuery() : getOwnerACLQuery();
+            ParameterizedSparqlString pss = getDataspace().get().canAs(EndUserDataspace.class) ? getACLQuery() : getOwnerACLQuery();
             // the ACL query carries a fail-closed default VALUES ?Type { rdfs:Resource } (see web.xml); when the resource
             // (or its parent, on a PUT-create) has a type, override that block with the real types so acl:accessToClass
             // grants match. A typeless resource keeps the default, whose class no authorization uses, so it matches nothing.
@@ -271,7 +271,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
         ParameterizedSparqlString pss = getDocumentOwnerQuery();
         pss.setParams(qsm);
 
-        ResultSetRewindable ownerResult = loadResultSet(getApplication().get().getService(), getDocumentOwnerQuery(), qsm); // could use ASK query in principle
+        ResultSetRewindable ownerResult = loadResultSet(getDataspace().get().getService(), getDocumentOwnerQuery(), qsm); // could use ASK query in principle
         try
         {
             return ownerResult.hasNext() && agent.equals(ownerResult.next().getResource("owner"));
@@ -378,9 +378,9 @@ public class AuthorizationFilter implements ContainerRequestFilter
      */
     protected Service getAdminService()
     {
-        return getApplication().get().canAs(EndUserApplication.class) ?
-            getApplication().get().as(EndUserApplication.class).getAdminApplication().getService() :
-            getApplication().get().getService();
+        return getDataspace().get().canAs(EndUserDataspace.class) ?
+            getDataspace().get().as(EndUserDataspace.class).getAdminDataspace().getService() :
+            getDataspace().get().getService();
     }
 
     /**
@@ -391,9 +391,9 @@ public class AuthorizationFilter implements ContainerRequestFilter
      */
     protected Resource getAdminBase()
     {
-        return getApplication().get().canAs(EndUserApplication.class) ?
-            getApplication().get().as(EndUserApplication.class).getAdminApplication().getBase() :
-            getApplication().get().getBase();
+        return getDataspace().get().canAs(EndUserDataspace.class) ?
+            getDataspace().get().as(EndUserDataspace.class).getAdminDataspace().getBase() :
+            getDataspace().get().getBase();
     }
     
     /**
@@ -401,7 +401,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
      *
      * @return optional application resource
      */
-    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
+    public Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace> getDataspace()
     {
         return app.get();
     }
@@ -411,7 +411,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
      * 
      * @return optional dataset resource
      */
-    public Optional<com.atomgraph.linkeddatahub.apps.model.Dataset> getDataset()
+    public Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataset> getDataset()
     {
         return dataset.get();
     }

@@ -17,7 +17,6 @@
 package com.atomgraph.linkeddatahub.imports;
 
 import com.atomgraph.client.MediaTypes;
-import com.atomgraph.server.vocabulary.LDT;
 import com.atomgraph.core.model.DatasetAccessor;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.imports.stream.RDFGraphStoreOutput;
@@ -31,6 +30,7 @@ import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.exception.ImportException;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
+import com.atomgraph.linkeddatahub.vocabulary.LDS;
 import com.atomgraph.linkeddatahub.vocabulary.PROV;
 import com.atomgraph.linkeddatahub.vocabulary.VoID;
 import com.univocity.parsers.common.TextParsingException;
@@ -119,7 +119,7 @@ public class ImportExecutor
         String queryBaseURI = csvImport.getFile().getURI(); // file URI becomes the query base URI
         QueryLoader queryLoader = new QueryLoader(URI.create(csvImport.getQuery().getURI()), queryBaseURI, Syntax.syntaxARQ, gsc);
         ParameterizedSparqlString pss = new ParameterizedSparqlString(queryLoader.get().toString(), queryBaseURI);
-        pss.setIri(LDT.base.getLocalName(), appBaseURI); // app's base URI becomes $base
+        pss.setIri(LDS.base.getLocalName(), appBaseURI); // app's base URI becomes $base
         final Query query = pss.asQuery();
 
         Supplier<Response> fileSupplier = new ClientResponseSupplier(gsc, CSV_MEDIA_TYPES, URI.create(csvImport.getFile().getURI()));
@@ -157,7 +157,7 @@ public class ImportExecutor
         {
             QueryLoader queryLoader = new QueryLoader(URI.create(rdfImport.getQuery().getURI()), queryBaseURI, Syntax.syntaxARQ, gsc);
             ParameterizedSparqlString pss = new ParameterizedSparqlString(queryLoader.get().toString(), queryBaseURI);
-            pss.setIri(LDT.base.getLocalName(), appBaseURI); // app's base URI becomes $base
+            pss.setIri(LDS.base.getLocalName(), appBaseURI); // app's base URI becomes $base
             query = pss.asQuery();
         }
         else

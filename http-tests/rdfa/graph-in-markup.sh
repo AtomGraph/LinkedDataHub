@@ -21,7 +21,7 @@ clear_ontology
 slug=$(uuidgen | tr '[:upper:]' '[:lower:]')
 doc_url="${END_USER_BASE_URL}${slug}/"
 
-echo "<${doc_url}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item> .
+echo "<${doc_url}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Item> .
 <${doc_url}> <http://purl.org/dc/terms/title> \"Graph in markup\" .
 <${doc_url}> <http://xmlns.com/foaf/0.1/primaryTopic> <${doc_url}#this> .
 <${doc_url}#this> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://example.org/test#Thing> .
@@ -70,7 +70,7 @@ count()
 # the document describes itself: what the chrome shows and what it omits are both asserted
 
 [ "$(count "//*[@property = 'http://purl.org/dc/terms/title'][@content = 'Graph in markup']")" -ge "1" ]
-[ "$(count "//*[@property = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'][@resource = 'https://www.w3.org/ns/ldt/document-hierarchy#Item']")" -ge "1" ]
+[ "$(count "//*[@property = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'][@resource = 'https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Item']")" -ge "1" ]
 [ "$(count "//*[@property = 'http://xmlns.com/foaf/0.1/primaryTopic'][@resource = '${doc_url}#this']")" -ge "1" ]
 
 # the RDFa default subject is the document, not the request URI - otherwise every head-level assertion moves to a

@@ -67,7 +67,7 @@ find ./document-hierarchy/ -name '*.sh' -exec bash {} \;
 
 ### Key Components
 
-#### Applications (`com.atomgraph.linkeddatahub.apps.model`)
+#### Applications (`com.atomgraph.linkeddatahub.dataspaces.model`)
 - `AdminApplication` - Administrative interface and functions
 - `EndUserApplication` - Main user-facing application
 - Applications are data-driven and loaded from RDF datasets
@@ -90,14 +90,14 @@ find ./document-hierarchy/ -name '*.sh' -exec bash {} \;
 
 #### Service Layer
 - `ServiceContext` decouples HTTP infrastructure from `Service`, holding dataspace and service metadata separately
-- Dataspace metadata and service metadata are split in configuration; types for `lapp:endUserApplication`/`lapp:adminApplication` are inferred on the fly from `system.trig`
+- Dataspace metadata and service metadata are split in configuration; the `lds:EndUserDataspace`/`lds:AdminDataspace` types are inferred on the fly from `system.trig`
 
 ### Dataspaces
 Since v5.1.0, a single LDH instance supports multiple **dataspaces**, each identified by a distinct subdomain (origin). Each dataspace is a pair of applications: an end-user app (`<subdomain>`) and an admin app (`admin.<subdomain>`), routed by nginx via wildcard subdomain matching.
 
 Configuration is split across two files:
-- `config/dataspaces.trig` — public metadata: origins (`lapp:origin`), ontologies (`ldt:ontology`), stylesheets (`ac:stylesheet`)
-- `config/system.trig` — internal wiring: maps apps to SPARQL services (`ldt:service`) and assigns types (`lapp:AdminApplication`/`lapp:EndUserApplication`)
+- `config/dataspaces.trig` — public metadata: origins (`lds:origin`), ontologies (`lds:ontology`), stylesheets (`ac:stylesheet`)
+- `config/system.trig` — internal wiring: maps dataspaces to SPARQL services (`lds:service`) and assigns types (`lds:AdminDataspace`/`lds:EndUserDataspace`)
 
 Multiple dataspaces can share the same backend SPARQL service.
 
@@ -128,9 +128,9 @@ The current design splits rendering by request origin:
 - **Client-side rendering**: Saxon-JS receives the raw RDF and applies the same XSLT 3 templates used server-side (shared stylesheet), so proxied resources look almost identical to local ones.
 
 Key implementation files:
-- `ProxyRequestFilter.java` — intercepts `?uri=` and `lapp:Dataset` proxy requests; HTML bypass; forwards external `Link` headers
+- `ProxyRequestFilter.java` — intercepts `?uri=` and `lds:Dataset` proxy requests; HTML bypass; forwards external `Link` headers
 - `ApplicationFilter.java` — registers external proxy target URI in request context (`AC.uri` property) as authoritative proxy marker
-- `ResponseHeadersFilter.java` — skips local-only hypermedia links (`sd:endpoint`, `ldt:ontology`, `ac:stylesheet`) for proxy requests; external ones are forwarded by `ProxyRequestFilter`
+- `ResponseHeadersFilter.java` — skips local-only hypermedia links (`sd:endpoint`, `lds:ontology`, `ac:stylesheet`) for proxy requests; external ones are forwarded by `ProxyRequestFilter`
 - `client.xsl` (`ldh:rdf-document-response`) — receives the RDF proxy response client-side; extracts `sd:endpoint` from `Link` header; stores it in `LinkedDataHub.endpoint`
 - `functions.xsl` (`sd:endpoint()`) — returns `LinkedDataHub.endpoint` when set (external proxy), otherwise falls back to the local SPARQL endpoint
 

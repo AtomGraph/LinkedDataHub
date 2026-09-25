@@ -27,7 +27,7 @@ ldh admin add agent \
 parent="$END_USER_BASE_URL"
 uuid=$(uuidgen | tr '[:upper:]' '[:lower:]')
 container="${parent}${uuid}/"
-class="https://www.w3.org/ns/ldt/document-hierarchy#Container"
+class="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Container"
 
 # PUT the generated container document (blank nodes are skolemized server-side)
 
@@ -37,9 +37,9 @@ http_code=$(curl -k -s -o /dev/null -w "%{http_code}" \
   -H "Content-Type: application/rdf+xml" \
   --data-binary @- \
   "$container" <<EOF
-<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dct="http://purl.org/dc/terms/" xmlns:sioc="http://rdfs.org/sioc/ns#" xmlns:dh="https://www.w3.org/ns/ldt/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:spin="http://spinrdf.org/spin#" xmlns:sp="http://spinrdf.org/sp#">
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dct="http://purl.org/dc/terms/" xmlns:sioc="http://rdfs.org/sioc/ns#" xmlns:dh="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:spin="http://spinrdf.org/spin#" xmlns:sp="http://spinrdf.org/sp#">
   <rdf:Description rdf:about="${container}">
-    <rdf:type rdf:resource="https://www.w3.org/ns/ldt/document-hierarchy#Container"/>
+    <rdf:type rdf:resource="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Container"/>
     <sioc:has_parent rdf:resource="${parent}"/>
     <dct:title>Containers</dct:title>
     <dh:slug>${uuid}</dh:slug>

@@ -22,7 +22,7 @@ ldh admin add class \
   -b "$ADMIN_BASE_URL" \
   --uri "$class" \
   --label "New class" \
-  --sub-class-of "https://www.w3.org/ns/ldt/document-hierarchy#Item" \
+  --sub-class-of "https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Item" \
   "$ontology_doc"
 
 # clear ontology from memory

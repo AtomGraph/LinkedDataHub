@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
-    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
+    <!ENTITY lds    "https://w3id.org/atomgraph/linkeddatahub/dataspaces#">
     <!ENTITY adm    "https://w3id.org/atomgraph/linkeddatahub/admin#">
     <!ENTITY def    "https://w3id.org/atomgraph/linkeddatahub/default#">
     <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
@@ -14,7 +14,7 @@
     <!ENTITY http   "http://www.w3.org/2011/http#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
-    <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
+    <!ENTITY dh     "https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#">
     <!ENTITY sh     "http://www.w3.org/ns/shacl#">
     <!ENTITY sp     "http://spinrdf.org/sp#">
     <!ENTITY spin   "http://spinrdf.org/spin#">
@@ -28,7 +28,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:json="http://www.w3.org/2005/xpath-functions"
-xmlns:lapp="&lapp;"
+xmlns:lds="&lds;"
 xmlns:ldh="&ldh;"
 xmlns:ac="&ac;"
 xmlns:a="&a;"
@@ -266,7 +266,7 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:is-local" as="xs:boolean">
         <xsl:param name="uri" as="xs:anyURI?"/>
 
-        <xsl:sequence select="starts-with($uri, lapp:origin(ldh:request-uri()) || '/')"/>
+        <xsl:sequence select="starts-with($uri, lds:origin(ldh:request-uri()) || '/')"/>
     </xsl:function>
 
     <xsl:function name="ldh:link-targets" as="xs:anyURI*">
@@ -292,7 +292,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]"/>
     </xsl:function>
 
-    <xsl:function name="lapp:origin" as="xs:anyURI">
+    <xsl:function name="lds:origin" as="xs:anyURI">
         <xsl:param name="uri" as="xs:anyURI"/>
         <!-- no trailing slash -->
         <xsl:sequence select="xs:anyURI(replace($uri, '^(https?://[^/]+).*$', '$1'))"/>
@@ -301,12 +301,12 @@ exclude-result-prefixes="#all"
     <!-- Web-Client's label catalog resolves against the shell origin here, like the app's own translations.rdf:
          the same-origin URL works for the same-site server resolver and in the browser alike -->
     <xsl:function name="ac:translations" as="document-node()">
-        <xsl:sequence select="document(resolve-uri('static/com/atomgraph/client/xsl/translations.rdf', $lapp:origin))"/>
+        <xsl:sequence select="document(resolve-uri('static/com/atomgraph/client/xsl/translations.rdf', $lds:origin))"/>
     </xsl:function>
 
     <!-- the app's own label catalog, mirroring ac:translations() -->
     <xsl:function name="ldh:translations" as="document-node()">
-        <xsl:sequence select="document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lapp:origin))"/>
+        <xsl:sequence select="document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lds:origin))"/>
     </xsl:function>
 
     <!-- The app's headline and explanation, resolved from the app's own catalog and handed to the client's

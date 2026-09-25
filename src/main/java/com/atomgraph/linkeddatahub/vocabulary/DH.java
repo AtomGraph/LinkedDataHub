@@ -39,7 +39,7 @@ public class DH
     private static OntModel m_model = OntModelFactory.createModel(OntSpecification.OWL2_FULL_MEM);
     
     /** <p>The namespace of the vocabulary as a string</p> */
-    public static final String NS = "https://www.w3.org/ns/ldt/document-hierarchy#";
+    public static final String NS = "https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#";
     
     /** <p>The namespace of the vocabulary as a string</p>
      *  @return namespace URI

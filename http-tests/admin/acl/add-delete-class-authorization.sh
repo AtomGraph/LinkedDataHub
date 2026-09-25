@@ -38,7 +38,7 @@ ldh admin create authorization \
   -b "https://admin.test.localhost:4443/" \
   --label "Fake DELETE class authorization from test.localhost" \
   --agent "$AGENT_URI" \
-  --to-all-in "https://www.w3.org/ns/ldt/document-hierarchy#Container" \
+  --to-all-in "https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Container" \
   --write
 
 # access is still denied (fake authorization filtered out)
@@ -58,7 +58,7 @@ ldh admin create authorization \
   -b "$ADMIN_BASE_URL" \
   --label "DELETE authorization" \
   --agent "$AGENT_URI" \
-  --to-all-in "https://www.w3.org/ns/ldt/document-hierarchy#Container" \
+  --to-all-in "https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Container" \
   --write
 
 # access is allowed after real authorization is created

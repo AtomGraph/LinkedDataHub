@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
-    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
+    <!ENTITY lds    "https://w3id.org/atomgraph/linkeddatahub/dataspaces#">
     <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
@@ -9,7 +9,7 @@
 <xsl:stylesheet version="3.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
-xmlns:lapp="&lapp;"
+xmlns:lds="&lds;"
 xmlns:ldh="&ldh;"
 xmlns:ac="&ac;"
 xmlns:acl="&acl;"
@@ -79,21 +79,21 @@ exclude-result-prefixes="#all">
         <xsl:sequence select="base-uri($arg)"/>
     </xsl:function>
 
-    <xsl:function name="lapp:origin" as="xs:anyURI?">
-        <xsl:sequence select="$lapp:origin"/>
+    <xsl:function name="lds:origin" as="xs:anyURI?">
+        <xsl:sequence select="$lds:origin"/>
     </xsl:function>
 
     <!-- the dataspace base: the origin with a trailing slash. ApplicationImpl.getBaseURI() derives it the
          same way - getOriginURI().resolve("/"), which discards any path - so there is no separate
-         writer-supplied param, and LDH no longer reads Web-Client's $ldt:base. On a request that
-         resolves to no application $lapp:origin is absent and this yields the relative '/', where the
-         former $ldt:base binding raised XTTE0780. The Saxon-JS twin reads the active pane instead. -->
-    <xsl:function name="lapp:base" as="xs:anyURI">
-        <xsl:sequence select="xs:anyURI(lapp:origin() || '/')"/>
+         writer-supplied param, and LDH no longer reads Web-Client's retired base-URI param. On a request that
+         resolves to no application $lds:origin is absent and this yields the relative '/', where the
+         former binding raised XTTE0780. The Saxon-JS twin reads the active pane instead. -->
+    <xsl:function name="lds:base" as="xs:anyURI">
+        <xsl:sequence select="xs:anyURI(lds:origin() || '/')"/>
     </xsl:function>
 
     <xsl:function name="sd:endpoint" as="xs:anyURI">
-        <xsl:sequence select="resolve-uri('sparql', lapp:base())"/>
+        <xsl:sequence select="resolve-uri('sparql', lds:base())"/>
     </xsl:function>
 
     <xsl:function name="ldh:parse-query" as="xs:string" override-extension-function="no">

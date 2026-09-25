@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
-    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
+    <!ENTITY lds    "https://w3id.org/atomgraph/linkeddatahub/dataspaces#">
     <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl#">
     <!ENTITY def    "https://w3id.org/atomgraph/linkeddatahub/default#">
     <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
@@ -10,7 +10,7 @@
     <!ENTITY owl    "http://www.w3.org/2002/07/owl#">
     <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
-    <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
+    <!ENTITY dh     "https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
     <!ENTITY void   "http://rdfs.org/ns/void#">
@@ -30,7 +30,7 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:json="http://www.w3.org/2005/xpath-functions"
 xmlns:array="http://www.w3.org/2005/xpath-functions/array"
-xmlns:lapp="&lapp;"
+xmlns:lds="&lds;"
 xmlns:ac="&ac;"
 xmlns:ldh="&ldh;"
 xmlns:rdf="&rdf;"
@@ -373,7 +373,7 @@ LIMIT   10
         <xsl:param name="button-class" select="'ac-btn in-primary ap-solid sz-md btn-access-form'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="this" as="xs:anyURI"/>
-        <xsl:param name="action" select="ldh:href(resolve-uri('access/request', lapp:origin($this)))" as="xs:anyURI"/>
+        <xsl:param name="action" select="ldh:href(resolve-uri('access/request', lds:origin($this)))" as="xs:anyURI"/>
         <xsl:param name="legend-label" select="ac:label(key('resources', 'request-access', ldh:translations()))" as="xs:string"/>
         <xsl:param name="agent" as="xs:anyURI"/>
         
@@ -444,7 +444,7 @@ LIMIT   10
         <!-- TO-DO: support agent-group? -->
         <xsl:param name="this" as="xs:anyURI"/>
         <xsl:param name="access-modes" select="(xs:anyURI('&acl;Read'), xs:anyURI('&acl;Append'), xs:anyURI('&acl;Write'))" as="xs:anyURI*"/>
-        <xsl:param name="base" select="lapp:origin($this)" as="xs:anyURI"/>
+        <xsl:param name="base" select="lds:origin($this)" as="xs:anyURI"/>
         
         <fieldset>
             <legend>
@@ -726,8 +726,8 @@ LIMIT   10
         <xsl:next-match/>
         
         <!-- set a cookie to never show it again. path=/ is scoped to the page origin (cookies are
-             always scoped to the page origin anyway); using lapp:base() here previously broke in proxy
-             mode where lapp:base() is the proxied app's base, not the page's. -->
+             always scoped to the page origin anyway); using lds:base() here previously broke in proxy
+             mode where lds:base() is the proxied app's base, not the page's. -->
         <ixsl:set-property name="cookie" select="'LinkedDataHub.first-time-message=true; path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT'" object="ixsl:page()"/>
     </xsl:template>
 
@@ -1077,7 +1077,7 @@ LIMIT   10
         <xsl:call-template name="ldh:ShowModalForm">
             <xsl:with-param name="form" as="element()">
                 <xsl:call-template name="ldh:AddDataForm">
-                    <xsl:with-param name="query" select="resolve-uri('queries/construct-constructors/#this', lapp:base())"/>
+                    <xsl:with-param name="query" select="resolve-uri('queries/construct-constructors/#this', lds:base())"/>
                     <xsl:with-param name="legend-label" select="ac:label(key('resources', 'import-ontology', ldh:translations()))"/>
                 </xsl:call-template>
             </xsl:with-param>
@@ -1120,7 +1120,7 @@ LIMIT   10
             <!-- a modal takes over from the chrome that opened it: a drop-down the pick came from is dismissed here, once its own handler has run -->
             <xsl:apply-templates select="ixsl:page()//*[contains-token(@class, 'ac-menu-anchor')][contains-token(@class, 'is-open')] | ixsl:page()//*[contains-token(@class, 'ldh-form-actions-wrap')][contains-token(@class, 'is-open')]" mode="ldh:CloseMenu"/>
             <xsl:result-document href="?." method="ixsl:append-content">
-                <div class="ac-backdrop pos-top modal modal-constructor" about="{lapp:application()}">
+                <div class="ac-backdrop pos-top modal modal-constructor" about="{lds:dataspace()}">
                     <xsl:if test="$id">
                         <xsl:attribute name="id" select="$id"/>
                     </xsl:if>
@@ -1142,13 +1142,13 @@ LIMIT   10
         <xsl:variable name="modal" select="$content-body/div[contains-token(@class, 'modal')][last()]" as="element()"/>
         <xsl:variable name="block" select="($modal//div[contains-token(@class, 'ac-modal-body')])[1]" as="element()"/>
         <!-- settings UI is a single global button, not per-tab; target the local app's settings, not the active tab's dataspace -->
-        <xsl:variable name="settings-uri" select="resolve-uri('settings', xs:anyURI(lapp:origin(ldh:request-uri()) || '/'))" as="xs:anyURI"/>
+        <xsl:variable name="settings-uri" select="resolve-uri('settings', xs:anyURI(lds:origin(ldh:request-uri()) || '/'))" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $settings-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
           map{
             'request': $request,
             'block': $block,
-            'about': lapp:application(),
+            'about': lds:dataspace(),
             'method': $method,
             'action': $settings-uri,
             'endpoint': sd:endpoint(),
@@ -1180,7 +1180,7 @@ LIMIT   10
         </xsl:next-match>
     </xsl:template>
 
-    <!-- form-flavor wrapper mode parallel to ldh:DocumentForm; scopes the app-settings UI restrictions (dct:title / dct:description visible, everything else hidden) to this flow. The mode itself is the discriminator — instances of lapp:Application created via the generic Create button continue to render through ldh:DocumentForm → ac:FormControl unaffected. -->
+    <!-- form-flavor wrapper mode parallel to ldh:DocumentForm; scopes the app-settings UI restrictions (dct:title / dct:description visible, everything else hidden) to this flow. The mode itself is the discriminator — instances of lds:Dataspace created via the generic Create button continue to render through ldh:DocumentForm → ac:FormControl unaffected. -->
     <xsl:template match="rdf:RDF" mode="ldh:AppSettingsForm">
         <xsl:param name="method" select="'patch'" as="xs:string"/>
         <xsl:param name="form-actions-class" select="'ldh-form-bar'" as="xs:string?"/>
@@ -1205,8 +1205,8 @@ LIMIT   10
         </xsl:call-template>
     </xsl:template>
 
-    <!-- per-Description for the editable lapp:Application: reuse the ac:FormControl shell with type-hidden / no PropertyControl. Do NOT override $body: the shell's default body merges resource properties with the constructor template, sorts by constraints, and passes violations/constructor/type-constraints/type-shapes as with-params to per-property templates. Default body's mode="#current" = ldh:AppSettingsForm here (call-template doesn't change current mode), so the suppression / delegate templates below fire correctly. -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&lapp;Application']" mode="ldh:AppSettingsForm">
+    <!-- per-Description for the editable lds:Dataspace: reuse the ac:FormControl shell with type-hidden / no PropertyControl. Do NOT override $body: the shell's default body merges resource properties with the constructor template, sorts by constraints, and passes violations/constructor/type-constraints/type-shapes as with-params to per-property templates. Default body's mode="#current" = ldh:AppSettingsForm here (call-template doesn't change current mode), so the suppression / delegate templates below fire correctly. -->
+    <xsl:template match="*[rdf:type/@rdf:resource = '&lds;Dataspace']" mode="ldh:AppSettingsForm">
         <xsl:param name="about" as="xs:anyURI" tunnel="yes"/>
         <xsl:if test="@rdf:about = $about">
             <xsl:call-template name="ac:FormControl">
@@ -1222,7 +1222,7 @@ LIMIT   10
     <xsl:template match="*" mode="ldh:AppSettingsForm"/>
 
     <!-- restrict the application settings form UI to dct:title / dct:description; render every other app property as hidden inputs so the PATCH still carries them and they're preserved server-side. The value-bearing children (text / @rdf:resource / @rdf:nodeID / @xml:lang / @rdf:datatype) are dispatched in mode="ac:FormControl" — that's where the per-type hidden-input renderers live (imports/values.xsl @rdf:resource, @rdf:datatype, text() templates). Using mode="#current" would dispatch them in ldh:AppSettingsForm mode where they have no template and XSLT defaults emit raw text. -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&lapp;Application']/*[not(self::dct:title or self::dct:description or self::rdf:type)]" mode="ldh:AppSettingsForm" priority="1">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&lds;Dataspace']/*[not(self::dct:title or self::dct:description or self::rdf:type)]" mode="ldh:AppSettingsForm" priority="1">
         <xsl:apply-templates select="." mode="xhtml:Input">
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:apply-templates>
@@ -1235,10 +1235,10 @@ LIMIT   10
     </xsl:template>
 
     <!-- ldh:import is represented by the package checkboxes in the same form, not round-tripped as hidden inputs -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&lapp;Application']/ldh:import" mode="ldh:AppSettingsForm" priority="2"/>
+    <xsl:template match="*[rdf:type/@rdf:resource = '&lds;Dataspace']/ldh:import" mode="ldh:AppSettingsForm" priority="2"/>
 
     <!-- dct:title / dct:description / rdf:type fall through to the generic ac:FormControl rendering. Forward the with-params from the shell's default body iteration (violations / constructor / type-constraints / type-shapes) so the per-property template in imports/values.xsl can compute $required correctly (required-class bolding) and render constraint violations. -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&lapp;Application']/*" mode="ldh:AppSettingsForm">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&lds;Dataspace']/*" mode="ldh:AppSettingsForm">
         <xsl:param name="violations" as="element()*"/>
         <xsl:param name="constructor" as="document-node()?"/>
         <xsl:param name="type-constraints" as="element()*"/>
@@ -1254,7 +1254,7 @@ LIMIT   10
     <xsl:template match="button[contains-token(@class, 'btn-access-form')]" mode="ixsl:onclick">
         <!-- TO-DO: fix for admin apps -->
         <xsl:param name="this" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('access', lapp:origin($this)), map{ 'this': $this }))" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('access', lds:origin($this)), map{ 'this': $this }))" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
           map{
@@ -1500,7 +1500,7 @@ LIMIT   10
         <xsl:variable name="service-uri" select="$context('service-uri')" as="xs:anyURI?"/>
         <xsl:choose>
             <xsl:when test="$service-uri">
-                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': ldh:href(ac:build-uri(lapp:base(), map{ 'uri': ac:document-uri($service-uri), 'accept': 'application/rdf+xml' })), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': ldh:href(ac:build-uri(lds:base(), map{ 'uri': ac:document-uri($service-uri), 'accept': 'application/rdf+xml' })), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                 <xsl:sequence select="
                   ixsl:http-request($request)
                     => ixsl:then(ldh:rethread-response($context, ?))
@@ -2174,7 +2174,7 @@ LIMIT   10
         <xsl:choose>
             <xsl:when test="$query-string">
                 <xsl:variable name="target-uri" select="$context('target-uri')" as="xs:anyURI"/>
-                <xsl:variable name="endpoint" select="ac:build-uri(resolve-uri('sparql', lapp:base()), map{ 'default-graph-uri': string($target-uri) })" as="xs:anyURI"/>
+                <xsl:variable name="endpoint" select="ac:build-uri(resolve-uri('sparql', lds:base()), map{ 'default-graph-uri': string($target-uri) })" as="xs:anyURI"/>
                 <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $endpoint, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                 <xsl:variable name="construct-context" select="map:put($context, 'request', $request)" as="map(*)"/>
                 <xsl:sequence select="
@@ -2244,7 +2244,7 @@ LIMIT   10
             <xsl:when test="$response?status = (200, 204)">
                 <!-- the admin app manages its parent dataspace's end-user app, whose ontology is <ns#> on the parent origin -->
                 <xsl:variable name="ontology-uri" select="resolve-uri('ns#', ldh:parent-origin(ldh:request-uri()))" as="xs:anyURI"/>
-                <xsl:variable name="request" select="map{ 'method': 'POST', 'href': resolve-uri('clear', lapp:base()), 'media-type': 'application/x-www-form-urlencoded', 'body': 'uri=' || encode-for-uri($ontology-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                <xsl:variable name="request" select="map{ 'method': 'POST', 'href': resolve-uri('clear', lds:base()), 'media-type': 'application/x-www-form-urlencoded', 'body': 'uri=' || encode-for-uri($ontology-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                 <xsl:variable name="clear-context" select="map:put($context, 'request', $request)" as="map(*)"/>
                 <xsl:sequence select="
                   ixsl:http-request($request)

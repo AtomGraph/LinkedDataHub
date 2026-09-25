@@ -14,9 +14,9 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.apps.model.end_user.impl;
+package com.atomgraph.linkeddatahub.dataspaces.model.admin.impl;
 
-import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import com.atomgraph.linkeddatahub.vocabulary.LDS;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.enhanced.Implementation;
@@ -29,7 +29,7 @@ import org.apache.jena.vocabulary.RDF;
  * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-public class ApplicationImplementation extends Implementation
+public class AdminDataspaceImplementation extends Implementation
 {
     
     @Override
@@ -37,11 +37,11 @@ public class ApplicationImplementation extends Implementation
     {
         if (canWrap(node, enhGraph))
         {
-            return new ApplicationImpl(node, enhGraph);
+            return new AdminDataspaceImpl(node, enhGraph);
         }
         else
         {
-            throw new ConversionException( "Cannot convert node " + node.toString() + " to EndUserApplication: it does not have rdf:type lapp:EndUserApplication or equivalent");
+            throw new ConversionException("Cannot convert node " + node.toString() + " to AdminDataspace: it does not have rdf:type lds:AdminDataspace or equivalent");
         }
     }
 
@@ -50,7 +50,7 @@ public class ApplicationImplementation extends Implementation
     {
         if (eg == null) throw new IllegalArgumentException("EnhGraph cannot be null");
 
-        return eg.asGraph().contains(node, RDF.type.asNode(), LAPP.EndUserApplication.asNode());
+        return eg.asGraph().contains(node, RDF.type.asNode(), LDS.AdminDataspace.asNode());
     }
 
 }

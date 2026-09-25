@@ -2,7 +2,7 @@
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
-    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
+    <!ENTITY lds    "https://w3id.org/atomgraph/linkeddatahub/dataspaces#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
@@ -17,7 +17,7 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:ac="&ac;"
 xmlns:ldh="&ldh;"
-xmlns:lapp="&lapp;"
+xmlns:lds="&lds;"
 xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
 xmlns:owl="&owl;"

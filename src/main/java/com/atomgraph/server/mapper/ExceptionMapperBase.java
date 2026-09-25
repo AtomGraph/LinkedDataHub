@@ -32,7 +32,7 @@ import jakarta.ws.rs.core.Variant;
 import jakarta.ws.rs.ext.Provider;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.util.Link;
-import com.atomgraph.server.vocabulary.LDT;
+import com.atomgraph.linkeddatahub.vocabulary.LDS;
 import com.atomgraph.server.vocabulary.HTTP;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.HttpHeaders;
@@ -88,12 +88,12 @@ abstract public class ExceptionMapperBase
 //                new EntityTag(Long.toHexString(ModelUtils.hashModel(model))),
 //                variant).
 //                getResponseBuilder().
-//            header(HttpHeaders.LINK, new Link(getUriInfo().getBaseUri(), LDT.base.getURI(), null));
+//            header(HttpHeaders.LINK, new Link(getUriInfo().getBaseUri(), LDS.base.getURI(), null));
 
         return Response.ok(). // status will be overriden in the subclasses
             entity(model).
             variant(variant).
-            header(HttpHeaders.LINK, new Link(getUriInfo().getBaseUri(), LDT.base.getURI(), null));
+            header(HttpHeaders.LINK, new Link(getUriInfo().getBaseUri(), LDS.base.getURI(), null));
     }
 
     /**

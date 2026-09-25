@@ -7,8 +7,7 @@
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
 @prefix owl:	<http://www.w3.org/2002/07/owl#> .
-@prefix ldt:	<https://www.w3.org/ns/ldt#> .
-@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .
+@prefix dh:	<https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#> .
 @prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .
 @prefix sp:	<http://spinrdf.org/sp#> .
 @prefix spin:	<http://spinrdf.org/spin#> .
@@ -596,7 +595,7 @@ ac:ChartMode a ac:Mode, ac:ContainerMode ;
 
 ### EXTERNAL ASSERTIONS
 
-# https://www.w3.org/ns/ldt/document-hierarchy
+# https://w3id.org/atomgraph/linkeddatahub/document-hierarchy
 
 dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :BlockConstructor .
 
@@ -752,7 +751,7 @@ sd:Service spin:constructor :ServiceConstructor ;
 :ServiceConstructor a :Constructor ;
     sp:text """
       PREFIX a:       <https://w3id.org/atomgraph/core#>
-      PREFIX lapp:    <https://w3id.org/atomgraph/linkeddatahub/apps#>
+      PREFIX lds:     <https://w3id.org/atomgraph/linkeddatahub/dataspaces#>
       PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
       PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
       PREFIX sd:      <http://www.w3.org/ns/sparql-service-description#>
@@ -763,7 +762,7 @@ sd:Service spin:constructor :ServiceConstructor ;
               a:graphStore [ a rdfs:Resource ] ;
               a:authUser [ a xsd:string ] ;
               a:authPwd [ a xsd:string ] ;
-              lapp:proxy [ a rdfs:Resource ] .
+              lds:proxy [ a rdfs:Resource ] .
       }
       WHERE {}""" ;
     rdfs:label "Service constructor" ;

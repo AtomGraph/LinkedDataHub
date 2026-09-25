@@ -63,7 +63,7 @@ public class VersioningFilterTest
     @Mock private SecurityContext securityContext;
     @Mock private Agent agent;
     @Mock private com.atomgraph.linkeddatahub.Application system;
-    @Mock private com.atomgraph.linkeddatahub.apps.model.Application application;
+    @Mock private com.atomgraph.linkeddatahub.dataspaces.model.Dataspace application;
     @Mock private com.atomgraph.linkeddatahub.model.Service service;
     @Mock private ServiceContext serviceContext;
     @Mock private GraphVersioningService versioningService;

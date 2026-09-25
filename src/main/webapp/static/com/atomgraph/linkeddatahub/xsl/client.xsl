@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
-    <!ENTITY lapp       "https://w3id.org/atomgraph/linkeddatahub/apps#">
+    <!ENTITY lds        "https://w3id.org/atomgraph/linkeddatahub/dataspaces#">
     <!ENTITY def        "https://w3id.org/atomgraph/linkeddatahub/default#">
     <!ENTITY adm        "https://w3id.org/atomgraph/linkeddatahub/admin#">
     <!ENTITY ldh        "https://w3id.org/atomgraph/linkeddatahub#">
@@ -15,7 +15,7 @@
     <!ENTITY srx        "http://www.w3.org/2005/sparql-results#">
     <!ENTITY http       "http://www.w3.org/2011/http#">
     <!ENTITY acl        "http://www.w3.org/ns/auth/acl#">
-    <!ENTITY dh         "https://www.w3.org/ns/ldt/document-hierarchy#">
+    <!ENTITY dh         "https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#">
     <!ENTITY sd         "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY sh         "http://www.w3.org/ns/shacl#">
     <!ENTITY sp         "http://spinrdf.org/sp#">
@@ -42,7 +42,7 @@ xmlns:array="http://www.w3.org/2005/xpath-functions/array"
 xmlns:saxon="http://saxon.sf.net/"
 xmlns:a="&a;"
 xmlns:ac="&ac;"
-xmlns:lapp="&lapp;"
+xmlns:lds="&lds;"
 xmlns:ldh="&ldh;"
 xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
@@ -99,7 +99,7 @@ extension-element-prefixes="ixsl"
     <xsl:param name="ldh:ajaxRendering" select="true()" as="xs:boolean"/>
     <xsl:param name="ldh:renderSystemResources" select="false()" as="xs:boolean"/>
     <xsl:param name="ac:contextUri" as="xs:anyURI"/>
-    <xsl:param name="lapp:origin" select="lapp:origin(ldh:request-uri())" as="xs:anyURI"/> <!-- emulates the server-side writer-set param: the shell origin serving static assets, as opposed to the pane-scoped lapp:origin() -->
+    <xsl:param name="lds:origin" select="lds:origin(ldh:request-uri())" as="xs:anyURI"/> <!-- emulates the server-side writer-set param: the shell origin serving static assets, as opposed to the pane-scoped lds:origin() -->
     <xsl:param name="ac:query" select="ldh:query-params()?query" as="xs:string?"/>
     <xsl:param name="sparql-parser" select="ixsl:call(ixsl:window(), 'Reflect.construct', [ ixsl:get(ixsl:get(ixsl:window(), '`' || 'SPARQL.js' || '`'), 'Parser'), [] ] )"/>
     <xsl:param name="sparql-generator" select="ixsl:call(ixsl:window(), 'Reflect.construct', [ ixsl:get(ixsl:get(ixsl:window(), '`' || 'SPARQL.js' || '`'), 'Generator'), [] ] )"/>
@@ -310,7 +310,7 @@ WHERE
                         <ixsl:set-property name="endpoint" select="$endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     </xsl:if>
                     <!-- store application URI from Link header -->
-                    <xsl:variable name="application" select="ldh:link-targets(?headers?link, '&lapp;application')[1]" as="xs:anyURI?"/>
+                    <xsl:variable name="application" select="ldh:link-targets(?headers?link, '&lds;dataspace')[1]" as="xs:anyURI?"/>
                     <xsl:if test="$application">
                         <ixsl:set-property name="application" select="$application" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     </xsl:if>
@@ -336,7 +336,7 @@ WHERE
                         <xsl:variable name="pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][./div[contains-token(@class, 'document-body')]/@about = $doc-uri]" as="element()?"/>
                         <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
                         <xsl:variable name="tab-body-id" select="'ldh-pane-' || ac:uuid()" as="xs:string"/>
-                        <xsl:variable name="tab-base" select="if ($application) then resolve-uri('/', lapp:origin($doc-uri)) else ()" as="xs:anyURI?"/>
+                        <xsl:variable name="tab-base" select="if ($application) then resolve-uri('/', lds:origin($doc-uri)) else ()" as="xs:anyURI?"/>
 
                         <!-- set document title from RDF; look up by the resource URI (with fragment) since SKOS Concepts etc. live at doc/#frag -->
                         <xsl:variable name="resource-uri" select="xs:anyURI($doc-uri || (if ($fragment) then '#' || $fragment else ''))" as="xs:anyURI"/>
@@ -352,11 +352,11 @@ WHERE
                         </xsl:call-template>
 
                         <!-- reuse exact-match pane, or same-origin pane (avoids accumulating panes for the same dataspace) -->
-                        <xsl:variable name="reuse-pane" select="($pane, id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][./div[contains-token(@class, 'document-body')][starts-with(@about, lapp:origin($doc-uri))]])[1]" as="element()?"/>
+                        <xsl:variable name="reuse-pane" select="($pane, id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][./div[contains-token(@class, 'document-body')][starts-with(@about, lds:origin($doc-uri))]])[1]" as="element()?"/>
                         <xsl:variable name="effective-pane-id" select="if ($reuse-pane) then $reuse-pane/@id else $tab-body-id" as="xs:string"/>
 
                         <!-- external-only, new pane only: add tab bar item and hide local pane -->
-                        <xsl:if test="not(starts-with($doc-uri, lapp:origin(ldh:request-uri()))) and not($reuse-pane)">
+                        <xsl:if test="not(starts-with($doc-uri, lds:origin(ldh:request-uri()))) and not($reuse-pane)">
                             <xsl:call-template name="ldh:AddDataspaceTab">
                                 <xsl:with-param name="doc-uri" select="$doc-uri"/>
                                 <xsl:with-param name="fragment" select="$fragment"/>
@@ -415,7 +415,7 @@ WHERE
                             <!-- no pane: create one with sidebar -->
                             <xsl:otherwise>
                                 <xsl:variable name="tab-body" as="element()">
-                                    <!-- inert class: ldh:ActivateTab (called from ldh:RenderTab below) is the single source of truth for the 'is-active' token. Defaulting to 'ldh-pane is-active' here would briefly leave two panes active (this one + the currently-active local one) and crash lapp:base()/sd:endpoint() in any code that runs between append and ActivateTab (e.g. ldh:DataspaceDrawer). -->
+                                    <!-- inert class: ldh:ActivateTab (called from ldh:RenderTab below) is the single source of truth for the 'is-active' token. Defaulting to 'ldh-pane is-active' here would briefly leave two panes active (this one + the currently-active local one) and crash lds:base()/sd:endpoint() in any code that runs between append and ActivateTab (e.g. ldh:DataspaceDrawer). -->
                                     <xsl:apply-templates select="$render-results/*" mode="ldh:TabPanel">
                                         <xsl:with-param name="id" select="$tab-body-id"/>
                                         <xsl:with-param name="class" select="'ldh-pane'"/>
@@ -520,7 +520,7 @@ WHERE
                                 <xsl:sequence select="?body"/>
                             </xsl:when>
                             <xsl:otherwise>
-                                <xsl:variable name="status-resource" select="key('status-by-code', xs:integer(?status), document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/http-statusCodes.rdf', $lapp:origin)))" as="element()?"/>
+                                <xsl:variable name="status-resource" select="key('status-by-code', xs:integer(?status), document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/http-statusCodes.rdf', $lds:origin)))" as="element()?"/>
                                 <xsl:document>
                                     <rdf:RDF>
                                         <rdf:Description rdf:nodeID="error">
@@ -555,7 +555,7 @@ WHERE
                     </xsl:call-template>
 
                     <!-- external-only, new pane only: add tab bar item and hide local panes (mirrors the 200/RDF success path) -->
-                    <xsl:if test="not(starts-with($doc-uri, lapp:origin(ldh:request-uri()))) and not($pane)">
+                    <xsl:if test="not(starts-with($doc-uri, lds:origin(ldh:request-uri()))) and not($pane)">
                         <xsl:call-template name="ldh:AddDataspaceTab">
                             <xsl:with-param name="doc-uri" select="$doc-uri"/>
                             <xsl:with-param name="fragment" select="$fragment"/>
@@ -1080,7 +1080,7 @@ WHERE
 
     <!-- intercept all HTML and SVG link clicks except to /uploads/ and those in the header (except breadcrumb bar, .ldh-wordmark and app list) and the footer -->
     <!-- resolve URLs against the current document URL because they can be relative -->
-    <xsl:template match="a[not(@target)][starts-with(resolve-uri(@href, ldh:base-uri(.)), 'http://') or starts-with(resolve-uri(@href, ldh:base-uri(.)), 'https://')][not(starts-with(resolve-uri(@href, ldh:base-uri(.)), resolve-uri('uploads/', lapp:base())))][ancestor::div[contains-token(@class, 'breadcrumb-nav')] or not(ancestor::div[tokenize(@class, ' ') = ('ldh-header', 'ldh-footer')])] | a[contains-token(@class, 'ldh-wordmark')] | div[button[contains-token(@class, 'btn-apps')]]/div//a | svg:a[not(@target)][starts-with(resolve-uri(@href, ldh:base-uri(.)), 'http://') or starts-with(resolve-uri(@href, ldh:base-uri(.)), 'https://')][not(starts-with(resolve-uri(@href, ldh:base-uri(.)), resolve-uri('uploads/', lapp:base())))]" mode="ixsl:onclick">
+    <xsl:template match="a[not(@target)][starts-with(resolve-uri(@href, ldh:base-uri(.)), 'http://') or starts-with(resolve-uri(@href, ldh:base-uri(.)), 'https://')][not(starts-with(resolve-uri(@href, ldh:base-uri(.)), resolve-uri('uploads/', lds:base())))][ancestor::div[contains-token(@class, 'breadcrumb-nav')] or not(ancestor::div[tokenize(@class, ' ') = ('ldh-header', 'ldh-footer')])] | a[contains-token(@class, 'ldh-wordmark')] | div[button[contains-token(@class, 'btn-apps')]]/div//a | svg:a[not(@target)][starts-with(resolve-uri(@href, ldh:base-uri(.)), 'http://') or starts-with(resolve-uri(@href, ldh:base-uri(.)), 'https://')][not(starts-with(resolve-uri(@href, ldh:base-uri(.)), resolve-uri('uploads/', lds:base())))]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="href" select="xs:anyURI(resolve-uri(@href, ldh:base-uri(.)))" as="xs:anyURI"/>
         <xsl:variable name="parsed" select="ldh:parse-href($href)" as="map(xs:string, item()?)"/>

@@ -21,7 +21,7 @@ doc_url="${END_USER_BASE_URL}${slug}/"
 # the properties belong to the document's primary topic: a document describing nothing but itself renders its title and
 # an empty body, so the values would never reach a dd
 
-echo "<${doc_url}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item> .
+echo "<${doc_url}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Item> .
 <${doc_url}> <http://purl.org/dc/terms/title> \"Language marking\" .
 <${doc_url}> <http://xmlns.com/foaf/0.1/primaryTopic> <${doc_url}#this> .
 <${doc_url}#this> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://example.org/test#Thing> .

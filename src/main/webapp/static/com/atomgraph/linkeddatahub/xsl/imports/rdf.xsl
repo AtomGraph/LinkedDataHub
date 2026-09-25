@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY def    "https://w3id.org/atomgraph/linkeddatahub/default#">
-    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
+    <!ENTITY lds    "https://w3id.org/atomgraph/linkeddatahub/dataspaces#">
     <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
@@ -9,7 +9,7 @@
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY owl    "http://www.w3.org/2002/07/owl#">
     <!ENTITY sparql "http://www.w3.org/2005/sparql-results#">
-    <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
+    <!ENTITY dh     "https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
@@ -23,7 +23,7 @@ xmlns="http://www.w3.org/1999/xhtml"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
-xmlns:lapp="&lapp;"
+xmlns:lds="&lds;"
 xmlns:ldh="&ldh;"
 xmlns:ac="&ac;"
 xmlns:rdf="&rdf;"
@@ -110,7 +110,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" select="'subject'" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
-        <xsl:param name="auto" select="local-name() = 'nodeID' or starts-with(., lapp:base())" as="xs:boolean"/>
+        <xsl:param name="auto" select="local-name() = 'nodeID' or starts-with(., lds:base())" as="xs:boolean"/>
         <xsl:param name="type-metadata" as="document-node()?" tunnel="yes"/>
         <xsl:param name="combobox-class" select="'type-combobox combobox'" as="xs:string"/>
         <xsl:param name="combobox-list-class" select="'type-combobox combobox ac-cb-panel'" as="xs:string"/>

@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
-    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
+    <!ENTITY lds    "https://w3id.org/atomgraph/linkeddatahub/dataspaces#">
     <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
-    <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
+    <!ENTITY dh     "https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#">
     <!ENTITY prov   "http://www.w3.org/ns/prov#">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
     <!ENTITY dct    "http://purl.org/dc/terms/">
@@ -17,7 +17,7 @@ xmlns="http://www.w3.org/1999/xhtml"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
-xmlns:lapp="&lapp;"
+xmlns:lds="&lds;"
 xmlns:ldh="&ldh;"
 xmlns:ac="&ac;"
 xmlns:lacl="&lacl;"
@@ -62,7 +62,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="*[rdf:type/@rdf:resource = '&lacl;AuthorizationRequest']" priority="1">
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <!-- we're not using the form's default action so we're not tunneling the param here -->
-        <xsl:param name="action" select="ldh:href(resolve-uri(ac:uuid() || '/', resolve-uri('acl/authorizations/', lapp:base())), map{ '_method': 'PUT' })" as="xs:anyURI"/> <!-- create new authorization document -->
+        <xsl:param name="action" select="ldh:href(resolve-uri(ac:uuid() || '/', resolve-uri('acl/authorizations/', lds:base())), map{ '_method': 'PUT' })" as="xs:anyURI"/> <!-- create new authorization document -->
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" select="'ldh-prop-form'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>

@@ -18,19 +18,18 @@ package com.atomgraph.linkeddatahub.server.filter.response;
 
 import com.atomgraph.client.util.HTMLMediaTypePredicate;
 import com.atomgraph.client.vocabulary.AC;
-import com.atomgraph.server.vocabulary.LDT;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.server.util.LanguageNegotiator;
-import com.atomgraph.linkeddatahub.apps.model.Application;
-import com.atomgraph.linkeddatahub.apps.model.Dataset;
+import com.atomgraph.linkeddatahub.dataspaces.model.Dataspace;
+import com.atomgraph.linkeddatahub.dataspaces.model.Dataset;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.server.model.impl.Dispatcher;
 import com.atomgraph.linkeddatahub.server.model.impl.DocumentHierarchyGraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.server.util.Link;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
-import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
+import com.atomgraph.linkeddatahub.vocabulary.LDS;
 import com.atomgraph.linkeddatahub.writer.TimeMapWriter;
 import java.io.IOException;
 import java.net.URI;
@@ -59,7 +58,7 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
     private static final Logger log = LoggerFactory.getLogger(ResponseHeadersFilter.class);
 
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject jakarta.inject.Provider<Optional<Application>> app;
+    @Inject jakarta.inject.Provider<Optional<Dataspace>> app;
     @Inject jakarta.inject.Provider<Optional<Dataset>> dataset;
     @Inject jakarta.inject.Provider<Optional<AuthorizationContext>> authorizationContext;
 
@@ -77,7 +76,7 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
         // its literals carry their own tags and none is dropped - so it is intended for all language audiences, which RFC 9110
         // spells as no Content-Language at all. Labelling it would also contradict its own Vary, which carries no
         // Accept-Language dimension for exactly the same reason
-        if (response.hasEntity() && response.getMediaType() != null && getApplication().isPresent() && new HTMLMediaTypePredicate().test(response.getMediaType()))
+        if (response.hasEntity() && response.getMediaType() != null && getDataspace().isPresent() && new HTMLMediaTypePredicate().test(response.getMediaType()))
             response.getHeaders().putSingle(HttpHeaders.CONTENT_LANGUAGE,
                 LanguageNegotiator.publishedTag(request.getAcceptableLanguages(), getSystem().getSupportedLanguages()));
 
@@ -115,14 +114,14 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
             response.getHeaders().add(HttpHeaders.LINK, new Link(request.getUriInfo().getBaseUriBuilder().path(Dispatcher.class, "getSPARQLEndpoint").build(), SD.endpoint.getURI(), null));
 
         // Only add application-specific links if application is present and this is not a proxy request
-        if (!isProxyRequest && getApplication().isPresent())
+        if (!isProxyRequest && getDataspace().isPresent())
         {
-            Application application = getApplication().get();
-            // add Link rel=lapp:application
-            response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(application.getURI()), LAPP.application.getURI(), null));
-            // add Link rel=ldt:ontology, if the ontology URI is specified
+            Dataspace application = getDataspace().get();
+            // add Link rel=lds:dataspace
+            response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(application.getURI()), LDS.dataspace.getURI(), null));
+            // add Link rel=lds:ontology, if the ontology URI is specified
             if (application.getOntology() != null)
-                response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(application.getOntology().getURI()), LDT.ontology.getURI(), null));
+                response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(application.getOntology().getURI()), LDS.ontology.getURI(), null));
             // add Memento (RFC 7089) hypermedia, if the document is versioned
             if (getSystem().getGraphVersioningService().getRepository(application.getURI()).isPresent() &&
                     request.getUriInfo().getMatchedResources().stream().anyMatch(DocumentHierarchyGraphStoreImpl.class::isInstance))
@@ -181,7 +180,7 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
      *
      * @return optional application resource
      */
-    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
+    public Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace> getDataspace()
     {
         return app.get();
     }

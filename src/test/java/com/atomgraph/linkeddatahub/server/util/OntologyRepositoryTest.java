@@ -17,8 +17,8 @@
 package com.atomgraph.linkeddatahub.server.util;
 
 import com.atomgraph.core.client.GraphStoreClient;
-import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.dataspaces.model.AdminDataspace;
+import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.model.ServiceContext;
 import jakarta.ws.rs.core.MultivaluedMap;
@@ -58,8 +58,8 @@ public class OntologyRepositoryTest
     private static final Query ONTOLOGY_QUERY = QueryFactory.create("CONSTRUCT { ?ontology ?p ?o } WHERE { ?ontology ?p ?o }");
 
     @Mock com.atomgraph.linkeddatahub.Application system;
-    @Mock EndUserApplication app;
-    @Mock AdminApplication adminApp;
+    @Mock EndUserDataspace app;
+    @Mock AdminDataspace adminApp;
     @Mock Service service;
     @Mock ServiceContext serviceContext;
     @Mock com.atomgraph.core.client.SPARQLClient sparqlClient;
@@ -68,7 +68,7 @@ public class OntologyRepositoryTest
 
     private void stubSPARQLChain(Model sparqlResult)
     {
-        when(app.getAdminApplication()).thenReturn(adminApp);
+        when(app.getAdminDataspace()).thenReturn(adminApp);
         when(adminApp.getService()).thenReturn(service);
         when(system.getServiceContext(service)).thenReturn(serviceContext);
         when(serviceContext.getSPARQLClient()).thenReturn(sparqlClient);

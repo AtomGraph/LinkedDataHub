@@ -1,6 +1,5 @@
-@prefix lapp:	<https://w3id.org/atomgraph/linkeddatahub/apps#> .
+@prefix lds:	<https://w3id.org/atomgraph/linkeddatahub/dataspaces#> .
 @prefix a:	    <https://w3id.org/atomgraph/core#> .
-@prefix ldt:	<https://www.w3.org/ns/ldt#> .
 @prefix sd:	    <http://www.w3.org/ns/sparql-service-description#> .
 @prefix dct:	<http://purl.org/dc/terms/> .
 @prefix doap:	<http://usefulinc.com/ns/doap#> .
@@ -13,8 +12,8 @@
 
 <urn:linkeddatahub:apps/admin>
 {
-    <urn:linkeddatahub:apps/admin> a lapp:AdminApplication ;
-        ldt:service <urn:linkeddatahub:services/admin> .
+    <urn:linkeddatahub:apps/admin> a lds:AdminDataspace ;
+        lds:service <urn:linkeddatahub:services/admin> .
 }
 
 # root admin - service description
@@ -33,11 +32,11 @@
 
 <urn:linkeddatahub:apps/end-user>
 {
-    <urn:linkeddatahub:apps/end-user> a lapp:EndUserApplication ;
-        ldt:service <urn:linkeddatahub:services/end-user> .
+    <urn:linkeddatahub:apps/end-user> a lds:EndUserDataspace ;
+        lds:service <urn:linkeddatahub:services/end-user> .
 
     # uncomment to enable GitHub-backed graph versioning for this dataspace:
-    # <urn:linkeddatahub:apps/end-user> lapp:versioningRepository <urn:linkeddatahub:versioning/end-user> .
+    # <urn:linkeddatahub:apps/end-user> lds:versioningRepository <urn:linkeddatahub:versioning/end-user> .
 }
 
 # root end-user - versioning repository (GitHub-backed graph versioning)
@@ -68,8 +67,8 @@
 
 <urn:linkeddatahub:apps/northwind-traders/admin>
 {
-    <urn:linkeddatahub:apps/northwind-traders/admin> a lapp:AdminApplication ;
-        ldt:service <urn:linkeddatahub:services/northwind-traders/admin> .
+    <urn:linkeddatahub:apps/northwind-traders/admin> a lds:AdminDataspace ;
+        lds:service <urn:linkeddatahub:services/northwind-traders/admin> .
 }
 
 # northwind-traders admin - service description
@@ -88,8 +87,8 @@
 
 <urn:linkeddatahub:apps/northwind-traders/end-user>
 {
-    <urn:linkeddatahub:apps/northwind-traders/end-user> a lapp:EndUserApplication ;
-        ldt:service <urn:linkeddatahub:services/northwind-traders/end-user> .
+    <urn:linkeddatahub:apps/northwind-traders/end-user> a lds:EndUserDataspace ;
+        lds:service <urn:linkeddatahub:services/northwind-traders/end-user> .
 }
 
 # northwind-traders end-user - service description

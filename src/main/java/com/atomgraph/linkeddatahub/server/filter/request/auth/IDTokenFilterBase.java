@@ -16,9 +16,9 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.request.auth;
 
-import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
-import com.atomgraph.linkeddatahub.apps.model.Application;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.dataspaces.model.AdminDataspace;
+import com.atomgraph.linkeddatahub.dataspaces.model.Dataspace;
+import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.server.filter.request.AuthenticationFilter;
 import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
@@ -163,8 +163,8 @@ public abstract class IDTokenFilterBase extends AuthenticationFilter
     public void filter(ContainerRequestContext request) throws IOException
     {
         if (request.getSecurityContext().getUserPrincipal() != null) return; // skip filter if agent already authorized
-        if (!getApplication().isPresent()) return; // skip if no application matched
-        if (!getApplication().get().canAs(EndUserApplication.class) && !getApplication().get().canAs(AdminApplication.class)) return; // skip "primitive" apps
+        if (!getDataspace().isPresent()) return; // skip if no application matched
+        if (!getDataspace().get().canAs(EndUserDataspace.class) && !getDataspace().get().canAs(AdminDataspace.class)) return; // skip "primitive" apps
 
         // do not verify token for auth endpoints as that will lead to redirect loops
         if (request.getUriInfo().getAbsolutePath().equals(getLoginURL())) return;
@@ -247,14 +247,14 @@ public abstract class IDTokenFilterBase extends AuthenticationFilter
     }
 
     @Override
-    public void login(Application app, ContainerRequestContext request)
+    public void login(Dataspace app, ContainerRequestContext request)
     {
         Response response = Response.seeOther(getAuthorizeURL()).build();
         throw new WebApplicationException(response);
     }
 
     @Override
-    public void logout(Application app, ContainerRequestContext request)
+    public void logout(Dataspace app, ContainerRequestContext request)
     {
         Cookie cookie = request.getCookies().get(COOKIE_NAME);
         if (cookie != null)
@@ -310,12 +310,12 @@ public abstract class IDTokenFilterBase extends AuthenticationFilter
      *
      * @return admin application resource
      */
-    public AdminApplication getAdminApplication()
+    public AdminDataspace getAdminDataspace()
     {
-        if (getApplication().get().canAs(EndUserApplication.class))
-            return getApplication().get().as(EndUserApplication.class).getAdminApplication();
+        if (getDataspace().get().canAs(EndUserDataspace.class))
+            return getDataspace().get().as(EndUserDataspace.class).getAdminDataspace();
         else
-            return getApplication().get().as(AdminApplication.class);
+            return getDataspace().get().as(AdminDataspace.class);
     }
 
     /**
