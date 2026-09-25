@@ -67,10 +67,10 @@ find ./document-hierarchy/ -name '*.sh' -exec bash {} \;
 
 ### Key Components
 
-#### Applications (`com.atomgraph.linkeddatahub.dataspaces.model`)
-- `AdminApplication` - Administrative interface and functions
-- `EndUserApplication` - Main user-facing application
-- Applications are data-driven and loaded from RDF datasets
+#### Dataspaces (`com.atomgraph.linkeddatahub.dataspaces.model`)
+- `AdminDataspace` - Administrative interface and functions
+- `EndUserDataspace` - Main user-facing application
+- Dataspaces are data-driven and loaded from RDF datasets
 
 #### Security & Authentication (`com.atomgraph.linkeddatahub.server.filter.request.auth`)
 - WebID-based authentication with client certificates

@@ -132,7 +132,7 @@ public class PackageServiceTest
     }
 
     @Test
-    public void testDocumentURINullWithoutAdminApplication()
+    public void testDocumentURINullWithoutAdminDataspace()
     {
         when(endUserApp.getAdminDataspace()).thenReturn(null);
 
