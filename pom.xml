@@ -169,13 +169,13 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>6.0.1</version>
+            <version>6.0.2</version>
             <classifier>classes</classifier>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>6.0.1</version>
+            <version>6.0.2</version>
             <type>war</type>
         </dependency>
         <dependency>
