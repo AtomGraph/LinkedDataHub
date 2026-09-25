@@ -10,7 +10,7 @@
 // proxy entry point - the same parameter an external resource is dereferenced through.
 import { test, expect } from '../../../lib/console.mjs';
 import { goto, settled } from '../../../lib/settle.mjs';
-import { itemUri } from '../../../lib/fixtures.mjs';
+import { fixtures, itemUri } from '../../../lib/fixtures.mjs';
 
 const address = page => page.locator('form.ldh-address');
 const uri = page => address(page).locator('input#uri');
@@ -28,12 +28,19 @@ test('takes a URI and dereferences it', async ({ page }) => {
     await goto(page, itemUri(1));
     await settled(page);
 
-    await uri(page).fill(itemUri(2));
+    // The container, which the anonymous reader is granted (lib/fixtures.mjs) as this document is.
+    // The bar is the same control whoever is reading, so the spec runs on both axes - but a URI
+    // outside the grant would answer 403, and a 403 is page noise that fails the test whatever the
+    // bar did. What that would assert is the ACL, which anonymous-affordances.spec.mjs asserts.
+    await uri(page).fill(fixtures.container);
     await uri(page).press('Enter');
 
-    // What the bar promises is that the URI typed into it is the document you end up reading, and
-    // the bar states the document being read - so the bar showing the new URI IS the round trip.
+    // The document that ends up being read, stated by the body itself. This is the half of the
+    // round trip the typed value cannot stand in for: `fill` puts the URI in the bar before Enter
+    // is ever pressed, so a bar wired to nothing would satisfy an assertion on its value alone.
     // Which address the browser lands on to get there (the document itself, or the platform's
-    // `uri=` proxy parameter) is the platform's business rather than the bar's.
-    await expect(uri(page)).toHaveValue(itemUri(2), { timeout: 30_000 });
+    // `uri=` proxy parameter) is the platform's business rather than the bar's, so it is not read.
+    await expect(page.locator('div.document-body')).toHaveAttribute('about', fixtures.container, { timeout: 30_000 });
+    // And the bar states the document being read, which is the other half.
+    await expect(uri(page)).toHaveValue(fixtures.container);
 });
