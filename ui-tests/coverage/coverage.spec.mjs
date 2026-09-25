@@ -114,7 +114,16 @@ test('the inventory is well formed', () => {
 
     const pathOf = xsl => (xsl.startsWith('packages/') ? join(repoRoot, xsl) : join(xslBase, xsl));
 
-    const missing = declared
+    // `packages/` is a working copy, not part of the repository - .gitignore excludes it, and a
+    // package reaches an instance as an import from its publisher rather than as a file in the
+    // tree. CI therefore has no packages/ at all, which is exactly how this check first failed
+    // there while passing on a laptop that happened to have one checked out. A package-owned
+    // record is checked only where its working copy exists; the platform's own modules are
+    // checked always, which is the half a typo would otherwise slip through.
+    const havePackages = existsSync(join(repoRoot, 'packages'));
+    const checkable = declared.filter(component => havePackages || !component.xsl.startsWith('packages/'));
+
+    const missing = checkable
         .map(component => ({ path: component.path, xsl: component.xsl }))
         .filter(({ xsl }) => !existsSync(pathOf(xsl)));
     expect(missing, 'a component names an XSL module that does not exist').toEqual([]);
@@ -131,13 +140,15 @@ test('the inventory is well formed', () => {
         .map(entry => String(entry).split('\\').join('/'))
         .filter(entry => entry.endsWith('.xsl'))
         .map(entry => join(xslBase, entry))
-        .concat(readdirSync(join(repoRoot, 'packages'), { recursive: true })
-            .map(entry => String(entry).split('\\').join('/'))
-            .filter(entry => entry.endsWith('.xsl'))
-            .map(entry => join(repoRoot, 'packages', entry)));
+        .concat(havePackages
+            ? readdirSync(join(repoRoot, 'packages'), { recursive: true })
+                .map(entry => String(entry).split('\\').join('/'))
+                .filter(entry => entry.endsWith('.xsl'))
+                .map(entry => join(repoRoot, 'packages', entry))
+            : []);
     const emitted = stylesheets.map(file => readFileSync(file, 'utf8')).join('\n');
 
-    const unemitted = declared
+    const unemitted = checkable
         .map(component => ({
             path: component.path,
             selector: component.selector,
