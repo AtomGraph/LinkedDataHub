@@ -22,6 +22,8 @@ Bootstrap 2 is gone, and with it the class vocabulary and the `bs2:` template mo
 - `ldh:container` leaves the ontology, the `ldh:ViewConstructor` form and the view query: a view's Create button determines the container from the view's own solutions
 - A deployment with its own compose file adds the `./packages` bind mount at `/var/www/linkeddatahub/packages` (`PACKAGE_ROOT`), where copies of imported package stylesheets survive a redeploy
 - A package ontology imported before this release is materialized under `admin/ontologies/` on the next request and edited there from then on; a later change to the published package reaches the application only after that document is deleted
+- **BREAKING**: a write to a document that already exists must be conditional — `If-Match` with the document's current `ETag`, or `If-None-Match: *` to create — and is answered `428 Precondition Required` otherwise; a client that wrote unconditionally now reads the tag first, as `ldh` does for you
+- An entity tag identifies a negotiated variant, so the read supplying the validator must send the same `Accept` as the write quoting it, or the write is refused `412`
 
 ### Added
 - Design system port: the app shell, content blocks, action bar, breadcrumbs, mode lists, type badges, property lists, pager, modals and forms all render the design system's class vocabulary
@@ -63,6 +65,9 @@ Bootstrap 2 is gone, and with it the class vocabulary and the `bs2:` template mo
 - `ui-tests/`: a Playwright suite driving the running stack as owner and anonymous, with a console/page-error/alert/4xx collector, a hydration gate on Saxon-JS's listener binding, `ldh`-seeded fixtures and a stale-SEF preflight; its own CI workflow (`make ui-tests`)
 
 ### Changed
+- Entity tags are a SHA-256 digest of the graph URI and the graph's statements, replacing a XOR fold of per-statement hashes; every document's `ETag` changes once on upgrade, so caches revalidate and conditional requests in flight are refused
+- `HEAD` is answered for any access mode the agent holds rather than `acl:Read` alone, so an agent with `acl:Write` or `acl:Append` can read the validator its writes have to quote; `GET` still needs `acl:Read`, and a non-reader's `HEAD` omits `Last-Modified`
+- A failed precondition answers with the document's current entity tag, so a client can retry against it without a second read
 - `POST /clear` takes an optional `uri`: without one it empties the cache and reloads nothing, with one it also purges that URI's proxy caches and reassembles its closure before responding. `ldh admin clear ontology --ontology` is optional to match
 - Ontology resolution asks the store before the bundled mappings, so an application's own graph declaring an ontology outranks the copy the platform ships
 - `Import ontology` and `ldh admin import ontology` keep the vocabulary in the target document beside the derived constructors, with `foaf:primaryTopic` naming it; the document is no longer typed `owl:Ontology`
@@ -119,6 +124,8 @@ Bootstrap 2 is gone, and with it the class vocabulary and the `bs2:` template mo
 - `LocalStylesheetResolver`, the bundled package stylesheet copy and its mapping, `location-mapping.ttl`, and the namespace mappings no ontology imports and no stylesheet uses
 
 ### Fixed
+- `varnish-admin` never invalidated cached SPARQL query results, so a SELECT kept its pre-write answer for the full cache lifetime; writes now ban them as the end-user cache already did
+- Editing a class's constructors rewrote every constructor in the document at once, and two saved together could overwrite each other; each is saved on its own, in sequence, and one shared with another class is left alone
 - Clearing an ontology discards every cached graph and assembled closure, not just the keys derived from the URI it was given: a closure caches each URI it imports, so a vocabulary or package ontology kept answering from a document that had been edited or deleted until the container restarted
 - Clearing also purges every ontology response the admin proxy holds, through a surrogate key stamped on each ontology query, so the closure no longer rebuilds from the responses the clear was meant to discard
 - Adding a constructor to a class delivered by a package did nothing: the editor now writes to the graph that holds the constructor and accepts the `204` a PATCH answers
@@ -158,6 +165,8 @@ Bootstrap 2 is gone, and with it the class vocabulary and the `bs2:` template mo
 - A block's affordances gate on the pane's access modes rather than the window's, which answered for whichever dataspace tab was active
 
 ### Security
+- Entity tags were a XOR fold of per-statement hashes, so appending a statement moved a document's tag by a value the appender could compute; an agent with `acl:Append` and no `acl:Read` — a dropbox depositor — could add a statement, read the tag off its own write, and learn whether that statement was already in a document it may not read. The digest that replaces it makes the difference between two tags say nothing, and covers `/settings` on the same footing
+- Unconditional writes silently overwrote concurrent ones, because every write reads the graph, changes it in memory and writes it back; requiring a precondition turns a lost update into a `412` the client can retry
 - A SPARQL `SERVICE` clause in a query to `/sparql` could read the admin store from inside the stack; the triplestores' outbound requests go through an `egress` Squid proxy that refuses loopback, private and link-local destinations
 - Deployments with their own compose files need the `egress` service and the stores' `JAVA_TOOL_OPTIONS`, including the empty `http.nonProxyHosts`
 - A `SERVICE` clause in a PATCH update or an import mapping runs in the platform's JVM; it is routed through the egress proxy too (`EGRESS_PROXY`, default `egress:3128`), and with no proxy and `ALLOW_INTERNAL_URLS` unset, in-JVM `SERVICE` is disabled
