@@ -133,7 +133,6 @@ public class AccessRequest
                 String humanReadableName = getAgentsHumanReadableName(getAgentContext().get().getAgent());
                 String accessRequestLabel = humanReadableName != null ? "Access request by " + humanReadableName : null; // TO-DO: localize the string
                         
-                Resource agentGroup = authorization.getPropertyResourceValue(ACL.agentGroup);
                 Resource accessTo = authorization.getPropertyResourceValue(ACL.accessTo);
                 Resource accessToClass = authorization.getPropertyResourceValue(ACL.accessToClass);
                 
@@ -154,7 +153,6 @@ public class AccessRequest
                     modeIt.close();
                 }
                 
-                if (agentGroup != null) accessRequest.addProperty(LACL.requestAgentGroup, agentGroup);
                 if (accessTo != null) accessRequest.addProperty(LACL.requestAccessTo, accessTo);
                 if (accessToClass != null) accessRequest.addProperty(LACL.requestAccessToClass, accessToClass);
                 

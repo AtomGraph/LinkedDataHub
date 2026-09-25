@@ -17,7 +17,7 @@
 
 : a owl:Ontology ;
     owl:imports ldh:, <http://spinrdf.org/sp>, <http://spinrdf.org/spin>, <http://www.w3.org/ns/auth/acl>, cert: ;
-    owl:versionInfo "1.1.4" ;
+    owl:versionInfo "1.2.0" ;
     rdfs:label "LinkedDataHub ACL ontology" .
 
 :password a owl:DatatypeProperty ;
@@ -107,8 +107,8 @@
         WHERE {}""" ;
     rdfs:isDefinedBy : .
 
-:CreatorAuthorization a rdfs:Class, owl:Class ;
+:OwnerAuthorization a rdfs:Class, owl:Class ;
     rdfs:subClassOf acl:Authorization ;
-    rdfs:label "Creator access" ;
-    rdfs:comment "Creators have full control of their created resources" ;
+    rdfs:label "Owner access" ;
+    rdfs:comment "Granted in-memory to the owner of a document, carrying acl:Read, acl:Append and acl:Write. Never stored: AuthorizationFilter mints it per request once the agent is found to be the owner, before the ACL query runs" ;
     rdfs:isDefinedBy : .
