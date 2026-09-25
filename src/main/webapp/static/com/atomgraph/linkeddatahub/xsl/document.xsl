@@ -313,7 +313,7 @@ exclude-result-prefixes="#all"
 
         <xsl:if test="$foaf:Agent//@rdf:about">
             <div class="ldh-of-wrap ac-menu-anchor">
-                <button type="button" class="ac-btn in-neutral ap-outline sz-md drop-toggle">
+                <button type="button" class="ac-btn in-neutral ap-outline sz-md drop-toggle" aria-haspopup="menu" aria-expanded="false">
                     <span class="msi sm" aria-hidden="true">bolt</span>
                     <span>
                         <xsl:apply-templates select="key('resources', 'actions', ldh:translations())" mode="ac:label"/>
@@ -368,7 +368,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
 
         <div class="ldh-of-wrap ac-menu-anchor">
-            <button type="button" class="ac-btn in-neutral ap-outline sz-md drop-toggle">
+            <button type="button" class="ac-btn in-neutral ap-outline sz-md drop-toggle" aria-haspopup="menu" aria-expanded="false">
                 <xsl:attribute name="title">
                     <xsl:apply-templates select="key('resources', 'nav-bar-action-export-rdf-title', ldh:translations())" mode="ac:label"/>
                 </xsl:attribute>
@@ -403,7 +403,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="id" select="()" as="xs:string?"/>
 
         <div class="ldh-mode ac-menu-anchor">
-            <button type="button" class="label-row layout-modes drop-toggle" title="{ac:label(key('resources', '&ac;Mode', document(ac:document-uri('&ac;'))))}">
+            <button type="button" class="label-row layout-modes drop-toggle" title="{ac:label(key('resources', '&ac;Mode', document(ac:document-uri('&ac;'))))}" aria-haspopup="menu" aria-expanded="false">
                 <xsl:if test="$id">
                     <xsl:attribute name="id" select="$id"/>
                 </xsl:if>
@@ -1322,7 +1322,7 @@ exclude-result-prefixes="#all"
                 <xsl:attribute name="class" select="$class"/>
             </xsl:if>
 
-            <button type="button" class="ac-btn in-primary ap-solid sz-md drop-toggle" title="{ac:label(key('resources', 'create-instance-title', ldh:translations()))}">
+            <button type="button" class="ac-btn in-primary ap-solid sz-md drop-toggle" title="{ac:label(key('resources', 'create-instance-title', ldh:translations()))}" aria-haspopup="menu" aria-expanded="false">
                 <span class="msi sm" aria-hidden="true">add</span>
                 <span>
                     <xsl:apply-templates select="key('resources', 'create', ldh:translations())" mode="ac:label"/>
@@ -1362,7 +1362,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
 
         <div class="ldh-add-wrap ac-menu-anchor">
-            <button type="button" class="ac-btn in-primary ap-solid sz-md drop-toggle" title="{ac:label(key('resources', 'create-instance-title', ldh:translations()))}">
+            <button type="button" class="ac-btn in-primary ap-solid sz-md drop-toggle" title="{ac:label(key('resources', 'create-instance-title', ldh:translations()))}" aria-haspopup="menu" aria-expanded="false">
                 <span class="msi sm" aria-hidden="true">add</span>
                 <span>
                     <xsl:apply-templates select="key('resources', 'create', ldh:translations())" mode="ac:label"/>

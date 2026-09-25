@@ -1091,7 +1091,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="resource" select="." as="element()"/>
                     
                     <div class="ac-menu-anchor">
-                        <button type="button" class="ac-btn in-neutral ap-solid sz-sm drop-toggle">
+                        <button type="button" class="ac-btn in-neutral ap-solid sz-sm drop-toggle" aria-haspopup="menu" aria-expanded="false">
                             <xsl:attribute name="title">
                                 <xsl:apply-templates select="key('resources', 'reconcile-title', ldh:translations())" mode="ac:label"/>
                             </xsl:attribute>

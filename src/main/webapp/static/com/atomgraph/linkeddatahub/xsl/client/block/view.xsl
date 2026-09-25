@@ -699,7 +699,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="id" select="'view-modes'" as="xs:string?"/>
         <xsl:variable name="active-mode" select="xs:anyURI(@rdf:about)" as="xs:anyURI"/>
 
-        <button type="button" class="label-row drop-toggle" title="{ac:label(key('resources', '&ac;Mode', document(ac:document-uri('&ac;'))))}">
+        <button type="button" class="label-row drop-toggle" title="{ac:label(key('resources', '&ac;Mode', document(ac:document-uri('&ac;'))))}" aria-haspopup="menu" aria-expanded="false">
             <xsl:if test="$id">
                 <xsl:attribute name="id" select="$id"/>
             </xsl:if>

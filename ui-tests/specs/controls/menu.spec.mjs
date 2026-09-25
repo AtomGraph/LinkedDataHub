@@ -5,13 +5,13 @@
 //
 // Two of the three claims are about state nobody can see in a screenshot:
 //
-//   · `aria-expanded` on the toggle. The panel's visibility is CSS off the anchor's `is-open`,
-//     so a handler that forgot the attribute would look perfect and tell a screen reader the
-//     opposite of what is on screen. It is asserted from the first press onwards rather than at
-//     rest, because the action bar's two toggles ship WITHOUT the attribute - the handler adds it
-//     when it first runs, and until then a screen reader is told nothing at all. The header's
-//     account and apps buttons do ship `aria-expanded="false"`, so this is an inconsistency in
-//     the product rather than a rule; asserting the resting state here would pin the wrong half.
+//   · `aria-expanded` on the toggle, FROM THE SERVER'S FIRST PAINT. The panel's visibility is CSS
+//     off the anchor's `is-open`, so a handler that forgot the attribute would look perfect and
+//     tell a screen reader the opposite of what is on screen. The resting state is asserted too,
+//     and that half is why this spec exists: seven toggles - both action-bar menus, the two mode
+//     switchers and the block menu - shipped with no `aria-expanded` at all, so until a reader
+//     pressed one, assistive technology was told nothing. The handler added it on first run,
+//     which is precisely the kind of gap a click-then-assert test never sees.
 //   · ONE AT A TIME. Opening a menu closes whichever other one was open - a single line in the
 //     handler that nothing else would notice, and whose absence leaves two panels overlapping.
 //
@@ -33,10 +33,14 @@ test.beforeEach(({}, testInfo) => {
     test.skip(testInfo.project.name !== 'owner', 'these menus are offered to an agent who may write');
 });
 
-test('opens on its toggle, and says so where a screen reader can hear it', async ({ page }) => {
+test('opens on its toggle, and says so where a screen reader can hear it', { tag: '@owner' }, async ({ page }) => {
     await goto(page, itemUri(1));
     await settled(page);
 
+    // At rest, before any handler has run: the markup already says it is a menu button and that
+    // the menu is shut.
+    await expect(toggleOf(overflow(page))).toHaveAttribute('aria-haspopup', 'menu');
+    await expect(toggleOf(overflow(page))).toHaveAttribute('aria-expanded', 'false');
     await expect(overflow(page)).not.toHaveClass(/is-open/);
 
     await toggleOf(overflow(page)).click();
@@ -44,7 +48,7 @@ test('opens on its toggle, and says so where a screen reader can hear it', async
     await expect(toggleOf(overflow(page))).toHaveAttribute('aria-expanded', 'true');
 });
 
-test('yields to the next menu opened, so only one panel is ever up', async ({ page }) => {
+test('yields to the next menu opened, so only one panel is ever up', { tag: '@owner' }, async ({ page }) => {
     await goto(page, itemUri(1));
     await settled(page);
 
@@ -60,7 +64,7 @@ test('yields to the next menu opened, so only one panel is ever up', async ({ pa
     await expect(toggleOf(overflow(page))).toHaveAttribute('aria-expanded', 'false');
 });
 
-test('Escape closes it and hands the focus back to the toggle', async ({ page }) => {
+test('Escape closes it and hands the focus back to the toggle', { tag: '@owner' }, async ({ page }) => {
     await goto(page, itemUri(1));
     await settled(page);
 
