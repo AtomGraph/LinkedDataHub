@@ -30,7 +30,7 @@ if ! echo "$body" | grep -q '<urn:linkeddatahub:apps/end-user>'; then
   exit 1
 fi
 
-if ! echo "$body" | grep -q '<https://w3id.org/atomgraph/linkeddatahub/apps#EndUserApplication>'; then
+if ! echo "$body" | grep -q '<https://w3id.org/atomgraph/linkeddatahub/dataspaces#EndUserDataspace>'; then
   exit 1
 fi
 

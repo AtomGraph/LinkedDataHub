@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY adm    "https://w3id.org/atomgraph/linkeddatahub/admin#">
-    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
+    <!ENTITY lds    "https://w3id.org/atomgraph/linkeddatahub/dataspaces#">
     <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl#">
     <!ENTITY def    "https://w3id.org/atomgraph/linkeddatahub/default#">
     <!ENTITY ldh    "https://w3id.org/atomgraph/linkeddatahub#">
@@ -15,7 +15,7 @@
     <!ENTITY http   "http://www.w3.org/2011/http#">
     <!ENTITY sc     "http://www.w3.org/2011/http-statusCodes#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
-    <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
+    <!ENTITY dh     "https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#">
     <!ENTITY sh     "http://www.w3.org/ns/shacl#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
@@ -35,7 +35,7 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:json="http://www.w3.org/2005/xpath-functions"
 xmlns:lacl="&lacl;"
-xmlns:lapp="&lapp;"
+xmlns:lds="&lds;"
 xmlns:ldh="&ldh;"
 xmlns:ac="&ac;"
 xmlns:rdf="&rdf;"
@@ -122,7 +122,7 @@ exclude-result-prefixes="#all"
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-logo btn-item')"/>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about = '&lapp;Application']" mode="ldh:logo">
+    <xsl:template match="*[@rdf:about = '&lds;Dataspace']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-logo btn-app')"/>
@@ -425,7 +425,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[@rdf:about]" mode="ldh:LinkRow">
         <xsl:param name="icon" select="'link'" as="xs:string"/>
 
-        <a href="{ldh:href(ac:document-uri(xs:anyURI(@rdf:about)), map{}, ac:fragment-id(@rdf:about))}" title="{@rdf:about}" class="drow{if (not(starts-with(@rdf:about, lapp:base()))) then ' external' else ''}">
+        <a href="{ldh:href(ac:document-uri(xs:anyURI(@rdf:about)), map{}, ac:fragment-id(@rdf:about))}" title="{@rdf:about}" class="drow{if (not(starts-with(@rdf:about, lds:base()))) then ' external' else ''}">
             <span class="msi sm" aria-hidden="true">
                 <xsl:value-of select="$icon"/>
             </span>
@@ -1420,7 +1420,7 @@ exclude-result-prefixes="#all"
              resource rather than off $constructors - which lists the classes that ALREADY have one - because
              a class with no constructor is exactly the one an author needs to reach: it would otherwise offer
              no button, hence no dialog, hence nowhere to add its first property. -->
-        <xsl:param name="constructor-classes" select="distinct-values(rdf:type/@rdf:resource)[not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&def;') or starts-with(., '&lapp;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))]" as="xs:anyURI*"/>
+        <xsl:param name="constructor-classes" select="distinct-values(rdf:type/@rdf:resource)[not(starts-with(., '&dh;') or starts-with(., '&ldh;') or starts-with(., '&def;') or starts-with(., '&lds;') or starts-with(., '&sp;') or starts-with(., '&nfo;'))]" as="xs:anyURI*"/>
 
         <xsl:choose>
             <xsl:when test="count($constructor-classes) = 1">
@@ -1502,7 +1502,7 @@ exclude-result-prefixes="#all"
                     <xsl:sequence select="ldh:reserialize($constructor)"/>
                 </xsl:when>
                 <xsl:when test="exists($forClass)">
-                    <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', lapp:base()), map{ 'query': ldh:constructor-query($forClass), 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
+                    <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('ns', lds:base()), map{ 'query': ldh:constructor-query($forClass), 'accept': 'application/sparql-results+xml' })" as="xs:anyURI"/>
                     <xsl:variable name="results" select="document(ldh:href($results-uri, map{}))" as="document-node()"/>
                     <xsl:sequence select="ldh:construct-instance(distinct-values($results//srx:binding[@name = 'text']/srx:literal), $forClass)"/>
                 </xsl:when>
@@ -1617,7 +1617,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <!-- Admin app override: allow subject editing for non-hierarchy resources by flipping the $show-subject default. -->
-    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][starts-with(replace(lapp:origin(), '^https?://', ''), 'admin.')]" mode="ac:FormControl" priority="1">
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][starts-with(replace(lds:origin(), '^https?://', ''), 'admin.')]" mode="ac:FormControl" priority="1">
         <xsl:param name="legend" select="true()" as="xs:boolean"/>
         <xsl:param name="show-subject" select="not(rdf:type/@rdf:resource = ('&dh;Item', '&dh;Container'))" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="required" select="false()" as="xs:boolean"/>

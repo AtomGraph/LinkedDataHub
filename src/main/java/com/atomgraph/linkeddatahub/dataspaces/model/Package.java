@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.apps.model;
+package com.atomgraph.linkeddatahub.dataspaces.model;
 
 import org.apache.jena.rdf.model.Resource;
 

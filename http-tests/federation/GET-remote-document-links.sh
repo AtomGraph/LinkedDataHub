@@ -35,7 +35,7 @@ grep -i '^link:' "$headers" | tr ',' '\n' | grep 'sparql-service-description#end
 
 # B's application URI is forwarded too (it marks the remote as a Linked Data application)
 
-grep -i '^link:' "$headers" | tr ',' '\n' | grep -q 'linkeddatahub/apps#application'
+grep -i '^link:' "$headers" | tr ',' '\n' | grep -q 'linkeddatahub/dataspaces#dataspace'
 
 # the proxied response carries B's own ETag (resource-state validator), enabling If-Match writes
 

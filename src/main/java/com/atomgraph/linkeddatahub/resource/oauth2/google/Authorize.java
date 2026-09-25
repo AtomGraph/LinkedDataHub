@@ -41,7 +41,7 @@ public class Authorize extends AuthorizeBase
      * @param system JAX-RS application
      */
     @Inject
-    public Authorize(@Context HttpServletRequest httpServletRequest, com.atomgraph.linkeddatahub.apps.model.Application application, com.atomgraph.linkeddatahub.Application system)
+    public Authorize(@Context HttpServletRequest httpServletRequest, com.atomgraph.linkeddatahub.dataspaces.model.Dataspace application, com.atomgraph.linkeddatahub.Application system)
     {
         super(httpServletRequest, application, system, (String)system.getProperty(Google.clientID.getURI()));
     }

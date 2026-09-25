@@ -69,4 +69,4 @@ curl -k  -G \
   "$item" \
 | tr -d '\n' \
 | grep '"named object PUT"' \
-| grep "<${item}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item>"
+| grep "<${item}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Item>"

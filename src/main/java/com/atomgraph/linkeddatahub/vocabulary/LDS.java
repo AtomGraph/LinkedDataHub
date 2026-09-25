@@ -24,11 +24,11 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 
 /**
- * LAPP vocabulary.
+ * LDS vocabulary.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class LAPP
+public class LDS
 {
 
     static
@@ -40,7 +40,7 @@ public class LAPP
     private static OntModel m_model = OntModelFactory.createModel(OntSpecification.OWL2_FULL_MEM);
     
     /** The namespace of the vocabulary as a string */
-    public static final String NS = "https://w3id.org/atomgraph/linkeddatahub/apps#";
+    public static final String NS = "https://w3id.org/atomgraph/linkeddatahub/dataspaces#";
     
     /**
      * The namespace of the vocabulary as a string
@@ -56,32 +56,23 @@ public class LAPP
     /** The namespace of the vocabulary as a resource */
     public static final Resource NAMESPACE = m_model.createResource( NS );
 
-    /** Application class */
+    /** System context class */
     public static final Resource Context = m_model.createOntClass( NS + "Context" );
     
     /** Dataset class */
     public static final Resource Dataset = m_model.createOntClass( NS + "Dataset" );
     
-    /** Application class */
-    public static final Resource Application = m_model.createOntClass( NS + "Application" );
+    /** Dataspace class */
+    public static final Resource Dataspace = m_model.createOntClass( NS + "Dataspace" );
 
-    /** Admin application class */
-    public static final Resource AdminApplication = m_model.createOntClass( NS + "AdminApplication" );
+    /** Admin dataspace class */
+    public static final Resource AdminDataspace = m_model.createOntClass( NS + "AdminDataspace" );
 
-    /** End-user application class */
-    public static final Resource EndUserApplication = m_model.createOntClass( NS + "EndUserApplication" );
+    /** End-user dataspace class */
+    public static final Resource EndUserDataspace = m_model.createOntClass( NS + "EndUserDataspace" );
 
     /** Package class */
     public static final Resource Package = m_model.createOntClass( NS + "Package" );
-
-    /** Admin application class */
-//    public static final Property adminApplication = m_model.createObjectProperty( NS + "adminApplication" );
-//
-//    /** End-user application class */
-//    public static final Property endUserApplication = m_model.createObjectProperty( NS + "endUserApplication" );
-
-    /** Frontend proxy property */
-    public static final Property frontendProxy = m_model.createObjectProperty( NS + "frontendProxy" );
 
     /** Backend proxy property */
     public static final Property backendProxy = m_model.createObjectProperty( NS + "backendProxy" );
@@ -92,13 +83,22 @@ public class LAPP
     /** Read-only property */
     public static final Property allowRead = m_model.createDataProperty( NS + "allowRead" );
 
-    /** Origin property for subdomain-based application matching */
+    /** Origin property for subdomain-based dataspace matching */
     public static final Property origin = m_model.createObjectProperty(NS + "origin");
 
-    /** Application property (for Link header rel) */
-    public static final Property application = m_model.createObjectProperty( NS + "application" );
+    /** Base URI property */
+    public static final Property base = m_model.createObjectProperty( NS + "base" );
 
-    /** Versioning repository property linking an application to a <code>doap:GitRepository</code> */
+    /** Ontology property */
+    public static final Property ontology = m_model.createObjectProperty( NS + "ontology" );
+
+    /** SPARQL service property */
+    public static final Property service = m_model.createObjectProperty( NS + "service" );
+
+    /** Dataspace property (for Link header rel) */
+    public static final Property dataspace = m_model.createObjectProperty( NS + "dataspace" );
+
+    /** Versioning repository property linking a dataspace to a <code>doap:GitRepository</code> */
     public static final Property versioningRepository = m_model.createObjectProperty( NS + "versioningRepository" );
 
 }

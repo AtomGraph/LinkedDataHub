@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY ldh     "https://w3id.org/atomgraph/linkeddatahub#">
-    <!ENTITY lapp    "https://w3id.org/atomgraph/linkeddatahub/apps#">
+    <!ENTITY lds     "https://w3id.org/atomgraph/linkeddatahub/dataspaces#">
     <!ENTITY ac      "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf     "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY prov    "http://www.w3.org/ns/prov#">
@@ -14,7 +14,7 @@ xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:ldh="&ldh;"
-xmlns:lapp="&lapp;"
+xmlns:lds="&lds;"
 xmlns:ac="&ac;"
 xmlns:rdf="&rdf;"
 xmlns:prov="&prov;"

@@ -9,7 +9,7 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 reset_packages
 clear_ontology
 
-# lapp:allowRead is load-bearing: when true, AuthorizationFilter skips authorization for ALL GET/HEAD requests
+# lds:allowRead is load-bearing: when true, AuthorizationFilter skips authorization for ALL GET/HEAD requests
 # (apps/model isReadAllowed -> the read short-circuit in AuthorizationFilter). It is off by default and set in no
 # fixture, so this test toggles it on via PATCH /settings, verifies the effect, and always removes it again (EXIT
 # trap) so the read-open state cannot leak into other tests.
@@ -21,8 +21,8 @@ reset_allow_read()
       -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
       -X PATCH \
       -H "Content-Type: application/sparql-update" \
-      -d "PREFIX lapp: <https://w3id.org/atomgraph/linkeddatahub/apps#>
-DELETE { ?app lapp:allowRead ?value } WHERE { ?app lapp:allowRead ?value }" \
+      -d "PREFIX lds: <https://w3id.org/atomgraph/linkeddatahub/dataspaces#>
+DELETE { ?app lds:allowRead ?value } WHERE { ?app lds:allowRead ?value }" \
       "${END_USER_BASE_URL}settings"
     purge_cache "$END_USER_VARNISH_SERVICE"
     purge_cache "$FRONTEND_VARNISH_SERVICE"
@@ -39,8 +39,8 @@ curl -k -s -f -o /dev/null \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
   -X PATCH \
   -H "Content-Type: application/sparql-update" \
-  -d "PREFIX lapp: <https://w3id.org/atomgraph/linkeddatahub/apps#>
-INSERT { ?app lapp:allowRead true } WHERE { ?app a lapp:EndUserApplication }" \
+  -d "PREFIX lds: <https://w3id.org/atomgraph/linkeddatahub/dataspaces#>
+INSERT { ?app lds:allowRead true } WHERE { ?app a lds:EndUserDataspace }" \
   "${END_USER_BASE_URL}settings"
 purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
@@ -55,8 +55,8 @@ echo "$after" | grep -qE "^($STATUS_OK)$"
 write=$(curl -k -w "%{http_code}" -o /dev/null -s \
   -X PATCH \
   -H "Content-Type: application/sparql-update" \
-  -d "PREFIX lapp: <https://w3id.org/atomgraph/linkeddatahub/apps#>
-INSERT { ?app lapp:allowRead true } WHERE { ?app a lapp:EndUserApplication }" \
+  -d "PREFIX lds: <https://w3id.org/atomgraph/linkeddatahub/dataspaces#>
+INSERT { ?app lds:allowRead true } WHERE { ?app a lds:EndUserDataspace }" \
   "${END_USER_BASE_URL}settings")
 echo "DEBUG: allowRead certless PATCH /settings - Expected: $STATUS_FORBIDDEN Got: $write"
 echo "$write" | grep -qE "^($STATUS_FORBIDDEN)$"

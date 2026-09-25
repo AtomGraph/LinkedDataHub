@@ -184,7 +184,7 @@ async function baseline() {
         + `              ${adminBase}acl/authorizations/public/ <<'EOF'\n`
         + `            PREFIX acl:  <http://www.w3.org/ns/auth/acl#>\n`
         + `            PREFIX def:  <https://w3id.org/atomgraph/linkeddatahub/default#>\n`
-        + `            PREFIX dh:   <https://www.w3.org/ns/ldt/document-hierarchy#>\n`
+        + `            PREFIX dh:   <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#>\n`
         + `            PREFIX nfo:  <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>\n`
         + `            PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n`
         + `            DELETE DATA {\n`

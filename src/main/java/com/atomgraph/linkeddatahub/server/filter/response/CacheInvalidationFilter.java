@@ -16,8 +16,8 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.response;
 
-import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.dataspaces.model.AdminDataspace;
+import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import java.io.IOException;
 import java.net.URI;
 import jakarta.annotation.Priority;
@@ -54,68 +54,68 @@ public class CacheInvalidationFilter implements ContainerResponseFilter
     public static final String HEADER_NAME = "X-Escaped-Request-URI";
 
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> app;
+    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace>> app;
 
     @Override
     public void filter(ContainerRequestContext req, ContainerResponseContext resp) throws IOException
     {
         // If no application was matched (e.g., non-existent dataspace or request scope unavailable), skip cache invalidation
-        Optional<com.atomgraph.linkeddatahub.apps.model.Application> application = getApplication();
+        Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace> application = getDataspace();
         if (application == null || !application.isPresent()) return;
 
         if (req.getMethod().equals(HttpMethod.POST) && resp.getHeaderString(HttpHeaders.LOCATION) != null)
         {
             URI location = URI.create(resp.getHeaderString(HttpHeaders.LOCATION));
             URI parentURI = location.resolve("..").normalize();
-            URI relativeParentURI = getApplication().get().getBaseURI().relativize(parentURI);
+            URI relativeParentURI = getDataspace().get().getBaseURI().relativize(parentURI);
 
             banIfNotNull(getSystem().getFrontendProxy(), location.toString());
-            banIfNotNull(getSystem().getServiceContext(getApplication().get().getService()).getBackendProxy(), location.toString());
+            banIfNotNull(getSystem().getServiceContext(getDataspace().get().getService()).getBackendProxy(), location.toString());
             // ban URI from authorization query results
-            banIfNotNull(getSystem().getServiceContext(getAdminApplication().getService()).getBackendProxy(), location.toString());
+            banIfNotNull(getSystem().getServiceContext(getAdminDataspace().getService()).getBackendProxy(), location.toString());
 
             // ban parent resource URI in order to avoid stale children data in containers
             banIfNotNull(getSystem().getFrontendProxy(), parentURI.toString());
-            banIfNotNull(getSystem().getServiceContext(getApplication().get().getService()).getBackendProxy(), parentURI.toString());
+            banIfNotNull(getSystem().getServiceContext(getDataspace().get().getService()).getBackendProxy(), parentURI.toString());
 
             if (!relativeParentURI.toString().isEmpty()) // URIs can be relative in queries
             {
                 banIfNotNull(getSystem().getFrontendProxy(), relativeParentURI.toString());
-                banIfNotNull(getSystem().getServiceContext(getApplication().get().getService()).getBackendProxy(), relativeParentURI.toString());
+                banIfNotNull(getSystem().getServiceContext(getDataspace().get().getService()).getBackendProxy(), relativeParentURI.toString());
             }
         }
 
         if (Set.of(HttpMethod.POST, HttpMethod.PUT, HttpMethod.DELETE, HttpMethod.PATCH).contains(req.getMethod()))
         {
             // ban all admin. entries when the admin dataset is changed - not perfect, but works
-            if (!getAdminApplication().getBaseURI().relativize(req.getUriInfo().getAbsolutePath()).isAbsolute()) // URL is relative to the admin app's base URI
+            if (!getAdminDataspace().getBaseURI().relativize(req.getUriInfo().getAbsolutePath()).isAbsolute()) // URL is relative to the admin app's base URI
             {
-                banIfNotNull(getSystem().getServiceContext(getAdminApplication().getService()).getBackendProxy(), getAdminApplication().getBaseURI().toString());
-                banIfNotNull(getSystem().getServiceContext(getAdminApplication().getService()).getBackendProxy(), "foaf:Agent"); // queries use prefixed names instead of absolute URIs
-                banIfNotNull(getSystem().getServiceContext(getAdminApplication().getService()).getBackendProxy(), "acl:AuthenticatedAgent");
+                banIfNotNull(getSystem().getServiceContext(getAdminDataspace().getService()).getBackendProxy(), getAdminDataspace().getBaseURI().toString());
+                banIfNotNull(getSystem().getServiceContext(getAdminDataspace().getService()).getBackendProxy(), "foaf:Agent"); // queries use prefixed names instead of absolute URIs
+                banIfNotNull(getSystem().getServiceContext(getAdminDataspace().getService()).getBackendProxy(), "acl:AuthenticatedAgent");
             }
 
             if (req.getUriInfo().getAbsolutePath().toString().endsWith("/"))
             {
                 banIfNotNull(getSystem().getFrontendProxy(), req.getUriInfo().getAbsolutePath().toString());
-                banIfNotNull(getSystem().getServiceContext(getApplication().get().getService()).getBackendProxy(), req.getUriInfo().getAbsolutePath().toString());
+                banIfNotNull(getSystem().getServiceContext(getDataspace().get().getService()).getBackendProxy(), req.getUriInfo().getAbsolutePath().toString());
                 // ban URI from authorization query results
-                banIfNotNull(getSystem().getServiceContext(getAdminApplication().getService()).getBackendProxy(), req.getUriInfo().getAbsolutePath().toString());
+                banIfNotNull(getSystem().getServiceContext(getAdminDataspace().getService()).getBackendProxy(), req.getUriInfo().getAbsolutePath().toString());
 
                 // ban parent document URIs (those that have a trailing slash) in order to avoid stale children data in containers
-                if (!req.getUriInfo().getAbsolutePath().equals(getApplication().get().getBaseURI()))
+                if (!req.getUriInfo().getAbsolutePath().equals(getDataspace().get().getBaseURI()))
                 {
                     URI parentURI = req.getUriInfo().getAbsolutePath().resolve("..").normalize();
-                    URI relativeParentURI = getApplication().get().getBaseURI().relativize(parentURI);
+                    URI relativeParentURI = getDataspace().get().getBaseURI().relativize(parentURI);
 
                     // ban parent resource URI in order to avoid stale children data in containers
                     banIfNotNull(getSystem().getFrontendProxy(), parentURI.toString());
-                    banIfNotNull(getSystem().getServiceContext(getApplication().get().getService()).getBackendProxy(), parentURI.toString());
+                    banIfNotNull(getSystem().getServiceContext(getDataspace().get().getService()).getBackendProxy(), parentURI.toString());
 
                     if (!relativeParentURI.toString().isEmpty()) // URIs can be relative in queries
                     {
                         banIfNotNull(getSystem().getFrontendProxy(), relativeParentURI.toString());
-                        banIfNotNull(getSystem().getServiceContext(getApplication().get().getService()).getBackendProxy(), relativeParentURI.toString());
+                        banIfNotNull(getSystem().getServiceContext(getDataspace().get().getService()).getBackendProxy(), relativeParentURI.toString());
                     }
                 }
             }
@@ -167,13 +167,13 @@ public class CacheInvalidationFilter implements ContainerResponseFilter
      *
      * @return admin application resource
      */
-    public AdminApplication getAdminApplication()
+    public AdminDataspace getAdminDataspace()
     {
-        com.atomgraph.linkeddatahub.apps.model.Application application = getApplication().get();
-        if (application.canAs(EndUserApplication.class))
-            return application.as(EndUserApplication.class).getAdminApplication();
+        com.atomgraph.linkeddatahub.dataspaces.model.Dataspace application = getDataspace().get();
+        if (application.canAs(EndUserDataspace.class))
+            return application.as(EndUserDataspace.class).getAdminDataspace();
         else
-            return application.as(AdminApplication.class);
+            return application.as(AdminDataspace.class);
     }
     
     /**
@@ -181,7 +181,7 @@ public class CacheInvalidationFilter implements ContainerResponseFilter
      *
      * @return optional application resource
      */
-    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
+    public Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace> getDataspace()
     {
         return app.get();
     }

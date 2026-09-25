@@ -34,7 +34,7 @@ ldh admin add class \
   --uri "${namespace_doc}#ConstrainedClass" \
   --label "Constrained class" \
   --constraint "$constraint" \
-  --sub-class-of "https://www.w3.org/ns/ldt/document-hierarchy#Item" \
+  --sub-class-of "https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Item" \
   "$ontology_doc"
 
 # clear ontology from memory

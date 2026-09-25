@@ -52,7 +52,7 @@ public class VersioningFilter implements ContainerResponseFilter
     public static final Set<String> WRITE_METHODS = Set.of(HttpMethod.POST, HttpMethod.PUT, HttpMethod.PATCH, HttpMethod.DELETE);
 
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> app;
+    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace>> app;
 
     @Override
     public void filter(ContainerRequestContext request, ContainerResponseContext response) throws IOException
@@ -61,7 +61,7 @@ public class VersioningFilter implements ContainerResponseFilter
         if (response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL) return; // excludes the PUT 308 redirect and error responses
         if (request.getProperty(AC.uri.getURI()) != null) return; // proxied request — not a local document write
 
-        Optional<com.atomgraph.linkeddatahub.apps.model.Application> application = getApplication();
+        Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace> application = getDataspace();
         if (application == null || application.isEmpty()) return;
 
         // only document graphs are versioned — literal-path resources (SPARQL endpoint, settings, ACL access, sign-up, packages) are not
@@ -93,7 +93,7 @@ public class VersioningFilter implements ContainerResponseFilter
      *
      * @return optional application
      */
-    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
+    public Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace> getDataspace()
     {
         return app.get();
     }

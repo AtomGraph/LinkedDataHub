@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# requires a dataspace configured with lapp:versioningRepository (branch "main", path prefix "graphs")
+# requires a dataspace configured with lds:versioningRepository (branch "main", path prefix "graphs")
 # pointing at $VERSIONING_TEST_REPO ("owner/repo"), with the token in secrets/credentials.trig
 
 if [ -z "${VERSIONING_TEST_REPO:-}" ] || [ -z "${GITHUB_TOKEN:-}" ] || ! command -v gh > /dev/null; then
@@ -30,7 +30,7 @@ ldh admin add agent \
 slug=$(uuidgen | tr '[:upper:]' '[:lower:]')
 doc_url="${END_USER_BASE_URL}${slug}/"
 
-echo "<${doc_url}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item> .
+echo "<${doc_url}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Item> .
 <${doc_url}> <http://purl.org/dc/terms/title> \"Versioned document\" ." | \
   ldh put \
     -f "$AGENT_CERT_KEYSTORE" \

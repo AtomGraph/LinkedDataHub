@@ -111,7 +111,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   --data-binary @- \
   "$doc" <<EOF \
 | grep -q "$STATUS_CREATED"
-<${doc}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item> .
+<${doc}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Item> .
 <${doc}> <http://purl.org/dc/terms/title> "Taxonomy editor package probe" .
 <${doc}> <http://rdfs.org/sioc/ns#has_container> <${END_USER_BASE_URL}> .
 <${doc}> <http://xmlns.com/foaf/0.1/primaryTopic> <${concept}> .

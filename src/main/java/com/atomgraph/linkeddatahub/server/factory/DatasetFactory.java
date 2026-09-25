@@ -18,8 +18,8 @@ package com.atomgraph.linkeddatahub.server.factory;
 
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.ext.Provider;
-import com.atomgraph.linkeddatahub.apps.model.Dataset;
-import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import com.atomgraph.linkeddatahub.dataspaces.model.Dataset;
+import com.atomgraph.linkeddatahub.vocabulary.LDS;
 import java.util.Optional;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import org.glassfish.hk2.api.Factory;
@@ -59,7 +59,7 @@ public class DatasetFactory implements Factory<Optional<Dataset>>
      */
     public Optional<Dataset> getDataset()
     {
-        return (Optional<Dataset>)getContainerRequestContext().getProperty(LAPP.Dataset.getURI());
+        return (Optional<Dataset>)getContainerRequestContext().getProperty(LDS.Dataset.getURI());
     }
     
     /**

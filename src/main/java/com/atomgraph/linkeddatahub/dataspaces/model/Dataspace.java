@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.apps.model;
+package com.atomgraph.linkeddatahub.dataspaces.model;
 
 import com.atomgraph.linkeddatahub.model.Service;
 import jakarta.ws.rs.core.UriBuilder;
@@ -27,7 +27,7 @@ import org.apache.jena.rdf.model.Resource;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public interface Application extends Resource
+public interface Dataspace extends Resource
 {
     
     /**

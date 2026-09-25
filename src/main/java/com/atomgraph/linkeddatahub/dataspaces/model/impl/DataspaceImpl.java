@@ -14,15 +14,14 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.apps.model.impl;
+package com.atomgraph.linkeddatahub.dataspaces.model.impl;
 
 import com.atomgraph.client.vocabulary.AC;
-import com.atomgraph.linkeddatahub.apps.model.Application;
+import com.atomgraph.linkeddatahub.dataspaces.model.Dataspace;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
-import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import com.atomgraph.linkeddatahub.vocabulary.LDS;
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
-import com.atomgraph.server.vocabulary.LDT;
 import jakarta.ws.rs.core.UriBuilder;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
@@ -37,14 +36,14 @@ import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 
 /**
- * Application implementation.
+ * Dataspace implementation.
  * Extends RDF resource implementation.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class ApplicationImpl extends ResourceImpl implements Application
+public class DataspaceImpl extends ResourceImpl implements Dataspace
 {
-    private static final Logger log = LoggerFactory.getLogger(ApplicationImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(DataspaceImpl.class);
     
     /**
      * Constructs instance from node and graph.
@@ -52,7 +51,7 @@ public class ApplicationImpl extends ResourceImpl implements Application
      * @param n node
      * @param g graph
      */
-    public ApplicationImpl(Node n, EnhGraph g)
+    public DataspaceImpl(Node n, EnhGraph g)
     {
         super(n, g);
     }
@@ -72,7 +71,7 @@ public class ApplicationImpl extends ResourceImpl implements Application
     @Override
     public Resource getOrigin()
     {
-        return getPropertyResourceValue(LAPP.origin);
+        return getPropertyResourceValue(LDS.origin);
     }
 
     @Override
@@ -92,13 +91,13 @@ public class ApplicationImpl extends ResourceImpl implements Application
     @Override
     public Resource getOntology()
     {
-        return getPropertyResourceValue(LDT.ontology);
+        return getPropertyResourceValue(LDS.ontology);
     }
 
     @Override
     public Service getService()
     {
-        Resource service = getPropertyResourceValue(LDT.service);
+        Resource service = getPropertyResourceValue(LDS.service);
         
         if (service != null) return service.as(Service.class);
         
@@ -114,7 +113,7 @@ public class ApplicationImpl extends ResourceImpl implements Application
     @Override
     public boolean isReadAllowed()
     {
-        Statement stmt = getProperty(LAPP.allowRead);
+        Statement stmt = getProperty(LDS.allowRead);
 
         if (stmt != null) return stmt.getBoolean();
 

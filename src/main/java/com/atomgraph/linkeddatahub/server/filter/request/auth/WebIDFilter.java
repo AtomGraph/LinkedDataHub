@@ -19,7 +19,7 @@ package com.atomgraph.linkeddatahub.server.filter.request.auth;
 import com.atomgraph.linkeddatahub.server.filter.request.AuthenticationFilter;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.io.ModelProvider;
-import com.atomgraph.linkeddatahub.apps.model.Application;
+import com.atomgraph.linkeddatahub.dataspaces.model.Dataspace;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.server.exception.auth.webid.InvalidWebIDPublicKeyException;
 import com.atomgraph.linkeddatahub.server.exception.auth.webid.WebIDLoadingException;
@@ -369,13 +369,13 @@ public class WebIDFilter extends AuthenticationFilter
     }
 
     @Override
-    public void login(Application app, ContainerRequestContext request)
+    public void login(Dataspace app, ContainerRequestContext request)
     {
         throw new UnsupportedOperationException("Not supported yet."); // login is controlled by the browser
     }
 
     @Override
-    public void logout(Application app, ContainerRequestContext request)
+    public void logout(Dataspace app, ContainerRequestContext request)
     {
         throw new UnsupportedOperationException("Not supported yet."); // logout not really possible with HTTP certificates
     }

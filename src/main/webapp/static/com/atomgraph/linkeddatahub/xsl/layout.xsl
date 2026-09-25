@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
-    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps#">
+    <!ENTITY lds    "https://w3id.org/atomgraph/linkeddatahub/dataspaces#">
     <!ENTITY adm    "https://w3id.org/atomgraph/linkeddatahub/admin#">
     <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl#">
     <!ENTITY def    "https://w3id.org/atomgraph/linkeddatahub/default#">
@@ -23,8 +23,7 @@
     <!ENTITY cert   "http://www.w3.org/ns/auth/cert#">
     <!ENTITY sh     "http://www.w3.org/ns/shacl#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
-    <!ENTITY ct     "https://www.w3.org/ns/ldt/core/templates#">
-    <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy#">
+    <!ENTITY dh     "https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
@@ -32,7 +31,6 @@
     <!ENTITY spin   "http://spinrdf.org/spin#">
     <!ENTITY nfo    "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#">
     <!ENTITY schema "https://schema.org/">
-    <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns="http://www.w3.org/1999/xhtml"
@@ -42,7 +40,7 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:ac="&ac;"
 xmlns:a="&a;"
-xmlns:lapp="&lapp;"
+xmlns:lds="&lds;"
 xmlns:lacl="&lacl;"
 xmlns:ldh="&ldh;"
 xmlns:ldhc="&ldhc;"
@@ -91,10 +89,10 @@ exclude-result-prefixes="#all">
          carry that doctype would be invalid by it -->
     <xsl:output method="xhtml" encoding="UTF-8" indent="yes" omit-xml-declaration="yes" media-type="application/xhtml+xml"/>
 
-    <xsl:param name="lapp:origin" as="xs:anyURI?"/>
+    <xsl:param name="lds:origin" as="xs:anyURI?"/>
     <xsl:param name="ldh:requestUri" as="xs:anyURI"/>
     <xsl:param name="ac:uri" as="xs:anyURI?"/>
-    <xsl:param name="lapp:Context" as="document-node()"/>
+    <xsl:param name="lds:Context" as="document-node()"/>
     <xsl:param name="ldh:httpHeaders" select="map{}" as="map(xs:string, xs:string*)"/>
     <xsl:param name="ldh:ajaxRendering" select="true()" as="xs:boolean"/>
     <xsl:param name="ldhc:enableWebIDSignUp" as="xs:boolean"/>
@@ -102,8 +100,8 @@ exclude-result-prefixes="#all">
     <xsl:param name="google:clientID" as="xs:string?"/>
     <xsl:param name="orcid:clientID" as="xs:string?"/>
     <!-- the application this origin resolves to, as described in the system context -->
-    <xsl:function name="lapp:application-description" as="element()*">
-        <xsl:sequence select="key('apps-by-origin', lapp:origin(), $lapp:Context)"/>
+    <xsl:function name="lds:dataspace-description" as="element()*">
+        <xsl:sequence select="key('apps-by-origin', lds:origin(), $lds:Context)"/>
     </xsl:function>
 
     <!-- The client-side half of prefix-mapping.ttl: each namespace here is resolved through the ?uri= proxy
@@ -112,12 +110,12 @@ exclude-result-prefixes="#all">
          being imported by a system ontology or used by the stylesheets. -->
     <xsl:param name="ontology-namespaces" as="xs:anyURI*" select="(
         xs:anyURI('&ac;'), xs:anyURI('&adm;'), xs:anyURI('&lacl;'),
-        xs:anyURI('&lapp;'), xs:anyURI('&ldh;'), xs:anyURI('&def;'),
+        xs:anyURI('&lds;'), xs:anyURI('&ldh;'), xs:anyURI('&def;'),
         xs:anyURI('&dh;'), xs:anyURI('&sp;'), xs:anyURI('&spin;'),
         xs:anyURI('&rdf;'), xs:anyURI('&rdfs;'), xs:anyURI('&owl;'),
         xs:anyURI('&acl;'), xs:anyURI('&sd;'), xs:anyURI('&sh;'),
         xs:anyURI('&nfo;'), xs:anyURI('&http;'),
-        xs:anyURI('&sc;'), xs:anyURI('&ldt;'),
+        xs:anyURI('&sc;'),
         xs:anyURI('&sioc;'), xs:anyURI('&foaf;'),
         xs:anyURI('&cert;'), xs:anyURI('http://www.w3.org/ns/prov#'),
         xs:anyURI('&geo;'), xs:anyURI('http://www.w3.org/2004/02/skos/core#'),
@@ -127,17 +125,17 @@ exclude-result-prefixes="#all">
 
     <xsl:param name="location-mapping" as="map(xs:anyURI, xs:anyURI)">
         <xsl:map>
-            <xsl:if test="lapp:origin()">
-                <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', lapp:origin())" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', lapp:origin())"/>
-                <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/http-statusCodes.rdf', lapp:origin())" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/http-statusCodes.rdf', lapp:origin())"/>
-                <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/admin/countries.rdf', lapp:origin())" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/admin/countries.rdf', lapp:origin())"/>                
+            <xsl:if test="lds:origin()">
+                <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', lds:origin())" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', lds:origin())"/>
+                <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/http-statusCodes.rdf', lds:origin())" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/http-statusCodes.rdf', lds:origin())"/>
+                <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/admin/countries.rdf', lds:origin())" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/admin/countries.rdf', lds:origin())"/>                
             </xsl:if>
 
             <xsl:for-each select="$ontology-namespaces">
-                <xsl:map-entry key="ac:document-uri(.)" select="ac:build-uri(lapp:base(), map{ 'uri': string(ac:document-uri(.)), 'accept': 'application/rdf+xml' })"/>
+                <xsl:map-entry key="ac:document-uri(.)" select="ac:build-uri(lds:base(), map{ 'uri': string(ac:document-uri(.)), 'accept': 'application/rdf+xml' })"/>
             </xsl:for-each>
             <xsl:if test="$acl:agent">
-                <xsl:map-entry key="ac:document-uri($acl:agent)" select="ac:build-uri(lapp:base(), map{ 'uri': string(ac:document-uri($acl:agent)), 'accept': 'application/rdf+xml' })"/>
+                <xsl:map-entry key="ac:document-uri($acl:agent)" select="ac:build-uri(lds:base(), map{ 'uri': string(ac:document-uri($acl:agent)), 'accept': 'application/rdf+xml' })"/>
             </xsl:if>
         </xsl:map>
     </xsl:param>
@@ -148,7 +146,7 @@ exclude-result-prefixes="#all">
             DESCRIBE ?app ?service
             WHERE
               { GRAPH ?graph
-                  {   { ?app <https://w3id.org/atomgraph/linkeddatahub/apps#origin> ?origin
+                  {   { ?app <https://w3id.org/atomgraph/linkeddatahub/dataspaces#origin> ?origin
                       }
                     UNION
                       { ?service <http://www.w3.org/ns/sparql-service-description#endpoint> ?endpoint
@@ -162,7 +160,7 @@ exclude-result-prefixes="#all">
     <!-- server-side twin of client.xsl's $property-metadata-query, so ac:property-label resolves predicate labels from
          the application ontology on the initial render as it does client-side -->
 
-    <xsl:key name="apps-by-origin" match="*" use="lapp:origin/@rdf:resource"/>
+    <xsl:key name="apps-by-origin" match="*" use="lds:origin/@rdf:resource"/>
 
     <rdf:Description rdf:about="">
     </rdf:Description>
@@ -171,7 +169,7 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="rdf:RDF" mode="xhtml:Title">
         <title>
-            <xsl:for-each select="lapp:application-description()">
+            <xsl:for-each select="lds:dataspace-description()">
                 <xsl:value-of>
                     <xsl:apply-templates select="." mode="ac:label"/>
                 </xsl:value-of>
@@ -238,7 +236,7 @@ exclude-result-prefixes="#all">
             </xsl:for-each>
         </xsl:for-each>
 
-        <xsl:for-each select="lapp:application-description()">
+        <xsl:for-each select="lds:dataspace-description()">
             <meta property="og:site_name" content="{ac:label(.)}"/>
         </xsl:for-each>
     </xsl:template>
@@ -288,31 +286,31 @@ exclude-result-prefixes="#all">
         </head>
     </xsl:template>
 
-    <xsl:template match="rdf:RDF[lapp:origin()] | srx:sparql[lapp:origin()]" mode="ac:Stylesheets">
+    <xsl:template match="rdf:RDF[lds:origin()] | srx:sparql[lds:origin()]" mode="ac:Stylesheets">
         <xsl:param name="load-rdfa-editor" select="exists($foaf:Agent//@rdf:about)" as="xs:boolean"/>
         <xsl:param name="load-yasqe" select="true()" as="xs:boolean"/>
 
         <xsl:if test="$load-rdfa-editor">
-            <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/rdfa-editor.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
+            <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/rdfa-editor.css', lds:origin())}" rel="stylesheet" type="text/css"/>
         </xsl:if>
         <xsl:if test="$load-yasqe">
-            <link href="{resolve-uri('static/css/yasqe.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
+            <link href="{resolve-uri('static/css/yasqe.css', lds:origin())}" rel="stylesheet" type="text/css"/>
         </xsl:if>
         <!-- design system: fonts (vendored), tokens, components (app.css imports core.css, which imports controls.css and overlays.css), m3 skin -->
-        <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/fonts.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
-        <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/colors_and_type.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
-        <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/app.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
-        <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/retro.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
+        <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/fonts.css', lds:origin())}" rel="stylesheet" type="text/css"/>
+        <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/colors_and_type.css', lds:origin())}" rel="stylesheet" type="text/css"/>
+        <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/app.css', lds:origin())}" rel="stylesheet" type="text/css"/>
+        <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/retro.css', lds:origin())}" rel="stylesheet" type="text/css"/>
         <!-- LDH's app layer over the design kits: CSR state-token styling, LDH-only components, documented divergences - loaded last so it wins the ties it is written to win -->
-        <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/ldh.css', lapp:origin())}" rel="stylesheet" type="text/css"/>
+        <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/ldh.css', lds:origin())}" rel="stylesheet" type="text/css"/>
     </xsl:template>
 
     <!-- SCRIPT -->
 
-    <xsl:template match="rdf:RDF[lapp:origin()] | srx:sparql[lapp:origin()]" mode="xhtml:Script">
+    <xsl:template match="rdf:RDF[lds:origin()] | srx:sparql[lds:origin()]" mode="xhtml:Script">
         <!-- the stylesheet composed with this application's packages when one has been compiled, otherwise
              the one built into the webapp. Both are absolute on this application's origin -->
-        <xsl:param name="client-stylesheet" select="(ldh:client-stylesheet(), resolve-uri('static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json', lapp:origin()))[1]" as="xs:anyURI"/>
+        <xsl:param name="client-stylesheet" select="(ldh:client-stylesheet(), resolve-uri('static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json', lds:origin()))[1]" as="xs:anyURI"/>
         <xsl:param name="saxon-js-log-level" select="10" as="xs:integer"/>
         <xsl:param name="load-yasqe" select="not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="load-saxon-js" select="$ldh:ajaxRendering and not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
@@ -324,13 +322,13 @@ exclude-result-prefixes="#all">
         <xsl:param name="location-mapping" select="$location-mapping" as="map(xs:anyURI, xs:anyURI)"/>
 
         <!-- LinkedDataHub scripts -->
-        <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/functions.js', lapp:origin())}" defer="defer"></script>
+        <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/functions.js', lds:origin())}" defer="defer"></script>
         <script type="text/javascript">
             <xsl:text disable-output-escaping="yes">
               //&lt;![CDATA[
             </xsl:text>
             <![CDATA[
-                var contextUri = ]]><xsl:value-of select="if (lapp:origin()) then '&quot;' || lapp:origin() || '&quot;'  else 'null'" disable-output-escaping="yes"/><![CDATA[;
+                var contextUri = ]]><xsl:value-of select="if (lds:origin()) then '&quot;' || lds:origin() || '&quot;'  else 'null'" disable-output-escaping="yes"/><![CDATA[;
                 var agentUri = []]><xsl:value-of select="if ($acl:agent) then '&quot;' || $acl:agent || '&quot;'  else 'null'" disable-output-escaping="yes"/><![CDATA[];
             ]]>
             <xsl:text disable-output-escaping="yes">
@@ -338,16 +336,16 @@ exclude-result-prefixes="#all">
             </xsl:text>
         </script>
         <xsl:if test="$load-yasqe">
-            <script src="{resolve-uri('static/js/yasqe.js', lapp:origin())}" type="text/javascript"></script>
+            <script src="{resolve-uri('static/js/yasqe.js', lds:origin())}" type="text/javascript"></script>
         </xsl:if>
         <xsl:if test="$load-graph3d">
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/three.min.js', lapp:origin())}"></script>
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/three-spritetext.min.js', lapp:origin())}"></script>
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/3d-force-graph.min.js', lapp:origin())}"></script>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/three.min.js', lds:origin())}"></script>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/three-spritetext.min.js', lds:origin())}"></script>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/3d-force-graph.min.js', lds:origin())}"></script>
         </xsl:if>
         <xsl:if test="$load-saxon-js">
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/resource-resolver.js', lapp:origin())}"></script>
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/saxon-js/SaxonJS3.rt.js', lapp:origin())}" defer="defer"></script>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/resource-resolver.js', lds:origin())}"></script>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/saxon-js/SaxonJS3.rt.js', lds:origin())}" defer="defer"></script>
             <script type="text/javascript">
                 <xsl:text disable-output-escaping="yes">
                   //&lt;![CDATA[
@@ -404,12 +402,12 @@ exclude-result-prefixes="#all">
             </script>
         </xsl:if>
         <xsl:if test="$load-sparql-builder">
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/SPARQLBuilder.js', lapp:origin())}" defer="defer"></script>
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/SPARQL.js', lapp:origin())}" defer="defer"></script>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/SPARQLBuilder.js', lds:origin())}" defer="defer"></script>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/SPARQL.js', lds:origin())}" defer="defer"></script>
         </xsl:if>
         <xsl:if test="$load-sparql-map">
-            <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/ol.css', lapp:origin())}" rel="stylesheet" type="text/css"></link>
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/ol.js', lapp:origin())}"></script>
+            <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/ol.css', lds:origin())}" rel="stylesheet" type="text/css"></link>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/ol.js', lds:origin())}"></script>
         </xsl:if>
         <xsl:if test="$load-google-charts">
             <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
@@ -439,7 +437,7 @@ exclude-result-prefixes="#all">
     
     <!-- design system Header: wordmark | address bar | actions. The CSR link interception and the
          address-bar handler anchor on .ldh-header / .ldh-address, the design system's own names -->
-    <xsl:template match="rdf:RDF[$lapp:origin] | srx:sparql[$lapp:origin]" mode="ac:Header" priority="1">
+    <xsl:template match="rdf:RDF[$lds:origin] | srx:sparql[$lds:origin]" mode="ac:Header" priority="1">
         <div class="ldh-header" role="banner">
             <xsl:apply-templates select="." mode="ldh:Brand"/>
 
@@ -455,10 +453,10 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="*" mode="ac:Header"/>
 
-    <xsl:template match="rdf:RDF[lapp:application-description()] | srx:sparql[lapp:application-description()]" mode="ldh:Brand" priority="1">
-        <a class="ldh-wordmark" href="{lapp:base()}">
-            <xsl:for-each select="lapp:application-description()">
-                <xsl:if test="rdf:type/@rdf:resource = '&lapp;AdminApplication'">
+    <xsl:template match="rdf:RDF[lds:dataspace-description()] | srx:sparql[lds:dataspace-description()]" mode="ldh:Brand" priority="1">
+        <a class="ldh-wordmark" href="{lds:base()}">
+            <xsl:for-each select="lds:dataspace-description()">
+                <xsl:if test="rdf:type/@rdf:resource = '&lds;AdminDataspace'">
                     <xsl:attribute name="class" select="'ldh-wordmark admin'"/>
                 </xsl:if>
 
@@ -473,7 +471,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="*" mode="ldh:Brand"/>
 
     <!-- check if agent has access to the user endpoint by executing a dummy query ASK {} -->
-    <xsl:template match="rdf:RDF[doc-available(resolve-uri('sparql?query=ASK%20%7B%7D', lapp:base()))] | srx:sparql[doc-available(resolve-uri('sparql?query=ASK%20%7B%7D', lapp:base()))]" mode="ldh:AddressBar" priority="1">
+    <xsl:template match="rdf:RDF[doc-available(resolve-uri('sparql?query=ASK%20%7B%7D', lds:base()))] | srx:sparql[doc-available(resolve-uri('sparql?query=ASK%20%7B%7D', lds:base()))]" mode="ldh:AddressBar" priority="1">
         <form action="{ac:absolute-path(ldh:request-uri())}" method="get" class="ldh-address" accept-charset="UTF-8" role="search" aria-label="{ac:label(key('resources', 'address-bar-title', document('translations.rdf')))}" title="{ac:label(key('resources', 'address-bar-title', document('translations.rdf')))}">
             <span class="msi outline" aria-hidden="true">public</span>
             <input type="url" id="uri" name="uri" value="{ac:absolute-path(ldh:request-uri())}" spellcheck="false" autocomplete="off" aria-label="{ac:label(key('resources', 'address-bar-title', document('translations.rdf')))}"/>
@@ -489,9 +487,9 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- Admin app override: notification menu for pending AuthorizationRequests + account menu.
-         Admin apps are identified by the 'admin.' subdomain prefix on lapp:origin() (nginx wildcard routing convention).
+         Admin apps are identified by the 'admin.' subdomain prefix on lds:origin() (nginx wildcard routing convention).
          TO-DO: refactor into component templates -->
-    <xsl:template match="rdf:RDF[starts-with(replace(lapp:origin(), '^https?://', ''), 'admin.')]" mode="ldh:HeaderActions" priority="1">
+    <xsl:template match="rdf:RDF[starts-with(replace(lds:origin(), '^https?://', ''), 'admin.')]" mode="ldh:HeaderActions" priority="1">
         <xsl:if test="$foaf:Agent//@rdf:about">
                 <xsl:variable name="notification-query" as="xs:string">
                     <![CDATA[
@@ -524,10 +522,10 @@ WHERE
                     ]]>
                 </xsl:variable>
                 <xsl:variable name="notification-query" select="replace($notification-query, '$type', '&lt;&lacl;AuthorizationRequest&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="notification-query" select="replace($notification-query, '$container', '&lt;' || resolve-uri('acl/authorization-requests/', lapp:base()) || '&gt;', 'q')" as="xs:string"/>
+                <xsl:variable name="notification-query" select="replace($notification-query, '$container', '&lt;' || resolve-uri('acl/authorization-requests/', lds:base()) || '&gt;', 'q')" as="xs:string"/>
 
-                <xsl:if test="doc-available(ac:build-uri(resolve-uri('sparql', lapp:base()), map{ 'query': $notification-query }))">
-                    <xsl:variable name="notifications" select="document(ac:build-uri(resolve-uri('sparql', lapp:base()), map{ 'query': $notification-query }))" as="document-node()"/>
+                <xsl:if test="doc-available(ac:build-uri(resolve-uri('sparql', lds:base()), map{ 'query': $notification-query }))">
+                    <xsl:variable name="notifications" select="document(ac:build-uri(resolve-uri('sparql', lds:base()), map{ 'query': $notification-query }))" as="document-node()"/>
 
                     <xsl:if test="$notifications/rdf:RDF/*[@rdf:about]">
                             <div class="ac-menu-anchor">
@@ -560,9 +558,9 @@ WHERE
         <xsl:apply-templates select="." mode="ldh:SignUp"/>
     </xsl:template>
 
-    <xsl:template match="rdf:RDF[lapp:origin()][lapp:application-description()/rdf:type/@rdf:resource = '&lapp;EndUserApplication'] | srx:sparql[lapp:origin()][lapp:application-description()/rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="ldh:DataspaceTabs" priority="1">
-            <xsl:variable name="user-defined-apps" select="if (doc-available($app-request-uri)) then document($app-request-uri)//*[lapp:origin/@rdf:resource] else ()" as="element()*"/>
-            <xsl:variable name="system-apps" select="$lapp:Context//*[rdf:type/@rdf:resource = '&lapp;EndUserApplication'][lapp:origin/@rdf:resource]" as="element()*"/>
+    <xsl:template match="rdf:RDF[lds:origin()][lds:dataspace-description()/rdf:type/@rdf:resource = '&lds;EndUserDataspace'] | srx:sparql[lds:origin()][lds:dataspace-description()/rdf:type/@rdf:resource = '&lds;EndUserDataspace']" mode="ldh:DataspaceTabs" priority="1">
+            <xsl:variable name="user-defined-apps" select="if (doc-available($app-request-uri)) then document($app-request-uri)//*[lds:origin/@rdf:resource] else ()" as="element()*"/>
+            <xsl:variable name="system-apps" select="$lds:Context//*[rdf:type/@rdf:resource = '&lds;EndUserDataspace'][lds:origin/@rdf:resource]" as="element()*"/>
 
             <!-- .ldh-header-actions IS the flex cluster (AppShell): controls are its direct children,
                  no intermediate list -->
@@ -578,7 +576,7 @@ WHERE
                                 </div>
                                 <xsl:for-each select="$user-defined-apps">
                                     <xsl:sort select="ac:label(.)" order="ascending" lang="{ac:langs()[1]}"/>
-                                    <a class="ac-menu-item" role="menuitem" href="{lapp:origin/@rdf:resource}/" title="{lapp:origin/@rdf:resource}">
+                                    <a class="ac-menu-item" role="menuitem" href="{lds:origin/@rdf:resource}/" title="{lds:origin/@rdf:resource}">
                                         <xsl:apply-templates select="." mode="ac:label"/>
                                     </a>
                                 </xsl:for-each>
@@ -592,7 +590,7 @@ WHERE
                                 </div>
                                 <xsl:for-each select="$system-apps">
                                     <xsl:sort select="ac:label(.)" order="ascending" lang="{ac:langs()[1]}"/>
-                                    <a class="ac-menu-item" role="menuitem" href="{lapp:origin/@rdf:resource}/" title="{lapp:origin/@rdf:resource}">
+                                    <a class="ac-menu-item" role="menuitem" href="{lds:origin/@rdf:resource}/" title="{lds:origin/@rdf:resource}">
                                         <xsl:apply-templates select="." mode="ac:label"/>
                                     </a>
                                 </xsl:for-each>
@@ -631,7 +629,7 @@ WHERE
 
     <!-- SIGNUP -->
     
-    <xsl:template match="rdf:RDF[lapp:origin()][not($foaf:Agent//@rdf:about)][lapp:application-description()/rdf:type/@rdf:resource = '&lapp;EndUserApplication'] | srx:sparql[lapp:origin()][not($foaf:Agent//@rdf:about)][lapp:application-description()/rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="ldh:SignUp" priority="1">
+    <xsl:template match="rdf:RDF[lds:origin()][not($foaf:Agent//@rdf:about)][lds:dataspace-description()/rdf:type/@rdf:resource = '&lds;EndUserDataspace'] | srx:sparql[lds:origin()][not($foaf:Agent//@rdf:about)][lds:dataspace-description()/rdf:type/@rdf:resource = '&lds;EndUserDataspace']" mode="ldh:SignUp" priority="1">
         <!-- resolve links against the origin URI of the admin app -->
         <xsl:param name="google-signup" select="exists($google:clientID)" as="xs:boolean"/>
         <xsl:param name="orcid-signup" select="exists($orcid:clientID)" as="xs:boolean"/>
@@ -672,7 +670,7 @@ WHERE
         <!-- WebID signup - separate button -->
         <xsl:if test="$webid-signup">
             <div>
-                <a class="ac-btn in-primary ap-solid sz-md" href="{if (not(starts-with(lapp:base(), lapp:origin()))) then ac:build-uri((), map{ 'uri': string($webid-signup-uri) }) else $webid-signup-uri}">
+                <a class="ac-btn in-primary ap-solid sz-md" href="{if (not(starts-with(lds:base(), lds:origin()))) then ac:build-uri((), map{ 'uri': string($webid-signup-uri) }) else $webid-signup-uri}">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'sign-up', document('translations.rdf'))" mode="ac:label"/>
                     </xsl:value-of>
@@ -685,7 +683,7 @@ WHERE
     
     <!-- BODY -->
 
-    <xsl:template match="rdf:RDF[$lapp:origin] | srx:sparql[$lapp:origin]" mode="ac:AppShell" priority="1">
+    <xsl:template match="rdf:RDF[$lds:origin] | srx:sparql[$lds:origin]" mode="ac:AppShell" priority="1">
         <body>
             <div id="visible-body">
                 <xsl:apply-templates select="." mode="ac:Header"/>
@@ -718,7 +716,7 @@ WHERE
                                     </xsl:try>
                                 </xsl:variable>
                                 <xsl:variable name="ns-metadata" as="document-node()?">
-                                    <xsl:try select="ldh:send-request(resolve-uri('ns', lapp:base()), 'POST', 'application/sparql-query', $object-metadata-ns-query || $values, map{ 'Accept': 'application/rdf+xml' })">
+                                    <xsl:try select="ldh:send-request(resolve-uri('ns', lds:base()), 'POST', 'application/sparql-query', $object-metadata-ns-query || $values, map{ 'Accept': 'application/rdf+xml' })">
                                         <xsl:catch/>
                                     </xsl:try>
                                 </xsl:variable>
@@ -733,7 +731,7 @@ WHERE
                         <xsl:variable name="property-metadata" as="document-node()?">
                             <xsl:if test="exists($property-uris)">
                                 <xsl:variable name="values" select="' VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
-                                <xsl:try select="ldh:send-request(resolve-uri('ns', lapp:base()), 'POST', 'application/sparql-query', $property-metadata-query || $values, map{ 'Accept': 'application/rdf+xml' })">
+                                <xsl:try select="ldh:send-request(resolve-uri('ns', lds:base()), 'POST', 'application/sparql-query', $property-metadata-query || $values, map{ 'Accept': 'application/rdf+xml' })">
                                     <xsl:catch/>
                                 </xsl:try>
                             </xsl:if>
@@ -741,7 +739,7 @@ WHERE
                         <xsl:variable name="local-pane" as="element()">
                             <xsl:apply-templates select="." mode="ldh:TabPanel">
                                 <xsl:with-param name="mode" select="ac:mode(root())"/>
-                                <xsl:with-param name="base" select="lapp:base()"/>
+                                <xsl:with-param name="base" select="lds:base()"/>
                                 <xsl:with-param name="endpoint" select="sd:endpoint()"/>
                                 <xsl:with-param name="acl-modes" select="acl:mode()"/>
                                 <xsl:with-param name="about" select="ac:absolute-path(ldh:base-uri(.))"/>
@@ -768,16 +766,16 @@ WHERE
     </xsl:template>
     
     <!-- only lookup resource locally using DESCRIBE if it's external (not relative to the app's base URI) and the agent is authenticated -->
-    <xsl:template match="*[*][@rdf:about = ac:absolute-path(ldh:base-uri(.))][not(starts-with(@rdf:about, lapp:base()))][$foaf:Agent//@rdf:about]" mode="ac:PropertyEditor">
+    <xsl:template match="*[*][@rdf:about = ac:absolute-path(ldh:base-uri(.))][not(starts-with(@rdf:about, lds:base()))][$foaf:Agent//@rdf:about]" mode="ac:PropertyEditor">
         <xsl:param name="endpoint" select="sd:endpoint()" as="xs:anyURI"/>
         <xsl:param name="property-uris" select="distinct-values(*/concat(namespace-uri(), local-name()))" as="xs:anyURI*"/>
-        <xsl:param name="property-metadata" select="ldh:send-request(resolve-uri('ns', lapp:base()), 'POST', 'application/sparql-query', 'DESCRIBE ' || string-join(for $uri in distinct-values(/rdf:RDF/*/*/concat(namespace-uri(), local-name())) return '&lt;' || $uri || '&gt;', ' '), map{ 'Accept': 'application/rdf+xml' })" as="document-node()"/>
+        <xsl:param name="property-metadata" select="ldh:send-request(resolve-uri('ns', lds:base()), 'POST', 'application/sparql-query', 'DESCRIBE ' || string-join(for $uri in distinct-values(/rdf:RDF/*/*/concat(namespace-uri(), local-name())) return '&lt;' || $uri || '&gt;', ' '), map{ 'Accept': 'application/rdf+xml' })" as="document-node()"/>
         <xsl:param name="object-metadata" as="document-node()?" tunnel="yes"/>
         <xsl:variable name="local-doc" select="ldh:query-result($endpoint, 'DESCRIBE &lt;' || @rdf:about || '&gt;')" as="document-node()"/>
         <xsl:variable name="original-doc" as="document-node()">
             <xsl:try>
                 <!-- try loading resource by deferencing its URI -->
-                <xsl:variable name="full-doc" select="document(ac:build-uri(lapp:base(), map{ 'uri': string(ac:document-uri(@rdf:about)), 'accept': 'application/rdf+xml' }))" as="document-node()"/>
+                <xsl:variable name="full-doc" select="document(ac:build-uri(lds:base(), map{ 'uri': string(ac:document-uri(@rdf:about)), 'accept': 'application/rdf+xml' }))" as="document-node()"/>
                 <xsl:document>
                     <rdf:RDF>
                         <xsl:copy-of select="key('resources', @rdf:about, $full-doc)"/>
@@ -899,25 +897,25 @@ WHERE
         
     <!-- SETTINGS -->
     
-    <xsl:template match="rdf:RDF[lapp:origin()] | srx:sparql[lapp:origin()]" mode="ldh:Settings" priority="1">
+    <xsl:template match="rdf:RDF[lds:origin()] | srx:sparql[lds:origin()]" mode="ldh:Settings" priority="1">
         <div class="ac-menu-anchor">
             <button type="button" class="drop-toggle ac-iconbtn sz-lg in-neutral ap-ghost" aria-haspopup="menu" aria-expanded="false" title="{ac:label(key('resources', 'nav-bar-action-settings-title', document('translations.rdf')))}">
                 <span class="msi outline sm" aria-hidden="true">settings</span>
             </button>
 
             <div class="ac-menu al-end" role="menu">
-                <xsl:if test="$foaf:Agent//@rdf:about and lapp:application-description()/rdf:type/@rdf:resource = '&lapp;EndUserApplication'">
+                <xsl:if test="$foaf:Agent//@rdf:about and lds:dataspace-description()/rdf:type/@rdf:resource = '&lds;EndUserDataspace'">
                     <button type="button" class="ac-menu-item btn-app-settings" role="menuitem">
                         <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', '&lapp;Application', document(ac:document-uri('&lapp;')))" mode="ac:label"/>
+                            <xsl:apply-templates select="key('resources', '&lds;Dataspace', document(ac:document-uri('&lds;')))" mode="ac:label"/>
                         </xsl:value-of>
                     </button>
-                    <a href="{replace(string(lapp:origin()), '^(https?://)', '$1admin.')}" class="ac-menu-item external" role="menuitem" target="_blank">
+                    <a href="{replace(string(lds:origin()), '^(https?://)', '$1admin.')}" class="ac-menu-item external" role="menuitem" target="_blank">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'administration', document('translations.rdf'))" mode="ac:label"/>
                         </xsl:value-of>
                     </a>
-                    <a class="ac-menu-item" role="menuitem" href="{resolve-uri('ns', lapp:base())}">
+                    <a class="ac-menu-item" role="menuitem" href="{resolve-uri('ns', lds:base())}">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'namespace-ontology', document('translations.rdf'))" mode="ac:label"/>
                         </xsl:value-of>
@@ -933,7 +931,7 @@ WHERE
         <div class="ldh-footer" role="contentinfo">
             <div class="cols">
                 <div class="col brand-col">
-                    <a class="ldh-wordmark" href="{lapp:base()}">
+                    <a class="ldh-wordmark" href="{lds:base()}">
                         <span class="mark"></span>
                         <span>LinkedDataHub</span>
                     </a>
@@ -963,7 +961,7 @@ WHERE
             </div>
             <div class="legal">
                 <span>© <xsl:value-of select="format-date(current-date(), '[Y]')"/> AtomGraph · LinkedDataHub</span>
-                <span><xsl:value-of select="lapp:base()"/></span>
+                <span><xsl:value-of select="lds:base()"/></span>
             </div>
         </div>
     </xsl:template>

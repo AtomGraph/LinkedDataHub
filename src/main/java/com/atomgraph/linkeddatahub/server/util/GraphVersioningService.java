@@ -20,7 +20,7 @@ import com.atomgraph.core.vocabulary.A;
 import com.atomgraph.linkeddatahub.client.GitHubClient;
 import com.atomgraph.linkeddatahub.model.ServiceContext;
 import com.atomgraph.linkeddatahub.vocabulary.GitHub;
-import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import com.atomgraph.linkeddatahub.vocabulary.LDS;
 import com.atomgraph.linkeddatahub.vocabulary.PROV;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.client.Client;
@@ -83,7 +83,7 @@ public class GraphVersioningService
 
     /**
      * Builds the per-application repository map from the context model.
-     * Applications without a <code>lapp:versioningRepository</code> are not versioned.
+     * Applications without a <code>lds:versioningRepository</code> are not versioned.
      *
      * @param contextModel union model of the context dataset
      * @param client HTTP client with standard TLS server verification
@@ -92,7 +92,7 @@ public class GraphVersioningService
     {
         repositories = new HashMap<>();
 
-        StmtIterator it = contextModel.listStatements(null, LAPP.versioningRepository, (org.apache.jena.rdf.model.RDFNode)null);
+        StmtIterator it = contextModel.listStatements(null, LDS.versioningRepository, (org.apache.jena.rdf.model.RDFNode)null);
         try
         {
             while (it.hasNext())

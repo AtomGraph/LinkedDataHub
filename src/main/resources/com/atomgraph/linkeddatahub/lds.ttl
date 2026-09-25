@@ -1,0 +1,238 @@
+@base           <https://w3id.org/atomgraph/linkeddatahub/dataspaces> .
+
+@prefix :	<#> .
+@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .
+@prefix a:	<https://w3id.org/atomgraph/core#> .
+@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
+@prefix owl:	<http://www.w3.org/2002/07/owl#> .
+@prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .
+@prefix sp:	<http://spinrdf.org/sp#> .
+@prefix spin:	<http://spinrdf.org/spin#> .
+@prefix spl:	<http://spinrdf.org/spl#> .
+@prefix void:	<http://rdfs.org/ns/void#> .
+@prefix foaf:	<http://xmlns.com/foaf/0.1/> .
+@prefix dct:	<http://purl.org/dc/terms/> .
+@prefix doap:	<http://usefulinc.com/ns/doap#> .
+
+: a owl:Ontology ;
+    owl:imports ldh:, sd:, sp:, spin: ;
+    rdfs:label "LinkedDataHub dataspace ontology" ;
+    rdfs:comment "Ontology of LinkedDataHub dataspaces" ;
+    owl:versionInfo "2.0.0" .
+
+# PROPERTIES
+
+:origin a owl:ObjectProperty, owl:FunctionalProperty, owl:InverseFunctionalProperty ;
+    rdfs:domain :Dataspace ;
+    rdfs:range rdfs:Resource ;
+    rdfs:label "Origin" ;
+    rdfs:comment "The origin URI of a dataspace, which serves as the base URI for all resources in it" ;
+    rdfs:isDefinedBy : .
+
+:dataspace a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:range :Dataspace ;
+    rdfs:label "Dataspace" ;
+    rdfs:comment "Links a resource to a dataspace" ;
+    rdfs:isDefinedBy : .
+
+:base a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain :Dataspace ;
+    rdfs:label "Base URI" ;
+    rdfs:comment "The base URI all of the dataspace's resource URIs are relative to" ;
+    rdfs:isDefinedBy : .
+
+:ontology a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:range owl:Ontology ;
+    rdfs:label "Ontology" ;
+    rdfs:comment "The ontology that defines the structure of a dataspace, or the vocabulary a package contributes" ;
+    rdfs:isDefinedBy : .
+
+:service a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:range sd:Service ;
+    rdfs:label "SPARQL service" ;
+    rdfs:comment "The service implementing SPARQL Protocol and Graph Store Protocol that backs a dataspace or a proxied dataset" ;
+    rdfs:isDefinedBy : .
+
+:backendProxy a owl:ObjectProperty ;
+    rdfs:domain :Dataset ;
+    rdfs:range rdfs:Resource ;
+    rdfs:label "Backend proxy" ;
+    rdfs:comment "An intermediary server (such as cache) that proxies backend requests to service" ;
+    rdfs:isDefinedBy : .
+
+:prefix a owl:ObjectProperty ;
+    rdfs:domain :Dataset ;
+    rdfs:range rdfs:Resource ;
+    rdfs:label "Prefix" ;
+    rdfs:comment "The URL path prefix under which this dataset is proxied" ;
+    rdfs:isDefinedBy : .
+
+:public a owl:DatatypeProperty ;
+    rdfs:domain :EndUserDataspace ;
+    rdfs:range xsd:boolean ;
+    rdfs:label "Public" ;
+    rdfs:comment "If true, this dataspace can be listed as public (ACL still applies). If false, it is private and will not be listed" ;
+    rdfs:isDefinedBy : .
+
+:allowRead a owl:DatatypeProperty ;
+    rdfs:domain :Dataspace ;
+    rdfs:range xsd:boolean ;
+    rdfs:label "Allow read" ;
+    rdfs:comment "If true, this dataspace allows GET and HEAD methods for all request URIs without authorization check" ;
+    rdfs:isDefinedBy : .
+
+:versioningRepository a owl:ObjectProperty ;
+    rdfs:domain :Dataspace ;
+    rdfs:range doap:GitRepository ;
+    rdfs:label "Versioning repository" ;
+    rdfs:comment "The git repository this dataspace commits its graph versions to. Absent, the dataspace is not versioned" ;
+    rdfs:isDefinedBy : .
+
+# CLASSES
+
+# dataset
+
+:Dataset a rdfs:Class, owl:Class ;
+    rdfs:subClassOf void:Dataset ;
+    rdfs:label "Linked Data dataset" ;
+    rdfs:comment "An external dataset that returns RDF Linked Data, proxied under a URL path prefix of this deployment" ;
+    rdfs:isDefinedBy : .
+
+# dataspace
+
+:Dataspace a rdfs:Class, owl:Class ;
+    spin:constructor :DataspaceConstructor ;
+    spin:constraint :StartsWithHTTPS, :ValidOrigin,
+        [ a ldh:MissingPropertyValue ;
+            rdfs:label "Missing origin URI" ;
+            sp:arg1 :origin
+        ] ;
+    rdfs:label "Dataspace" ;
+    rdfs:comment "A dataspace is identified by its origin URI, and the URIs of the resources it holds are relative to that origin. Its only interface (API) is read-write RESTful Linked Data, backed by an RDF dataset accessible as a SPARQL 1.1 service. Its structure is defined in an ontology, which can import other ontologies." ;
+    rdfs:isDefinedBy : .
+
+:DataspaceConstructor a ldh:Constructor ;
+    sp:text """
+      PREFIX lds:     <https://w3id.org/atomgraph/linkeddatahub/dataspaces#>
+      PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+
+      CONSTRUCT {
+          $this lds:origin [ a rdfs:Resource ] .
+      }
+      WHERE {
+    }""" ;
+    rdfs:label "Dataspace constructor" ;
+    rdfs:isDefinedBy : .
+
+# end-user
+
+:EndUserDataspace a rdfs:Class, owl:Class ;
+    spin:constructor :EndUserDataspaceConstructor ;
+    rdfs:label "End-user dataspace" ;
+    rdfs:comment "Dataspace with dynamic access control and sitemap" ;
+    rdfs:isDefinedBy : .
+
+:EndUserDataspaceConstructor a ldh:Constructor ;
+    sp:text """
+      PREFIX lds:     <https://w3id.org/atomgraph/linkeddatahub/dataspaces#>
+      PREFIX ldh:     <https://w3id.org/atomgraph/linkeddatahub#>
+      PREFIX ac:      <https://w3id.org/atomgraph/client#>
+      PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+      PREFIX dct:     <http://purl.org/dc/terms/>
+
+      CONSTRUCT {
+          $this dct:title [ a xsd:string ] ;
+            dct:description [ a xsd:string ] ;
+            ac:stylesheet [ a ldh:File ] ;
+            lds:public [ a xsd:boolean ] .
+      }
+      WHERE {}""" ;
+    rdfs:label "End-user dataspace constructor" ;
+    rdfs:isDefinedBy : .
+
+# admin
+
+:AdminDataspace a rdfs:Class, owl:Class ;
+    spin:constructor :AdminDataspaceConstructor ;
+    rdfs:label "Admin dataspace" ;
+    rdfs:comment "Meta-dataspace that manages the access control and sitemap of the end-user dataspace it pairs with" ;
+    rdfs:isDefinedBy : .
+
+:AdminDataspaceConstructor a ldh:Constructor ;
+    sp:text """
+      PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+      PREFIX dct:     <http://purl.org/dc/terms/>
+
+      CONSTRUCT {
+          $this dct:title [ a xsd:string ] ;
+            dct:description [ a xsd:string ] ;
+      }
+      WHERE {}""" ;
+    rdfs:label "Admin dataspace constructor" ;
+    rdfs:isDefinedBy : .
+
+# package
+
+:Package a rdfs:Class, owl:Class ;
+    rdfs:label "Package" ;
+    rdfs:comment "A reusable package containing RDF ontology and optional XSLT stylesheet for vocabulary support" ;
+    rdfs:isDefinedBy : .
+
+# CONSTRAINTS
+
+:StartsWithHTTPS a sp:Construct ;
+    rdfs:label "lds:origin starts with https://" ;
+    sp:text """
+PREFIX  lds: <https://w3id.org/atomgraph/linkeddatahub/dataspaces#>
+PREFIX  spin: <http://spinrdf.org/spin#>
+PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+CONSTRUCT {
+    _:c0 a spin:ConstraintViolation .
+    _:c0 spin:violationRoot ?this .
+    _:c0 spin:violationPath lds:origin .
+    _:c0 rdfs:label "Dataspace origin URI must start with https://" .
+}
+WHERE {
+  ?this  lds:origin  ?origin
+  FILTER ( ! strstarts(str(?origin), "https://") )
+}""" ;
+    rdfs:isDefinedBy : .
+
+:ValidOrigin a sp:Construct ;
+    rdfs:label "Origin must not have trailing slash and must have hostname" ;
+    sp:text """
+PREFIX  lds: <https://w3id.org/atomgraph/linkeddatahub/dataspaces#>
+PREFIX  spin: <http://spinrdf.org/spin#>
+PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+CONSTRUCT 
+  { 
+    _:c0 a spin:ConstraintViolation .
+    _:c0 spin:violationRoot ?this .
+    _:c0 spin:violationPath lds:origin .
+    _:c0 rdfs:label ?message .
+  }
+WHERE
+  { 
+    ?this lds:origin ?origin .
+
+    BIND(STRAFTER(str(?origin), "//") AS ?afterScheme)
+    BIND(IF(CONTAINS(?afterScheme, "/"), 
+            STRBEFORE(?afterScheme, "/"), 
+            ?afterScheme) AS ?hostname)
+    
+    BIND(
+      IF(STRENDS(str(?origin), "/"),
+         "Origin URL must not end with a trailing slash",
+      IF(?hostname = "",
+         "Origin URL must have a non-empty hostname",
+         "")) AS ?message
+    )
+    
+    FILTER(?message != "")
+  }
+""" ;
+    rdfs:isDefinedBy : .

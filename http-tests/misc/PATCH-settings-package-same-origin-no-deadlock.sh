@@ -64,11 +64,11 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   --data-binary @- \
   "$package_doc" <<EOT \
 | grep -q "$STATUS_CREATED"
-<${package_doc}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item> .
+<${package_doc}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Item> .
 <${package_doc}> <http://purl.org/dc/terms/title> "Same-origin package" .
 <${package_doc}> <http://rdfs.org/sioc/ns#has_container> <${END_USER_BASE_URL}> .
 <${package_doc}> <http://xmlns.com/foaf/0.1/primaryTopic> <${package_uri}> .
-<${package_uri}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/apps#Package> .
+<${package_uri}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/dataspaces#Package> .
 <${package_uri}> <http://purl.org/dc/terms/title> "Same-origin package" .
 <${package_uri}> <https://w3id.org/atomgraph/client#stylesheet> <${stylesheet_uri}> .
 EOT

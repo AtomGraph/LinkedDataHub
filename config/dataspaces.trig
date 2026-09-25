@@ -1,6 +1,5 @@
-@prefix lapp:	<https://w3id.org/atomgraph/linkeddatahub/apps#> .
+@prefix lds:	<https://w3id.org/atomgraph/linkeddatahub/dataspaces#> .
 @prefix ac:	    <https://w3id.org/atomgraph/client#> .
-@prefix ldt:	<https://www.w3.org/ns/ldt#> .
 @prefix dct:	<http://purl.org/dc/terms/> .
 
 ### do not use blank nodes to identify resources! ###
@@ -10,10 +9,10 @@
 
 <urn:linkeddatahub:apps/admin>
 {
-    <urn:linkeddatahub:apps/admin> a lapp:Application ;
+    <urn:linkeddatahub:apps/admin> a lds:Dataspace ;
         dct:title "LinkedDataHub admin" ;
-        lapp:origin <https://admin.localhost:4443> ;
-        ldt:ontology <https://w3id.org/atomgraph/linkeddatahub/admin#> ;
+        lds:origin <https://admin.localhost:4443> ;
+        lds:ontology <https://w3id.org/atomgraph/linkeddatahub/admin#> ;
         ac:stylesheet <https://admin.localhost:4443/static/xsl/admin/layout.xsl> .
 
 }
@@ -22,12 +21,12 @@
 
 <urn:linkeddatahub:apps/end-user>
 {
-    <urn:linkeddatahub:apps/end-user> a lapp:Application ;
+    <urn:linkeddatahub:apps/end-user> a lds:Dataspace ;
         dct:title "LinkedDataHub" ;
-        lapp:origin <https://localhost:4443> ;
-        ldt:ontology <https://localhost:4443/ns#> ;
+        lds:origin <https://localhost:4443> ;
+        lds:ontology <https://localhost:4443/ns#> ;
         ac:stylesheet <https://localhost:4443/static/xsl/layout.xsl> ;
-        lapp:public true .
+        lds:public true .
 
 }
 
@@ -35,10 +34,10 @@
 
 <urn:linkeddatahub:apps/northwind-traders/admin>
 {
-    <urn:linkeddatahub:apps/northwind-traders/admin> a lapp:Application ;
+    <urn:linkeddatahub:apps/northwind-traders/admin> a lds:Dataspace ;
         dct:title "Northwind Traders admin" ;
-        lapp:origin <https://admin.northwind-traders.demo.localhost:4443> ;
-        ldt:ontology <https://w3id.org/atomgraph/linkeddatahub/admin#> ;
+        lds:origin <https://admin.northwind-traders.demo.localhost:4443> ;
+        lds:ontology <https://w3id.org/atomgraph/linkeddatahub/admin#> ;
         ac:stylesheet <https://admin.northwind-traders.demo.localhost:4443/static/xsl/admin/layout.xsl> .
 
 }
@@ -47,11 +46,11 @@
 
 <urn:linkeddatahub:apps/northwind-traders/end-user>
 {
-    <urn:linkeddatahub:apps/northwind-traders/end-user> a lapp:Application ;
+    <urn:linkeddatahub:apps/northwind-traders/end-user> a lds:Dataspace ;
         dct:title "Northwind Traders" ;
-        lapp:origin <https://northwind-traders.demo.localhost:4443> ;
-        ldt:ontology <https://northwind-traders.demo.localhost:4443/ns#> ;
+        lds:origin <https://northwind-traders.demo.localhost:4443> ;
+        lds:ontology <https://northwind-traders.demo.localhost:4443/ns#> ;
         ac:stylesheet <https://northwind-traders.demo.localhost:4443/static/xsl/layout.xsl> ;
-        lapp:public true .
+        lds:public true .
 
 }

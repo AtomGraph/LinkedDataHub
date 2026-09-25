@@ -85,7 +85,7 @@ public class XsltExecutableFilter implements ContainerResponseFilter
     private static final Logger log = LoggerFactory.getLogger(XsltExecutableFilter.class);
 
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> application;
+    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace>> application;
 
     @Context UriInfo uriInfo;
     @Context ServletContext servletContext;
@@ -98,12 +98,12 @@ public class XsltExecutableFilter implements ContainerResponseFilter
             (resp.getMediaType().isCompatible(MediaType.TEXT_HTML_TYPE) || resp.getMediaType().isCompatible(MediaType.APPLICATION_XHTML_XML_TYPE)))
         {
             URI stylesheet = null;
-            if (getApplication().isPresent() && getApplication().get().getStylesheet() != null)
-                stylesheet = URI.create(getApplication().get().getStylesheet().getURI());
+            if (getDataspace().isPresent() && getDataspace().get().getStylesheet() != null)
+                stylesheet = URI.create(getDataspace().get().getStylesheet().getURI());
 
             if (stylesheet != null)
             {
-                List<URI> packages = getSystem().getPackageService().getPackageURIs(getApplication().get());
+                List<URI> packages = getSystem().getPackageService().getPackageURIs(getDataspace().get());
                 ClientStylesheetService stylesheetService = getSystem().getClientStylesheetService();
 
                 if (packages.isEmpty()) req.setProperty(AC.stylesheet.getURI(), getXsltExecutable(stylesheet));
@@ -112,7 +112,7 @@ public class XsltExecutableFilter implements ContainerResponseFilter
                     // server-side composition is never withheld: a declarative import takes effect on the
                     // next request, and it is the only rendering an instance whose compiler is unreachable
                     // will ever get
-                    req.setProperty(AC.stylesheet.getURI(), getXsltExecutable(getApplication().get(), stylesheet, packages));
+                    req.setProperty(AC.stylesheet.getURI(), getXsltExecutable(getDataspace().get(), stylesheet, packages));
 
                     if (stylesheetService != null)
                     {
@@ -121,7 +121,7 @@ public class XsltExecutableFilter implements ContainerResponseFilter
                         // until the composed stylesheet exists the client renders without the package, as it
                         // always has; compiling one closes that window rather than opening it
                         if (stylesheetService.isPublished(key)) req.setProperty(LDH.clientStylesheet.getURI(), stylesheetService.getPublicPath(key));
-                        else stylesheetService.buildAsync(key, getSystem().getPackageService().getStylesheets(getApplication().get()));
+                        else stylesheetService.buildAsync(key, getSystem().getPackageService().getStylesheets(getDataspace().get()));
                     }
                 }
             }
@@ -140,7 +140,7 @@ public class XsltExecutableFilter implements ContainerResponseFilter
      * @param packages imported package URIs
      * @return XSLT executable
      */
-    public XsltExecutable getXsltExecutable(com.atomgraph.linkeddatahub.apps.model.Application app, URI stylesheet, List<URI> packages)
+    public XsltExecutable getXsltExecutable(com.atomgraph.linkeddatahub.dataspaces.model.Dataspace app, URI stylesheet, List<URI> packages)
     {
         try
         {
@@ -209,7 +209,7 @@ public class XsltExecutableFilter implements ContainerResponseFilter
      * @throws SAXException XML parsing error
      * @throws TransformerException XML parsing or serialization error
      */
-    public Composition getComposition(com.atomgraph.linkeddatahub.apps.model.Application app, URI stylesheet, List<URI> packages) throws IOException, ParserConfigurationException, SAXException, TransformerException
+    public Composition getComposition(com.atomgraph.linkeddatahub.dataspaces.model.Dataspace app, URI stylesheet, List<URI> packages) throws IOException, ParserConfigurationException, SAXException, TransformerException
     {
         List<String> hrefs = getSystem().getPackageService().getStylesheets(app).stream().map(URI::toString).collect(Collectors.toList());
         URI entryURI = getPublicURI(app, stylesheet);
@@ -385,7 +385,7 @@ public class XsltExecutableFilter implements ContainerResponseFilter
      * @return public stylesheet URL
      * @throws MalformedURLException URL error
      */
-    public URI getPublicURI(com.atomgraph.linkeddatahub.apps.model.Application app, URI stylesheet) throws MalformedURLException
+    public URI getPublicURI(com.atomgraph.linkeddatahub.dataspaces.model.Dataspace app, URI stylesheet) throws MalformedURLException
     {
         if ("http".equals(stylesheet.getScheme()) || "https".equals(stylesheet.getScheme())) return stylesheet;
 
@@ -602,7 +602,7 @@ public class XsltExecutableFilter implements ContainerResponseFilter
      *
      * @return optional application resource
      */
-    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
+    public Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace> getDataspace()
     {
         return application.get();
     }

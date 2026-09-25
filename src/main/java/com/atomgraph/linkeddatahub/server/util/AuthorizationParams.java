@@ -17,7 +17,7 @@
 package com.atomgraph.linkeddatahub.server.util;
 
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
-import com.atomgraph.server.vocabulary.LDT;
+import com.atomgraph.linkeddatahub.vocabulary.LDS;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
 import java.util.function.Supplier;
 import org.apache.jena.query.QuerySolutionMap;
@@ -59,7 +59,7 @@ public class AuthorizationParams implements Supplier<QuerySolutionMap>
     {
         QuerySolutionMap qsm = new QuerySolutionMap();
         qsm.add(SPIN.THIS_VAR_NAME, getAbsolutePath());
-        qsm.add(LDT.base.getLocalName(), getBase());
+        qsm.add(LDS.base.getLocalName(), getBase());
         
         if (getAgent() != null)
         {

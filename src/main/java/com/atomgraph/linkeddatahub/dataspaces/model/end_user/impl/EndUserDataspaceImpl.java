@@ -14,59 +14,55 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.apps.model.admin.impl;
+package com.atomgraph.linkeddatahub.dataspaces.model.end_user.impl;
 
-import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
-import com.atomgraph.linkeddatahub.vocabulary.Admin;
-import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import com.atomgraph.linkeddatahub.dataspaces.model.AdminDataspace;
+import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import java.net.URI;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.ResIterator;
-import org.apache.jena.rdf.model.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.atomgraph.linkeddatahub.vocabulary.LDS;
 
 /**
- * Administrative application implementation.
+ * End-user application implementation.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class ApplicationImpl extends com.atomgraph.linkeddatahub.apps.model.impl.ApplicationImpl implements AdminApplication
+public class EndUserDataspaceImpl extends com.atomgraph.linkeddatahub.dataspaces.model.impl.DataspaceImpl implements EndUserDataspace
 {
 
-    private static final Logger log = LoggerFactory.getLogger(ApplicationImpl.class);
-    
+    private static final Logger log = LoggerFactory.getLogger(EndUserDataspaceImpl.class);
+
     /**
      * Constructs instance from node and graph.
      * 
      * @param n node
      * @param g graph
      */
-    public ApplicationImpl(Node n, EnhGraph g)
+    public EndUserDataspaceImpl(Node n, EnhGraph g)
     {
         super(n, g);
     }
-
+    
     @Override
-    public EndUserApplication getEndUserApplication()
+    public AdminDataspace getAdminDataspace()
     {
         URI originURI = getOriginURI();
         if (originURI == null) return null;
 
-        // derive end-user origin by stripping the "admin." subdomain from the host
-        String host = originURI.getHost();
-        if (!host.startsWith("admin.")) return null;
-        String endUserHost = host.substring("admin.".length());
-        URI endUserOrigin = URI.create(originURI.getScheme() + "://" + endUserHost +
+        // derive admin origin by prepending "admin." to the host
+        String adminHost = "admin." + originURI.getHost();
+        URI adminOrigin = URI.create(originURI.getScheme() + "://" + adminHost +
             (originURI.getPort() != -1 ? ":" + originURI.getPort() : ""));
 
-        ResIterator it = getModel().listSubjectsWithProperty(LAPP.origin,
-            getModel().createResource(endUserOrigin.toString()));
+        ResIterator it = getModel().listSubjectsWithProperty(LDS.origin,
+            getModel().createResource(adminOrigin.toString()));
         try
         {
-            if (it.hasNext()) return it.next().as(EndUserApplication.class);
+            if (it.hasNext()) return it.next().as(AdminDataspace.class);
         }
         finally
         {
@@ -74,12 +70,6 @@ public class ApplicationImpl extends com.atomgraph.linkeddatahub.apps.model.impl
         }
 
         return null;
-    }
-    
-    @Override
-    public Resource getOntology()
-    {
-        return Admin.NAMESPACE;
     }
     
 }

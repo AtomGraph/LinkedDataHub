@@ -16,10 +16,10 @@
  */
 package com.atomgraph.linkeddatahub.server.util;
 
-import com.atomgraph.server.vocabulary.LDT;
+import com.atomgraph.linkeddatahub.vocabulary.LDS;
 import com.atomgraph.core.client.GraphStoreClient;
 import com.atomgraph.client.util.jena.PrefixGraphRepository;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
@@ -54,7 +54,7 @@ public class OntologyRepository extends PrefixGraphRepository
      */
     public static final String ONTOLOGY_XKEY = "urn:linkeddatahub:ontology";
 
-    private final EndUserApplication app;
+    private final EndUserDataspace app;
     private final com.atomgraph.linkeddatahub.Application system;
     private final Query ontologyQuery;
 
@@ -66,7 +66,7 @@ public class OntologyRepository extends PrefixGraphRepository
      * @param gsc Graph Store client for HTTP fallback loading
      * @param ontologyQuery SPARQL query that loads ontology terms
      */
-    public OntologyRepository(EndUserApplication app, com.atomgraph.linkeddatahub.Application system, GraphStoreClient gsc, Query ontologyQuery)
+    public OntologyRepository(EndUserDataspace app, com.atomgraph.linkeddatahub.Application system, GraphStoreClient gsc, Query ontologyQuery)
     {
         super(gsc);
         this.app = app;
@@ -107,7 +107,7 @@ public class OntologyRepository extends PrefixGraphRepository
 
         // attempt to load the ontology from the admin endpoint
         ParameterizedSparqlString ontologyPss = new ParameterizedSparqlString(getOntologyQuery().toString());
-        ontologyPss.setIri(LDT.ontology.getLocalName(), uri);
+        ontologyPss.setIri(LDS.ontology.getLocalName(), uri);
 
         // Surrogate-key hints for the CONSTRUCT this is about to cache in varnish-admin. The VCL promotes the
         // header verbatim into the response's xkey index, which reads it as a space-separated key list, so this
@@ -121,7 +121,7 @@ public class OntologyRepository extends PrefixGraphRepository
         headers.putSingle("X-Xkey-Promote", uri + " " + ONTOLOGY_XKEY);
 
         Model model;
-        try (Response cr = getSystem().getServiceContext(getApplication().getAdminApplication().getService()).getSPARQLClient().
+        try (Response cr = getSystem().getServiceContext(getDataspace().getAdminDataspace().getService()).getSPARQLClient().
                 query(ontologyPss.asQuery(), Model.class, new MultivaluedHashMap<>(), headers))
         {
             model = cr.readEntity(Model.class);
@@ -143,7 +143,7 @@ public class OntologyRepository extends PrefixGraphRepository
      *
      * @return application resource
      */
-    public EndUserApplication getApplication()
+    public EndUserDataspace getDataspace()
     {
         return app;
     }

@@ -16,11 +16,11 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.request;
 
-import com.atomgraph.linkeddatahub.apps.model.Application;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.dataspaces.model.Dataspace;
+import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import com.atomgraph.client.util.jena.PrefixGraphRepository;
 import com.atomgraph.linkeddatahub.server.util.ScopedGraphRepository;
-import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import com.atomgraph.linkeddatahub.vocabulary.LDS;
 import com.atomgraph.server.exception.OntologyException;
 import java.io.IOException;
 import java.net.URI;
@@ -109,7 +109,7 @@ public class OntologyFilter implements ContainerRequestFilter
      */
     public Optional<OntModel> getOntology(ContainerRequestContext crc)
     {
-        Optional<Application> appOpt = getApplication(crc);
+        Optional<Dataspace> appOpt = getDataspace(crc);
 
         if (!appOpt.isPresent()) return Optional.empty();
 
@@ -129,7 +129,7 @@ public class OntologyFilter implements ContainerRequestFilter
      * @param app application resource
      * @return ontology model
      */
-    public OntModel getOntology(Application app)
+    public OntModel getOntology(Dataspace app)
     {
         if (app.getOntology() == null) return null;
 
@@ -145,13 +145,13 @@ public class OntologyFilter implements ContainerRequestFilter
      * @param uri ontology URI
      * @return ontology model
      */
-    public OntModel getOntology(Application app, String uri)
+    public OntModel getOntology(Dataspace app, String uri)
     {
-        if (app == null) throw new IllegalArgumentException("Application cannot be null");
+        if (app == null) throw new IllegalArgumentException("Dataspace cannot be null");
         if (uri == null) throw new IllegalArgumentException("Ontology URI cannot be null");
 
-        final PrefixGraphRepository repository = app.canAs(EndUserApplication.class) ?
-            getSystem().getRepository(app.as(EndUserApplication.class)) : getSystem().getRepository();
+        final PrefixGraphRepository repository = app.canAs(EndUserDataspace.class) ?
+            getSystem().getRepository(app.as(EndUserDataspace.class)) : getSystem().getRepository();
 
         // only assemble the closure if it is not already cached; the double check under the repository
         // lock ensures a single thread assembles it (loadOntology is a compound load + union build, not
@@ -163,14 +163,14 @@ public class OntologyFilter implements ContainerRequestFilter
             // nor cached is I/O - a remote fetch, or a read of this instance's own store - and nothing
             // about it needs the monitor, which exists to serialise the union build, not to hold every
             // other cold request behind a slow package server
-            List<com.atomgraph.linkeddatahub.apps.model.Package> packages = getSystem().getPackageService().getPackages(app);
+            List<com.atomgraph.linkeddatahub.dataspaces.model.Package> packages = getSystem().getPackageService().getPackages(app);
 
             // A package ontology is not mapped for an application, so it resolves only once this application
             // holds its own copy. Materializing here rather than only on a settings change or a Clear is
             // what makes a package declared in the dataspace config work on a cold start, with no operator
             // step; it is idempotent, so every later miss costs one ASK per package
-            if (app.canAs(EndUserApplication.class))
-                getSystem().getPackageService().materialize(packages, app.as(EndUserApplication.class));
+            if (app.canAs(EndUserDataspace.class))
+                getSystem().getPackageService().materialize(packages, app.as(EndUserDataspace.class));
 
             List<URI> packageOntologies = getSystem().getPackageService().getOntologies(packages);
 
@@ -329,9 +329,9 @@ public class OntologyFilter implements ContainerRequestFilter
      * @param crc request context
      * @return optional application resource
      */
-    public Optional<Application> getApplication(ContainerRequestContext crc)
+    public Optional<Dataspace> getDataspace(ContainerRequestContext crc)
     {
-        return ((Optional<Application>)crc.getProperty(LAPP.Application.getURI()));
+        return ((Optional<Dataspace>)crc.getProperty(LDS.Dataspace.getURI()));
     }
 
     /**

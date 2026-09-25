@@ -17,14 +17,13 @@
 package com.atomgraph.linkeddatahub.server.filter.response;
 
 import com.atomgraph.client.vocabulary.AC;
-import com.atomgraph.server.vocabulary.LDT;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.server.model.impl.DocumentHierarchyGraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.server.util.GraphVersioningService;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
-import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import com.atomgraph.linkeddatahub.vocabulary.LDS;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerResponseContext;
 import jakarta.ws.rs.core.HttpHeaders;
@@ -81,7 +80,7 @@ public class ResponseHeadersFilterTest
     @Mock private UriInfo uriInfo;
     @Mock private SecurityContext securityContext;
     @Mock private com.atomgraph.linkeddatahub.Application system;
-    @Mock private com.atomgraph.linkeddatahub.apps.model.Application application;
+    @Mock private com.atomgraph.linkeddatahub.dataspaces.model.Dataspace application;
     @Mock private GraphVersioningService versioningService;
     @Mock private AuthorizationContext authorizationContext;
 
@@ -347,7 +346,7 @@ public class ResponseHeadersFilterTest
         filter.filter(request, response);
 
         assertTrue(link().contains("<" + BASE_URI + "sparql>; rel=" + SD.endpoint.getURI()));
-        assertTrue(link().contains("<" + APP_URI + ">; rel=" + LAPP.application.getURI()));
+        assertTrue(link().contains("<" + APP_URI + ">; rel=" + LDS.dataspace.getURI()));
     }
 
     @Test
@@ -362,7 +361,7 @@ public class ResponseHeadersFilterTest
 
         filter.filter(request, response);
 
-        assertTrue(link().contains("<https://localhost:4443/ns#>; rel=" + LDT.ontology.getURI()));
+        assertTrue(link().contains("<https://localhost:4443/ns#>; rel=" + LDS.ontology.getURI()));
         assertTrue(link().contains("<https://localhost:4443/static/xsl/layout.xsl>; rel=" + AC.stylesheet.getURI()));
     }
 
@@ -371,7 +370,7 @@ public class ResponseHeadersFilterTest
     {
         filter.filter(request, response);
 
-        assertFalse(link().contains(LDT.ontology.getURI()));
+        assertFalse(link().contains(LDS.ontology.getURI()));
         assertFalse(link().contains(AC.stylesheet.getURI()));
     }
 
@@ -388,8 +387,8 @@ public class ResponseHeadersFilterTest
         filter.filter(request, response);
 
         assertFalse(link().contains(SD.endpoint.getURI()));
-        assertFalse(link().contains(LAPP.application.getURI()));
-        assertFalse(link().contains(LDT.ontology.getURI()));
+        assertFalse(link().contains(LDS.dataspace.getURI()));
+        assertFalse(link().contains(LDS.ontology.getURI()));
         assertFalse(link().contains(AC.stylesheet.getURI()));
     }
 

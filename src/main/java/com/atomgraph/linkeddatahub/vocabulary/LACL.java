@@ -73,9 +73,6 @@ public class LACL
     /** Request agent property **/
     public static final Property requestAgent = m_model.createObjectProperty( NS + "requestAgent" );
 
-    /** Request agent group property **/
-    public static final Property requestAgentGroup = m_model.createObjectProperty( NS + "requestAgentGroup" );
-
     /** Request access to property */
     public static final Property requestAccessTo = m_model.createObjectProperty( NS + "requestAccessTo" );
 

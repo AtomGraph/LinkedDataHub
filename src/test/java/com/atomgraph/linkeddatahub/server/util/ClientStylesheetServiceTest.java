@@ -95,9 +95,9 @@ public class ClientStylesheetServiceTest
 
         String entry = service.compose(List.of(packageURI())).getString("entry");
 
-        // the compiler's parser has no internal subset to expand &lapp; with
-        assertFalse(entry.contains("&lapp;"));
-        assertTrue(entry.contains("https://w3id.org/atomgraph/linkeddatahub/apps#Application"));
+        // the compiler's parser has no internal subset to expand &lds; with
+        assertFalse(entry.contains("&lds;"));
+        assertTrue(entry.contains("https://w3id.org/atomgraph/linkeddatahub/dataspaces#Dataspace"));
         assertFalse(entry.contains("<!DOCTYPE"));
     }
 

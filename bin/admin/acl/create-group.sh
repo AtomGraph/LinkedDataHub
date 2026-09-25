@@ -136,7 +136,7 @@ if [ -n "$proxy" ]; then
     args+=("$proxy")
 fi
 
-turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
+turtle+="@prefix dh:	<https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="${group} a foaf:Group .\n"

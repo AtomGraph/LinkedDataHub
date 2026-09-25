@@ -60,4 +60,4 @@ A single instance hosts multiple **dataspaces**, each a subdomain (origin). Each
 
 ## Standards
 
-WebID-TLS · SPARQL 1.1 Query & Update · Graph Store Protocol · Linked Data Templates · SHACL · SPIN · RDF (Turtle/RDF-XML/JSON-LD/N-Triples). LDH composes existing W3C/IETF standards; it does not define new wire protocols.
+WebID-TLS · SPARQL 1.1 Query & Update · Graph Store Protocol · SHACL · SPIN · RDF (Turtle/RDF-XML/JSON-LD/N-Triples). LDH composes existing W3C/IETF standards; it does not define new wire protocols.

@@ -14,12 +14,12 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.apps.model.impl;
+package com.atomgraph.linkeddatahub.dataspaces.model.impl;
 
 import com.atomgraph.client.vocabulary.AC;
-import com.atomgraph.linkeddatahub.apps.model.Package;
+import com.atomgraph.linkeddatahub.dataspaces.model.Package;
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
-import com.atomgraph.server.vocabulary.LDT;
+import com.atomgraph.linkeddatahub.vocabulary.LDS;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Resource;
@@ -53,7 +53,7 @@ public class PackageImpl extends ResourceImpl implements Package
     @Override
     public Resource getOntology()
     {
-        return getPropertyResourceValue(LDT.ontology);
+        return getPropertyResourceValue(LDS.ontology);
     }
 
     @Override

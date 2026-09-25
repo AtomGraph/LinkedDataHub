@@ -18,8 +18,8 @@ package com.atomgraph.linkeddatahub.server.util;
 
 import com.atomgraph.client.util.jena.PrefixGraphRepository;
 import com.atomgraph.core.client.GraphStoreClient;
-import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.dataspaces.model.AdminDataspace;
+import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import com.atomgraph.linkeddatahub.vocabulary.DH;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.SIOC;
@@ -92,7 +92,7 @@ public class PackageService
      * @param app application resource
      * @return list of package URIs
      */
-    public List<URI> getPackageURIs(com.atomgraph.linkeddatahub.apps.model.Application app)
+    public List<URI> getPackageURIs(com.atomgraph.linkeddatahub.dataspaces.model.Dataspace app)
     {
         return app.getImportedPackages().stream().
             filter(Resource::isURIResource).
@@ -109,7 +109,7 @@ public class PackageService
      * @param app application resource
      * @return list of package resources
      */
-    public List<com.atomgraph.linkeddatahub.apps.model.Package> getPackages(com.atomgraph.linkeddatahub.apps.model.Application app)
+    public List<com.atomgraph.linkeddatahub.dataspaces.model.Package> getPackages(com.atomgraph.linkeddatahub.dataspaces.model.Dataspace app)
     {
         return app.getImportedPackages().stream().
             filter(Resource::isURIResource).
@@ -127,7 +127,7 @@ public class PackageService
      * @param app application resource
      * @return list of stylesheet URLs
      */
-    public List<URI> getStylesheets(com.atomgraph.linkeddatahub.apps.model.Application app)
+    public List<URI> getStylesheets(com.atomgraph.linkeddatahub.dataspaces.model.Dataspace app)
     {
         return getStylesheets(getPackages(app), app);
     }
@@ -146,7 +146,7 @@ public class PackageService
      * @param app application resource whose origin serves the copies
      * @return list of stylesheet URLs
      */
-    public List<URI> getStylesheets(List<com.atomgraph.linkeddatahub.apps.model.Package> packages, com.atomgraph.linkeddatahub.apps.model.Application app)
+    public List<URI> getStylesheets(List<com.atomgraph.linkeddatahub.dataspaces.model.Package> packages, com.atomgraph.linkeddatahub.dataspaces.model.Dataspace app)
     {
         return packages.stream().
             filter(pkg -> pkg.getStylesheet() != null && pkg.getStylesheet().isURIResource()).
@@ -163,7 +163,7 @@ public class PackageService
      * @param app application resource whose origin serves the copy
      * @return URL to import the stylesheet from
      */
-    public URI materializeStylesheet(com.atomgraph.linkeddatahub.apps.model.Package pkg, com.atomgraph.linkeddatahub.apps.model.Application app)
+    public URI materializeStylesheet(com.atomgraph.linkeddatahub.dataspaces.model.Package pkg, com.atomgraph.linkeddatahub.dataspaces.model.Dataspace app)
     {
         URI declared = URI.create(pkg.getStylesheet().getURI());
         if (getSystem() == null || getSystem().getPackageRoot() == null || app == null) return declared;
@@ -213,7 +213,7 @@ public class PackageService
      * @param stylesheet declared stylesheet URL
      * @return relative path
      */
-    public String getStylesheetPath(com.atomgraph.linkeddatahub.apps.model.Package pkg, URI stylesheet)
+    public String getStylesheetPath(com.atomgraph.linkeddatahub.dataspaces.model.Package pkg, URI stylesheet)
     {
         String name = stylesheet.getPath().substring(stylesheet.getPath().lastIndexOf('/') + 1);
 
@@ -227,7 +227,7 @@ public class PackageService
      * @param app application resource
      * @return list of package ontology URIs
      */
-    public List<URI> getOntologies(com.atomgraph.linkeddatahub.apps.model.Application app)
+    public List<URI> getOntologies(com.atomgraph.linkeddatahub.dataspaces.model.Dataspace app)
     {
         return getOntologies(getPackages(app));
     }
@@ -239,10 +239,10 @@ public class PackageService
      * @param packages package resources
      * @return list of package ontology URIs
      */
-    public List<URI> getOntologies(List<com.atomgraph.linkeddatahub.apps.model.Package> packages)
+    public List<URI> getOntologies(List<com.atomgraph.linkeddatahub.dataspaces.model.Package> packages)
     {
         return packages.stream().
-            map(com.atomgraph.linkeddatahub.apps.model.Package::getOntology).
+            map(com.atomgraph.linkeddatahub.dataspaces.model.Package::getOntology).
             filter(Objects::nonNull).
             filter(Resource::isURIResource).
             map(ontology -> URI.create(ontology.getURI())).
@@ -269,7 +269,7 @@ public class PackageService
      * @param app application resource carrying the import set
      * @param endUserApp end-user application whose admin application holds the documents
      */
-    public void materialize(com.atomgraph.linkeddatahub.apps.model.Application app, EndUserApplication endUserApp)
+    public void materialize(com.atomgraph.linkeddatahub.dataspaces.model.Dataspace app, EndUserDataspace endUserApp)
     {
         materialize(getPackages(app), endUserApp);
     }
@@ -281,9 +281,9 @@ public class PackageService
      * @param packages package resources
      * @param endUserApp end-user application whose admin application holds the documents
      */
-    public void materialize(List<com.atomgraph.linkeddatahub.apps.model.Package> packages, EndUserApplication endUserApp)
+    public void materialize(List<com.atomgraph.linkeddatahub.dataspaces.model.Package> packages, EndUserDataspace endUserApp)
     {
-        for (com.atomgraph.linkeddatahub.apps.model.Package pkg : packages)
+        for (com.atomgraph.linkeddatahub.dataspaces.model.Package pkg : packages)
         {
             if (pkg.getOntology() == null || !pkg.getOntology().isURIResource()) continue;
 
@@ -307,7 +307,7 @@ public class PackageService
 
                 Resource doc = model.createResource(docURI.toString()).
                     addProperty(RDF.type, DH.Item).
-                    addProperty(SIOC.HAS_CONTAINER, model.createResource(endUserApp.getAdminApplication().getBaseURI().resolve(ONTOLOGIES_PATH).toString())).
+                    addProperty(SIOC.HAS_CONTAINER, model.createResource(endUserApp.getAdminDataspace().getBaseURI().resolve(ONTOLOGIES_PATH).toString())).
                     addProperty(FOAF.primaryTopic, model.getResource(ontologyURI));
                 if (pkg.hasProperty(DCTerms.title)) doc.addProperty(DCTerms.title, pkg.getProperty(DCTerms.title).getObject());
 
@@ -320,7 +320,7 @@ public class PackageService
                 // reads, so a stored blank node means a different tag on every read.
                 new Skolemizer(docURI.toString()).apply(model);
 
-                getSystem().getServiceContext(endUserApp.getAdminApplication().getService()).getGraphStoreClient().putModel(docURI.toString(), model);
+                getSystem().getServiceContext(endUserApp.getAdminDataspace().getService()).getGraphStoreClient().putModel(docURI.toString(), model);
 
                 if (log.isInfoEnabled()) log.info("Materialized package ontology <{}> as <{}>", ontologyURI, docURI);
             }
@@ -343,9 +343,9 @@ public class PackageService
      * @param pkg package resource
      * @return document URI, or null if the admin application is unknown
      */
-    public URI getDocumentURI(EndUserApplication endUserApp, com.atomgraph.linkeddatahub.apps.model.Package pkg)
+    public URI getDocumentURI(EndUserDataspace endUserApp, com.atomgraph.linkeddatahub.dataspaces.model.Package pkg)
     {
-        AdminApplication adminApp = endUserApp.getAdminApplication();
+        AdminDataspace adminApp = endUserApp.getAdminDataspace();
         if (adminApp == null) return null;
 
         return adminApp.getUriBuilder().path(ONTOLOGIES_PATH).path("{slug}/").build(getSlug(URI.create(pkg.getURI())));
@@ -376,7 +376,7 @@ public class PackageService
      * @param packageURI package URI
      * @return package resource, or null if the description could not be resolved
      */
-    public com.atomgraph.linkeddatahub.apps.model.Package getPackage(String packageURI)
+    public com.atomgraph.linkeddatahub.dataspaces.model.Package getPackage(String packageURI)
     {
         final PrefixGraphRepository repository = getSystem().getRepository();
         final Model model;
@@ -395,9 +395,9 @@ public class PackageService
                 // guards against for uploaded ontologies
                 URI docURI = UriBuilder.fromUri(packageURI).fragment(null).build(); // skip fragment from the package URI to get its graph URI
                 Resource appResource = getSystem().matchApp(docURI);
-                if (appResource != null && appResource.canAs(com.atomgraph.linkeddatahub.apps.model.Application.class))
+                if (appResource != null && appResource.canAs(com.atomgraph.linkeddatahub.dataspaces.model.Dataspace.class))
                 {
-                    com.atomgraph.linkeddatahub.apps.model.Application app = appResource.as(com.atomgraph.linkeddatahub.apps.model.Application.class);
+                    com.atomgraph.linkeddatahub.dataspaces.model.Dataspace app = appResource.as(com.atomgraph.linkeddatahub.dataspaces.model.Dataspace.class);
                     model = getSystem().getServiceContext(app.getService()).getGraphStoreClient().getModel(docURI.toString());
                 }
                 else
@@ -417,7 +417,7 @@ public class PackageService
 
         try
         {
-            return model.getResource(packageURI).as(com.atomgraph.linkeddatahub.apps.model.Package.class);
+            return model.getResource(packageURI).as(com.atomgraph.linkeddatahub.dataspaces.model.Package.class);
         }
         catch (UnsupportedPolymorphismException ex)
         {
@@ -433,11 +433,11 @@ public class PackageService
      * @param graphURI graph URI
      * @return true if the graph exists
      */
-    protected boolean containsGraph(EndUserApplication endUserApp, URI graphURI)
+    protected boolean containsGraph(EndUserDataspace endUserApp, URI graphURI)
     {
         try
         {
-            return getSystem().getServiceContext(endUserApp.getAdminApplication().getService()).getGraphStoreClient().containsModel(graphURI.toString());
+            return getSystem().getServiceContext(endUserApp.getAdminDataspace().getService()).getGraphStoreClient().containsModel(graphURI.toString());
         }
         catch (RuntimeException ex)
         {

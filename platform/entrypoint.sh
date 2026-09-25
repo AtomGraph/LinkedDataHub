@@ -818,13 +818,13 @@ for app in "${apps[@]}"; do
         printf "\n### Graph store URL (GSP fallback): %s\n" "$app_graph_store_url"
     fi
 
-    if [ "$app_type" = "https://w3id.org/atomgraph/linkeddatahub/apps#EndUserApplication" ]; then
+    if [ "$app_type" = "https://w3id.org/atomgraph/linkeddatahub/dataspaces#EndUserDataspace" ]; then
         end_user_endpoint["$app_origin"]="$app_endpoint_url"
         end_user_auth_user["$app_origin"]="$app_service_auth_user"
         end_user_auth_pwd["$app_origin"]="$app_service_auth_pwd"
         end_user_auth_token["$app_origin"]="$app_service_auth_token"
     fi
-    if [ "$app_type" = "https://w3id.org/atomgraph/linkeddatahub/apps#AdminApplication" ]; then
+    if [ "$app_type" = "https://w3id.org/atomgraph/linkeddatahub/dataspaces#AdminDataspace" ]; then
         admin_endpoint["$app_origin"]="$app_endpoint_url"
         admin_auth_user["$app_origin"]="$app_service_auth_user"
         admin_auth_pwd["$app_origin"]="$app_service_auth_pwd"
@@ -832,7 +832,7 @@ for app in "${apps[@]}"; do
     fi
 
     # check if this is the root end-user or root admin app by comparing origins
-    if [ "$app_type" = "https://w3id.org/atomgraph/linkeddatahub/apps#EndUserApplication" ] && [ "$app_origin" = "$ORIGIN" ]; then
+    if [ "$app_type" = "https://w3id.org/atomgraph/linkeddatahub/dataspaces#EndUserDataspace" ] && [ "$app_origin" = "$ORIGIN" ]; then
         root_end_user_app="$app_uri"
         root_end_user_quad_store_url="$app_quad_store_url"
         root_end_user_store_url="$app_store_url"
@@ -841,7 +841,7 @@ for app in "${apps[@]}"; do
         root_end_user_service_auth_pwd="$app_service_auth_pwd"
         root_end_user_service_auth_token="$app_service_auth_token"
     fi
-    if [ "$app_type" = "https://w3id.org/atomgraph/linkeddatahub/apps#AdminApplication" ] && [ "$app_origin" = "$ADMIN_ORIGIN" ]; then
+    if [ "$app_type" = "https://w3id.org/atomgraph/linkeddatahub/dataspaces#AdminDataspace" ] && [ "$app_origin" = "$ADMIN_ORIGIN" ]; then
         root_admin_app="$app_uri"
         root_admin_quad_store_url="$app_quad_store_url"
         root_admin_store_url="$app_store_url"
@@ -875,7 +875,7 @@ for app in "${apps[@]}"; do
         printf "\n### Loading datasets for app: %s\n" "$app_uri"
         mkdir -p "/var/linkeddatahub/based-datasets/${app_folder}"
 
-        if [ "$app_type" = "https://w3id.org/atomgraph/linkeddatahub/apps#EndUserApplication" ]; then
+        if [ "$app_type" = "https://w3id.org/atomgraph/linkeddatahub/dataspaces#EndUserDataspace" ]; then
 
             case "$END_USER_DATASET_URL" in
                 "file://"*)
@@ -898,7 +898,7 @@ for app in "${apps[@]}"; do
             printf "\n### Loading end-user dataset into the triplestore...\n"
             "$app_store_fn" "$app_store_url" "$app_service_auth_user" "$app_service_auth_pwd" "/var/linkeddatahub/based-datasets/${app_folder}/end-user.nq" "$app_store_content_type" "$app_service_auth_token"
 
-        elif [ "$app_type" = "https://w3id.org/atomgraph/linkeddatahub/apps#AdminApplication" ]; then
+        elif [ "$app_type" = "https://w3id.org/atomgraph/linkeddatahub/dataspaces#AdminDataspace" ]; then
 
             case "$ADMIN_DATASET_URL" in
                 "file://"*)

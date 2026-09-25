@@ -24,7 +24,7 @@ import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.linkeddatahub.vocabulary.LDHT;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.linkeddatahub.vocabulary.ORCID;
-import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import com.atomgraph.linkeddatahub.vocabulary.LDS;
 import com.atomgraph.core.util.Link;
 import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
@@ -86,7 +86,7 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
     @Context SecurityContext securityContext;
 
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> application;
+    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace>> application;
     @Inject jakarta.inject.Provider<RDFSourceResolver> resolver;
     @Inject jakarta.inject.Provider<XsltExecutableSupplier> xsltExecSupplier;
     @Inject jakarta.inject.Provider<ContainerRequestContext> crc;
@@ -118,15 +118,15 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
 
             URI proxyTargetURI = (URI) getContainerRequestContext().getProperty(AC.uri.getURI());
             if (proxyTargetURI != null) params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(proxyTargetURI));
-            params.put(new QName("lapp", LAPP.Context.getNameSpace(), LAPP.Context.getLocalName()),
+            params.put(new QName("lds", LDS.Context.getNameSpace(), LDS.Context.getLocalName()),
                 getXsltExecutable().getProcessor().newDocumentBuilder().build(getSource(getSystem().getContextModel())));
 
-            Optional<com.atomgraph.linkeddatahub.apps.model.Application> appOpt = getApplication().get();
+            Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace> appOpt = getDataspace().get();
             if (appOpt.isPresent())
             {
-                com.atomgraph.linkeddatahub.apps.model.Application app = appOpt.get();
-                if (log.isDebugEnabled()) log.debug("Passing $lapp:Application to XSLT: <{}>", app);
-                params.put(new QName("lapp", LAPP.origin.getNameSpace(), LAPP.origin.getLocalName()), new XdmAtomicValue(app.getOriginURI()));
+                com.atomgraph.linkeddatahub.dataspaces.model.Dataspace app = appOpt.get();
+                if (log.isDebugEnabled()) log.debug("Passing $lds:Dataspace to XSLT: <{}>", app);
+                params.put(new QName("lds", LDS.origin.getNameSpace(), LDS.origin.getLocalName()), new XdmAtomicValue(app.getOriginURI()));
             }
             
             if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent)
@@ -301,7 +301,7 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
      *
      * @return provider
      */
-    public jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> getApplication()
+    public jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace>> getDataspace()
     {
         return application;
     }

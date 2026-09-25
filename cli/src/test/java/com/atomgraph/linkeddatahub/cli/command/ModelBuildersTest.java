@@ -49,7 +49,7 @@ public class ModelBuildersTest
 
     private static final URI TARGET = URI.create("https://localhost:4443/some/");
     private static final String PREFIXES = """
-        @prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .
+        @prefix dh:	<https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#> .
         @prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .
         @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
         @prefix dct:	<http://purl.org/dc/terms/> .

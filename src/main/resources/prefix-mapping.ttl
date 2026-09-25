@@ -5,16 +5,13 @@
    # LinkedDataHub's own vocabularies - the application ontology closure starts at default#
    [ lm:prefix "https://w3id.org/atomgraph/linkeddatahub" ;                      lm:altName "com/atomgraph/linkeddatahub/ldh.ttl" ] ,
    [ lm:prefix "https://w3id.org/atomgraph/linkeddatahub/default" ;              lm:altName "com/atomgraph/linkeddatahub/def.ttl" ] ,
-   [ lm:prefix "https://w3id.org/atomgraph/linkeddatahub/apps" ;                 lm:altName "com/atomgraph/linkeddatahub/lapp.ttl" ] ,
+   [ lm:prefix "https://w3id.org/atomgraph/linkeddatahub/dataspaces" ;           lm:altName "com/atomgraph/linkeddatahub/lds.ttl" ] ,
    [ lm:prefix "https://w3id.org/atomgraph/linkeddatahub/admin" ;                lm:altName "com/atomgraph/linkeddatahub/app/admin/adm.ttl" ] ,
    [ lm:prefix "https://w3id.org/atomgraph/linkeddatahub/admin/acl" ;            lm:altName "com/atomgraph/linkeddatahub/app/admin/lacl.ttl" ] ,
+   [ lm:prefix "https://w3id.org/atomgraph/linkeddatahub/document-hierarchy" ;   lm:altName "com/atomgraph/linkeddatahub/dh.ttl" ] ,
    [ lm:prefix "https://w3id.org/atomgraph/client" ;                             lm:altName "com/atomgraph/client/ns.ttl" ] ,
 
-   # Linked Data Templates
-   [ lm:prefix "https://www.w3.org/ns/ldt" ;                                     lm:altName "com/atomgraph/linkeddatahub/ldt.ttl" ] ,
-   [ lm:prefix "https://www.w3.org/ns/ldt/document-hierarchy" ;                  lm:altName "com/atomgraph/linkeddatahub/dh.ttl" ] ,
-
-   # SPIN - imported by ldh, def, lapp, ldt, dh and lacl
+   # SPIN - imported by ldh, def, lds, dh and lacl
    [ lm:prefix "http://spinrdf.org/sp" ;                                         lm:altName "etc/sp.ttl" ] ,
    [ lm:prefix "http://spinrdf.org/spin" ;                                       lm:altName "etc/spin.ttl" ] ,
 

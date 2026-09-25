@@ -21,7 +21,7 @@ import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.model.EndpointAccessor;
 import com.atomgraph.core.riot.lang.RDFPostReader;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import com.atomgraph.linkeddatahub.client.GitHubClient;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.model.CSVImport;
@@ -168,7 +168,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
      */
     public static final String ACCEPT_DATETIME_HEADER = "Accept-Datetime";
     
-    private final com.atomgraph.linkeddatahub.apps.model.Application application;
+    private final com.atomgraph.linkeddatahub.dataspaces.model.Dataspace application;
     private final OntModel ontology;
     private final Service service;
     private final Providers providers;
@@ -199,7 +199,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
      */
     @Inject
     public DocumentHierarchyGraphStoreImpl(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
-        com.atomgraph.linkeddatahub.apps.model.Application application, Optional<OntModel> ontology, Optional<Service> service,
+        com.atomgraph.linkeddatahub.dataspaces.model.Dataspace application, Optional<OntModel> ontology, Optional<Service> service,
         @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
         @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context HttpHeaders httpHeaders)
     {
@@ -293,7 +293,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             }
 
             GitHubClient.CommitInfo commit = getSystem().getGraphVersioningService().
-                getMemento(getApplication().getURI(), getApplication().getBaseURI(), getURI(), datetime).
+                getMemento(getDataspace().getURI(), getDataspace().getBaseURI(), getURI(), datetime).
                 orElseThrow(() -> new NotFoundException("Document <" + getURI() + "> has no version history"));
 
             // negotiation has to see the current history, and Accept-Datetime takes unbounded values, so the
@@ -312,7 +312,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         if (getUriInfo().getQueryParameters().containsKey(TIMEMAP_PARAM_NAME))
         {
             Model timeMap = getSystem().getGraphVersioningService().
-                getTimeMap(getApplication().getURI(), getApplication().getBaseURI(), getURI()).
+                getTimeMap(getDataspace().getURI(), getDataspace().getBaseURI(), getURI()).
                 orElseThrow(() -> new NotFoundException("Document <" + getURI() + "> has no version history"));
 
             // link-format is only offered on the TimeMap, where it is meaningful; it leads the list so that
@@ -339,7 +339,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         if (!version.matches("[0-9a-f]{4,64}")) throw new NotFoundException("Version '" + version + "' of graph <" + getURI() + "> not found");
 
         com.atomgraph.linkeddatahub.server.util.GraphVersioningService.Version graphVersion = getSystem().getGraphVersioningService().
-            getVersion(getApplication().getURI(), getApplication().getBaseURI(), getURI(), version).
+            getVersion(getDataspace().getURI(), getDataspace().getBaseURI(), getURI(), version).
             orElseThrow(() -> new NotFoundException("Version '" + version + "' of graph <" + getURI() + "> not found"));
 
         CacheControl cacheControl = new CacheControl();
@@ -455,7 +455,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             removeAll(SIOC.HAS_PARENT).
             removeAll(SIOC.HAS_CONTAINER);
 
-        if (!getApplication().getBaseURI().equals(getURI())) // don't update Root document's metadata
+        if (!getDataspace().getBaseURI().equals(getURI())) // don't update Root document's metadata
         {
             if (resource.hasProperty(RDF.type, DH.Container))
                 resource.addProperty(SIOC.HAS_PARENT, parent);
@@ -956,7 +956,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             filterKeep(_import -> { return _import.canAs(CSVImport.class) || _import.canAs(RDFImport.class); }); // canAs(Import.class) would require InfModel
         try
         {
-            Service adminService = getApplication().canAs(EndUserApplication.class) ? getApplication().as(EndUserApplication.class).getAdminApplication().getService() : null;
+            Service adminService = getDataspace().canAs(EndUserDataspace.class) ? getDataspace().as(EndUserDataspace.class).getAdminDataspace().getService() : null;
             GraphStoreClient gsc = GraphStoreClient.create(getSystem().getImportClient(), getSystem().getMediaTypes()).
                 delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
 
@@ -966,9 +966,9 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
 
                 // start the import asynchroniously
                 if (_import.canAs(CSVImport.class))
-                    getSystem().submitImport(_import.as(CSVImport.class), getApplication(), getApplication().getService(), adminService, getUriInfo().getBaseUri().toString(), gsc);
+                    getSystem().submitImport(_import.as(CSVImport.class), getDataspace(), getDataspace().getService(), adminService, getUriInfo().getBaseUri().toString(), gsc);
                 if (_import.canAs(RDFImport.class))
-                    getSystem().submitImport(_import.as(RDFImport.class), getApplication(), getApplication().getService(), adminService, getUriInfo().getBaseUri().toString(), gsc);
+                    getSystem().submitImport(_import.as(RDFImport.class), getDataspace(), getDataspace().getService(), adminService, getUriInfo().getBaseUri().toString(), gsc);
             }
         }
         finally
@@ -1300,7 +1300,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
      * 
      * @return application resource
      */
-    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
+    public com.atomgraph.linkeddatahub.dataspaces.model.Dataspace getDataspace()
     {
         return application;
     }

@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.apps.model;
+package com.atomgraph.linkeddatahub.dataspaces.model;
 
 /**
  * Administrative application.
@@ -22,7 +22,7 @@ package com.atomgraph.linkeddatahub.apps.model;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public interface AdminApplication extends Application
+public interface AdminDataspace extends Dataspace
 {
     
     /**
@@ -45,6 +45,6 @@ public interface AdminApplication extends Application
      * 
      * @return end-user application
      */
-    EndUserApplication getEndUserApplication();
+    EndUserDataspace getEndUserDataspace();
     
 }

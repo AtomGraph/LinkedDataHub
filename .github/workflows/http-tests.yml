@@ -73,7 +73,7 @@ jobs:
 
           <urn:linkeddatahub:apps/end-user>
           {
-              <urn:linkeddatahub:apps/end-user> lapp:versioningRepository <urn:linkeddatahub:versioning/end-user> .
+              <urn:linkeddatahub:apps/end-user> lds:versioningRepository <urn:linkeddatahub:versioning/end-user> .
           }
 
           <urn:linkeddatahub:versioning/end-user>

@@ -12,7 +12,7 @@ clear_ontology
 # the constructor SELECT the client-side instantiation relies on: for a type set it returns the
 # spin:constructor texts of the classes and their superclasses, deduplicated
 
-query='SELECT DISTINCT ?constructor ?text WHERE { VALUES ?type { <https://w3id.org/atomgraph/linkeddatahub/apps#Application> <https://w3id.org/atomgraph/linkeddatahub/apps#EndUserApplication> } ?type <http://www.w3.org/2000/01/rdf-schema#subClassOf>* ?class . ?class <http://spinrdf.org/spin#constructor> ?constructor . ?constructor <http://spinrdf.org/sp#text> ?text . }'
+query='SELECT DISTINCT ?constructor ?text WHERE { VALUES ?type { <https://w3id.org/atomgraph/linkeddatahub/dataspaces#Dataspace> <https://w3id.org/atomgraph/linkeddatahub/dataspaces#EndUserDataspace> } ?type <http://www.w3.org/2000/01/rdf-schema#subClassOf>* ?class . ?class <http://spinrdf.org/spin#constructor> ?constructor . ?constructor <http://spinrdf.org/sp#text> ?text . }'
 
 results=$(curl -k -f -s -G \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
@@ -21,9 +21,9 @@ results=$(curl -k -f -s -G \
   --data-urlencode "query=${query}")
 
 # the end-user app class's own constructor is returned
-echo "$results" | grep -q "https://w3id.org/atomgraph/linkeddatahub/apps#EndUserApplicationConstructor"
+echo "$results" | grep -q "https://w3id.org/atomgraph/linkeddatahub/dataspaces#EndUserDataspaceConstructor"
 
-# the generic constructors attached to lapp:Application by the default ontology are returned
+# the generic constructors attached to lds:Dataspace by the default ontology are returned
 echo "$results" | grep -q "https://w3id.org/atomgraph/linkeddatahub#TitleConstructor"
 
 # the constructor texts are returned (CONSTRUCT templates the client instantiates)
