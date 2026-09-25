@@ -93,6 +93,9 @@ Bootstrap 2 is gone, and with it the class vocabulary and the `bs2:` template mo
 - A view's parallax row becomes a closed-by-default `<details>` disclosure, and the toolbar states what the query shows (filters, sort, count, mode)
 - A view's Create button moves out of the view toolbar into the block header beside Copy
 - The query block runs its stored query on render, results first, with the editor folded behind a toggle in the block head and Run as the one primary action
+- A view's toolbars and a chart's controls ship collapsed behind a tune button in the block header, with what the query shows stated under the title
+- A class with no constructor is given one by its first saved property, written into the application's own ontology
+- A constructor row whose object range is undeclared reads as any resource instead of demanding a class before Save
 - The add-data items (RDF import, CSV import, …) move into the Actions menu, offered on the Root document and on containers where `acl:Append` applies
 - XHTML prose blocks render without a header: the drag grip is a hover-surfaced strip on the card's edge, and links, Copy and Edit a corner cluster
 - An `ldh:Object` block is a chrome-less carrier with a slot bar over the embedded card, so a block has one header
@@ -112,7 +115,7 @@ Bootstrap 2 is gone, and with it the class vocabulary and the `bs2:` template mo
 - The shell carries its landmark roles (`banner`, `main`, `contentinfo`), the tab strip and breadcrumbs are labelled navigations, and the address bar is a `role=search` with a `type=url` input that works without CSR
 - Constructor instantiation is one shared pipeline behind a dual `ldh:parse-query` (SPARQL.js in the browser, a `ParseQuery` Jena extension on the server), so the sign-up form appears on a direct page load
 - `sh:name` and `sh:description` labelling moves into LDH, where it outranks `dc:title` and `foaf:name`
-- Web-Client dependency bumped to 6.0.0, twirl to 2.0.1
+- Web-Client dependency bumped to 6.0.1, twirl to 2.0.1
 
 ### Removed
 - Bootstrap 2: the framework stylesheets, `bootstrap.js`, jQuery, WYMEditor, the sprite icon layer and the `pull-left`/`pull-right` tokens
@@ -121,6 +124,8 @@ Bootstrap 2 is gone, and with it the class vocabulary and the `bs2:` template mo
 - `$ldt:base`, `$ldt:ontology`, `$ac:httpHeaders`, `$ac:method`, `$Referer`, `$ac:googleMapsKey`, `$doc-types`, `$main-doc` and `$acl:Agent` — parameters read by nothing or never populated; the `ldt:` prefix leaves the LDH stylesheets
 - `ldh:container` (see Migration) and the stored `ldh:SelectChildren` query, which the generated tree query replaces
 - `ac:ConstructMode` from both ontologies, its Create label becoming a catalog entry, and the `graphity.org` typeahead namespace
+- The `+ Constructor` button, which wrote a constructor into every graph describing the class and amplified itself on every press
+- The combobox panel that opened on focus, offering a document as the object of its own property
 - `LocalStylesheetResolver`, the bundled package stylesheet copy and its mapping, `location-mapping.ttl`, and the namespace mappings no ontology imports and no stylesheet uses
 
 ### Fixed
@@ -130,6 +135,10 @@ Bootstrap 2 is gone, and with it the class vocabulary and the `bs2:` template mo
 - Clearing also purges every ontology response the admin proxy holds, through a surrogate key stamped on each ontology query, so the closure no longer rebuilds from the responses the clear was meant to discard
 - Adding a constructor to a class delivered by a package did nothing: the editor now writes to the graph that holds the constructor and accepts the `204` a PATCH answers
 - Opening a constructor that declares `rdf:langString` and pressing Save silently deleted those rows; the editor reads the object kind from the datatype rather than its namespace
+- Saving a constructor on a package's ontology document answered 500 and the edit never showed
+- `Edit constructors` was emitted for every reader and gated on the document being read; it is revealed only where the constructor's own document is writable
+- A form row's language field sat in a different place on every row
+- Reloading a page with block requests in flight painted a failure into the document the reader had already left
 - The sitemap covers every dataspace rather than the root one, and an origin is served its own: one file per host, generated against that dataspace's own services
 - The sitemap queries carry the service credentials, so a store that requires authentication no longer answers them 401
 - Sitemap generation no longer joins the admin service through SPARQL `SERVICE`, which an isolated store refuses; the public read rules are passed as `VALUES`, and a failed generation is logged instead of stopping the platform
