@@ -13,7 +13,7 @@
 // the same: it walks pages that may legitimately answer 403, and the noise guard would fail the
 // report for measuring them.
 import { test, expect } from '@playwright/test';
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { components, axes } from './components.mjs';
@@ -112,43 +112,24 @@ test('the inventory is well formed', () => {
     const paths = declared.map(component => component.path);
     expect(paths, 'two components share a path').toEqual([...new Set(paths)]);
 
-    const pathOf = xsl => (xsl.startsWith('packages/') ? join(repoRoot, xsl) : join(xslBase, xsl));
-
-    // `packages/` is a working copy, not part of the repository - .gitignore excludes it, and a
-    // package reaches an instance as an import from its publisher rather than as a file in the
-    // tree. CI therefore has no packages/ at all, which is exactly how this check first failed
-    // there while passing on a laptop that happened to have one checked out. A package-owned
-    // record is checked only where its working copy exists; the platform's own modules are
-    // checked always, which is the half a typo would otherwise slip through.
-    const havePackages = existsSync(join(repoRoot, 'packages'));
-    const checkable = declared.filter(component => havePackages || !component.xsl.startsWith('packages/'));
-
-    const missing = checkable
-        .map(component => ({ path: component.path, xsl: component.xsl }))
-        .filter(({ xsl }) => !existsSync(pathOf(xsl)));
-    expect(missing, 'a component names an XSL module that does not exist').toEqual([]);
-
-    // And SOME stylesheet has to emit it. Checking only that the file exists is not enough: a
-    // class styled in app.css and emitted by nothing can be declared against a real module all
-    // day, which is how `.ldh-rdf-type` got in - `client/block.xsl` exists and never mentions it.
+    // EVERY STYLESHEET, not a path per record. The inventory used to name the module each
+    // component came from, and asserting those paths is what broke CI twice: a package's
+    // stylesheet is downloaded by the running platform into a directory it owns, mode 0750, so a
+    // process that is not that user cannot read it - and on a Mac it can, because Docker Desktop
+    // remaps the ownership to the host user. Same file, same bits, readable here and not there.
     //
-    // The search is over every stylesheet rather than the one the record names, because the two
-    // are often different on purpose: the drawer's tree is emitted by client/navigation.xsl while
-    // client/tree.xsl owns its lazy loading, and the record names the module that owns the
-    // component. What is being caught here is a class the product never writes at all.
+    // What that check was for survives without any of it: a class no stylesheet emits is not a
+    // component. `.ldh-rdf-type`, `.ldh-nblock`, `.ldh-query-block`, `.ldh-auth` and
+    // `.ldh-import-flow` are styled in app.css and rendered by nothing, and a record for any of
+    // them would print a permanent gap for something that does not exist.
     const stylesheets = readdirSync(xslBase, { recursive: true })
         .map(entry => String(entry).split('\\').join('/'))
         .filter(entry => entry.endsWith('.xsl'))
-        .map(entry => join(xslBase, entry))
-        .concat(havePackages
-            ? readdirSync(join(repoRoot, 'packages'), { recursive: true })
-                .map(entry => String(entry).split('\\').join('/'))
-                .filter(entry => entry.endsWith('.xsl'))
-                .map(entry => join(repoRoot, 'packages', entry))
-            : []);
+        .map(entry => join(xslBase, entry));
     const emitted = stylesheets.map(file => readFileSync(file, 'utf8')).join('\n');
 
-    const unemitted = checkable
+    const unemitted = declared
+        .filter(component => (component.owner ?? 'platform') === 'platform')
         .map(component => ({
             path: component.path,
             selector: component.selector,
@@ -223,7 +204,7 @@ test('reports what is covered, what is a gap, and what has never been seen', asy
             .map(([label, count]) => `${label}×${count}`).join(' ');
         return `| ${'&nbsp;'.repeat(component.depth * 4)}${component.name} | \`${component.path}\` `
             + `| ${component.owner ?? 'platform'}${component.base === 'admin' ? ' · admin' : ''} `
-            + `| \`${component.xsl}\` | ${(specsByComponent.get(component.path) ?? []).join('<br>') || '—'} `
+            + `| ${(specsByComponent.get(component.path) ?? []).join('<br>') || '—'} `
             + `| ${component.appears === 'gesture' ? '—' : renders || '—'} | ${statusOf(component)} |`;
     });
 
@@ -243,8 +224,8 @@ test('reports what is covered, what is a gap, and what has never been seen', asy
         + 'coverage is unknowable until a fixture shows it · `grouping` a node that only nests '
         + 'others, whose children are its coverage.',
         '',
-        '| Component | Path | Owner | XSL | Specs | Renders on | Status |',
-        '| --- | --- | --- | --- | --- | --- | --- |',
+        '| Component | Path | Owner | Specs | Renders on | Status |',
+        '| --- | --- | --- | --- | --- | --- |',
         ...rows,
         '',
         '## Probe pages',

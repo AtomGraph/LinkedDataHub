@@ -178,12 +178,20 @@ is that condition, named: not "untested" but "not yet visible to the suite at al
 The inventory lives in `coverage/`, not in `lib/`, and a spec that imports from it fails the run.
 A `selector` there answers *did this component render* and nothing else; the moment a spec wants
 one, it has found a locator too specific to be shared, and it belongs inline at the assertion.
-Each record also names the XSL module that emits it, and the module must both exist **and mention
-one of the selector's own tokens**. That is what keeps a class styled in `app.css` and emitted by
-nothing (`.ldh-nblock`, `.ldh-query-block`, `.ldh-auth`, `.ldh-rdf-type`) out of the inventory,
-where it would print a permanent gap for a component that does not exist. Checking only that the
-file exists is not enough — `.ldh-rdf-type` was declared against a real module that never mentions
-it, and survived until the token check went in.
+A platform component's class must be **emitted by some stylesheet**, and that is asserted — it
+keeps a class styled in `app.css` and rendered by nothing (`.ldh-nblock`, `.ldh-query-block`,
+`.ldh-auth`, `.ldh-rdf-type`) out of the inventory, where it would print a permanent gap for a
+component that does not exist. A package's components are exempt, because a package's stylesheet
+is downloaded by the running platform into a directory it owns and this process may not be able
+to read it.
+
+No record names the module it comes from. One field used to, and it earned its removal twice
+over: it was wrong in four records (the drawer's tree was declared against `client/tree.xsl`,
+which owns the lazy loading, while `client/navigation.xsl` emits the markup), and asserting those
+paths broke CI twice — a package copy is mode `0750` and unreadable to the test process on Linux,
+while Docker Desktop remaps it to the host user on a Mac, so the same file is readable here and
+not there. The check that does the real work searches every stylesheet and never consulted the
+field anyway.
 
 A declared component with no spec never fails the run. It is the report's subject.
 
