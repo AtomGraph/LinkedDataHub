@@ -36,7 +36,7 @@ const DCT = 'http://purl.org/dc/terms/';
 
 const turtle = uri => ldh(['get', '--accept', 'text/turtle', uri]).then(({ stdout }) => stdout);
 
-test.describe('creating from a view block', () => {
+test.describe('creating from a view block', { tag: '@owner' }, () => {
     test.beforeEach(({}, testInfo) => {
         // Creating needs acl:Write on the document the link is PATCHed into, and the
         // fixtures are owner-owned. The anonymous half of the axis is that no button is

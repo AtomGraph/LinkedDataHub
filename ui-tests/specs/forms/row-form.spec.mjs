@@ -20,7 +20,7 @@ test.beforeEach(({}, testInfo) => {
     test.skip(testInfo.project.name !== 'owner', 'editing is offered to an agent who may write');
 });
 
-test('turns the block into a form, in place', async ({ page }) => {
+test('turns the block into a form, in place', { tag: '@owner' }, async ({ page }) => {
     await goto(page, inMode(document('coffee'), READ_MODE));
 
     const block = blockFor(page, 'coffee');
@@ -33,7 +33,7 @@ test('turns the block into a form, in place', async ({ page }) => {
     await expect(block.locator('form').first()).toBeVisible({ timeout: 30_000 });
 });
 
-test('leaves the rest of the page readable, opening no dialog', async ({ page }) => {
+test('leaves the rest of the page readable, opening no dialog', { tag: '@owner' }, async ({ page }) => {
     await goto(page, inMode(document('coffee'), READ_MODE));
 
     const block = blockFor(page, 'coffee');

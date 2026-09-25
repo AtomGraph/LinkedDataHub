@@ -15,10 +15,6 @@ import { fixtures } from '../../../lib/fixtures.mjs';
 
 const objectValue = page => page.locator('.ldh-obj-value').first();
 
-test.beforeEach(({}, testInfo) => {
-    test.skip(testInfo.project.name !== 'owner', 'the fixture container is owner-owned');
-});
-
 test('renders the resource its value names', async ({ page }) => {
     await goto(page, fixtures.container);
     await settled(page);

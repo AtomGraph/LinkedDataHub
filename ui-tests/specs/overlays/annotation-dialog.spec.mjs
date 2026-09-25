@@ -114,7 +114,7 @@ const annotation = (page, word) =>
 const annotate = page => page.locator(`${OVERLAY} button.spo-action`).click();
 
 test.describe('RDFa annotation dialog', () => {
-    test('opens on the object tab with the selection carried into the value', async ({ page }) => {
+    test('opens on the object tab with the selection carried into the value', { tag: '@owner' }, async ({ page }) => {
         await edit(page);
         await selectAndOpen(page, 'Alpha');
 
@@ -136,7 +136,7 @@ test.describe('RDFa annotation dialog', () => {
         await expect(page.locator(`${OVERLAY} .ldh-prop-group`)).toHaveCount(0);
     });
 
-    test('the tabs switch panels', async ({ page }) => {
+    test('the tabs switch panels', { tag: '@owner' }, async ({ page }) => {
         await edit(page);
         await selectAndOpen(page, 'Alpha');
 
@@ -151,7 +151,7 @@ test.describe('RDFa annotation dialog', () => {
         await expect(page.locator('#annotation-panel-subject')).toBeHidden();
     });
 
-    test('Text writes a literal object', async ({ page }) => {
+    test('Text writes a literal object', { tag: '@owner' }, async ({ page }) => {
         await edit(page);
         await selectAndOpen(page, 'Bravo');
 
@@ -164,7 +164,7 @@ test.describe('RDFa annotation dialog', () => {
         await expect(span).not.toHaveAttribute('resource', /.*/);
     });
 
-    test('Link writes a resource object and suppresses the literal', async ({ page }) => {
+    test('Link writes a resource object and suppresses the literal', { tag: '@owner' }, async ({ page }) => {
         const target = `${fixtures.container}item-01/`;
         await edit(page);
         await selectAndOpen(page, 'Charlie');
@@ -190,7 +190,7 @@ test.describe('RDFa annotation dialog', () => {
         await expect(span).not.toHaveAttribute('datatype', /.*/);
     });
 
-    test('a subject-side override announces itself on the tab', async ({ page }) => {
+    test('a subject-side override announces itself on the tab', { tag: '@owner' }, async ({ page }) => {
         const type = 'http://xmlns.com/foaf/0.1/Document';
         await edit(page);
         await selectAndOpen(page, 'Delta');
@@ -215,7 +215,7 @@ test.describe('RDFa annotation dialog', () => {
     // classes, and only the onchange handlers bridge the two. Setting .value from script fires no change
     // event, so before rdfae:reveal-fields synced them a prefilled field read as live while being inert.
     // Both assertions pair the property with the class deliberately: the property alone passed all along.
-    test('a prefilled datatype disables the language field visibly', async ({ page }) => {
+    test('a prefilled datatype disables the language field visibly', { tag: '@owner' }, async ({ page }) => {
         const DATE = 'http://www.w3.org/2001/XMLSchema#date';
         await edit(page);
         await selectAndOpen(page, 'Bravo');
@@ -233,7 +233,7 @@ test.describe('RDFa annotation dialog', () => {
             .toHaveClass(/is-disabled/);
     });
 
-    test('a datatype outside the option list reveals the custom input holding it', async ({ page }) => {
+    test('a datatype outside the option list reveals the custom input holding it', { tag: '@owner' }, async ({ page }) => {
         const ODD = 'http://example.org/vocab#Temperature';
         await edit(page);
         await selectAndOpen(page, 'Charlie');
@@ -258,7 +258,7 @@ test.describe('RDFa annotation dialog', () => {
     // The overlay is reached by id(), so a host that re-rendered the page DOM and dropped it made
     // rdfae:populate-form a silent no-op over an empty sequence - and rdfae:show-overlay, which rebuilds it,
     // runs after. The dialog then opened blank. Removing it here reproduces exactly that state.
-    test('rebuilds itself, populated, after the overlay was disposed', async ({ page }) => {
+    test('rebuilds itself, populated, after the overlay was disposed', { tag: '@owner' }, async ({ page }) => {
         await edit(page);
         await page.evaluate(() => document.getElementById('rdfa-editor-overlay')?.remove());
         await expect(page.locator(OVERLAY)).toHaveCount(0);
@@ -272,7 +272,7 @@ test.describe('RDFa annotation dialog', () => {
     // nicety, and declaring role=radio without it promises a screen reader something nothing answers.
     // Asserts the tab stop travels too: with both segments at tabindex 0 the group would be two stops,
     // and with both at -1 it would drop out of the tab order entirely.
-    test('the object switch answers the arrow keys its role promises', async ({ page }) => {
+    test('the object switch answers the arrow keys its role promises', { tag: '@owner' }, async ({ page }) => {
         await edit(page);
         await selectAndOpen(page, 'Alpha');
 
@@ -309,7 +309,7 @@ test.describe('RDFa annotation dialog', () => {
     //
     // This drives the shortcut rather than the Edit button the other tests use, because the shortcut is the
     // only thing that exercises acl:mode() from a pattern.
-    test('click-to-edit opens the editor once the modes are known', async ({ page }) => {
+    test('click-to-edit opens the editor once the modes are known', { tag: '@owner' }, async ({ page }) => {
         // The object exists from bootstrap, which is the whole of the fix: the guard now EVALUATES
         // (to no modes, until the response Link headers arrive) instead of throwing. It does not make
         // the modes arrive any sooner - acl:mode() still reads a global that only a document response

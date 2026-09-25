@@ -33,7 +33,7 @@ test.beforeEach(({}, testInfo) => {
         'a chrome assertion; the authorization axis would measure the same thing twice');
 });
 
-test('opens on a move to the very edge, and not on one merely near it', async ({ page }) => {
+test('opens on a move to the very edge, and not on one merely near it', { tag: '@owner' }, async ({ page }) => {
     await goto(page, itemUri(1));
 
     await page.mouse.move(200, 600);
@@ -44,7 +44,7 @@ test('opens on a move to the very edge, and not on one merely near it', async ({
     await expect(drawer(page)).toBeVisible();
 });
 
-test('is inert while closed, its subtree being present throughout', async ({ page }) => {
+test('is inert while closed, its subtree being present throughout', { tag: '@owner' }, async ({ page }) => {
     await goto(page, itemUri(1));
 
     // Present and unreachable, both at once - the state a visibility check alone would miss.
@@ -55,7 +55,7 @@ test('is inert while closed, its subtree being present throughout', async ({ pag
     await expect(drawer(page)).not.toHaveAttribute('inert', '');
 });
 
-test('closes when the pointer leaves it for the page', async ({ page }) => {
+test('closes when the pointer leaves it for the page', { tag: '@owner' }, async ({ page }) => {
     await goto(page, itemUri(1));
     await openDrawer(page);
 
@@ -69,7 +69,7 @@ test('closes when the pointer leaves it for the page', async ({ page }) => {
     await expect(drawer(page)).toHaveAttribute('inert', '');
 });
 
-test('stays open while the focus is inside it, though the pointer has left', async ({ page }) => {
+test('stays open while the focus is inside it, though the pointer has left', { tag: '@owner' }, async ({ page }) => {
     await goto(page, itemUri(1));
     await openDrawer(page);
 
@@ -83,7 +83,7 @@ test('stays open while the focus is inside it, though the pointer has left', asy
     await expect(search(page)).toBeFocused();
 });
 
-test('Escape closes it', async ({ page }) => {
+test('Escape closes it', { tag: '@owner' }, async ({ page }) => {
     await goto(page, itemUri(1));
     await openDrawer(page);
 
@@ -91,7 +91,7 @@ test('Escape closes it', async ({ page }) => {
     await expect(drawer(page)).toBeHidden();
 });
 
-test('Escape leaves it alone while a dialog owns the key', async ({ page }) => {
+test('Escape leaves it alone while a dialog owns the key', { tag: '@owner' }, async ({ page }) => {
     await goto(page, itemUri(1));
     await openDrawer(page);
 

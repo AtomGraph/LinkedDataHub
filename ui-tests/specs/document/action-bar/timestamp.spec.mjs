@@ -14,11 +14,6 @@ import { itemUri } from '../../../lib/fixtures.mjs';
 
 const timestamp = page => page.locator('.ldh-ab-ts').first();
 
-test.beforeEach(({}, testInfo) => {
-    test.skip(testInfo.project.name !== 'owner',
-        'a chrome assertion; on a virgin instance the fixture is not readable anonymously at all');
-});
-
 test('rides the action bar, carrying a date the document states', async ({ page }) => {
     await goto(page, itemUri(1));
     await settled(page);

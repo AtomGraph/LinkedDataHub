@@ -20,7 +20,7 @@ test.beforeEach(({}, testInfo) => {
         'the taxonomy fixture is owner-owned; the column renders identically for either agent');
 });
 
-test('renders where a package fills it', async ({ page }) => {
+test('renders where a package fills it', { tag: '@owner' }, async ({ page }) => {
     await goto(page, inMode(conceptDocument('coffee'), READ_MODE));
 
     await expect(column(page)).toBeVisible();
@@ -29,7 +29,7 @@ test('renders where a package fills it', async ({ page }) => {
     await expect(column(page).locator('ul.concept-tree')).toBeVisible();
 });
 
-test('is absent, not empty, on a document nothing fills', async ({ page }) => {
+test('is absent, not empty, on a document nothing fills', { tag: '@owner' }, async ({ page }) => {
     await goto(page, itemUri(1));
     await settled(page);
 

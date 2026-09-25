@@ -20,7 +20,7 @@ test.beforeEach(({}, testInfo) => {
     test.skip(testInfo.project.name !== 'owner', 'creating is offered to an agent who may write');
 });
 
-test('offers what the application knows how to construct', async ({ page }) => {
+test('offers what the application knows how to construct', { tag: '@owner' }, async ({ page }) => {
     await goto(page, fixtures.container);
     await settled(page);
 
@@ -31,7 +31,7 @@ test('offers what the application knows how to construct', async ({ page }) => {
     expect(await choices(page).count()).toBeGreaterThan(0);
 });
 
-test('opens a dialog for the class that was picked', async ({ page }) => {
+test('opens a dialog for the class that was picked', { tag: '@owner' }, async ({ page }) => {
     await goto(page, fixtures.container);
     await settled(page);
 

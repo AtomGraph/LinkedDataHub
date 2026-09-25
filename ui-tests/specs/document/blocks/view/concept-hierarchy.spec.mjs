@@ -17,7 +17,7 @@ import { READ_MODE, inMode } from '../../../../lib/mode.mjs';
 
 const pageFor = name => inMode(document(name), READ_MODE);
 
-test.describe('concept hierarchy blocks', () => {
+test.describe('concept hierarchy blocks', { tag: '@owner' }, () => {
     // Not ownership - nothing is readable anonymously until an authorization says so, and these
     // documents are dh:Items like any other. These blocks render what the hierarchy query returns,
     // and the query returns it to whoever may run it: who that is belongs to http-tests, which

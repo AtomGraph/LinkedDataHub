@@ -16,11 +16,6 @@ import { endUserBase } from '../../../lib/stack.mjs';
 const breadcrumb = page => page.locator('div.ldh-bc').first();
 const crumbs = page => breadcrumb(page).locator('a[href]');
 
-test.beforeEach(({}, testInfo) => {
-    test.skip(testInfo.project.name !== 'owner',
-        'a chrome assertion; on a virgin instance the fixture is not readable anonymously at all');
-});
-
 test('names the path from the dataspace root down to the document', async ({ page }) => {
     await goto(page, itemUri(1));
     await settled(page);

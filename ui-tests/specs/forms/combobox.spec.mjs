@@ -66,7 +66,7 @@ const titlesIn = panel => panel.locator('li').evaluateAll(items => items.map(li 
 // value check, so a quiet second is enough for "and it stayed shut".
 const settleLookup = page => page.waitForTimeout(1_200);
 
-test.describe('the resource combobox', () => {
+test.describe('the resource combobox', { tag: '@owner' }, () => {
     test.beforeEach(({}, testInfo) => {
         test.skip(testInfo.project.name !== 'owner', 'an edit form is only offered to an agent who may write');
     });

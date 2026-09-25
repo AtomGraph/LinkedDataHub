@@ -17,7 +17,7 @@ test.beforeEach(({}, testInfo) => {
     test.skip(testInfo.project.name !== 'owner', 'an agent with no write actions has an empty menu');
 });
 
-test('keeps the document\'s actions out of the way until asked', async ({ page }) => {
+test('keeps the document\'s actions out of the way until asked', { tag: '@owner' }, async ({ page }) => {
     await goto(page, itemUri(1));
     await settled(page);
 
@@ -27,7 +27,7 @@ test('keeps the document\'s actions out of the way until asked', async ({ page }
     await expect(menu(page)).toBeHidden();
 });
 
-test('holds the actions that act on the whole document', async ({ page }) => {
+test('holds the actions that act on the whole document', { tag: '@owner' }, async ({ page }) => {
     await goto(page, itemUri(1));
     await settled(page);
 

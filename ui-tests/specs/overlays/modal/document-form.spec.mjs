@@ -30,7 +30,7 @@ async function editForm(page) {
     return openDocumentForm(page);
 }
 
-test('edits the document\'s own resource, in a dialog', async ({ page }) => {
+test('edits the document\'s own resource, in a dialog', { tag: '@owner' }, async ({ page }) => {
     const modal = await editForm(page);
 
     // The form is in the dialog, and it is this document's: the title it holds is the stored one.
@@ -38,7 +38,7 @@ test('edits the document\'s own resource, in a dialog', async ({ page }) => {
     await expect(textValue(modal, TITLE)).toHaveValue(itemTitle(ITEM));
 });
 
-test('writes what was typed into it', async ({ page }) => {
+test('writes what was typed into it', { tag: '@owner' }, async ({ page }) => {
     const modal = await editForm(page);
 
     try {

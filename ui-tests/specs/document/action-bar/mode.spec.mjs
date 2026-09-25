@@ -16,11 +16,6 @@ import { CONTENT_MODE, READ_MODE, inMode } from '../../../lib/mode.mjs';
 const switcher = page => page.locator('div.ldh-mode').first();
 const itemFor = (page, kind) => switcher(page).locator(`a.mi.${kind}`).first();
 
-test.beforeEach(({}, testInfo) => {
-    test.skip(testInfo.project.name !== 'owner',
-        'a chrome assertion; on a virgin instance the fixture is not readable anonymously at all');
-});
-
 test('marks the mode the URL asked for', async ({ page }) => {
     await goto(page, inMode(itemUri(1), READ_MODE));
     await settled(page);

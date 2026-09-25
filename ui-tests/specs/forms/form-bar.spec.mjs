@@ -35,7 +35,7 @@ async function editForm(page) {
     return openDocumentForm(page);
 }
 
-test('ends the form with a native Reset and a native Save', async ({ page }) => {
+test('ends the form with a native Reset and a native Save', { tag: '@owner' }, async ({ page }) => {
     const form = await editForm(page);
 
     await expect(formBar(form)).toBeVisible();
@@ -45,7 +45,7 @@ test('ends the form with a native Reset and a native Save', async ({ page }) => 
     await expect(form.locator('button.btn-save').first()).toHaveAttribute('type', 'submit');
 });
 
-test('Reset puts an edited field back to what the document holds', async ({ page }) => {
+test('Reset puts an edited field back to what the document holds', { tag: '@owner' }, async ({ page }) => {
     const form = await editForm(page);
     const title = textValue(form, TITLE);
 
@@ -57,7 +57,7 @@ test('Reset puts an edited field back to what the document holds', async ({ page
     await expect(title).toHaveValue(itemTitle(ITEM));
 });
 
-test('and the abandoned edit never reached the document', async ({ page }) => {
+test('and the abandoned edit never reached the document', { tag: '@owner' }, async ({ page }) => {
     const form = await editForm(page);
 
     await textValue(form, TITLE).fill('Edited, and then thought better of');

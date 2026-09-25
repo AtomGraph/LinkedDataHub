@@ -45,8 +45,15 @@ export default defineConfig({
             name: 'owner',
             use: { ...devices['Desktop Chrome'], clientCertificates: ownerCertificates() },
         },
+        // `@owner` is not collected here rather than collected and skipped. A spec that cannot run
+        // without a certificate - it writes, or it is about who you are - says so with the tag, and
+        // the project declines it. That leaves "skipped" meaning something again: before this, 141
+        // of 153 were skipped every run, and among them sat two dozen skipping for a reason that
+        // was simply false (the fixtures ARE granted to anonymous). Nobody could have spotted that
+        // in a wall of skips, and the run that found it was the one where the wall came down.
         {
             name: 'anonymous',
+            grepInvert: /@owner/,
             use: { ...devices['Desktop Chrome'] },
         },
         // Not a test project: it reports which components the tree covers, and runs as the owner

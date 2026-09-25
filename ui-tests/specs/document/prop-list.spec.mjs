@@ -20,9 +20,6 @@ const groups = page => grid(page).locator('div.ldh-prop-group');
 // The statement grid lives on the CONTAINER document, not on an item: an item renders its blocks
 // and no property list at all, which is how three assertions once came to be written against a
 // document that could never have satisfied them.
-test.beforeEach(({}, testInfo) => {
-    test.skip(testInfo.project.name !== 'owner', 'the fixture container is owner-owned');
-});
 
 test('states the resource as a list of predicates and their values', async ({ page }) => {
     await goto(page, fixtures.container);

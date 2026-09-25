@@ -25,7 +25,7 @@ test.beforeEach(({}, testInfo) => {
         'a chrome assertion; the authorization axis would measure the same thing twice');
 });
 
-test('renders the chrome the document sits in', async ({ page }) => {
+test('renders the chrome the document sits in', { tag: '@owner' }, async ({ page }) => {
     await goto(page, itemUri(1));
     await settled(page);
 
@@ -38,7 +38,7 @@ test('renders the chrome the document sits in', async ({ page }) => {
     await expect(page.locator('.document-body')).toBeVisible();
 });
 
-test('survives a navigation that replaces the document body', async ({ page }) => {
+test('survives a navigation that replaces the document body', { tag: '@owner' }, async ({ page }) => {
     await goto(page, itemUri(1));
     await settled(page);
     await openDrawer(page);

@@ -23,7 +23,7 @@ import { READ_MODE, inMode } from '../../../lib/mode.mjs';
 
 const pageFor = name => inMode(document(name), READ_MODE);
 
-test.describe('leaving the page mid-flight', () => {
+test.describe('leaving the page mid-flight', { tag: '@owner' }, () => {
     test.beforeEach(({}, testInfo) => {
         test.skip(testInfo.project.name !== 'owner', 'a concept page is not readable anonymously');
     });

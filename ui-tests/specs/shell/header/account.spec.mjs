@@ -18,7 +18,7 @@ test.beforeEach(({}, testInfo) => {
     test.skip(testInfo.project.name !== 'owner', 'an anonymous reader has no account to show');
 });
 
-test('shows the authenticated agent as initials, naming them in full on hover', async ({ page }) => {
+test('shows the authenticated agent as initials, naming them in full on hover', { tag: '@owner' }, async ({ page }) => {
     await goto(page, itemUri(1));
     await settled(page);
 
@@ -33,7 +33,7 @@ test('shows the authenticated agent as initials, naming them in full on hover', 
     await expect(avatar(page)).toHaveAttribute('aria-expanded', 'false');
 });
 
-test('leads to the agent\'s own document', async ({ page }) => {
+test('leads to the agent\'s own document', { tag: '@owner' }, async ({ page }) => {
     await goto(page, itemUri(1));
     await settled(page);
 

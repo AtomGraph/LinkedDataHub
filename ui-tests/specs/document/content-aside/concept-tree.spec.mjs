@@ -44,7 +44,7 @@ function countQueries(page) {
     return counts;
 }
 
-test.describe('concept tree', () => {
+test.describe('concept tree', { tag: '@owner' }, () => {
     // Not ownership: nothing in a dataspace is readable without a certificate until an
     // authorization says so, and a taxonomy document is a dh:Item like any other - granting the
     // fixtures would make these run. The reason not to is the division of labour. WHETHER a

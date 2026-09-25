@@ -37,14 +37,14 @@ async function editForm(page) {
     return openDocumentForm(page);
 }
 
-test('the head\'s close button dismisses it', async ({ page }) => {
+test('the head\'s close button dismisses it', { tag: '@owner' }, async ({ page }) => {
     const modal = await editForm(page);
 
     await modal.locator('span.ac-modal-x button').first().click();
     await expect(modal).toBeHidden();
 });
 
-test('a press on the backdrop dismisses it', async ({ page }) => {
+test('a press on the backdrop dismisses it', { tag: '@owner' }, async ({ page }) => {
     const modal = await editForm(page);
 
     // The backdrop's own top-left corner: `pos-top` puts the card below and centred, so this is
@@ -53,7 +53,7 @@ test('a press on the backdrop dismisses it', async ({ page }) => {
     await expect(modal).toBeHidden();
 });
 
-test('a press inside the card does not', async ({ page }) => {
+test('a press inside the card does not', { tag: '@owner' }, async ({ page }) => {
     const modal = await editForm(page);
 
     // The dialog's own head, which carries no control - a press that means nothing, which is
@@ -62,7 +62,7 @@ test('a press inside the card does not', async ({ page }) => {
     await expect(modal).toBeVisible();
 });
 
-test('Escape dismisses it', async ({ page }) => {
+test('Escape dismisses it', { tag: '@owner' }, async ({ page }) => {
     const modal = await editForm(page);
 
     await page.keyboard.press('Escape');

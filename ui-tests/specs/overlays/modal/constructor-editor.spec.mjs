@@ -177,7 +177,7 @@ async function addLiteralRow(page, card, predicate) {
     return row;
 }
 
-test.describe('the constructor editor', () => {
+test.describe('the constructor editor', { tag: '@owner' }, () => {
     test.beforeEach(({}, testInfo) => {
         test.skip(testInfo.project.name !== 'owner',
             'editing a constructor is a write to the ontology document, which only the owner may make');

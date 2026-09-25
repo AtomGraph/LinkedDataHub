@@ -12,11 +12,6 @@ import { openDrawer } from '../../../lib/drawer.mjs';
 
 const other = page => page.locator('.ldh-sidebar ul.sb-other');
 
-test.beforeEach(({}, testInfo) => {
-    test.skip(testInfo.project.name !== 'owner',
-        'these query the dataspace; anonymously the fixtures are not readable');
-});
-
 test('offers the standing questions as buttons, not links', async ({ page }) => {
     await goto(page, itemUri(1));
     await settled(page);

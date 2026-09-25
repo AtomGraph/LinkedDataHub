@@ -11,11 +11,6 @@ import { endUserBase } from '../../lib/stack.mjs';
 
 const footer = page => page.locator('.ldh-footer');
 
-test.beforeEach(({}, testInfo) => {
-    test.skip(testInfo.project.name !== 'owner',
-        'a chrome assertion; on a virgin instance the fixture is not readable anonymously at all');
-});
-
 test('closes the page, below the document it belongs to', async ({ page }) => {
     await goto(page, itemUri(1));
     await settled(page);

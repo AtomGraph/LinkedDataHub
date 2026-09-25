@@ -25,7 +25,7 @@ test.beforeEach(({}, testInfo) => {
     test.skip(testInfo.project.name !== 'owner', 'the taxonomy fixture is owner-owned');
 });
 
-test('ships closed, and says so on the button', async ({ page }) => {
+test('ships closed, and says so on the button', { tag: '@owner' }, async ({ page }) => {
     await goto(page, inMode(document('hot-drinks'), READ_MODE));
 
     const block = blockFor(page, 'hot-drinks');
@@ -34,7 +34,7 @@ test('ships closed, and says so on the button', async ({ page }) => {
     await expect(popover(block)).toBeHidden();
 });
 
-test('opens on its button and lists what points at the resource', async ({ page }) => {
+test('opens on its button and lists what points at the resource', { tag: '@owner' }, async ({ page }) => {
     await goto(page, inMode(document('hot-drinks'), READ_MODE));
 
     const block = blockFor(page, 'hot-drinks');

@@ -15,11 +15,6 @@ import { itemUri } from '../../../lib/fixtures.mjs';
 const address = page => page.locator('form.ldh-address');
 const uri = page => address(page).locator('input#uri');
 
-test.beforeEach(({}, testInfo) => {
-    test.skip(testInfo.project.name !== 'owner',
-        'the bar is offered where the dataspace endpoint answers; anonymously the fixture is not readable at all');
-});
-
 test('states the URI of the document being read', async ({ page }) => {
     await goto(page, itemUri(1));
     await settled(page);

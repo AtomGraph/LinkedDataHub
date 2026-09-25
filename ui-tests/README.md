@@ -198,6 +198,18 @@ The owner context carries the certificate for **both** origins, end-user and adm
 end-user page issues XHR against the admin origin while it loads, so a context holding
 only the first authenticates half the page.
 
+A spec that cannot run without a certificate — it writes, or it is about who you are — carries
+the `@owner` tag, on its `describe` where it has one and per test where it does not, and the
+`anonymous` project declines to collect it (`grepInvert: /@owner/`). That is deliberately not the
+same as skipping: a skip should mean something, and it stopped meaning anything when 141 of 153
+tests skipped every run. Two dozen of those were skipping on a reason that was simply **false** —
+the fixtures ARE granted to an anonymous reader (`fixtures.readable` is `itemUri(1)`, and the
+container and dataspace root are granted beside it), so the breadcrumb, the mode switcher, the
+property list, every block kind, the drawer and the footer had been assumed agent-dependent
+without anyone measuring it. They are not: they pass anonymously, and now they run that way. The
+`test.skip` hooks stay in the tagged specs as a safety net, so a test added without the tag skips
+rather than fails.
+
 A third project, `coverage`, is not a test project: it runs `coverage/` rather than `specs/` and
 produces the report above. It runs as the owner, because a reader who may not read a document
 cannot tell an absent component from a forbidden one.

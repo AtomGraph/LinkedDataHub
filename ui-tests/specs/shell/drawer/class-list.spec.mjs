@@ -16,11 +16,6 @@ import { openDrawer } from '../../../lib/drawer.mjs';
 const classes = page => page.locator('.ldh-sidebar ul.sb-classes');
 const entries = page => classes(page).locator('.tree-link.btn-class');
 
-test.beforeEach(({}, testInfo) => {
-    test.skip(testInfo.project.name !== 'owner',
-        'the class list is a query over the dataspace; anonymously the fixtures are not readable');
-});
-
 test('lists the classes the dataspace actually holds', async ({ page }) => {
     await goto(page, itemUri(1));
     await settled(page);

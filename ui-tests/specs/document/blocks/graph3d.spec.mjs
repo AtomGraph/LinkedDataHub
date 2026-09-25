@@ -15,10 +15,6 @@ import { GRAPH_MODE, inMode } from '../../../lib/mode.mjs';
 
 const canvas = page => page.locator('.graph-3d-canvas').first();
 
-test.beforeEach(({}, testInfo) => {
-    test.skip(testInfo.project.name !== 'owner', 'the fixture container is owner-owned');
-});
-
 test('draws when the URL asks for it, and not before', async ({ page }) => {
     await goto(page, fixtures.container);
     // Hidden rather than absent: the host element is part of every document's shell, and the mode

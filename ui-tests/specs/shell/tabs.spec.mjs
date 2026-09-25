@@ -20,7 +20,7 @@ test.beforeEach(({}, testInfo) => {
         'the apps list is offered to an authenticated agent; the fixture is not readable anonymously');
 });
 
-test('stays out of the way while one dataspace is open', async ({ page }) => {
+test('stays out of the way while one dataspace is open', { tag: '@owner' }, async ({ page }) => {
     await goto(page, itemUri(1));
     await settled(page);
 
@@ -30,7 +30,7 @@ test('stays out of the way while one dataspace is open', async ({ page }) => {
     await expect(strip(page)).toBeHidden();
 });
 
-test('the apps menu lists the dataspaces this instance serves', async ({ page }) => {
+test('the apps menu lists the dataspaces this instance serves', { tag: '@owner' }, async ({ page }) => {
     await goto(page, itemUri(1));
     await settled(page);
 

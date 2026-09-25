@@ -41,7 +41,7 @@ test.beforeEach(({}, testInfo) => {
         'a chrome assertion; the authorization axis would measure the same thing twice');
 });
 
-test('a view block draws no control bars until its toggle is pressed', async ({ page }) => {
+test('a view block draws no control bars until its toggle is pressed', { tag: '@owner' }, async ({ page }) => {
     await goto(page, fixtures.container);
     await settled(page);
 
@@ -79,7 +79,7 @@ test('a view block draws no control bars until its toggle is pressed', async ({ 
     await expect(controlToggle(block)).toHaveAttribute('aria-pressed', 'false');
 });
 
-test('a chart block draws no control grid until its toggle is pressed', async ({ page }) => {
+test('a chart block draws no control grid until its toggle is pressed', { tag: '@owner' }, async ({ page }) => {
     await goto(page, fixtures.container);
     await settled(page);
 
@@ -98,7 +98,7 @@ test('a chart block draws no control grid until its toggle is pressed', async ({
     await expect(controlToggle(block)).toHaveAttribute('aria-pressed', 'true');
 });
 
-test('an applied facet is named on the status line, with the toolbar closed again', async ({ page }) => {
+test('an applied facet is named on the status line, with the toolbar closed again', { tag: '@owner' }, async ({ page }) => {
     await goto(page, fixtures.container);
     await settled(page);
 
@@ -127,7 +127,7 @@ test('an applied facet is named on the status line, with the toolbar closed agai
     await expect(applied).toContainText(value);
 });
 
-test('a pivot still re-centres the view, now that the row is not a disclosure', async ({ page }) => {
+test('a pivot still re-centres the view, now that the row is not a disclosure', { tag: '@owner' }, async ({ page }) => {
     await goto(page, fixtures.container);
     await settled(page);
 
@@ -152,7 +152,7 @@ test('a pivot still re-centres the view, now that the row is not a disclosure', 
     await expect(block.locator('.ldh-view-status .ldh-view-applied')).toContainText(predicate);
 });
 
-test('a view with no card header keeps its chrome, having nothing that could reveal it', async ({ page }) => {
+test('a view with no card header keeps its chrome, having nothing that could reveal it', { tag: '@owner' }, async ({ page }) => {
     await goto(page, fixtures.container);
     await settled(page);
 

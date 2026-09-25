@@ -15,10 +15,6 @@ import { fixtures } from '../../../lib/fixtures.mjs';
 // The fixture's prose block: `<div xmlns="..."><p>Prose block fixture.</p></div>` as an XMLLiteral.
 const prose = page => page.locator('.block.ldh-block [typeof$="#XHTML"]').first();
 
-test.beforeEach(({}, testInfo) => {
-    test.skip(testInfo.project.name !== 'owner', 'the fixture container is owner-owned');
-});
-
 test('renders its literal as markup, not as text', async ({ page }) => {
     await goto(page, fixtures.container);
     await settled(page);

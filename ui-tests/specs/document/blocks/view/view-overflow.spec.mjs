@@ -72,7 +72,7 @@ test.beforeEach(({}, testInfo) => {
 });
 
 for (const mode of MODES) {
-    test(`a paged view in ${mode.name} mode keeps its rows inside the block`, async ({ page }) => {
+    test(`a paged view in ${mode.name} mode keeps its rows inside the block`, { tag: '@owner' }, async ({ page }) => {
         await goto(page, fixtures.container);
 
         const body = pagedBody(page);

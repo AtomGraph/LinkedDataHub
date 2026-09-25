@@ -54,7 +54,7 @@ const watchInjectedViews = page => page.addInitScript(() => {
 
 const insertionOf = (insertions, property) => insertions.find(insertion => insertion.property === property);
 
-test.describe('a view declared not to show when empty', () => {
+test.describe('a view declared not to show when empty', { tag: '@owner' }, () => {
     // The declaration is the package's and the results are the query's, and neither depends on
     // who is reading - the same reasoning as concept-hierarchy, which covers these same blocks.
     test.beforeEach(async ({ page }, testInfo) => {

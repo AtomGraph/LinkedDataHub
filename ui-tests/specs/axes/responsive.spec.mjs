@@ -184,7 +184,7 @@ for (const [name, viewport] of [['phone', PHONE], ['tablet', TABLET]]) {
 
         // One document per test — see note 1 at the top of the file.
         for (const [label, url] of DOCUMENTS) {
-            test(`${label} does not overflow the viewport`, async ({ page }) => {
+            test(`${label} does not overflow the viewport`, { tag: '@owner' }, async ({ page }) => {
                 await goto(page, url());
                 const { scrollWidth, innerWidth } = await overflow(page);
                 // A pixel of slack for subpixel rounding; the regression this guards was 226px.
@@ -193,7 +193,7 @@ for (const [name, viewport] of [['phone', PHONE], ['tablet', TABLET]]) {
             });
         }
 
-        test('the address bar keeps a usable share of the header', async ({ page }) => {
+        test('the address bar keeps a usable share of the header', { tag: '@owner' }, async ({ page }) => {
             await goto(page, fixtures.container);
             // The bar's own box, not the header's middle grid track. measureAll() drops
             // zero-width tracks (it has to, for auto-fit), so track indices shift the moment
@@ -207,7 +207,7 @@ for (const [name, viewport] of [['phone', PHONE], ['tablet', TABLET]]) {
             expect(width, `the address bar is ${width}px`).toBeGreaterThanOrEqual(ADDRESS_MIN);
         });
 
-        test('the dataspace tab strip stays inside its own box', async ({ page }) => {
+        test('the dataspace tab strip stays inside its own box', { tag: '@owner' }, async ({ page }) => {
             await goto(page, fixtures.container);
             const strip = await page.evaluate(() => {
                 const el = document.querySelector('.ldh-tabs');
@@ -229,7 +229,7 @@ for (const [name, viewport] of [['phone', PHONE], ['tablet', TABLET]]) {
 test.describe('phone (390px) — content components', () => {
     test.use({ viewport: PHONE });
 
-    test('the statement grid gives the value room to be read', async ({ page }) => {
+    test('the statement grid gives the value room to be read', { tag: '@owner' }, async ({ page }) => {
         await goto(page, fixtures.container);
         await present(page, '.ldh-prop-group');
 
@@ -240,7 +240,7 @@ test.describe('phone (390px) — content components', () => {
         expect(group.tracks[0]).toBeGreaterThanOrEqual(READABLE_VALUE);
     });
 
-    test('the chart controls stack instead of sharing 70px each', async ({ page }) => {
+    test('the chart controls stack instead of sharing 70px each', { tag: '@owner' }, async ({ page }) => {
         await goto(page, fixtures.container);
         // ldh:ChartControls re-renders these once the block's SPARQL results land.
         await revealControls(page);
@@ -256,7 +256,7 @@ test.describe('desktop (1440px)', () => {
     test.use({ viewport: DESKTOP });
 
     // The assertion a media-query-only implementation fails.
-    test('narrow containers collapse even at a wide viewport', async ({ page }) => {
+    test('narrow containers collapse even at a wide viewport', { tag: '@owner' }, async ({ page }) => {
         await goto(page, fixtures.container);
         await present(page, '.ldh-prop-group');
 
@@ -277,7 +277,7 @@ test.describe('desktop (1440px)', () => {
     });
 
     // The scope was "readable, not redesigned": desktop must not move.
-    test('desktop layout is unchanged', async ({ page }) => {
+    test('desktop layout is unchanged', { tag: '@owner' }, async ({ page }) => {
         await goto(page, fixtures.container);
         await present(page, '.ldh-prop-group');
 

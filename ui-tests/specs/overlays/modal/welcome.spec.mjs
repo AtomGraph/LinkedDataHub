@@ -21,7 +21,7 @@ test.beforeEach(({}, testInfo) => {
     test.skip(testInfo.project.name !== 'owner', 'the greeting is for an agent who has been identified');
 });
 
-test('greets an agent whose browser has not been here before', async ({ page }) => {
+test('greets an agent whose browser has not been here before', { tag: '@owner' }, async ({ page }) => {
     // The suite's every other page arrives as a returning reader. This one arrives new.
     await page.context().clearCookies({ name: COOKIE });
 
@@ -29,7 +29,7 @@ test('greets an agent whose browser has not been here before', async ({ page }) 
     await expect(welcome(page)).toBeVisible({ timeout: 30_000 });
 });
 
-test('and never again once it has been dismissed', async ({ page }) => {
+test('and never again once it has been dismissed', { tag: '@owner' }, async ({ page }) => {
     await page.context().clearCookies({ name: COOKIE });
     await goto(page, itemUri(1));
     await expect(welcome(page)).toBeVisible({ timeout: 30_000 });

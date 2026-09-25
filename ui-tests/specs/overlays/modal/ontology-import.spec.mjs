@@ -34,7 +34,7 @@ async function exists(page, graph, pattern) {
     return (await response.json()).results.bindings.length === 1;
 }
 
-test.describe('the Import ontology dialog', () => {
+test.describe('the Import ontology dialog', { tag: '@owner' }, () => {
     let target;
 
     test.beforeEach(async ({}, testInfo) => {
