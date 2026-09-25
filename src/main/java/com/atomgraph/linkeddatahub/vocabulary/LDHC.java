@@ -145,6 +145,9 @@ public class LDHC
     /** Context dataset property */
     public static final Property contextDataset = m_model.createObjectProperty( NS + "contextDataset" );
 
+    /** Settings overlay property: where settings written at runtime are persisted, outside the deployed application */
+    public static final Property settingsOverlay = m_model.createObjectProperty( NS + "settingsOverlay" );
+
     /** Max connections per route property */
     public static final Property maxConnPerRoute = m_model.createDataProperty( NS + "maxConnPerRoute" );
     

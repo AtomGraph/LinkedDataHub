@@ -310,6 +310,10 @@ public class Application extends ResourceConfig
     private final String oidcRefreshTokensPropertiesPath;
     private final Properties oidcRefreshTokens;
     private final URI contextDatasetURI;
+    // where settings written at runtime are kept. The context dataset is regenerated from the
+    // deployment's source configuration on every boot, so a write into it does not survive a restart;
+    // the overlay lives outside the deployed application and is applied over the dataset at load
+    private final URI settingsOverlayURI;
     // volatile: updateApp() replaces the dataset copy-on-write while request threads read it unsynchronized
     private volatile Dataset contextDataset;
     private final Object contextDatasetWriteLock = new Object();
@@ -477,6 +481,8 @@ public class Application extends ResourceConfig
             throw new ConfigurationException(LDHC.contextDataset);
         }
         this.contextDatasetURI = URI.create(contextDatasetURIString);
+        String settingsOverlayURIString = servletConfig.getServletContext().getInitParameter(LDHC.settingsOverlay.getURI());
+        this.settingsOverlayURI = settingsOverlayURIString != null ? URI.create(settingsOverlayURIString) : null;
         this.frontendProxy = frontendProxyString != null ? URI.create(frontendProxyString) : null;
         this.backendProxyAdmin = backendProxyAdminString != null ? URI.create(backendProxyAdminString) : null;
         this.backendProxyEndUser = backendProxyEndUserString != null ? URI.create(backendProxyEndUserString) : null;
@@ -721,6 +727,7 @@ public class Application extends ResourceConfig
         try
         {
             this.contextDataset = getDataset(servletConfig.getServletContext(), contextDatasetURI);
+            applySettingsOverlay(this.contextDataset);
 
             keyStore = KeyStore.getInstance("PKCS12");
             try (FileInputStream keyStoreInputStream = new FileInputStream(new java.io.File(new URI(clientKeyStoreURIString))))
@@ -1991,6 +1998,96 @@ public class Application extends ResourceConfig
     }
 
     /**
+     * Returns the location settings written at runtime are persisted to, or null when this deployment
+     * configures none - in which case a settings write goes to the context dataset, as it did before
+     * there was anywhere better to put it.
+     *
+     * @return settings overlay URI, or null
+     */
+    public URI getSettingsOverlayURI()
+    {
+        return settingsOverlayURI;
+    }
+
+    /**
+     * Applies the settings overlay over a context dataset just loaded from the deployment's configuration.
+     *
+     * A dataspace the overlay carries REPLACES the configured one rather than adding to it, because a
+     * runtime change can remove a statement as well as add one - uninstalling a package is removing an
+     * ldh:import, and a union would put it straight back. The consequence is worth stating: once a
+     * dataspace has been written at runtime, the configuration file stops deciding its settings, and
+     * deleting the overlay is what gives that decision back. Each one says so in the log.
+     *
+     * @param dataset the context dataset to apply the overlay to
+     */
+    private void applySettingsOverlay(Dataset dataset)
+    {
+        if (getSettingsOverlayURI() == null) return;
+
+        java.io.File file = new java.io.File(getSettingsOverlayURI());
+        if (!file.exists()) return;
+
+        Dataset overlay = RDFDataMgr.loadDataset(file.toURI().toString());
+        overlay.listModelNames().forEachRemaining(name ->
+        {
+            dataset.removeNamedModel(name.getURI());
+            dataset.addNamedModel(name.getURI(), overlay.getNamedModel(name.getURI()));
+
+            if (log.isInfoEnabled()) log.info("Dataspace <{}> settings restored from the overlay {}; the deployment's configuration for it is not in effect", name.getURI(), getSettingsOverlayURI());
+        });
+    }
+
+    /**
+     * Writes one dataspace's settings to the overlay, leaving the others as they were.
+     *
+     * @param dataspaceURI dataspace whose settings changed
+     * @param newModel the dataspace's settings after the change
+     * @throws IOException if the overlay cannot be written
+     */
+    private void writeSettingsOverlay(String dataspaceURI, Model newModel) throws IOException
+    {
+        java.io.File target = new java.io.File(getSettingsOverlayURI());
+        Dataset overlay = target.exists() ?
+                RDFDataMgr.loadDataset(target.toURI().toString()) :
+                DatasetFactory.create();
+
+        overlay.removeNamedModel(dataspaceURI);
+        overlay.addNamedModel(dataspaceURI, newModel);
+
+        if (target.getParentFile() != null) target.getParentFile().mkdirs();
+        writeDataset(overlay, getSettingsOverlayURI());
+
+        if (log.isInfoEnabled()) log.info("Wrote dataspace <{}> settings to the overlay {}", dataspaceURI, getSettingsOverlayURI());
+    }
+
+    /**
+     * Writes a dataset to a file, atomically.
+     *
+     * Supports both absolute file:// URIs and webapp-relative paths, as getDataset() does. The temp file
+     * is created in the target's own directory and moved onto it, so a crash mid-write cannot truncate
+     * what was there.
+     *
+     * @param dataset the dataset to write
+     * @param uri where to write it
+     * @throws IOException if the format cannot be determined or the write fails
+     */
+    private void writeDataset(Dataset dataset, URI uri) throws IOException
+    {
+        Lang lang = RDFDataMgr.determineLang(uri.toString(), null, null);
+        if (lang == null) throw new IOException("Could not determine RDF format from dataset URI: " + uri.toString());
+
+        java.io.File targetFile = uri.isAbsolute() ?
+                new java.io.File(uri) :
+                new java.io.File(getServletConfig().getServletContext().getRealPath(uri.toString()));
+        java.io.File tempFile = java.io.File.createTempFile(targetFile.getName(), null, targetFile.getParentFile());
+        try (java.io.OutputStream out = new FileOutputStream(tempFile))
+        {
+            RDFDataMgr.write(out, dataset, lang);
+        }
+        Files.move(tempFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+    }
+
+    /**
      * Returns the directory imported packages' stylesheets are copied into, or null when this deployment
      * has none - in which case a package stylesheet is used at the URL its description declares.
      *
@@ -2405,21 +2502,13 @@ public class Application extends ResourceConfig
             });
             updated.addNamedModel(dataspaceURI, ModelFactory.createDefaultModel().add(newModel)); // copy so the caller's reference cannot mutate the published snapshot
 
-            // Write the updated dataset back to file using RDFDataMgr
-            // Support both absolute file:// URIs and relative webapp paths (like getDataset does)
-            Lang lang = RDFDataMgr.determineLang(getContextDatasetURI().toString(), null, null);
-            if (lang == null) throw new IOException("Could not determine RDF format from dataset URI: " + getContextDatasetURI().toString());
-
-            java.io.File targetFile = getContextDatasetURI().isAbsolute() ?
-                    new java.io.File(getContextDatasetURI()) :
-                    new java.io.File(getServletConfig().getServletContext().getRealPath(getContextDatasetURI().toString()));
-            // temp file in the target directory + atomic move: a crash mid-write must not truncate the deployment's configuration
-            java.io.File tempFile = java.io.File.createTempFile(targetFile.getName(), null, targetFile.getParentFile());
-            try (java.io.OutputStream out = new FileOutputStream(tempFile))
-            {
-                RDFDataMgr.write(out, updated, lang);
-            }
-            Files.move(tempFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            // Persist. Where depends on whether this deployment has an overlay: the context dataset is
+            // generated from the deployment's source configuration on every boot, so writing a runtime
+            // change into it is writing into something about to be overwritten - which is how an installed
+            // package used to be lost on the next restart. Deployments that configure no overlay keep the
+            // old behaviour rather than silently losing the write somewhere else.
+            if (getSettingsOverlayURI() != null) writeSettingsOverlay(dataspaceURI, newModel);
+            else writeDataset(updated, getContextDatasetURI());
 
             this.contextDataset = updated;
             if (log.isInfoEnabled()) log.info("Updated dataspace <{}> in context dataset: {}", dataspaceURI, getContextDatasetURI());

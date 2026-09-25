@@ -32,6 +32,7 @@ xmlns:orcid="&orcid;"
     <xsl:param name="ldhc:uploadRoot"/>
     <xsl:param name="ldhc:signUpCertValidity"/>
     <xsl:param name="ldhc:contextDataset"/>
+    <xsl:param name="ldhc:settingsOverlay"/>
     <xsl:param name="ldhc:authQuery"/>
     <xsl:param name="ldhc:ownerAuthQuery"/>
     <xsl:param name="ldhc:enableLinkedDataProxy"/>
@@ -110,6 +111,9 @@ xmlns:orcid="&orcid;"
             </xsl:if>
             <xsl:if test="$ldhc:contextDataset">
                 <Parameter name="&ldhc;contextDataset" value="{$ldhc:contextDataset}" override="false"/>
+            </xsl:if>
+            <xsl:if test="$ldhc:settingsOverlay">
+                <Parameter name="&ldhc;settingsOverlay" value="{$ldhc:settingsOverlay}" override="false"/>
             </xsl:if>
             <xsl:if test="$ldhc:authQuery">
                 <Parameter name="&ldhc;authQuery" value="{$ldhc:authQuery}" override="false"/>

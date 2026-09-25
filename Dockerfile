@@ -99,6 +99,12 @@ ARG SITEMAP_ROOT=/var/www/linkeddatahub/sitemaps
 # outlives a redeploy, and nothing an application imports is baked into the packaged application
 ARG PACKAGE_ROOT=/var/www/linkeddatahub/packages
 
+# settings a dataspace's owner changes at runtime - installing a package, for one. The context dataset
+# cannot hold them: entrypoint.sh regenerates it from config/*.trig on every boot, so a write into it
+# is discarded at the next start. Kept here, outside the deployed application and on a volume, and
+# applied over the context dataset as it loads
+ARG SETTINGS_ROOT=/var/www/linkeddatahub/settings
+
 ENV SOURCE_COMMIT=$SOURCE_COMMIT
 
 WORKDIR $CATALINA_HOME
@@ -118,6 +124,7 @@ ENV CLIENT_STYLESHEET=$CLIENT_STYLESHEET
 ENV SITEMAP_ROOT=$SITEMAP_ROOT
 
 ENV PACKAGE_ROOT=$PACKAGE_ROOT
+ENV SETTINGS_ROOT=$SETTINGS_ROOT
 
 ENV PROXY_HOST=
 
@@ -296,6 +303,8 @@ RUN useradd --no-log-init -U ldh && \
     chown -R ldh:ldh "$SITEMAP_ROOT" && \
     mkdir -p "$PACKAGE_ROOT" && \
     chown -R ldh:ldh "$PACKAGE_ROOT" && \
+    mkdir -p "$SETTINGS_ROOT" && \
+    chown -R ldh:ldh "$SETTINGS_ROOT" && \
     mkdir -p /etc/letsencrypt/staging && \
     chown -R ldh:ldh /etc/letsencrypt/staging
 

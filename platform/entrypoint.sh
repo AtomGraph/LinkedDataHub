@@ -1179,6 +1179,10 @@ CLIENT_TRUSTSTORE_PASSWORD_PARAM="--stringparam ldhc:clientTrustStorePassword '$
 UPLOAD_ROOT_PARAM="--stringparam ldhc:uploadRoot 'file://$UPLOAD_ROOT' "
 SIGN_UP_CERT_VALIDITY_PARAM="--stringparam ldhc:signUpCertValidity '$SIGN_UP_CERT_VALIDITY' "
 CONTEXT_DATASET_PARAM="--stringparam ldhc:contextDataset '$webapp_context_dataset' "
+# the context dataset above is regenerated from the source configuration on every boot, so it is no
+# place for a setting changed at runtime. The overlay is: outside the deployed application, on a
+# volume, applied over the dataset once it is loaded
+SETTINGS_OVERLAY_PARAM="--stringparam ldhc:settingsOverlay 'file://$SETTINGS_ROOT/dataspaces.trig' "
 MAIL_SMTP_HOST_PARAM="--stringparam mail.smtp.host '$MAIL_SMTP_HOST' "
 MAIL_SMTP_PORT_PARAM="--stringparam mail.smtp.port '$MAIL_SMTP_PORT' "
 MAIL_USER_PARAM="--stringparam mail.user '$MAIL_USER' "
@@ -1364,6 +1368,7 @@ transform="xsltproc \
   $UPLOAD_ROOT_PARAM \
   $SIGN_UP_CERT_VALIDITY_PARAM \
   $CONTEXT_DATASET_PARAM \
+  $SETTINGS_OVERLAY_PARAM \
   $AUTH_QUERY_PARAM \
   $OWNER_AUTH_QUERY_PARAM \
   $ENABLE_LINKED_DATA_PROXY_PARAM \
