@@ -34,6 +34,8 @@ export const fixtures = {
     // fishing for the nth card on the page.
     query: `${endUserBase}${slug}/#items-query`,
     view: `${endUserBase}${slug}/#items-view`,
+    // Counted by kind, because a bar chart's value axis must be numeric - see chartQuery below.
+    chartQuery: `${endUserBase}${slug}/#kinds-query`,
     chart: `${endUserBase}${slug}/#items-chart`,
     // The chart as CONTENT. A ldh:ResultSetChart is data until something puts it in the
     // document's rdf:_N list, and only ldh:Object and ldh:XHTML may be values there - so a chart
@@ -107,18 +109,41 @@ async function inBatches(inputs, limit, worker) {
     return results;
 }
 
+// `sioc:has_container`, not `sioc:has_parent`. An item created in a container states the former;
+// the latter is the document hierarchy's predicate and no item carries it, so this query matched
+// nothing for as long as it existed - and nothing noticed, because the only thing rendering it was
+// a chart nobody asserted had drawn. Measured 2026-09-25 against the endpoint: 0 rows before, 25
+// after.
 const query = `PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 PREFIX  dct:  <http://purl.org/dc/terms/>
 
 SELECT DISTINCT  ?item ?title ?kind
 WHERE
   { GRAPH ?g
-      { ?item  sioc:has_parent  <${fixtures.container}> ;
+      { ?item  sioc:has_container  <${fixtures.container}> ;
                dct:title        ?title ;
                dct:description  ?kind
       }
   }
 ORDER BY ?title`;
+
+// The chart's own query, and the reason it is not the view's. A bar chart's value axis has to be
+// numeric - Google Charts refuses a string column outright ("Data column(s) for axis #0 cannot be
+// of type string") - so plotting ?title against ?kind draws nothing however many rows come back.
+// What these items can be charted BY is how many of each kind there are, which is an aggregate,
+// and an aggregate is the wrong shape for the view that lists them. So: two queries, one each.
+const chartQuery = `PREFIX  sioc: <http://rdfs.org/sioc/ns#>
+PREFIX  dct:  <http://purl.org/dc/terms/>
+
+SELECT  ?kind (COUNT(?item) AS ?items)
+WHERE
+  { GRAPH ?g
+      { ?item  sioc:has_container  <${fixtures.container}> ;
+               dct:description     ?kind
+      }
+  }
+GROUP BY ?kind
+ORDER BY ?kind`;
 
 export async function seed() {
     const container = await ldh(['create', 'container',
@@ -145,10 +170,15 @@ export async function seed() {
         '--uri', fixtures.query, '--query-file', queryFile, fixtures.container]);
     await ldh(['add', 'view', '--title', 'Fixture items view',
         '--uri', fixtures.view, '--query', fixtures.query, fixtures.container]);
+    const chartQueryFile = join(mkdtempSync(join(tmpdir(), 'ui-tests-')), 'kinds.rq');
+    writeFileSync(chartQueryFile, chartQuery);
+    await ldh(['add', 'select', '--title', 'Fixture item kinds',
+        '--uri', fixtures.chartQuery, '--query-file', chartQueryFile, fixtures.container]);
+
     await ldh(['add', 'result-set-chart', '--title', 'Fixture items chart',
-        '--uri', fixtures.chart, '--query', fixtures.query,
+        '--uri', fixtures.chart, '--query', fixtures.chartQuery,
         '--chart-type', 'https://w3id.org/atomgraph/client#BarChart',
-        '--category-var-name', 'kind', '--series-var-name', 'title', fixtures.container]);
+        '--category-var-name', 'kind', '--series-var-name', 'items', fixtures.container]);
     await ldh(['add', 'xhtml-block', '--title', 'Fixture prose', '--uri', fixtures.prose,
         '--value', '<div xmlns="http://www.w3.org/1999/xhtml"><p>Prose block fixture.</p></div>',
         fixtures.container]);

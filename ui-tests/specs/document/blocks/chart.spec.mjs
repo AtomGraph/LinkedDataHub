@@ -6,18 +6,23 @@
 // once, and it cost the responsive work a whole cycle of coverage: a spec waited 30s for
 // `.chart-controls` that could never appear, then skipped itself and went green.
 //
-// So the first assertion is that the canvas is never EMPTY - it holds either a drawing or the
-// designed "no results" state, and nothing in between. Between the query and the picture there is
-// a SPARQL round trip, a result set, a chart type and a drawing library, and an empty canvas is
-// what every one of those failing looks like.
+// So the assertion is that the chart IS DRAWN. Between the query and the picture there is a SPARQL
+// round trip, a result set, a category and series to map it onto, a chart type and a drawing
+// library; a drawn chart is the only assertion that covers all six at once, and every one of them
+// failing looks identical from outside - an empty box.
 //
-// A FINDING, and the reason this is not simply "a chart is drawn": on this instance the fixture's
-// chart renders `No results. The query ran cleanly and matched nothing.` - so nothing in the suite
-// has ever seen a chart actually drawn, including the responsive assertions that measure
-// `.chart-controls` around it. The same query renders 25 rows in the view block beside it, so the
-// emptiness is the chart's own, not the data's. Asserting "a drawing" today would fail; asserting
-// "the blank state" would fail the day it is fixed. Asserting that the canvas said SOMETHING is
-// true either way and still catches the silence.
+// It was empty, for two reasons stacked one behind the other, and writing this spec is what found
+// both. First the canvas read `No results. The query ran cleanly and matched nothing.` - the query
+// asked for `sioc:has_parent` where an item created in a container states `sioc:has_container`, so
+// it matched nothing (0 rows against the endpoint, 25 after the predicate was corrected). With rows
+// finally arriving the canvas said something new: `Data column(s) for axis #0 cannot be of type
+// string`. A bar chart's value axis must be numeric and the chart was plotting ?title. The fixture
+// now charts a count per kind and lists the items with the other query, which is the same division
+// the product's own rule makes - aggregates belong in charts, not in views.
+//
+// The chart block was right both times; it reported exactly what it had been given. Nothing caught
+// either because no spec had ever asserted that a chart DREW anything - not here, and not in the
+// responsive axis, which measures `.chart-controls` around whatever the canvas holds.
 //
 // The controls are collapsed until the card header's toggle is pressed - chrome behaviour that
 // block-controls owns - so this presses it and then asks what the controls do.
@@ -28,21 +33,17 @@ import { controlToggle } from '../../../lib/block.mjs';
 
 const chartBlock = page => page.locator('.block.ldh-block:has(.chart-controls)').first();
 
-test.beforeEach(({}, testInfo) => {
-    test.skip(testInfo.project.name !== 'owner', 'the fixture container is owner-owned');
-});
-
-test('says something in its canvas, rather than merely reserving a box for it', async ({ page }) => {
+test('draws its result set, rather than merely reserving a box for it', async ({ page }) => {
     await goto(page, fixtures.container);
     await settled(page);
 
     const canvas = chartBlock(page).locator('.chart-canvas').first();
     await expect(canvas).toBeVisible();
 
-    // A drawing, or the designed empty state. Never an empty box, which is what a thrown renderer
-    // leaves behind and what no reader can tell from a chart that has not arrived yet.
-    await expect(canvas.locator('svg, canvas, table, .ldh-block-blank').first())
-        .toBeVisible({ timeout: 30_000 });
+    // A drawing. Not the blank state, which is what an empty result set gets and what this
+    // fixture spent its whole existence showing.
+    await expect(canvas.locator('svg, canvas, table').first()).toBeVisible({ timeout: 30_000 });
+    await expect(canvas.locator('.ldh-block-blank'), 'the chart matched nothing').toHaveCount(0);
 });
 
 test('offers the chart type it was drawn with, and redraws when it changes', async ({ page }) => {
@@ -67,7 +68,7 @@ test('offers the chart type it was drawn with, and redraws when it changes', asy
 
     await type.selectOption(values[0]);
     await expect(type).toHaveValue(values[0]);
-    // Still saying something after the change: a redraw that throws leaves the canvas empty.
-    await expect(block.locator('.chart-canvas').locator('svg, canvas, table, .ldh-block-blank').first())
+    // Still drawn after the change: a redraw that throws leaves the canvas empty behind it.
+    await expect(block.locator('.chart-canvas').locator('svg, canvas, table').first())
         .toBeVisible({ timeout: 30_000 });
 });
