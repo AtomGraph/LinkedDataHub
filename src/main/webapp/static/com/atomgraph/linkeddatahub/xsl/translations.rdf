@@ -1396,13 +1396,25 @@
         <rdfs:label xml:lang="en-US">Could not delete block</rdfs:label>
         <rdfs:label xml:lang="es-ES">No se pudo eliminar el bloque</rdfs:label>
     </rdf:Description>
-    <rdf:Description rdf:nodeID="unsupported-rdf-syntax">
-        <rdfs:label xml:lang="en-US">The file extension or media type is not a supported RDF triple syntax</rdfs:label>
-        <rdfs:label xml:lang="es-ES">La extensión del archivo o el tipo de medio no es una sintaxis RDF compatible</rdfs:label>
+    <rdf:Description rdf:nodeID="drop-files">
+        <rdfs:label xml:lang="en-US">Drop files to add to this document</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Suelta archivos para añadirlos a este documento</rdfs:label>
     </rdf:Description>
-    <rdf:Description rdf:nodeID="drop-rdf-file">
-        <rdfs:label xml:lang="en-US">Drop RDF file to import</rdfs:label>
-        <rdfs:label xml:lang="es-ES">Suelta un archivo RDF para importarlo</rdfs:label>
+    <rdf:Description rdf:nodeID="rdf">
+        <rdfs:label xml:lang="en-US">RDF</rdfs:label>
+        <rdfs:label xml:lang="es-ES">RDF</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdf-imported-as-data">
+        <rdfs:label xml:lang="en-US">imported as data</rdfs:label>
+        <rdfs:label xml:lang="es-ES">se importa como datos</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="file-uploaded-to-document">
+        <rdfs:label xml:lang="en-US">uploaded to this document</rdfs:label>
+        <rdfs:label xml:lang="es-ES">se sube a este documento</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="file-not-uploaded">
+        <rdfs:label xml:lang="en-US">The file could not be uploaded</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo subir el archivo</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="media-type-browser-defined">
         <rdfs:label xml:lang="en-US">[browser-defined]</rdfs:label>

@@ -1496,16 +1496,44 @@ WHERE
          (a container's graph carries rdf:_1 <#select-children>, so it resolves to ContentMode). What the
          mode does decide is where you land afterwards - see ldh:onRDFFileUpload. -->
 
+    <!-- what a drop does is decided per file, by media type, at drop time (ixsl:ondrop below). A drag carries no
+         file names - only dataTransfer.items[].type, which is empty for most RDF extensions - so the overlay
+         cannot say which of the two a given drag is; it advertises both outcomes, one lane each, and lets the
+         chip name the kind -->
     <xsl:template name="ldh:FileDropOverlay">
         <div id="file-drop" class="ac-dropzone-overlay">
             <div class="ac-dropzone-panel">
                 <span class="msi" aria-hidden="true">upload_file</span>
                 <span class="ac-dropzone-title">
-                    <xsl:apply-templates select="key('resources', 'drop-rdf-file', ldh:translations())" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', 'drop-files', ldh:translations())" mode="ac:label"/>
                 </span>
-                <span class="ac-dropzone-sub">
-                    <xsl:value-of select="sort(map:keys($rdf-media-types)) ! ('.' || .)" separator=" "/>
-                </span>
+                <div class="ac-dropzone-lanes">
+                    <div class="ac-dropzone-lane">
+                        <xsl:apply-templates select="." mode="ac:AnnotationTag">
+                            <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet co-informative'"/>
+                            <xsl:with-param name="label" as="item()*">
+                                <xsl:apply-templates select="key('resources', 'rdf', ldh:translations())" mode="ac:label"/>
+                            </xsl:with-param>
+                        </xsl:apply-templates>
+                        <span>
+                            <xsl:apply-templates select="key('resources', 'rdf-imported-as-data', ldh:translations())" mode="ac:label"/>
+                        </span>
+                        <span class="ac-dropzone-sub">
+                            <xsl:value-of select="sort(map:keys($rdf-media-types)) ! ('.' || .)" separator=" "/>
+                        </span>
+                    </div>
+                    <div class="ac-dropzone-lane">
+                        <xsl:apply-templates select="." mode="ac:AnnotationTag">
+                            <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet co-neutral'"/>
+                            <xsl:with-param name="label" as="item()*">
+                                <xsl:apply-templates select="key('resources', 'file', ldh:translations())" mode="ac:label"/>
+                            </xsl:with-param>
+                        </xsl:apply-templates>
+                        <span>
+                            <xsl:apply-templates select="key('resources', 'file-uploaded-to-document', ldh:translations())" mode="ac:label"/>
+                        </span>
+                    </div>
+                </div>
             </div>
         </div>
     </xsl:template>
@@ -1599,21 +1627,65 @@ WHERE
 
                     <xsl:sequence select="js:fetchDispatchXML($base-uri, 'POST', $headers, $file, (), (), (), (), 'RDFFileUpload')[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:when>
+                <!-- anything else is a file, and is uploaded: the RDF/POST multipart body ldh add file sends
+                     (AddFile.buildMultiPart), which postMultipart() stores under uploads/ by content hash and
+                     describes in this document. The encoding is positional, so the fields are appended in
+                     document order rather than built inside an expression. The file part carries its name,
+                     which is how the server pairs it with nfo:fileName; the browser writes the part's media
+                     type, an untyped file arriving as application/octet-stream. The name doubles as the title
+                     the ontology requires of a file -->
                 <xsl:otherwise>
-                    <!-- reported on the document the file was dropped on, which is still the one being read -->
-                    <xsl:sequence select="ldh:render-failure(ldh:active-pane()/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')], 'file-not-imported', 'unsupported-rdf-syntax', ixsl:get($file, 'name'))"/>
+                    <xsl:message>Uploading file. Name: '<xsl:value-of select="ixsl:get($file, 'name')"/>' Media type: '<xsl:value-of select="$file-type"/>'</xsl:message>
+
+                    <xsl:variable name="form-data" select="ixsl:new('FormData', [])"/>
+                    <xsl:sequence select="ixsl:call($form-data, 'append', [ 'rdf', '' ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:call($form-data, 'append', [ 'sb', 'file' ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:call($form-data, 'append', [ 'pu', '&nfo;fileName' ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:call($form-data, 'append', [ 'ol', $file, ixsl:get($file, 'name') ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:call($form-data, 'append', [ 'pu', '&dct;title' ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:call($form-data, 'append', [ 'ol', ixsl:get($file, 'name') ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:call($form-data, 'append', [ 'pu', '&rdf;type' ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:call($form-data, 'append', [ 'ou', '&nfo;FileDataObject' ])[current-date() lt xs:date('2000-01-01')]"/>
+
+                    <!-- no Content-Type: the browser writes the multipart boundary -->
+                    <xsl:variable name="headers" select="ldh:new-object()"/>
+                    <ixsl:set-property name="Accept" select="'application/rdf+xml'" object="$headers"/>
+                    <xsl:for-each select="ldh:document-etag(ac:absolute-path($base-uri))">
+                        <ixsl:set-property name="If-Match" select="." object="$headers"/>
+                    </xsl:for-each>
+
+                    <xsl:sequence select="ldh:busy-cursor()"/>
+
+                    <xsl:sequence select="js:fetchDispatchXML($base-uri, 'POST', $headers, $form-data, (), (), (), (), 'FileUpload')[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
     </xsl:template>
 
-    <!-- this callback will be invoked for every uploaded file -->
-    
+    <!-- one callback per file the drop sent, and one per outcome: the event name says which path the file
+         took, and the label a failure reports under is the only thing the two differ in. Each success
+         navigates, so a drop of several files navigates once per file - the later ones abort the earlier
+         fetches (ldh:DocumentNavigate); a pre-existing limit of the RDF path that the fallback inherits -->
+
     <xsl:template match="." mode="ixsl:onRDFFileUpload">
-        <xsl:variable name="event" select="ixsl:event()"/>
-        <xsl:variable name="response" select="ixsl:get(ixsl:get($event, 'detail'), 'response')"/>
+        <xsl:call-template name="ldh:FileDropResponse">
+            <xsl:with-param name="response" select="ixsl:get(ixsl:get(ixsl:event(), 'detail'), 'response')"/>
+            <xsl:with-param name="failure-key" select="'file-not-imported'"/>
+        </xsl:call-template>
+    </xsl:template>
+
+    <xsl:template match="." mode="ixsl:onFileUpload">
+        <xsl:call-template name="ldh:FileDropResponse">
+            <xsl:with-param name="response" select="ixsl:get(ixsl:get(ixsl:event(), 'detail'), 'response')"/>
+            <xsl:with-param name="failure-key" select="'file-not-uploaded'"/>
+        </xsl:call-template>
+    </xsl:template>
+
+    <xsl:template name="ldh:FileDropResponse">
+        <xsl:param name="response"/>
+        <xsl:param name="failure-key" as="xs:string"/>
         <xsl:variable name="status" select="ixsl:get($response, 'status')" as="xs:double"/>
-        
+
         <xsl:choose>
             <xsl:when test="$status = (200, 204)">
                 <!-- post-upload reload of the current document; ldh:base-uri already strips fragment.
@@ -1631,7 +1703,7 @@ WHERE
             <xsl:otherwise>
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
-                <xsl:sequence select="ldh:render-failure(ldh:active-pane()/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')], 'file-not-imported', ac:http-error-key($status), ldh:response-detail(map{ 'status': $status, 'message': ixsl:get($response, 'statusText') }))"/>
+                <xsl:sequence select="ldh:render-failure(ldh:active-pane()/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')], $failure-key, ac:http-error-key($status), ldh:response-detail(map{ 'status': $status, 'message': ixsl:get($response, 'statusText') }))"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>

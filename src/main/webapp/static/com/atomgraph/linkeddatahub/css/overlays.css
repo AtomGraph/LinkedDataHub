@@ -254,3 +254,10 @@
 }
 /* The accepted formats, mono because they are literal file extensions. */
 .ac-dropzone-sub { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--fg-hint); }
+
+/* The outcomes a drop can have, one lane each: a Tag naming the kind, a phrase
+   saying what becomes of it, and for RDF the extensions that make a file one.
+   A drag carries no file names, so the panel advertises both outcomes rather
+   than guessing which of them this drag is. */
+.ac-dropzone-lanes { display: flex; flex-direction: column; align-items: center; gap: var(--sp-1); margin-top: var(--sp-2); }
+.ac-dropzone-lane { display: flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-sm); color: var(--fg-muted); }

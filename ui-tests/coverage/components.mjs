@@ -144,6 +144,7 @@ export const components = [
         children: [
             { id: 'annotation-dialog', name: 'RDFa annotation overlay', selector: '#rdfa-editor-overlay', appears: 'gesture' },
             { id: 'links', name: 'Block links popover', selector: '.links-pop', appears: 'gesture' },
+            { id: 'file-drop', name: 'File drop overlay', selector: '#file-drop', appears: 'gesture' },
             {
                 id: 'modal', name: 'Modal dialog', selector: '.ac-modal', appears: 'gesture',
                 children: [
