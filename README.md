@@ -49,7 +49,6 @@ The [`ldh` command line interface](#command-line-interface) is attached to every
      HTTP_PORT=81
      HTTPS_PORT=4443
      HOST=localhost
-     ABS_PATH=/
      
      OWNER_MBOX=john@doe.com
      OWNER_GIVEN_NAME=John
@@ -143,16 +142,15 @@ The [`ldh` command line interface](#command-line-interface) is attached to every
 
   A common case is changing the base URI from the default `https://localhost:4443/` to your own.
 
-  Lets use `https://ec2-54-235-229-141.compute-1.amazonaws.com/linkeddatahub/` as an example. We need to split the URI into components and set them in the `.env` file using the following parameters:
+  Lets use `https://ec2-54-235-229-141.compute-1.amazonaws.com/` as an example. We need to split the URI into components and set them in the `.env` file using the following parameters:
   ```
   PROTOCOL=https
   HTTP_PORT=80
   HTTPS_PORT=443
   HOST=ec2-54-235-229-141.compute-1.amazonaws.com
-  ABS_PATH=/linkeddatahub/
   ```
 
-  `ABS_PATH` is required, even if it's just `/`.
+  A dataspace serves its documents from the root of its origin, so the base URI is always the origin followed by `/` — there is no sub-path component to configure. Deploying several dataspaces on one instance is a matter of giving each its own subdomain, as described in [Dataspaces](#dataspaces) below.
 
   ### Dataspaces
 

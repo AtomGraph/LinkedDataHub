@@ -41,22 +41,20 @@ if [ -z "$(envProp "HOST")" ]; then
     echo "Configuration is incomplete: HOST is missing"
     exit 1
 fi
-if [ -z "$(envProp "ABS_PATH")" ]; then
-    echo "Configuration is incomplete: ABS_PATH is missing"
-    exit 1
-fi
+
+# a dataspace serves its documents from the root of its origin, so its base URI is the origin's root
 
 if [ "$(envProp "PROTOCOL")" = "https" ]; then
     if [ "$(envProp "HTTPS_PORT")" = 443 ]; then
-        base_uri="$(envProp "PROTOCOL")://$(envProp "HOST")$(envProp "ABS_PATH")"
+        base_uri="$(envProp "PROTOCOL")://$(envProp "HOST")/"
     else
-        base_uri="$(envProp "PROTOCOL")://$(envProp "HOST"):$(envProp "HTTPS_PORT")$(envProp "ABS_PATH")"
+        base_uri="$(envProp "PROTOCOL")://$(envProp "HOST"):$(envProp "HTTPS_PORT")/"
     fi
 else
     if [ "$(envProp "HTTP_PORT")" = 80 ]; then
-        base_uri="$(envProp "PROTOCOL")://$(envProp "HOST")$(envProp "ABS_PATH")"
+        base_uri="$(envProp "PROTOCOL")://$(envProp "HOST")/"
     else
-        base_uri="$(envProp "PROTOCOL")://$(envProp "HOST"):$(envProp "HTTP_PORT")$(envProp "ABS_PATH")"
+        base_uri="$(envProp "PROTOCOL")://$(envProp "HOST"):$(envProp "HTTP_PORT")/"
     fi
 fi
 

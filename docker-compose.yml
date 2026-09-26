@@ -54,7 +54,6 @@ services:
       - BACKEND_PROXY_END_USER=http://varnish-end-user/
       - PROTOCOL=${PROTOCOL}
       - HOST=${HOST}
-      - ABS_PATH=${ABS_PATH}
       - HTTP_SCHEME=https
       - HTTP_PORT=7070
       - HTTP_PROXY_NAME=${HOST}

@@ -121,11 +121,6 @@ if [ -z "$HOST" ]; then
     exit 1
 fi
 
-if [ -z "$ABS_PATH" ]; then
-    echo '$ABS_PATH not set'
-    exit 1
-fi
-
 if [ -z "$OWNER_MBOX" ]; then
     echo '$OWNER_MBOX not set'
     exit 1
@@ -216,49 +211,33 @@ if [ -z "$MAIL_USER" ]; then
     exit 1
 fi
 
-# construct base URI and origins (ignore default HTTP and HTTPS ports for URI, but always include port for origins)
+# construct origins (ignore default HTTP and HTTPS ports) and the base URIs that derive from them
 
 if [ "$PROTOCOL" = "https" ]; then
     if [ "$HTTPS_PROXY_PORT" = 443 ]; then
-        export BASE_URI="${PROTOCOL}://${HOST}${ABS_PATH}"
-        export ADMIN_BASE_URI="${PROTOCOL}://admin.${HOST}${ABS_PATH}"
         export ORIGIN="${PROTOCOL}://${HOST}"
-    else
-        export BASE_URI="${PROTOCOL}://${HOST}:${HTTPS_PROXY_PORT}${ABS_PATH}"
-        export ADMIN_BASE_URI="${PROTOCOL}://admin.${HOST}:${HTTPS_PROXY_PORT}${ABS_PATH}"
-        export ORIGIN="${PROTOCOL}://${HOST}:${HTTPS_PROXY_PORT}"
-    fi
-else
-    if [ "$HTTP_PROXY_PORT" = 80 ]; then
-        export BASE_URI="${PROTOCOL}://${HOST}${ABS_PATH}"
-        export ADMIN_BASE_URI="${PROTOCOL}://admin.${HOST}${ABS_PATH}"
-        export ORIGIN="${PROTOCOL}://${HOST}"
-    else
-        export BASE_URI="${PROTOCOL}://${HOST}:${HTTP_PROXY_PORT}${ABS_PATH}"
-        export ADMIN_BASE_URI="${PROTOCOL}://admin.${HOST}:${HTTP_PROXY_PORT}${ABS_PATH}"
-        export ORIGIN="${PROTOCOL}://${HOST}:${HTTP_PROXY_PORT}"
-    fi
-fi
-
-BASE_URI=$(echo "$BASE_URI" | tr '[:upper:]' '[:lower:]') # make sure it's lower-case
-ADMIN_BASE_URI=$(echo "$ADMIN_BASE_URI" | tr '[:upper:]' '[:lower:]') # make sure it's lower-case
-ORIGIN=$(echo "$ORIGIN" | tr '[:upper:]' '[:lower:]') # make sure it's lower-case
-
-if [ "$PROTOCOL" = "https" ]; then
-    if [ "$HTTPS_PROXY_PORT" = 443 ]; then
         export ADMIN_ORIGIN="${PROTOCOL}://admin.${HOST}"
     else
+        export ORIGIN="${PROTOCOL}://${HOST}:${HTTPS_PROXY_PORT}"
         export ADMIN_ORIGIN="${PROTOCOL}://admin.${HOST}:${HTTPS_PROXY_PORT}"
     fi
 else
     if [ "$HTTP_PROXY_PORT" = 80 ]; then
+        export ORIGIN="${PROTOCOL}://${HOST}"
         export ADMIN_ORIGIN="${PROTOCOL}://admin.${HOST}"
     else
+        export ORIGIN="${PROTOCOL}://${HOST}:${HTTP_PROXY_PORT}"
         export ADMIN_ORIGIN="${PROTOCOL}://admin.${HOST}:${HTTP_PROXY_PORT}"
     fi
 fi
 
+ORIGIN=$(echo "$ORIGIN" | tr '[:upper:]' '[:lower:]') # make sure it's lower-case
 ADMIN_ORIGIN=$(echo "$ADMIN_ORIGIN" | tr '[:upper:]' '[:lower:]') # make sure it's lower-case
+
+# a dataspace serves its documents from the root of its origin, so its base URI is the origin's root
+
+export BASE_URI="${ORIGIN}/"
+export ADMIN_BASE_URI="${ADMIN_ORIGIN}/"
 
 printf "\n### Base URI: %s\n" "$BASE_URI"
 printf "\n### Admin Base URI: %s\n" "$ADMIN_BASE_URI"
