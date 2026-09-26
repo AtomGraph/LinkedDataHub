@@ -1127,7 +1127,7 @@ LIMIT   10
 
                     <xsl:apply-templates select="." mode="ldh:Modal">
                         <xsl:with-param name="title" as="item()*">
-                                <xsl:apply-templates select="key('resources', 'application-settings', ldh:translations())" mode="ac:label"/>
+                                <xsl:apply-templates select="key('resources', 'dataspace-settings', ldh:translations())" mode="ac:label"/>
                         </xsl:with-param>
                         <xsl:with-param name="body" as="item()*">
 

@@ -3,7 +3,7 @@
 @prefix dct:	<http://purl.org/dc/terms/> .
 
 ### do not use blank nodes to identify resources! ###
-### urn: URI scheme is used because applications are not accessible in their own dataspace (under $BASE_URI) ###
+### urn: URI scheme is used because dataspaces are not accessible in their own address space (under $BASE_URI) ###
 
 # root admin
 

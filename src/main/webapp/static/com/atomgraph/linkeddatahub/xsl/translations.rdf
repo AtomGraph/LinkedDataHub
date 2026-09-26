@@ -32,9 +32,9 @@
         <rdfs:label xml:lang="en-US">Search</rdfs:label>
         <rdfs:label xml:lang="es-ES">Buscar</rdfs:label>
     </rdf:Description>
-    <rdf:Description rdf:nodeID="applications">
-        <rdfs:label xml:lang="en-US">Applications</rdfs:label>
-        <rdfs:label xml:lang="es-ES">Aplicaciones</rdfs:label>
+    <rdf:Description rdf:nodeID="dataspace-list">
+        <rdfs:label xml:lang="en-US">Dataspaces</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Espacios de datos</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="notifications">
         <rdfs:label xml:lang="en-US">Notifications</rdfs:label>
@@ -200,9 +200,9 @@
         <rdfs:label xml:lang="en-US">close</rdfs:label>
         <rdfs:label xml:lang="es-ES">cerrar</rdfs:label>
     </rdf:Description>
-    <rdf:Description rdf:nodeID="application-list-title">
-        <rdfs:label xml:lang="en-US">Applications</rdfs:label>
-        <rdfs:label xml:lang="es-ES">Aplicaciones</rdfs:label>
+    <rdf:Description rdf:nodeID="dataspace-list-title">
+        <rdfs:label xml:lang="en-US">Dataspaces</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Espacios de datos</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="user-defined-apps">
         <rdfs:label xml:lang="en-US">User-defined</rdfs:label>
@@ -624,13 +624,13 @@
         <rdfs:label xml:lang="en-US">Remove this statement</rdfs:label>
         <rdfs:label xml:lang="es-ES">Eliminar esta declaración</rdfs:label>
     </rdf:Description>
-    <rdf:Description rdf:nodeID="application-settings">
-        <rdfs:label xml:lang="en-US">Application settings</rdfs:label>
-        <rdfs:label xml:lang="es-ES">Ajustes de aplicación</rdfs:label>
+    <rdf:Description rdf:nodeID="dataspace-settings">
+        <rdfs:label xml:lang="en-US">Dataspace settings</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Ajustes del espacio de datos</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="request-access-description">
-        <rdfs:label xml:lang="en-US">Ask for access to a restricted resource by making a request. It will be reviewed by the application's administrators.</rdfs:label>
-        <rdfs:label xml:lang="es-ES">Solicite acceso a un recurso restringido haciendo una solicitud. Será revisada por los administradores de la aplicación.</rdfs:label>
+        <rdfs:label xml:lang="en-US">Ask for access to a restricted resource by making a request. It will be reviewed by the dataspace's administrators.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Solicite acceso a un recurso restringido haciendo una solicitud. Será revisada por los administradores del espacio de datos.</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="request-access-for">
         <rdfs:label xml:lang="en-US">Request access for</rdfs:label>

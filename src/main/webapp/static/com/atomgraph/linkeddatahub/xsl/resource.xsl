@@ -230,7 +230,7 @@ exclude-result-prefixes="#all"
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-search')"/>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:nodeID = 'applications']" mode="ldh:logo">
+    <xsl:template match="*[@rdf:nodeID = 'dataspace-list']" mode="ldh:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-apps')"/>

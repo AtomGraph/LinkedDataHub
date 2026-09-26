@@ -566,7 +566,7 @@ WHERE
                  no intermediate list -->
             <xsl:if test="exists($user-defined-apps) or exists($system-apps)">
                     <div class="ac-menu-anchor">
-                        <button class="drop-toggle ac-iconbtn sz-lg in-neutral ap-ghost btn-apps" aria-haspopup="menu" aria-expanded="false" title="{ac:label(key('resources', 'application-list-title', document('translations.rdf')))}">
+                        <button class="drop-toggle ac-iconbtn sz-lg in-neutral ap-ghost btn-apps" aria-haspopup="menu" aria-expanded="false" title="{ac:label(key('resources', 'dataspace-list-title', document('translations.rdf')))}">
                             <span class="msi sm" aria-hidden="true">apps</span>
                         </button>
                         <div class="ac-menu al-end" role="menu">
