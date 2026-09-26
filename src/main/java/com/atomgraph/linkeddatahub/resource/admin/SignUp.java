@@ -21,8 +21,8 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Request;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.exception.ConfigurationException;
-import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.dataspaces.model.AdminDataspace;
+import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.server.filter.response.CacheInvalidationFilter;
@@ -112,7 +112,7 @@ public class SignUp extends DocumentHierarchyGraphStoreImpl
     /** Media type of the WebID client certificate */
     public static final MediaType PKCS12_MEDIA_TYPE = MediaType.valueOf("application/x-pkcs12");
     /** Relative URL to the RDF file with country metadata */
-    public static final String COUNTRY_DATASET_PATH = "/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/countries.rdf";
+    public static final String COUNTRY_DATASET_PATH = "/static/com/atomgraph/linkeddatahub/xsl/admin/countries.rdf";
     /** Relative URL of the agent container */
     public static final String AGENT_PATH = "acl/agents/";
     /** Relative URL of the public key container */
@@ -145,7 +145,7 @@ public class SignUp extends DocumentHierarchyGraphStoreImpl
     // TO-DO: move to AuthenticationExceptionMapper and handle as state instead of URI resource?
     @Inject
     public SignUp(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
-            com.atomgraph.linkeddatahub.apps.model.Application application, Optional<OntModel> ontology, Optional<Service> service,
+            com.atomgraph.linkeddatahub.dataspaces.model.Dataspace application, Optional<OntModel> ontology, Optional<Service> service,
             @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig,
             @Context HttpHeaders httpHeaders)
@@ -153,8 +153,8 @@ public class SignUp extends DocumentHierarchyGraphStoreImpl
         super(request, uriInfo, mediaTypes, application, ontology, service, securityContext, agentContext, providers, system, httpHeaders);
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
         
-        if (!application.canAs(AdminApplication.class)) // we are supposed to be in the admin app
-            throw new IllegalStateException("Application cannot be cast to lapp:AdminApplication");
+        if (!application.canAs(AdminDataspace.class)) // we are supposed to be in the admin app
+            throw new IllegalStateException("Dataspace cannot be cast to lds:AdminDataspace");
         
         try (InputStream countries = servletConfig.getServletContext().getResourceAsStream(COUNTRY_DATASET_PATH))
         {
@@ -488,12 +488,12 @@ public class SignUp extends DocumentHierarchyGraphStoreImpl
         // labels and links need to come from the end-user app
         MessageBuilder builder = getSystem().getMessageBuilder().
             subject(String.format(getEmailSubject(),
-                getEndUserApplication().getProperty(DCTerms.title).getString(),
+                getEndUserDataspace().getProperty(DCTerms.title).getString(),
                 fullName)).
             to(mbox, fullName).
             textBodyPart(String.format(getEmailText(),
-                getEndUserApplication().getProperty(DCTerms.title).getString(),
-                getEndUserApplication().getBase(),
+                getEndUserDataspace().getProperty(DCTerms.title).getString(),
+                getEndUserDataspace().getBase(),
                 agent.getURI(),
                 certExpires.format(DateTimeFormatter.ISO_LOCAL_DATE))).
             byteArrayBodyPart(keyStoreBytes, PKCS12_MEDIA_TYPE.toString(), keyStoreFileName);
@@ -508,12 +508,12 @@ public class SignUp extends DocumentHierarchyGraphStoreImpl
      * 
      * @return end-user application
      */
-    public EndUserApplication getEndUserApplication()
+    public EndUserDataspace getEndUserDataspace()
     {
-        if (getApplication().canAs(EndUserApplication.class))
-            return getApplication().as(EndUserApplication.class);
+        if (getDataspace().canAs(EndUserDataspace.class))
+            return getDataspace().as(EndUserDataspace.class);
         else
-            return getApplication().as(AdminApplication.class).getEndUserApplication();
+            return getDataspace().as(AdminDataspace.class).getEndUserDataspace();
     }
     
     /**
@@ -523,7 +523,7 @@ public class SignUp extends DocumentHierarchyGraphStoreImpl
      */
     public Service getAgentService()
     {
-        return getApplication().getService();
+        return getDataspace().getService();
     }
 
     /**

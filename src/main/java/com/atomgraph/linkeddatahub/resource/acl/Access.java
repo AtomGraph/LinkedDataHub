@@ -19,13 +19,14 @@ package com.atomgraph.linkeddatahub.resource.acl;
 import com.atomgraph.client.util.HTMLMediaTypePredicate;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.util.ModelUtils;
-import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
-import com.atomgraph.linkeddatahub.apps.model.Application;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.dataspaces.model.AdminDataspace;
+import com.atomgraph.linkeddatahub.dataspaces.model.Dataspace;
+import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.AuthorizationParams;
+import com.atomgraph.linkeddatahub.server.util.SetResultSetValues;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
@@ -43,6 +44,7 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Optional;
 import org.apache.jena.query.ParameterizedSparqlString;
+import org.apache.jena.query.Query;
 import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.query.ResultSetRewindable;
 import org.apache.jena.rdf.model.Model;
@@ -67,7 +69,7 @@ public class Access
     private final Request request;
     private final UriInfo uriInfo;
     private final MediaTypes mediaTypes;
-    private final EndUserApplication application;
+    private final EndUserDataspace application;
     private final Optional<AgentContext> agentContext;
     private final ParameterizedSparqlString documentTypeQuery, documentOwnerQuery, aclQuery, ownerAclQuery;
     private final com.atomgraph.linkeddatahub.Application system;
@@ -84,14 +86,14 @@ public class Access
      */
     @Inject
     public Access(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
-            Application application, Optional<AgentContext> agentContext,
+            Dataspace application, Optional<AgentContext> agentContext,
             com.atomgraph.linkeddatahub.Application system)
     {
-        if (!application.canAs(EndUserApplication.class)) throw new IllegalStateException("The " + getClass() + " endpoint is only available on end-user applications");
+        if (!application.canAs(EndUserDataspace.class)) throw new IllegalStateException("The " + getClass() + " endpoint is only available on end-user applications");
         this.request = request;
         this.uriInfo = uriInfo;
         this.mediaTypes = mediaTypes;
-        this.application = application.as(EndUserApplication.class);
+        this.application = application.as(EndUserDataspace.class);
         this.agentContext = agentContext;
         this.system = system;
         documentTypeQuery = new ParameterizedSparqlString(system.getDocumentTypeQuery().toString());
@@ -126,9 +128,14 @@ public class Access
             try
             {
                 final ParameterizedSparqlString authPss = getACLQuery();
-                authPss.setParams(new AuthorizationParams(getApplication().getAdminApplication().getBase(), accessTo, agent).get());
+                authPss.setParams(new AuthorizationParams(getDataspace().getAdminDataspace().getBase(), accessTo, agent).get());
 
-                Model authModel = getSystem().getServiceContext(getApplication().getAdminApplication().getService()).getSPARQLClient().loadModel(authPss.asQuery());
+                // inject the resource's rdf:types so acl:accessToClass authorizations are reported; without this the ACL
+                // query keeps its fail-closed default (VALUES ?Type { rdfs:Resource }) and hides every class-based authorization
+                Query authQuery = authPss.asQuery();
+                if (docTypesResult.hasNext()) authQuery = new SetResultSetValues().apply(authQuery, docTypesResult);
+
+                Model authModel = getSystem().getServiceContext(getDataspace().getAdminDataspace().getService()).getSPARQLClient().loadModel(authQuery);
 
                 // filter out authorizations with acl:accessToClass foaf:Agent - all agents already have that access
                 ResIterator agentClassIter = authModel.listSubjectsWithProperty(ACL.agentClass, FOAF.Agent);
@@ -218,9 +225,9 @@ public class Access
      */
     protected Service getEndUserService()
     {
-        return getApplication().canAs(AdminApplication.class) ?
-            getApplication().as(AdminApplication.class).getEndUserApplication().getService() :
-            getApplication().getService();
+        return getDataspace().canAs(AdminDataspace.class) ?
+            getDataspace().as(AdminDataspace.class).getEndUserDataspace().getService() :
+            getDataspace().getService();
     }
     
     /**
@@ -257,7 +264,7 @@ public class Access
      *
      * @return application resource
      */
-    public EndUserApplication getApplication()
+    public EndUserDataspace getDataspace()
     {
         return application;
     }

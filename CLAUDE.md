@@ -67,10 +67,10 @@ find ./document-hierarchy/ -name '*.sh' -exec bash {} \;
 
 ### Key Components
 
-#### Applications (`com.atomgraph.linkeddatahub.apps.model`)
-- `AdminApplication` - Administrative interface and functions
-- `EndUserApplication` - Main user-facing application
-- Applications are data-driven and loaded from RDF datasets
+#### Dataspaces (`com.atomgraph.linkeddatahub.dataspaces.model`)
+- `AdminDataspace` - Administrative interface and functions
+- `EndUserDataspace` - Main user-facing application
+- Dataspaces are data-driven and loaded from RDF datasets
 
 #### Security & Authentication (`com.atomgraph.linkeddatahub.server.filter.request.auth`)
 - WebID-based authentication with client certificates
@@ -90,14 +90,14 @@ find ./document-hierarchy/ -name '*.sh' -exec bash {} \;
 
 #### Service Layer
 - `ServiceContext` decouples HTTP infrastructure from `Service`, holding dataspace and service metadata separately
-- Dataspace metadata and service metadata are split in configuration; types for `lapp:endUserApplication`/`lapp:adminApplication` are inferred on the fly from `system.trig`
+- Dataspace metadata and service metadata are split in configuration; the `lds:EndUserDataspace`/`lds:AdminDataspace` types are inferred on the fly from `system.trig`
 
 ### Dataspaces
 Since v5.1.0, a single LDH instance supports multiple **dataspaces**, each identified by a distinct subdomain (origin). Each dataspace is a pair of applications: an end-user app (`<subdomain>`) and an admin app (`admin.<subdomain>`), routed by nginx via wildcard subdomain matching.
 
 Configuration is split across two files:
-- `config/dataspaces.trig` — public metadata: origins (`lapp:origin`), ontologies (`ldt:ontology`), stylesheets (`ac:stylesheet`)
-- `config/system.trig` — internal wiring: maps apps to SPARQL services (`ldt:service`) and assigns types (`lapp:AdminApplication`/`lapp:EndUserApplication`)
+- `config/dataspaces.trig` — public metadata: origins (`lds:origin`), ontologies (`lds:ontology`), stylesheets (`ac:stylesheet`)
+- `config/system.trig` — internal wiring: maps dataspaces to SPARQL services (`lds:service`) and assigns types (`lds:AdminDataspace`/`lds:EndUserDataspace`)
 
 Multiple dataspaces can share the same backend SPARQL service.
 
@@ -105,8 +105,9 @@ Multiple dataspaces can share the same backend SPARQL service.
 The application runs as a multi-container setup:
 - **nginx**: Reverse proxy and SSL termination (wildcard subdomain routing for dataspaces)
 - **linkeddatahub**: Main Java application (Tomcat)
-- **fuseki-admin/fuseki-end-user**: Separate SPARQL stores
-- **varnish-frontend/varnish-admin/varnish-end-user**: Caching layers
+- **fuseki**: One SPARQL server holding a TDB2 dataset per dataspace role (`config/fuseki/config.ttl`), named after the dataspace origin (deployment host dropped, role appended: `end-user`, `admin`, `northwind-traders.demo.end-user`, …), each under `fuseki/<dataset>/`; bound to apps in `config/system.trig`
+- **egress**: Squid forward proxy for the store's and platform's outbound requests (SPARQL `SERVICE`, `LOAD`): public destinations only, so a query cannot reach another dataset, Varnish or the platform
+- **varnish-frontend/varnish-admin/varnish-end-user**: Caching layers (admin and end-user caches both front the single `fuseki`)
 
 ### Data Flow
 1. Requests come through nginx proxy
@@ -127,9 +128,9 @@ The current design splits rendering by request origin:
 - **Client-side rendering**: Saxon-JS receives the raw RDF and applies the same XSLT 3 templates used server-side (shared stylesheet), so proxied resources look almost identical to local ones.
 
 Key implementation files:
-- `ProxyRequestFilter.java` — intercepts `?uri=` and `lapp:Dataset` proxy requests; HTML bypass; forwards external `Link` headers
+- `ProxyRequestFilter.java` — intercepts `?uri=` and `lds:Dataset` proxy requests; HTML bypass; forwards external `Link` headers
 - `ApplicationFilter.java` — registers external proxy target URI in request context (`AC.uri` property) as authoritative proxy marker
-- `ResponseHeadersFilter.java` — skips local-only hypermedia links (`sd:endpoint`, `ldt:ontology`, `ac:stylesheet`) for proxy requests; external ones are forwarded by `ProxyRequestFilter`
+- `ResponseHeadersFilter.java` — skips local-only hypermedia links (`sd:endpoint`, `lds:ontology`, `ac:stylesheet`) for proxy requests; external ones are forwarded by `ProxyRequestFilter`
 - `client.xsl` (`ldh:rdf-document-response`) — receives the RDF proxy response client-side; extracts `sd:endpoint` from `Link` header; stores it in `LinkedDataHub.endpoint`
 - `functions.xsl` (`sd:endpoint()`) — returns `LinkedDataHub.endpoint` when set (external proxy), otherwise falls back to the local SPARQL endpoint
 
@@ -148,15 +149,16 @@ The SPARQL endpoint forwarding chain ensures ContentMode blocks (charts, maps) q
 ## CLI Tools
 
 `ldh` (in `cli/`) is the command line interface for the HTTP API — one command per `bin/` script,
-same option names, `bin/` subdirectories as nested subcommand groups. Built with Maven on Java 21
+same option names, grouped by verb (`create`, `add`, `remove`, `import`) plus the `packages`
+family and the `admin` scope. Built with Maven on Java 21
 into a shaded `cli/target/ldh.jar` that `cli/bin/ldh` launches. See `cli/README.md` for the full
 script → command table and the behavioral differences from the scripts.
 
 ```bash
 cd cli && mvn package && export PATH="$PWD/bin:$PATH"
 
-ldh create-container --parent "$LDH_BASE" --title "Some" --slug some
-ldh admin acl add-agent-to-group --agent "$AGENT_URI" "${ADMIN_BASE}acl/groups/writers/"
+ldh create container --parent "$LDH_BASE" --title "Some" --slug some
+ldh admin add agent --agent "$AGENT_URI" "${ADMIN_BASE}acl/groups/writers/"
 ```
 
 `cli/` is not a module of the platform reactor (the root pom is the webapp artifact, so it cannot
@@ -165,11 +167,18 @@ around both release bumps, and `make cli-version` re-aligns it if it drifts.
 
 `LDH_CERT_FILE`, `LDH_CERT_PASSWORD`, `LDH_BASE` and `LDH_PROXY` supply defaults for `-f`, `-p`,
 `-b` and `--proxy`. Commands that create or append to a document print its URL as the only line on
-stdout (diagnostics go to stderr), so `item=$(ldh create-item ...)` works; exit codes are `0`
+stdout (diagnostics go to stderr), so `item=$(ldh create item ...)` works; exit codes are `0`
 success, `1` HTTP or runtime failure, `2` usage error.
 
-Packages have no command — an application imports one with a single `<app> ldh:import <package>`
-triple, so `ldh patch` on the application's `settings` document is the whole interface.
+Packages are declarative: an application imports one with a single `<app> ldh:import <package>`
+triple in its settings, and `ldh packages list`, `ldh packages add` and
+`ldh packages remove` write that triple through `PATCH /settings`. `packages list` reads the
+registry catalog through the Linked Data proxy, marking the imported ones.
+
+`ldh get` also addresses the RFC 7089 Memento roles of a versioned document, as mutually exclusive
+options: `--timemap` (version history), `--version <sha>` (a historical version) and `--timegate`
+with an optional `--datetime` (RFC 1123 or ISO 8601), which prints the selected version's URI as the
+only line on stdout so it pipes into another `ldh get`.
 
 The `bin/` HTTP API scripts are **deprecated** — `ldh` replaces them, and http-tests build their
 fixtures with it. Authentication moves from the `.pem` the scripts feed `curl -E` to the PKCS12
@@ -181,6 +190,32 @@ Certificate and WebID tooling stays in `bin/` and is not deprecated: `webid-keyg
 ```bash
 export PATH="$(find bin -type d -exec realpath {} \; | tr '\n' ':')$PATH"
 ```
+
+## XSLT Mode Namespaces
+
+Template mode names carry the rendering layer:
+
+- **`xhtml:` = childless element primitives.** The mode's local name is the XHTML element it emits
+  (`xhtml:Input`, `xhtml:Anchor`, `xhtml:Option`, `xhtml:Title`, `xhtml:Meta`, `xhtml:Script`): one
+  element, every attribute a parameter, content at most a text label, no design-system classes baked
+  in. If an emitter needs element children, it is a component and does not belong here.
+- **Component namespaces = structure.** Anything with internal element structure takes the owning
+  layer's namespace and, where one exists, the design system's component name: Web-Client-owned
+  surfaces use `ac:` (`ac:AppShell`, `ac:Head`, `ac:Stylesheets`, the `ac:ResultsTable*` family,
+  `ac:PropertyListLabel`/`ac:PropertyListValue`, `ac:FieldShell`), LDH-owned ones use `ldh:`
+  (`ldh:Modal`, `ldh:DataTable`, `ldh:DateTimePair`, `ldh:PropertyLabel`).
+- **The unnamed mode is the value leaf.** Mode-less `apply-templates` renders an object/literal
+  "somehow" — it lands in Web-Client's default-mode value emitters, the bottom of the dispatch tree.
+- **Open modes live in `hooks.xsl` and `imports/values.xsl`.** Package stylesheets are composed into
+  the import tree right after the `hooks.xsl` import (`client/hooks.xsl` on the client), so they
+  outrank the open modes' generic fallbacks declared there and nothing else. `hooks.xsl` holds the
+  structural hooks; `imports/values.xsl`, which it imports, holds the value leaves (property row, value
+  cell, form control, annotation), so a package's rule for its own property or datatype wins. An open
+  mode is a leaf: it renders or contributes for one node and carries no control flow (`ldh:RenderRow`
+  walks, `ldh:RowHook` is what it asks). Everything else is sealed by precedence, including
+  `imports/default.xsl`, which is the library (keys, params, functions, component emitters, rewriters);
+  a core fallback a package should be able to specialise moves down into the open tier, never the
+  other way round.
 
 ## Development Notes
 - Java 21 is required for compilation (both the platform and the `cli/` project)

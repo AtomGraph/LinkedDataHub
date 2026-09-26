@@ -16,9 +16,9 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.request;
 
-import com.atomgraph.linkeddatahub.apps.model.Application;
-import com.atomgraph.linkeddatahub.apps.model.Dataset;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.dataspaces.model.Dataspace;
+import com.atomgraph.linkeddatahub.dataspaces.model.Dataset;
+import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
@@ -54,8 +54,8 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
     public static final String ON_BEHALF_OF = "On-Behalf-Of";
     
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> app;
-    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Dataset>> dataset;
+    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace>> app;
+    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataset>> dataset;
 
     /**
      * Returns authentication scheme ID.
@@ -71,7 +71,7 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
      * @param app currently matched application
      * @param request current request context
      */
-    public abstract void login(com.atomgraph.linkeddatahub.apps.model.Application app, ContainerRequestContext request);
+    public abstract void login(com.atomgraph.linkeddatahub.dataspaces.model.Dataspace app, ContainerRequestContext request);
 
     /**
      * Abstract method for logout logic.
@@ -80,7 +80,7 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
      * @param app currently matched application
      * @param request current request context
      */
-    public abstract void logout(com.atomgraph.linkeddatahub.apps.model.Application app, ContainerRequestContext request);
+    public abstract void logout(com.atomgraph.linkeddatahub.dataspaces.model.Dataspace app, ContainerRequestContext request);
     
     /**
      * Authenticates the current request and returns the security context for the authenticated agent.
@@ -100,7 +100,7 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
         if (request.getSecurityContext().getUserPrincipal() != null) return; // skip filter if agent already authorized
         if (getDataset().isPresent()) return; // skip proxied dataspaces
 
-        //if (isLogoutForced(request, getScheme())) logout(getApplication(), request);
+        //if (isLogoutForced(request, getScheme())) logout(getDataspace(), request);
         
         final SecurityContext securityContext = authenticate(request);
         if (securityContext == null) return; // skip to the next filter if agent could not be retrieved with this one
@@ -116,9 +116,9 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
      */
     protected Service getAgentService()
     {
-        return getApplication().get().canAs(EndUserApplication.class) ?
-            getApplication().get().as(EndUserApplication.class).getAdminApplication().getService() :
-            getApplication().get().getService();
+        return getDataspace().get().canAs(EndUserDataspace.class) ?
+            getDataspace().get().as(EndUserDataspace.class).getAdminDataspace().getService() :
+            getDataspace().get().getService();
     }
     
     /**
@@ -187,7 +187,7 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
      *
      * @return optional application resource
      */
-    public Optional<Application> getApplication()
+    public Optional<Dataspace> getDataspace()
     {
         return app.get();
     }

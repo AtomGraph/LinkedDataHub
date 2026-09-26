@@ -6,12 +6,14 @@ initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
+reset_packages
+clear_ontology
 
 pwd=$(realpath "$PWD")
 
 # add agent to the writers group
 
-ldh admin acl add-agent-to-group \
+ldh admin add agent \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
@@ -25,7 +27,7 @@ file_content_type="application/octet-stream"
 slug=$(uuidgen | tr '[:upper:]' '[:lower:]')
 
 # Create an item document to hold the file
-file_doc=$(ldh create-item \
+file_doc=$(ldh create item \
   -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
@@ -34,7 +36,7 @@ file_doc=$(ldh create-item \
   --slug "$slug")
 
 # Add the file to the document
-ldh add-file \
+ldh add file \
   -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \

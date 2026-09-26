@@ -6,10 +6,12 @@ initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
+reset_packages
+clear_ontology
 
 # add agent to the writers group
 
-ldh admin acl add-agent-to-group \
+ldh admin add agent \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
@@ -18,7 +20,7 @@ ldh admin acl add-agent-to-group \
 # create a container - IRIx resolves ".." on "new-item//" to "new-item/" (one segment per slash),
 # so the parent container must exist for authorization to pass and reach the // validation in put()
 
-container=$(ldh create-container \
+container=$(ldh create container \
   -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \

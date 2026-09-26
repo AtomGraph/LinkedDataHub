@@ -6,6 +6,8 @@ initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
+reset_packages
+clear_ontology
 
 # Regression test for ProxyRequestFilter swallowing PATCH to ontology-namespace URIs.
 #
@@ -33,6 +35,8 @@ updated_text="CONSTRUCT { ?this a <https://example.com/TestClassUpdated> . } WHE
 curl -k -f -s -o /dev/null \
   -X PATCH \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+  -H "Accept: application/n-triples" \
+  -H "If-Match: $(etag "$ontology_doc" "$OWNER_CERT_FILE" "$OWNER_CERT_PWD" "application/n-triples")" \
   -H "Content-Type: application/sparql-update" \
   --data-binary "
     PREFIX sp: <http://spinrdf.org/sp#>
@@ -41,7 +45,7 @@ curl -k -f -s -o /dev/null \
 
 # Rebuild the in-memory ontology so the constructor hash URI enters the OntModel.
 # After this, the DESCRIBE check in ProxyRequestFilter will fire for the PATCH.
-ldh admin clear-ontology \
+ldh admin clear ontology \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
@@ -60,13 +64,14 @@ EOF
 status=$(curl -k -w "%{http_code}" -o /dev/null -s \
   -X PATCH \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+  -H "Accept: application/n-triples" \
+  -H "If-Match: $(etag "${END_USER_BASE_URL}?uri=${ontology_doc}" "$OWNER_CERT_FILE" "$OWNER_CERT_PWD" "application/n-triples")" \
   -H "Content-Type: application/sparql-update" \
   --url-query "uri=${ontology_doc}" \
   --data-binary "$update" \
   "$END_USER_BASE_URL")
 
 if [[ ! "$status" =~ ^($STATUS_PATCH_SUCCESS)$ ]]; then
-  echo "DEBUG: Expected $STATUS_PATCH_SUCCESS from the proxied PATCH, got: $status"
   exit 1
 fi
 
@@ -81,7 +86,5 @@ response=$(curl -k -f -s \
   "$ontology_doc")
 
 if ! grep -qF "TestClassUpdated" <<< "$response"; then
-  echo "DEBUG: Expected the constructor text to contain: TestClassUpdated"
-  echo "DEBUG: Got: $response"
   exit 1
 fi

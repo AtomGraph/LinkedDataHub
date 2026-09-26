@@ -39,8 +39,9 @@ services:
     build: .
     mem_limit: 2048m
     depends_on:
-      - fuseki-admin
-      - fuseki-end-user
+      - fuseki
+      - sef-compiler
+      - egress
     environment:
     #  - JPDA_ADDRESS=*:8000 # debugger host - performance hit when enabled
       - CATALINA_OPTS=-XX:+UseContainerSupport -XX:MaxRAMPercentage=75 --add-exports java.base/sun.security.tools.keytool=ALL-UNNAMED # heap will use up to 75% of container's RAM
@@ -65,6 +66,8 @@ services:
       - SIGN_UP_CERT_VALIDITY=180
       - MAX_CONTENT_LENGTH=${MAX_CONTENT_LENGTH:-2097152}
       - ALLOW_INTERNAL_URLS=${ALLOW_INTERNAL_URLS:-}
+      - EGRESS_PROXY=${EGRESS_PROXY:-egress:3128} # the platform's own SPARQL SERVICE (PATCH, imports) goes through egress too
+
       - CONNECTION_REQUEST_TIMEOUT=${CONNECTION_REQUEST_TIMEOUT:-}
       - NOTIFICATION_ADDRESS=LinkedDataHub <notifications@localhost>
       - MAIL_SMTP_HOST=email-server
@@ -101,35 +104,52 @@ services:
       - ./datasets/owner:/var/linkeddatahub/datasets/owner
       - ./datasets/secretary:/var/linkeddatahub/datasets/secretary
       - ./uploads:/var/www/linkeddatahub/uploads
+      - ./sef:/var/www/linkeddatahub/sef
+      - ./packages:/var/www/linkeddatahub/packages
+      - ./settings:/var/www/linkeddatahub/settings
       - ./config/dev.log4j.properties:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/log4j.properties:ro
       - ./config/dataspaces.trig:/var/linkeddatahub/datasets/dataspaces.trig
       - ./config/system.trig:/var/linkeddatahub/datasets/system.trig
-  fuseki-admin:
+  sef-compiler:
+    # composes each dataspace's client stylesheet with its package stylesheets and compiles
+    # the result to a SEF. Built from the same Dockerfile as the platform, so its copy of the
+    # static tree is the deployed one by construction
+    build:
+      context: .
+      target: sef-compiler
+    mem_limit: 3072m # the compile peaks around 1.5 GB; it must not share the platform's limit
+    restart: on-failure
+    expose:
+      - 8080 # internal only - the platform is the sole client
+  fuseki: # one server; every dataspace role is its own dataset in config/fuseki/config.ttl, stored under ./fuseki/<dataset>
     image: atomgraph/fuseki:6.1.0
     user: root # otherwise fuseki user does not have permissions to the mounted folder which is owner by root
-    mem_limit: 1536m # leave headroom above heap for TDB mmap/native memory
+    mem_limit: 4608m # the former fuseki-admin (1536m) and fuseki-end-user (3072m) combined
     restart: on-failure
+    depends_on:
+      - egress
     environment:
-      - JAVA_OPTIONS=-Xmx768m -Xms768m
+      - JAVA_OPTIONS=-Xmx2304m -Xms2304m # the former heaps combined: 768m admin + 1536m end-user
+      # every outbound request (SPARQL SERVICE, LOAD) goes through egress, which only lets it reach public addresses.
+      # JAVA_TOOL_OPTIONS rather than JAVA_OPTIONS, which an override setting the heap would replace. The empty
+      # nonProxyHosts is load-bearing: by default the JVM bypasses the proxy for localhost, and
+      # SERVICE <http://localhost:3030/other-dataset/> would read a sibling dataset in this same server
+      - JAVA_TOOL_OPTIONS=-Dhttp.proxyHost=${EGRESS_PROXY_HOST:-egress} -Dhttp.proxyPort=3128 -Dhttps.proxyHost=${EGRESS_PROXY_HOST:-egress} -Dhttps.proxyPort=3128 -Dhttp.nonProxyHosts=
     expose:
       - 3030
     volumes:
       - ./config/fuseki/config.ttl:/fuseki/config.ttl:ro
-      - ./fuseki/admin:/fuseki/databases
+      - ./fuseki:/fuseki/databases
     command: [ "--config", "/fuseki/config.ttl" ]
-  fuseki-end-user:
-    image: atomgraph/fuseki:6.1.0
-    user: root # otherwise the fuseki user does not have permissions to the mounted folder which is owner by root
-    mem_limit: 3072m # leave headroom above heap for TDB mmap/native memory
+  egress: # forward proxy for the triplestores' outbound requests: refuses loopback, private and link-local destinations
+    image: ubuntu/squid:6.6-24.04_beta
+    mem_limit: 256m
     restart: on-failure
-    environment:
-      - JAVA_OPTIONS=-Xmx1536m -Xms1536m
+    configs:
+      - source: egress_squid_conf
+        target: /etc/squid/squid.conf
     expose:
-      - 3030
-    volumes:
-      - ./config/fuseki/config.ttl:/fuseki/config.ttl:ro
-      - ./fuseki/end-user:/fuseki/databases
-    command: [ "--config", "/fuseki/config.ttl" ]
+      - 3128
   varnish-frontend:
     image: varnish:7.7.3
     user: root # otherwise varnish user does not have permissions to the mounted folder which is owner by root
@@ -462,7 +482,7 @@ configs:
       import xkey;
 
       backend default {
-          .host = "${VARNISH_ADMIN_BACKEND_HOST:-fuseki-admin}";
+          .host = "${VARNISH_ADMIN_BACKEND_HOST:-fuseki}";
           .port = "${VARNISH_ADMIN_BACKEND_PORT:-3030}";
           .first_byte_timeout = 60s;
       }
@@ -529,6 +549,10 @@ configs:
           if ((beresp.status == 200 || beresp.status == 201 || beresp.status == 204) && bereq.method ~ "POST|PUT|DELETE|PATCH") {
               set beresp.http.X-LinkedDataHub = "Banned";
               ban("req.url == " + bereq.url + " && req.http.host == " + bereq.http.host);
+              /* SPARQL query results depend on dataset state — any write invalidates every cached query. xkey below
+                 covers only the responses LDH stamps (ontology CONSTRUCTs); a client SELECT carries no key, so
+                 without this it keeps its pre-write answer for the whole 24h TTL. */
+              ban("req.url ~ \?(query|default-graph-uri|named-graph-uri)=");
           }
 
           /* promote outbound surrogate-key hint from LDH into the indexed xkey header on the cached response */
@@ -545,7 +569,7 @@ configs:
       import std;
 
       backend default {
-          .host = "${VARNISH_END_USER_BACKEND_HOST:-fuseki-end-user}";
+          .host = "${VARNISH_END_USER_BACKEND_HOST:-fuseki}";
           .port = "${VARNISH_END_USER_BACKEND_PORT:-3030}";
           .first_byte_timeout = 60s;
       }
@@ -606,3 +630,16 @@ configs:
 
           return (deliver);
       }
+  egress_squid_conf:
+    content: |
+      # The triplestores reach the outside world only through here, so a SPARQL SERVICE or LOAD can federate with public
+      # endpoints but cannot reach this deployment's own services - the admin store, Varnish, the platform - or the
+      # host's and cloud's internal addresses. dst resolves the host where the connection is made, so every redirect
+      # hop and every DNS answer is checked, not just the IRI written in the query.
+      http_port 3128
+
+      acl internal dst 0.0.0.0/8 10.0.0.0/8 100.64.0.0/10 127.0.0.0/8 169.254.0.0/16 172.16.0.0/12 192.168.0.0/16 ::1 fc00::/7 fe80::/10
+      http_access deny internal
+      http_access allow all
+
+      cache deny all

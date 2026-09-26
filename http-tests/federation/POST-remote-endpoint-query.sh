@@ -6,6 +6,8 @@ initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
+reset_packages
+clear_ontology
 
 # Federation query leg: A's client poses a SPARQL Protocol query to B's endpoint, with the
 # endpoint URL taken from B's forwarded Link header (runtime discovery, not configuration).
@@ -25,9 +27,7 @@ curl -k -f -s -o /dev/null -D "$headers" \
 
 endpoint=$(grep -i '^link:' "$headers" | tr ',' '\n' | grep 'sparql-service-description#endpoint' | sed 's/.*<\([^>]*\)>.*/\1/')
 
-echo "DEBUG: discovered endpoint: $endpoint"
 if [ -z "$endpoint" ]; then
-  echo "DEBUG: no sd:endpoint Link header forwarded"
   exit 1
 fi
 
@@ -46,6 +46,5 @@ count=$(curl -k -f -s \
 | xmllint --xpath "count(//*[local-name() = 'result'])" -)
 
 if [ "$count" != "1" ]; then
-  echo "DEBUG: Expected 1 result from the discovered remote endpoint, got: $count"
   exit 1
 fi

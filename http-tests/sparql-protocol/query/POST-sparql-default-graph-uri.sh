@@ -6,13 +6,15 @@ initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
+reset_packages
+clear_ontology
 
 # create two containers whose graphs hold distinct titles
 
 slug_one=$(uuidgen | tr '[:upper:]' '[:lower:]')
 slug_two=$(uuidgen | tr '[:upper:]' '[:lower:]')
 
-container_one=$(ldh create-container \
+container_one=$(ldh create container \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
@@ -20,7 +22,7 @@ container_one=$(ldh create-container \
   --slug "$slug_one" \
   --parent "$END_USER_BASE_URL")
 
-container_two=$(ldh create-container \
+container_two=$(ldh create container \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$END_USER_BASE_URL" \

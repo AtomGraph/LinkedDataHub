@@ -104,7 +104,7 @@
 /* a blockquote has no intrinsic child indentation, so its handle and its first
    block's handle would coincide; the editing view indents quote content to give
    each nesting level its own gutter column (lists and cells indent natively).
-   The quote bar (Markdown/Bootstrap convention) makes the container visible -
+   The quote bar (Markdown convention) makes the container visible -
    a normalized blockquote > p would otherwise read as a plain paragraph */
             .rdfa-editor-content blockquote {
                 padding-left: 2em;
@@ -122,9 +122,16 @@
                 margin: 16px 0;
             }
 
+/* a figure image is content, so its size belongs to the host page's content styles, the same
+   way .ck-content or content_css owns it in every other editor - this stylesheet is the editing
+   UI contract and must not pick a width the host did not ask for. A hardcoded cap fights whatever
+   column the host lays out: LinkedDataHub publishes documentation stills at twice the column width
+   for retina, and 400px shrank them to thumbnails inside a full-width prose column. max-width is
+   the one constraint worth asserting here - it keeps an oversized image inside the editable box
+   whatever the host does, without deciding how large the image should be. */
 .rdfa-editor-content figure img {
                 display: block;
-                max-width: 400px;
+                max-width: 100%;
             }
 
 /* Table blocks: cell borders make empty cells clickable while editing.
@@ -272,7 +279,7 @@
                 color: #0d47a1;
             }
 
-/* ToC jumps land below the fixed navbar */
+/* ToC jumps land below the sticky header */
             .rdfa-editor-content > * {
                 scroll-margin-top: 76px;
                 scroll-margin-bottom: 48px;

@@ -6,10 +6,12 @@ initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
+reset_packages
+clear_ontology
 
 # add agent to the writers group
 
-ldh admin acl add-agent-to-group \
+ldh admin add agent \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
@@ -19,7 +21,7 @@ ldh admin acl add-agent-to-group \
 
 slug=$(uuidgen | tr '[:upper:]' '[:lower:]')
 
-container=$(ldh create-container \
+container=$(ldh create container \
   -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
@@ -35,12 +37,13 @@ container=$(ldh create-container \
 curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -X PUT \
+  -H "If-Match: $(etag "$container" "$AGENT_CERT_FILE" "$AGENT_CERT_PWD" "application/n-triples")" \
   -H "Accept: application/n-triples" \
   -H "Content-Type: application/n-triples" \
   --data-binary @- \
   "$container" <<EOF \
 | grep -q "$STATUS_OK"
-<${container}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Container> .
+<${container}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Container> .
 <${container}> <http://purl.org/dc/terms/title> "Test container" .
 <${container}> <http://rdfs.org/sioc/ns#has_parent> <${END_USER_BASE_URL}> .
 <${container}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#_1> _:orphan .

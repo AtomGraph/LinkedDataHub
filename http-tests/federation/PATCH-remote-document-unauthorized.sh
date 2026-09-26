@@ -6,6 +6,8 @@ initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
+reset_packages
+clear_ontology
 
 # Federation negative: B's access control arbitrates the meeting. The signed-up agent is a
 # federation identity that is NOT granted write on B (no authorization is created for it on
@@ -18,7 +20,7 @@ remote_base="https://test.localhost:4443/"
 # create the target on B as the owner (authorized), so only the *writer* differs from the
 # positive test
 
-item=$(ldh create-item \
+item=$(ldh create item \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$remote_base" \
@@ -48,9 +50,7 @@ code=$(curl -k -w "%{http_code}" -o /dev/null -s \
   --data-binary "$update" \
   "$END_USER_BASE_URL")
 
-echo "DEBUG: unauthorized cross-instance PATCH returned: $code"
 if ! echo "$code" | grep -qE "^($STATUS_UNAUTHORIZED|$STATUS_FORBIDDEN)$"; then
-  echo "DEBUG: expected 401 or 403 for the unauthorized delegated write, got: $code"
   exit 1
 fi
 
@@ -61,6 +61,5 @@ if curl -k -f -s \
   -H "Accept: application/n-triples" \
   "$item" \
 | grep -q "Should not land"; then
-  echo "DEBUG: unauthorized delta landed on the remote document"
   exit 1
 fi

@@ -6,6 +6,8 @@ initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
+reset_packages
+clear_ontology
 
 # access is unauthorized
 
@@ -24,7 +26,7 @@ EOF
 
 # create group
 
-group_doc=$(ldh admin acl create-group \
+group_doc=$(ldh admin create group \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
@@ -40,7 +42,7 @@ group=$(curl -s -k \
 
 # create fake test.localhost authorization (should be filtered out)
 
-ldh admin acl create-authorization \
+ldh admin create authorization \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "https://admin.test.localhost:4443/" \
@@ -66,7 +68,7 @@ EOF
 
 # create real localhost authorization
 
-ldh admin acl create-authorization \
+ldh admin create authorization \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
@@ -92,6 +94,7 @@ echo "$root_ntriples" \
   -H "Content-Type: application/n-triples" \
   -H "Accept: application/n-triples" \
   -X PUT \
+  -H "If-Match: $(etag "$END_USER_BASE_URL" "$AGENT_CERT_FILE" "$AGENT_CERT_PWD" "application/n-triples")" \
   -d @- \
   "$END_USER_BASE_URL" \
 | grep -q "$STATUS_OK"

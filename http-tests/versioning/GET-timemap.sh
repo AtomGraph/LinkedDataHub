@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# requires a dataspace configured with lapp:versioningRepository (branch "main", path prefix "graphs")
+# requires a dataspace configured with lds:versioningRepository (branch "main", path prefix "graphs")
 # pointing at $VERSIONING_TEST_REPO ("owner/repo"), with the token in secrets/credentials.trig
 
 if [ -z "${VERSIONING_TEST_REPO:-}" ] || [ -z "${GITHUB_TOKEN:-}" ] || ! command -v gh > /dev/null; then
@@ -14,10 +14,12 @@ initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
+reset_packages
+clear_ontology
 
 # add agent to the writers group
 
-ldh admin acl add-agent-to-group \
+ldh admin add agent \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
@@ -29,7 +31,7 @@ path="${VERSIONING_PATH_PREFIX:-graphs}/${slug}.nt"
 
 # create a document and wait for its versioning commit
 
-echo "<${doc_url}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item> .
+echo "<${doc_url}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Item> .
 <${doc_url}> <http://purl.org/dc/terms/title> \"TimeMap test\" ." | \
   ldh put \
     -f "$AGENT_CERT_KEYSTORE" \
@@ -37,13 +39,25 @@ echo "<${doc_url}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://ww
     -t "application/n-triples" \
     "$doc_url"
 
+# wait for the commit listing, not for the file: the TimeMap is built from that listing, and GitHub
+# indexes it per path asynchronously, so it lags behind the Contents API by seconds
+
+head_sha()
+{
+    gh api "repos/${VERSIONING_TEST_REPO}/commits?path=${path}&sha=${VERSIONING_TEST_BRANCH:-main}&per_page=1" --jq '.[0].sha' 2> /dev/null || true
+}
+
+sha=""
+
 for i in $(seq 1 30); do
-    if gh api "repos/${VERSIONING_TEST_REPO}/contents/${path}?ref=${VERSIONING_TEST_BRANCH:-main}" > /dev/null 2>&1; then
-        break
-    fi
+    sha=$(head_sha)
+    if [ -n "$sha" ]; then break; fi
     sleep 1
 done
-gh api "repos/${VERSIONING_TEST_REPO}/contents/${path}?ref=${VERSIONING_TEST_BRANCH:-main}" > /dev/null
+
+if [ -z "$sha" ]; then
+    exit 1
+fi
 
 # check that the document advertises its TimeMap via the Link header
 
@@ -56,16 +70,12 @@ ldh get \
   "$doc_url" \
 | tr -d '\r')
 
-echo "DEBUG: Response headers:"
-echo "$response_headers"
-
 # RFC 7089: the Original Resource advertises rel=timemap with the link-format media type,
 # and MUST NOT carry rel=original
 echo "$response_headers" | grep -q 'rel=timemap'
 echo "$response_headers" | grep -q 'type="application/link-format"'
 
 if echo "$response_headers" | grep -q 'rel=original'; then
-    echo "DEBUG: Original Resource must not carry rel=original"
     exit 1
 fi
 
@@ -76,10 +86,8 @@ ldh get \
   -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
-  "${doc_url}?timemap")
-
-echo "DEBUG: TimeMap:"
-echo "$timemap"
+  --timemap \
+  "$doc_url")
 
 echo "$timemap" | grep -q "ns/prov#Collection"
 echo "$timemap" | grep -q "ns/prov#hadMember"
@@ -95,10 +103,8 @@ ldh get \
   -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/link-format' \
-  "${doc_url}?timemap")
-
-echo "DEBUG: link-format TimeMap:"
-echo "$link_format"
+  --timemap \
+  "$doc_url")
 
 echo "$link_format" | grep -q "<${doc_url}>;rel=\"original\""
 echo "$link_format" | grep -q "<${doc_url}?timemap>;rel=\"self\";type=\"application/link-format\""
@@ -114,5 +120,4 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   -H "Accept: application/link-format" \
   "$doc_url")
 
-echo "DEBUG: link-format status on the document itself: $status (expected 406)"
 [ "$status" = "406" ]

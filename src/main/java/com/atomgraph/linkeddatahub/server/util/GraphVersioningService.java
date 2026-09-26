@@ -20,18 +20,16 @@ import com.atomgraph.core.vocabulary.A;
 import com.atomgraph.linkeddatahub.client.GitHubClient;
 import com.atomgraph.linkeddatahub.model.ServiceContext;
 import com.atomgraph.linkeddatahub.vocabulary.GitHub;
-import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import com.atomgraph.linkeddatahub.vocabulary.LDS;
 import com.atomgraph.linkeddatahub.vocabulary.PROV;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.client.Client;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -61,8 +59,9 @@ import org.slf4j.LoggerFactory;
  * Mirrors named graphs of versioning-enabled applications into GitHub repositories.
  * The unit of work is reconciliation: a task re-reads the graph from the application's
  * SPARQL service at execution time and makes the repository file match — including deleting
- * the file when the graph is gone. Tasks for the same file are chained sequentially so
- * commits never race the GitHub Contents API's SHA-based optimistic locking.
+ * the file when the graph is gone. Tasks for the same repository branch are chained sequentially:
+ * the GitHub Contents API takes its optimistic lock on the branch head rather than on the file, so
+ * commits to one branch conflict with each other no matter which files they touch.
  * Versioning is best-effort: task failures are logged, never propagated.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
@@ -79,12 +78,12 @@ public class GraphVersioningService
     public record Repository(GitHubClient client, String pathPrefix) { }
 
     private final Map<String, Repository> repositories;
-    private final Map<String, CompletableFuture<Void>> commitChains = new ConcurrentHashMap<>();
+    private final Map<String, CompletableFuture<Void>> commitChains = new ConcurrentHashMap<>(); // keyed by repository branch
     private final ExecutorService executor = Executors.newFixedThreadPool(4);
 
     /**
      * Builds the per-application repository map from the context model.
-     * Applications without a <code>lapp:versioningRepository</code> are not versioned.
+     * Applications without a <code>lds:versioningRepository</code> are not versioned.
      *
      * @param contextModel union model of the context dataset
      * @param client HTTP client with standard TLS server verification
@@ -93,7 +92,7 @@ public class GraphVersioningService
     {
         repositories = new HashMap<>();
 
-        StmtIterator it = contextModel.listStatements(null, LAPP.versioningRepository, (org.apache.jena.rdf.model.RDFNode)null);
+        StmtIterator it = contextModel.listStatements(null, LDS.versioningRepository, (org.apache.jena.rdf.model.RDFNode)null);
         try
         {
             while (it.hasNext())
@@ -149,7 +148,7 @@ public class GraphVersioningService
 
     /**
      * Schedules asynchronous reconciliation of a graph's repository file with its current store state.
-     * Chained per file path; returns immediately.
+     * Chained per repository branch; returns immediately.
      *
      * @param serviceContext deployment context of the application's SPARQL service
      * @param appURI application URI
@@ -165,19 +164,23 @@ public class GraphVersioningService
 
         String path = path(repository.pathPrefix(), appBase, graphURI);
         String message = method + " " + graphURI;
+        // all commits to a branch share one chain: two files committed concurrently would race the branch head
+        String repositoryBranch = repository.client().getOwner() + "/" + repository.client().getRepo() + "/" + repository.client().getBranch();
 
-        commitChains.compute(path, (key, chain) ->
+        CompletableFuture<Void> next = commitChains.compute(repositoryBranch, (key, chain) ->
         {
             CompletableFuture<Void> previous = chain != null ? chain : CompletableFuture.completedFuture(null);
-            CompletableFuture<Void> next = previous.thenRunAsync(() -> reconcile(serviceContext, repository, path, graphURI, message, agentWebID), executor).
+            return previous.thenRunAsync(() -> reconcile(serviceContext, repository, path, graphURI, message, agentWebID), executor).
                 exceptionally(ex ->
                 {
                     if (log.isErrorEnabled()) log.error("Failed to version graph <{}> as '{}': {}", graphURI, path, ex.getMessage());
                     return null;
                 });
-            next.whenComplete((result, ex) -> commitChains.remove(key, next));
-            return next;
         });
+        // cleanup is registered after compute() returns: whenComplete runs on the calling thread when the
+        // future is already done, and ConcurrentHashMap forbids re-entrant updates from inside compute -
+        // registered inside, a fast completion removes the entry before compute installs it, leaking it forever
+        next.whenComplete((result, ex) -> commitChains.remove(repositoryBranch, next));
     }
 
     private void reconcile(ServiceContext serviceContext, Repository repository, String path, URI graphURI, String message, String agentWebID)
@@ -359,17 +362,7 @@ public class GraphVersioningService
      */
     public static byte[] toSortedNTriples(Model model)
     {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        RDFDataMgr.write(out, model, Lang.NTRIPLES);
-
-        String[] lines = out.toString(StandardCharsets.UTF_8).split("\n");
-        Arrays.sort(lines);
-
-        StringBuilder sorted = new StringBuilder();
-        for (String line : lines)
-            if (!line.isBlank()) sorted.append(line.stripTrailing()).append('\n');
-
-        return sorted.toString().getBytes(StandardCharsets.UTF_8);
+        return EntityTags.toSortedNTriples(model); // shared with the entity tag, which is a digest of exactly this
     }
 
     /**

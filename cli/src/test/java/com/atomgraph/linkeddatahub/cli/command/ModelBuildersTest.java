@@ -49,7 +49,7 @@ public class ModelBuildersTest
 
     private static final URI TARGET = URI.create("https://localhost:4443/some/");
     private static final String PREFIXES = """
-        @prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .
+        @prefix dh:	<https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#> .
         @prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .
         @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
         @prefix dct:	<http://purl.org/dc/terms/> .
@@ -60,6 +60,7 @@ public class ModelBuildersTest
         @prefix acl:	<http://www.w3.org/ns/auth/acl#> .
         @prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .
         @prefix owl:	<http://www.w3.org/2002/07/owl#> .
+        @prefix foaf:	<http://xmlns.com/foaf/0.1/> .
         @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
         @prefix foaf:	<http://xmlns.com/foaf/0.1/> .
         """;
@@ -87,7 +88,37 @@ public class ModelBuildersTest
                 dct:title "My item" ;
                 dct:description "Desc" .
             """),
-            CreateItem.buildModel(doc, "My item", "Desc"));
+            CreateItem.buildModel(doc, "My item", "Desc", null));
+    }
+
+    @Test
+    public void createItemWithFragmentPrimaryTopic()
+    {
+        URI doc = URI.create("https://localhost:4443/some/my-item/");
+
+        // The conventional case: the topic is a fragment of the document describing it, so the
+        // option resolves against the document rather than against the base URI.
+        assertIsomorphic(parse("""
+            <my-item/> a dh:Item ;
+                dct:title "My item" ;
+                foaf:primaryTopic <my-item/#this> .
+            """),
+            CreateItem.buildModel(doc, "My item", null, "#this"));
+    }
+
+    @Test
+    public void createItemWithAbsolutePrimaryTopic()
+    {
+        URI doc = URI.create("https://localhost:4443/some/about-bob/");
+
+        // A document about a resource described elsewhere: resolving an absolute URI leaves it
+        // alone, which is the case that has no other one-request expression.
+        assertIsomorphic(parse("""
+            <about-bob/> a dh:Item ;
+                dct:title "About Bob" ;
+                foaf:primaryTopic <https://example.org/bob#me> .
+            """),
+            CreateItem.buildModel(doc, "About Bob", null, "https://example.org/bob#me"));
     }
 
     @Test
@@ -98,7 +129,7 @@ public class ModelBuildersTest
                 dct:title "Some" ;
                 rdf:_1 [ a ldh:Object ; rdf:value ldh:ChildrenView ] .
             """),
-            CreateContainer.buildModel(TARGET, "Some", null, null, null));
+            CreateContainer.buildModel(TARGET, "Some", null, null, null, null));
     }
 
     @Test
@@ -109,7 +140,7 @@ public class ModelBuildersTest
                 dct:title "Some" ;
                 rdf:_1 [ a ldh:Object ; rdf:value [ a ldh:View ; spin:query ldh:SelectChildren ; ac:mode <https://w3id.org/atomgraph/client#GridMode> ] ] .
             """),
-            CreateContainer.buildModel(TARGET, "Some", null, null, URI.create("https://w3id.org/atomgraph/client#GridMode")));
+            CreateContainer.buildModel(TARGET, "Some", null, null, URI.create("https://w3id.org/atomgraph/client#GridMode"), null));
     }
 
     @Test
@@ -120,7 +151,21 @@ public class ModelBuildersTest
                 dct:title "Some" ;
                 rdf:_1 <https://localhost:4443/some/#block> .
             """),
-            CreateContainer.buildModel(TARGET, "Some", null, URI.create("https://localhost:4443/some/#block"), null));
+            CreateContainer.buildModel(TARGET, "Some", null, URI.create("https://localhost:4443/some/#block"), null, null));
+    }
+
+    @Test
+    public void createContainerWithPrimaryTopic()
+    {
+        // A container is a document too, and a taxonomy's scheme document is exactly this shape:
+        // a container whose topic is the thing its children are about.
+        assertIsomorphic(parse("""
+            <> a dh:Container ;
+                dct:title "Some" ;
+                rdf:_1 [ a ldh:Object ; rdf:value ldh:ChildrenView ] ;
+                foaf:primaryTopic <#this> .
+            """),
+            CreateContainer.buildModel(TARGET, "Some", null, null, null, "#this"));
     }
 
     @Test
@@ -375,24 +420,15 @@ public class ModelBuildersTest
                 "Block", "Desc", URI.create("https://w3id.org/atomgraph/client#ReadMode")));
     }
 
-    @Test
-    public void importOntologyScratch()
-    {
-        URI scratch = URI.create("https://admin.localhost:4443/9a1e4b7c-0d2f-4a63-8b51-6c7d8e9f0a1b/");
-
-        assertIsomorphic(parse("""
-            <https://admin.localhost:4443/9a1e4b7c-0d2f-4a63-8b51-6c7d8e9f0a1b/> a dh:Item ;
-                dct:title "Import ontology scratch" .
-            """),
-            ImportOntology.buildScratchModel(scratch));
-    }
-
+    /**
+     * The document says what it is about and nothing more. It is not typed owl:Ontology: the vocabulary
+     * stored alongside it carries its own header, which is what resolving the ontology URI finds.
+     */
     @Test
     public void importOntologyAnnotation()
     {
         assertIsomorphic(parse("""
-            <> a owl:Ontology ;
-                owl:imports <http://www.w3.org/2004/02/skos/core#> .
+            <> foaf:primaryTopic <http://www.w3.org/2004/02/skos/core#> .
             """),
             ImportOntology.buildAnnotationModel(TARGET, URI.create("http://www.w3.org/2004/02/skos/core#")));
     }

@@ -1,3 +1,205 @@
+## [6.0.0]
+Bootstrap 2 is gone, and with it the class vocabulary and the `bs2:` template modes application stylesheets were written against. An override of a `bs2:` mode still compiles and never fires, and the Bootstrap classes are backed by no stylesheet, so the page renders unstyled with no diagnostic — hence the major version.
+
+Every namespace LDH defines now lives under `https://w3id.org/atomgraph/linkeddatahub`. The Linked Data Templates namespace is gone — LDH has not been an LDT implementation since the API became the Graph Store Protocol, and the template machinery was dead code — and the ontology that described an "application" now describes a dataspace, the name the rest of the platform has used since 5.1.0. Both are breaking for stored data as well as for stylesheets: every dataspace is typed in the old namespace and every document in the old document-hierarchy one.
+
+### Migration
+- Legacy Bootstrap buttons (`btn`, `btn-primary`, `btn-large`, …) become the `ac-btn` intent/appearance/size vocabulary — `ac-btn in-primary ap-solid sz-md`
+- `$ac:langs` and `$ac:lang` stylesheet parameters become the `ac:langs()` and `ac:langs()[1]` functions; an `xsl:with-param` left behind is silently ignored
+- `pull-left` and `pull-right` have no replacement — the design system lays out with flex and grid
+- Overrides depending on `bootstrap.js`, jQuery, WYMEditor or the sprite icons need rewriting: IXSL templates drive dropdowns and modals, the `msi` font draws icons, the RDFa editor edits `rdf:XMLLiteral`
+- Stylesheets extending the removed vocabulary can be diffed against `ldh.css`, the one app layer LDH loads over the vendored design kits
+- The platform stylesheet is `xsl/layout.xsl`; an `xsl:import` of `xsl/bootstrap/2.3.2/layout.xsl` fails to compile
+- Every `bs2:` mode takes its design-system component name: `bs2:Row` becomes `ldh:BlockRow`, `bs2:Header` `ac:BlockHeader`, `bs2:PropertyList` `ac:PropertyEditor`, `bs2:Form` `ac:ResourceForm`, `bs2:NavBar` `ac:Header`, `bs2:Lookup` `ldh:Combobox`, `ac:ModeList` `ac:ModeSwitcher`, `ldh:LeftSidebar` `ldh:DataspaceDrawer`
+- `ldt:base()` becomes `lds:base()` and the `$ldt:base` parameter goes, along with the rest of the `https://www.w3.org/ns/ldt` namespace: the Java `LDT` vocabulary, the bundled `ldt.ttl`, the `rdfs:subClassOf ldt:Application` on the dataspace class, and the dead `ct:`/`c:` sibling namespaces (`lacl:requestAccess` now ranges over `foaf:Document`)
+- `ldt:ontology`, `ldt:service` and `ldt:base` become `lds:ontology`, `lds:service` and `lds:base`. A deployment's `config/dataspaces.trig` and `config/system.trig` each need one prefix where they needed two; the `ldt#ontology` and `ldt#base` `Link` relations change with them, so a client reading either reads the new URI
+- `dh:` moves off `www.w3.org`: `https://www.w3.org/ns/ldt/document-hierarchy#` becomes `https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#`. Prefix, class names and `DH.java` are unchanged, so only the namespace string moves — but every `dh:Container` and `dh:Item` already in a triplestore is typed in the old one
+- `lapp:` becomes `lds:` and `https://w3id.org/atomgraph/linkeddatahub/apps#` becomes `https://w3id.org/atomgraph/linkeddatahub/dataspaces#`; the ontology file is `lds.ttl`. Classes are renamed with it: `lapp:Application` → `lds:Dataspace`, `lapp:EndUserApplication` → `lds:EndUserDataspace`, `lapp:AdminApplication` → `lds:AdminDataspace`, and the three `*Constructor` individuals to match. `lapp:application` — the `Link` relation naming the dataspace a response belongs to — becomes `lds:dataspace`
+- `lapp:Dataset`, `lapp:Package` and the remaining properties keep their local names under the new prefix. `lds:prefix` and `lds:versioningRepository`, used in config and read in Java but never declared, are now declared
+- `lapp:frontendProxy` is removed, with no replacement under the new prefix — it was read by nothing. The frontend (Varnish) proxy used for cache-invalidation BAN requests has always come from the `ldhc:frontendProxy` servlet parameter, set from `FRONTEND_PROXY` by `platform/entrypoint.sh`; `lds:backendProxy` stays, since a proxied `lds:Dataset` is read through it
+- Stylesheet parameters and functions follow the prefix: `$lapp:origin` → `$lds:origin`, `$lapp:Context` → `$lds:Context`, `lapp:origin()` → `lds:origin()`, `lapp:base()` → `lds:base()`, and `lapp:application-description()` → `lds:dataspace-description()`. A stylesheet still declaring `xmlns:lapp` compiles and silently binds nothing
+- Java callers move with the model: the `com.atomgraph.linkeddatahub.apps` package is `…dataspaces`, `Application`/`AdminApplication`/`EndUserApplication` are `Dataspace`/`AdminDataspace`/`EndUserDataspace`, `LAPP` is `LDS`, and the `getApplication()`/`getAdminApplication()`/`getEndUserApplication()` accessors are `getDataspace()`/`getAdminDataspace()`/`getEndUserDataspace()`
+- **There is no data migration.** An existing deployment re-seeds: its dataspace descriptions and every document in its stores are typed in namespaces this release no longer reads
+- One `fuseki` service replaces `fuseki-admin` and `fuseki-end-user`, holding an end-user and an admin TDB2 dataset per dataspace, declared in `config/fuseki/config.ttl` and persisted under `fuseki/<dataset>/`
+- Datasets are named after the dataspace origin with the deployment host dropped and the role appended: `end-user`, `admin`, `northwind-traders.demo.end-user`, …
+- An existing deployment moves its two TDB2 directories under the new dataset names, points every `lds:service` in `config/system.trig` at `http://fuseki:3030/<dataset>/` and merges the two stores' heap and `mem_limit`; `varnish-admin` and `varnish-end-user` stay
+- Client-side package composition needs the new `sef-compiler` service: a deployment with its own compose file adds it, the platform's `depends_on` on it and the `./sef` bind mount at `/var/www/linkeddatahub/sef`
+- `SEF_ROOT` and `SEF_COMPILER` are optional; without them packages compose server-side only, as in 5.10.0
+- `CLIENT_STYLESHEET` names the client stylesheet the SEF is composed from (default: the platform's `client.xsl`); a deployment bootstrapping its own sets it to that stylesheet's webapp path, which must import the platform's `client.xsl` directly, and its layout prefers `ldh:client-stylesheet()` over its own SEF
+- A package stylesheet is composed right after `hooks.xsl`: it can specialise an open mode (`ldh:RowHook`, the tree node, the leaves in `imports/values.xsl`) and no longer replaces a sealed mode, a typed rule or a global
+- The ACL query fails closed on a typeless resource (see Security), so a non-owner request for a URL that does not exist is answered 403 rather than 404
+- The `oauth2-login` and `oauth2-authorize` grants move from the admin store to the end-user app's `namespace-ontology.trig.template` as `acl:accessTo` on the login and callback URLs; an existing deployment re-seeds or migrates them
+- `ldh:container` leaves the ontology, the `ldh:ViewConstructor` form and the view query: a view's Create button determines the container from the view's own solutions
+- A deployment with its own compose file adds the `./packages` bind mount at `/var/www/linkeddatahub/packages` (`PACKAGE_ROOT`), where copies of imported package stylesheets survive a redeploy
+- A package ontology imported before this release is materialized under `admin/ontologies/` on the next request and edited there from then on; a later change to the published package reaches the application only after that document is deleted
+- **BREAKING**: a write to a document that already exists must be conditional — `If-Match` with the document's current `ETag`, or `If-None-Match: *` to create — and is answered `428 Precondition Required` otherwise; a client that wrote unconditionally now reads the tag first, as `ldh` does for you
+- An entity tag identifies a negotiated variant, so the read supplying the validator must send the same `Accept` as the write quoting it, or the write is refused `412`
+
+### Added
+- Design system port: the app shell, content blocks, action bar, breadcrumbs, mode lists, type badges, property lists, pager, modals and forms all render the design system's class vocabulary
+- Vendored design system stylesheets and typefaces, with latin-ext subsets so Latin Extended-A no longer falls back mid-word
+- A long-form typography layer binds headings, `code`/`samp`/`kbd`, `pre`, `dl`, `blockquote`, `hr` and tables to the design system on the element itself, so `rdf:XMLLiteral` content is dressed everywhere
+- `ldh.css` is the one app layer loaded after the vendored design kits, replacing the Web-Client Bootstrap stylesheet link
+- `ac:langs()` returns the reader's accepted languages as deduped primary subtags with an `en` floor — from the writer-supplied parameter on the server, from `navigator.languages` in the browser
+- `ac:lang-rank()` ranks a value's language against that list, so property values sort by the reader's preference
+- `Content-Language` on HTML responses, negotiated against the languages the UI translation bundle ships
+- `Vary: Accept-Language` and language-sensitive entity tags on language-negotiated representations, so a shared cache cannot serve one reader's rendering to another
+- Every rendered literal declares its own language: lang-tagged values carry their tag, untagged values carry `lang=""`, typed non-string values inherit
+- Predicate labels, object links and table cells declare the language their label was chosen in
+- Spanish translations completed
+- View table columns are sortable, keyed off each column's XSD datatype through `ldh:sort-key()`
+- Facet toolbar, three-zone pager, chart controls grid, design-system list and grid modes
+- Empty blocks and empty chart result sets say so through the design system's block-state component
+- Package ontologies are declared as `owl:imports` instead of grafted, with an imports characterization test
+- `ldh packages list`, `ldh packages add` and `ldh packages remove`: the catalog read through the Linked Data proxy with imported packages marked, the `ldh:import` declaration written through `PATCH /settings`
+- `ldh get` reaches a versioned document's Memento roles through `--timemap`, `--version <sha>` and `--timegate` (with `--datetime` in RFC 1123 or ISO 8601, printing the negotiated version's URI)
+- `ldh put` and `ldh post` take an optional `FILE` argument and recognize the RDF syntax from its extension; `-t/--content-type` stays required on stdin
+- Every dataspace serves its own `/sitemap.xml`, generated at startup from the public read rules of its own admin service
+- `/robots.txt` per dataspace: one with a sitemap names it and allows crawling, one without (an admin dataspace, or nothing public) disallows everything
+- `ldh push` replays a directory into the document tree it maps to — the apps' `update-folder.sh` as a CLI command: RDF files are `PUT` to the document their path spells, `root.ttl` is the target document, other files are uploaded, subdirectories recurse
+- `ldh push` honours a gitignore-style `.ldhignore`, prints its plan with `--dry-run`, writes one URL per line to stdout and stops at the first failed request; `http-tests/push/` covers the mapping, skips, upload and convergence
+- `ldh create item` and `ldh create container` take `--primary-topic`, resolved against the created document (`'#this'` for a fragment, an absolute URI for a resource described elsewhere)
+- The page renders in the colour scheme the reader's browser asks for: `color-scheme: light dark`, differing tokens written once as `light-dark()`, a `<meta name="color-scheme">` against the white flash, `data-theme` only as a forcing override
+- A responsive axis: the shell queries `@media` at 768 and 1024, content components query `@container` at 520; the action bar wraps into two tiers below 640 and the page stops overflowing at phone width
+- A document's markup asserts the graph the same URL serves: value cells carry `@content` where display and lexical form differ, `ldh:DocumentMetadata` carries the document's own statements as `link`/`meta`, an XHTML block says it is `rdf:value`, and `@about` on the root pins the default subject
+- Package stylesheets reach the client: a wrapper importing `client.xsl` and the imported packages is compiled by `sef-compiler` and published under `/static/xsl/sef/<key>`, announced to the page as a `Link` header; server-side composition is never withheld
+- `ldh:ContentColumn`, a declared slot in `ldh:ContentBody` that the platform wraps in `.ldh-content-aside` when a package fills it
+- The taxonomy editor package fills the content column with a concept tree rooted at the scheme and opened down to the concept being read, a polyhierarchical concept under each of its parents
+- The SKOS ontology gains views for `skos:hasTopConcept` and `skos:inScheme`, an orphan-concepts view, a missing-`inScheme` constraint and `rdf:langString` constructors for every natural-language property; every view carries `ldh:showWhenEmpty false`, so a leaf or root concept renders no empty Narrower or Broader block
+- Editable package ontologies: an imported package's ontology is materialized verbatim as a document under `admin/ontologies/`, naming it as `foaf:primaryTopic`, so its constructors, constraints and views are edited like the namespace ontology's
+- A document created from a view's Create button carries `foaf:primaryTopic` and a `dct:title` taken from the topic's label, so it renders with a body and pairs with its topic in list, table and grid rows
+- Dropping an RDF file anywhere on a document imports it: a fixed overlay raised on the first file `dragenter` takes the drop, and a successful import lands in `ReadMode`
+- An HTTP error document tells the reader what the status means: the block header becomes an inline alert with the sentence `ac:http-error-key()` picks; the error builders move to Web-Client
+- Every failed client request reports where it was made: `ldh:promise-failure` takes the host element and a headline, `ldh:RenderFailure` picks the shape by host, and `alert()` remains only for a host that has left the page
+- Keyboard operability: menus take the `role=menu` model with roving focus and Escape restoring the trigger, the RDFa annotation object switch answers the arrow keys, and the pager's previous and next become buttons
+- `ui-tests/`: a Playwright suite driving the running stack as owner and anonymous, with a console/page-error/alert/4xx collector, a hydration gate on Saxon-JS's listener binding, `ldh`-seeded fixtures and a stale-SEF preflight; its own CI workflow (`make ui-tests`)
+
+### Changed
+- Entity tags are a SHA-256 digest of the graph URI and the graph's statements, replacing a XOR fold of per-statement hashes; every document's `ETag` changes once on upgrade, so caches revalidate and conditional requests in flight are refused
+- `HEAD` is answered for any access mode the agent holds rather than `acl:Read` alone, so an agent with `acl:Write` or `acl:Append` can read the validator its writes have to quote; `GET` still needs `acl:Read`, and a non-reader's `HEAD` omits `Last-Modified`
+- A failed precondition answers with the document's current entity tag, so a client can retry against it without a second read
+- `POST /clear` takes an optional `uri`: without one it empties the cache and reloads nothing, with one it also purges that URI's proxy caches and reassembles its closure before responding. `ldh admin clear ontology --ontology` is optional to match
+- Ontology resolution asks the store before the bundled mappings, so an application's own graph declaring an ontology outranks the copy the platform ships
+- `Import ontology` and `ldh admin import ontology` keep the vocabulary in the target document beside the derived constructors, with `foaf:primaryTopic` naming it; the document is no longer typed `owl:Ontology`
+- An imported package's stylesheet is copied once under `PACKAGE_ROOT` and served from the application's own origin under `/static/com/linkeddatahub/packages/`, so what a running instance compiles cannot change under it
+- **BREAKING**: the bundled package `https://packages.linkeddatahub.com/skos/#this` becomes `https://packages.linkeddatahub.com/editor/taxonomy/#this` and its stylesheet `skos.xsl`; an `ldh:import` naming the old URI resolves to nothing and must be re-declared
+- **BREAKING**: `ldh` commands regroup by verb, dropping the `bin/` mirror: `create`, `add` and `remove` groups (`ldh create item`, `ldh add view`, `ldh remove block`), `import` for the composite workflows, `admin` for the admin scope; `cli/README.md` maps every old name
+- `<html lang>` is taken from the `Content-Language` the response carries, so header and document agree by construction
+- The language a page reports is the first accepted language the UI bundle has, so asking for German no longer puts `lang="de"` on an English page
+- Published language tags are the shortest the bundle justifies (`en`, not `en-US`)
+- Supported UI languages are derived from `translations.rdf` rather than declared in `web.xml`
+- Property lists and table cells order their values by the reader's language instead of hiding the ones that do not match
+- Object metadata merges on the RDF term rather than the lexical form, so a tagged literal is no longer collapsed into an untagged twin
+- Document responses pass the accepted languages into entity tag computation, so tags stop colliding across languages
+- Legacy Bootstrap buttons move to the `ac-btn` intent/appearance/size vocabulary
+- Block link columns route through the `ldh-drawer`; backlinks and copy-URI split into two placements chosen by what a click does
+- Charts draw with resolved design tokens; the HTML Table chart is skinned in CSS and fills the block width
+- One navigation leaves one history entry
+- CSR failures render through the design system's block states instead of `div.alert.alert-block`
+- Document-level map and graph modes fill the space between action bar and footer
+- The map marker info window is the card itself, fitted into the map viewport and panning the least it can to reveal itself
+- Editing forms already open on the page reconcile with the constructor after a constructor save
+- The edit pencil on a resource description appears only under `acl:Write`
+- A view's parallax row becomes a closed-by-default `<details>` disclosure, and the toolbar states what the query shows (filters, sort, count, mode)
+- A view's Create button moves out of the view toolbar into the block header beside Copy
+- The query block runs its stored query on render, results first, with the editor folded behind a toggle in the block head and Run as the one primary action
+- A view's toolbars and a chart's controls ship collapsed behind a tune button in the block header, with what the query shows stated under the title
+- A class with no constructor is given one by its first saved property, written into the application's own ontology
+- A constructor row whose object range is undeclared reads as any resource instead of demanding a class before Save
+- The add-data items (RDF import, CSV import, …) move into the Actions menu, offered on the Root document and on containers where `acl:Append` applies
+- XHTML prose blocks render without a header: the drag grip is a hover-surfaced strip on the card's edge, and links, Copy and Edit a corner cluster
+- An `ldh:Object` block is a chrome-less carrier with a slot bar over the embedded card, so a block has one header
+- Instance timestamps leave the block chrome and render as ordinary statements
+- A collection of resources renders as `ul`/`li` and a read-mode property list as `dl`/`dt`/`dd`, the markup the RDFa is carried on
+- The design system's DataTable gets table layout back (`colgroup` instead of grid tracks, no restated `role` attributes), so the SPARQL results table stops being a second table component
+- Paging or re-sorting a view no longer collapses the block: the pager lives in its own host and the rows stay standing, dimmed, while the query runs
+- The floating Edit pill retires; every block carries the edit pencil in its own control cluster, and click-anywhere-to-edit lands on that button
+- The last hard-coded English leaves the client: the RDFa editor's chrome, the media-type option groups, the 3D graph's panels and the block drag and delete strings read from `translations.rdf`
+- The RDFa annotation dialog pins the statement's subject and predicate and tabs the rest: an object tab with a Text or Link switch and a subject tab for the `@about` and `@typeof` overrides
+- Constraint violations decorate the affected fields with the inline message instead of stacking generic alerts
+- An XHTML block clicked out of unedited restores its snapshot without a save, so no version is minted for a no-op
+- A press outside a whole-resource edit form dismisses an untouched form and leaves an edited one to Save or Cancel; a press between blocks moves the caret instead of exiting
+- A grid card no longer offers an edit pin: a card is one projection of a result row, and the whole resource is one hop away
+- A 3D graph node's link navigates in the page, through the Linked Data proxy for an external URI, instead of opening a browser tab
+- The document tree's children query is a bounded `CONSTRUCT` of what a node renders, paged by `ldh:tree-page-size` (default 1000) and always including the child leading to the document being opened
+- The shell carries its landmark roles (`banner`, `main`, `contentinfo`), the tab strip and breadcrumbs are labelled navigations, and the address bar is a `role=search` with a `type=url` input that works without CSR
+- Constructor instantiation is one shared pipeline behind a dual `ldh:parse-query` (SPARQL.js in the browser, a `ParseQuery` Jena extension on the server), so the sign-up form appears on a direct page load
+- `sh:name` and `sh:description` labelling moves into LDH, where it outranks `dc:title` and `foaf:name`
+- Web-Client dependency bumped to 6.0.1, twirl to 2.0.1
+
+### Removed
+- Bootstrap 2: the framework stylesheets, `bootstrap.js`, jQuery, WYMEditor, the sprite icon layer and the `pull-left`/`pull-right` tokens
+- The Bootstrap 2 class vocabulary that no stylesheet backed
+- `$ac:langs` and `$ac:lang` parameters, replaced by `ac:langs()` and `ac:langs()[1]` at 36 call sites
+- `$ldt:base`, `$ldt:ontology`, `$ac:httpHeaders`, `$ac:method`, `$Referer`, `$ac:googleMapsKey`, `$doc-types`, `$main-doc` and `$acl:Agent` — parameters read by nothing or never populated; the `ldt:` prefix leaves the LDH stylesheets
+- `ldh:container` (see Migration) and the stored `ldh:SelectChildren` query, which the generated tree query replaces
+- `ac:ConstructMode` from both ontologies, its Create label becoming a catalog entry, and the `graphity.org` typeahead namespace
+- The `+ Constructor` button, which wrote a constructor into every graph describing the class and amplified itself on every press
+- The combobox panel that opened on focus, offering a document as the object of its own property
+- `LocalStylesheetResolver`, the bundled package stylesheet copy and its mapping, `location-mapping.ttl`, and the namespace mappings no ontology imports and no stylesheet uses
+
+### Fixed
+- `varnish-admin` never invalidated cached SPARQL query results, so a SELECT kept its pre-write answer for the full cache lifetime; writes now ban them as the end-user cache already did
+- Editing a class's constructors rewrote every constructor in the document at once, and two saved together could overwrite each other; each is saved on its own, in sequence, and one shared with another class is left alone
+- Clearing an ontology discards every cached graph and assembled closure, not just the keys derived from the URI it was given: a closure caches each URI it imports, so a vocabulary or package ontology kept answering from a document that had been edited or deleted until the container restarted
+- Clearing also purges every ontology response the admin proxy holds, through a surrogate key stamped on each ontology query, so the closure no longer rebuilds from the responses the clear was meant to discard
+- Adding a constructor to a class delivered by a package did nothing: the editor now writes to the graph that holds the constructor and accepts the `204` a PATCH answers
+- Opening a constructor that declares `rdf:langString` and pressing Save silently deleted those rows; the editor reads the object kind from the datatype rather than its namespace
+- Saving a constructor on a package's ontology document answered 500 and the edit never showed
+- `Edit constructors` was emitted for every reader and gated on the document being read; it is revealed only where the constructor's own document is writable
+- A form row's language field sat in a different place on every row
+- Reloading a page with block requests in flight painted a failure into the document the reader had already left
+- The sitemap covers every dataspace rather than the root one, and an origin is served its own: one file per host, generated against that dataspace's own services
+- The sitemap queries carry the service credentials, so a store that requires authentication no longer answers them 401
+- Sitemap generation no longer joins the admin service through SPARQL `SERVICE`, which an isolated store refuses; the public read rules are passed as `VALUES`, and a failed generation is logged instead of stopping the platform
+- The sitemap lists a document once, with its latest date, and only when a public rule of its own dataspace covers it
+- Concurrent writes to a versioned application silently lost commits: the commit chain was keyed by file path while GitHub locks on the branch head; commits to one branch now share a single chain
+- A conflicting write is retried with a re-read blob SHA (`MAX_CONFLICT_RETRIES`) instead of being abandoned
+- A rate-limited commit retried with an empty request body, since `JsonObjectBuilder` yields its object only once
+- A view block derived from the ontology keeps its URI across reloads: the fragment is hashed from the host resource and the view instead of drawn from `ac:uuid()`
+- The context dataset's read/write race, a `ConcurrentModificationException` or a torn model on a `PATCH /settings` concurrent with any request: writes are copy-on-write behind a volatile swap and the file is written atomically
+- The expiring auth caches' check-then-get races, an intermittent login 500
+- A `PATCH /settings` adding an `ldh:import` returned 204 but the package ontology never joined the `/ns` closure; the rebuild re-reads the app from the current dataspace model
+- Importing a package described on this instance answered 504 from a self-resolving loop; a local package's named graph is read from the store, and only foreign URIs are dereferenced
+- A `DOCTYPE` in an application's `ac:stylesheet` silently disabled package composition; the server parses through the same entity-tolerant reader the client uses
+- The `/access` endpoint under-reported class-based grants once the ACL query failed closed; it injects the resource's types the way `AuthorizationFilter` does
+- Document creation by `PUT` authorizes against the parent container's types rather than the wildcard that used to let it through
+- Asking the SPARQL endpoint for a document (`Accept: text/html`) answered 500 since the document tabs; the tab panel and body match a result set too, and the client's re-fetch keeps the query parameters
+- The drawer tree fetched an unbounded `DESCRIBE` of every child of a container on every render, so large containers answered 502 — 343 KB now where 20.5 MB was
+- A facet on a large container never returned: the label lookup's eight-alternative property path under `GRAPH ?labelGraph` scanned the store (24.9 s); binding the predicate with `VALUES` takes 0.055 s
+- A chart axis bound to a URI-valued variable printed escaped anchor markup; only the Table chart keeps the anchor
+- Filtering a facet on a language-tagged value matched nothing, since the tag was dropped at every step of the chain
+- Clearing a facet filter left "No results." over the rows in hand, and the empty state's Clear filters button never rendered
+- A chart or view created from a query block replaced the query block; it lands beside it now, and the Create buttons require the Properties layout
+- A chart pane's default series excluded nothing, so any plotted type raised "All series on a given axis must be of the same data type"; the default is the number columns minus the category
+- An ontology-defined view (`ldh:view`, `ldh:inverseView`) rendered as a nested well that missed every block-body layout rule; it comes out of the same emitter as an authored view
+- Reordering a block on a document with an embedded block `PATCH`ed the embedded document; the target is the dragged block's document, not the one under the pointer
+- The first save of prose nobody had edited rewrote the `rdf:XMLLiteral`, adding an `xmlns` to its first child; the wrapper is built as a node
+- An XHTML literal longer than the JS stack allows (about 6–7K characters) took the client transform down with "too much recursion"; `ldh:bounded-key()` folds long keys into prefix, length and hash
+- The pencil on a committed object value emptied the row when clicked by accident; the chip is stashed and Escape or an empty focusout restores it
+- `acl:mode()` threw inside a match pattern, which Saxon-JS discards, so click-to-edit and the Write-gated drag rules were dead until the first document response
+- A `PATCH` 422 echoed the entire would-be document graph rather than the violating resources, crashing the client on YASQE init; the response carries the violation roots' bounded descriptions
+- Opening any document on an instance nobody had made public raised a modal alert with raw Saxon text: the tree descent walked the loading placeholder as a child
+- Navigation that cannot work degrades quietly: a drawer section whose query is refused is removed, breadcrumbs stop at the ancestor that could not be read, and Geo, Latest and search defer their query to the click
+- A block's affordances gate on the pane's access modes rather than the window's, which answered for whichever dataspace tab was active
+
+### Security
+- Entity tags were a XOR fold of per-statement hashes, so appending a statement moved a document's tag by a value the appender could compute; an agent with `acl:Append` and no `acl:Read` — a dropbox depositor — could add a statement, read the tag off its own write, and learn whether that statement was already in a document it may not read. The digest that replaces it makes the difference between two tags say nothing, and covers `/settings` on the same footing
+- Unconditional writes silently overwrote concurrent ones, because every write reads the graph, changes it in memory and writes it back; requiring a precondition turns a lost update into a `412` the client can retry
+- A SPARQL `SERVICE` clause in a query to `/sparql` could read the admin store from inside the stack; the triplestores' outbound requests go through an `egress` Squid proxy that refuses loopback, private and link-local destinations
+- Deployments with their own compose files need the `egress` service and the stores' `JAVA_TOOL_OPTIONS`, including the empty `http.nonProxyHosts`
+- A `SERVICE` clause in a PATCH update or an import mapping runs in the platform's JVM; it is routed through the egress proxy too (`EGRESS_PROXY`, default `egress:3128`), and with no proxy and `ALLOW_INTERNAL_URLS` unset, in-JVM `SERVICE` is disabled
+- CSV/RDF imports validate the `ldh:file` source and `spin:query` URIs via `URLValidator` before fetching, closing an SSRF surface on the import path
+- An unbound `$Type` in the ACL query was a wildcard, so a typeless resource (`/settings`, `/sparql`, a missing URL) matched every `acl:accessToClass` authorization; both ACL queries carry a default `VALUES ?Type { rdfs:Resource }`
+- Net access after the fix: `/settings` owner-only, `/sparql` authenticated-only, `/ns` and `/access` public, OAuth login public
+- `MAX_CONTENT_LENGTH` bounds what the Linked Data proxy and the imports fetch from origins nobody controls; it was applied to the responses the deployment's own triplestore returns as well, so a document whose graph serialized past it could not be read at all, and could no longer be written either — a `PATCH` reads the graph, changes it and writes it back, so the read-back was refused too. The write that grew the graph was never bounded, so a successful import could leave a document permanently stuck. Requests to the deployment's own SPARQL, Graph Store and Quad Store services are exempt; the proxy, the import sources and WebID dereferencing stay bounded
+- An oversize response answers `502` rather than `413`: what was too large is the upstream's response, and `413` states that the caller's request body was — untrue of a `GET` that carries none. A response with a `Content-Length` and the same response chunked previously answered with different statuses
+
+### Known limitations
+- The in-place editor edits tab-group content but cannot create tab groups; that markup is authored via the HTTP API (e.g. `ldh put`) for now
+- When a result set fits one page the view's total counts the related resources the `DESCRIBE` pulled in, so one row can read "Total results 2"
+- While a composed SEF key is unpublished every render submits a build, so a persistently unreachable `sef-compiler` costs one attempt per request
+
 ## [5.10.0] - 2026-08-30
 ### Added
 - `ldh` command line interface (`cli/`): a standalone picocli/Jena port of the `bin/` HTTP API scripts — one command per script with the same option names, `bin/` subdirectories as nested subcommand groups, PKCS12 WebID keystore authentication, env-var defaults and a shaded executable jar

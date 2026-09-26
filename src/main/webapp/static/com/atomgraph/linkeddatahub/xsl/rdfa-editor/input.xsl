@@ -222,19 +222,19 @@ version="3.0">
     <!-- ................................ slash menu ................................ -->
 
     <xsl:template name="rdfae:render-slash-menu">
-        <div id="slash-menu" class="rdfa-editor-ui" role="listbox" aria-label="Insert block" style="display: none;">
-            <input type="text" class="slash-filter" placeholder="Filter blocks..." aria-label="Filter blocks"/>
+        <div id="slash-menu" class="rdfa-editor-ui" role="listbox" aria-label="{rdfae:label('insert-block')}" style="display: none;">
+            <input type="text" class="slash-filter" placeholder="{rdfae:label('filter-blocks-placeholder')}" aria-label="{rdfae:label('filter-blocks')}"/>
             <ul class="slash-items">
-                <li class="slash-item" data-command="p" role="option">Paragraph</li>
-                <li class="slash-item" data-command="h1" role="option">Heading 1</li>
-                <li class="slash-item" data-command="h2" role="option">Heading 2</li>
-                <li class="slash-item" data-command="h3" role="option">Heading 3</li>
-                <li class="slash-item" data-command="blockquote" role="option">Quote</li>
-                <li class="slash-item" data-command="pre" role="option">Code</li>
-                <li class="slash-item" data-command="ul" role="option">Bulleted list</li>
-                <li class="slash-item" data-command="ol" role="option">Numbered list</li>
-                <li class="slash-item" data-command="figure" role="option">Figure&#x2026;</li>
-                <li class="slash-item" data-command="table" role="option">Table&#x2026;</li>
+                <li class="slash-item" data-command="p" role="option"><xsl:value-of select="rdfae:label('block-paragraph')"/></li>
+                <li class="slash-item" data-command="h1" role="option"><xsl:value-of select="rdfae:label('block-heading-1')"/></li>
+                <li class="slash-item" data-command="h2" role="option"><xsl:value-of select="rdfae:label('block-heading-2')"/></li>
+                <li class="slash-item" data-command="h3" role="option"><xsl:value-of select="rdfae:label('block-heading-3')"/></li>
+                <li class="slash-item" data-command="blockquote" role="option"><xsl:value-of select="rdfae:label('quote')"/></li>
+                <li class="slash-item" data-command="pre" role="option"><xsl:value-of select="rdfae:label('code')"/></li>
+                <li class="slash-item" data-command="ul" role="option"><xsl:value-of select="rdfae:label('bulleted-list')"/></li>
+                <li class="slash-item" data-command="ol" role="option"><xsl:value-of select="rdfae:label('numbered-list')"/></li>
+                <li class="slash-item" data-command="figure" role="option"><xsl:value-of select="rdfae:label('figure-ellipsis')"/></li>
+                <li class="slash-item" data-command="table" role="option"><xsl:value-of select="rdfae:label('table-ellipsis')"/></li>
                 <!-- extension items (dispatched via rdfae:run-extra-slash-command;
                      the generic filter/arrow/Enter machinery applies untouched) -->
                 <xsl:call-template name="rdfae:render-extra-slash-items"/>

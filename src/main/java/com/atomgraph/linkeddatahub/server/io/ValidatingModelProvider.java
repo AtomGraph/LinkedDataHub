@@ -16,8 +16,8 @@
  */
 package com.atomgraph.linkeddatahub.server.io;
 
-import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.dataspaces.model.AdminDataspace;
+import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
@@ -82,7 +82,7 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
     @Context UriInfo uriInfo;
     @Context SecurityContext securityContext;
 
-    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> application;
+    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace>> application;
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject jakarta.inject.Provider<Optional<AgentContext>> agentContextProvider;
 
@@ -219,12 +219,6 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
             try
             {
                 UpdateFactory.create(updateString);
-                Resource type = null;
-                if (type != null)
-                {
-                    resource.addProperty(RDF.type, type);
-                    if (log.isDebugEnabled()) log.debug("Resource: {} adding type: {}", resource, type);
-                }
             }
             catch (QueryParseException ex)
             {
@@ -237,18 +231,18 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
             }
         }
 
-        if (getApplication().isPresent() && getApplication().get().canAs(AdminApplication.class) && resource.hasProperty(RDF.type, OWL.Ontology))
+        if (getDataspace().isPresent() && getDataspace().get().canAs(AdminDataspace.class) && resource.hasProperty(RDF.type, OWL.Ontology))
         {
             // clear cached raw graph and closure union graph if ontology is updated. TO-DO: send event instead
             getSystem().getRepository().remove(resource.getURI());
             getSystem().getOntologyGraphs().remove(resource.getURI());
         }
 
-        if (getApplication().isPresent() && resource.hasProperty(RDF.type, ACL.Authorization))
+        if (getDataspace().isPresent() && resource.hasProperty(RDF.type, ACL.Authorization))
         {
             GraphStoreClient gsc = GraphStoreClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
                 delegation(getUriInfo().getBaseUri(), getAgentContextProvider().get().orElse(null));
-            getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.AuthorizationCreated(getEndUserApplication(),
+            getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.AuthorizationCreated(getEndUserDataspace(),
                 gsc, resource));
         }
 
@@ -259,10 +253,10 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
     public Model processWrite(Model model)
     {
         // If no application (e.g., error responses), skip mbox processing
-        if (!getApplication().isPresent()) return super.processWrite(model);
+        if (!getDataspace().isPresent()) return super.processWrite(model);
 
         // show foaf:mbox in end-user apps
-        if (getApplication().get().canAs(EndUserApplication.class)) return super.processWrite(model);
+        if (getDataspace().get().canAs(EndUserDataspace.class)) return super.processWrite(model);
         // show foaf:mbox for authenticated agents
         if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent) return super.processWrite(model);
 
@@ -324,12 +318,12 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
      *
      * @return end-user application resource
      */
-    public EndUserApplication getEndUserApplication()
+    public EndUserDataspace getEndUserDataspace()
     {
-        if (getApplication().get().canAs(EndUserApplication.class))
-            return getApplication().get().as(EndUserApplication.class);
+        if (getDataspace().get().canAs(EndUserDataspace.class))
+            return getDataspace().get().as(EndUserDataspace.class);
         else
-            return getApplication().get().as(AdminApplication.class).getEndUserApplication();
+            return getDataspace().get().as(AdminDataspace.class).getEndUserDataspace();
     }
     
     @Override
@@ -343,7 +337,7 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
      *
      * @return optional application resource
      */
-    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
+    public Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace> getDataspace()
     {
         return application.get();
     }

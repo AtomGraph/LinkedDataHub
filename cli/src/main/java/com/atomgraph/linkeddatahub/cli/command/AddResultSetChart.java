@@ -36,7 +36,7 @@ import picocli.CommandLine.Parameters;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "add-result-set-chart", description = "Appends a result set chart to a document.")
+@Command(name = "result-set-chart", description = "Appends a result set chart to a document.")
 public class AddResultSetChart extends BaseCommand
 {
 

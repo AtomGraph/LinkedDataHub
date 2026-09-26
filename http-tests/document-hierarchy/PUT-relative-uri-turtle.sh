@@ -6,10 +6,12 @@ initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
+reset_packages
+clear_ontology
 
 # add agent to the writers group
 
-ldh admin acl add-agent-to-group \
+ldh admin add agent \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
@@ -32,7 +34,6 @@ EOF
 )
 
 if [ "$status" != "$STATUS_CREATED" ]; then
-  echo "DEBUG: Expected $STATUS_CREATED from the PUT, got: $status"
   exit 1
 fi
 
@@ -48,12 +49,10 @@ response=$(curl -k -f -G -s \
   "$item")
 
 for triple in \
-  "<${item}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item>" \
+  "<${item}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Item>" \
   "<${item}named-subject-put> <http://example.com/default-predicate> \"named object PUT\" ."
 do
   if ! grep -qF "$triple" <<< "$response"; then
-    echo "DEBUG: Expected triple: $triple"
-    echo "DEBUG: Got: $response"
     exit 1
   fi
 done

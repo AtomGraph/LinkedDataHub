@@ -6,6 +6,8 @@ initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
+reset_packages
+clear_ontology
 
 # public access is forbidden
 
@@ -16,7 +18,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -v \
 
 # create fake test.localhost public authorization (should be filtered out)
 
-ldh admin acl create-authorization \
+ldh admin create authorization \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "https://admin.test.localhost:4443/" \
@@ -34,7 +36,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -v \
 
 # create real localhost public authorization
 
-ldh admin acl create-authorization \
+ldh admin create authorization \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \

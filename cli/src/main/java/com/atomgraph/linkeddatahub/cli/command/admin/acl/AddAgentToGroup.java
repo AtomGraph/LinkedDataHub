@@ -29,7 +29,7 @@ import picocli.CommandLine.Parameters;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "add-agent-to-group", description = "Adds an agent to a group.")
+@Command(name = "agent", description = "Adds an agent to a group.")
 public class AddAgentToGroup extends BaseCommand
 {
 

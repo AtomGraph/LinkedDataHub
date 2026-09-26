@@ -6,16 +6,19 @@ initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
+reset_packages
+clear_ontology
 
 # add agent to the writers
 
-ldh admin acl add-agent-to-group \
+ldh admin add agent \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
 
-# check that non-existing document is not found
+# a POST to a non-existing document is forbidden (403), not 404: a typeless URL matches no authorization,
+# so the gate denies before the request reaches the handler
 
 (
 curl -k -w "%{http_code}\n" -o /dev/null -s \
@@ -27,4 +30,4 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
 <http://s> <http://p> <http://o> .
 EOF
 ) \
-| grep -q "$STATUS_NOT_FOUND"
+| grep -q "$STATUS_FORBIDDEN"

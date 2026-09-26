@@ -66,7 +66,7 @@ public class GraphVersioningServiceTest
     public void testSortedNTriplesIsDeterministic()
     {
         Model first = ModelFactory.createDefaultModel();
-        first.add(first.createResource("https://localhost:4443/doc/"), RDF.type, first.createResource("https://www.w3.org/ns/ldt/document-hierarchy#Item"));
+        first.add(first.createResource("https://localhost:4443/doc/"), RDF.type, first.createResource("https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Item"));
         first.add(first.createResource("https://localhost:4443/doc/"), DCTerms.title, "Document");
         first.add(first.createResource("https://localhost:4443/doc/"), RDFS.seeAlso, first.createResource("https://localhost:4443/other/"));
 
@@ -74,7 +74,7 @@ public class GraphVersioningServiceTest
         Model second = ModelFactory.createDefaultModel();
         second.add(second.createResource("https://localhost:4443/doc/"), RDFS.seeAlso, second.createResource("https://localhost:4443/other/"));
         second.add(second.createResource("https://localhost:4443/doc/"), DCTerms.title, "Document");
-        second.add(second.createResource("https://localhost:4443/doc/"), RDF.type, second.createResource("https://www.w3.org/ns/ldt/document-hierarchy#Item"));
+        second.add(second.createResource("https://localhost:4443/doc/"), RDF.type, second.createResource("https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Item"));
 
         assertArrayEquals(GraphVersioningService.toSortedNTriples(first), GraphVersioningService.toSortedNTriples(second));
     }

@@ -100,8 +100,9 @@ exclude-result-prefixes="#all">
                 <xsl:choose>
                     <xsl:when test="count($bindings/srx:uri) = $binding-count">string</xsl:when>
                     <xsl:when test="count($bindings/srx:bnode) = $binding-count">string</xsl:when>
-                    <xsl:when test="count($bindings/srx:literal[@datatype = ('&xsd;integer', '&xsd;decimal', '&xsd;double', '&xsd;float')]) = $binding-count">number</xsl:when>
-                    <xsl:when test="count($bindings/srx:literal[@datatype = '&xsd;dateTime']) = $binding-count">datetime</xsl:when>
+                    <!-- the numeric and dateTime types include those derived from them, which are as chartable as the types they restrict -->
+                    <xsl:when test="count($bindings/srx:literal[@datatype = ('&xsd;integer', '&xsd;long', '&xsd;int', '&xsd;short', '&xsd;byte', '&xsd;nonNegativeInteger', '&xsd;positiveInteger', '&xsd;nonPositiveInteger', '&xsd;negativeInteger', '&xsd;unsignedLong', '&xsd;unsignedInt', '&xsd;unsignedShort', '&xsd;unsignedByte', '&xsd;decimal', '&xsd;double', '&xsd;float')]) = $binding-count">number</xsl:when>
+                    <xsl:when test="count($bindings/srx:literal[@datatype = ('&xsd;dateTime', '&xsd;dateTimeStamp')]) = $binding-count">datetime</xsl:when>
                     <xsl:when test="count($bindings/srx:literal[@datatype = '&xsd;date']) = $binding-count">date</xsl:when>
                     <xsl:when test="count($bindings/srx:literal[@datatype = '&xsd;time']) = $binding-count">timeofday</xsl:when>
                     <xsl:otherwise>string</xsl:otherwise>
@@ -146,7 +147,7 @@ exclude-result-prefixes="#all">
         <json:boolean key="v"><xsl:value-of select="."/></json:boolean>
     </xsl:template>
     
-    <xsl:template match="srx:literal[@datatype = '&xsd;integer'] | srx:literal[@datatype = '&xsd;decimal'] | srx:literal[@datatype = '&xsd;double'] | srx:literal[@datatype = '&xsd;float']" mode="ac:DataTable">
+    <xsl:template match="srx:literal[@datatype = ('&xsd;integer', '&xsd;long', '&xsd;int', '&xsd;short', '&xsd;byte', '&xsd;nonNegativeInteger', '&xsd;positiveInteger', '&xsd;nonPositiveInteger', '&xsd;negativeInteger', '&xsd;unsignedLong', '&xsd;unsignedInt', '&xsd;unsignedShort', '&xsd;unsignedByte', '&xsd;decimal', '&xsd;double', '&xsd;float')]" mode="ac:DataTable">
         <json:number key="v"><xsl:value-of select="."/></json:number>
     </xsl:template>
 
@@ -154,7 +155,7 @@ exclude-result-prefixes="#all">
         <json:string key="v">Date(<xsl:value-of select="year-from-date(.)"/>, <xsl:value-of select="month-from-date(.) - 1"/>, <xsl:value-of select="day-from-date(.)"/>)</json:string>
     </xsl:template>
 
-    <xsl:template match="srx:literal[@datatype = '&xsd;dateTime']" mode="ac:DataTable">
+    <xsl:template match="srx:literal[@datatype = ('&xsd;dateTime', '&xsd;dateTimeStamp')]" mode="ac:DataTable">
         <json:string key="v">Date(<xsl:value-of select="year-from-dateTime(.)"/>, <xsl:value-of select="month-from-dateTime(.) - 1"/>, <xsl:value-of select="day-from-dateTime(.)"/>, <xsl:value-of select="hours-from-dateTime(.)"/>, <xsl:value-of select="minutes-from-dateTime(.)"/>, <xsl:value-of select="floor(seconds-from-dateTime(.))"/>, <xsl:value-of select="(seconds-from-dateTime(.) - floor(seconds-from-dateTime(.))) * 1000"/>)</json:string>
     </xsl:template>
 

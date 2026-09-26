@@ -46,6 +46,7 @@ export STATUS_PRECONDITION_FAILED=412
 export STATUS_REQUEST_ENTITY_TOO_LARGE=413
 export STATUS_UNSUPPORTED_MEDIA=415
 export STATUS_UNPROCESSABLE_ENTITY=422
+export STATUS_PRECONDITION_REQUIRED=428
 export STATUS_INTERNAL_SERVER_ERROR=500
 export STATUS_NOT_IMPLEMENTED=501
 export STATUS_BAD_GATEWAY=502
@@ -79,7 +80,6 @@ function run_tests()
     local suite_name="$1"
     shift
 
-    local error_count=0
     local suite_start_ms suite_end_ms
     suite_start_ms=$(now_ms)
 
@@ -120,6 +120,9 @@ function run_tests()
             echo "   failed";
             status="failed"
             (( tests_failed += 1 ))
+            # the suite's own tally, and the run's: each caller used to add the return value itself, and one
+            # of the sixteen did not - so every failure under imports/ was printed, counted here, and dropped,
+            # leaving "### Failed tests: 0" and a green workflow over a red test
             (( error_count += 1 ))
             # Echo the captured output so CI logs still show the failure.
             cat "$log_file"
@@ -177,7 +180,7 @@ function run_tests()
         rm -f "$results_file.tests"
     fi
 
-    return $error_count
+    return $tests_failed
 }
 
 function download_dataset()
@@ -185,6 +188,32 @@ function download_dataset()
     curl -s -f \
       -H "Accept: application/trig" \
       "$1"
+}
+
+# The entity tag of a document, for a conditional write. A write to a document that already exists must
+# carry If-Match: the graph store applies one by reading the graph, changing it in memory and writing the
+# whole thing back, so two unconditional writers overwrite each other with nothing to show for it.
+# The tag identifies a NEGOTIATED VARIANT rather than the graph alone - the same document answers a
+# different tag as RDF/XML than as Turtle - so it is read with the Accept the write will send, and the
+# write has to send that same Accept.
+function etag()
+{
+    local uri="$1" cert_file="$2" cert_pwd="$3" accept="${4:-application/n-triples}"
+
+    local tag
+    tag=$(curl -k -s -I \
+      -E "$cert_file":"$cert_pwd" \
+      -H "Accept: $accept" \
+      "$uri" \
+    | grep -i '^etag:' | tr -d '\r' | sed 's/^[Ee][Tt][Aa][Gg]: *//')
+
+    # say so rather than hand back an empty If-Match: the server refuses a blank one, so a silent empty
+    # tag would surface as an unexplained 428 on the write instead of naming the document it came from
+    if [ -z "$tag" ]; then
+        echo "### etag: no entity tag for <$uri> as $accept" >&2
+    fi
+
+    printf '%s' "$tag"
 }
 
 function initialize_dataset()
@@ -196,6 +225,73 @@ function initialize_dataset()
       --data-binary @- \
       -H "Content-Type: application/trig" \
       "$3" > /dev/null
+}
+
+# Packages are declared in the application's settings, and no dataset restore touches those: the import
+# set is the one piece of application state a test can change and leave behind. It is also the most
+# consequential, since a package changes how every document renders and which constraints a write is
+# held to - a leaked import turned one failing test into two, the second dying on a 422 from a
+# constraint the package brought with it. Removing every ldh:import here means a test cannot poison the
+# next one, and none has to remember to clean up after itself.
+#
+# Unconditional rather than restored from a snapshot: the suite tests the committed configuration,
+# which declares no packages. A deployment whose own config declares one loses it for the run and gets
+# it back on the next restart.
+#
+# Read first, and PATCH only when there is something to remove: a settings PATCH clears and rebuilds
+# the imports closure on the way through, which is not a cost worth paying 210 times for a no-op.
+function reset_packages()
+{
+    local settings code
+    settings=$(curl -k -s -w '\n%{http_code}' \
+      -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+      -H "Accept: application/n-triples" \
+      "${END_USER_BASE_URL}settings")
+    code="${settings##*$'\n'}"
+
+    if [ "$code" != "200" ]; then
+        echo "DEBUG: reset_packages: GET ${END_USER_BASE_URL}settings returned $code" >&2
+        return 1
+    fi
+    if ! grep -q 'linkeddatahub#import' <<< "$settings"; then
+        return 0
+    fi
+
+    code=$(curl -k -s -o /dev/null -w "%{http_code}" \
+      -X PATCH \
+      -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+      -H "Content-Type: application/sparql-update" \
+      -d "DELETE { ?app <https://w3id.org/atomgraph/linkeddatahub#import> ?package } WHERE { ?app <https://w3id.org/atomgraph/linkeddatahub#import> ?package }" \
+      "${END_USER_BASE_URL}settings")
+
+    if [ "$code" != "204" ]; then
+        echo "DEBUG: reset_packages: PATCH ${END_USER_BASE_URL}settings returned $code" >&2
+        return 1
+    fi
+}
+
+# Empties the platform's in-JVM graph cache and every assembled imports closure. The datasets and the
+# Varnish layers are the other two caches a test restores; this is the third, and the only one a test
+# could not reach before /clear stopped requiring an ontology URI. Without it, a graph the repository
+# cached under a vocabulary URI survives the dataset being replaced and answers for the next test.
+# No URI is passed on purpose: nothing needs reloading here, and the closures rebuild lazily.
+function clear_ontology()
+{
+    # An empty form body, not a bodyless POST. /clear is @Consumes(APPLICATION_FORM_URLENCODED), and a
+    # request carrying no Content-Type fails it before the method is reached - measured as a 500, which
+    # under curl -f aborted every test in the suite with no output at all. Hence also the code check:
+    # a helper every test depends on has to say what went wrong rather than end it silently.
+    local code
+    code=$(curl -k -s -o /dev/null -w "%{http_code}" \
+      -X POST \
+      -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+      --data "" \
+      "${ADMIN_BASE_URL}clear")
+
+    if [[ ! "$code" =~ ^(200|204)$ ]]; then
+        echo "DEBUG: clear_ontology: POST ${ADMIN_BASE_URL}clear returned $code" >&2
+        return 1
+    fi
 }
 
 function purge_cache()
@@ -224,14 +320,17 @@ fi
 
 printf "### Secretary agent URI: %s\n" "$SECRETARY_URI"
 
+export -f etag
 export -f initialize_dataset
 export -f purge_cache
+export -f reset_packages
+export -f clear_ontology
 
 export HTTP_TEST_ROOT="$PWD"
 export TEST_RESULTS_DIR="${TEST_RESULTS_DIR:-$HTTP_TEST_ROOT/out}"
 mkdir -p "$TEST_RESULTS_DIR"
-export END_USER_ENDPOINT_URL="http://localhost:3031/ds/"
-export ADMIN_ENDPOINT_URL="http://localhost:3030/ds/"
+export END_USER_ENDPOINT_URL="http://localhost:3030/end-user/"
+export ADMIN_ENDPOINT_URL="http://localhost:3030/admin/"
 export END_USER_BASE_URL="https://localhost:4443/"
 export ADMIN_BASE_URL="https://admin.localhost:4443/"
 export END_USER_VARNISH_SERVICE="varnish-end-user"
@@ -249,7 +348,6 @@ export AGENT_CERT_PWD="changeit"
 start_time=$(date +%s)
 
 run_tests "signup" "signup.sh"
-(( error_count += $? ))
 
 export AGENT_URI="$(webid-uri.sh "$AGENT_CERT_FILE")"
 printf "### Signed up agent URI: %s\n" "$AGENT_URI"
@@ -263,27 +361,21 @@ download_dataset "$ADMIN_ENDPOINT_URL" > "$TMP_ADMIN_DATASET"
 ### Other tests ###
 
 run_tests "add" $(find ./add/ -type f -name '*.sh')
-(( error_count += $? ))
 run_tests "admin" $(find ./admin/ -type f -name '*.sh')
-(( error_count += $? ))
 run_tests "dataspaces" $(find ./dataspaces/ -type f -name '*.sh')
-(( error_count += $? ))
 run_tests "access" $(find ./access/ -type f -name '*.sh')
-(( error_count += $? ))
 run_tests "imports" $(find ./imports/ -type f -name '*.sh')
-(( error_count += $? ))
+run_tests "push" $(find ./push/ -type f -name '*.sh')
 run_tests "document-hierarchy" $(find ./document-hierarchy/ -type f -name '*.sh')
-(( error_count += $? ))
 run_tests "misc" $(find ./misc/ -type f -name '*.sh')
-(( error_count += $? ))
+run_tests "static" $(find ./static/ -type f -name '*.sh')
 run_tests "proxy" $(find ./proxy/ -type f -name '*.sh')
-(( error_count += $? ))
 run_tests "federation" $(find ./federation/ -type f -name '*.sh')
-(( error_count += $? ))
 run_tests "sparql-protocol" $(find ./sparql-protocol/ -type f -name '*.sh')
-(( error_count += $? ))
 run_tests "versioning" $(find ./versioning/ -type f -name '*.sh')
-(( error_count += $? ))
+run_tests "language" $(find ./language/ -type f -name '*.sh')
+run_tests "rdfa" $(find ./rdfa/ -type f -name '*.sh')
+run_tests "system" $(find ./system/ -type f -name '*.sh')
 
 end_time=$(date +%s)
 runtime=$((end_time-start_time))

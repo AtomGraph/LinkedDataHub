@@ -17,7 +17,7 @@
 package com.atomgraph.linkeddatahub.server.filter.response;
 
 import com.atomgraph.client.vocabulary.AC;
-import com.atomgraph.linkeddatahub.apps.model.impl.PackageImpl;
+import com.atomgraph.linkeddatahub.dataspaces.model.impl.PackageImpl;
 import com.atomgraph.linkeddatahub.server.util.SecureXML;
 import jakarta.servlet.ServletContext;
 import java.io.ByteArrayInputStream;
@@ -43,6 +43,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
@@ -64,7 +66,7 @@ public class XsltExecutableFilterTest
     private static final URI B_XSL_URI = URI.create("https://packages.example.org/b/layout.xsl");
 
     @Mock private ServletContext servletContext;
-    @Mock private com.atomgraph.linkeddatahub.apps.model.Application application;
+    @Mock private com.atomgraph.linkeddatahub.dataspaces.model.Dataspace application;
 
     private XsltExecutableFilter filter;
     private Model model;
@@ -78,42 +80,10 @@ public class XsltExecutableFilterTest
     }
 
     @Test
-    public void testGetPackagesOrderedByURI()
-    {
-        Resource pkgB = model.createResource("https://packages.example.org/b#this");
-        Resource pkgA = model.createResource("https://packages.example.org/a#this");
-        when(application.getImportedPackages()).thenReturn(new HashSet<>(List.of(pkgB, pkgA)));
-
-        assertEquals(List.of(URI.create(pkgA.getURI()), URI.create(pkgB.getURI())), filter.getPackages(application));
-    }
-
-    @Test
-    public void testGetStylesheetsSkipsUnresolvedAndOntologyOnlyPackages()
-    {
-        URI pkgA = URI.create("https://packages.example.org/a#this");
-        URI pkgB = URI.create("https://packages.example.org/b#this");
-        URI pkgC = URI.create("https://packages.example.org/c#this");
-        model.createResource(pkgA.toString()).addProperty(AC.stylesheet, model.createResource(A_XSL_URI.toString()));
-        model.createResource(pkgC.toString()); // ontology-only: no ac:stylesheet
-
-        XsltExecutableFilter spied = spy(filter);
-        doReturn(asPackage(pkgA)).when(spied).getPackage(pkgA.toString());
-        doReturn(null).when(spied).getPackage(pkgB.toString()); // description could not be resolved
-        doReturn(asPackage(pkgC)).when(spied).getPackage(pkgC.toString());
-
-        assertEquals(List.of(A_XSL_URI), spied.getStylesheets(List.of(pkgA, pkgB, pkgC)));
-    }
-
-    private com.atomgraph.linkeddatahub.apps.model.Package asPackage(URI uri)
-    {
-        return new PackageImpl(model.createResource(uri.toString()).asNode(), (EnhGraph)model);
-    }
-
-    @Test
     public void testAppendImportsAfterExistingImport() throws Exception
     {
         Document doc = parse("<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"" + XSL_NS + "\">" +
-            "<xsl:import href=\"../com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/layout.xsl\"/>" +
+            "<xsl:import href=\"../com/atomgraph/linkeddatahub/xsl/layout.xsl\"/>" +
             "<xsl:template match=\"/\"/>" +
             "</xsl:stylesheet>");
 
@@ -121,10 +91,44 @@ public class XsltExecutableFilterTest
 
         List<Element> children = childElements(doc);
         assertEquals(4, children.size());
-        assertEquals("../com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/layout.xsl", children.get(0).getAttribute("href"));
+        assertEquals("../com/atomgraph/linkeddatahub/xsl/layout.xsl", children.get(0).getAttribute("href"));
         assertEquals(A_XSL_URI.toString(), children.get(1).getAttribute("href"));
         assertEquals(B_XSL_URI.toString(), children.get(2).getAttribute("href"));
         assertEquals("template", children.get(3).getLocalName());
+    }
+
+    @Test
+    public void testAppendImportsAtMarker() throws Exception
+    {
+        // the marker is the last import whose href ends in hooks.xsl: packages land right after it, so
+        // they outrank the open modes' fallbacks and nothing that follows
+        Document doc = parse("<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"" + XSL_NS + "\">" +
+            "<xsl:import href=\"../../../../com/atomgraph/client/xsl/common.xsl\"/>" +
+            "<xsl:import href=\"hooks.xsl\"/>" +
+            "<xsl:import href=\"client/hooks.xsl\"/>" +
+            "<xsl:import href=\"common.xsl\"/>" +
+            "<xsl:template match=\"/\"/>" +
+            "</xsl:stylesheet>");
+
+        assertTrue(filter.appendImports(doc, List.of(A_XSL_URI, B_XSL_URI)));
+
+        List<Element> children = childElements(doc);
+        assertEquals(7, children.size());
+        assertEquals("client/hooks.xsl", children.get(2).getAttribute("href"));
+        assertEquals(A_XSL_URI.toString(), children.get(3).getAttribute("href"));
+        assertEquals(B_XSL_URI.toString(), children.get(4).getAttribute("href"));
+        assertEquals("common.xsl", children.get(5).getAttribute("href"));
+        assertEquals("template", children.get(6).getLocalName());
+    }
+
+    @Test
+    public void testAppendImportsWithoutMarkerReportsIt() throws Exception
+    {
+        Document doc = parse("<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"" + XSL_NS + "\">" +
+            "<xsl:import href=\"../com/atomgraph/linkeddatahub/xsl/layout.xsl\"/>" +
+            "</xsl:stylesheet>");
+
+        assertFalse(filter.appendImports(doc, List.of(A_XSL_URI)));
     }
 
     @Test

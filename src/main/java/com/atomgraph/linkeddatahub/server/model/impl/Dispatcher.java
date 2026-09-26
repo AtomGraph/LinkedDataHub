@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * A catch-all JAX-RS resource that routes requests to sub-resources.
- * Proxy requests ({@code ?uri=} and {@code lapp:Dataset}) are handled earlier by
+ * Proxy requests ({@code ?uri=} and {@code lds:Dataset}) are handled earlier by
  * {@link com.atomgraph.linkeddatahub.server.filter.request.ProxyRequestFilter} and never reach this class.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}

@@ -1,13 +1,13 @@
 @base		<https://w3id.org/atomgraph/linkeddatahub/default> .
 
 @prefix :	<#> .
-@prefix lapp:   <https://w3id.org/atomgraph/linkeddatahub/apps#> .
+@prefix lds:	<https://w3id.org/atomgraph/linkeddatahub/dataspaces#> .
 @prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix owl:	<http://www.w3.org/2002/07/owl#> .
 @prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .
-@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .
+@prefix dh:	<https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#> .
 @prefix sp:	<http://spinrdf.org/sp#> .
 @prefix spin:	<http://spinrdf.org/spin#> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
@@ -18,7 +18,7 @@
 : a owl:Ontology ;
     rdfs:label "Default" ;
     rdfs:comment "Default document model" ;
-    owl:imports ldh:, lapp:, sd:, sp: ;
+    owl:imports ldh:, lds:, sd:, sp: ;
     owl:versionInfo "1.0-SNAPSHOT" .
 
 :Root a owl:Class ;
@@ -63,7 +63,7 @@ nfo:FileDataObject rdfs:label "File" ;
 sd:Service spin:constructor ldh:TitleConstructor, ldh:DescriptionConstructor ;
     spin:constraint :MissingTitle .
 
-# https://w3id.org/atomgraph/linkeddatahub/apps
+# https://w3id.org/atomgraph/linkeddatahub/dataspaces
 
-lapp:Application spin:constructor ldh:TitleConstructor, ldh:DescriptionConstructor ;
+lds:Dataspace spin:constructor ldh:TitleConstructor, ldh:DescriptionConstructor ;
     spin:constraint :MissingTitle .

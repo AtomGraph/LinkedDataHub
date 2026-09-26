@@ -6,6 +6,8 @@ initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
+reset_packages
+clear_ontology
 
 # create class in the namespace ontology
 
@@ -14,7 +16,7 @@ namespace="${namespace_doc}#"
 ontology_doc="${ADMIN_BASE_URL}ontologies/namespace/"
 class="${namespace}NewClass"
 
-ldh admin ontologies add-class \
+ldh admin add class \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
@@ -24,7 +26,7 @@ ldh admin ontologies add-class \
 
 # clear ontology from memory
 
-ldh admin clear-ontology \
+ldh admin clear ontology \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \

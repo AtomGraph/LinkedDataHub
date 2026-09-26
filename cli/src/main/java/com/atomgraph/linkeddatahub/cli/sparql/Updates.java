@@ -56,6 +56,51 @@ public final class Updates
     }
 
     /**
+     * Declares a package import on the application described by its settings document. The
+     * application is matched by type rather than named, because its URI is an opaque
+     * <code>urn:</code> identifier the caller has no way of knowing.
+     *
+     * @param packageURI imported package URI
+     * @return SPARQL update string
+     */
+    public static String insertPackageImport(URI packageURI)
+    {
+        ParameterizedSparqlString pss = new ParameterizedSparqlString("""
+            PREFIX ldh:	<https://w3id.org/atomgraph/linkeddatahub#>
+            PREFIX lds:	<https://w3id.org/atomgraph/linkeddatahub/dataspaces#>
+            INSERT {
+              ?app ldh:import ?package .
+            }
+            WHERE {
+              ?app a lds:Dataspace .
+            }
+            """);
+        pss.setIri("package", packageURI.toString());
+        return pss.toString();
+    }
+
+    /**
+     * Removes a package import declaration from the application described by its settings document.
+     *
+     * @param packageURI imported package URI
+     * @return SPARQL update string
+     */
+    public static String deletePackageImport(URI packageURI)
+    {
+        ParameterizedSparqlString pss = new ParameterizedSparqlString("""
+            PREFIX ldh:	<https://w3id.org/atomgraph/linkeddatahub#>
+            DELETE {
+              ?app ldh:import ?package .
+            }
+            WHERE {
+              ?app ldh:import ?package .
+            }
+            """);
+        pss.setIri("package", packageURI.toString());
+        return pss.toString();
+    }
+
+    /**
      * Adds a <code>foaf:member</code> statement to the group that is the primary topic
      * of the given document.
      *
@@ -125,7 +170,7 @@ public final class Updates
         ParameterizedSparqlString pss = new ParameterizedSparqlString("""
             PREFIX  acl: <http://www.w3.org/ns/auth/acl#>
             PREFIX  def: <https://w3id.org/atomgraph/linkeddatahub/default#>
-            PREFIX  dh:  <https://www.w3.org/ns/ldt/document-hierarchy#>
+            PREFIX  dh:  <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#>
             PREFIX  nfo: <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
             PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 

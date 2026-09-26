@@ -6,10 +6,12 @@ initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
+reset_packages
+clear_ontology
 
 # add agent to the writers
 
-ldh admin acl add-agent-to-group \
+ldh admin add agent \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
@@ -37,4 +39,4 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   "${END_USER_BASE_URL}non-existing/" \
    --data-binary "$update"
 ) \
-| grep -q "$STATUS_NOT_FOUND"
+| grep -q "$STATUS_FORBIDDEN"

@@ -6,10 +6,12 @@ initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
+reset_packages
+clear_ontology
 
 # add agent to the writers group
 
-ldh admin acl add-agent-to-group \
+ldh admin add agent \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
@@ -19,7 +21,7 @@ ldh admin acl add-agent-to-group \
 
 slug=$(uuidgen | tr '[:upper:]' '[:lower:]')
 
-item=$(ldh create-item \
+item=$(ldh create item \
   -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
@@ -33,12 +35,13 @@ item=$(ldh create-item \
 curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -X PUT \
+  -H "If-Match: $(etag "$item" "$AGENT_CERT_FILE" "$AGENT_CERT_PWD" "application/n-triples")" \
   -H "Accept: application/n-triples" \
   -H "Content-Type: application/n-triples" \
   --data-binary @- \
   "$item" <<EOF \
 | grep -q "$STATUS_OK"
-<${item}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item> .
+<${item}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Item> .
 <${item}> <http://purl.org/dc/terms/title> "Test item" .
 <${item}> <http://rdfs.org/sioc/ns#has_container> <${END_USER_BASE_URL}> .
 <${item}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#_1> <${item}#obj> .

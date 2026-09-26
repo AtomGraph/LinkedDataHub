@@ -6,6 +6,8 @@ initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
+reset_packages
+clear_ontology
 
 # Federation browse leg: instance A's client dereferences instance B's document through A's
 # Linked Data proxy. The wire carries a conneg GET; B's hypermedia (Link headers) is forwarded
@@ -33,7 +35,7 @@ grep -i '^link:' "$headers" | tr ',' '\n' | grep 'sparql-service-description#end
 
 # B's application URI is forwarded too (it marks the remote as a Linked Data application)
 
-grep -i '^link:' "$headers" | tr ',' '\n' | grep -q 'linkeddatahub/apps#application'
+grep -i '^link:' "$headers" | tr ',' '\n' | grep -q 'linkeddatahub/dataspaces#dataspace'
 
 # the proxied response carries B's own ETag (resource-state validator), enabling If-Match writes
 
@@ -44,8 +46,6 @@ direct_etag=$(curl -k -f -s -I \
   "$remote_base" \
 | grep -i '^etag:' | tr -d '\r' | awk '{print $2}')
 
-echo "DEBUG: proxied ETag: $proxied_etag direct ETag: $direct_etag"
 if [ -z "$proxied_etag" ] || [ "$proxied_etag" != "$direct_etag" ]; then
-  echo "DEBUG: proxied ETag does not match the origin's ETag"
   exit 1
 fi

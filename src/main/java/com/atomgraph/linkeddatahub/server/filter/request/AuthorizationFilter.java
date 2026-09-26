@@ -16,7 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.request;
 
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
 import com.atomgraph.linkeddatahub.server.exception.auth.AuthorizationException;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
@@ -31,6 +31,7 @@ import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import jakarta.annotation.PostConstruct;
@@ -82,8 +83,8 @@ public class AuthorizationFilter implements ContainerRequestFilter
     );
     
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> app;
-    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Dataset>> dataset;
+    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace>> app;
+    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataset>> dataset;
     
     private ParameterizedSparqlString documentTypeQuery, documentOwnerQuery, aclQuery, ownerAclQuery;
 
@@ -113,7 +114,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
             return;
         }
 
-        if (getApplication().isPresent() && getApplication().get().isReadAllowed())
+        if (getDataspace().isPresent() && getDataspace().get().isReadAllowed())
         {
             if (request.getMethod().equals(HttpMethod.GET) || request.getMethod().equals(HttpMethod.HEAD)) // allow read-only methods
             {
@@ -127,6 +128,20 @@ public class AuthorizationFilter implements ContainerRequestFilter
         else agent = null; // public access
 
         Model authorizations = authorize(request, agent, accessMode);
+
+        // HEAD is how a client learns a document's entity tag, and a conditional write needs one. Requiring
+        // acl:Read for it would leave an agent that may write but not read unable to satisfy the precondition
+        // the graph store demands of every write to a document that already exists - quietly turning acl:Write
+        // into acl:Write AND acl:Read, a coupling no authorization document states. So a HEAD is granted to any
+        // agent with a mode on the document: it carries no body, and a non-reader's is trimmed to the validator
+        // and the modes by ResponseHeadersFilter. GET is untouched - content still needs acl:Read.
+        if (authorizations == null && HttpMethod.HEAD.equals(request.getMethod()))
+            for (Resource writeMode : List.of(ACL.Append, ACL.Write))
+            {
+                authorizations = authorize(request, agent, writeMode);
+                if (authorizations != null) break;
+            }
+
         if (authorizations == null)
         {
             if (log.isTraceEnabled()) log.trace("Access not authorized for request URI: {} and access mode: {}", request.getUriInfo().getAbsolutePath(), accessMode);
@@ -159,7 +174,10 @@ public class AuthorizationFilter implements ContainerRequestFilter
 
         QuerySolutionMap thisQsm = new QuerySolutionMap();
         thisQsm.add(SPIN.THIS_VAR_NAME, accessTo);
-        ResultSetRewindable docTypesResult = loadResultSet(getApplication().get().getService(), getDocumentTypeQuery(), thisQsm);  
+        ResultSetRewindable docTypesResult = loadResultSet(getDataspace().get().getService(), getDocumentTypeQuery(), thisQsm);
+        // types that constrain the ACL query's acl:accessToClass matching: the document's own by default, or the parent
+        // container's when a PUT creates a new (still typeless) document and authorization falls back to the parent
+        ResultSetRewindable aclTypesResult = docTypesResult;
         try
         {
             // special case for PUT requests: if the document does not exist, check acl:Write access on the *parent* URI instead
@@ -173,34 +191,35 @@ public class AuthorizationFilter implements ContainerRequestFilter
 
                 QuerySolutionMap parentQsm = new QuerySolutionMap();
                 parentQsm.add(SPIN.THIS_VAR_NAME, parent);
-                ResultSetRewindable parentTypesResult = loadResultSet(getApplication().get().getService(), getDocumentTypeQuery(), parentQsm);
-                try
+                ResultSetRewindable parentTypesResult = loadResultSet(getDataspace().get().getService(), getDocumentTypeQuery(), parentQsm);
+                // the parent's types (not the typeless child's) must drive acl:accessToClass matching so the parent's
+                // write authorizations still apply; assigned now so the outer finally closes it on any exit path
+                aclTypesResult = parentTypesResult;
+
+                Set<Resource> parentTypes = new HashSet<>();
+                parentTypesResult.forEachRemaining(qs -> parentTypes.add(qs.getResource("Type")));
+
+                // only root and containers allow child documents. This needs to be checked before checking ownership
+                if (Collections.disjoint(parentTypes, Set.of(Default.Root, DH.Container))) return null;
+
+                // the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access
+                if (agent != null && isOwner(parent, agent))
                 {
-                    Set<Resource> parentTypes = new HashSet<>();
-                    parentTypesResult.forEachRemaining(qs -> parentTypes.add(qs.getResource("Type")));
-
-                    // only root and containers allow child documents. This needs to be checked before checking ownership
-                    if (Collections.disjoint(parentTypes, Set.of(Default.Root, DH.Container))) return null;
-
-                    // the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access
-                    if (agent != null && isOwner(parent, agent))
-                    {
-                        log.debug("Agent <{}> is the owner of <{}>, granting acl:Read/acl:Append/acl:Write access", agent, parent);
-                        createOwnerAuthorization(authorizations, parent, agent);
-                    }
-
-                    accessTo = parent; // redirect ACL query to parent URI since the document does not exist yet
+                    log.debug("Agent <{}> is the owner of <{}>, granting acl:Read/acl:Append/acl:Write access", agent, parent);
+                    createOwnerAuthorization(authorizations, parent, agent);
                 }
-                finally
-                {
-                    parentTypesResult.close();
-                }
+
+                accessTo = parent; // redirect ACL query to parent URI since the document does not exist yet
+                parentTypesResult.reset(); // rewind so the parent's types can be injected into the ACL query below
             }
          
-            ParameterizedSparqlString pss = getApplication().get().canAs(EndUserApplication.class) ? getACLQuery() : getOwnerACLQuery();
-            if (docTypesResult.hasNext())
+            ParameterizedSparqlString pss = getDataspace().get().canAs(EndUserDataspace.class) ? getACLQuery() : getOwnerACLQuery();
+            // the ACL query carries a fail-closed default VALUES ?Type { rdfs:Resource } (see web.xml); when the resource
+            // (or its parent, on a PUT-create) has a type, override that block with the real types so acl:accessToClass
+            // grants match. A typeless resource keeps the default, whose class no authorization uses, so it matches nothing.
+            if (aclTypesResult.hasNext())
             {
-                Query query = new SetResultSetValues().apply(pss.asQuery(), docTypesResult);
+                Query query = new SetResultSetValues().apply(pss.asQuery(), aclTypesResult);
                 pss = new ParameterizedSparqlString(query.toString()); // make sure type VALUES are now part of the query string
                 assert pss.toString().contains("VALUES");
             }
@@ -216,6 +235,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
         finally
         {
             docTypesResult.close();
+            if (aclTypesResult != docTypesResult) aclTypesResult.close(); // the parent's result set, when a PUT fell back to it
         }
     }
     
@@ -251,7 +271,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
         ParameterizedSparqlString pss = getDocumentOwnerQuery();
         pss.setParams(qsm);
 
-        ResultSetRewindable ownerResult = loadResultSet(getApplication().get().getService(), getDocumentOwnerQuery(), qsm); // could use ASK query in principle
+        ResultSetRewindable ownerResult = loadResultSet(getDataspace().get().getService(), getDocumentOwnerQuery(), qsm); // could use ASK query in principle
         try
         {
             return ownerResult.hasNext() && agent.equals(ownerResult.next().getResource("owner"));
@@ -358,9 +378,9 @@ public class AuthorizationFilter implements ContainerRequestFilter
      */
     protected Service getAdminService()
     {
-        return getApplication().get().canAs(EndUserApplication.class) ?
-            getApplication().get().as(EndUserApplication.class).getAdminApplication().getService() :
-            getApplication().get().getService();
+        return getDataspace().get().canAs(EndUserDataspace.class) ?
+            getDataspace().get().as(EndUserDataspace.class).getAdminDataspace().getService() :
+            getDataspace().get().getService();
     }
 
     /**
@@ -371,9 +391,9 @@ public class AuthorizationFilter implements ContainerRequestFilter
      */
     protected Resource getAdminBase()
     {
-        return getApplication().get().canAs(EndUserApplication.class) ?
-            getApplication().get().as(EndUserApplication.class).getAdminApplication().getBase() :
-            getApplication().get().getBase();
+        return getDataspace().get().canAs(EndUserDataspace.class) ?
+            getDataspace().get().as(EndUserDataspace.class).getAdminDataspace().getBase() :
+            getDataspace().get().getBase();
     }
     
     /**
@@ -381,7 +401,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
      *
      * @return optional application resource
      */
-    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
+    public Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace> getDataspace()
     {
         return app.get();
     }
@@ -391,7 +411,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
      * 
      * @return optional dataset resource
      */
-    public Optional<com.atomgraph.linkeddatahub.apps.model.Dataset> getDataset()
+    public Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataset> getDataset()
     {
         return dataset.get();
     }

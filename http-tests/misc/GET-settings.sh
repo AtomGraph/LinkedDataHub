@@ -6,6 +6,8 @@ initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
+reset_packages
+clear_ontology
 
 # Test: GET /settings - Retrieve current application settings
 
@@ -28,7 +30,7 @@ if ! echo "$body" | grep -q '<urn:linkeddatahub:apps/end-user>'; then
   exit 1
 fi
 
-if ! echo "$body" | grep -q '<https://w3id.org/atomgraph/linkeddatahub/apps#EndUserApplication>'; then
+if ! echo "$body" | grep -q '<https://w3id.org/atomgraph/linkeddatahub/dataspaces#EndUserDataspace>'; then
   exit 1
 fi
 

@@ -122,7 +122,7 @@ args+=("-t")
 args+=("text/turtle")
 args+=("$target")
 
-turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
+turtle+="@prefix dh:	<https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#> .\n"
 turtle+="@prefix ldh:	<https://w3id.org/atomgraph/linkeddatahub#> .\n"
 turtle+="@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"

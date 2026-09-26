@@ -1,0 +1,230 @@
+// A SKOS taxonomy for the concept-tree specs.
+//
+// Seeded through the API like the rest of the fixtures, and for the same reason: the tree
+// is built entirely out of what the hierarchy queries find, so a fixture that went in as a
+// TriG would prove the rendering works against data no create path can produce.
+//
+// The shape is deliberate rather than illustrative. SKOS lets either end of a hierarchy
+// link carry it, and the tree has to follow both, so each level here is asserted from a
+// different side: coffee names its own broader concept, tea is reached only because hot
+// drinks names it as narrower, and the two top concepts arrive one from each direction.
+// Depth is deliberate too - espresso sits three hops below the scheme, which is what makes
+// the reveal a walk rather than a single lookup.
+import { get } from './http.mjs';
+import { ldh } from './fixtures.mjs';
+import { adminBase, endUserBase } from './stack.mjs';
+
+const slug = 'ui-taxonomy';
+const SKOS = 'http://www.w3.org/2004/02/skos/core#';
+const FOAF = 'http://xmlns.com/foaf/0.1/';
+
+// The package under test. Without it the tree does not exist at all: the column, the
+// hierarchy queries and the reveal are all the package stylesheet's, not the platform's.
+export const taxonomyPackage = process.env.UI_TESTS_TAXONOMY_PACKAGE
+    ?? 'https://packages.linkeddatahub.com/editor/taxonomy/#this';
+
+export const taxonomy = { container: `${endUserBase}${slug}/` };
+
+// Where the application keeps its own copy of the package ontology, which is the document the
+// package's constructors are edited in: PackageService.getDocumentURI flattens the package URI's
+// path into a slug under the admin ontologies container (editor/taxonomy -> editor-taxonomy).
+export const packageOntologyDocument = (() => {
+    const path = new URL(taxonomyPackage).pathname.replace(/^\/+|\/+$/g, '').replace(/\//g, '-');
+    return `${adminBase}ontologies/${path}/`;
+})();
+
+export const document = name => `${taxonomy.container}${name}/`;
+// A concept is the document's topic, not the document. The tree links to the topic URI,
+// which is what every assertion addresses rows by.
+export const concept = name => `${document(name)}#this`;
+
+export const scheme = 'drinks';
+
+// asserts: which end carries the link to the parent named beside it.
+//   'self'   - the concept names its parent (skos:broader / skos:topConceptOf)
+//   'parent' - the parent names the concept (skos:narrower / skos:hasTopConcept)
+export const nodes = [
+    { name: 'drinks', label: 'Drinks', scheme: true },
+    { name: 'hot-drinks', label: 'Hot drinks', parent: scheme, top: true, asserts: 'self' },
+    { name: 'cold-drinks', label: 'Cold drinks', parent: scheme, top: true, asserts: 'parent' },
+    { name: 'coffee', label: 'Coffee', parent: 'hot-drinks', asserts: 'self' },
+    { name: 'tea', label: 'Tea', parent: 'hot-drinks', asserts: 'parent' },
+    { name: 'espresso', label: 'Espresso', parent: 'coffee', asserts: 'self' },
+    { name: 'latte', label: 'Latte', parent: 'coffee', asserts: 'parent' },
+    { name: 'juice', label: 'Juice', parent: 'cold-drinks', asserts: 'parent' },
+];
+
+export const labelOf = name => nodes.find(node => node.name === name).label;
+
+// PATCH takes INSERT/WHERE and DELETE WHERE only, so a seeding write is one INSERT with an
+// empty pattern rather than INSERT DATA.
+const insert = triples => `INSERT {\n${triples.map(t => `  ${t} .`).join('\n')}\n} WHERE {}`;
+
+function patch(uri, triples) {
+    return ldh(['patch', uri], { stdin: insert(triples) });
+}
+
+// The document's own triples plus its topic's. foaf:primaryTopic is seeded here because
+// ldh create does not write one, and without it the page has no topic: the tree reads
+// the scheme off the topic's skos:inScheme, so it would render nothing at all.
+function ownTriples(node) {
+    const self = concept(node.name);
+    const triples = [
+        `<${document(node.name)}> <${FOAF}primaryTopic> <${self}>`,
+        `<${self}> a <${SKOS}${node.scheme ? 'ConceptScheme' : 'Concept'}>`,
+        `<${self}> <${SKOS}prefLabel> "${node.label}"@en`,
+    ];
+    // Every concept needs skos:inScheme in the same write: the package constrains it
+    // (:MissingInScheme), so a concept seeded without it is refused with a 422.
+    if (!node.scheme) triples.push(`<${self}> <${SKOS}inScheme> <${concept(scheme)}>`);
+    if (node.asserts === 'self') {
+        triples.push(node.top
+            ? `<${self}> <${SKOS}topConceptOf> <${concept(node.parent)}>`
+            : `<${self}> <${SKOS}broader> <${concept(node.parent)}>`);
+    }
+    return triples;
+}
+
+// The link the parent carries, written into the PARENT's document because that is the
+// graph it belongs to - one concept per document means the two directions live in
+// different graphs, which is exactly what the tree's per-hop GRAPH scoping is for.
+function parentTriple(node) {
+    const relation = node.top ? 'hasTopConcept' : 'narrower';
+    return `<${concept(node.parent)}> <${SKOS}${relation}> <${concept(node.name)}>`;
+}
+
+async function packageInstalled() {
+    const { stdout } = await ldh(['packages', 'list']);
+    return stdout.split('\n').some(line => {
+        const [state, uri] = line.split('\t');
+        return state === 'installed' && uri === taxonomyPackage;
+    });
+}
+
+// Recorded so teardown puts the application back as it found it: importing a package
+// changes how every document in the dataspace renders, which is not the suite's to leave
+// behind on an instance that did not have it.
+let addedPackage = false;
+
+export async function seedTaxonomy() {
+    if (!await packageInstalled()) {
+        await ldh(['packages', 'add', '--package', taxonomyPackage]);
+        addedPackage = true;
+    }
+
+    // Importing the package clears the imports closure on the way through; finding it already
+    // imported does not, so on a second run the specs would read whatever closure was left
+    // cached - including graphs from fixtures this setup has just torn down. Clearing here makes
+    // the starting state the same either way. No ontology is named: nothing needs reloading, and
+    // the closures rebuild on the first page the suite opens.
+    await ldh(['admin', 'clear', 'ontology', '-b', adminBase]);
+
+    const container = await ldh(['create', 'container',
+        '--parent', endUserBase, '--title', 'UI test taxonomy', '--slug', slug]);
+    if (container.stdout !== taxonomy.container) {
+        throw new Error(`Expected the container at ${taxonomy.container}, got ${container.stdout}`);
+    }
+
+    // Serial, and in declaration order, because a link names a concept that has to exist
+    // by the time the constraint checks it.
+    for (const node of nodes) {
+        await ldh(['create', 'item', '--container', taxonomy.container,
+            '--title', node.label, '--slug', node.name]);
+        await patch(document(node.name), ownTriples(node));
+    }
+    for (const node of nodes.filter(n => n.asserts === 'parent')) {
+        await patch(document(node.parent), [parentTriple(node)]);
+    }
+
+    return { ...taxonomy, addedPackage };
+}
+
+// Seeds one more concept, and returns the undo. Kept out of `nodes` for the same reason
+// addBroader() is: what is declared there is what every other spec sees, and neither an
+// extra child nor a concept labelled in one language only is free of consequences for the
+// counts and the hierarchy those specs assert.
+export async function seedConcept({ name, label, lang = 'en', parent }) {
+    await ldh(['create', 'item', '--container', taxonomy.container,
+        '--title', label, '--slug', name]);
+
+    const self = concept(name);
+    await patch(document(name), [
+        `<${document(name)}> <${FOAF}primaryTopic> <${self}>`,
+        `<${self}> a <${SKOS}Concept>`,
+        `<${self}> <${SKOS}prefLabel> "${label}"@${lang}`,
+        `<${self}> <${SKOS}inScheme> <${concept(scheme)}>`,
+        `<${self}> <${SKOS}broader> <${concept(parent)}>`,
+    ]);
+
+    return () => ldh(['delete', document(name)], { allowFailure: true });
+}
+
+// Adds one triple to a document, for a spec that needs a shape the seeding above does not
+// carry. Paired with removeTriple below as its undo.
+export function addTriple(uri, triple) {
+    return patch(uri, [triple]);
+}
+
+// Drops one triple from a document, for a spec undoing what it drove the UI into writing.
+// Deleting the created document is not enough on its own: the link to it lives in the
+// graph of the concept it was created from, and a link left dangling is a row every other
+// spec would then see.
+export function removeTriple(uri, triple) {
+    return ldh(['patch', uri], { stdin: `DELETE WHERE {\n  ${triple} .\n}`, allowFailure: true });
+}
+
+// Adds a second parent to one concept, which is the only way to get a polyhierarchy past
+// the seeding above: every node there has exactly one. Returns the undo, because a fixture
+// that stays polyhierarchical changes what every other spec sees.
+export async function addBroader(name, parentName) {
+    const triple = `<${concept(name)}> <${SKOS}broader> <${concept(parentName)}>`;
+    await patch(document(name), [triple]);
+    return () => ldh(['patch', document(name)],
+        { stdin: `DELETE WHERE {\n  ${triple} .\n}` , allowFailure: true });
+}
+
+// The path a composed stylesheet is published under. A page that is being served the
+// stock one references client.xsl.sef.json instead, and says so in its own markup.
+const COMPOSED = 'static/xsl/sef/';
+
+// The package's rules reach the browser as a SEF composed from the platform's modules and
+// the package's, and that compile is asynchronous and best-effort: until it is published,
+// every page is served the STOCK stylesheet, which carries none of the package's rules -
+// no concept tree, no hierarchy column, no reveal. A lived-in dev stack composed it long
+// ago and the wait returns at once. A CI instance imports the package for the first time
+// against a freshly built image, and every spec that followed would race the compile and
+// fail as if the feature were missing.
+//
+// The key covers the platform build as well as the import set, so this is not only a
+// first-import concern: recompiling client.xsl gives the running application a new key,
+// and until that one is composed the browser is back on the stock stylesheet.
+export async function waitForPackageStylesheet({ timeout = 180_000, interval = 2_000 } = {}) {
+    const deadline = Date.now() + timeout;
+    while (Date.now() < deadline) {
+        // The taxonomy container, not the root: a dataspace's ROOT document is served the
+        // stock stylesheet even where its children get the composed one, so polling it
+        // would wait forever. Any other page names what it was rendered against, and an
+        // unauthenticated 403 names it too, so this needs no certificate. no-cache because
+        // Varnish would otherwise answer with an HTML from before the compile finished.
+        const { body } = await get(taxonomy.container,
+            { headers: { Accept: 'text/html', 'Cache-Control': 'no-cache' } });
+        if (body.includes(COMPOSED)) return true;
+        await new Promise(resolve => setTimeout(resolve, interval));
+    }
+    throw new Error(`No composed package stylesheet published after ${timeout / 1000}s.\n`
+        + `        Until one is, every page is served the stock stylesheet and the package's\n`
+        + `        rules are absent - a concept page would render no tree and no hierarchy\n`
+        + `        column, and the specs would fail as though the feature were missing.\n`
+        + `        Check the sef-compiler container: docker compose logs sef-compiler`);
+}
+
+export async function teardownTaxonomy() {
+    for (const node of nodes) {
+        await ldh(['delete', document(node.name)], { allowFailure: true });
+    }
+    await ldh(['delete', taxonomy.container], { allowFailure: true });
+    if (addedPackage) {
+        await ldh(['packages', 'remove', '--package', taxonomyPackage], { allowFailure: true });
+        addedPackage = false;
+    }
+}

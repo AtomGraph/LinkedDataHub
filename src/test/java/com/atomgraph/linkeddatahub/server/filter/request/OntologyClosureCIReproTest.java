@@ -52,9 +52,9 @@ public class OntologyClosureCIReproTest
     {
         PrefixGraphRepository repository = new PrefixGraphRepository(null);
 
-        // real bundled mappings
+        // real bundled mappings (prefix-mapping.ttl is the file the webapp loads, see web.xml)
         Model mappingModel = ModelFactory.createDefaultModel();
-        RDFParser.create().source("location-mapping.ttl").streamManager(repository.getStreamManager()).build().parse(mappingModel);
+        RDFParser.create().source("prefix-mapping.ttl").streamManager(repository.getStreamManager()).build().parse(mappingModel);
         repository.processConfig(mappingModel);
 
         // mimic SPARQL-first load result: the ldh# vocabulary as a store graph
@@ -79,7 +79,7 @@ public class OntologyClosureCIReproTest
         ns.add(nsOnt, RDF.type, OWL.Ontology);
         ns.add(nsOnt, OWL.imports, ns.createResource(LDH));
         Resource doc = ns.createResource("https://admin.localhost:4443/ontologies/namespace/");
-        ns.add(doc, RDF.type, ns.createResource("https://www.w3.org/ns/ldt/document-hierarchy#Item"));
+        ns.add(doc, RDF.type, ns.createResource("https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Item"));
         ns.add(doc, ResourceFactory.createProperty("http://purl.org/dc/terms/title"), "Namespace");
         repository.put(NS, ns.getGraph());
 
@@ -89,7 +89,7 @@ public class OntologyClosureCIReproTest
         // direct import: ldh.ttl content
         assertTrue(closure.contains(closure.createResource(LDH + "View"), RDF.type, RDFS.Class), "ldh# (direct import) must be in the closure");
         // transitive via ldh#: dh.ttl (bundled mapping)
-        assertTrue(closure.contains(closure.createResource("https://www.w3.org/ns/ldt/document-hierarchy#Item"), RDF.type, OWL.Class), "dh# (transitive, bundled) must be in the closure");
+        assertTrue(closure.contains(closure.createResource("https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Item"), RDF.type, OWL.Class), "dh# (transitive, bundled) must be in the closure");
         // transitive via ldh#: spin.ttl imported as http://spinrdf.org/spin (no hash)
         assertTrue(closure.contains(closure.createResource("http://spinrdf.org/spin#constraint"), RDF.type, RDF.Property), "spin (transitive, bundled, hashless import URI) must be in the closure");
         // transitive via dh#: sp.ttl imported as http://spinrdf.org/sp#

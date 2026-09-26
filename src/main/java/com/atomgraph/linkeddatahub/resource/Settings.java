@@ -17,10 +17,12 @@
 package com.atomgraph.linkeddatahub.resource;
 
 import com.atomgraph.core.util.ModelUtils;
-import com.atomgraph.linkeddatahub.apps.model.Application;
+import com.atomgraph.linkeddatahub.dataspaces.model.Dataspace;
 import com.atomgraph.linkeddatahub.resource.admin.ClearOntology;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
-import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import com.atomgraph.linkeddatahub.server.util.EntityTags;
+import com.atomgraph.linkeddatahub.vocabulary.LDS;
+import java.net.URI;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
@@ -59,7 +61,7 @@ public class Settings
 {
     private static final Logger log = LoggerFactory.getLogger(Settings.class);
 
-    private final Application application;
+    private final Dataspace application;
     private final com.atomgraph.linkeddatahub.Application system;
     private final Providers providers;
     private final Request request;
@@ -75,7 +77,7 @@ public class Settings
      * @param resourceContext JAX-RS resource context (for delegating to sub-resources)
      */
     @Inject
-    public Settings(Application application, com.atomgraph.linkeddatahub.Application system, @Context Providers providers, @Context Request request, @Context ResourceContext resourceContext)
+    public Settings(Dataspace application, com.atomgraph.linkeddatahub.Application system, @Context Providers providers, @Context Request request, @Context ResourceContext resourceContext)
     {
         this.application = application;
         this.system = system;
@@ -92,15 +94,15 @@ public class Settings
     @GET
     public Response get()
     {
-        Model dataspaceModel = getSystem().getDataspaceModel(getApplication());
+        Model dataspaceModel = getSystem().getDataspaceModel(getDataspace());
 
         if (dataspaceModel == null || dataspaceModel.isEmpty())
         {
-            if (log.isWarnEnabled()) log.warn("No settings found for dataspace <{}> in context dataset", getApplication().getURI());
+            if (log.isWarnEnabled()) log.warn("No settings found for dataspace <{}> in context dataset", getDataspace().getURI());
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        if (log.isDebugEnabled()) log.debug("Retrieved settings for dataspace <{}>", getApplication().getURI());
+        if (log.isDebugEnabled()) log.debug("Retrieved settings for dataspace <{}>", getDataspace().getURI());
 
         EntityTag entityTag = getEntityTag(dataspaceModel);
         Response.ResponseBuilder rb = getRequest().evaluatePreconditions(entityTag);
@@ -124,12 +126,12 @@ public class Settings
     {
         if (updateRequest == null) throw new BadRequestException("SPARQL update not specified");
 
-        if (log.isDebugEnabled()) log.debug("PATCH request for dataspace <{}>", getApplication().getURI());
+        if (log.isDebugEnabled()) log.debug("PATCH request for dataspace <{}>", getDataspace().getURI());
         if (log.isDebugEnabled()) log.debug("PATCH update string: {}", updateRequest.toString());
 
-        Model dataspaceModel = getSystem().getDataspaceModel(getApplication());
+        Model dataspaceModel = getSystem().getDataspaceModel(getDataspace());
         if (dataspaceModel == null || dataspaceModel.isEmpty())
-            throw new NotFoundException("No settings found for dataspace <" + getApplication().getURI() + "> in context dataset");
+            throw new NotFoundException("No settings found for dataspace <" + getDataspace().getURI() + "> in context dataset");
 
         // Create a mutable copy since getDataspaceModel() returns a read-only view
         Model mutableModel = ModelFactory.createDefaultModel().add(dataspaceModel);
@@ -139,10 +141,10 @@ public class Settings
         UpdateAction.execute(updateRequest, dataset);
 
         // Verify the application resource still exists with correct type after PATCH
-        Resource appResource = ResourceFactory.createResource(getApplication().getURI());
-        if (!mutableModel.contains(appResource, RDF.type, LAPP.EndUserApplication))
+        Resource appResource = ResourceFactory.createResource(getDataspace().getURI());
+        if (!mutableModel.contains(appResource, RDF.type, LDS.EndUserDataspace))
         {
-            if (log.isWarnEnabled()) log.warn("PATCH removed application resource or its type for <{}>", getApplication().getURI());
+            if (log.isWarnEnabled()) log.warn("PATCH removed application resource or its type for <{}>", getDataspace().getURI());
             throw new WebApplicationException("PATCH cannot remove the application resource or its type", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
         }
 
@@ -150,16 +152,20 @@ public class Settings
         validate(mutableModel);
 
         // Write the updated model back to the context dataset file
-        getSystem().updateApp(getApplication(), mutableModel);
+        getSystem().updateApp(getDataspace(), mutableModel);
 
         // clear and reload the ontology so the next request re-derives with the updated ldh:import set.
         // Delegate to ClearOntology (context-agnostic) for the full eviction - repository graph + closure
         // union + proxy cache purges - rather than duplicating it: clearing only the in-memory caches
-        // would leave stale /ns SPARQL responses in varnish after a package add/remove
-        if (getApplication().getOntology() != null)
-            getResourceContext().getResource(ClearOntology.class).post(getApplication().getOntology().getURI(), null);
+        // would leave stale /ns SPARQL responses in varnish after a package add/remove.
+        // This call does not re-enter the JAX-RS filter chain, so /clear's own authorization is NOT
+        // evaluated again: what guarded it is the authorization on this PATCH. Both are owner-only today
+        // (acl/groups/owners/#this in admin.trig), so they agree - but widening the settings ACL would
+        // widen the clear with it, silently, without touching /clear or any of its tests
+        if (getDataspace().getOntology() != null)
+            getResourceContext().getResource(ClearOntology.class).post(getDataspace().getOntology().getURI(), null);
 
-        if (log.isInfoEnabled()) log.info("Updated settings for dataspace <{}> via PATCH", getApplication().getURI());
+        if (log.isInfoEnabled()) log.info("Updated settings for dataspace <{}> via PATCH", getDataspace().getURI());
 
         return Response.noContent().build();
     }
@@ -169,7 +175,7 @@ public class Settings
      *
      * @return the application
      */
-    public Application getApplication()
+    public Dataspace getDataspace()
     {
         return application;
     }
@@ -236,7 +242,11 @@ public class Settings
      */
     public EntityTag getEntityTag(Model model)
     {
-        return new EntityTag(Long.toHexString(ModelUtils.hashModel(model)));
+        // digested with the URI and not folded from the triples, for the reason given on
+        // DocumentHierarchyGraphStoreImpl#getEntityTag: settings are PATCHable by an agent holding
+        // acl:Write without acl:Read, who can therefore move this tag without being able to read
+        // what it describes - and with an XOR fold that difference tells them what is in it
+        return EntityTags.entityTag(URI.create(getDataspace().getURI()), model);
     }
 
 }

@@ -27,8 +27,8 @@ import static com.atomgraph.core.model.SPARQLEndpoint.UPDATE;
 import static com.atomgraph.core.model.SPARQLEndpoint.USING_GRAPH_URI;
 import static com.atomgraph.core.model.SPARQLEndpoint.USING_NAMED_GRAPH_URI;
 import com.atomgraph.core.model.impl.dataset.ServiceImpl;
-import com.atomgraph.linkeddatahub.apps.model.Application;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.dataspaces.model.Dataspace;
+import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import com.atomgraph.linkeddatahub.server.util.OntologyRepository;
 import java.net.URI;
 import java.util.List;
@@ -64,7 +64,7 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
 
     private final URI uri;
     private final UriInfo uriInfo;
-    private final Application application;
+    private final Dataspace application;
     private final OntModel ontology;
     private final com.atomgraph.linkeddatahub.Application system;
 
@@ -81,7 +81,7 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
      */
     @Inject
     public Namespace(@Context Request request, @Context UriInfo uriInfo,
-            Application application, Optional<OntModel> ontology, MediaTypes mediaTypes,
+            Dataspace application, Optional<OntModel> ontology, MediaTypes mediaTypes,
             @Context SecurityContext securityContext, com.atomgraph.linkeddatahub.Application system)
     {
         super(request, new ServiceImpl(DatasetFactory.create(ontology.get()), mediaTypes), mediaTypes);
@@ -115,14 +115,14 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
         // if query param is not provided and the app is end-user, return the namespace ontology associated with this document
         if (query == null)
         {
-            if (getApplication().canAs(EndUserApplication.class))
+            if (getDataspace().canAs(EndUserDataspace.class))
             {
                 // the application ontology MUST use a <ns> URI! This is the URI this ontology endpoint is deployed on by the Dispatcher class
-                String ontologyURI = getApplication().getOntology().getURI();
+                String ontologyURI = getDataspace().getOntology().getURI();
                 if (log.isDebugEnabled()) log.debug("Returning raw namespace ontology: {}", ontologyURI);
                 // not returning the injected in-memory ontology because it is the full imports closure (a union view);
                 // the shared repository serves the standalone raw ontology graph
-                OntologyRepository repository = getSystem().getRepository(getApplication().as(EndUserApplication.class));
+                OntologyRepository repository = getSystem().getRepository(getDataspace().as(EndUserDataspace.class));
                 return getResponseBuilder(org.apache.jena.rdf.model.ModelFactory.createModelForGraph(repository.get(ontologyURI))).build();
             }
             else throw new BadRequestException("SPARQL query string not provided");
@@ -180,7 +180,7 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
      * 
      * @return application resource
      */
-    public Application getApplication()
+    public Dataspace getDataspace()
     {
         return application;
     }

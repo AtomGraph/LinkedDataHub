@@ -6,10 +6,12 @@ initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
+reset_packages
+clear_ontology
 
 # add agent to the writers group
 
-ldh admin acl add-agent-to-group \
+ldh admin add agent \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
@@ -24,6 +26,7 @@ item="${END_USER_BASE_URL}${slug}/"
 curl -k -w "%{http_code}\n" -o /dev/null -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -X PUT \
+  -H "If-Match: $(etag "$item" "$AGENT_CERT_FILE" "$AGENT_CERT_PWD" "application/n-triples")" \
   -H "Accept: application/n-triples" \
   -H "Content-Type: application/n-triples" \
   --data-binary @- \
@@ -42,7 +45,7 @@ item_ntriples=$(ldh get \
 
 # check that the default RDF type was assigned to the new document
 
-echo "$item_ntriples" | grep "<${item}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item>"
+echo "$item_ntriples" | grep "<${item}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Item>"
 
 # check that sioc:has_container was assigned to the new document
 
@@ -62,12 +65,13 @@ echo "$item_ntriples" | grep "<${item}> <http://purl.org/dc/terms/created> \""
 curl -k -w "%{http_code}\n" -o /dev/null -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -X PUT \
+  -H "If-Match: $(etag "$item" "$AGENT_CERT_FILE" "$AGENT_CERT_PWD" "application/n-triples")" \
   -H "Accept: application/n-triples" \
   -H "Content-Type: application/n-triples" \
   --data-binary @- \
   "$item" <<EOF
 <${item}> <http://example.com/default-predicate> "named object PUT" .
-<${item}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item> .
+<${item}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Item> .
 <${item}> <http://purl.org/dc/terms/title> "Title" .
 EOF
 ) \
@@ -82,7 +86,7 @@ item_ntriples=$(ldh get \
 
 # check that the default RDF type is still assigned to the document
 
-echo "$item_ntriples" | grep "<${item}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.w3.org/ns/ldt/document-hierarchy#Item>"
+echo "$item_ntriples" | grep "<${item}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Item>"
 
 # check that sioc:has_container is still assigned to the document
 

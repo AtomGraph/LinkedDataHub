@@ -6,6 +6,8 @@ initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
+reset_packages
+clear_ontology
 
 # Exercises the client-orchestrated "Add data" flow that replaced the server-side /add endpoint:
 # the browser GETs the external source through the same-origin ?uri= proxy as RDF/XML, then
@@ -13,13 +15,13 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 # add agent to the readers group (to read through the proxy) and the writers group (to append)
 
-ldh admin acl add-agent-to-group \
+ldh admin add agent \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/readers/"
 
-ldh admin acl add-agent-to-group \
+ldh admin add agent \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
@@ -27,7 +29,7 @@ ldh admin acl add-agent-to-group \
 
 # create the target container
 
-container=$(ldh create-container \
+container=$(ldh create container \
   -f "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
@@ -48,6 +50,8 @@ source_rdfxml=$(curl -k -f -s -G \
 echo "$source_rdfxml" | curl -k -w "%{http_code}\n" -o /dev/null -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -X POST \
+  -H "Accept: application/n-triples" \
+  -H "If-Match: $(etag "$container" "$AGENT_CERT_FILE" "$AGENT_CERT_PWD" "application/n-triples")" \
   -H "Content-Type: application/rdf+xml" \
   --data-binary @- \
   "$container" \

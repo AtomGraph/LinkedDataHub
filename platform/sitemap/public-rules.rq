@@ -1,0 +1,24 @@
+PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+
+# The public read rules of one dataspace, read from the admin service the entrypoint pairs with it.
+# $admin_base is that dataspace's admin origin: the rules are stored under it, and restricting the
+# graph keeps one dataspace's rules out of another's sitemap when both share an admin store.
+# Targets outside the dataspace need no filtering here - the sitemap query looks its documents up in
+# the dataspace's own store and filters them by its base.
+
+SELECT DISTINCT  ?to ?Type
+WHERE
+  { GRAPH ?authGraph
+      { ?auth  acl:mode        acl:Read ;
+               acl:agentClass  foaf:Agent
+          { ?auth  acl:accessTo  ?to }
+        UNION
+          { ?auth  acl:accessToClass  ?Class
+            GRAPH <urn:x-arq:UnionGraph>
+              { ?Type (rdfs:subClassOf)* ?Class }
+          }
+      }
+    FILTER strstarts(str(?authGraph), "$admin_base")
+  }

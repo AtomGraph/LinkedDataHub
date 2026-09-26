@@ -159,8 +159,8 @@ The [`ldh` command line interface](#command-line-interface) is attached to every
   Since version 5.1.0, a single LinkedDataHub instance supports multiple **dataspaces**, each identified by a distinct subdomain (origin). Each dataspace consists of a pair of applications: an end-user app (e.g. `https://northwind-traders.demo.localhost:4443`) and an admin app on the `admin.` subdomain (e.g. `https://admin.northwind-traders.demo.localhost:4443`).
 
   Dataspace configuration is split across two files:
-  - [`config/dataspaces.trig`](https://github.com/AtomGraph/LinkedDataHub/blob/master/config/dataspaces.trig) — public metadata: origins (`lapp:origin`), ontologies, stylesheets
-  - [`config/system.trig`](https://github.com/AtomGraph/LinkedDataHub/blob/master/config/system.trig) — internal wiring: SPARQL service bindings and application types (`lapp:AdminApplication`/`lapp:EndUserApplication`)
+  - [`config/dataspaces.trig`](https://github.com/AtomGraph/LinkedDataHub/blob/master/config/dataspaces.trig) — public metadata: origins (`lds:origin`), ontologies, stylesheets
+  - [`config/system.trig`](https://github.com/AtomGraph/LinkedDataHub/blob/master/config/system.trig) — internal wiring: SPARQL service bindings and dataspace types (`lds:AdminDataspace`/`lds:EndUserDataspace`)
 
   To add a new dataspace, add corresponding entries to both files. Relative URIs will be resolved against the base URI configured in the `.env` file.
 
@@ -184,7 +184,7 @@ _:warning: Do not use blank nodes to identify applications or services. We recom
      ```turtle
      <urn:linkeddatahub:apps/end-user>
      {
-         <urn:linkeddatahub:apps/end-user> lapp:versioningRepository <urn:linkeddatahub:versioning/end-user> .
+         <urn:linkeddatahub:apps/end-user> lds:versioningRepository <urn:linkeddatahub:versioning/end-user> .
      }
 
      <urn:linkeddatahub:versioning/end-user>
@@ -297,11 +297,11 @@ export LDH_CERT_FILE=./ssl/owner/keystore.p12
 export LDH_CERT_PASSWORD=$(cat secrets/owner_cert_password.txt)
 export LDH_BASE=https://localhost:4443/
 
-ldh create-container --parent "$LDH_BASE" --title "Concepts" --slug concepts
-ldh create-item --container "${LDH_BASE}concepts/" --title "Example" --slug example
+ldh create container --parent "$LDH_BASE" --title "Concepts" --slug concepts
+ldh create item --container "${LDH_BASE}concepts/" --title "Example" --slug example
 ```
 
-Commands that create or append to a document print its URL as the only line on stdout, so they compose in shell pipelines: `item=$(ldh create-item ...)`. The `bin/` subdirectories became nested subcommand groups — `ldh admin acl create-group`, `ldh content add-xhtml-block`, `ldh imports import-csv`. See [`cli/README.md`](https://github.com/AtomGraph/LinkedDataHub/blob/master/cli/README.md) for the full command table and the differences from the scripts.
+Commands that create or append to a document print its URL as the only line on stdout, so they compose in shell pipelines: `item=$(ldh create item ...)`. Commands group by verb — `ldh create container`, `ldh add xhtml-block`, `ldh import csv`, `ldh admin create group` — with `import` holding the workflows that compose the atomic commands. See [`cli/README.md`](https://github.com/AtomGraph/LinkedDataHub/blob/master/cli/README.md) for the full command table and the differences from the scripts.
 
 _:warning: The `bin/` HTTP API scripts that `ldh` replaces are **deprecated**. The certificate and WebID tooling (`webid-keygen.sh`, `webid-keygen-pem.sh`, `webid-uri.sh`, `webid-modulus.sh`, `server-cert-gen.sh`) talks to no API and stays in `bin/`._
 

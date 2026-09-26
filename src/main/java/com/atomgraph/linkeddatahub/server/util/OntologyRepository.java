@@ -16,10 +16,10 @@
  */
 package com.atomgraph.linkeddatahub.server.util;
 
-import com.atomgraph.client.vocabulary.LDT;
+import com.atomgraph.linkeddatahub.vocabulary.LDS;
 import com.atomgraph.core.client.GraphStoreClient;
 import com.atomgraph.client.util.jena.PrefixGraphRepository;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
@@ -46,7 +46,15 @@ public class OntologyRepository extends PrefixGraphRepository
 
     private static final Logger log = LoggerFactory.getLogger(OntologyRepository.class);
 
-    private final EndUserApplication app;
+    /**
+     * Surrogate key carried by every cached ontology response, beside the graph URI of the ontology it holds.
+     * Purging it evicts all of them at once, which is what clearing the ontology caches needs: a closure
+     * resolves every URI it imports, so evicting only the one a caller named leaves the imports to answer from
+     * the proxy. A URN, so it cannot collide with a graph URI in the same key list.
+     */
+    public static final String ONTOLOGY_XKEY = "urn:linkeddatahub:ontology";
+
+    private final EndUserDataspace app;
     private final com.atomgraph.linkeddatahub.Application system;
     private final Query ontologyQuery;
 
@@ -58,7 +66,7 @@ public class OntologyRepository extends PrefixGraphRepository
      * @param gsc Graph Store client for HTTP fallback loading
      * @param ontologyQuery SPARQL query that loads ontology terms
      */
-    public OntologyRepository(EndUserApplication app, com.atomgraph.linkeddatahub.Application system, GraphStoreClient gsc, Query ontologyQuery)
+    public OntologyRepository(EndUserDataspace app, com.atomgraph.linkeddatahub.Application system, GraphStoreClient gsc, Query ontologyQuery)
     {
         super(gsc);
         this.app = app;
@@ -88,21 +96,32 @@ public class OntologyRepository extends PrefixGraphRepository
     @Override
     public Graph get(String uri)
     {
-        // bundled system vocabularies (mapped to shipped files) and already-materialized ontologies bypass the
-        // admin SPARQL query — the bundled file is authoritative, and querying it would be a wasted round-trip
-        if (isMapped(uri) || isCached(uri)) return super.get(uri);
+        // Only an already-loaded graph bypasses the query. A bundled mapping does NOT: an application may
+        // hold its own graph for the very URI a shipped file is mapped to - an imported vocabulary carrying
+        // its annotations, a materialized package ontology - and letting the mapping win there would
+        // silently shadow the application's own data with a read-only copy. The store is therefore asked
+        // first and the mapping is the fallback. This costs one empty query per bundled vocabulary per
+        // repository, not per closure build, because super.get() caches what it loads and isCached() then
+        // short-circuits every later call
+        if (isCached(uri)) return super.get(uri);
 
         // attempt to load the ontology from the admin endpoint
         ParameterizedSparqlString ontologyPss = new ParameterizedSparqlString(getOntologyQuery().toString());
-        ontologyPss.setIri(LDT.ontology.getLocalName(), uri);
+        ontologyPss.setIri(LDS.ontology.getLocalName(), uri);
 
-        // surrogate-key hint: tag the cached CONSTRUCT response in varnish-admin with the ontology graph URI
-        // so that ClearOntology's XKEY-PURGE for the same URI surgically evicts it
+        // Surrogate-key hints for the CONSTRUCT this is about to cache in varnish-admin. The VCL promotes the
+        // header verbatim into the response's xkey index, which reads it as a space-separated key list, so this
+        // tags the object twice: with the graph URI, which addresses this one ontology, and with the shared key,
+        // which addresses every ontology response at once. The shared key is what lets a clear be complete -
+        // assembling a closure resolves and caches every URI it imports, each under its own graph URI, and
+        // purging only the URI the caller named leaves those imports in the proxy to be read straight back into
+        // the closure that was just discarded. Stamped here, where the response is cached, so what a purge
+        // covers cannot drift from what the cache actually holds
         MultivaluedMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putSingle("X-Xkey-Promote", uri);
+        headers.putSingle("X-Xkey-Promote", uri + " " + ONTOLOGY_XKEY);
 
         Model model;
-        try (Response cr = getSystem().getServiceContext(getApplication().getAdminApplication().getService()).getSPARQLClient().
+        try (Response cr = getSystem().getServiceContext(getDataspace().getAdminDataspace().getService()).getSPARQLClient().
                 query(ontologyPss.asQuery(), Model.class, new MultivaluedHashMap<>(), headers))
         {
             model = cr.readEntity(Model.class);
@@ -124,7 +143,7 @@ public class OntologyRepository extends PrefixGraphRepository
      *
      * @return application resource
      */
-    public EndUserApplication getApplication()
+    public EndUserDataspace getDataspace()
     {
         return app;
     }

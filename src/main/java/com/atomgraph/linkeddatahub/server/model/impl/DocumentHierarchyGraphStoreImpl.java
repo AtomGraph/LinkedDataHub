@@ -21,9 +21,10 @@ import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.model.EndpointAccessor;
 import com.atomgraph.core.riot.lang.RDFPostReader;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import com.atomgraph.linkeddatahub.client.GitHubClient;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
+import com.atomgraph.linkeddatahub.client.filter.UnlimitedContentLengthFilter;
 import com.atomgraph.linkeddatahub.model.CSVImport;
 import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.linkeddatahub.model.Service;
@@ -31,6 +32,7 @@ import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
 import com.atomgraph.linkeddatahub.server.model.Patchable;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.PatchUpdateVisitor;
+import com.atomgraph.linkeddatahub.server.util.EntityTags;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.DH;
@@ -38,7 +40,10 @@ import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import com.atomgraph.linkeddatahub.vocabulary.SIOC;
 import com.atomgraph.linkeddatahub.writer.TimeMapWriter;
+import com.atomgraph.server.exception.SHACLConstraintViolationException;
+import com.atomgraph.server.exception.SPINConstraintViolationException;
 import static com.atomgraph.server.status.UnprocessableEntityStatus.UNPROCESSABLE_ENTITY;
+import com.atomgraph.spinrdf.constraints.ConstraintViolation;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.MessageDigest;
@@ -104,11 +109,13 @@ import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
+import org.apache.jena.shacl.validation.ReportEntry;
 import org.apache.jena.sparql.modify.request.UpdateDeleteWhere;
 import org.apache.jena.sparql.modify.request.UpdateModify;
 import org.apache.jena.sparql.vocabulary.FOAF;
@@ -162,7 +169,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
      */
     public static final String ACCEPT_DATETIME_HEADER = "Accept-Datetime";
     
-    private final com.atomgraph.linkeddatahub.apps.model.Application application;
+    private final com.atomgraph.linkeddatahub.dataspaces.model.Dataspace application;
     private final OntModel ontology;
     private final Service service;
     private final Providers providers;
@@ -193,13 +200,13 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
      */
     @Inject
     public DocumentHierarchyGraphStoreImpl(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
-        com.atomgraph.linkeddatahub.apps.model.Application application, Optional<OntModel> ontology, Optional<Service> service,
+        com.atomgraph.linkeddatahub.dataspaces.model.Dataspace application, Optional<OntModel> ontology, Optional<Service> service,
         @Context SecurityContext securityContext, Optional<AgentContext> agentContext,
         @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context HttpHeaders httpHeaders)
     {
-        super(request, system.getServiceContext(service.get()).getGraphStoreClient(), mediaTypes, uriInfo);
+        // orElseThrow: the super() call dereferences the service before any statement can check emptiness
+        super(request, system.getServiceContext(service.orElseThrow(() -> new InternalServerErrorException("Service is not specified"))).getGraphStoreClient(), mediaTypes, uriInfo);
         if (ontology.isEmpty()) throw new InternalServerErrorException("Ontology is not specified");
-        if (service.isEmpty()) throw new InternalServerErrorException("Service is not specified");
         this.application = application;
         this.ontology = ontology.get();
         this.service = service.get();
@@ -287,7 +294,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             }
 
             GitHubClient.CommitInfo commit = getSystem().getGraphVersioningService().
-                getMemento(getApplication().getURI(), getApplication().getBaseURI(), getURI(), datetime).
+                getMemento(getDataspace().getURI(), getDataspace().getBaseURI(), getURI(), datetime).
                 orElseThrow(() -> new NotFoundException("Document <" + getURI() + "> has no version history"));
 
             // negotiation has to see the current history, and Accept-Datetime takes unbounded values, so the
@@ -306,7 +313,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         if (getUriInfo().getQueryParameters().containsKey(TIMEMAP_PARAM_NAME))
         {
             Model timeMap = getSystem().getGraphVersioningService().
-                getTimeMap(getApplication().getURI(), getApplication().getBaseURI(), getURI()).
+                getTimeMap(getDataspace().getURI(), getDataspace().getBaseURI(), getURI()).
                 orElseThrow(() -> new NotFoundException("Document <" + getURI() + "> has no version history"));
 
             // link-format is only offered on the TimeMap, where it is meaningful; it leads the list so that
@@ -333,7 +340,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         if (!version.matches("[0-9a-f]{4,64}")) throw new NotFoundException("Version '" + version + "' of graph <" + getURI() + "> not found");
 
         com.atomgraph.linkeddatahub.server.util.GraphVersioningService.Version graphVersion = getSystem().getGraphVersioningService().
-            getVersion(getApplication().getURI(), getApplication().getBaseURI(), getURI(), version).
+            getVersion(getDataspace().getURI(), getDataspace().getBaseURI(), getURI(), version).
             orElseThrow(() -> new NotFoundException("Version '" + version + "' of graph <" + getURI() + "> not found"));
 
         CacheControl cacheControl = new CacheControl();
@@ -366,7 +373,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
 
         final Model existingModel = getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(getURI().toString());
         
-        Response.ResponseBuilder rb = evaluatePreconditions(existingModel);
+        Response.ResponseBuilder rb = evaluatePreconditions(existingModel, getHttpHeaders());
         if (rb != null) return rb.build(); // preconditions not met
         
         model.createResource(getURI().toString()).
@@ -436,7 +443,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         {
             existingModel = getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(getURI().toString());
             
-            Response.ResponseBuilder rb = evaluatePreconditions(existingModel);
+            Response.ResponseBuilder rb = evaluatePreconditions(existingModel, getHttpHeaders());
             if (rb != null) return rb.build(); // preconditions not met
         }
         catch (NotFoundException ex)
@@ -449,7 +456,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             removeAll(SIOC.HAS_PARENT).
             removeAll(SIOC.HAS_CONTAINER);
 
-        if (!getApplication().getBaseURI().equals(getURI())) // don't update Root document's metadata
+        if (!getDataspace().getBaseURI().equals(getURI())) // don't update Root document's metadata
         {
             if (resource.hasProperty(RDF.type, DH.Container))
                 resource.addProperty(SIOC.HAS_PARENT, parent);
@@ -541,7 +548,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         final Model existingModel = getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(getURI().toString());
         if (existingModel == null) throw new NotFoundException("Named graph with URI <" + getURI() + "> not found");
 
-        Response.ResponseBuilder rb = evaluatePreconditions(existingModel);
+        Response.ResponseBuilder rb = evaluatePreconditions(existingModel, getHttpHeaders());
         if (rb != null) return rb.build(); // preconditions not met
 
         Model beforeUpdateModel = ModelFactory.createDefaultModel().add(existingModel);
@@ -561,7 +568,29 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
                 throw new WebApplicationException("rdf:type cannot be removed from resource <" + resource + ">", UNPROCESSABLE_ENTITY.getStatusCode());
         }
 
-        validate(dataset.getDefaultModel()); // this would normally be done transparently by the ValidatingModelProvider
+        try
+        {
+            validate(dataset.getDefaultModel()); // this would normally be done transparently by the ValidatingModelProvider
+        }
+        catch (SPINConstraintViolationException ex)
+        {
+            // the whole post-PATCH graph gets validated, but the 422 body must describe only the
+            // violating resources - the full graph would leak every sibling resource into the
+            // error response, unlike POST/PUT whose echoed model is the request payload
+            Set<Resource> roots = new HashSet<>();
+            for (ConstraintViolation cv : ex.getConstraintViolations())
+                if (cv.getRoot() != null) roots.add(cv.getRoot());
+
+            throw new SPINConstraintViolationException(ex.getConstraintViolations(), describeResources(roots, dataset.getDefaultModel()));
+        }
+        catch (SHACLConstraintViolationException ex)
+        {
+            Set<Resource> roots = new HashSet<>();
+            for (ReportEntry entry : ex.getValidationReport().getEntries())
+                if (!entry.focusNode().isLiteral()) roots.add(dataset.getDefaultModel().asRDFNode(entry.focusNode()).asResource());
+
+            throw new SHACLConstraintViolationException(ex.getValidationReport(), describeResources(roots, dataset.getDefaultModel()));
+        }
         put(dataset.getDefaultModel(), Boolean.FALSE, getURI());
         
         return getInternalResponse(dataset.getDefaultModel(), null).getResponseBuilder(). // entity tag of the updated graph
@@ -693,7 +722,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         {
             Model existingModel = getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(getURI().toString());
             
-            Response.ResponseBuilder rb = evaluatePreconditions(existingModel);
+            Response.ResponseBuilder rb = evaluatePreconditions(existingModel, getHttpHeaders());
             if (rb != null) return rb.build(); // preconditions not met
         }
         catch (NotFoundException ex)
@@ -746,7 +775,10 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
                 getWritableMediaTypes(Model.class),
                 getLanguages(),
                 getEncodings(),
-                new HTMLMediaTypePredicate());
+                new HTMLMediaTypePredicate(),
+                // the HTML rendering negotiates over the whole accepted-language list, so two requests selecting the same
+                // variant can still differ; passing it makes the entity tag tell those representations apart
+                getHttpHeaders().getAcceptableLanguages());
     }
     
     /**
@@ -925,9 +957,13 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             filterKeep(_import -> { return _import.canAs(CSVImport.class) || _import.canAs(RDFImport.class); }); // canAs(Import.class) would require InfModel
         try
         {
-            Service adminService = getApplication().canAs(EndUserApplication.class) ? getApplication().as(EndUserApplication.class).getAdminApplication().getService() : null;
+            Service adminService = getDataspace().canAs(EndUserDataspace.class) ? getDataspace().as(EndUserDataspace.class).getAdminDataspace().getService() : null;
+            // the graphs this writes are this deployment's own documents, so the content limit does not
+            // apply - registered on the client, not on importClient, which also fetches the import SOURCE
+            // from a URL nobody controls and stays bounded
             GraphStoreClient gsc = GraphStoreClient.create(getSystem().getImportClient(), getSystem().getMediaTypes()).
                 delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
+            gsc.register(new UnlimitedContentLengthFilter());
 
             while (it.hasNext())
             {
@@ -935,9 +971,9 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
 
                 // start the import asynchroniously
                 if (_import.canAs(CSVImport.class))
-                    getSystem().submitImport(_import.as(CSVImport.class), getApplication(), getApplication().getService(), adminService, getUriInfo().getBaseUri().toString(), gsc);
+                    getSystem().submitImport(_import.as(CSVImport.class), getDataspace(), getDataspace().getService(), adminService, getUriInfo().getBaseUri().toString(), gsc);
                 if (_import.canAs(RDFImport.class))
-                    getSystem().submitImport(_import.as(RDFImport.class), getApplication(), getApplication().getService(), adminService, getUriInfo().getBaseUri().toString(), gsc);
+                    getSystem().submitImport(_import.as(RDFImport.class), getDataspace(), getDataspace().getService(), adminService, getUriInfo().getBaseUri().toString(), gsc);
             }
         }
         finally
@@ -1039,20 +1075,109 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     {
         MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE);
         if (reader instanceof ValidatingModelProvider validatingModelProvider) return validatingModelProvider.processRead(model);
-        
+
         throw new InternalServerErrorException("Could not obtain ValidatingModelProvider instance");
+    }
+
+    /**
+     * Copies the concise bounded descriptions of the given resources from a model.
+     *
+     * @param resources described resources
+     * @param model source model
+     * @return model with the descriptions
+     */
+    public Model describeResources(Set<Resource> resources, Model model)
+    {
+        Model description = ModelFactory.createDefaultModel();
+        for (Resource resource : resources) addDescription(resource.inModel(model), description);
+        return description;
+    }
+
+    /**
+     * Adds a resource's properties to the description model, following anonymous objects.
+     *
+     * @param resource described resource
+     * @param description target model
+     */
+    protected void addDescription(Resource resource, Model description)
+    {
+        StmtIterator it = resource.listProperties();
+        try
+        {
+            while (it.hasNext())
+            {
+                Statement stmt = it.next();
+                description.add(stmt);
+                if (stmt.getObject().isAnon() && !description.contains(stmt.getResource(), null, (RDFNode)null))
+                    addDescription(stmt.getResource(), description);
+            }
+        }
+        finally
+        {
+            it.close();
+        }
     }
     
     /**
+     * Returns the entity tag of a graph, digested with its URI rather than folded from its triples.
+     *
+     * Core's implementation XORs a hash per triple, which makes the tag linear in the set: appending
+     * a triple moves it by a value the appender can compute. Since HEAD is answered for any access
+     * mode - so that an agent with acl:Append and no acl:Read can obtain the validator its writes
+     * must quote - that turns a dropbox into a membership oracle: append a triple, see whether the
+     * tag moved by its hash, learn whether it was already there. The URI goes into the digest for
+     * the same reason: without it, identical content in two documents shares a tag, and a guess can
+     * be materialized somewhere readable and compared.
+     *
+     * @param model RDF model
+     * @return entity tag
+     */
+    @Override
+    public EntityTag getEntityTag(Model model)
+    {
+        return EntityTags.entityTag(getURI(), model);
+    }
+
+    /**
      * Evaluates the state of the given graph against the request preconditions.
      * Checks the last modified data (if any) and calculates an <code>ETag</code> value.
+     * A write to a graph that already exists must carry <code>If-Match</code>; one that does not is answered
+     * <code>428 Precondition Required</code>.
      * 
      * @param model RDF model
+     * @param httpHeaders the request headers the preconditions are read from
      * @return {@code jakarta.ws.rs.core.Response.ResponseBuilder} instance. <code>null</code> if preconditions are not met.
      */
-    public Response.ResponseBuilder evaluatePreconditions(Model model)
+    public Response.ResponseBuilder evaluatePreconditions(Model model, HttpHeaders httpHeaders)
     {
-        return getInternalResponse(model, getURI()).evaluatePreconditions();
+        // A write to a document that already exists has to say which state it was written against. Every write
+        // here is a whole-graph read-modify-write - the graph is read, changed in memory and written back - so
+        // two unconditional writers overwrite each other with nothing to show that anything was lost. Measured
+        // in the constructor editor: one save's DELETE was correct in every detail, answered 204, and was
+        // reinstated by a second write that had read the graph before it landed. A document that does not exist
+        // yet has no validator to match, so creating one is exempt.
+        // blank counts as absent: an empty If-Match is not a validator, and reading it as one let a client opt
+        // out of the precondition entirely by sending the header with nothing in it - measured, 204 not 428
+        // If-None-Match satisfies the requirement in its own right: "only if this does not exist" is a
+        // precondition, and a write carrying it is asking to CREATE - it cannot also quote an entity tag it is
+        // asserting there is none of. The import writer uses exactly that idiom, PUT with If-None-Match: * and
+        // then POST on the 412 that says the document is already there; demanding If-Match of it answered 428,
+        // which is not 412, so the fallback never ran and every RDF import failed.
+        String ifMatch = httpHeaders.getHeaderString(HttpHeaders.IF_MATCH);
+        String ifNoneMatch = httpHeaders.getHeaderString(HttpHeaders.IF_NONE_MATCH);
+        if (model != null && !model.isEmpty() && (ifMatch == null || ifMatch.isBlank()) && (ifNoneMatch == null || ifNoneMatch.isBlank()))
+            throw new WebApplicationException("Writing an existing document requires the If-Match header",
+                Response.status(Response.Status.PRECONDITION_REQUIRED).build());
+
+        com.atomgraph.core.model.impl.Response internalResponse = getInternalResponse(model, getURI());
+        Response.ResponseBuilder rb = internalResponse.evaluatePreconditions();
+
+        // a precondition that failed says what the current validator IS, so the client can retry against it
+        // without a second read - the create-or-append idiom (PUT If-None-Match: *, POST on the 412) has no
+        // other way to learn it, and a 304 is supposed to carry its entity tag in any case
+        if (rb != null) rb.tag(internalResponse.getVariantEntityTag());
+
+        return rb;
     }
     
     /**
@@ -1180,7 +1305,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
      * 
      * @return application resource
      */
-    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
+    public com.atomgraph.linkeddatahub.dataspaces.model.Dataspace getDataspace()
     {
         return application;
     }

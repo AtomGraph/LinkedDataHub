@@ -1,0 +1,21 @@
+@base           <https://packages.linkeddatahub.com/editor/taxonomy/> .
+@prefix :       <#> .
+@prefix lds:    <https://w3id.org/atomgraph/linkeddatahub/dataspaces#> .
+@prefix ac:     <https://w3id.org/atomgraph/client#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dct:    <http://purl.org/dc/terms/> .
+@prefix foaf:   <http://xmlns.com/foaf/0.1/> .
+
+<https://packages.linkeddatahub.com/editor/taxonomy/#this> a lds:Package ;
+    rdfs:label "Taxonomy Editor" ;
+    dct:title "Taxonomy Editor for LinkedDataHub" ;
+    dct:description "Turns a dataspace into a taxonomy editor: SKOS concepts, schemes and collections gain a concept tree beside the content, hierarchy views that read both assertion directions, and constructors and constraints that keep a concept labelled and in a scheme." ;
+    dct:creator <https://atomgraph.com/#company> ;
+    lds:ontology <https://raw.githubusercontent.com/AtomGraph/LinkedDataHub-Apps/refs/heads/develop/packages/editor/taxonomy/ns.ttl#> ;
+    # the published copy, which the application takes its own copy of at import and then serves from
+    # its own origin - so what a running instance compiles cannot change under it afterwards
+    ac:stylesheet <https://raw.githubusercontent.com/AtomGraph/LinkedDataHub-Apps/refs/heads/develop/packages/editor/taxonomy/skos.xsl> .
+
+<https://atomgraph.com/#company> a foaf:Organization ;
+    foaf:name "AtomGraph" ;
+    foaf:homepage <https://atomgraph.com> .

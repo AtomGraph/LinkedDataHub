@@ -6,6 +6,8 @@ initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
+reset_packages
+clear_ontology
 
 # access is unauthorized
 
@@ -20,7 +22,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
 
 slug="test"
 
-container=$(ldh create-container \
+container=$(ldh create container \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
@@ -30,7 +32,7 @@ container=$(ldh create-container \
 
 # create fake test.localhost authorization (should be filtered out)
 
-ldh admin acl create-authorization \
+ldh admin create authorization \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "https://admin.test.localhost:4443/" \
@@ -50,7 +52,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
 
 # create real localhost authorization
 
-ldh admin acl create-authorization \
+ldh admin create authorization \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
@@ -65,5 +67,6 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: application/n-triples" \
   -X DELETE \
+  -H "If-Match: $(etag "$container" "$AGENT_CERT_FILE" "$AGENT_CERT_PWD" "application/n-triples")" \
   "$container" \
 | grep -q "$STATUS_NO_CONTENT"

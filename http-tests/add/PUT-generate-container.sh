@@ -6,6 +6,8 @@ initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$ADMIN_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
+reset_packages
+clear_ontology
 
 # Exercises the client-orchestrated "Generate containers" flow that replaced the server-side
 # /generate endpoint. The client builds one container document per checked class -- a dh:Container
@@ -16,7 +18,7 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 
 # add agent to the writers group
 
-ldh admin acl add-agent-to-group \
+ldh admin add agent \
   -f "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
@@ -25,7 +27,7 @@ ldh admin acl add-agent-to-group \
 parent="$END_USER_BASE_URL"
 uuid=$(uuidgen | tr '[:upper:]' '[:lower:]')
 container="${parent}${uuid}/"
-class="https://www.w3.org/ns/ldt/document-hierarchy#Container"
+class="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Container"
 
 # PUT the generated container document (blank nodes are skolemized server-side)
 
@@ -35,9 +37,9 @@ http_code=$(curl -k -s -o /dev/null -w "%{http_code}" \
   -H "Content-Type: application/rdf+xml" \
   --data-binary @- \
   "$container" <<EOF
-<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dct="http://purl.org/dc/terms/" xmlns:sioc="http://rdfs.org/sioc/ns#" xmlns:dh="https://www.w3.org/ns/ldt/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:spin="http://spinrdf.org/spin#" xmlns:sp="http://spinrdf.org/sp#">
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dct="http://purl.org/dc/terms/" xmlns:sioc="http://rdfs.org/sioc/ns#" xmlns:dh="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:spin="http://spinrdf.org/spin#" xmlns:sp="http://spinrdf.org/sp#">
   <rdf:Description rdf:about="${container}">
-    <rdf:type rdf:resource="https://www.w3.org/ns/ldt/document-hierarchy#Container"/>
+    <rdf:type rdf:resource="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Container"/>
     <sioc:has_parent rdf:resource="${parent}"/>
     <dct:title>Containers</dct:title>
     <dh:slug>${uuid}</dh:slug>

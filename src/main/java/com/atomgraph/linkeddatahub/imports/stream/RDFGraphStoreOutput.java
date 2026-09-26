@@ -118,7 +118,12 @@ public class RDFGraphStoreOutput
                             {
                                 if (putResponse.getStatusInfo().equals(Response.Status.PRECONDITION_FAILED))
                                 {
-                                    try (Response postResponse = getGraphStoreClient().post(URI.create(graphUri), namedModel))
+                                    // append conditionally, on the validator the 412 just named - see the same
+                                    // idiom below, where the import writes its single target graph
+                                    MultivaluedMap<String, Object> postHeaders = new MultivaluedHashMap();
+                                    if (putResponse.getEntityTag() != null) postHeaders.putSingle(HttpHeaders.IF_MATCH, putResponse.getEntityTag().toString());
+
+                                    try (Response postResponse = getGraphStoreClient().post(URI.create(graphUri), Entity.entity(namedModel, getGraphStoreClient().getDefaultMediaType()), new jakarta.ws.rs.core.MediaType[]{}, postHeaders))
                                     {
                                         if (!postResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                                         {
@@ -171,7 +176,14 @@ public class RDFGraphStoreOutput
             {
                 if (putResponse.getStatusInfo().equals(Response.Status.PRECONDITION_FAILED))
                 {
-                    try (Response postResponse = getGraphStoreClient().post(URI.create(getGraphURI()), model))
+                    // the document is already there, so append instead - conditionally, because the graph store
+                    // refuses a write to an existing document that does not say which state it was written
+                    // against. The 412 just named that state, so the append quotes it back and no extra read is
+                    // needed; a 412 of its own would then mean the document changed between the two requests.
+                    MultivaluedMap<String, Object> postHeaders = new MultivaluedHashMap();
+                    if (putResponse.getEntityTag() != null) postHeaders.putSingle(HttpHeaders.IF_MATCH, putResponse.getEntityTag().toString());
+
+                    try (Response postResponse = getGraphStoreClient().post(URI.create(getGraphURI()), Entity.entity(model, getGraphStoreClient().getDefaultMediaType()), new jakarta.ws.rs.core.MediaType[]{}, postHeaders))
                     {
                         if (!postResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                         {
