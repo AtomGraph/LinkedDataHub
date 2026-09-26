@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.request;
 
+import com.atomgraph.linkeddatahub.client.exception.ResponseContentTooLargeException;
 import com.atomgraph.linkeddatahub.client.util.RejectTooLargeResponseInputStream;
 import com.atomgraph.linkeddatahub.server.exception.RequestContentTooLargeException;
 import com.atomgraph.linkeddatahub.server.util.RejectTooLargeRequestInputStream;
@@ -101,10 +102,14 @@ public class ContentLengthLimitFilter implements ContainerRequestFilter, ClientR
         int contentLength = Integer.parseInt(contentLengthString);
         if (contentLength > getMaxContentLength())
         {
-            if (log.isDebugEnabled()) log.debug("POST or PUT request rejected due to Content-Length: {} which is larger than the configured limit {}", contentLength, getMaxContentLength());
-            throw new RequestContentTooLargeException(getMaxContentLength(), contentLength);
+            // ResponseContentTooLargeException (502), not RequestContentTooLargeException (413): what was too
+            // large is the upstream's response, and 413 states that the caller's request body was - false on a
+            // GET that carries none. The streaming branch above already throws this, so a response with a
+            // Content-Length and the same response chunked no longer answer with different statuses
+            if (log.isDebugEnabled()) log.debug("Response rejected due to Content-Length: {} which is larger than the configured limit {}", contentLength, getMaxContentLength());
+            throw new ResponseContentTooLargeException(getMaxContentLength(), contentLength);
         }
-        
+
         responseContext.setEntityStream(new RejectTooLargeResponseInputStream(responseContext.getEntityStream(), getMaxContentLength()));
     }
 

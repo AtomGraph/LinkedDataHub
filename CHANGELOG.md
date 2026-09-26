@@ -192,6 +192,8 @@ Every namespace LDH defines now lives under `https://w3id.org/atomgraph/linkedda
 - CSV/RDF imports validate the `ldh:file` source and `spin:query` URIs via `URLValidator` before fetching, closing an SSRF surface on the import path
 - An unbound `$Type` in the ACL query was a wildcard, so a typeless resource (`/settings`, `/sparql`, a missing URL) matched every `acl:accessToClass` authorization; both ACL queries carry a default `VALUES ?Type { rdfs:Resource }`
 - Net access after the fix: `/settings` owner-only, `/sparql` authenticated-only, `/ns` and `/access` public, OAuth login public
+- `MAX_CONTENT_LENGTH` bounds what the Linked Data proxy and the imports fetch from origins nobody controls; it was applied to the responses the deployment's own triplestore returns as well, so a document whose graph serialized past it could not be read at all, and could no longer be written either — a `PATCH` reads the graph, changes it and writes it back, so the read-back was refused too. The write that grew the graph was never bounded, so a successful import could leave a document permanently stuck. Requests to the deployment's own SPARQL, Graph Store and Quad Store services are exempt; the proxy, the import sources and WebID dereferencing stay bounded
+- An oversize response answers `502` rather than `413`: what was too large is the upstream's response, and `413` states that the caller's request body was — untrue of a `GET` that carries none. A response with a `Content-Length` and the same response chunked previously answered with different statuses
 
 ### Known limitations
 - The in-place editor edits tab-group content but cannot create tab groups; that markup is authored via the HTTP API (e.g. `ldh put`) for now

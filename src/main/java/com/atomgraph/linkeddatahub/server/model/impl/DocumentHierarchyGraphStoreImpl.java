@@ -24,6 +24,7 @@ import com.atomgraph.core.riot.lang.RDFPostReader;
 import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import com.atomgraph.linkeddatahub.client.GitHubClient;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
+import com.atomgraph.linkeddatahub.client.filter.UnlimitedContentLengthFilter;
 import com.atomgraph.linkeddatahub.model.CSVImport;
 import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.linkeddatahub.model.Service;
@@ -957,8 +958,12 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         try
         {
             Service adminService = getDataspace().canAs(EndUserDataspace.class) ? getDataspace().as(EndUserDataspace.class).getAdminDataspace().getService() : null;
+            // the graphs this writes are this deployment's own documents, so the content limit does not
+            // apply - registered on the client, not on importClient, which also fetches the import SOURCE
+            // from a URL nobody controls and stays bounded
             GraphStoreClient gsc = GraphStoreClient.create(getSystem().getImportClient(), getSystem().getMediaTypes()).
                 delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
+            gsc.register(new UnlimitedContentLengthFilter());
 
             while (it.hasNext())
             {

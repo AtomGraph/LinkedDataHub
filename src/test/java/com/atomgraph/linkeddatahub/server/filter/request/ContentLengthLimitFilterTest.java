@@ -16,8 +16,8 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.request;
 
+import com.atomgraph.linkeddatahub.client.exception.ResponseContentTooLargeException;
 import com.atomgraph.linkeddatahub.client.util.RejectTooLargeResponseInputStream;
-import com.atomgraph.linkeddatahub.server.exception.RequestContentTooLargeException;
 import jakarta.ws.rs.client.ClientRequestContext;
 import jakarta.ws.rs.client.ClientResponseContext;
 import jakarta.ws.rs.core.HttpHeaders;
@@ -69,7 +69,14 @@ public class ContentLengthLimitFilterTest
         verify(responseContext).setEntityStream(isA(RejectTooLargeResponseInputStream.class));
     }
 
-    /** A Content-Length beyond the limit is rejected without reading the response at all. */
+    /**
+     * A Content-Length beyond the limit is rejected without reading the response at all, as a 502:
+     * what was too large is the upstream's response, and the 413 this asserted until 6.0.0 states
+     * that the caller's request body was - untrue of a GET that carries none. It also disagreed with
+     * {@link #testUnknownLengthResponseIsCounted}'s stream, which raises the 502 for the same
+     * condition, so a response carrying a Content-Length and the same response chunked answered
+     * with different statuses.
+     */
     @Test
     public void testOversizeResponseIsRejected()
     {
@@ -78,7 +85,7 @@ public class ContentLengthLimitFilterTest
         when(responseContext.hasEntity()).thenReturn(true);
         when(responseContext.getHeaders()).thenReturn(headers);
 
-        assertThrows(RequestContentTooLargeException.class, () -> filter.filter(requestContext, responseContext));
+        assertThrows(ResponseContentTooLargeException.class, () -> filter.filter(requestContext, responseContext));
     }
 
     /**
