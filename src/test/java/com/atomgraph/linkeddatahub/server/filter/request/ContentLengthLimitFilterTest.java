@@ -18,11 +18,15 @@ package com.atomgraph.linkeddatahub.server.filter.request;
 
 import com.atomgraph.linkeddatahub.client.exception.ResponseContentTooLargeException;
 import com.atomgraph.linkeddatahub.client.util.RejectTooLargeResponseInputStream;
+import com.atomgraph.linkeddatahub.server.exception.RequestContentTooLargeException;
+import com.atomgraph.linkeddatahub.server.util.RejectTooLargeRequestInputStream;
+import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.client.ClientRequestContext;
 import jakarta.ws.rs.client.ClientResponseContext;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -31,6 +35,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
@@ -47,6 +52,7 @@ public class ContentLengthLimitFilterTest
 
     @Mock private ClientRequestContext requestContext;
     @Mock private ClientResponseContext responseContext;
+    @Mock private ContainerRequestContext containerRequestContext;
 
     private ContentLengthLimitFilter filter;
 
@@ -100,6 +106,86 @@ public class ContentLengthLimitFilterTest
         filter.filter(requestContext, responseContext);
 
         verifyNoInteractions(responseContext);
+    }
+
+    // The inbound half. It is not what the UNLIMITED property exempts - that is checked only on the
+    // response path - so a request body over the limit is refused whatever the caller asks for, and
+    // these are the assertions saying so. ui-tests cover the same refusal end to end, but through
+    // nginx's client_max_body_size, which answers before the body ever reaches this filter.
+
+    /** A request declaring a size over the limit is refused without its body being touched. */
+    @Test
+    public void testOversizeRequestIsRejected()
+    {
+        MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
+        headers.putSingle(HttpHeaders.CONTENT_LENGTH, String.valueOf(MAX_CONTENT_LENGTH + 1));
+        when(containerRequestContext.hasEntity()).thenReturn(true);
+        when(containerRequestContext.getHeaders()).thenReturn(headers);
+
+        assertThrows(RequestContentTooLargeException.class, () -> filter.filter(containerRequestContext));
+        verify(containerRequestContext, never()).setEntityStream(any());
+    }
+
+    /**
+     * 413 here, against the 502 the response half answers: what was too large is the caller's own
+     * request body, which is exactly what this status states.
+     */
+    @Test
+    public void testOversizeRequestIsRejectedAsRequestEntityTooLarge()
+    {
+        MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
+        headers.putSingle(HttpHeaders.CONTENT_LENGTH, String.valueOf(MAX_CONTENT_LENGTH + 1));
+        when(containerRequestContext.hasEntity()).thenReturn(true);
+        when(containerRequestContext.getHeaders()).thenReturn(headers);
+
+        RequestContentTooLargeException e = assertThrows(RequestContentTooLargeException.class,
+            () -> filter.filter(containerRequestContext));
+        assertEquals(Response.Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode(), e.getResponse().getStatus());
+    }
+
+    /**
+     * A chunked request declares no size, so there is nothing to check and the counting stream is
+     * the only thing that can stop it.
+     */
+    @Test
+    public void testUnknownLengthRequestIsCounted() throws IOException
+    {
+        when(containerRequestContext.hasEntity()).thenReturn(true);
+        when(containerRequestContext.getHeaders()).thenReturn(new MultivaluedHashMap<>());
+        when(containerRequestContext.getEntityStream()).thenReturn(new ByteArrayInputStream("data".getBytes(StandardCharsets.UTF_8)));
+
+        filter.filter(containerRequestContext);
+
+        verify(containerRequestContext).setEntityStream(isA(RejectTooLargeRequestInputStream.class));
+    }
+
+    /**
+     * A body that fits is still read through the counting stream: the declared size is the caller's
+     * claim, and a Content-Length that understates the body would otherwise go uncounted.
+     */
+    @Test
+    public void testRequestUnderTheLimitIsStillCounted() throws IOException
+    {
+        MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
+        headers.putSingle(HttpHeaders.CONTENT_LENGTH, String.valueOf(MAX_CONTENT_LENGTH - 1));
+        when(containerRequestContext.hasEntity()).thenReturn(true);
+        when(containerRequestContext.getHeaders()).thenReturn(headers);
+        when(containerRequestContext.getEntityStream()).thenReturn(new ByteArrayInputStream("data".getBytes(StandardCharsets.UTF_8)));
+
+        filter.filter(containerRequestContext);
+
+        verify(containerRequestContext).setEntityStream(isA(RejectTooLargeRequestInputStream.class));
+    }
+
+    /** No entity, nothing to limit. */
+    @Test
+    public void testRequestWithoutEntityIsNotTouched() throws IOException
+    {
+        when(containerRequestContext.hasEntity()).thenReturn(false);
+
+        filter.filter(containerRequestContext);
+
+        verify(containerRequestContext, never()).setEntityStream(any());
     }
 
 }
