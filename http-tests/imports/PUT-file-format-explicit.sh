@@ -14,7 +14,7 @@ pwd=$(realpath "$PWD")
 # add agent to the writers group
 
 ldh admin add agent \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
@@ -30,7 +30,7 @@ slug=$(uuidgen | tr '[:upper:]' '[:lower:]')
 
 # Create an item document to hold the file
 file_doc=$(ldh create item \
-  -f "$AGENT_CERT_KEYSTORE" \
+  -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Test File for Media Type Update" \
@@ -39,7 +39,7 @@ file_doc=$(ldh create item \
 
 # upload file with explicit media type: text/plain
 ldh add file \
-  -f "$AGENT_CERT_KEYSTORE" \
+  -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Test File for Media Type Update" \
@@ -54,7 +54,7 @@ file_uri="${END_USER_BASE_URL}uploads/${sha1sum}"
 # get the file resource URI and initial dct:format
 
 file_doc_ntriples=$(ldh get \
-  -f "$AGENT_CERT_KEYSTORE" \
+  -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
   "$file_doc")
@@ -75,7 +75,7 @@ fi
 # this simulates editing the file document through the UI and uploading a new file
 
 ldh add file \
-  -f "$AGENT_CERT_KEYSTORE" \
+  -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Test File for Media Type Update" \
@@ -86,7 +86,7 @@ ldh add file \
 # get updated document
 
 updated_ntriples=$(ldh get \
-  -f "$AGENT_CERT_KEYSTORE" \
+  -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
   "$file_doc")

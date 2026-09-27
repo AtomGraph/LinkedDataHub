@@ -14,7 +14,7 @@ pwd=$(realpath "$PWD")
 # add agent to the writers group
 
 ldh admin add agent \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
@@ -36,7 +36,7 @@ file_content_type="text/markdown"
 
 # Create a container for files first
 ldh create container \
-  -f "$AGENT_CERT_KEYSTORE" \
+  -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Files" \
@@ -45,7 +45,7 @@ ldh create container \
 
 # Create an item document to hold the file
 file_doc=$(ldh create item \
-  -f "$AGENT_CERT_KEYSTORE" \
+  -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "UTF-8 test file" \
@@ -53,7 +53,7 @@ file_doc=$(ldh create item \
 
 # Add the file to the document
 ldh add file \
-  -f "$AGENT_CERT_KEYSTORE" \
+  -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "UTF-8 test file" \

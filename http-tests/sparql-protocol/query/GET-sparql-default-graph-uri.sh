@@ -15,7 +15,7 @@ slug_one=$(uuidgen | tr '[:upper:]' '[:lower:]')
 slug_two=$(uuidgen | tr '[:upper:]' '[:lower:]')
 
 container_one=$(ldh create container \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Graph scope one" \
@@ -23,7 +23,7 @@ container_one=$(ldh create container \
   --parent "$END_USER_BASE_URL")
 
 container_two=$(ldh create container \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Graph scope two" \

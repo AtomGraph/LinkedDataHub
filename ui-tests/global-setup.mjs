@@ -180,7 +180,7 @@ async function baseline() {
         + `          - http-tests/admin/acl/make-public.sh, which fills in the shipped\n`
         + `            acl/authorizations/public/#this and has no reverse in the CLI. Undo exactly\n`
         + `            what it inserts with:\n`
-        + `            ldh patch -f ssl/owner/keystore.p12 -p "$(cat secrets/owner_cert_password.txt)" \\\n`
+        + `            ldh patch -c ssl/owner/keystore.p12 -p "$(cat secrets/owner_cert_password.txt)" \\\n`
         + `              ${adminBase}acl/authorizations/public/ <<'EOF'\n`
         + `            PREFIX acl:  <http://www.w3.org/ns/auth/acl#>\n`
         + `            PREFIX def:  <https://w3id.org/atomgraph/linkeddatahub/default#>\n`

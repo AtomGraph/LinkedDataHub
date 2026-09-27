@@ -138,7 +138,7 @@ EOT
 # the stylesheet, uploaded into the package document
 
 ldh add file \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Containment probe stylesheet" \

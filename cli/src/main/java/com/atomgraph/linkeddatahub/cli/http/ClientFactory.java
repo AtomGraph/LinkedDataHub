@@ -19,12 +19,8 @@ package com.atomgraph.linkeddatahub.cli.http;
 import com.atomgraph.core.io.ModelProvider;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.GeneralSecurityException;
-import java.security.KeyStore;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import javax.net.ssl.KeyManagerFactory;
@@ -46,7 +42,8 @@ import org.glassfish.jersey.client.RequestEntityProcessing;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 
 /**
- * Builds a Jersey HTTP client authenticated with a WebID client certificate from a PKCS12 keystore.
+ * Builds a Jersey HTTP client authenticated with the agent's WebID client certificate, read from a
+ * PKCS12 keystore or a PEM file by {@link Credentials}.
  * Mirrors <code>Application.getClient()</code> in LinkedDataHub, with server certificate checks
  * disabled (equivalent of <code>curl -k</code> against self-signed dev instances).
  *
@@ -60,31 +57,27 @@ public final class ClientFactory
     /**
      * Builds the client instance.
      *
-     * @param keyStoreFile PKCS12 (.p12) keystore file with the WebID certificate
-     * @param keyStorePassword keystore password
+     * @param certFile PKCS12 keystore or PEM file with the WebID certificate and private key
+     * @param certPassword keystore password, or the passphrase of an encrypted PEM key; null for an unencrypted PEM
      * @return client instance
      */
-    public static Client createClient(Path keyStoreFile, String keyStorePassword)
+    public static Client createClient(Path certFile, String certPassword)
     {
         SSLContext ctx;
+        // a PEM with an unencrypted key has no password: its in-memory keystore is protected with an empty one
+        char[] password = certPassword != null ? certPassword.toCharArray() : new char[0];
         try
         {
-            KeyStore keyStore = KeyStore.getInstance("PKCS12");
-            try (InputStream is = Files.newInputStream(keyStoreFile))
-            {
-                keyStore.load(is, keyStorePassword.toCharArray());
-            }
-
             // for client authentication
             KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-            kmf.init(keyStore, keyStorePassword.toCharArray());
+            kmf.init(Credentials.load(certFile, certPassword), password);
 
             ctx = SSLContext.getInstance("TLS");
             ctx.init(kmf.getKeyManagers(), new TrustManager[] { TRUST_ALL }, new SecureRandom());
         }
-        catch (IOException | GeneralSecurityException ex)
+        catch (GeneralSecurityException ex)
         {
-            throw new IllegalArgumentException("Could not load PKCS12 keystore '" + keyStoreFile + "': " + ex.getMessage() + " (wrong password?)", ex);
+            throw new IllegalArgumentException("Could not set up client authentication with '" + certFile + "': " + ex.getMessage(), ex);
         }
 
         Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create().

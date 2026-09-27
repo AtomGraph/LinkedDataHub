@@ -12,7 +12,7 @@ clear_ontology
 # add agent to the writers group
 
 ldh admin add agent \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
@@ -20,7 +20,7 @@ ldh admin add agent \
 # create public authorization
 
 ldh admin create authorization \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --label "Public access authorization" \

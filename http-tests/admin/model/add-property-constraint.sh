@@ -17,7 +17,7 @@ ontology_doc="${ADMIN_BASE_URL}ontologies/namespace/"
 constraint="${namespace_doc}#NewConstraint"
 
 ldh admin add property-constraint \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --uri "$constraint" \
@@ -28,7 +28,7 @@ ldh admin add property-constraint \
 # create a class with the constraint
 
 ldh admin add class \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --uri "${namespace_doc}#ConstrainedClass" \
@@ -40,7 +40,7 @@ ldh admin add class \
 # clear ontology from memory
 
 ldh admin clear ontology \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --ontology "$namespace"

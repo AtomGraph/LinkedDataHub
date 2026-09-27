@@ -68,7 +68,7 @@ public class CommandOutputTest
             StringWriter out = new StringWriter(), err = new StringWriter();
 
             int code = commandLine(out, err).execute("create", "container",
-                "-f", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
+                "-c", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
                 "--title", "Test", "--slug", "test", "--parent", base.toString());
 
             assertEquals(0, code);
@@ -88,7 +88,7 @@ public class CommandOutputTest
             StringWriter out = new StringWriter(), err = new StringWriter();
 
             commandLine(out, err).execute("create", "container",
-                "-f", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
+                "-c", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
                 "--title", "Test", "--slug", "test", "--parent", base.toString());
 
             assertEquals("PUT", server.getLastMethod());
@@ -107,7 +107,7 @@ public class CommandOutputTest
             StringWriter out = new StringWriter(), err = new StringWriter();
 
             int code = commandLine(out, err).execute("create", "container",
-                "-f", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
+                "-c", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
                 "--title", "Ö", "--slug", "ö x", "--parent", base.toString());
 
             assertEquals(0, code);
@@ -131,7 +131,7 @@ public class CommandOutputTest
                 .getBytes(StandardCharsets.UTF_8)));
 
             int code = commandLine(out, err).execute("put",
-                "-f", keyStorePath().toString(), "-p", "changeit", "-t", "text/turtle", target.toString());
+                "-c", keyStorePath().toString(), "-p", "changeit", "-t", "text/turtle", target.toString());
 
             assertEquals(0, code);
             assertEquals("PUT", server.getLastMethod());
@@ -159,7 +159,7 @@ public class CommandOutputTest
             try
             {
                 int code = commandLine(out, err).execute("put",
-                    "-f", keyStorePath().toString(), "-p", "changeit", target.toString(), file.toString());
+                    "-c", keyStorePath().toString(), "-p", "changeit", target.toString(), file.toString());
 
                 assertEquals(0, code);
                 assertEquals("PUT", server.getLastMethod());
@@ -187,7 +187,7 @@ public class CommandOutputTest
             System.setIn(new ByteArrayInputStream(update.getBytes(StandardCharsets.UTF_8)));
 
             int code = commandLine(out, err).execute("patch",
-                "-f", keyStorePath().toString(), "-p", "changeit", target.toString());
+                "-c", keyStorePath().toString(), "-p", "changeit", target.toString());
 
             assertEquals(0, code);
             assertEquals("PATCH", server.getLastMethod());
@@ -212,7 +212,7 @@ public class CommandOutputTest
             System.setIn(new ByteArrayInputStream("DELETE WHERE { this is not SPARQL".getBytes(StandardCharsets.UTF_8)));
 
             int code = commandLine(out, err).execute("patch",
-                "-f", keyStorePath().toString(), "-p", "changeit", target.toString());
+                "-c", keyStorePath().toString(), "-p", "changeit", target.toString());
 
             assertEquals(CommandLine.ExitCode.SOFTWARE, code);
             assertNull(server.getLastMethod(), "a malformed update must not reach the server");
@@ -233,7 +233,7 @@ public class CommandOutputTest
             StringWriter out = new StringWriter(), err = new StringWriter();
 
             int code = commandLine(out, err).execute("create", "container",
-                "-f", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
+                "-c", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
                 "--title", "Test", "--slug", "test", "--parent", base.toString());
 
             assertEquals(CommandLine.ExitCode.SOFTWARE, code);
@@ -254,7 +254,7 @@ public class CommandOutputTest
         StringWriter out = new StringWriter(), err = new StringWriter();
 
         int code = commandLine(out, err).execute("create", "container",
-            "-f", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
+            "-c", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
             "--title", "Test", "--slug", "test", "--parent", base.toString());
 
         assertEquals(CommandLine.ExitCode.SOFTWARE, code);
@@ -272,7 +272,7 @@ public class CommandOutputTest
             StringWriter out = new StringWriter(), err = new StringWriter();
 
             int code = commandLine(out, err).execute("get",
-                "-f", keyStorePath().toString(), "-p", "changeit",
+                "-c", keyStorePath().toString(), "-p", "changeit",
                 "--timegate", "--datetime", "2026-08-20T10:00:00Z", base.resolve("some/").toString());
 
             assertEquals(0, code);
@@ -294,7 +294,7 @@ public class CommandOutputTest
             StringWriter out = new StringWriter(), err = new StringWriter();
 
             int code = commandLine(out, err).execute("get",
-                "-f", keyStorePath().toString(), "-p", "changeit",
+                "-c", keyStorePath().toString(), "-p", "changeit",
                 "--timegate", base.resolve("some/").toString());
 
             assertEquals(0, code);
@@ -311,7 +311,7 @@ public class CommandOutputTest
             StringWriter out = new StringWriter(), err = new StringWriter();
 
             int code = commandLine(out, err).execute("get",
-                "-f", keyStorePath().toString(), "-p", "changeit",
+                "-c", keyStorePath().toString(), "-p", "changeit",
                 "--timegate", server.baseURI().resolve("some/").toString());
 
             assertEquals(CommandLine.ExitCode.SOFTWARE, code);
@@ -329,12 +329,12 @@ public class CommandOutputTest
             StringWriter out = new StringWriter(), err = new StringWriter();
 
             assertEquals(0, commandLine(out, err).execute("get",
-                "-f", keyStorePath().toString(), "-p", "changeit",
+                "-c", keyStorePath().toString(), "-p", "changeit",
                 "--accept", "text/turtle", "--version", "a1b2c3", doc.toString()));
             assertEquals("/some/?version=a1b2c3", server.getLastTarget());
 
             assertEquals(0, commandLine(out, err).execute("get",
-                "-f", keyStorePath().toString(), "-p", "changeit",
+                "-c", keyStorePath().toString(), "-p", "changeit",
                 "--accept", "text/turtle", "--timemap", doc.toString()));
             assertEquals("/some/?timemap", server.getLastTarget());
         }
@@ -349,7 +349,7 @@ public class CommandOutputTest
             StringWriter out = new StringWriter(), err = new StringWriter();
 
             int code = commandLine(out, err).execute("get",
-                "-f", keyStorePath().toString(), "-p", "changeit", server.baseURI().toString());
+                "-c", keyStorePath().toString(), "-p", "changeit", server.baseURI().toString());
 
             assertEquals(CommandLine.ExitCode.USAGE, code);
             assertNull(server.getLastMethod(), "a request went out without a requested media type");
@@ -387,7 +387,7 @@ public class CommandOutputTest
             StringWriter out = new StringWriter(), err = new StringWriter();
 
             int code = commandLine(out, err).execute("packages", "list",
-                "-f", keyStorePath().toString(), "-p", "changeit", "-b", base.toString());
+                "-c", keyStorePath().toString(), "-p", "changeit", "-b", base.toString());
 
             assertEquals(0, code);
             assertEquals(List.of("installed\thttps://packages.linkeddatahub.com/editor/taxonomy/#this\tTaxonomy Editor",

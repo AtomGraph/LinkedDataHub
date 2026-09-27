@@ -20,7 +20,7 @@ clear_ontology
 # add agent to the writers group
 
 ldh admin add agent \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
@@ -34,7 +34,7 @@ put_document()
     echo "<${doc_url}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Item> .
 <${doc_url}> <http://purl.org/dc/terms/title> \"${1}\" ." | \
       ldh put \
-        -f "$AGENT_CERT_KEYSTORE" \
+        -c "$AGENT_CERT_KEYSTORE" \
         -p "$AGENT_CERT_PWD" \
         -t "application/n-triples" \
         "$doc_url"
@@ -71,7 +71,7 @@ done
 
 response_headers=$(
 ldh get \
-  -f "$AGENT_CERT_KEYSTORE" \
+  -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
   --head \
@@ -84,7 +84,7 @@ echo "$response_headers" | grep -q "<${doc_url}?timegate>; rel=timegate"
 
 timegate_headers=$(
 ldh get \
-  -f "$AGENT_CERT_KEYSTORE" \
+  -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   --timegate \
   --head \
@@ -108,7 +108,7 @@ fi
 
 memento=$(
 ldh get \
-  -f "$AGENT_CERT_KEYSTORE" \
+  -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   --timegate \
   "$doc_url")
@@ -120,7 +120,7 @@ ldh get \
 
 dated_memento=$(
 ldh get \
-  -f "$AGENT_CERT_KEYSTORE" \
+  -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   --timegate \
   --datetime "$first_datetime" \

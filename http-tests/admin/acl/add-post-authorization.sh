@@ -27,7 +27,7 @@ EOF
 # create fake test.localhost authorization (should be filtered out)
 
 ldh admin create authorization \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "https://admin.test.localhost:4443/" \
   --label "Fake POST authorization from test.localhost" \
@@ -53,7 +53,7 @@ EOF
 # create real localhost authorization
 
 ldh admin create authorization \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --label "POST authorization" \

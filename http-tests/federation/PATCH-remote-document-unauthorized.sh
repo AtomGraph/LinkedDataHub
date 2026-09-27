@@ -21,7 +21,7 @@ remote_base="https://test.localhost:4443/"
 # positive test
 
 item=$(ldh create item \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$remote_base" \
   --title "Federation unauthorized target" \

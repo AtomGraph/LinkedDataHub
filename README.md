@@ -99,7 +99,7 @@ The [`ldh` command line interface](#command-line-interface) is attached to every
      curl -k -E ./ssl/owner/cert.pem:<your cert password> -H "Accept: text/turtle" 'https://localhost:4443/'
      ```
      ```shell
-     ldh get -f ./ssl/owner/keystore.p12 -p <your cert password> --accept text/turtle 'https://localhost:4443/'
+     ldh get -c ./ssl/owner/keystore.p12 -p <your cert password> --accept text/turtle 'https://localhost:4443/'
      ```
 
   ### Notes
@@ -288,7 +288,7 @@ make cli
 
 which prints the `export PATH=...` line to run afterwards. If you will be using LinkedDataHub's CLI regularly, add that `export` to your shell profile.
 
-Commands authenticate with a WebID client certificate read from a **PKCS12 keystore** — `ssl/owner/keystore.p12` for the owner. Options that repeat across commands can be set once as environment variables:
+Commands authenticate with a WebID client certificate, read from a **PKCS12 keystore** or a **PEM file** holding the certificate and its private key — `ssl/owner/keystore.p12` and `ssl/owner/cert.pem` are the owner's, either works. Options that repeat across commands can be set once as environment variables:
 
 ```shell
 export LDH_CERT_FILE=./ssl/owner/keystore.p12

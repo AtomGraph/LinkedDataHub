@@ -69,14 +69,30 @@ manifest entry.
 
 ## Authentication
 
-Commands authenticate with a WebID client certificate from a **PKCS12 (.p12) keystore** — the format
-produced by `bin/webid-keygen.sh`:
+Commands authenticate with the agent's WebID client certificate, in either format it comes in:
+
+- a **PKCS12 keystore** — what `bin/webid-keygen.sh` writes and what Sign up downloads as `cert.p12`
+- a **PEM file** holding both the certificate and its PKCS#8 private key — the same pairing
+  `curl -E` requires
 
 ```bash
 ldh get --accept text/turtle \
-  -f ssl/owner/keystore.p12 -p "$OWNER_CERT_PWD" \
+  -c ssl/owner/keystore.p12 -p "$OWNER_CERT_PWD" \
+  https://localhost:4443/
+
+ldh get --accept text/turtle \
+  -c ssl/owner/cert.pem -p "$OWNER_CERT_PWD" \
   https://localhost:4443/
 ```
+
+The format is read from the file's content, not from its extension, so a keystore named `.pem` or a
+PEM named `.p12` both load. `-p/--cert-password` is required for a keystore and for an encrypted PEM
+key, and is left out for an unencrypted one (`openssl ... -noenc`).
+
+Three PEM shapes are refused, each naming what is wrong: a certificate with no private key (client
+authentication needs both), a PKCS#1 or SEC1 key (`BEGIN RSA PRIVATE KEY`, `BEGIN EC PRIVATE KEY`),
+which the JDK cannot read and which the error offers to convert with
+`openssl pkcs8 -topk8`, and a file that is neither format.
 
 Server certificates are not validated (equivalent of `curl -k`), matching the shell scripts'
 behavior against self-signed development instances.
@@ -87,7 +103,7 @@ Repeated options can be set once via environment variables:
 
 | Variable | Option |
 |---|---|
-| `LDH_CERT_FILE` | `-f`, `--cert-file` |
+| `LDH_CERT_FILE` | `-c`, `--cert` |
 | `LDH_CERT_PASSWORD` | `-p`, `--cert-password` |
 | `LDH_BASE` | `-b`, `--base` |
 | `LDH_PROXY` | `--proxy` |
@@ -287,8 +303,8 @@ shell scripts.
 
 ### Differences from the scripts
 
-- `-f/--cert-pem-file` is now `-f/--cert-file` and takes the `.p12` keystore directly — no
-  PEM conversion needed.
+- `-f/--cert-pem-file` is now `-c/--cert` and takes either the PKCS12 keystore or the PEM the
+  scripts fed `curl -E`, whichever is at hand.
 - `admin create group` writes the `--name` value into `foaf:name`/`dct:title` (the script wrote an
   unset variable, producing empty literals).
 - `add generic-service` drops the documented-but-unparsed `--slug` option.

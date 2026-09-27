@@ -20,7 +20,7 @@ clear_ontology
 # add agent to the writers group
 
 ldh admin add agent \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
@@ -33,7 +33,7 @@ doc_url="${END_USER_BASE_URL}${slug}/"
 echo "<${doc_url}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Item> .
 <${doc_url}> <http://purl.org/dc/terms/title> \"Versioned document\" ." | \
   ldh put \
-    -f "$AGENT_CERT_KEYSTORE" \
+    -c "$AGENT_CERT_KEYSTORE" \
     -p "$AGENT_CERT_PWD" \
     -t "application/n-triples" \
     "$doc_url"

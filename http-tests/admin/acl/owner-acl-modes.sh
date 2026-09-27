@@ -13,7 +13,7 @@ clear_ontology
 
 doc_url=$(ldh create item \
   -b "$END_USER_BASE_URL" \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --container "$END_USER_BASE_URL" \
   --title "ACL Test Document" \

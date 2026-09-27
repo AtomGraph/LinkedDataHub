@@ -165,8 +165,10 @@ ldh admin add agent --agent "$AGENT_URI" "${ADMIN_BASE}acl/groups/writers/"
 carry `<modules>`), but it shares the platform's version: `release.sh` runs `versions:set` on it
 around both release bumps, and `make cli-version` re-aligns it if it drifts.
 
-`LDH_CERT_FILE`, `LDH_CERT_PASSWORD`, `LDH_BASE` and `LDH_PROXY` supply defaults for `-f`, `-p`,
-`-b` and `--proxy`. Commands that create or append to a document print its URL as the only line on
+`LDH_CERT_FILE`, `LDH_CERT_PASSWORD`, `LDH_BASE` and `LDH_PROXY` supply defaults for `-c`, `-p`,
+`-b` and `--proxy`. `-c/--cert` takes either format the agent's credential comes in — a PKCS12
+keystore or a PEM file with the certificate and its PKCS#8 private key — told apart by content, not
+by extension. Commands that create or append to a document print its URL as the only line on
 stdout (diagnostics go to stderr), so `item=$(ldh create item ...)` works; exit codes are `0`
 success, `1` HTTP or runtime failure, `2` usage error.
 

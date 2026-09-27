@@ -26,7 +26,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
 # grant acl:Write and nothing else
 
 ldh admin create authorization \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --label "Write-only authorization" \
@@ -72,7 +72,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
 # and the write the validator was for succeeds
 
 root_ntriples=$(ldh get \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --accept 'application/n-triples' \
   "$END_USER_BASE_URL")

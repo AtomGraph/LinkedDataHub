@@ -12,7 +12,7 @@ clear_ontology
 # add agent to the writers group
 
 ldh admin add agent \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
@@ -30,7 +30,7 @@ echo "<http://example.org/resource1> <http://www.w3.org/1999/02/22-rdf-syntax-ns
 <http://example.org/resource2> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/OtherClass> .
 <http://example.org/resource2> <http://example.org/property3> \"value3\" ." | \
   ldh put \
-    -f "$OWNER_CERT_KEYSTORE" \
+    -c "$OWNER_CERT_KEYSTORE" \
     -p "$OWNER_CERT_PWD" \
     -t "application/n-triples" \
     "$test_graph_uri"
@@ -41,13 +41,13 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 
 DELETE WHERE { ex:nonExistentResource owl:imports ex:nonExistentOntology }" | \
   ldh patch \
-    -f "$OWNER_CERT_KEYSTORE" \
+    -c "$OWNER_CERT_KEYSTORE" \
     -p "$OWNER_CERT_PWD" \
     "$test_graph_uri"
 
 # Verify graph still exists and contains original triples
 graph_content=$(ldh get \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --accept "application/n-triples" \
   "$test_graph_uri")

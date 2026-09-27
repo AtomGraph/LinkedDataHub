@@ -14,7 +14,7 @@ clear_ontology
 # full-control authorization in admin.trig. A writer reaching it would be a widening nobody asked for.
 
 ldh admin add agent \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"

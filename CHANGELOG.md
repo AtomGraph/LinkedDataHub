@@ -84,6 +84,9 @@ Every namespace LDH defines now lives under `https://w3id.org/atomgraph/linkedda
 - An imported package's stylesheet is copied once under `PACKAGE_ROOT` and served from the application's own origin under `/static/com/linkeddatahub/packages/`, so what a running instance compiles cannot change under it
 - **BREAKING**: the bundled package `https://packages.linkeddatahub.com/skos/#this` becomes `https://packages.linkeddatahub.com/editor/taxonomy/#this` and its stylesheet `skos.xsl`; an `ldh:import` naming the old URI resolves to nothing and must be re-declared
 - **BREAKING**: `ldh` commands regroup by verb, dropping the `bin/` mirror: `create`, `add` and `remove` groups (`ldh create item`, `ldh add view`, `ldh remove block`), `import` for the composite workflows, `admin` for the admin scope; `cli/README.md` maps every old name
+- **BREAKING**: the `ldh` certificate option is `-c/--cert`, replacing `-f/--cert-file`; `-p/--cert-password` and both `LDH_CERT_*` variables are unchanged
+- `-c/--cert` accepts the agent's credential as a PKCS12 keystore or as a PEM file with the certificate and its PKCS#8 private key, recognised by content rather than by extension, so the PEM the `bin/` scripts fed `curl -E` now authenticates `ldh` as well; the password is required for a keystore and an encrypted PEM key, and omitted for an unencrypted one
+- A credential `ldh` cannot use says why instead of blaming the password: a certificate with no private key, a PKCS#1 or SEC1 key with the `openssl pkcs8 -topk8` conversion, and a file that is neither format each report their own error
 - `<html lang>` is taken from the `Content-Language` the response carries, so header and document agree by construction
 - The language a page reports is the first accepted language the UI bundle has, so asking for German no longer puts `lang="de"` on an English page
 - Published language tags are the shortest the bundle justifies (`en`, not `en-US`)

@@ -12,7 +12,7 @@ clear_ontology
 # check that the acl:delegates triple exists in the agent's description
 
 ldh get \
-  -f "$AGENT_CERT_KEYSTORE" \
+  -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
   "$AGENT_URI" \
@@ -30,7 +30,7 @@ curl --head -k -w "%{http_code}\n" -o /dev/null -s \
 # add agent to the writers group to be able to read/write documents
 
 ldh admin add agent \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"

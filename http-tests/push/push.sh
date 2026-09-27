@@ -14,7 +14,7 @@ pwd=$(realpath "$PWD")
 # add agent to the writers group
 
 ldh admin add agent \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
@@ -24,7 +24,7 @@ ldh admin add agent \
 slug=$(uuidgen | tr '[:upper:]' '[:lower:]')
 
 container=$(ldh create container \
-  -f "$AGENT_CERT_KEYSTORE" \
+  -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Push target" \
@@ -64,7 +64,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
 # push the tree
 
 pushed=$(ldh push \
-  -f "$AGENT_CERT_KEYSTORE" \
+  -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --dir "$pwd/app" \
@@ -79,7 +79,7 @@ fi
 # root.ttl replaced the container's own description
 
 ldh get \
-  -f "$AGENT_CERT_KEYSTORE" \
+  -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
   "$container" \
@@ -88,7 +88,7 @@ ldh get \
 # a document lands where its path says, with its relative URIs resolved against the document URL
 
 ldh get \
-  -f "$AGENT_CERT_KEYSTORE" \
+  -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
   "${container}a/b/" \
@@ -97,7 +97,7 @@ ldh get \
 # the file was uploaded into its directory's document; the ignored files were not
 
 a_ntriples=$(ldh get \
-  -f "$AGENT_CERT_KEYSTORE" \
+  -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
   "${container}a/")
@@ -124,14 +124,14 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
 # a second push converges: the document is rewritten before its upload is re-appended, so nothing duplicates
 
 ldh push \
-  -f "$AGENT_CERT_KEYSTORE" \
+  -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --dir "$pwd/app" \
   "$container" > /dev/null
 
 file_count=$(ldh get \
-  -f "$AGENT_CERT_KEYSTORE" \
+  -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
   "${container}a/" \

@@ -14,7 +14,7 @@ clear_ontology
 slug="test"
 
 container=$(ldh create container \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Test" \
@@ -25,7 +25,7 @@ container=$(ldh create container \
 
 ldh admin create authorization \
 -b "$ADMIN_BASE_URL" \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --label "Write base" \
   --agent "$AGENT_URI" \

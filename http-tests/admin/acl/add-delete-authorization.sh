@@ -23,7 +23,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
 slug="test"
 
 container=$(ldh create container \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Test" \
@@ -33,7 +33,7 @@ container=$(ldh create container \
 # create fake test.localhost authorization (should be filtered out)
 
 ldh admin create authorization \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "https://admin.test.localhost:4443/" \
   --label "Fake DELETE authorization from test.localhost" \
@@ -53,7 +53,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
 # create real localhost authorization
 
 ldh admin create authorization \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --label "DELETE authorization" \

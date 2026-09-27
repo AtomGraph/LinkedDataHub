@@ -19,7 +19,7 @@ pwd=$(realpath "$PWD")
 # add agent to the writers group
 
 ldh admin add agent \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
@@ -27,7 +27,7 @@ ldh admin add agent \
 # create import item
 
 item=$(ldh create item \
-  -f "$AGENT_CERT_KEYSTORE" \
+  -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "RDF import with SERVICE" \
@@ -36,7 +36,7 @@ item=$(ldh create item \
 # create target container
 
 container=$(ldh create container \
-  -f "$AGENT_CERT_KEYSTORE" \
+  -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "SERVICE import" \
@@ -46,7 +46,7 @@ container=$(ldh create container \
 # import RDF with the mapping query that uses SERVICE
 
 ldh import rdf \
-  -f "$AGENT_CERT_KEYSTORE" \
+  -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Test" \

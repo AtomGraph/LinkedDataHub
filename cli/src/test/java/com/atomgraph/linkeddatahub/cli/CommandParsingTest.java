@@ -163,7 +163,7 @@ public class CommandParsingTest
     public void repeatableOptionsAccumulate()
     {
         ParseResult parseResult = commandLine().parseArgs("admin", "create", "group",
-            "-f", "cert.p12", "-p", "secret", "-b", "https://admin.localhost:4443/",
+            "-c", "cert.p12", "-p", "secret", "-b", "https://admin.localhost:4443/",
             "--name", "Editors",
             "--member", "https://localhost:4443/acl/agents/a/#this",
             "--member", "https://localhost:4443/acl/agents/b/#this");

@@ -74,7 +74,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
 EOT
 
 ldh add file \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Same-origin package stylesheet" \

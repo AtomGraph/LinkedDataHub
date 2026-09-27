@@ -30,7 +30,7 @@ echo "<${doc_url}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3
 <${doc_url}#this> <https://example.org/test#empty> \"\" .
 <${doc_url}#this> <https://example.org/test#ref> <https://example.org/target> ." | \
   ldh put \
-    -f "$OWNER_CERT_KEYSTORE" \
+    -c "$OWNER_CERT_KEYSTORE" \
     -p "$OWNER_CERT_PWD" \
     -t "application/n-triples" \
     "$doc_url"
@@ -84,6 +84,6 @@ count()
 [ "$(count "//*[@typeof][not(@about)][not(@resource)][not(ancestor::*[@about])]")" = "0" ]
 
 ldh delete \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   "$doc_url" > /dev/null

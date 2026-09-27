@@ -72,7 +72,7 @@ public class PushOutputTest
             StringWriter out = new StringWriter(), err = new StringWriter();
 
             int code = commandLine(out, err).execute("push",
-                "-f", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
+                "-c", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
                 "--dir", root.toString(), base.toString());
 
             assertEquals(0, code, err.toString());
@@ -126,7 +126,7 @@ public class PushOutputTest
             StringWriter out = new StringWriter(), err = new StringWriter();
 
             int code = commandLine(out, err).execute("push",
-                "-f", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
+                "-c", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
                 "--dir", root.toString(), base.toString());
 
             assertEquals(CommandLine.ExitCode.SOFTWARE, code);

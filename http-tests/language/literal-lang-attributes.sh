@@ -30,7 +30,7 @@ echo "<${doc_url}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3
 <${doc_url}#this> <https://example.org/test#plain> \"Untagged value\" .
 <${doc_url}#this> <https://example.org/test#typed> \"42\"^^<http://www.w3.org/2001/XMLSchema#integer> ." | \
   ldh put \
-    -f "$OWNER_CERT_KEYSTORE" \
+    -c "$OWNER_CERT_KEYSTORE" \
     -p "$OWNER_CERT_PWD" \
     -t "application/n-triples" \
     "$doc_url"
@@ -89,6 +89,6 @@ rendered="*[local-name() != 'meta'][local-name() != 'link']"
 [ "$(count "//$rendered[@property = 'https://example.org/test#tagged'][@lang = 'lt'][@content = 'Aikštė']")" = "1" ]
 
 ldh delete \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   "$doc_url" > /dev/null

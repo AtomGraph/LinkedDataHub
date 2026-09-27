@@ -14,7 +14,7 @@ clear_ontology
 slug=$(uuidgen | tr '[:upper:]' '[:lower:]')
 
 container=$(ldh create container \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$END_USER_BASE_URL" \
   --title "Graph scope one" \

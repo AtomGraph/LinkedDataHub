@@ -19,7 +19,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -v \
 # create fake test.localhost public authorization (should be filtered out)
 
 ldh admin create authorization \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "https://admin.test.localhost:4443/" \
   --label "Fake public access from test.localhost" \
@@ -37,7 +37,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -v \
 # create real localhost public authorization
 
 ldh admin create authorization \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --label "Public access authorization" \

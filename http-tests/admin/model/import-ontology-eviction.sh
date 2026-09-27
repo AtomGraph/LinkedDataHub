@@ -83,7 +83,7 @@ before="$CONSTRUCTORS"
 echo "DEBUG: [baseline] constructors for skos:Concept before the import: $before (HTTP $NS_STATUS, Age $NS_AGE) $NS_URIS"
 
 item=$(ldh create item \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --title "Evicted" \
@@ -91,7 +91,7 @@ item=$(ldh create item \
   --container "${ADMIN_BASE_URL}ontologies/")
 
 ldh admin import ontology \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --source "$import_uri" \
@@ -99,13 +99,13 @@ ldh admin import ontology \
 
 # the application ontology imports the VOCABULARY, and resolving it reaches the document above
 ldh admin add ontology-import \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --import "$import_uri" \
   "$ontology_doc"
 
 ldh admin clear ontology \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --ontology "$namespace"
@@ -122,7 +122,7 @@ fi
 # delete the document that supplied them, then clear without naming an ontology
 
 ldh delete \
-  -f "$OWNER_CERT_KEYSTORE" \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   "$item"
 
