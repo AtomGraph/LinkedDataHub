@@ -203,7 +203,7 @@ export async function seed() {
     // Separate, because its scope is the one that cannot be narrowed. The endpoint enforces no
     // per-graph ACL: with this in place an anonymous SELECT reads EVERY graph in the dataspace,
     // including documents whose HTTP representation is 403 - fixtures.private among them. That
-    // is the platform's behaviour, not this suite's (admin/acl/make-public.sh grants the same
+    // is the platform's behaviour, not this suite's (ldh admin make-public grants the same
     // thing), and it is why fixtures.private proves only that no blanket DOCUMENT grant is in
     // force. Append as well as read: the client sends some queries over POST.
     await ldh(['admin', 'create', 'authorization', '-b', adminBase,

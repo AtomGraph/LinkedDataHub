@@ -177,7 +177,7 @@ async function baseline() {
         + `        would pass vacuously against that. Two usual causes:\n`
         + `          - a stray authorization from an interrupted run. List them and delete the one\n`
         + `            that does not belong: ldh get ${adminBase}acl/authorizations/\n`
-        + `          - http-tests/admin/acl/make-public.sh, which fills in the shipped\n`
+        + `          - ldh admin make-public, which fills in the shipped\n`
         + `            acl/authorizations/public/#this and has no reverse in the CLI. Undo exactly\n`
         + `            what it inserts with:\n`
         + `            ldh patch -c ssl/owner/keystore.p12 -p "$(cat secrets/owner_cert_password.txt)" \\\n`
