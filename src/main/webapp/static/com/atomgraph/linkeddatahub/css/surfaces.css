@@ -111,13 +111,18 @@ th, td {
 }
 table.dn-comfy th, table.dn-comfy td { padding: var(--sp-3); }
 table.dn-tight th, table.dn-tight td { padding: 5px var(--sp-3); }
+/* The head band's fill is on the CELLS, not on the row. A sticky head pins the th boxes and
+   leaves the tr behind at its place in the table flow, so a fill declared on the row scrolls
+   out from under the pinned cells and the body rows read straight through them - which is
+   exactly where a pinned head is worth having. The rest of the band is inherited text and
+   travels with the cell either way. */
 thead tr {
-  background: var(--surface-2);
   border-bottom: 1px solid var(--border-default);
   font-family: var(--font-mono); font-size: 10px;
   letter-spacing: var(--tracking-wide); text-transform: uppercase;
   color: var(--fg-hint);
 }
+thead > tr > * { background: var(--surface-2); }
 tbody tr {
   border-bottom: 1px solid var(--border-default);
   font-size: var(--fs-sm); color: var(--fg-2);
