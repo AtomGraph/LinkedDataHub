@@ -835,6 +835,10 @@
         <rdfs:label xml:lang="en-US">The requested resource was not found.</rdfs:label>
         <rdfs:label xml:lang="es-ES">No se encontró el recurso solicitado.</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="http-error-too-large">
+        <rdfs:label xml:lang="en-US">The file is larger than this server accepts.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">El archivo es más grande de lo que este servidor acepta.</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="http-error-unreachable">
         <rdfs:label xml:lang="en-US">The endpoint could not be reached.</rdfs:label>
         <rdfs:label xml:lang="es-ES">No se pudo contactar con el punto de acceso.</rdfs:label>

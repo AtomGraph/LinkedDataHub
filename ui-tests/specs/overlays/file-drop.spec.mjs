@@ -139,3 +139,43 @@ test('an unrecognised file still uploads', { tag: '@owner' }, async ({ page }) =
     expect(graph).toContain(`<${file}> <${NFO}fileName> "drop.unknown" .`);
     expect(graph).toContain(`<${file}> <${DCT}format> <${MEDIA_TYPE}application/octet-stream> .`);
 });
+
+// Refused at the door. nginx caps every request body at MAX_CONTENT_LENGTH (docker-compose.yml,
+// `client_max_body_size`), so a file over it never reaches the app: the POST comes back 413 from the
+// proxy, with an HTML body. Both paths have to report that in the page, on the document the reader
+// is still looking at - the failure is prepended to the content body as the kit's InlineAlert, and
+// nothing navigates. What the sentence under the title says is the second claim: a refusal for size
+// should say so, rather than fall through to the sentence for a status nobody mapped.
+test.describe('a file over the request size limit', () => {
+    // 6 MiB of anything, against a 5 MiB limit (.env MAX_CONTENT_LENGTH). Text, not bytes: a string
+    // crosses into the page as one value.
+    const oversize = 'x'.repeat(6 * 1024 * 1024);
+    const failure = page => page.locator('.content-body > .ldh-failure').first();
+
+    test.beforeEach(({ allowNoise }) => {
+        allowNoise.push({ pattern: /HTTP 413:/, reason: 'the spec sends a body the proxy is configured to refuse' });
+        allowNoise.push({ pattern: /console\.error: Failed to load resource.*413/, reason: 'the browser logs the same refusal' });
+    });
+
+    test('is reported as an upload that could not be made', { tag: '@owner' }, async ({ page }) => {
+        await dropFile(page, { name: 'big.bin', text: oversize });
+
+        await expect(failure(page)).toBeVisible();
+        await expect(failure(page).locator('.ac-alert-title')).toHaveText('The file could not be uploaded');
+        await expect(failure(page).locator('.ac-alert-text')).toHaveText('The file is larger than this server accepts.');
+        await expect(failure(page).locator('pre')).toContainText('HTTP 413');
+        // The reader stays where they were: no navigation into ReadMode, and nothing was written.
+        await expect(page).not.toHaveURL(/ReadMode/);
+        expect(await triples(doc)).not.toContain(`${NFO}FileDataObject`);
+    });
+
+    test('is reported as an import that could not be made', { tag: '@owner' }, async ({ page }) => {
+        await dropFile(page, { name: 'big.ttl', type: 'text/turtle', text: oversize });
+
+        await expect(failure(page)).toBeVisible();
+        await expect(failure(page).locator('.ac-alert-title')).toHaveText('The file could not be imported');
+        await expect(failure(page).locator('.ac-alert-text')).toHaveText('The file is larger than this server accepts.');
+        await expect(failure(page).locator('pre')).toContainText('HTTP 413');
+        await expect(page).not.toHaveURL(/ReadMode/);
+    });
+});

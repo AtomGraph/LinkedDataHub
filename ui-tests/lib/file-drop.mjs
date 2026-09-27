@@ -10,12 +10,15 @@
 // `drop` lands on the overlay itself, which is where a real drop lands too - it is the topmost hit
 // target for the whole drag, by design.
 
-export async function fileTransfer(page, { name, type = '', bytes }) {
-    return page.evaluateHandle(({ name, type, bytes }) => {
+// `bytes` for a file whose content matters, `text` for one where only its size does: a string crosses
+// into the page as one value where a byte array crosses as one number per byte.
+export async function fileTransfer(page, { name, type = '', bytes, text }) {
+    return page.evaluateHandle(({ name, type, bytes, text }) => {
         const transfer = new DataTransfer();
-        transfer.items.add(new File([Uint8Array.from(bytes)], name, { type }));
+        const content = text !== undefined ? text : Uint8Array.from(bytes);
+        transfer.items.add(new File([content], name, { type }));
         return transfer;
-    }, { name, type, bytes: [...bytes] });
+    }, { name, type, bytes: bytes && [...bytes], text });
 }
 
 // Mount the overlay for a drag carrying this transfer, and return the overlay's locator.
