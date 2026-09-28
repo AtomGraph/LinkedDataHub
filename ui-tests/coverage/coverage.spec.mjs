@@ -40,6 +40,9 @@ const probePages = [
     ['item', itemUri(1)],
     ['concept', `${conceptDocument('coffee')}?mode=${encodeURIComponent(READ_MODE)}`],
     ['results', `${endUserBase}sparql?query=${encodeURIComponent(probeQuery)}`],
+    // The query block's own document: seeded apart from the container because the editor's
+    // prefix.cc fetch logs a mixed-content error on every page it is on (lib/fixtures.mjs).
+    ['query', fixtures.queryDocument],
 ];
 
 // Retired anatomy, inherited verbatim from calibration.spec.mjs. Every hit is either a real

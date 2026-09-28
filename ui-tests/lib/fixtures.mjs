@@ -9,6 +9,8 @@ import { join } from 'node:path';
 import { adminBase, endUserBase, ownerKeystore, ownerPassword } from './stack.mjs';
 
 const slug = 'ui-fixtures';
+// Named once, because a pivot onto the container answers with this title and a spec asserts it.
+export const containerTitle = 'UI test fixtures';
 
 // What an anonymous reader is granted, as two authorizations rather than one, so each scope is
 // legible on its own and either can be dropped without the other. Slugged because the suite
@@ -34,6 +36,11 @@ export const fixtures = {
     // fishing for the nth card on the page.
     query: `${endUserBase}${slug}/#items-query`,
     view: `${endUserBase}${slug}/#items-view`,
+    // The view as CONTENT, for the same reason as chartBlock below: an ldh:View is data until an
+    // Object block names it. Without this wrapper the fixture view existed in the graph and rendered
+    // nowhere - the only view blocks on the page were the built-in children view's, whose query knows
+    // nothing of ?kind, so the facet the kinds below exist for was never on the page to be driven.
+    viewBlock: `${endUserBase}${slug}/#view-block`,
     // Counted by kind, because a bar chart's value axis must be numeric - see chartQuery below.
     chartQuery: `${endUserBase}${slug}/#kinds-query`,
     chart: `${endUserBase}${slug}/#items-chart`,
@@ -45,6 +52,13 @@ export const fixtures = {
     chartBlock: `${endUserBase}${slug}/#chart-block`,
     prose: `${endUserBase}${slug}/#prose-block`,
     object: `${endUserBase}${slug}/#object-block`,
+    // The query block, in a document of its own. Seeding it into the container failed every spec on
+    // that page: YASQE fetches http://prefix.cc/popular/all.file.json for prefix completion, plain
+    // HTTP from an HTTPS page, and the mixed-content error it logs is exactly what lib/console.mjs
+    // fails a page on. A sibling of the container, like `private`, so the container's child count
+    // holds; the query it wraps is the container's, dereferenced across documents like any other.
+    queryDocument: `${endUserBase}${slug}-query/`,
+    queryBlock: `${endUserBase}${slug}-query/#query-block`,
 };
 
 // Enough children that the default 20-row page is not the last one, so the pager has a
@@ -53,7 +67,10 @@ export const itemCount = Number(process.env.UI_TESTS_ITEMS ?? 25);
 
 // Three repeating values so a facet over ?kind has something to filter by. A facet whose
 // values are all distinct is as dead a control as one whose values are all the same.
-const kinds = ['alpha', 'beta', 'gamma'];
+// Assigned by index modulo three, so the count per kind is a function of itemCount - a spec
+// that filters to one kind can say how many rows it expects rather than "fewer".
+export const kinds = ['alpha', 'beta', 'gamma'];
+export const kindCount = kind => itemNumbers().filter(n => itemKind(n) === kind).length;
 
 // Every fixture URI is a pure function of the slug and the index. globalSetup runs in the
 // main process and the specs run in workers, so nothing recorded during seeding survives
@@ -132,13 +149,19 @@ ORDER BY ?title`;
 // of type string") - so plotting ?title against ?kind draws nothing however many rows come back.
 // What these items can be charted BY is how many of each kind there are, which is an aggregate,
 // and an aggregate is the wrong shape for the view that lists them. So: two queries, one each.
+//
+// Two numeric columns, not one. The series control is a choice between value columns, and with a
+// single one it can only be left as it is - so the title lengths are summed as a second measure.
+// Every title is the same length, which makes ?chars a fixed multiple of ?items: a different scale
+// on the value axis, and a different axis title, is what a series change has to show.
 const chartQuery = `PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 PREFIX  dct:  <http://purl.org/dc/terms/>
 
-SELECT  ?kind (COUNT(?item) AS ?items)
+SELECT  ?kind (COUNT(?item) AS ?items) (SUM(STRLEN(?title)) AS ?chars)
 WHERE
   { GRAPH ?g
       { ?item  sioc:has_container  <${fixtures.container}> ;
+               dct:title           ?title ;
                dct:description     ?kind
       }
   }
@@ -147,7 +170,7 @@ ORDER BY ?kind`;
 
 export async function seed() {
     const container = await ldh(['create', 'container',
-        '--parent', endUserBase, '--title', 'UI test fixtures', '--slug', slug]);
+        '--parent', endUserBase, '--title', containerTitle, '--slug', slug]);
     if (container.stdout !== fixtures.container) {
         throw new Error(`Expected the container at ${fixtures.container}, got ${container.stdout}`);
     }
@@ -186,6 +209,15 @@ export async function seed() {
         '--value', itemUri(1), fixtures.container]);
     await ldh(['add', 'object-block', '--title', 'Fixture chart block', '--uri', fixtures.chartBlock,
         '--value', fixtures.chart, fixtures.container]);
+    await ldh(['add', 'object-block', '--title', 'Fixture view block', '--uri', fixtures.viewBlock,
+        '--value', fixtures.view, fixtures.container]);
+
+    await ldh(['create', 'item',
+        '--container', endUserBase,
+        '--title', 'Fixture query',
+        '--slug', `${slug}-query`]);
+    await ldh(['add', 'object-block', '--title', 'Fixture query block', '--uri', fixtures.queryBlock,
+        '--value', fixtures.query, fixtures.queryDocument]);
 
     // Everything an anonymous reader needs to render fixtures.readable, measured rather than
     // guessed: the document itself, the ancestors the document tree walks on its way down, and
@@ -225,5 +257,6 @@ export async function teardown() {
         await ldh(['delete', authorization], { allowFailure: true });
     }
     await ldh(['delete', fixtures.private], { allowFailure: true });
+    await ldh(['delete', fixtures.queryDocument], { allowFailure: true });
     await ldh(['delete', fixtures.container], { allowFailure: true });
 }

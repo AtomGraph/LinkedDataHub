@@ -102,13 +102,12 @@ export const components = [
                         lib: 'lib/view.mjs',
                     },
                     { id: 'chart', name: 'Chart block', selector: '.block.ldh-block:has(.chart-controls)' },
-                    // Uncovered for a reason worth keeping: a query reaches the page wrapped in an
-                    // object block, and seeding one makes EVERY spec on that page fail. The editor
-                    // YASQE fetches http://prefix.cc/popular/all.file.json for prefix completion -
-                    // plain HTTP from an HTTPS page - so the browser blocks it as mixed content and
-                    // the page logs a console error that lib/console.mjs rightly fails on. Measured
-                    // 2026-09-25: the fixture was seeded, 14 previously-green tests went red, and
-                    // the fixture was taken back out.
+                    // Seeded into a document of its own (fixtures.queryDocument) rather than the
+                    // container, because the editor YASQE fetches http://prefix.cc/popular/all.file.json
+                    // for prefix completion - plain HTTP from an HTTPS page - so the browser blocks it
+                    // as mixed content and logs a console error that lib/console.mjs rightly fails
+                    // on. Measured 2026-09-25 with the block in the container: 14 previously-green
+                    // tests went red. Its spec allows that one pattern, with the defect named.
                     { id: 'query', name: 'Query block', selector: '.block.ldh-block:has(.ldh-sparql)' },
                     { id: 'object', name: 'Object block', selector: '.ldh-obj-value' },
                     { id: 'xhtml', name: 'XHTML content block', selector: '.block.ldh-block [typeof$="#XHTML"]' },
