@@ -151,6 +151,12 @@ test.describe('a file over the request size limit', () => {
     // crosses into the page as one value.
     const oversize = 'x'.repeat(6 * 1024 * 1024);
     const failure = page => page.locator('.content-body > .ldh-failure').first();
+    // The history entry count is what says whether anything navigated. The address bar cannot say
+    // it: ldh:SetDocumentState writes the resolved mode into the current history entry on every
+    // load, so a document sitting in ReadMode already carries ?mode= there before anything is
+    // dropped. A navigation would add an entry - ldh:DocumentNavigate pushes one - and re-render the
+    // document body from the graph, which would take the alert with it.
+    const entries = page => page.evaluate(() => history.length);
 
     test.beforeEach(({ allowNoise }) => {
         allowNoise.push({ pattern: /HTTP 413:/, reason: 'the spec sends a body the proxy is configured to refuse' });
@@ -158,24 +164,28 @@ test.describe('a file over the request size limit', () => {
     });
 
     test('is reported as an upload that could not be made', { tag: '@owner' }, async ({ page }) => {
+        const before = await entries(page);
+
         await dropFile(page, { name: 'big.bin', text: oversize });
 
         await expect(failure(page)).toBeVisible();
         await expect(failure(page).locator('.ac-alert-title')).toHaveText('The file could not be uploaded');
         await expect(failure(page).locator('.ac-alert-text')).toHaveText('The file is larger than this server accepts.');
         await expect(failure(page).locator('pre')).toContainText('HTTP 413');
-        // The reader stays where they were: no navigation into ReadMode, and nothing was written.
-        await expect(page).not.toHaveURL(/ReadMode/);
+        // The reader stays where they were, and nothing was written.
+        expect(await entries(page)).toBe(before);
         expect(await triples(doc)).not.toContain(`${NFO}FileDataObject`);
     });
 
     test('is reported as an import that could not be made', { tag: '@owner' }, async ({ page }) => {
+        const before = await entries(page);
+
         await dropFile(page, { name: 'big.ttl', type: 'text/turtle', text: oversize });
 
         await expect(failure(page)).toBeVisible();
         await expect(failure(page).locator('.ac-alert-title')).toHaveText('The file could not be imported');
         await expect(failure(page).locator('.ac-alert-text')).toHaveText('The file is larger than this server accepts.');
         await expect(failure(page).locator('pre')).toContainText('HTTP 413');
-        await expect(page).not.toHaveURL(/ReadMode/);
+        expect(await entries(page)).toBe(before);
     });
 });

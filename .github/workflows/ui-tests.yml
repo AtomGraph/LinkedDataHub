@@ -75,7 +75,18 @@ jobs:
           # suite would have to be told about separately.
           OWNER_CERT_KEYSTORE: ${{ github.workspace }}/tests/http/ssl/owner/keystore.p12
           OWNER_CERT_PWD: ${{ secrets.HTTP_TEST_OWNER_CERT_PASSWORD }}
-      - name: Upload the HTML report and traces
+      - name: Collect container logs on failure
+        # Into files under the report directory, so they ride along in the artifact below. A red
+        # run's container logs come to tens of megabytes and the runner masks secrets line by line
+        # over every one of them: printing them to the step log is what left each red run sitting
+        # here until the six-hour job timeout, with the suite itself finished 25 minutes in. The
+        # timeout bounds the step whichever end is slow, and the artifact keeps the logs entire.
+        if: failure()
+        run: |
+          mkdir -p tests/ui/out/containers
+          timeout 300 docker compose --env-file ./tests/http/.env logs --no-color > tests/ui/out/containers/compose.log 2>&1 || true
+          timeout 300 docker compose --env-file ./tests/http/.env exec -T linkeddatahub sh -c 'for f in /usr/local/tomcat/logs/*; do echo "=== $f ==="; cat "$f"; done' > tests/ui/out/containers/tomcat.log 2>&1 || true
+      - name: Upload the HTML report, traces and container logs
         if: always() && hashFiles('tests/ui/out/**', 'tests/ui/test-results/**') != ''
         uses: actions/upload-artifact@v4
         with:
@@ -84,12 +95,6 @@ jobs:
             tests/ui/out/
             tests/ui/test-results/
           if-no-files-found: ignore
-      - name: Dump container logs on failure
-        if: failure()
-        run: docker compose --env-file ./tests/http/.env logs --no-color
-      - name: Dump Tomcat logs from linkeddatahub container on failure
-        if: failure()
-        run: docker compose --env-file ./tests/http/.env exec -T linkeddatahub sh -c 'for f in /usr/local/tomcat/logs/*; do echo "=== $f ==="; cat "$f"; done' || true
       - name: Stop Docker containers and remove volumes
         run: docker compose --env-file ./tests/http/.env down -v
       - name: Remove Docker containers
