@@ -18,6 +18,7 @@
     <!ENTITY dct    "http://purl.org/dc/terms/">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
+    <!ENTITY vivo   "http://vivoweb.org/ontology/core#">
     <!ENTITY spin   "http://spinrdf.org/spin#">
 ]>
 <xsl:stylesheet version="3.0"
@@ -40,6 +41,7 @@ xmlns:dh="&dh;"
 xmlns:dct="&dct;"
 xmlns:foaf="&foaf;"
 xmlns:sioc="&sioc;"
+xmlns:vivo="&vivo;"
 xmlns:spin="&spin;"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 exclude-result-prefixes="#all">
@@ -134,6 +136,100 @@ exclude-result-prefixes="#all">
         </xsl:if>
     </xsl:template>
         
+    <!-- The e-mail address is typed, not looked up. The constructor declares foaf:mbox [ a rdfs:Resource ],
+         which the generic control renders as a resource combobox, and its lookup queries the SPARQL
+         endpoint - which an agent who is signing up has no access to, so every keystroke answered with
+         "The values could not be loaded". Posted as a literal, the way sioc:email is: ValidatingModelProvider
+         turns a foaf:mbox literal into the mailto: URI the protocol wants. -->
+    <xsl:template match="foaf:mbox/@rdf:*[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), lds:base())]" mode="ac:FormControl" priority="2">
+        <xsl:param name="type" select="'email'" as="xs:string"/>
+        <xsl:param name="id" select="generate-id()" as="xs:string"/>
+        <xsl:param name="class" as="xs:string?"/>
+        <xsl:param name="disabled" select="false()" as="xs:boolean"/>
+        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
+
+        <xsl:apply-templates select="." mode="ac:FieldShell">
+            <xsl:with-param name="type" select="$type"/>
+            <xsl:with-param name="control" as="item()*">
+                <xsl:call-template name="xhtml:Input">
+                    <xsl:with-param name="name" select="'ol'"/>
+                    <xsl:with-param name="type" select="$type"/>
+                    <xsl:with-param name="id" select="$id"/>
+                    <xsl:with-param name="class" select="$class"/>
+                    <xsl:with-param name="disabled" select="$disabled"/>
+                    <!-- empty on the constructor's blank node; the address on a constraint-violation
+                         re-render, where the submitted literal comes back as the converted mailto: URI -->
+                    <xsl:with-param name="value" select="if (starts-with(., 'mailto:')) then substring-after(., 'mailto:') else ()"/>
+                </xsl:call-template>
+            </xsl:with-param>
+        </xsl:apply-templates>
+
+        <xsl:if test="$type-label">
+            <xsl:apply-templates select="." mode="ac:ValueAnnotations">
+                <xsl:with-param name="type" select="$type"/>
+            </xsl:apply-templates>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- and the term the row posts is now a literal, not the blank node the constructor declared -->
+    <xsl:template match="foaf:mbox/@rdf:*[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), lds:base())]" mode="ac:ValueAnnotations" priority="2">
+        <xsl:param name="type" as="xs:string?"/>
+
+        <xsl:if test="not($type = 'hidden')">
+            <xsl:apply-templates select="." mode="ac:AnnotationTag">
+                <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet an-term is-literal'"/>
+                <xsl:with-param name="label" as="item()*">
+                    <xsl:apply-templates select="key('resources', 'literal', ldh:translations())" mode="ac:label"/>
+                </xsl:with-param>
+            </xsl:apply-templates>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- An ORCID iD is a URI the agent pastes, so this one stays a URI field (name="ou") and only loses
+         the lookup - the same inaccessible SPARQL endpoint the e-mail's combobox queried. -->
+    <xsl:template match="vivo:orcidId/@rdf:*[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), lds:base())]" mode="ac:FormControl" priority="2">
+        <xsl:param name="type" select="'url'" as="xs:string"/>
+        <xsl:param name="id" select="generate-id()" as="xs:string"/>
+        <xsl:param name="class" as="xs:string?"/>
+        <xsl:param name="disabled" select="false()" as="xs:boolean"/>
+        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
+
+        <xsl:apply-templates select="." mode="ac:FieldShell">
+            <xsl:with-param name="type" select="$type"/>
+            <xsl:with-param name="control" as="item()*">
+                <xsl:call-template name="xhtml:Input">
+                    <xsl:with-param name="name" select="'ou'"/>
+                    <xsl:with-param name="type" select="$type"/>
+                    <xsl:with-param name="id" select="$id"/>
+                    <xsl:with-param name="class" select="$class"/>
+                    <xsl:with-param name="disabled" select="$disabled"/>
+                    <!-- empty on the constructor's blank node, the submitted URI on a violation re-render -->
+                    <xsl:with-param name="value" select="if (local-name() = 'resource') then string(.) else ()"/>
+                </xsl:call-template>
+            </xsl:with-param>
+        </xsl:apply-templates>
+
+        <xsl:if test="$type-label">
+            <xsl:apply-templates select="." mode="ac:ValueAnnotations">
+                <xsl:with-param name="type" select="$type"/>
+            </xsl:apply-templates>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- and the term it posts is a URI resource, not the blank node the constructor declared -->
+    <xsl:template match="vivo:orcidId/@rdf:nodeID[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), lds:base())]" mode="ac:ValueAnnotations" priority="2">
+        <xsl:param name="type" as="xs:string?"/>
+
+        <xsl:if test="not($type = 'hidden')">
+            <xsl:apply-templates select="." mode="ac:AnnotationTag">
+                <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet an-term is-resource'"/>
+                <xsl:with-param name="label" as="item()*">
+                    <xsl:apply-templates select="key('resources', 'resource', ldh:translations())" mode="ac:label"/>
+                </xsl:with-param>
+            </xsl:apply-templates>
+        </xsl:if>
+    </xsl:template>
+
     <!-- make properties required -->
     <xsl:template match="foaf:givenName[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), lds:base())] | foaf:familyName[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), lds:base())] | foaf:mbox[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), lds:base())]" mode="ac:FormControl" priority="1">
         <xsl:param name="violations" as="element()*"/>
