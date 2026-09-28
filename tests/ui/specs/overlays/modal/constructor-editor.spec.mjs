@@ -33,11 +33,11 @@ const COLLECTION = `${SKOS}Collection`;
 // sp:text is a multi-line literal, and a spec file cannot nest those inside a template literal
 const TRIPLE_QUOTE = '"'.repeat(3);
 
-// What the package's Concept constructor templates, by property. The three literals are
+// What the package's Concept constructor templates, by property. The four literals are
 // rdf:langString, which is the datatype the editor used to lose.
-const TEMPLATED = ['prefLabel', 'altLabel', 'definition', 'broader', 'narrower', 'related', 'inScheme']
+const TEMPLATED = ['prefLabel', 'altLabel', 'definition', 'scopeNote', 'broader', 'narrower', 'related', 'inScheme', 'topConceptOf']
     .map(local => `${SKOS}${local}`);
-const LANG_STRING_ROWS = 3;
+const LANG_STRING_ROWS = 4;
 
 const editor = page => page.locator('form.constructor-template');
 const cards = form => form.locator('fieldset.ldh-ctor-card');

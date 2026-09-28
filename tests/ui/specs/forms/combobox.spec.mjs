@@ -416,7 +416,8 @@ test.describe('the resource combobox', { tag: '@owner' }, () => {
             await expect(typeChip.locator('input[name="ou"]')).toHaveValue(`${SKOS}Collection`, { timeout: 40_000 });
             await expect.poll(predicates, { timeout: 40_000 }).toContain(`${SKOS}member`);
             expect(await predicates(), 'skos:related is not a Collection property').not.toContain(RELATED);
-            expect(await predicates()).not.toContain(IN_SCHEME);
+            // skos:inScheme is templated by both constructors, so it is the one row that stays.
+            expect(await predicates(), 'skos:inScheme is a Collection property too').toContain(IN_SCHEME);
         });
     });
 });
