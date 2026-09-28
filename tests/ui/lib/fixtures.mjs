@@ -6,7 +6,7 @@ import { spawn } from 'node:child_process';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { adminBase, endUserBase, ownerKeystore, ownerPassword } from './stack.mjs';
+import { adminBase, endUserBase, ownerKeystore, ownerPassword, remoteAdminBase, remoteEndUserBase } from './stack.mjs';
 
 const slug = 'ui-fixtures';
 // Named once, because a pivot onto the container answers with this title and a spec asserts it.
@@ -59,7 +59,24 @@ export const fixtures = {
     // holds; the query it wraps is the container's, dereferenced across documents like any other.
     queryDocument: `${endUserBase}${slug}-query/`,
     queryBlock: `${endUserBase}${slug}-query/#query-block`,
+    // The host of a resource embedded from ANOTHER dataspace. Every other object block on these
+    // pages names a resource of this origin, which the browser fetches directly; this one names
+    // remoteDocument(), which it can only reach through the Linked Data proxy - the path on which
+    // the platform's own identity, not the reader's, once decided whether the block could be
+    // edited. A document of its own, like queryDocument, so the container's block and child counts
+    // hold; a sibling of the container, so the document tree's item count does too.
+    remoteHost: `${endUserBase}${slug}-remote/`,
+    remoteBlock: `${endUserBase}${slug}-remote/#remote-block`,
 };
+
+// The embedded resource itself, in the second end-user dataspace the preflight resolved. Functions
+// rather than entries above because that dataspace is known only once globalSetup has run.
+export const remoteDocument = () => `${remoteEndUserBase()}${slug}-remote/`;
+export const remoteDocumentTitle = 'Fixture remote document';
+// What lets an anonymous reader see it: a grant in the remote dataspace's OWN admin, since access to
+// a document is decided by the dataspace it lives in, not by the one embedding it.
+const remoteAuthSlug = `${slug}-remote-public`;
+export const remoteAuthorization = () => `${remoteAdminBase()}acl/authorizations/${remoteAuthSlug}/`;
 
 // Enough children that the default 20-row page is not the last one, so the pager has a
 // second page to go to. Lowerable for a slow runner.
@@ -219,6 +236,26 @@ export async function seed() {
     await ldh(['add', 'object-block', '--title', 'Fixture query block', '--uri', fixtures.queryBlock,
         '--value', fixtures.query, fixtures.queryDocument]);
 
+    // The cross-origin pair: a document in the other dataspace, created by the same owner (the root
+    // owner owns every dataspace of the stack, the entrypoint sees to that), and the host here that
+    // embeds it. The remote grant is what makes the embedded rendering an anonymous reader's to
+    // see; the platform's own secretary is a writer of every end-user dataspace already.
+    await ldh(['create', 'item', '-b', remoteEndUserBase(),
+        '--container', remoteEndUserBase(),
+        '--title', remoteDocumentTitle,
+        '--slug', `${slug}-remote`]);
+    await ldh(['admin', 'create', 'authorization', '-b', remoteAdminBase(),
+        '--label', 'UI test public remote document', '--slug', remoteAuthSlug,
+        '--agent-class', FOAF_AGENT,
+        '--to', remoteDocument(),
+        '--read']);
+    await ldh(['create', 'item',
+        '--container', endUserBase,
+        '--title', 'Fixture remote host',
+        '--slug', `${slug}-remote`]);
+    await ldh(['add', 'object-block', '--title', 'Fixture remote block', '--uri', fixtures.remoteBlock,
+        '--value', remoteDocument(), fixtures.remoteHost]);
+
     // Everything an anonymous reader needs to render fixtures.readable, measured rather than
     // guessed: the document itself, the ancestors the document tree walks on its way down, and
     // the SPARQL endpoint. Without the endpoint the page raises a Saxon-JS alert
@@ -230,6 +267,7 @@ export async function seed() {
         '--to', endUserBase,
         '--to', fixtures.container,
         '--to', fixtures.readable,
+        '--to', fixtures.remoteHost,
         '--read']);
 
     // Separate, because its scope is the one that cannot be narrowed. The endpoint enforces no
@@ -258,5 +296,12 @@ export async function teardown() {
     }
     await ldh(['delete', fixtures.private], { allowFailure: true });
     await ldh(['delete', fixtures.queryDocument], { allowFailure: true });
+    await ldh(['delete', fixtures.remoteHost], { allowFailure: true });
+    // Only once the preflight has resolved the remote dataspace: a teardown that runs before it
+    // (UI_TESTS_SKIP_SEED, or a run that failed earlier in the preflight) has nothing to remove there.
+    if (process.env.REMOTE_END_USER_BASE_URL) {
+        await ldh(['delete', remoteAuthorization()], { allowFailure: true });
+        await ldh(['delete', remoteDocument()], { allowFailure: true });
+    }
     await ldh(['delete', fixtures.container], { allowFailure: true });
 }

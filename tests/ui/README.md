@@ -66,6 +66,16 @@ not remembered.
 | `UI_TESTS_KEEP_FIXTURES=1` | Leave the container behind to inspect it in a browser |
 | `UI_TESTS_ITEMS=n` | Fewer children (default 25 — enough for a second pager page) |
 | `UI_TESTS_TAXONOMY_PACKAGE=uri` | A different taxonomy package to import (default: the bundled taxonomy editor) |
+| `REMOTE_END_USER_BASE_URL=url` | The second end-user dataspace the cross-origin fixture is seeded into. Unset, the preflight probes the origins declared in `config/dataspaces.trig` and `tests/http/config/dataspaces.trig` and takes the one the stack answers for |
+
+### The remote document
+
+One object block names a resource in **another dataspace**, `ui-fixtures-remote/` in the
+dataspace the preflight resolved, granted to everyone by an authorization in that dataspace's own
+admin. It is the one fixture the browser reaches through the Linked Data proxy rather than
+directly, which is a different path with a different agent on it - the platform's own, unless the
+reader's is delegated - and the specs about what an anonymous reader may do to an embedded
+resource are written against it.
 
 ### The taxonomy
 

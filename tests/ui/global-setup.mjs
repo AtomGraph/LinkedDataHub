@@ -6,7 +6,7 @@ import { delimiter, join } from 'node:path';
 import { accessSync, constants } from 'node:fs';
 import { spawn } from 'node:child_process';
 import { get } from './lib/http.mjs';
-import { adminBase, composedSefPrefix, endUserBase, localSef, repoRoot, sefDir, sefPath } from './lib/stack.mjs';
+import { adminBase, composedSefPrefix, endUserBase, localSef, remoteEndUserBase, repoRoot, sefDir, sefPath } from './lib/stack.mjs';
 import { fixtures as fixtureUris, itemCount, seed, teardown } from './lib/fixtures.mjs';
 import { seedTaxonomy, taxonomyPackage, teardownTaxonomy, waitForPackageStylesheet } from './lib/taxonomy.mjs';
 
@@ -38,6 +38,46 @@ async function reachable() {
             + `        The nginx container fronts every port the suite uses. Start it with:\n`
             + `            make up nginx`, { cause });
     }
+}
+
+// The second end-user dataspace the cross-origin fixture lives in (lib/stack.mjs, remoteEndUserBase).
+// Set, it is taken as given. Unset, it is found: the two dataspace configs this repository can
+// run the stack with each declare their origins, and the one in effect is the one that answers.
+// An origin nginx has no dataspace for answers 404 (tests/http/dataspaces/non-existent-dataspace.sh),
+// a dataspace's root answers 200 or 403 - so a 404 is "not this stack", not "not public".
+async function remote() {
+    const declared = process.env.REMOTE_END_USER_BASE_URL;
+    if (declared) {
+        const { status } = await get(declared);
+        if (status === 404) {
+            throw new Error(`REMOTE_END_USER_BASE_URL is ${declared}, but the stack has no dataspace at that origin (404).`);
+        }
+        console.log(`  remote     ${declared} (REMOTE_END_USER_BASE_URL) -> ${status}`);
+        return;
+    }
+
+    const configs = ['config/dataspaces.trig', 'tests/http/config/dataspaces.trig'].map(path => join(repoRoot, path));
+    const local = new URL(endUserBase).host;
+    const candidates = [...new Set(configs.flatMap(path => {
+        if (!existsSync(path)) return [];
+        return [...readFileSync(path, 'utf8').matchAll(/lds:origin\s+<([^>]+)>/g)].map(match => `${match[1]}/`);
+    }))].filter(base => {
+        const { host } = new URL(base);
+        return host !== local && !host.startsWith('admin.');
+    });
+
+    for (const base of candidates) {
+        const status = await get(base).then(response => response.status, () => null);
+        if (status !== null && status !== 404) {
+            process.env.REMOTE_END_USER_BASE_URL = base;
+            console.log(`  remote     ${base} -> ${status}`);
+            return;
+        }
+    }
+
+    throw new Error(`No second end-user dataspace answers on this stack. Tried: ${candidates.join(', ') || '(none declared)'}.\n`
+        + `        The cross-origin fixture needs one. Name it with:\n`
+        + `            export REMOTE_END_USER_BASE_URL=https://<origin>/`);
 }
 
 function cli() {
@@ -230,6 +270,8 @@ export default async function globalSetup() {
     console.log('\nPreflight');
     await reachable();
     cli();
+    // Before the fixtures: the cross-origin one is seeded into the dataspace this resolves.
+    await remote();
     await fixtures();
     await purge();
     await baseline();

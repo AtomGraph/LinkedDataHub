@@ -13,6 +13,29 @@ export const adminBase = process.env.ADMIN_BASE_URL ?? 'https://admin.localhost:
 export const endUserEndpoint = process.env.END_USER_ENDPOINT_URL ?? 'http://localhost:3030/end-user';
 export const adminEndpoint = process.env.ADMIN_ENDPOINT_URL ?? 'http://localhost:3030/admin';
 
+// A second end-user dataspace, for the one thing the root dataspace cannot show on its own: a
+// resource embedded from ANOTHER origin, which the browser fetches through the Linked Data proxy
+// rather than directly. Which dataspace that is depends on the stack: the CI overlay
+// (tests/http/config/dataspaces.trig) declares test.localhost, the dev config declares the
+// demo's. So the preflight resolves it - from this variable when set, else by probing the
+// origins those two files declare - and publishes the answer here for the workers, since a
+// variable set in globalSetup reaches every spec.
+//
+// A function, not a constant: the module is evaluated before the preflight runs.
+export const remoteEndUserBase = () => {
+    const base = process.env.REMOTE_END_USER_BASE_URL;
+    if (!base) {
+        throw new Error('REMOTE_END_USER_BASE_URL is not set: the preflight resolves the remote dataspace before any spec runs');
+    }
+    return base;
+};
+
+// Its admin dataspace, by the platform's own convention for pairing the two origins.
+export const remoteAdminBase = () => {
+    const url = new URL(remoteEndUserBase());
+    return `${url.protocol}//admin.${url.host}/`;
+};
+
 // ldh reads the PKCS12 keystore; the PEM beside it is what curl -E takes. Playwright
 // wants the keystore too, so the suite never touches the PEM.
 export const ownerKeystore = process.env.OWNER_CERT_KEYSTORE ?? join(repoRoot, 'ssl/owner/keystore.p12');

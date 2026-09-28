@@ -198,6 +198,10 @@ Every namespace LDH defines now lives under `https://w3id.org/atomgraph/linkedda
 - Net access after the fix: `/settings` owner-only, `/sparql` authenticated-only, `/ns` and `/access` public, OAuth login public
 - `MAX_CONTENT_LENGTH` bounds what the Linked Data proxy and the imports fetch from origins nobody controls; it was applied to the responses the deployment's own triplestore returns as well, so a document whose graph serialized past it could not be read at all, and could no longer be written either — a `PATCH` reads the graph, changes it and writes it back, so the read-back was refused too. The write that grew the graph was never bounded, so a successful import could leave a document permanently stuck. Requests to the deployment's own SPARQL, Graph Store and Quad Store services are exempt; the proxy, the import sources and WebID dereferencing stay bounded
 - An oversize response answers `502` rather than `413`: what was too large is the upstream's response, and `413` states that the caller's request body was — untrue of a `GET` that carries none. A response with a `Content-Length` and the same response chunked previously answered with different statuses
+- The Linked Data proxy made every upstream request with the platform's own client certificate and delegated the caller with `On-Behalf-Of` only when there was one, so a caller with no certificate reached the origin as the secretary, a writer of every end-user dataspace; an anonymous caller now dereferences with a client that carries no certificate, and the origin decides on nobody
+- A private document of another dataspace was readable through `?uri=` without a certificate
+- A `PATCH` or `PUT` through `?uri=` without a certificate was applied at the origin
+- The `acl:mode` and `acl:agent` `Link` headers the proxy forwards described the secretary, so a block embedded from another dataspace drew edit controls for an anonymous reader
 
 ### Known limitations
 - The in-place editor edits tab-group content but cannot create tab groups; that markup is authored via the HTTP API (e.g. `ldh put`) for now

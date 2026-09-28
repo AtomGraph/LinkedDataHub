@@ -275,7 +275,7 @@ public class Application extends ResourceConfig
     private final Map<String, OntologyRepository> endUserRepositories;
     private final PackageService packageService = new PackageService(this);
     private final MediaTypes mediaTypes;
-    private final Client client, externalClient, importClient, noCertClient, verifiedClient;
+    private final Client client, externalClient, externalNoCertClient, importClient, noCertClient, verifiedClient;
     private final Query documentTypeQuery, documentOwnerQuery, aclQuery, ownerAclQuery, webIDQuery, agentQuery, userAccountQuery, ontologyQuery; // no relative URIs
     private final Integer maxGetRequestSize;
     private final Processor xsltProc = new Processor(false);
@@ -740,7 +740,12 @@ public class Application extends ResourceConfig
             
             client = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null, false, connectionRequestTimeout, socketTimeout, connectTimeout, connectionTimeToLive, validateAfterInactivity);
             externalClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null, false, connectionRequestTimeout, socketTimeout, connectTimeout, connectionTimeToLive, validateAfterInactivity);
-            importClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, maxRequestRetries, true, connectionRequestTimeout, socketTimeout, connectTimeout, connectionTimeToLive, validateAfterInactivity);
+            // the external client's twin without the secretary's certificate: the Linked Data proxy's
+            // upstream request for a caller who holds no identity, so the origin answers nobody rather
+            // than the platform. Same pool sizing and timeouts, and like its twin no retries - a proxied
+            // PATCH must not be replayed
+            externalNoCertClient = getNoCertClient(trustStore, maxConnPerRoute, maxTotalConn, null, connectionRequestTimeout, socketTimeout, connectTimeout, connectionTimeToLive, validateAfterInactivity);
+            importClient =getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, maxRequestRetries, true, connectionRequestTimeout, socketTimeout, connectTimeout, connectionTimeToLive, validateAfterInactivity);
             noCertClient = getNoCertClient(trustStore, maxConnPerRoute, maxTotalConn, maxRequestRetries, connectionRequestTimeout, socketTimeout, connectTimeout, connectionTimeToLive, validateAfterInactivity);
             verifiedClient = getVerifiedClient(maxConnPerRoute, maxTotalConn, maxRequestRetries, connectionRequestTimeout, socketTimeout, connectTimeout, connectionTimeToLive, validateAfterInactivity);
 
@@ -748,6 +753,7 @@ public class Application extends ResourceConfig
             {
                 client.register(new ContentLengthLimitFilter(maxContentLength));
                 externalClient.register(new ContentLengthLimitFilter(maxContentLength));
+                externalNoCertClient.register(new ContentLengthLimitFilter(maxContentLength));
                 importClient.register(new ContentLengthLimitFilter(maxContentLength));
                 noCertClient.register(new ContentLengthLimitFilter(maxContentLength));
             }
@@ -758,6 +764,7 @@ public class Application extends ResourceConfig
 
                 client.register(rewriteFilter);
                 externalClient.register(rewriteFilter);
+                externalNoCertClient.register(rewriteFilter);
                 importClient.register(rewriteFilter);
                 noCertClient.register(rewriteFilter);
             }
@@ -1282,6 +1289,7 @@ public class Application extends ResourceConfig
                 JSONGRDDLFilter filter = provider.getFilter(xsltComp);
                 client.register(filter);
                 externalClient.register(filter);
+                externalNoCertClient.register(filter);
             }
             catch (SaxonApiException ex)
             {
@@ -2123,6 +2131,19 @@ public class Application extends ResourceConfig
     public Client getExternalClient()
     {
         return externalClient;
+    }
+
+    /**
+     * Returns the external HTTP client that sends no client certificate.
+     * It is what the Linked Data proxy dereferences with on behalf of a caller who holds no identity:
+     * the origin then sees an anonymous request, and answers with the access an anonymous agent has,
+     * rather than seeing the platform's secretary and answering with the secretary's.
+     *
+     * @return client object
+     */
+    public Client getExternalNoCertClient()
+    {
+        return externalNoCertClient;
     }
 
     /**
