@@ -1246,6 +1246,16 @@ but a touch more solid ---- */
   background: linear-gradient(135deg, light-dark(#efeaff, #241d3a) 0%, light-dark(#e3f1ff, #16263a) 50%, light-dark(#e6f6ee, #12291f) 100%);
   border: 0; border-radius: 28px;
 }
+/* A page's hero can claim the same licence with .is-wash: a landing hero is a moment
+   too, not a working surface. Same stops, written out for the same reason; the text
+   goes back to the base ink and the eyebrow to tertiary, as the wash was designed. */
+:root[data-retro^="m3"] .ldh-hero.is-wash {
+  background: linear-gradient(135deg, light-dark(#efeaff, #241d3a) 0%, light-dark(#e3f1ff, #16263a) 50%, light-dark(#e6f6ee, #12291f) 100%);
+}
+:root[data-retro^="m3"] .ldh-hero.is-wash,
+:root[data-retro^="m3"] .ldh-hero.is-wash h1,
+:root[data-retro^="m3"] .ldh-hero.is-wash p { color: var(--fg-1); }
+:root[data-retro^="m3"] .ldh-hero.is-wash .eyebrow { color: var(--md-tertiary); }
 
 /* ---- Dialogs / drawers / menus. The dialog uses the SAME surface as cards
         (surface-container-lowest = white in light) so the embedded ResourceEditForm
