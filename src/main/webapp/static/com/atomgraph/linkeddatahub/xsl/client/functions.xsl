@@ -146,12 +146,85 @@ exclude-result-prefixes="#all"
 
     <!-- The headers a conditional write sends. An absent validator sends no If-Match rather than an empty one:
          the server reads a blank header as no header at all, so the write is refused with 428 and says so,
-         where an empty value would have looked like a precondition that passed. -->
+         where an empty value would have looked like a precondition that passed.
+
+         The Accept travels WITH the If-Match, because the validator is per representation: the server adds
+         a variant hash to the graph's content digest, so one graph has one tag as RDF/XML and another as
+         HTML, and it evaluates the precondition against the variant the WRITE's own Accept selects. The tag
+         quoted here always comes from an application/rdf+xml read - that is the only branch of
+         ldh:rdf-document-response that stores one, and ldh:head-request asks for nothing else - while the
+         write itself named no representation and went out as */*, which resolves to HTML. Measured
+         2026-09-28: HEAD Accept: application/rdf+xml answered ETag "..b724c67a", the PATCH quoted it under
+         Accept: */* and was refused 412 against an HTML tag, and the same PATCH naming application/rdf+xml
+         is accepted. The default is merged FIRST so a caller naming its own Accept still wins. -->
     <xsl:function name="ldh:conditional-headers" as="map(*)">
         <xsl:param name="headers" as="map(*)"/>
         <xsl:param name="etag" as="xs:string?"/>
 
-        <xsl:sequence select="map:merge(($headers, $etag[. ne ''] ! map{ 'If-Match': . }), map{ 'duplicates': 'use-last' })"/>
+        <xsl:sequence select="map:merge((map{ 'Accept': 'application/rdf+xml' }, $headers, $etag[. ne ''] ! map{ 'If-Match': . }), map{ 'duplicates': 'use-last' })"/>
+    </xsl:function>
+
+    <!-- Records the validator a response carried, so the next conditional write to the same document
+         quotes the state that response left behind rather than the one the page was loaded with. A write
+         answers with the entity tag of the graph it has just produced, and nothing stored it: the FIRST
+         block move of a page session was accepted and every one after it was refused 412, quoting a tag
+         the move itself had invalidated. Measured 2026-09-28 - two consecutive moves, one page, the same
+         If-Match on both: 204 then 412, with "Could not move block" on the second.
+
+         The per-document entry is created only when the browser has none. Replacing an existing one would
+         wipe the 'results' document and the 'block-html' snapshot the rest of the client keeps beside the
+         tag, which is the same reason ldh:form-horizontal-submit-success reuses it (form.xsl). -->
+    <xsl:function name="ldh:set-document-etag" as="empty-sequence()" ixsl:updating="yes">
+        <xsl:param name="doc-uri" as="xs:anyURI"/>
+        <xsl:param name="etag" as="xs:string?"/>
+
+        <xsl:for-each select="$etag[. ne '']">
+            <xsl:variable name="contents" select="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+            <xsl:if test="not(ixsl:contains($contents, '`' || $doc-uri || '`'))">
+                <ixsl:set-property name="{'`' || $doc-uri || '`'}" select="ldh:new-object()" object="$contents"/>
+            </xsl:if>
+            <ixsl:set-property name="etag" select="string(.)" object="ixsl:get($contents, '`' || $doc-uri || '`')"/>
+        </xsl:for-each>
+    </xsl:function>
+
+    <!-- Supplies the validator a pending conditional write has to quote, HEADing the document when the
+         browser holds none. A server-rendered page never fetches its own document as RDF, so
+         LinkedDataHub.contents is empty until something navigates and ldh:document-etag() returns nothing;
+         the write then went out with no If-Match at all and the server refused it 428 Precondition
+         Required - the same "Could not move block" as above, from a page that was opened rather than
+         navigated to. The HEAD asks for application/rdf+xml because the tag is per REPRESENTATION and that
+         is the one the write negotiates; measured, HEAD and GET answer the same tag for the same variant.
+
+         Returns a promise on both branches so the caller's chain does not have to fork, which is what
+         ixsl:resolve is for here. $context('doc-uri') is the document being written, NOT the page URI:
+         a block embedding another resource is written through its host's URI. -->
+    <xsl:function name="ldh:with-document-etag" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+
+        <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
+        <xsl:choose>
+            <xsl:when test="exists(ldh:document-etag($doc-uri))">
+                <xsl:sequence select="ixsl:resolve($context)"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ixsl:http-request(ldh:head-request($doc-uri)) =>
+                    ixsl:then(ldh:document-etag-response($context, ?))"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <!-- Folds the tag the HEAD answered with into the pending request, and records it for the writes after
+         this one. A response carrying no tag leaves the request exactly as it was: the server then refuses
+         the write and says why, which is the honest outcome - there is no validator to invent, and sending
+         the write unconditionally would turn a refusal into a silent overwrite of whatever landed meanwhile. -->
+    <xsl:function name="ldh:document-etag-response" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="response" as="map(*)"/>
+
+        <xsl:variable name="etag" select="$response?headers?etag" as="xs:string?"/>
+        <xsl:sequence select="ldh:set-document-etag($context('doc-uri'), $etag)"/>
+        <xsl:sequence select="map:put($context, 'request',
+            map:put($context('request'), 'headers', ldh:conditional-headers($context('request')?headers, $etag)))"/>
     </xsl:function>
 
     <!-- Whether the agent may PATCH the document such a response came from. A response that is not 200 has no

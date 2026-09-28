@@ -512,19 +512,26 @@ exclude-result-prefixes="#all"
                     <xsl:sequence select="ldh:busy-cursor()"/>
 
                     <xsl:variable name="block-uri" select="$block/@about" as="xs:anyURI"/>
-                    <xsl:variable name="update-string" select="replace($block-delete-string, '$this', '&lt;' || ac:absolute-path(ldh:base-uri(.)) || '&gt;', 'q')" as="xs:string"/>
+                    <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
+                    <xsl:variable name="update-string" select="replace($block-delete-string, '$this', '&lt;' || $doc-uri || '&gt;', 'q')" as="xs:string"/>
                     <xsl:variable name="update-string" select="replace($update-string, '$block', '&lt;' || $block-uri || '&gt;', 'q')" as="xs:string"/>
-                    <xsl:variable name="request-uri" select="ldh:href(ac:absolute-path(ldh:base-uri(.)), map{})" as="xs:anyURI"/>
+                    <xsl:variable name="request-uri" select="ldh:href($doc-uri, map{})" as="xs:anyURI"/>
                     <xsl:variable name="context" as="map(*)" select="
                       map{
-                        'request': map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': ldh:conditional-headers(map{}, ldh:document-etag(ac:absolute-path(ldh:base-uri(.)))) },
+                        'request': map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': ldh:conditional-headers(map{}, ldh:document-etag($doc-uri)) },
+                        'doc-uri': $doc-uri,
                         'block': $block
                       }"/>
-                    <!-- no ldh:handle-response in the chain: a failed PATCH is reported here rather than raised, so it must reach the callback -->
-                    <ixsl:promise select="ixsl:http-request($context('request')) =>
-                        ixsl:then(ldh:rethread-response($context, ?)) =>
-                        ixsl:then(ldh:block-delete-response#1) =>
-                        ixsl:finally(ldh:reset-cursor#0)"
+                    <!-- ldh:with-document-etag first: on a server-rendered page the browser has never
+                         fetched this document as RDF, so it holds no validator and the write would go out
+                         unconditional and be refused 428. No ldh:handle-response in the chain: a failed
+                         PATCH is reported here rather than raised, so it must reach the callback -->
+                    <ixsl:promise select="
+                        ixsl:resolve($context) =>
+                            ixsl:then(ldh:with-document-etag#1) =>
+                            ixsl:then(ldh:http-request-threaded#1) =>
+                            ixsl:then(ldh:block-delete-response#1) =>
+                            ixsl:finally(ldh:reset-cursor#0)"
                         on-failure="ldh:promise-failure(($block//div[contains-token(@class, 'main')])[1], 'block-not-deleted', ?)"/>
                 </xsl:if>
             </xsl:when>
@@ -681,10 +688,11 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="update-string" select="replace($block-move-string, '($doc $source $target)', $values-row, 'q')" as="xs:string"/>
                     <xsl:variable name="request-uri" select="ldh:href($doc-uri, map{})" as="xs:anyURI"/>
                     <xsl:variable name="request" select="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': ldh:conditional-headers(map{}, ldh:document-etag($doc-uri)) }" as="map(*)"/>
-                    <xsl:variable name="context" select="map{ 'request': $request, 'source-block': $source-block, 'source-next': $source-next }" as="map(*)"/>
+                    <xsl:variable name="context" select="map{ 'request': $request, 'doc-uri': $doc-uri, 'source-block': $source-block, 'source-next': $source-next }" as="map(*)"/>
 
                     <ixsl:promise select="
                         ixsl:resolve($context) =>
+                            ixsl:then(ldh:with-document-etag#1) =>
                             ixsl:then(ldh:http-request-threaded#1) =>
                             ixsl:then(ldh:handle-response#1) =>
                             ixsl:then(ldh:block-moved#1) =>
@@ -1373,6 +1381,10 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <xsl:when test="$response?status = (200, 204)">
+                <!-- the delete changed the graph, so the tag the page holds is now stale and the next
+                     conditional write to this document would be refused 412 quoting it -->
+                <xsl:sequence select="ldh:set-document-etag($context('doc-uri'), $response?headers?etag)"/>
+
                 <!-- the whole row goes: removing only the card would leave an empty .ldh-block-row shell -->
                 <xsl:for-each select="($block/ancestor::div[contains-token(@class, 'ldh-block-row')][1], $block)[1]">
                     <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
@@ -1394,20 +1406,29 @@ exclude-result-prefixes="#all"
 
         <ixsl:set-style name="cursor" select="''" object="ixsl:page()//body"/>
 
-        <!-- revert the optimistic DOM move if the PATCH failed -->
-        <xsl:if test="not($response?status = 204)">
-            <xsl:variable name="source-block" select="$context('source-block')" as="element()"/>
-            <xsl:choose>
-                <xsl:when test="exists($context('source-next'))">
-                    <xsl:sequence select="ixsl:call($context('source-next'), 'before', [ $source-block ])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:sequence select="ixsl:call($source-block/.., 'append', [ $source-block ])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:otherwise>
-            </xsl:choose>
+        <xsl:choose>
+            <!-- the move rewrote the document's rdf:_N sequence, so every validator taken before it - the
+                 one this write quoted included - is now stale. Recording the tag the 204 answered with is
+                 what makes the SECOND move of a page session possible: without it the next PATCH quotes
+                 the tag the page loaded with and is refused 412 -->
+            <xsl:when test="$response?status = 204">
+                <xsl:sequence select="ldh:set-document-etag($context('doc-uri'), $response?headers?etag)"/>
+            </xsl:when>
+            <!-- revert the optimistic DOM move if the PATCH failed -->
+            <xsl:otherwise>
+                <xsl:variable name="source-block" select="$context('source-block')" as="element()"/>
+                <xsl:choose>
+                    <xsl:when test="exists($context('source-next'))">
+                        <xsl:sequence select="ixsl:call($context('source-next'), 'before', [ $source-block ])[current-date() lt xs:date('2000-01-01')]"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:sequence select="ixsl:call($source-block/.., 'append', [ $source-block ])[current-date() lt xs:date('2000-01-01')]"/>
+                    </xsl:otherwise>
+                </xsl:choose>
 
-            <xsl:sequence select="ldh:response-error($response)"/>
-        </xsl:if>
+                <xsl:sequence select="ldh:response-error($response)"/>
+            </xsl:otherwise>
+        </xsl:choose>
 
         <xsl:sequence select="$context"/>
     </xsl:function>
