@@ -11,11 +11,8 @@
 // independent witness: it asks whether any frame of the whole load ever gave the block a box.
 import { test, expect } from '../../../../lib/console.mjs';
 import { goto } from '../../../../lib/settle.mjs';
-import { concept, document as conceptDocument } from '../../../../lib/taxonomy.mjs';
+import { concept, conceptPage } from '../../../../lib/taxonomy.mjs';
 import { BROADER, NARROWER, rowFor, rows, viewBlock } from '../../../../lib/view.mjs';
-import { READ_MODE, inMode } from '../../../../lib/mode.mjs';
-
-const pageFor = name => inMode(conceptDocument(name), READ_MODE);
 
 // Installed before any of the page's own script runs, so the first injected block is seen.
 const watchInjectedViews = page => page.addInitScript(() => {
@@ -66,7 +63,7 @@ test.describe('a view declared not to show when empty', { tag: '@owner' }, () =>
     test('never takes a box in the flow while it is empty', async ({ page }) => {
         // espresso is a leaf: nothing is narrower than it. Its Broader view on the same page does
         // have a result, so a build that simply hid every declared view would not pass this.
-        await goto(page, pageFor('espresso'));
+        await goto(page, conceptPage('espresso'));
 
         await expect(rowFor(viewBlock(page, BROADER), concept('coffee'))).toHaveCount(1);
         await expect(viewBlock(page, NARROWER)).toBeHidden();
@@ -91,7 +88,7 @@ test.describe('a view declared not to show when empty', { tag: '@owner' }, () =>
     test('is shown once its results say it has something to show', async ({ page }) => {
         // hot-drinks has two children, so the same block that stays hidden above has to come back
         // here - the hide is only correct while the reveal that answers it still fires.
-        await goto(page, pageFor('hot-drinks'));
+        await goto(page, conceptPage('hot-drinks'));
 
         const narrower = viewBlock(page, NARROWER);
         await expect(narrower).toBeVisible();

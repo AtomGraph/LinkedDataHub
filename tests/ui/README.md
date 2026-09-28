@@ -106,12 +106,14 @@ specs/
     action-bar/             create, breadcrumb, mode, overflow, timestamp
     content-aside/          the ldh:ContentColumn slot
     blocks/                 the card shell, kind-agnostic
-      view/                 one folder per block kind
+      chart/                a kind with two specs; the kinds with one are files beside them
+      view/
   forms/                    the write layer rendered in place
   overlays/                 surfaces mounted outside the document flow
     modal/
   shell/                    layout.xsl - outside the pane
     drawer/
+      document-tree/
     header/
 ```
 
@@ -131,13 +133,21 @@ directory cannot: *which components has nobody tested?*
   honestly untested component rather than a covered-looking one.
 - **A component's specs live in its folder; a leaf component with one spec may be that file.**
   `forms/combobox.spec.mjs` becomes `forms/combobox/*.spec.mjs` the day it has two, and the
-  component it belongs to does not change.
+  component it belongs to does not change. The chart block is the worked example: `chart.spec.mjs`
+  and `chart/controls.spec.mjs` coexisted for a while, which the report tolerates — it assigns
+  both to the same component either way — and which left two spellings of "the chart block" in
+  three files, one of them landing on the Object wrapper the chart is rendered inside.
 
 `axes/` is the exception the tree needs to stay truthful. `responsive` measures the statement
 grid, the chart controls, the address bar and the tab strip at three viewports;
-`anonymous-affordances` asserts six write controls across three components. Filing either under
-one component would claim coverage of five it happens to touch. The repo already calls these
-axes in its own prose, so the folder is the README's vocabulary rather than a catch-all.
+`anonymous-affordances` asserts six write controls across three components; `pane-isolation`
+asserts that a chart and a map in one dataspace's pane survive a second dataspace being opened
+into another, reaching the tab strip only to get that second pane at all; `request-size` asserts
+the response a document larger than the request limit is read with. Filing any of them under one
+component would claim coverage of several it happens to touch — `pane-isolation` lived in
+`shell/tabs.spec.mjs` and `request-size` under `document/`, where it made the report print the
+document body, a **grouping** node that owes no spec, as covered by it. The repo already calls
+these axes in its own prose, so the folder is the README's vocabulary rather than a catch-all.
 
 Two things that are *not* in the path, because neither is a fact about the component:
 which app serves the fixture (`overlays/modal/ontology-import` runs against the admin origin,
@@ -174,6 +184,10 @@ That last state is the one worth reading twice. A `ldh:ResultSetChart` is data u
 puts it in the document's `rdf:_N` list, so the fixture's chart once existed in the graph and
 rendered nowhere, and a spec waited 30s for `.chart-controls` that could never appear. `unprobed`
 is that condition, named: not "untested" but "not yet visible to the suite at all".
+
+`grouping` is the one state a spec can take away by accident: the report answers "has this
+component a spec" before it asks anything else, so a spec filed directly on a grouping node prints
+it as covered and its children's absence stops being visible. The folder assertion refuses one.
 
 The inventory lives in `coverage/`, not in `lib/`, and a spec that imports from it fails the run.
 A `selector` there answers *did this component render* and nothing else; the moment a spec wants

@@ -8,16 +8,14 @@
 // rather than a settle-then-count.
 import { test, expect } from '../../../lib/console.mjs';
 import { goto } from '../../../lib/settle.mjs';
-import { addBroader, concept, document, labelOf, scheme } from '../../../lib/taxonomy.mjs';
-import { CONTENT_MODE, EDIT_MODE, READ_MODE, inMode } from '../../../lib/mode.mjs';
+import { addBroader, concept, conceptPage, labelOf, scheme } from '../../../lib/taxonomy.mjs';
+import { CONTENT_MODE, EDIT_MODE } from '../../../lib/mode.mjs';
 import { disclosureOf, linkOf, rowFor } from '../../../lib/tree.mjs';
-
-const pageFor = (name, mode = READ_MODE) => inMode(document(name), mode);
 
 // Every row links into ReadMode explicitly, rather than to the concept's bare URI: the tree
 // only renders in ReadMode, so a row pointing at a concept document that has content blocks -
 // which resolves to ContentMode by default - would be a link out of the tree itself.
-const rowHref = name => `${pageFor(name)}#this`;
+const rowHref = name => `${conceptPage(name)}#this`;
 
 const tree = page => page.locator('ul.concept-tree');
 const rootRow = page => tree(page).locator('> li > div.tree-row');
@@ -60,7 +58,7 @@ test.describe('concept tree', { tag: '@owner' }, () => {
     });
 
     test('roots at the scheme, not at the concept being read', async ({ page }) => {
-        await goto(page, pageFor('espresso'));
+        await goto(page, conceptPage('espresso'));
 
         // Three hops below the scheme, and the root is still the scheme.
         await expect(rootRow(page).locator('a')).toHaveAttribute('href', rowHref(scheme));
@@ -68,7 +66,7 @@ test.describe('concept tree', { tag: '@owner' }, () => {
     });
 
     test('links every row into ReadMode, server-rendered root and fetched child alike', async ({ page }) => {
-        await goto(page, pageFor('espresso'));
+        await goto(page, conceptPage('espresso'));
 
         // The root is in the server's first paint and everything below it is rendered by the
         // client out of a children fetch. The two have to agree, or navigating down the tree
@@ -84,7 +82,7 @@ test.describe('concept tree', { tag: '@owner' }, () => {
 
     test('opens the path down to the concept being read', async ({ page }) => {
         const queries = countQueries(page);
-        await goto(page, pageFor('espresso'));
+        await goto(page, conceptPage('espresso'));
 
         for (const name of [scheme, 'hot-drinks', 'coffee']) {
             await expect(disclosureFor(page, name)).toHaveAttribute('aria-expanded', 'true');
@@ -106,7 +104,7 @@ test.describe('concept tree', { tag: '@owner' }, () => {
 
     test('opens a top concept, whose ancestor set is legitimately empty', async ({ page }) => {
         const queries = countQueries(page);
-        await goto(page, pageFor('hot-drinks'));
+        await goto(page, conceptPage('hot-drinks'));
 
         // A top concept's link to the scheme is topConceptOf, not broader, so the climb
         // returns nothing at all - and the root must still open to reveal it.
@@ -116,7 +114,7 @@ test.describe('concept tree', { tag: '@owner' }, () => {
     });
 
     test('opens a concept reached only through the link its parent asserts', async ({ page }) => {
-        await goto(page, pageFor('juice'));
+        await goto(page, conceptPage('juice'));
 
         // juice asserts no broader: cold-drinks names it as narrower, in cold-drinks' own
         // graph, which is why every hop is scoped to a GRAPH and unions both directions.
@@ -126,7 +124,7 @@ test.describe('concept tree', { tag: '@owner' }, () => {
 
     test('roots a scheme document at itself and climbs not at all', async ({ page }) => {
         const queries = countQueries(page);
-        await goto(page, pageFor(scheme));
+        await goto(page, conceptPage(scheme));
 
         await expect(rootRow(page).locator('a')).toHaveAttribute('href', rowHref(scheme));
         await expect(tree(page).locator('li:has(> div.tree-row)')).toHaveCount(1);
@@ -140,7 +138,7 @@ test.describe('concept tree', { tag: '@owner' }, () => {
         const undo = await addBroader('latte', 'hot-drinks');
         try {
             const queries = countQueries(page);
-            await goto(page, pageFor('latte'));
+            await goto(page, conceptPage('latte'));
 
             await expect(rowsFor(page, 'latte')).toHaveCount(2);
             const parents = await rowsFor(page, 'latte').evaluateAll(items => items.map(
@@ -158,7 +156,7 @@ test.describe('concept tree', { tag: '@owner' }, () => {
 
     test('keeps a revealed level in the DOM once it is there', async ({ page }) => {
         const queries = countQueries(page);
-        await goto(page, pageFor('espresso'));
+        await goto(page, conceptPage('espresso'));
         await expect(rowsFor(page, 'espresso')).toHaveClass(/is-active/);
 
         const revealed = queries.down;
@@ -173,7 +171,7 @@ test.describe('concept tree', { tag: '@owner' }, () => {
     });
 
     test('appends its nodes in the XHTML namespace', async ({ page }) => {
-        await goto(page, pageFor('espresso'));
+        await goto(page, conceptPage('espresso'));
         await expect(rowsFor(page, 'espresso')).toHaveClass(/is-active/);
 
         // ixsl:append-content writes into an HTML document, and a node in no namespace
@@ -184,7 +182,7 @@ test.describe('concept tree', { tag: '@owner' }, () => {
     });
 
     test('survives client-side navigation', async ({ page }) => {
-        await goto(page, pageFor('espresso'));
+        await goto(page, conceptPage('espresso'));
         await expect(rowsFor(page, 'espresso')).toHaveClass(/is-active/);
 
         // The first paint is the server's, composed with the package. A click re-renders the
@@ -202,7 +200,7 @@ test.describe('concept tree', { tag: '@owner' }, () => {
 
     for (const [name, mode] of [['EditMode', EDIT_MODE], ['ContentMode', CONTENT_MODE]]) {
         test(`renders no tree in ${name}`, async ({ page }) => {
-            await goto(page, pageFor('espresso', mode));
+            await goto(page, conceptPage('espresso', mode));
 
             // The tree is a reading aid. A document being edited, or laid out as content,
             // has its own claim on the column.

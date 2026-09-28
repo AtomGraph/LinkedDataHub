@@ -11,9 +11,7 @@
 import { test, expect } from '../../lib/console.mjs';
 import { goto, settled } from '../../lib/settle.mjs';
 import { itemUri } from '../../lib/fixtures.mjs';
-
-const strip = page => page.locator('ul.ldh-tabs');
-const apps = page => page.locator('div.ac-menu-anchor:has(button.btn-apps)').first();
+import { apps, strip } from '../../lib/tabs.mjs';
 
 test.beforeEach(({}, testInfo) => {
     test.skip(testInfo.project.name !== 'owner',

@@ -1,6 +1,6 @@
 // A facet filters the rows, not just the pill.
 //
-// block-controls.spec asserts that picking a facet value lights the pill and names the value on
+// blocks/chrome.spec asserts that picking a facet value lights the pill and names the value on
 // the status line. Both are true of a facet whose FILTER never reached the query. What a facet is
 // for is fewer rows - the ones carrying the value - and a count that says so; and since values
 // within one facet are OR-ed, a second value widens the set rather than emptying it. The fixture
@@ -9,12 +9,9 @@ import { test, expect } from '../../../../lib/console.mjs';
 import { goto } from '../../../../lib/settle.mjs';
 import { fixtures, itemCount, itemTitle, kindCount, kinds } from '../../../../lib/fixtures.mjs';
 import { controlToggle } from '../../../../lib/block.mjs';
-import { facetFor, facetOption, fixtureView, listKinds, listRows, listTitles, pager, resultCount } from '../../../../lib/view.mjs';
+import { PAGE, counting, facetFor, facetOption, fixtureView, listKinds, listRows, listTitles, pager, resultCount } from '../../../../lib/view.mjs';
 
-const PAGE = 20;
 const [alpha, beta] = kinds;
-// `Total results 8` must not be satisfied by `Total results 18`.
-const counting = n => new RegExp(`(^|\\D)${n}(\\D|$)`);
 
 test.describe('filtering a view by a facet', { tag: '@owner' }, () => {
     test('a value keeps only the rows that carry it, a second widens, clearing restores', async ({ page }) => {

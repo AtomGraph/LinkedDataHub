@@ -18,6 +18,11 @@ export const IN_SCHEME = `${SKOS}inScheme`;
 export const viewBlock = (page, property) =>
     page.locator(`div.block.ldh-block[data-property="${property}"]`);
 
+// The rows a view opens with, and the size its pager resizes from. The fixture seeds 25 children
+// against it so that there is a second page at all - which is what four specs each wrote out for
+// themselves, two of them to decide whether they have anything to assert (`itemCount <= PAGE`).
+export const PAGE = 20;
+
 // Table mode: one tr per solution, and a solution paired with its document renders as one
 // row for the TOPIC - the view suppresses the document that names it as its primary topic
 // (client/block/view.xsl, "hide documents that are paired with resources"). The row's first
@@ -44,6 +49,10 @@ export const listKinds = block => listRows(block).locator('.desc');
 
 // The status line under the card title: the count, which the rows cannot state for themselves.
 export const resultCount = block => block.locator('.ldh-view-status .count');
+
+// A count as the status line may carry it, bounded so that `Total results 8` is not satisfied by
+// `Total results 18`.
+export const counting = n => new RegExp(`(^|\\D)${n}(\\D|$)`);
 
 // The pager sits outside .container-results, so it survives every re-render of the rows - and is
 // emptied, rather than removed, when the result set fits on one page.

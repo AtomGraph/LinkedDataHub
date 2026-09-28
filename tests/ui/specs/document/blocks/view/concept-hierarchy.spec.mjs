@@ -11,11 +11,8 @@
 //     in the graph and the tree showing the concept the block denied.
 import { test, expect } from '../../../../lib/console.mjs';
 import { goto } from '../../../../lib/settle.mjs';
-import { addTriple, concept, document, labelOf, removeTriple, seedConcept } from '../../../../lib/taxonomy.mjs';
+import { addTriple, concept, conceptPage, document, labelOf, removeTriple, seedConcept } from '../../../../lib/taxonomy.mjs';
 import { BROADER, NARROWER, PREF_LABEL, rowFor, rowLabel, rows, viewBlock } from '../../../../lib/view.mjs';
-import { READ_MODE, inMode } from '../../../../lib/mode.mjs';
-
-const pageFor = name => inMode(document(name), READ_MODE);
 
 test.describe('concept hierarchy blocks', { tag: '@owner' }, () => {
     // Not ownership - nothing is readable anonymously until an authorization says so, and these
@@ -28,7 +25,7 @@ test.describe('concept hierarchy blocks', { tag: '@owner' }, () => {
     });
 
     test('shows children asserted from either end of the link', async ({ page }) => {
-        await goto(page, pageFor('hot-drinks'));
+        await goto(page, conceptPage('hot-drinks'));
         const narrower = viewBlock(page, NARROWER);
 
         // coffee names hot-drinks as its skos:broader; tea is named by hot-drinks as
@@ -39,7 +36,7 @@ test.describe('concept hierarchy blocks', { tag: '@owner' }, () => {
     });
 
     test('pairs each document with its topic into one row', async ({ page }) => {
-        await goto(page, pageFor('hot-drinks'));
+        await goto(page, conceptPage('hot-drinks'));
         const coffee = rowFor(viewBlock(page, NARROWER), concept('coffee'));
 
         // The results hold the document AND its topic. Unpaired they render as two rows -
@@ -57,7 +54,7 @@ test.describe('concept hierarchy blocks', { tag: '@owner' }, () => {
         // the language control followed a Lithuanian browser.
         const undo = await seedConcept({ name: 'sula', label: 'Sula', lang: 'lt', parent: 'cold-drinks' });
         try {
-            await goto(page, pageFor('cold-drinks'));
+            await goto(page, conceptPage('cold-drinks'));
             const narrower = viewBlock(page, NARROWER);
 
             await expect(rowFor(narrower, concept('sula'))).toHaveCount(1);
@@ -70,7 +67,7 @@ test.describe('concept hierarchy blocks', { tag: '@owner' }, () => {
             await expect(rows(narrower)).toHaveCount(2);
 
             // And from its own page, the same link read from the other end.
-            await goto(page, pageFor('sula'));
+            await goto(page, conceptPage('sula'));
             await expect(rowFor(viewBlock(page, BROADER), concept('cold-drinks'))).toHaveCount(1);
         } finally {
             await undo();
@@ -84,7 +81,7 @@ test.describe('concept hierarchy blocks', { tag: '@owner' }, () => {
         const second = `<${concept('juice')}> <${PREF_LABEL}> "Sultys"@lt`;
         await addTriple(document('juice'), second);
         try {
-            await goto(page, pageFor('cold-drinks'));
+            await goto(page, conceptPage('cold-drinks'));
 
             const juice = rowFor(viewBlock(page, NARROWER), concept('juice'));
             await expect(juice).toHaveCount(1);

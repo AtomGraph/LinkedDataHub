@@ -16,6 +16,11 @@
 // Nothing here sends a body past the limit. The inbound half of the guard is not the bug and has to
 // keep working - `overlays/file-drop.spec.mjs` asserts that a 6 MiB drop is still refused with 413 -
 // so the graph is grown by four appends that are each ~1.8 MB.
+//
+// An axis rather than a component spec: what is asserted is the REQUEST a document is read with and
+// the bound the platform puts on it, which is no more the statement grid's than it is the tree's or
+// a block's. Filed under `document/` it made the coverage report print the document body - a
+// grouping node whose children are its coverage and which owes no spec - as covered by this one.
 import { test, expect } from '../../lib/console.mjs';
 import { goto, settled } from '../../lib/settle.mjs';
 import { fixtures, ldh } from '../../lib/fixtures.mjs';

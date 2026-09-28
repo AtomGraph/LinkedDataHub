@@ -12,6 +12,7 @@
 // the reveal a walk rather than a single lookup.
 import { get } from './http.mjs';
 import { ldh } from './fixtures.mjs';
+import { READ_MODE, inMode } from './mode.mjs';
 import { adminBase, endUserBase } from './stack.mjs';
 
 const slug = 'ui-taxonomy';
@@ -37,6 +38,18 @@ export const document = name => `${taxonomy.container}${name}/`;
 // A concept is the document's topic, not the document. The tree links to the topic URI,
 // which is what every assertion addresses rows by.
 export const concept = name => `${document(name)}#this`;
+
+// The URL a spec opens a concept at. ReadMode by default, because a concept document arrives in
+// ContentMode and the package's column, its hierarchy blocks and its statement grid are all what
+// ReadMode renders - and the mode is asked for in the address rather than by pressing the switcher,
+// for the reason lib/mode.mjs gives. Six specs wrote this line out for themselves, which is the
+// same tally that brought the mode URIs here in the first place.
+export const conceptPage = (name, mode = READ_MODE) => inMode(document(name), mode);
+
+// The block a concept is rendered as on its own page, addressed by the concept rather than by its
+// position among the blocks the page holds.
+export const conceptBlock = (page, name) =>
+    page.locator(`div.block.ldh-block[about="${concept(name)}"]`);
 
 export const scheme = 'drinks';
 

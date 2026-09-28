@@ -1,6 +1,6 @@
 // A pivot re-centres the view on what the rows point at; removing the step brings the rows back.
 //
-// block-controls.spec asserts that a pill press leaves a step chip and names the predicate on the
+// blocks/chrome.spec asserts that a pill press leaves a step chip and names the predicate on the
 // status line - the click was handled. Handled is not the same as followed: the pivot rewrites the
 // query so its focus becomes the objects of the predicate, and the rows are re-fetched from that
 // query. Every fixture item names the one container through sioc:has_container, so following that
@@ -18,11 +18,9 @@ import { test, expect } from '../../../../lib/console.mjs';
 import { goto } from '../../../../lib/settle.mjs';
 import { containerTitle, fixtures, itemCount, itemTitle } from '../../../../lib/fixtures.mjs';
 import { controlToggle } from '../../../../lib/block.mjs';
-import { fixtureView, listRows, listTitles, pager, resultCount } from '../../../../lib/view.mjs';
+import { PAGE, counting, fixtureView, listRows, listTitles, pager, resultCount } from '../../../../lib/view.mjs';
 
 const HAS_CONTAINER = 'http://rdfs.org/sioc/ns#has_container';
-const PAGE = 20;
-const counting = n => new RegExp(`(^|\\D)${n}(\\D|$)`);
 
 test.describe('pivoting a view', { tag: '@owner' }, () => {
     test('follows the predicate to what the rows point at, and the step chip rewinds', async ({ page }) => {

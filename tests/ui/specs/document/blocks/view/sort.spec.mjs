@@ -12,9 +12,8 @@ import { test, expect } from '../../../../lib/console.mjs';
 import { goto } from '../../../../lib/settle.mjs';
 import { fixtures, itemCount, itemTitle, kindCount, kinds } from '../../../../lib/fixtures.mjs';
 import { controlToggle } from '../../../../lib/block.mjs';
-import { fixtureView, listKinds, listRows, listTitles, rowLabel, rows, switchMode } from '../../../../lib/view.mjs';
+import { PAGE, fixtureView, listKinds, listRows, listTitles, rowLabel, rows, switchMode } from '../../../../lib/view.mjs';
 
-const PAGE = 20;
 const firstPage = Math.min(PAGE, itemCount);
 
 test.describe('sorting a view', { tag: '@owner' }, () => {

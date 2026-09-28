@@ -6,7 +6,7 @@
 // dialog is opened FOR: the modal carries the same class as its `@typeof`, and a pairing between
 // the two is the difference between "a dialog opened" and "the right dialog opened".
 //
-// Creating something is view-create's subject and is not repeated here; this stops at the dialog.
+// Creating something is view/create's subject and is not repeated here; this stops at the dialog.
 import { test, expect } from '../../../lib/console.mjs';
 import { goto, settled } from '../../../lib/settle.mjs';
 import { fixtures } from '../../../lib/fixtures.mjs';

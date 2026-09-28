@@ -21,10 +21,7 @@ import { test, expect } from '../../../lib/console.mjs';
 import { goto } from '../../../lib/settle.mjs';
 import { ldh } from '../../../lib/fixtures.mjs';
 import { adminBase, endUserBase } from '../../../lib/stack.mjs';
-import { concept, document, packageOntologyDocument } from '../../../lib/taxonomy.mjs';
-import { READ_MODE, inMode } from '../../../lib/mode.mjs';
-
-const pageFor = name => inMode(document(name), READ_MODE);
+import { concept, conceptBlock, conceptPage, packageOntologyDocument } from '../../../lib/taxonomy.mjs';
 
 const SKOS = 'http://www.w3.org/2004/02/skos/core#';
 const SP = 'http://spinrdf.org/sp#';
@@ -64,8 +61,8 @@ const constructorOf = card => card.getAttribute('about');
 // HEADed each for write access - two requests behind the form, which is itself a fetch behind the
 // pencil.
 async function openEditor(page) {
-    await goto(page, pageFor('coffee'));
-    const block = page.locator(`div.block.ldh-block[about="${concept('coffee')}"]`);
+    await goto(page, conceptPage('coffee'));
+    const block = conceptBlock(page, 'coffee');
     await block.locator('button.btn-edit').first().click();
 
     const edit = page.locator(`button.btn-edit-constructors[data-resource-type="${CONCEPT}"]`);

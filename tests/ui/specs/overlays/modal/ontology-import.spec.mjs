@@ -70,7 +70,7 @@ test.describe('the Import ontology dialog', { tag: '@owner' }, () => {
         await modal.locator('#remote-rdf-source').fill(SOURCE);
         // The Graph field opens committed to the document the dialog was opened on, as a chip whose
         // edit button gives the combobox back. The combobox only helps find a URI: a spec that knows
-        // the document fills it, as view-create does. Not left at the default: that would append the
+        // the document fills it, as view/create does. Not left at the default: that would append the
         // vocabulary to the ontologies CONTAINER, which is what the first run of this spec did.
         const graphField = modal.locator('div.ldh-prop-group:has(input[name="pu"][value="http://www.w3.org/ns/sparql-service-description#name"])');
         await graphField.locator('span.ac-cb-chip button').click();

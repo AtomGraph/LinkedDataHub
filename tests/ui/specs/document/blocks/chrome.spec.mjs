@@ -27,12 +27,9 @@ import { test, expect } from '../../../lib/console.mjs';
 import { goto, settled } from '../../../lib/settle.mjs';
 import { fixtures } from '../../../lib/fixtures.mjs';
 import { controlToggle } from '../../../lib/block.mjs';
+import { chartBlock } from '../../../lib/chart.mjs';
 import { openDrawer } from '../../../lib/drawer.mjs';
-
-// The view block the fixture container renders, addressed by the chrome it owns rather than by
-// a fixture URI: the document holds several view blocks and any of them makes this point.
-const viewBlock = page => page.locator('.block.ldh-block:has(.ldh-view-toolbar)').first();
-const chartBlock = page => page.locator('.block.ldh-block:has(.chart-controls)').first();
+import { fixtureView } from '../../../lib/view.mjs';
 
 // A chrome assertion, not an authorization one - and anonymously the fixture may not be
 // readable at all, which would measure something else entirely.
@@ -45,7 +42,7 @@ test('a view block draws no control bars until its toggle is pressed', { tag: '@
     await goto(page, fixtures.container);
     await settled(page);
 
-    const block = viewBlock(page);
+    const block = fixtureView(page);
     const toolbar = block.locator('.ldh-view-toolbar');
     const pivotBar = block.locator('.ldh-pivot-bar');
     // A pill, not the container: .ldh-pivot-pills is display: contents, so it has no box of
@@ -102,7 +99,7 @@ test('an applied facet is named on the status line, with the toolbar closed agai
     await goto(page, fixtures.container);
     await settled(page);
 
-    const block = viewBlock(page);
+    const block = fixtureView(page);
     const applied = block.locator('.ldh-view-status .ldh-view-applied');
 
     // Nothing applied, nothing said - an empty line would read as a gap, not as information.
@@ -131,7 +128,7 @@ test('a pivot still re-centres the view, now that the row is not a disclosure', 
     await goto(page, fixtures.container);
     await settled(page);
 
-    const block = viewBlock(page);
+    const block = fixtureView(page);
     await controlToggle(block).click();
 
     // The row opens with a lead glyph and no label text - the pills say what each pivot is.

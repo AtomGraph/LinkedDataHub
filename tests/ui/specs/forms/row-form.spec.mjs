@@ -11,19 +11,16 @@
 // to catch is the easy one: reaching for the dialog helper because it is there.
 import { test, expect } from '../../lib/console.mjs';
 import { goto } from '../../lib/settle.mjs';
-import { concept, document } from '../../lib/taxonomy.mjs';
-import { READ_MODE, inMode } from '../../lib/mode.mjs';
-
-const blockFor = (page, name) => page.locator(`div.block.ldh-block[about="${concept(name)}"]`);
+import { conceptBlock, conceptPage } from '../../lib/taxonomy.mjs';
 
 test.beforeEach(({}, testInfo) => {
     test.skip(testInfo.project.name !== 'owner', 'editing is offered to an agent who may write');
 });
 
 test('turns the block into a form, in place', { tag: '@owner' }, async ({ page }) => {
-    await goto(page, inMode(document('coffee'), READ_MODE));
+    await goto(page, conceptPage('coffee'));
 
-    const block = blockFor(page, 'coffee');
+    const block = conceptBlock(page, 'coffee');
     await expect(block).toBeVisible();
     await expect(block.locator('form')).toHaveCount(0);
 
@@ -34,9 +31,9 @@ test('turns the block into a form, in place', { tag: '@owner' }, async ({ page }
 });
 
 test('leaves the rest of the page readable, opening no dialog', { tag: '@owner' }, async ({ page }) => {
-    await goto(page, inMode(document('coffee'), READ_MODE));
+    await goto(page, conceptPage('coffee'));
 
-    const block = blockFor(page, 'coffee');
+    const block = conceptBlock(page, 'coffee');
     await block.locator('button.btn-edit').first().click();
     await expect(block.locator('form').first()).toBeVisible({ timeout: 30_000 });
 

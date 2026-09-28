@@ -1,9 +1,9 @@
 // The chart controls, each asserted on the drawing it changes.
 //
-// chart.spec asserts that the chart draws, and that a type change leaves it drawn. That is the
-// floor. A control that was handled but ignored - the select changes, the redraw runs from the old
-// state - leaves a drawing too. So each control is asserted on what only IT could have changed in
-// the picture, read off the SVG Google Charts renders:
+// draw.spec asserts that the chart draws at all. That is the floor, and a control that was handled
+// but ignored - the select changes, the redraw runs from the old state - leaves a drawing too. So
+// each control is asserted on what only IT could have changed in the picture, read off the SVG
+// Google Charts renders:
 //
 //   · the type: Table is HTML, every other type is SVG; and between the SVG types, which axis the
 //     category labels sit on - a bar chart stacks them down the vertical axis (one x, three ys),
@@ -19,13 +19,9 @@ import { test, expect } from '../../../../lib/console.mjs';
 import { goto } from '../../../../lib/settle.mjs';
 import { fixtures, kindCount, kinds } from '../../../../lib/fixtures.mjs';
 import { controlToggle } from '../../../../lib/block.mjs';
+import { canvas, chartBlock, chartType } from '../../../../lib/chart.mjs';
 
 const AC = 'https://w3id.org/atomgraph/client#';
-
-// The fixture chart, by the chart it is (lib/fixtures.mjs `chart`): the block that carries the
-// @about is the inner one, which owns the controls and the canvas.
-const chartBlock = page => page.locator(`div.block.ldh-block[about="${fixtures.chart}"]`);
-const canvas = block => block.locator('.chart-canvas');
 const texts = block => block.locator('.chart-canvas svg text').allTextContents();
 // [x, y] of every label that names a kind.
 const kindLabels = block => block.locator('.chart-canvas svg text')
@@ -40,14 +36,20 @@ async function opened(page) {
     const block = chartBlock(page);
     await expect(canvas(block).locator('svg')).toBeVisible({ timeout: 30_000 });
     await controlToggle(block).click();
-    await expect(block.locator('select.chart-type')).toHaveValue(`${AC}BarChart`);
+    // The STORED chart type is what the control comes up on - the document's data rather than a
+    // default the select happens to start on.
+    await expect(chartType(block)).toHaveValue(`${AC}BarChart`);
+    // And there is another type to pick. With one option every assertion below about changing the
+    // type would pass while changing nothing.
+    expect(await chartType(block).locator('option').count(),
+        'only one chart type is offered, so changing it cannot be tested').toBeGreaterThan(1);
     return block;
 }
 
 test.describe('the chart controls', { tag: '@owner' }, () => {
     test('Table tables the result set, and a chart type draws it again', async ({ page }) => {
         const block = await opened(page);
-        const type = block.locator('select.chart-type');
+        const type = chartType(block);
 
         await type.selectOption(`${AC}Table`);
 
@@ -74,7 +76,7 @@ test.describe('the chart controls', { tag: '@owner' }, () => {
         expect(distinct(bars, 0), 'bar chart categories share one x').toBe(1);
         expect(distinct(bars, 1), 'bar chart categories are stacked').toBe(kinds.length);
 
-        await block.locator('select.chart-type').selectOption(`${AC}LineChart`);
+        await chartType(block).selectOption(`${AC}LineChart`);
 
         // A line chart: the kinds share a y and are spread along the horizontal axis.
         await expect.poll(async () => {

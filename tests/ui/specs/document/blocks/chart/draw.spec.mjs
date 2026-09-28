@@ -24,51 +24,22 @@
 // either because no spec had ever asserted that a chart DREW anything - not here, and not in the
 // responsive axis, which measures `.chart-controls` around whatever the canvas holds.
 //
-// The controls are collapsed until the card header's toggle is pressed - chrome behaviour that
-// block-controls owns - so this presses it and then asks what the controls do.
-import { test, expect } from '../../../lib/console.mjs';
-import { goto, settled } from '../../../lib/settle.mjs';
-import { fixtures } from '../../../lib/fixtures.mjs';
-import { controlToggle } from '../../../lib/block.mjs';
-
-const chartBlock = page => page.locator('.block.ldh-block:has(.chart-controls)').first();
+// This is the floor. What each control then does to the drawing is controls.spec's, one assertion
+// per control, and every one of them would be satisfied by the picture this asserts exists.
+import { test, expect } from '../../../../lib/console.mjs';
+import { goto, settled } from '../../../../lib/settle.mjs';
+import { fixtures } from '../../../../lib/fixtures.mjs';
+import { canvas, chartBlock, drawing } from '../../../../lib/chart.mjs';
 
 test('draws its result set, rather than merely reserving a box for it', async ({ page }) => {
     await goto(page, fixtures.container);
     await settled(page);
 
-    const canvas = chartBlock(page).locator('.chart-canvas').first();
-    await expect(canvas).toBeVisible();
+    const block = chartBlock(page);
+    await expect(canvas(block)).toBeVisible();
 
     // A drawing. Not the blank state, which is what an empty result set gets and what this
     // fixture spent its whole existence showing.
-    await expect(canvas.locator('svg, canvas, table').first()).toBeVisible({ timeout: 30_000 });
-    await expect(canvas.locator('.ldh-block-blank'), 'the chart matched nothing').toHaveCount(0);
-});
-
-test('offers the chart type it was drawn with, and redraws when it changes', async ({ page }) => {
-    await goto(page, fixtures.container);
-    await settled(page);
-
-    const block = chartBlock(page);
-    await controlToggle(block).click();
-
-    const type = block.locator('.chart-controls select.chart-type').first();
-    await expect(type).toBeVisible();
-    // The stored chart type is what the control shows - the control states the document's data
-    // rather than a default it happens to start on.
-    await expect(type).not.toHaveValue('');
-
-    const before = await type.inputValue();
-    const other = (await type.locator('option').all())
-        .map(option => option.getAttribute('value'));
-    const values = (await Promise.all(other)).filter(value => value && value !== before);
-    expect(values.length, 'only one chart type is offered, so changing it cannot be tested')
-        .toBeGreaterThan(0);
-
-    await type.selectOption(values[0]);
-    await expect(type).toHaveValue(values[0]);
-    // Still drawn after the change: a redraw that throws leaves the canvas empty behind it.
-    await expect(block.locator('.chart-canvas').locator('svg, canvas, table').first())
-        .toBeVisible({ timeout: 30_000 });
+    await expect(drawing(block)).toBeVisible({ timeout: 30_000 });
+    await expect(canvas(block).locator('.ldh-block-blank'), 'the chart matched nothing').toHaveCount(0);
 });

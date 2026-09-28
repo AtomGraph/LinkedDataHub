@@ -14,10 +14,8 @@
 // hot-drinks' page the popover must offer coffee - a statement hot-drinks does not itself carry.
 import { test, expect } from '../../lib/console.mjs';
 import { goto } from '../../lib/settle.mjs';
-import { concept, document, labelOf } from '../../lib/taxonomy.mjs';
-import { READ_MODE, inMode } from '../../lib/mode.mjs';
+import { concept, conceptBlock, conceptPage, labelOf } from '../../lib/taxonomy.mjs';
 
-const blockFor = (page, name) => page.locator(`div.block.ldh-block[about="${concept(name)}"]`);
 const linksButton = block => block.locator('button.tb-links').first();
 const popover = block => block.locator('.links-pop').first();
 
@@ -26,18 +24,18 @@ test.beforeEach(({}, testInfo) => {
 });
 
 test('ships closed, and says so on the button', { tag: '@owner' }, async ({ page }) => {
-    await goto(page, inMode(document('hot-drinks'), READ_MODE));
+    await goto(page, conceptPage('hot-drinks'));
 
-    const block = blockFor(page, 'hot-drinks');
+    const block = conceptBlock(page, 'hot-drinks');
     await block.hover();
     await expect(linksButton(block)).toHaveAttribute('aria-pressed', 'false');
     await expect(popover(block)).toBeHidden();
 });
 
 test('opens on its button and lists what points at the resource', { tag: '@owner' }, async ({ page }) => {
-    await goto(page, inMode(document('hot-drinks'), READ_MODE));
+    await goto(page, conceptPage('hot-drinks'));
 
-    const block = blockFor(page, 'hot-drinks');
+    const block = conceptBlock(page, 'hot-drinks');
     await block.hover();
     await linksButton(block).click();
 

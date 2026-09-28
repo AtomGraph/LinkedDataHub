@@ -22,13 +22,10 @@
 import { test, expect } from '../../../../lib/console.mjs';
 import { goto } from '../../../../lib/settle.mjs';
 import { ldh } from '../../../../lib/fixtures.mjs';
-import { concept, document, removeTriple, scheme } from '../../../../lib/taxonomy.mjs';
+import { concept, conceptPage, document, removeTriple, scheme } from '../../../../lib/taxonomy.mjs';
 import { IN_SCHEME, NARROWER, PREF_LABEL, createButton, rowFor, rowLabel, rows, viewBlock } from '../../../../lib/view.mjs';
 import { fillResource, fillText, save } from '../../../../lib/form.mjs';
 import { constructorModal } from '../../../../lib/modal.mjs';
-import { READ_MODE, inMode } from '../../../../lib/mode.mjs';
-
-const pageFor = name => inMode(document(name), READ_MODE);
 
 const SKOS = 'http://www.w3.org/2004/02/skos/core#';
 const FOAF = 'http://xmlns.com/foaf/0.1/';
@@ -47,7 +44,7 @@ test.describe('creating from a view block', { tag: '@owner' }, () => {
 
     test('gives the new document a primary topic and a title', async ({ page }) => {
         const label = 'Created from a view';
-        await goto(page, pageFor('cold-drinks'));
+        await goto(page, conceptPage('cold-drinks'));
 
         const narrower = viewBlock(page, NARROWER);
         const create = createButton(narrower);

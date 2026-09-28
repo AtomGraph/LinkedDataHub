@@ -1,6 +1,6 @@
 // The footer, which closes the page and says whose software it is.
 //
-// Small, but it is load-bearing for one other spec: view-overflow measures whether a block's rows
+// Small, but it is load-bearing for one other spec: view/overflow measures whether a block's rows
 // have escaped their card by asking where the footer starts, on the grounds that the footer is
 // the first thing after the document body. That argument only holds while the footer really is
 // last and really is in the flow, so those two facts get asserted here rather than assumed there.
@@ -18,7 +18,7 @@ test('closes the page, below the document it belongs to', async ({ page }) => {
     await expect(footer(page)).toBeVisible();
     await expect(footer(page)).toHaveAttribute('role', 'contentinfo');
 
-    // In the flow and last: the geometric claim view-overflow leans on.
+    // In the flow and last: the geometric claim view/overflow leans on.
     const { body, foot } = await page.evaluate(() => ({
         body: document.querySelector('.document-body').getBoundingClientRect().bottom + scrollY,
         foot: document.querySelector('.ldh-footer').getBoundingClientRect().top + scrollY,

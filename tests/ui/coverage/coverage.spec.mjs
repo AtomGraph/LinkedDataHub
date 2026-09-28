@@ -109,6 +109,17 @@ test('every folder under specs/ is a declared component', () => {
     expect(orphans, 'a spec folder names a component the inventory does not declare - add the '
         + 'record to coverage/components.mjs, or file the spec under an existing component').toEqual([]);
     expect(unassigned, 'a spec sits where no component claims it').toEqual([]);
+
+    // A grouping node's children ARE its coverage, and statusOf answers "has this component a
+    // spec" before it asks anything else - so a spec filed directly on one takes the `grouping`
+    // state away from it and prints it as covered. specs/document/large-graph.spec.mjs did exactly
+    // that, for a claim about the request a document is read with rather than about the document
+    // body; it is axes/request-size.spec.mjs now.
+    const claimedGrouping = declared
+        .filter(component => component.grouping && specsByComponent.has(component.path))
+        .map(component => component.path);
+    expect(claimedGrouping, 'a spec is filed on a grouping component, whose children are its '
+        + 'coverage - file it under the child it asserts about, or as an axis').toEqual([]);
 });
 
 test('the inventory is well formed', () => {

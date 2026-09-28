@@ -11,10 +11,7 @@
 import { test, expect } from '../../../../lib/console.mjs';
 import { goto } from '../../../../lib/settle.mjs';
 import { fixtures, itemCount, itemTitle } from '../../../../lib/fixtures.mjs';
-import { fixtureView, listRows, listTitles, pager } from '../../../../lib/view.mjs';
-
-// A view opens 20 to the page; the fixture seeds 25 so there is a second page to go to.
-const PAGE = 20;
+import { PAGE, fixtureView, listRows, listTitles, pager } from '../../../../lib/view.mjs';
 
 test.describe('the view pager', { tag: '@owner' }, () => {
     test.skip(itemCount <= PAGE, `UI_TESTS_ITEMS=${itemCount} leaves nothing beyond the first page`);

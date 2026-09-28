@@ -101,7 +101,14 @@ export const components = [
                         id: 'view', name: 'View block', selector: '.block.ldh-block:has(.ldh-view-toolbar)',
                         lib: 'lib/view.mjs',
                     },
-                    { id: 'chart', name: 'Chart block', selector: '.block.ldh-block:has(.chart-controls)' },
+                    {
+                        id: 'chart', name: 'Chart block',
+                        // Both blocks match: the chart is rendered inside an Object block, and only
+                        // the inner one carries its @about, its controls and its canvas. Which is
+                        // fine for a presence probe and is not for an assertion, so a spec takes
+                        // the block from lib/chart.mjs rather than from a selector like this one.
+                        selector: '.block.ldh-block:has(.chart-controls)', lib: 'lib/chart.mjs',
+                    },
                     // Seeded into a document of its own (fixtures.queryDocument) rather than the
                     // container, because the editor YASQE fetches http://prefix.cc/popular/all.file.json
                     // for prefix completion - plain HTTP from an HTTPS page - so the browser blocks it

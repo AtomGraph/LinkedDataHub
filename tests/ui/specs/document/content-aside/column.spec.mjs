@@ -10,8 +10,7 @@
 import { test, expect } from '../../../lib/console.mjs';
 import { goto, settled } from '../../../lib/settle.mjs';
 import { itemUri } from '../../../lib/fixtures.mjs';
-import { document as conceptDocument } from '../../../lib/taxonomy.mjs';
-import { READ_MODE, inMode } from '../../../lib/mode.mjs';
+import { conceptPage } from '../../../lib/taxonomy.mjs';
 
 const column = page => page.locator('.ldh-content-aside');
 
@@ -21,7 +20,7 @@ test.beforeEach(({}, testInfo) => {
 });
 
 test('renders where a package fills it', { tag: '@owner' }, async ({ page }) => {
-    await goto(page, inMode(conceptDocument('coffee'), READ_MODE));
+    await goto(page, conceptPage('coffee'));
 
     await expect(column(page)).toBeVisible();
     // The platform owns the wrapper and the package owns what is in it, which is why the tree is

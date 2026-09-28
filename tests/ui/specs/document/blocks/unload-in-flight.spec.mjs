@@ -18,10 +18,7 @@
 // document paints is recorded through a binding, because anything kept on its window dies with it.
 import { test, expect } from '../../../lib/console.mjs';
 import { goto, hydrated } from '../../../lib/settle.mjs';
-import { document } from '../../../lib/taxonomy.mjs';
-import { READ_MODE, inMode } from '../../../lib/mode.mjs';
-
-const pageFor = name => inMode(document(name), READ_MODE);
+import { conceptPage } from '../../../lib/taxonomy.mjs';
 
 test.describe('leaving the page mid-flight', { tag: '@owner' }, () => {
     test.beforeEach(({}, testInfo) => {
@@ -51,7 +48,7 @@ test.describe('leaving the page mid-flight', { tag: '@owner' }, () => {
             await route.continue().catch(() => {});
         });
 
-        await page.goto(pageFor('espresso'), { waitUntil: 'domcontentloaded' });
+        await page.goto(conceptPage('espresso'), { waitUntil: 'domcontentloaded' });
         await hydrated(page);
         await expect.poll(() => held).toBeGreaterThan(0);
 
@@ -78,7 +75,7 @@ test.describe('leaving the page mid-flight', { tag: '@owner' }, () => {
         await page.route(/\/ns\?query=/, route =>
             route.request().method() === 'GET' ? route.abort('failed') : route.continue());
 
-        await goto(page, pageFor('espresso'));
+        await goto(page, conceptPage('espresso'));
 
         const failure = page.locator('.content-body > .ldh-failure').first();
         await expect(failure).toContainText('The request did not complete.');

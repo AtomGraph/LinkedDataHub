@@ -16,8 +16,7 @@
 import { test, expect } from '../../lib/console.mjs';
 import { goto, settled } from '../../lib/settle.mjs';
 import { fixtures, itemTitle, itemUri } from '../../lib/fixtures.mjs';
-import { concept, document } from '../../lib/taxonomy.mjs';
-import { READ_MODE, inMode } from '../../lib/mode.mjs';
+import { concept, conceptBlock, conceptPage } from '../../lib/taxonomy.mjs';
 import { openDocumentForm } from '../../lib/modal.mjs';
 
 const SKOS = 'http://www.w3.org/2004/02/skos/core#';
@@ -38,10 +37,10 @@ async function documentForm(page, url) {
 // document being viewed. Inline matters for the Escape tests: Escape inside a modal closes the
 // dialog before the combobox's own handler is observable.
 async function conceptForm(page, name = 'coffee') {
-    await goto(page, inMode(document(name), READ_MODE));
+    await goto(page, conceptPage(name));
     await settled(page);
 
-    const block = page.locator(`div.block.ldh-block[about="${concept(name)}"]`);
+    const block = conceptBlock(page, name);
     await block.locator('button.btn-edit').first().click();
     const form = block.locator('form').first();
     await expect(form).toBeVisible({ timeout: 30_000 });
