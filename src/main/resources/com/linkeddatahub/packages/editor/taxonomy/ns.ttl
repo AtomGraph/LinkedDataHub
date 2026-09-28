@@ -26,6 +26,7 @@ skos:Concept spin:constructor :ConceptConstructor ;
 # xsd:string annotation next to one showing en.
 :ConceptConstructor a ldh:Constructor ;
     rdfs:label "Concept constructor" ;
+    dct:title "Concept constructor" ;
     sp:text """
         PREFIX skos:    <http://www.w3.org/2004/02/skos/core#>
         PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -34,10 +35,12 @@ skos:Concept spin:constructor :ConceptConstructor ;
             $this skos:prefLabel [ a rdf:langString ] ;
                 skos:altLabel [ a rdf:langString ] ;
                 skos:definition [ a rdf:langString ] ;
+                skos:scopeNote [ a rdf:langString ] ;
                 skos:broader [ a skos:Concept ] ;
                 skos:narrower [ a skos:Concept ] ;
                 skos:related [ a skos:Concept ] ;
-                skos:inScheme [ a skos:ConceptScheme ] .
+                skos:inScheme [ a skos:ConceptScheme ] ;
+                skos:topConceptOf [ a skos:ConceptScheme ] .
         }
         WHERE {}""" ;
     rdfs:isDefinedBy : .
@@ -67,6 +70,7 @@ skos:narrower ldh:view :NarrowerConcepts .
 
 :SelectNarrowerConcepts a sp:Select ;
     rdfs:label "Select narrower concepts" ;
+    dct:title "Select narrower concepts" ;
     sp:text """
 PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
 
@@ -97,6 +101,7 @@ skos:broader ldh:view :BroaderConcepts .
 
 :SelectBroaderConcepts a sp:Select ;
     rdfs:label "Select broader concepts" ;
+    dct:title "Select broader concepts" ;
     sp:text """
 PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
 
@@ -121,14 +126,19 @@ skos:Collection spin:constructor :CollectionConstructor ;
 
 :CollectionConstructor a ldh:Constructor ;
     rdfs:label "Collection constructor" ;
+    dct:title "Collection constructor" ;
     sp:text """
         PREFIX skos:    <http://www.w3.org/2004/02/skos/core#>
         PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
 
         CONSTRUCT {
             $this skos:prefLabel [ a rdf:langString ] ;
+                skos:altLabel [ a rdf:langString ] ;
                 skos:definition [ a rdf:langString ] ;
-                skos:member [ a skos:Concept ] .
+                skos:notation [ a xsd:string ] ;
+                skos:member [ a skos:Concept ] ;
+                skos:inScheme [ a skos:ConceptScheme ] .
         }
         WHERE {}""" ;
     rdfs:isDefinedBy : .
@@ -144,6 +154,7 @@ skos:member ldh:view :CollectionMembers .
 
 :SelectCollectionMembers a sp:Select ;
     rdfs:label "Select collection members" ;
+    dct:title "Select collection members" ;
     sp:text """
 PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
 
@@ -165,6 +176,7 @@ skos:ConceptScheme spin:constructor :ConceptSchemeConstructor .
 
 :ConceptSchemeConstructor a ldh:Constructor ;
     rdfs:label "Concept scheme constructor" ;
+    dct:title "Concept scheme constructor" ;
     sp:text """
         PREFIX skos:    <http://www.w3.org/2004/02/skos/core#>
         PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -248,6 +260,7 @@ skos:inScheme ldh:inverseView :ConceptsInScheme , :OrphanConcepts .
 
 :SelectConceptsInScheme a sp:Select ;
     rdfs:label "Select concepts in scheme" ;
+    dct:title "Select concepts in scheme" ;
     sp:text """
 PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
 
