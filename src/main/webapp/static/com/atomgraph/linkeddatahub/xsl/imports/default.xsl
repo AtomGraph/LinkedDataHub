@@ -286,10 +286,18 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$entries[contains(substring-after(., '&gt;'), $marker)] ! xs:anyURI(replace(., '^&lt;([^&gt;]+)&gt;.*$', '$1'))"/>
     </xsl:function>
 
-    <xsl:function name="ldh:service-endpoint" as="xs:anyURI">
+    <!-- The endpoint a block's query runs against: the service the query names, else the endpoint stamped on
+         the nearest ancestor - an object container carries the one its loaded document answered with (a
+         dataspace's sd:endpoint Link header), the pane carries the reader's - else the reader's. A block
+         embedded from another dataspace therefore queries that dataspace; one embedded from the ontology, as
+         the built-in views are, has no stamp between it and the pane and queries the reader's, as it always
+         did. Nothing here reads a URI's origin: neither a query's nor a block's origin says which store it
+         belongs to (the platform's own queries and views live under w3id.org). -->
+    <xsl:function name="ldh:query-endpoint" as="xs:anyURI">
         <xsl:param name="service" as="element()?"/>
+        <xsl:param name="node" as="node()?"/>
 
-        <xsl:sequence select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), sd:endpoint())[1]"/>
+        <xsl:sequence select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), $node/ancestor-or-self::*[@data-endpoint][1]/@data-endpoint/xs:anyURI(.), sd:endpoint())[1]"/>
     </xsl:function>
 
     <xsl:function name="lds:origin" as="xs:anyURI">

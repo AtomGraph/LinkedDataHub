@@ -142,6 +142,7 @@ Every namespace LDH defines now lives under `https://w3id.org/atomgraph/linkedda
 - `LocalStylesheetResolver`, the bundled package stylesheet copy and its mapping, `location-mapping.ttl`, and the namespace mappings no ontology imports and no stylesheet uses
 
 ### Fixed
+- A block embedded from another dataspace with `ldh:Object` ran its query against the reader's endpoint, so a chart or view embedded across dataspaces drew nothing. The object container is now stamped with the `sd:endpoint` `Link` header the loaded document answered with, and a block's query runs against the nearest such stamp, else the pane's; the built-in views, embedded from the ontology, get no stamp and query the reader's dataspace as before
 - `varnish-admin` never invalidated cached SPARQL query results, so a SELECT kept its pre-write answer for the full cache lifetime; writes now ban them as the end-user cache already did
 - Editing a class's constructors rewrote every constructor in the document at once, and two saved together could overwrite each other; each is saved on its own, in sequence, and one shared with another class is left alone
 - Clearing an ontology discards every cached graph and assembled closure, not just the keys derived from the URI it was given: a closure caches each URI it imports, so a vocabulary or package ontology kept answering from a document that had been edited or deleted until the container restarted

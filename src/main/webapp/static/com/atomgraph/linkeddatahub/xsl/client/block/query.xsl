@@ -347,7 +347,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="service-meta" select="descendant::div[contains-token(@class, 'ldh-sparql-meta')][input[@name = 'pu'][@value = '&ldh;service']]" as="element()"/>
         <xsl:variable name="service-uri" select="$service-meta/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI?"/>
         <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ()))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
-        <xsl:variable name="endpoint" select="ldh:service-endpoint($service)" as="xs:anyURI"/>
+        <xsl:variable name="endpoint" select="ldh:query-endpoint($service, .)" as="xs:anyURI"/>
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="container" select="$block" as="element()"/> <!-- since we're not in content mode -->
         <xsl:variable name="block-id" select="ldh:block-id($block)" as="xs:string"/>
@@ -644,7 +644,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string?"/> <!-- get query string from YASQE -->
         <xsl:variable name="service-uri" select="ancestor::form[1]/descendant::div[contains-token(@class, 'ldh-sparql-meta')]/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI?"/>
         <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ()))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
-        <xsl:variable name="endpoint" select="ldh:service-endpoint($service)" as="xs:anyURI"/>
+        <xsl:variable name="endpoint" select="ldh:query-endpoint($service, $container)" as="xs:anyURI"/>
         <xsl:variable name="query-type" select="ldh:query-type($query-string)" as="xs:string?"/>
 
         <xsl:choose>

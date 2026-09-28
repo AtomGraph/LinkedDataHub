@@ -180,6 +180,16 @@ exclude-result-prefixes="#all"
                     <!-- the loaded document's own acl:mode Link headers decide the edit affordance (same parsing as ldh:set-container-acl-modes; ProxyRequestFilter forwards them for remote documents) unless the caller forced a value -->
                     <xsl:variable name="acl-modes" select="ldh:link-targets(?headers?link, '&acl;mode')" as="xs:anyURI*"/>
                     <xsl:variable name="show-edit-button" select="($show-edit-button, $acl-modes = '&acl;Write')[1]" as="xs:boolean"/>
+                    <!-- the loaded document's sd:endpoint Link header names the store its blocks query: a dataspace answers with one, the ontology (whence the built-in views come) with none. Stamped beside data-base-uri so ldh:query-endpoint() finds it from any descendant, and cleared when absent so a re-render cannot inherit a stale one -->
+                    <xsl:variable name="endpoint" select="ldh:link-targets(?headers?link, '&sd;endpoint')[1]" as="xs:anyURI?"/>
+                    <xsl:choose>
+                        <xsl:when test="$endpoint">
+                            <ixsl:set-attribute name="data-endpoint" select="$endpoint" object="$container"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <ixsl:remove-attribute name="data-endpoint" object="$container"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
 
                     <xsl:for-each select="?body">
                         <xsl:variable name="resource" select="key('resources', $resource-uri)" as="element()?"/>

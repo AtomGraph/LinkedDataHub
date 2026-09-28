@@ -2926,7 +2926,7 @@ exclude-result-prefixes="#all"
                         <xsl:variable name="focus-var-name" select="$initial-var-name" as="xs:string"/>
                         <!-- service can be explicitly specified on content using ldh:service -->
                         <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ()))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
-                        <xsl:variable name="endpoint" select="ldh:service-endpoint($service)" as="xs:anyURI"/>
+                        <xsl:variable name="endpoint" select="ldh:query-endpoint($service, $block)" as="xs:anyURI"/>
 
                         <xsl:choose>
                             <!-- service URI is not specified or specified and can be loaded -->
