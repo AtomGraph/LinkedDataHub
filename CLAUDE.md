@@ -183,8 +183,8 @@ with an optional `--datetime` (RFC 1123 or ISO 8601), which prints the selected 
 only line on stdout so it pipes into another `ldh get`.
 
 The `bin/` HTTP API scripts are **deprecated** — `ldh` replaces them, and http-tests build their
-fixtures with it. Authentication moves from the `.pem` the scripts feed `curl -E` to the PKCS12
-keystore beside it (`-f ssl/owner/keystore.p12`).
+fixtures with it. Authentication moves from the `curl -E` invocation to `-c/--cert`
+(`-c ssl/owner/keystore.p12`).
 
 Certificate and WebID tooling stays in `bin/` and is not deprecated: `webid-keygen.sh`,
 `webid-keygen-pem.sh`, `webid-uri.sh`, `webid-modulus.sh`, `server-cert-gen.sh`.
