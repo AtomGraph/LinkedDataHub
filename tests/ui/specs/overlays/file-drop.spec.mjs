@@ -32,7 +32,7 @@ const PNG = Buffer.from(
 const BLOB = Buffer.from([0x00, 0x01, 0x02, 0x03, 0xfe, 0xff, 0x10, 0x20]);
 
 // The upload URI is content-addressed, so the spec can name it before the drop is made - the same
-// way http-tests/imports/create-file.sh checks `ldh add file`.
+// way tests/http/imports/create-file.sh checks `ldh add file`.
 const uploadUri = bytes => `${endUserBase}uploads/${createHash('sha1').update(bytes).digest('hex')}`;
 
 const overlay = page => page.locator('#file-drop');

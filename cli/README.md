@@ -20,7 +20,7 @@ ldh admin create ontology ...
 ldh packages list
 ```
 
-The `bin/` HTTP API scripts it replaces are deprecated. The [http-tests](../http-tests) suite builds
+The `bin/` HTTP API scripts it replaces are deprecated. The [`tests/http`](../tests/http) suite builds
 all of its fixtures with `ldh`, so the commands are exercised against a live instance on every CI run;
 `run.sh` aborts if `ldh` is not on `PATH`.
 
@@ -60,7 +60,7 @@ throughput for startup time — a command exits long before C2 could pay for its
 most of its life waiting on HTTP. `LDH_JAVA_OPTS` replaces those flags outright.
 
 The CLI carries the same version as the platform: it ships with a LinkedDataHub release and is
-exercised by the same http-tests, so `cli/pom.xml` tracks the root `pom.xml`. `release.sh` keeps
+exercised by the same `tests/http` suite, so `cli/pom.xml` tracks the root `pom.xml`. `release.sh` keeps
 the two in step across the release bumps, and `make cli-version` sets `cli/pom.xml` from the
 platform version if they ever drift.
 

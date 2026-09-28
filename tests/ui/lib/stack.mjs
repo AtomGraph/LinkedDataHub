@@ -1,12 +1,12 @@
 // Where the stack is, and how to authenticate against it.
 //
-// Environment variable names mirror http-tests/run.sh, so the two suites can be
+// Environment variable names mirror tests/http/run.sh, so the two suites can be
 // pointed at the same instance with one set of exports.
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 
-export const repoRoot = fileURLToPath(new URL('../..', import.meta.url));
+export const repoRoot = fileURLToPath(new URL('../../..', import.meta.url));
 
 export const endUserBase = process.env.END_USER_BASE_URL ?? 'https://localhost:4443/';
 export const adminBase = process.env.ADMIN_BASE_URL ?? 'https://admin.localhost:4443/';

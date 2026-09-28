@@ -4,7 +4,7 @@
 config
 data
 hooks
-http-tests
+tests
 node
 node_modules
 scripts

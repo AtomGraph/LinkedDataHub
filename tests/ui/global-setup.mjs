@@ -6,7 +6,7 @@ import { delimiter, join } from 'node:path';
 import { accessSync, constants } from 'node:fs';
 import { spawn } from 'node:child_process';
 import { get } from './lib/http.mjs';
-import { adminBase, composedSefPrefix, endUserBase, localSef, sefDir, sefPath } from './lib/stack.mjs';
+import { adminBase, composedSefPrefix, endUserBase, localSef, repoRoot, sefDir, sefPath } from './lib/stack.mjs';
 import { fixtures as fixtureUris, itemCount, seed, teardown } from './lib/fixtures.mjs';
 import { seedTaxonomy, taxonomyPackage, teardownTaxonomy, waitForPackageStylesheet } from './lib/taxonomy.mjs';
 
@@ -45,7 +45,7 @@ function cli() {
         throw new Error(`The ldh CLI is not on $PATH, and the fixtures are built with it.\n`
             + `        Build it and put it on the path with:\n`
             + `            make cli\n`
-            + `            export PATH="${join(process.cwd(), '..', 'cli/bin')}:$PATH"`);
+            + `            export PATH="${join(repoRoot, 'cli/bin')}:$PATH"`);
     }
     console.log('  ldh        on $PATH');
 }
@@ -139,7 +139,7 @@ async function fixtures() {
 // response cached before a grant existed outlives the grant being created, and one cached while
 // it existed outlives it being deleted. Both were observed: with the document grant removed, the
 // anonymous spec went green on a cached HTML variant while curl was already getting 403.
-// http-tests bans the whole cache at the top of every test (run.sh); seeding happens once here,
+// tests/http bans the whole cache at the top of every test (run.sh); seeding happens once here,
 // so once is enough. Best-effort by design - a dev pointed at a stack they do not run locally
 // still gets a suite, with a line saying the caches are whatever the stack made them.
 function purge() {
@@ -147,7 +147,7 @@ function purge() {
     return Promise.all(services.map(service => new Promise(resolve => {
         const child = spawn('docker',
             ['compose', 'exec', '-T', service, 'varnishadm', 'ban', 'req.url ~ /'],
-            { cwd: join(process.cwd(), '..'), stdio: 'ignore' });
+            { cwd: repoRoot, stdio: 'ignore' });
         child.on('error', () => resolve(null));
         child.on('close', code => resolve(code === 0 ? service : null));
     }))).then(purged => {

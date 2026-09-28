@@ -1,4 +1,4 @@
-// The documents the specs drive, built with the same ldh CLI that http-tests uses for its
+// The documents the specs drive, built with the same ldh CLI that tests/http uses for its
 // fixtures. Seeding through the API rather than loading a TriG means the suite behaves
 // identically against a virgin CI instance and a lived-in dev one, and that a broken
 // create path fails here instead of halfway through a spec.
@@ -15,7 +15,7 @@ export const containerTitle = 'UI test fixtures';
 // What an anonymous reader is granted, as two authorizations rather than one, so each scope is
 // legible on its own and either can be dropped without the other. Slugged because the suite
 // deletes what it creates - it shares a dev stack and does not snapshot the dataset the way
-// http-tests does.
+// tests/http does.
 const authSlugs = { documents: `${slug}-public-docs`, endpoint: `${slug}-public-sparql` };
 
 export const publicAuthorizations =

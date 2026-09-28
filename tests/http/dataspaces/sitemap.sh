@@ -17,7 +17,7 @@ clear_ontology
 # robots.txt disallows crawling. The cross-dataspace assertion these two dataspaces exist for - both are wired to
 # the same stores, so neither sitemap may carry the other's documents - therefore cannot run here, and is not
 # silently skipped below: it needs a publicly readable document at startup, which no mount of this stack can
-# currently provide (http-tests/root-owner.trig.template is mounted at a path the entrypoint does not read).
+# currently provide (tests/http/root-owner.trig.template is mounted at a path the entrypoint does not read).
 #
 # Every assertion reads its subject from a here-string rather than piping an echo into grep -q: grep matches and
 # closes the pipe with the rest of the response unwritten, and under `set -o pipefail` the SIGPIPE'd echo fails the

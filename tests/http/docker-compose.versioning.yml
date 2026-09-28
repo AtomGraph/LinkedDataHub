@@ -1,4 +1,4 @@
-# enables the credentials secret for the graph versioning http-tests; added by CI only when the test token is configured
+# enables the credentials secret for the graph versioning tests; added by CI only when the test token is configured
 # NB: relative paths resolve against the project directory (the first compose file's folder), not this file's
 secrets:
   credentials:

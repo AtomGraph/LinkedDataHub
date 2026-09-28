@@ -5,7 +5,7 @@
 // in a fresh dataspace is readable without a certificate, so every spec skipped it and the three
 // that did run were non-asserting probes of a 403 error page. The axis was decorative, and a
 // layout spec that forgot to skip is what surfaced that - it failed in CI against a virgin
-// instance and passed locally against one an earlier http-tests run had made public.
+// instance and passed locally against one an earlier tests/http run had made public.
 //
 // A grant is what makes the axis testable. fixtures.readable is the one item seeded with public
 // read; fixtures.private is granted to nobody. The claim worth asserting is not that an anonymous

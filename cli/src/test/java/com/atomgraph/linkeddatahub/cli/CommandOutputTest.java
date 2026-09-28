@@ -39,7 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * status leaves stdout empty and exits 1.
  *
  * <code>item=$(ldh create item ...)</code> breaks the moment anything else reaches stdout, and the
- * http-tests consume that substitution in dozens of places.
+ * tests/http consumes that substitution in dozens of places.
  */
 public class CommandOutputTest
 {
