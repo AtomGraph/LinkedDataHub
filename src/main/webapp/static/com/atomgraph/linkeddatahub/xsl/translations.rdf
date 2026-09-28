@@ -8,6 +8,10 @@
         <rdfs:label xml:lang="en-US">Sign up</rdfs:label>
         <rdfs:label xml:lang="es-ES">Registrarse</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="repeat-password">
+        <rdfs:label xml:lang="en-US">Repeat password</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Repetir contraseña</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="login">
         <rdfs:label xml:lang="en-US">Login</rdfs:label>
         <rdfs:label xml:lang="es-ES">Entrar</rdfs:label>

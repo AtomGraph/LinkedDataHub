@@ -135,7 +135,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
         
     <!-- make properties required -->
-    <xsl:template match="foaf:givenName[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), lds:base())] | foaf:familyName[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), lds:base())] | foaf:mbox[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), lds:base())] | cert:key[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), lds:base())]" mode="ac:FormControl" priority="1">
+    <xsl:template match="foaf:givenName[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), lds:base())] | foaf:familyName[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), lds:base())] | foaf:mbox[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), lds:base())]" mode="ac:FormControl" priority="1">
         <xsl:param name="violations" as="element()*"/>
 
         <xsl:next-match>
@@ -144,42 +144,52 @@ exclude-result-prefixes="#all">
         </xsl:next-match>
     </xsl:template>
     
-    <xsl:template match="cert:key/@rdf:*[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), lds:base())]" mode="ac:FormControl" priority="1">
+    <!-- The key is a blank-node certificate whose password is typed twice, and both inputs are rows of
+         the form itself. Overriding the object (cert:key/@rdf:*) instead put them inside the Key row's
+         value cell, which is a single flex line holding one capped control and one annotation strip:
+         .ldh-prop-group is the grid the form lays out its predicates on, so a group nested there opened
+         a second 200px label column inside the first one and pushed both inputs off the control column.
+         RDF/POST is sequential, so the hidden statement inputs here and the pu/ol pairs inside the
+         groups below have to stay in this document order. -->
+    <xsl:template match="cert:key[ac:absolute-path(ldh:request-uri()) = resolve-uri(encode-for-uri('sign up'), lds:base())]" mode="ac:FormControl" priority="2">
+        <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="type" select="'password'" as="xs:string"/>
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
-        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
+        <xsl:param name="violations" as="element()*"/>
+        <!-- the fieldset's violations are rooted at the person; the certificate's own are rooted at the key -->
+        <xsl:variable name="key-violations" select="$violations | key('violations-by-value', (@rdf:resource, @rdf:nodeID)) | key('violations-by-root', (@rdf:resource, @rdf:nodeID))" as="element()*"/>
 
+        <!-- <person> cert:key _:key -->
+        <xsl:apply-templates select="." mode="xhtml:Input">
+            <xsl:with-param name="type" select="'hidden'"/>
+        </xsl:apply-templates>
         <input type="hidden" name="ob" value="key"/>
-        
-        <!-- replace URI resource lookup with blank node -->
-        <fieldset>
-            <input type="hidden" name="sb" value="key"/>
-            <input type="hidden" name="pu" value="&rdf;type"/>
-            <input type="hidden" name="ou" value="&cert;X509Certificate"/>
-            
-            <xsl:variable name="violations" select="key('violations-by-value', .) | key('violations-by-root', .)" as="element()*"/>
 
-            <div class="ldh-prop-form is-form-mode">
-                <xsl:call-template name="lacl:password">
-                    <xsl:with-param name="type" select="$type"/>
-                    <xsl:with-param name="disabled" select="$disabled"/>
-                    <xsl:with-param name="for" select="concat($id, '-pwd1')"/>
-                    <xsl:with-param name="violations" select="$violations"/>
-                </xsl:call-template>
-                <!-- double the password input -->
-                <xsl:call-template name="lacl:password">
-                    <xsl:with-param name="type" select="$type"/>
-                    <xsl:with-param name="disabled" select="$disabled"/>
-                    <xsl:with-param name="for" select="concat($id, '-pwd2')"/>
-                    <xsl:with-param name="violations" select="$violations"/>
-                </xsl:call-template>
-            </div>
-        </fieldset>
+        <!-- _:key a cert:X509Certificate -->
+        <input type="hidden" name="sb" value="key"/>
+        <input type="hidden" name="pu" value="&rdf;type"/>
+        <input type="hidden" name="ou" value="&cert;X509Certificate"/>
+
+        <xsl:call-template name="lacl:password">
+            <xsl:with-param name="type" select="$type"/>
+            <xsl:with-param name="disabled" select="$disabled"/>
+            <xsl:with-param name="for" select="concat($id, '-pwd1')"/>
+            <xsl:with-param name="violations" select="$key-violations"/>
+        </xsl:call-template>
+        <!-- double the password input. Its own label, because two rows both reading "Password" read as
+             one row rendered twice -->
+        <xsl:call-template name="lacl:password">
+            <xsl:with-param name="type" select="$type"/>
+            <xsl:with-param name="disabled" select="$disabled"/>
+            <xsl:with-param name="for" select="concat($id, '-pwd2')"/>
+            <xsl:with-param name="label" as="item()*">
+                <xsl:apply-templates select="key('resources', 'repeat-password', ldh:translations())" mode="ac:label"/>
+            </xsl:with-param>
+            <xsl:with-param name="violations" select="$key-violations"/>
+        </xsl:call-template>
 
         <!-- restore subject context -->
-        <xsl:apply-templates select="../../@rdf:about | ../../@rdf:nodeID" mode="#current">
+        <xsl:apply-templates select="../@rdf:about | ../@rdf:nodeID" mode="#current">
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:apply-templates>
     </xsl:template>
@@ -198,6 +208,9 @@ exclude-result-prefixes="#all">
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         <xsl:param name="for" select="generate-id()" as="xs:string"/>
         <xsl:param name="required" select="true()" as="xs:boolean"/>
+        <xsl:param name="label" as="item()*">
+            <xsl:apply-templates select="key('resources', '&lacl;password', document(ac:document-uri('&lacl;')))" mode="ac:label"/>
+        </xsl:param>
         <xsl:param name="violations" as="element()*"/>
         <xsl:param name="error" select="@rdf:resource = $violations/ldh:violationValue or $violations/spin:violationPath/@rdf:resource = $this" as="xs:boolean"/>
         <xsl:param name="row-violations" select="$violations[spin:violationPath/@rdf:resource = $this][rdfs:label]" as="element()*"/>
@@ -211,13 +224,12 @@ exclude-result-prefixes="#all">
 
             <xsl:apply-templates select="." mode="ldh:PropertyLabel">
                 <xsl:with-param name="this" select="$this"/>
-                <xsl:with-param name="label" as="item()*">
-                    <xsl:apply-templates select="key('resources', '&lacl;password', document(ac:document-uri('&lacl;')))" mode="ac:label"/>
-                </xsl:with-param>
+                <xsl:with-param name="label" select="$label"/>
                 <xsl:with-param name="required" select="$required"/>
             </xsl:apply-templates>
 
-            <div class="ldh-prop-row{if (position() = last()) then ' is-last' else ()}{if ($error) then ' is-violation' else ()}">
+            <!-- the group holds a single value row, so that row is always its last one -->
+            <div class="ldh-prop-row is-last{if ($error) then ' is-violation' else ()}">
                 <div class="value val-stack">
                     <div class="val-main">
                         <xsl:apply-templates select="." mode="ac:FieldShell">
@@ -232,13 +244,17 @@ exclude-result-prefixes="#all">
                             </xsl:with-param>
                         </xsl:apply-templates>
 
+                        <!-- the row's one annotation strip, as in the shared property template: .ldh-annot
+                             keeps the tag on the control's line and hidden until the row is hovered or focused -->
                         <xsl:if test="$type-label">
-                            <xsl:apply-templates select="." mode="ac:AnnotationTag">
-                                <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet an-term is-literal'"/>
-                                <xsl:with-param name="label" as="item()*">
-                                    <xsl:apply-templates select="key('resources', 'literal', ldh:translations())" mode="ac:label"/>
-                                </xsl:with-param>
-                            </xsl:apply-templates>
+                            <div class="ldh-annot">
+                                <xsl:apply-templates select="." mode="ac:AnnotationTag">
+                                    <xsl:with-param name="class" select="'ac-tag sz-sm em-quiet an-term is-literal'"/>
+                                    <xsl:with-param name="label" as="item()*">
+                                        <xsl:apply-templates select="key('resources', 'literal', ldh:translations())" mode="ac:label"/>
+                                    </xsl:with-param>
+                                </xsl:apply-templates>
+                            </div>
                         </xsl:if>
                     </div>
 
