@@ -34,7 +34,7 @@ jobs:
           echo "MINOR=$MAJOR.$MINOR" >> $GITHUB_ENV
           echo "FULL_VERSION=$VERSION" >> $GITHUB_ENV
 
-      - name: Build and push
+      - name: Build and push the platform image
         uses: docker/build-push-action@v6
         with:
           platforms: linux/amd64,linux/arm64
@@ -44,6 +44,22 @@ jobs:
             atomgraph/linkeddatahub:${{ env.FULL_VERSION }}
             atomgraph/linkeddatahub:${{ env.MINOR }}
             atomgraph/linkeddatahub:${{ env.MAJOR }}
+
+      # the sef-compiler service composes each dataspace's client stylesheet with its package
+      # stylesheets, so a deployment that consumes images rather than building them needs it
+      # published under the same version as the platform it compiles for. Same Dockerfile, same
+      # tag, one stage earlier - the two images are only ever released together
+      - name: Build and push the SEF compiler image
+        uses: docker/build-push-action@v6
+        with:
+          platforms: linux/amd64,linux/arm64
+          push: true
+          target: sef-compiler
+          tags: |
+            atomgraph/linkeddatahub-sef-compiler:latest
+            atomgraph/linkeddatahub-sef-compiler:${{ env.FULL_VERSION }}
+            atomgraph/linkeddatahub-sef-compiler:${{ env.MINOR }}
+            atomgraph/linkeddatahub-sef-compiler:${{ env.MAJOR }}
 
   cli:
     name: Attach the ldh CLI to the release

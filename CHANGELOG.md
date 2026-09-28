@@ -1,4 +1,4 @@
-## [6.0.0]
+## [6.0.0] - 2026-09-29
 Bootstrap 2 is gone, and with it the class vocabulary and the `bs2:` template modes application stylesheets were written against. An override of a `bs2:` mode still compiles and never fires, and the Bootstrap classes are backed by no stylesheet, so the page renders unstyled with no diagnostic — hence the major version.
 
 Every namespace LDH defines now lives under `https://w3id.org/atomgraph/linkeddatahub`. The Linked Data Templates namespace is gone — LDH has not been an LDT implementation since the API became the Graph Store Protocol, and the template machinery was dead code — and the ontology that described an "application" now describes a dataspace, the name the rest of the platform has used since 5.1.0. Both are breaking for stored data as well as for stylesheets: every dataspace is typed in the old namespace and every document in the old document-hierarchy one.
