@@ -3756,12 +3756,28 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-prop-form.is-form-mode .ldh-prop-row:hover .val-main .cb-chip-btn,
 .ldh-prop-form.is-form-mode .ldh-prop-row:focus-within .val-main .cb-chip-btn { opacity: 1; }
 /* Annotations are editing metadata, not description content: inline (so they
-   never add height) and revealed with the rest of the row's chrome. */
-.ldh-prop-form.is-form-mode .ldh-annot {
+   never add height) and revealed with the rest of the row's chrome — with ONE
+   exception, and the fade moves off the strip onto its children to carve it out.
+   A LANGUAGE IS NOT METADATA ABOUT THE VALUE, IT IS HALF OF THE VALUE: "Denmark"@en
+   and "Denmark"@da are two different literals, and a concept carrying five
+   skos:prefLabels is told apart by nothing else. Hidden, the form showed five
+   identical-looking rows, "one prefLabel per language" could not be checked by eye,
+   and switching from a read view that shows the tag at rest made it disappear.
+   The datatype chip stays chrome: rdf:langString follows from having a language at
+   all, and xsd:dateTime repeats what the date control already shows.
+   The strip keeps its own layout rules either way (nowrap, basis 0), so nothing
+   about the earlier height finding changes — only which boxes are painted.
+   The selector is exactly "a language exists". xhtml:Input omits @value when the
+   tag is empty, so `input[value]` alone would do for the product - the
+   `:not([value=""])` is for the kit, where React reflects a controlled input's
+   value to the attribute and writes an empty one as value="". Both ends agree
+   under the pair, and a blank field stays chrome and reveals with the rest. */
+.ldh-prop-form.is-form-mode .ldh-annot > * {
   opacity: 0; transition: opacity var(--dur-fast) var(--ease-out-soft);
 }
-.ldh-prop-form.is-form-mode .ldh-prop-row:hover .ldh-annot,
-.ldh-prop-form.is-form-mode .ldh-prop-row:focus-within .ldh-annot { opacity: 1; }
+.ldh-prop-form.is-form-mode .ldh-prop-row:hover .ldh-annot > *,
+.ldh-prop-form.is-form-mode .ldh-prop-row:focus-within .ldh-annot > *,
+.ldh-prop-form.is-form-mode .ldh-annot > .ldh-lang:has(input[value]:not([value=""])) { opacity: 1; }
 
 /* IRI-typed values are machine-readable, so they type in mono. Resource values
    render as <Combobox iri>, which already sets this on its own input. */
@@ -3795,10 +3811,36 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
    the language INPUT was the first thing to lose width in a short strip. */
 .ldh-annot > .ldh-lang { flex-shrink: 0; }
 .ldh-lang > .ac-field { width: 11ch; }
-.ldh-lang > .ac-field .ac-field-box { min-height: 24px; padding: 0 6px; }
+/* Pill in BOTH states. The field is a language tag whichever side of the read/edit
+   line it is on, so the radius is not something hover hands it — that leaves fill
+   and ink as the only difference between the two, and nothing to transition that
+   .ac-field-box does not already transition. */
+.ldh-lang > .ac-field .ac-field-box { min-height: 24px; padding: 0 6px; border-radius: var(--r-pill); }
 .ldh-lang > .ac-field .ac-field-box input {
   font-family: var(--font-mono); font-size: var(--fs-xs); padding: 2px 0;
 }
+/* At rest a form-mode language field wears the READ side's tag: the same
+   .ac-tag.em-quiet.co-accent tokens ac:lang-tag renders, so a row being edited still
+   looks like the row that describes it — which is the whole at-rest regime above,
+   applied to the one annotation that stays visible. Mono, not the Tag's sans: a
+   language subtag is machine-readable and the field already types it that way, and a
+   family swap on hover would reflow the box. Fill, border and ink only — the box
+   keeps its height and its 11ch width, so revealing the chrome moves nothing. */
+.ldh-prop-form.is-form-mode .ldh-lang > .ac-field .ac-field-box {
+  background: var(--ldh-violet-100); border-color: transparent;
+}
+.ldh-prop-form.is-form-mode .ldh-lang > .ac-field .ac-field-box input,
+.ldh-prop-form.is-form-mode .ldh-lang > .ac-field .ac-field-box .ac-adorn {
+  color: var(--ldh-violet-700);
+}
+.ldh-prop-form.is-form-mode .ldh-prop-row:hover .ldh-lang > .ac-field .ac-field-box,
+.ldh-prop-form.is-form-mode .ldh-lang > .ac-field .ac-field-box:focus-within {
+  background: var(--surface-0); border-color: var(--border-default);
+}
+.ldh-prop-form.is-form-mode .ldh-prop-row:hover .ldh-lang > .ac-field .ac-field-box input,
+.ldh-prop-form.is-form-mode .ldh-lang > .ac-field .ac-field-box:focus-within input { color: var(--fg-1); }
+.ldh-prop-form.is-form-mode .ldh-prop-row:hover .ldh-lang > .ac-field .ac-field-box .ac-adorn,
+.ldh-prop-form.is-form-mode .ldh-lang > .ac-field .ac-field-box:focus-within .ac-adorn { color: var(--fg-hint); }
 
 /* dateTime — two TextFields (value + offset) sitting together. They were a
    single bespoke bordered shell with a divider; that shell was the app kit
