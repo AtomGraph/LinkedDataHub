@@ -56,6 +56,21 @@ exclude-result-prefixes="#all">
         </xsl:next-match>
     </xsl:template>-->
 
+    <!-- READ MODE -->
+
+    <!-- overrides Web-Client's, which renders the query text in a bare pre. A query is written to be run
+         elsewhere, so it gets the copy control like any other code sample. The pre is re-emitted rather than
+         reached through xsl:next-match, which would nest it inside the one Web-Client's own rule emits -->
+    <xsl:template match="sp:text/text()">
+        <xsl:call-template name="ldh:CodeBlock">
+            <xsl:with-param name="pre" as="element()">
+                <pre>
+                    <xsl:value-of select="."/>
+                </pre>
+            </xsl:with-param>
+        </xsl:call-template>
+    </xsl:template>
+
     <!-- FORM CONTROL MODE -->
 
     <xsl:template match="sp:text/text() | sp:text/@rdf:nodeID[key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="ac:FormControl">

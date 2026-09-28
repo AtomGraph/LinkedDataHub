@@ -136,7 +136,7 @@ exclude-result-prefixes="#all"
     
     <!-- render query block -->
     
-    <xsl:template match="*[@typeof = ('&sp;Ask', '&sp;Select', '&sp;Describe', '&sp;Construct')][descendant::*[@property = '&sp;text'][pre/text()]]" mode="ldh:RowHook" as="function(item()?) as map(*)">
+    <xsl:template match="*[@typeof = ('&sp;Ask', '&sp;Select', '&sp;Describe', '&sp;Construct')][descendant::*[@property = '&sp;text'][.//pre/text()]]" mode="ldh:RowHook" as="function(item()?) as map(*)">
         <xsl:param name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:param name="container" select="." as="element()"/>
         <xsl:param name="graph" select="descendant::*[@property = '&ldh;graph']/@resource" as="xs:anyURI?"/>
@@ -148,7 +148,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="textarea-rows" select="15" as="xs:integer?"/>
         <xsl:param name="service-uri" select="descendant::*[@property = '&ldh;service']/@resource" as="xs:anyURI?"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
-        <xsl:param name="query" select="string(descendant::*[@property = '&sp;text']/pre)" as="xs:string"/>
+        <xsl:param name="query" select="string(descendant::*[@property = '&sp;text']//pre)" as="xs:string"/>
         <xsl:param name="show-properties" select="false()" as="xs:boolean"/>
         <xsl:param name="forClass" select="xs:anyURI('&sd;Service')" as="xs:anyURI"/>
         <!-- the access the agent has to this document, off the pane it is rendered in -->

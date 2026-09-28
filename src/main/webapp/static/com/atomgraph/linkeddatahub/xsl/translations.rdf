@@ -276,6 +276,10 @@
         <rdfs:label xml:lang="en-US">Copy URI</rdfs:label>
         <rdfs:label xml:lang="es-ES">Copiar URI</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="copy-code">
+        <rdfs:label xml:lang="en-US">Copy code</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Copiar código</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="save-as-title">
         <rdfs:label xml:lang="en-US">Copy this RDF graph into the local graph store</rdfs:label>
         <rdfs:label xml:lang="es-ES">Copiar este grafo RDF al almacén de grafos locales</rdfs:label>

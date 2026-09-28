@@ -1369,13 +1369,35 @@ WHERE
             <ixsl:set-property name="textContent" select="'check'" object="."/>
         </xsl:for-each>
         <ixsl:schedule-action wait="1500">
-            <xsl:call-template name="ldh:ResetCopyUriConfirmation">
+            <xsl:call-template name="ldh:ResetCopyConfirmation">
                 <xsl:with-param name="button" select="."/>
             </xsl:call-template>
         </ixsl:schedule-action>
     </xsl:template>
 
-    <xsl:template name="ldh:ResetCopyUriConfirmation">
+    <!-- copy a code sample into clipboard -->
+
+    <xsl:template match="button[contains-token(@class, 'btn-copy-code')]" mode="ixsl:onclick">
+        <!-- the sample is the pre the button was rendered alongside - ldh:CodeBlock wraps the two together,
+             and is the only thing that does, so there is always exactly one -->
+        <xsl:variable name="code" select="string(../pre)" as="xs:string"/>
+        <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'navigator.clipboard'), 'writeText', [ $code ])"/>
+
+        <!-- transient confirmation: the glyph flips to a check and reverts after a beat -->
+        <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-confirmed', true())"/>
+        <xsl:for-each select="descendant::span[contains-token(@class, 'msi')][1]">
+            <ixsl:set-property name="textContent" select="'check'" object="."/>
+        </xsl:for-each>
+        <ixsl:schedule-action wait="1500">
+            <xsl:call-template name="ldh:ResetCopyConfirmation">
+                <xsl:with-param name="button" select="."/>
+            </xsl:call-template>
+        </ixsl:schedule-action>
+    </xsl:template>
+
+    <!-- shared by both copy buttons: what was copied is the handler's business, the confirmation is not -->
+
+    <xsl:template name="ldh:ResetCopyConfirmation">
         <xsl:param name="button" as="element()"/>
 
         <ixsl:set-attribute name="class" select="ldh:set-token($button/@class, 'is-confirmed', false())" object="$button"/>

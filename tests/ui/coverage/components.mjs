@@ -131,6 +131,9 @@ export const components = [
         id: 'controls', name: 'Kit controls', selector: '.ac-menu-anchor', grouping: true,
         children: [
             { id: 'menu', name: 'Dropdown menu', selector: '.ac-menu-anchor:has(button.drop-toggle)' },
+            // Rendered wherever a pre is: in prose, around a stored query's text, inside an error
+            // disclosure. One emitter, so one record, like the menu above it.
+            { id: 'code-block', name: 'Code block', selector: '.ldh-code-block' },
         ],
     },
     {

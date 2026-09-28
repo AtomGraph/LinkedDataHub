@@ -93,6 +93,17 @@ div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main img, div[type
    case rather than narrowing it, so that rule keeps saying what it means. Mirrors
    docs.css for the static site. */
 div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main .ac-alert { margin: var(--sp-4) 0; }
+/* ldh:CodeBlock: the wrapper exists to anchor the copy control, which pre cannot do itself - pre is a
+   scroll container (overflow-x: auto), and a child placed against its corner drifts with the code. The
+   well's vertical rhythm moves onto the wrapper, so a code block occupies the flow exactly as the bare
+   pre did. The control is the design system's iconbtn in its raised form, which reads as something laid
+   on the recessed well rather than part of the sample - and distinguishes it from the block's ghost
+   Copy URI; is-reveal (controls.css) keeps it out of the prose until the block is hovered or it takes
+   focus. The disclosure case restates the offset the DS gave that pre, which the wrapper now carries. */
+.ldh-code-block { position: relative; margin: var(--sp-4) 0; }
+.ldh-code-block > pre { margin: 0; }
+.ldh-code-block > .btn-copy-code { position: absolute; top: var(--sp-2); right: var(--sp-2); }
+.ac-disclosure > .ldh-code-block { margin: var(--sp-2) 0 0; }
 /* click-to-edit affordance only when the pane's document grants acl:Write (mirrors the ixsl:onclick guard in block.xsl) */
 div[data-acl-modes~="http://www.w3.org/ns/auth/acl#Write"] div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"]:not(:has(form)) .main { cursor: pointer; }
 /* collapse the property grid in the XHTML block's edit form: the region spans the block as a document

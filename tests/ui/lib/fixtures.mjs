@@ -21,6 +21,11 @@ const authSlugs = { documents: `${slug}-public-docs`, endpoint: `${slug}-public-
 export const publicAuthorizations =
     Object.values(authSlugs).map(name => `${adminBase}acl/authorizations/${name}/`);
 
+// The code sample inside the prose block, which is what the copy control is asserted against.
+// Two lines on purpose: the control's claim is that it takes the sample verbatim, and a
+// single-line sample would not tell a faithful copy from a trimmed one.
+export const proseSample = 'ldh create container --slug fixtures\nldh --help';
+
 export const fixtures = {
     container: `${endUserBase}${slug}/`,
     // The control. No authorization the suite creates ever targets it, so its anonymous 403
@@ -220,7 +225,7 @@ export async function seed() {
         '--chart-type', 'https://w3id.org/atomgraph/client#BarChart',
         '--category-var-name', 'kind', '--series-var-name', 'items', fixtures.container]);
     await ldh(['add', 'xhtml-block', '--title', 'Fixture prose', '--uri', fixtures.prose,
-        '--value', '<div xmlns="http://www.w3.org/1999/xhtml"><p>Prose block fixture.</p></div>',
+        '--value', `<div xmlns="http://www.w3.org/1999/xhtml"><p>Prose block fixture.</p><pre>${proseSample}</pre></div>`,
         fixtures.container]);
     await ldh(['add', 'object-block', '--title', 'Fixture object', '--uri', fixtures.object,
         '--value', itemUri(1), fixtures.container]);

@@ -1397,12 +1397,78 @@ exclude-result-prefixes="#all"
         </xsl:next-match>
     </xsl:template>
 
+    <!-- CODE BLOCK -->
+
+    <!-- a code sample is written to be run somewhere else, so every pre the platform renders carries a copy
+         control. The pre rides a wrapper instead of hosting the control itself: pre scrolls (overflow-x: auto),
+         so a child placed against its corner would scroll away with the code, and preformatted text would take
+         the button's own glyph into the copied string. Nothing is wrapped unless it comes through here, which
+         is what keeps the control off the pre elements the platform does not own - CodeMirror's inside the
+         SPARQL editor pane, and the RDFa editor's own output and view-source panes -->
+    <xsl:template name="ldh:CodeBlock">
+        <xsl:param name="pre" as="element()"/>
+
+        <div class="ldh-code-block">
+            <xsl:sequence select="$pre"/>
+
+            <xsl:apply-templates select="$pre" mode="ldh:CopyCodeButton"/>
+        </div>
+    </xsl:template>
+
+    <!-- copies the code sample into the clipboard. Context-free markup like ldh:CopyUriButton: the onclick
+         handler in client.xsl reads the pre the button was rendered alongside at click time -->
+    <xsl:template match="*" mode="ldh:CopyCodeButton">
+        <xsl:param name="class" select="'ac-iconbtn sz-xs ap-solid is-reveal btn-copy-code'" as="xs:string"/>
+
+        <button type="button" class="{$class}">
+            <xsl:attribute name="title">
+                <xsl:apply-templates select="key('resources', 'copy-code', ldh:translations())" mode="ac:label"/>
+            </xsl:attribute>
+
+            <span class="msi sm" aria-hidden="true">content_copy</span>
+        </button>
+    </xsl:template>
+
+    <!-- overrides Web-Client's, which renders the detail in a bare pre. A stack trace is the thing most worth
+         pasting into an issue, so it gets the copy control like any other code sample; identical otherwise -->
+    <xsl:function name="ac:error-detail" as="element()?">
+        <xsl:param name="detail" as="xs:string?"/>
+
+        <xsl:if test="normalize-space($detail)">
+            <details class="ac-disclosure">
+                <summary>
+                    <span class="msi" aria-hidden="true">chevron_right</span>
+                    <xsl:apply-templates select="key('resources', 'technical-detail', ac:translations())" mode="ac:label"/>
+                </summary>
+                <xsl:call-template name="ldh:CodeBlock">
+                    <xsl:with-param name="pre" as="element()">
+                        <pre>
+                            <xsl:value-of select="$detail"/>
+                        </pre>
+                    </xsl:with-param>
+                </xsl:call-template>
+            </details>
+        </xsl:if>
+    </xsl:function>
+
     <!-- XHTML CONTENT IDENTITY TRANSFORM -->
 
     <xsl:template match="@* | node()" mode="ldh:XHTMLContent">
         <xsl:copy copy-namespaces="no">
             <xsl:apply-templates select="@* | node()" mode="#current"/>
         </xsl:copy>
+    </xsl:template>
+
+    <!-- a pre in authored content is a code sample like any other (the documentation's XHTML literals are
+         nothing but), so it gets the same copy control -->
+    <xsl:template match="xhtml:pre" mode="ldh:XHTMLContent">
+        <xsl:call-template name="ldh:CodeBlock">
+            <xsl:with-param name="pre" as="element()">
+                <xsl:copy copy-namespaces="no">
+                    <xsl:apply-templates select="@* | node()" mode="#current"/>
+                </xsl:copy>
+            </xsl:with-param>
+        </xsl:call-template>
     </xsl:template>
 
     <!-- resolve relative @href URIs against base in proxy mode -->
