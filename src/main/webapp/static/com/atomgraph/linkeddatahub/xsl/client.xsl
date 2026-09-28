@@ -463,9 +463,15 @@ WHERE
                             <xsl:sequence select="ldh:render-failure(id($effective-pane-id, ixsl:page())/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')], 'version-not-read', ac:http-error-key($context('diff-response')?status), ldh:response-detail($context('diff-response')))"/>
                         </xsl:if>
 
+                        <!-- the canvases to initialize are the rendered document's own, so the lookups search the pane it
+                             was rendered into and not the page: every open tab lives on the page, and a search of the whole
+                             of it drew each newly loaded document as a table into every other tab's chart canvas and created
+                             a second map in every other tab's map canvas (measured 2026-09-28 with three dataspace tabs) -->
+                        <xsl:variable name="rendered-pane" select="id($effective-pane-id, ixsl:page())" as="element()"/>
+
                         <!-- initialize maps -->
-                        <xsl:if test="key('elements-by-class', 'map-canvas', ixsl:page())">
-                            <xsl:variable name="canvas-id" select="key('elements-by-class', 'map-canvas', ixsl:page())/@id" as="xs:string"/>
+                        <xsl:if test="key('elements-by-class', 'map-canvas', $rendered-pane)">
+                            <xsl:variable name="canvas-id" select="key('elements-by-class', 'map-canvas', $rendered-pane)/@id" as="xs:string"/>
                             <xsl:variable name="initial-load" select="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`'), 'map'))" as="xs:boolean"/>
                             <xsl:variable name="map" select="if ($initial-load) then ldh:create-map($canvas-id, 0, 0, 4) else ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`'), 'map')" as="item()"/>
 
@@ -481,7 +487,7 @@ WHERE
                         </xsl:if>
 
                         <!-- initialize charts -->
-                        <xsl:for-each select="key('elements-by-class', 'chart-canvas', ixsl:page())">
+                        <xsl:for-each select="key('elements-by-class', 'chart-canvas', $rendered-pane)">
                             <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
                             <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
                             <xsl:variable name="category" as="xs:string?"/>
@@ -500,7 +506,7 @@ WHERE
                         </xsl:for-each>
 
                         <!-- initialize 3D force graphs -->
-                        <xsl:for-each select="key('elements-by-class', 'graph-3d-canvas', ixsl:page())">
+                        <xsl:for-each select="key('elements-by-class', 'graph-3d-canvas', $rendered-pane)">
                             <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
                             <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.graphs'), $canvas-id))">
                                 <xsl:call-template name="ldh:InitDocumentGraph3D">
