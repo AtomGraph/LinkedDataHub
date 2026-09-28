@@ -348,7 +348,7 @@ See the [Web-Algebra repository](https://github.com/AtomGraph/Web-Algebra) for s
 
 ## Test suite
 
-LinkedDataHub includes an HTTP [test suite](https://github.com/AtomGraph/LinkedDataHub/tree/master/http-tests), run with `make tests`. It builds its fixtures with `ldh`, which `make tests` builds and puts on the `$PATH` for the run. The server implementation is also covered by the [Processor test suite](https://github.com/AtomGraph/Processor/tree/master/http-tests).
+LinkedDataHub includes an HTTP [test suite](https://github.com/AtomGraph/LinkedDataHub/tree/master/tests/http), run with `make tests`. It builds its fixtures with `ldh`, which `make tests` builds and puts on the `$PATH` for the run. The server implementation is also covered by the [Processor test suite](https://github.com/AtomGraph/Processor/tree/master/http-tests).
 
 ![HTTP-tests](https://github.com/AtomGraph/LinkedDataHub/actions/workflows/http-tests.yml/badge.svg)
 

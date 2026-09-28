@@ -2,7 +2,7 @@
 // shell with a results table in it.
 //
 // Both halves of the round trip are asserted because both were broken and neither was visible to
-// http-tests. The server used to answer 500 - the shell binds its content pane as="element()" and
+// tests/http. The server used to answer 500 - the shell binds its content pane as="element()" and
 // ldh:TabPanel matched rdf:RDF only, so a result set produced no pane and failed the cardinality
 // check rather than degrading to an unstyled page. Then the client wiped what the server did send:
 // it re-fetches the document after hydrating, and the re-fetch dropped the ?query= that the

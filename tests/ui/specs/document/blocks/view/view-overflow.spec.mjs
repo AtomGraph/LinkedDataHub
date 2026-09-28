@@ -65,7 +65,7 @@ const geometry = (page, rowSelector) => page.evaluate(selector => {
 // reads the page. What differs anonymously is only whether the fixture is readable at all, and
 // on a virgin instance nothing is - the shipped acl/authorizations/public/ grants no
 // accessTo/accessToClass until something fills it in, which is why CI's anonymous project sees
-// a 403 error page here while a dev instance that has run http-tests does not.
+// a 403 error page here while a dev instance that has run tests/http does not.
 test.beforeEach(({}, testInfo) => {
     test.skip(testInfo.project.name !== 'owner',
         'a layout assertion; the authorization axis would measure the same thing twice');

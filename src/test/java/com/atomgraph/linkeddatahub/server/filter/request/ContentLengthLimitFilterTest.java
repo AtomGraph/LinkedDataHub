@@ -110,7 +110,7 @@ public class ContentLengthLimitFilterTest
 
     // The inbound half. It is not what the UNLIMITED property exempts - that is checked only on the
     // response path - so a request body over the limit is refused whatever the caller asks for, and
-    // these are the assertions saying so. ui-tests cover the same refusal end to end, but through
+    // these are the assertions saying so. tests/ui covers the same refusal end to end, but through
     // nginx's client_max_body_size, which answers before the body ever reaches this filter.
 
     /** A request declaring a size over the limit is refused without its body being touched. */

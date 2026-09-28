@@ -1,6 +1,6 @@
-# ui-tests
+# tests/ui
 
-Playwright suite driving the LinkedDataHub browser UI. Where [`http-tests`](../http-tests)
+Playwright suite driving the LinkedDataHub browser UI. Where [`tests/http`](../http)
 asserts what the API returns, this asserts what the browser ends up showing: the
 design-system markup contract, and the interactions that contract implies.
 
@@ -32,7 +32,7 @@ answer. Each check fails with the command that fixes it:
 | Check | Why it is there |
 | --- | --- |
 | The base URL answers | `nginx` fronts every port the suite uses, and is easy to leave stopped |
-| `ldh` is on `$PATH` | Fixtures are built with it, the way `http-tests/run.sh` builds its own |
+| `ldh` is on `$PATH` | Fixtures are built with it, the way `tests/http/run.sh` builds its own |
 | The **served** SEF matches `target/ROOT` | `/static/` is Varnish-cached per encoding, so a recompiled stylesheet keeps serving stale to browser and `curl` alike. A green run against a stale SEF is worse than a red one |
 | A **composed** package SEF is published | A package's rules reach the browser only once its stylesheet has been composed with the platform's and compiled, which happens asynchronously. Until then every page is served the stock stylesheet and a concept page renders no tree at all — the specs would fail as though the feature were missing |
 
@@ -53,7 +53,7 @@ served the stock stylesheet even where its children get the composed one.
 
 Seeded into `ui-fixtures/` before the run and removed after, built with `ldh` so the suite
 exercises the real API and behaves the same against a virgin CI instance and a lived-in
-dev one. It does **not** snapshot and restore the whole dataset the way `http-tests` does —
+dev one. It does **not** snapshot and restore the whole dataset the way `tests/http` does —
 right for a suite that owns the instance, wrong for one sharing your dev stack.
 
 Every fixture URI is a pure function of its index (`itemUri(7)`), because `globalSetup`

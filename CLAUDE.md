@@ -47,10 +47,10 @@ make cli-version                             # Set cli/pom.xml to the platform v
 ```bash
 # HTTP tests (requires a running application). Depends on the `cli` target, so it builds
 # the CLI and puts it on PATH for run.sh, which builds the suite's fixtures with it
-make tests  # runs http-tests/run.sh with the certificates and secrets/ passwords
+make tests  # runs tests/http/run.sh with the certificates and secrets/ passwords
 
 # For other certificates, invoke the runner directly
-cd http-tests
+cd tests/http
 ./run.sh ssl/owner/cert.pem [password] ssl/secretary/cert.pem [password]
 
 # Test individual suites
@@ -182,7 +182,7 @@ options: `--timemap` (version history), `--version <sha>` (a historical version)
 with an optional `--datetime` (RFC 1123 or ISO 8601), which prints the selected version's URI as the
 only line on stdout so it pipes into another `ldh get`.
 
-The `bin/` HTTP API scripts are **deprecated** — `ldh` replaces them, and http-tests build their
+The `bin/` HTTP API scripts are **deprecated** — `ldh` replaces them, and tests/http builds its
 fixtures with it. Authentication moves from the `curl -E` invocation to `-c/--cert`
 (`-c ssl/owner/keystore.p12`).
 

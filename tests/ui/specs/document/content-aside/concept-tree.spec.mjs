@@ -48,7 +48,7 @@ test.describe('concept tree', { tag: '@owner' }, () => {
     // Not ownership: nothing in a dataspace is readable without a certificate until an
     // authorization says so, and a taxonomy document is a dh:Item like any other - granting the
     // fixtures would make these run. The reason not to is the division of labour. WHETHER a
-    // refusal happens is http-tests' subject, where admin/acl/ covers the modes, the classes, the
+    // refusal happens is tests/http's subject, where admin/acl/ covers the modes, the classes, the
     // groups and make-public; asserting it again through a browser is the same claim in a slower
     // runner. WHAT a refusal does to the client is this suite's, and has its own spec in
     // tree-children-failure, which injects one and runs in both projects. Between those two the
@@ -56,7 +56,7 @@ test.describe('concept tree', { tag: '@owner' }, () => {
     // taxonomy would buy fifteen re-measurements of the same markup.
     test.beforeEach(({}, testInfo) => {
         test.skip(testInfo.project.name !== 'owner',
-            'the tree renders identically for either agent; whether a refusal happens is http-tests\' subject');
+            'the tree renders identically for either agent; whether a refusal happens is tests/http\'s subject');
     });
 
     test('roots at the scheme, not at the concept being read', async ({ page }) => {
