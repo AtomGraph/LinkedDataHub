@@ -186,6 +186,13 @@ drift. `cli/pom.xml` resolves the library by `${project.version}`, so the two mo
 `make cli` installs `rdf/` first; building `cli/` on its own needs `make rdf` to have run at least
 once since the last version bump.
 
+`linkeddatahub-rdf` publishes to Maven Central on its own, since `release:perform` only carries
+reactor modules: `release.sh` deploys it right after the platform, extracting `rdf/` from the release
+tag with `git archive` because the working tree has already moved on to the next SNAPSHOT by then.
+A snapshot can be published by hand with `cd rdf && mvn -Prelease clean deploy` — the `release`
+profile attaches the sources and javadoc jars and signs them, which is what
+`<releaseProfiles>release</releaseProfiles>` gets the platform.
+
 `LDH_CERT_FILE`, `LDH_CERT_PASSWORD`, `LDH_BASE` and `LDH_PROXY` supply defaults for `-c`, `-p`,
 `-b` and `--proxy`. `-c/--cert` takes either format the agent's credential comes in — a PKCS12
 keystore or a PEM file with the certificate and its PKCS#8 private key — told apart by content, not

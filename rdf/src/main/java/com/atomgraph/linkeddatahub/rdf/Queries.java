@@ -36,9 +36,8 @@ public final class Queries
     private Queries() { }
 
     /**
-     * Builds a stored query. The query form is the caller's to state - {@link SP#Select},
-     * {@link SP#Construct} and {@link SP#Describe} are all stored the same way, and only the
-     * type says which one this is.
+     * Builds a stored query. The query form is the caller's to state - {@link SP#Select} and
+     * {@link SP#Construct} are stored the same way, and only the type says which one this is.
      *
      * @param target target document URI
      * @param uri query URI, relative or absolute (optional, blank node when absent)

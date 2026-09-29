@@ -232,6 +232,23 @@ print_status "Performing Maven release (deploying to Sonatype)..."
 mvn release:perform -DlocalCheckout=true
 PUBLISHED=true
 
+# Publish linkeddatahub-rdf at the same version. It is not a module of the reactor, so
+# release:perform does not carry it - but the CLI resolves it by ${project.version}, and Web-Algebra's
+# ldh-* operations resolve it from their own repository, so a platform release without it is a release
+# whose clients cannot build.
+#
+# Deployed from the tag rather than the working tree: by this point sync_cli_version has already moved
+# rdf/pom.xml on to the next development version, while the tag holds the release one. git archive
+# extracts the subtree alone, so nothing here depends on the working tree's state.
+# The staging directory is removed inline rather than by a trap: the script's only EXIT trap is
+# cleanup_on_failure, and registering a second one would replace it.
+print_status "Deploying linkeddatahub-rdf $RELEASE_VERSION..."
+RDF_STAGING=$(mktemp -d)
+git archive "$RELEASE_TAG" rdf | tar -x -C "$RDF_STAGING"
+(cd "$RDF_STAGING/rdf" && mvn -B -Prelease clean deploy)
+rm -rf "$RDF_STAGING"
+print_status "linkeddatahub-rdf $RELEASE_VERSION deployed"
+
 # Switch to master and merge only the release commit
 print_status "Merging release commit to master branch..."
 git checkout master
