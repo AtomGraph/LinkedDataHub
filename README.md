@@ -2,10 +2,9 @@
 
 **_LinkedDataHub_ (LDH) is open source software you can use to manage data, create visualizations and build apps on RDF Knowledge Graphs.**
 
-![LinkedDataHub screenshots](https://github.com/AtomGraph/LinkedDataHub/raw/master/screenshots.png)
+![LinkedDataHub rendering a SKOS concept with its multilingual labels](https://github.com/AtomGraph/LinkedDataHub/raw/master/screenshots.png)
 
-What's new in LinkedDataHub v5? Watch this video for a feature overview:
-[![What's new in LinkedDataHub v3? Feature overview](https://img.youtube.com/vi/LaOouEYhp_c/0.jpg)](https://www.youtube.com/watch?v=LaOouEYhp_c)
+Version 6 redraws the interface on a design system that ships with the platform: the app shell, content blocks, action bar, property lists, tables, modals and forms all render one class vocabulary, and `ldh.css` is the single app layer a dataspace stylesheet overrides. Bootstrap 2 is gone with the `bs2:` template modes — the [CHANGELOG](CHANGELOG.md) has what that means for an application stylesheet written against it.
 
 We started the project with the intention to use it for Linked Data publishing, but gradually realized that we've built a multi-purpose data-driven platform.
 
