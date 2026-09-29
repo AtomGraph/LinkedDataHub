@@ -1471,13 +1471,17 @@ exclude-result-prefixes="#all"
         </xsl:call-template>
     </xsl:template>
 
-    <!-- resolve relative @href URIs against base in proxy mode -->
-    <xsl:template match="@href[not(ac:absolute-path(ldh:base-uri(.)) = ac:absolute-path(ldh:request-uri()))][not(starts-with(., '/')) and not(starts-with(., '#')) and not(contains(., ':'))]" mode="ldh:XHTMLContent" priority="1">
+    <!-- resolve relative @href URIs against base in proxy mode. A path-absolute reference is relative too:
+         it carries no authority, so the browser fills in the one it is displayed on - the proxying dataspace,
+         not the document the content came from - and only a fragment stays unresolved, because it addresses
+         this rendering rather than the source -->
+    <xsl:template match="@href[not(ac:absolute-path(ldh:base-uri(.)) = ac:absolute-path(ldh:request-uri()))][not(starts-with(., '#')) and not(contains(., ':'))]" mode="ldh:XHTMLContent" priority="1">
         <xsl:attribute name="{name()}" select="resolve-uri(., ldh:base-uri(.))"/>
     </xsl:template>
 
-    <!-- resolve relative @src URIs against base in proxy mode -->
-    <xsl:template match="@src[not(ac:absolute-path(ldh:base-uri(.)) = ac:absolute-path(ldh:request-uri()))][not(starts-with(., '/')) and not(starts-with(., '#')) and not(contains(., ':'))]" mode="ldh:XHTMLContent" priority="1">
+    <!-- resolve relative @src URIs against base in proxy mode, path-absolute ones included: authored content
+         references its media as /uploads/{sha1}, which resolves against the proxying origin and 404s there -->
+    <xsl:template match="@src[not(ac:absolute-path(ldh:base-uri(.)) = ac:absolute-path(ldh:request-uri()))][not(starts-with(., '#')) and not(contains(., ':'))]" mode="ldh:XHTMLContent" priority="1">
         <xsl:attribute name="{name()}" select="resolve-uri(., ldh:base-uri(.))"/>
     </xsl:template>
 

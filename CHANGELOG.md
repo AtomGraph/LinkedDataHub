@@ -1,3 +1,7 @@
+## [Unreleased]
+### Fixed
+- Proxied XHTML content left path-absolute `@href`/`@src` references unresolved, so authored media (`/uploads/{sha1}`) resolved against the proxying dataspace's origin and 404'd. The proxy-mode rewrite in `ldh:XHTMLContent` now resolves them against the content's base URI alongside the relative ones; only fragments stay untouched, because they address the rendering rather than the source
+
 ## [6.0.0] - 2026-09-29
 LinkedDataHub has a new interface. The app shell, content blocks, action bar, breadcrumbs, mode lists, type badges, property lists, tables, pager, modals and forms are drawn against a design system vendored into the platform — its tokens, components and typefaces ship with LDH, and `ldh.css` is the single app layer loaded over them, the one file a dataspace stylesheet has to reckon with. IXSL templates drive the dropdowns and modals, the `msi` font draws the icons and the RDFa editor edits `rdf:XMLLiteral`, so jQuery, `bootstrap.js`, WYMEditor and the sprite sheet are gone.
 
