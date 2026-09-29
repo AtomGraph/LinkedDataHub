@@ -38,7 +38,7 @@ import picocli.CommandLine.Option;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "create-group", description = "Creates an agent group.")
+@Command(name = "group", description = "Creates an agent group.")
 public class CreateGroup extends BaseCommand
 {
 

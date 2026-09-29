@@ -28,7 +28,7 @@ public final class DH
 {
 
     /** Namespace URI */
-    public static final String NS = "https://www.w3.org/ns/ldt/document-hierarchy#";
+    public static final String NS = "https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#";
 
     private DH() { }
 

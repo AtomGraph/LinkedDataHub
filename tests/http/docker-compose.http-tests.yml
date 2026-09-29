@@ -1,0 +1,27 @@
+services:
+  nginx:
+    volumes:
+      - ./tests/http/ssl/server:/etc/nginx/ssl
+    environment:
+      - SSL_VERIFY_CLIENT=optional_no_ca
+  linkeddatahub:
+    user: root
+    ports:
+      - 8001:8000 # debugger
+    environment:
+      - JPDA_ADDRESS=*:8000 # debugger host - performance hit when enabled
+    volumes:
+      - ./tests/http/config/dataspaces.trig:/var/linkeddatahub/datasets/dataspaces.trig:ro
+      - ./tests/http/config/system.trig:/var/linkeddatahub/datasets/system.trig:ro
+      - ./tests/http/root-owner.trig.template:/var/linkeddatahub/root-owner.trig.template:ro
+      - ./datasets/owner:/var/linkeddatahub/datasets/owner
+      - ./datasets/secretary:/var/linkeddatahub/datasets/secretary
+      - ./tests/http/uploads:/var/www/linkeddatahub/uploads
+      - ./tests/http/ssl/server:/var/linkeddatahub/ssl/server
+      - ./tests/http/ssl/owner:/var/linkeddatahub/ssl/owner
+      - ./tests/http/ssl/secretary:/var/linkeddatahub/ssl/secretary
+  fuseki:
+    ports:
+      - 3030:3030
+    #volumes:
+    #  - ./tests/http/data:/fuseki/databases

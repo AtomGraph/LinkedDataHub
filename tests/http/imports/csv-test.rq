@@ -1,0 +1,29 @@
+PREFIX dct:        <http://purl.org/dc/terms/>
+PREFIX xsd:        <http://www.w3.org/2001/XMLSchema#> 
+PREFIX rdf:        <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX dh:         <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#>
+PREFIX sioc:       <http://rdfs.org/sioc/ns#>
+
+CONSTRUCT
+{
+    GRAPH ?item
+    {
+        ?item a dh:Item ;
+            sioc:has_container ?container ;
+            dct:title ?string ;
+            rdf:value ?integer
+    }
+}
+WHERE
+{
+    ?row <#id> ?id ;
+        <#string> ?string ;
+        <#integer> ?integer_string .
+
+    BIND (uri(concat(str($base), "test/")) AS ?container)
+    BIND(uri(concat(str(?container), encode_for_uri(?id), "/")) AS ?item)
+    BIND(xsd:integer(?integer_string) AS ?integer)
+
+    OPTIONAL 
+    { ?row <#optional> ?optional }
+}

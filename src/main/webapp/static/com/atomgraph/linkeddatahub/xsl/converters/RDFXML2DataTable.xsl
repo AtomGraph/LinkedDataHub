@@ -129,13 +129,15 @@ exclude-result-prefixes="xs">
     <xsl:template match="*[@rdf:about or @rdf:nodeID]/*" mode="ac:DataTableColumns">
         <json:map>
             <json:string key="id"><xsl:value-of select="generate-id()"/></json:string>
-            <json:string key="label"><xsl:value-of select="concat(namespace-uri(), local-name())"/></json:string>
+            <!-- the column label is display text: it names the series in the legend and the axis it is drawn against -->
+            <json:string key="label"><xsl:value-of select="ac:property-label(.)"/></json:string>
             <json:string key="type">
                 <xsl:variable name="same-properties" select="key('properties', concat(namespace-uri(), local-name()))" as="element()*"/>
                 <xsl:variable name="same-property-count" select="count($same-properties)" as="xs:integer"/>
                 <xsl:choose>
-                    <xsl:when test="count($same-properties[@rdf:datatype = ('&xsd;integer', '&xsd;decimal', '&xsd;double', '&xsd;float')]) = $same-property-count">number</xsl:when>
-                    <xsl:when test="count($same-properties[@rdf:datatype = '&xsd;dateTime']) = $same-property-count">datetime</xsl:when>
+                    <!-- the numeric and dateTime types include those derived from them, which are as chartable as the types they restrict -->
+                    <xsl:when test="count($same-properties[@rdf:datatype = ('&xsd;integer', '&xsd;long', '&xsd;int', '&xsd;short', '&xsd;byte', '&xsd;nonNegativeInteger', '&xsd;positiveInteger', '&xsd;nonPositiveInteger', '&xsd;negativeInteger', '&xsd;unsignedLong', '&xsd;unsignedInt', '&xsd;unsignedShort', '&xsd;unsignedByte', '&xsd;decimal', '&xsd;double', '&xsd;float')]) = $same-property-count">number</xsl:when>
+                    <xsl:when test="count($same-properties[@rdf:datatype = ('&xsd;dateTime', '&xsd;dateTimeStamp')]) = $same-property-count">datetime</xsl:when>
                     <xsl:when test="count($same-properties[@rdf:datatype = '&xsd;date']) = $same-property-count">date</xsl:when>
                     <xsl:when test="count($same-properties[@rdf:datatype = '&xsd;time']) = $same-property-count">timeofday</xsl:when>
                     <xsl:otherwise>string</xsl:otherwise>
@@ -197,7 +199,7 @@ exclude-result-prefixes="xs">
          <json:boolean key="v"><xsl:value-of select="."/></json:boolean>
     </xsl:template>
 
-    <xsl:template match="text()[../@rdf:datatype = '&xsd;integer'] | text()[../@rdf:datatype = '&xsd;decimal'] | text()[../@rdf:datatype = '&xsd;double'] | text()[../@rdf:datatype = '&xsd;float']" mode="ac:DataTable">
+    <xsl:template match="text()[../@rdf:datatype = ('&xsd;integer', '&xsd;long', '&xsd;int', '&xsd;short', '&xsd;byte', '&xsd;nonNegativeInteger', '&xsd;positiveInteger', '&xsd;nonPositiveInteger', '&xsd;negativeInteger', '&xsd;unsignedLong', '&xsd;unsignedInt', '&xsd;unsignedShort', '&xsd;unsignedByte', '&xsd;decimal', '&xsd;double', '&xsd;float')]" mode="ac:DataTable">
          <json:number key="v"><xsl:value-of select="."/></json:number>
     </xsl:template>
 
@@ -205,7 +207,7 @@ exclude-result-prefixes="xs">
         <json:string key="v">Date(<xsl:value-of select="year-from-date(.)"/>, <xsl:value-of select="month-from-date(.) - 1"/>, <xsl:value-of select="day-from-date(.)"/>)</json:string>
     </xsl:template>
 
-    <xsl:template match="text()[../@rdf:datatype = '&xsd;dateTime']" mode="ac:DataTable">
+    <xsl:template match="text()[../@rdf:datatype = ('&xsd;dateTime', '&xsd;dateTimeStamp')]" mode="ac:DataTable">
         <json:string key="v">Date(<xsl:value-of select="year-from-dateTime(.)"/>, <xsl:value-of select="month-from-dateTime(.) - 1"/>, <xsl:value-of select="day-from-dateTime(.)"/>, <xsl:value-of select="hours-from-dateTime(.)"/>, <xsl:value-of select="minutes-from-dateTime(.)"/>, <xsl:value-of select="floor(seconds-from-dateTime(.))"/>, <xsl:value-of select="(seconds-from-dateTime(.) - floor(seconds-from-dateTime(.))) * 1000"/>)</json:string>
     </xsl:template>
 

@@ -17,8 +17,8 @@
 package com.atomgraph.linkeddatahub.resource.acl;
 
 import com.atomgraph.core.exception.ConfigurationException;
-import static com.atomgraph.linkeddatahub.apps.model.AdminApplication.AUTHORIZATION_REQUEST_PATH;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import static com.atomgraph.linkeddatahub.dataspaces.model.AdminDataspace.AUTHORIZATION_REQUEST_PATH;
+import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
@@ -62,7 +62,7 @@ public class AccessRequest
     
     private static final Logger log = LoggerFactory.getLogger(AccessRequest.class);
     
-    private final EndUserApplication application;
+    private final EndUserDataspace application;
     private final Optional<AgentContext> agentContext;
     private final String emailSubject;
     private final String emailText;
@@ -78,16 +78,16 @@ public class AccessRequest
      * @param servletConfig servlet configuration
      */
     @Inject
-    public AccessRequest(com.atomgraph.linkeddatahub.apps.model.Application application, Optional<AgentContext> agentContext,
+    public AccessRequest(com.atomgraph.linkeddatahub.dataspaces.model.Dataspace application, Optional<AgentContext> agentContext,
             com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
-        if (!application.canAs(EndUserApplication.class)) throw new IllegalStateException("The " + getClass() + " endpoint is only available on end-user applications");
-        this.application = application.as(EndUserApplication.class);
+        if (!application.canAs(EndUserDataspace.class)) throw new IllegalStateException("The " + getClass() + " endpoint is only available on end-user applications");
+        this.application = application.as(EndUserDataspace.class);
         this.agentContext = agentContext;
         this.system = system;
 
-        authRequestContainerUriBuilder = this.application.getAdminApplication().getUriBuilder().path(AUTHORIZATION_REQUEST_PATH);
+        authRequestContainerUriBuilder = this.application.getAdminDataspace().getUriBuilder().path(AUTHORIZATION_REQUEST_PATH);
         
         emailSubject = servletConfig.getServletContext().getInitParameter(LDHC.requestAccessEMailSubject.getURI());
         if (emailSubject == null) throw new InternalServerErrorException(new ConfigurationException(LDHC.requestAccessEMailSubject));
@@ -133,7 +133,6 @@ public class AccessRequest
                 String humanReadableName = getAgentsHumanReadableName(getAgentContext().get().getAgent());
                 String accessRequestLabel = humanReadableName != null ? "Access request by " + humanReadableName : null; // TO-DO: localize the string
                         
-                Resource agentGroup = authorization.getPropertyResourceValue(ACL.agentGroup);
                 Resource accessTo = authorization.getPropertyResourceValue(ACL.accessTo);
                 Resource accessToClass = authorization.getPropertyResourceValue(ACL.accessToClass);
                 
@@ -154,7 +153,6 @@ public class AccessRequest
                     modeIt.close();
                 }
                 
-                if (agentGroup != null) accessRequest.addProperty(LACL.requestAgentGroup, agentGroup);
                 if (accessTo != null) accessRequest.addProperty(LACL.requestAccessTo, accessTo);
                 if (accessToClass != null) accessRequest.addProperty(LACL.requestAccessToClass, accessToClass);
                 
@@ -176,7 +174,7 @@ public class AccessRequest
 
                 new Skolemizer(graphUri.toString()).apply(requestModel);
                 // store access request in the admin service
-                getSystem().getServiceContext(getApplication().getAdminApplication().getService()).getGraphStoreClient().add(graphUri.toString(), requestModel);
+                getSystem().getServiceContext(getDataspace().getAdminDataspace().getService()).getGraphStoreClient().add(graphUri.toString(), requestModel);
             }
            
             return Response.ok().build();
@@ -208,7 +206,7 @@ public class AccessRequest
      *
      * @return end-user application
      */
-    public EndUserApplication getApplication()
+    public EndUserDataspace getDataspace()
     {
         return application;
     }

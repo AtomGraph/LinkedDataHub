@@ -22,6 +22,7 @@ import com.atomgraph.core.client.QuadStoreClient;
 import com.atomgraph.core.client.SPARQLClient;
 import com.atomgraph.core.model.EndpointAccessor;
 import com.atomgraph.core.model.impl.remote.EndpointAccessorImpl;
+import com.atomgraph.linkeddatahub.client.filter.UnlimitedContentLengthFilter;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.UriBuilder;
@@ -112,6 +113,10 @@ public class ServiceContext
         else
             sparqlClient = SPARQLClient.create(getMediaTypes(), webTarget);
 
+        // this service is this deployment's own store, not an origin the content limit is meant to bound.
+        // Registered per client rather than taken off the outbound client, which also dereferences WebIDs
+        sparqlClient.getEndpoint().register(new UnlimitedContentLengthFilter());
+
         if (getService().getAuthUser() != null && getService().getAuthPwd() != null)
         {
             HttpAuthenticationFeature authFeature = HttpAuthenticationFeature.basicBuilder().
@@ -154,6 +159,9 @@ public class ServiceContext
     {
         GraphStoreClient graphStoreClient = GraphStoreClient.create(getClient(), getMediaTypes(), endpoint);
 
+        // the read path for every document: a graph larger than the limit is this deployment's own data
+        graphStoreClient.register(new UnlimitedContentLengthFilter());
+
         if (getService().getAuthUser() != null && getService().getAuthPwd() != null)
         {
             HttpAuthenticationFeature authFeature = HttpAuthenticationFeature.basicBuilder().
@@ -189,6 +197,8 @@ public class ServiceContext
     public QuadStoreClient getQuadStoreClient(WebTarget webTarget)
     {
         QuadStoreClient quadStoreClient = QuadStoreClient.create(webTarget);
+
+        quadStoreClient.getEndpoint().register(new UnlimitedContentLengthFilter());
 
         if (getService().getAuthUser() != null && getService().getAuthPwd() != null)
         {

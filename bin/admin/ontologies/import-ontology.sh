@@ -122,7 +122,7 @@ if [ -n "$proxy" ]; then
     scratch_url="${scratch/$base_host/$proxy_host}"
 fi
 
-printf '@prefix dh:\t<https://www.w3.org/ns/ldt/document-hierarchy#> .\n@prefix dct:\t<http://purl.org/dc/terms/> .\n<%s> a dh:Item ;\n    dct:title "Import ontology scratch" .\n' "$scratch" \
+printf '@prefix dh:\t<https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#> .\n@prefix dct:\t<http://purl.org/dc/terms/> .\n<%s> a dh:Item ;\n    dct:title "Import ontology scratch" .\n' "$scratch" \
 | curl -f -s -k -o /dev/null \
   -E "$cert_pem_file":"$cert_password" \
   -X PUT --data-binary @- \

@@ -17,8 +17,8 @@
 package com.atomgraph.linkeddatahub.server.util;
 
 import com.atomgraph.core.client.GraphStoreClient;
-import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.dataspaces.model.AdminDataspace;
+import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.model.ServiceContext;
 import jakarta.ws.rs.core.MultivaluedMap;
@@ -58,8 +58,8 @@ public class OntologyRepositoryTest
     private static final Query ONTOLOGY_QUERY = QueryFactory.create("CONSTRUCT { ?ontology ?p ?o } WHERE { ?ontology ?p ?o }");
 
     @Mock com.atomgraph.linkeddatahub.Application system;
-    @Mock EndUserApplication app;
-    @Mock AdminApplication adminApp;
+    @Mock EndUserDataspace app;
+    @Mock AdminDataspace adminApp;
     @Mock Service service;
     @Mock ServiceContext serviceContext;
     @Mock com.atomgraph.core.client.SPARQLClient sparqlClient;
@@ -68,7 +68,7 @@ public class OntologyRepositoryTest
 
     private void stubSPARQLChain(Model sparqlResult)
     {
-        when(app.getAdminApplication()).thenReturn(adminApp);
+        when(app.getAdminDataspace()).thenReturn(adminApp);
         when(adminApp.getService()).thenReturn(service);
         when(system.getServiceContext(service)).thenReturn(serviceContext);
         when(serviceContext.getSPARQLClient()).thenReturn(sparqlClient);
@@ -89,6 +89,46 @@ public class OntologyRepositoryTest
 
         assertTrue(result.contains(NodeFactory.createURI(ONTOLOGY_URI), RDF.type.asNode(), OWL.Ontology.asNode()));
         verify(gsc, never()).getModel(any());
+    }
+
+    /**
+     * A URI mapped to a bundled file still goes to the store first. An application may hold its own graph
+     * for exactly that URI - an imported vocabulary carrying its annotations, a materialized package
+     * ontology - and the shipped copy must not shadow it.
+     */
+    @Test
+    public void testStoreOutranksBundledMapping()
+    {
+        Model sparqlResult = ModelFactory.createDefaultModel();
+        sparqlResult.createResource(ONTOLOGY_URI).addProperty(RDFS.label, "from the store");
+        stubSPARQLChain(sparqlResult);
+
+        OntologyRepository repository = new OntologyRepository(app, system, gsc, ONTOLOGY_QUERY);
+        repository.addLocationMapping(ONTOLOGY_URI, "com/atomgraph/client/skos.owl"); // a bundled file for the same URI
+        Graph result = repository.get(ONTOLOGY_URI);
+
+        assertTrue(result.contains(NodeFactory.createURI(ONTOLOGY_URI), RDFS.label.asNode(), NodeFactory.createLiteralString("from the store")));
+    }
+
+    /**
+     * Clearing discards what the store supplied. The cache is keyed by ontology URI and outlives the
+     * document a graph came from - a dataset replaced wholesale, a document deleted, a constructor
+     * edited - so an eviction that missed these keys kept serving a document that no longer exists.
+     */
+    @Test
+    public void clearDiscardsStoreDerivedGraphs()
+    {
+        Model sparqlResult = ModelFactory.createDefaultModel();
+        sparqlResult.createResource(ONTOLOGY_URI).addProperty(RDF.type, OWL.Ontology);
+        stubSPARQLChain(sparqlResult);
+
+        OntologyRepository repository = new OntologyRepository(app, system, gsc, ONTOLOGY_QUERY);
+        repository.get(ONTOLOGY_URI);
+        assertTrue(repository.isCached(ONTOLOGY_URI), "the store result should have been cached");
+
+        repository.clear();
+
+        assertFalse(repository.isCached(ONTOLOGY_URI), "the cached graph should not survive a clear");
     }
 
     /** An empty SPARQL result falls back to the Graph Store client (HTTP) load. */

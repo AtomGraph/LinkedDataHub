@@ -1,7 +1,6 @@
-PREFIX ldt:     <https://www.w3.org/ns/ldt#>
 PREFIX sd:      <http://www.w3.org/ns/sparql-service-description#>
 PREFIX a:       <https://w3id.org/atomgraph/core#>
-PREFIX lapp:    <https://w3id.org/atomgraph/linkeddatahub/apps#>
+PREFIX lds:     <https://w3id.org/atomgraph/linkeddatahub/dataspaces#>
 PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
 
 SELECT ?app ?type ?origin ?quadStore ?graphStore ?endpoint ?authUser ?authPwd ?authToken ?maker
@@ -9,9 +8,9 @@ SELECT ?app ?type ?origin ?quadStore ?graphStore ?endpoint ?authUser ?authPwd ?a
     GRAPH ?appGraph
     {
         ?app a ?type ;
-            lapp:origin ?origin ;
-            ldt:service ?service .
-        FILTER(?type IN (lapp:EndUserApplication, lapp:AdminApplication))
+            lds:origin ?origin ;
+            lds:service ?service .
+        FILTER(?type IN (lds:EndUserDataspace, lds:AdminDataspace))
         OPTIONAL { ?app foaf:maker ?maker }
 
         GRAPH ?serviceGraph

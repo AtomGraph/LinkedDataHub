@@ -39,6 +39,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -60,6 +63,7 @@ public class GitHubClientTest
     private String fileSha = null; // null = file does not exist on the fake server
     private byte[] fileContent = null;
     private int rateLimitResponses = 0; // number of upcoming requests to answer with 429
+    private int conflictResponses = 0; // number of upcoming writes to answer with 409
     private int commitCount = 2; // number of commits in the fake file history
 
     private static Optional<String> queryParam(String query, String name)
@@ -136,6 +140,13 @@ public class GitHubClientTest
                 }
                 case "PUT" ->
                 {
+                    if (conflictResponses > 0)
+                    {
+                        conflictResponses--;
+                        fileSha = "blob-conflict-" + received.size(); // the competing write moved the file, which is what the conflict reports
+                        respond(exchange, 409, "{\"message\": \"" + fileSha + " does not match the supplied SHA\"}");
+                        return;
+                    }
                     JsonObject json = Json.createReader(new ByteArrayInputStream(body.getBytes(StandardCharsets.UTF_8))).readObject();
                     boolean creating = fileSha == null;
                     fileContent = Base64.getDecoder().decode(json.getString("content"));
@@ -147,6 +158,13 @@ public class GitHubClientTest
                 }
                 case "DELETE" ->
                 {
+                    if (conflictResponses > 0)
+                    {
+                        conflictResponses--;
+                        fileSha = "blob-conflict-" + received.size(); // the competing write moved the file, which is what the conflict reports
+                        respond(exchange, 409, "{\"message\": \"" + fileSha + " does not match the supplied SHA\"}");
+                        return;
+                    }
                     fileSha = null;
                     fileContent = null;
                     respond(exchange, 200, "{}");
@@ -269,6 +287,54 @@ public class GitHubClientTest
         gitHubClient.deleteFile("graphs/missing.nt", "DELETE", "agent");
 
         assertEquals(1, received.size()); // only the SHA probe, no DELETE
+    }
+
+    @Test
+    public void testConflictingCommitIsRetriedWithRefreshedSha()
+    {
+        gitHubClient.putFile("graphs/doc.nt", "v1".getBytes(StandardCharsets.UTF_8), "PUT", "agent");
+        received.clear();
+        conflictResponses = 1;
+
+        GitHubClient.Commit commit = gitHubClient.putFile("graphs/doc.nt", "v2".getBytes(StandardCharsets.UTF_8), "PUT", "agent");
+
+        // SHA probe + conflicting PUT, then a fresh probe + the PUT that succeeds
+        assertEquals(4, received.size());
+        assertEquals("GET", received.get(2).method());
+        assertEquals("PUT", received.get(3).method());
+        assertArrayEquals("v2".getBytes(StandardCharsets.UTF_8), fileContent);
+        assertEquals(fileSha, commit.blobSha());
+
+        // the retried request carries the SHA read after the conflict, not the one it conflicted on
+        JsonObject conflicted = Json.createReader(new ByteArrayInputStream(received.get(1).body().getBytes(StandardCharsets.UTF_8))).readObject();
+        JsonObject retried = Json.createReader(new ByteArrayInputStream(received.get(3).body().getBytes(StandardCharsets.UTF_8))).readObject();
+        assertNotEquals(conflicted.getString("sha"), retried.getString("sha"));
+    }
+
+    @Test
+    public void testConflictingDeletionIsRetried()
+    {
+        gitHubClient.putFile("graphs/doc.nt", "v1".getBytes(StandardCharsets.UTF_8), "PUT", "agent");
+        received.clear();
+        conflictResponses = 1;
+
+        gitHubClient.deleteFile("graphs/doc.nt", "DELETE", "agent");
+
+        assertEquals(4, received.size()); // probe + conflicting DELETE, then probe + the DELETE that succeeds
+        assertEquals("DELETE", received.get(3).method());
+        assertNull(fileSha);
+    }
+
+    @Test
+    public void testConflictFailsWhenRetriesAreExhausted()
+    {
+        gitHubClient.putFile("graphs/doc.nt", "v1".getBytes(StandardCharsets.UTF_8), "PUT", "agent");
+        received.clear();
+        conflictResponses = GitHubClient.MAX_CONFLICT_RETRIES + 1;
+
+        // a lost commit is the caller's to log: versioning is best-effort, but it must not be silent
+        assertThrows(RuntimeException.class, () -> gitHubClient.putFile("graphs/doc.nt", "v2".getBytes(StandardCharsets.UTF_8), "PUT", "agent"));
+        assertEquals(2 * (GitHubClient.MAX_CONFLICT_RETRIES + 1), received.size()); // probe + PUT per attempt
     }
 
     @Test

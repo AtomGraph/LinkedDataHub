@@ -18,7 +18,10 @@ package com.atomgraph.linkeddatahub.server.filter.response;
 
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.MediaType;
+import com.atomgraph.linkeddatahub.server.util.ClientStylesheetService;
 import com.atomgraph.linkeddatahub.server.util.SecureXML;
+import com.atomgraph.linkeddatahub.server.util.StylesheetComposer;
+import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,8 +30,10 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletionException;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.servlet.ServletContext;
@@ -48,7 +53,12 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Source;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.URIResolver;
+import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamSource;
 import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.XsltCompiler;
@@ -60,8 +70,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 /**
@@ -69,16 +78,14 @@ import org.xml.sax.SAXException;
  * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-@Priority(Priorities.USER + 200)
+@Priority(Priorities.USER + 350)
 public class XsltExecutableFilter implements ContainerResponseFilter
 {
 
     private static final Logger log = LoggerFactory.getLogger(XsltExecutableFilter.class);
 
-    private static final String XSL_NS = "http://www.w3.org/1999/XSL/Transform";
-
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> application;
+    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace>> application;
 
     @Context UriInfo uriInfo;
     @Context ServletContext servletContext;
@@ -91,34 +98,36 @@ public class XsltExecutableFilter implements ContainerResponseFilter
             (resp.getMediaType().isCompatible(MediaType.TEXT_HTML_TYPE) || resp.getMediaType().isCompatible(MediaType.APPLICATION_XHTML_XML_TYPE)))
         {
             URI stylesheet = null;
-            if (getApplication().isPresent() && getApplication().get().getStylesheet() != null)
-                stylesheet = URI.create(getApplication().get().getStylesheet().getURI());
+            if (getDataspace().isPresent() && getDataspace().get().getStylesheet() != null)
+                stylesheet = URI.create(getDataspace().get().getStylesheet().getURI());
 
             if (stylesheet != null)
             {
-                List<URI> packages = getPackages(getApplication().get());
+                List<URI> packages = getSystem().getPackageService().getPackageURIs(getDataspace().get());
+                ClientStylesheetService stylesheetService = getSystem().getClientStylesheetService();
 
                 if (packages.isEmpty()) req.setProperty(AC.stylesheet.getURI(), getXsltExecutable(stylesheet));
-                else req.setProperty(AC.stylesheet.getURI(), getXsltExecutable(getApplication().get(), stylesheet, packages));
+                else
+                {
+                    // server-side composition is never withheld: a declarative import takes effect on the
+                    // next request, and it is the only rendering an instance whose compiler is unreachable
+                    // will ever get
+                    req.setProperty(AC.stylesheet.getURI(), getXsltExecutable(getDataspace().get(), stylesheet, packages));
+
+                    if (stylesheetService != null)
+                    {
+                        String key = stylesheetService.getKey(packages);
+
+                        // until the composed stylesheet exists the client renders without the package, as it
+                        // always has; compiling one closes that window rather than opening it
+                        if (stylesheetService.isPublished(key)) req.setProperty(LDH.clientStylesheet.getURI(), stylesheetService.getPublicPath(key));
+                        else stylesheetService.buildAsync(key, getSystem().getPackageService().getStylesheets(getDataspace().get()));
+                    }
+                }
             }
             else req.setProperty(AC.stylesheet.getURI(), getSystem().getXsltExecutable());
 
         }
-    }
-
-    /**
-     * Returns URIs of the packages imported by the application, ordered by URI.
-     *
-     * @param app application resource
-     * @return list of package URIs
-     */
-    public List<URI> getPackages(com.atomgraph.linkeddatahub.apps.model.Application app)
-    {
-        return app.getImportedPackages().stream().
-            filter(Resource::isURIResource).
-            map(pkg -> URI.create(pkg.getURI())).
-            sorted().
-            collect(Collectors.toList());
     }
 
     /**
@@ -131,7 +140,7 @@ public class XsltExecutableFilter implements ContainerResponseFilter
      * @param packages imported package URIs
      * @return XSLT executable
      */
-    public XsltExecutable getXsltExecutable(com.atomgraph.linkeddatahub.apps.model.Application app, URI stylesheet, List<URI> packages)
+    public XsltExecutable getXsltExecutable(com.atomgraph.linkeddatahub.dataspaces.model.Dataspace app, URI stylesheet, List<URI> packages)
     {
         try
         {
@@ -139,17 +148,22 @@ public class XsltExecutableFilter implements ContainerResponseFilter
             Map<URI, XsltExecutable> xsltExecCache = getXsltExecutableCache();
 
             if (isCacheStylesheet())
-            {
-                // create cache entry if it does not exist
-                if (!xsltExecCache.containsKey(key))
-                    xsltExecCache.put(key, getXsltExecutable(getComposedSource(app, stylesheet, packages)));
+                // computeIfAbsent: a cold-start herd compiles the stylesheet once instead of once per thread
+                return xsltExecCache.computeIfAbsent(key, k ->
+                {
+                    try
+                    {
+                        return getXsltExecutable(getComposition(app, stylesheet, packages));
+                    }
+                    catch (SaxonApiException | IOException | ParserConfigurationException | SAXException | TransformerException ex)
+                    {
+                        throw new CompletionException(ex);
+                    }
+                });
 
-                return xsltExecCache.get(key);
-            }
-
-            return getXsltExecutable(getComposedSource(app, stylesheet, packages));
+            return getXsltExecutable(getComposition(app, stylesheet, packages));
         }
-        catch (SaxonApiException | IOException | ParserConfigurationException | SAXException ex)
+        catch (SaxonApiException | IOException | ParserConfigurationException | SAXException | TransformerException | CompletionException ex)
         {
             if (log.isErrorEnabled()) log.error("Could not compile stylesheet '{}' composed with packages {}, falling back to the stylesheet alone", stylesheet, packages, ex);
             return getXsltExecutable(stylesheet);
@@ -157,95 +171,208 @@ public class XsltExecutableFilter implements ContainerResponseFilter
     }
 
     /**
-     * Composes the application stylesheet document with the stylesheets of the imported packages.
-     * The stylesheet URLs are read from the package descriptions, which are resolved from the package
-     * URIs. The <code>xsl:import</code> elements are inserted after the last existing import, so package
-     * imports rank below the stylesheet's own declarations in import precedence.
-     * The source's system ID is the stylesheet's public URL, so its relative imports resolve on the
-     * application's origin.
+     * A stylesheet composed with package imports: the entry source to compile and, when the marker lives
+     * in a module the entry imports rather than in the entry itself, that module's composed document,
+     * which is served to the compiler in place of the original.
+     *
+     * @param entry entry stylesheet source
+     * @param moduleURI public URI of the composed module, or null when the entry itself was composed
+     * @param module composed module document, or null when the entry itself was composed
+     */
+    public record Composition(Source entry, URI moduleURI, Document module) { }
+
+    /**
+     * A stylesheet module loaded while looking for the marker.
+     *
+     * @param uri public URI the module was resolved to
+     * @param doc module document
+     */
+    public record StylesheetModule(URI uri, Document doc) { }
+
+    /**
+     * Composes the application stylesheet with the stylesheets of the imported packages.
+     * The package imports are inserted at the marker (see {@link StylesheetComposer}): in the entry
+     * stylesheet if it declares one, otherwise in the first module found by following the entry's
+     * imports that does - the entry named by <code>ac:stylesheet</code> is a thin wrapper around the
+     * platform's layout stylesheet, and the marker lives in the latter. Without a marker anywhere the
+     * imports go after the entry's last import, where packages outrank the whole platform; that is the
+     * behaviour before the marker existed and it is logged.
+     * The entry source's system ID is the stylesheet's public URL, so its relative imports resolve on the
+     * application's origin; a composed module is served under the public URL its import resolves to.
      *
      * @param app application resource
      * @param stylesheet stylesheet URI
      * @param packages imported package URIs
-     * @return composed stylesheet source
+     * @return composition
      * @throws IOException I/O error
      * @throws ParserConfigurationException parser configuration error
      * @throws SAXException XML parsing error
+     * @throws TransformerException XML parsing or serialization error
      */
-    public Source getComposedSource(com.atomgraph.linkeddatahub.apps.model.Application app, URI stylesheet, List<URI> packages) throws IOException, ParserConfigurationException, SAXException
+    public Composition getComposition(com.atomgraph.linkeddatahub.dataspaces.model.Dataspace app, URI stylesheet, List<URI> packages) throws IOException, ParserConfigurationException, SAXException, TransformerException
     {
+        List<String> hrefs = getSystem().getPackageService().getStylesheets(app).stream().map(URI::toString).collect(Collectors.toList());
+        URI entryURI = getPublicURI(app, stylesheet);
+
         Source source = getSource(stylesheet.toString());
         if (!(source instanceof StreamSource)) throw new IOException("XSLT stylesheet could not be loaded from URI: " + stylesheet);
+        Document entry = getDocument(((StreamSource)source).getInputStream(), stylesheet);
 
-        Document doc = SecureXML.newDocumentBuilderFactory().newDocumentBuilder().parse(((StreamSource)source).getInputStream());
-        appendImports(doc, getStylesheets(packages));
+        if (StylesheetComposer.hasMarker(entry))
+        {
+            StylesheetComposer.insertImports(entry, hrefs);
+            return new Composition(new DOMSource(entry, entryURI.toString()), null, null);
+        }
 
-        return new DOMSource(doc, getPublicURI(app, stylesheet).toString());
+        StylesheetModule module = findMarkerModule(entry, entryURI, 3);
+        if (module != null)
+        {
+            StylesheetComposer.insertImports(module.doc(), hrefs);
+            return new Composition(new DOMSource(entry, entryURI.toString()), module.uri(), module.doc());
+        }
+
+        if (log.isWarnEnabled()) log.warn("Stylesheet '{}' declares no '{}' import to mark where package imports go: {} are imported after its last import and outrank all of it", stylesheet, StylesheetComposer.MARKER_SUFFIX, hrefs);
+        StylesheetComposer.insertImports(entry, hrefs);
+        return new Composition(new DOMSource(entry, entryURI.toString()), null, null);
     }
 
     /**
-     * Resolves the package descriptions and returns their stylesheet URLs, in package order.
-     * Packages whose description cannot be resolved, or without a stylesheet (ontology-only),
-     * are skipped.
+     * Follows a stylesheet's imports, breadth-first and to the given depth, for the first module that
+     * declares the marker import. Modules are loaded through the compiler's URI resolver, which serves
+     * the application's own stylesheets locally, so a search costs no HTTP round trip.
      *
-     * @param packages package URIs
-     * @return list of stylesheet URLs
+     * @param doc stylesheet document
+     * @param docURI public URI the document's imports resolve against
+     * @param depth how many import levels to follow
+     * @return the module and its URI, or null if none declares the marker
+     * @throws IOException I/O error
+     * @throws ParserConfigurationException parser configuration error
+     * @throws SAXException XML parsing error
+     * @throws TransformerException resolution or parsing error
      */
-    public List<URI> getStylesheets(List<URI> packages)
+    public StylesheetModule findMarkerModule(Document doc, URI docURI, int depth) throws IOException, ParserConfigurationException, SAXException, TransformerException
     {
-        return packages.stream().
-            map(pkg -> getPackage(pkg.toString())).
-            filter(Objects::nonNull).
-            map(com.atomgraph.linkeddatahub.apps.model.Package::getStylesheet).
-            filter(Objects::nonNull).
-            map(stylesheet -> URI.create(stylesheet.getURI())).
-            collect(Collectors.toList());
+        if (depth <= 0) return null;
+
+        List<StylesheetModule> children = new ArrayList<>();
+        for (Element imp : StylesheetComposer.getImports(doc))
+        {
+            String href = imp.getAttribute("href");
+            URI childURI = docURI.resolve(href);
+            Document child = getDocument(childURI, href, docURI);
+            if (child == null) continue;
+
+            if (StylesheetComposer.hasMarker(child)) return new StylesheetModule(childURI, child);
+            children.add(new StylesheetModule(childURI, child));
+        }
+
+        for (StylesheetModule child : children)
+        {
+            StylesheetModule found = findMarkerModule(child.doc(), child.uri(), depth - 1);
+            if (found != null) return found;
+        }
+
+        return null;
     }
 
     /**
-     * Loads the package description from its URI.
-     * Mapped locations (e.g. bundled package descriptions) and cached graphs are read from the graph
-     * repository; other URIs are dereferenced over HTTP.
+     * Loads an imported stylesheet module as a document, through the compiler's URI resolver when there
+     * is one and directly otherwise.
      *
-     * @param packageURI package URI
-     * @return package resource, or null if the description could not be resolved
+     * @param uri resolved module URI
+     * @param href import href as written
+     * @param base URI the href was written against
+     * @return module document, or null if it could not be loaded
+     * @throws IOException I/O error
+     * @throws ParserConfigurationException parser configuration error
+     * @throws SAXException XML parsing error
+     * @throws TransformerException resolution or parsing error
      */
-    public com.atomgraph.linkeddatahub.apps.model.Package getPackage(String packageURI)
+    public Document getDocument(URI uri, String href, URI base) throws IOException, ParserConfigurationException, SAXException, TransformerException
     {
-        return getSystem().getPackage(packageURI);
+        URIResolver resolver = getXsltCompiler().getURIResolver();
+        Source source = resolver != null ? resolver.resolve(href, base.toString()) : getSource(uri.toString());
+        if (source == null) source = getSource(uri.toString());
+        if (!(source instanceof StreamSource stream)) return null;
+
+        InputStream is = stream.getInputStream();
+        if (is == null && stream.getSystemId() != null)
+        {
+            Source direct = getSource(stream.getSystemId());
+            if (!(direct instanceof StreamSource directStream)) return null;
+            is = directStream.getInputStream();
+        }
+        if (is == null) return null;
+
+        return getDocument(is, uri);
     }
 
     /**
-     * Appends <code>xsl:import</code> elements for the given stylesheet URLs to the stylesheet document,
-     * after the last existing import.
+     * Compiles a composition. A module composed behind the entry is served to a dedicated compiler in
+     * place of the original, through a resolver that answers that one URI and delegates the rest: the
+     * shared compiler's resolver is shared state and stays as it is.
+     *
+     * @param composition composed stylesheet
+     * @return XSLT executable
+     * @throws SaxonApiException Saxon error
+     */
+    public XsltExecutable getXsltExecutable(Composition composition) throws SaxonApiException
+    {
+        if (composition.module() == null) return getXsltExecutable(composition.entry());
+
+        URIResolver resolver = getXsltCompiler().getURIResolver();
+        XsltCompiler compiler = getXsltCompiler().getProcessor().newXsltCompiler();
+        compiler.setURIResolver((href, base) ->
+        {
+            URI resolved = href.isEmpty() ? URI.create(base) : URI.create(base).resolve(href);
+            if (resolved.equals(composition.moduleURI())) return new DOMSource(composition.module(), composition.moduleURI().toString());
+
+            return resolver != null ? resolver.resolve(href, base) : null;
+        });
+
+        return compiler.compile(composition.entry());
+    }
+
+    /**
+     * Parses a stylesheet into a DOM document with its entities expanded.
+     * The DOCTYPE-tolerant reader rather than {@link SecureXML#newDocumentBuilderFactory()}, which forbids
+     * a DOCTYPE outright: an application's stylesheet is authored, not built, and declaring namespaces as
+     * internal entities is the idiom every stylesheet in this repository is written in. Refusing them made
+     * a declarative import silently do nothing - the composition threw, the filter logged and fell back to
+     * the stylesheet alone, and the application rendered with none of the package's rules. The client-side
+     * composition reached the same conclusion in {@code ClientStylesheetService.expandEntities()}, so the
+     * two paths now accept the same stylesheets.
+     *
+     * @param is stylesheet stream
+     * @param systemId system id to resolve relative references against
+     * @return stylesheet document
+     * @throws ParserConfigurationException parser configuration error
+     * @throws SAXException XML parsing error
+     * @throws TransformerException XML parsing or serialization error
+     */
+    public Document getDocument(InputStream is, URI systemId) throws ParserConfigurationException, SAXException, TransformerException
+    {
+        SAXSource source = new SAXSource(SecureXML.newXMLReader(), new InputSource(is));
+        source.setSystemId(systemId.toString());
+
+        DOMResult result = new DOMResult();
+        TransformerFactory.newInstance().newTransformer().transform(source, result);
+
+        return (Document)result.getNode();
+    }
+
+    /**
+     * Inserts <code>xsl:import</code> elements for the given stylesheet URLs into the stylesheet document
+     * at the marker, or after the last existing import when there is none.
      *
      * @param doc stylesheet document
      * @param imports stylesheet URLs to import
+     * @return true if inserted at a marker
+     * @see StylesheetComposer#insertImports(Document, List)
      */
-    public void appendImports(Document doc, List<URI> imports)
+    public boolean appendImports(Document doc, List<URI> imports)
     {
-        Element stylesheetElem = doc.getDocumentElement();
-
-        Node lastImport = null;
-        NodeList children = stylesheetElem.getChildNodes();
-        for (int i = 0; i < children.getLength(); i++)
-        {
-            Node child = children.item(i);
-            if (child.getNodeType() == Node.ELEMENT_NODE &&
-                    XSL_NS.equals(child.getNamespaceURI()) &&
-                    "import".equals(child.getLocalName()))
-                lastImport = child;
-        }
-
-        for (URI importURI : imports)
-        {
-            Element newImport = doc.createElementNS(XSL_NS, "xsl:import");
-            newImport.setAttribute("href", importURI.toString());
-
-            Node anchor = (lastImport != null) ? lastImport.getNextSibling() : stylesheetElem.getFirstChild();
-            stylesheetElem.insertBefore(newImport, anchor);
-            lastImport = newImport;
-        }
+        return StylesheetComposer.insertImports(doc, imports.stream().map(URI::toString).collect(Collectors.toList()));
     }
 
     /**
@@ -258,7 +385,7 @@ public class XsltExecutableFilter implements ContainerResponseFilter
      * @return public stylesheet URL
      * @throws MalformedURLException URL error
      */
-    public URI getPublicURI(com.atomgraph.linkeddatahub.apps.model.Application app, URI stylesheet) throws MalformedURLException
+    public URI getPublicURI(com.atomgraph.linkeddatahub.dataspaces.model.Dataspace app, URI stylesheet) throws MalformedURLException
     {
         if ("http".equals(stylesheet.getScheme()) || "https".equals(stylesheet.getScheme())) return stylesheet;
 
@@ -337,13 +464,30 @@ public class XsltExecutableFilter implements ContainerResponseFilter
     {
         if (isCacheStylesheet())
         {
-            // create cache entry if it does not exist
-            if (!xsltExecCache.containsKey(stylesheet))
-                xsltExecCache.put(stylesheet, getXsltExecutable(getSource(stylesheet.toString())));
-            
-            return xsltExecCache.get(stylesheet);
+            try
+            {
+                // computeIfAbsent: a cold-start herd compiles the stylesheet once instead of once per thread
+                return xsltExecCache.computeIfAbsent(stylesheet, key ->
+                {
+                    try
+                    {
+                        return getXsltExecutable(getSource(key.toString()));
+                    }
+                    catch (IOException | SaxonApiException ex)
+                    {
+                        throw new CompletionException(ex);
+                    }
+                });
+            }
+            catch (CompletionException ex)
+            {
+                // unwrap so callers keep seeing the declared checked exceptions
+                if (ex.getCause() instanceof IOException ioEx) throw ioEx;
+                if (ex.getCause() instanceof SaxonApiException saxonEx) throw saxonEx;
+                throw ex;
+            }
         }
-        
+
         return getXsltExecutable(getSource(stylesheet.toString()));
     }
     
@@ -458,7 +602,7 @@ public class XsltExecutableFilter implements ContainerResponseFilter
      *
      * @return optional application resource
      */
-    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
+    public Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace> getDataspace()
     {
         return application.get();
     }

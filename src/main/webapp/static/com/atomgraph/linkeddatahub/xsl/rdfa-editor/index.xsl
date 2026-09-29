@@ -27,8 +27,12 @@ version="3.0">
     - tables.xsl           table blocks: insert dialog, row/column operations, cell traversal
     - select.xsl           region-scoped select-all and cross-host selection delete
     - input.xsl            input triggers: slash menu and markdown shorthands
+    - translations.xsl     the string catalog every emitter reads its labels from
+    - classes.xsl          the presentational classes its chrome wears, for a host to restyle
 -->
 
+    <xsl:include href="classes.xsl"/>
+    <xsl:include href="translations.xsl"/>
     <xsl:include href="RDFa2RDFXML-v3.xsl"/>
     <xsl:include href="group-sort-triples.xsl"/>
     <xsl:include href="content-model.xsl"/>
@@ -51,7 +55,7 @@ version="3.0">
          Everything here is synchronous: the host page preloads the vocabulary
          documents into the SaxonJS document pool (SaxonJS.getResource +
          documentPool), keyed by page-relative URI -->
-    <xsl:template name="main">
+    <xsl:template name="rdfae:main">
         <xsl:call-template name="rdfae:init-state"/>
         <xsl:call-template name="rdfae:init-editor"/>
     </xsl:template>
@@ -60,7 +64,7 @@ version="3.0">
          LinkedDataHub's window.LinkedDataHub); reached everywhere via rdfae:editor-state().
          Hosts with their own initial template call this from there instead of main -->
     <xsl:template name="rdfae:init-state">
-        <xsl:variable name="state" select="ixsl:call(ixsl:window(), 'Object', [])"/>
+        <xsl:variable name="state" select="ixsl:new('Object', [])"/>
         <ixsl:set-property name="rdfaEditor" select="$state" object="ixsl:window()"/>
         <xsl:for-each select="('editingSpan', 'range', 'activeBlock', 'draggedBlock',
                 'editRange', 'editingLink', 'insertHost', 'lastUndoHost',

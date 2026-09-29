@@ -16,7 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.factory;
 
-import com.atomgraph.linkeddatahub.apps.model.Application;
+import com.atomgraph.linkeddatahub.dataspaces.model.Dataspace;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.ext.Provider;
 import java.util.Optional;
@@ -25,29 +25,29 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * JAX-RS factory that unwraps Optional&lt;Application&gt; for direct injection.
- * This allows resource constructors to inject Application directly while
- * filters and providers can inject Optional&lt;Application&gt;.
+ * JAX-RS factory that unwraps Optional&lt;Dataspace&gt; for direct injection.
+ * This allows resource constructors to inject Dataspace directly while
+ * filters and providers can inject Optional&lt;Dataspace&gt;.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  * @see ApplicationFactory
  */
 @Provider
-public class UnwrappedApplicationFactory implements Factory<Application>
+public class UnwrappedApplicationFactory implements Factory<Dataspace>
 {
 
     private static final Logger log = LoggerFactory.getLogger(UnwrappedApplicationFactory.class);
 
-    @Inject jakarta.inject.Provider<Optional<Application>> optionalApp;
+    @Inject jakarta.inject.Provider<Optional<Dataspace>> optionalApp;
 
     @Override
-    public Application provide()
+    public Dataspace provide()
     {
-        Optional<Application> appOpt = optionalApp.get();
+        Optional<Dataspace> appOpt = optionalApp.get();
 
         if (!appOpt.isPresent())
         {
-            if (log.isErrorEnabled()) log.error("Application not present when unwrapping in UnwrappedApplicationFactory");
+            if (log.isErrorEnabled()) log.error("Dataspace not present when unwrapping in UnwrappedApplicationFactory");
             return null; // This should only happen if ApplicationFilter threw NotFoundException
         }
 
@@ -55,7 +55,7 @@ public class UnwrappedApplicationFactory implements Factory<Application>
     }
 
     @Override
-    public void dispose(Application t)
+    public void dispose(Dataspace t)
     {
     }
 

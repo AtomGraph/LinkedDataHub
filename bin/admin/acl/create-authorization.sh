@@ -192,7 +192,7 @@ if [ -n "$proxy" ]; then
     args+=("$proxy")
 fi
 
-turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
+turtle+="@prefix dh:	<https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
 turtle+="@prefix acl:	<http://www.w3.org/ns/auth/acl#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"

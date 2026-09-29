@@ -69,7 +69,7 @@ public class Login extends LoginBase
      */
     @Inject
     public Login(@Context Request request, @Context UriInfo uriInfo, @Context HttpHeaders httpHeaders,
-            com.atomgraph.linkeddatahub.apps.model.Application application,
+            com.atomgraph.linkeddatahub.dataspaces.model.Dataspace application,
             com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
         super(request, uriInfo, httpHeaders, application, system, servletConfig,

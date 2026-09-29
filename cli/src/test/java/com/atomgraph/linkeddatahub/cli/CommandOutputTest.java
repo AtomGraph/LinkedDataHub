@@ -23,8 +23,10 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import picocli.CommandLine;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -36,8 +38,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * document prints its URL as the only line on stdout, diagnostics go to stderr, and an HTTP error
  * status leaves stdout empty and exits 1.
  *
- * <code>item=$(ldh create-item ...)</code> breaks the moment anything else reaches stdout, and the
- * http-tests consume that substitution in dozens of places.
+ * <code>item=$(ldh create item ...)</code> breaks the moment anything else reaches stdout, and the
+ * tests/http consumes that substitution in dozens of places.
  */
 public class CommandOutputTest
 {
@@ -65,8 +67,8 @@ public class CommandOutputTest
             URI base = server.baseURI();
             StringWriter out = new StringWriter(), err = new StringWriter();
 
-            int code = commandLine(out, err).execute("create-container",
-                "-f", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
+            int code = commandLine(out, err).execute("create", "container",
+                "-c", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
                 "--title", "Test", "--slug", "test", "--parent", base.toString());
 
             assertEquals(0, code);
@@ -85,8 +87,8 @@ public class CommandOutputTest
             URI base = server.baseURI();
             StringWriter out = new StringWriter(), err = new StringWriter();
 
-            commandLine(out, err).execute("create-container",
-                "-f", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
+            commandLine(out, err).execute("create", "container",
+                "-c", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
                 "--title", "Test", "--slug", "test", "--parent", base.toString());
 
             assertEquals("PUT", server.getLastMethod());
@@ -104,8 +106,8 @@ public class CommandOutputTest
             URI base = server.baseURI();
             StringWriter out = new StringWriter(), err = new StringWriter();
 
-            int code = commandLine(out, err).execute("create-container",
-                "-f", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
+            int code = commandLine(out, err).execute("create", "container",
+                "-c", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
                 "--title", "Ö", "--slug", "ö x", "--parent", base.toString());
 
             assertEquals(0, code);
@@ -129,7 +131,7 @@ public class CommandOutputTest
                 .getBytes(StandardCharsets.UTF_8)));
 
             int code = commandLine(out, err).execute("put",
-                "-f", keyStorePath().toString(), "-p", "changeit", "-t", "text/turtle", target.toString());
+                "-c", keyStorePath().toString(), "-p", "changeit", "-t", "text/turtle", target.toString());
 
             assertEquals(0, code);
             assertEquals("PUT", server.getLastMethod());
@@ -140,6 +142,34 @@ public class CommandOutputTest
         finally
         {
             System.setIn(in);
+        }
+    }
+
+    @Test
+    public void putReadsRDFFromAFileTypedByItsExtension() throws Exception
+    {
+        try (StubServer server = new StubServer())
+        {
+            server.responds(201, "");
+            URI target = server.baseURI().resolve("some/");
+            StringWriter out = new StringWriter(), err = new StringWriter();
+
+            Path file = Files.createTempFile("categories", ".ttl");
+            Files.writeString(file, "<> <http://purl.org/dc/terms/title> \"Filed\" .");
+            try
+            {
+                int code = commandLine(out, err).execute("put",
+                    "-c", keyStorePath().toString(), "-p", "changeit", target.toString(), file.toString());
+
+                assertEquals(0, code);
+                assertEquals("PUT", server.getLastMethod());
+                assertTrue(server.getLastBody().contains("Filed"), server.getLastBody());
+                assertEquals(target.toString(), out.toString().strip());
+            }
+            finally
+            {
+                Files.deleteIfExists(file);
+            }
         }
     }
 
@@ -157,7 +187,7 @@ public class CommandOutputTest
             System.setIn(new ByteArrayInputStream(update.getBytes(StandardCharsets.UTF_8)));
 
             int code = commandLine(out, err).execute("patch",
-                "-f", keyStorePath().toString(), "-p", "changeit", target.toString());
+                "-c", keyStorePath().toString(), "-p", "changeit", target.toString());
 
             assertEquals(0, code);
             assertEquals("PATCH", server.getLastMethod());
@@ -182,7 +212,7 @@ public class CommandOutputTest
             System.setIn(new ByteArrayInputStream("DELETE WHERE { this is not SPARQL".getBytes(StandardCharsets.UTF_8)));
 
             int code = commandLine(out, err).execute("patch",
-                "-f", keyStorePath().toString(), "-p", "changeit", target.toString());
+                "-c", keyStorePath().toString(), "-p", "changeit", target.toString());
 
             assertEquals(CommandLine.ExitCode.SOFTWARE, code);
             assertNull(server.getLastMethod(), "a malformed update must not reach the server");
@@ -202,8 +232,8 @@ public class CommandOutputTest
             URI base = server.baseURI();
             StringWriter out = new StringWriter(), err = new StringWriter();
 
-            int code = commandLine(out, err).execute("create-container",
-                "-f", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
+            int code = commandLine(out, err).execute("create", "container",
+                "-c", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
                 "--title", "Test", "--slug", "test", "--parent", base.toString());
 
             assertEquals(CommandLine.ExitCode.SOFTWARE, code);
@@ -223,13 +253,150 @@ public class CommandOutputTest
 
         StringWriter out = new StringWriter(), err = new StringWriter();
 
-        int code = commandLine(out, err).execute("create-container",
-            "-f", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
+        int code = commandLine(out, err).execute("create", "container",
+            "-c", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
             "--title", "Test", "--slug", "test", "--parent", base.toString());
 
         assertEquals(CommandLine.ExitCode.SOFTWARE, code);
         assertEquals("", out.toString(), "a failed command must print nothing on stdout");
         assertTrue(err.toString().contains("Connection refused"), err.toString());
+    }
+
+    @Test
+    public void timeGatePrintsTheMementoURIAsTheOnlyLineOnStdout() throws Exception
+    {
+        try (StubServer server = new StubServer())
+        {
+            URI base = server.baseURI();
+            server.responds(302, "").respondsWithHeader("Location", base + "some/?version=a1b2c3");
+            StringWriter out = new StringWriter(), err = new StringWriter();
+
+            int code = commandLine(out, err).execute("get",
+                "-c", keyStorePath().toString(), "-p", "changeit",
+                "--timegate", "--datetime", "2026-08-20T10:00:00Z", base.resolve("some/").toString());
+
+            assertEquals(0, code);
+            assertEquals(base + "some/?version=a1b2c3", out.toString().strip());
+            assertEquals(1, out.toString().strip().lines().count(), "stdout carries more than the Memento URI");
+            assertEquals("", err.toString(), "stderr is not empty on success");
+            assertEquals("/some/?timegate", server.getLastTarget());
+            assertEquals("Thu, 20 Aug 2026 10:00:00 GMT", server.getLastHeader("Accept-Datetime"));
+        }
+    }
+
+    @Test
+    public void aBareTimeGateNegotiatesWithoutADatetime() throws Exception
+    {
+        try (StubServer server = new StubServer())
+        {
+            URI base = server.baseURI();
+            server.responds(302, "").respondsWithHeader("Location", base + "some/?version=a1b2c3");
+            StringWriter out = new StringWriter(), err = new StringWriter();
+
+            int code = commandLine(out, err).execute("get",
+                "-c", keyStorePath().toString(), "-p", "changeit",
+                "--timegate", base.resolve("some/").toString());
+
+            assertEquals(0, code);
+            assertNull(server.getLastHeader("Accept-Datetime"), "a bare --timegate must not send Accept-Datetime");
+        }
+    }
+
+    @Test
+    public void aTimeGateThatDoesNotRedirectExitsOneWithEmptyStdout() throws Exception
+    {
+        try (StubServer server = new StubServer())
+        {
+            server.responds(200, "");
+            StringWriter out = new StringWriter(), err = new StringWriter();
+
+            int code = commandLine(out, err).execute("get",
+                "-c", keyStorePath().toString(), "-p", "changeit",
+                "--timegate", server.baseURI().resolve("some/").toString());
+
+            assertEquals(CommandLine.ExitCode.SOFTWARE, code);
+            assertEquals("", out.toString(), "a failed command must print nothing on stdout");
+        }
+    }
+
+    @Test
+    public void mementoOptionsAddressTheDocumentsOwnQueryParams() throws Exception
+    {
+        try (StubServer server = new StubServer())
+        {
+            server.responds(200, "");
+            URI doc = server.baseURI().resolve("some/");
+            StringWriter out = new StringWriter(), err = new StringWriter();
+
+            assertEquals(0, commandLine(out, err).execute("get",
+                "-c", keyStorePath().toString(), "-p", "changeit",
+                "--accept", "text/turtle", "--version", "a1b2c3", doc.toString()));
+            assertEquals("/some/?version=a1b2c3", server.getLastTarget());
+
+            assertEquals(0, commandLine(out, err).execute("get",
+                "-c", keyStorePath().toString(), "-p", "changeit",
+                "--accept", "text/turtle", "--timemap", doc.toString()));
+            assertEquals("/some/?timemap", server.getLastTarget());
+        }
+    }
+
+    @Test
+    public void acceptIsRequiredForEverythingButTheTimeGate() throws Exception
+    {
+        try (StubServer server = new StubServer())
+        {
+            server.responds(200, "");
+            StringWriter out = new StringWriter(), err = new StringWriter();
+
+            int code = commandLine(out, err).execute("get",
+                "-c", keyStorePath().toString(), "-p", "changeit", server.baseURI().toString());
+
+            assertEquals(CommandLine.ExitCode.USAGE, code);
+            assertNull(server.getLastMethod(), "a request went out without a requested media type");
+        }
+    }
+
+    @Test
+    public void listPackagesMarksTheImportedOnes() throws Exception
+    {
+        String settings = """
+            @prefix ldh: <https://w3id.org/atomgraph/linkeddatahub#> .
+            <urn:linkeddatahub:apps/end-user> ldh:import <https://packages.linkeddatahub.com/editor/taxonomy/#this> .
+            """;
+        String catalog = """
+            <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+                xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:dct="http://purl.org/dc/terms/">
+              <rdf:Description rdf:about="https://packages.linkeddatahub.com/">
+                <rdfs:member rdf:resource="https://packages.linkeddatahub.com/editor/taxonomy/#this"/>
+                <rdfs:member rdf:resource="https://packages.linkeddatahub.com/foaf/#this"/>
+              </rdf:Description>
+              <rdf:Description rdf:about="https://packages.linkeddatahub.com/editor/taxonomy/#this">
+                <dct:title>Taxonomy Editor</dct:title>
+              </rdf:Description>
+              <rdf:Description rdf:about="https://packages.linkeddatahub.com/foaf/#this">
+                <dct:title>FOAF</dct:title>
+              </rdf:Description>
+            </rdf:RDF>
+            """;
+
+        try (StubServer server = new StubServer())
+        {
+            server.respondsTo("/settings", 200, "text/turtle", settings);
+            server.respondsTo("/", 200, "application/rdf+xml", catalog);
+            URI base = server.baseURI();
+            StringWriter out = new StringWriter(), err = new StringWriter();
+
+            int code = commandLine(out, err).execute("packages", "list",
+                "-c", keyStorePath().toString(), "-p", "changeit", "-b", base.toString());
+
+            assertEquals(0, code);
+            assertEquals(List.of("installed\thttps://packages.linkeddatahub.com/editor/taxonomy/#this\tTaxonomy Editor",
+                                 "available\thttps://packages.linkeddatahub.com/foaf/#this\tFOAF"),
+                out.toString().lines().toList());
+            assertEquals("", err.toString(), "stderr is not empty on success");
+            // the registry is not the application's own URI, so the catalog is read through the proxy
+            assertEquals("/?uri=https%3A%2F%2Fpackages.linkeddatahub.com%2F", server.getLastTarget());
+        }
     }
 
 }

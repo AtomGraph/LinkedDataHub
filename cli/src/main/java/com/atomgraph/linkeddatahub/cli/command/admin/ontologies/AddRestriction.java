@@ -35,7 +35,7 @@ import picocli.CommandLine.Parameters;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "add-restriction", description = "Adds an OWL restriction to an ontology.")
+@Command(name = "restriction", description = "Adds an OWL restriction to an ontology.")
 public class AddRestriction extends BaseCommand
 {
 

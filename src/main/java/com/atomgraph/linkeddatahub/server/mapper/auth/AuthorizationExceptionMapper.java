@@ -17,9 +17,9 @@
 package com.atomgraph.linkeddatahub.server.mapper.auth;
 
 import com.atomgraph.core.MediaTypes;
-import static com.atomgraph.linkeddatahub.apps.model.AdminApplication.REQUEST_ACCESS_PATH;
-import com.atomgraph.linkeddatahub.apps.model.Application;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import static com.atomgraph.linkeddatahub.dataspaces.model.AdminDataspace.REQUEST_ACCESS_PATH;
+import com.atomgraph.linkeddatahub.dataspaces.model.Dataspace;
+import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import org.apache.jena.rdf.model.ResourceFactory;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
@@ -47,7 +47,7 @@ public class AuthorizationExceptionMapper extends ExceptionMapperBase implements
 {
     
     @Context SecurityContext securityContext;
-    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> application;
+    @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace>> application;
 
     /**
      * Constructs mapper from media types.
@@ -68,11 +68,11 @@ public class AuthorizationExceptionMapper extends ExceptionMapperBase implements
                 addLiteral(HTTP.absoluteURI, ex.getAbsolutePath().toString());
         
         // add link to the endpoint for access requests. TO-DO: make the URIs configurable or best - retrieve from sitemap/dataset
-        if (getSecurityContext().getUserPrincipal() != null && getApplication().isPresent())
+        if (getSecurityContext().getUserPrincipal() != null && getDataspace().isPresent())
         {
-            if (getApplication().get().canAs(EndUserApplication.class))
+            if (getDataspace().get().canAs(EndUserDataspace.class))
             {
-                Resource adminBase = getApplication().get().as(EndUserApplication.class).getAdminApplication().getBase();
+                Resource adminBase = getDataspace().get().as(EndUserDataspace.class).getAdminDataspace().getBase();
 
                 URI requestAccessURI = UriBuilder.fromUri(adminBase.getURI()).
                     path(REQUEST_ACCESS_PATH).
@@ -103,7 +103,7 @@ public class AuthorizationExceptionMapper extends ExceptionMapperBase implements
      *
      * @return optional application resource
      */
-    public Optional<Application> getApplication()
+    public Optional<Dataspace> getDataspace()
     {
         return application.get();
     }

@@ -21,14 +21,14 @@ import com.atomgraph.client.util.HTMLMediaTypePredicate;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.exception.BadGatewayException;
 import com.atomgraph.core.util.ModelUtils;
-import com.atomgraph.linkeddatahub.apps.model.Dataset;
+import com.atomgraph.linkeddatahub.dataspaces.model.Dataset;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
 import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
 import com.atomgraph.linkeddatahub.server.security.WebIDSecurityContext;
-import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import com.atomgraph.linkeddatahub.vocabulary.LDS;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -79,11 +79,15 @@ import com.atomgraph.core.util.ResultSetUtils;
  *   <li>Explicit {@code ?uri=} query parameter pointing to an external URI (not relative to the
  *       current application base). Requests relative to the app base are ignored here because
  *       {@link ApplicationFilter} already rewrote the request URI for those.</li>
- *   <li>{@code lapp:Dataset} proxy: the request URI matched a URL-path pattern defined in the
+ *   <li>{@code lds:Dataset} proxy: the request URI matched a URL-path pattern defined in the
  *       system dataset configuration, and the dataset provides a proxied target URI.</li>
  * </ol>
  * ACL is not checked for proxy requests: the proxy is a global transport function, not a document
- * operation. Access control is enforced by the target endpoint.
+ * operation. Access control is enforced by the target endpoint - which is only meaningful if the
+ * target sees the caller as what it is. An authenticated caller is delegated to the target with the
+ * platform's certificate and {@code On-Behalf-Of}; a caller with no identity is forwarded with no
+ * certificate at all ({@link com.atomgraph.linkeddatahub.Application#getExternalNoCertClient()}),
+ * never with the platform's own.
  * <p>
  * This filter does <em>not</em> proxy requests from clients that explicitly accept (X)HTML.
  * Rendering arbitrary external URIs as (X)HTML through the full server-side pipeline
@@ -201,10 +205,18 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         // LNK-009: validate that the target URI is not an internal/private address (SSRF protection)
         getSystem().getURLValidator().validate(targetURI);
 
-        WebTarget target = getSystem().getExternalClient().target(targetURI);
+        // the caller's identity decides which client dereferences. An authenticated caller is delegated:
+        // the request goes out with the platform's certificate and an On-Behalf-Of the origin verifies
+        // against acl:delegates, so the origin answers the caller. A caller with no identity has nobody
+        // to delegate, and must not go out with the platform's certificate either - the origin would
+        // authenticate the secretary itself, a writer of every dataspace, and answer with its access:
+        // private documents readable, writes applied, and acl:Write in the Link headers the client reads
+        // its edit affordances off. So an anonymous caller dereferences with no certificate at all, and
+        // the origin sees what the caller is
+        AgentContext agentContext = (AgentContext) requestContext.getProperty(AgentContext.class.getCanonicalName());
+        WebTarget target = (agentContext != null ? getSystem().getExternalClient() : getSystem().getExternalNoCertClient()).target(targetURI);
 
         // forward agent identity to the target endpoint
-        AgentContext agentContext = (AgentContext) requestContext.getProperty(AgentContext.class.getCanonicalName());
         if (agentContext != null)
         {
             if (agentContext instanceof WebIDSecurityContext)
@@ -272,8 +284,8 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         URI proxyTarget = (URI) requestContext.getProperty(AC.uri.getURI());
         if (proxyTarget != null) return Optional.of(proxyTarget);
 
-        // Case 2: lapp:Dataset proxy
-        Optional<Dataset> datasetOpt = (Optional<Dataset>) requestContext.getProperty(LAPP.Dataset.getURI());
+        // Case 2: lds:Dataset proxy
+        Optional<Dataset> datasetOpt = (Optional<Dataset>) requestContext.getProperty(LDS.Dataset.getURI());
         if (datasetOpt != null && datasetOpt.isPresent())
         {
             URI proxied = datasetOpt.get().getProxied(requestContext.getUriInfo().getAbsolutePath());

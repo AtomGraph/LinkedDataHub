@@ -16,9 +16,9 @@
  */
 package com.atomgraph.linkeddatahub.server.factory;
 
-import com.atomgraph.linkeddatahub.apps.model.Application;
+import com.atomgraph.linkeddatahub.dataspaces.model.Dataspace;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import com.atomgraph.linkeddatahub.vocabulary.LDS;
 import java.util.Optional;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.Context;
@@ -59,7 +59,7 @@ public class ServiceFactory implements Factory<Optional<Service>>
      */
     public Optional<Service> getService()
     {
-        Optional<Application> appOpt = (Optional<Application>)getContainerRequestContext().getProperty(LAPP.Application.getURI());
+        Optional<Dataspace> appOpt = (Optional<Dataspace>)getContainerRequestContext().getProperty(LDS.Dataspace.getURI());
 
         if (!appOpt.isPresent()) return Optional.empty();
 

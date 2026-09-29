@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Every user-visible string the editor emits, keyed by rdf:nodeID. A host translates the
+     editor by pointing rdfae:translations() at its own catalog using these same keys. -->
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+    <rdf:Description rdf:nodeID="add-paragraph">
+        <rdfs:label xml:lang="en">Add paragraph</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="annotate">
+        <rdfs:label xml:lang="en">Annotate</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="block-ellipsis">
+        <rdfs:label xml:lang="en">Block…</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="block-heading-1">
+        <rdfs:label xml:lang="en">Heading 1</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="block-heading-2">
+        <rdfs:label xml:lang="en">Heading 2</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="block-heading-3">
+        <rdfs:label xml:lang="en">Heading 3</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="block-paragraph">
+        <rdfs:label xml:lang="en">Paragraph</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="block-preformatted">
+        <rdfs:label xml:lang="en">Preformatted</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="block-type">
+        <rdfs:label xml:lang="en">Block type</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="bold">
+        <rdfs:label xml:lang="en">Bold</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="bulleted-list">
+        <rdfs:label xml:lang="en">Bulleted list</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="cancel">
+        <rdfs:label xml:lang="en">Cancel</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="canonical-xhtml-rdfa">
+        <rdfs:label xml:lang="en">Canonical XHTML+RDFa</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="caption">
+        <rdfs:label xml:lang="en">Caption</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="chart-bar">
+        <rdfs:label xml:lang="en">Bar chart</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="chart-category-var">
+        <rdfs:label xml:lang="en">Category variable</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="chart-line">
+        <rdfs:label xml:lang="en">Line chart</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="chart-scatter">
+        <rdfs:label xml:lang="en">Scatter chart</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="chart-series-var">
+        <rdfs:label xml:lang="en">Series variable</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="chart-table">
+        <rdfs:label xml:lang="en">Table</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="chart-type">
+        <rdfs:label xml:lang="en">Chart type</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="clear-facet">
+        <rdfs:label xml:lang="en">Clear</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="close">
+        <rdfs:label xml:lang="en">Close</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="close-properties">
+        <rdfs:label xml:lang="en">Close properties</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="close-table-of-contents">
+        <rdfs:label xml:lang="en">Close table of contents</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="code">
+        <rdfs:label xml:lang="en">Code</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="confirm-delete-block">
+        <rdfs:label xml:lang="en">Delete this block?</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="contents">
+        <rdfs:label xml:lang="en">Contents</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="delete-block">
+        <rdfs:label xml:lang="en">Delete block</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="delete-column">
+        <rdfs:label xml:lang="en">Delete column</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="delete-row">
+        <rdfs:label xml:lang="en">Delete row</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="document-position">
+        <rdfs:label xml:lang="en">Document position</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="download">
+        <rdfs:label xml:lang="en">Download</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="drag-to-reorder">
+        <rdfs:label xml:lang="en">Drag to reorder</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="enter-search-term">
+        <rdfs:label xml:lang="en">Enter a search term.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="extracted-rdfxml">
+        <rdfs:label xml:lang="en">Extracted RDF/XML</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="failed-to-load-block-data">
+        <rdfs:label xml:lang="en">Failed to load block data</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="figure-alt">
+        <rdfs:label xml:lang="en">Alternate text (alt)</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="figure-ellipsis">
+        <rdfs:label xml:lang="en">Figure…</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="figure-src">
+        <rdfs:label xml:lang="en">Image URL (src)</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="figure-src-placeholder">
+        <rdfs:label xml:lang="en">https://... or relative path</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="filter-blocks">
+        <rdfs:label xml:lang="en">Filter blocks</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="filter-blocks-placeholder">
+        <rdfs:label xml:lang="en">Filter blocks...</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="find">
+        <rdfs:label xml:lang="en">Find</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="find-and-replace">
+        <rdfs:label xml:lang="en">Find and replace</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="find-next">
+        <rdfs:label xml:lang="en">Find next</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="fragment-id">
+        <rdfs:label xml:lang="en">Fragment id</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="insert">
+        <rdfs:label xml:lang="en">Insert</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="insert-block">
+        <rdfs:label xml:lang="en">Insert block</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="insert-column-left">
+        <rdfs:label xml:lang="en">Insert column left</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="insert-column-right">
+        <rdfs:label xml:lang="en">Insert column right</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="insert-figure">
+        <rdfs:label xml:lang="en">Insert figure</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="insert-row-above">
+        <rdfs:label xml:lang="en">Insert row above</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="insert-row-below">
+        <rdfs:label xml:lang="en">Insert row below</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="insert-table">
+        <rdfs:label xml:lang="en">Insert table</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="italic">
+        <rdfs:label xml:lang="en">Italic</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="link-href">
+        <rdfs:label xml:lang="en">Link target (href)</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="match-case">
+        <rdfs:label xml:lang="en">Match case</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="mode-uri-optional">
+        <rdfs:label xml:lang="en">Mode URI (optional)</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="no-headings">
+        <rdfs:label xml:lang="en">No headings yet.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="no-matches">
+        <rdfs:label xml:lang="en">No matches.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="no-subject-properties">
+        <rdfs:label xml:lang="en">No properties on this subject.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="numbered-list">
+        <rdfs:label xml:lang="en">Numbered list</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="output">
+        <rdfs:label xml:lang="en">Output</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="properties">
+        <rdfs:label xml:lang="en">Properties</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="query-uri">
+        <rdfs:label xml:lang="en">Query URI</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="quote">
+        <rdfs:label xml:lang="en">Quote</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-advanced-summary">
+        <rdfs:label xml:lang="en">Type, subject &amp; object</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-annotation">
+        <rdfs:label xml:lang="en">RDFa annotation</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-datatype">
+        <rdfs:label xml:lang="en">Literal type (datatype)</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-datatype-placeholder">
+        <rdfs:label xml:lang="en">Datatype IRI</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-language">
+        <rdfs:label xml:lang="en">Language (lang)</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-language-help">
+        <rdfs:label xml:lang="en">Language tag for the literal; ignored when a datatype is set</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-language-placeholder">
+        <rdfs:label xml:lang="en">e.g. en, fr-CA</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-object">
+        <rdfs:label xml:lang="en">Object</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-object-help">
+        <rdfs:label xml:lang="en">Makes the object a resource instead of the literal value</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-object-link">
+        <rdfs:label xml:lang="en">Link</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-object-placeholder">
+        <rdfs:label xml:lang="en">Object IRI</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-object-resource">
+        <rdfs:label xml:lang="en">Object (resource)</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-object-text">
+        <rdfs:label xml:lang="en">Text</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-predicate">
+        <rdfs:label xml:lang="en">Predicate</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-subject">
+        <rdfs:label xml:lang="en">Subject</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-subject-about">
+        <rdfs:label xml:lang="en">Subject (about)</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-subject-help">
+        <rdfs:label xml:lang="en">IRI or _:blank-node identifier</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-subject-placeholder">
+        <rdfs:label xml:lang="en">Overrides the subject in scope</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-type-typeof">
+        <rdfs:label xml:lang="en">Entity type (typeof)</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-validation-issues">
+        <rdfs:label xml:lang="en">RDFa validation issues</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="rdfa-value-placeholder">
+        <rdfs:label xml:lang="en">Literal value</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="remove">
+        <rdfs:label xml:lang="en">Remove</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="remove-link">
+        <rdfs:label xml:lang="en">Remove link</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="replace">
+        <rdfs:label xml:lang="en">Replace</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="replace-all">
+        <rdfs:label xml:lang="en">Replace all</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="replace-with">
+        <rdfs:label xml:lang="en">Replace with</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="resource">
+        <rdfs:label xml:lang="en">Resource</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="resource-uri">
+        <rdfs:label xml:lang="en">Resource URI</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="result-set-chart">
+        <rdfs:label xml:lang="en">Result set chart</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="save">
+        <rdfs:label xml:lang="en">Save</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="source">
+        <rdfs:label xml:lang="en">Source</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="subject-properties">
+        <rdfs:label xml:lang="en">Subject properties</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="table-body-rows">
+        <rdfs:label xml:lang="en">Body rows</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="table-columns">
+        <rdfs:label xml:lang="en">Columns</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="table-ellipsis">
+        <rdfs:label xml:lang="en">Table…</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="table-header-row">
+        <rdfs:label xml:lang="en">Header row</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="table-of-contents">
+        <rdfs:label xml:lang="en">Table of contents</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="toolbar">
+        <rdfs:label xml:lang="en">Editing toolbar</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="toolbar-group-block">
+        <rdfs:label xml:lang="en">Block</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="toolbar-group-block-actions">
+        <rdfs:label xml:lang="en">Block actions</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="toolbar-group-blocks">
+        <rdfs:label xml:lang="en">Blocks</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="toolbar-group-table-ops">
+        <rdfs:label xml:lang="en">Table operations</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="validation-issues">
+        <rdfs:label xml:lang="en">Validation issues</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="view">
+        <rdfs:label xml:lang="en">View</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="view-canonical-source">
+        <rdfs:label xml:lang="en">View canonical source</rdfs:label>
+    </rdf:Description>
+</rdf:RDF>

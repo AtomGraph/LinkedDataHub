@@ -2,10 +2,9 @@
 
 **_LinkedDataHub_ (LDH) is open source software you can use to manage data, create visualizations and build apps on RDF Knowledge Graphs.**
 
-![LinkedDataHub screenshots](https://github.com/AtomGraph/LinkedDataHub/raw/master/screenshots.png)
+![LinkedDataHub rendering a SKOS concept with its multilingual labels](https://github.com/AtomGraph/LinkedDataHub/raw/master/screenshots.png)
 
-What's new in LinkedDataHub v5? Watch this video for a feature overview:
-[![What's new in LinkedDataHub v3? Feature overview](https://img.youtube.com/vi/LaOouEYhp_c/0.jpg)](https://www.youtube.com/watch?v=LaOouEYhp_c)
+Version 6 redraws the interface on a design system that ships with the platform: the app shell, content blocks, action bar, property lists, tables, modals and forms all render one class vocabulary, and `ldh.css` is the single app layer a dataspace stylesheet overrides. Bootstrap 2 is gone with the `bs2:` template modes — the [CHANGELOG](CHANGELOG.md) has what that means for an application stylesheet written against it.
 
 We started the project with the intention to use it for Linked Data publishing, but gradually realized that we've built a multi-purpose data-driven platform.
 
@@ -49,7 +48,6 @@ The [`ldh` command line interface](#command-line-interface) is attached to every
      HTTP_PORT=81
      HTTPS_PORT=4443
      HOST=localhost
-     ABS_PATH=/
      
      OWNER_MBOX=john@doe.com
      OWNER_GIVEN_NAME=John
@@ -100,7 +98,7 @@ The [`ldh` command line interface](#command-line-interface) is attached to every
      curl -k -E ./ssl/owner/cert.pem:<your cert password> -H "Accept: text/turtle" 'https://localhost:4443/'
      ```
      ```shell
-     ldh get -f ./ssl/owner/keystore.p12 -p <your cert password> --accept text/turtle 'https://localhost:4443/'
+     ldh get -c ./ssl/owner/keystore.p12 -p <your cert password> --accept text/turtle 'https://localhost:4443/'
      ```
 
   ### Notes
@@ -143,24 +141,23 @@ The [`ldh` command line interface](#command-line-interface) is attached to every
 
   A common case is changing the base URI from the default `https://localhost:4443/` to your own.
 
-  Lets use `https://ec2-54-235-229-141.compute-1.amazonaws.com/linkeddatahub/` as an example. We need to split the URI into components and set them in the `.env` file using the following parameters:
+  Lets use `https://ec2-54-235-229-141.compute-1.amazonaws.com/` as an example. We need to split the URI into components and set them in the `.env` file using the following parameters:
   ```
   PROTOCOL=https
   HTTP_PORT=80
   HTTPS_PORT=443
   HOST=ec2-54-235-229-141.compute-1.amazonaws.com
-  ABS_PATH=/linkeddatahub/
   ```
 
-  `ABS_PATH` is required, even if it's just `/`.
+  A dataspace serves its documents from the root of its origin, so the base URI is always the origin followed by `/` — there is no sub-path component to configure. Deploying several dataspaces on one instance is a matter of giving each its own subdomain, as described in [Dataspaces](#dataspaces) below.
 
   ### Dataspaces
 
   Since version 5.1.0, a single LinkedDataHub instance supports multiple **dataspaces**, each identified by a distinct subdomain (origin). Each dataspace consists of a pair of applications: an end-user app (e.g. `https://northwind-traders.demo.localhost:4443`) and an admin app on the `admin.` subdomain (e.g. `https://admin.northwind-traders.demo.localhost:4443`).
 
   Dataspace configuration is split across two files:
-  - [`config/dataspaces.trig`](https://github.com/AtomGraph/LinkedDataHub/blob/master/config/dataspaces.trig) — public metadata: origins (`lapp:origin`), ontologies, stylesheets
-  - [`config/system.trig`](https://github.com/AtomGraph/LinkedDataHub/blob/master/config/system.trig) — internal wiring: SPARQL service bindings and application types (`lapp:AdminApplication`/`lapp:EndUserApplication`)
+  - [`config/dataspaces.trig`](https://github.com/AtomGraph/LinkedDataHub/blob/master/config/dataspaces.trig) — public metadata: origins (`lds:origin`), ontologies, stylesheets
+  - [`config/system.trig`](https://github.com/AtomGraph/LinkedDataHub/blob/master/config/system.trig) — internal wiring: SPARQL service bindings and dataspace types (`lds:AdminDataspace`/`lds:EndUserDataspace`)
 
   To add a new dataspace, add corresponding entries to both files. Relative URIs will be resolved against the base URI configured in the `.env` file.
 
@@ -184,7 +181,7 @@ _:warning: Do not use blank nodes to identify applications or services. We recom
      ```turtle
      <urn:linkeddatahub:apps/end-user>
      {
-         <urn:linkeddatahub:apps/end-user> lapp:versioningRepository <urn:linkeddatahub:versioning/end-user> .
+         <urn:linkeddatahub:apps/end-user> lds:versioningRepository <urn:linkeddatahub:versioning/end-user> .
      }
 
      <urn:linkeddatahub:versioning/end-user>
@@ -290,18 +287,18 @@ make cli
 
 which prints the `export PATH=...` line to run afterwards. If you will be using LinkedDataHub's CLI regularly, add that `export` to your shell profile.
 
-Commands authenticate with a WebID client certificate read from a **PKCS12 keystore** — `ssl/owner/keystore.p12` for the owner. Options that repeat across commands can be set once as environment variables:
+Commands authenticate with a WebID client certificate, read from a **PKCS12 keystore** or a **PEM file** holding the certificate and its private key — `ssl/owner/keystore.p12` and `ssl/owner/cert.pem` are the owner's, either works. Options that repeat across commands can be set once as environment variables:
 
 ```shell
 export LDH_CERT_FILE=./ssl/owner/keystore.p12
 export LDH_CERT_PASSWORD=$(cat secrets/owner_cert_password.txt)
 export LDH_BASE=https://localhost:4443/
 
-ldh create-container --parent "$LDH_BASE" --title "Concepts" --slug concepts
-ldh create-item --container "${LDH_BASE}concepts/" --title "Example" --slug example
+ldh create container --parent "$LDH_BASE" --title "Concepts" --slug concepts
+ldh create item --container "${LDH_BASE}concepts/" --title "Example" --slug example
 ```
 
-Commands that create or append to a document print its URL as the only line on stdout, so they compose in shell pipelines: `item=$(ldh create-item ...)`. The `bin/` subdirectories became nested subcommand groups — `ldh admin acl create-group`, `ldh content add-xhtml-block`, `ldh imports import-csv`. See [`cli/README.md`](https://github.com/AtomGraph/LinkedDataHub/blob/master/cli/README.md) for the full command table and the differences from the scripts.
+Commands that create or append to a document print its URL as the only line on stdout, so they compose in shell pipelines: `item=$(ldh create item ...)`. Commands group by verb — `ldh create container`, `ldh add xhtml-block`, `ldh import csv`, `ldh admin create group` — with `import` holding the workflows that compose the atomic commands. See [`cli/README.md`](https://github.com/AtomGraph/LinkedDataHub/blob/master/cli/README.md) for the full command table and the differences from the scripts.
 
 _:warning: The `bin/` HTTP API scripts that `ldh` replaces are **deprecated**. The certificate and WebID tooling (`webid-keygen.sh`, `webid-keygen-pem.sh`, `webid-uri.sh`, `webid-modulus.sh`, `server-cert-gen.sh`) talks to no API and stays in `bin/`._
 
@@ -350,7 +347,7 @@ See the [Web-Algebra repository](https://github.com/AtomGraph/Web-Algebra) for s
 
 ## Test suite
 
-LinkedDataHub includes an HTTP [test suite](https://github.com/AtomGraph/LinkedDataHub/tree/master/http-tests), run with `make tests`. It builds its fixtures with `ldh`, which `make tests` builds and puts on the `$PATH` for the run. The server implementation is also covered by the [Processor test suite](https://github.com/AtomGraph/Processor/tree/master/http-tests).
+LinkedDataHub includes an HTTP [test suite](https://github.com/AtomGraph/LinkedDataHub/tree/master/tests/http), run with `make tests`. It builds its fixtures with `ldh`, which `make tests` builds and puts on the `$PATH` for the run. The server implementation is also covered by the [Processor test suite](https://github.com/AtomGraph/Processor/tree/master/http-tests).
 
 ![HTTP-tests](https://github.com/AtomGraph/LinkedDataHub/actions/workflows/http-tests.yml/badge.svg)
 

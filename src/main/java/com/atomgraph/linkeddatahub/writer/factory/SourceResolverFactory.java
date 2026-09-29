@@ -20,11 +20,11 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.ext.Provider;
 import com.atomgraph.client.util.RDFSourceResolver;
 import com.atomgraph.client.util.jena.PrefixGraphRepository;
-import com.atomgraph.linkeddatahub.apps.model.Application;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.dataspaces.model.Dataspace;
+import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
-import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import com.atomgraph.linkeddatahub.vocabulary.LDS;
 import com.atomgraph.linkeddatahub.writer.impl.SameSiteSourceResolver;
 import java.util.Optional;
 import jakarta.inject.Inject;
@@ -59,7 +59,7 @@ public class SourceResolverFactory implements Factory<RDFSourceResolver>
     public RDFSourceResolver provide()
     {
         // falls back to the global repository if there is no application (e.g. for error responses)
-        return getResolver(getApplication());
+        return getResolver(getDataspace());
     }
 
     @Override
@@ -74,12 +74,12 @@ public class SourceResolverFactory implements Factory<RDFSourceResolver>
      * @param appOpt optional end-user application (if empty, the global repository is used)
      * @return source resolver
      */
-    public RDFSourceResolver getResolver(Optional<Application> appOpt)
+    public RDFSourceResolver getResolver(Optional<Dataspace> appOpt)
     {
         final PrefixGraphRepository repository;
 
-        if (appOpt.isPresent() && appOpt.get().canAs(EndUserApplication.class))
-            repository = getSystem().getRepository(appOpt.get().as(EndUserApplication.class));
+        if (appOpt.isPresent() && appOpt.get().canAs(EndUserDataspace.class))
+            repository = getSystem().getRepository(appOpt.get().as(EndUserDataspace.class));
         else
             repository = getSystem().getRepository();
 
@@ -151,13 +151,13 @@ public class SourceResolverFactory implements Factory<RDFSourceResolver>
     }
     
     /**
-     * Retrieves LDT application from the request context.
+     * Retrieves the dataspace from the request context.
      *
-     * @return optional LDT application
+     * @return optional dataspace
      */
-    public Optional<Application> getApplication()
+    public Optional<Dataspace> getDataspace()
     {
-        return (Optional<Application>)getContainerRequestContext().getProperty(LAPP.Application.getURI());
+        return (Optional<Dataspace>)getContainerRequestContext().getProperty(LDS.Dataspace.getURI());
     }
     
 }

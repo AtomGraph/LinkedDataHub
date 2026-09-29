@@ -50,7 +50,7 @@ public class SPINConstraintValidationTest
         org.apache.jena.sys.JenaSystem.init();
     }
 
-    private static final String DH = "https://www.w3.org/ns/ldt/document-hierarchy#";
+    private static final String DH = "https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#";
 
     /** The full owl:imports closure the ontology pipeline assembles for the document-hierarchy ontology. */
     private OntModel loadOntology()

@@ -43,7 +43,7 @@ import picocli.CommandLine.ParameterException;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "create-authorization", description = "Creates an ACL authorization.")
+@Command(name = "authorization", description = "Creates an ACL authorization.")
 public class CreateAuthorization extends BaseCommand
 {
 

@@ -30,6 +30,15 @@ version="3.0">
                 intersect (descendant::* | self::*[@property]))[last()]"/>
         <xsl:sequence select="ixsl:call($event, 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
 
+        <!-- MUST come before rdfae:populate-form, which reaches the form by id() and so does nothing at all -
+             silently, over an empty sequence - when a host has re-rendered the page DOM and dropped the
+             overlay. rdfae:show-overlay rebuilds it too, but it runs after populate, so the dialog opened
+             blank in exactly that case. It keeps its own guard as the backstop for callers that reach it
+             without going through this handler -->
+        <xsl:if test="empty(id($rdfae:overlay-id, ixsl:page()))">
+            <xsl:call-template name="rdfae:init-overlay"/>
+        </xsl:if>
+
         <xsl:choose>
             <!-- edit mode -->
             <xsl:when test="exists($annotation)">
@@ -85,11 +94,10 @@ version="3.0">
     <xsl:function name="rdfae:selection-valid" as="xs:boolean">
         <xsl:param name="range"/>
 
-        <xsl:variable name="start" select="ixsl:get($range, 'startContainer')"/>
-        <xsl:variable name="end" select="ixsl:get($range, 'endContainer')"/>
-        <xsl:sequence select="ixsl:call($start, 'isSameNode', [ $end ])
-            or (ixsl:get($start, 'nodeType') = 3 and ixsl:get($end, 'nodeType') = 3
-                and ixsl:call(ixsl:get($start, 'parentNode'), 'isSameNode', [ ixsl:get($end, 'parentNode') ]))"/>
+        <xsl:variable name="start" select="ixsl:get($range, 'startContainer')" as="node()?"/>
+        <xsl:variable name="end" select="ixsl:get($range, 'endContainer')" as="node()?"/>
+        <xsl:sequence select="$start is $end
+            or ($start instance of text() and $end instance of text() and $start/.. is $end/..)"/>
     </xsl:function>
 
     <!-- the single write path for RDFa attributes, shared by create and edit. No modes:
@@ -187,7 +195,7 @@ version="3.0">
     <xsl:template name="rdfae:unwrap-element">
         <xsl:param name="element" as="element()"/>
 
-        <xsl:variable name="parent" select="ixsl:get($element, 'parentNode')"/>
+        <xsl:variable name="parent" select="$element/.." as="node()"/>
         <xsl:for-each select="1 to xs:integer(ixsl:get($element, 'childNodes.length'))">
             <xsl:sequence select="ixsl:call($parent, 'insertBefore', [ ixsl:get($element, 'firstChild'), $element ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
@@ -275,8 +283,8 @@ version="3.0">
                 <div id="output-modal" class="rdfa-editor-ui" style="display: none;">
                     <div class="modal-content">
                         <span class="modal-close">&#215;</span>
-                        <h3 id="output-title">Output</h3>
-                        <button id="output-download" type="button" style="display: none;">Download</button>
+                        <h3 id="output-title"><xsl:value-of select="rdfae:label('output')"/></h3>
+                        <button id="output-download" type="button" style="display: none;"><xsl:value-of select="rdfae:label('download')"/></button>
                         <pre id="output-content"/>
                     </div>
                 </div>
@@ -329,14 +337,14 @@ version="3.0">
          rdf:Description per subject (via rdfae:group-triples) for readability -->
     <xsl:template match="button[@id = 'parse-rdf']" mode="ixsl:onclick">
         <xsl:variable name="rdf" as="element(rdf:RDF)">
-            <xsl:call-template name="extract-rdfa">
+            <xsl:call-template name="rdfax:extract-rdfa">
                 <xsl:with-param name="doc" select="ixsl:page()"/>
                 <xsl:with-param name="base" select="rdfae:document-uri()"/>
             </xsl:call-template>
         </xsl:variable>
 
         <xsl:call-template name="rdfae:show-output">
-            <xsl:with-param name="title" select="'Extracted RDF/XML'"/>
+            <xsl:with-param name="title" select="rdfae:label('extracted-rdfxml')"/>
             <xsl:with-param name="text" select="serialize(rdfae:group-triples($rdf), map{ 'method': 'xml', 'indent': true() })"/>
             <xsl:with-param name="filename" select="'content.rdf'"/>
             <xsl:with-param name="media-type" select="'application/rdf+xml'"/>
@@ -351,7 +359,8 @@ version="3.0">
 
     <!-- clicking the backdrop (not the content) closes the modal -->
     <xsl:template match="div[@id = 'output-modal']" mode="ixsl:onclick">
-        <xsl:if test="ixsl:call(ixsl:get(ixsl:event(), 'target'), 'isSameNode', [ . ])">
+        <xsl:variable name="target" select="ixsl:get(ixsl:event(), 'target')" as="node()?"/>
+        <xsl:if test="$target is .">
             <ixsl:set-style name="display" select="'none'"/>
         </xsl:if>
     </xsl:template>

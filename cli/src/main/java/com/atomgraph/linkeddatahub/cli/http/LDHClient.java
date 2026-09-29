@@ -19,11 +19,16 @@ package com.atomgraph.linkeddatahub.cli.http;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.cli.util.URIRewriter;
+import org.apache.jena.rdf.model.Model;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.Form;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
 
@@ -71,7 +76,82 @@ public class LDHClient extends GraphStoreClient
      */
     public Response patch(URI uri, String update)
     {
-        return getWebTarget(uri).request().method("PATCH", Entity.entity(update, APPLICATION_SPARQL_UPDATE_TYPE));
+        MediaType[] acceptedTypes = getReadableMediaTypes(Model.class);
+
+        return applyHeaders(getWebTarget(uri).request(acceptedTypes), ifMatch(uri, acceptedTypes, new MultivaluedHashMap())).
+            method("PATCH", Entity.entity(update, APPLICATION_SPARQL_UPDATE_TYPE));
+    }
+
+    @Override
+    public Response post(URI uri, Entity entity, MediaType[] acceptedTypes, MultivaluedMap<String, Object> headers)
+    {
+        MediaType[] negotiated = negotiated(acceptedTypes);
+
+        return super.post(uri, entity, negotiated, ifMatch(uri, negotiated, headers));
+    }
+
+    @Override
+    public Response put(URI uri, Entity entity, MediaType[] acceptedTypes, MultivaluedMap<String, Object> headers)
+    {
+        MediaType[] negotiated = negotiated(acceptedTypes);
+
+        return super.put(uri, entity, negotiated, ifMatch(uri, negotiated, headers));
+    }
+
+    @Override
+    public Response delete(URI uri, MediaType[] acceptedTypes, MultivaluedMap<String, String> params, MultivaluedMap<String, Object> headers)
+    {
+        MediaType[] negotiated = negotiated(acceptedTypes);
+
+        return super.delete(uri, negotiated, params, ifMatch(uri, negotiated, headers));
+    }
+
+    /**
+     * The media types a write negotiates, which is never "whatever the server prefers". Asking for nothing in
+     * particular gets the HTML shell, whose entity tag is a different variant's and which no write will match;
+     * an RDF client wants RDF back in any case.
+     *
+     * @param acceptedTypes the types the caller asked for, possibly none
+     * @return those types, or the readable RDF ones when the caller named none
+     */
+    protected MediaType[] negotiated(MediaType[] acceptedTypes)
+    {
+        return acceptedTypes.length > 0 ? acceptedTypes : getReadableMediaTypes(Model.class);
+    }
+
+    /**
+     * Adds <code>If-Match</code> for the document's current state, so a write says which state it was written
+     * against. The server requires it of any write to a document that already exists, because it applies one by
+     * reading the graph, changing it in memory and writing the whole thing back - two unconditional writers
+     * overwrite each other with nothing to show for it. A document that does not exist yet has no validator and
+     * is left unconditional, which is what creating one is.
+     *
+     * The entity tag is read with the same accepted types the write will send, because it identifies a
+     * negotiated variant rather than the graph alone: the same document answers a different tag as RDF/XML
+     * than as Turtle, and a write quoting the wrong one is refused with 412.
+     *
+     * @param uri document URI
+     * @param acceptedTypes the media types the write itself accepts
+     * @param headers headers to extend
+     * @return the same headers, carrying If-Match where the document has an entity tag
+     */
+    protected MultivaluedMap<String, Object> ifMatch(URI uri, MediaType[] acceptedTypes, MultivaluedMap<String, Object> headers)
+    {
+        if (headers.containsKey(HttpHeaders.IF_MATCH)) return headers;
+
+        final EntityTag entityTag;
+        try (Response response = head(uri, acceptedTypes))
+        {
+            entityTag = response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL ? response.getEntityTag() : null;
+        }
+        catch (Exception ex) // a document that cannot be read cannot be matched against; let the write answer
+        {
+            return headers;
+        }
+
+        if (entityTag != null) headers.putSingle(HttpHeaders.IF_MATCH, entityTag.toString());
+
+        return headers;
     }
 
     /**

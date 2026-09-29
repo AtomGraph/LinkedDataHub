@@ -141,7 +141,13 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
         {
             if (putResponse.getStatusInfo().equals(Response.Status.PRECONDITION_FAILED))
             {
-                try (Response postResponse = getGraphStoreClient().post(URI.create(graphURI), namedModel))
+                // the document is already there, so append instead - conditionally, because the graph store
+                // refuses a write to an existing document that does not say which state it was written against.
+                // The 412 named that state, so the append quotes it back and needs no read of its own.
+                MultivaluedMap<String, Object> postHeaders = new MultivaluedHashMap();
+                if (putResponse.getEntityTag() != null) postHeaders.putSingle(HttpHeaders.IF_MATCH, putResponse.getEntityTag().toString());
+
+                try (Response postResponse = getGraphStoreClient().post(URI.create(graphURI), Entity.entity(namedModel, getGraphStoreClient().getDefaultMediaType()), new jakarta.ws.rs.core.MediaType[]{}, postHeaders))
                 {
                     if (!postResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                     {

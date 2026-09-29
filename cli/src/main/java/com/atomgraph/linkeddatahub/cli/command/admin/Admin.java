@@ -17,8 +17,7 @@
 package com.atomgraph.linkeddatahub.cli.command.admin;
 
 import com.atomgraph.linkeddatahub.cli.CommandGroup;
-import com.atomgraph.linkeddatahub.cli.command.admin.acl.Acl;
-import com.atomgraph.linkeddatahub.cli.command.admin.ontologies.Ontologies;
+import com.atomgraph.linkeddatahub.cli.command.admin.acl.MakePublic;
 import picocli.CommandLine.Command;
 
 /**
@@ -28,7 +27,7 @@ import picocli.CommandLine.Command;
  */
 @Command(name = "admin",
     description = "Administrative commands.",
-    subcommands = { Ontologies.class, Acl.class, ClearOntology.class, AddOntologyImport.class })
+    subcommands = { Create.class, Add.class, Clear.class, Import.class, MakePublic.class })
 public class Admin extends CommandGroup
 {
 }

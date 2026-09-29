@@ -16,7 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.event;
 
-import com.atomgraph.linkeddatahub.apps.model.Application;
+import com.atomgraph.linkeddatahub.dataspaces.model.Dataspace;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import org.apache.jena.rdf.model.Resource;
 
@@ -28,7 +28,7 @@ import org.apache.jena.rdf.model.Resource;
 public class AuthorizationCreated
 {
 
-    private final Application app;
+    private final Dataspace app;
     private final GraphStoreClient gsc;
     private final Resource authorization;
     
@@ -39,7 +39,7 @@ public class AuthorizationCreated
      * @param gsc Graph Store client
      * @param authorization associated authorization
      */
-    public AuthorizationCreated(Application app, GraphStoreClient gsc, Resource authorization)
+    public AuthorizationCreated(Dataspace app, GraphStoreClient gsc, Resource authorization)
     {
         this.app = app;
         this.gsc = gsc;
@@ -51,7 +51,7 @@ public class AuthorizationCreated
      * 
      * @return application resource
      */
-    public Application getApplication()
+    public Dataspace getDataspace()
     {
         return app;
     }

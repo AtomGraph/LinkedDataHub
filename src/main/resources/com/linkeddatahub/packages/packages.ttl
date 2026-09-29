@@ -6,7 +6,7 @@
 <https://packages.linkeddatahub.com/> a foaf:Document ;
     dct:title "LinkedDataHub packages" ;
     dct:description "Catalog of packages available for LinkedDataHub applications" ;
-    rdfs:member <https://packages.linkeddatahub.com/skos/#this> .
+    rdfs:member <https://packages.linkeddatahub.com/editor/taxonomy/#this> .
 
-<https://packages.linkeddatahub.com/skos/#this> dct:title "SKOS" ;
-    dct:description "Simple Knowledge Organization System vocabulary support with custom templates for concept hierarchies, schemes, and collections" .
+<https://packages.linkeddatahub.com/editor/taxonomy/#this> dct:title "Taxonomy Editor" ;
+    dct:description "Taxonomy editing on SKOS: a concept tree beside the content, hierarchy views in both assertion directions, and constructors and constraints for concepts, schemes and collections" .

@@ -16,18 +16,20 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.response;
 
+import com.atomgraph.client.util.HTMLMediaTypePredicate;
 import com.atomgraph.client.vocabulary.AC;
-import com.atomgraph.client.vocabulary.LDT;
 import com.atomgraph.core.vocabulary.SD;
-import com.atomgraph.linkeddatahub.apps.model.Application;
-import com.atomgraph.linkeddatahub.apps.model.Dataset;
+import com.atomgraph.linkeddatahub.server.util.LanguageNegotiator;
+import com.atomgraph.linkeddatahub.dataspaces.model.Dataspace;
+import com.atomgraph.linkeddatahub.dataspaces.model.Dataset;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.server.model.impl.Dispatcher;
 import com.atomgraph.linkeddatahub.server.model.impl.DocumentHierarchyGraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.server.util.Link;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
-import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import com.atomgraph.linkeddatahub.vocabulary.LDH;
+import com.atomgraph.linkeddatahub.vocabulary.LDS;
 import com.atomgraph.linkeddatahub.writer.TimeMapWriter;
 import java.io.IOException;
 import java.net.URI;
@@ -38,6 +40,7 @@ import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerResponseContext;
 import jakarta.ws.rs.container.ContainerResponseFilter;
+import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import org.slf4j.Logger;
@@ -55,7 +58,7 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
     private static final Logger log = LoggerFactory.getLogger(ResponseHeadersFilter.class);
 
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject jakarta.inject.Provider<Optional<Application>> app;
+    @Inject jakarta.inject.Provider<Optional<Dataspace>> app;
     @Inject jakarta.inject.Provider<Optional<Dataset>> dataset;
     @Inject jakarta.inject.Provider<Optional<AuthorizationContext>> authorizationContext;
 
@@ -64,6 +67,18 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
     {
         if (response.getStatusInfo().equals(Response.Status.NO_CONTENT))
             response.getHeaders().remove(HttpHeaders.CONTENT_TYPE); // needs to be explicitly unset for some reason
+
+        // Content-Language states the language of the representation, and must agree with the document's own <html lang>.
+        // Both come from this one computation. Variant selection cannot supply it: it matched only when the reader's top
+        // preference happened to be an offered language, so it announced es on a page holding no Spanish and said nothing
+        // at all on a page that was entirely Lithuanian
+        // only where the rendering actually depends on language. An RDF representation is byte-identical for every reader -
+        // its literals carry their own tags and none is dropped - so it is intended for all language audiences, which RFC 9110
+        // spells as no Content-Language at all. Labelling it would also contradict its own Vary, which carries no
+        // Accept-Language dimension for exactly the same reason
+        if (response.hasEntity() && response.getMediaType() != null && getDataspace().isPresent() && new HTMLMediaTypePredicate().test(response.getMediaType()))
+            response.getHeaders().putSingle(HttpHeaders.CONTENT_LANGUAGE,
+                LanguageNegotiator.publishedTag(request.getAcceptableLanguages(), getSystem().getSupportedLanguages()));
 
         if (request.getSecurityContext().getUserPrincipal() instanceof Agent)
         {
@@ -75,6 +90,17 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
         boolean isTimeGate = request.getUriInfo().getQueryParameters().containsKey(DocumentHierarchyGraphStoreImpl.TIMEGATE_PARAM_NAME);
         // historical version, TimeMap and TimeGate views are read-only: advertise acl:Read at most, so the UI disables edit affordances
         boolean isSnapshotRequest = DocumentHierarchyGraphStoreImpl.isSnapshotRequest(request.getUriInfo());
+
+        // A HEAD is granted to any agent with a mode on the document, so that a writer can learn the entity tag a
+        // conditional write has to quote (see AuthorizationFilter). One that may not read does not get the graph's
+        // last modification: the entity tag is a hash of the graph, and every write stamps dct:modified into it at
+        // millisecond precision, so Last-Modified would narrow a guess at the content from milliseconds to seconds.
+        // Content-Length stays, because it cannot be dropped here - Jersey computes it when it serializes, after
+        // this filter has run - and it costs nothing that the tag has not already given away: anyone able to
+        // confirm the content by its hash knows its length too.
+        if (HttpMethod.HEAD.equals(request.getMethod()) && getAuthorizationContext().isPresent() &&
+                !getAuthorizationContext().get().getModeURIs().contains(URI.create(ACL.Read.getURI())))
+            response.getHeaders().remove(HttpHeaders.LAST_MODIFIED);
 
         if (getAuthorizationContext().isPresent())
             getAuthorizationContext().get().getModeURIs().stream().
@@ -88,14 +114,14 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
             response.getHeaders().add(HttpHeaders.LINK, new Link(request.getUriInfo().getBaseUriBuilder().path(Dispatcher.class, "getSPARQLEndpoint").build(), SD.endpoint.getURI(), null));
 
         // Only add application-specific links if application is present and this is not a proxy request
-        if (!isProxyRequest && getApplication().isPresent())
+        if (!isProxyRequest && getDataspace().isPresent())
         {
-            Application application = getApplication().get();
-            // add Link rel=lapp:application
-            response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(application.getURI()), LAPP.application.getURI(), null));
-            // add Link rel=ldt:ontology, if the ontology URI is specified
+            Dataspace application = getDataspace().get();
+            // add Link rel=lds:dataspace
+            response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(application.getURI()), LDS.dataspace.getURI(), null));
+            // add Link rel=lds:ontology, if the ontology URI is specified
             if (application.getOntology() != null)
-                response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(application.getOntology().getURI()), LDT.ontology.getURI(), null));
+                response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(application.getOntology().getURI()), LDS.ontology.getURI(), null));
             // add Memento (RFC 7089) hypermedia, if the document is versioned
             if (getSystem().getGraphVersioningService().getRepository(application.getURI()).isPresent() &&
                     request.getUriInfo().getMatchedResources().stream().anyMatch(DocumentHierarchyGraphStoreImpl.class::isInstance))
@@ -122,6 +148,13 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
             // add Link rel=ac:stylesheet, if the stylesheet URI is specified
             if (application.getStylesheet() != null)
                 response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(application.getStylesheet().getURI()), AC.stylesheet.getURI(), null));
+
+            // the compiled client stylesheet composed with this application's packages, set by
+            // XsltExecutableFilter only once it exists. Advertised rather than injected as a stylesheet
+            // parameter, so the client reads it the same way it reads acl:mode and the Memento relations
+            Object clientStylesheet = request.getProperty(LDH.clientStylesheet.getURI());
+            if (clientStylesheet != null)
+                response.getHeaders().add(HttpHeaders.LINK, new Link(application.getBaseURI().resolve(clientStylesheet.toString()), LDH.clientStylesheet.getURI(), null));
         }
 
         if (response.getHeaders().get(HttpHeaders.LINK) != null)
@@ -147,7 +180,7 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
      *
      * @return optional application resource
      */
-    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
+    public Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace> getDataspace()
     {
         return app.get();
     }

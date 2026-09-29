@@ -32,45 +32,45 @@ version="3.0">
     </xsl:template>
 
     <xsl:template name="rdfae:render-overlay">
-        <div id="{$rdfae:overlay-id}" class="rdfa-editor-ui" role="dialog" aria-modal="true" aria-label="RDFa annotation" style="display: none;">
+        <div id="{$rdfae:overlay-id}" class="rdfa-editor-ui" role="dialog" aria-modal="true" aria-label="{rdfae:label('rdfa-annotation')}" style="display: none;">
             <div class="overlay-header">
-                <h3>RDFa Annotation</h3>
+                <h3><xsl:value-of select="rdfae:label('rdfa-annotation')"/></h3>
             </div>
             <form id="annotation-form">
                 <div class="statement">
-                    <span class="stmt-role" title="Subject">S</span>
+                    <span class="stmt-role" title="{rdfae:label('rdfa-subject')}">S</span>
                     <div id="stmt-subject" class="stmt-value"/>
-                    <span class="stmt-role" title="Predicate">P</span>
+                    <span class="stmt-role" title="{rdfae:label('rdfa-predicate')}">P</span>
                     <div class="stmt-control">
                         <xsl:sequence select="rdfae:typeahead-field('property')"/>
                     </div>
-                    <span class="stmt-role" title="Object">O</span>
+                    <span class="stmt-role" title="{rdfae:label('rdfa-object')}">O</span>
                     <div class="stmt-control">
-                        <input type="text" name="value" placeholder="Literal value"/>
-                        <span class="helper-text">The selected text; change it to emit a machine-readable content value</span>
+                        <input type="text" name="value" placeholder="{rdfae:label('rdfa-value-placeholder')}"/>
+                        <span class="{$helper-text-class}">The selected text; change it to emit a machine-readable content value</span>
                     </div>
                 </div>
 
                 <details id="advanced-fields">
-                    <summary>Type, subject &amp; object</summary>
+                    <summary><xsl:value-of select="rdfae:label('rdfa-advanced-summary')"/></summary>
                     <fieldset>
-                        <label>Entity type (typeof)</label>
+                        <label><xsl:value-of select="rdfae:label('rdfa-type-typeof')"/></label>
                         <xsl:sequence select="rdfae:typeahead-field('typeof')"/>
-                        <span class="helper-text">Types the annotated resource; without a subject the typed
+                        <span class="{$helper-text-class}">Types the annotated resource; without a subject the typed
                             resource becomes the object of the property (chaining)</span>
                     </fieldset>
                     <fieldset>
-                        <label>Subject (about)</label>
-                        <input type="text" name="subject" placeholder="Overrides the subject in scope"/>
-                        <span class="helper-text">IRI or _:blank-node identifier</span>
+                        <label><xsl:value-of select="rdfae:label('rdfa-subject-about')"/></label>
+                        <input type="text" name="subject" placeholder="{rdfae:label('rdfa-subject-placeholder')}"/>
+                        <span class="{$helper-text-class}"><xsl:value-of select="rdfae:label('rdfa-subject-help')"/></span>
                     </fieldset>
                     <fieldset>
-                        <label>Object (resource)</label>
-                        <input type="text" name="object" placeholder="Object IRI"/>
-                        <span class="helper-text">Makes the object a resource instead of the literal value</span>
+                        <label><xsl:value-of select="rdfae:label('rdfa-object-resource')"/></label>
+                        <input type="text" name="object" placeholder="{rdfae:label('rdfa-object-placeholder')}"/>
+                        <span class="{$helper-text-class}"><xsl:value-of select="rdfae:label('rdfa-object-help')"/></span>
                     </fieldset>
                     <fieldset>
-                        <label>Literal type (datatype)</label>
+                        <label><xsl:value-of select="rdfae:label('rdfa-datatype')"/></label>
                         <select name="datatype">
                             <option value="">(plain literal)</option>
                             <xsl:variable name="xsd" as="xs:string" select="'http://www.w3.org/2001/XMLSchema#'"/>
@@ -80,21 +80,21 @@ version="3.0">
                             </xsl:for-each>
                             <option value="{$rdfae:custom}">-- Custom datatype --</option>
                         </select>
-                        <input type="text" name="custom-datatype" placeholder="Datatype IRI" style="display: none;"/>
-                        <span class="helper-text">Types the literal (e.g. xsd:date, xsd:integer);
+                        <input type="text" name="custom-datatype" placeholder="{rdfae:label('rdfa-datatype-placeholder')}" style="display: none;"/>
+                        <span class="{$helper-text-class}">Types the literal (e.g. xsd:date, xsd:integer);
                             mutually exclusive with a language tag</span>
                     </fieldset>
                     <fieldset>
-                        <label>Language (lang)</label>
-                        <input type="text" name="lang" placeholder="e.g. en, fr-CA"/>
-                        <span class="helper-text">Language tag for the literal; ignored when a datatype is set</span>
+                        <label><xsl:value-of select="rdfae:label('rdfa-language')"/></label>
+                        <input type="text" name="lang" placeholder="{rdfae:label('rdfa-language-placeholder')}"/>
+                        <span class="{$helper-text-class}"><xsl:value-of select="rdfae:label('rdfa-language-help')"/></span>
                     </fieldset>
                 </details>
 
                 <div class="action-buttons">
-                    <button type="button" class="btn-danger remove-action" style="display: none;">Remove</button>
-                    <button type="button" class="btn-primary spo-action">Annotate</button>
-                    <button type="button" class="btn-secondary cancel-action">Cancel</button>
+                    <button type="button" class="{$button-danger-class} remove-action" style="display: none;"><xsl:value-of select="rdfae:label('remove')"/></button>
+                    <button type="button" class="{$button-primary-class} spo-action"><xsl:value-of select="rdfae:label('annotate')"/></button>
+                    <button type="button" class="{$button-secondary-class} cancel-action"><xsl:value-of select="rdfae:label('cancel')"/></button>
                 </div>
             </form>
         </div>
@@ -159,11 +159,10 @@ version="3.0">
             <xsl:for-each select=".//input[@name = 'value']">
                 <ixsl:set-property name="value" select="($value, '')[1]" object="."/>
             </xsl:for-each>
-            <!-- disclose the advanced fields when the annotation carries any of them -->
-            <xsl:for-each select="id('advanced-fields', ixsl:page())">
-                <ixsl:set-property name="open"
-                    select="exists($span/(@about | @resource | @typeof | @datatype | @lang | @xml:lang))" object="."/>
-            </xsl:for-each>
+            <xsl:call-template name="rdfae:reveal-fields">
+                <xsl:with-param name="form" select="$form"/>
+                <xsl:with-param name="span" select="$span"/>
+            </xsl:call-template>
             <!-- datatype and language are mutually exclusive (datatype wins): a datatype
                  on the edited annotation disables the language input -->
             <xsl:for-each select=".//input[@name = 'lang']">
@@ -191,6 +190,24 @@ version="3.0">
             </xsl:for-each>
         </xsl:for-each>
     </xsl:template>
+
+    <!-- reflect the edited annotation's non-value state into the form's chrome: here, the disclosure
+         that holds the type/subject/object overrides. The one shape-dependent step in populate-form,
+         so it is its own template - a host whose overlay groups those fields differently (tabs, a
+         segmented object switch) overrides this and leaves the rest of the prefill alone -->
+    <xsl:template name="rdfae:reveal-fields">
+        <xsl:param name="form" as="element()"/>
+        <xsl:param name="span" as="element()?"/>
+
+        <xsl:for-each select="id('advanced-fields', ixsl:page())">
+            <ixsl:set-property name="open"
+                select="exists($span/(@about | @resource | @typeof | @datatype | @lang | @xml:lang))" object="."/>
+        </xsl:for-each>
+    </xsl:template>
+
+
+
+
 
     <!-- set a select's value via the live property; an IRI absent from the options
          leaves the select empty, so route it to the custom input instead -->
@@ -272,6 +289,9 @@ version="3.0">
         <xsl:for-each select="id('stmt-subject', ixsl:page())">
             <ixsl:set-attribute name="data-inherited-subject" select="($in-scope-subject, '')[1]"/>
             <ixsl:set-property name="textContent" select="($in-scope-subject, '')[1]" object="."/>
+            <!-- the readout is a single line that may be narrower than the IRI; @title is where the whole of it
+                 stays reachable. Written wherever textContent is, so the two cannot say different things -->
+            <ixsl:set-attribute name="title" select="($in-scope-subject, '')[1]"/>
         </xsl:for-each>
     </xsl:template>
 
@@ -332,6 +352,7 @@ version="3.0">
         <xsl:for-each select="id('stmt-subject', ixsl:page())">
             <ixsl:set-property name="textContent"
                 select="($value[. ne ''], string(@data-inherited-subject))[1]" object="."/>
+            <ixsl:set-attribute name="title" select="($value[. ne ''], string(@data-inherited-subject))[1]"/>
         </xsl:for-each>
     </xsl:template>
 

@@ -1,0 +1,34 @@
+PREFIX dh:    <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#>
+PREFIX sioc:  <http://rdfs.org/sioc/ns#>
+PREFIX foaf:  <http://xmlns.com/foaf/0.1/>
+PREFIX skos:  <http://www.w3.org/2004/02/skos/core#>
+PREFIX dct:   <http://purl.org/dc/terms/>
+
+CONSTRUCT
+{
+    GRAPH ?item
+    {
+        ?concept ?p ?o .
+        ?item a dh:Item ;
+            foaf:primaryTopic ?concept ;
+            sioc:has_container ?container ;
+            dct:title ?prefLabel .
+    }
+}
+WHERE
+{
+    SELECT *
+    {
+        ?concept a skos:Concept .
+        BIND (STRAFTER(STR(?concept), "http://vocabularies.unesco.org/thesaurus/") AS ?id)
+        BIND (uri(concat(str($base), "concepts/")) AS ?container)
+        BIND (uri(concat(str(?container), encode_for_uri(?id), "/")) AS ?item)
+
+        ?concept ?p ?o
+        OPTIONAL
+        {
+            ?concept skos:prefLabel ?prefLabel
+            FILTER (langMatches(lang(?prefLabel), "en"))
+        }
+    }
+}

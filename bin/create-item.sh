@@ -112,7 +112,7 @@ args+=("text/turtle")
 args+=("${target}")
 
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
-turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .\n"
+turtle+="@prefix dh:	<https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#> .\n"
 turtle+="<${target}> a dh:Item .\n"
 turtle+="<${target}> dct:title \"${title}\" .\n"
 

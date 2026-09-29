@@ -16,9 +16,14 @@
 
 package com.atomgraph.linkeddatahub.cli.http;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyStore;
+import java.security.PrivateKey;
+import java.util.Base64;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -28,15 +33,50 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class ClientFactoryTest
 {
 
+    @TempDir
+    private Path dir;
+
     static Path keyStorePath() throws Exception
     {
         return Paths.get(ClientFactoryTest.class.getResource("/test-keystore.p12").toURI());
+    }
+
+    static Path certPEMPath() throws Exception
+    {
+        return Paths.get(ClientFactoryTest.class.getResource("/test-cert.pem").toURI());
+    }
+
+    /** Writes the test credential as a PEM with an unencrypted key, the one shape that needs no password. */
+    private Path unencryptedPEM() throws Exception
+    {
+        KeyStore keyStore = Credentials.load(keyStorePath(), "changeit");
+        String alias = keyStore.aliases().nextElement();
+        PrivateKey key = (PrivateKey) keyStore.getKey(alias, "changeit".toCharArray());
+        Base64.Encoder encoder = Base64.getMimeEncoder(64, new byte[] { '\n' });
+        Path file = dir.resolve("nodes.pem");
+        Files.writeString(file,
+            "-----BEGIN CERTIFICATE-----\n" + encoder.encodeToString(keyStore.getCertificate(alias).getEncoded()) + "\n-----END CERTIFICATE-----\n" +
+            "-----BEGIN PRIVATE KEY-----\n" + encoder.encodeToString(key.getEncoded()) + "\n-----END PRIVATE KEY-----\n");
+
+        return file;
     }
 
     @Test
     public void createsClientFromPKCS12Keystore() throws Exception
     {
         assertNotNull(ClientFactory.createClient(keyStorePath(), "changeit"));
+    }
+
+    @Test
+    public void createsClientFromPEM() throws Exception
+    {
+        assertNotNull(ClientFactory.createClient(certPEMPath(), "changeit"));
+    }
+
+    @Test
+    public void createsClientFromPEMWithUnencryptedKeyAndNoPassword() throws Exception
+    {
+        assertNotNull(ClientFactory.createClient(unencryptedPEM(), null));
     }
 
     @Test

@@ -38,7 +38,7 @@ import picocli.CommandLine.Parameters;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "add-rdf-import", description = "Adds RDF import metadata to a document.")
+@Command(name = "rdf-import", description = "Adds RDF import metadata to a document.")
 public class AddRDFImport extends BaseCommand
 {
 

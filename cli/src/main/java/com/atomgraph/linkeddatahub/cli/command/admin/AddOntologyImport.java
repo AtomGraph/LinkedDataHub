@@ -29,7 +29,7 @@ import picocli.CommandLine.Parameters;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "add-ontology-import", description = "Adds an owl:imports statement to an ontology.")
+@Command(name = "ontology-import", description = "Adds an owl:imports statement to an ontology.")
 public class AddOntologyImport extends BaseCommand
 {
 

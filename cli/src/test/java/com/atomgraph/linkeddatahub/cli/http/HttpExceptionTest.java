@@ -46,7 +46,7 @@ public class HttpExceptionTest
     {
         try (StubServer server = new StubServer())
         {
-            server.responds(200, "<https://localhost:4443/> a <https://www.w3.org/ns/ldt/document-hierarchy#Container> .");
+            server.responds(200, "<https://localhost:4443/> a <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Container> .");
             URI target = server.baseURI().resolve("some/");
 
             try (Response response = HttpException.check(target, client().get(target, ACCEPT_TURTLE)))

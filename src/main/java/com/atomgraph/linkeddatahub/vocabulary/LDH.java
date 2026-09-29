@@ -113,4 +113,8 @@ public class LDH
      * Import property - used to import packages into an application */
     public static final Property importPackage = m_model.createObjectProperty( NS + "import" );
 
+    /**
+     * Client stylesheet property - the compiled stylesheet this application's client runs, composed with its imported packages */
+    public static final Property clientStylesheet = m_model.createObjectProperty( NS + "clientStylesheet" );
+
 }

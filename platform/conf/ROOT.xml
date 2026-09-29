@@ -1,2 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Context path=""/>
+<Context path="">
+    <!-- /sitemap.xml and /robots.txt answer per dataspace, and a servlet mapping dispatches on path and never on
+         Host. The valve reads WEB-INF/rewrite.config and rewrites both to the file generated for the requested
+         host, so the platform serves them without knowing they exist. -->
+    <Valve className="org.apache.catalina.valves.rewrite.RewriteValve"/>
+</Context>

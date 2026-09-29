@@ -37,7 +37,7 @@ import picocli.CommandLine.Parameters;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "add-csv-import", description = "Adds CSV import metadata to a document.")
+@Command(name = "csv-import", description = "Adds CSV import metadata to a document.")
 public class AddCSVImport extends BaseCommand
 {
 

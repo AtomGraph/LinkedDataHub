@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.request;
 
+import com.atomgraph.linkeddatahub.client.exception.ResponseContentTooLargeException;
 import com.atomgraph.linkeddatahub.client.util.RejectTooLargeResponseInputStream;
 import com.atomgraph.linkeddatahub.server.exception.RequestContentTooLargeException;
 import com.atomgraph.linkeddatahub.server.util.RejectTooLargeRequestInputStream;
@@ -42,6 +43,10 @@ public class ContentLengthLimitFilter implements ContainerRequestFilter, ClientR
 {
 
     private static final Logger log = LoggerFactory.getLogger(ContentLengthLimitFilter.class);
+
+    /** Request property that exempts the response of a single client request from the limit */
+    public static final String UNLIMITED = ContentLengthLimitFilter.class.getName() + ".unlimited";
+
     private final int maxContentLength;
     
     /**
@@ -80,6 +85,10 @@ public class ContentLengthLimitFilter implements ContainerRequestFilter, ClientR
     @Override
     public void filter(ClientRequestContext requestContext, ClientResponseContext responseContext) throws IOException
     {
+        // the limit bounds untrusted content the proxy and the imports pull in; a configured internal
+        // service whose payload is large by design opts out per request instead of widening it for all
+        if (Boolean.TRUE.equals(requestContext.getProperty(UNLIMITED))) return;
+
         if (!responseContext.hasEntity()) return;
         
         String contentLengthString = responseContext.getHeaders().getFirst(HttpHeaders.CONTENT_LENGTH);
@@ -93,10 +102,14 @@ public class ContentLengthLimitFilter implements ContainerRequestFilter, ClientR
         int contentLength = Integer.parseInt(contentLengthString);
         if (contentLength > getMaxContentLength())
         {
-            if (log.isDebugEnabled()) log.debug("POST or PUT request rejected due to Content-Length: {} which is larger than the configured limit {}", contentLength, getMaxContentLength());
-            throw new RequestContentTooLargeException(getMaxContentLength(), contentLength);
+            // ResponseContentTooLargeException (502), not RequestContentTooLargeException (413): what was too
+            // large is the upstream's response, and 413 states that the caller's request body was - false on a
+            // GET that carries none. The streaming branch above already throws this, so a response with a
+            // Content-Length and the same response chunked no longer answer with different statuses
+            if (log.isDebugEnabled()) log.debug("Response rejected due to Content-Length: {} which is larger than the configured limit {}", contentLength, getMaxContentLength());
+            throw new ResponseContentTooLargeException(getMaxContentLength(), contentLength);
         }
-        
+
         responseContext.setEntityStream(new RejectTooLargeResponseInputStream(responseContext.getEntityStream(), getMaxContentLength()));
     }
 

@@ -16,9 +16,9 @@
  */
 package com.atomgraph.linkeddatahub.resource.oauth2;
 
-import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
-import com.atomgraph.linkeddatahub.apps.model.Application;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.dataspaces.model.AdminDataspace;
+import com.atomgraph.linkeddatahub.dataspaces.model.Dataspace;
+import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import java.math.BigInteger;
 import java.net.URI;
 import java.security.SecureRandom;
@@ -48,7 +48,7 @@ public abstract class AuthorizeBase
     public static final String REFERER_PARAM_NAME = "referer";
 
     private final HttpServletRequest httpServletRequest;
-    private final Application application;
+    private final Dataspace application;
     private final com.atomgraph.linkeddatahub.Application system;
     private final String clientID;
 
@@ -60,9 +60,9 @@ public abstract class AuthorizeBase
      * @param system JAX-RS application
      * @param clientID OAuth client ID
      */
-    public AuthorizeBase(HttpServletRequest httpServletRequest, Application application, com.atomgraph.linkeddatahub.Application system, String clientID)
+    public AuthorizeBase(HttpServletRequest httpServletRequest, Dataspace application, com.atomgraph.linkeddatahub.Application system, String clientID)
     {
-        if (!application.canAs(EndUserApplication.class))
+        if (!application.canAs(EndUserDataspace.class))
             throw new IllegalStateException("The " + getClass() + " endpoint is only available on end-user applications");
 
         this.httpServletRequest = httpServletRequest;
@@ -150,12 +150,12 @@ public abstract class AuthorizeBase
      *
      * @return application resource
      */
-    public EndUserApplication getEndUserApplication()
+    public EndUserDataspace getEndUserDataspace()
     {
-        if (getApplication().canAs(EndUserApplication.class))
-            return getApplication().as(EndUserApplication.class);
+        if (getDataspace().canAs(EndUserDataspace.class))
+            return getDataspace().as(EndUserDataspace.class);
         else
-            return getApplication().as(AdminApplication.class).getEndUserApplication();
+            return getDataspace().as(AdminDataspace.class).getEndUserDataspace();
     }
 
     /**
@@ -173,7 +173,7 @@ public abstract class AuthorizeBase
      *
      * @return application resource
      */
-    public Application getApplication()
+    public Dataspace getDataspace()
     {
         return application;
     }
