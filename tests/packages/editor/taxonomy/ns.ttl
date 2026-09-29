@@ -18,7 +18,7 @@
 
 : a owl:Ontology ;
     owl:imports <http://www.w3.org/2004/02/skos/core> ;
-    rdfs:label "SKOS package ontology".
+    rdfs:label "Taxonomy Editor ontology".
 
 # Concept
 
