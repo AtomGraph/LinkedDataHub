@@ -16,6 +16,7 @@
 /tests/http/datasets
 /tests/http/uploads
 /tests/http/out
+/tests/load/out
 /fuseki
 .claude/scheduled_tasks.lock
 /cli/target

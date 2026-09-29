@@ -227,6 +227,10 @@ COPY platform/context.xsl /var/linkeddatahub/xsl/context.xsl
 
 COPY platform/web.xsl /var/linkeddatahub/xsl/web.xsl
 
+# add XSLT stylesheet that makes changes to server.xml, after letsencrypt-tomcat.xsl has generated it
+
+COPY platform/server.xsl /var/linkeddatahub/xsl/server.xsl
+
 # copy entrypoint
 
 COPY platform/entrypoint.sh entrypoint.sh

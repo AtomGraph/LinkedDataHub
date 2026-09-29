@@ -92,6 +92,14 @@ transform="xsltproc \
 
 eval "$transform"
 
+# the proxied HTTP connector's thread count: letsencrypt-tomcat.xsl sizes only the HTTPS connector, so
+# this one keeps Tomcat's default of 200 unless set. Beyond capacity, the count bounds how many renders
+# can wait on each other, since every server-side render calls back into this connector through the
+# proxy; tests/load runs with a small value to reproduce that.
+if [ -n "$HTTP_MAX_THREADS" ]; then
+    xsltproc --output conf/server.xml --stringparam Connector.maxThreads.http "$HTTP_MAX_THREADS" /var/linkeddatahub/xsl/server.xsl conf/server.xml
+fi
+
 ### PLATFORM ###
 
 # check mandatory environmental variables (which are used in conf/ROOT.xml)

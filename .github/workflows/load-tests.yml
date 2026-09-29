@@ -1,0 +1,55 @@
+name: Load-tests
+
+on: push
+
+jobs:
+  load-tests:
+    name: Build Docker image and run the load test suite against a small stack
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+      - name: Add bin/ and its subdirectories to PATH
+        run: |
+          find "$GITHUB_WORKSPACE/bin" -type d >> "$GITHUB_PATH"
+      - name: Generating server certificate
+        run: |
+          server-cert-gen.sh .env nginx ssl
+        working-directory: tests/http
+      - name: Writing secrets to files
+        run: |
+          mkdir -p ./secrets
+          printf "%s" "${{ secrets.HTTP_TEST_OWNER_CERT_PASSWORD }}" > ./secrets/owner_cert_password.txt
+          printf "%s" "${{ secrets.HTTP_TEST_SECRETARY_CERT_PASSWORD }}" > ./secrets/secretary_cert_password.txt
+          printf "%s" "${{ secrets.HTTP_TEST_SECRETARY_CERT_PASSWORD }}" > ./secrets/client_truststore_password.txt
+        shell: bash
+      - name: Build Docker image & Run Docker containers
+        # the HTTP suite's fixtures, with the connector and client pool shrunk by the load override
+        run: docker compose -f docker-compose.yml -f ./tests/http/docker-compose.http-tests.yml -f ./tests/load/docker-compose.load-tests.yml --env-file ./tests/http/.env up --build -d
+      - name: Wait for the server to start...
+        run: while ! (status=$(curl -k -s -w "%{http_code}\n" https://localhost:4443 -o /dev/null) && echo "$status" && echo "$status" | grep "403") ; do sleep 1 ; done # wait for the webapp to start (returns 403 by default)
+      - name: Run load test scripts
+        run: ./run.sh
+        shell: bash
+        working-directory: tests/load
+      - name: Generate test summary
+        if: always()
+        run: python3 scripts/generate_test_summary.py tests/load/out tests/load/out/report.md
+      - name: Write job summary
+        if: always() && hashFiles('tests/load/out/report.md') != ''
+        run: cat tests/load/out/report.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Collect container logs on failure
+        if: failure()
+        run: |
+          mkdir -p tests/load/out/containers
+          timeout 300 docker compose --env-file ./tests/http/.env logs --no-color > tests/load/out/containers/compose.log 2>&1 || true
+          timeout 300 docker compose --env-file ./tests/http/.env exec -T linkeddatahub sh -c 'for f in /usr/local/tomcat/logs/*; do echo "=== $f ==="; cat "$f"; done' > tests/load/out/containers/tomcat.log 2>&1 || true
+      - name: Upload test results and container logs
+        if: always() && hashFiles('tests/load/out/**') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: load-test-results
+          path: tests/load/out/
+          if-no-files-found: ignore
+      - name: Stop Docker containers and remove volumes
+        run: docker compose --env-file ./tests/http/.env down -v

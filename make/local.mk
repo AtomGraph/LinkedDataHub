@@ -46,3 +46,10 @@ ui-tests-install:
 # been published with `make sef` first - the preflight says so if it has not.
 ui-tests: cli
 	cd tests/ui && PATH="$(CURDIR)/cli/bin:$$PATH" npx playwright test
+
+# Burst the running stack and assert it still answers. Needs the stack brought up with
+# tests/load/docker-compose.load-tests.yml on top of the HTTP suite's, which shrinks the connector
+# and the client pool so a burst the runner can produce is enough. Kept apart from `tests`: a failing
+# run leaves the platform wedged, and every test after it would fail for the wrong reason.
+load-tests:
+	cd tests/load && ./run.sh

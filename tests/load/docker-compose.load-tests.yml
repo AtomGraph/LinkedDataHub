@@ -1,0 +1,22 @@
+# On top of docker-compose.yml and tests/http/docker-compose.http-tests.yml:
+#
+#   docker compose -f docker-compose.yml -f tests/http/docker-compose.http-tests.yml \
+#                  -f tests/load/docker-compose.load-tests.yml --env-file tests/http/.env up --build -d
+#
+# A stack sized so that a burst the test runner can produce reproduces what only real traffic
+# reaches on a production connector of 200 threads. The ratio is what matters and it mirrors
+# production: more request threads than outbound connections per route, so a burst of renders
+# first exhausts the client pool and then the connector, in that order.
+services:
+  linkeddatahub:
+    environment:
+      - HTTP_MAX_THREADS=16   # Tomcat's connector behind the proxy; default 200
+      - MAX_CONN_PER_ROUTE=4  # the platform's outbound client pool, per host; production had 40
+      - MAX_TOTAL_CONN=8
+      # far past any bound the tests use: a wedge that resolves only because the platform's reads
+      # time out is still the wedge, and the dev default of two minutes would hide it behind the probe
+      - CLIENT_SOCKET_TIMEOUT=600000
+  fuseki:
+    # the HTTP suite publishes the triplestore for its fixtures; this suite only talks to the front
+    # door, and a developer's own stack may already hold the port
+    ports: !override []
