@@ -321,9 +321,10 @@ exclude-result-prefixes="#all"
     <xsl:function name="ldh:css-token" as="xs:string">
         <xsl:param name="name" as="xs:string"/>
 
-        <!-- ixsl:style() hands back a map of the computed style, not the CSSStyleDeclaration itself, so the
-             token is a key lookup; custom properties are in it because getComputedStyle enumerates them -->
-        <xsl:sequence select="normalize-space(ixsl:style(ixsl:page()/*)($name))"/>
+        <!-- asked for by name: ixsl:style() builds its map by enumerating getComputedStyle, and Chromium 131 (still
+             Playwright's bundled build) enumerates no custom properties, so every token came back empty and Google Charts failed on the
+             empty colours ("Cannot read properties of null (reading 'color')") -->
+        <xsl:sequence select="normalize-space(ixsl:call(ixsl:call(ixsl:window(), 'getComputedStyle', [ ixsl:page()/* ]), 'getPropertyValue', [ $name ]))"/>
     </xsl:function>
     
     <!-- format URLs in DataTable as HTML links. !!! Saxon-JS cannot intercept Google Charts events, therefore set a full proxied URL !!! -->
