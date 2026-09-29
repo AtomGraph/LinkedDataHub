@@ -944,7 +944,7 @@ WHERE
                 </div>
                 <div class="col">
                     <p class="ftitle"><xsl:value-of select="ac:label(key('resources', 'resources', document('translations.rdf')))"/></p>
-                    <a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank"><xsl:value-of select="ac:label(key('resources', 'documentation', document('translations.rdf')))"/></a>
+                    <a href="https://docs.linkeddatahub.com/" target="_blank"><xsl:value-of select="ac:label(key('resources', 'documentation', document('translations.rdf')))"/></a>
                     <a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank"><xsl:value-of select="ac:label(key('resources', 'screencasts', document('translations.rdf')))"/></a>
                 </div>
                 <div class="col">

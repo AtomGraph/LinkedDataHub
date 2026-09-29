@@ -16,7 +16,7 @@ What makes LinkedDataHub unique is its completely _data-driven architecture_: ap
 
 XHTML documents can be edited in-place using a built-in RDFa-aware rich text editor — annotations link selected text directly to Knowledge Graph terms, embedding machine-readable RDF statements in the markup without leaving the page.
 
-**Follow the [Get started](https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/get-started/) guide to LinkedDataHub.** The setup and basic configuration sections are provided below and should get you running.
+**Follow the [Get started](https://docs.linkeddatahub.com/get-started/) guide to LinkedDataHub.** The setup and basic configuration sections are provided below and should get you running.
 
 **LinkedDataHub is also available as a free AWS Marketplace product!** <a href="https://aws.amazon.com/marketplace/pp/prodview-vqbeztc3f2nni" target="_blank"><img src="https://github.com/AtomGraph/LinkedDataHub/raw/master/AWS%20Marketplace.svg" width="160" alt="AWS Marketplace"/></a>  
 It takes a few clicks and filling out a form to install the product into your own AWS account. No manual setup or configuration necessary!
@@ -247,7 +247,7 @@ _:warning: Do not use blank nodes to identify applications or services. We recom
     <dd>Port number of the mail server</dd>
   </dl>
 
-The options are described in more detail in the [configuration documentation](https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/reference/configuration/).
+The options are described in more detail in the [configuration documentation](https://docs.linkeddatahub.com/reference/configuration/).
 
   ## Reset
 
@@ -260,13 +260,13 @@ The options are described in more detail in the [configuration documentation](ht
 _:warning: This will **remove the persisted data and files** as well as Docker volumes._
 </details>
 
-## [Documentation](https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/)
+## [Documentation](https://docs.linkeddatahub.com/)
 
-* [Get started](https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/get-started/)
-* [Reference](https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/reference/)
-* [User guide](https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/user-guide/)
+* [Get started](https://docs.linkeddatahub.com/get-started/)
+* [Reference](https://docs.linkeddatahub.com/reference/)
+* [User guide](https://docs.linkeddatahub.com/user-guide/)
 
-## [Command line interface](https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/reference/command-line-interface/)
+## [Command line interface](https://docs.linkeddatahub.com/reference/command-line-interface/)
 
 `ldh` wraps the HTTP API into a single executable with convenient parameters. It can be used for testing, automation, scheduled execution and such. It is usually much quicker to perform actions using the CLI rather than the user interface, as well as easier to reproduce.
 
