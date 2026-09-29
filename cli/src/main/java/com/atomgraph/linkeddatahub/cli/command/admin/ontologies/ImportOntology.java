@@ -19,7 +19,8 @@ package com.atomgraph.linkeddatahub.cli.command.admin.ontologies;
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
 import com.atomgraph.linkeddatahub.cli.http.HttpException;
 import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
-import com.atomgraph.linkeddatahub.cli.vocab.SP;
+import com.atomgraph.linkeddatahub.rdf.Ontologies;
+import com.atomgraph.linkeddatahub.rdf.vocabulary.SP;
 import jakarta.ws.rs.core.Form;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -27,9 +28,7 @@ import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.sparql.vocabulary.FOAF;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
@@ -77,7 +76,7 @@ public class ImportOntology extends BaseCommand
         // the vocabulary goes into the target first, so the CONSTRUCT has it to read and it stays afterwards
         post(getClient(), graph, vocabulary);
         post(getClient(), graph, construct(base, query, graph));
-        post(getClient(), graph, buildAnnotationModel(graph, source));
+        post(getClient(), graph, Ontologies.annotation(graph, source));
 
         print(graph);
 
@@ -139,24 +138,6 @@ public class ImportOntology extends BaseCommand
         {
             return response.readEntity(Model.class);
         }
-    }
-
-    /**
-     * Builds the arc saying what the document is about. The document is not the ontology, so it takes
-     * no owl:Ontology type of its own: the vocabulary stored alongside carries that.
-     *
-     * @param graph target document URI
-     * @param source imported ontology URI
-     * @return primary topic model
-     */
-    public static Model buildAnnotationModel(URI graph, URI source)
-    {
-        Model model = ModelFactory.createDefaultModel();
-
-        model.createResource(graph.toString()).
-            addProperty(FOAF.primaryTopic, model.createResource(source.toString()));
-
-        return model;
     }
 
 }

@@ -18,13 +18,9 @@ package com.atomgraph.linkeddatahub.cli.command.admin.ontologies;
 
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
 import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
+import com.atomgraph.linkeddatahub.rdf.Ontologies;
 import java.net.URI;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL;
-import org.apache.jena.vocabulary.RDF;
-import org.apache.jena.vocabulary.RDFS;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
@@ -68,37 +64,10 @@ public class AddRestriction extends BaseCommand
     {
         baseMixin.require(getSpec()); // required by the script interface
 
-        post(getClient(), target, buildModel(target, uri, label, comment, onProperty, allValuesFrom, hasValue));
+        post(getClient(), target, Ontologies.restriction(target, uri, label, comment, onProperty, allValuesFrom, hasValue));
         print(target);
 
         return 0;
-    }
-
-    /**
-     * Builds the restriction description.
-     *
-     * @param target target document URI
-     * @param uri restriction URI (optional)
-     * @param label restriction label
-     * @param comment restriction comment (optional)
-     * @param onProperty restricted property URI (optional)
-     * @param allValuesFrom value class URI (optional)
-     * @param hasValue value resource URI (optional)
-     * @return restriction model
-     */
-    public static Model buildModel(URI target, String uri, String label, String comment, URI onProperty, URI allValuesFrom, URI hasValue)
-    {
-        Model model = ModelFactory.createDefaultModel();
-
-        Resource restriction = createSubject(model, target, uri).
-            addProperty(RDF.type, OWL.Restriction).
-            addProperty(RDFS.label, label);
-        if (comment != null) restriction.addProperty(RDFS.comment, comment);
-        if (onProperty != null) restriction.addProperty(OWL.onProperty, model.createResource(onProperty.toString()));
-        if (allValuesFrom != null) restriction.addProperty(OWL.allValuesFrom, model.createResource(allValuesFrom.toString()));
-        if (hasValue != null) restriction.addProperty(OWL.hasValue, model.createResource(hasValue.toString()));
-
-        return model;
     }
 
 }

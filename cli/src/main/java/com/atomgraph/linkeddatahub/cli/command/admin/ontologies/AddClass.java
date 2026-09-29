@@ -18,16 +18,10 @@ package com.atomgraph.linkeddatahub.cli.command.admin.ontologies;
 
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
 import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
-import com.atomgraph.linkeddatahub.cli.vocab.SPIN;
+import com.atomgraph.linkeddatahub.rdf.Ontologies;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.OWL;
-import org.apache.jena.vocabulary.RDF;
-import org.apache.jena.vocabulary.RDFS;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
@@ -71,37 +65,10 @@ public class AddClass extends BaseCommand
     {
         baseMixin.require(getSpec()); // required by the script interface
 
-        post(getClient(), target, buildModel(target, uri, label, comment, constructor, constraint, superClasses));
+        post(getClient(), target, Ontologies.owlClass(target, uri, label, comment, constructor, constraint, superClasses));
         print(target);
 
         return 0;
-    }
-
-    /**
-     * Builds the class description.
-     *
-     * @param target target document URI
-     * @param uri class URI (optional)
-     * @param label class label
-     * @param comment class comment (optional)
-     * @param constructor constructor query URI (optional)
-     * @param constraint constraint URI (optional)
-     * @param superClasses superclass URIs
-     * @return class model
-     */
-    public static Model buildModel(URI target, String uri, String label, String comment, URI constructor, URI constraint, List<URI> superClasses)
-    {
-        Model model = ModelFactory.createDefaultModel();
-
-        Resource cls = createSubject(model, target, uri).
-            addProperty(RDF.type, OWL.Class).
-            addProperty(RDFS.label, label);
-        if (comment != null) cls.addProperty(RDFS.comment, comment);
-        if (constructor != null) cls.addProperty(SPIN.constructor, model.createResource(constructor.toString()));
-        if (constraint != null) cls.addProperty(SPIN.constraint, model.createResource(constraint.toString()));
-        superClasses.forEach(superClass -> cls.addProperty(RDFS.subClassOf, model.createResource(superClass.toString())));
-
-        return model;
     }
 
 }

@@ -18,7 +18,8 @@ package com.atomgraph.linkeddatahub.cli.command.admin.ontologies;
 
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
 import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
-import com.atomgraph.linkeddatahub.cli.vocab.SP;
+import com.atomgraph.linkeddatahub.rdf.Ontologies;
+import com.atomgraph.linkeddatahub.rdf.vocabulary.SP;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -62,7 +63,7 @@ public class AddSelect extends BaseCommand
     {
         baseMixin.require(getSpec()); // required by the script interface
 
-        post(getClient(), target, AddConstructor.buildModel(target, uri, SP.Select, label, Files.readString(queryFile), service, comment));
+        post(getClient(), target, Ontologies.constructor(target, uri, SP.Select, label, Files.readString(queryFile), service, comment));
         print(target);
 
         return 0;

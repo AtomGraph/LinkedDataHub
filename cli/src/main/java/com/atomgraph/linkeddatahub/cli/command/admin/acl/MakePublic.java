@@ -19,8 +19,8 @@ package com.atomgraph.linkeddatahub.cli.command.admin.acl;
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
 import com.atomgraph.linkeddatahub.cli.http.HttpException;
 import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
-import com.atomgraph.linkeddatahub.cli.sparql.Updates;
-import com.atomgraph.linkeddatahub.cli.util.URIRewriter;
+import com.atomgraph.linkeddatahub.rdf.URIs;
+import com.atomgraph.linkeddatahub.rdf.Updates;
 import java.net.URI;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
@@ -41,7 +41,7 @@ public class MakePublic extends BaseCommand
     public Integer call() throws Exception
     {
         URI base = baseMixin.require(getSpec());
-        URI adminBase = URIRewriter.adminBase(base);
+        URI adminBase = URIs.adminBase(base);
         URI target = URI.create(adminBase + "acl/authorizations/public/");
 
         HttpException.check(target, getClient().patch(target, Updates.makePublic(base, adminBase))).close();
@@ -53,7 +53,7 @@ public class MakePublic extends BaseCommand
     protected URI getEffectiveProxy()
     {
         // the request targets the admin app, so the proxy origin gets the admin subdomain too
-        return getProxyMixin().getProxy() != null ? URIRewriter.adminBase(getProxyMixin().getProxy()) : null;
+        return getProxyMixin().getProxy() != null ? URIs.adminBase(getProxyMixin().getProxy()) : null;
     }
 
 }

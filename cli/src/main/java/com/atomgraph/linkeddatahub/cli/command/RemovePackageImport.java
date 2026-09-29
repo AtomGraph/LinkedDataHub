@@ -19,7 +19,7 @@ package com.atomgraph.linkeddatahub.cli.command;
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
 import com.atomgraph.linkeddatahub.cli.http.HttpException;
 import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
-import com.atomgraph.linkeddatahub.cli.sparql.Updates;
+import com.atomgraph.linkeddatahub.rdf.Updates;
 import java.net.URI;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;

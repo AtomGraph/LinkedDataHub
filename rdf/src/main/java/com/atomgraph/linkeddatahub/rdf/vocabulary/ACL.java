@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.atomgraph.linkeddatahub.cli.vocab;
+package com.atomgraph.linkeddatahub.rdf.vocabulary;
 
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;

@@ -46,10 +46,16 @@ make cli
 which prints the `export PATH=...` line to run afterwards. It is the equivalent of:
 
 ```bash
+cd rdf && mvn install && cd ..
 cd cli
 mvn package
 export PATH="$PWD/bin:$PATH"
 ```
+
+The `rdf/` step installs `com.atomgraph:linkeddatahub-rdf`, which holds the vocabularies and the
+document shapes the commands build — shared with Web-Algebra's `ldh-*` operations, so the two
+cannot drift. It is resolved by `${project.version}`, so it has to be installed again after a
+version bump; `make cli` does that for you.
 
 This produces the self-contained `target/ldh.jar`, which the `cli/bin/ldh` launcher runs. The
 launcher prefers `LDH_JAR`, then a jar sitting beside it (the release archive layout), then

@@ -127,20 +127,24 @@ fi
 
 print_status "GPG check passed"
 
-# Set cli/pom.xml to the given version and commit it. The CLI is not a module of the platform
-# reactor, so maven-release-plugin does not rewrite it - it is kept in step here instead, once for
-# the release version and once for the next development version.
+# Set rdf/pom.xml and cli/pom.xml to the given version and commit them. Neither is a module of the
+# platform reactor, so maven-release-plugin does not rewrite them - they are kept in step here
+# instead, once for the release version and once for the next development version. The CLI resolves
+# the library by ${project.version}, so the two must move together or the CLI build breaks.
 sync_cli_version() {
     local version="$1"
+    local project
 
-    (cd cli && mvn -B -q versions:set -DnewVersion="$version" -DgenerateBackupPoms=false)
+    for project in rdf cli; do
+        (cd "$project" && mvn -B -q versions:set -DnewVersion="$version" -DgenerateBackupPoms=false)
+    done
 
-    if git diff --quiet -- cli/pom.xml; then
-        print_status "cli/pom.xml already at $version"
+    if git diff --quiet -- rdf/pom.xml cli/pom.xml; then
+        print_status "rdf/pom.xml and cli/pom.xml already at $version"
     else
-        git add cli/pom.xml
-        git commit -m "Set the CLI version to $version"
-        print_status "cli/pom.xml set to $version"
+        git add rdf/pom.xml cli/pom.xml
+        git commit -m "Set the RDF library and CLI versions to $version"
+        print_status "rdf/pom.xml and cli/pom.xml set to $version"
     fi
 }
 
@@ -227,6 +231,23 @@ assert_can_switch_to develop
 print_status "Performing Maven release (deploying to Sonatype)..."
 mvn release:perform -DlocalCheckout=true
 PUBLISHED=true
+
+# Publish linkeddatahub-rdf at the same version. It is not a module of the reactor, so
+# release:perform does not carry it - but the CLI resolves it by ${project.version}, and Web-Algebra's
+# ldh-* operations resolve it from their own repository, so a platform release without it is a release
+# whose clients cannot build.
+#
+# Deployed from the tag rather than the working tree: by this point sync_cli_version has already moved
+# rdf/pom.xml on to the next development version, while the tag holds the release one. git archive
+# extracts the subtree alone, so nothing here depends on the working tree's state.
+# The staging directory is removed inline rather than by a trap: the script's only EXIT trap is
+# cleanup_on_failure, and registering a second one would replace it.
+print_status "Deploying linkeddatahub-rdf $RELEASE_VERSION..."
+RDF_STAGING=$(mktemp -d)
+git archive "$RELEASE_TAG" rdf | tar -x -C "$RDF_STAGING"
+(cd "$RDF_STAGING/rdf" && mvn -B -Prelease clean deploy)
+rm -rf "$RDF_STAGING"
+print_status "linkeddatahub-rdf $RELEASE_VERSION deployed"
 
 # Switch to master and merge only the release commit
 print_status "Merging release commit to master branch..."

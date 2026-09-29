@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.atomgraph.linkeddatahub.cli.util;
+package com.atomgraph.linkeddatahub.rdf;
 
 import java.util.Locale;
 import java.util.UUID;

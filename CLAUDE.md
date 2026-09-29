@@ -39,8 +39,9 @@ make down                                    # Stop the services
 make down -- -v                              # Stop and remove volumes
 make drop                                    # Complete reset (down -v, then wipe local dirs)
 
-make cli                                     # Build the ldh CLI, print the PATH export to run
-make cli-version                             # Set cli/pom.xml to the platform version in pom.xml
+make rdf                                     # Install the linkeddatahub-rdf library
+make cli                                     # Build the ldh CLI (installs rdf first), print the PATH export
+make cli-version                             # Set rdf/ and cli/ poms to the platform version in pom.xml
 ```
 
 ### Testing
@@ -155,15 +156,42 @@ into a shaded `cli/target/ldh.jar` that `cli/bin/ldh` launches. See `cli/README.
 script → command table and the behavioral differences from the scripts.
 
 ```bash
-cd cli && mvn package && export PATH="$PWD/bin:$PATH"
+make cli && export PATH="$PWD/cli/bin:$PATH"
 
 ldh create container --parent "$LDH_BASE" --title "Some" --slug some
 ldh admin add agent --agent "$AGENT_URI" "${ADMIN_BASE}acl/groups/writers/"
 ```
 
-`cli/` is not a module of the platform reactor (the root pom is the webapp artifact, so it cannot
-carry `<modules>`), but it shares the platform's version: `release.sh` runs `versions:set` on it
-around both release bumps, and `make cli-version` re-aligns it if it drifts.
+## The RDF library
+
+`rdf/` builds `com.atomgraph:linkeddatahub-rdf` — the vocabularies (`com.atomgraph.linkeddatahub.rdf.vocabulary`)
+and the document shapes the HTTP API accepts (`Documents`, `Blocks`, `Views`, `Queries`, `Services`,
+`Imports`, `Acl`, `Ontologies`, plus the SPARQL `Updates`). Jena and nothing else: no Jersey, no
+picocli. Every consumer talks to the platform over HTTP its own way, so what is shared is the shape
+of the request body, not how it is sent.
+
+Two consumers today — the CLI, and Web-Algebra's `ldh-*` operations in `../REST-VKG` — which is why
+the builders live here rather than on the picocli command classes that used to own them. A shape
+described in one place cannot drift between them.
+
+The platform keeps its own `com.atomgraph.linkeddatahub.vocabulary`, still duplicated with this
+library's. Collapsing them would make the platform depend on `rdf/`, and the Dockerfile builds the
+webapp from `COPY src` + `COPY pom.xml` alone — so the dependency has to point away from the
+platform, not at it.
+
+Neither `rdf/` nor `cli/` is a module of the platform reactor (the root pom is the webapp artifact,
+so it cannot carry `<modules>`), but both share the platform's version: `release.sh` runs
+`versions:set` on them around both release bumps, and `make cli-version` re-aligns them if they
+drift. `cli/pom.xml` resolves the library by `${project.version}`, so the two move together.
+`make cli` installs `rdf/` first; building `cli/` on its own needs `make rdf` to have run at least
+once since the last version bump.
+
+`linkeddatahub-rdf` publishes to Maven Central on its own, since `release:perform` only carries
+reactor modules: `release.sh` deploys it right after the platform, extracting `rdf/` from the release
+tag with `git archive` because the working tree has already moved on to the next SNAPSHOT by then.
+A snapshot can be published by hand with `cd rdf && mvn -Prelease clean deploy` — the `release`
+profile attaches the sources and javadoc jars and signs them, which is what
+`<releaseProfiles>release</releaseProfiles>` gets the platform.
 
 `LDH_CERT_FILE`, `LDH_CERT_PASSWORD`, `LDH_BASE` and `LDH_PROXY` supply defaults for `-c`, `-p`,
 `-b` and `--proxy`. `-c/--cert` takes either format the agent's credential comes in — a PKCS12

@@ -18,14 +18,8 @@ package com.atomgraph.linkeddatahub.cli.command.admin.ontologies;
 
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
 import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
-import com.atomgraph.linkeddatahub.cli.vocab.LDH;
-import com.atomgraph.linkeddatahub.cli.vocab.SP;
+import com.atomgraph.linkeddatahub.rdf.Ontologies;
 import java.net.URI;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.RDF;
-import org.apache.jena.vocabulary.RDFS;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
@@ -63,33 +57,10 @@ public class AddPropertyConstraint extends BaseCommand
     {
         baseMixin.require(getSpec()); // required by the script interface
 
-        post(getClient(), target, buildModel(target, uri, label, property, comment));
+        post(getClient(), target, Ontologies.propertyConstraint(target, uri, label, property, comment));
         print(target);
 
         return 0;
-    }
-
-    /**
-     * Builds the constraint description.
-     *
-     * @param target target document URI
-     * @param uri constraint URI (optional)
-     * @param label constraint label
-     * @param property required property URI
-     * @param comment constraint comment (optional)
-     * @return constraint model
-     */
-    public static Model buildModel(URI target, String uri, String label, URI property, String comment)
-    {
-        Model model = ModelFactory.createDefaultModel();
-
-        Resource constraint = createSubject(model, target, uri).
-            addProperty(RDF.type, LDH.MissingPropertyValue).
-            addProperty(RDFS.label, label).
-            addProperty(SP.arg1, model.createResource(property.toString()));
-        if (comment != null) constraint.addProperty(RDFS.comment, comment);
-
-        return model;
     }
 
 }

@@ -16,9 +16,9 @@
 
 package com.atomgraph.linkeddatahub.cli;
 
-import com.atomgraph.linkeddatahub.cli.http.StubServer;
 import com.atomgraph.linkeddatahub.cli.http.StubServer.Request;
-import com.atomgraph.linkeddatahub.cli.util.Digests;
+import com.atomgraph.linkeddatahub.cli.http.StubServer;
+import com.atomgraph.linkeddatahub.rdf.Digests;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;

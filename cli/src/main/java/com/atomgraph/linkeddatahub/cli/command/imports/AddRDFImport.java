@@ -19,14 +19,8 @@ package com.atomgraph.linkeddatahub.cli.command.imports;
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
 import com.atomgraph.linkeddatahub.cli.http.LDHClient;
 import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
-import com.atomgraph.linkeddatahub.cli.vocab.LDH;
-import com.atomgraph.linkeddatahub.cli.vocab.SD;
-import com.atomgraph.linkeddatahub.cli.vocab.SPIN;
+import com.atomgraph.linkeddatahub.rdf.Imports;
 import java.net.URI;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
@@ -91,34 +85,7 @@ public class AddRDFImport extends BaseCommand
      */
     public static void core(LDHClient client, URI target, String uri, String title, URI file, URI query, URI graph, String description)
     {
-        post(client, target, buildModel(target, uri, title, file, query, graph, description));
-    }
-
-    /**
-     * Builds the RDF import description.
-     *
-     * @param target target document URI
-     * @param uri import URI (optional)
-     * @param title import title
-     * @param file uploaded file URI
-     * @param query transformation query URI (optional)
-     * @param graph target named graph URI (optional)
-     * @param description import description (optional)
-     * @return import model
-     */
-    public static Model buildModel(URI target, String uri, String title, URI file, URI query, URI graph, String description)
-    {
-        Model model = ModelFactory.createDefaultModel();
-
-        Resource rdfImport = createSubject(model, target, uri).
-            addProperty(RDF.type, LDH.RDFImport).
-            addProperty(DCTerms.title, title).
-            addProperty(LDH.file, model.createResource(file.toString()));
-        if (graph != null) rdfImport.addProperty(SD.name, model.createResource(graph.toString()));
-        if (query != null) rdfImport.addProperty(SPIN.query, model.createResource(query.toString()));
-        if (description != null) rdfImport.addProperty(DCTerms.description, description);
-
-        return model;
+        post(client, target, Imports.rdf(target, uri, title, file, query, graph, description));
     }
 
 }

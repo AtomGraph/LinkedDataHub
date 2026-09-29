@@ -14,29 +14,29 @@
  * limitations under the License.
  */
 
-package com.atomgraph.linkeddatahub.cli.vocab;
+package com.atomgraph.linkeddatahub.rdf.vocabulary;
 
 import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 
 /**
- * SPIN modeling vocabulary.
+ * NEPOMUK File Ontology vocabulary.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public final class SPIN
+public final class NFO
 {
 
     /** Namespace URI */
-    public static final String NS = "http://spinrdf.org/spin#";
+    public static final String NS = "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#";
 
-    private SPIN() { }
+    private NFO() { }
 
-    /** spin:query property */
-    public static final Property query = ResourceFactory.createProperty(NS + "query");
-    /** spin:constructor property */
-    public static final Property constructor = ResourceFactory.createProperty(NS + "constructor");
-    /** spin:constraint property */
-    public static final Property constraint = ResourceFactory.createProperty(NS + "constraint");
+    /** nfo:FileDataObject class */
+    public static final Resource FileDataObject = ResourceFactory.createResource(NS + "FileDataObject");
+
+    /** nfo:fileName property */
+    public static final Property fileName = ResourceFactory.createProperty(NS + "fileName");
 
 }

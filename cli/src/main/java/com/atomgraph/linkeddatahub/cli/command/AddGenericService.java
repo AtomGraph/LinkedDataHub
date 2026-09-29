@@ -18,14 +18,8 @@ package com.atomgraph.linkeddatahub.cli.command;
 
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
 import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
-import com.atomgraph.linkeddatahub.cli.vocab.A;
-import com.atomgraph.linkeddatahub.cli.vocab.SD;
+import com.atomgraph.linkeddatahub.rdf.Services;
 import java.net.URI;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.DCTerms;
-import org.apache.jena.vocabulary.RDF;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
@@ -72,41 +66,10 @@ public class AddGenericService extends BaseCommand
     {
         baseMixin.require(getSpec()); // required by the script interface
 
-        post(getClient(), target, buildModel(target, uri, title, endpoint, graphStore, authUser, authPwd, description));
+        post(getClient(), target, Services.service(target, uri, title, endpoint, graphStore, authUser, authPwd, description));
         print(target);
 
         return 0;
-    }
-
-    /**
-     * Builds the service description.
-     *
-     * @param target target document URI
-     * @param uri service URI (optional)
-     * @param title service title
-     * @param endpoint SPARQL endpoint URI
-     * @param graphStore Graph Store Protocol endpoint URI (optional)
-     * @param authUser HTTP Basic auth username (optional)
-     * @param authPwd HTTP Basic auth password (optional)
-     * @param description service description (optional)
-     * @return service model
-     */
-    public static Model buildModel(URI target, String uri, String title, URI endpoint, URI graphStore, String authUser, String authPwd, String description)
-    {
-        Model model = ModelFactory.createDefaultModel();
-
-        Resource service = createSubject(model, target, uri).
-            addProperty(RDF.type, SD.Service).
-            addProperty(DCTerms.title, title).
-            addProperty(SD.endpoint, model.createResource(endpoint.toString())).
-            addProperty(SD.supportedLanguage, SD.SPARQL11Query).
-            addProperty(SD.supportedLanguage, SD.SPARQL11Update);
-        if (graphStore != null) service.addProperty(A.graphStore, model.createResource(graphStore.toString()));
-        if (authUser != null) service.addProperty(A.authUser, authUser);
-        if (authPwd != null) service.addProperty(A.authPwd, authPwd);
-        if (description != null) service.addProperty(DCTerms.description, description);
-
-        return model;
     }
 
 }
