@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>LinkedDataHub has moved to linkeddatahub.com</title>
+<link rel="canonical" href="https://linkeddatahub.com/"/>
+<script>
+// The documentation pages that survived the move to docs.linkeddatahub.com keep
+// their path there. The rest of the mirror is gone -- the v2 and v3 archives, and
+// the pages the 6.0 documentation reorganised -- so those land on its front page.
+var pages = [
+        "about/",
+        "extending/",
+        "extending/build-apps/",
+        "extending/change-layout/",
+        "get-started/",
+        "get-started/get-an-account/",
+        "get-started/request-access/",
+        "get-started/setup/",
+        "reference/",
+        "reference/administration/",
+        "reference/administration/acl/",
+        "reference/administration/ontologies/",
+        "reference/administration/packages/",
+        "reference/command-line-interface/",
+        "reference/configuration/",
+        "reference/data-model/",
+        "reference/data-model/blocks/",
+        "reference/data-model/documents/",
+        "reference/data-model/resources/",
+        "reference/dataset/",
+        "reference/dataspace/",
+        "reference/http-api/",
+        "reference/imports/",
+        "reference/imports/csv/",
+        "reference/imports/rdf/",
+        "reference/migrating-from-5x/",
+        "reference/stylesheets/",
+        "reference/triplestores/",
+        "reference/user-interface/",
+        "reference/versioning/",
+        "tutorial/",
+        "tutorial/app-as-repository/",
+        "tutorial/beyond-low-code/",
+        "tutorial/composition/",
+        "tutorial/data/",
+        "tutorial/hello-dataspace/",
+        "tutorial/insight/",
+        "tutorial/media/",
+        "tutorial/model/",
+        "tutorial/publish/",
+        "tutorial/structure/",
+        "user-guide/",
+        "user-guide/add-data/",
+        "user-guide/browse-data/",
+        "user-guide/change-model/",
+        "user-guide/create-data/",
+        "user-guide/create-data/create-content/",
+        "user-guide/create-data/create-documents/",
+        "user-guide/create-data/create-resources/",
+        "user-guide/edit-content/",
+        "user-guide/import-data/",
+        "user-guide/import-data/import-csv-data/",
+        "user-guide/import-data/import-rdf-data/",
+        "user-guide/manage-dataspaces/",
+        "user-guide/manage-packages/",
+        "user-guide/query-data/",
+        "user-guide/upload-file/",
+        "user-guide/version-history/",
+];
+var mirror = "/LinkedDataHub/linkeddatahub/docs/";
+var path = location.pathname;
+var page = path.indexOf(mirror) === 0 ? path.substring(mirror.length).replace(/index\.html$/, "") : null;
+if (page !== null && page !== "" && page.slice(-1) !== "/") page += "/";
+location.replace(pages.indexOf(page) !== -1 ?
+    "https://docs.linkeddatahub.com/" + page + location.search + location.hash :
+    page !== null ? "https://docs.linkeddatahub.com/" : "https://linkeddatahub.com/");
+</script>
+<style>
+body { margin: 4rem auto; max-width: 34rem; padding: 0 1rem; font: 1rem/1.6 system-ui, sans-serif; }
+</style>
+</head>
+<body>
+<h1>LinkedDataHub has moved</h1>
+<p>This site now lives at <a href="https://linkeddatahub.com/">linkeddatahub.com</a>, and the documentation at <a href="https://docs.linkeddatahub.com/">docs.linkeddatahub.com</a>.</p>
+</body>
+</html>
