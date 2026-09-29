@@ -5,8 +5,93 @@ on:
     tags:
       - '*'
 
+env:
+  PLATFORM_IMAGE: atomgraph/linkeddatahub
+  SEF_COMPILER_IMAGE: atomgraph/linkeddatahub-sef-compiler
+
 jobs:
+  # one job per architecture, each on a runner of that architecture. A single multi-platform build
+  # runs the arm64 leg through QEMU, which puts javac, the Saxon SEF compile and npm at a fraction
+  # of native speed and serializes it behind the amd64 one. These push untagged manifests by
+  # digest; the manifest job below assembles them into the tagged manifest lists
   docker:
+    strategy:
+      matrix:
+        include:
+          - platform: linux/amd64
+            arch: amd64
+            runner: ubuntu-latest
+          - platform: linux/arm64
+            arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      # no checkout step: with no context input the action builds from the Git context, so buildx
+      # clones the tag itself
+
+      - name: Build and push the platform image
+        id: platform
+        uses: docker/build-push-action@v6
+        with:
+          platforms: ${{ matrix.platform }}
+          tags: ${{ env.PLATFORM_IMAGE }} # the repository alone: these manifests are pushed untagged, by digest
+          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=platform-${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=platform-${{ matrix.arch }}
+
+      # the sef-compiler service composes each dataspace's client stylesheet with its package
+      # stylesheets, so a deployment that consumes images rather than building them needs it
+      # published under the same version as the platform it compiles for. Same Dockerfile, same
+      # tag, one stage earlier - the two images are only ever released together.
+      #
+      # It reads the platform scope too, which is where the maven stage the two share was exported.
+      # Separate scopes rather than one: each build exports only the stages it reaches, and a shared
+      # scope would have them overwrite each other's export on every run
+      - name: Build and push the SEF compiler image
+        id: sef-compiler
+        uses: docker/build-push-action@v6
+        with:
+          platforms: ${{ matrix.platform }}
+          target: sef-compiler
+          tags: ${{ env.SEF_COMPILER_IMAGE }} # the repository alone: these manifests are pushed untagged, by digest
+          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
+          cache-from: |
+            type=gha,scope=sef-compiler-${{ matrix.arch }}
+            type=gha,scope=platform-${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=sef-compiler-${{ matrix.arch }}
+
+      # one empty file per digest, named after it: the manifest job addresses the images it assembles
+      # by digest and needs nothing else from this one
+      - name: Export the digests
+        env:
+          PLATFORM_DIGEST: ${{ steps.platform.outputs.digest }}
+          SEF_COMPILER_DIGEST: ${{ steps.sef-compiler.outputs.digest }}
+        run: |
+          mkdir -p /tmp/digests/platform /tmp/digests/sef-compiler
+          touch "/tmp/digests/platform/${PLATFORM_DIGEST#sha256:}"
+          touch "/tmp/digests/sef-compiler/${SEF_COMPILER_DIGEST#sha256:}"
+
+      - name: Upload the digests
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ matrix.arch }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  # assemble one tagged manifest list per image from the per-architecture manifests pushed above
+  manifest:
+    name: Assemble the multi-architecture manifests
+    needs: docker
     runs-on: ubuntu-latest
     steps:
       - name: Login to Docker Hub
@@ -15,14 +100,15 @@ jobs:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+      # the digest file names are unique per architecture, so the artifacts merge into one tree
+      - name: Download the digests
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: digests-*
+          merge-multiple: true
 
       - name: Extract version parts
-        id: version
         run: |
           RAW_REF="${{ github.ref_name }}"
           # strip the literal prefix
@@ -34,32 +120,24 @@ jobs:
           echo "MINOR=$MAJOR.$MINOR" >> $GITHUB_ENV
           echo "FULL_VERSION=$VERSION" >> $GITHUB_ENV
 
-      - name: Build and push the platform image
-        uses: docker/build-push-action@v6
-        with:
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: |
-            atomgraph/linkeddatahub:latest
-            atomgraph/linkeddatahub:${{ env.FULL_VERSION }}
-            atomgraph/linkeddatahub:${{ env.MINOR }}
-            atomgraph/linkeddatahub:${{ env.MAJOR }}
+      - name: Create the manifest lists
+        run: |
+          create_manifest() {
+            image="$1"
+            refs=()
+            for digest in "/tmp/digests/$2"/*; do
+              refs+=("$image@sha256:$(basename "$digest")")
+            done
+            docker buildx imagetools create \
+              -t "$image:latest" \
+              -t "$image:$FULL_VERSION" \
+              -t "$image:$MINOR" \
+              -t "$image:$MAJOR" \
+              "${refs[@]}"
+          }
 
-      # the sef-compiler service composes each dataspace's client stylesheet with its package
-      # stylesheets, so a deployment that consumes images rather than building them needs it
-      # published under the same version as the platform it compiles for. Same Dockerfile, same
-      # tag, one stage earlier - the two images are only ever released together
-      - name: Build and push the SEF compiler image
-        uses: docker/build-push-action@v6
-        with:
-          platforms: linux/amd64,linux/arm64
-          push: true
-          target: sef-compiler
-          tags: |
-            atomgraph/linkeddatahub-sef-compiler:latest
-            atomgraph/linkeddatahub-sef-compiler:${{ env.FULL_VERSION }}
-            atomgraph/linkeddatahub-sef-compiler:${{ env.MINOR }}
-            atomgraph/linkeddatahub-sef-compiler:${{ env.MAJOR }}
+          create_manifest "$PLATFORM_IMAGE" platform
+          create_manifest "$SEF_COMPILER_IMAGE" sef-compiler
 
   cli:
     name: Attach the ldh CLI to the release
@@ -85,14 +163,6 @@ jobs:
 
       # release.sh keeps cli/pom.xml at the platform version, so the tagged commit already carries it
       # and the jar manifest ldh --version reads gets it from there
-      # cli/ resolves linkeddatahub-rdf by ${project.version}, and the library lives in this same
-      # checkout - so it is built here rather than fetched. Resolving a sibling through a remote
-      # repository would make every version bump wait on a publish: the post-release develop asks
-      # for a SNAPSHOT nothing has deployed yet, and the release tag asks for a version Central has
-      # not seen. `make cli` does the same thing locally.
-      - name: Build the linkeddatahub-rdf library
-        run: mvn -B install
-        working-directory: rdf
       - name: Build the ldh CLI
         run: mvn -B package
         working-directory: cli
