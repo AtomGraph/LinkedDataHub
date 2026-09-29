@@ -17,8 +17,17 @@
 package com.atomgraph.linkeddatahub.server.filter.request;
 
 import com.atomgraph.client.util.jena.PrefixGraphRepository;
+import java.net.URI;
+import java.util.List;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.ontapi.UnionGraph;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.vocabulary.RDFS;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -63,6 +72,60 @@ public class OntologyFilterTest
         OntologyFilter.addDocumentModel(repository, importURI);
 
         assertFalse(repository.isCached(docURI), "mapped document URI should not be cached as a secondary key");
+    }
+
+    /**
+     * A package descriptor may name the ontology's document (ns/) while the ontology inside is ns/#. The
+     * two URIs resolve to two graphs with the same ontology name; importing the declared name keeps the
+     * second one out of the closure.
+     */
+    @Test
+    public void testPackageImportUsesDeclaredOntologyIRI()
+    {
+        PrefixGraphRepository repository = new PrefixGraphRepository(null);
+        repository.put(APP, ontology(APP));
+        repository.put("http://example.org/pkg/ns/", ontology("http://example.org/pkg/ns/#", LABELLED));
+        repository.put("http://example.org/pkg/ns/#", ontology("http://example.org/pkg/ns/#", LABELLED)); // a separate load of the same document
+
+        UnionGraph union = OntologyFilter.loadOntology(repository, APP, List.of(URI.create("http://example.org/pkg/ns/")));
+
+        assertTrue(union.contains(LABELLED), "package ontology should be in the closure");
+    }
+
+    /** A package ontology that breaks the closure is left out of it, and the application ontology still loads. */
+    @Test
+    public void testCollidingPackageFallsBackToApplicationOntology()
+    {
+        PrefixGraphRepository repository = new PrefixGraphRepository(null);
+        Graph app = ontology(APP);
+        repository.put(APP, app);
+        Graph pkg = ontology("http://example.org/pkg#", LABELLED);
+        pkg.add(Triple.create(uri("http://example.org/pkg#"), OWL.imports.asNode(), uri("http://example.org/alias")));
+        repository.put("http://example.org/pkg#", pkg);
+        repository.put("http://example.org/alias", ontology("http://example.org/pkg#")); // another graph with the package's name
+
+        UnionGraph union = OntologyFilter.loadOntology(repository, APP, List.of(URI.create("http://example.org/pkg#")));
+
+        assertTrue(union.contains(uri(APP), RDF.type.asNode(), OWL.Ontology.asNode()), "application ontology should load");
+        assertFalse(union.contains(LABELLED), "the colliding package should be left out");
+        assertFalse(app.contains(uri(APP), OWL.imports.asNode(), uri("http://example.org/pkg#")), "the package import should be retracted");
+    }
+
+    private static final String APP = "http://example.org/app#";
+
+    private static final Triple LABELLED = Triple.create(uri("http://example.org/pkg/ns/#Thing"), RDFS.label.asNode(), NodeFactory.createLiteralString("Thing"));
+
+    private static Graph ontology(String name, Triple... triples)
+    {
+        Graph graph = ModelFactory.createDefaultModel().getGraph();
+        graph.add(Triple.create(uri(name), RDF.type.asNode(), OWL.Ontology.asNode()));
+        for (Triple triple : triples) graph.add(triple);
+        return graph;
+    }
+
+    private static Node uri(String uri)
+    {
+        return NodeFactory.createURI(uri);
     }
 
 }

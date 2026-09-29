@@ -29,8 +29,7 @@ version="3.0"
     next request. The package checkboxes are RDF/POST inputs in the settings form, so its Save submits
     the ldh:import triples together with the other settings. -->
 
-    <!-- catalog of available packages; resolved through the Linked Data proxy (served from the bundled
-    copy until the registry is live) -->
+    <!-- catalog of available packages: the registry root, resolved through the Linked Data proxy -->
     <xsl:variable name="ldh:package-catalog" select="xs:anyURI('https://packages.linkeddatahub.com/')" as="xs:anyURI"/>
 
     <!-- load/set pair for ldh:fire-load-set-parallel -->
