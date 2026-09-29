@@ -1,181 +1,617 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" lang="en" data-retro="m3" data-theme="light">
    <head>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
       <title>LinkedDataHub v5 — Resources</title>
       <meta name="description" content="RDF resources and their management"/>
-      <meta name="last-modified" content="2026-08-18T20:14:17Z"/>
-      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap.css" rel="stylesheet" type="text/css"/>
-      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
-      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/linkeddatahub-bootstrap.css" rel="stylesheet" type="text/css"/>
-      <style type="text/css">
-                body { padding-top: 60px; }
-                object { width: 100%; min-height: 640px; }
-            </style><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/js/jquery.min.js"></script><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/js/bootstrap.min.js"></script><script type="text/javascript">
-                    $(document).ready(function() {
-                        $("ul.nav-tabs a").on("click", function() {
-                            $(this).closest("ul").children().toggleClass("active", false);
-                            $(this).closest("li").toggleClass("active", true);
-                            $(this).closest("ul").next().children().toggleClass("active", false);
-                            $(this).closest("ul").next().children().eq($(this).closest("li").index()).toggleClass("active", true);
+      <meta name="last-modified" content="2026-09-29T09:21:08Z"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1"/>
+      <link href="../../../static/css/fonts.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/colors_and_type.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/app.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/retro.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/ldh.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/docs.css" rel="stylesheet" type="text/css"/><script type="text/javascript">
+                    document.addEventListener("click", function(event) {
+                        var tab = event.target.closest(".ac-tab[role='tab']");
+                        if (!tab) return;
+                        var tablist = tab.closest("[role='tablist']");
+                        var tabs = tablist.closest(".ac-tabs");
+                        if (!tabs || !tabs.querySelector(".ac-tabpanel")) return;
+                        tablist.querySelectorAll(".ac-tab").forEach(function(t) { t.classList.remove("is-on"); t.setAttribute("aria-selected", "false"); });
+                        tab.classList.add("is-on");
+                        tab.setAttribute("aria-selected", "true");
+                        tabs.querySelectorAll(".ac-tabpanel").forEach(function(pane) {
+                            if (pane.parentElement !== tabs) return;
+                            pane.hidden = pane.id !== tab.getAttribute("aria-controls");
                         });
                     });
-                </script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+                </script><script async="async" defer="defer" src="https://buttons.github.io/buttons.js"></script><script async="async" defer="defer" src="https://platform.twitter.com/widgets.js"></script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
                     window.dataLayer = window.dataLayer || [];
                     function gtag(){dataLayer.push(arguments);}
                     gtag('js', new Date());
                     gtag('config', 'UA-38402002-6');
                 </script></head>
-   <body>
-      <div class="navbar navbar-fixed-top">
-         <div class="navbar-inner">
-            <div class="container-fluid"><a class="brand" href="../../../">LinkedDataHub</a><div class="nav-collapse collapse">
-                  <ul class="nav">
-                     <li class="active">
-                        <div class="btn-group"><a class="btn" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/">Documentation v5</a><button class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button><ul class="dropdown-menu">
-                              <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a></li>
-                              <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></li>
-                           </ul>
-                        </div>
-                     </li>
-                     <li><a href="https://github.com/AtomGraph/LinkedDataHub" target="_blank">Code</a></li>
-                  </ul>
-               </div>
-            </div>
-         </div>
+   <body class="app">
+      <div class="ldh-header" role="banner"><a class="ldh-wordmark" href="../../../"><span class="mark"></span><span>LinkedDataHub</span></a><div></div>
+         <div class="ldh-header-actions">
+            <details class="docs-versions">
+               <summary>Documentation v6</summary>
+               <div><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v5/">Documentation v5</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></div>
+            </details><a href="https://github.com/AtomGraph/LinkedDataHub-Apps" target="_blank">Sample dataspaces</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub/subscription" data-icon="octicon-eye" data-size="large" aria-label="Watch AtomGraph/LinkedDataHub on GitHub">Watch</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star AtomGraph/LinkedDataHub on GitHub">Star</a><a href="https://twitter.com/atomgraphhq" class="twitter-follow-button" data-show-count="false">Follow @atomgraphhq</a><a href="https://youtube.com/@atomgraph" target="_blank"><span class="msi outline" aria-hidden="true">smart_display</span> @atomgraph</a></div>
       </div>
-      <div class="container-fluid">
-         <div class="row-fluid">
-            <nav class="span2">
-               <ul class="nav nav-list">
-                  <li><a href="../../../about/">About LinkedDataHub</a></li>
-                  <li><a href="../../../get-started/">Get started</a><ul class="nav nav-list">
-                        <li><a href="../../../get-started/get-an-account/">Get an account</a></li>
-                        <li><a href="../../../get-started/request-access/">Request access</a></li>
-                        <li><a href="../../../get-started/setup/">Setup</a></li>
-                     </ul>
-                  </li>
-                  <li><a href="../../">Reference</a><ul class="nav nav-list">
-                        <li><a href="../../administration/">Administration</a><ul class="nav nav-list">
-                              <li><a href="../../administration/acl/">Access control</a></li>
-                              <li><a href="../../administration/ontologies/">Ontologies</a></li>
-                              <li><a href="../../administration/packages/">Packages</a></li>
-                           </ul>
-                        </li>
-                        <li><a href="../../command-line-interface/">Command line interface</a></li>
-                        <li><a href="../../configuration/">Configuration</a></li>
-                        <li><a href="../">Data model</a><ul class="nav nav-list">
-                              <li><a href="../blocks/">Content blocks</a><ul class="nav nav-list">
-                                    <li><a href="../blocks/objects/">Object blocks</a></li>
-                                    <li><a href="../blocks/xhtml/">XHTML blocks</a></li>
-                                 </ul>
-                              </li>
-                              <li><a href="../documents/">Documents</a><ul class="nav nav-list">
-                                    <li><a href="../documents/containers/">Containers</a></li>
-                                    <li><a href="../documents/items/">Items</a></li>
-                                 </ul>
-                              </li>
-                              <li class="active"><a href="">Resources</a><ul class="nav nav-list">
-                                    <li><a href="charts/">Charts</a></li>
-                                    <li><a href="queries/">Queries</a></li>
-                                    <li><a href="views/">Views</a></li>
-                                 </ul>
-                              </li>
-                           </ul>
-                        </li>
-                        <li><a href="../../dataspace/">Dataspace</a></li>
-                        <li><a href="../../http-api/">HTTP API</a></li>
-                        <li><a href="../../imports/">Imports</a><ul class="nav nav-list">
-                              <li><a href="../../imports/csv/">CSV imports</a></li>
-                              <li><a href="../../imports/rdf/">RDF imports</a></li>
-                           </ul>
-                        </li>
-                        <li><a href="../../dataset/">RDF dataset</a></li>
-                        <li><a href="../../stylesheets/">Stylesheets</a></li>
-                        <li><a href="../../triplestores/">Triplestores</a></li>
-                        <li><a href="../../user-interface/">User interface</a></li>
-                     </ul>
-                  </li>
-                  <li><a href="../../../tutorial/">Tutorial</a><ul class="nav nav-list">
-                        <li><a href="../../../tutorial/app-as-repository/">App as a repository</a></li>
-                        <li><a href="../../../tutorial/beyond-low-code/">Beyond low-code</a></li>
-                        <li><a href="../../../tutorial/composition/">Composition</a></li>
-                        <li><a href="../../../tutorial/data/">Data</a></li>
-                        <li><a href="../../../tutorial/hello-dataspace/">Hello dataspace</a></li>
-                        <li><a href="../../../tutorial/insight/">Insight</a></li>
-                        <li><a href="../../../tutorial/media/">Media</a></li>
-                        <li><a href="../../../tutorial/model/">Model</a></li>
-                        <li><a href="../../../tutorial/publish/">Publish</a></li>
-                        <li><a href="../../../tutorial/structure/">Structure</a></li>
-                     </ul>
-                  </li>
-                  <li><a href="../../../user-guide/">User guide</a><ul class="nav nav-list">
-                        <li><a href="../../../user-guide/add-data/">Add data</a></li>
-                        <li><a href="../../../user-guide/browse-data/">Browse data</a></li>
-                        <li><a href="../../../user-guide/build-apps/">Build apps</a></li>
-                        <li><a href="../../../user-guide/change-layout/">Change layout</a></li>
-                        <li><a href="../../../user-guide/change-system-base-uri/">Change system base URI</a></li>
-                        <li><a href="../../../user-guide/change-model/">Change the model</a></li>
-                        <li><a href="../../../user-guide/create-data/">Create data</a><ul class="nav nav-list">
-                              <li><a href="../../../user-guide/create-data/create-content/">Create content</a></li>
-                              <li><a href="../../../user-guide/create-data/create-documents/">Create documents</a></li>
-                              <li><a href="../../../user-guide/create-data/create-resources/">Create instances</a></li>
-                           </ul>
-                        </li>
-                        <li><a href="../../../user-guide/edit-content/">Edit content</a></li>
-                        <li><a href="../../../user-guide/import-data/">Import data</a><ul class="nav nav-list">
-                              <li><a href="../../../user-guide/import-data/import-csv-data/">Import CSV data</a></li>
-                              <li><a href="../../../user-guide/import-data/import-rdf-data/">Import RDF data</a></li>
-                           </ul>
-                        </li>
-                        <li><a href="../../../user-guide/manage-dataspaces/">Manage dataspaces</a></li>
-                        <li><a href="../../../user-guide/manage-packages/">Manage packages</a></li>
-                        <li><a href="../../../user-guide/navigate-data/">Navigate data</a></li>
-                        <li><a href="../../../user-guide/query-data/">Query data</a></li>
-                        <li><a href="../../../user-guide/search-data/">Search data</a></li>
-                        <li><a href="../../../user-guide/upload-file/">Upload file</a></li>
-                     </ul>
-                  </li>
-               </ul>
-            </nav>
-            <main class="span7">
-               <header>
-                  <h1>Resources</h1>
-               </header>
-               <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://www.w3.org/ns/ldt/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+      <div class="docs-layout">
+         <div class="docs-nav" role="navigation">
+            <ul>
+               <li><a href="../../../about/">About LinkedDataHub</a></li>
+               <li><a href="../../../get-started/">Get started</a></li>
+               <li><a href="../../../tutorial/">Tutorial</a></li>
+               <li><a href="../../../user-guide/">User guide</a></li>
+               <li><a href="../../">Reference</a><ul>
+                     <li><a href="../../administration/">Administration</a></li>
+                     <li><a href="../../command-line-interface/">Command line interface</a></li>
+                     <li><a href="../../configuration/">Configuration</a></li>
+                     <li><a href="../">Data model</a><ul>
+                           <li><a href="../documents/">Documents</a></li>
+                           <li><a href="../blocks/">Content blocks</a></li>
+                           <li class="is-active" aria-current="page"><a href="">Resources</a></li>
+                        </ul>
+                     </li>
+                     <li><a href="../../dataset/">Dataset</a></li>
+                     <li><a href="../../dataspace/">Dataspace</a></li>
+                     <li><a href="../../http-api/">HTTP API</a></li>
+                     <li><a href="../../imports/">Imports</a></li>
+                     <li><a href="../../migrating-from-5x/">Migrating from 5.x</a></li>
+                     <li><a href="../../stylesheets/">Stylesheets</a></li>
+                     <li><a href="../../triplestores/">Triplestores</a></li>
+                     <li><a href="../../user-interface/">User interface</a></li>
+                     <li><a href="../../versioning/">Versioning</a></li>
+                  </ul>
+               </li>
+               <li><a href="../../../extending/">Extending</a></li>
+            </ul>
+         </div>
+         <div class="docs-main" role="main">
+            <h1>Resources</h1>
+            <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:sd="http://www.w3.org/ns/sparql-service-description#" xmlns:sp="http://spinrdf.org/sp#">
+               
+               <p class="ldh-body-lg">RDF resources and their management</p>
+               
+               <div>
                   
-                  <p class="lead">RDF resources and their management</p>
+                  <p>Within <a href="../documents/">documents</a>, users can create RDF resources, i.e. instances of both built-in and user-defined
+                     RDF classes.</p>
+                  
+                  <p>Built-in classes are defined in <a href="../../administration/ontologies/#ontologies">system ontologies</a> while user-defined classes are defined in user ontologies.</p>
                   
                   <div>
                      
-                     <p>Within <a href="../documents/">documents</a>, users can create RDF resources, i.e. instances of both built-in and user-defined
-                        RDF classes.</p>
+                     <h2 id="user-defined-classes">User-defined classes</h2>
                      
-                     <p>Built-in classes are defined in <a href="../../administration/ontologies/#ontologies">system ontologies</a> while user-defined classes are defined in user ontologies.</p>
+                     <p>User-defined classes live in the dataspace's namespace ontology, which is managed
+                        in the <a href="../../dataspace/#admin">admin dataspace</a>. A class becomes creatable in the UI once it has a <a href="../../administration/ontologies/#constructors">constructor</a>: it then appears in the <span class="ac-btn in-primary ap-solid sz-md">Create</span> dropdown alongside the built-in classes, and its instances are created and edited
+                        using the same forms. See <a href="../../../user-guide/change-model/">Change the model</a> for a walkthrough of defining classes, constructors and constraints.</p>
+                     </div>
+                  
+                  <div>
                      
-                     <div>
+                     <h2 id="built-in-classes">Built-in classes</h2>
+                     
+                     <p>LinkedDataHub's built-in <a href="../../administration/ontologies/#classes">classes</a> have pre-defined <a href="../../administration/ontologies/#constructors">constructors</a>, <a href="../../administration/ontologies/#constraints">constraints</a> and often a customized UI rendering (implemented by <a href="../../stylesheets/#overriding-templates">overriding generic XSLT templates</a> with type-specific templates) as well, for example a query editor or a chart.</p>
+                     
+                     <p>The table lists the built-in classes creatable from the <span class="ac-btn in-primary ap-solid sz-md">Create</span> dropdown; the two content block classes, <code>ldh:XHTML</code> and <code>ldh:Object</code>, are documented on the <a href="../blocks/">Content blocks</a> page.</p>
+                     
+                     <table>
                         
-                        <h2 id="user-defined-classes">User-defined classes</h2>
+                        <caption class="ac-vh">Built-in classes by type</caption>
                         
-                        <p>TBD</p>
+                        <thead>
+                           
+                           <tr>
+                              
+                              <th scope="col">Type</th>
+                              
+                              <th scope="col">Class</th>
+                              
+                              <th scope="col">Description</th>
+                              </tr>
+                           </thead>
+                        
+                        <tbody>
+                           
+                           <tr>
+                              
+                              <td><samp>ASK</samp></td>
+                              
+                              <td><code>sp:Ask</code></td>
+                              
+                              <td><a href="#queries">SPARQL <code>ASK</code> query</a></td>
+                              </tr>
+                           
+                           <tr>
+                              
+                              <td><samp>Dataspace</samp></td>
+                              
+                              <td><code>lds:Dataspace</code></td>
+                              
+                              <td><a href="../../dataspace/#dataspaces">Remote LinkedDataHub dataspace</a></td>
+                              </tr>
+                           
+                           <tr>
+                              
+                              <td><samp>CONSTRUCT</samp></td>
+                              
+                              <td><code>sp:Construct</code></td>
+                              
+                              <td><a href="#queries">SPARQL <code>CONSTRUCT</code> query</a></td>
+                              </tr>
+                           
+                           <tr>
+                              
+                              <td><samp>CSV import</samp></td>
+                              
+                              <td><code>ldh:CSVImport</code></td>
+                              
+                              <td>Asynchronous <a href="../../imports/csv/">CSV data import</a></td>
+                              </tr>
+                           
+                           <tr>
+                              
+                              <td><samp>DESCRIBE</samp></td>
+                              
+                              <td><code>sp:Describe</code></td>
+                              
+                              <td><a href="#queries">SPARQL <code>DESCRIBE</code> query</a></td>
+                              </tr>
+                           
+                           <tr>
+                              
+                              <td><samp>File</samp></td>
+                              
+                              <td><code>nfo:FileDataObject</code></td>
+                              
+                              <td>An uploaded file, stored <a href="../../dataset/#hierarchical-uris">content-addressed</a> under <samp>uploads/</samp></td>
+                              </tr>
+                           
+                           <tr>
+                              
+                              <td><samp>Graph chart</samp></td>
+                              
+                              <td><code>ldh:GraphChart</code></td>
+                              
+                              <td><a href="#charts">Chart based on <code>CONSTRUCT</code>/<code>DESCRIBE</code> query results</a></td>
+                              </tr>
+                           
+                           <tr>
+                              
+                              <td><samp>RDF import</samp></td>
+                              
+                              <td><code>ldh:RDFImport</code></td>
+                              
+                              <td>Asynchronous <a href="../../imports/rdf/">RDF data import</a></td>
+                              </tr>
+                           
+                           <tr>
+                              
+                              <td><samp>Result set chart</samp></td>
+                              
+                              <td><code>ldh:ResultSetChart</code></td>
+                              
+                              <td><a href="#charts">Chart based on <code>SELECT</code> query results</a></td>
+                              </tr>
+                           
+                           <tr>
+                              
+                              <td><samp>Select</samp></td>
+                              
+                              <td><code>sp:Select</code></td>
+                              
+                              <td><a href="#queries">SPARQL <code>SELECT</code> query</a></td>
+                              </tr>
+                           
+                           <tr>
+                              
+                              <td><samp>Service</samp></td>
+                              
+                              <td><code>sd:Service</code></td>
+                              
+                              <td>SPARQL service (identified by its endpoint URL)</td>
+                              </tr>
+                           
+                           <tr>
+                              
+                              <td><samp>View</samp></td>
+                              
+                              <td><code>ldh:View</code></td>
+                              
+                              <td><a href="#views">View based on <code>SELECT</code> query results</a></td>
+                              </tr>
+                           </tbody>
+                        </table>
+                     
+                     <p>Resources that have customized UIs (such as queries, views, charts) are documented
+                        in more detail below.</p>
+                     </div>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="queries">Queries</h2>
+                  <img alt="A query block with the SPARQL editor" src="../../../files/reference/data-model/resources-1.webp"/>
+                  
+                  <p>Queries are SPARQL 1.1 query strings that can be executed interactively. A query may
+                     name the SPARQL
+                     service it executes against; otherwise it runs against the dataspace's own service.</p>
+                  
+                  <p>A query is a resource typed by its SPARQL form, carrying the query string as <code>sp:text</code>:</p>
+                  
+                  <pre>&lt;#select-categories-query&gt; a sp:Select ;
+    dct:title "Select categories" ;
+    sp:text '''PREFIX  schema: &lt;https://schema.org/&gt;
+
+SELECT DISTINCT  ?category
+WHERE
+  { GRAPH ?doc
+      { ?category  a           schema:ProductGroup ;
+                  schema:name  ?categoryName
+      }
+  }
+ORDER BY ?categoryName''' .</pre>
+                  
+                  <p class="exhibit-links">Source: <a href="https://github.com/AtomGraph/LinkedDataHub-Apps/blob/master/demo/northwind-traders/categories.ttl" target="_blank">categories.ttl</a> · Live: <a href="https://northwind-traders.demo.linkeddatahub.com/categories/" target="_blank">/categories/</a></p>
+                  
+                  <p>It is only possible to save valid SPARQL 1.1 query strings. SPARQL updates are currently
+                     not supported.</p>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="charts">Charts</h2>
+                  <img alt="A chart block rendering SPARQL results" src="../../../files/reference/data-model/resources-2.webp"/>
+                  
+                  <p>Charts can render both types of SPARQL results:</p>
+                  
+                  <ul>
+                     
+                     <li>tabular <code>SELECT</code> results (<code>ldh:ResultSetChart</code>)</li>
+                     
+                     <li>graph results of <code>DESCRIBE</code> and <code>CONSTRUCT</code> (<code>ldh:GraphChart</code>)</li>
+                     </ul>
+                  
+                  <p>A chart resource is easily confused with the chart layout mode in <a href="#views">views</a>. The layout mode renders
+                     view results as a chart on the fly, while a chart resource additionally stores the
+                     chart type as well as the category and
+                     series information: variable names in the case of tabular results, and property URIs
+                     in the case of graph results.</p>
+                  
+                  <div>
+                     
+                     <h3 id="chart-vocabulary">RDF vocabulary</h3>
+                     
+                     <p>A chart references its query with <code>spin:query</code> and describes its rendering with the following properties:</p>
+                     
+                     <table>
+                        
+                        <caption class="ac-vh">Vocabulary properties and what they apply to</caption>
+                        
+                        <thead>
+                           
+                           <tr>
+                              
+                              <th scope="col">Property</th>
+                              
+                              <th scope="col">Applies to</th>
+                              
+                              <th scope="col">Description</th>
+                              </tr>
+                           </thead>
+                        
+                        <tbody>
+                           
+                           <tr>
+                              
+                              <td><code>ldh:chartType</code></td>
+                              
+                              <td>both</td>
+                              
+                              <td>One of <code>ac:Table</code>, <code>ac:LineChart</code>, <code>ac:BarChart</code>, <code>ac:ScatterChart</code>, <code>ac:Timeline</code></td>
+                              </tr>
+                           
+                           <tr>
+                              
+                              <td><code>ldh:categoryVarName</code></td>
+                              
+                              <td><code>ldh:ResultSetChart</code></td>
+                              
+                              <td>Name of the <code>SELECT</code> variable that provides the category values</td>
+                              </tr>
+                           
+                           <tr>
+                              
+                              <td><code>ldh:seriesVarName</code></td>
+                              
+                              <td><code>ldh:ResultSetChart</code></td>
+                              
+                              <td>Name(s) of the <code>SELECT</code> variable(s) that provide the series values</td>
+                              </tr>
+                           
+                           <tr>
+                              
+                              <td><code>ldh:categoryProperty</code></td>
+                              
+                              <td><code>ldh:GraphChart</code></td>
+                              
+                              <td>URI of the property that provides the category values</td>
+                              </tr>
+                           
+                           <tr>
+                              
+                              <td><code>ldh:seriesProperty</code></td>
+                              
+                              <td><code>ldh:GraphChart</code></td>
+                              
+                              <td>URI(s) of the property(ies) that provide the series values</td>
+                              </tr>
+                           </tbody>
+                        </table>
+                     </div>
+                  
+                  <p>The default chart type is the table. Other chart types might not apply to all result
+                     data; for example, a
+                     scatter chart needs numeric or datetime values for both category and series.</p>
+                  
+                  <p>A complete chart is a chain of three resources — the query, the chart description,
+                     and an
+                     <a href="../blocks/#object-blocks">object block</a> that places it on a document:</p>
+                  
+                  <pre>&lt;#category-revenue-query&gt; a sp:Select ;
+    dct:title "Category revenue" ;
+    sp:text '''PREFIX schema: &lt;https://schema.org/&gt;
+
+SELECT ?categoryName (SUM(?sale) AS ?revenue)
+WHERE {
+    GRAPH ?orderGraph {
+        ?order schema:orderedItem ?orderItem .
+        ?orderItem schema:orderedItem ?product ;
+                   schema:price ?sale .
+    }
+    GRAPH ?productGraph {
+        ?product schema:category ?category .
+    }
+    GRAPH ?categoryGraph {
+        ?category schema:name ?categoryName .
+    }
+}
+GROUP BY ?category ?categoryName
+ORDER BY DESC(?revenue)''' .
+
+&lt;#category-revenue&gt; a ldh:ResultSetChart ;
+    dct:title "Revenue by category" ;
+    spin:query &lt;#category-revenue-query&gt; ;
+    ldh:chartType &lt;https://w3id.org/atomgraph/client#BarChart&gt; ;
+    ldh:categoryVarName "categoryName" ;
+    ldh:seriesVarName "revenue" .
+
+&lt;#category-revenue-block&gt; a ldh:Object ;
+    dct:title "Revenue by category" ;
+    rdf:value &lt;#category-revenue&gt; .</pre>
+                  
+                  <p class="exhibit-links">Source: <a href="https://github.com/AtomGraph/LinkedDataHub-Apps/blob/master/demo/northwind-traders/categories.ttl" target="_blank">categories.ttl</a> · Live: <a href="https://northwind-traders.demo.linkeddatahub.com/categories/" target="_blank">/categories/</a></p>
+                  
+                  <p>Multiple <code>ldh:seriesVarName</code> values plot one series per named result variable — see the
+                     <a href="https://github.com/AtomGraph/LinkedDataHub-Apps/blob/master/demo/northwind-traders/orders.ttl" target="_blank">demo's revenue-by-carrier chart</a>,
+                     which pivots three carriers into three series with conditional aggregation.</p>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="views">Views</h2>
+                  <img alt="A view block with paginated results" src="../../../files/reference/data-model/resources-3.webp"/>
+                  
+                  <p>A view renders the results of a SPARQL <code>SELECT</code> query as an interactive, paginated and optionally ordered list.
+                     The UI renders the descriptions of the resources selected by the result set, rather
+                     than the tabular result itself.
+                     That is achieved by on-the-fly SPARQL query rewriting: the <code>SELECT</code> is wrapped into
+                     a <code>DESCRIBE</code> query; <code>DESCRIBE</code> reuses the same variables from the <code>SELECT</code> projection.
+                     <em>This will not work for all <code>SELECT</code> queries.</em></p>
+                  
+                  <p>To render paginated lists of resources, traditional applications would normally have
+                     a dedicated API endpoint that
+                     supports pagination, ordering etc. In LinkedDataHub, views achieve the same functionality
+                     by simply building the
+                     SPARQL query string on the client-side. A view is therefore a client-side counterpart
+                     of a container: it produces a
+                     listing without a server-side endpoint.</p>
+                  
+                  <p>A view references its <a href="#queries">query</a> and optionally fixes a layout mode:</p>
+                  
+                  <pre>&lt;#select-categories-view&gt; a ldh:View ;
+    spin:query &lt;#select-categories-query&gt; ;
+    ac:mode &lt;https://w3id.org/atomgraph/client#GridMode&gt; .</pre>
+                  
+                  <p class="exhibit-links">Source: <a href="https://github.com/AtomGraph/LinkedDataHub-Apps/blob/master/demo/northwind-traders/categories.ttl" target="_blank">categories.ttl</a> · Live: <a href="https://northwind-traders.demo.linkeddatahub.com/categories/" target="_blank">/categories/</a></p>
+                  
+                  <p>Views can be rendered in multiple layout modes: properties, list, grid, table, map,
+                     chart, and graph. They also show
+                     the total number of results and allow result ordering by property. In the table mode,
+                     columns can be sorted by clicking
+                     their headers; the sort order follows each column's datatype.</p>
+                  
+                  <div>
+                     
+                     <h3 id="projecting-variables">Projecting variables</h3>
+                     
+                     <p>Because the <code>SELECT</code> is rewritten into a <code>DESCRIBE</code> over its projected variables, a view can only render terms that the triplestore is
+                        able to describe:</p>
+                     
+                     <ul>
+                        
+                        <li>Project <em>resources</em> (IRIs) that exist in the dataset — their labels, images and links are resolved from
+                           each resource's own description. Projecting <em>literals</em> (a <code>?label</code>, a <code>?date</code>, or any computed value) describes nothing, so the view renders empty.</li>
+                        
+                        <li>Project IRIs that are stored <em>locally</em>. An IRI that only occurs as an object but is not itself described in the dataset
+                           — for example an external image URL — contributes no triples.</li>
+                        
+                        <li>Project a <em>single</em> entity type. Projecting several resource variables of different types blends their
+                           descriptions into one result set, which rarely renders coherently; select the one
+                           type you want to list and reach the related resources through their properties instead.</li>
+                        </ul>
+                     
+                     <p>The query that drives the categories grid above projects the category resource, so
+                        the view renders the category documents:</p>
+                     
+                     <pre>SELECT DISTINCT ?category
+WHERE {
+    GRAPH ?doc {
+        ?category
+            a schema:ProductGroup ;
+            schema:name ?categoryName
+    }
+}</pre>
+                     
+                     <p>This query <em>looks</em> equivalent, but it projects the name literal instead of the category resource — so
+                        it describes nothing and renders an empty view:</p>
+                     
+                     <pre>SELECT DISTINCT ?categoryName
+WHERE {
+    GRAPH ?doc {
+        ?category
+            a schema:ProductGroup ;
+            schema:name ?categoryName
+    }
+}</pre>
+                     </div>
+                  
+                  <div>
+                     
+                     <h3 id="view-layout-modes">Layout modes</h3>
+                     
+                     <p>View results are rendered in the view's own set of layout modes — properties, list,
+                        grid, table, map, chart, and graph — a larger set than the <a href="../../user-interface/#layout-modes">document layout modes</a>.</p>
+                     </div>
+                  
+                  <div>
+                     
+                     <h3 id="inline-creation">Inline creation</h3>
+                     
+                     <p>A view attached to a property in the <a href="../../administration/packages/#property-views">dataspace's ontology</a> renders a <span class="ac-btn in-primary ap-solid sz-md">Create</span> button in its header, so a view can double as an entry point for the data it lists.
+                        The class to construct is inferred from the attaching property: its <code>rdfs:range</code> for a forward <code>ldh:view</code>, its <code>rdfs:domain</code> for an inverse <code>ldh:inverseView</code>. A property whose range is not a named class — an <code>owl:unionOf</code> list, say — gets no button, because there is nothing to construct.</p>
+                     
+                     <p>Where the new instance is stored is not declared anywhere. LinkedDataHub works it
+                        out from the view's own results: a second query, derived from the view's <code>SELECT</code> pattern with <code>LIMIT</code>, <code>OFFSET</code> and <code>ORDER BY</code> removed, asks which containers hold the documents that describe the existing solutions.
+                        A view is a projection and its rows are its solutions, so creating a row means making
+                        a new solution appear in that projection — and the existing solutions already say
+                        where their descriptions live.</p>
+                     
+                     <ul>
+                        
+                        <li><em>Exactly one container</em> — the button renders and targets it.</li>
+                        
+                        <li><em>No container</em>, because the result set is empty — no button. There is nothing to generalise from,
+                           so the first instance of a kind is created through its container the usual way.</li>
+                        
+                        <li><em>More than one container</em>, because the results span several — no button. Nothing in the data says where a new
+                           row belongs, and deciding by majority would be placement nobody stated.</li>
+                        </ul>
+                     
+                     <p>The question is put to the whole result set rather than to the page on screen, so
+                        the destination cannot depend on which page the reader happens to be looking at. The
+                        determined container is then checked for <code>acl:Write</code> access, which is why the button appears a moment after the rest of the view header;
+                        a forward view also writes the linking triple into the current document, so it needs
+                        write access there as well.</p>
+                     
+                     <p>A view with <code>ldh:showWhenEmpty</code> set to <code>false</code> is hidden while its query returns no results — the
+                        <a href="https://github.com/AtomGraph/LinkedDataHub-Apps/blob/master/demo/northwind-traders/admin/model/ns.ttl" target="_blank">demo's property-attached views</a>
+                        use it so "Orders from this customer" only appears on customers that have orders.</p>
+                     
+                     <pre>&lt;#select-products-view&gt; a ldh:View ;
+    spin:query &lt;#select-products-query&gt; ;
+    ac:mode &lt;https://w3id.org/atomgraph/client#TableMode&gt; ;
+    ldh:showWhenEmpty false .</pre>
+                     </div>
+                  
+                  <div>
+                     
+                     <h3 id="faceted-search">Faceted search</h3>
+                     
+                     <p>Views provide faceted search in the toolbar at the top of the view, filtering the
+                        result set. The toolbar renders one dropdown pill per facetable property; opening
+                        a pill loads that property's values together with their result counts, and checking
+                        a value filters the results. Applying or removing a filter restarts paging from the
+                        first page.</p>
+                     
+                     <p>By default the facets are generic and inferred from the triple patterns of the SPARQL
+                        <code>SELECT</code> query used by the view. They can be <a href="../../stylesheets/#overriding-templates">customized using XSLT</a>.</p>
+                     </div>
+                  
+                  <div>
+                     
+                     <h3 id="parallax">Parallax navigation</h3>
+                     <img alt="Parallax navigation jumping from a result set to a related one" src="../../../files/reference/data-model/resources-4.webp"/>
+                     
+                     <p>Parallax is an unusual navigation approach that suits graph data particularly well.
+                        It allows jumping from a result set to a related result set by following an RDF property.
+                        The available pivots render as a row of chips directly under the view toolbar, one
+                        chip per property linking the result set to the rest of the graph; the row stays hidden
+                        while there are no pivots. Parallax navigates in both directions: a chip with a forward
+                        arrow follows a property of the results onto its objects, a chip with a backward arrow
+                        follows a property pointing at the results onto its subjects. The pivots are discovered
+                        by querying the whole result set, so they cover results beyond the current page.</p>
+                     
+                     <p>Clicking a chip pivots the view onto the related result set and restarts paging from
+                        the first page. The applied steps appear in the toolbar next to the facets as removable
+                        chips reading <samp>via</samp> (forward) or <samp>linked by</samp> (backward); removing one rewinds the view to that step. Parallax works in
+                        combination with faceted search which can be used to filter the initial result set.</p>
+                     
+                     <p>For example, facets can be used to filter a set of products that belong to a certain
+                        category, and then parallax can be used to jump to a set of companies that provide
+                        those products, and then further on to
+                        a set of representatives of those companies.</p>
+                     </div>
+                  </div>
+               </div>
+            <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:sd="http://www.w3.org/ns/sparql-service-description#" xmlns:sp="http://spinrdf.org/sp#">
+               
+               <div>
+                  
+                  <h2 id="live-example">Live example</h2>
+                  
+                  <p>The block below is not a code snippet — it is an actual query block embedded in this
+                     document, executing against the
+                     <a href="https://northwind-traders.demo.linkeddatahub.com/" target="_blank">Northwind Traders dataspace</a>'s SPARQL endpoint. The query, the
+                     service it runs against, and the block that places it here are three plain RDF resources
+                     in this very document.</p>
+                  </div>
+               </div>
+            <div class="screenshot-placeholder"><span class="msi" aria-hidden="true">bolt</span><p>Interactive block: Query another dataspace — executes live in the LinkedDataHub rendering of this page</p>
+            </div>
+            <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:sd="http://www.w3.org/ns/sparql-service-description#" xmlns:sp="http://spinrdf.org/sp#">
+               
+               <div>
+                  
+                  <h2 id="management">Management</h2>
+                  
+                  <div class="ac-tabs or-horizontal">
+                     
+                     <div class="ac-tablist sz-md va-line" role="tablist">
+                        <button aria-controls="user-interface-pane" aria-selected="true" class="ac-tab is-on" id="user-interface-tab" role="tab" type="button"><span class="ac-tab-lbl">User interface</span></button>
+                        <button aria-controls="command-line-interface-pane" aria-selected="false" class="ac-tab" id="command-line-interface-tab" role="tab" type="button"><span class="ac-tab-lbl">Command line interface</span></button>
                         </div>
                      
-                     <div>
+                     <div aria-labelledby="user-interface-tab" class="ac-tabpanel" id="user-interface-pane" role="tabpanel">
                         
-                        <h2 id="built-in-classes">Built-in classes</h2>
+                        <p>Resources can only be managed when the <a href="../../user-interface/#layout-modes" target="_blank">Properties layout mode</a> is active.</p>
                         
-                        <p>LinkedDataHub's built-in <a href="../../administration/ontologies/#classes">classes</a> have pre-defined <a href="../../administration/ontologies/#constructors">constructors</a>, <a href="../../administration/ontologies/#constraints">constraints</a> and often a customized UI rendering (implemented by <a href="../../stylesheets/#overriding-templates">overriding generic XSLT templates</a> with type-specific templates) as well, for example a query editor or a chart.</p>
-                        
-                        <table class="table table-striped">
+                        <table>
+                           
+                           <caption class="ac-vh">Resource management actions</caption>
                            
                            <thead>
                               
                               <tr>
                                  
-                                 <th>Type</th>
+                                 <th scope="col">Action</th>
                                  
-                                 <th>Class</th>
-                                 
-                                 <th>Description</th>
+                                 <th scope="col">Description</th>
                                  </tr>
                               </thead>
                            
@@ -183,336 +619,130 @@
                               
                               <tr>
                                  
-                                 <td><samp>ASK</samp></td>
+                                 <th scope="row">Create</th>
                                  
-                                 <td><code>sp:Ask</code></td>
-                                 
-                                 <td><a href="queries/">SPARQL <code>ASK</code> query</a></td>
+                                 <td>Click the <span class="ac-btn in-primary ap-solid sz-md">Create <span aria-hidden="true" class="msi caret">expand_more</span></span> dropdown at the bottom of the page. Fill out the fields in the form that appears.
+                                    Click <span class="ac-btn in-primary ap-solid sz-sm">Save</span>.</td>
                                  </tr>
                               
                               <tr>
                                  
-                                 <td><samp>Application</samp></td>
+                                 <th scope="row">Update</th>
                                  
-                                 <td><code>ldh:Application</code></td>
-                                 
-                                 <td><a href="../../dataspace/#applications">Remote LinkedDataHub application</a></td>
+                                 <td>Click the <span class="ac-iconbtn sz-sm in-neutral ap-ghost"><span aria-hidden="true" class="msi sm">edit</span></span> button in the top-right corner of the resource block (it appears when you move the
+                                    mouse close to that corner). Make changes in the form that appears. Click <span class="ac-btn in-primary ap-solid sz-sm">Save</span>.</td>
                                  </tr>
                               
                               <tr>
                                  
-                                 <td><samp>CONSTRUCT</samp></td>
+                                 <th scope="row">Delete</th>
                                  
-                                 <td><code>sp:Construct</code></td>
-                                 
-                                 <td><a href="queries/">SPARQL <code>CONSTRUCT</code> query</a></td>
-                                 </tr>
-                              
-                              <tr>
-                                 
-                                 <td><samp>CSV import</samp></td>
-                                 
-                                 <td><code>ldh:CSVImport</code></td>
-                                 
-                                 <td>Async <a href="../../imports/csv/">CSV data import</a></td>
-                                 </tr>
-                              
-                              <tr>
-                                 
-                                 <td><samp>File</samp></td>
-                                 
-                                 <td><code>nfo:FileDataObject</code></td>
-                                 
-                                 <td>File to upload</td>
-                                 </tr>
-                              
-                              <tr>
-                                 
-                                 <td><samp>Graph chart</samp></td>
-                                 
-                                 <td><code>ldh:GraphChart</code></td>
-                                 
-                                 <td><a href="charts/">Chart based on <code>CONSTRUCT</code>/<code>DESCRIBE</code> query results</a></td>
-                                 </tr>
-                              
-                              <tr>
-                                 
-                                 <td><samp>RDF import</samp></td>
-                                 
-                                 <td><code>ldh:RDFImport</code></td>
-                                 
-                                 <td>Async <a href="../../imports/rdf/">RDF data import</a></td>
-                                 </tr>
-                              
-                              <tr>
-                                 
-                                 <td><samp>Result set chart</samp></td>
-                                 
-                                 <td><code>ldh:ResultSetChart</code></td>
-                                 
-                                 <td><a href="charts/">Chart based on <code>SELECT</code> query results</a></td>
-                                 </tr>
-                              
-                              <tr>
-                                 
-                                 <td><samp>Select</samp></td>
-                                 
-                                 <td><code>sp:Select</code></td>
-                                 
-                                 <td><a href="queries/">SPARQL <code>SELECT</code> query</a></td>
-                                 </tr>
-                              
-                              <tr>
-                                 
-                                 <td><samp>Service</samp></td>
-                                 
-                                 <td><code>sd:Service</code></td>
-                                 
-                                 <td>SPARQL service (identified by its endpoint URL)</td>
-                                 </tr>
-                              
-                              <tr>
-                                 
-                                 <td><samp>View</samp></td>
-                                 
-                                 <td><code>ldh:View</code></td>
-                                 
-                                 <td><a href="views/">View based on <code>SELECT</code> query results</a></td>
+                                 <td>Click the <span class="ac-iconbtn sz-sm in-neutral ap-ghost"><span aria-hidden="true" class="msi sm">edit</span></span> button in the top-right corner of the resource block. Click the <span class="ac-iconbtn sz-sm in-destructive ap-ghost"><span aria-hidden="true" class="msi sm">close</span></span> button to delete the resource.</td>
                                  </tr>
                               </tbody>
                            </table>
+                        </div>
+                     
+                     <div aria-labelledby="command-line-interface-tab" class="ac-tabpanel" hidden="hidden" id="command-line-interface-pane" role="tabpanel">
                         
-                        <p>Resources that have customized UIs (such as queries, views, charts) are documented
-                           in more detail.</p>
+                        <p>The following resource types can be created using the <a href="../../command-line-interface/" target="_blank">command line interface</a>. Any resource can be updated or deleted with <a href="../../command-line-interface/#commands"><samp>ldh patch</samp></a>, which applies a SPARQL update to the resource's document.</p>
                         
-                        <div>
+                        <table>
                            
-                           <h2 id="management">Management</h2>
+                           <caption class="ac-vh">Resource types and their CLI commands</caption>
                            
-                           <div>
+                           <thead>
                               
-                              <h3><a href="../../user-interface/">User interface</a></h3>
-                              
-                              <p>Resources can only be managed when the <a href="../../user-interface/#layout-modes" target="_blank"><samp>Properties</samp> layout mode</a> is active.</p>
-                              
-                              <table class="table table-striped" id="actions">
+                              <tr>
                                  
-                                 <thead>
-                                    
-                                    <tr>
-                                       
-                                       <th>Action</th>
-                                       
-                                       <th>Description</th>
-                                       </tr>
-                                    </thead>
+                                 <th scope="col">Type</th>
                                  
-                                 <tbody>
-                                    
-                                    <tr>
-                                       
-                                       <th>Create</th>
-                                       
-                                       <td>Click the <span class="btn btn-primary create-action">Create <span class="caret"></span></span> dropdown on the bottom of the page. Fill out the fields in the form that appears.
-                                          Click <span class="btn btn-primary btn-save">Save</span>.</td>
-                                       </tr>
-                                    
-                                    <tr>
-                                       
-                                       <th>Update</th>
-                                       
-                                       <td>Click the <span class="btn btn-edit"></span> button in the top-right corner of the resource header (in the middle column of the
-                                          content). Make changes in the form that appears. Click <span class="btn btn-primary btn-save">Save</span>.</td>
-                                       </tr>
-                                    
-                                    <tr>
-                                       
-                                       <th>Delete</th>
-                                       
-                                       <td>Click the <span class="btn btn-edit"></span> button in the top-right corner of the resource header. Click the <span class="btn btn-remove-resource"></span> button to delete the block.</td>
-                                       </tr>
-                                    </tbody>
-                                 </table>
-                              </div>
+                                 <th scope="col">CLI command</th>
+                                 </tr>
+                              </thead>
                            
-                           <div>
+                           <tbody>
                               
-                              <h3><a href="../../command-line-interface/">Command line interface</a></h3>
-                              
-                              <p>The following actions can also be performed using the <a href="../../command-line-interface/" target="_blank">command line interface</a>.</p>
-                              
-                              <table class="table table-striped" id="actions">
+                              <tr>
                                  
-                                 <thead>
-                                    
-                                    <tr>
-                                       
-                                       <th>Type</th>
-                                       
-                                       <th>Action</th>
-                                       
-                                       <th>CLI script</th>
-                                       </tr>
-                                    </thead>
+                                 <th scope="row"><samp>CONSTRUCT</samp></th>
                                  
-                                 <tbody>
-                                    
-                                    <tr>
-                                       
-                                       <td><samp>ASK</samp></td>
-                                       
-                                       <th>Create</th>
-                                       
-                                       <td></td>
-                                       </tr>
-                                    
-                                    <tr>
-                                       
-                                       <td><samp>Application</samp></td>
-                                       
-                                       <th>Create</th>
-                                       
-                                       <td></td>
-                                       </tr>
-                                    
-                                    <tr>
-                                       
-                                       <td><samp>CONSTRUCT</samp></td>
-                                       
-                                       <th>Create</th>
-                                       
-                                       <td><a href="../../command-line-interface/#scripts"><samp>admin/ontologies/add-construct.sh</samp></a></td>
-                                       </tr>
-                                    
-                                    <tr>
-                                       
-                                       <td><samp>CSV import</samp></td>
-                                       
-                                       <th>Create</th>
-                                       
-                                       <td><a href="../../command-line-interface/#scripts"><samp>imports/add-csv-import.sh</samp></a></td>
-                                       </tr>
-                                    
-                                    <tr>
-                                       
-                                       <td><samp>File</samp></td>
-                                       
-                                       <th>Create</th>
-                                       
-                                       <td><a href="../../command-line-interface/#scripts"><samp>add-file.sh</samp></a></td>
-                                       </tr>
-                                    
-                                    <tr>
-                                       
-                                       <td><samp>Graph chart</samp></td>
-                                       
-                                       <th>Create</th>
-                                       
-                                       <td></td>
-                                       </tr>
-                                    
-                                    <tr>
-                                       
-                                       <td><samp>RDF import</samp></td>
-                                       
-                                       <th>Create</th>
-                                       
-                                       <td><a href="../../command-line-interface/#scripts"><samp>imports/add-rdf-import.sh</samp></a></td>
-                                       </tr>
-                                    
-                                    <tr>
-                                       
-                                       <td><samp>Result set chart</samp></td>
-                                       
-                                       <th>Create</th>
-                                       
-                                       <td><a href="../../command-line-interface/#scripts"><samp>add-result-set-chart.sh</samp></a></td>
-                                       </tr>
-                                    
-                                    <tr>
-                                       
-                                       <td><samp>Select</samp></td>
-                                       
-                                       <th>Create</th>
-                                       
-                                       <td><a href="../../command-line-interface/#scripts"><samp>add-select.sh</samp></a></td>
-                                       </tr>
-                                    
-                                    <tr>
-                                       
-                                       <td><samp>Service</samp></td>
-                                       
-                                       <th>Create</th>
-                                       
-                                       <td><a href="../../command-line-interface/#scripts"><samp>add-generic-service.sh</samp></a></td>
-                                       </tr>
-                                    
-                                    <tr>
-                                       
-                                       <td><samp>View</samp></td>
-                                       
-                                       <th>Create</th>
-                                       
-                                       <td><a href="../../command-line-interface/#scripts"><samp>add-view.sh</samp></a></td>
-                                       </tr>
-                                    </tbody>
-                                 </table>
-                              </div>
-                           </div>
+                                 <td><a href="../../command-line-interface/#commands"><samp>ldh add construct</samp></a></td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <th scope="row"><samp>CSV import</samp></th>
+                                 
+                                 <td><a href="../../command-line-interface/#commands"><samp>ldh add csv-import</samp></a></td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <th scope="row"><samp>File</samp></th>
+                                 
+                                 <td><a href="../../command-line-interface/#commands"><samp>ldh add file</samp></a></td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <th scope="row"><samp>RDF import</samp></th>
+                                 
+                                 <td><a href="../../command-line-interface/#commands"><samp>ldh add rdf-import</samp></a></td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <th scope="row"><samp>Result set chart</samp></th>
+                                 
+                                 <td><a href="../../command-line-interface/#commands"><samp>ldh add result-set-chart</samp></a></td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <th scope="row"><samp>Select</samp></th>
+                                 
+                                 <td><a href="../../command-line-interface/#commands"><samp>ldh add select</samp></a></td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <th scope="row"><samp>Service</samp></th>
+                                 
+                                 <td><a href="../../command-line-interface/#commands"><samp>ldh add generic-service</samp></a></td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <th scope="row"><samp>View</samp></th>
+                                 
+                                 <td><a href="../../command-line-interface/#commands"><samp>ldh add view</samp></a></td>
+                                 </tr>
+                              </tbody>
+                           </table>
                         </div>
                      </div>
                   </div>
-               <nav>
-                  <div class="well">
-                     <h2><a href="charts/" title="Interactive charts based on SPARQL queries">Charts</a></h2>
-                     <p>Interactive charts based on SPARQL queries</p>
-                  </div>
-                  <div class="well">
-                     <h2><a href="queries/" title="Interactive SPARQL queries">Queries</a></h2>
-                     <p>Interactive SPARQL queries</p>
-                  </div>
-                  <div class="well">
-                     <h2><a href="views/" title="Paginated views based on SPARQL queries">Views</a></h2>
-                     <p>Paginated views based on SPARQL queries</p>
-                  </div>
-               </nav>
-            </main>
+               
+               <p class="ldh-body-lg">To query data and create resources step-by-step, follow the <a href="../../../user-guide/query-data/">Query data</a> and <a href="../../../user-guide/create-data/create-resources/">Create resources</a> guides</p>
+               </div>
          </div>
       </div>
-      <div class="footer container-fluid">
-         <div class="row-fluid">
-            <div class="offset2 span8">
-               <div class="span3">
-                  <h2 class="nav-header">About</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a></li>
-                     <li><a href="https://atomgraph.com" target="_blank">AtomGraph</a></li>
-                  </ul>
-               </div>
-               <div class="span3">
-                  <h2 class="nav-header">Resources</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a></li>
-                     <li><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></li>
-                  </ul>
-               </div>
-               <div class="span3">
-                  <h2 class="nav-header">Support</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a></li>
-                     <li><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a></li>
-                     <li><a href="mailto:support@linkeddatahub.com">Contact support</a></li>
-                  </ul>
-               </div>
-               <div class="span3">
-                  <h2 class="nav-header">Follow us</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a></li>
-                     <li><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></li>
-                  </ul>
-               </div>
+      <div class="ldh-footer" role="contentinfo">
+         <div class="cols">
+            <div class="col brand-col"><a class="ldh-wordmark" href="https://linkeddatahub.com" target="_blank"><span class="mark"></span><span>LinkedDataHub</span></a><p>The low-code Knowledge Graph application platform. Built on RDF, SPARQL and Linked
+                  Data principles.</p>
             </div>
+            <div class="col">
+               <p class="ftitle">About</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a><a href="https://atomgraph.com" target="_blank">AtomGraph</a></div>
+            <div class="col">
+               <p class="ftitle">Resources</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></div>
+            <div class="col">
+               <p class="ftitle">Support</p><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a><a href="mailto:support@linkeddatahub.com">Contact support</a></div>
+            <div class="col">
+               <p class="ftitle">Follow us</p><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></div>
          </div>
+         <div class="legal"><span>© 2026 AtomGraph · LinkedDataHub</span></div>
       </div>
    </body>
 </html>

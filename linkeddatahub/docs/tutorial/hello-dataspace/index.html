@@ -1,173 +1,99 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" lang="en" data-retro="m3" data-theme="light">
    <head>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
       <title>LinkedDataHub v5 — Hello dataspace</title>
       <meta name="description" content="Give your app an identity: a title, a description and a landing page"/>
-      <meta name="last-modified" content="2026-08-18T20:14:17Z"/>
-      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap.css" rel="stylesheet" type="text/css"/>
-      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
-      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/linkeddatahub-bootstrap.css" rel="stylesheet" type="text/css"/>
-      <style type="text/css">
-                body { padding-top: 60px; }
-                object { width: 100%; min-height: 640px; }
-            </style><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/js/jquery.min.js"></script><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/js/bootstrap.min.js"></script><script type="text/javascript">
-                    $(document).ready(function() {
-                        $("ul.nav-tabs a").on("click", function() {
-                            $(this).closest("ul").children().toggleClass("active", false);
-                            $(this).closest("li").toggleClass("active", true);
-                            $(this).closest("ul").next().children().toggleClass("active", false);
-                            $(this).closest("ul").next().children().eq($(this).closest("li").index()).toggleClass("active", true);
+      <meta name="last-modified" content="2026-09-29T09:21:08Z"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1"/>
+      <link href="../../static/css/fonts.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/colors_and_type.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/app.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/retro.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/ldh.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/docs.css" rel="stylesheet" type="text/css"/><script type="text/javascript">
+                    document.addEventListener("click", function(event) {
+                        var tab = event.target.closest(".ac-tab[role='tab']");
+                        if (!tab) return;
+                        var tablist = tab.closest("[role='tablist']");
+                        var tabs = tablist.closest(".ac-tabs");
+                        if (!tabs || !tabs.querySelector(".ac-tabpanel")) return;
+                        tablist.querySelectorAll(".ac-tab").forEach(function(t) { t.classList.remove("is-on"); t.setAttribute("aria-selected", "false"); });
+                        tab.classList.add("is-on");
+                        tab.setAttribute("aria-selected", "true");
+                        tabs.querySelectorAll(".ac-tabpanel").forEach(function(pane) {
+                            if (pane.parentElement !== tabs) return;
+                            pane.hidden = pane.id !== tab.getAttribute("aria-controls");
                         });
                     });
-                </script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+                </script><script async="async" defer="defer" src="https://buttons.github.io/buttons.js"></script><script async="async" defer="defer" src="https://platform.twitter.com/widgets.js"></script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
                     window.dataLayer = window.dataLayer || [];
                     function gtag(){dataLayer.push(arguments);}
                     gtag('js', new Date());
                     gtag('config', 'UA-38402002-6');
                 </script></head>
-   <body>
-      <div class="navbar navbar-fixed-top">
-         <div class="navbar-inner">
-            <div class="container-fluid"><a class="brand" href="../../">LinkedDataHub</a><div class="nav-collapse collapse">
-                  <ul class="nav">
-                     <li class="active">
-                        <div class="btn-group"><a class="btn" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/">Documentation v5</a><button class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button><ul class="dropdown-menu">
-                              <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a></li>
-                              <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></li>
-                           </ul>
-                        </div>
-                     </li>
-                     <li><a href="https://github.com/AtomGraph/LinkedDataHub" target="_blank">Code</a></li>
-                  </ul>
-               </div>
-            </div>
-         </div>
+   <body class="app">
+      <div class="ldh-header" role="banner"><a class="ldh-wordmark" href="../../"><span class="mark"></span><span>LinkedDataHub</span></a><div></div>
+         <div class="ldh-header-actions">
+            <details class="docs-versions">
+               <summary>Documentation v6</summary>
+               <div><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v5/">Documentation v5</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></div>
+            </details><a href="https://github.com/AtomGraph/LinkedDataHub-Apps" target="_blank">Sample dataspaces</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub/subscription" data-icon="octicon-eye" data-size="large" aria-label="Watch AtomGraph/LinkedDataHub on GitHub">Watch</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star AtomGraph/LinkedDataHub on GitHub">Star</a><a href="https://twitter.com/atomgraphhq" class="twitter-follow-button" data-show-count="false">Follow @atomgraphhq</a><a href="https://youtube.com/@atomgraph" target="_blank"><span class="msi outline" aria-hidden="true">smart_display</span> @atomgraph</a></div>
       </div>
-      <div class="container-fluid">
-         <div class="row-fluid">
-            <nav class="span2">
-               <ul class="nav nav-list">
-                  <li><a href="../../about/">About LinkedDataHub</a></li>
-                  <li><a href="../../get-started/">Get started</a><ul class="nav nav-list">
-                        <li><a href="../../get-started/get-an-account/">Get an account</a></li>
-                        <li><a href="../../get-started/request-access/">Request access</a></li>
-                        <li><a href="../../get-started/setup/">Setup</a></li>
-                     </ul>
-                  </li>
-                  <li><a href="../../reference/">Reference</a><ul class="nav nav-list">
-                        <li><a href="../../reference/administration/">Administration</a><ul class="nav nav-list">
-                              <li><a href="../../reference/administration/acl/">Access control</a></li>
-                              <li><a href="../../reference/administration/ontologies/">Ontologies</a></li>
-                              <li><a href="../../reference/administration/packages/">Packages</a></li>
-                           </ul>
-                        </li>
-                        <li><a href="../../reference/command-line-interface/">Command line interface</a></li>
-                        <li><a href="../../reference/configuration/">Configuration</a></li>
-                        <li><a href="../../reference/data-model/">Data model</a><ul class="nav nav-list">
-                              <li><a href="../../reference/data-model/blocks/">Content blocks</a><ul class="nav nav-list">
-                                    <li><a href="../../reference/data-model/blocks/objects/">Object blocks</a></li>
-                                    <li><a href="../../reference/data-model/blocks/xhtml/">XHTML blocks</a></li>
-                                 </ul>
-                              </li>
-                              <li><a href="../../reference/data-model/documents/">Documents</a><ul class="nav nav-list">
-                                    <li><a href="../../reference/data-model/documents/containers/">Containers</a></li>
-                                    <li><a href="../../reference/data-model/documents/items/">Items</a></li>
-                                 </ul>
-                              </li>
-                              <li><a href="../../reference/data-model/resources/">Resources</a><ul class="nav nav-list">
-                                    <li><a href="../../reference/data-model/resources/charts/">Charts</a></li>
-                                    <li><a href="../../reference/data-model/resources/queries/">Queries</a></li>
-                                    <li><a href="../../reference/data-model/resources/views/">Views</a></li>
-                                 </ul>
-                              </li>
-                           </ul>
-                        </li>
-                        <li><a href="../../reference/dataspace/">Dataspace</a></li>
-                        <li><a href="../../reference/http-api/">HTTP API</a></li>
-                        <li><a href="../../reference/imports/">Imports</a><ul class="nav nav-list">
-                              <li><a href="../../reference/imports/csv/">CSV imports</a></li>
-                              <li><a href="../../reference/imports/rdf/">RDF imports</a></li>
-                           </ul>
-                        </li>
-                        <li><a href="../../reference/dataset/">RDF dataset</a></li>
-                        <li><a href="../../reference/stylesheets/">Stylesheets</a></li>
-                        <li><a href="../../reference/triplestores/">Triplestores</a></li>
-                        <li><a href="../../reference/user-interface/">User interface</a></li>
-                     </ul>
-                  </li>
-                  <li><a href="../">Tutorial</a><ul class="nav nav-list">
-                        <li><a href="../app-as-repository/">App as a repository</a></li>
-                        <li><a href="../beyond-low-code/">Beyond low-code</a></li>
-                        <li><a href="../composition/">Composition</a></li>
-                        <li><a href="../data/">Data</a></li>
-                        <li class="active"><a href="">Hello dataspace</a></li>
-                        <li><a href="../insight/">Insight</a></li>
-                        <li><a href="../media/">Media</a></li>
-                        <li><a href="../model/">Model</a></li>
-                        <li><a href="../publish/">Publish</a></li>
-                        <li><a href="../structure/">Structure</a></li>
-                     </ul>
-                  </li>
-                  <li><a href="../../user-guide/">User guide</a><ul class="nav nav-list">
-                        <li><a href="../../user-guide/add-data/">Add data</a></li>
-                        <li><a href="../../user-guide/browse-data/">Browse data</a></li>
-                        <li><a href="../../user-guide/build-apps/">Build apps</a></li>
-                        <li><a href="../../user-guide/change-layout/">Change layout</a></li>
-                        <li><a href="../../user-guide/change-system-base-uri/">Change system base URI</a></li>
-                        <li><a href="../../user-guide/change-model/">Change the model</a></li>
-                        <li><a href="../../user-guide/create-data/">Create data</a><ul class="nav nav-list">
-                              <li><a href="../../user-guide/create-data/create-content/">Create content</a></li>
-                              <li><a href="../../user-guide/create-data/create-documents/">Create documents</a></li>
-                              <li><a href="../../user-guide/create-data/create-resources/">Create instances</a></li>
-                           </ul>
-                        </li>
-                        <li><a href="../../user-guide/edit-content/">Edit content</a></li>
-                        <li><a href="../../user-guide/import-data/">Import data</a><ul class="nav nav-list">
-                              <li><a href="../../user-guide/import-data/import-csv-data/">Import CSV data</a></li>
-                              <li><a href="../../user-guide/import-data/import-rdf-data/">Import RDF data</a></li>
-                           </ul>
-                        </li>
-                        <li><a href="../../user-guide/manage-dataspaces/">Manage dataspaces</a></li>
-                        <li><a href="../../user-guide/manage-packages/">Manage packages</a></li>
-                        <li><a href="../../user-guide/navigate-data/">Navigate data</a></li>
-                        <li><a href="../../user-guide/query-data/">Query data</a></li>
-                        <li><a href="../../user-guide/search-data/">Search data</a></li>
-                        <li><a href="../../user-guide/upload-file/">Upload file</a></li>
-                     </ul>
-                  </li>
-               </ul>
-            </nav>
-            <main class="span7">
-               <header>
-                  <h1>Hello dataspace</h1>
-               </header>
-               <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://www.w3.org/ns/ldt/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+      <div class="docs-layout">
+         <div class="docs-nav" role="navigation">
+            <ul>
+               <li><a href="../../about/">About LinkedDataHub</a></li>
+               <li><a href="../../get-started/">Get started</a></li>
+               <li><a href="../">Tutorial</a><ul>
+                     <li class="is-active" aria-current="page"><a href="">Hello dataspace</a></li>
+                     <li><a href="../structure/">Structure</a></li>
+                     <li><a href="../model/">Model</a></li>
+                     <li><a href="../data/">Data</a></li>
+                     <li><a href="../media/">Media</a></li>
+                     <li><a href="../insight/">Insight</a></li>
+                     <li><a href="../composition/">Composition</a></li>
+                     <li><a href="../publish/">Publish</a></li>
+                     <li><a href="../app-as-repository/">App as a repository</a></li>
+                     <li><a href="../beyond-low-code/">Beyond low-code</a></li>
+                  </ul>
+               </li>
+               <li><a href="../../user-guide/">User guide</a></li>
+               <li><a href="../../reference/">Reference</a></li>
+               <li><a href="../../extending/">Extending</a></li>
+            </ul>
+         </div>
+         <div class="docs-main" role="main">
+            <h1>Hello dataspace</h1>
+            <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+               
+               <p class="ldh-body-lg">Give your app an identity: a title, a description and a landing page</p>
+               
+               <p>In LinkedDataHub everything is a <a href="../../reference/data-model/documents/" target="_blank">document</a>, and every document is a named graph whose name is the document's URL. Your
+                  dataspace starts with a single document: the <strong>root document</strong> at the base URI. It doubles as the app's homepage, so making the app yours starts
+                  with describing this one
+                  document.</p>
+               
+               <p>In this stage you give the root document a title, a description and a first <a href="../../reference/data-model/blocks/" target="_blank">content block</a> — and see the result render as your
+                  homepage.</p>
+               
+               <div class="ac-tabs or-horizontal">
                   
-                  <p class="lead">Give your app an identity: a title, a description and a landing page</p>
-                  
-                  <p>In LinkedDataHub everything is a <a href="../../reference/data-model/documents/" target="_blank">document</a>, and every document is a named graph whose name is the document's URL. Your
-                     dataspace starts with a single document: the <strong>root document</strong> at the base URI. It doubles as the app's homepage, so making the app yours starts
-                     with describing this one
-                     document.</p>
-                  
-                  <p>In this stage you give the root document a title, a description and a first <a href="../../reference/data-model/blocks/" target="_blank">content block</a> — and see the result render as your
-                     homepage.</p>
-                  
-                  <div>
-                     
-                     <h2 id="browser">In the browser</h2>
-                     
-                     <p>Open the base URL (e.g. <samp>https://localhost:4443/</samp>) and authenticate with the owner's WebID certificate. Switch the root document into
-                        edit mode, change the title to
-                        <samp>Northwind Traders</samp>, fill in the description, and add an XHTML content block with a short welcome text.
-                        The <a href="../../user-guide/edit-content/" target="_blank">Edit
-                           content</a> guide walks through the block editor in detail.</p>
-                     <!-- screenshot: root document in edit mode with the title and first XHTML block -->
+                  <div class="ac-tablist sz-md va-line" role="tablist">
+                     <button aria-controls="in-the-browser-pane" aria-selected="true" class="ac-tab is-on" id="in-the-browser-tab" role="tab" type="button"><span class="ac-tab-lbl">In the browser</span></button>
+                     <button aria-controls="from-the-command-line-pane" aria-selected="false" class="ac-tab" id="from-the-command-line-tab" role="tab" type="button"><span class="ac-tab-lbl">From the command line</span></button>
                      </div>
                   
-                  <div>
+                  <div aria-labelledby="in-the-browser-tab" class="ac-tabpanel" id="in-the-browser-pane" role="tabpanel">
                      
-                     <h2 id="cli">From the command line</h2>
+                     <p>Open the base URL (e.g. <samp>https://localhost:4443/</samp>) and authenticate with the owner's WebID certificate. Choose <samp>Edit</samp> in the action bar's <span class="ac-btn in-neutral ap-outline sz-md">Actions</span> dropdown
+                        to open the document edit form, change the title to <samp>Northwind Traders</samp>, fill in the description, and save. Then, in the
+                        <a href="../../reference/user-interface/#layout-modes" target="_blank">Content layout mode</a>, add an XHTML content block with a short welcome text using the
+                        <span class="ac-btn in-primary ap-solid sz-md">XHTML</span> button at the bottom of the page. The <a href="../../user-guide/edit-content/" target="_blank">Edit
+                           content</a> guide walks through the block editor in detail.</p>
+                     <img alt="Root document in edit mode with the title and first XHTML block" src="../../files/tutorial/hello-dataspace-1.webp"/>
+                     </div>
+                  
+                  <div aria-labelledby="from-the-command-line-tab" class="ac-tabpanel" hidden="hidden" id="from-the-command-line-pane" role="tabpanel">
                      
                      <p>The same change, expressed as data. Describe the root document in a <samp>root.ttl</samp> file:</p>
                      
@@ -179,90 +105,72 @@
 &lt;&gt; a def:Root ;
     dct:title "Northwind Traders" ;
     dct:description "Knowledge Graph representation of the Northwind Traders sample database" ;
-    rdf:_1 &lt;#intro&gt; .
+    rdf:_1 &lt;#overview-intro&gt; .
 
-&lt;#intro&gt; a ldh:XHTML ;
+&lt;#overview-intro&gt; a ldh:XHTML ;
     rdf:value '''&lt;div xmlns="http://www.w3.org/1999/xhtml"&gt;
-        &lt;div class="page-header"&gt;
+        &lt;div class="ldh-section"&gt;
             &lt;h2&gt;Northwind Traders&lt;/h2&gt;
-            &lt;p class="lead"&gt;The iconic sample database converted to an RDF Knowledge Graph&lt;/p&gt;
+            &lt;p&gt;The iconic sample database, reborn as an RDF Knowledge Graph.&lt;/p&gt;
         &lt;/div&gt;
     &lt;/div&gt;'''^^rdf:XMLLiteral .</pre>
                      
-                     <p>Then replace the root document's description with it using <code>PUT</code>. The <code>turtle</code> command resolves the relative URIs in the file against the document URL, so the same
+                     <p class="exhibit-links">Source (finished form): <a href="https://github.com/AtomGraph/LinkedDataHub-Apps/blob/master/demo/northwind-traders/root.ttl" target="_blank">root.ttl</a> · Live: <a href="https://northwind-traders.demo.linkeddatahub.com/" target="_blank">the homepage</a></p>
+                     
+                     <p><code>PUT</code> the file to the base URI to replace the root document's description. <samp>ldh put</samp> resolves the relative URIs in the file against the document URL, so the same
                         file installs against any base URI:</p>
                      
-                     <pre>cat root.ttl | turtle --base="$base" | put.sh \
-    -f "$cert_pem_file" \
-    -p "$cert_password" \
-    -t "application/n-triples" \
-    "$base"</pre>
+                     <pre>ldh put "$LDH_BASE" root.ttl</pre>
+                     
+                     <p>This is the seed: by the <a href="../composition/">Composition</a> stage the same document grows into the demo's full executive dashboard, block by
+                        block.</p>
                      </div>
-                  
-                  <div>
-                     
-                     <h2 id="result">What you now see</h2>
-                     
-                     <p>Reload the base URL: the homepage now carries your title and welcome text. You have
-                        not touched a template, a controller or a database schema — you replaced the description
-                        of one
-                        document, and the UI is a rendering of that description.</p>
-                     <!-- screenshot: the branded homepage after the update -->
-                     </div>
-                  
-                  <div>
-                     
-                     <h2 id="how-this-works">How this works</h2>
-                     
-                     <ul>
-                        
-                        <li><a href="../../reference/data-model/documents/" target="_blank">Documents</a> — the document hierarchy and how documents map to named graphs</li>
-                        
-                        <li><a href="../../reference/data-model/blocks/" target="_blank">Content blocks</a> — how <code>rdf:_1</code>, <code>rdf:_2</code>, … sequence a document's content</li>
-                        
-                        <li><a href="../../reference/http-api/" target="_blank">HTTP API</a> — the <code>PUT</code> semantics behind <code>put.sh</code></li>
-                        </ul>
-                     </div>
-                  
-                  <p class="lead">Next: <a href="../structure/">Structure</a></p>
                   </div>
-            </main>
+               
+               <div>
+                  
+                  <h2 id="result">What you now see</h2>
+                  
+                  <p>Reload the base URL: the homepage now carries your title and welcome text. You have
+                     not touched a template, a controller or a database schema — you replaced the description
+                     of one
+                     document, and the UI is a rendering of that description.</p>
+                  <img alt="The branded homepage after the update" src="../../files/tutorial/hello-dataspace-2.webp"/>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="how-this-works">How this works</h2>
+                  
+                  <ul>
+                     
+                     <li><a href="../../reference/data-model/documents/" target="_blank">Documents</a> — the document hierarchy and how documents map to named graphs</li>
+                     
+                     <li><a href="../../reference/data-model/blocks/" target="_blank">Content blocks</a> — how <code>rdf:_1</code>, <code>rdf:_2</code>, … sequence a document's content</li>
+                     
+                     <li><a href="../../reference/http-api/" target="_blank">HTTP API</a> — the <code>PUT</code> semantics behind <samp>ldh put</samp></li>
+                     </ul>
+                  </div>
+               
+               <p class="ldh-body-lg">Next: <a href="../structure/">Structure</a></p>
+               </div>
          </div>
       </div>
-      <div class="footer container-fluid">
-         <div class="row-fluid">
-            <div class="offset2 span8">
-               <div class="span3">
-                  <h2 class="nav-header">About</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a></li>
-                     <li><a href="https://atomgraph.com" target="_blank">AtomGraph</a></li>
-                  </ul>
-               </div>
-               <div class="span3">
-                  <h2 class="nav-header">Resources</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a></li>
-                     <li><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></li>
-                  </ul>
-               </div>
-               <div class="span3">
-                  <h2 class="nav-header">Support</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a></li>
-                     <li><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a></li>
-                     <li><a href="mailto:support@linkeddatahub.com">Contact support</a></li>
-                  </ul>
-               </div>
-               <div class="span3">
-                  <h2 class="nav-header">Follow us</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a></li>
-                     <li><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></li>
-                  </ul>
-               </div>
+      <div class="ldh-footer" role="contentinfo">
+         <div class="cols">
+            <div class="col brand-col"><a class="ldh-wordmark" href="https://linkeddatahub.com" target="_blank"><span class="mark"></span><span>LinkedDataHub</span></a><p>The low-code Knowledge Graph application platform. Built on RDF, SPARQL and Linked
+                  Data principles.</p>
             </div>
+            <div class="col">
+               <p class="ftitle">About</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a><a href="https://atomgraph.com" target="_blank">AtomGraph</a></div>
+            <div class="col">
+               <p class="ftitle">Resources</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></div>
+            <div class="col">
+               <p class="ftitle">Support</p><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a><a href="mailto:support@linkeddatahub.com">Contact support</a></div>
+            <div class="col">
+               <p class="ftitle">Follow us</p><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></div>
          </div>
+         <div class="legal"><span>© 2026 AtomGraph · LinkedDataHub</span></div>
       </div>
    </body>
 </html>

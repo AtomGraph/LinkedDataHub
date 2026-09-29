@@ -1,319 +1,319 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" lang="en" data-retro="m3" data-theme="light">
    <head>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
       <title>LinkedDataHub v5 — Edit content</title>
       <meta name="description" content="Edit XHTML documents in-place and annotate text with RDFa"/>
-      <meta name="last-modified" content="2026-08-18T20:14:17Z"/>
-      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap.css" rel="stylesheet" type="text/css"/>
-      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
-      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/linkeddatahub-bootstrap.css" rel="stylesheet" type="text/css"/>
-      <style type="text/css">
-                body { padding-top: 60px; }
-                object { width: 100%; min-height: 640px; }
-            </style><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/js/jquery.min.js"></script><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/js/bootstrap.min.js"></script><script type="text/javascript">
-                    $(document).ready(function() {
-                        $("ul.nav-tabs a").on("click", function() {
-                            $(this).closest("ul").children().toggleClass("active", false);
-                            $(this).closest("li").toggleClass("active", true);
-                            $(this).closest("ul").next().children().toggleClass("active", false);
-                            $(this).closest("ul").next().children().eq($(this).closest("li").index()).toggleClass("active", true);
+      <meta name="last-modified" content="2026-09-29T09:21:08Z"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1"/>
+      <link href="../../static/css/fonts.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/colors_and_type.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/app.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/retro.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/ldh.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/docs.css" rel="stylesheet" type="text/css"/><script type="text/javascript">
+                    document.addEventListener("click", function(event) {
+                        var tab = event.target.closest(".ac-tab[role='tab']");
+                        if (!tab) return;
+                        var tablist = tab.closest("[role='tablist']");
+                        var tabs = tablist.closest(".ac-tabs");
+                        if (!tabs || !tabs.querySelector(".ac-tabpanel")) return;
+                        tablist.querySelectorAll(".ac-tab").forEach(function(t) { t.classList.remove("is-on"); t.setAttribute("aria-selected", "false"); });
+                        tab.classList.add("is-on");
+                        tab.setAttribute("aria-selected", "true");
+                        tabs.querySelectorAll(".ac-tabpanel").forEach(function(pane) {
+                            if (pane.parentElement !== tabs) return;
+                            pane.hidden = pane.id !== tab.getAttribute("aria-controls");
                         });
                     });
-                </script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+                </script><script async="async" defer="defer" src="https://buttons.github.io/buttons.js"></script><script async="async" defer="defer" src="https://platform.twitter.com/widgets.js"></script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
                     window.dataLayer = window.dataLayer || [];
                     function gtag(){dataLayer.push(arguments);}
                     gtag('js', new Date());
                     gtag('config', 'UA-38402002-6');
                 </script></head>
-   <body>
-      <div class="navbar navbar-fixed-top">
-         <div class="navbar-inner">
-            <div class="container-fluid"><a class="brand" href="../../">LinkedDataHub</a><div class="nav-collapse collapse">
-                  <ul class="nav">
-                     <li class="active">
-                        <div class="btn-group"><a class="btn" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/">Documentation v5</a><button class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button><ul class="dropdown-menu">
-                              <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a></li>
-                              <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></li>
-                           </ul>
-                        </div>
-                     </li>
-                     <li><a href="https://github.com/AtomGraph/LinkedDataHub" target="_blank">Code</a></li>
-                  </ul>
-               </div>
-            </div>
-         </div>
+   <body class="app">
+      <div class="ldh-header" role="banner"><a class="ldh-wordmark" href="../../"><span class="mark"></span><span>LinkedDataHub</span></a><div></div>
+         <div class="ldh-header-actions">
+            <details class="docs-versions">
+               <summary>Documentation v6</summary>
+               <div><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v5/">Documentation v5</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></div>
+            </details><a href="https://github.com/AtomGraph/LinkedDataHub-Apps" target="_blank">Sample dataspaces</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub/subscription" data-icon="octicon-eye" data-size="large" aria-label="Watch AtomGraph/LinkedDataHub on GitHub">Watch</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star AtomGraph/LinkedDataHub on GitHub">Star</a><a href="https://twitter.com/atomgraphhq" class="twitter-follow-button" data-show-count="false">Follow @atomgraphhq</a><a href="https://youtube.com/@atomgraph" target="_blank"><span class="msi outline" aria-hidden="true">smart_display</span> @atomgraph</a></div>
       </div>
-      <div class="container-fluid">
-         <div class="row-fluid">
-            <nav class="span2">
-               <ul class="nav nav-list">
-                  <li><a href="../../about/">About LinkedDataHub</a></li>
-                  <li><a href="../../get-started/">Get started</a><ul class="nav nav-list">
-                        <li><a href="../../get-started/get-an-account/">Get an account</a></li>
-                        <li><a href="../../get-started/request-access/">Request access</a></li>
-                        <li><a href="../../get-started/setup/">Setup</a></li>
-                     </ul>
-                  </li>
-                  <li><a href="../../reference/">Reference</a><ul class="nav nav-list">
-                        <li><a href="../../reference/administration/">Administration</a><ul class="nav nav-list">
-                              <li><a href="../../reference/administration/acl/">Access control</a></li>
-                              <li><a href="../../reference/administration/ontologies/">Ontologies</a></li>
-                              <li><a href="../../reference/administration/packages/">Packages</a></li>
-                           </ul>
-                        </li>
-                        <li><a href="../../reference/command-line-interface/">Command line interface</a></li>
-                        <li><a href="../../reference/configuration/">Configuration</a></li>
-                        <li><a href="../../reference/data-model/">Data model</a><ul class="nav nav-list">
-                              <li><a href="../../reference/data-model/blocks/">Content blocks</a><ul class="nav nav-list">
-                                    <li><a href="../../reference/data-model/blocks/objects/">Object blocks</a></li>
-                                    <li><a href="../../reference/data-model/blocks/xhtml/">XHTML blocks</a></li>
-                                 </ul>
-                              </li>
-                              <li><a href="../../reference/data-model/documents/">Documents</a><ul class="nav nav-list">
-                                    <li><a href="../../reference/data-model/documents/containers/">Containers</a></li>
-                                    <li><a href="../../reference/data-model/documents/items/">Items</a></li>
-                                 </ul>
-                              </li>
-                              <li><a href="../../reference/data-model/resources/">Resources</a><ul class="nav nav-list">
-                                    <li><a href="../../reference/data-model/resources/charts/">Charts</a></li>
-                                    <li><a href="../../reference/data-model/resources/queries/">Queries</a></li>
-                                    <li><a href="../../reference/data-model/resources/views/">Views</a></li>
-                                 </ul>
-                              </li>
-                           </ul>
-                        </li>
-                        <li><a href="../../reference/dataspace/">Dataspace</a></li>
-                        <li><a href="../../reference/http-api/">HTTP API</a></li>
-                        <li><a href="../../reference/imports/">Imports</a><ul class="nav nav-list">
-                              <li><a href="../../reference/imports/csv/">CSV imports</a></li>
-                              <li><a href="../../reference/imports/rdf/">RDF imports</a></li>
-                           </ul>
-                        </li>
-                        <li><a href="../../reference/dataset/">RDF dataset</a></li>
-                        <li><a href="../../reference/stylesheets/">Stylesheets</a></li>
-                        <li><a href="../../reference/triplestores/">Triplestores</a></li>
-                        <li><a href="../../reference/user-interface/">User interface</a></li>
-                     </ul>
-                  </li>
-                  <li><a href="../../tutorial/">Tutorial</a><ul class="nav nav-list">
-                        <li><a href="../../tutorial/app-as-repository/">App as a repository</a></li>
-                        <li><a href="../../tutorial/beyond-low-code/">Beyond low-code</a></li>
-                        <li><a href="../../tutorial/composition/">Composition</a></li>
-                        <li><a href="../../tutorial/data/">Data</a></li>
-                        <li><a href="../../tutorial/hello-dataspace/">Hello dataspace</a></li>
-                        <li><a href="../../tutorial/insight/">Insight</a></li>
-                        <li><a href="../../tutorial/media/">Media</a></li>
-                        <li><a href="../../tutorial/model/">Model</a></li>
-                        <li><a href="../../tutorial/publish/">Publish</a></li>
-                        <li><a href="../../tutorial/structure/">Structure</a></li>
-                     </ul>
-                  </li>
-                  <li><a href="../">User guide</a><ul class="nav nav-list">
-                        <li><a href="../add-data/">Add data</a></li>
-                        <li><a href="../browse-data/">Browse data</a></li>
-                        <li><a href="../build-apps/">Build apps</a></li>
-                        <li><a href="../change-layout/">Change layout</a></li>
-                        <li><a href="../change-system-base-uri/">Change system base URI</a></li>
-                        <li><a href="../change-model/">Change the model</a></li>
-                        <li><a href="../create-data/">Create data</a><ul class="nav nav-list">
-                              <li><a href="../create-data/create-content/">Create content</a></li>
-                              <li><a href="../create-data/create-documents/">Create documents</a></li>
-                              <li><a href="../create-data/create-resources/">Create instances</a></li>
-                           </ul>
-                        </li>
-                        <li class="active"><a href="">Edit content</a></li>
-                        <li><a href="../import-data/">Import data</a><ul class="nav nav-list">
-                              <li><a href="../import-data/import-csv-data/">Import CSV data</a></li>
-                              <li><a href="../import-data/import-rdf-data/">Import RDF data</a></li>
-                           </ul>
-                        </li>
-                        <li><a href="../manage-dataspaces/">Manage dataspaces</a></li>
-                        <li><a href="../manage-packages/">Manage packages</a></li>
-                        <li><a href="../navigate-data/">Navigate data</a></li>
-                        <li><a href="../query-data/">Query data</a></li>
-                        <li><a href="../search-data/">Search data</a></li>
-                        <li><a href="../upload-file/">Upload file</a></li>
-                     </ul>
-                  </li>
-               </ul>
-            </nav>
-            <main class="span7">
-               <header>
-                  <h1>Edit content</h1>
-               </header>
-               <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://www.w3.org/ns/ldt/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+      <div class="docs-layout">
+         <div class="docs-nav" role="navigation">
+            <ul>
+               <li><a href="../../about/">About LinkedDataHub</a></li>
+               <li><a href="../../get-started/">Get started</a></li>
+               <li><a href="../../tutorial/">Tutorial</a></li>
+               <li><a href="../">User guide</a><ul>
+                     <li><a href="../add-data/">Add data</a></li>
+                     <li><a href="../browse-data/">Browse data</a></li>
+                     <li><a href="../change-model/">Change model</a></li>
+                     <li><a href="../create-data/">Create data</a></li>
+                     <li class="is-active" aria-current="page"><a href="">Edit content</a></li>
+                     <li><a href="../import-data/">Import data</a></li>
+                     <li><a href="../manage-dataspaces/">Manage dataspaces</a></li>
+                     <li><a href="../manage-packages/">Manage packages</a></li>
+                     <li><a href="../query-data/">Query data</a></li>
+                     <li><a href="../upload-file/">Upload file</a></li>
+                     <li><a href="../version-history/">Version history</a></li>
+                  </ul>
+               </li>
+               <li><a href="../../reference/">Reference</a></li>
+               <li><a href="../../extending/">Extending</a></li>
+            </ul>
+         </div>
+         <div class="docs-main" role="main">
+            <h1>Edit content</h1>
+            <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+               
+               <p class="ldh-body-lg">Edit XHTML documents in-place and annotate text with RDFa</p>
+               
+               <p>XHTML content blocks in LinkedDataHub are living documents: authenticated users with
+                  write access can click directly into the content to edit it, apply rich-text formatting,
+                  and annotate any span of text with <a href="https://www.w3.org/TR/rdfa-primer/" target="_blank">RDFa</a>. Words and phrases link to terms in the Knowledge Graph without leaving the page.</p>
+               
+               <p>Annotating the word <samp>Chai</samp> in a Northwind welcome text with the product it names produces markup like:</p>
+               
+               <pre>&lt;p&gt;Our bestselling tea is
+    &lt;span about="https://localhost:4443/products/1/#this" property="https://schema.org/name"&gt;Chai&lt;/span&gt;.&lt;/p&gt;</pre>
+               
+               <p>which, read as RDFa, yields the triple</p>
+               
+               <pre>&lt;https://localhost:4443/products/1/#this&gt; &lt;https://schema.org/name&gt; "Chai" .</pre>
+               
+               <p>The prose itself becomes part of the Knowledge Graph.</p>
+               
+               <div>
                   
-                  <p class="lead">Edit XHTML documents in-place and annotate text with RDFa</p>
+                  <h2 id="entering-edit-mode">Entering edit mode</h2>
                   
-                  <p>XHTML content blocks in LinkedDataHub are living documents: authenticated users with
-                     write access can click directly into the content to edit it, apply rich-text formatting,
-                     and annotate any span of text with <a href="https://www.w3.org/TR/rdfa-primer/" target="_blank">RDFa</a> — linking words and phrases to terms in the Knowledge Graph without leaving the page.</p>
+                  <p>Click anywhere inside an <a href="../../reference/data-model/blocks/#xhtml-blocks">XHTML block</a> to enter edit mode. The block gains a focus outline and the editor toolbar appears
+                     below the action bar. Clicking outside the block (including the surrounding page margins)
+                     returns the block to read mode.</p>
                   
-                  <div>
-                     
-                     <h2 id="entering-edit-mode">Entering edit mode</h2>
-                     
-                     <p>Click anywhere inside an <a href="../../reference/data-model/blocks/xhtml/">XHTML block</a> to enter edit mode. The block gains a focus outline and the editor toolbar appears
-                        above the action bar. Clicking outside the block (including the surrounding column
-                        margins) returns the block to read mode.</p>
-                     
-                     <p>Edit mode is only available to authenticated users who have write access to the document.
-                        The block remains read-only for all other visitors.</p>
-                     </div>
-                  
-                  <div>
-                     
-                     <h2 id="toolbar">Editor toolbar</h2>
-                     
-                     <p>The toolbar appears at the top of the page when an XHTML block is active. It provides
-                        standard rich-text controls grouped by function:</p>
-                     
-                     <dl>
-                        
-                        <dt>Block type</dt>
-                        
-                        <dd>Paragraph, Heading 1–4, Blockquote, Code block, Preformatted</dd>
-                        
-                        <dt>Inline formatting</dt>
-                        
-                        <dd>Bold, Italic, Inline code, Link</dd>
-                        
-                        <dt>Lists</dt>
-                        
-                        <dd>Bullet list, Numbered list</dd>
-                        
-                        <dt>Inserts</dt>
-                        
-                        <dd>Image, Table</dd>
-                        
-                        <dt>Table operations</dt>
-                        
-                        <dd>Add/remove row or column (active only when the caret is inside a table cell)</dd>
-                        
-                        <dt>View</dt>
-                        
-                        <dd>Show/hide RDFa annotations, Search within the document, View source XHTML</dd>
-                        </dl>
-                     
-                     <p>Toolbar buttons reflect the current caret position: the block-type selector and toggle
-                        buttons (Bold, Italic etc.) update as you move the cursor.</p>
-                     </div>
-                  
-                  <div>
-                     
-                     <h2 id="rdfa-annotations">RDFa annotations</h2>
-                     
-                     <p>RDFa annotations embed machine-readable RDF statements directly in the XHTML markup.
-                        A single annotation expresses a statement of the form <em>subject — property — object</em>, where subject and object are IRIs or typed literals drawn from your Knowledge Graph.</p>
-                     
-                     <h3>Adding an annotation</h3>
-                     
-                     <ol>
-                        
-                        <li>Enter edit mode by clicking inside the XHTML block.</li>
-                        
-                        <li>Select the text you want to annotate.</li>
-                        
-                        <li>Right-click (or use the context menu) and choose <strong>Annotate</strong>.</li>
-                        
-                        <li>In the annotation dialog:
-                           
-                           <ul>
-                              
-                              <li><strong>Property</strong> — start typing to search ontology terms; select one from the typeahead dropdown.</li>
-                              
-                              <li><strong>Value</strong> — pre-filled with the selected text; change it to emit a different machine-readable
-                                 value (e.g. a canonical form).</li>
-                              
-                              <li>Expand <strong>Type, subject &amp; object</strong> for advanced fields:
-                                 
-                                 <ul>
-                                    
-                                    <li><strong>Type (typeof)</strong> — assign an <code>rdf:type</code> to the annotated span.</li>
-                                    
-                                    <li><strong>Subject (about)</strong> — override the in-scope subject IRI.</li>
-                                    
-                                    <li><strong>Object (resource)</strong> — make the object a resource IRI instead of a literal.</li>
-                                    
-                                    <li><strong>Datatype</strong> — type the literal (e.g. <code>xsd:date</code>).</li>
-                                    
-                                    <li><strong>Language</strong> — tag the literal with a BCP 47 language code.</li>
-                                    </ul>
-                                 </li>
-                              </ul>
-                           </li>
-                        
-                        <li>Click <strong>Annotate</strong>. The selected text is wrapped in a <code>span</code> carrying the appropriate RDFa attributes.</li>
-                        </ol>
-                     
-                     <h3>Editing an existing annotation</h3>
-                     
-                     <p>Right-click an already-annotated span to reopen the dialog pre-populated with the
-                        current values. Change any field and click <strong>Annotate</strong> to update, or click <strong>Remove</strong> to delete the annotation while keeping the text.</p>
-                     
-                     <h3>Toggling annotation visibility</h3>
-                     
-                     <p>The <strong>Show annotations</strong> button in the toolbar toggles a visual highlight on all annotated spans so you can
-                        see at a glance which text carries machine-readable meaning.</p>
-                     </div>
-                  
-                  <div>
-                     
-                     <h2 id="saving">Saving changes</h2>
-                     
-                     <p>Changes are saved automatically when focus leaves the editor — clicking outside the
-                        block or tabbing away serialises the current XHTML content as an <code>XMLLiteral</code> and sends a SPARQL Update <code>PATCH</code> request that replaces the stored value. There is no separate Save button.</p>
-                     
-                     <p>Moving focus to the editor's own controls (the toolbar, the breadcrumb or the find
-                        bar) does not trigger a save; only leaving the editor region does.</p>
-                     </div>
-                  
-                  <div>
-                     
-                     <h2 id="xhtml-source">Viewing the XHTML source</h2>
-                     
-                     <p>Click the <strong>Source</strong> button in the toolbar to open a read-only view of the serialised XHTML markup, including
-                        all RDFa attributes. This is useful for verifying the exact markup that will be stored
-                        or for copying fragments into other documents.</p>
-                     </div>
+                  <p>Edit mode is only available to authenticated users who have write access to the document.
+                     The block remains read-only for all other visitors.</p>
                   </div>
-            </main>
+               
+               <div>
+                  
+                  <h2 id="toolbar">Editor toolbar</h2>
+                  <img alt="The rich-text editor toolbar above an active Northwind XHTML block" src="../../files/user-guide/edit-content-1.webp"/>
+                  
+                  <p>The toolbar appears at the top of the page when an XHTML block is active. It provides
+                     standard rich-text controls grouped by function:</p>
+                  
+                  <dl>
+                     
+                     <dt>Block type</dt>
+                     
+                     <dd>Paragraph, Heading 1–3, Preformatted</dd>
+                     
+                     <dt>Inline formatting</dt>
+                     
+                     <dd>Bold, Italic, Link</dd>
+                     
+                     <dt>Blocks</dt>
+                     
+                     <dd>Paragraph, Bullet list, Numbered list, Quote</dd>
+                     
+                     <dt>Inserts</dt>
+                     
+                     <dd>Figure, Table</dd>
+                     
+                     <dt>Table operations</dt>
+                     
+                     <dd>Add/remove row or column (active only when the caret is inside a table cell)</dd>
+                     
+                     <dt>View</dt>
+                     
+                     <dd>Table of contents, Subject properties, Find and replace, Source view of the XHTML
+                        markup</dd>
+                     </dl>
+                  
+                  <p>Toolbar buttons reflect the current caret position: the block-type selector and toggle
+                     buttons (Bold, Italic etc.) update as you move the cursor.</p>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="rdfa-annotations">RDFa annotations</h2>
+                  <img alt="The annotation dialog over the selected word &#34;Chai&#34;, Property typeahead open" src="../../files/user-guide/edit-content-2.webp"/>
+                  
+                  <p>RDFa annotations embed machine-readable RDF statements directly in the XHTML markup.
+                     A single annotation expresses a statement of the form <em>subject — property — object</em>, where subject and object are IRIs or typed literals drawn from your Knowledge Graph.</p>
+                  
+                  <h3 id="adding-an-annotation">Adding an annotation</h3>
+                  
+                  <ol>
+                     
+                     <li>Enter edit mode by clicking inside the XHTML block.</li>
+                     
+                     <li>Select the text you want to annotate.</li>
+                     
+                     <li>Right-click the selection to open the annotation dialog.</li>
+                     
+                     <li>In the annotation dialog, fill out the fields:
+                        
+                        <table>
+                           
+                           <caption class="ac-vh">Annotation dialog fields</caption>
+                           
+                           <thead>
+                              
+                              <tr>
+                                 
+                                 <th scope="col">Field</th>
+                                 
+                                 <th scope="col">Description</th>
+                                 </tr>
+                              </thead>
+                           
+                           <tbody>
+                              
+                              <tr>
+                                 
+                                 <th scope="row"><samp>Property</samp></th>
+                                 
+                                 <td>Start typing to search ontology terms; select one from the typeahead dropdown</td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <th scope="row"><samp>Value</samp></th>
+                                 
+                                 <td>Pre-filled with the selected text; change it to emit a different machine-readable
+                                    value (e.g. a canonical form)</td>
+                                 </tr>
+                              </tbody>
+                           </table>
+                        
+                        <p>Expand <samp>Type, subject &amp; object</samp> for the advanced fields:</p>
+                        
+                        <table>
+                           
+                           <caption class="ac-vh">Advanced annotation fields</caption>
+                           
+                           <thead>
+                              
+                              <tr>
+                                 
+                                 <th scope="col">Field</th>
+                                 
+                                 <th scope="col">Description</th>
+                                 </tr>
+                              </thead>
+                           
+                           <tbody>
+                              
+                              <tr>
+                                 
+                                 <th scope="row"><samp>Type (typeof)</samp></th>
+                                 
+                                 <td>Assign an <code>rdf:type</code> to the annotated span</td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <th scope="row"><samp>Subject (about)</samp></th>
+                                 
+                                 <td>Override the in-scope subject IRI</td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <th scope="row"><samp>Object (resource)</samp></th>
+                                 
+                                 <td>Make the object a resource IRI instead of a literal</td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <th scope="row"><samp>Datatype</samp></th>
+                                 
+                                 <td>Type the literal (e.g. <code>xsd:date</code>)</td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <th scope="row"><samp>Language</samp></th>
+                                 
+                                 <td>Tag the literal with a BCP 47 language code</td>
+                                 </tr>
+                              </tbody>
+                           </table>
+                        </li>
+                     
+                     <li>Click <span class="ac-btn in-primary ap-solid sz-sm">Annotate</span>. The selected text is wrapped in a <code>span</code> carrying the appropriate RDFa attributes.</li>
+                     </ol>
+                  
+                  <h3 id="editing-an-annotation">Editing an existing annotation</h3>
+                  
+                  <p>Right-click an already-annotated span to reopen the dialog pre-populated with the
+                     current values. Change any field and click <span class="ac-btn in-primary ap-solid sz-sm">Annotate</span> to update, or click <span class="ac-btn in-negative ap-solid sz-sm">Remove</span> to delete the annotation while keeping the text.</p>
+                  
+                  <h3 id="annotation-visibility">Annotation visibility</h3>
+                  
+                  <p>While a block is in edit mode, annotated spans are outlined so you can see at a glance
+                     which text carries machine-readable meaning.</p>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="saving">Saving changes</h2>
+                  
+                  <p>Changes are saved automatically when focus leaves the editor — clicking outside the
+                     block or tabbing away serializes the current XHTML content as an <code>XMLLiteral</code> and sends a SPARQL Update <code>PATCH</code> request that replaces the stored value. There is no separate Save button.</p>
+                  
+                  <p>A save only happens when the content actually changed: leaving the editor without
+                     edits restores the block as it was, without rewriting the document or adding a <a href="../version-history/">version</a>.</p>
+                  
+                  <p>Moving focus to the editor's own controls (the toolbar, the breadcrumb or the find
+                     bar) does not trigger a save; only leaving the editor region does.</p>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="tab-groups">Tab groups</h2>
+                  
+                  <p>Some pages present alternative paths — such as user interface and command line instructions
+                     — as switching tab strips. In edit mode the switching is suspended: every panel is
+                     shown stacked and can be edited in place, and the markup is preserved exactly on save.
+                     The tab strip itself is editable text, so take care not to alter the tab buttons unintentionally.</p>
+                  
+                  <p>Creating a new tab group is not yet supported in the editor — that markup is authored
+                     over the <a href="../../reference/http-api/">HTTP API</a>, e.g. with <samp>ldh put</samp> from the <a href="../../reference/command-line-interface/">command line interface</a>.</p>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="xhtml-source">Viewing the XHTML source</h2>
+                  
+                  <p>Click the <span class="ac-btn in-neutral ap-outline sz-sm">Source</span> button in the toolbar to open a read-only view of the serialized XHTML markup, including
+                     all RDFa attributes. This is useful for verifying the exact markup that will be stored
+                     or for copying fragments into other documents.</p>
+                  </div>
+               
+               <p class="ldh-body-lg">Read more about <a href="../../reference/data-model/blocks/">content blocks</a>, or manage them from the command line as shown in the <a href="../create-data/create-content/">Create content</a> guide.</p>
+               </div>
          </div>
       </div>
-      <div class="footer container-fluid">
-         <div class="row-fluid">
-            <div class="offset2 span8">
-               <div class="span3">
-                  <h2 class="nav-header">About</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a></li>
-                     <li><a href="https://atomgraph.com" target="_blank">AtomGraph</a></li>
-                  </ul>
-               </div>
-               <div class="span3">
-                  <h2 class="nav-header">Resources</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a></li>
-                     <li><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></li>
-                  </ul>
-               </div>
-               <div class="span3">
-                  <h2 class="nav-header">Support</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a></li>
-                     <li><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a></li>
-                     <li><a href="mailto:support@linkeddatahub.com">Contact support</a></li>
-                  </ul>
-               </div>
-               <div class="span3">
-                  <h2 class="nav-header">Follow us</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a></li>
-                     <li><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></li>
-                  </ul>
-               </div>
+      <div class="ldh-footer" role="contentinfo">
+         <div class="cols">
+            <div class="col brand-col"><a class="ldh-wordmark" href="https://linkeddatahub.com" target="_blank"><span class="mark"></span><span>LinkedDataHub</span></a><p>The low-code Knowledge Graph application platform. Built on RDF, SPARQL and Linked
+                  Data principles.</p>
             </div>
+            <div class="col">
+               <p class="ftitle">About</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a><a href="https://atomgraph.com" target="_blank">AtomGraph</a></div>
+            <div class="col">
+               <p class="ftitle">Resources</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></div>
+            <div class="col">
+               <p class="ftitle">Support</p><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a><a href="mailto:support@linkeddatahub.com">Contact support</a></div>
+            <div class="col">
+               <p class="ftitle">Follow us</p><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></div>
          </div>
+         <div class="legal"><span>© 2026 AtomGraph · LinkedDataHub</span></div>
       </div>
    </body>
 </html>

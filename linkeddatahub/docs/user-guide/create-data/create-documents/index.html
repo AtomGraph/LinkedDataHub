@@ -1,260 +1,190 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" lang="en" data-retro="m3" data-theme="light">
    <head>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
       <title>LinkedDataHub v5 — Create documents</title>
       <meta name="description" content="Learn how to create container and item documents"/>
-      <meta name="last-modified" content="2026-08-18T20:14:17Z"/>
-      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap.css" rel="stylesheet" type="text/css"/>
-      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
-      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/linkeddatahub-bootstrap.css" rel="stylesheet" type="text/css"/>
-      <style type="text/css">
-                body { padding-top: 60px; }
-                object { width: 100%; min-height: 640px; }
-            </style><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/js/jquery.min.js"></script><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/js/bootstrap.min.js"></script><script type="text/javascript">
-                    $(document).ready(function() {
-                        $("ul.nav-tabs a").on("click", function() {
-                            $(this).closest("ul").children().toggleClass("active", false);
-                            $(this).closest("li").toggleClass("active", true);
-                            $(this).closest("ul").next().children().toggleClass("active", false);
-                            $(this).closest("ul").next().children().eq($(this).closest("li").index()).toggleClass("active", true);
+      <meta name="last-modified" content="2026-09-29T09:21:08Z"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1"/>
+      <link href="../../../static/css/fonts.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/colors_and_type.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/app.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/retro.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/ldh.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/docs.css" rel="stylesheet" type="text/css"/><script type="text/javascript">
+                    document.addEventListener("click", function(event) {
+                        var tab = event.target.closest(".ac-tab[role='tab']");
+                        if (!tab) return;
+                        var tablist = tab.closest("[role='tablist']");
+                        var tabs = tablist.closest(".ac-tabs");
+                        if (!tabs || !tabs.querySelector(".ac-tabpanel")) return;
+                        tablist.querySelectorAll(".ac-tab").forEach(function(t) { t.classList.remove("is-on"); t.setAttribute("aria-selected", "false"); });
+                        tab.classList.add("is-on");
+                        tab.setAttribute("aria-selected", "true");
+                        tabs.querySelectorAll(".ac-tabpanel").forEach(function(pane) {
+                            if (pane.parentElement !== tabs) return;
+                            pane.hidden = pane.id !== tab.getAttribute("aria-controls");
                         });
                     });
-                </script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+                </script><script async="async" defer="defer" src="https://buttons.github.io/buttons.js"></script><script async="async" defer="defer" src="https://platform.twitter.com/widgets.js"></script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
                     window.dataLayer = window.dataLayer || [];
                     function gtag(){dataLayer.push(arguments);}
                     gtag('js', new Date());
                     gtag('config', 'UA-38402002-6');
                 </script></head>
-   <body>
-      <div class="navbar navbar-fixed-top">
-         <div class="navbar-inner">
-            <div class="container-fluid"><a class="brand" href="../../../">LinkedDataHub</a><div class="nav-collapse collapse">
-                  <ul class="nav">
-                     <li class="active">
-                        <div class="btn-group"><a class="btn" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/">Documentation v5</a><button class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button><ul class="dropdown-menu">
-                              <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a></li>
-                              <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></li>
-                           </ul>
-                        </div>
-                     </li>
-                     <li><a href="https://github.com/AtomGraph/LinkedDataHub" target="_blank">Code</a></li>
-                  </ul>
-               </div>
-            </div>
-         </div>
+   <body class="app">
+      <div class="ldh-header" role="banner"><a class="ldh-wordmark" href="../../../"><span class="mark"></span><span>LinkedDataHub</span></a><div></div>
+         <div class="ldh-header-actions">
+            <details class="docs-versions">
+               <summary>Documentation v6</summary>
+               <div><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v5/">Documentation v5</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></div>
+            </details><a href="https://github.com/AtomGraph/LinkedDataHub-Apps" target="_blank">Sample dataspaces</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub/subscription" data-icon="octicon-eye" data-size="large" aria-label="Watch AtomGraph/LinkedDataHub on GitHub">Watch</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star AtomGraph/LinkedDataHub on GitHub">Star</a><a href="https://twitter.com/atomgraphhq" class="twitter-follow-button" data-show-count="false">Follow @atomgraphhq</a><a href="https://youtube.com/@atomgraph" target="_blank"><span class="msi outline" aria-hidden="true">smart_display</span> @atomgraph</a></div>
       </div>
-      <div class="container-fluid">
-         <div class="row-fluid">
-            <nav class="span2">
-               <ul class="nav nav-list">
-                  <li><a href="../../../about/">About LinkedDataHub</a></li>
-                  <li><a href="../../../get-started/">Get started</a><ul class="nav nav-list">
-                        <li><a href="../../../get-started/get-an-account/">Get an account</a></li>
-                        <li><a href="../../../get-started/request-access/">Request access</a></li>
-                        <li><a href="../../../get-started/setup/">Setup</a></li>
-                     </ul>
-                  </li>
-                  <li><a href="../../../reference/">Reference</a><ul class="nav nav-list">
-                        <li><a href="../../../reference/administration/">Administration</a><ul class="nav nav-list">
-                              <li><a href="../../../reference/administration/acl/">Access control</a></li>
-                              <li><a href="../../../reference/administration/ontologies/">Ontologies</a></li>
-                              <li><a href="../../../reference/administration/packages/">Packages</a></li>
-                           </ul>
-                        </li>
-                        <li><a href="../../../reference/command-line-interface/">Command line interface</a></li>
-                        <li><a href="../../../reference/configuration/">Configuration</a></li>
-                        <li><a href="../../../reference/data-model/">Data model</a><ul class="nav nav-list">
-                              <li><a href="../../../reference/data-model/blocks/">Content blocks</a><ul class="nav nav-list">
-                                    <li><a href="../../../reference/data-model/blocks/objects/">Object blocks</a></li>
-                                    <li><a href="../../../reference/data-model/blocks/xhtml/">XHTML blocks</a></li>
-                                 </ul>
-                              </li>
-                              <li><a href="../../../reference/data-model/documents/">Documents</a><ul class="nav nav-list">
-                                    <li><a href="../../../reference/data-model/documents/containers/">Containers</a></li>
-                                    <li><a href="../../../reference/data-model/documents/items/">Items</a></li>
-                                 </ul>
-                              </li>
-                              <li><a href="../../../reference/data-model/resources/">Resources</a><ul class="nav nav-list">
-                                    <li><a href="../../../reference/data-model/resources/charts/">Charts</a></li>
-                                    <li><a href="../../../reference/data-model/resources/queries/">Queries</a></li>
-                                    <li><a href="../../../reference/data-model/resources/views/">Views</a></li>
-                                 </ul>
-                              </li>
-                           </ul>
-                        </li>
-                        <li><a href="../../../reference/dataspace/">Dataspace</a></li>
-                        <li><a href="../../../reference/http-api/">HTTP API</a></li>
-                        <li><a href="../../../reference/imports/">Imports</a><ul class="nav nav-list">
-                              <li><a href="../../../reference/imports/csv/">CSV imports</a></li>
-                              <li><a href="../../../reference/imports/rdf/">RDF imports</a></li>
-                           </ul>
-                        </li>
-                        <li><a href="../../../reference/dataset/">RDF dataset</a></li>
-                        <li><a href="../../../reference/stylesheets/">Stylesheets</a></li>
-                        <li><a href="../../../reference/triplestores/">Triplestores</a></li>
-                        <li><a href="../../../reference/user-interface/">User interface</a></li>
-                     </ul>
-                  </li>
-                  <li><a href="../../../tutorial/">Tutorial</a><ul class="nav nav-list">
-                        <li><a href="../../../tutorial/app-as-repository/">App as a repository</a></li>
-                        <li><a href="../../../tutorial/beyond-low-code/">Beyond low-code</a></li>
-                        <li><a href="../../../tutorial/composition/">Composition</a></li>
-                        <li><a href="../../../tutorial/data/">Data</a></li>
-                        <li><a href="../../../tutorial/hello-dataspace/">Hello dataspace</a></li>
-                        <li><a href="../../../tutorial/insight/">Insight</a></li>
-                        <li><a href="../../../tutorial/media/">Media</a></li>
-                        <li><a href="../../../tutorial/model/">Model</a></li>
-                        <li><a href="../../../tutorial/publish/">Publish</a></li>
-                        <li><a href="../../../tutorial/structure/">Structure</a></li>
-                     </ul>
-                  </li>
-                  <li><a href="../../">User guide</a><ul class="nav nav-list">
-                        <li><a href="../../add-data/">Add data</a></li>
-                        <li><a href="../../browse-data/">Browse data</a></li>
-                        <li><a href="../../build-apps/">Build apps</a></li>
-                        <li><a href="../../change-layout/">Change layout</a></li>
-                        <li><a href="../../change-system-base-uri/">Change system base URI</a></li>
-                        <li><a href="../../change-model/">Change the model</a></li>
-                        <li><a href="../">Create data</a><ul class="nav nav-list">
-                              <li><a href="../create-content/">Create content</a></li>
-                              <li class="active"><a href="">Create documents</a></li>
-                              <li><a href="../create-resources/">Create instances</a></li>
-                           </ul>
-                        </li>
-                        <li><a href="../../edit-content/">Edit content</a></li>
-                        <li><a href="../../import-data/">Import data</a><ul class="nav nav-list">
-                              <li><a href="../../import-data/import-csv-data/">Import CSV data</a></li>
-                              <li><a href="../../import-data/import-rdf-data/">Import RDF data</a></li>
-                           </ul>
-                        </li>
-                        <li><a href="../../manage-dataspaces/">Manage dataspaces</a></li>
-                        <li><a href="../../manage-packages/">Manage packages</a></li>
-                        <li><a href="../../navigate-data/">Navigate data</a></li>
-                        <li><a href="../../query-data/">Query data</a></li>
-                        <li><a href="../../search-data/">Search data</a></li>
-                        <li><a href="../../upload-file/">Upload file</a></li>
-                     </ul>
-                  </li>
-               </ul>
-            </nav>
-            <main class="span7">
-               <header>
-                  <h1>Create documents</h1>
-               </header>
-               <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://www.w3.org/ns/ldt/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-                  
-                  <p class="lead">Learn how to create container and item documents</p>
-                  
-                  <p class="text-center">
-                     <iframe allowfullscreen="allowfullscreen" frameborder="0" height="315" src="https://www.youtube.com/embed/paetjTkFBxE" width="560"></iframe>
-                     </p>
-                  
-                  <p>To create a container document (which can have <a href="../../../reference/data-model/documents/#hierarchy" target="_blank">children documents</a>) with a custom URL, follow these steps:</p>
-                  
-                  <div class="tabbable">
-                     
-                     <ul class="nav nav-tabs">
-                        
-                        <li class="active"><a>User interface</a></li>
-                        
-                        <li><a>Command line interface</a></li>
+      <div class="docs-layout">
+         <div class="docs-nav" role="navigation">
+            <ul>
+               <li><a href="../../../about/">About LinkedDataHub</a></li>
+               <li><a href="../../../get-started/">Get started</a></li>
+               <li><a href="../../../tutorial/">Tutorial</a></li>
+               <li><a href="../../">User guide</a><ul>
+                     <li><a href="../../add-data/">Add data</a></li>
+                     <li><a href="../../browse-data/">Browse data</a></li>
+                     <li><a href="../../change-model/">Change model</a></li>
+                     <li><a href="../">Create data</a><ul>
+                           <li class="is-active" aria-current="page"><a href="">Create documents</a></li>
+                           <li><a href="../create-content/">Create content</a></li>
+                           <li><a href="../create-resources/">Create instances</a></li>
                         </ul>
+                     </li>
+                     <li><a href="../../edit-content/">Edit content</a></li>
+                     <li><a href="../../import-data/">Import data</a></li>
+                     <li><a href="../../manage-dataspaces/">Manage dataspaces</a></li>
+                     <li><a href="../../manage-packages/">Manage packages</a></li>
+                     <li><a href="../../query-data/">Query data</a></li>
+                     <li><a href="../../upload-file/">Upload file</a></li>
+                     <li><a href="../../version-history/">Version history</a></li>
+                  </ul>
+               </li>
+               <li><a href="../../../reference/">Reference</a></li>
+               <li><a href="../../../extending/">Extending</a></li>
+            </ul>
+         </div>
+         <div class="docs-main" role="main">
+            <h1>Create documents</h1>
+            <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+               
+               <p class="ldh-body-lg">Learn how to create container and item documents</p>
+               
+               <div>
+                  
+                  <h2 id="create-container">Create a container</h2>
+                  
+                  <p>To create a container document (which can have <a href="../../../reference/data-model/documents/#hierarchy" target="_blank">child documents</a>) with a custom URL, follow these steps:</p>
+                  
+                  <div class="ac-tabs or-horizontal">
                      
-                     <div class="tab-content">
+                     <div class="ac-tablist sz-md va-line" role="tablist">
+                        <button aria-controls="user-interface-pane" aria-selected="true" class="ac-tab is-on" id="user-interface-tab" role="tab" type="button"><span class="ac-tab-lbl">User interface</span></button>
+                        <button aria-controls="command-line-interface-pane" aria-selected="false" class="ac-tab" id="command-line-interface-tab" role="tab" type="button"><span class="ac-tab-lbl">Command line interface</span></button>
+                        </div>
+                     
+                     <div aria-labelledby="user-interface-tab" class="ac-tabpanel" id="user-interface-pane" role="tabpanel">
                         
-                        <div class="tab-pane active">
+                        <div>
                            
-                           <div>
+                           <ol>
                               
-                              <ol>
-                                 
-                                 <li>Click the <span class="btn btn-primary create-action">Create <span class="caret"></span></span> dropdown in the top-left corner and select <dfn>Container</dfn>. This will open a new form.</li>
-                                 
-                                 <li>Fill out the mandatory <dfn>Container</dfn> fields in the form:
-                                    
-                                    <dl>
-                                       
-                                       <dt>Title</dt>
-                                       
-                                       <dd>Enter <samp>Concepts</samp></dd>
-                                       </dl>
-                                    </li>
-                                 
-                                 <li>To customize the container URL, click on the dropdown in the top-right corner of the
-                                    form</li>
-                                 
-                                 <li>Replace the generated unique relative URI with <samp>concepts</samp></li>
-                                 
-                                 <li>Click <span class="btn btn-primary btn-save">Save</span></li>
-                                 </ol>
+                              <li>Click the <span class="ac-btn in-primary ap-solid sz-md">Create <span aria-hidden="true" class="msi caret">expand_more</span></span> dropdown in the <a href="../../../reference/user-interface/#action-bar">action bar</a> and select <dfn>Container</dfn>. This will open a new form.</li>
                               
-                              <p>See how below:</p>
+                              <li>Fill out the mandatory <dfn>Container</dfn> fields in the form: enter <samp>Categories</samp> as the <dfn>Title</dfn></li>
                               
-                              <p>
-                                 <object data="../../../files/user-guide/create-data/create-documents/Create.webm" type="video/webm"></object>
-                                 </p>
-                              </div>
+                              <li>To customize the container URL, click on the dropdown in the top-right corner of the
+                                 form</li>
+                              
+                              <li>Replace the generated unique relative URI with <samp>categories</samp></li>
+                              
+                              <li>Click <span class="ac-btn in-primary ap-solid sz-sm">Save</span></li>
+                              </ol>
+                           <video aria-label="The container creation form" controls="controls" preload="metadata" src="../../../files/user-guide/create-data/create-documents-1.mp4"></video>
                            </div>
+                        </div>
+                     
+                     <div aria-labelledby="command-line-interface-tab" class="ac-tabpanel" hidden="hidden" id="command-line-interface-pane" role="tabpanel">
                         
-                        <div class="tab-pane">
+                        <div>
                            
-                           <div>
-                              
-                              <p>Replace <samp>owner_cert_password</samp> with the value of the corresponding secret and execute the following command:</p>
-                              
-                              <pre>create-container.sh \
-  -b "https://localhost:4443/" \
-  -f ./ssl/owner/cert.pem \
-  -p "$owner_cert_password" \
-  --title "Concepts" \
-  --slug "concepts" \
-  --parent "https://localhost:4443/"</pre>
-                              </div>
+                           <p>With the <a href="../../../reference/command-line-interface/#environment-variables"><samp>LDH_*</samp> environment variables</a> supplying the certificate and base URI, execute the following command:</p>
+                           
+                           <pre>ldh create container \
+  --title "Categories" \
+  --slug "categories" \
+  --parent "$LDH_BASE"</pre>
                            </div>
                         </div>
                      </div>
                   
-                  <p>A container titled <samp>Concepts</samp> should appear with the URI <a href="https://localhost:4443/concepts/" target="_blank">https://localhost:4443/concepts/</a>.</p>
+                  <p>A container titled <samp>Categories</samp> should appear with the URI <samp>${LDH_BASE}categories/</samp>.</p>
                   
-                  <p class="lead"><a href="../../../reference/data-model/documents/" target="_blank">Read more about document management.</a></p>
+                  <p>Any text works as the URI path segment — characters outside RFC 3986's unreserved
+                     set (letters, digits, <samp>-</samp>, <samp>.</samp>, <samp>_</samp>, <samp>~</samp>) are percent-encoded.</p>
                   </div>
-            </main>
+               
+               <div>
+                  
+                  <h2 id="create-item">Create an item</h2>
+                  
+                  <p>Items are created the same way:</p>
+                  
+                  <div class="ac-tabs or-horizontal">
+                     
+                     <div class="ac-tablist sz-md va-line" role="tablist">
+                        <button aria-controls="user-interface-2-pane" aria-selected="true" class="ac-tab is-on" id="user-interface-2-tab" role="tab" type="button"><span class="ac-tab-lbl">User interface</span></button>
+                        <button aria-controls="command-line-interface-2-pane" aria-selected="false" class="ac-tab" id="command-line-interface-2-tab" role="tab" type="button"><span class="ac-tab-lbl">Command line interface</span></button>
+                        </div>
+                     
+                     <div aria-labelledby="user-interface-2-tab" class="ac-tabpanel" id="user-interface-2-pane" role="tabpanel">
+                        
+                        <div>
+                           
+                           <p>Select <dfn>Item</dfn> from the <span class="ac-btn in-primary ap-solid sz-md">Create <span aria-hidden="true" class="msi caret">expand_more</span></span> dropdown instead and follow the same steps as above.</p>
+                           </div>
+                        </div>
+                     
+                     <div aria-labelledby="command-line-interface-2-tab" class="ac-tabpanel" hidden="hidden" id="command-line-interface-2-pane" role="tabpanel">
+                        
+                        <div>
+                           
+                           <p>Execute the following command:</p>
+                           
+                           <pre>ldh create item \
+  --container "${LDH_BASE}categories/" \
+  --title "Beverages" \
+  --slug "1"</pre>
+                           
+                           <p>The command prints the created document's URL — <samp>${LDH_BASE}categories/1/</samp>.</p>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               
+               <p class="ldh-body-lg"><a href="../../../reference/data-model/documents/" target="_blank">Read more about documents and the document hierarchy.</a></p>
+               </div>
          </div>
       </div>
-      <div class="footer container-fluid">
-         <div class="row-fluid">
-            <div class="offset2 span8">
-               <div class="span3">
-                  <h2 class="nav-header">About</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a></li>
-                     <li><a href="https://atomgraph.com" target="_blank">AtomGraph</a></li>
-                  </ul>
-               </div>
-               <div class="span3">
-                  <h2 class="nav-header">Resources</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a></li>
-                     <li><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></li>
-                  </ul>
-               </div>
-               <div class="span3">
-                  <h2 class="nav-header">Support</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a></li>
-                     <li><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a></li>
-                     <li><a href="mailto:support@linkeddatahub.com">Contact support</a></li>
-                  </ul>
-               </div>
-               <div class="span3">
-                  <h2 class="nav-header">Follow us</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a></li>
-                     <li><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></li>
-                  </ul>
-               </div>
+      <div class="ldh-footer" role="contentinfo">
+         <div class="cols">
+            <div class="col brand-col"><a class="ldh-wordmark" href="https://linkeddatahub.com" target="_blank"><span class="mark"></span><span>LinkedDataHub</span></a><p>The low-code Knowledge Graph application platform. Built on RDF, SPARQL and Linked
+                  Data principles.</p>
             </div>
+            <div class="col">
+               <p class="ftitle">About</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a><a href="https://atomgraph.com" target="_blank">AtomGraph</a></div>
+            <div class="col">
+               <p class="ftitle">Resources</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></div>
+            <div class="col">
+               <p class="ftitle">Support</p><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a><a href="mailto:support@linkeddatahub.com">Contact support</a></div>
+            <div class="col">
+               <p class="ftitle">Follow us</p><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></div>
          </div>
+         <div class="legal"><span>© 2026 AtomGraph · LinkedDataHub</span></div>
       </div>
    </body>
 </html>

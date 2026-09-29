@@ -1,417 +1,323 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" lang="en" data-retro="m3" data-theme="light">
    <head>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
       <title>LinkedDataHub v5 — Manage packages</title>
-      <meta name="description" content="Step by step guide to installing and uninstalling packages"/>
-      <meta name="last-modified" content="2026-08-18T20:14:17Z"/>
-      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap.css" rel="stylesheet" type="text/css"/>
-      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
-      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/linkeddatahub-bootstrap.css" rel="stylesheet" type="text/css"/>
-      <style type="text/css">
-                body { padding-top: 60px; }
-                object { width: 100%; min-height: 640px; }
-            </style><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/js/jquery.min.js"></script><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/js/bootstrap.min.js"></script><script type="text/javascript">
-                    $(document).ready(function() {
-                        $("ul.nav-tabs a").on("click", function() {
-                            $(this).closest("ul").children().toggleClass("active", false);
-                            $(this).closest("li").toggleClass("active", true);
-                            $(this).closest("ul").next().children().toggleClass("active", false);
-                            $(this).closest("ul").next().children().eq($(this).closest("li").index()).toggleClass("active", true);
+      <meta name="description" content="Step-by-step guide to installing and uninstalling packages"/>
+      <meta name="last-modified" content="2026-09-29T09:21:08Z"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1"/>
+      <link href="../../static/css/fonts.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/colors_and_type.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/app.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/retro.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/ldh.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/docs.css" rel="stylesheet" type="text/css"/><script type="text/javascript">
+                    document.addEventListener("click", function(event) {
+                        var tab = event.target.closest(".ac-tab[role='tab']");
+                        if (!tab) return;
+                        var tablist = tab.closest("[role='tablist']");
+                        var tabs = tablist.closest(".ac-tabs");
+                        if (!tabs || !tabs.querySelector(".ac-tabpanel")) return;
+                        tablist.querySelectorAll(".ac-tab").forEach(function(t) { t.classList.remove("is-on"); t.setAttribute("aria-selected", "false"); });
+                        tab.classList.add("is-on");
+                        tab.setAttribute("aria-selected", "true");
+                        tabs.querySelectorAll(".ac-tabpanel").forEach(function(pane) {
+                            if (pane.parentElement !== tabs) return;
+                            pane.hidden = pane.id !== tab.getAttribute("aria-controls");
                         });
                     });
-                </script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+                </script><script async="async" defer="defer" src="https://buttons.github.io/buttons.js"></script><script async="async" defer="defer" src="https://platform.twitter.com/widgets.js"></script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
                     window.dataLayer = window.dataLayer || [];
                     function gtag(){dataLayer.push(arguments);}
                     gtag('js', new Date());
                     gtag('config', 'UA-38402002-6');
                 </script></head>
-   <body>
-      <div class="navbar navbar-fixed-top">
-         <div class="navbar-inner">
-            <div class="container-fluid"><a class="brand" href="../../">LinkedDataHub</a><div class="nav-collapse collapse">
-                  <ul class="nav">
-                     <li class="active">
-                        <div class="btn-group"><a class="btn" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/">Documentation v5</a><button class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button><ul class="dropdown-menu">
-                              <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a></li>
-                              <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></li>
-                           </ul>
-                        </div>
-                     </li>
-                     <li><a href="https://github.com/AtomGraph/LinkedDataHub" target="_blank">Code</a></li>
-                  </ul>
-               </div>
-            </div>
-         </div>
+   <body class="app">
+      <div class="ldh-header" role="banner"><a class="ldh-wordmark" href="../../"><span class="mark"></span><span>LinkedDataHub</span></a><div></div>
+         <div class="ldh-header-actions">
+            <details class="docs-versions">
+               <summary>Documentation v6</summary>
+               <div><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v5/">Documentation v5</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></div>
+            </details><a href="https://github.com/AtomGraph/LinkedDataHub-Apps" target="_blank">Sample dataspaces</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub/subscription" data-icon="octicon-eye" data-size="large" aria-label="Watch AtomGraph/LinkedDataHub on GitHub">Watch</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star AtomGraph/LinkedDataHub on GitHub">Star</a><a href="https://twitter.com/atomgraphhq" class="twitter-follow-button" data-show-count="false">Follow @atomgraphhq</a><a href="https://youtube.com/@atomgraph" target="_blank"><span class="msi outline" aria-hidden="true">smart_display</span> @atomgraph</a></div>
       </div>
-      <div class="container-fluid">
-         <div class="row-fluid">
-            <nav class="span2">
-               <ul class="nav nav-list">
-                  <li><a href="../../about/">About LinkedDataHub</a></li>
-                  <li><a href="../../get-started/">Get started</a><ul class="nav nav-list">
-                        <li><a href="../../get-started/get-an-account/">Get an account</a></li>
-                        <li><a href="../../get-started/request-access/">Request access</a></li>
-                        <li><a href="../../get-started/setup/">Setup</a></li>
-                     </ul>
-                  </li>
-                  <li><a href="../../reference/">Reference</a><ul class="nav nav-list">
-                        <li><a href="../../reference/administration/">Administration</a><ul class="nav nav-list">
-                              <li><a href="../../reference/administration/acl/">Access control</a></li>
-                              <li><a href="../../reference/administration/ontologies/">Ontologies</a></li>
-                              <li><a href="../../reference/administration/packages/">Packages</a></li>
-                           </ul>
-                        </li>
-                        <li><a href="../../reference/command-line-interface/">Command line interface</a></li>
-                        <li><a href="../../reference/configuration/">Configuration</a></li>
-                        <li><a href="../../reference/data-model/">Data model</a><ul class="nav nav-list">
-                              <li><a href="../../reference/data-model/blocks/">Content blocks</a><ul class="nav nav-list">
-                                    <li><a href="../../reference/data-model/blocks/objects/">Object blocks</a></li>
-                                    <li><a href="../../reference/data-model/blocks/xhtml/">XHTML blocks</a></li>
-                                 </ul>
-                              </li>
-                              <li><a href="../../reference/data-model/documents/">Documents</a><ul class="nav nav-list">
-                                    <li><a href="../../reference/data-model/documents/containers/">Containers</a></li>
-                                    <li><a href="../../reference/data-model/documents/items/">Items</a></li>
-                                 </ul>
-                              </li>
-                              <li><a href="../../reference/data-model/resources/">Resources</a><ul class="nav nav-list">
-                                    <li><a href="../../reference/data-model/resources/charts/">Charts</a></li>
-                                    <li><a href="../../reference/data-model/resources/queries/">Queries</a></li>
-                                    <li><a href="../../reference/data-model/resources/views/">Views</a></li>
-                                 </ul>
-                              </li>
-                           </ul>
-                        </li>
-                        <li><a href="../../reference/dataspace/">Dataspace</a></li>
-                        <li><a href="../../reference/http-api/">HTTP API</a></li>
-                        <li><a href="../../reference/imports/">Imports</a><ul class="nav nav-list">
-                              <li><a href="../../reference/imports/csv/">CSV imports</a></li>
-                              <li><a href="../../reference/imports/rdf/">RDF imports</a></li>
-                           </ul>
-                        </li>
-                        <li><a href="../../reference/dataset/">RDF dataset</a></li>
-                        <li><a href="../../reference/stylesheets/">Stylesheets</a></li>
-                        <li><a href="../../reference/triplestores/">Triplestores</a></li>
-                        <li><a href="../../reference/user-interface/">User interface</a></li>
-                     </ul>
-                  </li>
-                  <li><a href="../../tutorial/">Tutorial</a><ul class="nav nav-list">
-                        <li><a href="../../tutorial/app-as-repository/">App as a repository</a></li>
-                        <li><a href="../../tutorial/beyond-low-code/">Beyond low-code</a></li>
-                        <li><a href="../../tutorial/composition/">Composition</a></li>
-                        <li><a href="../../tutorial/data/">Data</a></li>
-                        <li><a href="../../tutorial/hello-dataspace/">Hello dataspace</a></li>
-                        <li><a href="../../tutorial/insight/">Insight</a></li>
-                        <li><a href="../../tutorial/media/">Media</a></li>
-                        <li><a href="../../tutorial/model/">Model</a></li>
-                        <li><a href="../../tutorial/publish/">Publish</a></li>
-                        <li><a href="../../tutorial/structure/">Structure</a></li>
-                     </ul>
-                  </li>
-                  <li><a href="../">User guide</a><ul class="nav nav-list">
-                        <li><a href="../add-data/">Add data</a></li>
-                        <li><a href="../browse-data/">Browse data</a></li>
-                        <li><a href="../build-apps/">Build apps</a></li>
-                        <li><a href="../change-layout/">Change layout</a></li>
-                        <li><a href="../change-system-base-uri/">Change system base URI</a></li>
-                        <li><a href="../change-model/">Change the model</a></li>
-                        <li><a href="../create-data/">Create data</a><ul class="nav nav-list">
-                              <li><a href="../create-data/create-content/">Create content</a></li>
-                              <li><a href="../create-data/create-documents/">Create documents</a></li>
-                              <li><a href="../create-data/create-resources/">Create instances</a></li>
-                           </ul>
-                        </li>
-                        <li><a href="../edit-content/">Edit content</a></li>
-                        <li><a href="../import-data/">Import data</a><ul class="nav nav-list">
-                              <li><a href="../import-data/import-csv-data/">Import CSV data</a></li>
-                              <li><a href="../import-data/import-rdf-data/">Import RDF data</a></li>
-                           </ul>
-                        </li>
-                        <li><a href="../manage-dataspaces/">Manage dataspaces</a></li>
-                        <li class="active"><a href="">Manage packages</a></li>
-                        <li><a href="../navigate-data/">Navigate data</a></li>
-                        <li><a href="../query-data/">Query data</a></li>
-                        <li><a href="../search-data/">Search data</a></li>
-                        <li><a href="../upload-file/">Upload file</a></li>
-                     </ul>
-                  </li>
-               </ul>
-            </nav>
-            <main class="span7">
-               <header>
-                  <h1>Manage packages</h1>
-               </header>
-               <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://www.w3.org/ns/ldt/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+      <div class="docs-layout">
+         <div class="docs-nav" role="navigation">
+            <ul>
+               <li><a href="../../about/">About LinkedDataHub</a></li>
+               <li><a href="../../get-started/">Get started</a></li>
+               <li><a href="../../tutorial/">Tutorial</a></li>
+               <li><a href="../">User guide</a><ul>
+                     <li><a href="../add-data/">Add data</a></li>
+                     <li><a href="../browse-data/">Browse data</a></li>
+                     <li><a href="../change-model/">Change model</a></li>
+                     <li><a href="../create-data/">Create data</a></li>
+                     <li><a href="../edit-content/">Edit content</a></li>
+                     <li><a href="../import-data/">Import data</a></li>
+                     <li><a href="../manage-dataspaces/">Manage dataspaces</a></li>
+                     <li class="is-active" aria-current="page"><a href="">Manage packages</a></li>
+                     <li><a href="../query-data/">Query data</a></li>
+                     <li><a href="../upload-file/">Upload file</a></li>
+                     <li><a href="../version-history/">Version history</a></li>
+                  </ul>
+               </li>
+               <li><a href="../../reference/">Reference</a></li>
+               <li><a href="../../extending/">Extending</a></li>
+            </ul>
+         </div>
+         <div class="docs-main" role="main">
+            <h1>Manage packages</h1>
+            <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+               
+               <p class="ldh-body-lg">Step-by-step guide to installing and uninstalling packages</p>
+               
+               <div class="ac-alert va-informative" role="status">
+                  <span class="ac-alert-ic"><span aria-hidden="true" class="msi outline">info</span></span>
                   
-                  <p class="lead">Step by step guide to installing and uninstalling packages in your LinkedDataHub dataspace.</p>
-                  
-                  <div class="alert alert-info">
+                  <div class="ac-alert-body">
                      
-                     <p><strong>Version:</strong> Packages were introduced in LinkedDataHub 5.2.</p>
-                     </div>
-                  
-                  <div class="alert alert-info">
-                     
-                     <p>Package management requires <a href="../../reference/administration/acl/#access-modes" target="_blank">Control access</a> to the administration application. Only users with administrative privileges can
-                        install or uninstall packages.</p>
-                     </div>
-                  
-                  <p class="lead"><a href="../../reference/administration/packages/" target="_blank">Read more about how packages work.</a></p>
-                  
-                  <div class="alert alert-warning">
-                     
-                     <p><strong>Important:</strong> After installing or uninstalling a package, you must restart the Docker service for
-                        XSLT stylesheet changes to take effect:</p>
-                     
-                     <pre>docker-compose restart linkeddatahub</pre>
-                     
-                     <p>Do not use <code>--force-recreate</code> as that would overwrite the stylesheet file changes.</p>
-                     </div>
-                  
-                  <div>
-                     
-                     <h2 id="install-package">Install a package</h2>
-                     
-                     <p>Installing a package adds new functionality to your dataspace by importing ontologies,
-                        data, and resources.</p>
-                     
-                     <div class="tabbable">
-                        
-                        <ul class="nav nav-tabs">
-                           
-                           <li class="active"><a>User interface</a></li>
-                           
-                           <li><a>Command line interface</a></li>
-                           </ul>
-                        
-                        <div class="tab-content">
-                           
-                           <div class="tab-pane active">
-                              
-                              <p>Follow these steps to install a package through the web interface:</p>
-                              
-                              <ol>
-                                 
-                                 <li>Open the package URI in browser mode by entering its URI in the address bar</li>
-                                 
-                                 <li>Click the <span class="btn">Actions</span> dropdown button next to the package</li>
-                                 
-                                 <li>Select <span class="btn btn-primary">Install</span> from the dropdown menu</li>
-                                 
-                                 <li>Wait for the installation to complete</li>
-                                 
-                                 <li>Refresh your browser to ensure the new package functionality is loaded</li>
-                                 </ol>
-                              </div>
-                           
-                           <div class="tab-pane">
-                              
-                              <p>Execute the following command:</p>
-                              
-                              <pre>install-package.sh \
-  -b "https://localhost:4443/" \
-  -f ssl/owner/cert.pem \
-  -p "$owner_cert_password" \
-  --package "https://packages.linkeddatahub.com/skos/#this"</pre>
-                              
-                              <p>Parameters:</p>
-                              
-                              <dl>
-                                 
-                                 <dt><code>-b</code></dt>
-                                 
-                                 <dd>Base URL of your LinkedDataHub instance</dd>
-                                 
-                                 <dt><code>-f</code></dt>
-                                 
-                                 <dd>Path to your owner certificate file</dd>
-                                 
-                                 <dt><code>-p</code></dt>
-                                 
-                                 <dd>Owner certificate password</dd>
-                                 
-                                 <dt><code>--package</code></dt>
-                                 
-                                 <dd>Package URI to install (e.g., <samp>https://packages.linkeddatahub.com/skos/#this</samp>)</dd>
-                                 </dl>
-                              </div>
-                           </div>
-                        </div>
-                     </div>
-                  
-                  <div>
-                     
-                     <h2 id="uninstall-package">Uninstall a package</h2>
-                     
-                     <p>Uninstalling a package removes its ontologies and resources from your dataspace. User-created
-                        data that uses the package vocabulary will remain but may not function correctly.</p>
-                     
-                     <div class="tabbable">
-                        
-                        <ul class="nav nav-tabs">
-                           
-                           <li class="active"><a>User interface</a></li>
-                           
-                           <li><a>Command line interface</a></li>
-                           </ul>
-                        
-                        <div class="tab-content">
-                           
-                           <div class="tab-pane active">
-                              
-                              <p>Follow these steps to uninstall a package through the web interface:</p>
-                              
-                              <ol>
-                                 
-                                 <li>Navigate to the administration application of your dataspace</li>
-                                 
-                                 <li>Open the <dfn>Packages</dfn> container to view installed packages</li>
-                                 
-                                 <li>Find the package you want to uninstall in the list</li>
-                                 
-                                 <li>Click the <span class="btn">Actions</span> dropdown button next to the package</li>
-                                 
-                                 <li>Select <span class="btn btn-danger">Uninstall</span> from the dropdown menu</li>
-                                 
-                                 <li>Confirm the uninstallation when prompted</li>
-                                 
-                                 <li>Wait for the uninstallation to complete</li>
-                                 </ol>
-                              
-                              <p class="alert alert-warning">Uninstalling a package will remove its ontologies and associated resources. Any data
-                                 you created using the package's vocabulary will remain in your dataspace but may not
-                                 display or function correctly without the package.</p>
-                              </div>
-                           
-                           <div class="tab-pane">
-                              
-                              <p>Execute the following command:</p>
-                              
-                              <pre>uninstall-package.sh \
-  -b "https://localhost:4443/" \
-  -f ssl/owner/cert.pem \
-  -p "$owner_cert_password" \
-  --package "https://packages.linkeddatahub.com/skos/#this"</pre>
-                              
-                              <p>Parameters are the same as for installation.</p>
-                              </div>
-                           </div>
-                        </div>
-                     </div>
-                  
-                  <div>
-                     
-                     <h2 id="verify-installation">Verify package installation</h2>
-                     
-                     <p>After installing a package, verify that it was installed correctly:</p>
-                     
-                     <ol>
-                        
-                        <li>Navigate to the administration application</li>
-                        
-                        <li>Click on <dfn>Ontologies</dfn> in the left navigation menu</li>
-                        
-                        <li>Verify that the package ontology appears in the list of imported ontologies</li>
-                        
-                        <li>In the end-user application, check that package-specific classes and properties are
-                           available when creating new resources</li>
-                        
-                        <li>If the package includes stylesheets, verify that custom UI elements are rendering
-                           correctly</li>
-                        </ol>
-                     </div>
-                  
-                  <div>
-                     
-                     <h2 id="customize-package-behavior">Customize package behavior</h2>
-                     
-                     <p>Packages may include custom XSLT stylesheets that affect how data is displayed. You
-                        can further customize the behavior by:</p>
-                     
-                     <ul>
-                        
-                        <li><a href="../change-layout/#import-stylesheet" target="_blank">Importing additional stylesheets</a> to extend package functionality</li>
-                        
-                        <li><a href="../change-layout/#override-template" target="_blank">Overriding package templates</a> to customize the rendering of package resources</li>
-                        
-                        <li>Creating custom views and layouts for package data</li>
-                        </ul>
-                     
-                     <p>See the <a href="../change-layout/" target="_blank">Change layout guide</a> for detailed instructions on stylesheet customization.</p>
-                     </div>
-                  
-                  <div>
-                     
-                     <h2 id="troubleshooting">Troubleshooting</h2>
-                     
-                     <h3 id="installation-fails">Installation fails</h3>
-                     
-                     <p>If package installation fails:</p>
-                     
-                     <ul>
-                        
-                        <li>Verify you have Control access to the administration application</li>
-                        
-                        <li>Check that all package dependencies are met</li>
-                        
-                        <li>Review the error message for specific issues</li>
-                        
-                        <li>Ensure the package files are valid and well-formed</li>
-                        </ul>
-                     
-                     <h3 id="package-not-visible">Package functionality not visible</h3>
-                     
-                     <p>If installed package features are not visible:</p>
-                     
-                     <ul>
-                        
-                        <li>Refresh your browser to reload the application</li>
-                        
-                        <li>Clear the browser cache if stylesheets are not updating</li>
-                        
-                        <li>Verify the package ontology is imported in the Ontologies section</li>
-                        
-                        <li>Check that you have appropriate permissions to view package resources</li>
-                        </ul>
+                     <p class="ac-alert-text">Package management requires write access to the dataspace's <samp>settings</samp> document, which in practice means the owner of the dataspace.</p>
                      </div>
                   </div>
-            </main>
+               
+               <p>Packages were introduced in LinkedDataHub 5.2. Since 5.10 they are installed <em>declaratively</em>: a dataspace imports a package with a single <code>ldh:import</code> triple in its settings. The dedicated install/uninstall endpoints, and the package
+                  <samp>Actions</samp> menu that drove them, have been removed.</p>
+               
+               <div>
+                  
+                  <h2 id="install-package">Install a package</h2>
+                  
+                  <p>Installing a package adds new functionality to your dataspace by importing its ontology
+                     and stylesheet. Packages are published under <samp>https://packages.linkeddatahub.com/</samp>, with their sources in the <a href="https://github.com/AtomGraph/LinkedDataHub-Apps/tree/master/packages" target="_blank"><samp>packages/</samp></a> directory of the LinkedDataHub-Apps repository.</p>
+                  
+                  <div class="ac-tabs or-horizontal">
+                     
+                     <div class="ac-tablist sz-md va-line" role="tablist">
+                        <button aria-controls="user-interface-pane" aria-selected="true" class="ac-tab is-on" id="user-interface-tab" role="tab" type="button"><span class="ac-tab-lbl">User interface</span></button>
+                        <button aria-controls="command-line-interface-pane" aria-selected="false" class="ac-tab" id="command-line-interface-tab" role="tab" type="button"><span class="ac-tab-lbl">Command line interface</span></button>
+                        </div>
+                     
+                     <div aria-labelledby="user-interface-tab" class="ac-tabpanel" id="user-interface-pane" role="tabpanel">
+                        
+                        <p>Follow these steps to install a package through the web interface:</p>
+                        
+                        <ol>
+                           
+                           <li>Open the end-user dataspace of your dataspace and make sure you are logged in</li>
+                           
+                           <li>Click the settings dropdown button in the right section of the navigation bar</li>
+                           
+                           <li>Select <dfn>Dataspace</dfn> from the dropdown menu to open the <dfn>Dataspace settings</dfn> modal</li>
+                           
+                           <li>Scroll down to the <dfn>Packages</dfn> section, which lists the available packages with their descriptions</li>
+                           
+                           <li>Tick the <dfn>Installed</dfn> checkbox of the package you want to install</li>
+                           
+                           <li>Click <span class="ac-btn in-primary ap-solid sz-sm">Save</span></li>
+                           </ol>
+                        
+                        <p>The page reloads with the package applied. The checkboxes are inputs of the settings
+                           form, so several packages can be installed and uninstalled in a single <span class="ac-btn in-primary ap-solid sz-sm">Save</span>.</p>
+                        </div>
+                     
+                     <div aria-labelledby="command-line-interface-tab" class="ac-tabpanel" hidden="hidden" id="command-line-interface-pane" role="tabpanel">
+                        
+                        <p>List what the registry offers, marking the ones this dataspace already imports:</p>
+                        
+                        <pre>ldh packages list</pre>
+                        
+                        <p>Then install one by its URI:</p>
+                        
+                        <pre>ldh packages add --package https://packages.linkeddatahub.com/editor/taxonomy/#this</pre>
+                        
+                        <p>(The base URI, owner certificate and its password come from the <a href="../../reference/command-line-interface/#environment-variables"><samp>LDH_*</samp> environment variables</a>.)</p>
+                        
+                        <p>The command writes a single <code>ldh:import</code> triple on the dataspace's <samp>settings</samp> document — that declaration <em>is</em> the installation. It matches the dataspace by type rather than by URI, because the
+                           dataspace's URI is an opaque <samp>urn:</samp> declared in <samp>config/system.trig</samp>.</p>
+                        </div>
+                     </div>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="uninstall-package">Uninstall a package</h2>
+                  
+                  <p>Uninstalling a package removes its ontology and stylesheet from your dataspace. Data
+                     you created using the package vocabulary remains but may not display or function correctly
+                     without the package.</p>
+                  
+                  <div class="ac-tabs or-horizontal">
+                     
+                     <div class="ac-tablist sz-md va-line" role="tablist">
+                        <button aria-controls="user-interface-2-pane" aria-selected="true" class="ac-tab is-on" id="user-interface-2-tab" role="tab" type="button"><span class="ac-tab-lbl">User interface</span></button>
+                        <button aria-controls="command-line-interface-2-pane" aria-selected="false" class="ac-tab" id="command-line-interface-2-tab" role="tab" type="button"><span class="ac-tab-lbl">Command line interface</span></button>
+                        </div>
+                     
+                     <div aria-labelledby="user-interface-2-tab" class="ac-tabpanel" id="user-interface-2-pane" role="tabpanel">
+                        
+                        <p>Follow these steps to uninstall a package through the web interface:</p>
+                        
+                        <ol>
+                           
+                           <li>Open the <dfn>Dataspace settings</dfn> modal as described above</li>
+                           
+                           <li>Find the package in the <dfn>Packages</dfn> section</li>
+                           
+                           <li>Untick its <dfn>Installed</dfn> checkbox</li>
+                           
+                           <li>Click <span class="ac-btn in-primary ap-solid sz-sm">Save</span></li>
+                           </ol>
+                        </div>
+                     
+                     <div aria-labelledby="command-line-interface-2-tab" class="ac-tabpanel" hidden="hidden" id="command-line-interface-2-pane" role="tabpanel">
+                        
+                        <p>Uninstalling retracts the same triple, and is idempotent — removing an import the
+                           dataspace does not have succeeds and changes nothing:</p>
+                        
+                        <pre>ldh packages remove --package https://packages.linkeddatahub.com/editor/taxonomy/#this</pre>
+                        </div>
+                     </div>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="verify-installation">Verify the installation</h2>
+                  
+                  <div class="ac-alert va-informative" role="status">
+                     <span class="ac-alert-ic"><span aria-hidden="true" class="msi outline">info</span></span>
+                     
+                     <div class="ac-alert-body">
+                        
+                        <p class="ac-alert-text">Installing or uninstalling a package takes effect on the <strong>next request</strong> — the package ontology joins the dataspace's imports closure and its stylesheet is
+                           composed into the dataspace stylesheet. No restart is needed.</p>
+                        </div>
+                     </div>
+                  
+                  <p>After installing a package, verify that it was applied:</p>
+                  
+                  <ol>
+                     
+                     <li>Reopen the <dfn>Dataspace settings</dfn> modal and check that the package's <dfn>Installed</dfn> checkbox is ticked</li>
+                     
+                     <li>Check that the <code>ldh:import</code> declaration was stored by fetching the <samp>settings</samp> document:
+                        
+                        <pre>ldh get \
+  --accept text/turtle \
+  "https://localhost:4443/settings"</pre>
+                        
+                        <p>The output contains an <code>ldh:import</code> triple with the package URI as its object.</p>
+                        </li>
+                     
+                     <li>Check that the package ontology joined the imports closure by querying the <samp>ns</samp> endpoint — for the taxonomy editor package, the
+                        <code>skos:Concept</code> constructor becomes visible there:
+                        
+                        <pre>curl -k -G \
+  -E ssl/owner/cert.pem:"$owner_cert_password" \
+  -H "Accept: application/sparql-results+xml" \
+  "https://localhost:4443/ns" \
+  --data-urlencode 'query=ASK { &lt;http://www.w3.org/2004/02/skos/core#Concept&gt; &lt;http://spinrdf.org/spin#constructor&gt; ?constructor }'</pre>
+                        
+                        <p>SPARQL queries fall outside the <samp>ldh</samp> command set, so this one uses <samp>curl</samp> with the <a href="../../get-started/get-an-account/">PEM certificate</a>.</p>
+                        </li>
+                     
+                     <li>In the end-user dataspace, check that package-specific classes are offered by the
+                        <span class="ac-btn in-primary ap-solid sz-md">Create <span aria-hidden="true" class="msi caret">expand_more</span></span> dropdown</li>
+                     
+                     <li>If the package includes a stylesheet, verify that its custom UI elements are rendering</li>
+                     </ol>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="edit-package-ontology">Edit the package ontology</h2>
+                  
+                  <p>On the first request after the import, the package ontology is copied into a document
+                     of your dataspace's admin dataspace, under its
+                     <samp>ontologies/</samp> container and named after the package path — for the taxonomy editor, <samp>https://admin.localhost:4443/ontologies/editor-taxonomy/</samp>.
+                     That document is the package ontology as far as your dataspace is concerned: its constructors,
+                     constraints and views are edited there the same
+                     way as those of your own namespace ontology, and a change takes effect after the ontology
+                     cache is cleared.</p>
+                  
+                  <p>The copy is taken once. A newer version of the package does not reach a dataspace
+                     that already imported it; to pick it up, delete the
+                     <samp>ontologies/</samp> document, clear the ontology cache, and let the next request materialize the package
+                     again — edits made to the document are lost with it.</p>
+                  
+                  <pre>ldh delete "https://admin.localhost:4443/ontologies/editor-taxonomy/"
+ldh admin clear ontology</pre>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="customize-package-behavior">Customize package behavior</h2>
+                  
+                  <p>Packages may include custom XSLT stylesheets that affect how data is displayed. You
+                     can further customize the behavior by:</p>
+                  
+                  <ul>
+                     
+                     <li><a href="../../extending/change-layout/#create-stylesheet" target="_blank">Importing additional stylesheets</a> to extend package functionality</li>
+                     
+                     <li><a href="../../extending/change-layout/#override-output" target="_blank">Overriding package templates</a> to customize the rendering of package resources</li>
+                     </ul>
+                  
+                  <p>See the <a href="../../extending/change-layout/" target="_blank">Change layout guide</a> for detailed instructions on stylesheet customization.</p>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="troubleshooting">Troubleshooting</h2>
+                  
+                  <h3 id="installation-fails">Installation fails</h3>
+                  
+                  <p>If the <span class="ac-btn in-primary ap-solid sz-sm">Save</span> or the <samp>ldh patch</samp> is rejected:</p>
+                  
+                  <ul>
+                     
+                     <li>Verify you are logged in with an agent that has write access to the dataspace's <samp>settings</samp></li>
+                     
+                     <li>Verify the package URI is correct and dereferenceable, and that its metadata declares
+                        <code>lds:ontology</code> and <code>ac:stylesheet</code></li>
+                     
+                     <li>Review the error message — a rejected settings update reports the constraint violation
+                        that caused it</li>
+                     </ul>
+                  
+                  <h3 id="functionality-not-visible">Package functionality not visible</h3>
+                  
+                  <p>If installed package features are not visible:</p>
+                  
+                  <ul>
+                     
+                     <li>Reload the page — the stylesheet is composed on the next request, but the browser
+                        may still hold the previous one</li>
+                     
+                     <li>Clear the browser cache if stylesheets are not updating</li>
+                     
+                     <li>Verify the package ontology is in the imports closure by querying the <samp>ns</samp> endpoint as shown above</li>
+                     
+                     <li>Check that you have appropriate permissions to view package resources</li>
+                     </ul>
+                  </div>
+               
+               <p class="ldh-body-lg"><a href="../../reference/administration/packages/" target="_blank">Read more about how packages work.</a></p>
+               </div>
          </div>
       </div>
-      <div class="footer container-fluid">
-         <div class="row-fluid">
-            <div class="offset2 span8">
-               <div class="span3">
-                  <h2 class="nav-header">About</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a></li>
-                     <li><a href="https://atomgraph.com" target="_blank">AtomGraph</a></li>
-                  </ul>
-               </div>
-               <div class="span3">
-                  <h2 class="nav-header">Resources</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a></li>
-                     <li><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></li>
-                  </ul>
-               </div>
-               <div class="span3">
-                  <h2 class="nav-header">Support</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a></li>
-                     <li><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a></li>
-                     <li><a href="mailto:support@linkeddatahub.com">Contact support</a></li>
-                  </ul>
-               </div>
-               <div class="span3">
-                  <h2 class="nav-header">Follow us</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a></li>
-                     <li><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></li>
-                  </ul>
-               </div>
+      <div class="ldh-footer" role="contentinfo">
+         <div class="cols">
+            <div class="col brand-col"><a class="ldh-wordmark" href="https://linkeddatahub.com" target="_blank"><span class="mark"></span><span>LinkedDataHub</span></a><p>The low-code Knowledge Graph application platform. Built on RDF, SPARQL and Linked
+                  Data principles.</p>
             </div>
+            <div class="col">
+               <p class="ftitle">About</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a><a href="https://atomgraph.com" target="_blank">AtomGraph</a></div>
+            <div class="col">
+               <p class="ftitle">Resources</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></div>
+            <div class="col">
+               <p class="ftitle">Support</p><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a><a href="mailto:support@linkeddatahub.com">Contact support</a></div>
+            <div class="col">
+               <p class="ftitle">Follow us</p><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></div>
          </div>
+         <div class="legal"><span>© 2026 AtomGraph · LinkedDataHub</span></div>
       </div>
    </body>
 </html>

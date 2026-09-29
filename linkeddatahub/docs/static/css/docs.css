@@ -1,0 +1,141 @@
+/* =========================================================================
+   Documentation site skin — layout and primitives the docs pages need on top
+   of the LinkedDataHub design system (colors_and_type.css, app.css, retro.css,
+   ldh.css). Uses design tokens only; no raw colors or sizes.
+
+   The page content comes from rdf:XMLLiteral bodies authored as plain semantic
+   XHTML, so everything here is keyed off elements wherever it can be. A class
+   in a literal has to earn its place.
+   ========================================================================= */
+
+/* ---------- Page layout ---------- */
+.docs-layout {
+  max-width: var(--container-xl);
+  margin: 0 auto;
+  padding: var(--sp-8) var(--sp-6);
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: var(--sp-10);
+  align-items: start;
+}
+.docs-main { min-width: 0; }
+
+/* ---------- Sidebar navigation (active trail) ---------- */
+.docs-nav { font-size: var(--fs-sm); position: sticky; top: calc(56px + var(--sp-6)); }
+.docs-nav ul { list-style: none; margin: 0; padding: 0; }
+.docs-nav ul ul { padding-left: var(--sp-4); margin-top: var(--sp-1); border-left: 1px solid var(--border-default); }
+.docs-nav li { margin: 0; }
+.docs-nav a {
+  display: block;
+  padding: var(--sp-1) var(--sp-2);
+  border-radius: var(--r-sm);
+  color: var(--fg-2);
+}
+.docs-nav a:hover { color: var(--fg-1); background: var(--bg-hover); text-decoration: none; }
+.docs-nav li.is-active > a { color: var(--fg-link); font-weight: var(--fw-semibold); background: var(--bg-accent-quiet); }
+
+/* ---------- Content typography ----------
+   Headings, inline code, pre, dfn, blockquote, kbd, hr and the table base all
+   moved into the kit as ELEMENT rules (colors_and_type.css, surfaces.css). They
+   were here because the design system had no long-form layer; it has one now,
+   and the same rules reaching the product is the whole point — this file is only
+   linked by the static site. What is left below is genuinely site-only. */
+.docs-main p, .docs-main li { line-height: var(--lh-relaxed); }
+.docs-main .page-header { border-bottom: 1px solid var(--border-default); margin-bottom: var(--sp-6); padding-bottom: var(--sp-4); }
+
+/* media */
+.docs-main img, .docs-main iframe { max-width: 100%; }
+.docs-main img { border: 1px solid var(--border-default); border-radius: var(--r-md); }
+.docs-main video { width: 100%; aspect-ratio: 16 / 9; }
+
+/* ---------- Reference tables ----------
+   The reference tables ARE the design system's DataTable, and they say so by
+   being <table> — the base dress lives on the element in surfaces.css, so the
+   content needs no class. It restated the look here for as long as the component
+   was grid-per-row, which would have written column tracks and a replacement set
+   of ARIA roles into the content and could not have expressed the rowspans the
+   HTTP method matrix and the ACL access matrix are built on. Table layout came
+   back, so both objections went, and the copy with them; row-header weight, group
+   headings and tbody seams live in surfaces.css where every table gets them.
+   What stays below is what belongs to a table sitting in PROSE rather than on an
+   app surface: flow spacing above and below, and cells topped out because a
+   reference row wraps to several lines while an app row is one. Keyed off the
+   element — the base dress moved onto `table` itself, so the content carries no
+   class at all now. Mirrors the same pair in ldh.css for the product. */
+.docs-main table { margin: var(--sp-4) 0; }
+.docs-main th, .docs-main td { vertical-align: top; line-height: var(--lh-base); }
+
+/* ---------- Section/child cards ---------- */
+.docs-children { display: flex; flex-direction: column; gap: var(--sp-4); margin: var(--sp-6) 0 0; }
+.docs-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-xs);
+  padding: var(--sp-5) var(--sp-6);
+  margin: 0;
+}
+.docs-card h2 { margin: 0 0 var(--sp-2); font-size: var(--fs-xl); }
+.docs-card p { margin: 0; color: var(--fg-2); }
+
+/* ---------- Design system components quoted inside prose ----------
+   A control named in a sentence is drawn as the control: the same .ac-btn /
+   .ac-iconbtn the platform emits. Centre it on the text baseline so a chip
+   does not set the line's height. */
+.docs-main p .ac-btn, .docs-main li .ac-btn, .docs-main td .ac-btn,
+.docs-main p .ac-iconbtn, .docs-main li .ac-iconbtn, .docs-main td .ac-iconbtn { vertical-align: middle; }
+
+/* An inline alert's body is a flex column with its own gap, so prose inside it
+   must not add the UA paragraph margins on top. */
+.docs-main .ac-alert { margin: var(--sp-4) 0; }
+
+/* ---------- Screenshot placeholders (swapped for real captures later) ---------- */
+.docs-main .screenshot-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  min-height: 180px;
+  margin: var(--sp-4) 0;
+  padding: var(--sp-4);
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--r-lg);
+  background: var(--bg-recess);
+  color: var(--fg-hint);
+}
+.docs-main .screenshot-placeholder .msi { font-size: 40px; }
+.docs-main .screenshot-placeholder p { margin: 0; font-size: var(--fs-sm); max-width: 60ch; text-align: center; line-height: var(--lh-base); }
+
+/* ---------- Exhibit source/live links ---------- */
+.docs-main .exhibit-links { font-size: var(--fs-xs); color: var(--fg-hint); margin: calc(-1 * var(--sp-2)) 0 var(--sp-4); }
+.docs-main .exhibit-links a { color: var(--fg-2); }
+
+/* ---------- Header extras ---------- */
+/* sticky header (app.css keeps it static in the app; the docs pin it) */
+.ldh-header { position: sticky; top: 0; z-index: 100; }
+html { scroll-padding-top: calc(56px + var(--sp-4)); }
+
+.docs-versions { position: relative; }
+.docs-versions summary { list-style: none; cursor: pointer; padding: var(--sp-2) var(--sp-3); border-radius: var(--r-md); }
+.docs-versions summary::-webkit-details-marker { display: none; }
+.docs-versions summary::after { content: " ▾"; font-size: var(--fs-xs); }
+.docs-versions summary:hover { background: rgba(255, 255, 255, 0.12); }
+.docs-versions[open] > div {
+  position: absolute; right: 0; z-index: 10;
+  min-width: 180px;
+  background: var(--bg-card); color: var(--fg-1);
+  border: 1px solid var(--border-default); border-radius: var(--r-md);
+  box-shadow: var(--shadow-md);
+  padding: var(--sp-2);
+}
+.ldh-header .docs-versions[open] > div a { display: block; padding: var(--sp-1) var(--sp-2); border-radius: var(--r-sm); color: var(--fg-2); }
+.ldh-header .docs-versions[open] > div a:hover { background: var(--bg-hover); color: var(--fg-1); text-decoration: none; }
+.ldh-header .ldh-header-actions { display: flex; align-items: center; gap: var(--sp-4); }
+.ldh-header .ldh-header-actions > a { color: #fff; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 768px) {
+  .docs-layout { grid-template-columns: 1fr; }
+  .docs-nav { position: static; }
+}

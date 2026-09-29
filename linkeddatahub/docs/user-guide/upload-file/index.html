@@ -1,262 +1,207 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" lang="en" data-retro="m3" data-theme="light">
    <head>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
       <title>LinkedDataHub v5 — Upload file</title>
       <meta name="description" content="Learn how to upload files to LinkedDataHub"/>
-      <meta name="last-modified" content="2026-08-18T20:14:17Z"/>
-      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap.css" rel="stylesheet" type="text/css"/>
-      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
-      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/linkeddatahub-bootstrap.css" rel="stylesheet" type="text/css"/>
-      <style type="text/css">
-                body { padding-top: 60px; }
-                object { width: 100%; min-height: 640px; }
-            </style><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/js/jquery.min.js"></script><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/js/bootstrap.min.js"></script><script type="text/javascript">
-                    $(document).ready(function() {
-                        $("ul.nav-tabs a").on("click", function() {
-                            $(this).closest("ul").children().toggleClass("active", false);
-                            $(this).closest("li").toggleClass("active", true);
-                            $(this).closest("ul").next().children().toggleClass("active", false);
-                            $(this).closest("ul").next().children().eq($(this).closest("li").index()).toggleClass("active", true);
+      <meta name="last-modified" content="2026-09-29T09:21:08Z"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1"/>
+      <link href="../../static/css/fonts.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/colors_and_type.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/app.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/retro.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/ldh.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/docs.css" rel="stylesheet" type="text/css"/><script type="text/javascript">
+                    document.addEventListener("click", function(event) {
+                        var tab = event.target.closest(".ac-tab[role='tab']");
+                        if (!tab) return;
+                        var tablist = tab.closest("[role='tablist']");
+                        var tabs = tablist.closest(".ac-tabs");
+                        if (!tabs || !tabs.querySelector(".ac-tabpanel")) return;
+                        tablist.querySelectorAll(".ac-tab").forEach(function(t) { t.classList.remove("is-on"); t.setAttribute("aria-selected", "false"); });
+                        tab.classList.add("is-on");
+                        tab.setAttribute("aria-selected", "true");
+                        tabs.querySelectorAll(".ac-tabpanel").forEach(function(pane) {
+                            if (pane.parentElement !== tabs) return;
+                            pane.hidden = pane.id !== tab.getAttribute("aria-controls");
                         });
                     });
-                </script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+                </script><script async="async" defer="defer" src="https://buttons.github.io/buttons.js"></script><script async="async" defer="defer" src="https://platform.twitter.com/widgets.js"></script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
                     window.dataLayer = window.dataLayer || [];
                     function gtag(){dataLayer.push(arguments);}
                     gtag('js', new Date());
                     gtag('config', 'UA-38402002-6');
                 </script></head>
-   <body>
-      <div class="navbar navbar-fixed-top">
-         <div class="navbar-inner">
-            <div class="container-fluid"><a class="brand" href="../../">LinkedDataHub</a><div class="nav-collapse collapse">
-                  <ul class="nav">
-                     <li class="active">
-                        <div class="btn-group"><a class="btn" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/">Documentation v5</a><button class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button><ul class="dropdown-menu">
-                              <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a></li>
-                              <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></li>
-                           </ul>
-                        </div>
-                     </li>
-                     <li><a href="https://github.com/AtomGraph/LinkedDataHub" target="_blank">Code</a></li>
-                  </ul>
-               </div>
-            </div>
-         </div>
+   <body class="app">
+      <div class="ldh-header" role="banner"><a class="ldh-wordmark" href="../../"><span class="mark"></span><span>LinkedDataHub</span></a><div></div>
+         <div class="ldh-header-actions">
+            <details class="docs-versions">
+               <summary>Documentation v6</summary>
+               <div><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v5/">Documentation v5</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></div>
+            </details><a href="https://github.com/AtomGraph/LinkedDataHub-Apps" target="_blank">Sample dataspaces</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub/subscription" data-icon="octicon-eye" data-size="large" aria-label="Watch AtomGraph/LinkedDataHub on GitHub">Watch</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star AtomGraph/LinkedDataHub on GitHub">Star</a><a href="https://twitter.com/atomgraphhq" class="twitter-follow-button" data-show-count="false">Follow @atomgraphhq</a><a href="https://youtube.com/@atomgraph" target="_blank"><span class="msi outline" aria-hidden="true">smart_display</span> @atomgraph</a></div>
       </div>
-      <div class="container-fluid">
-         <div class="row-fluid">
-            <nav class="span2">
-               <ul class="nav nav-list">
-                  <li><a href="../../about/">About LinkedDataHub</a></li>
-                  <li><a href="../../get-started/">Get started</a><ul class="nav nav-list">
-                        <li><a href="../../get-started/get-an-account/">Get an account</a></li>
-                        <li><a href="../../get-started/request-access/">Request access</a></li>
-                        <li><a href="../../get-started/setup/">Setup</a></li>
-                     </ul>
-                  </li>
-                  <li><a href="../../reference/">Reference</a><ul class="nav nav-list">
-                        <li><a href="../../reference/administration/">Administration</a><ul class="nav nav-list">
-                              <li><a href="../../reference/administration/acl/">Access control</a></li>
-                              <li><a href="../../reference/administration/ontologies/">Ontologies</a></li>
-                              <li><a href="../../reference/administration/packages/">Packages</a></li>
-                           </ul>
-                        </li>
-                        <li><a href="../../reference/command-line-interface/">Command line interface</a></li>
-                        <li><a href="../../reference/configuration/">Configuration</a></li>
-                        <li><a href="../../reference/data-model/">Data model</a><ul class="nav nav-list">
-                              <li><a href="../../reference/data-model/blocks/">Content blocks</a><ul class="nav nav-list">
-                                    <li><a href="../../reference/data-model/blocks/objects/">Object blocks</a></li>
-                                    <li><a href="../../reference/data-model/blocks/xhtml/">XHTML blocks</a></li>
-                                 </ul>
-                              </li>
-                              <li><a href="../../reference/data-model/documents/">Documents</a><ul class="nav nav-list">
-                                    <li><a href="../../reference/data-model/documents/containers/">Containers</a></li>
-                                    <li><a href="../../reference/data-model/documents/items/">Items</a></li>
-                                 </ul>
-                              </li>
-                              <li><a href="../../reference/data-model/resources/">Resources</a><ul class="nav nav-list">
-                                    <li><a href="../../reference/data-model/resources/charts/">Charts</a></li>
-                                    <li><a href="../../reference/data-model/resources/queries/">Queries</a></li>
-                                    <li><a href="../../reference/data-model/resources/views/">Views</a></li>
-                                 </ul>
-                              </li>
-                           </ul>
-                        </li>
-                        <li><a href="../../reference/dataspace/">Dataspace</a></li>
-                        <li><a href="../../reference/http-api/">HTTP API</a></li>
-                        <li><a href="../../reference/imports/">Imports</a><ul class="nav nav-list">
-                              <li><a href="../../reference/imports/csv/">CSV imports</a></li>
-                              <li><a href="../../reference/imports/rdf/">RDF imports</a></li>
-                           </ul>
-                        </li>
-                        <li><a href="../../reference/dataset/">RDF dataset</a></li>
-                        <li><a href="../../reference/stylesheets/">Stylesheets</a></li>
-                        <li><a href="../../reference/triplestores/">Triplestores</a></li>
-                        <li><a href="../../reference/user-interface/">User interface</a></li>
-                     </ul>
-                  </li>
-                  <li><a href="../../tutorial/">Tutorial</a><ul class="nav nav-list">
-                        <li><a href="../../tutorial/app-as-repository/">App as a repository</a></li>
-                        <li><a href="../../tutorial/beyond-low-code/">Beyond low-code</a></li>
-                        <li><a href="../../tutorial/composition/">Composition</a></li>
-                        <li><a href="../../tutorial/data/">Data</a></li>
-                        <li><a href="../../tutorial/hello-dataspace/">Hello dataspace</a></li>
-                        <li><a href="../../tutorial/insight/">Insight</a></li>
-                        <li><a href="../../tutorial/media/">Media</a></li>
-                        <li><a href="../../tutorial/model/">Model</a></li>
-                        <li><a href="../../tutorial/publish/">Publish</a></li>
-                        <li><a href="../../tutorial/structure/">Structure</a></li>
-                     </ul>
-                  </li>
-                  <li><a href="../">User guide</a><ul class="nav nav-list">
-                        <li><a href="../add-data/">Add data</a></li>
-                        <li><a href="../browse-data/">Browse data</a></li>
-                        <li><a href="../build-apps/">Build apps</a></li>
-                        <li><a href="../change-layout/">Change layout</a></li>
-                        <li><a href="../change-system-base-uri/">Change system base URI</a></li>
-                        <li><a href="../change-model/">Change the model</a></li>
-                        <li><a href="../create-data/">Create data</a><ul class="nav nav-list">
-                              <li><a href="../create-data/create-content/">Create content</a></li>
-                              <li><a href="../create-data/create-documents/">Create documents</a></li>
-                              <li><a href="../create-data/create-resources/">Create instances</a></li>
-                           </ul>
-                        </li>
-                        <li><a href="../edit-content/">Edit content</a></li>
-                        <li><a href="../import-data/">Import data</a><ul class="nav nav-list">
-                              <li><a href="../import-data/import-csv-data/">Import CSV data</a></li>
-                              <li><a href="../import-data/import-rdf-data/">Import RDF data</a></li>
-                           </ul>
-                        </li>
-                        <li><a href="../manage-dataspaces/">Manage dataspaces</a></li>
-                        <li><a href="../manage-packages/">Manage packages</a></li>
-                        <li><a href="../navigate-data/">Navigate data</a></li>
-                        <li><a href="../query-data/">Query data</a></li>
-                        <li><a href="../search-data/">Search data</a></li>
-                        <li class="active"><a href="">Upload file</a></li>
-                     </ul>
-                  </li>
-               </ul>
-            </nav>
-            <main class="span7">
-               <header>
-                  <h1>Upload file</h1>
-               </header>
-               <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://www.w3.org/ns/ldt/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+      <div class="docs-layout">
+         <div class="docs-nav" role="navigation">
+            <ul>
+               <li><a href="../../about/">About LinkedDataHub</a></li>
+               <li><a href="../../get-started/">Get started</a></li>
+               <li><a href="../../tutorial/">Tutorial</a></li>
+               <li><a href="../">User guide</a><ul>
+                     <li><a href="../add-data/">Add data</a></li>
+                     <li><a href="../browse-data/">Browse data</a></li>
+                     <li><a href="../change-model/">Change model</a></li>
+                     <li><a href="../create-data/">Create data</a></li>
+                     <li><a href="../edit-content/">Edit content</a></li>
+                     <li><a href="../import-data/">Import data</a></li>
+                     <li><a href="../manage-dataspaces/">Manage dataspaces</a></li>
+                     <li><a href="../manage-packages/">Manage packages</a></li>
+                     <li><a href="../query-data/">Query data</a></li>
+                     <li class="is-active" aria-current="page"><a href="">Upload file</a></li>
+                     <li><a href="../version-history/">Version history</a></li>
+                  </ul>
+               </li>
+               <li><a href="../../reference/">Reference</a></li>
+               <li><a href="../../extending/">Extending</a></li>
+            </ul>
+         </div>
+         <div class="docs-main" role="main">
+            <h1>Upload file</h1>
+            <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+               
+               <p class="ldh-body-lg">Learn how to upload files to LinkedDataHub</p>
+               
+               <div>
                   
-                  <p class="lead">Learn how to upload files to LinkedDataHub</p>
+                  <h2 id="upload">Upload a file</h2>
                   
-                  <div class="tabbable">
+                  <div class="ac-tabs or-horizontal">
                      
-                     <ul class="nav nav-tabs">
-                        
-                        <li class="active"><a>User interface</a></li>
-                        
-                        <li><a>Command line interface</a></li>
-                        </ul>
+                     <div class="ac-tablist sz-md va-line" role="tablist">
+                        <button aria-controls="user-interface-pane" aria-selected="true" class="ac-tab is-on" id="user-interface-tab" role="tab" type="button"><span class="ac-tab-lbl">User interface</span></button>
+                        <button aria-controls="command-line-interface-pane" aria-selected="false" class="ac-tab" id="command-line-interface-tab" role="tab" type="button"><span class="ac-tab-lbl">Command line interface</span></button>
+                        </div>
                      
-                     <div class="tab-content">
+                     <div aria-labelledby="user-interface-tab" class="ac-tabpanel" id="user-interface-pane" role="tabpanel">
                         
-                        <div class="tab-pane active">
+                        <div>
                            
-                           <div>
+                           <p>Any document you can write to takes files dropped from your desktop. What a drop does
+                              is decided per file:</p>
+                           
+                           <dl>
                               
-                              <ol>
+                              <dt>RDF</dt>
+                              
+                              <dd>A file in one of the triple syntaxes — <code>.ttl</code>, <code>.nt</code>, <code>.rdf</code>, <code>.owl</code> or <code>.jsonld</code> — is <em>imported as data</em>: its triples are added to the document's graph</dd>
+                              
+                              <dt>File</dt>
+                              
+                              <dd>Anything else is <em>uploaded to the document</em>: the bytes are stored content-addressed under <code>uploads/</code> and the document describes them as a file, titled after the filename</dd>
+                              </dl>
+                           
+                           <ol>
+                              
+                              <li>Open the document that should hold the file</li>
+                              
+                              <li>Drag the file over the page. An overlay appears, naming both outcomes: <samp>RDF</samp> imported as data, <samp>File</samp> uploaded to this document</li>
+                              
+                              <li>Drop it. The document reloads in <samp>Read</samp> mode with the file among its resources; an image is shown inline</li>
+                              </ol>
+                           <video aria-label="Dropping a file onto a document" controls="controls" preload="metadata" src="../../files/user-guide/upload-file-1.mp4"></video>
+                           
+                           <p>A file larger than the instance's request limit is refused before it reaches the platform,
+                              and the page says so without navigating away.</p>
+                           
+                           <p>Alternatively, upload through a form:</p>
+                           
+                           <ol>
+                              
+                              <li>Click the <span class="ac-btn in-primary ap-solid sz-md">Create <span aria-hidden="true" class="msi caret">expand_more</span></span> dropdown at the bottom of the page</li>
+                              
+                              <li>Click on <samp>File</samp> in the dropdown list that appears</li>
+                              
+                              <li>Fill out the mandatory <dfn>File</dfn> fields in the form:
                                  
-                                 <li>Click the <span class="btn btn-primary create-action">Create <span class="caret"></span></span> dropdown on the bottom of the page</li>
-                                 
-                                 <li>Click on <samp>File</samp> in the drop-down list that appears</li>
-                                 
-                                 <li>Fill out the mandatory <dfn>File</dfn> fields in the form:
+                                 <dl>
                                     
-                                    <dl>
-                                       
-                                       <dt>FileName</dt>
-                                       
-                                       <dd>Select file from your filesystem</dd>
-                                       
-                                       <dt>Title</dt>
-                                       
-                                       <dd>Enter file title</dd>
-                                       </dl>
-                                    </li>
-                                 
-                                 <li>Click <span class="btn btn-primary btn-save">Save</span></li>
-                                 </ol>
+                                    <dt>Filename</dt>
+                                    
+                                    <dd>Select file from your filesystem</dd>
+                                    
+                                    <dt>Title</dt>
+                                    
+                                    <dd>Enter file title</dd>
+                                    </dl>
+                                 </li>
                               
-                              <p>See how below:</p>
-                              
-                              <p>
-                                 <object data="../../files/user-guide/upload-file/Upload.webm" type="video/webm"></object>
-                                 </p>
-                              </div>
-                           </div>
-                        
-                        <div class="tab-pane">
-                           
-                           <div>
-                              
-                              <p>Replace <samp>owner_cert_password</samp> with its value from the <samp>.env</samp> file and execute the following command:</p>
-                              
-                              <pre>add-file.sh \
--b "https://localhost:4443/" \
--f ./ssl/owner/cert.pem \
--p "$owner_cert_password" \
---title "$title" \
---file "$filename" \
---content-type "$content_type"</pre>
-                              </div>
+                              <li>Click <span class="ac-btn in-primary ap-solid sz-sm">Save</span></li>
+                              </ol>
                            </div>
                         </div>
-                     </div>
-                  
-                  <div class="alert alert-warning">
                      
-                     <h4>Note about ontology files</h4>
-                     
-                     <p>If you upload an ontology file (RDF/OWL), be aware that it will not be automatically
-                        loaded via <code>owl:imports</code> declarations.
-                        This is a technical limitation to prevent circular dependencies during system initialization.</p>
-                     
-                     <p>For more information on working with ontologies, see the <a href="../../reference/administration/ontologies/">ontologies reference documentation</a>.</p>
+                     <div aria-labelledby="command-line-interface-tab" class="ac-tabpanel" hidden="hidden" id="command-line-interface-pane" role="tabpanel">
+                        
+                        <div>
+                           
+                           <p>A file is uploaded to the document that will hold it, so create that document first.
+                              Uploading Nancy Davolio's portrait from the Northwind demo:</p>
+                           
+                           <pre>doc=$(ldh create item \
+  --title "Nancy Davolio" \
+  --container "${LDH_BASE}employees/")
+
+ldh add file \
+  --title "Nancy Davolio" \
+  --file employees/nancy.jpg \
+  --content-type "image/jpeg" \
+  "$doc"</pre>
+                           
+                           <p>The command prints the content-addressed URI of the upload as its only output:</p>
+                           
+                           <pre>https://localhost:4443/uploads/35fd362792e8c4bc3560a6de02f25ee551d68d02</pre>
+                           
+                           <p>That URI is stable across instances — it is derived from the file content alone —
+                              which is what lets the
+                              <a href="../../tutorial/media/" target="_blank">Northwind CSVs</a> reference their images by hash before they are even uploaded.
+                              <code>--content-type</code> is optional — the media type is detected from the file when it is not given.</p>
+                           </div>
+                        </div>
                      </div>
                   </div>
-            </main>
+               
+               <div class="ac-alert va-warning" role="status">
+                  <span class="ac-alert-ic"><span aria-hidden="true" class="msi outline">warning</span></span>
+                  
+                  <div class="ac-alert-body">
+                     <span class="ac-alert-title">Note about ontology files</span>
+                     
+                     <p class="ac-alert-text">If you upload an ontology file (RDF/OWL), be aware that it will not be automatically
+                        loaded via <code>owl:imports</code> declarations.
+                        This is deliberate: resolving imports at upload time would risk circular dependencies
+                        during system initialization.</p>
+                     
+                     <p class="ac-alert-text">For more information on working with ontologies, see the <a href="../../reference/administration/ontologies/">ontologies reference documentation</a>.</p>
+                     </div>
+                  </div>
+               
+               <p class="ldh-body-lg"><a href="../../reference/dataset/#hierarchical-uris" target="_blank">Read more about the content-addressed uploads namespace.</a></p>
+               </div>
          </div>
       </div>
-      <div class="footer container-fluid">
-         <div class="row-fluid">
-            <div class="offset2 span8">
-               <div class="span3">
-                  <h2 class="nav-header">About</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a></li>
-                     <li><a href="https://atomgraph.com" target="_blank">AtomGraph</a></li>
-                  </ul>
-               </div>
-               <div class="span3">
-                  <h2 class="nav-header">Resources</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a></li>
-                     <li><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></li>
-                  </ul>
-               </div>
-               <div class="span3">
-                  <h2 class="nav-header">Support</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a></li>
-                     <li><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a></li>
-                     <li><a href="mailto:support@linkeddatahub.com">Contact support</a></li>
-                  </ul>
-               </div>
-               <div class="span3">
-                  <h2 class="nav-header">Follow us</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a></li>
-                     <li><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></li>
-                  </ul>
-               </div>
+      <div class="ldh-footer" role="contentinfo">
+         <div class="cols">
+            <div class="col brand-col"><a class="ldh-wordmark" href="https://linkeddatahub.com" target="_blank"><span class="mark"></span><span>LinkedDataHub</span></a><p>The low-code Knowledge Graph application platform. Built on RDF, SPARQL and Linked
+                  Data principles.</p>
             </div>
+            <div class="col">
+               <p class="ftitle">About</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a><a href="https://atomgraph.com" target="_blank">AtomGraph</a></div>
+            <div class="col">
+               <p class="ftitle">Resources</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></div>
+            <div class="col">
+               <p class="ftitle">Support</p><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a><a href="mailto:support@linkeddatahub.com">Contact support</a></div>
+            <div class="col">
+               <p class="ftitle">Follow us</p><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></div>
          </div>
+         <div class="legal"><span>© 2026 AtomGraph · LinkedDataHub</span></div>
       </div>
    </body>
 </html>

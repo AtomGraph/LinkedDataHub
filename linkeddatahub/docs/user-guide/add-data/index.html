@@ -1,175 +1,106 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" lang="en" data-retro="m3" data-theme="light">
    <head>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
       <title>LinkedDataHub v5 — Add data</title>
-      <meta name="description" content="Fork RDF data from Linked Data resources and SPARQL results"/>
-      <meta name="last-modified" content="2026-08-18T20:14:17Z"/>
-      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap.css" rel="stylesheet" type="text/css"/>
-      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
-      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/linkeddatahub-bootstrap.css" rel="stylesheet" type="text/css"/>
-      <style type="text/css">
-                body { padding-top: 60px; }
-                object { width: 100%; min-height: 640px; }
-            </style><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/js/jquery.min.js"></script><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/js/bootstrap.min.js"></script><script type="text/javascript">
-                    $(document).ready(function() {
-                        $("ul.nav-tabs a").on("click", function() {
-                            $(this).closest("ul").children().toggleClass("active", false);
-                            $(this).closest("li").toggleClass("active", true);
-                            $(this).closest("ul").next().children().toggleClass("active", false);
-                            $(this).closest("ul").next().children().eq($(this).closest("li").index()).toggleClass("active", true);
+      <meta name="description" content="Copy RDF data from Linked Data resources and file uploads into your dataspace"/>
+      <meta name="last-modified" content="2026-09-29T09:21:08Z"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1"/>
+      <link href="../../static/css/fonts.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/colors_and_type.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/app.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/retro.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/ldh.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/docs.css" rel="stylesheet" type="text/css"/><script type="text/javascript">
+                    document.addEventListener("click", function(event) {
+                        var tab = event.target.closest(".ac-tab[role='tab']");
+                        if (!tab) return;
+                        var tablist = tab.closest("[role='tablist']");
+                        var tabs = tablist.closest(".ac-tabs");
+                        if (!tabs || !tabs.querySelector(".ac-tabpanel")) return;
+                        tablist.querySelectorAll(".ac-tab").forEach(function(t) { t.classList.remove("is-on"); t.setAttribute("aria-selected", "false"); });
+                        tab.classList.add("is-on");
+                        tab.setAttribute("aria-selected", "true");
+                        tabs.querySelectorAll(".ac-tabpanel").forEach(function(pane) {
+                            if (pane.parentElement !== tabs) return;
+                            pane.hidden = pane.id !== tab.getAttribute("aria-controls");
                         });
                     });
-                </script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+                </script><script async="async" defer="defer" src="https://buttons.github.io/buttons.js"></script><script async="async" defer="defer" src="https://platform.twitter.com/widgets.js"></script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
                     window.dataLayer = window.dataLayer || [];
                     function gtag(){dataLayer.push(arguments);}
                     gtag('js', new Date());
                     gtag('config', 'UA-38402002-6');
                 </script></head>
-   <body>
-      <div class="navbar navbar-fixed-top">
-         <div class="navbar-inner">
-            <div class="container-fluid"><a class="brand" href="../../">LinkedDataHub</a><div class="nav-collapse collapse">
-                  <ul class="nav">
-                     <li class="active">
-                        <div class="btn-group"><a class="btn" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/">Documentation v5</a><button class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button><ul class="dropdown-menu">
-                              <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a></li>
-                              <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></li>
-                           </ul>
-                        </div>
-                     </li>
-                     <li><a href="https://github.com/AtomGraph/LinkedDataHub" target="_blank">Code</a></li>
-                  </ul>
-               </div>
-            </div>
-         </div>
+   <body class="app">
+      <div class="ldh-header" role="banner"><a class="ldh-wordmark" href="../../"><span class="mark"></span><span>LinkedDataHub</span></a><div></div>
+         <div class="ldh-header-actions">
+            <details class="docs-versions">
+               <summary>Documentation v6</summary>
+               <div><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v5/">Documentation v5</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></div>
+            </details><a href="https://github.com/AtomGraph/LinkedDataHub-Apps" target="_blank">Sample dataspaces</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub/subscription" data-icon="octicon-eye" data-size="large" aria-label="Watch AtomGraph/LinkedDataHub on GitHub">Watch</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star AtomGraph/LinkedDataHub on GitHub">Star</a><a href="https://twitter.com/atomgraphhq" class="twitter-follow-button" data-show-count="false">Follow @atomgraphhq</a><a href="https://youtube.com/@atomgraph" target="_blank"><span class="msi outline" aria-hidden="true">smart_display</span> @atomgraph</a></div>
       </div>
-      <div class="container-fluid">
-         <div class="row-fluid">
-            <nav class="span2">
-               <ul class="nav nav-list">
-                  <li><a href="../../about/">About LinkedDataHub</a></li>
-                  <li><a href="../../get-started/">Get started</a><ul class="nav nav-list">
-                        <li><a href="../../get-started/get-an-account/">Get an account</a></li>
-                        <li><a href="../../get-started/request-access/">Request access</a></li>
-                        <li><a href="../../get-started/setup/">Setup</a></li>
-                     </ul>
-                  </li>
-                  <li><a href="../../reference/">Reference</a><ul class="nav nav-list">
-                        <li><a href="../../reference/administration/">Administration</a><ul class="nav nav-list">
-                              <li><a href="../../reference/administration/acl/">Access control</a></li>
-                              <li><a href="../../reference/administration/ontologies/">Ontologies</a></li>
-                              <li><a href="../../reference/administration/packages/">Packages</a></li>
-                           </ul>
-                        </li>
-                        <li><a href="../../reference/command-line-interface/">Command line interface</a></li>
-                        <li><a href="../../reference/configuration/">Configuration</a></li>
-                        <li><a href="../../reference/data-model/">Data model</a><ul class="nav nav-list">
-                              <li><a href="../../reference/data-model/blocks/">Content blocks</a><ul class="nav nav-list">
-                                    <li><a href="../../reference/data-model/blocks/objects/">Object blocks</a></li>
-                                    <li><a href="../../reference/data-model/blocks/xhtml/">XHTML blocks</a></li>
-                                 </ul>
-                              </li>
-                              <li><a href="../../reference/data-model/documents/">Documents</a><ul class="nav nav-list">
-                                    <li><a href="../../reference/data-model/documents/containers/">Containers</a></li>
-                                    <li><a href="../../reference/data-model/documents/items/">Items</a></li>
-                                 </ul>
-                              </li>
-                              <li><a href="../../reference/data-model/resources/">Resources</a><ul class="nav nav-list">
-                                    <li><a href="../../reference/data-model/resources/charts/">Charts</a></li>
-                                    <li><a href="../../reference/data-model/resources/queries/">Queries</a></li>
-                                    <li><a href="../../reference/data-model/resources/views/">Views</a></li>
-                                 </ul>
-                              </li>
-                           </ul>
-                        </li>
-                        <li><a href="../../reference/dataspace/">Dataspace</a></li>
-                        <li><a href="../../reference/http-api/">HTTP API</a></li>
-                        <li><a href="../../reference/imports/">Imports</a><ul class="nav nav-list">
-                              <li><a href="../../reference/imports/csv/">CSV imports</a></li>
-                              <li><a href="../../reference/imports/rdf/">RDF imports</a></li>
-                           </ul>
-                        </li>
-                        <li><a href="../../reference/dataset/">RDF dataset</a></li>
-                        <li><a href="../../reference/stylesheets/">Stylesheets</a></li>
-                        <li><a href="../../reference/triplestores/">Triplestores</a></li>
-                        <li><a href="../../reference/user-interface/">User interface</a></li>
-                     </ul>
-                  </li>
-                  <li><a href="../../tutorial/">Tutorial</a><ul class="nav nav-list">
-                        <li><a href="../../tutorial/app-as-repository/">App as a repository</a></li>
-                        <li><a href="../../tutorial/beyond-low-code/">Beyond low-code</a></li>
-                        <li><a href="../../tutorial/composition/">Composition</a></li>
-                        <li><a href="../../tutorial/data/">Data</a></li>
-                        <li><a href="../../tutorial/hello-dataspace/">Hello dataspace</a></li>
-                        <li><a href="../../tutorial/insight/">Insight</a></li>
-                        <li><a href="../../tutorial/media/">Media</a></li>
-                        <li><a href="../../tutorial/model/">Model</a></li>
-                        <li><a href="../../tutorial/publish/">Publish</a></li>
-                        <li><a href="../../tutorial/structure/">Structure</a></li>
-                     </ul>
-                  </li>
-                  <li><a href="../">User guide</a><ul class="nav nav-list">
-                        <li class="active"><a href="">Add data</a></li>
-                        <li><a href="../browse-data/">Browse data</a></li>
-                        <li><a href="../build-apps/">Build apps</a></li>
-                        <li><a href="../change-layout/">Change layout</a></li>
-                        <li><a href="../change-system-base-uri/">Change system base URI</a></li>
-                        <li><a href="../change-model/">Change the model</a></li>
-                        <li><a href="../create-data/">Create data</a><ul class="nav nav-list">
-                              <li><a href="../create-data/create-content/">Create content</a></li>
-                              <li><a href="../create-data/create-documents/">Create documents</a></li>
-                              <li><a href="../create-data/create-resources/">Create instances</a></li>
-                           </ul>
-                        </li>
-                        <li><a href="../edit-content/">Edit content</a></li>
-                        <li><a href="../import-data/">Import data</a><ul class="nav nav-list">
-                              <li><a href="../import-data/import-csv-data/">Import CSV data</a></li>
-                              <li><a href="../import-data/import-rdf-data/">Import RDF data</a></li>
-                           </ul>
-                        </li>
-                        <li><a href="../manage-dataspaces/">Manage dataspaces</a></li>
-                        <li><a href="../manage-packages/">Manage packages</a></li>
-                        <li><a href="../navigate-data/">Navigate data</a></li>
-                        <li><a href="../query-data/">Query data</a></li>
-                        <li><a href="../search-data/">Search data</a></li>
-                        <li><a href="../upload-file/">Upload file</a></li>
-                     </ul>
-                  </li>
-               </ul>
-            </nav>
-            <main class="span7">
-               <header>
-                  <h1>Add data</h1>
-               </header>
-               <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://www.w3.org/ns/ldt/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+      <div class="docs-layout">
+         <div class="docs-nav" role="navigation">
+            <ul>
+               <li><a href="../../about/">About LinkedDataHub</a></li>
+               <li><a href="../../get-started/">Get started</a></li>
+               <li><a href="../../tutorial/">Tutorial</a></li>
+               <li><a href="../">User guide</a><ul>
+                     <li class="is-active" aria-current="page"><a href="">Add data</a></li>
+                     <li><a href="../browse-data/">Browse data</a></li>
+                     <li><a href="../change-model/">Change model</a></li>
+                     <li><a href="../create-data/">Create data</a></li>
+                     <li><a href="../edit-content/">Edit content</a></li>
+                     <li><a href="../import-data/">Import data</a></li>
+                     <li><a href="../manage-dataspaces/">Manage dataspaces</a></li>
+                     <li><a href="../manage-packages/">Manage packages</a></li>
+                     <li><a href="../query-data/">Query data</a></li>
+                     <li><a href="../upload-file/">Upload file</a></li>
+                     <li><a href="../version-history/">Version history</a></li>
+                  </ul>
+               </li>
+               <li><a href="../../reference/">Reference</a></li>
+               <li><a href="../../extending/">Extending</a></li>
+            </ul>
+         </div>
+         <div class="docs-main" role="main">
+            <h1>Add data</h1>
+            <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+               
+               <p class="ldh-body-lg">Copy RDF data from Linked Data resources and file uploads into your dataspace</p>
+               
+               <p>Forking copies the contents of any RDF document into a named graph in your dataspace.
+                  Two sources of RDF are supported: RDF resources on the web (Linked Data) and RDF file
+                  uploads.</p>
+               
+               <div class="ac-alert va-informative" role="status">
+                  <span class="ac-alert-ic"><span aria-hidden="true" class="msi outline">info</span></span>
                   
-                  <p class="lead">Fork RDF data from Linked Data resources and SPARQL results</p>
-                  
-                  <p>You can fork (copy the contents of) any RDF document to a namedgraph in your dataspace.
-                     Two sources of RDF are supported: RDF resources on the web (Linked Data), and RDF
-                     file uploads.</p>
-                  
-                  <div class="alert alert-info">
+                  <div class="ac-alert-body">
                      
-                     <p>Adding data this way will cause a blocking request, so use it for small amounts of
-                        data only (e.g. a few thousands of RDF triples).
+                     <p class="ac-alert-text">Adding data this way will cause a blocking request, so use it for small amounts of
+                        data only (e.g. a few thousand RDF triples).
                         For larger data, use asynchronous <a href="../import-data/import-rdf-data/" target="_blank">RDF imports</a>.</p>
                      </div>
+                  </div>
+               
+               <div class="ac-tabs or-horizontal">
                   
-                  <div>
-                     
-                     <h2 id="from-linked-data">From Linked Data</h2>
-                     
-                     <p>
-                        <object data="../../files/user-guide/add-data/AddData.webm" type="video/webm"></object>
-                        </p>
+                  <div class="ac-tablist sz-md va-line" role="tablist">
+                     <button aria-controls="from-linked-data-pane" aria-selected="true" class="ac-tab is-on" id="from-linked-data-tab" role="tab" type="button"><span class="ac-tab-lbl">From Linked Data</span></button>
+                     <button aria-controls="from-the-command-line-pane" aria-selected="false" class="ac-tab" id="from-the-command-line-tab" role="tab" type="button"><span class="ac-tab-lbl">From the command line</span></button>
+                     <button aria-controls="from-a-file-pane" aria-selected="false" class="ac-tab" id="from-a-file-tab" role="tab" type="button"><span class="ac-tab-lbl">From a file</span></button>
+                     </div>
+                  
+                  <div aria-labelledby="from-linked-data-tab" class="ac-tabpanel" id="from-linked-data-pane" role="tabpanel">
+                     <video aria-label="Forking a remote RDF document into the dataspace" controls="controls" preload="metadata" src="../../files/user-guide/add-data-1.mp4"></video>
                      
                      <p>To copy the contents of the current RDF document (local or remote) into a local document,
                         follow these steps:</p>
                      
                      <ol>
                         
-                        <li>Click on the <span class="btn btn-save-as">Save</span> button on the right side of the <a href="../../reference/user-interface/#action-bar" target="_blank">action bar</a>.
+                        <li>Choose <samp>Save as</samp> in the <a href="../../reference/user-interface/#action-bar" target="_blank">action bar</a>'s <span class="ac-btn in-neutral ap-outline sz-md">Actions</span> dropdown.
                            A form will open with the following fields:
                            
                            <dl>
@@ -180,73 +111,118 @@
                               
                               <dt>Graph</dt>
                               
-                              <dd>The target document. You can start typing to find it by its label, or paste its URI
-                                 here.</dd>
+                              <dd>The target document. The source data is appended to the target document's existing
+                                 content, replacing nothing. You can start typing to find the document by its label,
+                                 or paste its URI here.</dd>
                               </dl>
                            </li>
                         
-                        <li>Click <span class="btn btn-primary btn-save">Save</span> to perform the fork operation.</li>
+                        <li>Click <span class="ac-btn in-primary ap-solid sz-sm">Save</span> to perform the fork operation.</li>
                         </ol>
+                     
+                     <p>For example, the Northwind Beverages category <a href="../../reference/imports/rdf/">maps to</a> the UNESCO Thesaurus concept
+                        <a href="https://unesco-thesaurus.demo.linkeddatahub.com/concepts/concept3683/" target="_blank"><samp>Beverages</samp></a>. Open it in the
+                        <a href="../browse-data/">Linked Data browser</a> and fork it into your own dataspace.</p>
+                     
+                     <p>The target document does not have to be local: you can also add data to a document
+                        in <em>another</em> dataspace by pasting its URI. The
+                        append is performed with your identity, so the target dataspace's <a href="../../reference/administration/acl/">access control</a> decides
+                        whether it is allowed — a refusal surfaces as a form error.</p>
                      </div>
                   
-                  <div>
+                  <div aria-labelledby="from-the-command-line-tab" class="ac-tabpanel" hidden="hidden" id="from-the-command-line-pane" role="tabpanel">
                      
-                     <h2 id="from-file">From file</h2>
+                     <p>The same fork is a pipe — <samp>ldh get</samp> the source, <samp>ldh post</samp> it into the target document:</p>
                      
-                     <p>To upload the contents of an RDF file into a document, simply drag the file from your
-                        filesystem into LinkedDataHub when the document's <a href="../../reference/user-interface/#layout-modes">properties mode</a> is active.</p>
+                     <pre>ldh get --accept text/turtle \
+    "https://unesco-thesaurus.demo.linkeddatahub.com/concepts/concept3683/" \
+  | ldh post -t text/turtle "${LDH_BASE}categories/1/"</pre>
+                     </div>
+                  
+                  <div aria-labelledby="from-a-file-tab" class="ac-tabpanel" hidden="hidden" id="from-a-file-pane" role="tabpanel">
+                     
+                     <p>To upload the contents of an RDF file into a document, drag the file from your filesystem
+                        into LinkedDataHub when the document's <a href="../../reference/user-interface/#layout-modes">properties mode</a> is active.</p>
                      
                      <p>The following syntaxes are supported:</p>
                      
-                     <ul>
+                     <table>
                         
-                        <li>N-Triples (.nt)</li>
+                        <caption class="ac-vh">Supported RDF syntaxes and their media types</caption>
                         
-                        <li>Turtle (.ttl)</li>
+                        <thead>
+                           
+                           <tr>
+                              
+                              <th scope="col">Syntax</th>
+                              
+                              <th scope="col">File extensions</th>
+                              
+                              <th scope="col">Media type</th>
+                              </tr>
+                           </thead>
                         
-                        <li>RDF/XML (.rdf and .owl)</li>
-                        
-                        <li>JSON-LD (.jsonld)</li>
-                        </ul>
+                        <tbody>
+                           
+                           <tr>
+                              
+                              <td>N-Triples</td>
+                              
+                              <td><samp>.nt</samp></td>
+                              
+                              <td><samp>application/n-triples</samp></td>
+                              </tr>
+                           
+                           <tr>
+                              
+                              <td>Turtle</td>
+                              
+                              <td><samp>.ttl</samp></td>
+                              
+                              <td><samp>text/turtle</samp></td>
+                              </tr>
+                           
+                           <tr>
+                              
+                              <td>RDF/XML</td>
+                              
+                              <td><samp>.rdf</samp>, <samp>.owl</samp></td>
+                              
+                              <td><samp>application/rdf+xml</samp></td>
+                              </tr>
+                           
+                           <tr>
+                              
+                              <td>JSON-LD</td>
+                              
+                              <td><samp>.jsonld</samp></td>
+                              
+                              <td><samp>application/ld+json</samp></td>
+                              </tr>
+                           </tbody>
+                        </table>
                      </div>
                   </div>
-            </main>
+               
+               <p class="ldh-body-lg"><a href="../browse-data/">Browse data</a> to find resources worth forking, or <a href="../import-data/import-rdf-data/">import RDF data</a> for larger datasets.</p>
+               </div>
          </div>
       </div>
-      <div class="footer container-fluid">
-         <div class="row-fluid">
-            <div class="offset2 span8">
-               <div class="span3">
-                  <h2 class="nav-header">About</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a></li>
-                     <li><a href="https://atomgraph.com" target="_blank">AtomGraph</a></li>
-                  </ul>
-               </div>
-               <div class="span3">
-                  <h2 class="nav-header">Resources</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a></li>
-                     <li><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></li>
-                  </ul>
-               </div>
-               <div class="span3">
-                  <h2 class="nav-header">Support</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a></li>
-                     <li><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a></li>
-                     <li><a href="mailto:support@linkeddatahub.com">Contact support</a></li>
-                  </ul>
-               </div>
-               <div class="span3">
-                  <h2 class="nav-header">Follow us</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a></li>
-                     <li><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></li>
-                  </ul>
-               </div>
+      <div class="ldh-footer" role="contentinfo">
+         <div class="cols">
+            <div class="col brand-col"><a class="ldh-wordmark" href="https://linkeddatahub.com" target="_blank"><span class="mark"></span><span>LinkedDataHub</span></a><p>The low-code Knowledge Graph application platform. Built on RDF, SPARQL and Linked
+                  Data principles.</p>
             </div>
+            <div class="col">
+               <p class="ftitle">About</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a><a href="https://atomgraph.com" target="_blank">AtomGraph</a></div>
+            <div class="col">
+               <p class="ftitle">Resources</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></div>
+            <div class="col">
+               <p class="ftitle">Support</p><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a><a href="mailto:support@linkeddatahub.com">Contact support</a></div>
+            <div class="col">
+               <p class="ftitle">Follow us</p><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></div>
          </div>
+         <div class="legal"><span>© 2026 AtomGraph · LinkedDataHub</span></div>
       </div>
    </body>
 </html>

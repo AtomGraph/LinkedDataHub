@@ -1,9 +1,12 @@
 html/
-decorate-html.xsl
-docs.trix
+rdf/
+node_modules/
 Makefile
-trix-to-html.xsl
-root.ttl
+docs.css
+docs.trix
+files.xml
+timestamps.xml
 screenshot-edit-mode.png
 screenshot.png
-node_modules/
+*.sh
+*.xsl

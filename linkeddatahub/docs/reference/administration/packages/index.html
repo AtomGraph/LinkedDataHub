@@ -1,270 +1,202 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" lang="en" data-retro="m3" data-theme="light">
    <head>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
       <title>LinkedDataHub v5 — Packages</title>
-      <meta name="description" content="Package management for LinkedDataHub applications"/>
-      <meta name="last-modified" content="2026-08-18T20:14:17Z"/>
-      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap.css" rel="stylesheet" type="text/css"/>
-      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
-      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/css/linkeddatahub-bootstrap.css" rel="stylesheet" type="text/css"/>
-      <style type="text/css">
-                body { padding-top: 60px; }
-                object { width: 100%; min-height: 640px; }
-            </style><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/js/jquery.min.js"></script><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/files/js/bootstrap.min.js"></script><script type="text/javascript">
-                    $(document).ready(function() {
-                        $("ul.nav-tabs a").on("click", function() {
-                            $(this).closest("ul").children().toggleClass("active", false);
-                            $(this).closest("li").toggleClass("active", true);
-                            $(this).closest("ul").next().children().toggleClass("active", false);
-                            $(this).closest("ul").next().children().eq($(this).closest("li").index()).toggleClass("active", true);
+      <meta name="description" content="Reusable bundles of an ontology and a stylesheet that add support and custom rendering for an RDF vocabulary"/>
+      <meta name="last-modified" content="2026-09-29T09:21:08Z"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1"/>
+      <link href="../../../static/css/fonts.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/colors_and_type.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/app.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/retro.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/ldh.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/docs.css" rel="stylesheet" type="text/css"/><script type="text/javascript">
+                    document.addEventListener("click", function(event) {
+                        var tab = event.target.closest(".ac-tab[role='tab']");
+                        if (!tab) return;
+                        var tablist = tab.closest("[role='tablist']");
+                        var tabs = tablist.closest(".ac-tabs");
+                        if (!tabs || !tabs.querySelector(".ac-tabpanel")) return;
+                        tablist.querySelectorAll(".ac-tab").forEach(function(t) { t.classList.remove("is-on"); t.setAttribute("aria-selected", "false"); });
+                        tab.classList.add("is-on");
+                        tab.setAttribute("aria-selected", "true");
+                        tabs.querySelectorAll(".ac-tabpanel").forEach(function(pane) {
+                            if (pane.parentElement !== tabs) return;
+                            pane.hidden = pane.id !== tab.getAttribute("aria-controls");
                         });
                     });
-                </script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+                </script><script async="async" defer="defer" src="https://buttons.github.io/buttons.js"></script><script async="async" defer="defer" src="https://platform.twitter.com/widgets.js"></script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
                     window.dataLayer = window.dataLayer || [];
                     function gtag(){dataLayer.push(arguments);}
                     gtag('js', new Date());
                     gtag('config', 'UA-38402002-6');
                 </script></head>
-   <body>
-      <div class="navbar navbar-fixed-top">
-         <div class="navbar-inner">
-            <div class="container-fluid"><a class="brand" href="../../../">LinkedDataHub</a><div class="nav-collapse collapse">
-                  <ul class="nav">
-                     <li class="active">
-                        <div class="btn-group"><a class="btn" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/">Documentation v5</a><button class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button><ul class="dropdown-menu">
-                              <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a></li>
-                              <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></li>
-                           </ul>
-                        </div>
-                     </li>
-                     <li><a href="https://github.com/AtomGraph/LinkedDataHub" target="_blank">Code</a></li>
-                  </ul>
-               </div>
-            </div>
-         </div>
+   <body class="app">
+      <div class="ldh-header" role="banner"><a class="ldh-wordmark" href="../../../"><span class="mark"></span><span>LinkedDataHub</span></a><div></div>
+         <div class="ldh-header-actions">
+            <details class="docs-versions">
+               <summary>Documentation v6</summary>
+               <div><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v5/">Documentation v5</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></div>
+            </details><a href="https://github.com/AtomGraph/LinkedDataHub-Apps" target="_blank">Sample dataspaces</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub/subscription" data-icon="octicon-eye" data-size="large" aria-label="Watch AtomGraph/LinkedDataHub on GitHub">Watch</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star AtomGraph/LinkedDataHub on GitHub">Star</a><a href="https://twitter.com/atomgraphhq" class="twitter-follow-button" data-show-count="false">Follow @atomgraphhq</a><a href="https://youtube.com/@atomgraph" target="_blank"><span class="msi outline" aria-hidden="true">smart_display</span> @atomgraph</a></div>
       </div>
-      <div class="container-fluid">
-         <div class="row-fluid">
-            <nav class="span2">
-               <ul class="nav nav-list">
-                  <li><a href="../../../about/">About LinkedDataHub</a></li>
-                  <li><a href="../../../get-started/">Get started</a><ul class="nav nav-list">
-                        <li><a href="../../../get-started/get-an-account/">Get an account</a></li>
-                        <li><a href="../../../get-started/request-access/">Request access</a></li>
-                        <li><a href="../../../get-started/setup/">Setup</a></li>
-                     </ul>
-                  </li>
-                  <li><a href="../../">Reference</a><ul class="nav nav-list">
-                        <li><a href="../">Administration</a><ul class="nav nav-list">
-                              <li><a href="../acl/">Access control</a></li>
-                              <li><a href="../ontologies/">Ontologies</a></li>
-                              <li class="active"><a href="">Packages</a></li>
-                           </ul>
-                        </li>
-                        <li><a href="../../command-line-interface/">Command line interface</a></li>
-                        <li><a href="../../configuration/">Configuration</a></li>
-                        <li><a href="../../data-model/">Data model</a><ul class="nav nav-list">
-                              <li><a href="../../data-model/blocks/">Content blocks</a><ul class="nav nav-list">
-                                    <li><a href="../../data-model/blocks/objects/">Object blocks</a></li>
-                                    <li><a href="../../data-model/blocks/xhtml/">XHTML blocks</a></li>
-                                 </ul>
-                              </li>
-                              <li><a href="../../data-model/documents/">Documents</a><ul class="nav nav-list">
-                                    <li><a href="../../data-model/documents/containers/">Containers</a></li>
-                                    <li><a href="../../data-model/documents/items/">Items</a></li>
-                                 </ul>
-                              </li>
-                              <li><a href="../../data-model/resources/">Resources</a><ul class="nav nav-list">
-                                    <li><a href="../../data-model/resources/charts/">Charts</a></li>
-                                    <li><a href="../../data-model/resources/queries/">Queries</a></li>
-                                    <li><a href="../../data-model/resources/views/">Views</a></li>
-                                 </ul>
-                              </li>
-                           </ul>
-                        </li>
-                        <li><a href="../../dataspace/">Dataspace</a></li>
-                        <li><a href="../../http-api/">HTTP API</a></li>
-                        <li><a href="../../imports/">Imports</a><ul class="nav nav-list">
-                              <li><a href="../../imports/csv/">CSV imports</a></li>
-                              <li><a href="../../imports/rdf/">RDF imports</a></li>
-                           </ul>
-                        </li>
-                        <li><a href="../../dataset/">RDF dataset</a></li>
-                        <li><a href="../../stylesheets/">Stylesheets</a></li>
-                        <li><a href="../../triplestores/">Triplestores</a></li>
-                        <li><a href="../../user-interface/">User interface</a></li>
-                     </ul>
-                  </li>
-                  <li><a href="../../../tutorial/">Tutorial</a><ul class="nav nav-list">
-                        <li><a href="../../../tutorial/app-as-repository/">App as a repository</a></li>
-                        <li><a href="../../../tutorial/beyond-low-code/">Beyond low-code</a></li>
-                        <li><a href="../../../tutorial/composition/">Composition</a></li>
-                        <li><a href="../../../tutorial/data/">Data</a></li>
-                        <li><a href="../../../tutorial/hello-dataspace/">Hello dataspace</a></li>
-                        <li><a href="../../../tutorial/insight/">Insight</a></li>
-                        <li><a href="../../../tutorial/media/">Media</a></li>
-                        <li><a href="../../../tutorial/model/">Model</a></li>
-                        <li><a href="../../../tutorial/publish/">Publish</a></li>
-                        <li><a href="../../../tutorial/structure/">Structure</a></li>
-                     </ul>
-                  </li>
-                  <li><a href="../../../user-guide/">User guide</a><ul class="nav nav-list">
-                        <li><a href="../../../user-guide/add-data/">Add data</a></li>
-                        <li><a href="../../../user-guide/browse-data/">Browse data</a></li>
-                        <li><a href="../../../user-guide/build-apps/">Build apps</a></li>
-                        <li><a href="../../../user-guide/change-layout/">Change layout</a></li>
-                        <li><a href="../../../user-guide/change-system-base-uri/">Change system base URI</a></li>
-                        <li><a href="../../../user-guide/change-model/">Change the model</a></li>
-                        <li><a href="../../../user-guide/create-data/">Create data</a><ul class="nav nav-list">
-                              <li><a href="../../../user-guide/create-data/create-content/">Create content</a></li>
-                              <li><a href="../../../user-guide/create-data/create-documents/">Create documents</a></li>
-                              <li><a href="../../../user-guide/create-data/create-resources/">Create instances</a></li>
-                           </ul>
-                        </li>
-                        <li><a href="../../../user-guide/edit-content/">Edit content</a></li>
-                        <li><a href="../../../user-guide/import-data/">Import data</a><ul class="nav nav-list">
-                              <li><a href="../../../user-guide/import-data/import-csv-data/">Import CSV data</a></li>
-                              <li><a href="../../../user-guide/import-data/import-rdf-data/">Import RDF data</a></li>
-                           </ul>
-                        </li>
-                        <li><a href="../../../user-guide/manage-dataspaces/">Manage dataspaces</a></li>
-                        <li><a href="../../../user-guide/manage-packages/">Manage packages</a></li>
-                        <li><a href="../../../user-guide/navigate-data/">Navigate data</a></li>
-                        <li><a href="../../../user-guide/query-data/">Query data</a></li>
-                        <li><a href="../../../user-guide/search-data/">Search data</a></li>
-                        <li><a href="../../../user-guide/upload-file/">Upload file</a></li>
-                     </ul>
-                  </li>
-               </ul>
-            </nav>
-            <main class="span7">
-               <header>
-                  <h1>Packages</h1>
-               </header>
-               <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://www.w3.org/ns/ldt/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-                  
-                  <p class="lead">Packages are reusable bundles of ontologies and stylesheets that provide vocabulary
-                     support with custom rendering for specific RDF vocabularies.</p>
-                  
-                  <div class="alert alert-info">
-                     
-                     <p><strong>Version:</strong> Packages were introduced in LinkedDataHub 5.2.</p>
-                     </div>
-                  
-                  <div class="alert alert-info">
-                     
-                     <p><strong>Note:</strong> Packages are <strong>declarative only</strong> (RDF + XSLT). They contain no Java code and integrate at installation-time, not runtime.</p>
-                     </div>
-                  
-                  <div>
-                     
-                     <h2 id="what-are-packages">What are packages?</h2>
-                     
-                     <p>A LinkedDataHub package is a reusable component that bundles together a vocabulary
-                        ontology and XSLT templates into a single installable unit. Packages enable:</p>
-                     
-                     <ul>
-                        
-                        <li>Rapid application setup with pre-configured domain vocabularies</li>
-                        
-                        <li>Sharing and reusing common vocabulary definitions</li>
-                        
-                        <li>Custom rendering for vocabulary-specific resources</li>
-                        
-                        <li>Modular extension of dataspace functionality</li>
+      <div class="docs-layout">
+         <div class="docs-nav" role="navigation">
+            <ul>
+               <li><a href="../../../about/">About LinkedDataHub</a></li>
+               <li><a href="../../../get-started/">Get started</a></li>
+               <li><a href="../../../tutorial/">Tutorial</a></li>
+               <li><a href="../../../user-guide/">User guide</a></li>
+               <li><a href="../../">Reference</a><ul>
+                     <li><a href="../">Administration</a><ul>
+                           <li><a href="../acl/">Access control</a></li>
+                           <li><a href="../ontologies/">Ontologies</a></li>
+                           <li class="is-active" aria-current="page"><a href="">Packages</a></li>
                         </ul>
-                     </div>
+                     </li>
+                     <li><a href="../../command-line-interface/">Command line interface</a></li>
+                     <li><a href="../../configuration/">Configuration</a></li>
+                     <li><a href="../../data-model/">Data model</a></li>
+                     <li><a href="../../dataset/">Dataset</a></li>
+                     <li><a href="../../dataspace/">Dataspace</a></li>
+                     <li><a href="../../http-api/">HTTP API</a></li>
+                     <li><a href="../../imports/">Imports</a></li>
+                     <li><a href="../../migrating-from-5x/">Migrating from 5.x</a></li>
+                     <li><a href="../../stylesheets/">Stylesheets</a></li>
+                     <li><a href="../../triplestores/">Triplestores</a></li>
+                     <li><a href="../../user-interface/">User interface</a></li>
+                     <li><a href="../../versioning/">Versioning</a></li>
+                  </ul>
+               </li>
+               <li><a href="../../../extending/">Extending</a></li>
+            </ul>
+         </div>
+         <div class="docs-main" role="main">
+            <h1>Packages</h1>
+            <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+               
+               <p class="ldh-body-lg">Reusable bundles of an ontology and a stylesheet that add support and custom rendering
+                  for an RDF vocabulary</p>
+               
+               <div class="ac-alert va-informative" role="status">
+                  <span class="ac-alert-ic"><span aria-hidden="true" class="msi outline">info</span></span>
                   
-                  <div>
+                  <div class="ac-alert-body">
                      
-                     <h2 id="package-structure">Package structure</h2>
+                     <p class="ac-alert-text">Packages were introduced in LinkedDataHub 5.2. Since 5.10 a dataspace installs one
+                        by declaring a single <code>ldh:import</code> triple in its settings, replacing the <code>packages/install</code> and <code>packages/uninstall</code> endpoints and the file system mutations they performed.</p>
                      
-                     <p>Each package consists of two files:</p>
-                     
-                     <dl>
-                        
-                        <dt><code>ns.ttl</code> — Package ontology</dt>
-                        
-                        <dd>An RDF ontology file that imports the external vocabulary using <code>owl:imports</code> and attaches blocks to properties using <code>ldh:view</code> (forward relationships) or <code>ldh:inverseView</code> (inverse relationships). Blocks are typically <code>ldh:View</code> resources with SPARQL queries that render related data for property values.</dd>
-                        
-                        <dt><code>layout.xsl</code> — XSLT stylesheet</dt>
-                        
-                        <dd>XSLT transformation file with templates that override default rendering using system
-                           modes like <code>bs2:*</code> (Bootstrap 2.3.2 components) and <code>xhtml:*</code> (XHTML elements). See <a href="../../stylesheets/" target="_blank">Stylesheets reference</a> for details on XSLT customization.</dd>
-                        </dl>
-                     
-                     <p>Package files are organized in the LinkedDataHub-Apps repository:</p>
-                     
-                     <pre>packages/
-├── package-name/
-│   ├── ns.ttl         # Ontology with views
-│   └── layout.xsl     # XSLT stylesheet</pre>
-                     
-                     <p>Package metadata is published as Linked Data that resolves from the package URI (e.g.,
-                        <code>https://packages.linkeddatahub.com/skos/#this</code>).</p>
+                     <p class="ac-alert-text">Packages are declarative only (RDF + XSLT) — they contain no Java code. See <a href="#architecture">Architecture</a> for how they are composed into the dataspace.</p>
                      </div>
+                  </div>
+               
+               <div>
                   
-                  <div>
+                  <h2 id="what-are-packages">Overview</h2>
+                  
+                  <p>Packages enable:</p>
+                  
+                  <ul>
                      
-                     <h2 id="package-metadata">Package metadata</h2>
+                     <li>Rapid dataspace setup with pre-configured domain vocabularies</li>
                      
-                     <p>Package metadata is published as Linked Data that resolves from the package URI using
-                        standard LinkedDataHub properties:</p>
+                     <li>Sharing and reusing common vocabulary definitions</li>
                      
-                     <dl>
-                        
-                        <dt><code>lapp:Package</code></dt>
-                        
-                        <dd>The RDF class for package descriptors</dd>
-                        
-                        <dt><code>rdfs:label</code></dt>
-                        
-                        <dd>Human-readable package name</dd>
-                        
-                        <dt><code>dct:description</code></dt>
-                        
-                        <dd>Package description and purpose</dd>
-                        
-                        <dt><code>ldt:ontology</code></dt>
-                        
-                        <dd>Points to the package ontology URI (from LDT vocabulary)</dd>
-                        
-                        <dt><code>ac:stylesheet</code></dt>
-                        
-                        <dd>Points to the package stylesheet URI (from AtomGraph Client vocabulary)</dd>
-                        </dl>
+                     <li>Custom rendering for vocabulary-specific resources</li>
                      
-                     <p>Example package metadata:</p>
+                     <li>Modular extension of dataspace functionality</li>
+                     </ul>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="package-structure">Package structure</h2>
+                  
+                  <p>Each package consists of two files:</p>
+                  
+                  <dl>
                      
-                     <pre>@prefix lapp: &lt;https://w3id.org/atomgraph/linkeddatahub/apps#&gt; .
-@prefix ldt:  &lt;https://www.w3.org/ns/ldt#&gt; .
+                     <dt><samp>ns.ttl</samp> — Package ontology</dt>
+                     
+                     <dd>An RDF ontology file that imports the external vocabulary using <code>owl:imports</code> and attaches views to properties using <code>ldh:view</code> (forward relationships) or <code>ldh:inverseView</code> (inverse relationships). Views are typically <code>ldh:View</code> resources with SPARQL queries that render related data for property values.</dd>
+                     
+                     <dt>XSLT stylesheet — named by <code>ac:stylesheet</code></dt>
+                     
+                     <dd>XSLT transformation file with templates that override default rendering using system
+                        modes like <code>ac:*</code>, <code>ldh:*</code> and <code>xhtml:*</code>. See the <a href="../../stylesheets/">Stylesheets reference</a> for details on XSLT customization.</dd>
+                     </dl>
+                  
+                  <p>Package files are organized in the LinkedDataHub-Apps repository, where the directory
+                     path is the package URI — a package under <samp>packages/a/b/</samp> is published at <samp>https://packages.linkeddatahub.com/a/b/</samp>, so a path carries as many segments as the grouping needs:</p>
+                  
+                  <pre>packages/
+├── editor/
+│   └── taxonomy/
+│       ├── ns.ttl     # Ontology with views
+│       └── skos.xsl   # XSLT stylesheet</pre>
+                  
+                  <p>The ontology is always <samp>ns.ttl</samp>; the stylesheet filename is not a convention, it is whatever the package's <code>ac:stylesheet</code> names. The taxonomy editor is named for what it does and its stylesheet for the vocabulary
+                     it speaks.</p>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="package-metadata">Package metadata</h2>
+                  
+                  <p>Package metadata is published as Linked Data that resolves from the package URI (e.g.
+                     <code>https://packages.linkeddatahub.com/editor/taxonomy/#this</code>).
+                     A package descriptor is an instance of the <code>lds:Package</code> class with these properties:</p>
+                  
+                  <dl>
+                     
+                     <dt><code>rdfs:label</code></dt>
+                     
+                     <dd>Human-readable package name</dd>
+                     
+                     <dt><code>dct:description</code></dt>
+                     
+                     <dd>Package description and purpose</dd>
+                     
+                     <dt><code>lds:ontology</code></dt>
+                     
+                     <dd>The package ontology URI (LDT vocabulary)</dd>
+                     
+                     <dt><code>ac:stylesheet</code></dt>
+                     
+                     <dd>The package stylesheet URI (AtomGraph Client vocabulary)</dd>
+                     </dl>
+                  
+                  <p>Example package metadata:</p>
+                  
+                  <pre>@prefix lds: &lt;https://w3id.org/atomgraph/linkeddatahub/dataspaces#&gt; .
 @prefix ac:   &lt;https://w3id.org/atomgraph/client#&gt; .
+@prefix rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt; .
+@prefix dct:  &lt;http://purl.org/dc/terms/&gt; .
 
-&lt;https://packages.linkeddatahub.com/skos/#this&gt; a lapp:Package ;
-    rdfs:label "SKOS Package" ;
-    dct:description "SKOS vocabulary support with custom templates" ;
-    ldt:ontology &lt;https://raw.githubusercontent.com/AtomGraph/LinkedDataHub-Apps/master/packages/skos/ns.ttl#&gt; ;
-    ac:stylesheet &lt;https://raw.githubusercontent.com/AtomGraph/LinkedDataHub-Apps/master/packages/skos/layout.xsl&gt; .</pre>
-                     </div>
+&lt;https://packages.linkeddatahub.com/editor/taxonomy/#this&gt; a lds:Package ;
+    rdfs:label "Taxonomy Editor" ;
+    dct:description "Taxonomy editing on SKOS, with custom templates" ;
+    lds:ontology &lt;https://raw.githubusercontent.com/AtomGraph/LinkedDataHub-Apps/master/packages/editor/taxonomy/ns.ttl#&gt; ;
+    ac:stylesheet &lt;https://raw.githubusercontent.com/AtomGraph/LinkedDataHub-Apps/master/packages/editor/taxonomy/skos.xsl&gt; .</pre>
+                  </div>
+               
+               <div>
                   
-                  <div>
-                     
-                     <h2 id="package-ontology">Package ontology</h2>
-                     
-                     <p>The package ontology file contains two layers:</p>
-                     
-                     <h3 id="vocabulary-import">Vocabulary import</h3>
-                     
-                     <p>Imports the external vocabulary using <code>owl:imports</code>. See <a href="../ontologies/" target="_blank">Ontologies reference</a> for ontology management details.</p>
-                     
-                     <pre>&lt;https://raw.githubusercontent.com/AtomGraph/LinkedDataHub-Apps/master/packages/skos/ns.ttl#&gt; a owl:Ontology ;
+                  <h2 id="package-ontology">Package ontology</h2>
+                  
+                  <p>The package ontology file contains two parts:</p>
+                  
+                  <h3 id="vocabulary-import">Vocabulary import</h3>
+                  
+                  <p>Imports the external vocabulary using <code>owl:imports</code>. See the <a href="../ontologies/">Ontologies reference</a> for ontology management details.</p>
+                  
+                  <pre>&lt;https://raw.githubusercontent.com/AtomGraph/LinkedDataHub-Apps/master/packages/editor/taxonomy/ns.ttl#&gt; a owl:Ontology ;
     owl:imports &lt;http://www.w3.org/2004/02/skos/core&gt; .</pre>
-                     
-                     <h3 id="property-views">Property views</h3>
-                     
-                     <p>SPARQL-based views attached to properties from the imported vocabulary:</p>
-                     
-                     <pre>skos:narrower ldh:view ns:NarrowerConcepts .
+                  
+                  <h3 id="property-views">Property views</h3>
+                  
+                  <p>SPARQL-based views attached to properties from the imported vocabulary:</p>
+                  
+                  <pre>skos:narrower ldh:view ns:NarrowerConcepts .
 
 ns:NarrowerConcepts a ldh:View ;
     dct:title "Narrower concepts" ;
@@ -274,156 +206,184 @@ ns:SelectNarrowerConcepts a sp:Select ;
     sp:text """SELECT DISTINCT ?narrower
     WHERE { GRAPH ?graph { $about skos:narrower ?narrower } }
     ORDER BY ?narrower""" .</pre>
-                     
-                     <p>Views are rendered when displaying resources that have the specified property. Use
-                        <code>ldh:view</code> for forward relationships (resource has property) or <code>ldh:inverseView</code> for inverse relationships (other resources point to this resource via property).</p>
-                     </div>
                   
-                  <div>
-                     
-                     <h2 id="package-stylesheet">Package stylesheet</h2>
-                     
-                     <p>XSLT templates using system modes to override default rendering:</p>
-                     
-                     <pre>&lt;!-- Hide properties from default property list --&gt;
-&lt;xsl:template match="skos:narrower | skos:broader" mode="bs2:PropertyList"/&gt;
+                  <p>Views are rendered when displaying resources that have the specified property. Use
+                     <code>ldh:view</code> for forward relationships (the resource carries the property) or <code>ldh:inverseView</code> for inverse relationships (other resources point at this resource through the property).</p>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="package-stylesheet">Package stylesheet</h2>
+                  
+                  <p>XSLT templates in the platform's <em>open</em> modes, specialising the rendering of the package's own vocabulary:</p>
+                  
+                  <pre>&lt;!-- The hierarchy predicates render as the concept tree, not as statement rows --&gt;
+&lt;xsl:template match="skos:narrower | skos:broader | skos:related | skos:member" mode="ac:PropertyEditor"/&gt;
 
-&lt;!-- Override XHTML head elements --&gt;
-&lt;xsl:template match="*" mode="xhtml:Style"&gt;
-    &lt;!-- Custom styles --&gt;
+&lt;!-- Fill the column beside the content body on a concept scheme's document --&gt;
+&lt;xsl:template match="rdf:RDF[...]" mode="ldh:ContentColumn"&gt;
+    &lt;xsl:param name="mode" as="xs:anyURI?"/&gt;
+    &lt;!-- the concept tree --&gt;
 &lt;/xsl:template&gt;</pre>
-                     
-                     <p>Available system modes include:</p>
-                     
-                     <ul>
-                        
-                        <li><code>bs2:*</code> — Bootstrap 2.3.2 components (PropertyList, Form, etc.)</li>
-                        
-                        <li><code>xhtml:*</code> — XHTML elements (Style, Script, etc.)</li>
-                        
-                        <li>Additional modes documented in the <a href="../../stylesheets/" target="_blank">Stylesheets reference</a></li>
-                        </ul>
-                     </div>
                   
-                  <div>
+                  <p>A package stylesheet is composed into the platform's import tree right after <samp>hooks.xsl</samp>, the module that declares the open modes and their generic fallbacks, and below everything
+                     else. Import precedence decides what a package can do: its rule for a node in an open
+                     mode outranks the fallback whatever the priorities, and it cannot contradict a sealed
+                     rule for the same node — a component mode, a typed rule, a global variable, named
+                     template or function — since that rule outranks the package. An open mode is a leaf:
+                     it renders or contributes for one node and carries no control flow. The open modes
+                     are:</p>
+                  
+                  <ul>
                      
-                     <h2 id="installing-packages">Installing packages</h2>
+                     <li><code>ldh:TreeNode</code> — one tree node; replace the default renderer, or decorate it with <code>xsl:next-match</code></li>
                      
-                     <p>Installation requires Control access to the administration application. See the <a href="../../../user-guide/manage-packages/" target="_blank">step-by-step installation guide</a> for detailed instructions.</p>
+                     <li><code>ac:PropertyEditor</code> — one resource's property list, or one statement row; replace or decorate, and an
+                        empty rule hides</li>
                      
-                     <p>Installation will fail if these files do not exist.</p>
+                     <li><code>ldh:ContentColumn</code> — a slot beside the content body, empty unless a package fills it (the taxonomy editor's
+                        concept tree)</li>
                      
-                     <h3 id="installation-process">Installation process</h3>
+                     <li><code>ldh:TreeChildrenLoad</code> and <code>ldh:RowHook</code> — client only: the children fetch for one tree node, and deferred work for one rendered
+                        row</li>
                      
-                     <p>When you install a package, the system performs the following steps:</p>
+                     <li>The value leaves — <code>ac:FormControl</code>, <code>ac:PropertyListValue</code>, <code>ac:ValueAnnotations</code>, <code>ldh:TypeControl</code>, <code>ac:property-label</code>, <code>ac:object-label</code>, <code>ac:lang-tag</code>, <code>ac:ResultsTableHeaderCell</code>, <code>xhtml:Anchor</code> and the unnamed mode's property row and value link. A rule for the package's own
+                        property or datatype replaces the generic one, or decorates it</li>
+                     </ul>
+                  
+                  <p>The modes are documented in the <a href="../../stylesheets/">Stylesheets reference</a>. The package stylesheet reaches the browser as well: the platform composes each dataspace's
+                     client stylesheet with its package stylesheets and has the <a href="../../configuration/#sef-compiler"><samp>sef-compiler</samp></a> compile the result, so a package's rendering is the same on a direct page load and
+                     on client-side navigation.</p>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="installing-packages">Installing packages</h2>
+                  
+                  <p>A dataspace imports a package with a single triple in its settings:</p>
+                  
+                  <pre>&lt;urn:linkeddatahub:apps/end-user&gt; ldh:import &lt;https://packages.linkeddatahub.com/editor/taxonomy/#this&gt; .</pre>
+                  
+                  <p>That declaration is the installation. Packages are installed into the <strong>end-user dataspace</strong> of a dataspace, and writing the triple requires write access to its <samp>settings</samp> document. See the <a href="../../../user-guide/manage-packages/">step-by-step installation guide</a> for the user interface and command line instructions.</p>
+                  
+                  <h3 id="what-the-declaration-does">What the declaration does</h3>
+                  
+                  <p>From the next request onwards, the server resolves the declaration:</p>
+                  
+                  <ol>
                      
-                     <ol>
-                        
-                        <li><strong>Fetches package metadata</strong> from the package URI</li>
-                        
-                        <li><strong>Hashes the package ontology URI</strong> using SHA-1 to create a unique document slug</li>
-                        
-                        <li><strong>Downloads package ontology</strong> (<code>ns.ttl</code>) and PUTs it as a document to <code>${admin_base}ontologies/{hash}/</code> where <code>{hash}</code> is the SHA-1 hash of the ontology URI</li>
-                        
-                        <li><strong>Adds owl:imports</strong> from the namespace ontology to the package ontology in the namespace graph (<code>${admin_base}ontologies/namespace/</code>)</li>
-                        
-                        <li><strong>Clears and reloads</strong> the namespace ontology from cache to pick up the new imports</li>
-                        
-                        <li><strong>Downloads package stylesheet</strong> (<code>layout.xsl</code>) and saves it to <code>/static/{package-path}/layout.xsl</code> where <code>{package-path}</code> is derived from the package URI (e.g., <code>com/linkeddatahub/packages/skos/</code> for <code>https://packages.linkeddatahub.com/skos/</code>)</li>
-                        
-                        <li><strong>Updates master stylesheet</strong> at <code>/static/xsl/layout.xsl</code> by adding import:
-                           
-                           <pre>&lt;xsl:import href="../com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/layout.xsl"/&gt;  &lt;!-- System --&gt;
-&lt;xsl:import href="../com/linkeddatahub/packages/skos/layout.xsl"/&gt;  &lt;!-- Package (added) --&gt;</pre>
-                           </li>
-                        </ol>
+                     <li><strong>Resolves the package description</strong> from the package URI. Bundled descriptions and cached graphs are read from the graph
+                        repository; other URIs are dereferenced over HTTP.</li>
                      
-                     <div class="alert alert-warning">
+                     <li><strong>Materializes the package ontology</strong> (<code>lds:ontology</code>) as a document under the admin dataspace's <samp>ontologies/</samp> container, named after the package path — <samp>ontologies/editor-taxonomy/</samp> for the taxonomy editor. The ontology is copied verbatim and the document names it
+                        as its <code>foaf:primaryTopic</code>; the copy is taken once, and the document is skipped on later requests.</li>
+                     
+                     <li><strong>Adds the package ontology</strong> to the dataspace's ontology imports closure — it is declared as an <code>owl:imports</code> of the namespace ontology and resolves to the materialized document. The package's
+                        classes, constructors, constraints and views become available on the <samp>ns</samp> endpoint and in the UI, and are edited in that document like the namespace ontology's
+                        own.</li>
+                     
+                     <li><strong>Copies the package stylesheet</strong> (<code>ac:stylesheet</code>) once under the platform's package root and serves it from the dataspace's own origin
+                        under <samp>/static/com/linkeddatahub/packages/</samp>, so what the instance compiles cannot change under it.</li>
+                     
+                     <li><strong>Composes that copy</strong> into the dataspace stylesheet with an <code>xsl:import</code> right after <samp>hooks.xsl</samp>, so package templates outrank the open modes' fallbacks and nothing else; the client-side
+                        stylesheet is composed the same way and compiled by the <samp>sef-compiler</samp>.</li>
+                     </ol>
+                  
+                  <div class="ac-alert va-informative" role="status">
+                     <span class="ac-alert-ic"><span aria-hidden="true" class="msi outline">info</span></span>
+                     
+                     <div class="ac-alert-body">
                         
-                        <p><strong>Important:</strong> After installing or uninstalling a package, you must restart the Docker service for
-                           XSLT stylesheet changes to take effect:</p>
-                        
-                        <pre>docker-compose restart linkeddatahub</pre>
-                        
-                        <p>Do not use <code>--force-recreate</code> as that would overwrite the stylesheet file changes.</p>
+                        <p class="ac-alert-text">Both copies are taken at import and kept: a change to the published package reaches
+                           a dataspace that already imported it only after the materialized ontology document
+                           is deleted (the next request materializes it again) and the ontology cache is cleared.</p>
                         </div>
                      </div>
                   
-                  <div>
+                  <p>Packages are applied in the order of their URIs. A package that declares only an ontology,
+                     or only a stylesheet, contributes only that, and one whose description cannot be resolved
+                     is skipped. If the composed stylesheet fails to compile — an unreachable package stylesheet
+                     URL, for instance — the dataspace falls back to its own stylesheet.</p>
+                  
+                  <p>On the Northwind Traders dataspace the taxonomy editor package pays off immediately:
+                     the product categories that the
+                     <a href="../../imports/rdf/">UNESCO mapping import</a> doubled as <code>skos:Concept</code>s pick up the package's concept rendering and views,
+                     and their mapping relations link into the UNESCO Thesaurus dataspace.</p>
+                  <img alt="A Northwind category page with the taxonomy editor package installed, concept rendering and UNESCO mappings visible" src="../../../files/reference/administration/packages-1.webp"/>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="uninstalling-packages">Uninstalling packages</h2>
+                  
+                  <p>Removing the <code>ldh:import</code> triple uninstalls the package: from the next request onwards its ontology is out
+                     of the imports closure and its stylesheet is no longer composed in.</p>
+                  
+                  <pre>DELETE
+{
+    &lt;urn:linkeddatahub:apps/end-user&gt; ldh:import &lt;https://packages.linkeddatahub.com/editor/taxonomy/#this&gt; .
+}
+WHERE {}</pre>
+                  
+                  <div class="ac-alert va-informative" role="status">
+                     <span class="ac-alert-ic"><span aria-hidden="true" class="msi outline">info</span></span>
                      
-                     <h2 id="uninstalling-packages">Uninstalling packages</h2>
-                     
-                     <p>Packages can be safely uninstalled, which removes:</p>
-                     
-                     <ul>
+                     <div class="ac-alert-body">
                         
-                        <li>Package ontology imports from the application</li>
+                        <p class="ac-alert-text">Uninstalling a package does not remove user-created data that uses the package's vocabulary.
+                           That data stays in the dataspace but may not display or function correctly without
+                           the package.</p>
                         
-                        <li>Package-specific data and resources</li>
-                        
-                        <li>Associated queries and stylesheets</li>
-                        </ul>
-                     
-                     <div class="alert alert-info">
-                        
-                        <p><strong>Note:</strong> Uninstalling a package does not remove user-created data that uses the package's
-                           vocabulary.</p>
+                        <p class="ac-alert-text">Nor does it remove the materialized ontology document under <samp>ontologies/</samp>, so edits made to it survive an uninstall and a later re-import picks the document
+                           up as it is.</p>
                         </div>
                      </div>
+                  </div>
+               
+               <div>
                   
-                  <div>
+                  <h2 id="architecture">Architecture</h2>
+                  
+                  <h3 id="runtime-composition">Runtime composition</h3>
+                  
+                  <p>Packages are composed at <strong>request time</strong> out of the declaration, not integrated into the dataspace ahead of it:</p>
+                  
+                  <ul>
                      
-                     <h2 id="architecture">Architecture</h2>
+                     <li>The dataspace settings hold one <code>ldh:import</code> triple per package and nothing else</li>
                      
-                     <h3 id="installation-time-composition">Installation-time vs runtime</h3>
+                     <li>The ontology closure and the stylesheet imports are assembled from the resolved package
+                        descriptions</li>
                      
-                     <p>Packages use <strong>installation-time composition</strong>, NOT runtime composition:</p>
+                     <li>Installing and uninstalling take effect on the next request — no restart, and nothing
+                        is written into the webapp: the ontology copy is a document in the admin store and
+                        the stylesheet copy lives under the package root outside the war</li>
+                     </ul>
+                  
+                  <div class="ac-alert va-warning" role="status">
+                     <span class="ac-alert-ic"><span aria-hidden="true" class="msi outline">warning</span></span>
                      
-                     <ul>
+                     <div class="ac-alert-body">
                         
-                        <li>✅ Package content is integrated during installation (via JAX-RS endpoints)</li>
-                        
-                        <li>✅ Ontology and XSLT are pre-composed before being loaded</li>
-                        
-                        <li>✅ No runtime overhead</li>
-                        
-                        <li>❌ No dynamic package loading at request time</li>
-                        </ul>
-                     
-                     <h3 id="http-endpoints">HTTP endpoints</h3>
-                     
-                     <p>Package installation and uninstallation is performed via <a href="../../http-api/#system-endpoints" target="_blank">system endpoints</a> on the admin application. See <code>packages/install</code> and <code>packages/uninstall</code> in the HTTP API reference.</p>
-                     
-                     <h3 id="file-system-structure">File system structure</h3>
-                     
-                     <p>After installing the SKOS package:</p>
-                     
-                     <pre>webapp/
-├── static/
-│   ├── com/
-│   │   └── linkeddatahub/
-│   │       └── packages/
-│   │           └── skos/
-│   │               └── layout.xsl          # Package stylesheet
-│   └── xsl/
-│       ├── layout.xsl                      # End-user master stylesheet
-│       └── admin/
-│           └── layout.xsl                  # Admin master stylesheet</pre>
+                        <p class="ac-alert-text">Packages installed before 5.10 were applied by copying files into the webapp; those
+                           installations do not carry over. Re-declare them with <code>ldh:import</code>.</p>
+                        </div>
                      </div>
+                  </div>
+               
+               <div>
                   
-                  <div>
-                     
-                     <h2 id="creating-packages">Creating custom packages</h2>
-                     
-                     <p>Developers can create custom packages for their own domain vocabularies. The process
-                        involves:</p>
-                     
-                     <h3 id="write-ontology">Write package ontology</h3>
-                     
-                     <p>Create <code>ns.ttl</code> with vocabulary import and views:</p>
-                     
-                     <pre>&lt;https://raw.githubusercontent.com/you/repo/master/packages/schema.org/ns.ttl#&gt; a owl:Ontology ;
-    owl:imports &lt;http://schema.org/&gt; .
+                  <h2 id="creating-packages">Creating custom packages</h2>
+                  
+                  <p>Developers can create custom packages for their own domain vocabularies. The process
+                     has four steps.</p>
+                  
+                  <h3 id="write-ontology">Write package ontology</h3>
+                  
+                  <p>Create <samp>ns.ttl</samp> with vocabulary import and views:</p>
+                  
+                  <pre>&lt;https://raw.githubusercontent.com/you/repo/master/packages/schema.org/ns.ttl#&gt; a owl:Ontology ;
+    owl:imports &lt;https://schema.org/&gt; .
 
 # Attach view to a property
 schema:knows ldh:view :PersonKnows .
@@ -438,80 +398,89 @@ schema:knows ldh:view :PersonKnows .
     WHERE { GRAPH ?graph { $about schema:knows ?person } }
     ORDER BY ?person
     """ .</pre>
-                     
-                     <h3 id="write-stylesheet">Write XSLT stylesheet</h3>
-                     
-                     <p>Create <code>layout.xsl</code> with XSLT templates using system modes like <code>bs2:*</code> and <code>xhtml:*</code>. See the <a href="../../stylesheets/" target="_blank">Stylesheets reference</a> for template customization patterns.</p>
-                     
-                     <pre>&lt;xsl:template match="schema:knows" mode="bs2:PropertyList"/&gt;</pre>
-                     
-                     <h3 id="publish-metadata">Publish package metadata</h3>
-                     
-                     <p>Publish package metadata as Linked Data at your package URI:</p>
-                     
-                     <pre>&lt;https://packages.linkeddatahub.com/schema.org/#this&gt; a lapp:Package ;
+                  
+                  <h3 id="write-stylesheet">Write XSLT stylesheet</h3>
+                  
+                  <p>Create the stylesheet — name the file for the vocabulary it covers — with XSLT templates
+                     using system modes like <code>ac:*</code>, <code>ldh:*</code> and <code>xhtml:*</code>. See the <a href="../../stylesheets/">Stylesheets reference</a> for template customization patterns.</p>
+                  
+                  <pre>&lt;xsl:template match="schema:knows" mode="ac:PropertyEditor"/&gt;</pre>
+                  
+                  <h3 id="publish-metadata">Publish package metadata</h3>
+                  
+                  <p>Publish package metadata as Linked Data at your package URI:</p>
+                  
+                  <pre>&lt;https://packages.linkeddatahub.com/schema.org/#this&gt; a lds:Package ;
     rdfs:label "Schema.org Package" ;
     dct:description "Schema.org vocabulary support" ;
-    ldt:ontology &lt;https://raw.githubusercontent.com/you/repo/master/packages/schema.org/ns.ttl#&gt; ;
-    ac:stylesheet &lt;https://raw.githubusercontent.com/you/repo/master/packages/schema.org/layout.xsl&gt; .</pre>
-                     
-                     <p>Ensure the metadata contains <code>ldt:ontology</code> and <code>ac:stylesheet</code> properties pointing to the package resources.</p>
-                     
-                     <h3 id="test-installation">Test installation</h3>
-                     
-                     <p>Use the CLI to test your package installation:</p>
-                     
-                     <pre>install-package.sh \
-  -b "https://localhost:4443/" \
-  -f ssl/owner/cert.pem \
-  -p "$cert_password" \
-  --package "https://packages.linkeddatahub.com/schema.org/#this"</pre>
-                     </div>
+    lds:ontology &lt;https://raw.githubusercontent.com/you/repo/master/packages/schema.org/ns.ttl#&gt; ;
+    ac:stylesheet &lt;https://raw.githubusercontent.com/you/repo/master/packages/schema.org/schema.xsl&gt; .</pre>
                   
-                  <div>
-                     
-                     <h2 id="available-packages">Available packages</h2>
-                     
-                     <p>A curated list of available packages can be found in the <a href="https://github.com/AtomGraph/LinkedDataHub-Apps/tree/master/packages" target="_blank">LinkedDataHub-Apps repository</a>. Each package directory contains the package ontology (<code>ns.ttl</code>) and stylesheet (<code>layout.xsl</code>) files.</p>
-                     </div>
+                  <p>Ensure the metadata contains <code>lds:ontology</code> and <code>ac:stylesheet</code> properties pointing to the package resources.</p>
+                  
+                  <h3 id="test-installation">Test installation</h3>
+                  
+                  <p>Declare the <code>ldh:import</code> triple in a test dataspace's <samp>settings</samp> document — see <a href="#management">Management</a> for the command.</p>
                   </div>
-            </main>
+               
+               <div>
+                  
+                  <h2 id="available-packages">Available packages</h2>
+                  
+                  <p>Published packages resolve from <a href="https://packages.linkeddatahub.com/" target="_blank">packages.linkeddatahub.com</a>; their sources live in the
+                     <a href="https://github.com/AtomGraph/LinkedDataHub-Apps/tree/master/packages" target="_blank">LinkedDataHub-Apps repository</a>, where each package directory
+                     contains the package ontology (<samp>ns.ttl</samp>) and the stylesheet its <code>ac:stylesheet</code> names.</p>
+                  
+                  <dl>
+                     
+                     <dt>Taxonomy Editor</dt>
+                     
+                     <dd>Taxonomy editing on SKOS: a concept tree beside the content, hierarchy views in both
+                        assertion directions, and constructors and constraints for concepts, schemes and collections.
+                        Package URI: <code>https://packages.linkeddatahub.com/editor/taxonomy/#this</code></dd>
+                     </dl>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="management">Management</h2>
+                  
+                  <p>The <samp>packages</samp> group reads the registry and writes the <code>ldh:import</code> triple:</p>
+                  
+                  <pre>ldh packages list
+ldh packages add --package https://packages.linkeddatahub.com/editor/taxonomy/#this
+ldh packages remove --package https://packages.linkeddatahub.com/editor/taxonomy/#this</pre>
+                  
+                  <p><samp>packages list</samp> prints one tab-separated line per package — state, URI, title — so the listing greps
+                     and cuts. The registry
+                     defaults to <samp>https://packages.linkeddatahub.com/</samp> and <samp>--registry</samp> overrides it; it is read through the
+                     dataspace's Linked Data proxy rather than fetched directly, so <samp>list</samp> needs <samp>--base</samp> as much as the other two do.</p>
+                  
+                  <p>All three go through <code>PATCH</code> on the <samp>settings</samp> document, which is the live path: the change takes effect on the
+                     next request with no restart, but lives in the running dataspace's context dataset.
+                     Declaring the same <code>ldh:import</code> triple
+                     in <samp>config/dataspaces.trig</samp> is the permanent one, applied on restart. <samp>packages remove</samp> is idempotent.</p>
+                  </div>
+               
+               <p class="ldh-body-lg">To install and manage packages step by step, follow the <a href="../../../user-guide/manage-packages/">Manage packages</a> guide.</p>
+               </div>
          </div>
       </div>
-      <div class="footer container-fluid">
-         <div class="row-fluid">
-            <div class="offset2 span8">
-               <div class="span3">
-                  <h2 class="nav-header">About</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a></li>
-                     <li><a href="https://atomgraph.com" target="_blank">AtomGraph</a></li>
-                  </ul>
-               </div>
-               <div class="span3">
-                  <h2 class="nav-header">Resources</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a></li>
-                     <li><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></li>
-                  </ul>
-               </div>
-               <div class="span3">
-                  <h2 class="nav-header">Support</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a></li>
-                     <li><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a></li>
-                     <li><a href="mailto:support@linkeddatahub.com">Contact support</a></li>
-                  </ul>
-               </div>
-               <div class="span3">
-                  <h2 class="nav-header">Follow us</h2>
-                  <ul class="nav nav-list">
-                     <li><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a></li>
-                     <li><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></li>
-                  </ul>
-               </div>
+      <div class="ldh-footer" role="contentinfo">
+         <div class="cols">
+            <div class="col brand-col"><a class="ldh-wordmark" href="https://linkeddatahub.com" target="_blank"><span class="mark"></span><span>LinkedDataHub</span></a><p>The low-code Knowledge Graph application platform. Built on RDF, SPARQL and Linked
+                  Data principles.</p>
             </div>
+            <div class="col">
+               <p class="ftitle">About</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a><a href="https://atomgraph.com" target="_blank">AtomGraph</a></div>
+            <div class="col">
+               <p class="ftitle">Resources</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></div>
+            <div class="col">
+               <p class="ftitle">Support</p><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a><a href="mailto:support@linkeddatahub.com">Contact support</a></div>
+            <div class="col">
+               <p class="ftitle">Follow us</p><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></div>
          </div>
+         <div class="legal"><span>© 2026 AtomGraph · LinkedDataHub</span></div>
       </div>
    </body>
 </html>
