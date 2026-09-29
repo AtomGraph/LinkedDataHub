@@ -662,7 +662,12 @@ exclude-result-prefixes="#all"
         <xsl:param name="sleep-result" as="item()?"/>
         <xsl:param name="response-key" as="xs:string"/>
 
-        <xsl:variable name="request" select="$context('request')"/>
+        <!-- the request that got the 429 is threaded under the key paired with the response ('chart-results-request' for
+             'chart-results-response'); 'request' is only the first request of the chain. Re-firing that one handed a chart
+             the RDF/XML of its query's document in place of the query results. A step that threads no paired key
+             (ldh:view-results-thunk reuses 'request') still falls back to 'request' -->
+        <xsl:variable name="request-key" select="replace($response-key, '-response$', '-request')" as="xs:string"/>
+        <xsl:variable name="request" select="if ($request-key ne $response-key and map:contains($context, $request-key)) then $context($request-key) else $context('request')"/>
 
         <xsl:sequence select="
           ixsl:http-request($request)
