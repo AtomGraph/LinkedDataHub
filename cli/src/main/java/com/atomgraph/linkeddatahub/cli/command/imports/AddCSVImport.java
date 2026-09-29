@@ -19,14 +19,8 @@ package com.atomgraph.linkeddatahub.cli.command.imports;
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
 import com.atomgraph.linkeddatahub.cli.http.LDHClient;
 import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
-import com.atomgraph.linkeddatahub.cli.vocab.LDH;
-import com.atomgraph.linkeddatahub.cli.vocab.SPIN;
+import com.atomgraph.linkeddatahub.rdf.Imports;
 import java.net.URI;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.DCTerms;
-import org.apache.jena.vocabulary.RDF;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
@@ -90,34 +84,7 @@ public class AddCSVImport extends BaseCommand
      */
     public static void core(LDHClient client, URI target, String uri, String title, URI query, URI file, String delimiter, String description)
     {
-        post(client, target, buildModel(target, uri, title, query, file, delimiter, description));
-    }
-
-    /**
-     * Builds the CSV import description.
-     *
-     * @param target target document URI
-     * @param uri import URI (optional)
-     * @param title import title
-     * @param query transformation query URI
-     * @param file uploaded file URI
-     * @param delimiter CSV delimiter
-     * @param description import description (optional)
-     * @return import model
-     */
-    public static Model buildModel(URI target, String uri, String title, URI query, URI file, String delimiter, String description)
-    {
-        Model model = ModelFactory.createDefaultModel();
-
-        Resource csvImport = createSubject(model, target, uri).
-            addProperty(RDF.type, LDH.CSVImport).
-            addProperty(DCTerms.title, title).
-            addProperty(SPIN.query, model.createResource(query.toString())).
-            addProperty(LDH.file, model.createResource(file.toString())).
-            addProperty(LDH.delimiter, delimiter);
-        if (description != null) csvImport.addProperty(DCTerms.description, description);
-
-        return model;
+        post(client, target, Imports.csv(target, uri, title, query, file, delimiter, description));
     }
 
 }

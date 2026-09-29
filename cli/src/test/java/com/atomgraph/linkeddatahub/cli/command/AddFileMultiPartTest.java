@@ -68,4 +68,16 @@ public class AddFileMultiPartTest
         }
     }
 
+    @Test
+    public void stylesheetIsDetectedAsXSL() throws Exception
+    {
+        for (String name : List.of("skos.xsl", "Skos.XSLT"))
+        {
+            Path file = tempDir.resolve(name);
+            Files.writeString(file, "<xsl:stylesheet xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\" version=\"3.0\"/>");
+
+            assertEquals("text/xsl", AddFile.detectContentType(file), name);
+        }
+    }
+
 }

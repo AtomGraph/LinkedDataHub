@@ -28,6 +28,7 @@ status=$(curl -k -w "%{http_code}" -o /dev/null -s \
   -H "Content-Type: text/turtle" \
   --data-binary @- \
   "$item" <<EOF
+<> <http://purl.org/dc/terms/title> "New item" .
 <named-subject-put> <http://example.com/default-predicate> "named object PUT" .
 <named-subject-put> <http://example.com/another-predicate> "another named object PUT" .
 EOF

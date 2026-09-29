@@ -31,9 +31,11 @@ import java.lang.reflect.Type;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import org.glassfish.jersey.client.ClientProperties;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -49,6 +51,7 @@ public class ClientUriRewriteFilterTest
     {
         private URI uri;
         private final MultivaluedMap<String, Object> headers = new MultivaluedHashMap<>();
+        private final Map<String, Object> properties = new HashMap<>();
 
         StubRequestContext(URI uri) { this.uri = uri; }
 
@@ -56,10 +59,10 @@ public class ClientUriRewriteFilterTest
         @Override public void setUri(URI uri) { this.uri = uri; }
         @Override public MultivaluedMap<String, Object> getHeaders() { return headers; }
 
-        @Override public Object getProperty(String name) { throw new UnsupportedOperationException(); }
-        @Override public Collection<String> getPropertyNames() { throw new UnsupportedOperationException(); }
-        @Override public void setProperty(String name, Object object) { throw new UnsupportedOperationException(); }
-        @Override public void removeProperty(String name) { throw new UnsupportedOperationException(); }
+        @Override public Object getProperty(String name) { return properties.get(name); }
+        @Override public Collection<String> getPropertyNames() { return properties.keySet(); }
+        @Override public void setProperty(String name, Object object) { properties.put(name, object); }
+        @Override public void removeProperty(String name) { properties.remove(name); }
         @Override public String getMethod() { throw new UnsupportedOperationException(); }
         @Override public void setMethod(String method) { throw new UnsupportedOperationException(); }
         @Override public MultivaluedMap<String, String> getStringHeaders() { throw new UnsupportedOperationException(); }
@@ -88,18 +91,63 @@ public class ClientUriRewriteFilterTest
     @Test
     public void testNoRewriteForNonMatchingHost() throws IOException
     {
-        ClientUriRewriteFilter filter = new ClientUriRewriteFilter("example.com", "http", "nginx", 9443);
+        ClientUriRewriteFilter filter = new ClientUriRewriteFilter("example.com", "http", "nginx", 9443, null);
         StubRequestContext ctx = new StubRequestContext(URI.create("https://other.org/path"));
         filter.filter(ctx);
         assertEquals(URI.create("https://other.org/path"), ctx.getUri());
         assertTrue(ctx.getHeaders().isEmpty());
+        assertTrue(ctx.getPropertyNames().isEmpty());
+    }
+
+    /** Non-matching host with a self-request timeout configured: the timeout is for own URLs only. */
+    @Test
+    public void testNoTimeoutForNonMatchingHost() throws IOException
+    {
+        ClientUriRewriteFilter filter = new ClientUriRewriteFilter("example.com", "http", "nginx", 9443, 5000);
+        StubRequestContext ctx = new StubRequestContext(URI.create("https://other.org/path"));
+        filter.filter(ctx);
+        assertTrue(ctx.getPropertyNames().isEmpty());
+    }
+
+    /** Own URL: the self-request timeout bounds both connect and read, as Integer, which the Apache connector reads per request. */
+    @Test
+    public void testSelfRequestTimeoutSetOnOwnUrl() throws IOException
+    {
+        ClientUriRewriteFilter filter = new ClientUriRewriteFilter("example.com", "http", "nginx", 9443, 5000);
+        StubRequestContext ctx = new StubRequestContext(URI.create("https://admin.example.com/sparql"));
+        filter.filter(ctx);
+        assertEquals(URI.create("http://nginx:9443/sparql"), ctx.getUri());
+        assertEquals(Integer.valueOf(5000), ctx.getProperty(ClientProperties.READ_TIMEOUT));
+        assertEquals(Integer.valueOf(5000), ctx.getProperty(ClientProperties.CONNECT_TIMEOUT));
+    }
+
+    /** Own URL without a self-request timeout: the client's own timeouts apply, nothing is set. */
+    @Test
+    public void testNoSelfRequestTimeoutLeavesPropertiesUnset() throws IOException
+    {
+        ClientUriRewriteFilter filter = new ClientUriRewriteFilter("example.com", "http", "nginx", 9443, null);
+        StubRequestContext ctx = new StubRequestContext(URI.create("https://example.com/sparql"));
+        filter.filter(ctx);
+        assertTrue(ctx.getPropertyNames().isEmpty());
+    }
+
+    /** A caller that set its own timeout on the request keeps it. */
+    @Test
+    public void testCallerTimeoutNotOverridden() throws IOException
+    {
+        ClientUriRewriteFilter filter = new ClientUriRewriteFilter("example.com", "http", "nginx", 9443, 5000);
+        StubRequestContext ctx = new StubRequestContext(URI.create("https://example.com/sparql"));
+        ctx.setProperty(ClientProperties.READ_TIMEOUT, 60000);
+        filter.filter(ctx);
+        assertEquals(Integer.valueOf(60000), ctx.getProperty(ClientProperties.READ_TIMEOUT));
+        assertEquals(Integer.valueOf(5000), ctx.getProperty(ClientProperties.CONNECT_TIMEOUT));
     }
 
     /** Exact host match: URI host is rewritten to proxyHost, scheme to proxyScheme. */
     @Test
     public void testRewriteExactHost() throws IOException
     {
-        ClientUriRewriteFilter filter = new ClientUriRewriteFilter("example.com", "http", "nginx", 9443);
+        ClientUriRewriteFilter filter = new ClientUriRewriteFilter("example.com", "http", "nginx", 9443, null);
         StubRequestContext ctx = new StubRequestContext(URI.create("https://example.com/path?q=1"));
         filter.filter(ctx);
         assertEquals(URI.create("http://nginx:9443/path?q=1"), ctx.getUri());
@@ -110,7 +158,7 @@ public class ClientUriRewriteFilterTest
     @Test
     public void testRewriteExactHostWithPort() throws IOException
     {
-        ClientUriRewriteFilter filter = new ClientUriRewriteFilter("example.com", "http", "nginx", 9443);
+        ClientUriRewriteFilter filter = new ClientUriRewriteFilter("example.com", "http", "nginx", 9443, null);
         StubRequestContext ctx = new StubRequestContext(URI.create("https://example.com:4443/path"));
         filter.filter(ctx);
         assertEquals(URI.create("http://nginx:9443/path"), ctx.getUri());
@@ -126,7 +174,7 @@ public class ClientUriRewriteFilterTest
     @Test
     public void testRewriteSubdomainPreservesSubdomainWithSameDomainProxy() throws IOException
     {
-        ClientUriRewriteFilter filter = new ClientUriRewriteFilter("example.com", "https", "example.com", 5443);
+        ClientUriRewriteFilter filter = new ClientUriRewriteFilter("example.com", "https", "example.com", 5443, null);
         StubRequestContext ctx = new StubRequestContext(URI.create("https://admin.example.com/acl/agents/123/"));
         filter.filter(ctx);
         assertEquals(URI.create("https://admin.example.com:5443/acl/agents/123/"), ctx.getUri());
@@ -141,7 +189,7 @@ public class ClientUriRewriteFilterTest
     @Test
     public void testRewriteSubdomainWithInternalProxyUsesProxyHostOnly() throws IOException
     {
-        ClientUriRewriteFilter filter = new ClientUriRewriteFilter("example.com", "http", "nginx", 9443);
+        ClientUriRewriteFilter filter = new ClientUriRewriteFilter("example.com", "http", "nginx", 9443, null);
         StubRequestContext ctx = new StubRequestContext(URI.create("https://admin.example.com/path"));
         filter.filter(ctx);
         assertEquals(URI.create("http://nginx:9443/path"), ctx.getUri());
@@ -152,7 +200,7 @@ public class ClientUriRewriteFilterTest
     @Test
     public void testQueryStringNotDecoded() throws IOException
     {
-        ClientUriRewriteFilter filter = new ClientUriRewriteFilter("example.com", "http", "nginx", 9443);
+        ClientUriRewriteFilter filter = new ClientUriRewriteFilter("example.com", "http", "nginx", 9443, null);
         StubRequestContext ctx = new StubRequestContext(URI.create("https://example.com/sparql?query=ASK+%7B%7D"));
         filter.filter(ctx);
         assertEquals("query=ASK+%7B%7D", ctx.getUri().getRawQuery());

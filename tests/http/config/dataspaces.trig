@@ -55,3 +55,27 @@
         ac:stylesheet <https://test.localhost:4443/static/xsl/layout.xsl> ;
         lds:public true .
 }
+
+# packages admin
+
+<urn:linkeddatahub:apps/packages/admin>
+{
+    <urn:linkeddatahub:apps/packages/admin> a lds:Dataspace ;
+        dct:title "Packages admin" ;
+        lds:origin <https://admin.packages.localhost:4443> ;
+        lds:ontology <https://w3id.org/atomgraph/linkeddatahub/admin#> ;
+        ac:stylesheet <https://admin.packages.localhost:4443/static/xsl/admin/layout.xsl> .
+}
+
+# packages end-user: the package registry the package tests import from, so that they depend on neither the
+# reachability nor the current content of https://packages.linkeddatahub.com/ (run.sh publishes tests/packages)
+
+<urn:linkeddatahub:apps/packages/end-user>
+{
+    <urn:linkeddatahub:apps/packages/end-user> a lds:Dataspace ;
+        dct:title "Packages" ;
+        lds:origin <https://packages.localhost:4443> ;
+        lds:ontology <https://packages.localhost:4443/ns#> ;
+        ac:stylesheet <https://packages.localhost:4443/static/xsl/layout.xsl> ;
+        lds:public true .
+}

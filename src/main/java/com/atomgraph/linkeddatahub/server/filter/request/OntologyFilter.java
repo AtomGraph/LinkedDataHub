@@ -25,6 +25,7 @@ import com.atomgraph.server.exception.OntologyException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import jakarta.annotation.Priority;
@@ -194,7 +195,8 @@ public class OntologyFilter implements ContainerRequestFilter
      * ontapi resolves it — along with its own transitive imports — as part of the closure, through the
      * same scoped repository view as every other import. The declaration is derived from the
      * application's ldh:import data on every load and never persisted, so the ldh:import triples remain
-     * the single source of truth. A package ontology that cannot be resolved is skipped so a broken
+     * the single source of truth. A package ontology that cannot be resolved is skipped, and a closure
+     * that cannot be assembled with the package ontologies is assembled without them, so a broken
      * package cannot take the application ontology down.
      *
      * @param repository graph repository
@@ -204,9 +206,20 @@ public class OntologyFilter implements ContainerRequestFilter
      */
     public static UnionGraph loadOntology(PrefixGraphRepository repository, String uri, List<URI> packageOntologies)
     {
-        if (!packageOntologies.isEmpty()) declarePackageImports(repository, uri, packageOntologies);
+        if (packageOntologies.isEmpty()) return loadOntology(repository, uri);
 
-        return loadOntology(repository, uri);
+        List<Triple> imports = declarePackageImports(repository, uri, packageOntologies);
+        try
+        {
+            return loadOntology(repository, uri);
+        }
+        catch (RuntimeException ex) // e.g. ontapi refusing a package graph that collides with another in the closure
+        {
+            if (log.isErrorEnabled()) log.error("Could not assemble ontology '{}' with package ontologies {}, assembling it without them", uri, packageOntologies, ex);
+            Graph base = repository.get(uri);
+            imports.forEach(base::delete);
+            return loadOntology(repository, uri);
+        }
     }
 
     /**
@@ -220,15 +233,17 @@ public class OntologyFilter implements ContainerRequestFilter
      * @param repository graph repository
      * @param uri ontology URI
      * @param packageOntologies package ontology URIs
+     * @return the owl:imports triples added to the base graph
      */
-    public static void declarePackageImports(PrefixGraphRepository repository, String uri, List<URI> packageOntologies)
+    public static List<Triple> declarePackageImports(PrefixGraphRepository repository, String uri, List<URI> packageOntologies)
     {
+        List<Triple> imports = new ArrayList<>();
         Graph base = repository.get(uri);
         Optional<Node> name = Graphs.findOntologyNameNode(base);
         if (name.isEmpty())
         {
             if (log.isErrorEnabled()) log.error("Ontology with URI '{}' carries no ontology header, cannot import packages {} into it", uri, packageOntologies);
-            return;
+            return imports;
         }
 
         for (URI packageOntology : packageOntologies)
@@ -236,33 +251,46 @@ public class OntologyFilter implements ContainerRequestFilter
             // the model is constructed with ignoreUnresolvedImports, which silently substitutes an empty
             // graph for an import it cannot resolve — resolve it here so that a broken package is reported
             // instead of composing as nothing
-            if (!isResolvable(repository, packageOntology.toString()))
+            Graph packageGraph = resolve(repository, packageOntology.toString());
+            if (packageGraph == null)
             {
                 if (log.isErrorEnabled()) log.error("Could not load package ontology '{}', skipping it", packageOntology);
                 continue;
             }
 
-            base.add(Triple.create(name.get(), OWL.imports.asNode(), NodeFactory.createURI(packageOntology.toString())));
+            // import the ontology IRI the graph declares, not the URI it was resolved from: a package may name
+            // the document (ns/) while its ontology is ns/#, and ontapi, which keys the closure by ontology IRI,
+            // would resolve the IRI again into a second graph with the same name and refuse it
+            Node packageName = Graphs.findOntologyNameNode(packageGraph).filter(Node::isURI).
+                orElse(NodeFactory.createURI(packageOntology.toString()));
+            Triple declaration = Triple.create(name.get(), OWL.imports.asNode(), packageName);
+            if (!base.contains(declaration))
+            {
+                base.add(declaration);
+                imports.add(declaration);
+            }
         }
+
+        return imports;
     }
 
     /**
-     * Returns true if the repository can supply a graph for the given ID.
+     * Returns the graph the repository supplies for the given ID, or null if it cannot supply one.
      *
      * @param repository graph repository
      * @param id graph ID
-     * @return true if resolvable
+     * @return graph or null
      */
-    public static boolean isResolvable(PrefixGraphRepository repository, String id)
+    public static Graph resolve(PrefixGraphRepository repository, String id)
     {
         try
         {
-            return repository.get(id) != null;
+            return repository.get(id);
         }
         catch (RuntimeException ex) // unmapped location, 404, connection refused, unparseable document...
         {
             if (log.isDebugEnabled()) log.debug("Could not resolve graph with ID '{}'", id, ex);
-            return false;
+            return null;
         }
     }
 

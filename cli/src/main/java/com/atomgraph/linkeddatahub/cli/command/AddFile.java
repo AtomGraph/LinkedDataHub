@@ -20,14 +20,16 @@ import com.atomgraph.linkeddatahub.cli.BaseCommand;
 import com.atomgraph.linkeddatahub.cli.http.HttpException;
 import com.atomgraph.linkeddatahub.cli.http.LDHClient;
 import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
-import com.atomgraph.linkeddatahub.cli.util.Digests;
-import com.atomgraph.linkeddatahub.cli.vocab.NFO;
+import com.atomgraph.linkeddatahub.rdf.Digests;
+import com.atomgraph.linkeddatahub.rdf.vocabulary.NFO;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Locale;
+import java.util.Map;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
@@ -145,8 +147,21 @@ public class AddFile extends BaseCommand
         return multiPart;
     }
 
+    /**
+     * Media types of the file extensions the platform serves by type but the JDK does not detect: a
+     * package stylesheet uploaded as <code>application/octet-stream</code> answers the platform's
+     * <code>text/xsl</code> request with 406.
+     */
+    static final Map<String, String> EXTENSION_TYPES = Map.of(
+        "xsl", "text/xsl",
+        "xslt", "text/xsl");
+
     static String detectContentType(Path file) throws IOException
     {
+        String name = file.getFileName().toString();
+        String extension = name.substring(name.lastIndexOf('.') + 1).toLowerCase(Locale.ROOT);
+        if (name.contains(".") && EXTENSION_TYPES.containsKey(extension)) return EXTENSION_TYPES.get(extension);
+
         String detected = Files.probeContentType(file);
         return detected != null ? detected : "application/octet-stream";
     }

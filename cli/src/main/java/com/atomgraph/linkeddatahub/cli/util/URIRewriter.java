@@ -17,10 +17,16 @@
 package com.atomgraph.linkeddatahub.cli.util;
 
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 
 /**
- * URI manipulation helpers matching the conventions of the <code>bin/</code> shell scripts.
+ * Sends a request somewhere other than where its URI says.
+ * <p>
+ * This is the <code>--proxy</code> option: a document's URI identifies it, but the host that
+ * answers for it may be a different one - the client-certificate port, say, or a tunnel. The
+ * logical URI stays in the request; only the origin it is sent to changes.
+ * <p>
+ * A CLI concern, not a document-shape one, which is why it stays here while the URI conventions
+ * the platform itself applies live in {@link com.atomgraph.linkeddatahub.rdf.URIs}.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -48,57 +54,11 @@ public final class URIRewriter
      * @param uri URI
      * @return origin string, e.g. <code>https://localhost:4443</code>
      */
-    public static String origin(URI uri)
+    private static String origin(URI uri)
     {
         if (uri.getScheme() == null || uri.getRawAuthority() == null) throw new IllegalArgumentException("URI '" + uri + "' is not absolute");
 
         return uri.getScheme() + "://" + uri.getRawAuthority();
-    }
-
-    /**
-     * Converts an end-user application base URI to the base URI of its admin application
-     * by prefixing the host with the <code>admin.</code> subdomain.
-     *
-     * @param base end-user base URI
-     * @return admin base URI
-     */
-    public static URI adminBase(URI base)
-    {
-        return URI.create(base.toString().replaceFirst("://", "://admin."));
-    }
-
-    /**
-     * Percent-encodes a string as a URI path segment. All characters except RFC 3986
-     * unreserved ones are encoded, including <code>/</code>.
-     *
-     * @param slug path segment
-     * @return encoded path segment
-     */
-    public static String encodeSlug(String slug)
-    {
-        StringBuilder sb = new StringBuilder();
-
-        for (byte b : slug.getBytes(StandardCharsets.UTF_8))
-        {
-            char c = (char)(b & 0xFF);
-            if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') ||
-                    c == '-' || c == '.' || c == '_' || c == '~') sb.append(c);
-            else sb.append('%').append(String.format("%02X", b & 0xFF));
-        }
-
-        return sb.toString();
-    }
-
-    /**
-     * Builds the URI of a child document from the parent container URI and a path segment slug.
-     *
-     * @param parent parent container URI (with trailing slash)
-     * @param slug path segment
-     * @return child document URI (with trailing slash)
-     */
-    public static URI childURI(URI parent, String slug)
-    {
-        return URI.create(parent.toString() + encodeSlug(slug) + "/");
     }
 
 }

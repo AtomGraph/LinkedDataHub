@@ -18,18 +18,10 @@ package com.atomgraph.linkeddatahub.cli.command.admin.ontologies;
 
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
 import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
-import com.atomgraph.linkeddatahub.cli.util.Slugs;
-import com.atomgraph.linkeddatahub.cli.util.URIRewriter;
-import com.atomgraph.linkeddatahub.cli.vocab.DH;
+import com.atomgraph.linkeddatahub.rdf.Ontologies;
+import com.atomgraph.linkeddatahub.rdf.Slugs;
+import com.atomgraph.linkeddatahub.rdf.URIs;
 import java.net.URI;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.sparql.vocabulary.FOAF;
-import org.apache.jena.vocabulary.DCTerms;
-import org.apache.jena.vocabulary.OWL;
-import org.apache.jena.vocabulary.RDF;
-import org.apache.jena.vocabulary.RDFS;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
@@ -62,38 +54,12 @@ public class CreateOntology extends BaseCommand
     public Integer call() throws Exception
     {
         URI base = baseMixin.require(getSpec());
-        URI doc = URIRewriter.childURI(URI.create(base + "ontologies/"), slug != null ? slug : Slugs.defaultSlug());
+        URI doc = URIs.childURI(URI.create(base + "ontologies/"), slug != null ? slug : Slugs.defaultSlug());
 
-        put(getClient(), doc, buildModel(doc, uri, label, comment));
+        put(getClient(), doc, Ontologies.ontology(doc, uri, label, comment));
         print(doc);
 
         return 0;
-    }
-
-    /**
-     * Builds the ontology document model.
-     *
-     * @param doc document URI
-     * @param uri ontology URI (optional, blank node if null)
-     * @param label ontology label
-     * @param comment ontology comment (optional)
-     * @return document model
-     */
-    public static Model buildModel(URI doc, String uri, String label, String comment)
-    {
-        Model model = ModelFactory.createDefaultModel();
-
-        Resource ontology = createSubject(model, doc, uri).
-            addProperty(RDF.type, OWL.Ontology).
-            addProperty(RDFS.label, label);
-        if (comment != null) ontology.addProperty(RDFS.comment, comment);
-
-        model.createResource(doc.toString()).
-            addProperty(RDF.type, DH.Item).
-            addProperty(FOAF.primaryTopic, ontology).
-            addProperty(DCTerms.title, label);
-
-        return model;
     }
 
 }

@@ -387,8 +387,14 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         if (log.isDebugEnabled()) log.debug("POST Model to named graph with URI: {}", getURI());
         // First remove old dct:modified values from the triplestore, then add new data
         existingModel.createResource(getURI().toString()).removeAll(DCTerms.modified);
-        getSystem().getServiceContext(getService()).getGraphStoreClient().putModel(getURI().toString(), existingModel.add(model)); // replace entire graph to avoid accumulating dct:modified
         Model updatedModel = existingModel.add(model);
+
+        // the payload was validated on its own when it was read, where a constraint that spans the document -
+        // a block the payload appends to a document it does not type - had nothing to apply to; what is written
+        // is the whole document, so that is what is held to the constraints
+        validateConstraints(updatedModel);
+
+        getSystem().getServiceContext(getService()).getGraphStoreClient().putModel(getURI().toString(), updatedModel); // replace entire graph to avoid accumulating dct:modified
 
         submitImports(model);
         
@@ -456,14 +462,22 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             removeAll(SIOC.HAS_PARENT).
             removeAll(SIOC.HAS_CONTAINER);
 
+        boolean typed = false; // whether the document's class is assigned here rather than by the payload
         if (!getDataspace().getBaseURI().equals(getURI())) // don't update Root document's metadata
         {
             if (resource.hasProperty(RDF.type, DH.Container))
                 resource.addProperty(SIOC.HAS_PARENT, parent);
             else
+            {
+                typed = !resource.hasProperty(RDF.type, DH.Item);
                 resource.addProperty(SIOC.HAS_CONTAINER, parent).
                     addProperty(RDF.type, DH.Item); // TO-DO: replace with foaf:Document?
+            }
         }
+
+        // the payload was validated when it was read, while the document was still untyped and so held to no
+        // class's constraints; a document typed here is held to dh:Item's now, before it is written
+        if (typed) validateConstraints(model);
 
         if (existingModel == null) // creating new graph and attaching it to the document hierarchy
         {
@@ -576,20 +590,12 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         {
             // the whole post-PATCH graph gets validated, but the 422 body must describe only the
             // violating resources - the full graph would leak every sibling resource into the
-            // error response, unlike POST/PUT whose echoed model is the request payload
-            Set<Resource> roots = new HashSet<>();
-            for (ConstraintViolation cv : ex.getConstraintViolations())
-                if (cv.getRoot() != null) roots.add(cv.getRoot());
-
-            throw new SPINConstraintViolationException(ex.getConstraintViolations(), describeResources(roots, dataset.getDefaultModel()));
+            // error response
+            throw describeViolations(ex, dataset.getDefaultModel());
         }
         catch (SHACLConstraintViolationException ex)
         {
-            Set<Resource> roots = new HashSet<>();
-            for (ReportEntry entry : ex.getValidationReport().getEntries())
-                if (!entry.focusNode().isLiteral()) roots.add(dataset.getDefaultModel().asRDFNode(entry.focusNode()).asResource());
-
-            throw new SHACLConstraintViolationException(ex.getValidationReport(), describeResources(roots, dataset.getDefaultModel()));
+            throw describeViolations(ex, dataset.getDefaultModel());
         }
         put(dataset.getDefaultModel(), Boolean.FALSE, getURI());
         
@@ -640,10 +646,14 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             validate(model);
             if (log.isTraceEnabled()) log.trace("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
 
-            final boolean existingGraph = getSystem().getServiceContext(getService()).getGraphStoreClient().containsModel(getURI().toString());
-            if (!existingGraph) throw new NotFoundException("Named graph with URI <" + getURI() + "> not found");
+            final Model existingModel = getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(getURI().toString());
+            if (existingModel == null) throw new NotFoundException("Named graph with URI <" + getURI() + "> not found");
 
             new Skolemizer(getURI().toString()).apply(model); // skolemize before writing files (they require absolute URIs)
+
+            // appended to the store rather than written back whole, so no If-Match is asked of an upload; the
+            // document it is appended to is still held to the constraints as a whole, before a file is written
+            validateConstraints(ModelFactory.createDefaultModel().add(existingModel).add(model));
 
             int fileCount = writeFiles(model, getFileNameBodyPartMap(multiPart));
             if (log.isDebugEnabled()) log.debug("# of files uploaded: {} ", fileCount);
@@ -665,7 +675,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
 
     /**
      * Handles multipart <code>PUT</code>
-     * Files are written to storage before the RDF data is passed to the default <code>PUT</code> handler method.
+     * Files are written to storage before the RDF data is passed to {@link #put(Model)}.
      * 
      * @param multiPart multipart form data
      * @return HTTP response
@@ -689,8 +699,11 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
 
             int fileCount = writeFiles(model, getFileNameBodyPartMap(multiPart));
             if (log.isDebugEnabled()) log.debug("# of files uploaded: {} ", fileCount);
-            
-            return put(model, false, getURI());
+
+            // the same PUT as an RDF body gets - the document's type and container, its created/creator/owner
+            // metadata, the If-Match precondition and the constraints of a class assigned here - rather than the
+            // raw graph write, which skipped all of it for the document form
+            return put(model);
         }
         catch (URISyntaxException ex)
         {
@@ -1077,6 +1090,65 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         if (reader instanceof ValidatingModelProvider validatingModelProvider) return validatingModelProvider.processRead(model);
 
         throw new InternalServerErrorException("Could not obtain ValidatingModelProvider instance");
+    }
+
+    /**
+     * Checks a model against the ontology's SPIN constraints and SHACL shapes, and nothing else: unlike
+     * {@link #validate(Model)}, which runs the processing a request body gets when it is read, this does not
+     * announce the model's <code>acl:Authorization</code>s again. A violation is reported with only the
+     * violating resources described.
+     *
+     * @param model RDF model
+     */
+    public void validateConstraints(Model model)
+    {
+        MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE);
+        if (!(reader instanceof ValidatingModelProvider validatingModelProvider)) throw new InternalServerErrorException("Could not obtain ValidatingModelProvider instance");
+
+        try
+        {
+            validatingModelProvider.validate(model);
+        }
+        catch (SPINConstraintViolationException ex)
+        {
+            throw describeViolations(ex, model);
+        }
+        catch (SHACLConstraintViolationException ex)
+        {
+            throw describeViolations(ex, model);
+        }
+    }
+
+    /**
+     * Returns a SPIN violation whose model describes only the violating resources.
+     *
+     * @param ex violation over the whole model
+     * @param model validated model
+     * @return violation with the violating resources' descriptions
+     */
+    public SPINConstraintViolationException describeViolations(SPINConstraintViolationException ex, Model model)
+    {
+        Set<Resource> roots = new HashSet<>();
+        for (ConstraintViolation cv : ex.getConstraintViolations())
+            if (cv.getRoot() != null) roots.add(cv.getRoot());
+
+        return new SPINConstraintViolationException(ex.getConstraintViolations(), describeResources(roots, model));
+    }
+
+    /**
+     * Returns a SHACL violation whose model describes only the focus nodes of the report.
+     *
+     * @param ex violation over the whole model
+     * @param model validated model
+     * @return violation with the focus nodes' descriptions
+     */
+    public SHACLConstraintViolationException describeViolations(SHACLConstraintViolationException ex, Model model)
+    {
+        Set<Resource> roots = new HashSet<>();
+        for (ReportEntry entry : ex.getValidationReport().getEntries())
+            if (!entry.focusNode().isLiteral()) roots.add(model.asRDFNode(entry.focusNode()).asResource());
+
+        return new SHACLConstraintViolationException(ex.getValidationReport(), describeResources(roots, model));
     }
 
     /**

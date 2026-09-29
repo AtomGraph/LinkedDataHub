@@ -18,17 +18,11 @@ package com.atomgraph.linkeddatahub.cli.command.admin.acl;
 
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
 import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
-import com.atomgraph.linkeddatahub.cli.util.Slugs;
-import com.atomgraph.linkeddatahub.cli.util.URIRewriter;
-import com.atomgraph.linkeddatahub.cli.vocab.DH;
+import com.atomgraph.linkeddatahub.rdf.Acl;
+import com.atomgraph.linkeddatahub.rdf.Slugs;
+import com.atomgraph.linkeddatahub.rdf.URIs;
 import java.net.URI;
 import java.util.List;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.sparql.vocabulary.FOAF;
-import org.apache.jena.vocabulary.DCTerms;
-import org.apache.jena.vocabulary.RDF;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
@@ -64,40 +58,12 @@ public class CreateGroup extends BaseCommand
     public Integer call() throws Exception
     {
         URI base = baseMixin.require(getSpec());
-        URI doc = URIRewriter.childURI(URI.create(base + "acl/groups/"), slug != null ? slug : Slugs.defaultSlug());
+        URI doc = URIs.childURI(URI.create(base + "acl/groups/"), slug != null ? slug : Slugs.defaultSlug());
 
-        put(getClient(), doc, buildModel(doc, uri, name, description, members));
+        put(getClient(), doc, Acl.group(doc, uri, name, description, members));
         print(doc);
 
         return 0;
-    }
-
-    /**
-     * Builds the group document model.
-     *
-     * @param doc document URI
-     * @param uri group URI (optional, blank node if null)
-     * @param name group name
-     * @param description group description (optional)
-     * @param members member agent URIs
-     * @return document model
-     */
-    public static Model buildModel(URI doc, String uri, String name, String description, List<URI> members)
-    {
-        Model model = ModelFactory.createDefaultModel();
-
-        Resource group = createSubject(model, doc, uri).
-            addProperty(RDF.type, FOAF.Group).
-            addProperty(FOAF.name, name);
-        if (description != null) group.addProperty(DCTerms.description, description);
-        members.forEach(member -> group.addProperty(FOAF.member, model.createResource(member.toString())));
-
-        model.createResource(doc.toString()).
-            addProperty(RDF.type, DH.Item).
-            addProperty(FOAF.primaryTopic, group).
-            addProperty(DCTerms.title, name);
-
-        return model;
     }
 
 }

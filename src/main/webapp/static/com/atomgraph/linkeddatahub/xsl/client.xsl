@@ -375,7 +375,7 @@ WHERE
                             <xsl:when test="$reuse-pane">
                                 <xsl:variable name="old-about" select="string($reuse-pane/div[contains-token(@class, 'document-body')]/@about)" as="xs:string"/>
 
-                                <!-- on the initial load the server already rendered this body: keep it instead of re-rendering over it. The client SEF carries no package stylesheet imports (SEF is generated at build time), so re-rendering silently drops every package rendering rule the server applied - e.g. the SKOS package's suppression of skos:broader in ac:PropertyEditor. ldh:RenderTab below still runs, so the content-block factories populate the pane as usual -->
+                                <!-- on the initial load the server already rendered this body: keep it instead of re-rendering over it. The client SEF carries no package stylesheet imports (SEF is generated at build time), so re-rendering silently drops every rule a package stylesheet contributed to the server's rendering. ldh:RenderTab below still runs, so the content-block factories populate the pane as usual -->
                                 <xsl:if test="not($server-rendered and $old-about = string($doc-uri))">
                                     <xsl:for-each select="$reuse-pane/div[contains-token(@class, 'document-body')]">
                                         <xsl:result-document href="?." method="ixsl:replace-element">

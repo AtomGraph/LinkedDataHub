@@ -4,7 +4,7 @@
 
     <groupId>com.atomgraph</groupId>
     <artifactId>linkeddatahub-cli</artifactId>
-    <version>6.0.0</version>
+    <version>6.0.1</version>
     <packaging>jar</packaging>
 
     <name>LinkedDataHub CLI</name>
@@ -17,7 +17,32 @@
         <jersey.version>3.1.11</jersey.version>
     </properties>
 
+    <!-- where linkeddatahub-rdf comes from between releases. This project has never needed a
+    repository before: everything it depends on is released to Maven Central, which does not serve
+    snapshots, and the platform pom's own declaration does not reach here because the two are
+    separate builds. Without this a clean checkout resolves the library only if it happens to be in
+    the local repository, which is how CI first failed. -->
+    <repositories>
+        <repository>
+            <id>central-portal-snapshots</id>
+            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
     <dependencies>
+        <dependency>
+            <!-- the vocabularies and the document shapes, shared with the platform's other API
+            clients; this project adds the command line over them -->
+            <groupId>com.atomgraph</groupId>
+            <artifactId>linkeddatahub-rdf</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>info.picocli</groupId>
             <artifactId>picocli</artifactId>

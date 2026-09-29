@@ -18,16 +18,11 @@ package com.atomgraph.linkeddatahub.cli.command.admin.ontologies;
 
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
 import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
-import com.atomgraph.linkeddatahub.cli.vocab.LDH;
-import com.atomgraph.linkeddatahub.cli.vocab.SP;
+import com.atomgraph.linkeddatahub.rdf.Ontologies;
+import com.atomgraph.linkeddatahub.rdf.vocabulary.SP;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.RDF;
-import org.apache.jena.vocabulary.RDFS;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
@@ -65,37 +60,10 @@ public class AddConstructor extends BaseCommand
     {
         baseMixin.require(getSpec()); // required by the script interface
 
-        post(getClient(), target, buildModel(target, uri, SP.Construct, label, Files.readString(queryFile), null, comment));
+        post(getClient(), target, Ontologies.constructor(target, uri, SP.Construct, label, Files.readString(queryFile), null, comment));
         print(target);
 
         return 0;
-    }
-
-    /**
-     * Builds an ontology SPIN query description (labeled with <code>rdfs:label</code>,
-     * unlike the <code>dct:title</code>-based document queries).
-     *
-     * @param target target document URI
-     * @param uri query URI (optional)
-     * @param queryType SPIN query class (<code>sp:Construct</code> or <code>sp:Select</code>)
-     * @param label query label
-     * @param queryText query string
-     * @param service SPARQL service URI (optional)
-     * @param comment query comment (optional)
-     * @return query model
-     */
-    public static Model buildModel(URI target, String uri, Resource queryType, String label, String queryText, URI service, String comment)
-    {
-        Model model = ModelFactory.createDefaultModel();
-
-        Resource query = createSubject(model, target, uri).
-            addProperty(RDF.type, queryType).
-            addProperty(RDFS.label, label).
-            addProperty(SP.text, queryText);
-        if (comment != null) query.addProperty(RDFS.comment, comment);
-        if (service != null) query.addProperty(LDH.service, model.createResource(service.toString()));
-
-        return model;
     }
 
 }

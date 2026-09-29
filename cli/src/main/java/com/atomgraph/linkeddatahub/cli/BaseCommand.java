@@ -32,7 +32,6 @@ import java.nio.file.Path;
 import java.util.concurrent.Callable;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RDFParser;
@@ -122,20 +121,6 @@ public abstract class BaseCommand implements Callable<Integer>
     protected static void put(LDHClient client, URI target, Model model)
     {
         HttpException.check(target, client.put(target, Entity.entity(model, TEXT_TURTLE_TYPE), ACCEPT_TURTLE)).close();
-    }
-
-    /**
-     * Returns the subject resource for an appended description: the <code>--uri</code> value
-     * resolved against the target document URI, or a fresh blank node when not given.
-     *
-     * @param model model to create the resource in
-     * @param target target document URI
-     * @param uri <code>--uri</code> option value (absolute or relative, can be null)
-     * @return subject resource
-     */
-    protected static Resource createSubject(Model model, URI target, String uri)
-    {
-        return uri != null ? model.createResource(target.resolve(uri).toString()) : model.createResource();
     }
 
     /**

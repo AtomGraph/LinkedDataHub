@@ -1,3 +1,19 @@
+## [6.0.1] - 2026-09-30
+### Added
+- `linkeddatahub-rdf`, a separately published library of the vocabularies and the document shapes the HTTP API accepts, so the CLI and other clients build against one description of the request bodies
+
+### Changed
+- Documentation links point at `docs.linkeddatahub.com` rather than the stale static mirror under `atomgraph.github.io`
+
+### Fixed
+- A burst of server-side renders could deadlock the platform against itself, each render holding a request thread while it waited for a label callback that needed another; a request to this instance's own URL is now bounded by `CLIENT_SELF_REQUEST_TIMEOUT` (5 s) and the image's client pool is sized to the connector (`MAX_CONN_PER_ROUTE=200`, `MAX_TOTAL_CONN=400`)
+- Every write is held to the constraints of the document as it will be written: a PUT that did not type the document was validated while the document was untyped, a POST validated only its body, and the document form's multipart PUT wrote the form's triples as the graph with no type, container, timestamps or `If-Match`
+- A package ontology whose descriptor named its document rather than the ontology took its dataspace down, and bundled copies shadowed `packages.linkeddatahub.com`, so every page of the packages dataspace failed with an empty label
+- Proxied XHTML content left path-absolute `@href`/`@src` references unresolved, so authored media (`/uploads/{sha1}`) resolved against the proxying dataspace's origin and 404'd
+- A block retrying a `429` re-sent the first request of its chain instead of the one its step made, so a rate-limited chart drew the RDF/XML of its query's document as the results
+- Chart colours came out empty in Chromium, which enumerates no custom properties: `ldh:css-token()` asks `getComputedStyle` for the property by name instead of reading the enumerated style map
+- `ldh` uploads `.xsl` and `.xslt` as `text/xsl`; stored as `application/octet-stream`, a stylesheet answered the platform's request with `406`
+
 ## [6.0.0] - 2026-09-29
 LinkedDataHub has a new interface. The app shell, content blocks, action bar, breadcrumbs, mode lists, type badges, property lists, tables, pager, modals and forms are drawn against a design system vendored into the platform — its tokens, components and typefaces ship with LDH, and `ldh.css` is the single app layer loaded over them, the one file a dataspace stylesheet has to reckon with. IXSL templates drive the dropdowns and modals, the `msi` font draws the icons and the RDFa editor edits `rdf:XMLLiteral`, so jQuery, `bootstrap.js`, WYMEditor and the sprite sheet are gone.
 

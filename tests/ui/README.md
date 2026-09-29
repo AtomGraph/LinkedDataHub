@@ -65,7 +65,8 @@ not remembered.
 | `UI_TESTS_SKIP_SEED=1` | Reuse whatever is already there — for iterating on one spec |
 | `UI_TESTS_KEEP_FIXTURES=1` | Leave the container behind to inspect it in a browser |
 | `UI_TESTS_ITEMS=n` | Fewer children (default 25 — enough for a second pager page) |
-| `UI_TESTS_TAXONOMY_PACKAGE=uri` | A different taxonomy package to import (default: the bundled taxonomy editor) |
+| `UI_TESTS_TAXONOMY_PACKAGE=uri` | A different taxonomy package to import, as it is (default: the taxonomy editor from the fixture registry `tests/packages`, published onto the stack's `packages.` dataspace) |
+| `PACKAGES_BASE_URL=url` | The dataspace the fixture registry is published onto (default: `packages.` + the end-user host) |
 | `REMOTE_END_USER_BASE_URL=url` | The second end-user dataspace the cross-origin fixture is seeded into. Unset, the preflight probes the origins declared in `config/dataspaces.trig` and `tests/http/config/dataspaces.trig` and takes the one the stack answers for |
 
 ### The remote document
@@ -162,7 +163,7 @@ these axes in its own prose, so the folder is the README's vocabulary rather tha
 Two things that are *not* in the path, because neither is a fact about the component:
 which app serves the fixture (`overlays/modal/ontology-import` runs against the admin origin,
 `constructor-editor` against both), and who owns the markup (`document/content-aside/concept-tree`
-is the SKOS package's, rendered in the platform's slot).
+is the Taxonomy Editor package's, rendered in the platform's slot).
 
 Helpers stay flat in `lib/`, named for the component whose vocabulary they carry. `specs/` is
 containment; `lib/` is vocabulary. A helper is reached across regions — a block spec opens the

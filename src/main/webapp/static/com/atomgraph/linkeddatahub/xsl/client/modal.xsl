@@ -87,8 +87,8 @@ LIMIT   10
                 </xsl:with-param>
                 <xsl:with-param name="foot" as="item()*">
                     <div class="ac-modal-foot">
-                        <a class="ac-btn in-primary ap-solid sz-md" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/get-started/" target="_blank"><xsl:value-of select="ac:label(key('resources', 'get-started', ldh:translations()))"/></a>
-                        <a class="ac-btn in-neutral ap-outline sz-md" href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank"><xsl:value-of select="ac:label(key('resources', 'learn-more', ldh:translations()))"/></a>
+                        <a class="ac-btn in-primary ap-solid sz-md" href="https://docs.linkeddatahub.com/get-started/" target="_blank"><xsl:value-of select="ac:label(key('resources', 'get-started', ldh:translations()))"/></a>
+                        <a class="ac-btn in-neutral ap-outline sz-md" href="https://docs.linkeddatahub.com/" target="_blank"><xsl:value-of select="ac:label(key('resources', 'learn-more', ldh:translations()))"/></a>
                     </div>
                 </xsl:with-param>
             </xsl:apply-templates>
@@ -198,7 +198,7 @@ LIMIT   10
                     <xsl:with-param name="text" as="item()*">
                         <xsl:apply-templates select="key('resources', 'add-data-notice', ldh:translations())" mode="ac:label"/>
                         <xsl:text> </xsl:text>
-                        <a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/reference/imports/rdf/" target="_blank">
+                        <a href="https://docs.linkeddatahub.com/reference/imports/rdf/" target="_blank">
                             <xsl:apply-templates select="key('resources', 'rdf-imports', ldh:translations())" mode="ac:label"/>
                         </a>
                         <xsl:text>.</xsl:text>

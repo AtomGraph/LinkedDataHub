@@ -18,21 +18,14 @@ package com.atomgraph.linkeddatahub.cli.command.admin.acl;
 
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
 import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
-import com.atomgraph.linkeddatahub.cli.util.Slugs;
-import com.atomgraph.linkeddatahub.cli.util.URIRewriter;
-import com.atomgraph.linkeddatahub.cli.vocab.ACL;
-import com.atomgraph.linkeddatahub.cli.vocab.DH;
+import com.atomgraph.linkeddatahub.rdf.Acl;
+import com.atomgraph.linkeddatahub.rdf.Slugs;
+import com.atomgraph.linkeddatahub.rdf.URIs;
+import com.atomgraph.linkeddatahub.rdf.vocabulary.ACL;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.sparql.vocabulary.FOAF;
-import org.apache.jena.vocabulary.DCTerms;
-import org.apache.jena.vocabulary.RDF;
-import org.apache.jena.vocabulary.RDFS;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
@@ -100,7 +93,7 @@ public class CreateAuthorization extends BaseCommand
         if (!append && !control && !read && !write)
             throw new ParameterException(getSpec().commandLine(), "At least one of '--append', '--control', '--read', '--write' is required");
 
-        URI doc = URIRewriter.childURI(URI.create(base + "acl/authorizations/"), slug != null ? slug : Slugs.defaultSlug());
+        URI doc = URIs.childURI(URI.create(base + "acl/authorizations/"), slug != null ? slug : Slugs.defaultSlug());
 
         List<Resource> modes = new ArrayList<>();
         if (append) modes.add(ACL.Append);
@@ -108,56 +101,10 @@ public class CreateAuthorization extends BaseCommand
         if (read) modes.add(ACL.Read);
         if (write) modes.add(ACL.Write);
 
-        put(getClient(), doc, buildModel(doc, uri, label, comment, agents, agentClasses, agentGroups, to, toAllIn, modes));
+        put(getClient(), doc, Acl.authorization(doc, uri, label, comment, agents, agentClasses, agentGroups, to, toAllIn, modes));
         print(doc);
 
         return 0;
-    }
-
-    /**
-     * Builds the authorization document model.
-     *
-     * @param doc document URI
-     * @param uri authorization URI (optional, blank node if null)
-     * @param label authorization label
-     * @param comment authorization comment (optional)
-     * @param agents authorized agent URIs
-     * @param agentClasses authorized agent class URIs
-     * @param agentGroups authorized agent group URIs
-     * @param to accessed document URIs
-     * @param toAllIn accessed document class URIs
-     * @param modes granted access modes
-     * @return document model
-     */
-    public static Model buildModel(URI doc, String uri, String label, String comment,
-            List<URI> agents, List<URI> agentClasses, List<URI> agentGroups,
-            List<URI> to, List<URI> toAllIn, List<Resource> modes)
-    {
-        Model model = ModelFactory.createDefaultModel();
-
-        Resource auth = createSubject(model, doc, uri).
-            addProperty(RDF.type, ACL.Authorization).
-            addProperty(RDFS.label, label);
-        if (comment != null) auth.addProperty(RDFS.comment, comment);
-
-        model.createResource(doc.toString()).
-            addProperty(RDF.type, DH.Item).
-            addProperty(FOAF.primaryTopic, auth).
-            addProperty(DCTerms.title, label);
-
-        addResourceValues(auth, ACL.agent, agents);
-        addResourceValues(auth, ACL.agentClass, agentClasses);
-        addResourceValues(auth, ACL.agentGroup, agentGroups);
-        addResourceValues(auth, ACL.accessTo, to);
-        addResourceValues(auth, ACL.accessToClass, toAllIn);
-        modes.forEach(mode -> auth.addProperty(ACL.mode, mode));
-
-        return model;
-    }
-
-    static void addResourceValues(Resource subject, Property property, List<URI> values)
-    {
-        values.forEach(value -> subject.addProperty(property, subject.getModel().createResource(value.toString())));
     }
 
 }

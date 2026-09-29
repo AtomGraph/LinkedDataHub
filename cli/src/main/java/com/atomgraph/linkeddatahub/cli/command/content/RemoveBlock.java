@@ -18,7 +18,7 @@ package com.atomgraph.linkeddatahub.cli.command.content;
 
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
 import com.atomgraph.linkeddatahub.cli.http.HttpException;
-import com.atomgraph.linkeddatahub.cli.sparql.Updates;
+import com.atomgraph.linkeddatahub.rdf.Updates;
 import java.net.URI;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;

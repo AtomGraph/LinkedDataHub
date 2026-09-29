@@ -19,18 +19,13 @@ package com.atomgraph.linkeddatahub.cli.command.content;
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
 import com.atomgraph.linkeddatahub.cli.http.HttpException;
 import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
-import com.atomgraph.linkeddatahub.cli.util.SequenceNumbers;
-import com.atomgraph.linkeddatahub.cli.vocab.AC;
-import com.atomgraph.linkeddatahub.cli.vocab.LDH;
+import com.atomgraph.linkeddatahub.rdf.Blocks;
+import com.atomgraph.linkeddatahub.rdf.SequenceNumbers;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
-import org.apache.jena.vocabulary.DCTerms;
-import org.apache.jena.vocabulary.RDF;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
@@ -69,7 +64,7 @@ public class AddObjectBlock extends BaseCommand
     @Override
     public Integer call() throws Exception
     {
-        post(getClient(), target, buildModel(target, nextSequenceProperty(), uri, value, title, description, mode));
+        post(getClient(), target, Blocks.object(target, nextSequenceProperty(), uri, value, title, description, mode));
         print(target);
 
         return 0;
@@ -89,33 +84,6 @@ public class AddObjectBlock extends BaseCommand
         }
 
         return SequenceNumbers.nextSequenceProperty(current, ResourceFactory.createResource(target.toString()));
-    }
-
-    /**
-     * Builds the object block description.
-     *
-     * @param target target document URI
-     * @param seq membership property (<code>rdf:_N</code>)
-     * @param uri block URI (optional)
-     * @param value object resource URI
-     * @param title block title (optional)
-     * @param description block description (optional)
-     * @param mode layout mode URI (optional)
-     * @return block model
-     */
-    public static Model buildModel(URI target, Property seq, String uri, URI value, String title, String description, URI mode)
-    {
-        Model model = ModelFactory.createDefaultModel();
-
-        Resource block = createSubject(model, target, uri).
-            addProperty(RDF.type, LDH.Object).
-            addProperty(RDF.value, model.createResource(value.toString()));
-        model.createResource(target.toString()).addProperty(seq, block);
-        if (title != null) block.addProperty(DCTerms.title, title);
-        if (description != null) block.addProperty(DCTerms.description, description);
-        if (mode != null) block.addProperty(AC.mode, model.createResource(mode.toString()));
-
-        return model;
     }
 
 }

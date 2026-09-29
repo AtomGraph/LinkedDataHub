@@ -29,6 +29,7 @@ response=$(curl -k -s \
   -o /dev/null \
   --data-binary @- \
   "$new_doc_uri" <<EOF
+<${new_doc_uri}> <http://purl.org/dc/terms/title> "New document" .
 EOF
 )
 

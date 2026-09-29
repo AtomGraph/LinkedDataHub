@@ -1,0 +1,28 @@
+# On top of docker-compose.yml and tests/http/docker-compose.http-tests.yml:
+#
+#   docker compose -f docker-compose.yml -f tests/http/docker-compose.http-tests.yml \
+#                  -f tests/load/docker-compose.load-tests.yml --env-file tests/http/.env up --build -d
+#
+# A stack sized so that a burst the test runner can produce reproduces what only real traffic
+# reaches on a production connector of 200 threads. The ratio is what matters and it mirrors the
+# image's defaults: the client pool holds as many connections per route as the connector has
+# threads, so a self-call never waits for a pool slot behind other self-calls, only on its own
+# bounded read. (With a pool of 4 against these 16 threads, as before the fix, a burst drained
+# one bounded wait at a time and recovery took over three minutes.)
+services:
+  linkeddatahub:
+    environment:
+      - HTTP_MAX_THREADS=16   # Tomcat's connector behind the proxy; default 200
+      - MAX_CONN_PER_ROUTE=16 # the platform's outbound client pool, per host; the image's 200 scaled with the connector
+      - MAX_TOTAL_CONN=32
+      # far past any bound the tests use: a wedge that resolves only because the platform's reads
+      # time out is still the wedge, and the dev default of two minutes would hide it behind the probe
+      - CLIENT_SOCKET_TIMEOUT=600000
+    volumes:
+      # the base mounts the repository's ./settings, a developer's own package imports included; the
+      # burst renders the stock dataspace, so this stack starts from settings of its own, kept empty
+      - ./tests/load/settings:/var/www/linkeddatahub/settings
+  fuseki:
+    # the HTTP suite publishes the triplestore for its fixtures; this suite only talks to the front
+    # door, and a developer's own stack may already hold the port
+    ports: !override []
