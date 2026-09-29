@@ -181,9 +181,12 @@ ENV OIDC_REFRESH_TOKENS=/var/linkeddatahub/oidc/refresh_tokens.properties
 
 ENV MAX_CONTENT_LENGTH=2097152
 
-ENV MAX_CONN_PER_ROUTE=20
+# sized to the connector's 200 threads: a request thread that calls back into this instance holds one pooled
+# connection while it waits for another thread to answer, so a pool smaller than the connector queues
+# those calls behind each other, one bounded wait at a time, and a burst of renders drains one slot at a time
+ENV MAX_CONN_PER_ROUTE=200
 
-ENV MAX_TOTAL_CONN=40
+ENV MAX_TOTAL_CONN=400
 
 ENV MAX_REQUEST_RETRIES=3
 
@@ -192,6 +195,11 @@ ENV CONNECTION_REQUEST_TIMEOUT=30000
 ENV CLIENT_SOCKET_TIMEOUT=120000
 
 ENV CLIENT_CONNECT_TIMEOUT=10000
+
+# for requests to this instance's own URLs, answered by its own request threads: a label lookup takes milliseconds
+# through the proxy, and this is also the longest a burst of renders can hold every thread waiting on each other
+# (a render makes up to three in sequence)
+ENV CLIENT_SELF_REQUEST_TIMEOUT=5000
 
 ENV CLIENT_CONNECTION_TIME_TO_LIVE=300000
 

@@ -1233,6 +1233,11 @@ if [ -n "$CLIENT_CONNECT_TIMEOUT" ]; then
     export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.connectTimeout=$CLIENT_CONNECT_TIMEOUT"
 fi
 
+# connect and read timeout for the platform's requests to its own URLs, which its own request threads answer
+if [ -n "$CLIENT_SELF_REQUEST_TIMEOUT" ]; then
+    export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.selfRequestTimeout=$CLIENT_SELF_REQUEST_TIMEOUT"
+fi
+
 if [ -n "$CLIENT_CONNECTION_TIME_TO_LIVE" ]; then
     export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.connectionTimeToLive=$CLIENT_CONNECTION_TIME_TO_LIVE"
 fi

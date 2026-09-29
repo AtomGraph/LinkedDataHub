@@ -264,6 +264,8 @@ public class Application extends ResourceConfig
 
     /** Webapp path of the client stylesheet built at package time. Its digest fingerprints the platform build, so a composed stylesheet is invalidated by an upgrade */
     public static final String CLIENT_SEF_PATH = "/static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json";
+    /** Milliseconds a request waits for a connection from the client pool when nothing configures it; the image sets the same through CONNECTION_REQUEST_TIMEOUT */
+    public static final int DEFAULT_CONNECTION_REQUEST_TIMEOUT = 30000;
     /** Path of the client stylesheet source in the webapp, composed with package stylesheets per import set */
     public static final String CLIENT_XSL_PATH = "/static/com/atomgraph/linkeddatahub/xsl/client.xsl";
 
@@ -371,9 +373,11 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(LDHC.maxTotalConn.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxTotalConn.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.maxRequestRetries.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxRequestRetries.getURI())) : null,
             System.getProperty("com.atomgraph.linkeddatahub.connectionRequestTimeout") != null ? Integer.valueOf(System.getProperty("com.atomgraph.linkeddatahub.connectionRequestTimeout")) :
-            servletConfig.getServletContext().getInitParameter(LDHC.connectionRequestTimeout.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.connectionRequestTimeout.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.connectionRequestTimeout.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.connectionRequestTimeout.getURI())) :
+            DEFAULT_CONNECTION_REQUEST_TIMEOUT, // unset means Apache waits for a pooled connection forever; a thread parked on the pool is never coming back on its own
             System.getProperty("com.atomgraph.linkeddatahub.socketTimeout") != null ? Integer.valueOf(System.getProperty("com.atomgraph.linkeddatahub.socketTimeout")) : null,
             System.getProperty("com.atomgraph.linkeddatahub.connectTimeout") != null ? Integer.valueOf(System.getProperty("com.atomgraph.linkeddatahub.connectTimeout")) : null,
+            System.getProperty("com.atomgraph.linkeddatahub.selfRequestTimeout") != null ? Integer.valueOf(System.getProperty("com.atomgraph.linkeddatahub.selfRequestTimeout")) : null,
             System.getProperty("com.atomgraph.linkeddatahub.connectionTimeToLive") != null ? Long.valueOf(System.getProperty("com.atomgraph.linkeddatahub.connectionTimeToLive")) : null,
             System.getProperty("com.atomgraph.linkeddatahub.validateAfterInactivity") != null ? Integer.valueOf(System.getProperty("com.atomgraph.linkeddatahub.validateAfterInactivity")) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.maxImportThreads.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxImportThreads.getURI())) : null,
@@ -463,7 +467,7 @@ public class Application extends ResourceConfig
             final String uploadRootString, final String sefRootString, final String sefCompilerString, final String clientStylesheetString, final boolean invalidateCache,
             final Integer cookieMaxAge, final boolean enableLinkedDataProxy, final boolean allowInternalUrls, final Integer maxContentLength,
             final Integer maxConnPerRoute, final Integer maxTotalConn, final Integer maxRequestRetries, final Integer connectionRequestTimeout,
-            final Integer socketTimeout, final Integer connectTimeout, final Long connectionTimeToLive, final Integer validateAfterInactivity, final Integer maxImportThreads,
+            final Integer socketTimeout, final Integer connectTimeout, final Integer selfRequestTimeout, final Long connectionTimeToLive, final Integer validateAfterInactivity, final Integer maxImportThreads,
             final String notificationAddressString, final boolean enableWebIDSignUp, final String oidcRefreshTokensPropertiesPath,
             final String frontendProxyString, final String backendProxyAdminString, final String backendProxyEndUserString,
             final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort,
@@ -760,7 +764,7 @@ public class Application extends ResourceConfig
             
             if (proxyHostname != null)
             {
-                ClientRequestFilter rewriteFilter = new ClientUriRewriteFilter(baseURI.getHost(), proxyScheme, proxyHostname, proxyPort); // proxyPort can be null
+                ClientRequestFilter rewriteFilter = new ClientUriRewriteFilter(baseURI.getHost(), proxyScheme, proxyHostname, proxyPort, selfRequestTimeout); // proxyPort can be null
 
                 client.register(rewriteFilter);
                 externalClient.register(rewriteFilter);

@@ -17,6 +17,8 @@
 /tests/http/uploads
 /tests/http/out
 /tests/load/out
+/tests/load/settings/*
+!/tests/load/settings/.gitkeep
 /fuseki
 .claude/scheduled_tasks.lock
 /cli/target

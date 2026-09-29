@@ -14,20 +14,25 @@ set -euo pipefail
 # do not exist across the dataspace origins, every 403 and 404 page is a full render, and the 200
 # threads filled within a minute. The pages were error pages, the callbacks were not.
 #
-# The stack runs with a 16-thread connector and a 4-per-route client pool
-# (docker-compose.load-tests.yml), production's ratio at a size the runner can saturate: a burst of
+# The stack runs with a 16-thread connector and a client pool sized to it
+# (docker-compose.load-tests.yml), the image's ratio at a size the runner can saturate: a burst of
 # three times the connector is enough. The requests are anonymous GETs of documents that do not
 # exist, which is what the scanner sent. The bound is the assertion: once the burst has been
 # answered or given up on, a plain request must get an HTTP status within 30 s. curl's 000 and the
 # proxy's 502/503/504 are the deadlock, whatever the platform would eventually have answered.
 #
-# Measured on 6.0.0 with this stack: without a fix the platform answers nothing for as long as its
-# reads take to time out (the override sets that to ten minutes). A pool-wait timeout
-# (CONNECTION_REQUEST_TIMEOUT=10000) is a mitigation, not a fix - the renders queued on the pool
-# fail in ten-second waves and the platform answered again 113 s after the burst began, which this
-# bound is right to reject. It passes once a render no longer needs a request thread of its own
-# to be answered: the callbacks answered in-process, or through a client of their own that cannot
-# take the connector down with it.
+# Measured on 6.0.0 as released, with this stack: the platform answers nothing for as long as its
+# reads take to time out (the override sets that to ten minutes); a shorter pool-wait alone
+# (CONNECTION_REQUEST_TIMEOUT=10000) only shortens that to 113 s. What makes it pass is two
+# things together. ClientUriRewriteFilter, which is what sends a request to this instance's own
+# URL through the proxy, gives that request a connect and read timeout of its own
+# (CLIENT_SELF_REQUEST_TIMEOUT, 5 s by default), so a render that cannot get its labels gives its
+# thread back within the bound. And the client pool is sized to the connector (MAX_CONN_PER_ROUTE
+# at least the thread count), so a self-call waits only on that read and never for a pool slot
+# behind other self-calls: with a pool of 4 here the bounded waits still drained one slot at a
+# time and recovery took 218 s; sized to the 16 threads it took 78 s, and the burst that
+# provoked it drains as rendered pages without their labels (SendHTTPRequest hands the timeout
+# to xsl:try as a SaxonApiException, so a lookup that gave up is a missing label, not a 500).
 
 burst=$(( HTTP_MAX_THREADS * 3 ))
 bound=30

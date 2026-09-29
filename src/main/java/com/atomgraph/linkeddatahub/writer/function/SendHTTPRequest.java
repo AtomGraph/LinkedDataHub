@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.stream.Collectors;
 import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
@@ -146,7 +147,10 @@ public class SendHTTPRequest implements ExtensionFunction
 
             return XdmEmptySequence.getInstance();
         }
-        catch (IOException | ParserConfigurationException | SAXException ex)
+        // ProcessingException is how the client reports a connect or read timeout, a runtime exception the stylesheet's
+        // xsl:try cannot catch unless it reaches it as a SaxonApiException like the others: a label lookup that timed out
+        // is a page without that label, not a failed render
+        catch (IOException | ParserConfigurationException | SAXException | ProcessingException ex)
         {
             throw new SaxonApiException(ex);
         }
