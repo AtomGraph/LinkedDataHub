@@ -19,16 +19,11 @@ package com.atomgraph.linkeddatahub.cli.command;
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
 import com.atomgraph.linkeddatahub.cli.http.LDHClient;
 import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
-import com.atomgraph.linkeddatahub.cli.vocab.LDH;
-import com.atomgraph.linkeddatahub.cli.vocab.SP;
+import com.atomgraph.linkeddatahub.rdf.Queries;
+import com.atomgraph.linkeddatahub.rdf.vocabulary.SP;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.DCTerms;
-import org.apache.jena.vocabulary.RDF;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
@@ -88,33 +83,7 @@ public class AddConstruct extends BaseCommand
      */
     public static void core(LDHClient client, URI target, String uri, String title, String queryText, URI service, String description)
     {
-        post(client, target, buildModel(target, uri, SP.Construct, title, queryText, service, description));
-    }
-
-    /**
-     * Builds a SPIN query description.
-     *
-     * @param target target document URI
-     * @param uri query URI (optional)
-     * @param queryType SPIN query class (<code>sp:Construct</code> or <code>sp:Select</code>)
-     * @param title query title
-     * @param queryText query string
-     * @param service SPARQL service URI (optional)
-     * @param description query description (optional)
-     * @return query model
-     */
-    public static Model buildModel(URI target, String uri, Resource queryType, String title, String queryText, URI service, String description)
-    {
-        Model model = ModelFactory.createDefaultModel();
-
-        Resource query = createSubject(model, target, uri).
-            addProperty(RDF.type, queryType).
-            addProperty(DCTerms.title, title).
-            addProperty(SP.text, queryText);
-        if (service != null) query.addProperty(LDH.service, model.createResource(service.toString()));
-        if (description != null) query.addProperty(DCTerms.description, description);
-
-        return model;
+        post(client, target, Queries.query(target, uri, SP.Construct, title, queryText, service, description));
     }
 
 }

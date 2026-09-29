@@ -20,7 +20,7 @@ import com.atomgraph.linkeddatahub.cli.BaseCommand;
 import com.atomgraph.linkeddatahub.cli.command.AddConstruct;
 import com.atomgraph.linkeddatahub.cli.command.AddFile;
 import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
-import com.atomgraph.linkeddatahub.cli.util.Slugs;
+import com.atomgraph.linkeddatahub.rdf.Slugs;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;

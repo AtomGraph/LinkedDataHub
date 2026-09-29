@@ -18,14 +18,8 @@ package com.atomgraph.linkeddatahub.cli.command;
 
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
 import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
-import com.atomgraph.linkeddatahub.cli.vocab.LDH;
-import com.atomgraph.linkeddatahub.cli.vocab.SPIN;
+import com.atomgraph.linkeddatahub.rdf.Views;
 import java.net.URI;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.DCTerms;
-import org.apache.jena.vocabulary.RDF;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
@@ -72,39 +66,10 @@ public class AddResultSetChart extends BaseCommand
     {
         baseMixin.require(getSpec()); // required by the script interface
 
-        post(getClient(), target, buildModel(target, uri, title, query, chartType, categoryVarName, seriesVarName, description));
+        post(getClient(), target, Views.resultSetChart(target, uri, title, query, chartType, categoryVarName, seriesVarName, description));
         print(target);
 
         return 0;
-    }
-
-    /**
-     * Builds the chart description.
-     *
-     * @param target target document URI
-     * @param uri chart URI (optional)
-     * @param title chart title
-     * @param query SELECT query URI
-     * @param chartType chart type URI
-     * @param categoryVarName category variable name
-     * @param seriesVarName series variable name
-     * @param description chart description (optional)
-     * @return chart model
-     */
-    public static Model buildModel(URI target, String uri, String title, URI query, URI chartType, String categoryVarName, String seriesVarName, String description)
-    {
-        Model model = ModelFactory.createDefaultModel();
-
-        Resource chart = createSubject(model, target, uri).
-            addProperty(RDF.type, LDH.ResultSetChart).
-            addProperty(DCTerms.title, title).
-            addProperty(SPIN.query, model.createResource(query.toString())).
-            addProperty(LDH.chartType, model.createResource(chartType.toString())).
-            addProperty(LDH.categoryVarName, categoryVarName).
-            addProperty(LDH.seriesVarName, seriesVarName);
-        if (description != null) chart.addProperty(DCTerms.description, description);
-
-        return model;
     }
 
 }

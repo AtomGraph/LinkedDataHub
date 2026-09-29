@@ -14,29 +14,25 @@
  * limitations under the License.
  */
 
-package com.atomgraph.linkeddatahub.cli.vocab;
+package com.atomgraph.linkeddatahub.rdf.vocabulary;
 
 import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 
 /**
- * NEPOMUK File Ontology vocabulary.
+ * AtomGraph Client vocabulary.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public final class NFO
+public final class AC
 {
 
     /** Namespace URI */
-    public static final String NS = "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#";
+    public static final String NS = "https://w3id.org/atomgraph/client#";
 
-    private NFO() { }
+    private AC() { }
 
-    /** nfo:FileDataObject class */
-    public static final Resource FileDataObject = ResourceFactory.createResource(NS + "FileDataObject");
-
-    /** nfo:fileName property */
-    public static final Property fileName = ResourceFactory.createProperty(NS + "fileName");
+    /** ac:mode property */
+    public static final Property mode = ResourceFactory.createProperty(NS + "mode");
 
 }

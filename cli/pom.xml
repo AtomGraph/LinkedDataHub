@@ -19,6 +19,13 @@
 
     <dependencies>
         <dependency>
+            <!-- the vocabularies and the document shapes, shared with the platform's other API
+            clients; this project adds the command line over them -->
+            <groupId>com.atomgraph</groupId>
+            <artifactId>linkeddatahub-rdf</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>info.picocli</groupId>
             <artifactId>picocli</artifactId>
             <version>4.7.7</version>

@@ -19,17 +19,13 @@ package com.atomgraph.linkeddatahub.cli.command.content;
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
 import com.atomgraph.linkeddatahub.cli.http.HttpException;
 import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
-import com.atomgraph.linkeddatahub.cli.util.SequenceNumbers;
-import com.atomgraph.linkeddatahub.cli.vocab.LDH;
+import com.atomgraph.linkeddatahub.rdf.Blocks;
+import com.atomgraph.linkeddatahub.rdf.SequenceNumbers;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
-import org.apache.jena.vocabulary.DCTerms;
-import org.apache.jena.vocabulary.RDF;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
@@ -72,35 +68,10 @@ public class AddXHTMLBlock extends BaseCommand
         }
         Property seq = SequenceNumbers.nextSequenceProperty(current, ResourceFactory.createResource(target.toString()));
 
-        post(getClient(), target, buildModel(target, seq, uri, value, title, description));
+        post(getClient(), target, Blocks.xhtml(target, seq, uri, value, title, description));
         print(target);
 
         return 0;
-    }
-
-    /**
-     * Builds the XHTML block description.
-     *
-     * @param target target document URI
-     * @param seq membership property (<code>rdf:_N</code>)
-     * @param uri block URI (optional)
-     * @param value XHTML content
-     * @param title block title (optional)
-     * @param description block description (optional)
-     * @return block model
-     */
-    public static Model buildModel(URI target, Property seq, String uri, String value, String title, String description)
-    {
-        Model model = ModelFactory.createDefaultModel();
-
-        Resource block = createSubject(model, target, uri).
-            addProperty(RDF.type, LDH.XHTML).
-            addProperty(RDF.value, model.createTypedLiteral(value, RDF.dtXMLLiteral));
-        model.createResource(target.toString()).addProperty(seq, block);
-        if (title != null) block.addProperty(DCTerms.title, title);
-        if (description != null) block.addProperty(DCTerms.description, description);
-
-        return model;
     }
 
 }

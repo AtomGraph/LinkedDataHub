@@ -19,7 +19,6 @@ package com.atomgraph.linkeddatahub.cli.http;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.cli.util.URIRewriter;
-import org.apache.jena.rdf.model.Model;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
@@ -31,6 +30,7 @@ import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
+import org.apache.jena.rdf.model.Model;
 
 /**
  * Graph Store Protocol client for LinkedDataHub documents (direct graph identification),

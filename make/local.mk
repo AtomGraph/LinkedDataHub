@@ -15,17 +15,25 @@ sef:
 release:
 	./release.sh
 
-# Set cli/pom.xml to the platform version in pom.xml. The CLI ships with the platform release, so
-# the two versions are kept in step; release.sh runs this around the release version bumps, and this
-# target is for drift and for manual SNAPSHOT bumps
+# Set rdf/pom.xml and cli/pom.xml to the platform version in pom.xml. Both ship with the platform
+# release, so all three versions are kept in step; release.sh runs this around the release version
+# bumps, and this target is for drift and for manual SNAPSHOT bumps
 cli-version:
 	@version=$$(mvn -q help:evaluate -Dexpression=project.version -DforceStdout); \
-	cd cli && mvn -B -q versions:set -DnewVersion="$$version" -DgenerateBackupPoms=false && \
-	echo "cli/pom.xml set to $$version"
+	for project in rdf cli; do \
+		(cd $$project && mvn -B -q versions:set -DnewVersion="$$version" -DgenerateBackupPoms=false) && \
+		echo "$$project/pom.xml set to $$version"; \
+	done
+
+# Build the linkeddatahub-rdf library: the vocabularies and the document shapes the API accepts.
+# Installed rather than packaged because the CLI - and Web-Algebra's ldh-* operations, in their own
+# repository - resolve it as an ordinary Maven dependency.
+rdf:
+	cd rdf && mvn -B install
 
 # Build the ldh CLI (requires Java 21 and Maven) and print the line that puts it on $PATH.
 # Released versions are also attached to the GitHub release, which needs neither.
-cli:
+cli: rdf
 	cd cli && mvn -B package
 	@echo
 	@echo "Add the ldh launcher to your \$$PATH:"

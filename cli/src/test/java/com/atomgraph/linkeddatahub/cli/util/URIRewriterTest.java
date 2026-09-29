@@ -48,29 +48,4 @@ public class URIRewriterTest
             () -> URIRewriter.rewrite(URI.create("/relative/path"), URI.create("https://localhost:8443")));
     }
 
-    @Test
-    public void adminBasePrefixesHostWithAdminSubdomain()
-    {
-        assertEquals(URI.create("https://admin.localhost:4443/"), URIRewriter.adminBase(URI.create("https://localhost:4443/")));
-    }
-
-    @Test
-    public void encodeSlugKeepsUnreservedCharacters()
-    {
-        assertEquals("abc-._~123", URIRewriter.encodeSlug("abc-._~123"));
-    }
-
-    @Test
-    public void encodeSlugEncodesReservedAndNonASCII()
-    {
-        assertEquals("a%20b%2F%C4%87", URIRewriter.encodeSlug("a b/ć"));
-    }
-
-    @Test
-    public void childURIAppendsEncodedSlugAndSlash()
-    {
-        assertEquals(URI.create("https://localhost:4443/some/my%20item/"),
-            URIRewriter.childURI(URI.create("https://localhost:4443/some/"), "my item"));
-    }
-
 }

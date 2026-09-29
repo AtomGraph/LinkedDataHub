@@ -16,6 +16,7 @@
 
 package com.atomgraph.linkeddatahub.cli.util;
 
+import com.atomgraph.linkeddatahub.rdf.URIs;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
@@ -127,7 +128,7 @@ public final class PushPlan
                 else
                 {
                     String name = doc.getFileName().toString();
-                    URI docURI = isRootDocument(doc, root) ? url : URIRewriter.childURI(url, stem(name));
+                    URI docURI = isRootDocument(doc, root) ? url : URIs.childURI(url, stem(name));
                     steps.add(new Step(Kind.DOCUMENT, doc, relative(doc, root, false), docURI, documentLang(name).getContentType().getContentTypeStr()));
                 }
             }
@@ -138,7 +139,7 @@ public final class PushPlan
             for (Path subdir : dirs)
             {
                 if (isIgnored(subdir, true, ignores)) steps.add(skip(subdir, root, true));
-                else walk(subdir, URIRewriter.childURI(url, subdir.getFileName().toString()), root, ignores, steps);
+                else walk(subdir, URIs.childURI(url, subdir.getFileName().toString()), root, ignores, steps);
             }
         }
         finally

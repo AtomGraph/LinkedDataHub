@@ -127,20 +127,24 @@ fi
 
 print_status "GPG check passed"
 
-# Set cli/pom.xml to the given version and commit it. The CLI is not a module of the platform
-# reactor, so maven-release-plugin does not rewrite it - it is kept in step here instead, once for
-# the release version and once for the next development version.
+# Set rdf/pom.xml and cli/pom.xml to the given version and commit them. Neither is a module of the
+# platform reactor, so maven-release-plugin does not rewrite them - they are kept in step here
+# instead, once for the release version and once for the next development version. The CLI resolves
+# the library by ${project.version}, so the two must move together or the CLI build breaks.
 sync_cli_version() {
     local version="$1"
+    local project
 
-    (cd cli && mvn -B -q versions:set -DnewVersion="$version" -DgenerateBackupPoms=false)
+    for project in rdf cli; do
+        (cd "$project" && mvn -B -q versions:set -DnewVersion="$version" -DgenerateBackupPoms=false)
+    done
 
-    if git diff --quiet -- cli/pom.xml; then
-        print_status "cli/pom.xml already at $version"
+    if git diff --quiet -- rdf/pom.xml cli/pom.xml; then
+        print_status "rdf/pom.xml and cli/pom.xml already at $version"
     else
-        git add cli/pom.xml
-        git commit -m "Set the CLI version to $version"
-        print_status "cli/pom.xml set to $version"
+        git add rdf/pom.xml cli/pom.xml
+        git commit -m "Set the RDF library and CLI versions to $version"
+        print_status "rdf/pom.xml and cli/pom.xml set to $version"
     fi
 }
 

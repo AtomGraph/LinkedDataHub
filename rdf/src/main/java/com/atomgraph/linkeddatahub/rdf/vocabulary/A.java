@@ -14,27 +14,29 @@
  * limitations under the License.
  */
 
-package com.atomgraph.linkeddatahub.cli.vocab;
+package com.atomgraph.linkeddatahub.rdf.vocabulary;
 
-import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.ResourceFactory;
 
 /**
- * Document hierarchy vocabulary.
+ * AtomGraph Core vocabulary.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public final class DH
+public final class A
 {
 
     /** Namespace URI */
-    public static final String NS = "https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#";
+    public static final String NS = "https://w3id.org/atomgraph/core#";
 
-    private DH() { }
+    private A() { }
 
-    /** dh:Item class */
-    public static final Resource Item = ResourceFactory.createResource(NS + "Item");
-    /** dh:Container class */
-    public static final Resource Container = ResourceFactory.createResource(NS + "Container");
+    /** a:graphStore property */
+    public static final Property graphStore = ResourceFactory.createProperty(NS + "graphStore");
+    /** a:authUser property */
+    public static final Property authUser = ResourceFactory.createProperty(NS + "authUser");
+    /** a:authPwd property */
+    public static final Property authPwd = ResourceFactory.createProperty(NS + "authPwd");
 
 }

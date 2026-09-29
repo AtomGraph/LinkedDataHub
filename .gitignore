@@ -25,3 +25,4 @@
 /tests/ui/node_modules
 /tests/ui/out
 /tests/ui/test-results
+/rdf/target/

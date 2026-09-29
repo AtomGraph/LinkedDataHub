@@ -18,19 +18,10 @@ package com.atomgraph.linkeddatahub.cli.command;
 
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
 import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
-import com.atomgraph.linkeddatahub.cli.util.Slugs;
-import com.atomgraph.linkeddatahub.cli.util.URIRewriter;
-import com.atomgraph.linkeddatahub.cli.vocab.AC;
-import com.atomgraph.linkeddatahub.cli.vocab.DH;
-import com.atomgraph.linkeddatahub.cli.vocab.LDH;
-import com.atomgraph.linkeddatahub.cli.vocab.SPIN;
+import com.atomgraph.linkeddatahub.rdf.Documents;
+import com.atomgraph.linkeddatahub.rdf.Slugs;
+import com.atomgraph.linkeddatahub.rdf.URIs;
 import java.net.URI;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.sparql.vocabulary.FOAF;
-import org.apache.jena.vocabulary.DCTerms;
-import org.apache.jena.vocabulary.RDF;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
@@ -73,49 +64,11 @@ public class CreateContainer extends BaseCommand
     {
         baseMixin.require(getSpec()); // required by the script interface
 
-        URI doc = URIRewriter.childURI(parent, slug != null ? slug : Slugs.defaultSlug());
-        put(getClient(), doc, buildModel(doc, title, description, block, mode, primaryTopic));
+        URI doc = URIs.childURI(parent, slug != null ? slug : Slugs.defaultSlug());
+        put(getClient(), doc, Documents.container(doc, title, description, block, mode, primaryTopic));
         print(doc);
 
         return 0;
-    }
-
-    /**
-     * Builds the container document model with its first content block: the given block URI,
-     * a children view with an explicit mode, or the default children view.
-     *
-     * @param doc document URI
-     * @param title document title
-     * @param description document description (optional)
-     * @param block content block URI (optional)
-     * @param mode children view mode URI (optional, ignored when block is given)
-     * @param primaryTopic URI of the document's primary topic, relative or absolute (optional)
-     * @return document model
-     */
-    public static Model buildModel(URI doc, String title, String description, URI block, URI mode, String primaryTopic)
-    {
-        Model model = ModelFactory.createDefaultModel();
-
-        Resource container = model.createResource(doc.toString()).
-            addProperty(RDF.type, DH.Container).
-            addProperty(DCTerms.title, title);
-
-        if (block != null) container.addProperty(RDF.li(1), model.createResource(block.toString()));
-        else if (mode != null) container.addProperty(RDF.li(1), model.createResource().
-                addProperty(RDF.type, LDH.Object).
-                addProperty(RDF.value, model.createResource().
-                    addProperty(RDF.type, LDH.View).
-                    addProperty(SPIN.query, LDH.SelectChildren).
-                    addProperty(AC.mode, model.createResource(mode.toString()))));
-        else container.addProperty(RDF.li(1), model.createResource().
-                addProperty(RDF.type, LDH.Object).
-                addProperty(RDF.value, LDH.ChildrenView));
-
-        if (description != null) container.addProperty(DCTerms.description, description);
-        // See CreateItem.buildModel: resolved against the document, and singular by the vocabulary.
-        if (primaryTopic != null) container.addProperty(FOAF.primaryTopic, model.createResource(doc.resolve(primaryTopic).toString()));
-
-        return model;
     }
 
 }

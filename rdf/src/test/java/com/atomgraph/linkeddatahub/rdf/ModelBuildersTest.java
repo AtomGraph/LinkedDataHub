@@ -14,22 +14,10 @@
  * limitations under the License.
  */
 
-package com.atomgraph.linkeddatahub.cli.command;
+package com.atomgraph.linkeddatahub.rdf;
 
-import com.atomgraph.linkeddatahub.cli.command.admin.acl.CreateAuthorization;
-import com.atomgraph.linkeddatahub.cli.command.admin.acl.CreateGroup;
-import com.atomgraph.linkeddatahub.cli.command.admin.ontologies.AddClass;
-import com.atomgraph.linkeddatahub.cli.command.admin.ontologies.AddConstructor;
-import com.atomgraph.linkeddatahub.cli.command.admin.ontologies.AddPropertyConstraint;
-import com.atomgraph.linkeddatahub.cli.command.admin.ontologies.AddRestriction;
-import com.atomgraph.linkeddatahub.cli.command.admin.ontologies.CreateOntology;
-import com.atomgraph.linkeddatahub.cli.command.admin.ontologies.ImportOntology;
-import com.atomgraph.linkeddatahub.cli.command.content.AddObjectBlock;
-import com.atomgraph.linkeddatahub.cli.command.content.AddXHTMLBlock;
-import com.atomgraph.linkeddatahub.cli.command.imports.AddCSVImport;
-import com.atomgraph.linkeddatahub.cli.command.imports.AddRDFImport;
-import com.atomgraph.linkeddatahub.cli.vocab.ACL;
-import com.atomgraph.linkeddatahub.cli.vocab.SP;
+import com.atomgraph.linkeddatahub.rdf.vocabulary.ACL;
+import com.atomgraph.linkeddatahub.rdf.vocabulary.SP;
 import java.io.StringReader;
 import java.net.URI;
 import java.util.List;
@@ -88,7 +76,7 @@ public class ModelBuildersTest
                 dct:title "My item" ;
                 dct:description "Desc" .
             """),
-            CreateItem.buildModel(doc, "My item", "Desc", null));
+            Documents.item(doc, "My item", "Desc", null));
     }
 
     @Test
@@ -103,7 +91,7 @@ public class ModelBuildersTest
                 dct:title "My item" ;
                 foaf:primaryTopic <my-item/#this> .
             """),
-            CreateItem.buildModel(doc, "My item", null, "#this"));
+            Documents.item(doc, "My item", null, "#this"));
     }
 
     @Test
@@ -118,7 +106,7 @@ public class ModelBuildersTest
                 dct:title "About Bob" ;
                 foaf:primaryTopic <https://example.org/bob#me> .
             """),
-            CreateItem.buildModel(doc, "About Bob", null, "https://example.org/bob#me"));
+            Documents.item(doc, "About Bob", null, "https://example.org/bob#me"));
     }
 
     @Test
@@ -129,7 +117,7 @@ public class ModelBuildersTest
                 dct:title "Some" ;
                 rdf:_1 [ a ldh:Object ; rdf:value ldh:ChildrenView ] .
             """),
-            CreateContainer.buildModel(TARGET, "Some", null, null, null, null));
+            Documents.container(TARGET, "Some", null, null, null, null));
     }
 
     @Test
@@ -140,7 +128,7 @@ public class ModelBuildersTest
                 dct:title "Some" ;
                 rdf:_1 [ a ldh:Object ; rdf:value [ a ldh:View ; spin:query ldh:SelectChildren ; ac:mode <https://w3id.org/atomgraph/client#GridMode> ] ] .
             """),
-            CreateContainer.buildModel(TARGET, "Some", null, null, URI.create("https://w3id.org/atomgraph/client#GridMode"), null));
+            Documents.container(TARGET, "Some", null, null, URI.create("https://w3id.org/atomgraph/client#GridMode"), null));
     }
 
     @Test
@@ -151,7 +139,7 @@ public class ModelBuildersTest
                 dct:title "Some" ;
                 rdf:_1 <https://localhost:4443/some/#block> .
             """),
-            CreateContainer.buildModel(TARGET, "Some", null, URI.create("https://localhost:4443/some/#block"), null, null));
+            Documents.container(TARGET, "Some", null, URI.create("https://localhost:4443/some/#block"), null, null));
     }
 
     @Test
@@ -165,7 +153,7 @@ public class ModelBuildersTest
                 rdf:_1 [ a ldh:Object ; rdf:value ldh:ChildrenView ] ;
                 foaf:primaryTopic <#this> .
             """),
-            CreateContainer.buildModel(TARGET, "Some", null, null, null, "#this"));
+            Documents.container(TARGET, "Some", null, null, null, "#this"));
     }
 
     @Test
@@ -177,7 +165,7 @@ public class ModelBuildersTest
                 dct:title "View" ;
                 ac:mode <https://w3id.org/atomgraph/client#GridMode> .
             """),
-            AddView.buildModel(TARGET, "#view", URI.create("https://localhost:4443/queries/q/#this"), "View", null,
+            Views.view(TARGET, "#view", URI.create("https://localhost:4443/queries/q/#this"), "View", null,
                 URI.create("https://w3id.org/atomgraph/client#GridMode")));
     }
 
@@ -190,7 +178,7 @@ public class ModelBuildersTest
                 sp:text \"""CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }\""" ;
                 ldh:service <https://localhost:4443/services/s/#this> .
             """),
-            AddConstruct.buildModel(TARGET, null, SP.Construct, "Query", "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }",
+            Queries.query(TARGET, null, SP.Construct, "Query", "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }",
                 URI.create("https://localhost:4443/services/s/#this"), null));
     }
 
@@ -208,7 +196,7 @@ public class ModelBuildersTest
                 foaf:primaryTopic _:ontology ;
                 dct:title "My ontology" .
             """),
-            CreateOntology.buildModel(doc, null, "My ontology", "Comment"));
+            Ontologies.ontology(doc, null, "My ontology", "Comment"));
     }
 
     @Test
@@ -225,7 +213,7 @@ public class ModelBuildersTest
                 foaf:primaryTopic _:group ;
                 dct:title "Editors" .
             """),
-            CreateGroup.buildModel(doc, null, "Editors", null,
+            Acl.group(doc, null, "Editors", null,
                 List.of(URI.create("https://localhost:4443/acl/agents/a/#this"), URI.create("https://localhost:4443/acl/agents/b/#this"))));
     }
 
@@ -245,7 +233,7 @@ public class ModelBuildersTest
                 foaf:primaryTopic _:auth ;
                 dct:title "Auth" .
             """),
-            CreateAuthorization.buildModel(doc, null, "Auth", null,
+            Acl.authorization(doc, null, "Auth", null,
                 List.of(URI.create("https://localhost:4443/acl/agents/a/#this")), List.of(), List.of(),
                 List.of(URI.create("https://localhost:4443/some/")), List.of(),
                 List.of(ACL.Read, ACL.Write)));
@@ -261,7 +249,7 @@ public class ModelBuildersTest
                 ldh:file <https://localhost:4443/uploads/abc> ;
                 ldh:delimiter "," .
             """),
-            AddCSVImport.buildModel(TARGET, null, "Cities", URI.create("https://localhost:4443/some/#query"),
+            Imports.csv(TARGET, null, "Cities", URI.create("https://localhost:4443/some/#query"),
                 URI.create("https://localhost:4443/uploads/abc"), ",", null));
     }
 
@@ -274,7 +262,7 @@ public class ModelBuildersTest
                 ldh:file <https://localhost:4443/uploads/abc> ;
                 sd:name <https://localhost:4443/graphs/g/> .
             """),
-            AddRDFImport.buildModel(TARGET, "#import", "Data", URI.create("https://localhost:4443/uploads/abc"),
+            Imports.rdf(TARGET, "#import", "Data", URI.create("https://localhost:4443/uploads/abc"),
                 null, URI.create("https://localhost:4443/graphs/g/"), null));
     }
 
@@ -286,7 +274,7 @@ public class ModelBuildersTest
             _:block a ldh:XHTML ;
                 rdf:value "<p>Hello</p>"^^rdf:XMLLiteral .
             """),
-            AddXHTMLBlock.buildModel(TARGET, RDF.li(4), null, "<p>Hello</p>", null, null));
+            Blocks.xhtml(TARGET, RDF.li(4), null, "<p>Hello</p>", null, null));
     }
 
     @Test
@@ -301,7 +289,7 @@ public class ModelBuildersTest
                 a:authUser "user" ;
                 a:authPwd "pwd" .
             """),
-            AddGenericService.buildModel(TARGET, "#service", "Remote", URI.create("https://remote.example/sparql"),
+            Services.service(TARGET, "#service", "Remote", URI.create("https://remote.example/sparql"),
                 URI.create("https://remote.example/service"), "user", "pwd", null));
     }
 
@@ -314,7 +302,7 @@ public class ModelBuildersTest
                 sd:endpoint <https://remote.example/sparql> ;
                 sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update .
             """),
-            AddGenericService.buildModel(TARGET, "#service", "Remote", URI.create("https://remote.example/sparql"),
+            Services.service(TARGET, "#service", "Remote", URI.create("https://remote.example/sparql"),
                 null, null, null, null));
     }
 
@@ -330,7 +318,7 @@ public class ModelBuildersTest
                 ldh:categoryVarName "category" ;
                 ldh:seriesVarName "series" .
             """),
-            AddResultSetChart.buildModel(TARGET, "#chart", "Chart", URI.create("https://localhost:4443/queries/select/#this"),
+            Views.resultSetChart(TARGET, "#chart", "Chart", URI.create("https://localhost:4443/queries/select/#this"),
                 URI.create("https://w3id.org/atomgraph/client#BarChart"), "category", "series", "Desc"));
     }
 
@@ -345,7 +333,7 @@ public class ModelBuildersTest
                 spin:constraint <https://localhost:4443/constraints/#this> ;
                 rdfs:subClassOf <https://localhost:4443/ns#Thing>, <https://localhost:4443/ns#Other> .
             """),
-            AddClass.buildModel(TARGET, "#Concept", "Concept", "A concept",
+            Ontologies.owlClass(TARGET, "#Concept", "Concept", "A concept",
                 URI.create("https://localhost:4443/queries/construct/#this"),
                 URI.create("https://localhost:4443/constraints/#this"),
                 List.of(URI.create("https://localhost:4443/ns#Thing"), URI.create("https://localhost:4443/ns#Other"))));
@@ -358,7 +346,7 @@ public class ModelBuildersTest
             <#Concept> a owl:Class ;
                 rdfs:label "Concept" .
             """),
-            AddClass.buildModel(TARGET, "#Concept", "Concept", null, null, null, List.of()));
+            Ontologies.owlClass(TARGET, "#Concept", "Concept", null, null, null, List.of()));
     }
 
     @Test
@@ -371,7 +359,7 @@ public class ModelBuildersTest
                 sp:text "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }" ;
                 ldh:service <https://localhost:4443/services/remote/#this> .
             """),
-            AddConstructor.buildModel(TARGET, "#constructor", SP.Construct, "Constructor",
+            Ontologies.constructor(TARGET, "#constructor", SP.Construct, "Constructor",
                 "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }",
                 URI.create("https://localhost:4443/services/remote/#this"), "Builds a Concept"));
     }
@@ -384,7 +372,7 @@ public class ModelBuildersTest
                 rdfs:label "Title required" ;
                 sp:arg1 dct:title .
             """),
-            AddPropertyConstraint.buildModel(TARGET, "#constraint", "Title required",
+            Ontologies.propertyConstraint(TARGET, "#constraint", "Title required",
                 URI.create("http://purl.org/dc/terms/title"), null));
     }
 
@@ -399,7 +387,7 @@ public class ModelBuildersTest
                 owl:allValuesFrom rdfs:Literal ;
                 owl:hasValue <https://localhost:4443/values/default/> .
             """),
-            AddRestriction.buildModel(TARGET, "#restriction", "Has title", "Every instance carries a title",
+            Ontologies.restriction(TARGET, "#restriction", "Has title", "Every instance carries a title",
                 URI.create("http://purl.org/dc/terms/title"),
                 URI.create("http://www.w3.org/2000/01/rdf-schema#Literal"),
                 URI.create("https://localhost:4443/values/default/")));
@@ -416,7 +404,7 @@ public class ModelBuildersTest
                 dct:description "Desc" ;
                 ac:mode <https://w3id.org/atomgraph/client#ReadMode> .
             """),
-            AddObjectBlock.buildModel(TARGET, RDF.li(2), null, URI.create("https://localhost:4443/other/"),
+            Blocks.object(TARGET, RDF.li(2), null, URI.create("https://localhost:4443/other/"),
                 "Block", "Desc", URI.create("https://w3id.org/atomgraph/client#ReadMode")));
     }
 
@@ -430,7 +418,7 @@ public class ModelBuildersTest
         assertIsomorphic(parse("""
             <> foaf:primaryTopic <http://www.w3.org/2004/02/skos/core#> .
             """),
-            ImportOntology.buildAnnotationModel(TARGET, URI.create("http://www.w3.org/2004/02/skos/core#")));
+            Ontologies.annotation(TARGET, URI.create("http://www.w3.org/2004/02/skos/core#")));
     }
 
 }

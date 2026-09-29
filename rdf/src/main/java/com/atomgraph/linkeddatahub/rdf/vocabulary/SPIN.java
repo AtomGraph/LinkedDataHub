@@ -14,25 +14,29 @@
  * limitations under the License.
  */
 
-package com.atomgraph.linkeddatahub.cli.vocab;
+package com.atomgraph.linkeddatahub.rdf.vocabulary;
 
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.ResourceFactory;
 
 /**
- * AtomGraph Client vocabulary.
+ * SPIN modeling vocabulary.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public final class AC
+public final class SPIN
 {
 
     /** Namespace URI */
-    public static final String NS = "https://w3id.org/atomgraph/client#";
+    public static final String NS = "http://spinrdf.org/spin#";
 
-    private AC() { }
+    private SPIN() { }
 
-    /** ac:mode property */
-    public static final Property mode = ResourceFactory.createProperty(NS + "mode");
+    /** spin:query property */
+    public static final Property query = ResourceFactory.createProperty(NS + "query");
+    /** spin:constructor property */
+    public static final Property constructor = ResourceFactory.createProperty(NS + "constructor");
+    /** spin:constraint property */
+    public static final Property constraint = ResourceFactory.createProperty(NS + "constraint");
 
 }

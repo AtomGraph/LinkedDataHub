@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.atomgraph.linkeddatahub.cli.sparql;
+package com.atomgraph.linkeddatahub.rdf;
 
 import java.net.URI;
 import org.apache.jena.query.ParameterizedSparqlString;
