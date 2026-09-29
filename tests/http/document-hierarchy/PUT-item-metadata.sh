@@ -17,7 +17,8 @@ ldh admin add agent \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
 
-# replace the graph (note that the document does not have its description in the request body)
+# replace the graph (note that the request body does not type the document, only titles it: the title is
+# what dh:Item requires, and the type, container and metadata are the server's to assign)
 
 slug="test-item"
 item="${END_USER_BASE_URL}${slug}/"
@@ -31,6 +32,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   -H "Content-Type: application/n-triples" \
   --data-binary @- \
   "$item" <<EOF
+<${item}> <http://purl.org/dc/terms/title> "Test item" .
 <${item}> <http://example.com/default-predicate> "named object PUT" .
 EOF
 ) \

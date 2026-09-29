@@ -33,6 +33,7 @@ response=$(curl -k -s \
   --data-binary @- \
   --url-query "uri=${new_doc_uri}" \
   "$END_USER_BASE_URL" <<EOF
+<${new_doc_uri}> <http://purl.org/dc/terms/title> "New document" .
 EOF
 )
 

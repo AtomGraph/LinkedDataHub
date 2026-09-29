@@ -41,6 +41,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   -H "Content-Type: application/n-triples" \
   --data-binary @- \
   "$invalid_item" <<EOF
+<${invalid_item}/> <http://purl.org/dc/terms/title> "No slash" .
 <${invalid_item}> <http://example.com/default-predicate> "named object PUT" .
 EOF
 ) \
@@ -56,6 +57,7 @@ curl -k -L -w "%{http_code}\n" -o /dev/null -s \
   -H "Content-Type: application/n-triples" \
   --data-binary @- \
   "$invalid_item" <<EOF
+<${invalid_item}/> <http://purl.org/dc/terms/title> "No slash" .
 <${invalid_item}> <http://example.com/default-predicate> "named object PUT" .
 EOF
 ) \

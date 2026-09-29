@@ -17,7 +17,7 @@ ldh admin add agent \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
 
-# check that graph without parent is forbidden
+# check that an empty document is refused: the server types it dh:Item, which requires a dct:title
 
 (
 curl -k -w "%{http_code}\n" -o /dev/null -s \
@@ -28,4 +28,4 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   "${END_USER_BASE_URL}non-existing/" <<EOF
 EOF
 ) \
-| grep -q "$STATUS_CREATED"
+| grep -q "$STATUS_UNPROCESSABLE_ENTITY"
