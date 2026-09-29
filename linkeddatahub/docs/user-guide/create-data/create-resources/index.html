@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" lang="en" data-retro="m3" data-theme="light">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>LinkedDataHub v5 — Create instances</title>
+      <meta name="description" content="Learn how to create instances of built-in and user-defined classes"/>
+      <meta name="last-modified" content="2026-09-29T23:17:17Z"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1"/>
+      <link href="../../../static/css/fonts.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/colors_and_type.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/app.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/retro.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/ldh.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/docs.css" rel="stylesheet" type="text/css"/><script type="text/javascript">
+                    document.addEventListener("click", function(event) {
+                        var tab = event.target.closest(".ac-tab[role='tab']");
+                        if (!tab) return;
+                        var tablist = tab.closest("[role='tablist']");
+                        var tabs = tablist.closest(".ac-tabs");
+                        if (!tabs || !tabs.querySelector(".ac-tabpanel")) return;
+                        tablist.querySelectorAll(".ac-tab").forEach(function(t) { t.classList.remove("is-on"); t.setAttribute("aria-selected", "false"); });
+                        tab.classList.add("is-on");
+                        tab.setAttribute("aria-selected", "true");
+                        tabs.querySelectorAll(".ac-tabpanel").forEach(function(pane) {
+                            if (pane.parentElement !== tabs) return;
+                            pane.hidden = pane.id !== tab.getAttribute("aria-controls");
+                        });
+                    });
+                </script><script async="async" defer="defer" src="https://buttons.github.io/buttons.js"></script><script async="async" defer="defer" src="https://platform.twitter.com/widgets.js"></script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+                    window.dataLayer = window.dataLayer || [];
+                    function gtag(){dataLayer.push(arguments);}
+                    gtag('js', new Date());
+                    gtag('config', 'UA-38402002-6');
+                </script></head>
+   <body class="app">
+      <div class="ldh-header" role="banner"><a class="ldh-wordmark" href="../../../"><span class="mark"></span><span>LinkedDataHub</span></a><div></div>
+         <div class="ldh-header-actions">
+            <details class="docs-versions">
+               <summary>Documentation v6</summary>
+               <div><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v5/">Documentation v5</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></div>
+            </details><a href="https://github.com/AtomGraph/LinkedDataHub-Apps" target="_blank">Sample dataspaces</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub/subscription" data-icon="octicon-eye" data-size="large" aria-label="Watch AtomGraph/LinkedDataHub on GitHub">Watch</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star AtomGraph/LinkedDataHub on GitHub">Star</a><a href="https://twitter.com/atomgraphhq" class="twitter-follow-button" data-show-count="false">Follow @atomgraphhq</a><a href="https://youtube.com/@atomgraph" target="_blank"><span class="msi outline" aria-hidden="true">smart_display</span> @atomgraph</a></div>
+      </div>
+      <div class="docs-layout">
+         <div class="docs-nav" role="navigation">
+            <ul>
+               <li><a href="../../../about/">About LinkedDataHub</a></li>
+               <li><a href="../../../get-started/">Get started</a></li>
+               <li><a href="../../../tutorial/">Tutorial</a></li>
+               <li><a href="../../">User guide</a><ul>
+                     <li><a href="../../add-data/">Add data</a></li>
+                     <li><a href="../../browse-data/">Browse data</a></li>
+                     <li><a href="../../change-model/">Change model</a></li>
+                     <li><a href="../">Create data</a><ul>
+                           <li><a href="../create-documents/">Create documents</a></li>
+                           <li><a href="../create-content/">Create content</a></li>
+                           <li class="is-active" aria-current="page"><a href="">Create instances</a></li>
+                        </ul>
+                     </li>
+                     <li><a href="../../edit-content/">Edit content</a></li>
+                     <li><a href="../../import-data/">Import data</a></li>
+                     <li><a href="../../manage-dataspaces/">Manage dataspaces</a></li>
+                     <li><a href="../../manage-packages/">Manage packages</a></li>
+                     <li><a href="../../query-data/">Query data</a></li>
+                     <li><a href="../../upload-file/">Upload file</a></li>
+                     <li><a href="../../version-history/">Version history</a></li>
+                  </ul>
+               </li>
+               <li><a href="../../../reference/">Reference</a></li>
+               <li><a href="../../../extending/">Extending</a></li>
+            </ul>
+         </div>
+         <div class="docs-main" role="main">
+            <h1>Create instances</h1>
+            <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+               
+               <p class="ldh-body-lg">Learn how to create instances of built-in and user-defined classes</p>
+               <video aria-label="Creating resource instances" controls="controls" preload="metadata" src="../../../files/user-guide/create-data/create-resources-1.mp4"></video>
+               
+               <p><a href="../../../reference/data-model/resources/#built-in-classes">Built-in classes</a> (such as <samp>Container</samp>, <samp>Item</samp>, <samp>SELECT</samp> etc.) ship with <a href="../../../reference/administration/ontologies/#ontologies">system ontologies</a> in LinkedDataHub while <dfn>user-defined classes</dfn> come from ontologies imported by the user (see the user guide on <a href="../../change-model/">changing the model</a> on how to do that).</p>
+               
+               <div class="ac-alert va-informative" role="status">
+                  <span class="ac-alert-ic"><span aria-hidden="true" class="msi outline">info</span></span>
+                  
+                  <div class="ac-alert-body">
+                     
+                     <p class="ac-alert-text">To create class instances, you have to be in <a href="../../../reference/user-interface/#layout-modes">properties mode</a>.</p>
+                     </div>
+                  </div>
+               
+               <div class="ac-alert va-informative" role="status">
+                  <span class="ac-alert-ic"><span aria-hidden="true" class="msi outline">info</span></span>
+                  
+                  <div class="ac-alert-body">
+                     
+                     <p class="ac-alert-text">You can only create instances of classes that have <a href="../../../reference/administration/ontologies/#constructors">constructors</a>.</p>
+                     </div>
+                  </div>
+               
+               <div class="ac-tabs or-horizontal">
+                  
+                  <div class="ac-tablist sz-md va-line" role="tablist">
+                     <button aria-controls="user-interface-pane" aria-selected="true" class="ac-tab is-on" id="user-interface-tab" role="tab" type="button"><span class="ac-tab-lbl">User interface</span></button>
+                     <button aria-controls="command-line-interface-pane" aria-selected="false" class="ac-tab" id="command-line-interface-tab" role="tab" type="button"><span class="ac-tab-lbl">Command line interface</span></button>
+                     </div>
+                  
+                  <div aria-labelledby="user-interface-tab" class="ac-tabpanel" id="user-interface-pane" role="tabpanel">
+                     
+                     <div>
+                        
+                        <h2 id="built-in-classes">Built-in classes</h2>
+                        
+                        <p>To create instances of built-in classes, follow these steps:</p>
+                        
+                        <ol>
+                           
+                           <li>Click the <span class="ac-btn in-primary ap-solid sz-md">Create <span aria-hidden="true" class="msi caret">expand_more</span></span> dropdown at the bottom of the page</li>
+                           
+                           <li>In the dropdown list that appears, click on the menu item of the class you want to
+                              create an instance for. An editing form will open.</li>
+                           
+                           <li>Fill out the fields in the form that appears. Mandatory properties are rendered in
+                              bold; the form cannot be saved without them.</li>
+                           
+                           <li>Click <span class="ac-btn in-primary ap-solid sz-sm">Save</span></li>
+                           
+                           <li>If a value is missing or malformed, an error message appears and the offending property
+                              is highlighted. Fix it and save again.</li>
+                           </ol>
+                        
+                        <p>You will be redirected to the document of the newly created instance.</p>
+                        </div>
+                     
+                     <div>
+                        
+                        <h2 id="user-defined-classes">User-defined classes</h2>
+                        
+                        <p>To create instances of user-defined classes, follow these steps:</p>
+                        
+                        <ol>
+                           
+                           <li>Click the <span class="ac-btn in-primary ap-solid sz-md">Create <span aria-hidden="true" class="msi caret">expand_more</span></span> dropdown at the bottom of the page</li>
+                           
+                           <li>Click on <samp>Instance</samp> in the dropdown list that appears. An editing form will open.</li>
+                           
+                           <li>In the form's <samp>Type</samp> field, click the typeahead input, type the class name — for example <samp>Product</samp> on the Northwind dataspace — and select the class from the list</li>
+                           
+                           <li>Continue as with the <a href="#built-in-classes">built-in classes</a>: fill out the fields and click <span class="ac-btn in-primary ap-solid sz-sm">Save</span></li>
+                           </ol>
+                        
+                        <p>When you create a <samp>Product</samp> this way, its <a href="../../change-model/" target="_blank">constructor</a> renders name and identifier inputs plus category and supplier typeaheads — the form
+                           is entirely constructor-driven.</p>
+                        <img alt="The Product create form generated from the constructor, with category and supplier typeaheads" src="../../../files/user-guide/create-data/create-resources-2.webp"/>
+                        </div>
+                     </div>
+                  
+                  <div aria-labelledby="command-line-interface-tab" class="ac-tabpanel" hidden="hidden" id="command-line-interface-pane" role="tabpanel">
+                     
+                     <p>Instances are plain RDF, so the CLI equivalent is appending a description to a document
+                        with <samp>ldh post</samp>. Creating a new product in its own document — <code>--primary-topic</code> makes the document about the <samp>#this</samp> resource, and the <samp>post</samp> describes it:</p>
+                     
+                     <pre>doc=$(ldh create item \
+  --container "${LDH_BASE}products/" \
+  --title "Masala Chai" \
+  --slug 78 \
+  --primary-topic '#this')
+
+ldh post -t text/turtle "$doc" &lt;&lt;EOF
+@prefix schema: &lt;https://schema.org/&gt; .
+
+&lt;${doc}#this&gt; a schema:Product ;
+    schema:name "Masala Chai" ;
+    schema:identifier "78" ;
+    schema:category &lt;${LDH_BASE}categories/1/#this&gt; .
+EOF</pre>
+                     
+                     <p>The posted data is validated against the class <a href="../../../reference/administration/ontologies/#constraints">constraints</a> the same way form submissions are — leaving out <code>schema:name</code> gets the request rejected with <samp>422 Unprocessable Entity</samp>.</p>
+                     </div>
+                  </div>
+               
+               <p class="ldh-body-lg"><a href="../../../reference/administration/ontologies/#constructors" target="_blank">Read more about constructors.</a></p>
+               </div>
+         </div>
+      </div>
+      <div class="ldh-footer" role="contentinfo">
+         <div class="cols">
+            <div class="col brand-col"><a class="ldh-wordmark" href="https://linkeddatahub.com" target="_blank"><span class="mark"></span><span>LinkedDataHub</span></a><p>The low-code Knowledge Graph application platform. Built on RDF, SPARQL and Linked
+                  Data principles.</p>
+            </div>
+            <div class="col">
+               <p class="ftitle">About</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a><a href="https://atomgraph.com" target="_blank">AtomGraph</a></div>
+            <div class="col">
+               <p class="ftitle">Resources</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></div>
+            <div class="col">
+               <p class="ftitle">Support</p><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a><a href="mailto:support@linkeddatahub.com">Contact support</a></div>
+            <div class="col">
+               <p class="ftitle">Follow us</p><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></div>
+         </div>
+         <div class="legal"><span>© 2026 AtomGraph · LinkedDataHub</span></div>
+      </div>
+   </body>
+</html>

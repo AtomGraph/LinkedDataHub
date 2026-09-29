@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" lang="en" data-retro="m3" data-theme="light">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>LinkedDataHub v5 — RDF imports</title>
+      <meta name="description" content="RDF imports and transforming RDF using SPARQL CONSTRUCT"/>
+      <meta name="last-modified" content="2026-09-29T23:17:17Z"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1"/>
+      <link href="../../../static/css/fonts.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/colors_and_type.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/app.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/retro.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/ldh.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/docs.css" rel="stylesheet" type="text/css"/><script type="text/javascript">
+                    document.addEventListener("click", function(event) {
+                        var tab = event.target.closest(".ac-tab[role='tab']");
+                        if (!tab) return;
+                        var tablist = tab.closest("[role='tablist']");
+                        var tabs = tablist.closest(".ac-tabs");
+                        if (!tabs || !tabs.querySelector(".ac-tabpanel")) return;
+                        tablist.querySelectorAll(".ac-tab").forEach(function(t) { t.classList.remove("is-on"); t.setAttribute("aria-selected", "false"); });
+                        tab.classList.add("is-on");
+                        tab.setAttribute("aria-selected", "true");
+                        tabs.querySelectorAll(".ac-tabpanel").forEach(function(pane) {
+                            if (pane.parentElement !== tabs) return;
+                            pane.hidden = pane.id !== tab.getAttribute("aria-controls");
+                        });
+                    });
+                </script><script async="async" defer="defer" src="https://buttons.github.io/buttons.js"></script><script async="async" defer="defer" src="https://platform.twitter.com/widgets.js"></script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+                    window.dataLayer = window.dataLayer || [];
+                    function gtag(){dataLayer.push(arguments);}
+                    gtag('js', new Date());
+                    gtag('config', 'UA-38402002-6');
+                </script></head>
+   <body class="app">
+      <div class="ldh-header" role="banner"><a class="ldh-wordmark" href="../../../"><span class="mark"></span><span>LinkedDataHub</span></a><div></div>
+         <div class="ldh-header-actions">
+            <details class="docs-versions">
+               <summary>Documentation v6</summary>
+               <div><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v5/">Documentation v5</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></div>
+            </details><a href="https://github.com/AtomGraph/LinkedDataHub-Apps" target="_blank">Sample dataspaces</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub/subscription" data-icon="octicon-eye" data-size="large" aria-label="Watch AtomGraph/LinkedDataHub on GitHub">Watch</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star AtomGraph/LinkedDataHub on GitHub">Star</a><a href="https://twitter.com/atomgraphhq" class="twitter-follow-button" data-show-count="false">Follow @atomgraphhq</a><a href="https://youtube.com/@atomgraph" target="_blank"><span class="msi outline" aria-hidden="true">smart_display</span> @atomgraph</a></div>
+      </div>
+      <div class="docs-layout">
+         <div class="docs-nav" role="navigation">
+            <ul>
+               <li><a href="../../../about/">About LinkedDataHub</a></li>
+               <li><a href="../../../get-started/">Get started</a></li>
+               <li><a href="../../../tutorial/">Tutorial</a></li>
+               <li><a href="../../../user-guide/">User guide</a></li>
+               <li><a href="../../">Reference</a><ul>
+                     <li><a href="../../administration/">Administration</a></li>
+                     <li><a href="../../command-line-interface/">Command line interface</a></li>
+                     <li><a href="../../configuration/">Configuration</a></li>
+                     <li><a href="../../data-model/">Data model</a></li>
+                     <li><a href="../../dataset/">Dataset</a></li>
+                     <li><a href="../../dataspace/">Dataspace</a></li>
+                     <li><a href="../../http-api/">HTTP API</a></li>
+                     <li><a href="../">Imports</a><ul>
+                           <li><a href="../csv/">CSV imports</a></li>
+                           <li class="is-active" aria-current="page"><a href="">RDF imports</a></li>
+                        </ul>
+                     </li>
+                     <li><a href="../../migrating-from-5x/">Migrating from 5.x</a></li>
+                     <li><a href="../../stylesheets/">Stylesheets</a></li>
+                     <li><a href="../../triplestores/">Triplestores</a></li>
+                     <li><a href="../../user-interface/">User interface</a></li>
+                     <li><a href="../../versioning/">Versioning</a></li>
+                  </ul>
+               </li>
+               <li><a href="../../../extending/">Extending</a></li>
+            </ul>
+         </div>
+         <div class="docs-main" role="main">
+            <h1>RDF imports</h1>
+            <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+               
+               <p class="ldh-body-lg">RDF imports and transforming RDF using SPARQL CONSTRUCT</p>
+               
+               <div class="ac-alert va-informative" role="status">
+                  <span class="ac-alert-ic"><span aria-hidden="true" class="msi outline">info</span></span>
+                  
+                  <div class="ac-alert-body">
+                     
+                     <p class="ac-alert-text">Read the shared <a href="../#mapping-queries">mapping query rules</a> first — they apply to CSV and RDF imports alike.</p>
+                     </div>
+                  </div>
+               
+               <p>An RDF import is a combination of multiple resources:</p>
+               
+               <dl>
+                  
+                  <dt>File</dt>
+                  
+                  <dd>The RDF file to be imported (<code>ldh:file</code>)</dd>
+                  
+                  <dt>Transformation query (optional)</dt>
+                  
+                  <dd>A user-defined <code>CONSTRUCT</code> query that transforms the input RDF into a different RDF representation (<code>spin:query</code>)</dd>
+                  
+                  <dt>Graph (optional)</dt>
+                  
+                  <dd>The target graph (document) to which converted items are appended with <a href="../../http-api/#ld-post"><code>POST</code></a> (<code>sd:name</code>)</dd>
+                  </dl>
+               
+               <div class="ac-alert va-informative" role="status">
+                  <span class="ac-alert-ic"><span aria-hidden="true" class="msi outline">info</span></span>
+                  
+                  <div class="ac-alert-body">
+                     
+                     <p class="ac-alert-text">Specify either the transformation query or the target graph, not both.</p>
+                     </div>
+                  </div>
+               
+               <p>If the graph is specified, the resulting RDF data is appended to a single document.</p>
+               
+               <p>If the transformation query is specified, the resulting data should contain document
+                  instances in order to attach to the <a href="../../dataset/#structure">document hierarchy</a>. The documents have to be URI resources. The document graphs have to be <em>explicitly specified</em> using a <code>GRAPH</code> block in the <code>CONSTRUCT</code> template (a
+                  <a href="https://jena.apache.org/documentation/query/construct-quad.html" target="_blank">Jena-specific extension</a> of SPARQL 1.1); otherwise the import result ends up in the default graph of the dataspace's
+                  RDF dataset, which LinkedDataHub does not serve.</p>
+               
+               <p>Imports run in the background — see <a href="../#execution">import execution</a>.</p>
+               
+               <p>The resulting RDF is split into documents (named graphs), which are then created one
+                  by one and validated against <a href="../../administration/ontologies/#constraints">constraints</a> as they are created.
+                  Constraint violations, if any, are attached to the import item.</p>
+               
+               <div>
+                  
+                  <h2 id="example">Running example</h2>
+                  
+                  <p>The running example connects the Northwind Traders dataspace to the <a href="https://unesco-thesaurus.demo.linkeddatahub.com/" target="_blank">UNESCO Thesaurus dataspace</a>:
+                     each Northwind product category is mapped to the thesaurus concept it corresponds
+                     to, using the SKOS mapping relations. The mapping file
+                     also types the categories as <code>skos:Concept</code>, which makes the relations applicable (and lets the
+                     <a href="../../administration/packages/">taxonomy editor package</a> render the categories as concepts):</p>
+                  
+                  <pre>@prefix skos:   &lt;http://www.w3.org/2004/02/skos/core#&gt; .
+
+# 1 Beverages -&gt; Beverages
+&lt;https://northwind-traders.demo.linkeddatahub.com/categories/1/#this&gt; a skos:Concept ;
+    skos:closeMatch &lt;https://unesco-thesaurus.demo.linkeddatahub.com/concepts/concept3683/#this&gt; .
+
+# 2 Condiments -&gt; Food (no finer concept in the thesaurus)
+&lt;https://northwind-traders.demo.linkeddatahub.com/categories/2/#this&gt; a skos:Concept ;
+    skos:broadMatch &lt;https://unesco-thesaurus.demo.linkeddatahub.com/concepts/concept1812/#this&gt; .
+
+# 3 Confections -&gt; Sugar
+&lt;https://northwind-traders.demo.linkeddatahub.com/categories/3/#this&gt; a skos:Concept ;
+    skos:relatedMatch &lt;https://unesco-thesaurus.demo.linkeddatahub.com/concepts/concept3495/#this&gt; .
+
+# … one mapping per category, 8 in total</pre>
+                  
+                  <p class="exhibit-links">Source: <a href="https://github.com/AtomGraph/LinkedDataHub-Apps/blob/master/demo/northwind-traders/categories/unesco-mappings.ttl" target="_blank">categories/unesco-mappings.ttl</a></p>
+                  
+                  <p>Imported with the <em>graph</em> variant, the whole file is appended to one target document — a single graph of mappings
+                     that describe the
+                     two dataspaces' resources:</p>
+                  
+                  <pre>&lt;#mappings-import&gt; a ldh:RDFImport ;
+    dct:title "UNESCO category mappings" ;
+    ldh:file &lt;https://localhost:4443/uploads/751b60d9516f4630a6d39bc304ce649ec3a740e9&gt; ;
+    sd:name &lt;https://localhost:4443/categories/mappings/&gt; .</pre>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="transformation">Transformation</h2>
+                  
+                  <p>This step is used to transform the RDF data that is being imported, if necessary (to
+                     a different vocabulary, for example). It also connects instances in the imported data
+                     to the documents in LinkedDataHub's <a href="../../dataset/">dataset</a>.</p>
+                  
+                  <p>The mapping is a user-defined SPARQL <code>CONSTRUCT</code> that follows the shared <a href="../#mapping-queries">mapping query rules</a>.</p>
+                  
+                  <div>
+                     
+                     <h3 id="transformation-example">Example</h3>
+                     
+                     <p>Imported with the <em>transformation</em> variant instead, each mapping is routed into its own category's document. The mapping
+                        file
+                        describes the <em>demo's</em> categories, so the transformation also rebases their URIs onto this dataspace — an
+                        ETL step that makes the
+                        same file installable against any base URI:</p>
+                     
+                     <pre>PREFIX skos:  &lt;http://www.w3.org/2004/02/skos/core#&gt;
+
+CONSTRUCT
+{
+    GRAPH ?graph
+    {
+        ?category a skos:Concept ;
+            ?mapping ?concept .
+    }
+}
+WHERE
+{
+    ?remote a skos:Concept ;
+        ?mapping ?concept .
+    FILTER(?mapping IN (skos:closeMatch, skos:broadMatch, skos:relatedMatch))
+
+    # rebase the demo's category URIs onto this dataspace's $base
+    BIND(strafter(str(?remote), "northwind-traders.demo.linkeddatahub.com/") AS ?path)
+    BIND(uri(concat(str($base), strbefore(?path, "#"))) AS ?graph)
+    BIND(uri(concat(str($base), ?path)) AS ?category)
+}</pre>
+                     
+                     <p>When the import is complete, each category document carries its mapping. The Beverages
+                        document gains:</p>
+                     
+                     <pre>@prefix skos: &lt;http://www.w3.org/2004/02/skos/core#&gt; .
+
+&lt;https://localhost:4443/categories/1/#this&gt; a skos:Concept ;
+    skos:closeMatch &lt;https://unesco-thesaurus.demo.linkeddatahub.com/concepts/concept3683/#this&gt; .</pre>
+                     
+                     <p>The mapped concept URIs stay remote on purpose: following one leads into the UNESCO
+                        Thesaurus dataspace through the
+                        <a href="../../http-api/#ld-proxy">Linked Data proxy</a>, and queries can join the two dataspaces over their
+                        <a href="../../http-api/#federation">federated</a> SPARQL endpoints.</p>
+                     </div>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="management">Management</h2>
+                  
+                  <table>
+                     
+                     <caption class="ac-vh">RDF import actions and their CLI commands</caption>
+                     
+                     <thead>
+                        
+                        <tr>
+                           
+                           <th scope="col">Action</th>
+                           
+                           <th scope="col">CLI command</th>
+                           </tr>
+                        </thead>
+                     
+                     <tbody>
+                        
+                        <tr>
+                           
+                           <th scope="row">Create RDF import from an uploaded file (<samp>--file</samp>, with <samp>--query</samp> or <samp>--graph</samp>)</th>
+                           
+                           <td><a href="../../command-line-interface/#commands"><samp>ldh add rdf-import</samp></a></td>
+                           </tr>
+                        
+                        <tr>
+                           
+                           <th scope="row">Import a local RDF file end-to-end (<samp>--rdf-file</samp>, <samp>--content-type</samp>, with <samp>--query-file</samp> or <samp>--graph</samp>)</th>
+                           
+                           <td><a href="../../command-line-interface/#commands"><samp>ldh import rdf</samp></a></td>
+                           </tr>
+                        </tbody>
+                     </table>
+                  </div>
+               
+               <p class="ldh-body-lg">If you are ready to import some RDF, follow the user guide on <a href="../../../user-guide/import-data/import-rdf-data/">creating an RDF import</a>.</p>
+               </div>
+         </div>
+      </div>
+      <div class="ldh-footer" role="contentinfo">
+         <div class="cols">
+            <div class="col brand-col"><a class="ldh-wordmark" href="https://linkeddatahub.com" target="_blank"><span class="mark"></span><span>LinkedDataHub</span></a><p>The low-code Knowledge Graph application platform. Built on RDF, SPARQL and Linked
+                  Data principles.</p>
+            </div>
+            <div class="col">
+               <p class="ftitle">About</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a><a href="https://atomgraph.com" target="_blank">AtomGraph</a></div>
+            <div class="col">
+               <p class="ftitle">Resources</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></div>
+            <div class="col">
+               <p class="ftitle">Support</p><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a><a href="mailto:support@linkeddatahub.com">Contact support</a></div>
+            <div class="col">
+               <p class="ftitle">Follow us</p><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></div>
+         </div>
+         <div class="legal"><span>© 2026 AtomGraph · LinkedDataHub</span></div>
+      </div>
+   </body>
+</html>

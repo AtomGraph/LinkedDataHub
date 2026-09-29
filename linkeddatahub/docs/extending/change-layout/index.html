@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" lang="en" data-retro="m3" data-theme="light">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>LinkedDataHub v5 — Change layout</title>
+      <meta name="description" content="How to customize a dataspace's layout and the way its resources are rendered"/>
+      <meta name="last-modified" content="2026-09-29T23:17:17Z"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1"/>
+      <link href="../../static/css/fonts.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/colors_and_type.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/app.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/retro.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/ldh.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/docs.css" rel="stylesheet" type="text/css"/><script type="text/javascript">
+                    document.addEventListener("click", function(event) {
+                        var tab = event.target.closest(".ac-tab[role='tab']");
+                        if (!tab) return;
+                        var tablist = tab.closest("[role='tablist']");
+                        var tabs = tablist.closest(".ac-tabs");
+                        if (!tabs || !tabs.querySelector(".ac-tabpanel")) return;
+                        tablist.querySelectorAll(".ac-tab").forEach(function(t) { t.classList.remove("is-on"); t.setAttribute("aria-selected", "false"); });
+                        tab.classList.add("is-on");
+                        tab.setAttribute("aria-selected", "true");
+                        tabs.querySelectorAll(".ac-tabpanel").forEach(function(pane) {
+                            if (pane.parentElement !== tabs) return;
+                            pane.hidden = pane.id !== tab.getAttribute("aria-controls");
+                        });
+                    });
+                </script><script async="async" defer="defer" src="https://buttons.github.io/buttons.js"></script><script async="async" defer="defer" src="https://platform.twitter.com/widgets.js"></script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+                    window.dataLayer = window.dataLayer || [];
+                    function gtag(){dataLayer.push(arguments);}
+                    gtag('js', new Date());
+                    gtag('config', 'UA-38402002-6');
+                </script></head>
+   <body class="app">
+      <div class="ldh-header" role="banner"><a class="ldh-wordmark" href="../../"><span class="mark"></span><span>LinkedDataHub</span></a><div></div>
+         <div class="ldh-header-actions">
+            <details class="docs-versions">
+               <summary>Documentation v6</summary>
+               <div><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v5/">Documentation v5</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></div>
+            </details><a href="https://github.com/AtomGraph/LinkedDataHub-Apps" target="_blank">Sample dataspaces</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub/subscription" data-icon="octicon-eye" data-size="large" aria-label="Watch AtomGraph/LinkedDataHub on GitHub">Watch</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star AtomGraph/LinkedDataHub on GitHub">Star</a><a href="https://twitter.com/atomgraphhq" class="twitter-follow-button" data-show-count="false">Follow @atomgraphhq</a><a href="https://youtube.com/@atomgraph" target="_blank"><span class="msi outline" aria-hidden="true">smart_display</span> @atomgraph</a></div>
+      </div>
+      <div class="docs-layout">
+         <div class="docs-nav" role="navigation">
+            <ul>
+               <li><a href="../../about/">About LinkedDataHub</a></li>
+               <li><a href="../../get-started/">Get started</a></li>
+               <li><a href="../../tutorial/">Tutorial</a></li>
+               <li><a href="../../user-guide/">User guide</a></li>
+               <li><a href="../../reference/">Reference</a></li>
+               <li><a href="../">Extending</a><ul>
+                     <li><a href="../build-apps/">Build apps</a></li>
+                     <li class="is-active" aria-current="page"><a href="">Change layout</a></li>
+                  </ul>
+               </li>
+            </ul>
+         </div>
+         <div class="docs-main" role="main">
+            <h1>Change layout</h1>
+            <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+               
+               <p class="ldh-body-lg">How to customize a dataspace's layout and the way its resources are rendered</p>
+               
+               <p>LinkedDataHub's user interface is simply a rendering of the underlying Linked Data
+                  resource descriptions, which are exposed via the <a href="../../reference/http-api/" target="_blank">HTTP API</a>.</p>
+               
+               <p>LinkedDataHub provides <a href="../../reference/stylesheets/" target="_blank">XSLT stylesheets</a> that render a default UI layout. When building a dataspace, however, you may want
+                  a custom
+                  layout. The recommended approach is a new stylesheet that imports the system stylesheet
+                  and overrides only the templates you need, reusing the rest of the layout.</p>
+               
+               <div>
+                  
+                  <h2 id="default-layout">Default layout</h2>
+                  
+                  <p>The examples below run on a Northwind <a href="https://northwind-traders.demo.linkeddatahub.com/orders/10248/" target="_blank">order document</a>:
+                     its graph holds the order (the document's topic) and the order's line items, each
+                     carrying its own <code>schema:price</code> line total.</p>
+                  
+                  <p>Out of the box, the default layout renders the order and each line item as a plain
+                     resource description.</p>
+                  <img alt="A Northwind order document in the default layout, order and line items as generic resource descriptions" src="../../files/extending/change-layout-1.webp"/>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="create-stylesheet">Create a stylesheet</h2>
+                  
+                  <p>Create a new XSLT 3.0 stylesheet and use <code>&lt;xsl:import&gt;</code> to import the system stylesheet <a href="https://github.com/AtomGraph/LinkedDataHub/blob/master/src/main/webapp/static/com/atomgraph/linkeddatahub/xsl/layout.xsl" target="_blank"><samp>static/com/atomgraph/linkeddatahub/xsl/layout.xsl</samp></a>:</p>
+                  
+                  <pre>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;xsl:stylesheet version="3.0"
+xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+xmlns="http://www.w3.org/1999/xhtml"
+xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+xmlns:foaf="http://xmlns.com/foaf/0.1/"
+xmlns:schema="https://schema.org/"
+xmlns:ac="https://w3id.org/atomgraph/client#"
+xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#"
+exclude-result-prefixes="#all"&gt;
+
+    &lt;xsl:import href="https://localhost:4443/static/com/atomgraph/linkeddatahub/xsl/layout.xsl"/&gt;
+
+    &lt;!-- overriding templates go here --&gt;
+
+&lt;/xsl:stylesheet&gt;</pre>
+                  
+                  <p>(Imports under the dataspace's <samp>/static/</samp> path resolve to local webapp files, so no HTTP round-trip is made.)</p>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="configure-dataspace">Configure the dataspace</h2>
+                  
+                  <p>Either <a href="../../user-guide/upload-file/" target="_blank">upload the XSLT file</a> or mount it using Docker and <samp>docker-compose.override.yml</samp>:</p>
+                  
+                  <pre>services:
+  linkeddatahub:
+    volumes:
+      - ./files/northwind.xsl:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/northwind/xsl/layout.xsl:ro</pre>
+                  
+                  <p>Then change the value of <code>ac:stylesheet</code> on the dataspace with base URI <code>https://localhost:4443/</code> to the URL of the stylesheet. The value has to be an absolute URL on the dataspace's
+                     own origin:</p>
+                  
+                  <pre>&lt;urn:linkeddatahub:apps/end-user&gt; a lds:Dataspace ;
+    ...
+    ac:stylesheet &lt;https://localhost:4443/static/com/atomgraph/linkeddatahub/northwind/xsl/layout.xsl&gt; ;
+    ...</pre>
+                  
+                  <p>You will need to restart LinkedDataHub's Docker service for the new stylesheet to
+                     take effect.</p>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="augment-output">Augment output</h2>
+                  
+                  <p>Keep the default output using <code>&lt;xsl:apply-imports&gt;</code> or <code>&lt;xsl:next-match&gt;</code> and add new output before/after it.
+                     Here the order's rendering gains a computed total, summed over the line items in the
+                     graph:</p>
+                  
+                  <pre>&lt;xsl:template match="*[foaf:isPrimaryTopicOf/@rdf:resource = ac:absolute-path(ldh:base-uri(.))][rdf:type/@rdf:resource = 'https://schema.org/Order'][key('resources', schema:orderedItem/@rdf:resource)]" priority="1"&gt;
+    &lt;xsl:next-match/&gt;
+
+    &lt;h3&gt;Order total&lt;/h3&gt;
+    &lt;p&gt;
+        &lt;xsl:value-of select="format-number(sum(key('resources', schema:orderedItem/@rdf:resource)/schema:price), '#,##0.00')"/&gt;
+        &lt;xsl:text&gt; USD&lt;/xsl:text&gt;
+    &lt;/p&gt;
+&lt;/xsl:template&gt;</pre>
+                  
+                  <p>The pattern matches resource descriptions that are the primary topic of the requested
+                     document (i.e. its order), are typed <code>schema:Order</code>, and have line items present in the RDF graph.</p>
+                  
+                  <p>With the overriding template, the order page shows the computed total after the order's
+                     default description.</p>
+                  <img alt="The augmented order page with the Order total heading and sum under the order description" src="../../files/extending/change-layout-2.webp"/>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="override-output">Override output</h2>
+                  
+                  <p>To completely change the layout without keeping the default one, use the same logic
+                     as for <a href="#augment-output">augmenting</a> it, but do not call <code>&lt;xsl:apply-imports&gt;</code>/<code>&lt;xsl:next-match&gt;</code>.</p>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="suppress-output">Suppress output</h2>
+                  
+                  <p>Having summed the line items into a total, you may no longer want each line item rendered
+                     as its own resource description, nor the raw
+                     <code>schema:orderedItem</code> rows in the order's property list.</p>
+                  
+                  <p>You can specify an empty template at any level (graph/property/resource) to disable
+                     output of that layout mode. This suppresses the line item resources:</p>
+                  
+                  <pre>&lt;xsl:template match="*[@rdf:about = key('resources', key('resources', ac:absolute-path(ldh:base-uri(.)))/foaf:primaryTopic/@rdf:resource)/schema:orderedItem/@rdf:resource]"/&gt;</pre>
+                  
+                  <p>The pattern matches resource descriptions that are line items of the current document's
+                     primary topic.</p>
+                  
+                  <p>And this suppresses the property rows:</p>
+                  
+                  <pre>&lt;xsl:template match="*[foaf:isPrimaryTopicOf/@rdf:resource = ac:absolute-path(ldh:base-uri(.))]/schema:orderedItem" mode="ac:PropertyEditor"/&gt;</pre>
+                  
+                  <p>The pattern matches <code>schema:orderedItem</code> properties of a resource that is the primary topic of the current document.</p>
+                  
+                  <p>With the suppressing templates, the order page shows the order and its total, with
+                     the line items no longer repeated below.</p>
+                  <img alt="The order page after suppression — order description and total only, line items hidden" src="../../files/extending/change-layout-3.webp"/>
+                  </div>
+               
+               <p class="ldh-body-lg">Read more about the <a href="../../reference/stylesheets/">XSLT stylesheets</a> or continue with the <a href="../build-apps/">Build apps</a> guide.</p>
+               </div>
+         </div>
+      </div>
+      <div class="ldh-footer" role="contentinfo">
+         <div class="cols">
+            <div class="col brand-col"><a class="ldh-wordmark" href="https://linkeddatahub.com" target="_blank"><span class="mark"></span><span>LinkedDataHub</span></a><p>The low-code Knowledge Graph application platform. Built on RDF, SPARQL and Linked
+                  Data principles.</p>
+            </div>
+            <div class="col">
+               <p class="ftitle">About</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a><a href="https://atomgraph.com" target="_blank">AtomGraph</a></div>
+            <div class="col">
+               <p class="ftitle">Resources</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></div>
+            <div class="col">
+               <p class="ftitle">Support</p><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a><a href="mailto:support@linkeddatahub.com">Contact support</a></div>
+            <div class="col">
+               <p class="ftitle">Follow us</p><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></div>
+         </div>
+         <div class="legal"><span>© 2026 AtomGraph · LinkedDataHub</span></div>
+      </div>
+   </body>
+</html>

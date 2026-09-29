@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" lang="en" data-retro="m3" data-theme="light">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>LinkedDataHub v5 — Import RDF data</title>
+      <meta name="description" content="Step-by-step guide to importing RDF data"/>
+      <meta name="last-modified" content="2026-09-29T23:17:17Z"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1"/>
+      <link href="../../../static/css/fonts.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/colors_and_type.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/app.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/retro.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/ldh.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/docs.css" rel="stylesheet" type="text/css"/><script type="text/javascript">
+                    document.addEventListener("click", function(event) {
+                        var tab = event.target.closest(".ac-tab[role='tab']");
+                        if (!tab) return;
+                        var tablist = tab.closest("[role='tablist']");
+                        var tabs = tablist.closest(".ac-tabs");
+                        if (!tabs || !tabs.querySelector(".ac-tabpanel")) return;
+                        tablist.querySelectorAll(".ac-tab").forEach(function(t) { t.classList.remove("is-on"); t.setAttribute("aria-selected", "false"); });
+                        tab.classList.add("is-on");
+                        tab.setAttribute("aria-selected", "true");
+                        tabs.querySelectorAll(".ac-tabpanel").forEach(function(pane) {
+                            if (pane.parentElement !== tabs) return;
+                            pane.hidden = pane.id !== tab.getAttribute("aria-controls");
+                        });
+                    });
+                </script><script async="async" defer="defer" src="https://buttons.github.io/buttons.js"></script><script async="async" defer="defer" src="https://platform.twitter.com/widgets.js"></script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+                    window.dataLayer = window.dataLayer || [];
+                    function gtag(){dataLayer.push(arguments);}
+                    gtag('js', new Date());
+                    gtag('config', 'UA-38402002-6');
+                </script></head>
+   <body class="app">
+      <div class="ldh-header" role="banner"><a class="ldh-wordmark" href="../../../"><span class="mark"></span><span>LinkedDataHub</span></a><div></div>
+         <div class="ldh-header-actions">
+            <details class="docs-versions">
+               <summary>Documentation v6</summary>
+               <div><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v5/">Documentation v5</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></div>
+            </details><a href="https://github.com/AtomGraph/LinkedDataHub-Apps" target="_blank">Sample dataspaces</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub/subscription" data-icon="octicon-eye" data-size="large" aria-label="Watch AtomGraph/LinkedDataHub on GitHub">Watch</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star AtomGraph/LinkedDataHub on GitHub">Star</a><a href="https://twitter.com/atomgraphhq" class="twitter-follow-button" data-show-count="false">Follow @atomgraphhq</a><a href="https://youtube.com/@atomgraph" target="_blank"><span class="msi outline" aria-hidden="true">smart_display</span> @atomgraph</a></div>
+      </div>
+      <div class="docs-layout">
+         <div class="docs-nav" role="navigation">
+            <ul>
+               <li><a href="../../../about/">About LinkedDataHub</a></li>
+               <li><a href="../../../get-started/">Get started</a></li>
+               <li><a href="../../../tutorial/">Tutorial</a></li>
+               <li><a href="../../">User guide</a><ul>
+                     <li><a href="../../add-data/">Add data</a></li>
+                     <li><a href="../../browse-data/">Browse data</a></li>
+                     <li><a href="../../change-model/">Change model</a></li>
+                     <li><a href="../../create-data/">Create data</a></li>
+                     <li><a href="../../edit-content/">Edit content</a></li>
+                     <li><a href="../">Import data</a><ul>
+                           <li><a href="../import-csv-data/">Import CSV data</a></li>
+                           <li class="is-active" aria-current="page"><a href="">Import RDF data</a></li>
+                        </ul>
+                     </li>
+                     <li><a href="../../manage-dataspaces/">Manage dataspaces</a></li>
+                     <li><a href="../../manage-packages/">Manage packages</a></li>
+                     <li><a href="../../query-data/">Query data</a></li>
+                     <li><a href="../../upload-file/">Upload file</a></li>
+                     <li><a href="../../version-history/">Version history</a></li>
+                  </ul>
+               </li>
+               <li><a href="../../../reference/">Reference</a></li>
+               <li><a href="../../../extending/">Extending</a></li>
+            </ul>
+         </div>
+         <div class="docs-main" role="main">
+            <h1>Import RDF data</h1>
+            <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+               
+               <p class="ldh-body-lg">Step-by-step guide to importing RDF data</p>
+               
+               <div class="ac-alert va-informative" role="status">
+                  <span class="ac-alert-ic"><span aria-hidden="true" class="msi outline">info</span></span>
+                  
+                  <div class="ac-alert-body">
+                     
+                     <p class="ac-alert-text">This guide is for importing larger amounts of data (e.g. more than a few thousand
+                        RDF triples) asynchronously.
+                        For smaller data, it is simpler to <a href="../../add-data/" target="_blank">add data</a> synchronously.</p>
+                     </div>
+                  </div>
+               
+               <p>An RDF import has these components:</p>
+               
+               <dl>
+                  
+                  <dt>RDF file</dt>
+                  
+                  <dd>The file containing the RDF data (can be in any RDF syntax)</dd>
+                  
+                  <dt>Transformation query (optional)</dt>
+                  
+                  <dd>SPARQL <code>CONSTRUCT</code> query that maps RDF to another RDF representation</dd>
+                  
+                  <dt>Graph (optional)</dt>
+                  
+                  <dd>The document that the import results will be stored in, if no transformation query
+                     is specified</dd>
+                  
+                  <dt>RDF import</dt>
+                  
+                  <dd>Combines the file with the corresponding query</dd>
+                  </dl>
+               
+               <div class="ac-alert va-informative" role="status">
+                  <span class="ac-alert-ic"><span aria-hidden="true" class="msi outline">info</span></span>
+                  
+                  <div class="ac-alert-body">
+                     
+                     <p class="ac-alert-text">Specify either a query or a graph, but not both.</p>
+                     </div>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="import-rdf-file">Import an RDF file</h2>
+                  
+                  <p>Without a transformation, the import <em>asynchronously</em> appends the RDF data to a document (see <a href="../../create-data/create-documents/">how to create a document</a>).
+                     With a transformation, it runs the uploaded RDF through a <code>CONSTRUCT</code> query before storing it, so the import can restructure or re-route the data.</p>
+                  
+                  <div class="ac-tabs or-horizontal">
+                     
+                     <div class="ac-tablist sz-md va-line" role="tablist">
+                        <button aria-controls="user-interface-pane" aria-selected="true" class="ac-tab is-on" id="user-interface-tab" role="tab" type="button"><span class="ac-tab-lbl">User interface</span></button>
+                        <button aria-controls="command-line-interface-pane" aria-selected="false" class="ac-tab" id="command-line-interface-tab" role="tab" type="button"><span class="ac-tab-lbl">Command line interface</span></button>
+                        </div>
+                     
+                     <div aria-labelledby="user-interface-tab" class="ac-tabpanel" id="user-interface-pane" role="tabpanel">
+                        
+                        <div>
+                           
+                           <p>All the import components can be created from a single dialog, but the steps below
+                              create them one at a time:</p>
+                           
+                           <ol>
+                              
+                              <li>First, create a container for the data to be imported. This will be the import's <dfn>target container</dfn>.</li>
+                              
+                              <li>Upload an RDF file. Click on the <span class="ac-btn in-primary ap-solid sz-md">Create <span aria-hidden="true" class="msi caret">expand_more</span></span> dropdown at the bottom of the page and select
+                                 <dfn>File</dfn>. This will open a new form.</li>
+                              
+                              <li>Fill out the <dfn>Item</dfn> fields — the document's <samp>Title</samp> (required) and optional <samp>Description</samp>, the same fields used when <a href="../../create-data/create-documents/">creating a document</a>.</li>
+                              
+                              <li>
+                                 Fill out the mandatory <dfn>File</dfn> fields:
+                                 
+                                 <dl>
+                                    
+                                    <dt>Filename</dt>
+                                    
+                                    <dd>Click on <dfn>Choose file</dfn> and select an RDF file from your computer</dd>
+                                    
+                                    <dt>Title</dt>
+                                    
+                                    <dd>File title</dd>
+                                    </dl>
+                                 </li>
+                              
+                              <li>Once all the fields have been filled in, click <span class="ac-btn in-primary ap-solid sz-sm">Save</span>.</li>
+                              
+                              <li>The browser will open your uploaded file.</li>
+                              
+                              <li>
+                                 If you are importing with a transformation, create a <a href="../../../reference/imports/rdf/#transformation">transformation query</a> that will
+                                 transform the uploaded RDF to a new RDF structure. Click on the <span class="ac-btn in-primary ap-solid sz-md">Create <span aria-hidden="true" class="msi caret">expand_more</span></span> dropdown at the bottom of the page and
+                                 select <dfn>CONSTRUCT</dfn>. This will open a new form. Fill out the <samp>Item</samp> fields and the mandatory <dfn>CONSTRUCT</dfn> fields:
+                                 
+                                 <dl>
+                                    
+                                    <dt>Text</dt>
+                                    
+                                    <dd>SPARQL <code>CONSTRUCT</code> query string</dd>
+                                    
+                                    <dd><em>You will not be able to save the query if its syntax is not valid SPARQL 1.1.</em></dd>
+                                    
+                                    <dt>Title</dt>
+                                    
+                                    <dd>Query title</dd>
+                                    </dl>
+                                 Once all the fields have been filled in, click <span class="ac-btn in-primary ap-solid sz-sm">Save</span>. You can find the query saved in the
+                                 <dfn>Queries</dfn> container, which you can open from the <a href="../../../reference/user-interface/#document-hierarchy">document tree</a> in the left sidebar.
+                                 </li>
+                              
+                              <li>Click on the <span class="ac-btn in-primary ap-solid sz-md">Create <span aria-hidden="true" class="msi caret">expand_more</span></span> dropdown button at the bottom of the page and select <dfn>RDF Import</dfn>.
+                                 This will open a new form.</li>
+                              
+                              <li>Fill out the <samp>Item</samp> fields.</li>
+                              
+                              <li>
+                                 Fill out the mandatory <dfn>RDF Import</dfn> fields:
+                                 
+                                 <dl>
+                                    
+                                    <dt>File</dt>
+                                    
+                                    <dd>Start typing the name of your RDF file and select it from the typeahead</dd>
+                                    
+                                    <dt>Title</dt>
+                                    
+                                    <dd>Import title</dd>
+                                    </dl>
+                                 </li>
+                              
+                              <li>
+                                 Select either the target graph or the transformation query — but not both:
+                                 
+                                 <dl>
+                                    
+                                    <dt>Name</dt>
+                                    
+                                    <dd>Select the target graph (document) using the typeahead</dd>
+                                    
+                                    <dt>Query</dt>
+                                    
+                                    <dd>Select the transformation query using the typeahead</dd>
+                                    </dl>
+                                 </li>
+                              
+                              <li>Click <span class="ac-btn in-primary ap-solid sz-sm">Save</span> and you will be redirected to the newly created import document.</li>
+                              
+                              <li>Reload the document after a few moments to see the import progress. On success, the
+                                 amount of data imported is
+                                 displayed; on failure, the constraint violations or other import errors.</li>
+                              
+                              <li>Go back to the target document to see the newly imported data items.</li>
+                              </ol>
+                           </div>
+                        </div>
+                     
+                     <div aria-labelledby="command-line-interface-tab" class="ac-tabpanel" hidden="hidden" id="command-line-interface-pane" role="tabpanel">
+                        
+                        <div>
+                           
+                           <p>The import is described by a document, which the command takes as its last argument,
+                              so create that document first. With the <a href="../../../reference/command-line-interface/">CLI</a> installed and the <samp>LDH_*</samp> variables set:</p>
+                           
+                           <pre>doc=$(ldh create item \
+    --title "UNESCO category mappings" \
+    --container "${LDH_BASE}categories/")
+
+ldh import rdf \
+    --title "UNESCO category mappings" \
+    --rdf-file categories/unesco-mappings.ttl \
+    --content-type "text/turtle" \
+    --graph "${LDH_BASE}categories/mappings/" \
+    "$doc"</pre>
+                           
+                           <p>Pass either <code>--graph</code> with the target document's URI or <code>--query-file</code> with the path to a transformation query, but not both.
+                              In the Northwind demo, the <a href="../../../reference/imports/rdf/#transformation-example">transformation query</a> routes each mapping into its category's own document.</p>
+                           
+                           <p class="exhibit-links">Source: <a href="https://github.com/AtomGraph/LinkedDataHub-Apps/blob/master/demo/northwind-traders/categories/unesco-mappings.ttl" target="_blank">categories/unesco-mappings.ttl</a> — the mapping file that connects Northwind categories to UNESCO Thesaurus concepts,
+                              shown in full in the <a href="../../../reference/imports/rdf/">RDF imports reference</a></p>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               
+               <p class="ldh-body-lg"><a href="../../../reference/imports/rdf/" target="_blank">Read more about how RDF imports work.</a></p>
+               </div>
+         </div>
+      </div>
+      <div class="ldh-footer" role="contentinfo">
+         <div class="cols">
+            <div class="col brand-col"><a class="ldh-wordmark" href="https://linkeddatahub.com" target="_blank"><span class="mark"></span><span>LinkedDataHub</span></a><p>The low-code Knowledge Graph application platform. Built on RDF, SPARQL and Linked
+                  Data principles.</p>
+            </div>
+            <div class="col">
+               <p class="ftitle">About</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a><a href="https://atomgraph.com" target="_blank">AtomGraph</a></div>
+            <div class="col">
+               <p class="ftitle">Resources</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></div>
+            <div class="col">
+               <p class="ftitle">Support</p><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a><a href="mailto:support@linkeddatahub.com">Contact support</a></div>
+            <div class="col">
+               <p class="ftitle">Follow us</p><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></div>
+         </div>
+         <div class="legal"><span>© 2026 AtomGraph · LinkedDataHub</span></div>
+      </div>
+   </body>
+</html>

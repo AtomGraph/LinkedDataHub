@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" lang="en" data-retro="m3" data-theme="light">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>LinkedDataHub v5 — Documents</title>
+      <meta name="description" content="Document structure and the basic data management actions"/>
+      <meta name="last-modified" content="2026-09-29T23:17:17Z"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1"/>
+      <link href="../../../static/css/fonts.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/colors_and_type.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/app.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/retro.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/ldh.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/docs.css" rel="stylesheet" type="text/css"/><script type="text/javascript">
+                    document.addEventListener("click", function(event) {
+                        var tab = event.target.closest(".ac-tab[role='tab']");
+                        if (!tab) return;
+                        var tablist = tab.closest("[role='tablist']");
+                        var tabs = tablist.closest(".ac-tabs");
+                        if (!tabs || !tabs.querySelector(".ac-tabpanel")) return;
+                        tablist.querySelectorAll(".ac-tab").forEach(function(t) { t.classList.remove("is-on"); t.setAttribute("aria-selected", "false"); });
+                        tab.classList.add("is-on");
+                        tab.setAttribute("aria-selected", "true");
+                        tabs.querySelectorAll(".ac-tabpanel").forEach(function(pane) {
+                            if (pane.parentElement !== tabs) return;
+                            pane.hidden = pane.id !== tab.getAttribute("aria-controls");
+                        });
+                    });
+                </script><script async="async" defer="defer" src="https://buttons.github.io/buttons.js"></script><script async="async" defer="defer" src="https://platform.twitter.com/widgets.js"></script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+                    window.dataLayer = window.dataLayer || [];
+                    function gtag(){dataLayer.push(arguments);}
+                    gtag('js', new Date());
+                    gtag('config', 'UA-38402002-6');
+                </script></head>
+   <body class="app">
+      <div class="ldh-header" role="banner"><a class="ldh-wordmark" href="../../../"><span class="mark"></span><span>LinkedDataHub</span></a><div></div>
+         <div class="ldh-header-actions">
+            <details class="docs-versions">
+               <summary>Documentation v6</summary>
+               <div><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v5/">Documentation v5</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></div>
+            </details><a href="https://github.com/AtomGraph/LinkedDataHub-Apps" target="_blank">Sample dataspaces</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub/subscription" data-icon="octicon-eye" data-size="large" aria-label="Watch AtomGraph/LinkedDataHub on GitHub">Watch</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star AtomGraph/LinkedDataHub on GitHub">Star</a><a href="https://twitter.com/atomgraphhq" class="twitter-follow-button" data-show-count="false">Follow @atomgraphhq</a><a href="https://youtube.com/@atomgraph" target="_blank"><span class="msi outline" aria-hidden="true">smart_display</span> @atomgraph</a></div>
+      </div>
+      <div class="docs-layout">
+         <div class="docs-nav" role="navigation">
+            <ul>
+               <li><a href="../../../about/">About LinkedDataHub</a></li>
+               <li><a href="../../../get-started/">Get started</a></li>
+               <li><a href="../../../tutorial/">Tutorial</a></li>
+               <li><a href="../../../user-guide/">User guide</a></li>
+               <li><a href="../../">Reference</a><ul>
+                     <li><a href="../../administration/">Administration</a></li>
+                     <li><a href="../../command-line-interface/">Command line interface</a></li>
+                     <li><a href="../../configuration/">Configuration</a></li>
+                     <li><a href="../">Data model</a><ul>
+                           <li class="is-active" aria-current="page"><a href="">Documents</a></li>
+                           <li><a href="../blocks/">Content blocks</a></li>
+                           <li><a href="../resources/">Resources</a></li>
+                        </ul>
+                     </li>
+                     <li><a href="../../dataset/">Dataset</a></li>
+                     <li><a href="../../dataspace/">Dataspace</a></li>
+                     <li><a href="../../http-api/">HTTP API</a></li>
+                     <li><a href="../../imports/">Imports</a></li>
+                     <li><a href="../../migrating-from-5x/">Migrating from 5.x</a></li>
+                     <li><a href="../../stylesheets/">Stylesheets</a></li>
+                     <li><a href="../../triplestores/">Triplestores</a></li>
+                     <li><a href="../../user-interface/">User interface</a></li>
+                     <li><a href="../../versioning/">Versioning</a></li>
+                  </ul>
+               </li>
+               <li><a href="../../../extending/">Extending</a></li>
+            </ul>
+         </div>
+         <div class="docs-main" role="main">
+            <h1>Documents</h1>
+            <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+               
+               <p class="ldh-body-lg">Document structure and the basic data management actions</p>
+               
+               <div>
+                  
+                  <h2 id="hierarchy">Document hierarchy</h2>
+                  
+                  <p>The basic structure of resources in a LinkedDataHub <a href="../../dataspace/#dataspaces">dataspace</a> is analogous to a file system, but built using RDF
+                     resources and relationships between them instead. There is a hierarchy of <dfn>containers</dfn> (folders),
+                     which are collections of <dfn>items</dfn> (files) as well as sub-containers (sub-folders). Both containers
+                     (instances of <code>dh:Container</code>) and items (instances of <code>dh:Item</code>) are <dfn>documents</dfn> (instances of <code>foaf:Document</code>). Items cannot contain other documents.</p>
+                  
+                  <p>The first level of resources in a container is referred to as its <dfn>children</dfn> (of which that container
+                     is the <dfn>parent</dfn>), while all levels down the hierarchy are collectively referred to as
+                     <dfn>descendants</dfn>. In the <a href="https://github.com/AtomGraph/LinkedDataHub-Apps/tree/master/demo/northwind-traders" target="_blank">Northwind Traders</a> dataspace used in the examples below:</p>
+                  
+                  <pre>https://localhost:4443/          # the root container
+├── categories/                  # container
+│   ├── 1/                       # item — the Beverages category
+│   └── …
+├── products/                    # container
+│   ├── 1/                       # item — the Chai product
+│   └── …
+└── orders/                      # container</pre>
+                  
+                  <p>When a user logs in, the dataspace loads its root container (unless a specific URI
+                     was requested). From there,
+                     users can navigate down the resource hierarchy, starting with children of the <dfn>root container</dfn>. At
+                     any moment there is only one <dfn>current document</dfn> per page, on which <a href="#management">management actions</a> can
+                     be performed: it can be viewed, edited etc.</p>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="containers">Containers</h2>
+                  
+                  <div>
+                     
+                     <h3 id="container-rdf-serialization">RDF serialization</h3>
+                     
+                     <p>Document properties such as <code>sioc:has_parent</code>, <code>dct:created</code>, <code>dct:modified</code>, <code>acl:owner</code> are <a href="../../http-api/#document-metadata">automatically managed</a> by LinkedDataHub.</p>
+                     
+                     <pre>@prefix dh: &lt;https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#&gt; .
+@prefix ldh: &lt;https://w3id.org/atomgraph/linkeddatahub#&gt; .
+@prefix rdf: &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#&gt; .
+@prefix dct: &lt;http://purl.org/dc/terms/&gt; .
+@prefix xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt; .
+@prefix sioc: &lt;http://rdfs.org/sioc/ns#&gt; .
+@prefix acl: &lt;http://www.w3.org/ns/auth/acl#&gt; .
+
+&lt;https://localhost:4443/categories/&gt;
+    a       dh:Container ;
+    rdf:_1  &lt;https://localhost:4443/categories/#select-children&gt; ;
+    dct:created "2025-06-02T19:12:26.533Z"^^xsd:dateTime ;
+    dct:creator &lt;https://admin.localhost:4443/acl/agents/865c2431-8436-4ae8-b300-2a531a013cd0/#this&gt; ;
+    dct:title "Categories" ;
+    sioc:has_parent &lt;https://localhost:4443/&gt; ;
+    acl:owner &lt;https://admin.localhost:4443/acl/agents/865c2431-8436-4ae8-b300-2a531a013cd0/#this&gt; .
+
+&lt;https://localhost:4443/categories/#select-children&gt;
+    a       ldh:Object ;
+    rdf:value ldh:ChildrenView .</pre>
+                     
+                     <p>The <code>&lt;#select-children&gt;</code> resource is an <code>ldh:Object</code> <a href="../blocks/">content block</a> whose <code>rdf:value</code> <code>ldh:ChildrenView</code> renders the container's children listing.</p>
+                     
+                     <p class="exhibit-links">Live: <a href="https://northwind-traders.demo.linkeddatahub.com/categories/" target="_blank">/categories/</a> (the demo's version composes <a href="https://github.com/AtomGraph/LinkedDataHub-Apps/blob/master/demo/northwind-traders/categories.ttl" target="_blank">further blocks</a> on top of this shape)</p>
+                     </div>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="items">Items</h2>
+                  
+                  <div>
+                     
+                     <h3 id="item-rdf-serialization">RDF serialization</h3>
+                     
+                     <p>Document properties such as <code>sioc:has_container</code>, <code>dct:created</code>, <code>dct:modified</code>, <code>acl:owner</code> are <a href="../../http-api/#document-metadata">automatically managed</a> by LinkedDataHub.</p>
+                     
+                     <pre>@prefix dh: &lt;https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#&gt; .
+@prefix dct: &lt;http://purl.org/dc/terms/&gt; .
+@prefix xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt; .
+@prefix sioc: &lt;http://rdfs.org/sioc/ns#&gt; .
+@prefix acl: &lt;http://www.w3.org/ns/auth/acl#&gt; .
+@prefix foaf: &lt;http://xmlns.com/foaf/0.1/&gt; .
+@prefix schema: &lt;https://schema.org/&gt; .
+
+&lt;https://localhost:4443/products/1/&gt;
+    a       dh:Item ;
+    dct:created "2025-06-02T19:49:48.126Z"^^xsd:dateTime ;
+    dct:creator &lt;https://admin.localhost:4443/acl/agents/865c2431-8436-4ae8-b300-2a531a013cd0/#this&gt; ;
+    dct:title "Chai" ;
+    sioc:has_container &lt;https://localhost:4443/products/&gt; ;
+    acl:owner &lt;https://admin.localhost:4443/acl/agents/865c2431-8436-4ae8-b300-2a531a013cd0/#this&gt; ;
+    foaf:primaryTopic &lt;https://localhost:4443/products/1/#this&gt; .
+
+&lt;https://localhost:4443/products/1/#this&gt;
+    a       schema:Product ;
+    schema:name "Chai" ;
+    schema:identifier "1" ;
+    schema:category &lt;https://localhost:4443/categories/1/#this&gt; ;
+    schema:provider &lt;https://localhost:4443/suppliers/1/#this&gt; .</pre>
+                     
+                     <p>An item is often <em>about</em> something — here the document <samp>products/1/</samp> describes the Chai product, a non-information
+                        resource identified by the <samp>#this</samp> fragment and linked with <code>foaf:primaryTopic</code>.</p>
+                     
+                     <p class="exhibit-links">Source: <a href="https://github.com/AtomGraph/LinkedDataHub-Apps/blob/master/demo/northwind-traders/products/products.rq" target="_blank">products/products.rq</a> (the mapping that mints it) · Live: <a href="https://northwind-traders.demo.linkeddatahub.com/products/1/" target="_blank">/products/1/</a></p>
+                     </div>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="management">Management</h2>
+                  
+                  <div class="ac-tabs or-horizontal">
+                     
+                     <div class="ac-tablist sz-md va-line" role="tablist">
+                        <button aria-controls="user-interface-pane" aria-selected="true" class="ac-tab is-on" id="user-interface-tab" role="tab" type="button"><span class="ac-tab-lbl">User interface</span></button>
+                        <button aria-controls="command-line-interface-pane" aria-selected="false" class="ac-tab" id="command-line-interface-tab" role="tab" type="button"><span class="ac-tab-lbl">Command line interface</span></button>
+                        </div>
+                     
+                     <div aria-labelledby="user-interface-tab" class="ac-tabpanel" id="user-interface-pane" role="tabpanel">
+                        
+                        <table>
+                           
+                           <caption class="ac-vh">Document management actions</caption>
+                           
+                           <thead>
+                              
+                              <tr>
+                                 
+                                 <th scope="col">Action</th>
+                                 
+                                 <th scope="col">Description</th>
+                                 </tr>
+                              </thead>
+                           
+                           <tbody>
+                              
+                              <tr>
+                                 
+                                 <th scope="row">Create</th>
+                                 
+                                 <td>Create a new child document by clicking the <span class="ac-btn in-primary ap-solid sz-md">Create</span> button. Fill out the form. Click <span class="ac-btn in-primary ap-solid sz-sm">Save</span>.</td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <th scope="row">Update</th>
+                                 
+                                 <td>Open the current document editing form by choosing <samp>Edit</samp> in the <a href="../../user-interface/#action-bar">action bar</a>'s <span class="ac-btn in-neutral ap-outline sz-md">Actions</span> dropdown. Make changes. Click <span class="ac-btn in-primary ap-solid sz-sm">Save</span>.</td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <th scope="row">Delete</th>
+                                 
+                                 <td>Delete the current document by choosing <samp>Delete</samp> in the <a href="../../user-interface/#action-bar">action bar</a>'s <span class="ac-btn in-neutral ap-outline sz-md">Actions</span> dropdown.</td>
+                                 </tr>
+                              </tbody>
+                           </table>
+                        </div>
+                     
+                     <div aria-labelledby="command-line-interface-tab" class="ac-tabpanel" hidden="hidden" id="command-line-interface-pane" role="tabpanel">
+                        
+                        <table>
+                           
+                           <caption class="ac-vh">Document actions and their CLI commands</caption>
+                           
+                           <thead>
+                              
+                              <tr>
+                                 
+                                 <th scope="col">Action</th>
+                                 
+                                 <th scope="col">CLI command</th>
+                                 </tr>
+                              </thead>
+                           
+                           <tbody>
+                              
+                              <tr>
+                                 
+                                 <th scope="row">Create container</th>
+                                 
+                                 <td><a href="../../command-line-interface/#commands"><samp>ldh create container</samp></a></td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <th scope="row">Create item</th>
+                                 
+                                 <td><a href="../../command-line-interface/#commands"><samp>ldh create item</samp></a></td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <th scope="row">Update</th>
+                                 
+                                 <td><a href="../../command-line-interface/#commands"><samp>ldh put</samp></a></td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <th scope="row">Delete</th>
+                                 
+                                 <td><a href="../../command-line-interface/#commands"><samp>ldh delete</samp></a></td>
+                                 </tr>
+                              </tbody>
+                           </table>
+                        
+                        <p>For example, creating the <samp>categories/</samp> container (with the <a href="../../command-line-interface/#environment-variables"><samp>LDH_*</samp> environment variables</a> supplying the certificate and base URI):</p>
+                        
+                        <pre>ldh create container \
+  --parent "$LDH_BASE" \
+  --title "Categories" \
+  --slug categories</pre>
+                        
+                        <p>The command prints the created document's URL — <samp>https://localhost:4443/categories/</samp>.</p>
+                        </div>
+                     </div>
+                  </div>
+               
+               <p class="ldh-body-lg">To create documents step-by-step, follow the <a href="../../../user-guide/create-data/create-documents/">Create documents</a> guide</p>
+               </div>
+         </div>
+      </div>
+      <div class="ldh-footer" role="contentinfo">
+         <div class="cols">
+            <div class="col brand-col"><a class="ldh-wordmark" href="https://linkeddatahub.com" target="_blank"><span class="mark"></span><span>LinkedDataHub</span></a><p>The low-code Knowledge Graph application platform. Built on RDF, SPARQL and Linked
+                  Data principles.</p>
+            </div>
+            <div class="col">
+               <p class="ftitle">About</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a><a href="https://atomgraph.com" target="_blank">AtomGraph</a></div>
+            <div class="col">
+               <p class="ftitle">Resources</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></div>
+            <div class="col">
+               <p class="ftitle">Support</p><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a><a href="mailto:support@linkeddatahub.com">Contact support</a></div>
+            <div class="col">
+               <p class="ftitle">Follow us</p><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></div>
+         </div>
+         <div class="legal"><span>© 2026 AtomGraph · LinkedDataHub</span></div>
+      </div>
+   </body>
+</html>

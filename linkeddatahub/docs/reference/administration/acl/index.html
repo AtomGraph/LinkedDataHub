@@ -1,0 +1,419 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" lang="en" data-retro="m3" data-theme="light">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>LinkedDataHub v5 — Access control</title>
+      <meta name="description" content="Agents, groups, and authorizations"/>
+      <meta name="last-modified" content="2026-09-29T23:17:17Z"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1"/>
+      <link href="../../../static/css/fonts.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/colors_and_type.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/app.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/retro.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/ldh.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/docs.css" rel="stylesheet" type="text/css"/><script type="text/javascript">
+                    document.addEventListener("click", function(event) {
+                        var tab = event.target.closest(".ac-tab[role='tab']");
+                        if (!tab) return;
+                        var tablist = tab.closest("[role='tablist']");
+                        var tabs = tablist.closest(".ac-tabs");
+                        if (!tabs || !tabs.querySelector(".ac-tabpanel")) return;
+                        tablist.querySelectorAll(".ac-tab").forEach(function(t) { t.classList.remove("is-on"); t.setAttribute("aria-selected", "false"); });
+                        tab.classList.add("is-on");
+                        tab.setAttribute("aria-selected", "true");
+                        tabs.querySelectorAll(".ac-tabpanel").forEach(function(pane) {
+                            if (pane.parentElement !== tabs) return;
+                            pane.hidden = pane.id !== tab.getAttribute("aria-controls");
+                        });
+                    });
+                </script><script async="async" defer="defer" src="https://buttons.github.io/buttons.js"></script><script async="async" defer="defer" src="https://platform.twitter.com/widgets.js"></script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+                    window.dataLayer = window.dataLayer || [];
+                    function gtag(){dataLayer.push(arguments);}
+                    gtag('js', new Date());
+                    gtag('config', 'UA-38402002-6');
+                </script></head>
+   <body class="app">
+      <div class="ldh-header" role="banner"><a class="ldh-wordmark" href="../../../"><span class="mark"></span><span>LinkedDataHub</span></a><div></div>
+         <div class="ldh-header-actions">
+            <details class="docs-versions">
+               <summary>Documentation v6</summary>
+               <div><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v5/">Documentation v5</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></div>
+            </details><a href="https://github.com/AtomGraph/LinkedDataHub-Apps" target="_blank">Sample dataspaces</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub/subscription" data-icon="octicon-eye" data-size="large" aria-label="Watch AtomGraph/LinkedDataHub on GitHub">Watch</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star AtomGraph/LinkedDataHub on GitHub">Star</a><a href="https://twitter.com/atomgraphhq" class="twitter-follow-button" data-show-count="false">Follow @atomgraphhq</a><a href="https://youtube.com/@atomgraph" target="_blank"><span class="msi outline" aria-hidden="true">smart_display</span> @atomgraph</a></div>
+      </div>
+      <div class="docs-layout">
+         <div class="docs-nav" role="navigation">
+            <ul>
+               <li><a href="../../../about/">About LinkedDataHub</a></li>
+               <li><a href="../../../get-started/">Get started</a></li>
+               <li><a href="../../../tutorial/">Tutorial</a></li>
+               <li><a href="../../../user-guide/">User guide</a></li>
+               <li><a href="../../">Reference</a><ul>
+                     <li><a href="../">Administration</a><ul>
+                           <li class="is-active" aria-current="page"><a href="">Access control</a></li>
+                           <li><a href="../ontologies/">Ontologies</a></li>
+                           <li><a href="../packages/">Packages</a></li>
+                        </ul>
+                     </li>
+                     <li><a href="../../command-line-interface/">Command line interface</a></li>
+                     <li><a href="../../configuration/">Configuration</a></li>
+                     <li><a href="../../data-model/">Data model</a></li>
+                     <li><a href="../../dataset/">Dataset</a></li>
+                     <li><a href="../../dataspace/">Dataspace</a></li>
+                     <li><a href="../../http-api/">HTTP API</a></li>
+                     <li><a href="../../imports/">Imports</a></li>
+                     <li><a href="../../migrating-from-5x/">Migrating from 5.x</a></li>
+                     <li><a href="../../stylesheets/">Stylesheets</a></li>
+                     <li><a href="../../triplestores/">Triplestores</a></li>
+                     <li><a href="../../user-interface/">User interface</a></li>
+                     <li><a href="../../versioning/">Versioning</a></li>
+                  </ul>
+               </li>
+               <li><a href="../../../extending/">Extending</a></li>
+            </ul>
+         </div>
+         <div class="docs-main" role="main">
+            <h1>Access control</h1>
+            <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+               
+               <p class="ldh-body-lg">Agents, groups, and authorizations</p>
+               
+               <p>LinkedDataHub access control is based on the W3C <a href="https://www.w3.org/wiki/WebAccessControl" target="_blank">ACL ontology</a>.</p>
+               
+               <div>
+                  
+                  <h2 id="access-modes">Access modes</h2>
+                  
+                  <p>There are four access modes (classes of operation) that map to <a href="../../http-api/">HTTP methods</a>:</p>
+                  
+                  <table>
+                     
+                     <caption class="ac-vh">Access modes and the HTTP methods they permit</caption>
+                     
+                     <thead>
+                        
+                        <tr>
+                           
+                           <th scope="col">Mode</th>
+                           
+                           <th scope="col">Permits</th>
+                           
+                           <th scope="col">HTTP method</th>
+                           </tr>
+                        </thead>
+                     
+                     <tbody>
+                        
+                        <tr>
+                           
+                           <th scope="row">Read</th>
+                           
+                           <td>Read the contents, including querying them.</td>
+                           
+                           <td><code>GET</code></td>
+                           </tr>
+                        
+                        <tr>
+                           
+                           <th scope="row">Write</th>
+                           
+                           <td>Overwrite the contents, including deleting or modifying them.</td>
+                           
+                           <td><code>PUT</code>, <code>PATCH</code>, <code>DELETE</code></td>
+                           </tr>
+                        
+                        <tr>
+                           
+                           <th scope="row">Append</th>
+                           
+                           <td>Add information without removing or replacing any.</td>
+                           
+                           <td><code>POST</code></td>
+                           </tr>
+                        
+                        <tr>
+                           
+                           <th scope="row">Control</th>
+                           
+                           <td>Change the authorizations that apply to the resource.</td>
+                           
+                           <td>— (no corresponding HTTP method)</td>
+                           </tr>
+                        </tbody>
+                     </table>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="agents">Agents</h2>
+                  
+                  <p>An agent is a person or a piece of software, identified by a WebID, that can be authorized
+                     to have certain <a href="#access-modes">modes
+                        of access</a> to certain dataspaces.</p>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="groups">Groups</h2>
+                  
+                  <p>A group is a named group of <a href="#agents">agents</a> to which an <a href="#authorizations">authorization</a> can
+                     be given. It is a subclass of the <a href="http://xmlns.com/foaf/spec/#term_Group" target="_blank"><code>foaf:Group</code></a>
+                     class.</p>
+                  
+                  <p>There are several default groups:</p>
+                  
+                  <ul>
+                     
+                     <li>Owners</li>
+                     
+                     <li>Writers</li>
+                     
+                     <li>Readers</li>
+                     </ul>
+                  
+                  <div class="ac-alert va-informative" role="status">
+                     <span class="ac-alert-ic"><span aria-hidden="true" class="msi outline">info</span></span>
+                     
+                     <div class="ac-alert-body">
+                        
+                        <p class="ac-alert-text">By default, only members of the owners group have access to the administration dataspace:
+                           its built-in
+                           <samp>Full control</samp> authorization grants the <a href="#access-modes">Control</a> mode (along with read and write)
+                           to that group. See <a href="#authorizations">Authorizations</a>.</p>
+                        
+                        <p class="ac-alert-text">Note that an agent being a member of one of the above groups does not automatically
+                           provide it with an
+                           authorization. A valid authorization for the whole group has to be present.</p>
+                        </div>
+                     </div>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="authorizations">Authorizations</h2>
+                  
+                  <p>An authorization explicitly grants access for an <a href="#agents">agent</a> or a <a href="#groups">group</a>
+                     of agents to access a specific end-user dataspace document or a <a href="../ontologies/#classes">class</a>
+                     of its documents.</p>
+                  
+                  <p>An <a href="#agents">agent</a> has to be authorized using the <a href="#access-modes">Control</a> mode to be
+                     able to log in to the <a href="../../dataspace/#admin">administration dataspace</a>. By default such an
+                     authorization is granted to the <a href="#groups">owners group</a>.</p>
+                  
+                  <p>The default authorizations for groups and their respective access modes:</p>
+                  
+                  <table>
+                     
+                     <caption class="ac-vh">Default access for each group</caption>
+                     
+                     <thead>
+                        
+                        <tr>
+                           
+                           <th scope="col">Group</th>
+                           
+                           <th scope="col">Read access</th>
+                           
+                           <th scope="col">Write/append access</th>
+                           
+                           <th scope="col">Full control</th>
+                           </tr>
+                        </thead>
+                     
+                     <tbody>
+                        
+                        <tr>
+                           
+                           <th rowspan="2" scope="row">Owners</th>
+                           
+                           <td rowspan="2"><a href="#access-modes">Read</a></td>
+                           
+                           <td><a href="#access-modes">Write</a></td>
+                           
+                           <td rowspan="2"><a href="#access-modes">Control</a></td>
+                           </tr>
+                        
+                        <tr>
+                           
+                           <td><a href="#access-modes">Append</a></td>
+                           </tr>
+                        
+                        <tr>
+                           
+                           <th rowspan="2" scope="row">Writers</th>
+                           
+                           <td rowspan="2"><a href="#access-modes">Read</a></td>
+                           
+                           <td><a href="#access-modes">Write</a></td>
+                           
+                           <td rowspan="2">—</td>
+                           </tr>
+                        
+                        <tr>
+                           
+                           <td><a href="#access-modes">Append</a></td>
+                           </tr>
+                        
+                        <tr>
+                           
+                           <th scope="row">Readers</th>
+                           
+                           <td><a href="#access-modes">Read</a></td>
+                           
+                           <td>—</td>
+                           
+                           <td>—</td>
+                           </tr>
+                        </tbody>
+                     </table>
+                  
+                  <p>An authorization is a plain RDF resource. Granting the <samp>writers</samp> group full access to the Northwind orders container:</p>
+                  
+                  <div class="ac-tabs or-horizontal">
+                     
+                     <div class="ac-tablist sz-md va-line" role="tablist">
+                        <button aria-controls="rdf-pane" aria-selected="true" class="ac-tab is-on" id="rdf-tab" role="tab" type="button"><span class="ac-tab-lbl">RDF</span></button>
+                        <button aria-controls="command-line-interface-pane" aria-selected="false" class="ac-tab" id="command-line-interface-tab" role="tab" type="button"><span class="ac-tab-lbl">Command line interface</span></button>
+                        </div>
+                     
+                     <div aria-labelledby="rdf-tab" class="ac-tabpanel" id="rdf-pane" role="tabpanel">
+                        
+                        <pre>@prefix acl:  &lt;http://www.w3.org/ns/auth/acl#&gt; .
+@prefix rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt; .
+
+&lt;#this&gt; a acl:Authorization ;
+    rdfs:label "Order management" ;
+    acl:agentGroup &lt;https://admin.localhost:4443/acl/groups/writers/#this&gt; ;
+    acl:mode acl:Read, acl:Append, acl:Write ;
+    acl:accessTo &lt;https://localhost:4443/orders/&gt; .</pre>
+                        </div>
+                     
+                     <div aria-labelledby="command-line-interface-tab" class="ac-tabpanel" hidden="hidden" id="command-line-interface-pane" role="tabpanel">
+                        
+                        <pre>ldh admin create authorization \
+  --label "Order management" \
+  --agent-group "https://admin.localhost:4443/acl/groups/writers/#this" \
+  --to "https://localhost:4443/orders/" \
+  --read --append --write</pre>
+                        </div>
+                     </div>
+                  
+                  <p>An authorization can also target a whole class of documents with <code>acl:accessToClass</code>. Granting the <samp>readers</samp> group read access to every container:</p>
+                  
+                  <pre>@prefix acl:  &lt;http://www.w3.org/ns/auth/acl#&gt; .
+@prefix rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt; .
+@prefix dh:   &lt;https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#&gt; .
+
+&lt;#this&gt; a acl:Authorization ;
+    rdfs:label "Container read access" ;
+    acl:agentGroup &lt;https://admin.localhost:4443/acl/groups/readers/#this&gt; ;
+    acl:mode acl:Read ;
+    acl:accessToClass dh:Container .</pre>
+                  
+                  <p>A public-access authorization allows access for non-authenticated agents — the <a href="../../../tutorial/publish/">Publish</a> stage of the
+                     tutorial shows the one <samp>ldh admin make-public</samp> creates, granting <code>acl:Read</code> to the <code>foaf:Agent</code> class
+                     on every document class.</p>
+                  
+                  <div class="ac-alert va-informative" role="status">
+                     <span class="ac-alert-ic"><span aria-hidden="true" class="msi outline">info</span></span>
+                     
+                     <div class="ac-alert-body">
+                        
+                        <p class="ac-alert-text">The owner's and <a href="../../dataspace/#dataspaces">secretary's</a> authorizations are stored under stable URIs (<samp>acl/authorizations/owner-webid/</samp> and <samp>acl/authorizations/secretary-webid/</samp>), so reloading the admin dataset does not create duplicates.</p>
+                        </div>
+                     </div>
+                  
+                  <div>
+                     
+                     <h3 id="auth-requests">Access requests</h3>
+                     
+                     <p>If access is denied due to missing authorization, the agent can ask for it by issuing
+                        a request to the dataspace's
+                        <a href="#groups">owners</a>. The request indicates the request URI and access mode in question.
+                        The owners can then accept the request by creating an <a href="#authorizations">authorization</a> with the provided information
+                        (possibly extending the requested access to a <a href="#groups">group</a> of agents or a <a href="../ontologies/#classes">class of resources</a>),
+                        or simply ignore it.</p>
+                     
+                     <p>A request is data too — asking for write access to a Northwind order:</p>
+                     
+                     <pre>@prefix lacl: &lt;https://w3id.org/atomgraph/linkeddatahub/admin/acl#&gt; .
+@prefix acl:  &lt;http://www.w3.org/ns/auth/acl#&gt; .
+
+&lt;#this&gt; a lacl:AuthorizationRequest ;
+    lacl:requestAgent &lt;https://localhost:4443/agents/jane/#this&gt; ;
+    lacl:requestMode acl:Write ;
+    lacl:requestAccessTo &lt;https://localhost:4443/orders/10248/&gt; .</pre>
+                     </div>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="management">Management</h2>
+                  
+                  <table>
+                     
+                     <caption class="ac-vh">Access control actions and their CLI commands</caption>
+                     
+                     <thead>
+                        
+                        <tr>
+                           
+                           <th scope="col">Action</th>
+                           
+                           <th scope="col">CLI command</th>
+                           </tr>
+                        </thead>
+                     
+                     <tbody>
+                        
+                        <tr>
+                           
+                           <th scope="row">Create group</th>
+                           
+                           <td><a href="../../command-line-interface/#commands"><samp>ldh admin create group</samp></a></td>
+                           </tr>
+                        
+                        <tr>
+                           
+                           <th scope="row">Create authorization</th>
+                           
+                           <td><a href="../../command-line-interface/#commands"><samp>ldh admin create authorization</samp></a></td>
+                           </tr>
+                        
+                        <tr>
+                           
+                           <th scope="row">Add agent to group</th>
+                           
+                           <td><a href="../../command-line-interface/#commands"><samp>ldh admin add agent</samp></a></td>
+                           </tr>
+                        
+                        <tr>
+                           
+                           <th scope="row">Make a document public</th>
+                           
+                           <td><a href="../../command-line-interface/#commands"><samp>ldh admin make-public</samp></a></td>
+                           </tr>
+                        </tbody>
+                     </table>
+                  </div>
+               
+               <p class="ldh-body-lg">To request access to someone else's dataspace, see the <a href="../../../get-started/request-access/">Request access</a> guide. To open your data to the public, follow the <a href="../../../tutorial/publish/">Publish</a> stage of the tutorial.</p>
+               </div>
+         </div>
+      </div>
+      <div class="ldh-footer" role="contentinfo">
+         <div class="cols">
+            <div class="col brand-col"><a class="ldh-wordmark" href="https://linkeddatahub.com" target="_blank"><span class="mark"></span><span>LinkedDataHub</span></a><p>The low-code Knowledge Graph application platform. Built on RDF, SPARQL and Linked
+                  Data principles.</p>
+            </div>
+            <div class="col">
+               <p class="ftitle">About</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a><a href="https://atomgraph.com" target="_blank">AtomGraph</a></div>
+            <div class="col">
+               <p class="ftitle">Resources</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></div>
+            <div class="col">
+               <p class="ftitle">Support</p><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a><a href="mailto:support@linkeddatahub.com">Contact support</a></div>
+            <div class="col">
+               <p class="ftitle">Follow us</p><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></div>
+         </div>
+         <div class="legal"><span>© 2026 AtomGraph · LinkedDataHub</span></div>
+      </div>
+   </body>
+</html>

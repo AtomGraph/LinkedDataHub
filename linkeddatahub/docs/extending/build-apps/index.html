@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" lang="en" data-retro="m3" data-theme="light">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>LinkedDataHub v5 — Build apps</title>
+      <meta name="description" content="Extend LinkedDataHub with custom Docker images, Java endpoints and XSLT stylesheets"/>
+      <meta name="last-modified" content="2026-09-29T23:17:17Z"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1"/>
+      <link href="../../static/css/fonts.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/colors_and_type.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/app.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/retro.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/ldh.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/docs.css" rel="stylesheet" type="text/css"/><script type="text/javascript">
+                    document.addEventListener("click", function(event) {
+                        var tab = event.target.closest(".ac-tab[role='tab']");
+                        if (!tab) return;
+                        var tablist = tab.closest("[role='tablist']");
+                        var tabs = tablist.closest(".ac-tabs");
+                        if (!tabs || !tabs.querySelector(".ac-tabpanel")) return;
+                        tablist.querySelectorAll(".ac-tab").forEach(function(t) { t.classList.remove("is-on"); t.setAttribute("aria-selected", "false"); });
+                        tab.classList.add("is-on");
+                        tab.setAttribute("aria-selected", "true");
+                        tabs.querySelectorAll(".ac-tabpanel").forEach(function(pane) {
+                            if (pane.parentElement !== tabs) return;
+                            pane.hidden = pane.id !== tab.getAttribute("aria-controls");
+                        });
+                    });
+                </script><script async="async" defer="defer" src="https://buttons.github.io/buttons.js"></script><script async="async" defer="defer" src="https://platform.twitter.com/widgets.js"></script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+                    window.dataLayer = window.dataLayer || [];
+                    function gtag(){dataLayer.push(arguments);}
+                    gtag('js', new Date());
+                    gtag('config', 'UA-38402002-6');
+                </script></head>
+   <body class="app">
+      <div class="ldh-header" role="banner"><a class="ldh-wordmark" href="../../"><span class="mark"></span><span>LinkedDataHub</span></a><div></div>
+         <div class="ldh-header-actions">
+            <details class="docs-versions">
+               <summary>Documentation v6</summary>
+               <div><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v5/">Documentation v5</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></div>
+            </details><a href="https://github.com/AtomGraph/LinkedDataHub-Apps" target="_blank">Sample dataspaces</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub/subscription" data-icon="octicon-eye" data-size="large" aria-label="Watch AtomGraph/LinkedDataHub on GitHub">Watch</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star AtomGraph/LinkedDataHub on GitHub">Star</a><a href="https://twitter.com/atomgraphhq" class="twitter-follow-button" data-show-count="false">Follow @atomgraphhq</a><a href="https://youtube.com/@atomgraph" target="_blank"><span class="msi outline" aria-hidden="true">smart_display</span> @atomgraph</a></div>
+      </div>
+      <div class="docs-layout">
+         <div class="docs-nav" role="navigation">
+            <ul>
+               <li><a href="../../about/">About LinkedDataHub</a></li>
+               <li><a href="../../get-started/">Get started</a></li>
+               <li><a href="../../tutorial/">Tutorial</a></li>
+               <li><a href="../../user-guide/">User guide</a></li>
+               <li><a href="../../reference/">Reference</a></li>
+               <li><a href="../">Extending</a><ul>
+                     <li class="is-active" aria-current="page"><a href="">Build apps</a></li>
+                     <li><a href="../change-layout/">Change layout</a></li>
+                  </ul>
+               </li>
+            </ul>
+         </div>
+         <div class="docs-main" role="main">
+            <h1>Build apps</h1>
+            <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+               
+               <p class="ldh-body-lg">Extend LinkedDataHub with custom Docker images, Java endpoints and XSLT stylesheets</p>
+               
+               <p>Every component in LinkedDataHub is data-driven and was designed with extensibility
+                  in mind. You can override behavior (e.g. Java method or XSLT template) without having
+                  to modify LinkedDataHub's
+                  codebase, and more importantly, without having to write the same logic from scratch.</p>
+               
+               <p>If you are building your first app, start with the <a href="../../tutorial/">tutorial</a> — this guide covers the layers beyond it.</p>
+               
+               <div>
+                  
+                  <h2 id="docker">Docker</h2>
+                  
+                  <p>Mounting files — config, ontologies, stylesheets — into the default Docker setup covers
+                     many cases; for local runs, mount them with <samp>docker-compose.override.yml</samp> as shown in <a href="../../reference/configuration/#compose-override">Compose overrides</a>. But you may also want to build a dedicated Docker image for your app using LinkedDataHub
+                     as the base. Usually this is done to <code>COPY</code> files inside the image or <code>RUN</code> additional commands.</p>
+                  
+                  <p>The recommended approach is a multi-stage Docker build: the first stage uses Maven
+                     to compile your WAR overlay, and the second stage copies it into the LinkedDataHub
+                     base image alongside any static files:</p>
+                  
+                  <pre>FROM maven:3.9-eclipse-temurin-21 AS maven
+
+WORKDIR /usr/src/myapp
+
+COPY src /usr/src/myapp/src
+COPY pom.xml /usr/src/myapp/pom.xml
+
+RUN mvn clean install
+
+# =================
+
+FROM atomgraph/linkeddatahub:6.0.0
+
+WORKDIR $CATALINA_HOME
+
+ENV SERVLET_NAME=com.example.myapp.Application
+
+COPY --from=maven /usr/src/myapp/target/ROOT webapps/ROOT
+
+COPY files/layout.xsl /usr/local/tomcat/webapps/ROOT/static/com/example/myapp/xsl/layout.xsl
+COPY files/client.xsl /usr/local/tomcat/webapps/ROOT/static/com/example/myapp/xsl/client.xsl
+COPY files/style.css  /usr/local/tomcat/webapps/ROOT/static/com/example/myapp/css/style.css</pre>
+                  
+                  <p>Replace <samp>6.0.0</samp> with the LinkedDataHub release you are running.</p>
+                  
+                  <p><code>SERVLET_NAME</code> must be set to the fully-qualified name of your JAX-RS application class (see the
+                     <a href="#java">Java section</a> below).</p>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="java">Java</h2>
+                  
+                  <p>The Java layer of LinkedDataHub is a Maven project with a webapp layout. It uses JAX-RS
+                     — specifically <a href="https://eclipse-ee4j.github.io/jersey/" target="_blank">Jersey 3</a> — as the HTTP/REST framework, and <a href="https://jena.apache.org" target="_blank">Apache Jena</a> 6 for RDF I/O.</p>
+                  
+                  <p>If you want to extend the Java codebase, for example to add a custom REST endpoint,
+                     create a new Maven project (Java 21, packaged as WAR named <samp>ROOT</samp>) with LinkedDataHub as a WAR overlay dependency:</p>
+                  
+                  <pre>&lt;dependencies&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;com.atomgraph&lt;/groupId&gt;
+        &lt;artifactId&gt;linkeddatahub&lt;/artifactId&gt;
+        &lt;version&gt;6.0.0&lt;/version&gt;
+        &lt;classifier&gt;classes&lt;/classifier&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;com.atomgraph&lt;/groupId&gt;
+        &lt;artifactId&gt;linkeddatahub&lt;/artifactId&gt;
+        &lt;version&gt;6.0.0&lt;/version&gt;
+        &lt;type&gt;war&lt;/type&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;
+&lt;build&gt;
+    &lt;plugins&gt;
+        &lt;plugin&gt;
+            &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+            &lt;artifactId&gt;maven-compiler-plugin&lt;/artifactId&gt;
+            &lt;configuration&gt;
+                &lt;release&gt;21&lt;/release&gt;
+            &lt;/configuration&gt;
+        &lt;/plugin&gt;
+        &lt;plugin&gt;
+            &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+            &lt;artifactId&gt;maven-war-plugin&lt;/artifactId&gt;
+            &lt;configuration&gt;
+                &lt;warName&gt;ROOT&lt;/warName&gt;
+                &lt;webappDirectory&gt;target/ROOT&lt;/webappDirectory&gt;
+                &lt;attachClasses&gt;true&lt;/attachClasses&gt;
+                &lt;overlays&gt;
+                    &lt;overlay&gt;
+                        &lt;groupId&gt;com.atomgraph&lt;/groupId&gt;
+                        &lt;artifactId&gt;linkeddatahub&lt;/artifactId&gt;
+                    &lt;/overlay&gt;
+                &lt;/overlays&gt;
+            &lt;/configuration&gt;
+        &lt;/plugin&gt;
+    &lt;/plugins&gt;
+&lt;/build&gt;</pre>
+                  
+                  <p>After adding a new endpoint, extend LinkedDataHub's JAX-RS application class (<code>com.atomgraph.linkeddatahub.Application</code>) and register your class there. Set the <code>SERVLET_NAME</code> Docker environment variable to the fully-qualified name of your subclass so LinkedDataHub
+                     loads it instead of the default application.</p>
+                  
+                  <p>By convention, static files (e.g. stylesheets, images) are placed in the <samp>src/main/webapp/static/</samp> folder in the codebase, which then becomes <samp>/usr/local/tomcat/webapps/ROOT/static/</samp> within the webapp deployed in the Docker container, and is served at <samp>static/</samp> under the dataspace's base URI.</p>
+                  
+                  <p>This means that if you want to deploy static files as part of your LinkedDataHub app,
+                     you will have to either mount them into the <samp>/usr/local/tomcat/webapps/ROOT/static/</samp> folder in the container, or copy them into a custom Docker image to the same effect.</p>
+                  
+                  <p>You can allow Java debugger access using <a href="../../reference/configuration/#debug">configuration properties</a>.</p>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="xslt">XSLT</h2>
+                  
+                  <p>LinkedDataHub uses <a href="https://www.w3.org/TR/xslt-30/" target="_blank">XSLT 3.0</a> for UI rendering both on the server- and on the client-side.</p>
+                  
+                  <p>You can specify a custom server-side XSLT 3.0 stylesheet in the <a href="../../user-guide/manage-dataspaces/#change-stylesheet">dataspace configuration</a>.</p>
+                  
+                  <p>You can reuse LinkedDataHub's stylesheets by importing them as explained in the <a href="../change-layout/">Change layout</a> guide.</p>
+                  
+                  <h3 id="server-side-xslt">Server-side</h3>
+                  
+                  <p>The default server-side stylesheet <samp>layout.xsl</samp> and its imports can be found in the <samp>src/main/webapp/static/com/atomgraph/linkeddatahub/xsl</samp> folder.</p>
+                  
+                  <h3 id="client-side-xslt">Client-side</h3>
+                  
+                  <p>Client-side stylesheets render the layout in the browser and implement the interactive
+                     parts of the UI (event handling, AJAX calls etc.) using the <a href="https://www.saxonica.com/saxonjs/documentation3/index.html#!ixsl-extension" target="_blank">IXSL extension</a>
+                     provided by the Saxon-JS 3 library. After the server renders the initial page, the
+                     client-side stylesheet injects the left sidebar, navigation, document and tab panes,
+                     content blocks, forms and modal dialogs into the DOM, and re-renders in place as the
+                     user navigates. This makes the frontend almost entirely declarative: it requires virtually
+                     no hand-written JavaScript, apart from third-party libraries such as Google Charts
+                     and OpenLayers.</p>
+                  
+                  <p>Client-side stylesheets share common document-, resource-, and property-level templates
+                     with the server-side stylesheets. The client-side stylesheet may not contain any XML
+                     entity declarations (limitation of
+                     Saxon-JS) and must be <a href="https://www.saxonica.com/saxonjs/documentation3/index.html#!starting/export" target="_blank">compiled into a SEF file</a> before it can be run by the Saxon-JS runtime.
+                     The URL of the client-side SEF stylesheet is passed as the <code>$client-stylesheet</code> parameter of the document-level server-side <code>xhtml:Script</code> template.</p>
+                  </div>
+               
+               <p>You can also modify or extend the <a href="../../reference/dataset/#default-datasets">default RDF datasets</a> used by LinkedDataHub. However, a better practice is to use the
+                  <a href="../../reference/command-line-interface/">CLI</a> to create documents and to <a href="../../reference/imports/">import CSV and RDF data</a>.</p>
+               
+               <p><a href="https://github.com/AtomGraph/LinkedDataHub-Apps" target="_blank">See the LinkedDataHub app repository for more examples.</a></p>
+               
+               <p class="ldh-body-lg">Continue with the <a href="../change-layout/">Change layout</a> guide or see how these layers fit together in the <a href="../../tutorial/beyond-low-code/">Beyond low-code</a> tutorial.</p>
+               </div>
+         </div>
+      </div>
+      <div class="ldh-footer" role="contentinfo">
+         <div class="cols">
+            <div class="col brand-col"><a class="ldh-wordmark" href="https://linkeddatahub.com" target="_blank"><span class="mark"></span><span>LinkedDataHub</span></a><p>The low-code Knowledge Graph application platform. Built on RDF, SPARQL and Linked
+                  Data principles.</p>
+            </div>
+            <div class="col">
+               <p class="ftitle">About</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a><a href="https://atomgraph.com" target="_blank">AtomGraph</a></div>
+            <div class="col">
+               <p class="ftitle">Resources</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></div>
+            <div class="col">
+               <p class="ftitle">Support</p><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a><a href="mailto:support@linkeddatahub.com">Contact support</a></div>
+            <div class="col">
+               <p class="ftitle">Follow us</p><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></div>
+         </div>
+         <div class="legal"><span>© 2026 AtomGraph · LinkedDataHub</span></div>
+      </div>
+   </body>
+</html>

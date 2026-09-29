@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" lang="en" data-retro="m3" data-theme="light">
    <head>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-      <title>LinkedDataHub v5 — Documentation</title>
+      <title>LinkedDataHub v5 — Import data</title>
+      <meta name="description" content="How to bulk import CSV and RDF data into LinkedDataHub"/>
+      <meta name="last-modified" content="2026-09-29T23:17:17Z"/>
       <meta name="viewport" content="width=device-width, initial-scale=1"/>
-      <link href="static/css/fonts.css" rel="stylesheet" type="text/css"/>
-      <link href="static/css/colors_and_type.css" rel="stylesheet" type="text/css"/>
-      <link href="static/css/app.css" rel="stylesheet" type="text/css"/>
-      <link href="static/css/retro.css" rel="stylesheet" type="text/css"/>
-      <link href="static/css/ldh.css" rel="stylesheet" type="text/css"/>
-      <link href="static/css/docs.css" rel="stylesheet" type="text/css"/><script type="text/javascript">
+      <link href="../../static/css/fonts.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/colors_and_type.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/app.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/retro.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/ldh.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/docs.css" rel="stylesheet" type="text/css"/><script type="text/javascript">
                     document.addEventListener("click", function(event) {
                         var tab = event.target.closest(".ac-tab[role='tab']");
                         if (!tab) return;
@@ -30,7 +32,7 @@
                     gtag('config', 'UA-38402002-6');
                 </script></head>
    <body class="app">
-      <div class="ldh-header" role="banner"><a class="ldh-wordmark" href=""><span class="mark"></span><span>LinkedDataHub</span></a><div></div>
+      <div class="ldh-header" role="banner"><a class="ldh-wordmark" href="../../"><span class="mark"></span><span>LinkedDataHub</span></a><div></div>
          <div class="ldh-header-actions">
             <details class="docs-versions">
                <summary>Documentation v6</summary>
@@ -40,41 +42,68 @@
       <div class="docs-layout">
          <div class="docs-nav" role="navigation">
             <ul>
-               <li><a href="about/">About LinkedDataHub</a></li>
-               <li><a href="get-started/">Get started</a></li>
-               <li><a href="tutorial/">Tutorial</a></li>
-               <li><a href="user-guide/">User guide</a></li>
-               <li><a href="reference/">Reference</a></li>
-               <li><a href="extending/">Extending</a></li>
+               <li><a href="../../about/">About LinkedDataHub</a></li>
+               <li><a href="../../get-started/">Get started</a></li>
+               <li><a href="../../tutorial/">Tutorial</a></li>
+               <li><a href="../">User guide</a><ul>
+                     <li><a href="../add-data/">Add data</a></li>
+                     <li><a href="../browse-data/">Browse data</a></li>
+                     <li><a href="../change-model/">Change model</a></li>
+                     <li><a href="../create-data/">Create data</a></li>
+                     <li><a href="../edit-content/">Edit content</a></li>
+                     <li class="is-active" aria-current="page"><a href="">Import data</a><ul>
+                           <li><a href="import-csv-data/">Import CSV data</a></li>
+                           <li><a href="import-rdf-data/">Import RDF data</a></li>
+                        </ul>
+                     </li>
+                     <li><a href="../manage-dataspaces/">Manage dataspaces</a></li>
+                     <li><a href="../manage-packages/">Manage packages</a></li>
+                     <li><a href="../query-data/">Query data</a></li>
+                     <li><a href="../upload-file/">Upload file</a></li>
+                     <li><a href="../version-history/">Version history</a></li>
+                  </ul>
+               </li>
+               <li><a href="../../reference/">Reference</a></li>
+               <li><a href="../../extending/">Extending</a></li>
             </ul>
          </div>
          <div class="docs-main" role="main">
+            <h1>Import data</h1>
+            <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+               
+               <p class="ldh-body-lg">How to bulk import CSV and RDF data into LinkedDataHub</p>
+               
+               <p>This guide is about bulk data imports running asynchronously, suitable for larger
+                  datasets. If you want to simply add RDF data to a document, see the <a href="../add-data/">add data</a> guide.</p>
+               
+               <p>Pick the guide that matches your data:</p>
+               
+               <dl>
+                  
+                  <dt>CSV file</dt>
+                  
+                  <dd><a href="import-csv-data/">Import CSV data</a></dd>
+                  
+                  <dt>Large RDF file</dt>
+                  
+                  <dd><a href="import-rdf-data/">Import RDF data</a></dd>
+                  
+                  <dt>Small RDF file or remote Linked Data</dt>
+                  
+                  <dd><a href="../add-data/">Add data</a></dd>
+                  </dl>
+               
+               <p class="ldh-body-lg"><a href="../../reference/imports/">Read more about how imports work.</a></p>
+               </div>
             <div class="docs-children">
                <div class="docs-card">
-                  <h2><a href="about/" title="An RDF-native Knowledge Graph application platform">About LinkedDataHub</a></h2>
-                  <p>An RDF-native Knowledge Graph application platform</p>
+                  <h2><a href="import-csv-data/" title="Step-by-step guide to converting CSV data to RDF and importing it into the end-user dataspace">Import CSV data</a></h2>
+                  <p>Step-by-step guide to converting CSV data to RDF and importing it into the end-user
+                     dataspace</p>
                </div>
                <div class="docs-card">
-                  <h2><a href="get-started/" title="Install LinkedDataHub, log in with a WebID, and request access to a dataspace">Get started</a></h2>
-                  <p>Install LinkedDataHub, log in with a WebID, and request access to a dataspace</p>
-               </div>
-               <div class="docs-card">
-                  <h2><a href="tutorial/" title="Build your first Knowledge Graph dataspace, from empty to published">Tutorial</a></h2>
-                  <p>Build your first Knowledge Graph dataspace, from empty to published</p>
-               </div>
-               <div class="docs-card">
-                  <h2><a href="user-guide/" title="Step-by-step guides for everyday tasks in LinkedDataHub">User guide</a></h2>
-                  <p>Step-by-step guides for everyday tasks in LinkedDataHub</p>
-               </div>
-               <div class="docs-card">
-                  <h2><a href="reference/" title="Feature-by-feature reference for the LinkedDataHub platform, its data model, HTTP API and administration">Reference</a></h2>
-                  <p>Feature-by-feature reference for the LinkedDataHub platform, its data model, HTTP
-                     API and administration</p>
-               </div>
-               <div class="docs-card">
-                  <h2><a href="extending/" title="Extending LinkedDataHub with your own code: XSLT stylesheets, Java endpoints, Docker images">Extending</a></h2>
-                  <p>Extending LinkedDataHub with your own code: XSLT stylesheets, Java endpoints, Docker
-                     images</p>
+                  <h2><a href="import-rdf-data/" title="Step-by-step guide to importing RDF data">Import RDF data</a></h2>
+                  <p>Step-by-step guide to importing RDF data</p>
                </div>
             </div>
          </div>

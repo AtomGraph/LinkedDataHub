@@ -1,0 +1,482 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" lang="en" data-retro="m3" data-theme="light">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>LinkedDataHub v5 — Migrating from 5.x</title>
+      <meta name="description" content="What 6.0.0 changes for an application stylesheet, a deployment and an API client"/>
+      <meta name="last-modified" content="2026-09-29T23:17:17Z"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1"/>
+      <link href="../../static/css/fonts.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/colors_and_type.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/app.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/retro.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/ldh.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/docs.css" rel="stylesheet" type="text/css"/><script type="text/javascript">
+                    document.addEventListener("click", function(event) {
+                        var tab = event.target.closest(".ac-tab[role='tab']");
+                        if (!tab) return;
+                        var tablist = tab.closest("[role='tablist']");
+                        var tabs = tablist.closest(".ac-tabs");
+                        if (!tabs || !tabs.querySelector(".ac-tabpanel")) return;
+                        tablist.querySelectorAll(".ac-tab").forEach(function(t) { t.classList.remove("is-on"); t.setAttribute("aria-selected", "false"); });
+                        tab.classList.add("is-on");
+                        tab.setAttribute("aria-selected", "true");
+                        tabs.querySelectorAll(".ac-tabpanel").forEach(function(pane) {
+                            if (pane.parentElement !== tabs) return;
+                            pane.hidden = pane.id !== tab.getAttribute("aria-controls");
+                        });
+                    });
+                </script><script async="async" defer="defer" src="https://buttons.github.io/buttons.js"></script><script async="async" defer="defer" src="https://platform.twitter.com/widgets.js"></script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+                    window.dataLayer = window.dataLayer || [];
+                    function gtag(){dataLayer.push(arguments);}
+                    gtag('js', new Date());
+                    gtag('config', 'UA-38402002-6');
+                </script></head>
+   <body class="app">
+      <div class="ldh-header" role="banner"><a class="ldh-wordmark" href="../../"><span class="mark"></span><span>LinkedDataHub</span></a><div></div>
+         <div class="ldh-header-actions">
+            <details class="docs-versions">
+               <summary>Documentation v6</summary>
+               <div><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v5/">Documentation v5</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></div>
+            </details><a href="https://github.com/AtomGraph/LinkedDataHub-Apps" target="_blank">Sample dataspaces</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub/subscription" data-icon="octicon-eye" data-size="large" aria-label="Watch AtomGraph/LinkedDataHub on GitHub">Watch</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star AtomGraph/LinkedDataHub on GitHub">Star</a><a href="https://twitter.com/atomgraphhq" class="twitter-follow-button" data-show-count="false">Follow @atomgraphhq</a><a href="https://youtube.com/@atomgraph" target="_blank"><span class="msi outline" aria-hidden="true">smart_display</span> @atomgraph</a></div>
+      </div>
+      <div class="docs-layout">
+         <div class="docs-nav" role="navigation">
+            <ul>
+               <li><a href="../../about/">About LinkedDataHub</a></li>
+               <li><a href="../../get-started/">Get started</a></li>
+               <li><a href="../../tutorial/">Tutorial</a></li>
+               <li><a href="../../user-guide/">User guide</a></li>
+               <li><a href="../">Reference</a><ul>
+                     <li><a href="../administration/">Administration</a></li>
+                     <li><a href="../command-line-interface/">Command line interface</a></li>
+                     <li><a href="../configuration/">Configuration</a></li>
+                     <li><a href="../data-model/">Data model</a></li>
+                     <li><a href="../dataset/">Dataset</a></li>
+                     <li><a href="../dataspace/">Dataspace</a></li>
+                     <li><a href="../http-api/">HTTP API</a></li>
+                     <li><a href="../imports/">Imports</a></li>
+                     <li class="is-active" aria-current="page"><a href="">Migrating from 5.x</a></li>
+                     <li><a href="../stylesheets/">Stylesheets</a></li>
+                     <li><a href="../triplestores/">Triplestores</a></li>
+                     <li><a href="../user-interface/">User interface</a></li>
+                     <li><a href="../versioning/">Versioning</a></li>
+                  </ul>
+               </li>
+               <li><a href="../../extending/">Extending</a></li>
+            </ul>
+         </div>
+         <div class="docs-main" role="main">
+            <h1>Migrating from 5.x</h1>
+            <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+               
+               <p class="ldh-body-lg">What 6.0.0 changes for an application stylesheet, a deployment and an API client</p>
+               
+               <div class="ac-alert va-negative" role="status">
+                  <span class="ac-alert-ic"><span aria-hidden="true" class="msi outline">warning</span></span>
+                  
+                  <div class="ac-alert-body">
+                     
+                     <p class="ac-alert-text">There is no data migration. An existing deployment re-seeds: its dataspace descriptions
+                        and every document in its stores are
+                        typed in namespaces this release no longer reads.</p>
+                     </div>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="stylesheets">Stylesheets</h2>
+                  
+                  <p>The platform stylesheet is <samp>xsl/layout.xsl</samp>. An <code>xsl:import</code> of <samp>xsl/bootstrap/2.3.2/layout.xsl</samp> fails to compile, which is
+                     the first error an application stylesheet hits.</p>
+                  
+                  <div>
+                     
+                     <h3 id="class-vocabulary">Class vocabulary</h3>
+                     
+                     <p>Legacy Bootstrap buttons (<samp>btn</samp>, <samp>btn-primary</samp>, <samp>btn-large</samp>) become the <samp>ac-btn</samp> intent, appearance and size
+                        vocabulary: <samp>ac-btn in-primary ap-solid sz-md</samp>. The <a href="../stylesheets/#css">stylesheets</a> page lists the axes and the classes on each.</p>
+                     
+                     <p><samp>pull-left</samp> and <samp>pull-right</samp> have no replacement, because the design system lays out with flex and grid. A stylesheet
+                        that extends
+                        the removed vocabulary can be diffed against <samp>ldh.css</samp>, the one app layer LinkedDataHub loads over the vendored design kits.</p>
+                     </div>
+                  
+                  <div>
+                     
+                     <h3 id="template-modes">Template modes</h3>
+                     
+                     <p>Every <code>bs2:</code> mode takes its design-system component name. This is the change that makes the release
+                        a major one: an override of a
+                        <code>bs2:</code> mode still compiles, never fires, and reports nothing.</p>
+                     
+                     <table>
+                        
+                        <caption class="ac-vh">Template modes renamed in 6.0.0</caption>
+                        
+                        <thead>
+                           
+                           <tr>
+                              
+                              <th scope="col">5.x</th>
+                              
+                              <th scope="col">6.0.0</th>
+                              </tr>
+                           </thead>
+                        
+                        <tbody>
+                           
+                           <tr>
+                              <td><code>bs2:Row</code></td>
+                              <td><code>ldh:BlockRow</code></td>
+                           </tr>
+                           
+                           <tr>
+                              <td><code>bs2:Header</code></td>
+                              <td><code>ac:BlockHeader</code></td>
+                           </tr>
+                           
+                           <tr>
+                              <td><code>bs2:PropertyList</code></td>
+                              <td><code>ac:PropertyEditor</code></td>
+                           </tr>
+                           
+                           <tr>
+                              <td><code>bs2:Form</code></td>
+                              <td><code>ac:ResourceForm</code></td>
+                           </tr>
+                           
+                           <tr>
+                              <td><code>bs2:NavBar</code></td>
+                              <td><code>ac:Header</code></td>
+                           </tr>
+                           
+                           <tr>
+                              <td><code>bs2:Lookup</code></td>
+                              <td><code>ldh:Combobox</code></td>
+                           </tr>
+                           
+                           <tr>
+                              <td><code>ac:ModeList</code></td>
+                              <td><code>ac:ModeSwitcher</code></td>
+                           </tr>
+                           
+                           <tr>
+                              <td><code>ldh:LeftSidebar</code></td>
+                              <td><code>ldh:DataspaceDrawer</code></td>
+                           </tr>
+                           </tbody>
+                        </table>
+                     </div>
+                  
+                  <div>
+                     
+                     <h3 id="parameters-and-functions">Parameters and functions</h3>
+                     
+                     <p>The <code>$ac:langs</code> and <code>$ac:lang</code> parameters become the <code>ac:langs()</code> and <code>ac:langs()[1]</code> functions. An
+                        <code>xsl:with-param</code> left behind is silently ignored. A stylesheet still declaring <code>xmlns:lapp</code> compiles and silently binds nothing.</p>
+                     
+                     <table>
+                        
+                        <caption class="ac-vh">Stylesheet parameters and functions renamed in 6.0.0</caption>
+                        
+                        <thead>
+                           
+                           <tr>
+                              
+                              <th scope="col">5.x</th>
+                              
+                              <th scope="col">6.0.0</th>
+                              </tr>
+                           </thead>
+                        
+                        <tbody>
+                           
+                           <tr>
+                              <td><code>$lapp:origin</code></td>
+                              <td><code>$lds:origin</code></td>
+                           </tr>
+                           
+                           <tr>
+                              <td><code>$lapp:Context</code></td>
+                              <td><code>$lds:Context</code></td>
+                           </tr>
+                           
+                           <tr>
+                              <td><code>lapp:origin()</code></td>
+                              <td><code>lds:origin()</code></td>
+                           </tr>
+                           
+                           <tr>
+                              <td><code>lapp:base()</code></td>
+                              <td><code>lds:base()</code></td>
+                           </tr>
+                           
+                           <tr>
+                              <td><code>lapp:application-description()</code></td>
+                              <td><code>lds:dataspace-description()</code></td>
+                           </tr>
+                           
+                           <tr>
+                              <td><code>ldt:base()</code></td>
+                              <td><code>lds:base()</code></td>
+                           </tr>
+                           
+                           <tr>
+                              <td><code>$ldt:base</code></td>
+                              <td>removed</td>
+                           </tr>
+                           </tbody>
+                        </table>
+                     </div>
+                  
+                  <div>
+                     
+                     <h3 id="removed-libraries">Removed libraries</h3>
+                     
+                     <p>Overrides depending on <samp>bootstrap.js</samp>, jQuery, WYMEditor or the sprite icons need rewriting. IXSL templates drive the dropdowns
+                        and modals,
+                        the <samp>msi</samp> font draws the icons, and the <a href="../user-interface/">RDFa editor</a> edits <code>rdf:XMLLiteral</code> content.</p>
+                     </div>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="namespaces">Namespaces</h2>
+                  
+                  <p>Every namespace LinkedDataHub defines now lives under <samp>https://w3id.org/atomgraph/linkeddatahub</samp>. Stylesheets and stored data are both affected.</p>
+                  
+                  <table>
+                     
+                     <caption class="ac-vh">Namespace URIs in 5.x and 6.0.0</caption>
+                     
+                     <thead>
+                        
+                        <tr>
+                           
+                           <th scope="col">Prefix</th>
+                           
+                           <th scope="col">5.x</th>
+                           
+                           <th scope="col">6.0.0</th>
+                           </tr>
+                        </thead>
+                     
+                     <tbody>
+                        
+                        <tr>
+                           
+                           <td><code>dh:</code></td>
+                           
+                           <td><samp>https://www.w3.org/ns/ldt/document-hierarchy#</samp></td>
+                           
+                           <td><samp>https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#</samp></td>
+                           </tr>
+                        
+                        <tr>
+                           
+                           <td><code>lapp:</code> becomes <code>lds:</code></td>
+                           
+                           <td><samp>https://w3id.org/atomgraph/linkeddatahub/apps#</samp></td>
+                           
+                           <td><samp>https://w3id.org/atomgraph/linkeddatahub/dataspaces#</samp></td>
+                           </tr>
+                        
+                        <tr>
+                           
+                           <td><code>ldt:</code></td>
+                           
+                           <td><samp>https://www.w3.org/ns/ldt</samp></td>
+                           
+                           <td>removed</td>
+                           </tr>
+                        
+                        <tr>
+                           
+                           <td><code>ct:</code>, <code>c:</code></td>
+                           
+                           <td>sibling namespaces of <code>ldt:</code></td>
+                           
+                           <td>removed</td>
+                           </tr>
+                        </tbody>
+                     </table>
+                  
+                  <p>The <code>dh:</code> prefix, its class names and <samp>DH.java</samp> are unchanged, but every <code>dh:Container</code> and <code>dh:Item</code> already in a
+                     triplestore is typed in the old namespace.</p>
+                  
+                  <p>The <a href="../dataspace/">dataspace</a> classes are renamed with the prefix: <code>lapp:Application</code> becomes <code>lds:Dataspace</code>,
+                     <code>lapp:EndUserApplication</code> becomes <code>lds:EndUserDataspace</code>, <code>lapp:AdminApplication</code> becomes <code>lds:AdminDataspace</code>,
+                     and the three constructor individuals follow. The <code>lapp:application</code> <code>Link</code> relation that names the dataspace a response belongs to
+                     becomes <code>lds:dataspace</code>. <code>lapp:Dataset</code>, <code>lapp:Package</code> and the remaining properties keep their local names under the new
+                     prefix, and <code>lds:prefix</code> and <code>lds:versioningRepository</code> — used in configuration and read in Java, but never declared — are now declared.</p>
+                  
+                  <p><code>ldt:ontology</code>, <code>ldt:service</code> and <code>ldt:base</code> become <code>lds:ontology</code>, <code>lds:service</code> and
+                     <code>lds:base</code>, and the <samp>ldt#ontology</samp> and <samp>ldt#base</samp> <code>Link</code> relations with them, so
+                     <samp>config/dataspaces.trig</samp> and <samp>config/system.trig</samp> each need one prefix where they needed two. The Java <code>LDT</code> vocabulary,
+                     the bundled <samp>ldt.ttl</samp> and the <code>rdfs:subClassOf ldt:Application</code> on the dataspace class are gone, and <code>lacl:requestAccess</code>
+                     now ranges over <code>foaf:Document</code>.</p>
+                  
+                  <p><code>lapp:frontendProxy</code> is removed with no replacement under the new prefix, having been read by nothing.
+                     The frontend (Varnish) proxy used for
+                     cache-invalidation requests comes from the <code>ldhc:frontendProxy</code> servlet parameter, set from <samp>FRONTEND_PROXY</samp> by
+                     <samp>platform/entrypoint.sh</samp>. <code>lds:backendProxy</code> stays, since a proxied <code>lds:Dataset</code> is read through it.</p>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="deployment">Deployment</h2>
+                  
+                  <div>
+                     
+                     <h3 id="triplestore">Triplestore</h3>
+                     
+                     <p>One <samp>fuseki</samp> service replaces <samp>fuseki-admin</samp> and <samp>fuseki-end-user</samp>, holding an end-user and an admin TDB2 dataset per
+                        dataspace, declared in <samp>config/fuseki/config.ttl</samp> and persisted under <samp>fuseki/&lt;dataset&gt;/</samp>. Datasets are named after the
+                        dataspace origin with the deployment host dropped and the role appended: <samp>end-user</samp>, <samp>admin</samp>,
+                        <samp>northwind-traders.demo.end-user</samp>.</p>
+                     
+                     <p>An existing deployment moves its two TDB2 directories under the new dataset names,
+                        points every <code>lds:service</code> in
+                        <samp>config/system.trig</samp> at <samp>http://fuseki:3030/&lt;dataset&gt;/</samp>, and merges the two stores heap settings and <samp>mem_limit</samp>.
+                        <samp>varnish-admin</samp> and <samp>varnish-end-user</samp> stay as they were. The <a href="../triplestores/">triplestores</a> page describes the
+                        resulting layout.</p>
+                     </div>
+                  
+                  <div>
+                     
+                     <h3 id="sef-compiler">Client-side package composition</h3>
+                     
+                     <p>Composing package stylesheets into the client SEF needs the new <samp>sef-compiler</samp> service. A deployment with its own compose file adds it, the
+                        platform service's <code>depends_on</code> on it, and the <samp>./sef</samp> bind mount at <samp>/var/www/linkeddatahub/sef</samp>.
+                        <samp>SEF_ROOT</samp> and <samp>SEF_COMPILER</samp> are optional: without them, packages compose server-side only, as in 5.10.0.</p>
+                     
+                     <p><samp>CLIENT_STYLESHEET</samp> names the client stylesheet the SEF is composed from, and defaults to the platform's
+                        <samp>client.xsl</samp>. A deployment
+                        bootstrapping its own sets it to that stylesheet's webapp path. Such a stylesheet
+                        must import the platform's <samp>client.xsl</samp> directly, and its
+                        layout prefers <code>ldh:client-stylesheet()</code> over its own SEF.</p>
+                     </div>
+                  
+                  <div>
+                     
+                     <h3 id="package-root">Package directory</h3>
+                     
+                     <p>A deployment with its own compose file adds the <samp>./packages</samp> bind mount at <samp>/var/www/linkeddatahub/packages</samp>
+                        (<samp>PACKAGE_ROOT</samp>), where copies of imported package stylesheets survive a redeploy.</p>
+                     </div>
+                  
+                  <div>
+                     
+                     <h3 id="oauth-grants">OAuth grants</h3>
+                     
+                     <p>The <samp>oauth2-login</samp> and <samp>oauth2-authorize</samp> grants move from the administration store to the end-user application's
+                        <samp>namespace-ontology.trig.template</samp>, as <code>acl:accessTo</code> on the login and callback URLs. An existing deployment re-seeds or migrates
+                        them.</p>
+                     </div>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="packages">Packages</h2>
+                  
+                  <p>A package stylesheet is composed right after <samp>hooks.xsl</samp>. It can specialise an open mode — <code>ldh:RowHook</code>, the tree node, the value
+                     leaves in <samp>imports/values.xsl</samp> — and no longer replaces a sealed mode, a typed rule or a global.</p>
+                  
+                  <p>A package ontology imported before this release is materialized under <samp>admin/ontologies/</samp> on the next request, and is edited there from then on. A
+                     later change to the published package reaches the application only after that document
+                     is deleted.</p>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="http-api">HTTP API</h2>
+                  
+                  <div class="ac-alert va-negative" role="status">
+                     <span class="ac-alert-ic"><span aria-hidden="true" class="msi outline">warning</span></span>
+                     
+                     <div class="ac-alert-body">
+                        
+                        <p class="ac-alert-text">A write to a document that already exists must be conditional: <code>If-Match</code> with the document's current
+                           <code>ETag</code>, or <code>If-None-Match: *</code> to create. An unconditional write is answered <code>428 Precondition Required</code>.</p>
+                        </div>
+                     </div>
+                  
+                  <p>A client that wrote unconditionally now reads the tag first, as the <a href="../command-line-interface/"><samp>ldh</samp> CLI</a> does for you. An entity tag
+                     identifies a negotiated variant, so the read supplying the validator must send the
+                     same <code>Accept</code> as the write quoting it, or the write is refused
+                     <code>412</code>. The <a href="../http-api/">HTTP API</a> page has the request shapes.</p>
+                  
+                  <p>The access control query fails closed on a typeless resource, so a request for a URL
+                     that does not exist is answered <code>403</code> rather than
+                     <code>404</code> unless the agent is the owner.</p>
+                  
+                  <p><code>ldh:container</code> leaves the ontology, the <code>ldh:ViewConstructor</code> form and the view query. A view's <dfn>Create</dfn> button determines the
+                     container from the view's own solutions.</p>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="java-api">Java API</h2>
+                  
+                  <p>Server-side extensions move with the model. The names below changed together; nothing
+                     else in the API did.</p>
+                  
+                  <table>
+                     
+                     <caption class="ac-vh">Java packages, classes and accessors renamed in 6.0.0</caption>
+                     
+                     <thead>
+                        
+                        <tr>
+                           
+                           <th scope="col">5.x</th>
+                           
+                           <th scope="col">6.0.0</th>
+                           </tr>
+                        </thead>
+                     
+                     <tbody>
+                        
+                        <tr>
+                           <td><code>com.atomgraph.linkeddatahub.apps</code></td>
+                           <td><code>com.atomgraph.linkeddatahub.dataspaces</code></td>
+                        </tr>
+                        
+                        <tr>
+                           <td><code>Application</code>, <code>AdminApplication</code>, <code>EndUserApplication</code></td>
+                           <td><code>Dataspace</code>, <code>AdminDataspace</code>, <code>EndUserDataspace</code></td>
+                        </tr>
+                        
+                        <tr>
+                           <td><code>LAPP</code></td>
+                           <td><code>LDS</code></td>
+                        </tr>
+                        
+                        <tr>
+                           <td><code>getApplication()</code>, <code>getAdminApplication()</code>, <code>getEndUserApplication()</code></td>
+                           <td><code>getDataspace()</code>, <code>getAdminDataspace()</code>, <code>getEndUserDataspace()</code></td>
+                        </tr>
+                        </tbody>
+                     </table>
+                  </div>
+               </div>
+         </div>
+      </div>
+      <div class="ldh-footer" role="contentinfo">
+         <div class="cols">
+            <div class="col brand-col"><a class="ldh-wordmark" href="https://linkeddatahub.com" target="_blank"><span class="mark"></span><span>LinkedDataHub</span></a><p>The low-code Knowledge Graph application platform. Built on RDF, SPARQL and Linked
+                  Data principles.</p>
+            </div>
+            <div class="col">
+               <p class="ftitle">About</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a><a href="https://atomgraph.com" target="_blank">AtomGraph</a></div>
+            <div class="col">
+               <p class="ftitle">Resources</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></div>
+            <div class="col">
+               <p class="ftitle">Support</p><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a><a href="mailto:support@linkeddatahub.com">Contact support</a></div>
+            <div class="col">
+               <p class="ftitle">Follow us</p><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></div>
+         </div>
+         <div class="legal"><span>© 2026 AtomGraph · LinkedDataHub</span></div>
+      </div>
+   </body>
+</html>

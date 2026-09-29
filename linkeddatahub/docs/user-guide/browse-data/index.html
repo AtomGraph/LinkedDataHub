@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" lang="en" data-retro="m3" data-theme="light">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>LinkedDataHub v5 — Browse data</title>
+      <meta name="description" content="Browse, navigate and search local and remote data"/>
+      <meta name="last-modified" content="2026-09-29T23:17:17Z"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1"/>
+      <link href="../../static/css/fonts.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/colors_and_type.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/app.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/retro.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/ldh.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/docs.css" rel="stylesheet" type="text/css"/><script type="text/javascript">
+                    document.addEventListener("click", function(event) {
+                        var tab = event.target.closest(".ac-tab[role='tab']");
+                        if (!tab) return;
+                        var tablist = tab.closest("[role='tablist']");
+                        var tabs = tablist.closest(".ac-tabs");
+                        if (!tabs || !tabs.querySelector(".ac-tabpanel")) return;
+                        tablist.querySelectorAll(".ac-tab").forEach(function(t) { t.classList.remove("is-on"); t.setAttribute("aria-selected", "false"); });
+                        tab.classList.add("is-on");
+                        tab.setAttribute("aria-selected", "true");
+                        tabs.querySelectorAll(".ac-tabpanel").forEach(function(pane) {
+                            if (pane.parentElement !== tabs) return;
+                            pane.hidden = pane.id !== tab.getAttribute("aria-controls");
+                        });
+                    });
+                </script><script async="async" defer="defer" src="https://buttons.github.io/buttons.js"></script><script async="async" defer="defer" src="https://platform.twitter.com/widgets.js"></script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+                    window.dataLayer = window.dataLayer || [];
+                    function gtag(){dataLayer.push(arguments);}
+                    gtag('js', new Date());
+                    gtag('config', 'UA-38402002-6');
+                </script></head>
+   <body class="app">
+      <div class="ldh-header" role="banner"><a class="ldh-wordmark" href="../../"><span class="mark"></span><span>LinkedDataHub</span></a><div></div>
+         <div class="ldh-header-actions">
+            <details class="docs-versions">
+               <summary>Documentation v6</summary>
+               <div><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v5/">Documentation v5</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></div>
+            </details><a href="https://github.com/AtomGraph/LinkedDataHub-Apps" target="_blank">Sample dataspaces</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub/subscription" data-icon="octicon-eye" data-size="large" aria-label="Watch AtomGraph/LinkedDataHub on GitHub">Watch</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star AtomGraph/LinkedDataHub on GitHub">Star</a><a href="https://twitter.com/atomgraphhq" class="twitter-follow-button" data-show-count="false">Follow @atomgraphhq</a><a href="https://youtube.com/@atomgraph" target="_blank"><span class="msi outline" aria-hidden="true">smart_display</span> @atomgraph</a></div>
+      </div>
+      <div class="docs-layout">
+         <div class="docs-nav" role="navigation">
+            <ul>
+               <li><a href="../../about/">About LinkedDataHub</a></li>
+               <li><a href="../../get-started/">Get started</a></li>
+               <li><a href="../../tutorial/">Tutorial</a></li>
+               <li><a href="../">User guide</a><ul>
+                     <li><a href="../add-data/">Add data</a></li>
+                     <li class="is-active" aria-current="page"><a href="">Browse data</a></li>
+                     <li><a href="../change-model/">Change model</a></li>
+                     <li><a href="../create-data/">Create data</a></li>
+                     <li><a href="../edit-content/">Edit content</a></li>
+                     <li><a href="../import-data/">Import data</a></li>
+                     <li><a href="../manage-dataspaces/">Manage dataspaces</a></li>
+                     <li><a href="../manage-packages/">Manage packages</a></li>
+                     <li><a href="../query-data/">Query data</a></li>
+                     <li><a href="../upload-file/">Upload file</a></li>
+                     <li><a href="../version-history/">Version history</a></li>
+                  </ul>
+               </li>
+               <li><a href="../../reference/">Reference</a></li>
+               <li><a href="../../extending/">Extending</a></li>
+            </ul>
+         </div>
+         <div class="docs-main" role="main">
+            <h1>Browse data</h1>
+            <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+               
+               <p class="ldh-body-lg">Browse, navigate and search local and remote data</p>
+               <video aria-label="Browsing and navigating data" controls="controls" preload="metadata" src="../../files/user-guide/browse-data-1.mp4"></video>
+               
+               <div>
+                  
+                  <h2 id="linked-data-browser">Linked Data browser</h2>
+                  
+                  <p>LinkedDataHub has a built-in Linked Data browser which is accessed through <a href="../../reference/user-interface/#nav-bar">the navigation bar</a>. Enter a <code>http://</code> or <code>https://</code> URL and
+                     press <kbd>Enter</kbd> or click the search button. Try, for example:</p>
+                  
+                  <ul>
+                     
+                     <li><samp>https://unesco-thesaurus.demo.linkeddatahub.com/concepts/concept3683/</samp> — a concept in another LinkedDataHub dataspace (the one the Northwind Beverages category
+                        <a href="../../reference/imports/rdf/">maps to</a>)</li>
+                     
+                     <li><samp>https://dbpedia.org/resource/Copenhagen</samp> — an arbitrary Linked Data resource on the open web</li>
+                     </ul>
+                  
+                  <p>The browser supports all standard RDF formats as well as JSON-LD embedded in an HTML
+                     page's <code>&lt;script&gt;</code> elements, which is often used to publish <a href="https://schema.org/" target="_blank">schema.org</a> metadata.</p>
+                  
+                  <p>When the data loads successfully, you can navigate it the same way as your local documents,
+                     switch between different layout modes etc. You can also <a href="../add-data/">add the data</a> into your dataspace.</p>
+                  
+                  <p>If an RDF document cannot be read from the supplied URL, an error message will be
+                     shown.</p>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="document-tree">Document tree</h2>
+                  
+                  <p>The document tree in the left sidebar gives a quick overview of the dataspace's <a href="../../reference/data-model/documents/#hierarchy">document hierarchy</a>; the <a href="../../reference/user-interface/#document-hierarchy">user interface reference</a> describes the widget.</p>
+                  <img alt="The document tree with a container expanded" src="../../files/user-guide/browse-data-2.webp"/>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="class-navigation">Class-based navigation</h2>
+                  
+                  <p>In addition to navigating by document hierarchy, you can navigate by class: the <samp>Classes</samp> list in the left sidebar shows the classes (<code>rdf:type</code> values) that occur in your data; the <a href="../../reference/user-interface/#class-navigation">user interface reference</a> describes the widget.</p>
+                  
+                  <h3 id="using-class-navigation">Using class-based navigation</h3>
+                  
+                  <ol>
+                     
+                     <li>Open the left sidebar — slide the mouse to the left edge of the screen</li>
+                     
+                     <li>Find the <samp>Classes</samp> list</li>
+                     
+                     <li>Click on any class to open a dialog listing all instances of that class in your dataspace</li>
+                     </ol>
+                  
+                  <h3 id="when-to-use-class-navigation">When to use class-based navigation</h3>
+                  
+                  <p>Class-based navigation is most useful when:</p>
+                  
+                  <dl>
+                     
+                     <dt>Finding all instances of a type</dt>
+                     
+                     <dd>Quickly locate all resources of a particular class, regardless of where they are stored
+                        in the document hierarchy</dd>
+                     
+                     <dt>Exploring domain concepts</dt>
+                     
+                     <dd>Browse your data organized by business concepts (e.g. all Customers, all Orders) rather
+                        than by container structure</dd>
+                     
+                     <dt>Cross-container queries</dt>
+                     
+                     <dd>View instances that span multiple containers in a single unified view</dd>
+                     </dl>
+                  
+                  <p>The list is derived from the data itself and respects your access control settings.</p>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="text-search">Text search</h2>
+                  
+                  <p>You can look up resources by typing a phrase (a few letters are enough) into the <a href="../../reference/user-interface/#left-sidebar">search box</a> at the top of the left sidebar.</p>
+                  
+                  <p>A dropdown list will appear if there are any matches. Use <kbd>↑</kbd>/<kbd>↓</kbd> or click to select a result, and you will be redirected to its document.</p>
+                  
+                  <p>The matching is done by looking for substrings using SPARQL <code>regex()</code> in common literal properties such as <code>dct:title</code>, <code>rdfs:label</code>, <code>foaf:name</code> etc. — equivalent to a query of this shape:</p>
+                  
+                  <pre>PREFIX dct:  &lt;http://purl.org/dc/terms/&gt;
+PREFIX rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt;
+PREFIX foaf: &lt;http://xmlns.com/foaf/0.1/&gt;
+PREFIX skos: &lt;http://www.w3.org/2004/02/skos/core#&gt;
+
+SELECT DISTINCT ?resource
+WHERE {
+    GRAPH ?g {
+        ?resource ?labelProperty ?label .
+        VALUES ?labelProperty { dct:title rdfs:label foaf:name skos:prefLabel }
+        FILTER regex(str(?label), "cha", "i")   # on Northwind, matches "Chai", "Chang", "Chartreuse verte"…
+    }
+}</pre>
+                  
+                  <p>The same widget is used for autocomplete inputs in create and edit forms.</p>
+                  <img alt="The search dropdown with matching Northwind resources" src="../../files/user-guide/browse-data-3.webp"/>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="structured-search">Structured search</h2>
+                  
+                  <p>You can use SPARQL to <a href="../query-data/">query data</a> from the dataspace's SPARQL service.</p>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="backlinks">Backlinks</h2>
+                  
+                  <p>Backlinks open in a <a href="../../reference/user-interface/#backlinks">popover anchored to each block's links button</a>.
+                     They display a list of resources which have properties with the block's resource as
+                     the object.</p>
+                  </div>
+               
+               <p class="ldh-body-lg">Continue to the <a href="../query-data/">Query data</a> guide, or read more about the <a href="../../reference/user-interface/">user interface</a>.</p>
+               </div>
+         </div>
+      </div>
+      <div class="ldh-footer" role="contentinfo">
+         <div class="cols">
+            <div class="col brand-col"><a class="ldh-wordmark" href="https://linkeddatahub.com" target="_blank"><span class="mark"></span><span>LinkedDataHub</span></a><p>The low-code Knowledge Graph application platform. Built on RDF, SPARQL and Linked
+                  Data principles.</p>
+            </div>
+            <div class="col">
+               <p class="ftitle">About</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a><a href="https://atomgraph.com" target="_blank">AtomGraph</a></div>
+            <div class="col">
+               <p class="ftitle">Resources</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></div>
+            <div class="col">
+               <p class="ftitle">Support</p><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a><a href="mailto:support@linkeddatahub.com">Contact support</a></div>
+            <div class="col">
+               <p class="ftitle">Follow us</p><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></div>
+         </div>
+         <div class="legal"><span>© 2026 AtomGraph · LinkedDataHub</span></div>
+      </div>
+   </body>
+</html>

@@ -1,0 +1,12 @@
+html/
+rdf/
+node_modules/
+Makefile
+docs.css
+docs.trix
+files.xml
+timestamps.xml
+screenshot-edit-mode.png
+screenshot.png
+*.sh
+*.xsl

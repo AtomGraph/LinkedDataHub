@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" lang="en" data-retro="m3" data-theme="light">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>LinkedDataHub v5 — Composition</title>
+      <meta name="description" content="Assemble the landing page from content blocks"/>
+      <meta name="last-modified" content="2026-09-29T23:17:17Z"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1"/>
+      <link href="../../static/css/fonts.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/colors_and_type.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/app.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/retro.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/ldh.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/docs.css" rel="stylesheet" type="text/css"/><script type="text/javascript">
+                    document.addEventListener("click", function(event) {
+                        var tab = event.target.closest(".ac-tab[role='tab']");
+                        if (!tab) return;
+                        var tablist = tab.closest("[role='tablist']");
+                        var tabs = tablist.closest(".ac-tabs");
+                        if (!tabs || !tabs.querySelector(".ac-tabpanel")) return;
+                        tablist.querySelectorAll(".ac-tab").forEach(function(t) { t.classList.remove("is-on"); t.setAttribute("aria-selected", "false"); });
+                        tab.classList.add("is-on");
+                        tab.setAttribute("aria-selected", "true");
+                        tabs.querySelectorAll(".ac-tabpanel").forEach(function(pane) {
+                            if (pane.parentElement !== tabs) return;
+                            pane.hidden = pane.id !== tab.getAttribute("aria-controls");
+                        });
+                    });
+                </script><script async="async" defer="defer" src="https://buttons.github.io/buttons.js"></script><script async="async" defer="defer" src="https://platform.twitter.com/widgets.js"></script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+                    window.dataLayer = window.dataLayer || [];
+                    function gtag(){dataLayer.push(arguments);}
+                    gtag('js', new Date());
+                    gtag('config', 'UA-38402002-6');
+                </script></head>
+   <body class="app">
+      <div class="ldh-header" role="banner"><a class="ldh-wordmark" href="../../"><span class="mark"></span><span>LinkedDataHub</span></a><div></div>
+         <div class="ldh-header-actions">
+            <details class="docs-versions">
+               <summary>Documentation v6</summary>
+               <div><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v5/">Documentation v5</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></div>
+            </details><a href="https://github.com/AtomGraph/LinkedDataHub-Apps" target="_blank">Sample dataspaces</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub/subscription" data-icon="octicon-eye" data-size="large" aria-label="Watch AtomGraph/LinkedDataHub on GitHub">Watch</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star AtomGraph/LinkedDataHub on GitHub">Star</a><a href="https://twitter.com/atomgraphhq" class="twitter-follow-button" data-show-count="false">Follow @atomgraphhq</a><a href="https://youtube.com/@atomgraph" target="_blank"><span class="msi outline" aria-hidden="true">smart_display</span> @atomgraph</a></div>
+      </div>
+      <div class="docs-layout">
+         <div class="docs-nav" role="navigation">
+            <ul>
+               <li><a href="../../about/">About LinkedDataHub</a></li>
+               <li><a href="../../get-started/">Get started</a></li>
+               <li><a href="../">Tutorial</a><ul>
+                     <li><a href="../hello-dataspace/">Hello dataspace</a></li>
+                     <li><a href="../structure/">Structure</a></li>
+                     <li><a href="../model/">Model</a></li>
+                     <li><a href="../data/">Data</a></li>
+                     <li><a href="../media/">Media</a></li>
+                     <li><a href="../insight/">Insight</a></li>
+                     <li class="is-active" aria-current="page"><a href="">Composition</a></li>
+                     <li><a href="../publish/">Publish</a></li>
+                     <li><a href="../app-as-repository/">App as a repository</a></li>
+                     <li><a href="../beyond-low-code/">Beyond low-code</a></li>
+                  </ul>
+               </li>
+               <li><a href="../../user-guide/">User guide</a></li>
+               <li><a href="../../reference/">Reference</a></li>
+               <li><a href="../../extending/">Extending</a></li>
+            </ul>
+         </div>
+         <div class="docs-main" role="main">
+            <h1>Composition</h1>
+            <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+               
+               <p class="ldh-body-lg">Assemble the landing page from content blocks</p>
+               
+               <p>Everything the app can show is now in place — text, data, charts, views. The landing
+                  page is their composition: an ordered sequence of
+                  <a href="../../reference/data-model/blocks/" target="_blank">content blocks</a> on the root document. Two block types exist: <code>ldh:XHTML</code> holds authored markup, and
+                  <code>ldh:Object</code> embeds any other resource — a chart, a view, a document.</p>
+               
+               <p>The demo's finished root document interleaves them into an executive dashboard:</p>
+               
+               <pre>&lt;&gt; a def:Root ;
+    dct:title "Northwind Traders" ;
+    rdf:_1 &lt;#overview-intro&gt; ;                 # XHTML   — "Executive dashboard" intro
+    rdf:_2 &lt;#sales-trend-block&gt; ;              # Object  — monthly sales line chart
+    rdf:_3 &lt;#margin-intro&gt; ;                   # XHTML   — "What the deals cost"
+    rdf:_4 &lt;#discount-rate-block&gt; ;            # Object  — discount rate line chart
+    rdf:_5 &lt;#revenue-by-country-block&gt; ;       # Object  — revenue by country bar chart
+    rdf:_6 &lt;products/#top-selling-products&gt; ;  # Object  — chart reused from Products
+    rdf:_7 &lt;#top-manager-header&gt; ;             # XHTML   — "Sales leadership"
+    rdf:_8 &lt;#top-manager&gt; ;                    # Object  — embeds &lt;employees/2/#this&gt;
+    rdf:_9 &lt;#navigation-prompt&gt; ;              # XHTML   — where to go next
+    rdf:_10 &lt;#select-children&gt; .               # Object  — children view</pre>
+               
+               <p class="exhibit-links">Source: <a href="https://github.com/AtomGraph/LinkedDataHub-Apps/blob/master/demo/northwind-traders/root.ttl" target="_blank">root.ttl</a> · Live: <a href="https://northwind-traders.demo.linkeddatahub.com/" target="_blank">the dashboard</a></p>
+               
+               <p>Two of the blocks show how far transclusion reaches. <code>rdf:_6</code> embeds a chart that is <em>defined on the Products container</em> — the same
+                  resource renders on both pages, so an insight is authored once and placed wherever
+                  it is needed. <code>rdf:_8</code> embeds a plain data resource:
+                  <code>&lt;employees/2/#this&gt;</code>, the Vice President of Sales, rendered with his description and photo — no special
+                  profile widget exists; the
+                  default rendering of the resource <em>is</em> the widget.</p>
+               
+               <p>The narrative rhythm — prose, then evidence, then prose — is an editorial choice,
+                  and it is made entirely in data: reordering the page means renumbering <code>rdf:_N</code>.</p>
+               
+               <div class="ac-tabs or-horizontal">
+                  
+                  <div class="ac-tablist sz-md va-line" role="tablist">
+                     <button aria-controls="in-the-browser-pane" aria-selected="true" class="ac-tab is-on" id="in-the-browser-tab" role="tab" type="button"><span class="ac-tab-lbl">In the browser</span></button>
+                     <button aria-controls="from-the-command-line-pane" aria-selected="false" class="ac-tab" id="from-the-command-line-tab" role="tab" type="button"><span class="ac-tab-lbl">From the command line</span></button>
+                     </div>
+                  
+                  <div aria-labelledby="in-the-browser-tab" class="ac-tabpanel" id="in-the-browser-pane" role="tabpanel">
+                     
+                     <p>With the <a href="../../reference/user-interface/#layout-modes" target="_blank">Content layout mode</a> active, append blocks with the
+                        <span class="ac-btn in-primary ap-solid sz-md">XHTML</span> and <span class="ac-btn in-primary ap-solid sz-md">Object</span> buttons at the bottom of the page. Reorder by dragging a block by
+                        its drag handle and dropping it in a different position.</p>
+                     </div>
+                  
+                  <div aria-labelledby="from-the-command-line-tab" class="ac-tabpanel" hidden="hidden" id="from-the-command-line-pane" role="tabpanel">
+                     
+                     <p>The composition is the <samp>root.ttl</samp> of the <a href="../hello-dataspace/">first stage</a>, grown to its final form and applied with the same <code>PUT</code>:</p>
+                     
+                     <pre>ldh put "$LDH_BASE" root.ttl</pre>
+                     
+                     <p>To reorder, renumber the <code>rdf:_N</code> properties in the file and <code>PUT</code> it again — <code>PUT</code> replaces the document's description outright.</p>
+                     </div>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="result">What you now see</h2>
+                  
+                  <p>The homepage is the finished dataspace: branded header, live charts over the imported
+                     graph, and navigation into the containers — all of it driven by one document's
+                     description.</p>
+                  <img alt="The finished Northwind landing page" src="../../files/tutorial/composition-1.webp"/>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="how-this-works">How this works</h2>
+                  
+                  <ul>
+                     
+                     <li><a href="../../reference/data-model/blocks/" target="_blank">Content blocks</a> — XHTML and object blocks, their RDF serialization and their management</li>
+                     </ul>
+                  </div>
+               
+               <p class="ldh-body-lg">Next: <a href="../publish/">Publish</a></p>
+               </div>
+         </div>
+      </div>
+      <div class="ldh-footer" role="contentinfo">
+         <div class="cols">
+            <div class="col brand-col"><a class="ldh-wordmark" href="https://linkeddatahub.com" target="_blank"><span class="mark"></span><span>LinkedDataHub</span></a><p>The low-code Knowledge Graph application platform. Built on RDF, SPARQL and Linked
+                  Data principles.</p>
+            </div>
+            <div class="col">
+               <p class="ftitle">About</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a><a href="https://atomgraph.com" target="_blank">AtomGraph</a></div>
+            <div class="col">
+               <p class="ftitle">Resources</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></div>
+            <div class="col">
+               <p class="ftitle">Support</p><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a><a href="mailto:support@linkeddatahub.com">Contact support</a></div>
+            <div class="col">
+               <p class="ftitle">Follow us</p><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></div>
+         </div>
+         <div class="legal"><span>© 2026 AtomGraph · LinkedDataHub</span></div>
+      </div>
+   </body>
+</html>

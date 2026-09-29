@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" lang="en" data-retro="m3" data-theme="light">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>LinkedDataHub v5 — Manage dataspaces</title>
+      <meta name="description" content="Create or change a dataspace, and configure its SPARQL services and XSLT stylesheets"/>
+      <meta name="last-modified" content="2026-09-29T23:17:17Z"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1"/>
+      <link href="../../static/css/fonts.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/colors_and_type.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/app.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/retro.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/ldh.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/docs.css" rel="stylesheet" type="text/css"/><script type="text/javascript">
+                    document.addEventListener("click", function(event) {
+                        var tab = event.target.closest(".ac-tab[role='tab']");
+                        if (!tab) return;
+                        var tablist = tab.closest("[role='tablist']");
+                        var tabs = tablist.closest(".ac-tabs");
+                        if (!tabs || !tabs.querySelector(".ac-tabpanel")) return;
+                        tablist.querySelectorAll(".ac-tab").forEach(function(t) { t.classList.remove("is-on"); t.setAttribute("aria-selected", "false"); });
+                        tab.classList.add("is-on");
+                        tab.setAttribute("aria-selected", "true");
+                        tabs.querySelectorAll(".ac-tabpanel").forEach(function(pane) {
+                            if (pane.parentElement !== tabs) return;
+                            pane.hidden = pane.id !== tab.getAttribute("aria-controls");
+                        });
+                    });
+                </script><script async="async" defer="defer" src="https://buttons.github.io/buttons.js"></script><script async="async" defer="defer" src="https://platform.twitter.com/widgets.js"></script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+                    window.dataLayer = window.dataLayer || [];
+                    function gtag(){dataLayer.push(arguments);}
+                    gtag('js', new Date());
+                    gtag('config', 'UA-38402002-6');
+                </script></head>
+   <body class="app">
+      <div class="ldh-header" role="banner"><a class="ldh-wordmark" href="../../"><span class="mark"></span><span>LinkedDataHub</span></a><div></div>
+         <div class="ldh-header-actions">
+            <details class="docs-versions">
+               <summary>Documentation v6</summary>
+               <div><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v5/">Documentation v5</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></div>
+            </details><a href="https://github.com/AtomGraph/LinkedDataHub-Apps" target="_blank">Sample dataspaces</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub/subscription" data-icon="octicon-eye" data-size="large" aria-label="Watch AtomGraph/LinkedDataHub on GitHub">Watch</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star AtomGraph/LinkedDataHub on GitHub">Star</a><a href="https://twitter.com/atomgraphhq" class="twitter-follow-button" data-show-count="false">Follow @atomgraphhq</a><a href="https://youtube.com/@atomgraph" target="_blank"><span class="msi outline" aria-hidden="true">smart_display</span> @atomgraph</a></div>
+      </div>
+      <div class="docs-layout">
+         <div class="docs-nav" role="navigation">
+            <ul>
+               <li><a href="../../about/">About LinkedDataHub</a></li>
+               <li><a href="../../get-started/">Get started</a></li>
+               <li><a href="../../tutorial/">Tutorial</a></li>
+               <li><a href="../">User guide</a><ul>
+                     <li><a href="../add-data/">Add data</a></li>
+                     <li><a href="../browse-data/">Browse data</a></li>
+                     <li><a href="../change-model/">Change model</a></li>
+                     <li><a href="../create-data/">Create data</a></li>
+                     <li><a href="../edit-content/">Edit content</a></li>
+                     <li><a href="../import-data/">Import data</a></li>
+                     <li class="is-active" aria-current="page"><a href="">Manage dataspaces</a></li>
+                     <li><a href="../manage-packages/">Manage packages</a></li>
+                     <li><a href="../query-data/">Query data</a></li>
+                     <li><a href="../upload-file/">Upload file</a></li>
+                     <li><a href="../version-history/">Version history</a></li>
+                  </ul>
+               </li>
+               <li><a href="../../reference/">Reference</a></li>
+               <li><a href="../../extending/">Extending</a></li>
+            </ul>
+         </div>
+         <div class="docs-main" role="main">
+            <h1>Manage dataspaces</h1>
+            <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+               
+               <p class="ldh-body-lg">Create or change a dataspace, and configure its SPARQL services and XSLT stylesheets</p>
+               
+               <div>
+                  
+                  <h2 id="configuration-files">Configuration files</h2>
+                  
+                  <p><a href="../../reference/dataspace/" target="_blank">Dataspaces</a> are configured using RDF configuration files in <a href="https://www.w3.org/TR/trig/" target="_blank">TriG</a> syntax:
+                     <samp>config/dataspaces.trig</samp> holds the dataspace metadata, <samp>config/system.trig</samp> the internal service wiring, and <samp>secrets/credentials.trig</samp> the optional
+                     service credentials. See the <a href="../../reference/configuration/#config-files" target="_blank">configuration reference</a> for details about these files.</p>
+                  
+                  <p>The configuration uses the <a href="https://w3id.org/atomgraph/linkeddatahub/dataspaces" target="_blank">dataspace domain ontology</a>. Each dataspace — end-user or administration — is backed by its own SPARQL service
+                     and can specify its own <a href="../../reference/stylesheets/" target="_blank">XSLT stylesheet</a>.</p>
+                  
+                  <p>Dataspace configuration is file-based — there is no <samp>ldh</samp> command for it. The <samp>config/*.trig</samp> files are read at startup, so changes to them require a restart of the LinkedDataHub
+                     service.</p>
+                  
+                  <div class="ac-alert va-informative" role="status">
+                     <span class="ac-alert-ic"><span aria-hidden="true" class="msi outline">info</span></span>
+                     
+                     <div class="ac-alert-body">
+                        
+                        <p class="ac-alert-text">Dataspace base URIs must be relative to the <a href="../../reference/configuration/#system-base-uri" target="_blank">system base URI</a> configured in <samp>.env</samp>. If you change the system base URI, you must update the dataspace base URIs too,
+                           or they will not be reachable.</p>
+                        </div>
+                     </div>
+                  
+                  <div>
+                     
+                     <h3 id="create-dataspace">Create a dataspace</h3>
+                     
+                     <p>To create a new dataspace:</p>
+                     
+                     <ol>
+                        
+                        <li>Add instances of <code>lds:EndUserDataspace</code> and <code>lds:AdminDataspace</code> to <samp>config/dataspaces.trig</samp>, following the default dataspace as a template</li>
+                        
+                        <li>Declare an <samp>end-user</samp> and an <samp>admin</samp> dataset for the dataspace in <samp>config/fuseki/config.ttl</samp>, named after its origin (deployment host dropped, role appended)</li>
+                        
+                        <li>Add corresponding <code>sd:Service</code> instances to <samp>config/system.trig</samp>, each pointing at one of those datasets, and bind the dataspaces to them</li>
+                        </ol>
+                     
+                     <p>The relationship between end-user and admin dataspaces is inferred from their origins,
+                        and there is nothing to declare. A dataspace whose origin
+                        (<code>lds:origin</code>) uses the <samp>admin.</samp> subdomain is recognized as an administration dataspace, and paired with the end-user
+                        dataspace on
+                        the corresponding bare host.</p>
+                     
+                     <div class="ac-alert va-informative" role="status">
+                        <span class="ac-alert-ic"><span aria-hidden="true" class="msi outline">info</span></span>
+                        
+                        <div class="ac-alert-body">
+                           
+                           <p class="ac-alert-text">Use URIs (for example in the <samp>urn:</samp> scheme) to identify apps and services, not blank nodes. Make sure both files are
+                              valid <a href="https://www.w3.org/TR/trig/" target="_blank">TriG</a>, or the setup will not work. You can check the syntax with Apache Jena's <samp>riot --validate</samp>.</p>
+                           </div>
+                        </div>
+                     </div>
+                  
+                  <div>
+                     
+                     <h3 id="change-stylesheet">Change stylesheet</h3>
+                     
+                     <p>Change the value of <code>ac:stylesheet</code> to the URI of your <a href="../../reference/stylesheets/" target="_blank">XSLT stylesheet</a>. Add the property if it is absent. The value has to be an absolute URL on the dataspace's
+                        own origin.</p>
+                     
+                     <p>The stylesheet can either be <a href="../upload-file/" target="_blank">uploaded as a file</a> or <a href="https://docs.docker.com/storage/bind-mounts/" target="_blank">mounted</a> in <samp>docker-compose.yml</samp>, in the <samp>volumes</samp> section of the <samp>linkeddatahub</samp> service. Mounting is useful while developing.</p>
+                     
+                     <p>It is rarely necessary to change the stylesheet of an admin dataspace, but the procedure
+                        is identical.</p>
+                     </div>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="manage-services">Manage services</h2>
+                  
+                  <p>The LinkedDataHub service, the single <samp>fuseki</samp> triplestore, the <samp>egress</samp> proxy and the <samp>sef-compiler</samp> are defined in <a href="https://github.com/AtomGraph/LinkedDataHub/blob/master/docker-compose.yml" target="_blank"><samp>docker-compose.yml</samp></a>; each runs as a Docker container. One Fuseki server holds an <samp>end-user</samp> and an <samp>admin</samp> dataset per dataspace, declared in <samp>config/fuseki/config.ttl</samp> — so giving a dataspace its own datasets means adding a dataset pair there and a
+                     matching pair of <code>sd:Service</code> instances in <samp>config/system.trig</samp>.</p>
+                  
+                  <p>While LinkedDataHub uses <a href="https://jena.apache.org/documentation/fuseki2/" target="_blank">Apache Jena Fuseki</a> by default, you can configure it to use other SPARQL 1.1-compatible triplestores
+                     such as <a href="https://github.com/ad-freiburg/qlever" target="_blank">QLever</a>, <a href="https://github.com/dice-group/tentris" target="_blank">Tentris</a>, or others.</p>
+                  
+                  <p>See the <a href="../../reference/triplestores/" target="_blank">triplestores reference</a> for step-by-step configuration examples, including QLever setup and troubleshooting.</p>
+                  </div>
+               
+               <p class="ldh-body-lg">Read more about <a href="../../reference/dataspace/" target="_blank">dataspaces</a> and the <a href="../../reference/configuration/" target="_blank">configuration</a>.</p>
+               </div>
+         </div>
+      </div>
+      <div class="ldh-footer" role="contentinfo">
+         <div class="cols">
+            <div class="col brand-col"><a class="ldh-wordmark" href="https://linkeddatahub.com" target="_blank"><span class="mark"></span><span>LinkedDataHub</span></a><p>The low-code Knowledge Graph application platform. Built on RDF, SPARQL and Linked
+                  Data principles.</p>
+            </div>
+            <div class="col">
+               <p class="ftitle">About</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a><a href="https://atomgraph.com" target="_blank">AtomGraph</a></div>
+            <div class="col">
+               <p class="ftitle">Resources</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></div>
+            <div class="col">
+               <p class="ftitle">Support</p><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a><a href="mailto:support@linkeddatahub.com">Contact support</a></div>
+            <div class="col">
+               <p class="ftitle">Follow us</p><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></div>
+         </div>
+         <div class="legal"><span>© 2026 AtomGraph · LinkedDataHub</span></div>
+      </div>
+   </body>
+</html>

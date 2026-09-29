@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" lang="en" data-retro="m3" data-theme="light">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>LinkedDataHub v5 — Query data</title>
+      <meta name="description" content="Learn how to query dataspace data with SPARQL, and save queries and charts"/>
+      <meta name="last-modified" content="2026-09-29T23:17:17Z"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1"/>
+      <link href="../../static/css/fonts.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/colors_and_type.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/app.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/retro.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/ldh.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/docs.css" rel="stylesheet" type="text/css"/><script type="text/javascript">
+                    document.addEventListener("click", function(event) {
+                        var tab = event.target.closest(".ac-tab[role='tab']");
+                        if (!tab) return;
+                        var tablist = tab.closest("[role='tablist']");
+                        var tabs = tablist.closest(".ac-tabs");
+                        if (!tabs || !tabs.querySelector(".ac-tabpanel")) return;
+                        tablist.querySelectorAll(".ac-tab").forEach(function(t) { t.classList.remove("is-on"); t.setAttribute("aria-selected", "false"); });
+                        tab.classList.add("is-on");
+                        tab.setAttribute("aria-selected", "true");
+                        tabs.querySelectorAll(".ac-tabpanel").forEach(function(pane) {
+                            if (pane.parentElement !== tabs) return;
+                            pane.hidden = pane.id !== tab.getAttribute("aria-controls");
+                        });
+                    });
+                </script><script async="async" defer="defer" src="https://buttons.github.io/buttons.js"></script><script async="async" defer="defer" src="https://platform.twitter.com/widgets.js"></script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+                    window.dataLayer = window.dataLayer || [];
+                    function gtag(){dataLayer.push(arguments);}
+                    gtag('js', new Date());
+                    gtag('config', 'UA-38402002-6');
+                </script></head>
+   <body class="app">
+      <div class="ldh-header" role="banner"><a class="ldh-wordmark" href="../../"><span class="mark"></span><span>LinkedDataHub</span></a><div></div>
+         <div class="ldh-header-actions">
+            <details class="docs-versions">
+               <summary>Documentation v6</summary>
+               <div><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v5/">Documentation v5</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></div>
+            </details><a href="https://github.com/AtomGraph/LinkedDataHub-Apps" target="_blank">Sample dataspaces</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub/subscription" data-icon="octicon-eye" data-size="large" aria-label="Watch AtomGraph/LinkedDataHub on GitHub">Watch</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star AtomGraph/LinkedDataHub on GitHub">Star</a><a href="https://twitter.com/atomgraphhq" class="twitter-follow-button" data-show-count="false">Follow @atomgraphhq</a><a href="https://youtube.com/@atomgraph" target="_blank"><span class="msi outline" aria-hidden="true">smart_display</span> @atomgraph</a></div>
+      </div>
+      <div class="docs-layout">
+         <div class="docs-nav" role="navigation">
+            <ul>
+               <li><a href="../../about/">About LinkedDataHub</a></li>
+               <li><a href="../../get-started/">Get started</a></li>
+               <li><a href="../../tutorial/">Tutorial</a></li>
+               <li><a href="../">User guide</a><ul>
+                     <li><a href="../add-data/">Add data</a></li>
+                     <li><a href="../browse-data/">Browse data</a></li>
+                     <li><a href="../change-model/">Change model</a></li>
+                     <li><a href="../create-data/">Create data</a></li>
+                     <li><a href="../edit-content/">Edit content</a></li>
+                     <li><a href="../import-data/">Import data</a></li>
+                     <li><a href="../manage-dataspaces/">Manage dataspaces</a></li>
+                     <li><a href="../manage-packages/">Manage packages</a></li>
+                     <li class="is-active" aria-current="page"><a href="">Query data</a></li>
+                     <li><a href="../upload-file/">Upload file</a></li>
+                     <li><a href="../version-history/">Version history</a></li>
+                  </ul>
+               </li>
+               <li><a href="../../reference/">Reference</a></li>
+               <li><a href="../../extending/">Extending</a></li>
+            </ul>
+         </div>
+         <div class="docs-main" role="main">
+            <h1>Query data</h1>
+            <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:sd="http://www.w3.org/ns/sparql-service-description#" xmlns:sp="http://spinrdf.org/sp#">
+               
+               <p class="ldh-body-lg">Learn how to query dataspace data with SPARQL, and save queries and charts</p>
+               
+               <p>The <a href="../../reference/dataspace/#end-user">end-user dataspace</a> dataset is queried through the SPARQL 1.1
+                  endpoint at the dataspace's <samp>sparql</samp> URL (e.g. <samp>https://localhost:4443/sparql</samp>). All forms of SPARQL
+                  queries are allowed; SPARQL updates are <em>not</em> allowed.</p>
+               
+               <p>In the dataspace itself there is no separate editor page. A <a href="../../reference/data-model/resources/#queries">query is a
+                     resource</a> like any other — it lives in a document, it has a URI, and other resources refer
+                  to it. Placing one in a
+                  <a href="../../reference/data-model/blocks/">block</a> renders it as an interactive editor: the query text is editable, it runs
+                  against the service the query names, and the results render below it in whichever
+                  <a href="../../reference/user-interface/#layout-modes">layout mode</a> suits them. Editing the block edits the resource, so a query
+                  you refine is saved rather than retyped.</p>
+               <img alt="A query block with its editor open and results below" src="../../files/user-guide/query-data-1.webp"/>
+               
+               <p>This is the demo's top-selling-products query, which drives a chart on the Northwind
+                  Traders dataspace:</p>
+               
+               <pre>PREFIX schema: &lt;https://schema.org/&gt;
+
+SELECT DISTINCT ?productName (SUM(?sale) AS ?totalSales)
+WHERE {
+    GRAPH ?orderGraph {
+        ?order schema:orderedItem ?orderItem .
+        ?orderItem schema:orderedItem ?product ;
+                   schema:price ?sale .
+    }
+    GRAPH ?productGraph {
+        ?product schema:name ?productName .
+    }
+}
+GROUP BY ?product ?productName
+ORDER BY DESC(?totalSales)
+LIMIT 5</pre>
+               
+               <p class="exhibit-links">Source: <a href="https://github.com/AtomGraph/LinkedDataHub-Apps/blob/master/demo/northwind-traders/products.ttl" target="_blank">products.ttl</a> — the same query drives the <a href="https://northwind-traders.demo.linkeddatahub.com/products/" target="_blank">Top selling products chart</a></p>
+               
+               <p>The endpoint is a standard SPARQL 1.1 Protocol service, so it can be queried programmatically
+                  as well:</p>
+               
+               <pre>curl -k -G "https://localhost:4443/sparql" \
+  -H "Accept: application/sparql-results+json" \
+  --data-urlencode 'query=PREFIX schema: &lt;https://schema.org/&gt; SELECT (COUNT(*) AS ?orders) WHERE { GRAPH ?g { ?order a schema:Order } }'</pre>
+               </div>
+            <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:sd="http://www.w3.org/ns/sparql-service-description#" xmlns:sp="http://spinrdf.org/sp#">
+               
+               <div>
+                  
+                  <h2 id="live-example">Live example</h2>
+                  
+                  <p>The block below is not a code snippet — it is an actual query block embedded in this
+                     document, executing against the
+                     <a href="https://northwind-traders.demo.linkeddatahub.com/" target="_blank">Northwind Traders dataspace</a>'s SPARQL endpoint. The query, the
+                     service it runs against, and the block that places it here are three plain RDF resources
+                     in this very document.</p>
+                  </div>
+               </div>
+            <div class="screenshot-placeholder"><span class="msi" aria-hidden="true">bolt</span><p>Interactive block: Query another dataspace — executes live in the LinkedDataHub rendering of this page</p>
+            </div>
+            <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:sd="http://www.w3.org/ns/sparql-service-description#" xmlns:sp="http://spinrdf.org/sp#">
+               
+               <div>
+                  
+                  <h2 id="save-query">Saving queries</h2>
+                  
+                  <p>To save the query string currently in the editor, click the <span class="ac-btn in-neutral ap-outline sz-md">Save</span> button underneath the editor form. A document creation form opens with the query
+                     string pre-filled; you only need to supply titles for the query and its document.
+                     You can then access the query by navigating to the query container via the dropdown
+                     in the
+                     <a href="../../reference/user-interface/#action-bar" target="_blank">breadcrumb bar</a>.</p>
+                  
+                  <p>The editor will not save a query that is not valid SPARQL 1.1.</p>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="save-chart">Saving charts</h2>
+                  
+                  <p>The SPARQL editor includes an interactive chart pane which can be used to visualize
+                     the query results. You can change the chart type, select its category and one or more
+                     series.</p>
+                  
+                  <p>The chart pane handles both graph results (<code>CONSTRUCT</code>, <code>DESCRIBE</code>) and result sets (<code>SELECT</code>). For graph results, the category and series are
+                     rendered from resource properties; for result sets, they are rendered from variable
+                     names.</p>
+                  
+                  <p>To save the chart with the properties currently selected, click the <span class="ac-btn in-primary ap-solid sz-md">Save</span> button underneath the chart pane. Two document creation forms open: one for
+                     the query, one for the chart that depends on it. The query string and chart properties
+                     are pre-filled; you only need to
+                     supply titles for the query, the chart and their document. You can then access the
+                     chart by navigating to the chart container via the dropdown in the
+                     <a href="../../reference/user-interface/#action-bar" target="_blank">breadcrumb bar</a>.</p>
+                  </div>
+               
+               <p class="ldh-body-lg">See charts in action in the <a href="../../tutorial/insight/">Insight</a> tutorial stage, or read more about <a href="../../reference/data-model/resources/#charts">charts</a>.</p>
+               </div>
+         </div>
+      </div>
+      <div class="ldh-footer" role="contentinfo">
+         <div class="cols">
+            <div class="col brand-col"><a class="ldh-wordmark" href="https://linkeddatahub.com" target="_blank"><span class="mark"></span><span>LinkedDataHub</span></a><p>The low-code Knowledge Graph application platform. Built on RDF, SPARQL and Linked
+                  Data principles.</p>
+            </div>
+            <div class="col">
+               <p class="ftitle">About</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a><a href="https://atomgraph.com" target="_blank">AtomGraph</a></div>
+            <div class="col">
+               <p class="ftitle">Resources</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></div>
+            <div class="col">
+               <p class="ftitle">Support</p><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a><a href="mailto:support@linkeddatahub.com">Contact support</a></div>
+            <div class="col">
+               <p class="ftitle">Follow us</p><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></div>
+         </div>
+         <div class="legal"><span>© 2026 AtomGraph · LinkedDataHub</span></div>
+      </div>
+   </body>
+</html>

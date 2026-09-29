@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" lang="en" data-retro="m3" data-theme="light">
    <head>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-      <title>LinkedDataHub v5 — Documentation</title>
+      <title>LinkedDataHub v5 — Data model</title>
+      <meta name="description" content="Document and content structure, and the actions that can be performed on documents, blocks and resources"/>
+      <meta name="last-modified" content="2026-09-29T23:17:17Z"/>
       <meta name="viewport" content="width=device-width, initial-scale=1"/>
-      <link href="static/css/fonts.css" rel="stylesheet" type="text/css"/>
-      <link href="static/css/colors_and_type.css" rel="stylesheet" type="text/css"/>
-      <link href="static/css/app.css" rel="stylesheet" type="text/css"/>
-      <link href="static/css/retro.css" rel="stylesheet" type="text/css"/>
-      <link href="static/css/ldh.css" rel="stylesheet" type="text/css"/>
-      <link href="static/css/docs.css" rel="stylesheet" type="text/css"/><script type="text/javascript">
+      <link href="../../static/css/fonts.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/colors_and_type.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/app.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/retro.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/ldh.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/docs.css" rel="stylesheet" type="text/css"/><script type="text/javascript">
                     document.addEventListener("click", function(event) {
                         var tab = event.target.closest(".ac-tab[role='tab']");
                         if (!tab) return;
@@ -30,7 +32,7 @@
                     gtag('config', 'UA-38402002-6');
                 </script></head>
    <body class="app">
-      <div class="ldh-header" role="banner"><a class="ldh-wordmark" href=""><span class="mark"></span><span>LinkedDataHub</span></a><div></div>
+      <div class="ldh-header" role="banner"><a class="ldh-wordmark" href="../../"><span class="mark"></span><span>LinkedDataHub</span></a><div></div>
          <div class="ldh-header-actions">
             <details class="docs-versions">
                <summary>Documentation v6</summary>
@@ -40,41 +42,55 @@
       <div class="docs-layout">
          <div class="docs-nav" role="navigation">
             <ul>
-               <li><a href="about/">About LinkedDataHub</a></li>
-               <li><a href="get-started/">Get started</a></li>
-               <li><a href="tutorial/">Tutorial</a></li>
-               <li><a href="user-guide/">User guide</a></li>
-               <li><a href="reference/">Reference</a></li>
-               <li><a href="extending/">Extending</a></li>
+               <li><a href="../../about/">About LinkedDataHub</a></li>
+               <li><a href="../../get-started/">Get started</a></li>
+               <li><a href="../../tutorial/">Tutorial</a></li>
+               <li><a href="../../user-guide/">User guide</a></li>
+               <li><a href="../">Reference</a><ul>
+                     <li><a href="../administration/">Administration</a></li>
+                     <li><a href="../command-line-interface/">Command line interface</a></li>
+                     <li><a href="../configuration/">Configuration</a></li>
+                     <li class="is-active" aria-current="page"><a href="">Data model</a><ul>
+                           <li><a href="documents/">Documents</a></li>
+                           <li><a href="blocks/">Content blocks</a></li>
+                           <li><a href="resources/">Resources</a></li>
+                        </ul>
+                     </li>
+                     <li><a href="../dataset/">Dataset</a></li>
+                     <li><a href="../dataspace/">Dataspace</a></li>
+                     <li><a href="../http-api/">HTTP API</a></li>
+                     <li><a href="../imports/">Imports</a></li>
+                     <li><a href="../migrating-from-5x/">Migrating from 5.x</a></li>
+                     <li><a href="../stylesheets/">Stylesheets</a></li>
+                     <li><a href="../triplestores/">Triplestores</a></li>
+                     <li><a href="../user-interface/">User interface</a></li>
+                     <li><a href="../versioning/">Versioning</a></li>
+                  </ul>
+               </li>
+               <li><a href="../../extending/">Extending</a></li>
             </ul>
          </div>
          <div class="docs-main" role="main">
+            <h1>Data model</h1>
+            <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+               
+               <p class="ldh-body-lg">Document and content structure, and the actions that can be performed on documents,
+                  blocks and resources</p>
+               
+               <p>Start with the <a href="documents/">Documents</a> page, then read <a href="blocks/">Content blocks</a> and <a href="resources/">Resources</a>.</p>
+               </div>
             <div class="docs-children">
                <div class="docs-card">
-                  <h2><a href="about/" title="An RDF-native Knowledge Graph application platform">About LinkedDataHub</a></h2>
-                  <p>An RDF-native Knowledge Graph application platform</p>
+                  <h2><a href="documents/" title="Document structure and the basic data management actions">Documents</a></h2>
+                  <p>Document structure and the basic data management actions</p>
                </div>
                <div class="docs-card">
-                  <h2><a href="get-started/" title="Install LinkedDataHub, log in with a WebID, and request access to a dataspace">Get started</a></h2>
-                  <p>Install LinkedDataHub, log in with a WebID, and request access to a dataspace</p>
+                  <h2><a href="blocks/" title="Content blocks and the actions for managing them">Content blocks</a></h2>
+                  <p>Content blocks and the actions for managing them</p>
                </div>
                <div class="docs-card">
-                  <h2><a href="tutorial/" title="Build your first Knowledge Graph dataspace, from empty to published">Tutorial</a></h2>
-                  <p>Build your first Knowledge Graph dataspace, from empty to published</p>
-               </div>
-               <div class="docs-card">
-                  <h2><a href="user-guide/" title="Step-by-step guides for everyday tasks in LinkedDataHub">User guide</a></h2>
-                  <p>Step-by-step guides for everyday tasks in LinkedDataHub</p>
-               </div>
-               <div class="docs-card">
-                  <h2><a href="reference/" title="Feature-by-feature reference for the LinkedDataHub platform, its data model, HTTP API and administration">Reference</a></h2>
-                  <p>Feature-by-feature reference for the LinkedDataHub platform, its data model, HTTP
-                     API and administration</p>
-               </div>
-               <div class="docs-card">
-                  <h2><a href="extending/" title="Extending LinkedDataHub with your own code: XSLT stylesheets, Java endpoints, Docker images">Extending</a></h2>
-                  <p>Extending LinkedDataHub with your own code: XSLT stylesheets, Java endpoints, Docker
-                     images</p>
+                  <h2><a href="resources/" title="RDF resources and their management">Resources</a></h2>
+                  <p>RDF resources and their management</p>
                </div>
             </div>
          </div>

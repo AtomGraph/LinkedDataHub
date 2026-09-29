@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" lang="en" data-retro="m3" data-theme="light">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>LinkedDataHub v5 — Data</title>
+      <meta name="description" content="Import CSV data using SPARQL mappings"/>
+      <meta name="last-modified" content="2026-09-29T23:17:17Z"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1"/>
+      <link href="../../static/css/fonts.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/colors_and_type.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/app.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/retro.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/ldh.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/docs.css" rel="stylesheet" type="text/css"/><script type="text/javascript">
+                    document.addEventListener("click", function(event) {
+                        var tab = event.target.closest(".ac-tab[role='tab']");
+                        if (!tab) return;
+                        var tablist = tab.closest("[role='tablist']");
+                        var tabs = tablist.closest(".ac-tabs");
+                        if (!tabs || !tabs.querySelector(".ac-tabpanel")) return;
+                        tablist.querySelectorAll(".ac-tab").forEach(function(t) { t.classList.remove("is-on"); t.setAttribute("aria-selected", "false"); });
+                        tab.classList.add("is-on");
+                        tab.setAttribute("aria-selected", "true");
+                        tabs.querySelectorAll(".ac-tabpanel").forEach(function(pane) {
+                            if (pane.parentElement !== tabs) return;
+                            pane.hidden = pane.id !== tab.getAttribute("aria-controls");
+                        });
+                    });
+                </script><script async="async" defer="defer" src="https://buttons.github.io/buttons.js"></script><script async="async" defer="defer" src="https://platform.twitter.com/widgets.js"></script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+                    window.dataLayer = window.dataLayer || [];
+                    function gtag(){dataLayer.push(arguments);}
+                    gtag('js', new Date());
+                    gtag('config', 'UA-38402002-6');
+                </script></head>
+   <body class="app">
+      <div class="ldh-header" role="banner"><a class="ldh-wordmark" href="../../"><span class="mark"></span><span>LinkedDataHub</span></a><div></div>
+         <div class="ldh-header-actions">
+            <details class="docs-versions">
+               <summary>Documentation v6</summary>
+               <div><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v5/">Documentation v5</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></div>
+            </details><a href="https://github.com/AtomGraph/LinkedDataHub-Apps" target="_blank">Sample dataspaces</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub/subscription" data-icon="octicon-eye" data-size="large" aria-label="Watch AtomGraph/LinkedDataHub on GitHub">Watch</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star AtomGraph/LinkedDataHub on GitHub">Star</a><a href="https://twitter.com/atomgraphhq" class="twitter-follow-button" data-show-count="false">Follow @atomgraphhq</a><a href="https://youtube.com/@atomgraph" target="_blank"><span class="msi outline" aria-hidden="true">smart_display</span> @atomgraph</a></div>
+      </div>
+      <div class="docs-layout">
+         <div class="docs-nav" role="navigation">
+            <ul>
+               <li><a href="../../about/">About LinkedDataHub</a></li>
+               <li><a href="../../get-started/">Get started</a></li>
+               <li><a href="../">Tutorial</a><ul>
+                     <li><a href="../hello-dataspace/">Hello dataspace</a></li>
+                     <li><a href="../structure/">Structure</a></li>
+                     <li><a href="../model/">Model</a></li>
+                     <li class="is-active" aria-current="page"><a href="">Data</a></li>
+                     <li><a href="../media/">Media</a></li>
+                     <li><a href="../insight/">Insight</a></li>
+                     <li><a href="../composition/">Composition</a></li>
+                     <li><a href="../publish/">Publish</a></li>
+                     <li><a href="../app-as-repository/">App as a repository</a></li>
+                     <li><a href="../beyond-low-code/">Beyond low-code</a></li>
+                  </ul>
+               </li>
+               <li><a href="../../user-guide/">User guide</a></li>
+               <li><a href="../../reference/">Reference</a></li>
+               <li><a href="../../extending/">Extending</a></li>
+            </ul>
+         </div>
+         <div class="docs-main" role="main">
+            <h1>Data</h1>
+            <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+               
+               <p class="ldh-body-lg">Import CSV data using SPARQL mappings</p>
+               
+               <p>Northwind's data ships as plain CSV files. The first rows of <samp>categories.csv</samp>:</p>
+               
+               <pre>categoryID,categoryName,description,pictureHash
+1,Beverages,Soft drinks coffees teas beers and ales,ec56b79671b30ecb98316d9b766fba198286b3b6
+2,Condiments,Sweet and savory sauces relishes spreads and seasonings,7e9f535a3bf693ec856702856fffd3be5a3df4f1</pre>
+               
+               <p class="exhibit-links">Source: <a href="https://github.com/AtomGraph/LinkedDataHub-Apps/blob/master/demo/northwind-traders/categories/categories.csv" target="_blank">categories/categories.csv</a></p>
+               
+               <p>LinkedDataHub <a href="../../reference/imports/csv/" target="_blank">imports CSV</a> by running a SPARQL <code>CONSTRUCT</code> mapping over each
+                  row: the row's cells are bound as properties of a row resource, and the query builds
+                  the RDF you want from them. Each column becomes a predicate named after its header,
+                  resolved against the
+                  imported file's URI — the <samp>categoryID</samp> column binds as <code>&lt;#categoryID&gt;</code>. The mapping for categories, <samp>categories.rq</samp>:</p>
+               
+               <pre>PREFIX foaf:       &lt;http://xmlns.com/foaf/0.1/&gt;
+PREFIX dct:        &lt;http://purl.org/dc/terms/&gt;
+PREFIX schema:     &lt;https://schema.org/&gt;
+
+CONSTRUCT
+{
+    GRAPH ?graph
+    {
+        ?graph dct:title ?categoryName ;
+            foaf:primaryTopic ?category .
+
+        ?category a schema:ProductGroup ;
+            dct:title ?categoryName ;
+            dct:description ?description ;
+            schema:name ?categoryName ;
+            schema:identifier ?categoryID ;
+            schema:description ?description ;
+            foaf:depiction ?picture .
+    }
+}
+WHERE
+{
+    ?category_row &lt;#categoryID&gt; ?categoryID ;
+        &lt;#description&gt; ?description ;
+        &lt;#categoryName&gt; ?categoryName ;
+        &lt;#pictureHash&gt; ?pictureHash .
+
+    BIND(uri(concat(str($base), "categories/")) AS ?container)
+    BIND(uri(concat(str(?container), encode_for_uri(?categoryID), "/")) AS ?graph)
+    BIND(uri(concat(str(?graph), "#this")) AS ?category)
+    BIND(uri(concat(str($base), "uploads/", encode_for_uri(?pictureHash))) AS ?picture)
+}</pre>
+               
+               <p class="exhibit-links">Source: <a href="https://github.com/AtomGraph/LinkedDataHub-Apps/blob/master/demo/northwind-traders/categories/categories.rq" target="_blank">categories/categories.rq</a> · Live: <a href="https://northwind-traders.demo.linkeddatahub.com/categories/1/" target="_blank">/categories/1/</a></p>
+               
+               <p>The four <code>BIND</code>s carry the whole document model of the import:</p>
+               
+               <table>
+                  
+                  <caption class="ac-vh">BIND variables and what they bind to</caption>
+                  
+                  <thead>
+                     
+                     <tr>
+                        
+                        <th scope="col">Variable</th>
+                        
+                        <th scope="col">Binds to</th>
+                        </tr>
+                     </thead>
+                  
+                  <tbody>
+                     
+                     <tr>
+                        
+                        <th scope="row"><code>?container</code></th>
+                        
+                        <td>The target container from the <a href="../structure/">Structure</a> stage, resolved against <code>$base</code>, which LinkedDataHub binds to the dataspace's base URI when the mapping runs</td>
+                        </tr>
+                     
+                     <tr>
+                        
+                        <th scope="row"><code>?graph</code></th>
+                        
+                        <td>One document (named graph) per row, minted inside the container from the row's identifier</td>
+                        </tr>
+                     
+                     <tr>
+                        
+                        <th scope="row"><code>?category</code></th>
+                        
+                        <td>The document's topic: the document is <em>about</em> the category, so the category is a <samp>#this</samp> fragment of it</td>
+                        </tr>
+                     
+                     <tr>
+                        
+                        <th scope="row"><code>?picture</code></th>
+                        
+                        <td>The category's image, addressed by the content hash the CSV carries (the <a href="../media/">Media</a> stage explains why that works)</td>
+                        </tr>
+                     </tbody>
+                  </table>
+               
+               <div class="ac-tabs or-horizontal">
+                  
+                  <div class="ac-tablist sz-md va-line" role="tablist">
+                     <button aria-controls="in-the-browser-pane" aria-selected="true" class="ac-tab is-on" id="in-the-browser-tab" role="tab" type="button"><span class="ac-tab-lbl">In the browser</span></button>
+                     <button aria-controls="from-the-command-line-pane" aria-selected="false" class="ac-tab" id="from-the-command-line-tab" role="tab" type="button"><span class="ac-tab-lbl">From the command line</span></button>
+                     </div>
+                  
+                  <div aria-labelledby="in-the-browser-tab" class="ac-tabpanel" id="in-the-browser-pane" role="tabpanel">
+                     
+                     <p>Upload the CSV file, save the mapping query as a <samp>CONSTRUCT</samp> document, then create a <samp>CSV Import</samp> that pairs the two with the target container — three passes through
+                        the <span class="ac-btn in-primary ap-solid sz-md">Create</span> dropdown, walked through step by step in the <a href="../../user-guide/import-data/import-csv-data/" target="_blank">Import CSV data</a>
+                        guide.</p>
+                     </div>
+                  
+                  <div aria-labelledby="from-the-command-line-tab" class="ac-tabpanel" hidden="hidden" id="from-the-command-line-pane" role="tabpanel">
+                     
+                     <p>Each import pairs a mapping query with a CSV file and a target container. The demo
+                        lists them in a manifest, <samp>imports.csv</samp>:</p>
+                     
+                     <pre>query_filename,csv_filename,target,title
+categories/categories.rq,categories/categories.csv,categories/,Categories
+customers/customers.rq,customers/customers.csv,customers/,Customers
+employees/employees.rq,employees/employees.csv,employees/,Employees
+orders/orders.rq,orders/orders.csv,orders/,Orders
+...</pre>
+                     
+                     <p class="exhibit-links">Source: <a href="https://github.com/AtomGraph/LinkedDataHub-Apps/blob/master/demo/northwind-traders/imports.csv" target="_blank">imports.csv</a></p>
+                     
+                     <p>A small loop over the <a href="../../reference/command-line-interface/" target="_blank">CLI</a> replays the manifest: each line saves its mapping query with
+                        <samp>ldh add construct</samp>, then pairs it with the CSV file and target container in an import created with <samp>ldh add csv-import</samp>.</p>
+                     
+                     <p>Upload the CSV first with <samp>ldh add file</samp>, which prints the upload URI the import refers to (the <a href="../media/">Media</a> stage covers uploads). A single import
+                        then looks like this:</p>
+                     
+                     <pre>ldh add construct \
+  --uri "#categories-query" \
+  --title "Categories" \
+  --query-file categories/categories.rq \
+  "${LDH_BASE}categories/"
+
+ldh add csv-import \
+  --title "Categories" \
+  --query "${LDH_BASE}categories/#categories-query" \
+  --file "$csv_upload_uri" \
+  "${LDH_BASE}categories/"</pre>
+                     
+                     <p>(The readable <samp>#categories-query</samp> fragment is this tutorial's choice; the demo's <samp>install.sh</samp> mints a UUID fragment per query instead.)</p>
+                     
+                     <p>Imports run asynchronously. Each import is itself a document that records its status
+                        — reload it to see progress, the amount of imported data on success, or the constraint
+                        violations on failure.</p>
+                     </div>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="result">What you now see</h2>
+                  
+                  <p>The Categories container lists eight category documents. Open one: the category renders
+                     with its name, description and identifier, typed as a product group — with the labels
+                     coming from
+                     the <a href="../model/">Model</a> stage. Repeat the pattern for the remaining entities and the Knowledge Graph fills
+                     in: orders link to products, products to suppliers and
+                     categories.</p>
+                  <img alt="The Categories container listing after the import" src="../../files/tutorial/data-1.webp"/>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="how-this-works">How this works</h2>
+                  
+                  <ul>
+                     
+                     <li><a href="../../reference/imports/csv/" target="_blank">CSV imports</a> — the import pipeline: file, mapping query, import resource, validation</li>
+                     
+                     <li><a href="../../reference/imports/#mapping-queries" target="_blank">Mapping queries</a> — the rules mapping queries follow, with an annotated skeleton</li>
+                     </ul>
+                  </div>
+               
+               <p class="ldh-body-lg">Next: <a href="../media/">Media</a></p>
+               </div>
+         </div>
+      </div>
+      <div class="ldh-footer" role="contentinfo">
+         <div class="cols">
+            <div class="col brand-col"><a class="ldh-wordmark" href="https://linkeddatahub.com" target="_blank"><span class="mark"></span><span>LinkedDataHub</span></a><p>The low-code Knowledge Graph application platform. Built on RDF, SPARQL and Linked
+                  Data principles.</p>
+            </div>
+            <div class="col">
+               <p class="ftitle">About</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a><a href="https://atomgraph.com" target="_blank">AtomGraph</a></div>
+            <div class="col">
+               <p class="ftitle">Resources</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></div>
+            <div class="col">
+               <p class="ftitle">Support</p><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a><a href="mailto:support@linkeddatahub.com">Contact support</a></div>
+            <div class="col">
+               <p class="ftitle">Follow us</p><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></div>
+         </div>
+         <div class="legal"><span>© 2026 AtomGraph · LinkedDataHub</span></div>
+      </div>
+   </body>
+</html>

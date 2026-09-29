@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" lang="en" data-retro="m3" data-theme="light">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>LinkedDataHub v5 — Reference</title>
+      <meta name="description" content="Feature-by-feature reference for the LinkedDataHub platform, its data model, HTTP API and administration"/>
+      <meta name="last-modified" content="2026-09-29T23:17:17Z"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1"/>
+      <link href="../static/css/fonts.css" rel="stylesheet" type="text/css"/>
+      <link href="../static/css/colors_and_type.css" rel="stylesheet" type="text/css"/>
+      <link href="../static/css/app.css" rel="stylesheet" type="text/css"/>
+      <link href="../static/css/retro.css" rel="stylesheet" type="text/css"/>
+      <link href="../static/css/ldh.css" rel="stylesheet" type="text/css"/>
+      <link href="../static/css/docs.css" rel="stylesheet" type="text/css"/><script type="text/javascript">
+                    document.addEventListener("click", function(event) {
+                        var tab = event.target.closest(".ac-tab[role='tab']");
+                        if (!tab) return;
+                        var tablist = tab.closest("[role='tablist']");
+                        var tabs = tablist.closest(".ac-tabs");
+                        if (!tabs || !tabs.querySelector(".ac-tabpanel")) return;
+                        tablist.querySelectorAll(".ac-tab").forEach(function(t) { t.classList.remove("is-on"); t.setAttribute("aria-selected", "false"); });
+                        tab.classList.add("is-on");
+                        tab.setAttribute("aria-selected", "true");
+                        tabs.querySelectorAll(".ac-tabpanel").forEach(function(pane) {
+                            if (pane.parentElement !== tabs) return;
+                            pane.hidden = pane.id !== tab.getAttribute("aria-controls");
+                        });
+                    });
+                </script><script async="async" defer="defer" src="https://buttons.github.io/buttons.js"></script><script async="async" defer="defer" src="https://platform.twitter.com/widgets.js"></script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+                    window.dataLayer = window.dataLayer || [];
+                    function gtag(){dataLayer.push(arguments);}
+                    gtag('js', new Date());
+                    gtag('config', 'UA-38402002-6');
+                </script></head>
+   <body class="app">
+      <div class="ldh-header" role="banner"><a class="ldh-wordmark" href="../"><span class="mark"></span><span>LinkedDataHub</span></a><div></div>
+         <div class="ldh-header-actions">
+            <details class="docs-versions">
+               <summary>Documentation v6</summary>
+               <div><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v5/">Documentation v5</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></div>
+            </details><a href="https://github.com/AtomGraph/LinkedDataHub-Apps" target="_blank">Sample dataspaces</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub/subscription" data-icon="octicon-eye" data-size="large" aria-label="Watch AtomGraph/LinkedDataHub on GitHub">Watch</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star AtomGraph/LinkedDataHub on GitHub">Star</a><a href="https://twitter.com/atomgraphhq" class="twitter-follow-button" data-show-count="false">Follow @atomgraphhq</a><a href="https://youtube.com/@atomgraph" target="_blank"><span class="msi outline" aria-hidden="true">smart_display</span> @atomgraph</a></div>
+      </div>
+      <div class="docs-layout">
+         <div class="docs-nav" role="navigation">
+            <ul>
+               <li><a href="../about/">About LinkedDataHub</a></li>
+               <li><a href="../get-started/">Get started</a></li>
+               <li><a href="../tutorial/">Tutorial</a></li>
+               <li><a href="../user-guide/">User guide</a></li>
+               <li class="is-active" aria-current="page"><a href="">Reference</a><ul>
+                     <li><a href="administration/">Administration</a></li>
+                     <li><a href="command-line-interface/">Command line interface</a></li>
+                     <li><a href="configuration/">Configuration</a></li>
+                     <li><a href="data-model/">Data model</a></li>
+                     <li><a href="dataset/">Dataset</a></li>
+                     <li><a href="dataspace/">Dataspace</a></li>
+                     <li><a href="http-api/">HTTP API</a></li>
+                     <li><a href="imports/">Imports</a></li>
+                     <li><a href="migrating-from-5x/">Migrating from 5.x</a></li>
+                     <li><a href="stylesheets/">Stylesheets</a></li>
+                     <li><a href="triplestores/">Triplestores</a></li>
+                     <li><a href="user-interface/">User interface</a></li>
+                     <li><a href="versioning/">Versioning</a></li>
+                  </ul>
+               </li>
+               <li><a href="../extending/">Extending</a></li>
+            </ul>
+         </div>
+         <div class="docs-main" role="main">
+            <h1>Reference</h1>
+            <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+               
+               <p class="ldh-body-lg">Feature-by-feature reference for the LinkedDataHub platform, its data model, HTTP
+                  API and administration</p>
+               
+               <p>The concept pages describe the <a href="dataspace/">dataspace</a>, its <a href="dataset/">dataset</a> and the <a href="data-model/">data model</a>.
+                  The interface pages cover the <a href="user-interface/">user interface</a>, the <a href="http-api/">HTTP API</a> and the <a href="command-line-interface/">command line interface</a>.
+                  Customization is covered by the <a href="stylesheets/">stylesheets</a> and <a href="imports/">imports</a> pages,
+                  and operations by the <a href="configuration/">configuration</a>, <a href="triplestores/">triplestores</a>, <a href="versioning/">versioning</a> and <a href="administration/">administration</a> pages.
+                  Start with the dataspace and data model pages; an application or deployment moving
+                  off 5.x starts at
+                  <a href="migrating-from-5x/">migrating from 5.x</a>.</p>
+               </div>
+            <div class="docs-children">
+               <div class="docs-card">
+                  <h2><a href="administration/" title="Access control and domain model management">Administration</a></h2>
+                  <p>Access control and domain model management</p>
+               </div>
+               <div class="docs-card">
+                  <h2><a href="command-line-interface/" title="The ldh CLI drives the same HTTP API as the UI and covers most UI actions">Command line interface</a></h2>
+                  <p>The ldh CLI drives the same HTTP API as the UI and covers most UI actions</p>
+               </div>
+               <div class="docs-card">
+                  <h2><a href="configuration/" title="Environment variables, secrets and RDF configuration files">Configuration</a></h2>
+                  <p>Environment variables, secrets and RDF configuration files</p>
+               </div>
+               <div class="docs-card">
+                  <h2><a href="data-model/" title="Document and content structure, and the actions that can be performed on documents, blocks and resources">Data model</a></h2>
+                  <p>Document and content structure, and the actions that can be performed on documents,
+                     blocks and resources</p>
+               </div>
+               <div class="docs-card">
+                  <h2><a href="dataset/" title="The default RDF dataset structure used by LinkedDataHub">Dataset</a></h2>
+                  <p>The default RDF dataset structure used by LinkedDataHub</p>
+               </div>
+               <div class="docs-card">
+                  <h2><a href="dataspace/" title="LinkedDataHub dataspaces and services">Dataspace</a></h2>
+                  <p>LinkedDataHub dataspaces and services</p>
+               </div>
+               <div class="docs-card">
+                  <h2><a href="http-api/" title="Read and write RDF data from and to LinkedDataHub dataspaces over HTTP">HTTP API</a></h2>
+                  <p>Read and write RDF data from and to LinkedDataHub dataspaces over HTTP</p>
+               </div>
+               <div class="docs-card">
+                  <h2><a href="imports/" title="Types of data imports supported by LinkedDataHub">Imports</a></h2>
+                  <p>Types of data imports supported by LinkedDataHub</p>
+               </div>
+               <div class="docs-card">
+                  <h2><a href="migrating-from-5x/" title="What 6.0.0 changes for an application stylesheet, a deployment and an API client">Migrating from 5.x</a></h2>
+                  <p>What 6.0.0 changes for an application stylesheet, a deployment and an API client</p>
+               </div>
+               <div class="docs-card">
+                  <h2><a href="stylesheets/" title="Built-in XSLT, CSS and JavaScript assets, and how to override them">Stylesheets</a></h2>
+                  <p>Built-in XSLT, CSS and JavaScript assets, and how to override them</p>
+               </div>
+               <div class="docs-card">
+                  <h2><a href="triplestores/" title="Requirements and configuration for alternative SPARQL backends">Triplestores</a></h2>
+                  <p>Requirements and configuration for alternative SPARQL backends</p>
+               </div>
+               <div class="docs-card">
+                  <h2><a href="user-interface/" title="The main features of the LinkedDataHub user interface">User interface</a></h2>
+                  <p>The main features of the LinkedDataHub user interface</p>
+               </div>
+               <div class="docs-card">
+                  <h2><a href="versioning/" title="Git-backed document versioning with Memento access to the history">Versioning</a></h2>
+                  <p>Git-backed document versioning with Memento access to the history</p>
+               </div>
+            </div>
+         </div>
+      </div>
+      <div class="ldh-footer" role="contentinfo">
+         <div class="cols">
+            <div class="col brand-col"><a class="ldh-wordmark" href="https://linkeddatahub.com" target="_blank"><span class="mark"></span><span>LinkedDataHub</span></a><p>The low-code Knowledge Graph application platform. Built on RDF, SPARQL and Linked
+                  Data principles.</p>
+            </div>
+            <div class="col">
+               <p class="ftitle">About</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a><a href="https://atomgraph.com" target="_blank">AtomGraph</a></div>
+            <div class="col">
+               <p class="ftitle">Resources</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></div>
+            <div class="col">
+               <p class="ftitle">Support</p><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a><a href="mailto:support@linkeddatahub.com">Contact support</a></div>
+            <div class="col">
+               <p class="ftitle">Follow us</p><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></div>
+         </div>
+         <div class="legal"><span>© 2026 AtomGraph · LinkedDataHub</span></div>
+      </div>
+   </body>
+</html>

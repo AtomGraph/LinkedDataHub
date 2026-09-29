@@ -1,0 +1,517 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" lang="en" data-retro="m3" data-theme="light">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>LinkedDataHub v5 — Ontologies</title>
+      <meta name="description" content="Classes, constructors, constraints and properties of the dataspace's domain model"/>
+      <meta name="last-modified" content="2026-09-29T23:17:17Z"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1"/>
+      <link href="../../../static/css/fonts.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/colors_and_type.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/app.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/retro.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/ldh.css" rel="stylesheet" type="text/css"/>
+      <link href="../../../static/css/docs.css" rel="stylesheet" type="text/css"/><script type="text/javascript">
+                    document.addEventListener("click", function(event) {
+                        var tab = event.target.closest(".ac-tab[role='tab']");
+                        if (!tab) return;
+                        var tablist = tab.closest("[role='tablist']");
+                        var tabs = tablist.closest(".ac-tabs");
+                        if (!tabs || !tabs.querySelector(".ac-tabpanel")) return;
+                        tablist.querySelectorAll(".ac-tab").forEach(function(t) { t.classList.remove("is-on"); t.setAttribute("aria-selected", "false"); });
+                        tab.classList.add("is-on");
+                        tab.setAttribute("aria-selected", "true");
+                        tabs.querySelectorAll(".ac-tabpanel").forEach(function(pane) {
+                            if (pane.parentElement !== tabs) return;
+                            pane.hidden = pane.id !== tab.getAttribute("aria-controls");
+                        });
+                    });
+                </script><script async="async" defer="defer" src="https://buttons.github.io/buttons.js"></script><script async="async" defer="defer" src="https://platform.twitter.com/widgets.js"></script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+                    window.dataLayer = window.dataLayer || [];
+                    function gtag(){dataLayer.push(arguments);}
+                    gtag('js', new Date());
+                    gtag('config', 'UA-38402002-6');
+                </script></head>
+   <body class="app">
+      <div class="ldh-header" role="banner"><a class="ldh-wordmark" href="../../../"><span class="mark"></span><span>LinkedDataHub</span></a><div></div>
+         <div class="ldh-header-actions">
+            <details class="docs-versions">
+               <summary>Documentation v6</summary>
+               <div><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v5/">Documentation v5</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></div>
+            </details><a href="https://github.com/AtomGraph/LinkedDataHub-Apps" target="_blank">Sample dataspaces</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub/subscription" data-icon="octicon-eye" data-size="large" aria-label="Watch AtomGraph/LinkedDataHub on GitHub">Watch</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star AtomGraph/LinkedDataHub on GitHub">Star</a><a href="https://twitter.com/atomgraphhq" class="twitter-follow-button" data-show-count="false">Follow @atomgraphhq</a><a href="https://youtube.com/@atomgraph" target="_blank"><span class="msi outline" aria-hidden="true">smart_display</span> @atomgraph</a></div>
+      </div>
+      <div class="docs-layout">
+         <div class="docs-nav" role="navigation">
+            <ul>
+               <li><a href="../../../about/">About LinkedDataHub</a></li>
+               <li><a href="../../../get-started/">Get started</a></li>
+               <li><a href="../../../tutorial/">Tutorial</a></li>
+               <li><a href="../../../user-guide/">User guide</a></li>
+               <li><a href="../../">Reference</a><ul>
+                     <li><a href="../">Administration</a><ul>
+                           <li><a href="../acl/">Access control</a></li>
+                           <li class="is-active" aria-current="page"><a href="">Ontologies</a></li>
+                           <li><a href="../packages/">Packages</a></li>
+                        </ul>
+                     </li>
+                     <li><a href="../../command-line-interface/">Command line interface</a></li>
+                     <li><a href="../../configuration/">Configuration</a></li>
+                     <li><a href="../../data-model/">Data model</a></li>
+                     <li><a href="../../dataset/">Dataset</a></li>
+                     <li><a href="../../dataspace/">Dataspace</a></li>
+                     <li><a href="../../http-api/">HTTP API</a></li>
+                     <li><a href="../../imports/">Imports</a></li>
+                     <li><a href="../../migrating-from-5x/">Migrating from 5.x</a></li>
+                     <li><a href="../../stylesheets/">Stylesheets</a></li>
+                     <li><a href="../../triplestores/">Triplestores</a></li>
+                     <li><a href="../../user-interface/">User interface</a></li>
+                     <li><a href="../../versioning/">Versioning</a></li>
+                  </ul>
+               </li>
+               <li><a href="../../../extending/">Extending</a></li>
+            </ul>
+         </div>
+         <div class="docs-main" role="main">
+            <h1>Ontologies</h1>
+            <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+               
+               <p class="ldh-body-lg">Classes, constructors, constraints and properties of the dataspace's domain model</p>
+               
+               <div>
+                  
+                  <h2 id="ontologies">Ontologies</h2>
+                  
+                  <p>Ontologies are sets of domain concepts. The domain can span both documents (information
+                     resources) and abstract/physical things
+                     (non-information resources).</p>
+                  
+                  <p>Ontologies can <a href="https://www.w3.org/TR/owl2-primer/#Ontology_Management" target="_blank">import other ontologies</a>, both user-defined
+                     and system ones provided by LinkedDataHub. The dataspace's <a href="../../dataspace/#dataspaces">namespace ontology</a> is resolved as a native <code>owl:imports</code> union graph —
+                     the transitive closure of its imports — which is cached per ontology URI. No inference
+                     is materialized: the terms are served exactly as declared.</p>
+                  
+                  <p>An ontology URI is resolved against the store first and the platform's bundled copies
+                     second: a document in the admin dataspace that declares
+                     the ontology (<code>&lt;uri&gt; a owl:Ontology</code>) is the graph that resolves, even for a vocabulary the platform ships a copy of.
+                     That is what lets
+                     an imported vocabulary and its annotations live in one document under the vocabulary's
+                     own URI.</p>
+                  
+                  <p><a href="../packages/">Package</a> ontologies join the dataspace's imports closure automatically. They are derived from
+                     the dataspace's
+                     <code>ldh:import</code> declarations at ontology load time and declared as <code>owl:imports</code> of the namespace ontology, so they resolve
+                     like any other import. On the first request after the import, the package ontology
+                     is <dfn>materialized</dfn>: copied verbatim into a document under the
+                     admin dataspace's <samp>ontologies/</samp> container, named after the package's path (<samp>ontologies/editor-taxonomy/</samp> for the taxonomy editor),
+                     with the ontology as its <code>foaf:primaryTopic</code>. From then on that document is what the closure resolves the package ontology to,
+                     and its constructors,
+                     constraints and views are edited like the namespace ontology's. A later change to
+                     the published package does not reach the dataspace until the document
+                     is deleted, after which the next request materializes the package again.</p>
+                  
+                  <div class="ac-alert va-warning" role="status">
+                     <span class="ac-alert-ic"><span aria-hidden="true" class="msi outline">warning</span></span>
+                     
+                     <div class="ac-alert-body">
+                        <span class="ac-alert-title">Best practice: avoid using <code>owl:imports</code> with uploaded files</span>
+                        
+                        <p class="ac-alert-text">Do not use <code>owl:imports</code> declarations that point to paths under <samp>uploads/</samp>. This can cause circular dependency deadlocks
+                           during system initialization, as the ontology loading process cannot access uploaded
+                           files without creating a circular reference.</p>
+                        
+                        <p class="ac-alert-text">Instead:</p>
+                        
+                        <ul class="ac-alert-text">
+                           
+                           <li>Host ontologies as proper documents (not uploaded files)</li>
+                           
+                           <li>Import them using their document URIs</li>
+                           
+                           <li>If you need to use an ontology that was uploaded, create it as a proper ontology document
+                              first</li>
+                           </ul>
+                        
+                        <p class="ac-alert-text">For more information, see the <a href="../../../user-guide/upload-file/">file upload documentation</a>.</p>
+                        </div>
+                     </div>
+                  
+                  <p>Main ontology properties:</p>
+                  
+                  <dl>
+                     
+                     <dt>Imports</dt>
+                     
+                     <dd>The URI of another ontology whose terms are pulled into this ontology's imports closure
+                        (<code>owl:imports</code>)</dd>
+                     
+                     <dt>Version</dt>
+                     
+                     <dd>Version identifier of the ontology (<code>owl:versionInfo</code>)</dd>
+                     </dl>
+                  
+                  <div>
+                     
+                     <h3 id="system-ontologies">System ontologies</h3>
+                     
+                     <table>
+                        
+                        <caption class="ac-vh">System ontologies and their prefixes</caption>
+                        
+                        <thead>
+                           
+                           <tr>
+                              
+                              <th scope="col">Ontology</th>
+                              
+                              <th scope="col">Title</th>
+                              
+                              <th scope="col">Prefix</th>
+                              </tr>
+                           </thead>
+                        
+                        <tbody>
+                           
+                           <tr>
+                              
+                              <td><a href="https://w3id.org/atomgraph/linkeddatahub/default" id="def-ont" target="_blank"><code>https://w3id.org/atomgraph/linkeddatahub/default#</code></a></td>
+                              
+                              <td>Default</td>
+                              
+                              <td><code>def:</code></td>
+                              </tr>
+                           
+                           <tr>
+                              
+                              <td><a href="https://w3id.org/atomgraph/linkeddatahub/dataspaces" id="lds-ont" target="_blank"><code>https://w3id.org/atomgraph/linkeddatahub/dataspaces#</code></a></td>
+                              
+                              <td>Dataspaces</td>
+                              
+                              <td><code>lds:</code></td>
+                              </tr>
+                           
+                           <tr>
+                              
+                              <td><a href="https://w3id.org/atomgraph/linkeddatahub/admin/acl" id="lacl-ont" target="_blank"><code>https://w3id.org/atomgraph/linkeddatahub/admin/acl#</code></a></td>
+                              
+                              <td>Access control</td>
+                              
+                              <td><code>lacl:</code></td>
+                              </tr>
+                           
+                           <tr>
+                              
+                              <td><a href="https://w3id.org/atomgraph/linkeddatahub/admin" id="adm-ont" target="_blank"><code>https://w3id.org/atomgraph/linkeddatahub/admin#</code></a></td>
+                              
+                              <td>Admin</td>
+                              
+                              <td><code>adm:</code></td>
+                              </tr>
+                           
+                           <tr>
+                              
+                              <td><a href="https://w3id.org/atomgraph/linkeddatahub" id="ldh-ont" target="_blank"><code>https://w3id.org/atomgraph/linkeddatahub#</code></a></td>
+                              
+                              <td>LinkedDataHub</td>
+                              
+                              <td><code>ldh:</code></td>
+                              </tr>
+                           
+                           <tr>
+                              
+                              <td><a href="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy" id="dh-ont" target="_blank"><code>https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#</code></a></td>
+                              
+                              <td>Document hierarchy</td>
+                              
+                              <td><code>dh:</code></td>
+                              </tr>
+                           </tbody>
+                        </table>
+                     </div>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="classes">Classes</h2>
+                  
+                  <p>Classes are RDFS/OWL classes declared in the dataspace's namespace ontology. Their
+                     instances live in the <a href="../../dataset/">dataspace dataset</a>.</p>
+                  
+                  <p>The main class properties, explained in the sub-sections below:</p>
+                  
+                  <dl>
+                     
+                     <dt><a href="#constructors">Constructors</a></dt>
+                     
+                     <dd>Queries that construct a new class instance</dd>
+                     
+                     <dt><a href="#constraints">Constraints</a></dt>
+                     
+                     <dd>Commands or command templates that validate a class instance</dd>
+                     </dl>
+                  
+                  <div>
+                     
+                     <h3 id="constructors">Constructors</h3>
+                     
+                     <p>Constructors are SPARQL <code>CONSTRUCT</code> queries that serve as templates for class instances.
+                        They specify the properties (both mandatory and optional) that the instance is supposed
+                        to have, as well as expected datatypes of their
+                        values. Constructors drive the resource creation and editing forms. A class can have
+                        multiple constructors.</p>
+                     
+                     <p>The Northwind demo wires a constructor onto <code>schema:Product</code>, which is what makes the Product create form offer the right controls:</p>
+                     
+                     <pre>schema:Product spin:constructor :ProductConstructor ;
+    spin:constraint :MissingName .
+
+:ProductConstructor a ldh:Constructor ;
+    rdfs:label "Product constructor" ;
+    dct:title "Product constructor" ;
+    sp:text """
+        PREFIX schema:  &lt;https://schema.org/&gt;
+        PREFIX dct:     &lt;http://purl.org/dc/terms/&gt;
+        PREFIX xsd:     &lt;http://www.w3.org/2001/XMLSchema#&gt;
+
+        CONSTRUCT {
+            $this dct:title [ a xsd:string ] ;
+                schema:name [ a xsd:string ] ;
+                schema:identifier [ a xsd:string ] ;
+                schema:description [ a xsd:string ] ;
+                schema:category [ a schema:ProductGroup ] ;
+                schema:provider [ a schema:Corporation ] ;
+                schema:offers [ a schema:Offer ] .
+        }
+        WHERE {}""" ;
+    rdfs:isDefinedBy : .</pre>
+                     
+                     <p class="exhibit-links">Source: <a href="https://github.com/AtomGraph/LinkedDataHub-Apps/blob/master/demo/northwind-traders/admin/model/ns.ttl" target="_blank">admin/model/ns.ttl</a></p>
+                     
+                     <p>A constructor can also supply a default <em>value</em> — the built-in <code>ldh:XHTML</code> constructor seeds new blocks with an empty XHTML literal:</p>
+                     
+                     <pre>PREFIX rdf:     &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#&gt;
+
+CONSTRUCT {
+  $this rdf:value "&lt;div xmlns=\"http://www.w3.org/1999/xhtml\"&gt;&lt;/div&gt;"^^rdf:XMLLiteral .
+}
+WHERE {}</pre>
+                     
+                     <p>LinkedDataHub reuses <a href="http://spinrdf.org/spin.html#spin-constructors" target="_blank">SPIN constructors</a> for the implementation, but adds a
+                        special syntax convention using blank nodes to indicate the expected resource type
+                        (<code>[ a ex:Person ]</code>) or literal datatype
+                        (<code>[ a xsd:string ]</code>). The magic variable <code>$this</code> refers to the instance being constructed. It starts as a blank node
+                        resource and is skolemized to a URI when the form is submitted to the server.</p>
+                     
+                     <p>Note that classes inherit constructors from superclasses at runtime. A subclass constructor
+                        only needs to declare the properties its
+                        superclasses do not already declare.</p>
+                     
+                     <p>Constructor instances are instantiated client-side: the constructors of the resource's
+                        types (including the superclass closure) are expanded
+                        onto a single instance. For that to work, a constructor has to have an empty <code>WHERE</code> clause, as in the example above.</p>
+                     </div>
+                  
+                  <div>
+                     
+                     <h3 id="constraints">Constraints</h3>
+                     
+                     <p>Constraints are SPARQL queries or <a href="https://spinrdf.org/spin.html#spin-templates" target="_blank">SPIN command templates</a> that validate submitted
+                        RDF data during document creation and editing. A constraint applies to instances of
+                        the class it is declared on and reports violations —
+                        missing mandatory properties, malformed values and so on. For example, an instance
+                        of
+                        <code>dh:Item</code> without <code>dct:title</code> will fail validation because titles are mandatory for LinkedDataHub documents.</p>
+                     
+                     <p>The most common constraint shape is the missing-property check. The Northwind demo
+                        requires every Product to have a name:</p>
+                     
+                     <pre>:MissingName a ldh:MissingPropertyValue ;
+    rdfs:label "Missing schema:name" ;
+    sp:arg1 schema:name ;
+    rdfs:isDefinedBy : .</pre>
+                     
+                     <p>Submitting a Product without <code>schema:name</code> is then rejected with <samp>422 Unprocessable Entity</samp>, and the response body
+                        describes the violation in RDF:</p>
+                     
+                     <pre>[ a spin:ConstraintViolation ;
+    rdfs:label "Missing schema:name" ;
+    spin:violationRoot &lt;#this&gt; ;
+    spin:violationPath schema:name ] .</pre>
+                     
+                     <p>LinkedDataHub reuses <a href="http://spinrdf.org/spin.html#spin-constraints" target="_blank">SPIN constraints</a>. Classes inherit constraints from superclasses.</p>
+                     
+                     <p><a href="https://www.w3.org/TR/shacl/" target="_blank">SHACL</a> constraint validation is supported as well: SHACL shapes declared in the ontology
+                        (or in any ontology of its imports closure) are validated with <a href="https://jena.apache.org/documentation/shacl/" target="_blank">Jena SHACL</a>
+                        alongside the SPIN constraints, and a violation is likewise rejected with <samp>422 Unprocessable Entity</samp>.</p>
+                     </div>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="properties">Properties</h2>
+                  
+                  <p>You can define new properties. Like classes, properties are declared in the dataspace's
+                     namespace ontology.
+                     The expected values of a property on a class are described either with a SPIN <a href="#constraints">property constraint</a> (a mandatory-property check)
+                     or with an OWL <a href="#restrictions">restriction</a>, both of which the creation and editing forms enforce.</p>
+                  
+                  <div>
+                     
+                     <h3 id="restrictions">Restrictions</h3>
+                     
+                     <p>An <code>owl:Restriction</code> pins the cardinality of a property. The Northwind model, for example, declares its
+                        properties with
+                        domains and ranges, and pins the sales-rep cardinality with a restriction — every
+                        order has exactly one:</p>
+                     
+                     <pre>schema:broker a owl:ObjectProperty ;
+    rdfs:label "Sales rep";
+    rdfs:domain schema:Order ;
+    rdfs:range schema:Person ;
+    rdfs:isDefinedBy : .
+
+[] a owl:Restriction ;
+    owl:onProperty schema:broker ;
+    owl:minCardinality 1 ;
+    owl:maxCardinality 1 ;
+    rdfs:isDefinedBy : .</pre>
+                     
+                     <p class="exhibit-links">Source: <a href="https://github.com/AtomGraph/LinkedDataHub-Apps/blob/master/demo/northwind-traders/admin/model/ns.ttl" target="_blank">admin/model/ns.ttl</a></p>
+                     </div>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="importing-vocabularies">Importing external vocabularies</h2>
+                  
+                  <p>The <samp>Import ontology</samp> action loads an external vocabulary into a document of the admin dataspace and derives
+                     instance
+                     <a href="#constructors">constructors</a> for its classes. The vocabulary stays in that document, under its own URI and with
+                     its own header, and the
+                     derived constructors are appended beside it; the document names the vocabulary as
+                     its <code>foaf:primaryTopic</code> rather than claiming to be an ontology
+                     itself. The dataspace's namespace ontology imports the vocabulary URI, which resolves
+                     to that document because it declares the vocabulary — so the
+                     constructors are edited where the vocabulary is, and nothing has to be re-fetched
+                     from the network or a bundled copy.</p>
+                  <img alt="The Import ontology form, with the vocabulary URI as Source and the target document as Graph" src="../../../files/reference/administration/ontologies-1.webp"/>
+                  
+                  <p>Importing the SKOS vocabulary, for example, leaves the target document with content
+                     of this shape (abridged):</p>
+                  
+                  <pre>&lt;&gt; a dh:Item ;
+    foaf:primaryTopic &lt;http://www.w3.org/2004/02/skos/core&gt; .    # the document is about the vocabulary
+
+&lt;http://www.w3.org/2004/02/skos/core&gt; a owl:Ontology .          # the vocabulary's own header and terms follow
+
+skos:Concept spin:constructor [ a ldh:Constructor ;
+    sp:text """
+        PREFIX skos: &lt;http://www.w3.org/2004/02/skos/core#&gt;
+        PREFIX xsd:  &lt;http://www.w3.org/2001/XMLSchema#&gt;
+
+        CONSTRUCT {
+            $this skos:prefLabel [ a xsd:string ] ;
+                skos:broader [ a skos:Concept ] .
+        }
+        WHERE {}""" ] .                                       # …one derived constructor per class</pre>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="management">Management</h2>
+                  
+                  <table>
+                     
+                     <caption class="ac-vh">Ontology actions and their CLI commands</caption>
+                     
+                     <thead>
+                        
+                        <tr>
+                           
+                           <th scope="col">Action</th>
+                           
+                           <th scope="col">CLI command</th>
+                           </tr>
+                        </thead>
+                     
+                     <tbody>
+                        
+                        <tr>
+                           
+                           <th scope="row">Create ontology</th>
+                           
+                           <td><a href="../../command-line-interface/#commands"><samp>ldh admin create ontology</samp></a></td>
+                           </tr>
+                        
+                        <tr>
+                           
+                           <th scope="row">Import external vocabulary</th>
+                           
+                           <td><a href="../../command-line-interface/#commands"><samp>ldh admin import ontology</samp></a></td>
+                           </tr>
+                        
+                        <tr>
+                           
+                           <th scope="row">Add ontology import</th>
+                           
+                           <td><a href="../../command-line-interface/#commands"><samp>ldh admin add ontology-import</samp></a></td>
+                           </tr>
+                        
+                        <tr>
+                           
+                           <th scope="row">Clear ontology from cache</th>
+                           
+                           <td><a href="../../command-line-interface/#commands"><samp>ldh admin clear ontology</samp></a></td>
+                           </tr>
+                        
+                        <tr>
+                           
+                           <th scope="row">Create class</th>
+                           
+                           <td><a href="../../command-line-interface/#commands"><samp>ldh admin add class</samp></a></td>
+                           </tr>
+                        
+                        <tr>
+                           
+                           <th scope="row">Add constructor</th>
+                           
+                           <td><a href="../../command-line-interface/#commands"><samp>ldh admin add constructor</samp></a></td>
+                           </tr>
+                        
+                        <tr>
+                           
+                           <th scope="row">Add property constraint</th>
+                           
+                           <td><a href="../../command-line-interface/#commands"><samp>ldh admin add property-constraint</samp></a></td>
+                           </tr>
+                        
+                        <tr>
+                           
+                           <th scope="row">Add restriction</th>
+                           
+                           <td><a href="../../command-line-interface/#commands"><samp>ldh admin add restriction</samp></a></td>
+                           </tr>
+                        </tbody>
+                     </table>
+                  </div>
+               
+               <p class="ldh-body-lg">To evolve your dataspace's model in practice, follow the <a href="../../../user-guide/change-model/">Change model</a> guide.</p>
+               </div>
+         </div>
+      </div>
+      <div class="ldh-footer" role="contentinfo">
+         <div class="cols">
+            <div class="col brand-col"><a class="ldh-wordmark" href="https://linkeddatahub.com" target="_blank"><span class="mark"></span><span>LinkedDataHub</span></a><p>The low-code Knowledge Graph application platform. Built on RDF, SPARQL and Linked
+                  Data principles.</p>
+            </div>
+            <div class="col">
+               <p class="ftitle">About</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a><a href="https://atomgraph.com" target="_blank">AtomGraph</a></div>
+            <div class="col">
+               <p class="ftitle">Resources</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></div>
+            <div class="col">
+               <p class="ftitle">Support</p><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a><a href="mailto:support@linkeddatahub.com">Contact support</a></div>
+            <div class="col">
+               <p class="ftitle">Follow us</p><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></div>
+         </div>
+         <div class="legal"><span>© 2026 AtomGraph · LinkedDataHub</span></div>
+      </div>
+   </body>
+</html>

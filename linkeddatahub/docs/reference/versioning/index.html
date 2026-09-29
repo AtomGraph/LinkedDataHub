@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" lang="en" data-retro="m3" data-theme="light">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>LinkedDataHub v5 — Versioning</title>
+      <meta name="description" content="Git-backed document versioning with Memento access to the history"/>
+      <meta name="last-modified" content="2026-09-29T23:17:17Z"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1"/>
+      <link href="../../static/css/fonts.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/colors_and_type.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/app.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/retro.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/ldh.css" rel="stylesheet" type="text/css"/>
+      <link href="../../static/css/docs.css" rel="stylesheet" type="text/css"/><script type="text/javascript">
+                    document.addEventListener("click", function(event) {
+                        var tab = event.target.closest(".ac-tab[role='tab']");
+                        if (!tab) return;
+                        var tablist = tab.closest("[role='tablist']");
+                        var tabs = tablist.closest(".ac-tabs");
+                        if (!tabs || !tabs.querySelector(".ac-tabpanel")) return;
+                        tablist.querySelectorAll(".ac-tab").forEach(function(t) { t.classList.remove("is-on"); t.setAttribute("aria-selected", "false"); });
+                        tab.classList.add("is-on");
+                        tab.setAttribute("aria-selected", "true");
+                        tabs.querySelectorAll(".ac-tabpanel").forEach(function(pane) {
+                            if (pane.parentElement !== tabs) return;
+                            pane.hidden = pane.id !== tab.getAttribute("aria-controls");
+                        });
+                    });
+                </script><script async="async" defer="defer" src="https://buttons.github.io/buttons.js"></script><script async="async" defer="defer" src="https://platform.twitter.com/widgets.js"></script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+                    window.dataLayer = window.dataLayer || [];
+                    function gtag(){dataLayer.push(arguments);}
+                    gtag('js', new Date());
+                    gtag('config', 'UA-38402002-6');
+                </script></head>
+   <body class="app">
+      <div class="ldh-header" role="banner"><a class="ldh-wordmark" href="../../"><span class="mark"></span><span>LinkedDataHub</span></a><div></div>
+         <div class="ldh-header-actions">
+            <details class="docs-versions">
+               <summary>Documentation v6</summary>
+               <div><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v5/">Documentation v5</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v3/">Documentation v3</a><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/v2/">Documentation v2</a></div>
+            </details><a href="https://github.com/AtomGraph/LinkedDataHub-Apps" target="_blank">Sample dataspaces</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub/subscription" data-icon="octicon-eye" data-size="large" aria-label="Watch AtomGraph/LinkedDataHub on GitHub">Watch</a><a class="github-button" href="https://github.com/AtomGraph/LinkedDataHub" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star AtomGraph/LinkedDataHub on GitHub">Star</a><a href="https://twitter.com/atomgraphhq" class="twitter-follow-button" data-show-count="false">Follow @atomgraphhq</a><a href="https://youtube.com/@atomgraph" target="_blank"><span class="msi outline" aria-hidden="true">smart_display</span> @atomgraph</a></div>
+      </div>
+      <div class="docs-layout">
+         <div class="docs-nav" role="navigation">
+            <ul>
+               <li><a href="../../about/">About LinkedDataHub</a></li>
+               <li><a href="../../get-started/">Get started</a></li>
+               <li><a href="../../tutorial/">Tutorial</a></li>
+               <li><a href="../../user-guide/">User guide</a></li>
+               <li><a href="../">Reference</a><ul>
+                     <li><a href="../administration/">Administration</a></li>
+                     <li><a href="../command-line-interface/">Command line interface</a></li>
+                     <li><a href="../configuration/">Configuration</a></li>
+                     <li><a href="../data-model/">Data model</a></li>
+                     <li><a href="../dataset/">Dataset</a></li>
+                     <li><a href="../dataspace/">Dataspace</a></li>
+                     <li><a href="../http-api/">HTTP API</a></li>
+                     <li><a href="../imports/">Imports</a></li>
+                     <li><a href="../migrating-from-5x/">Migrating from 5.x</a></li>
+                     <li><a href="../stylesheets/">Stylesheets</a></li>
+                     <li><a href="../triplestores/">Triplestores</a></li>
+                     <li><a href="../user-interface/">User interface</a></li>
+                     <li class="is-active" aria-current="page"><a href="">Versioning</a></li>
+                  </ul>
+               </li>
+               <li><a href="../../extending/">Extending</a></li>
+            </ul>
+         </div>
+         <div class="docs-main" role="main">
+            <h1>Versioning</h1>
+            <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+               
+               <p class="ldh-body-lg">Git-backed document versioning with Memento access to the history</p>
+               
+               <p>A dataspace can be configured to mirror every document write into a GitHub repository.
+                  The synchronization goes through the
+                  GitHub REST API (<samp>api.github.com</samp>), so it is specific to GitHub rather than generic Git. Every write becomes a commit
+                  authored with the writing agent's WebID, so the repository holds a complete, attributable
+                  history of the dataspace's documents.</p>
+               
+               <p>The history is accessible over HTTP through the standard <a href="https://datatracker.ietf.org/doc/html/rfc7089" target="_blank">Memento (RFC 7089)</a>
+                  protocol — historical versions, a TimeMap, and datetime negotiation through a TimeGate
+                  — as well as through the
+                  <a href="../../user-guide/version-history/">version history dialog</a> in the user interface and the
+                  <a href="../command-line-interface/">command line interface</a>.</p>
+               
+               <div>
+                  
+                  <h2 id="setup">Setup</h2>
+                  
+                  <p>Versioning is enabled per dataspace:</p>
+                  
+                  <ol>
+                     
+                     <li>Create a GitHub repository to hold the version history, and a <a href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens" target="_blank">fine-grained personal access token</a> with read/write access to that repository's contents</li>
+                     
+                     <li>In <samp>config/system.trig</samp>, point the dataspace at a repository description with <code>lds:versioningRepository</code>:
+                        
+                        <pre>&lt;urn:linkeddatahub:apps/end-user&gt;
+{
+    &lt;urn:linkeddatahub:apps/end-user&gt; a lds:EndUserDataspace ;
+        lds:service &lt;urn:linkeddatahub:services/end-user&gt; ;
+        lds:versioningRepository &lt;urn:linkeddatahub:versioning/end-user&gt; .
+}
+
+&lt;urn:linkeddatahub:versioning/end-user&gt;
+{
+    &lt;urn:linkeddatahub:versioning/end-user&gt; a doap:GitRepository ;
+        doap:location &lt;https://github.com/OWNER/REPO&gt; ;
+        github:branch "main" ;
+        github:pathPrefix "graphs" .
+}</pre>
+                        The <code>github:</code> terms come from the <code>https://w3id.org/atomgraph/linkeddatahub/services/github#</code> namespace;
+                        <code>github:branch</code> defaults to <samp>main</samp> and <code>github:pathPrefix</code> to <samp>graphs</samp>.
+                        </li>
+                     
+                     <li>Add the access token to <samp>secrets/credentials.trig</samp> (and make sure the <samp>credentials</samp> secret is enabled in <samp>docker-compose.yml</samp>):
+                        
+                        <pre>@prefix a: &lt;https://w3id.org/atomgraph/core#&gt; .
+
+&lt;urn:linkeddatahub:versioning/end-user&gt;
+{
+    &lt;urn:linkeddatahub:versioning/end-user&gt; a:authToken "github_pat_..." .
+}</pre>
+                        </li>
+                     
+                     <li>Restart LinkedDataHub</li>
+                     </ol>
+                  
+                  <p>From then on, every successful document write in the dataspace is committed to the
+                     repository. Writes from different documents
+                     share one commit chain per branch. A conflicting commit is retried rather than dropped,
+                     so concurrent writers do not lose versions.
+                     Each document is stored as a sorted N-Triples file under the configured path prefix
+                     — Northwind order 10248 as
+                     <samp>graphs/orders/10248.nt</samp>:</p>
+                  
+                  <pre>&lt;https://localhost:4443/orders/10248/&gt; &lt;http://purl.org/dc/terms/title&gt; "10248" .
+&lt;https://localhost:4443/orders/10248/#this&gt; &lt;https://schema.org/identifier&gt; "10248" .
+&lt;https://localhost:4443/orders/10248/#this&gt; &lt;https://schema.org/orderDate&gt; "1996-07-04"^^&lt;http://www.w3.org/2001/XMLSchema#date&gt; .
+…</pre>
+                  
+                  <p>To disable versioning, remove the <code>lds:versioningRepository</code> triple and restart — the repository configuration is read at startup.</p>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="snapshots">Historical versions</h2>
+                  
+                  <p><code>GET</code> with the <code>?version=&lt;commit-sha&gt;</code> query parameter serves the document as it was at that commit. The
+                     response carries a <code>Memento-Datetime</code> header with the commit datetime, the commit SHA as the <code>ETag</code>, and immutable
+                     <code>Cache-Control</code> — a historical version never changes.</p>
+                  
+                  <p>Historical versions are read-only: only <code>acl:Read</code> is advertised in the <code>Link</code> headers and write methods answer
+                     <code>405 Method Not Allowed</code>. In the user interface a historical version page shows a notice banner with a link
+                     back to the current version.</p>
+                  
+                  <p>Historical versions are also outside the scope of SPARQL: the dataspace's RDF dataset
+                     holds only the current version of every
+                     document, while the history lives solely in the Git repository. Queries on the <a href="../http-api/#sparql">SPARQL endpoint</a>
+                     therefore always answer over the latest versions.</p>
+                  
+                  <pre>GET /orders/10248/?version=8c9f2b1 HTTP/1.1
+Host: localhost:4443
+Accept: text/turtle
+
+HTTP/1.1 200 OK
+Content-Type: text/turtle
+Memento-Datetime: Tue, 01 Sep 2026 14:03:59 GMT
+ETag: "8c9f2b1"
+Cache-Control: public, max-age=31536000, immutable
+Link: &lt;https://localhost:4443/orders/10248/&gt;; rel="original"</pre>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="timemap">TimeMap</h2>
+                  
+                  <p><code>GET</code> with the <code>?timemap</code> query parameter serves the document's version history. In RDF formats the TimeMap
+                     is described
+                     with <a href="https://www.w3.org/TR/prov-o/" target="_blank">PROV-O</a>: a <code>prov:Collection</code> of <code>prov:Entity</code> mementos, each
+                     <code>prov:specializationOf</code> the document, <code>prov:generatedAtTime</code> its commit datetime, and <code>prov:wasRevisionOf</code> its
+                     predecessor. Requesting <code>application/link-format</code> serves the serialization RFC 7089 requires.</p>
+                  
+                  <p>Order 10248's history with two versions, as PROV-O:</p>
+                  
+                  <pre>@prefix prov: &lt;http://www.w3.org/ns/prov#&gt; .
+@prefix xsd:  &lt;http://www.w3.org/2001/XMLSchema#&gt; .
+
+&lt;https://localhost:4443/orders/10248/?timemap&gt; a prov:Collection ;
+    prov:hadMember &lt;https://localhost:4443/orders/10248/?version=4d1e7aa&gt;,
+        &lt;https://localhost:4443/orders/10248/?version=8c9f2b1&gt; .
+
+&lt;https://localhost:4443/orders/10248/?version=4d1e7aa&gt; a prov:Entity ;
+    prov:specializationOf &lt;https://localhost:4443/orders/10248/&gt; ;
+    prov:generatedAtTime "2026-08-30T10:12:04Z"^^xsd:dateTime .
+
+&lt;https://localhost:4443/orders/10248/?version=8c9f2b1&gt; a prov:Entity ;
+    prov:specializationOf &lt;https://localhost:4443/orders/10248/&gt; ;
+    prov:generatedAtTime "2026-09-01T14:03:59Z"^^xsd:dateTime ;
+    prov:wasRevisionOf &lt;https://localhost:4443/orders/10248/?version=4d1e7aa&gt; .</pre>
+                  
+                  <p>and the same TimeMap as <code>application/link-format</code>:</p>
+                  
+                  <pre>&lt;https://localhost:4443/orders/10248/&gt;;rel="original",
+&lt;https://localhost:4443/orders/10248/?timemap&gt;;rel="self";type="application/link-format",
+&lt;https://localhost:4443/orders/10248/?version=4d1e7aa&gt;;rel="memento";datetime="Sun, 30 Aug 2026 10:12:04 GMT",
+&lt;https://localhost:4443/orders/10248/?version=8c9f2b1&gt;;rel="memento";datetime="Tue, 01 Sep 2026 14:03:59 GMT"</pre>
+                  
+                  <p>A TimeMap of a document with no versions answers <code>404 Not Found</code>. A non-versioned document answers <code>406 Not Acceptable</code>
+                     when <code>application/link-format</code> is requested.</p>
+                  
+                  <p>The Memento hypermedia uses IANA-registered relation types: the document advertises
+                     its <code>timemap</code> and <code>timegate</code> in
+                     <code>Link</code> headers, a historical version links back to the document with <code>rel=original</code>, and the TimeMap identifies itself with
+                     <code>rel=self</code>.</p>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="timegate">TimeGate</h2>
+                  
+                  <p><code>GET</code> with the <code>?timegate</code> query parameter performs datetime negotiation: the version closest to the
+                     <code>Accept-Datetime</code> request header is answered with <code>302 Found</code> and its URI in <code>Location</code>, with ties resolved
+                     towards the more recent version. Without <code>Accept-Datetime</code>, the most recent version is selected. The response carries
+                     <code>Vary: accept-datetime</code>.</p>
+                  
+                  <pre>GET /orders/10248/?timegate HTTP/1.1
+Host: localhost:4443
+Accept-Datetime: Mon, 31 Aug 2026 00:00:00 GMT
+
+HTTP/1.1 302 Found
+Location: https://localhost:4443/orders/10248/?version=4d1e7aa
+Vary: accept-datetime
+Link: &lt;https://localhost:4443/orders/10248/&gt;; rel="original"</pre>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="restore-diff">Restore and diff</h2>
+                  
+                  <p>From the <a href="../../user-guide/version-history/">version history dialog</a>, a document can be restored to an earlier version — restoring
+                     creates a new commit rather than rewriting history, so the intervening versions remain
+                     in the TimeMap — and any two versions can be compared
+                     as a diff rendered on the document page.</p>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="management">Management</h2>
+                  
+                  <div class="ac-tabs or-horizontal">
+                     
+                     <div class="ac-tablist sz-md va-line" role="tablist">
+                        <button aria-controls="user-interface-pane" aria-selected="true" class="ac-tab is-on" id="user-interface-tab" role="tab" type="button"><span class="ac-tab-lbl">User interface</span></button>
+                        <button aria-controls="command-line-interface-pane" aria-selected="false" class="ac-tab" id="command-line-interface-tab" role="tab" type="button"><span class="ac-tab-lbl">Command line interface</span></button>
+                        </div>
+                     
+                     <div aria-labelledby="user-interface-tab" class="ac-tabpanel" id="user-interface-pane" role="tabpanel">
+                        
+                        <p>The <a href="../../user-guide/version-history/">version history dialog</a> lists a document's versions and drives the restore and diff actions.</p>
+                        </div>
+                     
+                     <div aria-labelledby="command-line-interface-tab" class="ac-tabpanel" hidden="hidden" id="command-line-interface-pane" role="tabpanel">
+                        
+                        <p><samp>ldh get</samp> exposes a versioned document's TimeMap, TimeGate and historical versions through
+                           three mutually exclusive options:</p>
+                        
+                        <table>
+                           
+                           <caption class="ac-vh">Version history options</caption>
+                           
+                           <thead>
+                              
+                              <tr>
+                                 
+                                 <th scope="col">Option</th>
+                                 
+                                 <th scope="col">Description</th>
+                                 </tr>
+                              </thead>
+                           
+                           <tbody>
+                              
+                              <tr>
+                                 
+                                 <th scope="row"><samp>--timemap</samp></th>
+                                 
+                                 <td>The version history (PROV-O in RDF formats, or <code>application/link-format</code> via <samp>--accept</samp>)</td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <th scope="row"><samp>--version &lt;sha&gt;</samp></th>
+                                 
+                                 <td>The historical version at the given commit</td>
+                                 </tr>
+                              
+                              <tr>
+                                 
+                                 <th scope="row"><samp>--timegate</samp></th>
+                                 
+                                 <td>Datetime negotiation; the optional <samp>--datetime</samp> takes an RFC 1123 or ISO 8601 datetime. Prints the negotiated version's URI as the
+                                    only line on stdout, so it pipes into another <samp>ldh get</samp></td>
+                                 </tr>
+                              </tbody>
+                           </table>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+         </div>
+      </div>
+      <div class="ldh-footer" role="contentinfo">
+         <div class="cols">
+            <div class="col brand-col"><a class="ldh-wordmark" href="https://linkeddatahub.com" target="_blank"><span class="mark"></span><span>LinkedDataHub</span></a><p>The low-code Knowledge Graph application platform. Built on RDF, SPARQL and Linked
+                  Data principles.</p>
+            </div>
+            <div class="col">
+               <p class="ftitle">About</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a><a href="https://atomgraph.com" target="_blank">AtomGraph</a></div>
+            <div class="col">
+               <p class="ftitle">Resources</p><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a><a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a></div>
+            <div class="col">
+               <p class="ftitle">Support</p><a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a><a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a><a href="mailto:support@linkeddatahub.com">Contact support</a></div>
+            <div class="col">
+               <p class="ftitle">Follow us</p><a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a><a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a></div>
+         </div>
+         <div class="legal"><span>© 2026 AtomGraph · LinkedDataHub</span></div>
+      </div>
+   </body>
+</html>
