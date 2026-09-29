@@ -86,3 +86,43 @@
         a:graphStore <http://fuseki:3030/end-user/> ;
         a:quadStore <http://fuseki:3030/end-user/> .
 }
+
+# packages admin - type + service binding
+
+<urn:linkeddatahub:apps/packages/admin>
+{
+    <urn:linkeddatahub:apps/packages/admin> a lds:AdminDataspace ;
+        lds:service <urn:linkeddatahub:services/packages/admin> .
+}
+
+# packages admin - service description
+
+<urn:linkeddatahub:services/packages/admin>
+{
+    <urn:linkeddatahub:services/packages/admin> a sd:Service ;
+        dct:title "Packages admin service" ;
+        sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
+        sd:endpoint <http://fuseki:3030/admin/> ;
+        a:graphStore <http://fuseki:3030/admin/> ;
+        a:quadStore <http://fuseki:3030/admin/> .
+}
+
+# packages end-user - type + service binding
+
+<urn:linkeddatahub:apps/packages/end-user>
+{
+    <urn:linkeddatahub:apps/packages/end-user> a lds:EndUserDataspace ;
+        lds:service <urn:linkeddatahub:services/packages/end-user> .
+}
+
+# packages end-user - service description
+
+<urn:linkeddatahub:services/packages/end-user>
+{
+    <urn:linkeddatahub:services/packages/end-user> a sd:Service ;
+        dct:title "Packages service" ;
+        sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
+        sd:endpoint <http://fuseki:3030/end-user/> ;
+        a:graphStore <http://fuseki:3030/end-user/> ;
+        a:quadStore <http://fuseki:3030/end-user/> .
+}

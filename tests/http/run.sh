@@ -333,6 +333,7 @@ export END_USER_ENDPOINT_URL="http://localhost:3030/end-user/"
 export ADMIN_ENDPOINT_URL="http://localhost:3030/admin/"
 export END_USER_BASE_URL="https://localhost:4443/"
 export ADMIN_BASE_URL="https://admin.localhost:4443/"
+export PACKAGES_BASE_URL="https://packages.localhost:4443/" # the fixture package registry, tests/packages
 export END_USER_VARNISH_SERVICE="varnish-end-user"
 export ADMIN_VARNISH_SERVICE="varnish-admin"
 export FRONTEND_VARNISH_SERVICE="varnish-frontend"
@@ -351,6 +352,9 @@ run_tests "signup" "signup.sh"
 
 export AGENT_URI="$(webid-uri.sh "$AGENT_CERT_FILE")"
 printf "### Signed up agent URI: %s\n" "$AGENT_URI"
+
+# publish the fixture package registry before the datasets are stored, so that every test's reset restores it
+"$HTTP_TEST_ROOT/../packages/publish.sh" "$PACKAGES_BASE_URL" "$OWNER_CERT_KEYSTORE" "$OWNER_CERT_PWD"
 
 # store the end-user and admin datasets
 export TMP_END_USER_DATASET=$(mktemp)

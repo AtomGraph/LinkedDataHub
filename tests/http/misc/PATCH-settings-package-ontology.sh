@@ -14,7 +14,7 @@ clear_ontology
 # visible on the /ns endpoint after the PATCH and disappears again after removal.
 
 app_uri="urn:linkeddatahub:apps/end-user"
-package_uri="https://packages.linkeddatahub.com/editor/taxonomy/#this"
+package_uri="${PACKAGES_BASE_URL}editor/taxonomy/#this" # the fixture registry, tests/packages
 
 query='SELECT ?text WHERE { <http://www.w3.org/2004/02/skos/core#Concept> <http://spinrdf.org/spin#constructor> ?constructor . ?constructor <http://spinrdf.org/sp#text> ?text . }'
 

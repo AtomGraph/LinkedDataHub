@@ -10,10 +10,12 @@
 // drinks names it as narrower, and the two top concepts arrive one from each direction.
 // Depth is deliberate too - espresso sits three hops below the scheme, which is what makes
 // the reveal a walk rather than a single lookup.
+import { execFileSync } from 'node:child_process';
+import { join } from 'node:path';
 import { get } from './http.mjs';
 import { ldh } from './fixtures.mjs';
 import { READ_MODE, inMode } from './mode.mjs';
-import { adminBase, endUserBase } from './stack.mjs';
+import { adminBase, endUserBase, ownerKeystore, ownerPassword, repoRoot } from './stack.mjs';
 
 const slug = 'ui-taxonomy';
 const SKOS = 'http://www.w3.org/2004/02/skos/core#';
@@ -21,8 +23,14 @@ const FOAF = 'http://xmlns.com/foaf/0.1/';
 
 // The package under test. Without it the tree does not exist at all: the column, the
 // hierarchy queries and the reveal are all the package stylesheet's, not the platform's.
-export const taxonomyPackage = process.env.UI_TESTS_TAXONOMY_PACKAGE
-    ?? 'https://packages.linkeddatahub.com/editor/taxonomy/#this';
+// It is imported from the fixture registry, tests/packages, which seedTaxonomy publishes onto the
+// stack's packages dataspace, so the suite depends on neither the reachability nor the current
+// content of https://packages.linkeddatahub.com/. UI_TESTS_TAXONOMY_PACKAGE names another package,
+// which is imported as it is.
+const endUserURL = new URL(endUserBase);
+export const packagesBase = process.env.PACKAGES_BASE_URL ?? `${endUserURL.protocol}//packages.${endUserURL.host}/`;
+const fixturePackage = !process.env.UI_TESTS_TAXONOMY_PACKAGE;
+export const taxonomyPackage = process.env.UI_TESTS_TAXONOMY_PACKAGE ?? `${packagesBase}editor/taxonomy/#this`;
 
 export const taxonomy = { container: `${endUserBase}${slug}/` };
 
@@ -107,7 +115,7 @@ function parentTriple(node) {
 }
 
 async function packageInstalled() {
-    const { stdout } = await ldh(['packages', 'list']);
+    const { stdout } = await ldh(['packages', 'list', ...(fixturePackage ? ['--registry', packagesBase] : [])]);
     return stdout.split('\n').some(line => {
         const [state, uri] = line.split('\t');
         return state === 'installed' && uri === taxonomyPackage;
@@ -120,6 +128,11 @@ async function packageInstalled() {
 let addedPackage = false;
 
 export async function seedTaxonomy() {
+    if (fixturePackage) {
+        execFileSync(join(repoRoot, 'tests/packages/publish.sh'), [packagesBase, ownerKeystore, ownerPassword()],
+            { stdio: ['ignore', 'ignore', 'inherit'] });
+    }
+
     if (!await packageInstalled()) {
         await ldh(['packages', 'add', '--package', taxonomyPackage]);
         addedPackage = true;

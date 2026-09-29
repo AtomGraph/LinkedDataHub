@@ -14,8 +14,9 @@ clear_ontology
 # the copy is what makes the package's constructors editable rather than merely visible.
 
 app_uri="urn:linkeddatahub:apps/end-user"
-package_uri="https://packages.linkeddatahub.com/editor/taxonomy/#this"
-package_ontology="https://raw.githubusercontent.com/AtomGraph/LinkedDataHub-Apps/refs/heads/develop/packages/editor/taxonomy/ns.ttl#"
+package_uri="${PACKAGES_BASE_URL}editor/taxonomy/#this" # the fixture registry, tests/packages
+# the ontology IRI ns.ttl declares, served by the registry as the ns/ document
+package_ontology="${PACKAGES_BASE_URL}editor/taxonomy/ns/#"
 # the document URI is derived from the package URI's path, so it is predictable rather than a digest
 doc="${ADMIN_BASE_URL}ontologies/editor-taxonomy/"
 

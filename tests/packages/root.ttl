@@ -1,0 +1,27 @@
+@prefix def:    <https://w3id.org/atomgraph/linkeddatahub/default#> .
+@prefix ldh:    <https://w3id.org/atomgraph/linkeddatahub#> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dct:    <http://purl.org/dc/terms/> .
+
+# The package catalog. The dataspace settings modal and `ldh packages list` read this document and
+# offer each rdfs:member, labelled with the dct:title and dct:description given here, so a new
+# package is listed by adding it below with the same title and description as its descriptor.
+
+<> a def:Root ;
+    dct:title "LinkedDataHub packages" ;
+    dct:description "Catalog of packages available for LinkedDataHub applications" ;
+    rdfs:member <editor/taxonomy/#this> ;
+    rdf:_1 <#content> ;
+    rdf:_2 <#select-children> .
+
+<#content> a ldh:XHTML ;
+    rdf:value """<div xmlns="http://www.w3.org/1999/xhtml">
+    <p class="ldh-body-lg">Packages add a vocabulary to a dataspace together with the views, forms and templates that render it. A dataspace imports one from its settings.</p>
+</div>"""^^rdf:XMLLiteral .
+
+<#select-children> a ldh:Object ;
+    rdf:value ldh:ChildrenView .
+
+<editor/taxonomy/#this> dct:title "Taxonomy Editor" ;
+    dct:description "Turns a dataspace into a taxonomy editor: SKOS concepts, schemes and collections gain a concept tree beside the content, hierarchy views that read both assertion directions, and constructors and constraints that keep a concept labelled and in a scheme." .
