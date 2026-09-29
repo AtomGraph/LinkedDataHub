@@ -7,8 +7,7 @@
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
 @prefix owl:	<http://www.w3.org/2002/07/owl#> .
-@prefix ldt:	<https://www.w3.org/ns/ldt#> .
-@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .
+@prefix dh:	<https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#> .
 @prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .
 @prefix sp:	<http://spinrdf.org/sp#> .
 @prefix spin:	<http://spinrdf.org/spin#> .
@@ -16,12 +15,13 @@
 @prefix foaf:	<http://xmlns.com/foaf/0.1/> .
 @prefix nfo:	<http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
+@prefix dct:	<http://purl.org/dc/terms/> .
 
 : a owl:Ontology ;
     owl:imports dh:, ac:, <http://spinrdf.org/spin>, foaf:, sd:, nfo:, owl: ;
     rdfs:label "LinkedDataHub ontology" ;
     rdfs:comment "Should be imported and reused by all extending applications" ;
-    owl:versionInfo "1.1.5" .
+    owl:versionInfo "1.1.7" .
 
 # PROPERTIES
 
@@ -29,11 +29,6 @@
     rdfs:domain dh:Container ;
     rdfs:range xsd:integer ;
     rdfs:label "Children count" ;
-    rdfs:isDefinedBy : .
-
-:action a owl:ObjectProperty ;
-    rdfs:range dh:Container ;
-    rdfs:label "Target container" ;
     rdfs:isDefinedBy : .
 
 :file a owl:ObjectProperty ;
@@ -95,13 +90,35 @@
     rdfs:label "Series variable name" ;
     rdfs:isDefinedBy : .
 
-:content a owl:ObjectProperty ;
-    rdfs:domain foaf:Document ;
-    rdfs:range :Content ;
-    rdfs:label "Content" ;
+:view a owl:ObjectProperty ;
+    rdfs:domain rdf:Property ;
+    rdfs:range :View ;
+    rdfs:label "Property view" ;
+    rdfs:comment "Attaches a view to a property for forward relationships ($about property ?value)" ;
+    rdfs:isDefinedBy : .
+
+:inverseView a owl:ObjectProperty ;
+    rdfs:domain rdf:Property ;
+    rdfs:range :View ;
+    rdfs:label "Inverse property view" ;
+    rdfs:comment "Attaches a view to a property for inverse relationships (?value property $about)" ;
+    rdfs:isDefinedBy : .
+
+:showWhenEmpty a owl:DatatypeProperty ;
+    rdfs:domain :View ;
+    rdfs:range xsd:boolean ;
+    rdfs:label "Show when empty" ;
+    rdfs:comment "Whether the view block is shown when its query returns no results. Defaults to true" ;
     rdfs:isDefinedBy : .
 
 # CLASSES
+
+# constructor
+
+:Constructor a rdfs:Class, owl:Class ;
+    rdfs:subClassOf sp:Construct, sp:Query ;
+    rdfs:label "Constructor" ;
+    rdfs:isDefinedBy : .
 
 # imports
 
@@ -116,7 +133,7 @@
     rdfs:subClassOf :Import ; # restriction on media type?
     rdfs:label "CSV import" ;
     spin:constructor :CSVImportConstructor ;
-    spin:constraint :MissingAction, :MissingQuery, :MissingDelimiter ;
+    spin:constraint :MissingQuery, :MissingDelimiter ;
     rdfs:isDefinedBy : .
 
 :RDFImport a rdfs:Class, owl:Class ;
@@ -131,45 +148,62 @@
 #    rdfs:label "XML import" ;
 #    rdfs:isDefinedBy : .
 
-:ImportConstructor a sp:Construct ;
+:ImportConstructor a :Constructor ;
     sp:text """PREFIX ldh:      <https://w3id.org/atomgraph/linkeddatahub#>
-        PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
-        PREFIX sioc:  <http://rdfs.org/sioc/ns#>
-        PREFIX sd:    <http://www.w3.org/ns/sparql-service-description#>
         PREFIX nfo:   <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
-        PREFIX dh:      <https://www.w3.org/ns/ldt/document-hierarchy#>
 
         CONSTRUCT {
-            ?this ldh:action [ a dh:Container ] ;
-                sd:name [ a rdfs:Resource ] ;
-                ldh:file [ a nfo:FileDataObject ] .
+            $this ldh:file [ a nfo:FileDataObject ] .
         }
         WHERE {}""" ;
     rdfs:label "Import constructor" ;
     rdfs:isDefinedBy : .
 
-:CSVImportConstructor a sp:Construct ;
+:CSVImportConstructor a :Constructor ;
     sp:text """PREFIX ldh:        <https://w3id.org/atomgraph/linkeddatahub#>
         PREFIX sp:      <http://spinrdf.org/sp#>
         PREFIX spin:    <http://spinrdf.org/spin#>
 
         CONSTRUCT {
-            ?this spin:query [ a sp:Construct ] ;
+            $this spin:query [ a sp:Construct ] ;
                 ldh:delimiter "," .
         }
         WHERE {}""" ;
     rdfs:label "CSV import constructor" ;
     rdfs:isDefinedBy : .
 
-:RDFImportConstructor a sp:Construct ;
-    sp:text """PREFIX sp:      <http://spinrdf.org/sp#>
+:RDFImportConstructor a :Constructor ;
+    sp:text """PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+        PREFIX sd:    <http://www.w3.org/ns/sparql-service-description#>
+        PREFIX sp:      <http://spinrdf.org/sp#>
         PREFIX spin:    <http://spinrdf.org/spin#>
 
         CONSTRUCT {
-            ?this spin:query [ a sp:Construct ] .
+            $this sd:name [ a rdfs:Resource ] ;
+                spin:query [ a sp:Construct ] .
         }
         WHERE {}""" ;
     rdfs:label "RDF import constructor" ;
+    rdfs:isDefinedBy : .
+
+# content block
+
+:Block a rdfs:Class, owl:Class ;
+    rdfs:label "Block" ;
+    # spin:constructor :BlockInstanceConstructor ;
+    # spin:constraint :MissingValue ;
+    rdfs:isDefinedBy : .
+
+:BlockInstanceConstructor a :Constructor ;
+  sp:text """
+      PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
+      PREFIX dct:   <http://purl.org/dc/terms/>
+
+      CONSTRUCT {
+          $this dct:title [ a xsd:string ] .
+      }
+      WHERE {}""" ;
+    rdfs:label "Block constructor" ;
     rdfs:isDefinedBy : .
 
 # charts
@@ -180,13 +214,13 @@
     spin:constraint :MissingQuery, :MissingChartType ;
     rdfs:isDefinedBy : .
 
-:ChartConstructor a sp:Construct ;
+:ChartConstructor a :Constructor ;
   sp:text """
       PREFIX ldh:   <https://w3id.org/atomgraph/linkeddatahub#>
       PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
 
       CONSTRUCT {
-          ?this ldh:chartType [ a rdfs:Resource ] .
+          $this ldh:chartType [ a rdfs:Resource ] .
       }
       WHERE {}""" ;
     rdfs:label "Chart constructor" ;
@@ -199,7 +233,7 @@
     spin:constraint :MissingSeriesProperty ; # - category property not required if URI/ID is used instead
     rdfs:isDefinedBy : .
 
-:GraphChartConstructor a sp:Construct ;
+:GraphChartConstructor a :Constructor ;
   sp:text """
       PREFIX ldh:   <https://w3id.org/atomgraph/linkeddatahub#>
       PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -207,7 +241,7 @@
       PREFIX sp:    <http://spinrdf.org/sp#>
 
       CONSTRUCT {
-          ?this spin:query [ a sp:Query ] ; # really a union of :Describe and :Construct
+          $this spin:query [ a sp:Query ] ; # really a union of :Describe and :Construct
             ldh:categoryProperty [ a rdf:Property ] ;
             ldh:seriesProperty [ a rdf:Property ] .
       }
@@ -222,7 +256,7 @@
     spin:constraint :MissingCategoryVarName, :MissingSeriesVarName ;
     rdfs:isDefinedBy : .
 
-:ResultSetChartConstructor a sp:Construct ;
+:ResultSetChartConstructor a :Constructor ;
   sp:text """
       PREFIX ldh:   <https://w3id.org/atomgraph/linkeddatahub#>
       PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
@@ -230,7 +264,7 @@
       PREFIX sp:    <http://spinrdf.org/sp#>
 
       CONSTRUCT {
-          ?this spin:query [ a sp:Select ] ;
+          $this spin:query [ a sp:Select ] ;
             ldh:categoryVarName [ a xsd:string ] ;
             ldh:seriesVarName [ a xsd:string ] .
       }
@@ -238,24 +272,75 @@
     rdfs:label "Model chart constructor" ;
     rdfs:isDefinedBy : .
 
-:Content a rdfs:Class, owl:Class ;
-    rdfs:subClassOf rdf:List ;
-    rdfs:label "Content" ;
-    spin:constructor :ContentInstanceConstructor ;
-    # spin:constraint :MissingFirst, :MissingNext ;
+# XHTML
+
+:XHTML a rdfs:Class, owl:Class ;
+    rdfs:subClassOf :Block ;
+    rdfs:label "XHTML" ;
+    spin:constructor :XHTMLConstructor ;
+    spin:constraint :MissingValue, :ValueCardinality ;
     rdfs:isDefinedBy : .
 
-:ContentInstanceConstructor a sp:Construct ;
-  sp:text """
+:XHTMLConstructor a :Constructor ;
+    sp:text """
       PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-      PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
 
       CONSTRUCT {
-          ?this rdf:first [ a rdfs:Resource ] ;
-            rdf:rest rdf:nil .
+          $this rdf:value '<div xmlns="http://www.w3.org/1999/xhtml"></div>'^^rdf:XMLLiteral .
       }
       WHERE {}""" ;
-    rdfs:label "Content constructor" ;
+    rdfs:label "XHTML constructor" ;
+    rdfs:isDefinedBy : .
+
+# object
+
+:Object a rdfs:Class, owl:Class ;
+    rdfs:subClassOf :Block ;
+    rdfs:label "Object" ;
+    spin:constructor :ObjectConstructor ;
+    spin:constraint :MissingValue, :ValueCardinality ;
+    rdfs:isDefinedBy : .
+
+:ObjectConstructor a :Constructor ;
+  sp:text """
+      PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      PREFIX ldh:   <https://w3id.org/atomgraph/linkeddatahub#>
+      PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+      PREFIX ac:    <https://w3id.org/atomgraph/client#>
+
+      CONSTRUCT {
+          $this rdf:value [ a rdfs:Resource ] ;
+              ldh:graph [ a rdfs:Resource ] ;
+              ac:mode [ a rdfs:Resource ] .
+      }
+      WHERE {}""" ;
+    rdfs:label "Object constructor" ;
+    rdfs:isDefinedBy : .
+
+# view
+
+:View a rdfs:Class, owl:Class ;
+    rdfs:label "View" ;
+    spin:constructor :ViewConstructor ;
+    spin:constraint :MissingQuery ;
+    rdfs:isDefinedBy : .
+
+:ViewConstructor a :Constructor ;
+  sp:text """
+      PREFIX spin:  <http://spinrdf.org/spin#>
+      PREFIX sp:    <http://spinrdf.org/sp#>
+      PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+      PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
+      PREFIX ac:    <https://w3id.org/atomgraph/client#>
+      PREFIX ldh:   <https://w3id.org/atomgraph/linkeddatahub#>
+
+      CONSTRUCT {
+          $this spin:query [ a sp:Select ] ;
+              ac:mode [ a rdfs:Resource ] ;
+              ldh:showWhenEmpty [ a xsd:boolean ] .
+      }
+      WHERE {}""" ;
+    rdfs:label "View constructor" ;
     rdfs:isDefinedBy : .
 
 # exception
@@ -288,8 +373,8 @@ WHERE {
 :ConstructPropertyCardinality a sp:Construct ;
       sp:text """PREFIX  spin: <http://spinrdf.org/spin#>
 
-CONSTRUCT 
-  { 
+CONSTRUCT
+  {
     _:c0 a spin:ConstraintViolation .
     _:c0 spin:violationRoot ?this .
     _:c0 spin:violationPath ?arg1 .
@@ -302,6 +387,29 @@ WHERE
     HAVING ( COUNT(DISTINCT ?o) > ?arg2 )
   }""" ;
     rdfs:label "Construct property cardinality" ;
+    rdfs:isDefinedBy : .
+
+# match rdf:_N by URI shape (RDFS inference is not enabled in the validation pipeline,
+# so ?p a rdfs:ContainerMembershipProperty would never match)
+:InvalidContentBlockType a sp:Construct ;
+    sp:text """PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX spin: <http://spinrdf.org/spin#>
+PREFIX ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
+
+CONSTRUCT {
+    _:cv a spin:ConstraintViolation .
+    _:cv spin:violationRoot ?this .
+    _:cv spin:violationPath ?p .
+    _:cv spin:violationValue ?block .
+}
+WHERE {
+    ?this ?p ?block .
+    FILTER (REGEX(STR(?p), \"^http://www\\\\.w3\\\\.org/1999/02/22-rdf-syntax-ns#_[0-9]+$\"))
+    ?block a [] . # only fire when the block is typed in this model; PATCH validation only sees triples of changed resources
+    FILTER NOT EXISTS { ?block a ldh:Object }
+    FILTER NOT EXISTS { ?block a ldh:XHTML }
+}""" ;
+    rdfs:label "Invalid content block type" ;
     rdfs:isDefinedBy : .
 
 # SPIN TEMPLATES
@@ -320,7 +428,7 @@ WHERE
     rdfs:isDefinedBy : .
 
 :PropertyCardinality a spin:Template ;
-    rdfs:label "Missing property value" ;
+    rdfs:label "Property cardinality violation" ;
     spin:body :ConstructPropertyCardinality ;
     spin:labelTemplate "Instance violates the cardinality of RDF property {?arg1}: {?arg2}" ;
     spin:constraint [ a spl:Argument ;
@@ -328,7 +436,7 @@ WHERE
         spl:valueType rdf:Property
     ] , [ a spl:Argument ;
         spl:predicate sp:arg2 ;
-        spl:optional true
+        spl:valueType xsd:integer
     ] ;
     rdfs:isDefinedBy : .
 
@@ -337,12 +445,6 @@ WHERE
 :MissingIsDefinedBy a :MissingPropertyValue ;
     rdfs:label "Missing rdfs:isDefinedBy" ;
     sp:arg1 rdfs:isDefinedBy ;
-    rdfs:isDefinedBy : .
-
-:MissingAction a :MissingPropertyValue ;
-    rdfs:label "Missing action" ;
-    rdfs:comment "Requires resources to have a target resource" ;
-    sp:arg1 :action ;
     rdfs:isDefinedBy : .
 
 :MissingFile a :MissingPropertyValue ;
@@ -386,13 +488,18 @@ WHERE
     sp:arg1 :seriesVarName ;
     rdfs:isDefinedBy : .
 
-# CONTENTS
-
-:ContainerChildren a :Content ;
-    rdf:first :SelectChildren ;
-    rdf:rest rdf:nil ;
-    rdfs:label "Container children" ;
+:MissingValue a :MissingPropertyValue ;
+    rdfs:label "Missing value" ;
+    sp:arg1 rdf:value ;
     rdfs:isDefinedBy : .
+
+:ValueCardinality a :PropertyCardinality ;
+    rdfs:label "More than one value" ;
+    sp:arg1 rdf:value ;
+    sp:arg2 1 ;
+    rdfs:isDefinedBy : .
+
+# CONTENTS
 
 :SelectChildren a sp:Select ;
     rdfs:label "Select children" ;
@@ -404,9 +511,9 @@ PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 SELECT DISTINCT  ?child ?thing
 WHERE
 { GRAPH ?childGraph
-  {   { ?child  sioc:has_parent  ?this }
+  {   { ?child  sioc:has_parent  $this }
     UNION
-      { ?child  sioc:has_container  ?this }
+      { ?child  sioc:has_container  $this }
     ?child  a                     ?Type
     OPTIONAL
       { ?child  dct:title  ?title }
@@ -415,7 +522,35 @@ WHERE
   }
 }
 ORDER BY ?title
-""" .
+""" ;
+    rdfs:isDefinedBy : .
+
+:SelectInstances a sp:Select ;
+    rdfs:label "Select instances" ;
+    dct:description "Selects instances of type from the default graph" ;
+    sp:text """SELECT DISTINCT ?s
+WHERE
+  { ?s  a   $type ;
+        ?p  ?o
+  }""" ;
+    rdfs:isDefinedBy : .
+
+:SelectInstancesInGraphs a sp:Select ;
+    rdfs:label "Select instances in graphs" ;
+    dct:description "Selects instances of type from named graphs" ;
+    sp:text """SELECT DISTINCT ?s
+WHERE
+  { GRAPH ?g
+      { ?s  a   $type ;
+            ?p  ?o
+      }
+  }""" ;
+    rdfs:isDefinedBy : .
+
+:ChildrenView a :View ;
+    rdfs:label "Children view" ;
+    spin:query :SelectChildren ;
+    rdfs:isDefinedBy : .
 
 # CLIENT TERMS. TO-DO: move to a separate Web-Client ontology?
 
@@ -450,30 +585,33 @@ ac:Timeline a rdfs:Class, owl:Class ;
 
 # individuals
 
+:ContentMode a ac:Mode ;
+    rdfs:label "Content" ;
+    rdfs:isDefinedBy : .
+
 ac:ChartMode a ac:Mode, ac:ContainerMode ;
     rdfs:label "Chart" ;
     rdfs:isDefinedBy ac: .
 
 ### EXTERNAL ASSERTIONS
 
-# https://www.w3.org/ns/ldt/document-hierarchy
+# https://w3id.org/atomgraph/linkeddatahub/document-hierarchy
 
-dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ContentConstructor ;
-    spin:constraint :MissingContainer .
+dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :BlockConstructor .
 
-:PrimaryTopicConstructor a sp:Construct ;
+:PrimaryTopicConstructor a :Constructor ;
     rdfs:label "Primary topic constructor" ;
     sp:text """
         PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
         PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
 
         CONSTRUCT {
-          ?this foaf:primaryTopic [ a rdfs:Resource ] .
+          $this foaf:primaryTopic [ a rdfs:Resource ] .
         }
         WHERE {}""" ;
     rdfs:isDefinedBy : .
 
-:TitleConstructor a sp:Construct ;
+:TitleConstructor a :Constructor ;
     rdfs:label "Title constructor" ;
     sp:text """
         PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -481,12 +619,12 @@ dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTop
         PREFIX dct:     <http://purl.org/dc/terms/>
 
         CONSTRUCT {
-          ?this dct:title [ a xsd:string ] .
+          $this dct:title [ a xsd:string ] .
         }
         WHERE {}""" ;
     rdfs:isDefinedBy : .
 
-:DescriptionConstructor a sp:Construct ;
+:DescriptionConstructor a :Constructor ;
     rdfs:label "Description constructor" ;
     sp:text """
         PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -494,18 +632,35 @@ dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTop
         PREFIX dct:     <http://purl.org/dc/terms/>
 
         CONSTRUCT {
-          ?this dct:description [ a xsd:string ] .
+          $this dct:description [ a xsd:string ] .
         }
         WHERE {}""" ;
     rdfs:isDefinedBy : .
 
-:ContentConstructor a sp:Construct ;
+:BlockConstructor a :Constructor ;
     rdfs:label "Content constructor" ;
     sp:text """
         PREFIX ldh:     <https://w3id.org/atomgraph/linkeddatahub#>
+        PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
         CONSTRUCT {
-          ?this ldh:content [ a ldh:Content ] .
+          $this rdf:_1 [ a ldh:Block ] .
+        }
+        WHERE {}""" ;
+    rdfs:isDefinedBy : .
+
+:ChildrenViewContructor a :Constructor ;
+    rdfs:label "Container content constructor" ;
+    sp:text """
+        PREFIX ldh:     <https://w3id.org/atomgraph/linkeddatahub#>
+        PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        PREFIX spin:    <http://spinrdf.org/spin#>
+
+        CONSTRUCT {
+            $this rdf:_1 [
+                a ldh:Object ;
+                rdf:value ldh:ChildrenView ;
+            ] .
         }
         WHERE {}""" ;
     rdfs:isDefinedBy : .
@@ -516,9 +671,7 @@ dh:Item spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTop
     sp:arg1 sioc:has_container ;
     rdfs:isDefinedBy : .
 
-dh:Container spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ContentConstructor ;
-    spin:constraint :MissingParent ;
-    :template :ContainerChildren .
+dh:Container spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ChildrenViewContructor .
 
 :MissingParent a :MissingPropertyValue ;
     rdfs:label "Missing parent" ;
@@ -529,17 +682,17 @@ dh:Container spin:constructor :TitleConstructor, :DescriptionConstructor, :Prima
 # http://spinrdf.org/sp
 
 sp:Query spin:constructor [
-        a sp:Construct ;
+        a :Constructor ;
         rdfs:label "Query constructor" ;
         sp:text """
           PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
           PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
           PREFIX sp:      <http://spinrdf.org/sp#>
           PREFIX sd:      <http://www.w3.org/ns/sparql-service-description#>
-          PREFIX :     <https://w3id.org/atomgraph/linkeddatahub#>
+          PREFIX :        <https://w3id.org/atomgraph/linkeddatahub#>
 
           CONSTRUCT {
-              ?this rdfs:label [ a xsd:string ] ;
+              $this rdfs:label [ a xsd:string ] ;
                   rdfs:comment [ a xsd:string ] ;
                   sp:text [ a xsd:string ] ;
                   :service [ a sd:Service ] .
@@ -550,7 +703,8 @@ sp:Query spin:constructor [
 
 :MissingSPText a :MissingPropertyValue ;
     rdfs:label "Missing sp:text" ;
-    sp:arg1 sp:text .
+    sp:arg1 sp:text ;
+    rdfs:isDefinedBy : .
 
 # http://www.semanticdesktop.org/ontologies/2007/03/22/nfo
 
@@ -563,14 +717,14 @@ nfo:FileDataObject spin:constructor :FileConstructor ;
         sp:arg1 nfo:fileName
     ] .
 
-:FileConstructor a sp:Construct ;
+:FileConstructor a :Constructor ;
     sp:text """PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
     PREFIX nfo:     <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
     PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
     PREFIX dct:     <http://purl.org/dc/terms/>
 
     CONSTRUCT {
-        ?this nfo:fileName [ a xsd:string ] ;
+        $this nfo:fileName [ a xsd:string ] ;
             dct:format [ a rdfs:Resource ] .
     }
     WHERE {}""" ;
@@ -594,21 +748,21 @@ sd:Service spin:constructor :ServiceConstructor ;
             sp:arg1 sd:endpoint
         ] .
 
-:ServiceConstructor a sp:Construct ;
+:ServiceConstructor a :Constructor ;
     sp:text """
       PREFIX a:       <https://w3id.org/atomgraph/core#>
-      PREFIX lapp:    <https://w3id.org/atomgraph/linkeddatahub/apps#>
+      PREFIX lds:     <https://w3id.org/atomgraph/linkeddatahub/dataspaces#>
       PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
       PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
       PREFIX sd:      <http://www.w3.org/ns/sparql-service-description#>
 
       CONSTRUCT {
-          ?this sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
+          $this sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
               sd:endpoint [ a rdfs:Resource ] ;
               a:graphStore [ a rdfs:Resource ] ;
               a:authUser [ a xsd:string ] ;
               a:authPwd [ a xsd:string ] ;
-              lapp:proxy [ a rdfs:Resource ] .
+              lds:proxy [ a rdfs:Resource ] .
       }
       WHERE {}""" ;
     rdfs:label "Service constructor" ;

@@ -1,14 +1,15 @@
 @base		<https://w3id.org/atomgraph/linkeddatahub/admin> .
 
 @prefix :	<#> .
+@prefix ac:	<https://w3id.org/atomgraph/client#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
 @prefix owl:	<http://www.w3.org/2002/07/owl#> .
 @prefix acl:	<http://www.w3.org/ns/auth/acl#> .
 @prefix cert:	<http://www.w3.org/ns/auth/cert#> .
-@prefix ldt:	<https://www.w3.org/ns/ldt#> .
-@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy#> .
+@prefix dh:	<https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#> .
+@prefix sh:     <http://www.w3.org/ns/shacl#> .
 @prefix sp:	<http://spinrdf.org/sp#> .
 @prefix spin:	<http://spinrdf.org/spin#> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
@@ -24,24 +25,19 @@
     rdfs:comment "AtomGraph admin application ontology" .
 
 :SignUp a owl:Class ;
-    rdfs:subClassOf dh:Item ;
     rdfs:label "Sign up" ;
     rdfs:isDefinedBy : .
 
 :RequestAccess a owl:Class ;
-    rdfs:subClassOf dh:Item ;
     rdfs:label "Request access" ;
     rdfs:isDefinedBy : .
 
-### EXTERNAL ASSERTIONS
-
-# http://rdfs.org/sioc/ns
-
-dh:Container ldh:template ldh:ContainerChildren .
-
 :MissingRDFSLabel a ldh:MissingPropertyValue ;
     rdfs:label "Missing rdfs:label" ;
-    sp:arg1 rdfs:label .
+    sp:arg1 rdfs:label ;
+    rdfs:isDefinedBy : .
+
+### EXTERNAL ASSERTIONS
 
 # http://spinrdf.org/sp
 
@@ -54,7 +50,7 @@ dh:Container ldh:template ldh:ContainerChildren .
 # ontology
 
 owl:Ontology spin:constructor [
-        a sp:Construct ;
+        a ldh:Constructor ;
         rdfs:label "Ontology constructor" ;
         sp:text """
     PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
@@ -62,7 +58,7 @@ owl:Ontology spin:constructor [
     PREFIX owl:     <http://www.w3.org/2002/07/owl#>
 
     CONSTRUCT {
-        ?this rdfs:label [ a xsd:string ] ;
+        $this rdfs:label [ a xsd:string ] ;
             rdfs:comment [ a xsd:string ] ;
             owl:imports [ a rdfs:Resource ] ;
             owl:versionInfo "1.0-SNAPSHOT" .
@@ -71,24 +67,50 @@ owl:Ontology spin:constructor [
     ] .
 #    spin:constraint :MissingRDFSLabel .
 
+rdfs:isDefinedBy ldh:inverseView :OntologyClassView .
+
+:OntologyClassView a ldh:View ;
+    dct:title "Ontology classes" ;
+    spin:query :SelectOntologyClasses ;
+    ac:mode ac:TableMode ;
+    rdfs:isDefinedBy : .
+
+:SelectOntologyClasses a sp:Select ;
+    rdfs:label "Select classes" ;
+    sp:text """
+PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX  owl:  <http://www.w3.org/2002/07/owl#>
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+
+SELECT DISTINCT  ?class
+WHERE
+  { GRAPH ?classGraph
+      {   { ?class  a  owl:Class }
+        UNION
+          { ?class  a  rdfs:Class }
+        ?class  rdfs:isDefinedBy  $about
+      }
+  }
+""" .
+
 # CLASS
 
 owl:Class spin:constructor [
-        a sp:Construct ;
+        a ldh:Constructor ;
         rdfs:label "Class constructor" ;
         sp:text """
+    PREFIX ldh:     <https://w3id.org/atomgraph/linkeddatahub#>
     PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
     PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
     PREFIX owl:     <http://www.w3.org/2002/07/owl#>
-    PREFIX sp:      <http://spinrdf.org/sp#>
     PREFIX spin:    <http://spinrdf.org/spin#>
     PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
 
     CONSTRUCT {
-        ?this rdfs:subClassOf [ a owl:Class ] ;
+        $this rdfs:subClassOf [ a owl:Class ] ;
             rdfs:label [ a xsd:string ] ;
             rdfs:comment [ a xsd:string ] ;
-            spin:constructor [ a sp:Construct ] ;
+            spin:constructor [ a ldh:Constructor ] ;
             spin:constraint [ a rdfs:Resource ] .
     }
     WHERE {}"""
@@ -98,7 +120,7 @@ owl:Class spin:constructor [
 # object property
 
 owl:ObjectProperty spin:constructor [
-        a sp:Construct ;
+        a ldh:Constructor ;
         rdfs:label "Object property constructor" ;
         sp:text """
     PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -106,7 +128,7 @@ owl:ObjectProperty spin:constructor [
     PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
 
     CONSTRUCT {
-        ?this rdfs:subPropertyOf [ a rdf:Property ] ;
+        $this rdfs:subPropertyOf [ a rdf:Property ] ;
             rdfs:label [ a xsd:string ] ;
             rdfs:comment [ a xsd:string ] ;
             rdfs:domain [ a rdfs:Resource ] ;
@@ -119,7 +141,7 @@ owl:ObjectProperty spin:constructor [
 # datatype property
 
 owl:DatatypeProperty spin:constructor [
-        a sp:Construct ;
+        a ldh:Constructor ;
         rdfs:label "Datatype property constructor" ;
         sp:text """
     PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -127,7 +149,7 @@ owl:DatatypeProperty spin:constructor [
     PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
 
     CONSTRUCT {
-        ?this rdfs:subPropertyOf [ a rdf:Property ] ;
+        $this rdfs:subPropertyOf [ a rdf:Property ] ;
             rdfs:label [ a xsd:string ] ;
             rdfs:comment [ a xsd:string ] ;
             rdfs:domain [ a rdfs:Resource ] ;
@@ -140,17 +162,16 @@ owl:DatatypeProperty spin:constructor [
 # restriction
 
 owl:Restriction spin:constructor [
-        a sp:Construct ;
+        a ldh:Constructor ;
         rdfs:label "Restriction constructor" ;
         sp:text """
             PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
             PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
             PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
             PREFIX owl:     <http://www.w3.org/2002/07/owl#>
-            PREFIX sp:      <http://spinrdf.org/sp#>
 
             CONSTRUCT {
-                ?this rdfs:label [ a xsd:string ] ;
+                $this rdfs:label [ a xsd:string ] ;
                   rdfs:comment [ a xsd:string ] ;
                   owl:onProperty [ a rdf:Property ] ;
                   owl:allValuesFrom [ a rdfs:Resource ] ;
@@ -168,7 +189,7 @@ acl: rdfs:label "Basic Access Control ontology" .
 # AUTHORIZATION
 
 acl:Authorization spin:constructor [
-        a sp:Construct ;
+        a ldh:Constructor ;
         rdfs:label "Authorization constructor" ;
         sp:text """
             PREFIX dct:     <http://purl.org/dc/terms/>
@@ -179,7 +200,7 @@ acl:Authorization spin:constructor [
             PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
 
             CONSTRUCT {
-                ?this rdfs:label [ a xsd:string ] ;
+                $this rdfs:label [ a xsd:string ] ;
                     dct:description [ a xsd:string ] ;
                     acl:mode [ a acl:Mode ] ;
                     acl:accessTo [ a rdfs:Resource ] ;
@@ -194,12 +215,14 @@ acl:Authorization spin:constructor [
     [
         a ldh:MissingPropertyValue ;
         sp:arg1 acl:mode
-    ] ;
-    ldh:template :AuthorizationAgents .
+    ] .
 
-:AuthorizationAgents a ldh:Content ;
-    rdf:first :SelectAuthorizationAgents ;
-    rdf:rest rdf:nil .
+acl:agent ldh:view :AuthorizationAgentView .
+
+:AuthorizationAgentView a ldh:View ;
+    dct:title "Authorization agents" ;
+    spin:query :SelectAuthorizationAgents ;
+    rdfs:isDefinedBy : .
 
 :SelectAuthorizationAgents a sp:Select ;
     rdfs:label "Select agents" ;
@@ -209,26 +232,25 @@ PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
 
 SELECT DISTINCT  ?agent
 WHERE
-{ GRAPH ?authGraph
-  { ?this  foaf:primaryTopic  ?auth .
-    ?auth  acl:agent          ?agent
+  { GRAPH ?authGraph
+      { $about  acl:agent  ?agent }
   }
-}
-""" .
+""" ;
+    rdfs:isDefinedBy : .
 
 # http://www.w3.org/ns/auth/cert
 
 cert:Key rdfs:label "Key" .
 
 cert:PublicKey spin:constructor [
-        a sp:Construct ;
+        a ldh:Constructor ;
         rdfs:label "Public key constructor" ;
         sp:text """
             PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
             PREFIX cert:    <http://www.w3.org/ns/auth/cert#>
 
             CONSTRUCT {
-                ?this cert:modulus [ a xsd:hexBinary ] ;
+                $this cert:modulus [ a xsd:hexBinary ] ;
                     cert:exponent 65537 .
             }
             WHERE {}"""
@@ -242,6 +264,47 @@ cert:PublicKey spin:constructor [
         rdfs:label "Missing cert:exponent" ;
         sp:arg1 cert:exponent
     ] .
+
+# http://www.w3.org/ns/shacl
+
+sh:NodeShape spin:constructor :NodeShapeConstructor .
+
+:NodeShapeConstructor a ldh:Constructor ;
+    rdfs:label "Node shape constructor" ;
+    sp:text """
+        PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+        PREFIX owl:     <http://www.w3.org/2002/07/owl#>
+        PREFIX sh:      <http://www.w3.org/ns/shacl#>
+
+        CONSTRUCT {
+            $this rdfs:label [ a xsd:string ] ;
+                sh:targetClass [ a owl:Class ] ;
+                sh:property [ a sh:PropertyShape ] .
+        }
+        WHERE {}""" .
+
+sh:PropertyShape spin:constructor :PropertyShapeConstructor .
+
+:PropertyShapeConstructor a ldh:Constructor ;
+    rdfs:label "Property shape constructor" ;
+    sp:text """
+        PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+        PREFIX owl:     <http://www.w3.org/2002/07/owl#>
+        PREFIX sh:      <http://www.w3.org/ns/shacl#>
+
+
+        CONSTRUCT {
+            $this sh:name [ a xsd:string ] ;
+                sh:path [ a rdf:Property ] ;
+                sh:minCount [ a xsd:integer ] ;
+                sh:maxCount [ a xsd:integer ] ;
+                sh:datatype [ a rdfs:Resource ] .
+        }
+        WHERE {}""" .
 
 # http://rdfs.org/sioc/ns
 
@@ -262,7 +325,7 @@ sioc:UserAccount spin:constructor :UserAccountConstructor ;
         sp:arg1 :account_of
     ] .
 
-:UserAccountConstructor a sp:Construct ;
+:UserAccountConstructor a ldh:Constructor ;
     rdfs:label "User account constructor" ;
     sp:text """
         PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
@@ -271,7 +334,7 @@ sioc:UserAccount spin:constructor :UserAccountConstructor ;
         PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
 
         CONSTRUCT {
-            ?this sioc:name [ a xsd:string ] ;
+            $this sioc:name [ a xsd:string ] ;
                 sioc:email [ a rdfs:Resource ] ;
                 sioc:account_of [ a foaf:Agent ] .
         }
@@ -288,7 +351,7 @@ foaf:Agent spin:constructor :AgentConstructor .
 #        sp:arg1 cert:key
 #    ] ; # Agent has either PublicKey or UserAccount
 
-:AgentConstructor a sp:Construct ;
+:AgentConstructor a ldh:Constructor ;
     rdfs:label "Agent constructor" ;
     sp:text """
         PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
@@ -297,7 +360,7 @@ foaf:Agent spin:constructor :AgentConstructor .
         PREFIX cert:    <http://www.w3.org/ns/auth/cert#>
 
         CONSTRUCT {
-            ?this cert:key [ a cert:PublicKey ] ;
+            $this cert:key [ a cert:PublicKey ] ;
                 acl:delegates [ a rdfs:Resource ] .
         }
         WHERE {}""" .
@@ -321,7 +384,7 @@ foaf:Person spin:constructor :PersonConstructor ;
         sp:arg1 foaf:mbox
     ] .
 
-:PersonConstructor a sp:Construct ;
+:PersonConstructor a ldh:Constructor ;
     rdfs:label "Person constructor" ;
     sp:text """
         PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
@@ -330,7 +393,7 @@ foaf:Person spin:constructor :PersonConstructor ;
         PREFIX vivo:    <http://vivoweb.org/ontology/core#>
 
         CONSTRUCT {
-            ?this foaf:givenName [ a xsd:string ] ;
+            $this foaf:givenName [ a xsd:string ] ;
                 foaf:familyName [ a xsd:string ] ;
                 foaf:mbox [ a rdfs:Resource ] ;
                 foaf:based_near [ a rdfs:Resource ] ;
@@ -344,7 +407,7 @@ foaf:Group spin:constructor :GroupConstructor ;
         sp:arg1 foaf:name
     ] .
 
-:GroupConstructor a sp:Construct ;
+:GroupConstructor a ldh:Constructor ;
     rdfs:label "Group constructor" ;
     sp:text """
         PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
@@ -352,7 +415,7 @@ foaf:Group spin:constructor :GroupConstructor ;
         PREFIX dct:     <http://purl.org/dc/terms/>
 
         CONSTRUCT {
-            ?this foaf:name [ a xsd:string ] ;
+            $this foaf:name [ a xsd:string ] ;
                 dct:description [ a xsd:string ] ;
                 foaf:member [ a foaf:Agent ] .
         }
