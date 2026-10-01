@@ -2,6 +2,7 @@
 ### Added
 - An assistant drawer on the right edge of every page for a signed-in reader: a request in natural language becomes a Web-Algebra plan, shown with its operations and its XML, and runs only on Execute; the steps and the documents the plan wrote are reported as they happen, and the page reloads what changed
 - A `web-algebra` service in the stack (`ghcr.io/atomgraph/webalgebra-server-ldh`), reached through nginx at the reserved `/webalgebra` path with a WebID certificate on the connection; it acts for the reader through the secretary agent's delegation, so a plan may write exactly what its reader may. Needs the `openai_api_key` secret
+- The agent guide (`AGENTS.md`) is served at `/AGENTS.md` on every dataspace origin, public and outside the dispatcher, so a client writing a query against the endpoint - the assistant's `SPARQLString` reads it as service documentation - learns that every document is a named graph and the default graph is empty
 
 ### Changed
 - `MAX_CONN_PER_ROUTE`, `MAX_TOTAL_CONN` and `MAX_REQUEST_RETRIES` reach the platform as system properties, like the other HTTP client settings, rather than as `ROOT.xml` context parameters; the `ldhc:` context parameters are still read when no system property is set

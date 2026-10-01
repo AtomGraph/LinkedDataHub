@@ -361,12 +361,19 @@ support@atomgraph.com]]></param-value>
     <listener>
         <listener-class>com.atomgraph.linkeddatahub.listener.ClientStylesheetListener</listener-class>
     </listener>
+    <mime-mapping>
+        <extension>md</extension>
+        <mime-type>text/markdown</mime-type>
+    </mime-mapping>
     <servlet-mapping>
         <servlet-name>default</servlet-name>
         <url-pattern>/static/*</url-pattern>
         <url-pattern>/robots.txt</url-pattern>
         <url-pattern>/favicon.ico</url-pattern>
         <url-pattern>/sitemap.xml</url-pattern>
+        <!-- the agent guide, public and outside the dispatcher: a client writing a query against this origin's
+             endpoint reads how the data is laid out from it -->
+        <url-pattern>/AGENTS.md</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>com.atomgraph.linkeddatahub.Application</servlet-name>

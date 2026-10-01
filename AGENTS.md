@@ -73,6 +73,8 @@ The dataspace exposes a **read-only SPARQL 1.1 Query** endpoint (advertised via 
 
 Write portable, standard SPARQL: use explicit `GRAPH` patterns, no engine-specific extensions.
 
+**The default graph is empty.** Every document is a named graph whose name is the document's URL, so a triple pattern outside `GRAPH` matches nothing. Put the patterns inside `GRAPH ?g { ... }` to query across every document, or inside `GRAPH <document URL> { ... }` for one document; a subquery needs its own `GRAPH` as well. A query that returns no rows without a `GRAPH` clause is not evidence that the data is absent.
+
 Outbound `SERVICE` and `LOAD` — from the triplestore and from the platform alike — are routed through the `egress` forward proxy, which refuses loopback, private and link-local destinations. A federated query reaches public endpoints and cannot reach the deployment's own services. With no proxy configured and `ALLOW_INTERNAL_URLS` unset, in-JVM `SERVICE` (in a `PATCH` update or an import mapping) is disabled outright.
 
 ## Content & document model
