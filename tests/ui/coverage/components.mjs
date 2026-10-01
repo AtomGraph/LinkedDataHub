@@ -62,6 +62,9 @@ export const components = [
                 ],
             },
             { id: 'footer', name: 'Footer', selector: '.ldh-footer' },
+            // Rendered for a signed-in reader only, closed and inert until its handle is pressed:
+            // present on the page, not visible, which is what a presence probe measures.
+            { id: 'assistant', name: 'Assistant drawer', selector: '.chat-drawer' },
         ],
     },
     {

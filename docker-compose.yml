@@ -5,6 +5,8 @@ secrets:
     file: ./secrets/secretary_cert_password.txt
   client_truststore_password:
     file: ./secrets/client_truststore_password.txt
+  openai_api_key:
+    file: ./secrets/openai_api_key.txt
   # google_client_id:
   #   file: ./secrets/google/client_id.txt
   # google_client_secret:
@@ -28,6 +30,8 @@ services:
     depends_on:
       linkeddatahub:
         condition: service_healthy
+      web-algebra:
+        condition: service_started # its upstream has to resolve when nginx starts
     ports:
       - ${HTTP_PORT}:8080 # allow Tomcat to do HTTP to HTTPS redirect
       - ${HTTPS_PORT}:8443 # HTTPS
@@ -149,6 +153,36 @@ services:
         target: /etc/squid/squid.conf
     expose:
       - 3128
+  web-algebra: # runs Web-Algebra plans against this instance, and writes them from natural language for the assistant drawer
+    image: ghcr.io/atomgraph/webalgebra-server-ldh:${WEBALGEBRA_VERSION:-latest}
+    mem_limit: 1024m
+    restart: on-failure
+    depends_on:
+      - egress
+    expose:
+      - 8080 # internal only: nginx is the sole client, and the server trusts the Client-Cert header only because nginx sets it
+    environment:
+      # the origin that receives an identity - this instance, with every dataspace subdomain under it. Its public name is
+      # not a route to it from inside the network, so requests for it go to nginx's client-cert listener under that name
+      - WEBALGEBRA_TRUSTED_ORIGIN=${PROTOCOL}://${HOST}:${HTTPS_PORT}
+      - WEBALGEBRA_PROXY_HOST=nginx
+      - WEBALGEBRA_PROXY_PORT=9443
+      # the secretary's WebID: the agent every user's WebID document already delegates (root-owner.trig.template, SignUp),
+      # so a plan submitted by a user runs under that user's own access control, not the secretary's
+      - WEBALGEBRA_KEYSTORE=/var/webalgebra/ssl/secretary/keystore.p12
+      - WEBALGEBRA_KEYSTORE_PASSWORD_FILE=/run/secrets/secretary_cert_password
+      - WEBALGEBRA_TRUSTSTORE=/var/webalgebra/ssl/server/server.crt # the self-signed server certificate, as PEM
+      - OPENAI_API_KEY_FILE=/run/secrets/openai_api_key
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o}
+      # public destinations (SPARQL endpoints a plan names, the model's API) go through egress like the platform's own; nginx
+      # is reached directly, since egress refuses internal addresses
+      - JAVA_TOOL_OPTIONS=-Dhttp.proxyHost=${EGRESS_PROXY_HOST:-egress} -Dhttp.proxyPort=3128 -Dhttps.proxyHost=${EGRESS_PROXY_HOST:-egress} -Dhttps.proxyPort=3128 -Dhttp.nonProxyHosts=nginx
+    secrets:
+      - secretary_cert_password
+      - openai_api_key
+    volumes:
+      - ./ssl/secretary:/var/webalgebra/ssl/secretary:ro
+      - ./ssl/server:/var/webalgebra/ssl/server:ro
   varnish-frontend:
     image: varnish:7.7.3
     user: root # otherwise varnish user does not have permissions to the mounted folder which is owner by root
@@ -200,6 +234,10 @@ configs:
       }
 
       http {
+          upstream web-algebra {
+              server web-algebra:8080;
+          }
+
           upstream linkeddatahub {
               server ${NGINX_UPSTREAM_SERVER:-varnish-frontend:6060};
           }
@@ -217,6 +255,7 @@ configs:
 
           limit_req_zone $$limit_key zone=linked_data:10m rate=15r/s;
           limit_req_zone $$limit_key zone=static_files:10m rate=20r/s;
+          limit_req_zone $$limit_key zone=web_algebra:10m rate=5r/s; # a plan is a model call; polling is what bursts
           limit_req_status 429;
 
           client_max_body_size ${MAX_CONTENT_LENGTH:-2097152};
@@ -230,6 +269,30 @@ configs:
               ssl_session_cache shared:SSL:1m;
               ssl_prefer_server_ciphers on;
               ssl_verify_client ${NGINX_SSL_VERIFY_CLIENT:-optional_no_ca};
+
+              # the assistant's plan service. A reserved path, like /static/ and /uploads/: prefix-matched ahead of the
+              # generic location and never rewritten, so /webalgebra, /webalgebra/plans and /webalgebra/{id}/result reach the
+              # sidecar as they are. Reachable only with a WebID certificate on the connection: the sidecar acts for the
+              # WebID in the certificate nginx forwards, and a caller without one has nobody to act for. On-Behalf-Of is
+              # cleared for the same reason Client-Cert is - identity comes from the connection, never from a header
+              location ^~ /webalgebra {
+                  if ($$ssl_client_verify = NONE) {
+                      return 401;
+                  }
+
+                  proxy_pass http://web-algebra;
+                  limit_req zone=web_algebra burst=10 nodelay;
+                  proxy_read_timeout 120s; # writing a plan is a 10-30 s model call
+
+                  proxy_set_header Host $$host;
+                  proxy_set_header X-Forwarded-Host $$host;
+                  proxy_set_header X-Forwarded-Proto $$scheme;
+                  proxy_set_header X-Forwarded-Port ${HTTPS_PORT};
+
+                  proxy_set_header Client-Cert '';
+                  proxy_set_header Client-Cert $$ssl_client_escaped_cert;
+                  proxy_set_header On-Behalf-Of '';
+              }
 
               location / {
                   add_header Access-Control-Allow-Origin "*" always;

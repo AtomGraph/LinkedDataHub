@@ -87,6 +87,7 @@ extension-element-prefixes="ixsl"
     <xsl:include href="client/functions.xsl"/>
     <xsl:include href="client/tree.xsl"/>
     <xsl:include href="client/navigation.xsl"/>
+    <xsl:include href="client/chat.xsl"/>
     <xsl:include href="client/block.xsl"/>
     <xsl:include href="client/modal.xsl"/>
     <xsl:include href="client/memento.xsl"/>
@@ -191,6 +192,8 @@ WHERE
         <ixsl:set-property name="combobox" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by combobox.xsl -->
         <ixsl:set-property name="graphs" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by graph3d.xsl -->
         <ixsl:set-property name="yasqe" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <ixsl:set-property name="chat" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- the assistant's plans, keyed by card id (client/chat.xsl) -->
+        <ixsl:set-property name="chatResults" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- what each executed plan returned, keyed by card id: the next question's "them" -->
         <ixsl:set-property name="pending-scrolls" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- deferred fragment scrolls awaiting block hydration, keyed by scroll id (ldh:RenderTab/ldh:block-hydrated) -->
         <!-- MUST exist from bootstrap, empty, before any document response fills it: acl:mode() reaches it with
              ixsl:contains(), which THROWS on a missing intermediate segment rather than returning false, and

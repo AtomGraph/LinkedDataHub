@@ -1,4 +1,8 @@
 ## [Unreleased]
+### Added
+- An assistant drawer on the right edge of every page for a signed-in reader: a request in natural language becomes a Web-Algebra plan, shown with its operations and its XML, and runs only on Execute; the steps and the documents the plan wrote are reported as they happen, and the page reloads what changed
+- A `web-algebra` service in the stack (`ghcr.io/atomgraph/webalgebra-server-ldh`), reached through nginx at the reserved `/webalgebra` path with a WebID certificate on the connection; it acts for the reader through the secretary agent's delegation, so a plan may write exactly what its reader may. Needs the `openai_api_key` secret
+
 ### Changed
 - `MAX_CONN_PER_ROUTE`, `MAX_TOTAL_CONN` and `MAX_REQUEST_RETRIES` reach the platform as system properties, like the other HTTP client settings, rather than as `ROOT.xml` context parameters; the `ldhc:` context parameters are still read when no system property is set
 - The browser parses and serialises SPARQL with SPARQL.js alone: the last SPARQLBuilder calls were `fromString().build()` and `fromQuery().toString()`, which are its `Parser` and `Generator` with nothing added, so `SPARQLBuilder.js` and its second copy of SPARQL.js (330 KB) no longer ship with the page

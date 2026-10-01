@@ -761,7 +761,82 @@ WHERE
                 <xsl:apply-templates select="." mode="ac:Footer"/>
             </div>
 
+            <!-- the assistant is for a reader who can be acted for: its service acts for the WebID in the certificate
+                 nginx forwards, and a reader without one has nobody to send a plan as -->
+            <xsl:if test="$foaf:Agent//@rdf:about">
+                <xsl:apply-templates select="." mode="ldh:AssistantDrawer"/>
+            </xsl:if>
         </body>
+    </xsl:template>
+
+    <!-- The assistant drawer: the core Drawer primitive on the right edge, rendered closed and inert, with the
+         handle that opens it. Its log fills client-side (client/chat.xsl); what the server draws is the frame -
+         the head, the empty log and the composer - so the drawer is there from the first paint and survives every
+         client-side navigation, which replaces the panes and not the body. It sits outside #visible-body because an
+         open drawer insets the frame rather than covering it (ldh.css). -->
+    <xsl:template match="rdf:RDF | srx:sparql" mode="ldh:AssistantDrawer">
+        <xsl:variable name="translations" select="document('translations.rdf')" as="document-node()"/>
+
+        <div class="ldh-edge-sensor chat-sensor">
+            <button type="button" class="ldh-edge-handle chat-open" aria-label="{ac:label(key('resources', 'open-assistant', $translations))}" title="{ac:label(key('resources', 'open-assistant', $translations))}">
+                <span class="msi" aria-hidden="true">forum</span>
+            </button>
+        </div>
+        <div class="ac-drawer sd-right chat-drawer" role="complementary" aria-label="{ac:label(key('resources', 'assistant', $translations))}" inert="">
+            <div class="ac-drawer-head">
+                <span class="msi outline sm" aria-hidden="true">forum</span>
+                <span class="ac-drawer-title">
+                    <xsl:apply-templates select="key('resources', 'assistant', $translations)" mode="ac:label"/>
+                </span>
+                <!-- Clear empties the log: every turn and card goes, and the plans they held with them -->
+                <button type="button" class="ac-iconbtn sz-sm in-neutral ap-ghost chat-clear" aria-label="{ac:label(key('resources', 'clear-chat', $translations))}" title="{ac:label(key('resources', 'clear-chat', $translations))}">
+                    <span class="msi sm" aria-hidden="true">delete_sweep</span>
+                </button>
+                <button type="button" class="ac-iconbtn sz-sm in-neutral ap-ghost chat-close" aria-label="{ac:label(key('resources', 'close', $translations))}" title="{ac:label(key('resources', 'close', $translations))}">
+                    <span class="msi sm" aria-hidden="true">close</span>
+                </button>
+            </div>
+            <div class="ac-drawer-body chat-log"/>
+            <form class="ac-drawer-foot chat-composer" accept-charset="UTF-8">
+                <!-- the design's Checkbox: label.ac-choice > input + span.ac-box + span.ac-choice-body. Two of them: run a plan
+                     as soon as it arrives (reads only - a write always waits for Execute), and revise a plan that returned
+                     nothing (or failed) by itself, a few times -->
+                <div class="chat-options">
+                    <label class="ac-choice chat-run">
+                        <input type="checkbox" name="run" checked="checked"/>
+                        <span class="ac-box">
+                            <span class="msi sm" aria-hidden="true">check</span>
+                        </span>
+                        <span class="ac-choice-body">
+                            <span>
+                                <xsl:apply-templates select="key('resources', 'execute-by-default', $translations)" mode="ac:label"/>
+                            </span>
+                        </span>
+                    </label>
+                    <label class="ac-choice chat-auto">
+                        <input type="checkbox" name="auto"/>
+                        <span class="ac-box">
+                            <span class="msi sm" aria-hidden="true">check</span>
+                        </span>
+                        <span class="ac-choice-body">
+                            <span>
+                                <xsl:apply-templates select="key('resources', 'retry-on-empty', $translations)" mode="ac:label"/>
+                            </span>
+                        </span>
+                    </label>
+                </div>
+                <div class="chat-composer-row">
+                    <div class="ac-field">
+                        <div class="ac-field-box sz-md">
+                            <textarea rows="2" name="question" placeholder="{ac:label(key('resources', 'chat-placeholder', $translations))}" aria-label="{ac:label(key('resources', 'assistant', $translations))}"/>
+                        </div>
+                    </div>
+                    <button type="submit" class="ac-btn in-primary ap-solid sz-md" aria-label="{ac:label(key('resources', 'send', $translations))}" title="{ac:label(key('resources', 'send', $translations))}">
+                        <span class="msi sm" aria-hidden="true">send</span>
+                    </button>
+                </div>
+            </form>
+        </div>
     </xsl:template>
     
     <!-- only lookup resource locally using DESCRIBE if it's external (not relative to the app's base URI) and the agent is authenticated -->

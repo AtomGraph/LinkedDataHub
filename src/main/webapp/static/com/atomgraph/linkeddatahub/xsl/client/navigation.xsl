@@ -358,14 +358,15 @@ ORDER BY DESC(?created)
         <xsl:apply-templates select="ancestor::div[contains-token(@class, 'ldh-sidebar')][1]" mode="ldh:CloseDrawer"/>
     </xsl:template>
 
-    <!-- Escape dismisses the open drawer (unless a modal owns the key); ⌘K/Ctrl+K opens the search
-         dialog from anywhere. Chains to the RDFa editor's body shortcuts (lower import precedence) -->
+    <!-- Escape dismisses the open drawers - the dataspace drawer and the assistant's (client/chat.xsl) - unless a modal
+         owns the key; ⌘K/Ctrl+K opens the search dialog from anywhere. Chains to the RDFa editor's body shortcuts
+         (lower import precedence) -->
     <xsl:template match="body" mode="ixsl:onkeydown">
         <xsl:variable name="key" select="ixsl:get(ixsl:event(), 'key')" as="xs:string"/>
 
         <xsl:choose>
             <xsl:when test="$key = 'Escape' and empty(ixsl:page()//div[contains-token(@class, 'ac-backdrop')][contains-token(@class, 'modal')])">
-                <xsl:apply-templates select="ixsl:page()//div[contains-token(@class, 'ldh-sidebar')][contains-token(@class, 'is-open')]" mode="ldh:CloseDrawer"/>
+                <xsl:apply-templates select="ixsl:page()//div[contains-token(@class, 'ldh-sidebar') or contains-token(@class, 'chat-drawer')][contains-token(@class, 'is-open')]" mode="ldh:CloseDrawer"/>
             </xsl:when>
             <xsl:when test="lower-case($key) = 'k' and (ixsl:get(ixsl:event(), 'metaKey') or ixsl:get(ixsl:event(), 'ctrlKey'))">
                 <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
