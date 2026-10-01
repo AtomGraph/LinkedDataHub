@@ -34,3 +34,19 @@ export async function dropFile(page, file) {
     await dragIn(page, dataTransfer);
     await page.dispatchEvent('#file-drop', 'drop', { dataTransfer });
 }
+
+// A real external drag, for what the two synthetic events above cannot show: which element the browser
+// fires dragleave on. Chromium's Input.dispatchDragEvent stands in for the OS - it hit-tests and moves its
+// current target element itself, a drag tick at a time - and a dragOver outside the viewport is the drag
+// leaving the window (dragCancel fires nothing at all). The file has to exist on disk; only its path
+// crosses the protocol.
+export async function externalDrag(page, path) {
+    const cdp = await page.context().newCDPSession(page);
+    const data = { items: [], files: [path], dragOperationsMask: 1 };
+    const send = (type, x, y) => cdp.send('Input.dispatchDragEvent', { type, x, y, data });
+    return {
+        enter: (x, y) => send('dragEnter', x, y),
+        over: (x, y) => send('dragOver', x, y),
+        leaveWindow: () => send('dragOver', -20, -20),
+    };
+}
