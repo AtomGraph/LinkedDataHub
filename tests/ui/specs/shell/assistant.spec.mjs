@@ -50,14 +50,21 @@ test('opens from its edge handle, insets the page, and closes on Escape', { tag:
     await expect(drawer(page)).not.toBeVisible();
     await expect(drawer(page)).toHaveAttribute('inert', '');
 
-    const before = await page.evaluate(() => document.querySelector('#visible-body').getBoundingClientRect().right);
+    const right = selector => page.evaluate(selector => document.querySelector(selector).getBoundingClientRect().right, selector);
+    const before = await right('#tab-content');
     await open(page);
     await expect(drawer(page)).not.toHaveAttribute('inert', '');
     await expect(composer(page)).toBeFocused();
 
-    // the frame moves over, so the action bar's controls stay reachable beside the drawer
-    const after = await page.evaluate(() => document.querySelector('#visible-body').getBoundingClientRect().right);
+    // the dataspace's panes move over, so the action bar's controls stay reachable beside the drawer, while the
+    // header above the drawer keeps the full width: the drawer belongs to the panel, not to the frame
+    const after = await right('#tab-content');
     expect(after).toBeLessThan(before);
+    expect(await right('.ldh-header')).toBe(before);
+
+    // its head stands beside the action bar, seam to seam
+    const bottom = selector => page.evaluate(selector => document.querySelector(selector).getBoundingClientRect().bottom, selector);
+    expect(await bottom('.chat-drawer > .ac-drawer-head')).toBe(await bottom('.ldh-actionbar'));
 
     await page.keyboard.press('Escape');
     await expect(drawer(page)).not.toBeVisible();
@@ -157,6 +164,9 @@ test('Execute runs the plan, reports its steps and the document it wrote, and th
 
     // the page reloaded the document it is on, so the new child is there without a refresh by hand
     await expect(page.locator(`.document-body a[href="${href}"]`).first()).toBeVisible({ timeout: 30_000 });
+
+    // the rows name what they return by its label, looked up once the result is in: the written container by its title
+    await expect(card(page).locator('table.chat-result a').first()).toHaveText('Assistant run', { timeout: 30_000 });
 
     // what the plan returned stays with the card: a follow-up's "them" is sent with the next question as these rows
     const id = await card(page).getAttribute('id');

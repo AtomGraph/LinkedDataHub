@@ -268,7 +268,7 @@ circle { cursor: move; }
 /* ---------- sticky chrome: header on top, action bar (legacy --action-bar-top) right under it.
    Bar heights are tokens that size the bars, not mirrors of their content, so stacked sticky
    offsets (.editor-bar) can compose them without drifting ---------- */
-:root { --ldh-header-height: 56px; --ldh-tabbar-height: 40px; --ldh-actionbar-height: 61px; --action-bar-top: var(--ldh-header-height); --ldh-content-w: 1280px; }
+:root { --ldh-header-height: 56px; --ldh-tabbar-height: 40px; --ldh-actionbar-height: 61px; --action-bar-top: var(--ldh-header-height); --ldh-content-w: 1280px; --ldh-pane-w: 100vw; /* the width the dataspace's panes span: the viewport, less whatever stands beside them */ }
 /* image caps for RDF-pointed depictions: the pixel size is whatever the dataset points at, so the
    SURFACE picks the height. These once lived in the pre-refresh vendored app.css; a re-vendor lost
    the definitions while the var() uses stayed, silently voiding every declaration that read them
@@ -583,19 +583,21 @@ button.tree-link { border: 0; background: transparent; width: 100%; font: inheri
    modes' Create picker) sits in a full-bleed header-like row. Sticky, not fixed: it rides
    the viewport bottom while the content scrolls, but parks at its flow position at the end
    of the content - stacked on the footer, never over it. The negative side margins bleed
-   the row out of the centered content column to the viewport edges; the right padding brings
+   the row out of the centered content column to the panes' edges; the right padding brings
    the buttons back to the content column's right edge, flush with the blocks. The margin bleed
-   and the padding must share the 100vw base: each is half a classic scrollbar off the layout
-   width, in the same direction, so the errors cancel and the buttons land exactly on the column
-   edge - rebasing one without the other breaks the alignment ---------- */
+   and the padding must share the --ldh-pane-w base: each is half a classic scrollbar off the
+   layout width, in the same direction, so the errors cancel and the buttons land exactly on the
+   column edge - rebasing one without the other breaks the alignment. The base is the panes'
+   width rather than the viewport's because the assistant drawer stands beside the panes and
+   narrows it (the chat section below) ---------- */
 html { overflow-x: clip; } /* the 50vw bleed overshoots by half a classic scrollbar; clip never creates a scroll container */
 .ldh-create-dock {
   position: sticky;
   bottom: 0;
   display: flex; align-items: center; justify-content: flex-end; gap: var(--sp-2);
   z-index: 24; /* above content, below popovers (40) and modal chrome */
-  margin: auto calc(50% - 50vw) 0; /* margin-top: auto parks it at the bottom of the stretched column */
-  padding: var(--sp-2) calc((100vw - min(var(--ldh-content-w), 100vw)) / 2 + var(--sp-6)) var(--sp-2) var(--sp-6);
+  margin: auto calc(50% - var(--ldh-pane-w) / 2) 0; /* margin-top: auto parks it at the bottom of the stretched column */
+  padding: var(--sp-2) calc((var(--ldh-pane-w) - min(var(--ldh-content-w), var(--ldh-pane-w))) / 2 + var(--sp-6)) var(--sp-2) var(--sp-6);
   background: var(--bg-card);
   border-top: 1px solid var(--border-default);
 }
@@ -977,27 +979,33 @@ div.ldh-failure > .ac-alert { margin: 0; }
 /* =========================================================================
    Assistant drawer (client/chat.xsl; the frame is layout.xsl's).
    The core Drawer primitive (surfaces.css: .ac-drawer + head/title/body/foot)
-   parked below the sticky header instead of spanning the viewport, and lifted
-   onto LDH's chrome stacking scale: above the tab bar (88), below the header
-   (90), so the sticky chrome keeps its layering and modal backdrops (100+)
-   still cover it. The design's Drawer is not in the tree while closed; here
+   parked under the dataspace tab bar instead of spanning the viewport, where
+   the dataspace's panel begins: the header and the tab bar keep the full
+   width, and its head stands beside the action bar at the action bar's
+   height, so the two seams are one line. Lifted onto LDH's chrome stacking
+   scale: above the tab bar (88), below the header (90), so the sticky chrome
+   keeps its layering and modal backdrops (100+) still cover it. The design's Drawer is not in the tree while closed; here
    the server renders it once and the client toggles .is-open, so closed is a
    state rather than an absence.
    ========================================================================= */
 :root { --chat-w: min(400px, 92vw); }
-.chat-drawer { top: var(--ldh-header-height); width: var(--chat-w); z-index: 89; }
+.chat-drawer { top: var(--action-bar-top); width: var(--chat-w); z-index: 89; }
 .chat-drawer:not(.is-open) { display: none; }
-.chat-sensor { top: var(--ldh-header-height); height: calc(100vh - var(--ldh-header-height)); z-index: 87; }
+.chat-drawer > .ac-drawer-head { height: var(--ldh-actionbar-height); box-sizing: border-box; }
+.chat-sensor { top: var(--action-bar-top); height: calc(100vh - var(--action-bar-top)); z-index: 87; }
 body:has(.chat-drawer.is-open) .chat-sensor { display: none; }
 /* the edge handle is the design's, made a button: the drawer opens on a press, not on a pointer straying to the edge */
 .ldh-edge-handle.chat-open { padding: 0; font: inherit; cursor: pointer; }
 
-/* An open drawer insets the app frame rather than covering it: the drawer is a
-   fixed overlay, and LDH's chrome runs full width, so the action bar's mode
-   switcher and export menu would sit under it for the whole session. The
-   inset lands on the frame, so header, sticky bars, content and footer all
-   reflow together and nothing needs a per-bar width rule. */
-body:has(.chat-drawer.is-open) #visible-body { margin-right: var(--chat-w); }
+/* An open drawer insets the dataspace's panes rather than covering them: the
+   drawer is a fixed overlay, and the action bar's mode switcher and export
+   menu would sit under it for the whole session. The inset lands on the panes
+   as one, so the action bar and the content reflow together and nothing needs
+   a per-bar width rule; the header and the tab bar above the drawer keep the
+   full width. The footer is outside the panel but under the drawer's foot, so
+   it gives way too. */
+body:has(.chat-drawer.is-open) { --ldh-pane-w: calc(100vw - var(--chat-w)); }
+body:has(.chat-drawer.is-open) #tab-content, body:has(.chat-drawer.is-open) .ldh-footer { margin-right: var(--chat-w); }
 
 /* turns: the reader's message hugs the sender's edge, the assistant's cards sit flush left */
 .chat-turn { align-self: flex-end; max-width: 85%; margin: 0; padding: var(--sp-2) var(--sp-3); background: var(--bg-accent-quiet); color: var(--fg-1); border-radius: var(--r-md) var(--r-md) var(--r-xs) var(--r-md); font-size: var(--fs-sm); line-height: var(--lh-base); }

@@ -749,6 +749,27 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
         </xsl:for-each>
 
+        <!-- the URIs the rows name get their labels: the two lookups a view block runs, against the endpoint the plan
+             queried (the dataspace's own when the plan named none, or several), and the rows are drawn again when the
+             labels land. Until then, and if they never do, the rows stand as they are -->
+        <xsl:variable name="uris" select="distinct-values($result/self::srx:sparql/srx:results/srx:result/srx:binding/srx:uri)" as="xs:string*"/>
+        <xsl:if test="not($failed) and exists($uris)">
+            <xsl:variable name="plan" select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.chat'), string($card/@id))) then ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.chat'), string($card/@id)) else ()" as="element()?"/>
+            <xsl:variable name="endpoints" select="distinct-values($plan//wa:endpoint[not(*)]/normalize-space())" as="xs:string*"/>
+            <xsl:variable name="endpoint" select="if (count($endpoints) = 1) then xs:anyURI($endpoints) else sd:endpoint()" as="xs:anyURI"/>
+            <xsl:variable name="labels-context" select="map{ 'card': $card, 'result': $result/self::srx:sparql, 'endpoint': $endpoint, 'object-uris': $uris[position() le 100] }" as="map(*)"/>
+            <ixsl:promise select="
+              ldh:http-request-threaded(ldh:load-object-metadata($labels-context), 'metadata-request', 'metadata-response')
+                => ixsl:then(ldh:handle-response(?, 'metadata-response'))
+                => ixsl:then(ldh:set-object-metadata#1)
+                => ixsl:then(ldh:http-request-threaded(?, 'ns-metadata-request', 'ns-metadata-response'))
+                => ixsl:then(ldh:handle-response(?, 'ns-metadata-response'))
+                => ixsl:then(ldh:set-object-metadata-ns#1)
+                => ixsl:then(ldh:merge-object-metadata#1)
+                => ixsl:then(ldh:chat-result-labelled#1)
+            " on-failure="ldh:chat-labels-missed#1"/>
+        </xsl:if>
+
         <!-- the plan stays with its card: it is what Retry runs again and what the next question is told was tried -->
 
         <xsl:apply-templates select="$context('form')" mode="ldh:ComposerEnabled">
@@ -783,6 +804,34 @@ exclude-result-prefixes="#all"
                 </xsl:call-template>
             </xsl:for-each>
         </xsl:if>
+    </xsl:function>
+
+    <!-- the rows again, now with the labels: the metadata is tunnelled through the table's rows to the link leaf, whose
+         ac:object-label reads it before anything else, so the table needs no rule of its own. Results pair with
+         tables by position, as a sequence's items were drawn side by side -->
+    <xsl:function name="ldh:chat-result-labelled" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="card" select="$context('card')" as="element()"/>
+        <xsl:variable name="results" select="$context('result')" as="element()*"/>
+        <xsl:variable name="tables" select="$card/table[contains-token(@class, 'chat-result')]" as="element()*"/>
+
+        <xsl:for-each select="$results">
+            <xsl:variable name="position" select="position()" as="xs:integer"/>
+            <xsl:for-each select="$tables[$position]/tbody">
+                <xsl:result-document href="?." method="ixsl:replace-content">
+                    <xsl:apply-templates select="$results[$position]/srx:results/srx:result" mode="ac:ResultsTable">
+                        <xsl:with-param name="object-metadata" select="$context('object-metadata')" tunnel="yes"/>
+                    </xsl:apply-templates>
+                </xsl:result-document>
+            </xsl:for-each>
+        </xsl:for-each>
+    </xsl:function>
+
+    <!-- labels are a courtesy: a lookup that fails leaves the rows naming their URIs -->
+    <xsl:function name="ldh:chat-labels-missed" as="item()*" ixsl:updating="yes">
+        <xsl:param name="error" as="item()*"/>
+
+        <xsl:message>ldh:chat-labels-missed</xsl:message>
     </xsl:function>
 
     <!-- a result set rides the same table the document's query blocks use; a graph is counted, since the page it
