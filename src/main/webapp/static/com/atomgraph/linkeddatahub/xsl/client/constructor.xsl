@@ -319,8 +319,7 @@ exclude-result-prefixes="#all"
                                                 <xsl:variable name="constructor-uri" select="srx:binding[@name = 'constructor']/srx:uri" as="xs:anyURI"/>
                                                 <xsl:variable name="construct-string" select="srx:binding[@name = 'construct']/srx:literal" as="xs:string"/>
                                                 <xsl:variable name="construct-json" as="item()">
-                                                    <xsl:variable name="construct-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'fromString', [ $construct-string ])"/>
-                                                    <xsl:sequence select="ixsl:call($construct-builder, 'build', [])"/>
+                                                    <xsl:sequence select="ixsl:call($sparql-parser, 'parse', [ $construct-string ])"/>
                                                 </xsl:variable>
                                                 <xsl:variable name="construct-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $construct-json ])" as="xs:string"/>
                                                 <xsl:variable name="construct-xml" select="json-to-xml($construct-json-string)" as="document-node()"/>
@@ -1060,7 +1059,7 @@ exclude-result-prefixes="#all"
                         </xsl:variable>
                         <xsl:variable name="construct-json-string" select="xml-to-json($construct-xml)" as="xs:string"/>
                         <xsl:variable name="construct-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $construct-json-string ])"/>
-                        <xsl:variable name="construct-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'fromQuery', [ $construct-json ]), 'toString', [])" as="xs:string"/>
+                        <xsl:variable name="construct-string" select="ixsl:call($sparql-generator, 'stringify', [ $construct-json ])" as="xs:string"/>
 
                         <!-- A constructor exists exactly when it templates at least one property: the first one
                              creates it, the last one removed deletes it, and one that never existed and still has

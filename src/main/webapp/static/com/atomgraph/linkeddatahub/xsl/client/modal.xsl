@@ -1462,8 +1462,7 @@ LIMIT   10
         <xsl:variable name="limit" select="xs:integer($limit-string)" as="xs:integer"/>
         <xsl:variable name="select-string" select="$endpoint-classes-string" as="xs:string"/>
         <xsl:variable name="select-json" as="item()">
-            <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
-            <xsl:sequence select="ixsl:call($select-builder, 'build', [])"/>
+            <xsl:sequence select="ixsl:call($sparql-parser, 'parse', [ $select-string ])"/>
         </xsl:variable>
         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
@@ -1477,7 +1476,7 @@ LIMIT   10
         </xsl:variable>
         <xsl:variable name="query-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
         <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
-        <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
+        <xsl:variable name="query-string" select="ixsl:call($sparql-generator, 'stringify', [ $query-json ])" as="xs:string"/>
         <!-- resolve the endpoint (async fetch of the service description when a service is selected, otherwise local), then fetch the class-discovery results; keeps the whole flow non-blocking so the progress cursor shows -->
         <xsl:variable name="context" as="map(*)" select="
           map{

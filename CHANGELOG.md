@@ -1,3 +1,7 @@
+## [Unreleased]
+### Changed
+- The browser parses and serialises SPARQL with SPARQL.js alone: the last SPARQLBuilder calls were `fromString().build()` and `fromQuery().toString()`, which are its `Parser` and `Generator` with nothing added, so `SPARQLBuilder.js` and its second copy of SPARQL.js (330 KB) no longer ship with the page
+
 ## [6.0.1] - 2026-09-30
 ### Added
 - `linkeddatahub-rdf`, a separately published library of the vocabularies and the document shapes the HTTP API accepts, so the CLI and other clients build against one description of the request bodies

@@ -378,7 +378,7 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:variable name="select-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
         <xsl:variable name="select-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $select-json-string ])"/>
-        <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $select-json ]), 'toString', [])" as="xs:string"/>
+        <xsl:variable name="query-string" select="ixsl:call($sparql-generator, 'stringify', [ $select-json ])" as="xs:string"/>
         <xsl:variable name="request-uri" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
@@ -434,7 +434,7 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:variable name="select-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
         <xsl:variable name="select-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $select-json-string ])"/>
-        <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $select-json ]), 'toString', [])" as="xs:string"/>
+        <xsl:variable name="query-string" select="ixsl:call($sparql-generator, 'stringify', [ $select-json ])" as="xs:string"/>
         <xsl:variable name="request-uri" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
@@ -838,7 +838,7 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:variable name="query-json-string" select="xml-to-json($query-xml)" as="xs:string"/>
         <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
-        <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
+        <xsl:variable name="query-string" select="ixsl:call($sparql-generator, 'stringify', [ $query-json ])" as="xs:string"/>
         <xsl:variable name="request-uri" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
         <xsl:variable name="headers" as="map(xs:string, xs:string)">
             <xsl:map>
@@ -1519,8 +1519,7 @@ exclude-result-prefixes="#all"
         <xsl:context-item as="element()" use="required"/>
         <xsl:param name="select-string" as="xs:string"/>
         <xsl:param name="property-metadata" as="document-node()?"/>
-        <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
-        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
+        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($sparql-parser, 'parse', [ $select-string ]) ])" as="xs:string"/>
         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
         <!-- use the first SELECT variable as the facet variable name (so that we do not generate facets based on other variables) -->
         <xsl:variable name="initial-var-name" select="$select-xml/json:map/json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
@@ -1909,7 +1908,7 @@ exclude-result-prefixes="#all"
                     </xsl:variable>
                     <xsl:variable name="query-json-string" select="xml-to-json($query-xml)" as="xs:string"/>
                     <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
-                    <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
+                    <xsl:variable name="query-string" select="ixsl:call($sparql-generator, 'stringify', [ $query-json ])" as="xs:string"/>
                     <xsl:variable name="request-uri" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
                     <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
                     <xsl:variable name="context" as="map(*)" select="
@@ -2377,8 +2376,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="object-var-name" select="input[@name = 'object']/@value" as="xs:string"/>
         <!-- load facet values using the initial (not the current transformed) SELECT query, so that one facet's selection does not constrain another facet's value list -->
         <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
-        <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
-        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
+        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($sparql-parser, 'parse', [ $select-string ]) ])" as="xs:string"/>
         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
         <!-- TO-DO: can we get multiple BGPs here with the same ?s/p/?o ? -->
         <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $subject-var-name][json:string[@key = 'predicate'] = $predicate][json:string[@key = 'object'] = '?' || $object-var-name]" as="element()"/>
@@ -2463,7 +2461,7 @@ exclude-result-prefixes="#all"
                     </xsl:variable>
                     <xsl:variable name="select-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
                     <xsl:variable name="select-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $select-json-string ])"/>
-                    <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $select-json ]), 'toString', [])" as="xs:string"/>
+                    <xsl:variable name="query-string" select="ixsl:call($sparql-generator, 'stringify', [ $select-json ])" as="xs:string"/>
                     <xsl:variable name="request-uri" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
                     <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
                     <xsl:variable name="context" as="map(*)" select="
@@ -2825,8 +2823,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ldh:busy-cursor()"/>
 
         <!-- rebuild the initial query XML from the cached SELECT string -->
-        <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
-        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
+        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($sparql-parser, 'parse', [ $select-string ]) ])" as="xs:string"/>
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:call-template name="ldh:ReplayParallaxSteps">
                 <xsl:with-param name="select-xml" select="json-to-xml($select-json-string)"/>
@@ -2916,8 +2913,7 @@ exclude-result-prefixes="#all"
                         <xsl:variable name="select-string" select="replace($select-string, '$about', '&lt;' || $about || '&gt;', 'q')" as="xs:string"/>
                         <xsl:variable name="select-xml" as="document-node()">
                             <xsl:variable name="select-json" as="item()">
-                                <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
-                                <xsl:sequence select="ixsl:call($select-builder, 'build', [])"/>
+                                <xsl:sequence select="ixsl:call($sparql-parser, 'parse', [ $select-string ])"/>
                             </xsl:variable>
                             <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
                             <xsl:sequence select="json-to-xml($select-json-string)"/>
