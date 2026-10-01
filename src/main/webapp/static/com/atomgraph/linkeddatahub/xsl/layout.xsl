@@ -314,7 +314,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="saxon-js-log-level" select="10" as="xs:integer"/>
         <xsl:param name="load-yasqe" select="not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="load-saxon-js" select="$ldh:ajaxRendering and not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
-        <xsl:param name="load-sparql-builder" select="not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
+        <xsl:param name="load-sparql-js" select="not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="load-sparql-map" select="not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="load-google-charts" select="not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="load-graph3d" select="not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
@@ -401,8 +401,7 @@ exclude-result-prefixes="#all">
                 </xsl:text>
             </script>
         </xsl:if>
-        <xsl:if test="$load-sparql-builder">
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/SPARQLBuilder.js', lds:origin())}" defer="defer"></script>
+        <xsl:if test="$load-sparql-js">
             <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/SPARQL.js', lds:origin())}" defer="defer"></script>
         </xsl:if>
         <xsl:if test="$load-sparql-map">
