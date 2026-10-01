@@ -756,24 +756,25 @@ WHERE
                             </xsl:copy>
                         </xsl:for-each>
                     </div>
+                    <!-- the assistant acts on this dataspace, so it is part of its panel: beside the panes, under the
+                         tab bar, and kept across navigation, which replaces the panes. For a reader who can be acted
+                         for: its service acts for the WebID in the certificate nginx forwards, and a reader without
+                         one has nobody to send a plan as -->
+                    <xsl:if test="$foaf:Agent//@rdf:about">
+                        <xsl:apply-templates select="." mode="ldh:AssistantDrawer"/>
+                    </xsl:if>
                 </div>
 
                 <xsl:apply-templates select="." mode="ac:Footer"/>
             </div>
-
-            <!-- the assistant is for a reader who can be acted for: its service acts for the WebID in the certificate
-                 nginx forwards, and a reader without one has nobody to send a plan as -->
-            <xsl:if test="$foaf:Agent//@rdf:about">
-                <xsl:apply-templates select="." mode="ldh:AssistantDrawer"/>
-            </xsl:if>
         </body>
     </xsl:template>
 
     <!-- The assistant drawer: the core Drawer primitive on the right edge, rendered closed and inert, with the
          handle that opens it. Its log fills client-side (client/chat.xsl); what the server draws is the frame -
          the head, the empty log and the composer - so the drawer is there from the first paint and survives every
-         client-side navigation, which replaces the panes and not the body. It sits outside #visible-body because an
-         open drawer insets the frame rather than covering it (ldh.css). -->
+         client-side navigation, which replaces the panes and not the dataspace's panel it sits in. An open drawer
+         insets the panes rather than covering them (ldh.css). -->
     <xsl:template match="rdf:RDF | srx:sparql" mode="ldh:AssistantDrawer">
         <xsl:variable name="translations" select="document('translations.rdf')" as="document-node()"/>
 
