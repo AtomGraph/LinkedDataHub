@@ -3,7 +3,7 @@
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
       <title>LinkedDataHub v5 — HTTP API</title>
       <meta name="description" content="Read and write RDF data from and to LinkedDataHub dataspaces over HTTP"/>
-      <meta name="last-modified" content="2026-10-02T15:07:31Z"/>
+      <meta name="last-modified" content="2026-10-02T22:13:37Z"/>
       <meta name="viewport" content="width=device-width, initial-scale=1"/>
       <link href="../../static/css/fonts.css" rel="stylesheet" type="text/css"/>
       <link href="../../static/css/colors_and_type.css" rel="stylesheet" type="text/css"/>
@@ -324,7 +324,7 @@ ETag: "1e635b4-ntriples"
                            
                            <td><code>422 Unprocessable Entity</code></td>
                            
-                           <td><a href="../administration/ontologies/#constraints">Constraint</a> violation</td>
+                           <td><a href="../administration/ontologies/#constraints">Constraint</a> violation in the resulting document</td>
                            </tr>
                         
                         <tr>
@@ -363,7 +363,7 @@ ETag: "1e635b4-ntriples"
                            
                            <td><code>422 Unprocessable Entity</code></td>
                            
-                           <td><a href="../administration/ontologies/#constraints">Constraint</a> violation</td>
+                           <td><a href="../administration/ontologies/#constraints">Constraint</a> violation in the resulting document</td>
                            </tr>
                         
                         <tr>
@@ -388,15 +388,20 @@ ETag: "1e635b4-ntriples"
                         
                         <tr>
                            
-                           <th scope="row"><code id="ld-patch">PATCH</code></th>
+                           <th rowspan="2" scope="row"><code id="ld-patch">PATCH</code></th>
                            
-                           <td>Modifies a document using SPARQL Update</td>
+                           <td rowspan="2">Modifies a document using SPARQL Update</td>
                            
-                           <td><code>204 No Content</code></td>
+                           <td rowspan="2"><code>204 No Content</code></td>
                            
-                           <td><code>422 Unprocessable Entity</code></td>
+                           <td rowspan="2"><code>422 Unprocessable Entity</code></td>
                            
-                           <td>SPARQL update string violates syntax constraints</td>
+                           <td>SPARQL update is not a single graph-scoped <code>INSERT</code>/<code>DELETE</code> operation, or removes an <code>rdf:type</code></td>
+                           </tr>
+                        
+                        <tr>
+                           
+                           <td><a href="../administration/ontologies/#constraints">Constraint</a> violation in the updated document</td>
                            </tr>
                         </tbody>
                      </table>
@@ -522,7 +527,11 @@ WHERE {}</pre>
                            resolving <samp>..</samp> against the new document's URL must identify an existing container)</li>
                         </ul>
                      
-                     <p>The built-in constraints are similar to, but separate from the <a href="../administration/ontologies/#constraints">ontology constraints</a>.</p>
+                     <p>The built-in constraints are similar to, but separate from the <a href="../administration/ontologies/#constraints">ontology constraints</a> —
+                        <a href="https://spinrdf.org/spin.html#spin-constraints" target="_blank">SPIN constraints</a> and
+                        <a href="https://www.w3.org/TR/shacl/" target="_blank">SHACL</a> shapes declared in the dataspace's ontology. Those are checked against the
+                        document as the write leaves it, not the request body alone, so a <code>POST</code> or <code>PATCH</code> need not repeat the properties the
+                        document already holds, and one that leaves the document invalid is answered <code>422 Unprocessable Entity</code>.</p>
                      </div>
                   </div>
                

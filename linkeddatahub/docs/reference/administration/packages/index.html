@@ -3,7 +3,7 @@
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
       <title>LinkedDataHub v5 — Packages</title>
       <meta name="description" content="Reusable bundles of an ontology and a stylesheet that add support and custom rendering for an RDF vocabulary"/>
-      <meta name="last-modified" content="2026-10-02T15:07:31Z"/>
+      <meta name="last-modified" content="2026-10-02T22:13:37Z"/>
       <meta name="viewport" content="width=device-width, initial-scale=1"/>
       <link href="../../../static/css/fonts.css" rel="stylesheet" type="text/css"/>
       <link href="../../../static/css/colors_and_type.css" rel="stylesheet" type="text/css"/>
@@ -246,8 +246,9 @@ ns:SelectNarrowerConcepts a sp:Select ;
     WHERE { GRAPH ?graph { $about skos:narrower ?narrower } }
     ORDER BY ?narrower""" .</pre>
                   
-                  <p>Views are rendered when displaying resources that have the specified property. Use
-                     <code>ldh:view</code> for forward relationships (the resource carries the property) or <code>ldh:inverseView</code> for inverse relationships (other resources point at this resource through the property).</p>
+                  <p>A view attached with <code>ldh:view</code> is rendered on every resource typed with the property's <code>rdfs:domain</code>, one attached with <code>ldh:inverseView</code> on every resource typed with its <code>rdfs:range</code> — whether or not the resource has the property, so a property without a domain or
+                     range renders no view. <code>$about</code> in the query is the resource the view is rendered on. A package's views work like
+                     the ones a dataspace declares in its own ontology — see <a href="../ontologies/#views">Views</a> in the ontologies reference.</p>
                   </div>
                
                <div>

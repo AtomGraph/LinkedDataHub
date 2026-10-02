@@ -3,7 +3,7 @@
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
       <title>LinkedDataHub v5 — Resources</title>
       <meta name="description" content="RDF resources and their management"/>
-      <meta name="last-modified" content="2026-10-02T15:07:31Z"/>
+      <meta name="last-modified" content="2026-10-02T22:13:37Z"/>
       <meta name="viewport" content="width=device-width, initial-scale=1"/>
       <link href="../../../static/css/fonts.css" rel="stylesheet" type="text/css"/>
       <link href="../../../static/css/colors_and_type.css" rel="stylesheet" type="text/css"/>
@@ -493,7 +493,7 @@ WHERE {
                      
                      <h3 id="inline-creation">Inline creation</h3>
                      
-                     <p>A view attached to a property in the <a href="../../administration/packages/#property-views">dataspace's ontology</a> renders a <span class="ac-btn in-primary ap-solid sz-md">Create</span> button in its header, so a view can double as an entry point for the data it lists.
+                     <p>A view <a href="../../administration/ontologies/#views">attached to a property</a> in the dataspace's ontology renders a <span class="ac-btn in-primary ap-solid sz-md">Create</span> button in its header, so a view can double as an entry point for the data it lists.
                         The class to construct is inferred from the attaching property: its <code>rdfs:range</code> for a forward <code>ldh:view</code>, its <code>rdfs:domain</code> for an inverse <code>ldh:inverseView</code>. A property whose range is not a named class — an <code>owl:unionOf</code> list, say — gets no button, because there is nothing to construct.</p>
                      
                      <p>Where the new instance is stored is not declared anywhere. LinkedDataHub works it

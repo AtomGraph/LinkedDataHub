@@ -3,7 +3,7 @@
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
       <title>LinkedDataHub v5 — Migrating from 5.x</title>
       <meta name="description" content="What 6.0.0 changes for an application stylesheet, a deployment and an API client"/>
-      <meta name="last-modified" content="2026-10-02T15:07:31Z"/>
+      <meta name="last-modified" content="2026-10-02T22:13:37Z"/>
       <meta name="viewport" content="width=device-width, initial-scale=1"/>
       <link href="../../static/css/fonts.css" rel="stylesheet" type="text/css"/>
       <link href="../../static/css/colors_and_type.css" rel="stylesheet" type="text/css"/>
@@ -405,6 +405,12 @@
                      identifies a negotiated variant, so the read supplying the validator must send the
                      same <code>Accept</code> as the write quoting it, or the write is refused
                      <code>412</code>. The <a href="../http-api/">HTTP API</a> page has the request shapes.</p>
+                  
+                  <p>Every write is validated against the <a href="../administration/ontologies/#constraints">constraints</a> as the document it leaves, which
+                     <code>PATCH</code> already was in 5.10. A <code>POST</code> used to be checked on its body alone and is now checked merged with the document,
+                     so
+                     appending to a document that violates a constraint is refused <code>422</code> until the violation is repaired. A <code>PUT</code> whose body does
+                     not type the document is checked as the <code>dh:Item</code> the server makes it, so it needs a <code>dct:title</code>.</p>
                   
                   <p>The access control query fails closed on a typeless resource, so a request for a URL
                      that does not exist is answered <code>403</code> rather than
