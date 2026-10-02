@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" lang="en" data-retro="m3" data-theme="light">
    <head>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-      <title>LinkedDataHub v5 — Model</title>
-      <meta name="description" content="Define the vocabulary that describes your domain"/>
-      <meta name="last-modified" content="2026-10-02T15:07:31Z"/>
+      <title>LinkedDataHub v5 — Connect an agent</title>
+      <meta name="description" content="Give an AI agent such as Claude Code or Cursor access to a LinkedDataHub instance over MCP, using Web-Algebra"/>
+      <meta name="last-modified" content="2026-10-02T15:07:30Z"/>
       <meta name="viewport" content="width=device-width, initial-scale=1"/>
       <link href="../../static/css/fonts.css" rel="stylesheet" type="text/css"/>
       <link href="../../static/css/colors_and_type.css" rel="stylesheet" type="text/css"/>
@@ -43,126 +43,130 @@
          <div class="docs-nav" role="navigation">
             <ul>
                <li><a href="../../about/">About LinkedDataHub</a></li>
-               <li><a href="../../get-started/">Get started</a></li>
-               <li><a href="../">Tutorial</a><ul>
-                     <li><a href="../hello-dataspace/">Hello dataspace</a></li>
-                     <li><a href="../structure/">Structure</a></li>
-                     <li class="is-active" aria-current="page"><a href="">Model</a></li>
-                     <li><a href="../data/">Data</a></li>
-                     <li><a href="../media/">Media</a></li>
-                     <li><a href="../insight/">Insight</a></li>
-                     <li><a href="../composition/">Composition</a></li>
-                     <li><a href="../publish/">Publish</a></li>
-                     <li><a href="../app-as-repository/">App as a repository</a></li>
-                     <li><a href="../beyond-low-code/">Beyond low-code</a></li>
+               <li><a href="../">Get started</a><ul>
+                     <li><a href="../setup/">Setup</a></li>
+                     <li><a href="../get-an-account/">Get an account</a></li>
+                     <li><a href="../request-access/">Request access</a></li>
+                     <li class="is-active" aria-current="page"><a href="">Connect an agent</a></li>
                   </ul>
                </li>
+               <li><a href="../../tutorial/">Tutorial</a></li>
                <li><a href="../../user-guide/">User guide</a></li>
                <li><a href="../../reference/">Reference</a></li>
                <li><a href="../../extending/">Extending</a></li>
             </ul>
          </div>
          <div class="docs-main" role="main">
-            <h1>Model</h1>
+            <h1>Connect an agent</h1>
             <div xmlns:dct="http://purl.org/dc/terms/" xmlns:dh="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#" xmlns:ldh="https://w3id.org/atomgraph/linkeddatahub#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
                
-               <p class="ldh-body-lg">Define the vocabulary that describes your domain</p>
+               <p class="ldh-body-lg">Give an AI agent such as Claude Code or Cursor access to a LinkedDataHub instance
+                  over MCP, using Web-Algebra</p>
                
-               <p>Each dataspace has a <strong>namespace ontology</strong> where you define the classes and properties of your domain. It lives in the <em>admin</em> dataspace, which shares your base URI with
-                  an <samp>admin.</samp> subdomain prefix: for the end-user app at <samp>https://localhost:4443/</samp>, the ontology document is
-                  <samp>https://admin.localhost:4443/ontologies/namespace/</samp>.</p>
+               <p>Agents use the same HTTP API as the browser and the <a href="../../reference/command-line-interface/">CLI</a>. The bridge is
+                  <a href="https://github.com/AtomGraph/Web-Algebra" target="_blank">Web-Algebra</a>, which exposes LinkedDataHub operations as
+                  <a href="https://modelcontextprotocol.io/" target="_blank">Model Context Protocol</a> (MCP) tools: creating containers and items, adding views,
+                  queries and charts, reading and writing RDF, and running SPARQL. An agent connected
+                  this way can build a working application in a dataspace —
+                  its classes, containers, views and charts are documents like any other.</p>
                
-               <p>Northwind reuses <a href="https://schema.org" target="_blank">Schema.org</a> terms rather than inventing its own, so modeling here means little more than declaring
-                  which classes the app
-                  uses and how they are labeled:</p>
-               
-               <pre>@prefix :       &lt;#&gt; .
-@prefix rdfs:   &lt;http://www.w3.org/2000/01/rdf-schema#&gt; .
-@prefix owl:    &lt;http://www.w3.org/2002/07/owl#&gt; .
-@prefix schema: &lt;https://schema.org/&gt; .
-
-: a owl:Ontology .
-
-schema:ProductGroup a owl:Class ;
-    rdfs:label "Category" ;
-    rdfs:isDefinedBy : .
-
-schema:Product a owl:Class ;
-    rdfs:label "Product" ;
-    rdfs:isDefinedBy : .
-
-schema:Order a owl:Class ;
-    rdfs:label "Order" ;
-    rdfs:isDefinedBy : .</pre>
-               
-               <p class="exhibit-links">Source (full model): <a href="https://github.com/AtomGraph/LinkedDataHub-Apps/blob/master/demo/northwind-traders/admin/model/ns.ttl" target="_blank">admin/model/ns.ttl</a></p>
-               
-               <p>The finished model goes further than labels. It declares the domain's properties with
-                  their domains and ranges, a couple of <code>owl:Restriction</code>s,
-                  and a <a href="../../user-guide/change-model/" target="_blank">constructor</a> that drives the Product create form.</p>
-               
-               <p>It also attaches views directly to properties with <code>ldh:inverseView</code>. That is why every customer page shows its orders and every supplier page its
-                  products, with no per-page configuration.</p>
-               
-               <div class="ac-tabs or-horizontal">
-                  
-                  <div class="ac-tablist sz-md va-line" role="tablist">
-                     <button aria-controls="in-the-browser-pane" aria-selected="true" class="ac-tab is-on" id="in-the-browser-tab" role="tab" type="button"><span class="ac-tab-lbl">In the browser</span></button>
-                     <button aria-controls="from-the-command-line-pane" aria-selected="false" class="ac-tab" id="from-the-command-line-tab" role="tab" type="button"><span class="ac-tab-lbl">From the command line</span></button>
-                     </div>
-                  
-                  <div aria-labelledby="in-the-browser-tab" class="ac-tabpanel" id="in-the-browser-pane" role="tabpanel">
-                     
-                     <p>Open the admin dataspace and edit the namespace ontology document directly, or follow
-                        the <a href="../../user-guide/change-model/" target="_blank">Change model</a> guide, which also
-                        shows how to add SPIN constructors to classes — the templates that drive the create-instance
-                        forms in the UI.</p>
-                     </div>
-                  
-                  <div aria-labelledby="from-the-command-line-tab" class="ac-tabpanel" hidden="hidden" id="from-the-command-line-pane" role="tabpanel">
-                     
-                     <p>Append the class definitions from <samp>ns.ttl</samp> to the namespace ontology document with <code>POST</code>. The prepended <code>@base</code> makes the <code>:</code> prefix resolve to
-                        <samp>${LDH_BASE}ns#</samp> — the terms belong to the end-user namespace even though the ontology document lives
-                        in the admin app:</p>
-                     
-                     <pre>admin_base="https://admin.localhost:4443/"   # $LDH_BASE with the admin. subdomain prefix
-
-{ echo "@base &lt;${LDH_BASE}ns&gt; ."; cat ns.ttl; } | ldh post \
-    -t text/turtle \
-    "${admin_base}ontologies/namespace/"</pre>
-                     
-                     <p>The ontology is cached in memory, so tell the dataspace to reload it:</p>
-                     
-                     <pre>ldh admin clear ontology \
-    -b "$admin_base" \
-    --ontology "${LDH_BASE}ns#"</pre>
-                     </div>
-                  </div>
+               <p>The conventions agents should follow when writing to LinkedDataHub are in
+                  <a href="https://github.com/AtomGraph/LinkedDataHub/blob/master/AGENTS.md" target="_blank">AGENTS.md</a>.</p>
                
                <div>
                   
-                  <h2 id="result">What you now see</h2>
-                  
-                  <p>The ontology document in the admin app now renders your classes with their labels.
-                     The visible payoff on the end-user side comes in the next stage: resources imported
-                     as
-                     <code>schema:Product</code> or <code>schema:Order</code> arrive typed and labeled, and the model is what the UI uses to render and create
-                     them.</p>
-                  </div>
-               
-               <div>
-                  
-                  <h2 id="how-this-works">How this works</h2>
+                  <h2 id="prerequisites">Prerequisites</h2>
                   
                   <ul>
                      
-                     <li><a href="../../reference/administration/ontologies/" target="_blank">Ontologies</a> — namespace ontologies, imports and caching</li>
+                     <li>A running LinkedDataHub instance. The examples below assume the default <a href="../setup/">local setup</a> at <samp>https://localhost:4443/</samp>.</li>
                      
-                     <li><a href="../../user-guide/change-model/" target="_blank">Change model</a> — classes, constructors and constraints from the UI</li>
+                     <li>The WebID certificate the agent will act as. For your own instance that is the owner
+                        certificate, <samp>ssl/owner/cert.pem</samp>, with the password from
+                        <samp>secrets/owner_cert_password.txt</samp>. The agent can do whatever that WebID is authorized to do.</li>
+                     
+                     <li><a href="https://docs.astral.sh/uv/getting-started/installation/" target="_blank">uv</a>, which runs Web-Algebra without a separate install step.</li>
                      </ul>
                   </div>
                
-               <p class="ldh-body-lg">Next: <a href="../data/">Data</a></p>
+               <div>
+                  
+                  <h2 id="claude-code">Claude Code</h2>
+                  
+                  <p>Register Web-Algebra as an MCP server, run from the LinkedDataHub directory:</p>
+                  
+                  <pre>claude mcp add web-algebra \
+  --env CERT_PEM_PATH="$PWD/ssl/owner/cert.pem" \
+  --env CERT_PASSWORD="$(cat secrets/owner_cert_password.txt)" \
+  -- uv run --with web-algebra python -m web_algebra</pre>
+                  
+                  <p>Start <samp>claude</samp> and check that <samp>/mcp</samp> lists <samp>web-algebra</samp> as connected.</p>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="cursor-and-claude-desktop">Cursor and Claude Desktop</h2>
+                  
+                  <p>Both read an <samp>mcpServers</samp> entry: <samp>~/.cursor/mcp.json</samp> for Cursor, <samp>claude_desktop_config.json</samp> for Claude Desktop.
+                     Use absolute paths and the literal password, since these files are not run by a shell.</p>
+                  
+                  <pre>{
+  "mcpServers": {
+    "web-algebra": {
+      "command": "uv",
+      "args": ["run", "--with", "web-algebra", "python", "-m", "web_algebra"],
+      "env": {
+        "CERT_PEM_PATH": "/path/to/LinkedDataHub/ssl/owner/cert.pem",
+        "CERT_PASSWORD": "your-owner-cert-password"
+      }
+    }
+  }
+}</pre>
+                  
+                  <p>If the client cannot find <samp>uv</samp>, replace <samp>"uv"</samp> with its absolute path, as printed by <samp>which uv</samp>.</p>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="http-transport">Streamable HTTP transport</h2>
+                  
+                  <p>Clients that connect to an MCP URL instead of launching a process can use Web-Algebra's
+                     HTTP server:</p>
+                  
+                  <pre>CERT_PEM_PATH="$PWD/ssl/owner/cert.pem" \
+CERT_PASSWORD="$(cat secrets/owner_cert_password.txt)" \
+uv run --with web-algebra uvicorn web_algebra.server:app</pre>
+                  
+                  <p>The MCP URL is <samp>http://127.0.0.1:8000/mcp</samp>. For Claude Code:
+                     <code>claude mcp add --transport http web-algebra http://127.0.0.1:8000/mcp</code>.</p>
+                  
+                  <div class="ac-alert va-warning" role="status">
+                     <span class="ac-alert-ic"><span aria-hidden="true" class="msi outline">warning</span></span>
+                     
+                     <div class="ac-alert-body">
+                        
+                        <p class="ac-alert-text">The HTTP server does not authenticate its callers, and it holds your WebID certificate.
+                           Anyone who can reach the port acts as you.
+                           Keep it bound to <samp>127.0.0.1</samp>, which is the default, and do not expose it on a network.</p>
+                        </div>
+                     </div>
+                  </div>
+               
+               <div>
+                  
+                  <h2 id="try-it">Try it</h2>
+                  
+                  <p>Ask the agent for something small that it has to declare rather than code, for example:</p>
+                  
+                  <blockquote>
+                     <p>Create a container for books in my dataspace, add three books with authors, and add
+                        a chart of books per author.</p>
+                  </blockquote>
+                  
+                  <p>Then open <samp>https://localhost:4443/</samp> in the browser. The container, the items and the chart are there, and you can keep
+                     editing them by hand —
+                     the agent and you work on the same documents.</p>
+                  </div>
                </div>
          </div>
       </div>
