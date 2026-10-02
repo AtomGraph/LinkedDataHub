@@ -67,7 +67,7 @@ The [`ldh` command line interface](#command-line-interface) is attached to every
      - `secrets/client_truststore_password.txt`
      - `secrets/owner_cert_password.txt`
      - `secrets/secretary_cert_password.txt`
-     - `secrets/openai_api_key.txt` — an OpenAI API key for the assistant drawer (the file may be empty, which leaves the assistant unable to write plans)
+     - `secrets/openai_api_key.txt` — optional: an OpenAI API key for the assistant drawer, declared in `docker-compose.override.yml` like the OAuth secrets; without it the assistant runs plans but cannot write them
      The one you will need to remember in order to authenticate with LinkedDataHub using WebID client certificate is `owner_cert_password`.
   5. Launch the application services by running this from command line:
      ```shell
@@ -219,7 +219,7 @@ _:warning: Do not use blank nodes to identify applications or services. We recom
     <dt><code>client_truststore_password</code></dt>
     <dd>Password of the client truststore</dd>
     <dt><code>openai_api_key</code></dt>
-    <dd>OpenAI API key the <code>web-algebra</code> service writes the assistant's plans with. The service executes plans without it; the drawer then reports that a plan could not be written</dd>
+    <dd>OpenAI API key the <code>web-algebra</code> service writes the assistant's plans with. Optional, declared in the override together with <code>OPENAI_API_KEY_FILE</code>; the service executes plans without it, and the drawer then reports that a plan could not be written</dd>
     <dt><code>google_client_id</code></dt>
     <dd>Google's OAuth client ID</dd>
     <dd>Login with Google authentication is enabled when this value is provided</dd>

@@ -5,8 +5,8 @@ secrets:
     file: ./secrets/secretary_cert_password.txt
   client_truststore_password:
     file: ./secrets/client_truststore_password.txt
-  openai_api_key:
-    file: ./secrets/openai_api_key.txt
+  # openai_api_key:
+  #   file: ./secrets/openai_api_key.txt
   # google_client_id:
   #   file: ./secrets/google/client_id.txt
   # google_client_secret:
@@ -172,14 +172,16 @@ services:
       - WEBALGEBRA_KEYSTORE=/var/webalgebra/ssl/secretary/keystore.p12
       - WEBALGEBRA_KEYSTORE_PASSWORD_FILE=/run/secrets/secretary_cert_password
       - WEBALGEBRA_TRUSTSTORE=/var/webalgebra/ssl/server/server.crt # the self-signed server certificate, as PEM
-      - OPENAI_API_KEY_FILE=/run/secrets/openai_api_key
+      # the model key is optional, like the OAuth secrets: a deployment that writes plans declares the openai_api_key
+      # secret and this variable in its override; without them the service runs plans and declines to write any
+      # - OPENAI_API_KEY_FILE=/run/secrets/openai_api_key
       - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o}
       # public destinations (SPARQL endpoints a plan names, the model's API) go through egress like the platform's own; nginx
       # is reached directly, since egress refuses internal addresses
       - JAVA_TOOL_OPTIONS=-Dhttp.proxyHost=${EGRESS_PROXY_HOST:-egress} -Dhttp.proxyPort=3128 -Dhttps.proxyHost=${EGRESS_PROXY_HOST:-egress} -Dhttps.proxyPort=3128 -Dhttp.nonProxyHosts=nginx
     secrets:
       - secretary_cert_password
-      - openai_api_key
+      # - openai_api_key
     volumes:
       - ./ssl/secretary:/var/webalgebra/ssl/secretary:ro
       - ./ssl/server:/var/webalgebra/ssl/server:ro
