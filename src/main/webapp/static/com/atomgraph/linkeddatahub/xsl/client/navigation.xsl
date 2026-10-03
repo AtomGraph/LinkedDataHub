@@ -367,7 +367,7 @@ ORDER BY DESC(?created)
         <xsl:choose>
             <xsl:when test="$key = 'Escape' and empty(ixsl:page()//div[contains-token(@class, 'ac-backdrop')][contains-token(@class, 'modal')])">
                 <xsl:apply-templates select="ixsl:page()//div[contains-token(@class, 'ldh-sidebar')][contains-token(@class, 'is-open')]" mode="ldh:CloseDrawer"/>
-                <xsl:apply-templates select="ixsl:page()//form[contains-token(@class, 'chat-composer')][contains-token(@class, 'is-open')]" mode="ldh:CloseComposer"/>
+                <xsl:apply-templates select="ixsl:page()//form[contains-token(@class, 'ldh-chat-composer')][contains-token(@class, 'is-open')]" mode="ldh:CloseComposer"/>
             </xsl:when>
             <xsl:when test="lower-case($key) = 'k' and (ixsl:get(ixsl:event(), 'metaKey') or ixsl:get(ixsl:event(), 'ctrlKey'))">
                 <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>

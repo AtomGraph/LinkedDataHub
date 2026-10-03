@@ -591,15 +591,13 @@ button.tree-link { border: 0; background: transparent; width: 100%; font: inheri
    width rather than the viewport's because the assistant drawer stands beside the panes and
    narrows it (the chat section below) ---------- */
 html { overflow-x: clip; } /* the 50vw bleed overshoots by half a classic scrollbar; clip never creates a scroll container */
+/* the bar's look is the app kit's (app.css, .ldh-create-dock); this is where the page parks it */
 .ldh-create-dock {
   position: sticky;
   bottom: 0;
-  display: flex; align-items: center; justify-content: flex-end; gap: var(--sp-2);
   z-index: 24; /* above content, below popovers (40) and modal chrome */
   margin: auto calc(50% - var(--ldh-pane-w) / 2) 0; /* margin-top: auto parks it at the bottom of the stretched column */
-  padding: var(--sp-2) calc((var(--ldh-pane-w) - min(var(--ldh-content-w), var(--ldh-pane-w))) / 2 + var(--sp-6)) var(--sp-2) var(--sp-6);
-  background: var(--bg-card);
-  border-top: 1px solid var(--border-default);
+  padding-right: calc((var(--ldh-pane-w) - min(var(--ldh-content-w), var(--ldh-pane-w))) / 2 + var(--sp-6));
 }
 /* the modal dim overlay is pointer-inert, so hide the dock while a modal is open */
 body:has(.ac-backdrop.modal) .ldh-create-dock { display: none; }
@@ -977,71 +975,14 @@ div.ldh-failure > .ac-alert { margin: 0; }
 .rdfa-editor-content .rdfa-editor-island { border-color: var(--border-default); background: var(--bg-recess); }
 
 /* =========================================================================
-   The assistant: an ephemeral block at the end of the content body, where the
-   blocks it produces land above it, and a composer docked onto the create
-   bar. Neither is in the document: client/chat.xsl keeps them across renders
-   (ldh:ChatMount). The bar wraps so the composer takes a full first line above
-   the buttons, which keeps the bar's own stickiness and parking as they are.
+   The assistant (client/chat.xsl, ldh:ChatMount). Its skin is the app kit's
+   (app.css, "The assistant"); what stays here is the page's geometry: the
+   composer docked onto the create bar is as wide as the content column and
+   starts where it starts, which only this page's --ldh-content-w and
+   --ldh-pane-w can say. The bar's left padding is sp-6 and the column's inset
+   is (pane - column) / 2 + sp-6, so the composer's left margin makes up the
+   difference, and its width is the column's inside its padding; margin plus
+   width fill the bar's line exactly, which is what wraps the buttons below.
    ========================================================================= */
-.chat-block:has(> .chat-log:empty) { display: none; }
-.chat-block-head { display: flex; align-items: center; gap: var(--sp-2); }
-.chat-block-head > .ttl { flex: 1; }
-.chat-log { display: flex; flex-direction: column; gap: var(--sp-3); padding: var(--sp-3); }
-.ldh-create-dock { flex-wrap: wrap; }
-.ldh-create-dock.chat-only:not(:has(> form.chat-composer.is-open)) { display: none; }
-/* the composer is as wide as the content column and starts where it starts: the bar's left padding is
-   sp-6 and the column's inset is (pane - column) / 2 + sp-6, so the composer's left margin makes up the
-   difference, and its width is the column's inside its padding. Margin plus width fill the bar's line
-   exactly, which is what wraps the buttons onto the line below */
-.ldh-create-dock > form.chat-composer { flex: 0 0 auto; width: calc(min(var(--ldh-content-w), var(--ldh-pane-w)) - 2 * var(--sp-6)); margin: 0 0 var(--sp-2) calc((var(--ldh-pane-w) - min(var(--ldh-content-w), var(--ldh-pane-w))) / 2); order: -1; display: flex; flex-direction: column; gap: var(--sp-2); padding-bottom: var(--sp-2); border-bottom: 1px solid var(--border-default); }
-.ldh-create-dock.chat-only > form.chat-composer { margin-bottom: 0; padding-bottom: 0; border-bottom: 0; }
-form.chat-composer:not(.is-open) { display: none; }
+.ldh-create-dock > form.ldh-chat-composer { flex: 0 0 auto; width: calc(min(var(--ldh-content-w), var(--ldh-pane-w)) - 2 * var(--sp-6)); margin-left: calc((var(--ldh-pane-w) - min(var(--ldh-content-w), var(--ldh-pane-w))) / 2); }
 
-/* turns: the reader's message hugs the sender's edge, the assistant's cards sit flush left */
-.chat-turn { align-self: flex-end; max-width: 85%; margin: 0; padding: var(--sp-2) var(--sp-3); background: var(--bg-accent-quiet); color: var(--fg-1); border-radius: var(--r-md) var(--r-md) var(--r-xs) var(--r-md); font-size: var(--fs-sm); line-height: var(--lh-base); }
-
-/* the plan card rides the design's nested-block well; chat scopes its rhythm */
-.chat-plan { padding: var(--sp-3); display: flex; flex-direction: column; gap: var(--sp-3); font-size: var(--fs-sm); }
-.chat-plan > p { margin: 0; line-height: var(--lh-base); color: var(--fg-2); }
-.chat-plan-meta { font-family: var(--font-mono); font-size: 10px; letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--fg-muted); }
-.chat-plan .ac-codefield { margin: var(--sp-2) 0 var(--sp-1); max-height: 210px; overflow: auto; }
-.chat-plan .ac-codefield pre { margin: 0; padding: var(--sp-2) var(--sp-3); font-family: var(--font-mono); font-size: 11px; line-height: var(--lh-snug); color: var(--fg-2); white-space: pre; }
-.chat-plan-actions { display: flex; gap: var(--sp-2); }
-
-/* The steps: one row per operation, there from the moment the plan is shown and changing state as the
-   executor reports - planned, running, done, failed. Each row is a disclosure whose summary is the row
-   and whose body is the operation's own XML (the first row's is the whole plan) and, when it failed,
-   the message; no marker, the row itself is the control. The tint is the status colour set the
-   design's alerts use (success-50 / danger-50), so a row that went green or red reads like the alert
-   it replaces */
-.chat-steps, .chat-steps ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
-/* the rows nest as the operations do: a step inside another's argument sits one level in, under a hairline */
-.chat-steps ul { margin: 2px 0 0 calc(12px + var(--sp-1)); padding-left: var(--sp-2); border-left: 1px solid var(--border-default); }
-details.chat-step { display: block; }
-details.chat-step > summary { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; align-items: center; gap: var(--sp-2); padding: var(--sp-1) var(--sp-2); border-radius: var(--r-sm); font-size: var(--fs-sm); color: var(--fg-1); cursor: pointer; list-style: none; }
-details.chat-step > summary::-webkit-details-marker { display: none; }
-details.chat-step > summary:hover { background: var(--bg-hover); }
-.chat-step .st { display: inline-flex; color: var(--fg-hint); }
-.chat-step .op { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.chat-step.is-running > summary { background: var(--bg-accent-quiet); }
-.chat-step.is-running .st { justify-self: center; }
-.chat-step.is-done > summary { background: var(--success-50); }
-.chat-step.is-done .st { color: var(--success-500); }
-.chat-step.is-failed > summary { background: var(--danger-50); }
-.chat-step.is-failed .st { color: var(--danger-500); }
-.chat-step.kd-write .st { color: var(--warning-500); }
-.chat-step.kd-destructive .st { color: var(--danger-500); }
-.chat-step-message { margin: var(--sp-2) var(--sp-2) 0; font-size: var(--fs-sm); line-height: var(--lh-base); color: var(--fg-2); }
-
-/* changed-document links: one row per affected graph, mono URI leaf */
-.chat-docs .op { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 0; }
-
-/* a plan that only read shows its result set in the block's width */
-.chat-plan .chat-result { display: block; max-width: 100%; overflow-x: auto; }
-
-/* the composer's rows */
-.chat-composer-row { display: flex; align-items: flex-end; gap: var(--sp-2); }
-.chat-composer .ac-field { flex: 1; }
-.chat-options { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-4); }
-.chat-composer .ac-choice { font-size: var(--fs-sm); color: var(--fg-muted); }
-.chat-composer textarea { resize: none; }

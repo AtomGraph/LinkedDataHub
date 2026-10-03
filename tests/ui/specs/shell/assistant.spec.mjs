@@ -35,11 +35,11 @@ test.afterEach(async () => {
 });
 
 const dock = page => page.locator('.content-body > .ldh-create-dock');
-const button = page => dock(page).locator('.chat-open');
-const form = page => page.locator('form.chat-composer');
+const button = page => dock(page).locator('.ldh-chat-open');
+const form = page => page.locator('form.ldh-chat-composer');
 const composer = page => form(page).locator('textarea');
-const block = page => page.locator('.content-body > .chat-block');
-const card = page => block(page).locator('.chat-plan').last();
+const block = page => page.locator('.content-body > .ldh-chat-block');
+const card = page => block(page).locator('.ldh-chat-plan').last();
 
 async function open(page) {
     await button(page).click();
@@ -63,7 +63,7 @@ test('opens from the create bar, docked above it, and closes on Escape', { tag: 
     const composerBox = await box(form(page));
     const buttonBox = await box(button(page));
     expect(composerBox.y + composerBox.height).toBeLessThanOrEqual(buttonBox.y + 1);
-    expect(await dock(page).locator('form.chat-composer').count()).toBe(1);
+    expect(await dock(page).locator('form.ldh-chat-composer').count()).toBe(1);
 
     // and as wide as the content column, starting where it starts: the composer's box is the column's box inside its padding
     const column = await page.evaluate(() => {
@@ -96,18 +96,18 @@ test('a question becomes a plan that waits for Execute', { tag: '@owner' }, asyn
 
     // the question is echoed as the reader's turn in the block, which shows now that it has one, and the composer waits
     await expect(block(page)).toBeVisible();
-    await expect(block(page).locator('.chat-turn').last()).toHaveText('Create a child container titled Assistant test under this document');
+    await expect(block(page).locator('.ldh-chat-turn').last()).toHaveText('Create a child container titled Assistant test under this document');
     await expect(composer(page)).toBeDisabled();
 
     // the block is the last thing in the body before the bar: what the plan writes will land above it
-    await expect(page.locator('.content-body > .chat-block + .ldh-create-dock')).toHaveCount(1);
+    await expect(page.locator('.content-body > .ldh-chat-block + .ldh-create-dock')).toHaveCount(1);
 
     // the plan: its operations as rows that have not run, the executable XML, and the two things that can happen to it.
     // Execute by default is on, and this plan writes - a write waits for Execute whatever the checkbox says
-    await expect(form(page).locator('.chat-run input')).toBeChecked();
-    await expect(card(page).locator('.chat-execute')).toBeVisible({ timeout: 90_000 });
-    await expect(card(page).locator('.chat-cancel')).toBeVisible();
-    const first = card(page).locator('.chat-steps .chat-step.is-planned').first();
+    await expect(form(page).locator('.ldh-chat-run input')).toBeChecked();
+    await expect(card(page).locator('.ldh-chat-execute')).toBeVisible({ timeout: 90_000 });
+    await expect(card(page).locator('.ldh-chat-cancel')).toBeVisible();
+    const first = card(page).locator('.ldh-chat-steps .ldh-chat-step.is-planned').first();
     await expect(first).toBeVisible();
     // the row is the control: it folds out its operation's XML, the first row's being the whole plan
     await expect(first.locator('pre')).toBeHidden();
@@ -121,11 +121,11 @@ test('a question becomes a plan that waits for Execute', { tag: '@owner' }, asyn
     expect(await page.evaluate(id => !!window.LinkedDataHub.chat[id], id)).toBe(true);
 
     // nothing ran: no row has an outcome
-    await expect(card(page).locator('.chat-step.is-done, .chat-step.is-failed, .chat-step.is-running')).toHaveCount(0);
+    await expect(card(page).locator('.ldh-chat-step.is-done, .ldh-chat-step.is-failed, .ldh-chat-step.is-running')).toHaveCount(0);
 
     // Cancel takes the card and its plan away and asks nothing of the service
-    await card(page).locator('.chat-cancel').click();
-    await expect(block(page).locator('.chat-plan')).toHaveCount(0);
+    await card(page).locator('.ldh-chat-cancel').click();
+    await expect(block(page).locator('.ldh-chat-plan')).toHaveCount(0);
     expect(await page.evaluate(id => id in window.LinkedDataHub.chat, id)).toBe(false);
 });
 
@@ -136,15 +136,15 @@ test('Clear empties the conversation and forgets its plans', { tag: '@owner' }, 
 
     await composer(page).fill('Create a child container titled Assistant clear under this document');
     await composer(page).press('Enter');
-    await expect(card(page).locator('.chat-execute')).toBeVisible({ timeout: 90_000 });
+    await expect(card(page).locator('.ldh-chat-execute')).toBeVisible({ timeout: 90_000 });
     const id = await card(page).getAttribute('id');
     expect(await page.evaluate(id => id in window.LinkedDataHub.chat, id)).toBe(true);
 
     // the block head's Clear takes the turn and the card away, and the plan the card held; the block hides again
     // with nothing in it, and the composer is ready
-    await block(page).locator('.chat-block-head .chat-clear').click();
-    await expect(block(page).locator('.chat-plan')).toHaveCount(0);
-    await expect(block(page).locator('.chat-turn')).toHaveCount(0);
+    await block(page).locator('.ldh-block-head .ldh-chat-clear').click();
+    await expect(block(page).locator('.ldh-chat-plan')).toHaveCount(0);
+    await expect(block(page).locator('.ldh-chat-turn')).toHaveCount(0);
     await expect(block(page)).not.toBeVisible();
     expect(await page.evaluate(id => id in window.LinkedDataHub.chat, id)).toBe(false);
     expect(await page.evaluate(id => id in window.LinkedDataHub.chatResults, id)).toBe(false);
@@ -158,45 +158,45 @@ test('Execute runs the plan, reports its steps and the document it wrote, and th
 
     await composer(page).fill('Create a child container titled Assistant run under this document');
     await composer(page).press('Enter');
-    await expect(card(page).locator('.chat-execute')).toBeVisible({ timeout: 90_000 });
+    await expect(card(page).locator('.ldh-chat-execute')).toBeVisible({ timeout: 90_000 });
     const id = await card(page).getAttribute('id');
-    await card(page).locator('.chat-execute').click();
+    await card(page).locator('.ldh-chat-execute').click();
 
     // the steps appear as the executor reports them, under a progress bar, with the composer waiting
-    await expect(card(page).locator('.chat-plan-actions')).toHaveCount(0);
+    await expect(card(page).locator('.ldh-chat-plan-actions')).toHaveCount(0);
     await expect(card(page).locator('.ac-pbar')).toBeVisible();
     await expect(composer(page)).toBeDisabled();
 
     // it ends one way or the other, and the rows say which: the same rows the plan showed, now with an outcome
-    const rows = card(page).locator('.chat-step');
+    const rows = card(page).locator('.ldh-chat-step');
     await expect(rows.first()).toHaveClass(/is-done|is-failed/, { timeout: 120_000 });
     await expect(card(page).locator('.ac-pbar')).toHaveCount(0);
     await expect(composer(page)).toBeEnabled();
 
     // a single creation under this container: every row went green, the written document is listed
     // under the container it was created in, and the card offers nothing more to run
-    await expect(card(page).locator('.chat-step.is-failed')).toHaveCount(0);
+    await expect(card(page).locator('.ldh-chat-step.is-failed')).toHaveCount(0);
     await expect(rows.first()).toHaveClass(/is-done/);
-    const written = card(page).locator('.chat-docs a.iri');
+    const written = card(page).locator('.ldh-chat-docs a.iri');
     await expect(written).toHaveCount(1);
     const href = await written.getAttribute('href');
     scratch.written.push(href);
     expect(href.startsWith(scratch.container)).toBe(true);
-    await expect(card(page).locator('.chat-execute')).toHaveCount(0);
+    await expect(card(page).locator('.ldh-chat-execute')).toHaveCount(0);
 
     // the page reloaded the document it is on, so the new child is there without a refresh by hand - and the
     // conversation came through the render that replaced the body: the same card, by id, last before the bar,
     // its rows still folding out their XML
     await expect(page.locator(`.document-body a[href="${href}"]`).first()).toBeVisible({ timeout: 30_000 });
-    await expect(page.locator('.content-body > .chat-block + .ldh-create-dock')).toHaveCount(1);
+    await expect(page.locator('.content-body > .ldh-chat-block + .ldh-create-dock')).toHaveCount(1);
     await expect(card(page)).toHaveAttribute('id', id);
-    await expect(card(page).locator('.chat-docs a.iri')).toHaveCount(1);
-    const done = card(page).locator('.chat-step.is-done').first();
+    await expect(card(page).locator('.ldh-chat-docs a.iri')).toHaveCount(1);
+    const done = card(page).locator('.ldh-chat-step.is-done').first();
     await done.locator('summary').click();
     await expect(done.locator('pre')).toBeVisible();
 
     // the rows name what they return by its label, looked up once the result is in: the written container by its title
-    await expect(card(page).locator('table.chat-result a').first()).toHaveText('Assistant run', { timeout: 30_000 });
+    await expect(card(page).locator('table.ldh-chat-result a').first()).toHaveText('Assistant run', { timeout: 30_000 });
 
     // what the plan returned stays with the card: a follow-up's "them" is sent with the next question as these rows
     expect(await page.evaluate(id => id in window.LinkedDataHub.chatResults, id)).toBe(true);

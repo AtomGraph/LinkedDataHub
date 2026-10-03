@@ -737,7 +737,7 @@ exclude-result-prefixes="#all"
                 <!-- the assistant, for a reader who can be acted for: the button is the bar's, the composer it opens and the
                      conversation it feeds are the client's (client/chat.xsl, ldh:ChatMount) -->
                 <xsl:if test="$foaf:Agent//@rdf:about">
-                    <button type="button" class="ac-btn in-neutral ap-outline sz-md chat-open" title="{ac:label(key('resources', 'open-assistant', ldh:translations()))}">
+                    <button type="button" class="ac-btn in-neutral ap-outline sz-md ldh-chat-open" title="{ac:label(key('resources', 'open-assistant', ldh:translations()))}">
                         <span class="msi sm" aria-hidden="true">forum</span>
                         <span>
                             <xsl:apply-templates select="key('resources', 'assistant', ldh:translations())" mode="ac:label"/>
@@ -789,7 +789,7 @@ exclude-result-prefixes="#all"
                 <!-- the assistant, for a reader who can be acted for: the button is the bar's, the composer it opens and the
                      conversation it feeds are the client's (client/chat.xsl, ldh:ChatMount) -->
                 <xsl:if test="$foaf:Agent//@rdf:about">
-                    <button type="button" class="ac-btn in-neutral ap-outline sz-md chat-open" title="{ac:label(key('resources', 'open-assistant', ldh:translations()))}">
+                    <button type="button" class="ac-btn in-neutral ap-outline sz-md ldh-chat-open" title="{ac:label(key('resources', 'open-assistant', ldh:translations()))}">
                         <span class="msi sm" aria-hidden="true">forum</span>
                         <span>
                             <xsl:apply-templates select="key('resources', 'assistant', ldh:translations())" mode="ac:label"/>

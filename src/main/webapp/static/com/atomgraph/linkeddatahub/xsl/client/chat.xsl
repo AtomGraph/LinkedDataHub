@@ -68,7 +68,7 @@ exclude-result-prefixes="#all"
             <xsl:if test="empty($content-body/div[contains-token(@class, 'ldh-create-dock')])">
                 <xsl:for-each select="$content-body">
                     <xsl:result-document href="?." method="ixsl:append-content">
-                        <div class="create-resource ldh-create-dock chat-only"/>
+                        <div class="create-resource ldh-create-dock ldh-chat-only"/>
                     </xsl:result-document>
                 </xsl:for-each>
             </xsl:if>
@@ -77,22 +77,31 @@ exclude-result-prefixes="#all"
             <!-- the block: its head, and the document's log - a placeholder that the kept log replaces when there is one -->
             <xsl:for-each select="$dock">
                 <xsl:result-document href="?." method="ixsl:insert-before">
-                    <div class="ldh-block chat-block">
-                        <div class="ldh-block-head chat-block-head">
-                            <span class="msi outline sm" aria-hidden="true">forum</span>
-                            <span class="ttl">
-                                <xsl:apply-templates select="key('resources', 'assistant', $translations)" mode="ac:label"/>
+                    <div class="ldh-block ldh-chat-block">
+                        <!-- the kit's one block header (BlockHeader, compact density): icon, title, and the actions cluster
+                             holding Clear, which empties the log - every turn and card goes, and the plans they held with them -->
+                        <div class="ldh-block-head ldh-res-head" data-density="compact">
+                            <span class="ldh-res-icon">
+                                <span class="msi outline" aria-hidden="true">forum</span>
                             </span>
-                            <!-- Clear empties the log: every turn and card goes, and the plans they held with them -->
-                            <button type="button" class="ac-iconbtn sz-sm in-neutral ap-ghost chat-clear" aria-label="{ac:label(key('resources', 'clear-chat', $translations))}" title="{ac:label(key('resources', 'clear-chat', $translations))}">
-                                <span class="msi sm" aria-hidden="true">delete_sweep</span>
-                            </button>
+                            <div class="ldh-res-text">
+                                <div class="ldh-res-titleline">
+                                    <h3 class="ttl">
+                                        <xsl:apply-templates select="key('resources', 'assistant', $translations)" mode="ac:label"/>
+                                    </h3>
+                                </div>
+                            </div>
+                            <div class="actions">
+                                <button type="button" class="ac-iconbtn sz-sm in-neutral ap-ghost ldh-chat-clear" aria-label="{ac:label(key('resources', 'clear-chat', $translations))}" title="{ac:label(key('resources', 'clear-chat', $translations))}">
+                                    <span class="msi sm" aria-hidden="true">delete_sweep</span>
+                                </button>
+                            </div>
                         </div>
-                        <div class="chat-log"/>
+                        <div class="ldh-chat-log"/>
                     </div>
                 </xsl:result-document>
             </xsl:for-each>
-            <xsl:variable name="placeholder" select="$content-body/div[contains-token(@class, 'chat-block')]/div[contains-token(@class, 'chat-log')]" as="element()"/>
+            <xsl:variable name="placeholder" select="$content-body/div[contains-token(@class, 'ldh-chat-block')]/div[contains-token(@class, 'ldh-chat-log')]" as="element()"/>
             <xsl:choose>
                 <xsl:when test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.chatLogs'), $key)">
                     <xsl:sequence select="ixsl:call($placeholder, 'replaceWith', [ ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.chatLogs'), $key) ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -115,7 +124,7 @@ exclude-result-prefixes="#all"
                             </xsl:call-template>
                         </xsl:result-document>
                     </xsl:for-each>
-                    <xsl:variable name="form" select="$dock/form[contains-token(@class, 'chat-composer')]" as="element()"/>
+                    <xsl:variable name="form" select="$dock/form[contains-token(@class, 'ldh-chat-composer')]" as="element()"/>
                     <xsl:sequence select="ixsl:call($dock, 'prepend', [ $form ])[current-date() lt xs:date('2000-01-01')]"/>
                     <ixsl:set-property name="chatComposer" select="$form" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                 </xsl:otherwise>
@@ -129,9 +138,9 @@ exclude-result-prefixes="#all"
     <xsl:template name="ldh:ChatComposer">
         <xsl:param name="translations" as="document-node()"/>
 
-        <form class="chat-composer chat-dock" accept-charset="UTF-8">
-            <div class="chat-options">
-                <label class="ac-choice chat-run">
+        <form class="ldh-chat-composer ldh-chat-dock" accept-charset="UTF-8">
+            <div class="ldh-chat-options">
+                <label class="ac-choice ldh-chat-run">
                     <input type="checkbox" name="run" checked="checked"/>
                     <span class="ac-box">
                         <span class="msi sm" aria-hidden="true">check</span>
@@ -142,7 +151,7 @@ exclude-result-prefixes="#all"
                         </span>
                     </span>
                 </label>
-                <label class="ac-choice chat-auto">
+                <label class="ac-choice ldh-chat-auto">
                     <input type="checkbox" name="auto"/>
                     <span class="ac-box">
                         <span class="msi sm" aria-hidden="true">check</span>
@@ -154,7 +163,7 @@ exclude-result-prefixes="#all"
                     </span>
                 </label>
             </div>
-            <div class="chat-composer-row">
+            <div class="ldh-chat-composer-row">
                 <div class="ac-field">
                     <div class="ac-field-box sz-md">
                         <textarea rows="2" name="question" placeholder="{ac:label(key('resources', 'chat-placeholder', $translations))}" aria-label="{ac:label(key('resources', 'assistant', $translations))}"/>
@@ -184,7 +193,7 @@ exclude-result-prefixes="#all"
     <!-- OPEN AND CLOSE -->
 
     <!-- the bar's button opens the composer, and closes it again; open, the composer takes the focus -->
-    <xsl:template match="*[ancestor-or-self::button[contains-token(@class, 'chat-open')]]" mode="ixsl:onclick">
+    <xsl:template match="*[ancestor-or-self::button[contains-token(@class, 'ldh-chat-open')]]" mode="ixsl:onclick">
         <xsl:for-each select="ldh:chat-composer()">
             <xsl:choose>
                 <xsl:when test="contains-token(@class, 'is-open')">
@@ -197,22 +206,22 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
 
-    <xsl:template match="form[contains-token(@class, 'chat-composer')]" mode="ldh:OpenComposer">
+    <xsl:template match="form[contains-token(@class, 'ldh-chat-composer')]" mode="ldh:OpenComposer">
         <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-open', true())"/>
         <xsl:sequence select="ixsl:call((.//textarea)[1], 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
-    <xsl:template match="form[contains-token(@class, 'chat-composer')]" mode="ldh:CloseComposer">
+    <xsl:template match="form[contains-token(@class, 'ldh-chat-composer')]" mode="ldh:CloseComposer">
         <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-open', false())"/>
     </xsl:template>
 
     <!-- Clear empties this document's log - every turn and every card - and drops the plans the cards held, so the
          next question starts a conversation with no history. The composer is enabled again, whatever a removed card
          left it as -->
-    <xsl:template match="*[ancestor-or-self::button[contains-token(@class, 'chat-clear')]]" mode="ixsl:onclick">
-        <xsl:variable name="log" select="ancestor::div[contains-token(@class, 'chat-block')][1]/div[contains-token(@class, 'chat-log')]" as="element()"/>
+    <xsl:template match="*[ancestor-or-self::button[contains-token(@class, 'ldh-chat-clear')]]" mode="ixsl:onclick">
+        <xsl:variable name="log" select="ancestor::div[contains-token(@class, 'ldh-chat-block')][1]/div[contains-token(@class, 'ldh-chat-log')]" as="element()"/>
 
-        <xsl:for-each select="$log/div[contains-token(@class, 'chat-plan')]/@id">
+        <xsl:for-each select="$log/div[contains-token(@class, 'ldh-chat-plan')]/@id">
             <ixsl:remove-property name="{.}" object="ixsl:get(ixsl:window(), 'LinkedDataHub.chat')"/>
             <ixsl:remove-property name="{.}" object="ixsl:get(ixsl:window(), 'LinkedDataHub.chatResults')"/>
         </xsl:for-each>
@@ -227,21 +236,21 @@ exclude-result-prefixes="#all"
     <!-- Enter sends, Shift+Enter breaks the line; Escape closes the composer from inside it as it does from the page
          (client/navigation.xsl handles the key when focus is on the body). keydown, not keyup: the default that
          inserts the newline fires on keydown, and only the event carrying a default can prevent it -->
-    <xsl:template match="textarea[ancestor::form[contains-token(@class, 'chat-composer')]]" mode="ixsl:onkeydown">
+    <xsl:template match="textarea[ancestor::form[contains-token(@class, 'ldh-chat-composer')]]" mode="ixsl:onkeydown">
         <xsl:variable name="key" select="ixsl:get(ixsl:event(), 'key')" as="xs:string"/>
 
         <xsl:choose>
             <xsl:when test="$key = 'Enter' and not(ixsl:get(ixsl:event(), 'shiftKey'))">
                 <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
-                <xsl:apply-templates select="ancestor::form[contains-token(@class, 'chat-composer')][1]" mode="ixsl:onsubmit"/>
+                <xsl:apply-templates select="ancestor::form[contains-token(@class, 'ldh-chat-composer')][1]" mode="ixsl:onsubmit"/>
             </xsl:when>
             <xsl:when test="$key = 'Escape'">
-                <xsl:apply-templates select="ancestor::form[contains-token(@class, 'chat-composer')][1]" mode="ldh:CloseComposer"/>
+                <xsl:apply-templates select="ancestor::form[contains-token(@class, 'ldh-chat-composer')][1]" mode="ldh:CloseComposer"/>
             </xsl:when>
         </xsl:choose>
     </xsl:template>
 
-    <xsl:template match="form[contains-token(@class, 'chat-composer')]" mode="ixsl:onsubmit">
+    <xsl:template match="form[contains-token(@class, 'ldh-chat-composer')]" mode="ixsl:onsubmit">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])[current-date() lt xs:date('2000-01-01')]"/>
         <xsl:variable name="textarea" select="(.//textarea)[1]" as="element()"/>
         <xsl:variable name="question" select="normalize-space(ixsl:get($textarea, 'value'))" as="xs:string"/>
@@ -267,14 +276,14 @@ exclude-result-prefixes="#all"
         <!-- the log of the document the reader is on: the card lands in the body as its last block -->
         <xsl:variable name="log" select="ldh:chat-log(ac:absolute-path(ldh:request-uri()))" as="element()"/>
         <xsl:variable name="card-id" select="'chat-' || ac:uuid()" as="xs:string"/>
-        <xsl:variable name="history" as="array(*)" select="array { for $card in ($log/div[contains-token(@class, 'chat-plan')][@data-outcome])[position() gt last() - 3] return ldh:chat-turn($card) }"/>
+        <xsl:variable name="history" as="array(*)" select="array { for $card in ($log/div[contains-token(@class, 'ldh-chat-plan')][@data-outcome])[position() gt last() - 3] return ldh:chat-turn($card) }"/>
 
         <xsl:for-each select="$log">
             <xsl:result-document href="?." method="ixsl:append-content">
-                <p class="chat-turn">
+                <p class="ldh-chat-turn">
                     <xsl:value-of select="$question"/>
                 </p>
-                <div class="ldh-nblock chat-plan" data-depth="1" id="{$card-id}" data-question="{$question}" data-attempt="{$attempt}">
+                <div class="ldh-nblock ldh-chat-plan" data-depth="1" id="{$card-id}" data-question="{$question}" data-attempt="{$attempt}">
                     <xsl:sequence select="ldh:chat-progress('thinking', ())"/>
                 </div>
             </xsl:result-document>
@@ -359,8 +368,8 @@ exclude-result-prefixes="#all"
 
     <!-- Revise: the same question again, now with this card in the history - a plan that returned nothing or failed
          is what the service is told not to repeat -->
-    <xsl:template match="*[ancestor-or-self::button[contains-token(@class, 'chat-revise')]]" mode="ixsl:onclick">
-        <xsl:variable name="card" select="ancestor::div[contains-token(@class, 'chat-plan')][1]" as="element()"/>
+    <xsl:template match="*[ancestor-or-self::button[contains-token(@class, 'ldh-chat-revise')]]" mode="ixsl:onclick">
+        <xsl:variable name="card" select="ancestor::div[contains-token(@class, 'ldh-chat-plan')][1]" as="element()"/>
 
         <xsl:call-template name="ldh:ChatAsk">
             <xsl:with-param name="form" select="ldh:chat-composer()"/>
@@ -370,7 +379,7 @@ exclude-result-prefixes="#all"
 
     <!-- the composer is disabled while a request of its own is in flight, so a question is answered before the next
          one is asked; a plan waiting for Execute leaves it open -->
-    <xsl:template match="form[contains-token(@class, 'chat-composer')]" mode="ldh:ComposerEnabled">
+    <xsl:template match="form[contains-token(@class, 'ldh-chat-composer')]" mode="ldh:ComposerEnabled">
         <xsl:param name="enabled" as="xs:boolean"/>
 
         <xsl:for-each select=".//div[contains-token(@class, 'ac-field-box')] | .//button">
@@ -463,17 +472,17 @@ exclude-result-prefixes="#all"
         </xsl:if>
         <!-- the same rows execution reports into: an operation is a step that has not run yet. The rows nest as
              the operations do, and each folds out its own operation's XML - the first, the outermost, the whole plan -->
-        <ul class="chat-steps">
+        <ul class="ldh-chat-steps">
             <xsl:apply-templates select="$operation" mode="ldh:OperationTree"/>
         </ul>
-        <div class="chat-plan-actions">
-            <button type="button" class="ac-btn in-primary ap-solid sz-md chat-execute">
+        <div class="ldh-chat-plan-actions">
+            <button type="button" class="ac-btn in-primary ap-solid sz-md ldh-chat-execute">
                 <span class="msi sm" aria-hidden="true">play_arrow</span>
                 <span>
                     <xsl:apply-templates select="key('resources', 'execute', ldh:translations())" mode="ac:label"/>
                 </span>
             </button>
-            <button type="button" class="ac-btn in-neutral ap-outline sz-md chat-cancel">
+            <button type="button" class="ac-btn in-neutral ap-outline sz-md ldh-chat-cancel">
                 <span>
                     <xsl:apply-templates select="key('resources', 'cancel', ldh:translations())" mode="ac:label"/>
                 </span>
@@ -491,7 +500,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="nested" select="ldh:nested-operations(.)" as="element()*"/>
 
         <li>
-            <details class="chat-step is-planned kd-{$kind}">
+            <details class="ldh-chat-step is-planned kd-{$kind}">
                 <summary>
                     <span class="st msi sm" aria-hidden="true">
                         <xsl:value-of select="map{ 'read': 'visibility', 'write': 'edit', 'destructive': 'warning' }($kind)"/>
@@ -560,8 +569,8 @@ exclude-result-prefixes="#all"
           else 'read'"/>
     </xsl:function>
 
-    <xsl:template match="*[ancestor-or-self::button[contains-token(@class, 'chat-cancel') or contains-token(@class, 'chat-dismiss')]]" mode="ixsl:onclick">
-        <xsl:variable name="card" select="ancestor::div[contains-token(@class, 'chat-plan')][1]" as="element()"/>
+    <xsl:template match="*[ancestor-or-self::button[contains-token(@class, 'ldh-chat-cancel') or contains-token(@class, 'ldh-chat-dismiss')]]" mode="ixsl:onclick">
+        <xsl:variable name="card" select="ancestor::div[contains-token(@class, 'ldh-chat-plan')][1]" as="element()"/>
         <xsl:variable name="form" select="ldh:chat-composer()" as="element()"/>
 
         <ixsl:remove-property name="{$card/@id}" object="ixsl:get(ixsl:window(), 'LinkedDataHub.chat')"/>
@@ -576,9 +585,9 @@ exclude-result-prefixes="#all"
 
     <!-- Execute (and Retry, which is the same button on a failed card) submits the card's plan and follows the
          execution until it ends. The description above the actions stays; what a previous attempt reported goes -->
-    <xsl:template match="*[ancestor-or-self::button[contains-token(@class, 'chat-execute')]]" mode="ixsl:onclick">
+    <xsl:template match="*[ancestor-or-self::button[contains-token(@class, 'ldh-chat-execute')]]" mode="ixsl:onclick">
         <xsl:call-template name="ldh:ChatExecute">
-            <xsl:with-param name="card" select="ancestor::div[contains-token(@class, 'chat-plan')][1]"/>
+            <xsl:with-param name="card" select="ancestor::div[contains-token(@class, 'ldh-chat-plan')][1]"/>
         </xsl:call-template>
     </xsl:template>
 
@@ -590,10 +599,10 @@ exclude-result-prefixes="#all"
 
         <!-- the actions and what a previous attempt reported - everything after the rows - go; the rows go back to
              planned and report anew -->
-        <xsl:for-each select="$card/*[preceding-sibling::ul[contains-token(@class, 'chat-steps')]] | $card/div[contains-token(@class, 'ac-pbar')]">
+        <xsl:for-each select="$card/*[preceding-sibling::ul[contains-token(@class, 'ldh-chat-steps')]] | $card/div[contains-token(@class, 'ac-pbar')]">
             <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
-        <xsl:for-each select="$card/ul[contains-token(@class, 'chat-steps')]">
+        <xsl:for-each select="$card/ul[contains-token(@class, 'ldh-chat-steps')]">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:apply-templates select="$operation" mode="ldh:OperationTree"/>
             </xsl:result-document>
@@ -708,7 +717,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="entered" select="subsequence($elements, 1, count($steps))" as="element()*"/>
         <xsl:variable name="matched" select="count($entered) = count($steps) and deep-equal($entered/ldh:operation-name(.), $steps/string(@operation))" as="xs:boolean"/>
 
-        <xsl:for-each select="$card/ul[contains-token(@class, 'chat-steps')]">
+        <xsl:for-each select="$card/ul[contains-token(@class, 'ldh-chat-steps')]">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:call-template name="ldh:StepTree">
                     <xsl:with-param name="steps" select="$steps"/>
@@ -758,7 +767,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="state" select="if (@outcome = 'start') then 'is-running' else if (@outcome = 'complete') then 'is-done' else 'is-failed'" as="xs:string"/>
         <xsl:variable name="position" select="count(preceding-sibling::wa:step) + 1" as="xs:integer"/>
 
-        <details class="chat-step {$state}">
+        <details class="ldh-chat-step {$state}">
             <xsl:if test=". is $failed and exists($message)">
                 <xsl:attribute name="open" select="''"/>
             </xsl:if>
@@ -789,7 +798,7 @@ exclude-result-prefixes="#all"
                 </span>
             </summary>
             <xsl:if test=". is $failed and exists($message)">
-                <p class="chat-step-message">
+                <p class="ldh-chat-step-message">
                     <xsl:value-of select="$message"/>
                 </p>
             </xsl:if>
@@ -837,12 +846,12 @@ exclude-result-prefixes="#all"
         <xsl:for-each select="$card">
             <xsl:result-document href="?." method="ixsl:append-content">
                 <xsl:if test="exists($written)">
-                    <span class="chat-plan-meta">
+                    <span class="ldh-chat-plan-meta">
                         <xsl:apply-templates select="key('resources', 'changed-documents', ldh:translations())" mode="ac:label"/>
                         <xsl:text> · </xsl:text>
                         <xsl:value-of select="count($written)"/>
                     </span>
-                    <table class="ac-table ap-plain dn-tight is-hoverable chat-docs">
+                    <table class="ac-table ap-plain dn-tight is-hoverable ldh-chat-docs">
                         <colgroup>
                             <col style="width: 28px"/>
                             <col/>
@@ -866,7 +875,7 @@ exclude-result-prefixes="#all"
 
                 <xsl:choose>
                     <xsl:when test="$empty">
-                        <span class="chat-plan-meta">
+                        <span class="ldh-chat-plan-meta">
                             <xsl:apply-templates select="key('resources', 'no-results', ldh:translations())" mode="ac:label"/>
                         </span>
                     </xsl:when>
@@ -877,8 +886,8 @@ exclude-result-prefixes="#all"
 
                 <!-- nothing, or a failure, is a reason to ask again differently; a failure may also be worth the same plan once more -->
                 <xsl:if test="$failed or $empty">
-                    <div class="chat-plan-actions">
-                        <button type="button" class="ac-btn in-primary ap-solid sz-md chat-revise">
+                    <div class="ldh-chat-plan-actions">
+                        <button type="button" class="ac-btn in-primary ap-solid sz-md ldh-chat-revise">
                             <span class="msi sm" aria-hidden="true">autorenew</span>
                             <span>
                                 <xsl:apply-templates select="key('resources', 'revise', ldh:translations())" mode="ac:label"/>
@@ -886,7 +895,7 @@ exclude-result-prefixes="#all"
                         </button>
                         <xsl:choose>
                             <xsl:when test="$failed">
-                                <button type="button" class="ac-btn in-neutral ap-outline sz-md chat-execute">
+                                <button type="button" class="ac-btn in-neutral ap-outline sz-md ldh-chat-execute">
                                     <span class="msi sm" aria-hidden="true">refresh</span>
                                     <span>
                                         <xsl:apply-templates select="key('resources', 'retry', ldh:translations())" mode="ac:label"/>
@@ -894,7 +903,7 @@ exclude-result-prefixes="#all"
                                 </button>
                             </xsl:when>
                             <xsl:otherwise>
-                                <button type="button" class="ac-btn in-neutral ap-outline sz-md chat-dismiss">
+                                <button type="button" class="ac-btn in-neutral ap-outline sz-md ldh-chat-dismiss">
                                     <span>
                                         <xsl:apply-templates select="key('resources', 'dismiss', ldh:translations())" mode="ac:label"/>
                                     </span>
@@ -970,7 +979,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="card" select="$context('card')" as="element()"/>
         <xsl:variable name="results" select="$context('result')" as="element()*"/>
-        <xsl:variable name="tables" select="$card/table[contains-token(@class, 'chat-result')]" as="element()*"/>
+        <xsl:variable name="tables" select="$card/table[contains-token(@class, 'ldh-chat-result')]" as="element()*"/>
 
         <xsl:for-each select="$results">
             <xsl:variable name="position" select="position()" as="xs:integer"/>
@@ -995,12 +1004,12 @@ exclude-result-prefixes="#all"
          was written to is what shows it -->
     <xsl:template match="srx:sparql" mode="ldh:ExecutionResult">
         <xsl:apply-templates select="." mode="ac:ResultsTable">
-            <xsl:with-param name="class" select="'ac-table ap-plain dn-tight chat-result'"/>
+            <xsl:with-param name="class" select="'ac-table ap-plain dn-tight ldh-chat-result'"/>
         </xsl:apply-templates>
     </xsl:template>
 
     <xsl:template match="rdf:RDF" mode="ldh:ExecutionResult">
-        <span class="chat-plan-meta">
+        <span class="ldh-chat-plan-meta">
             <xsl:value-of select="count(rdf:Description)"/>
             <xsl:text> </xsl:text>
             <xsl:apply-templates select="key('resources', 'resources', ldh:translations())" mode="ac:label"/>
@@ -1009,7 +1018,7 @@ exclude-result-prefixes="#all"
 
     <!-- a term or string the plan returned, as the service spelled it -->
     <xsl:template match="wa:value" mode="ldh:ExecutionResult">
-        <span class="chat-plan-meta">
+        <span class="ldh-chat-plan-meta">
             <xsl:value-of select="."/>
         </span>
     </xsl:template>
