@@ -20,6 +20,7 @@ import com.atomgraph.client.util.jena.PrefixGraphRepository;
 import com.atomgraph.linkeddatahub.writer.impl.SameSiteSourceResolver;
 import com.atomgraph.linkeddatahub.server.util.ContextEndpointAccessor;
 import com.atomgraph.linkeddatahub.server.util.FileContextPersistence;
+import com.atomgraph.linkeddatahub.server.util.GraphLocks;
 import com.atomgraph.linkeddatahub.server.util.OntologyRepository;
 import org.apache.jena.riot.RDFParser;
 import com.atomgraph.linkeddatahub.server.mapper.HttpHostConnectExceptionMapper;
@@ -279,6 +280,7 @@ public class Application extends ResourceConfig
     private final SameSiteSourceResolver resolver;
     private final Map<String, OntologyRepository> endUserRepositories;
     private final PackageService packageService = new PackageService(this);
+    private final GraphLocks graphLocks = new GraphLocks();
     private final MediaTypes mediaTypes;
     private final Client client, externalClient, externalNoCertClient, importClient, noCertClient, verifiedClient;
     private final Query documentTypeQuery, documentOwnerQuery, aclQuery, ownerAclQuery, webIDQuery, agentQuery, userAccountQuery, ontologyQuery; // no relative URIs
@@ -2576,6 +2578,16 @@ public class Application extends ResourceConfig
     public com.atomgraph.linkeddatahub.server.util.GraphVersioningService getGraphVersioningService()
     {
         return graphVersioningService;
+    }
+
+    /**
+     * Locks serialising the writes to a named graph, held from the read of the graph to the write back.
+     * 
+     * @return graph locks
+     */
+    public GraphLocks getGraphLocks()
+    {
+        return graphLocks;
     }
 
     /**

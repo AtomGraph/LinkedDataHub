@@ -33,6 +33,7 @@ import com.atomgraph.linkeddatahub.server.model.Patchable;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.PatchUpdateVisitor;
 import com.atomgraph.linkeddatahub.server.util.EntityTags;
+import com.atomgraph.linkeddatahub.server.util.GraphLocks;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.DH;
@@ -100,6 +101,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.function.Supplier;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.atlas.RuntimeIOException;
@@ -371,36 +374,39 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
 
         if (log.isTraceEnabled()) log.trace("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
 
-        final Model existingModel = getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(getURI().toString());
+        return writeLocked(() ->
+        {
+            final Model existingModel = getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(getURI().toString());
         
-        Response.ResponseBuilder rb = evaluatePreconditions(existingModel, getHttpHeaders());
-        if (rb != null) return rb.build(); // preconditions not met
+            Response.ResponseBuilder rb = evaluatePreconditions(existingModel, getHttpHeaders());
+            if (rb != null) return rb.build(); // preconditions not met
         
-        model.createResource(getURI().toString()).
-            removeAll(DCTerms.modified).
-            addLiteral(DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
+            model.createResource(getURI().toString()).
+                removeAll(DCTerms.modified).
+                addLiteral(DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
         
-        // container/item (graph) resource is already skolemized, skolemize the rest of the model
-        new Skolemizer(getURI().toString()).apply(model);
+            // container/item (graph) resource is already skolemized, skolemize the rest of the model
+            new Skolemizer(getURI().toString()).apply(model);
         
-        // is this implemented correctly? The specification is not very clear.
-        if (log.isDebugEnabled()) log.debug("POST Model to named graph with URI: {}", getURI());
-        // First remove old dct:modified values from the triplestore, then add new data
-        existingModel.createResource(getURI().toString()).removeAll(DCTerms.modified);
-        Model updatedModel = existingModel.add(model);
+            // is this implemented correctly? The specification is not very clear.
+            if (log.isDebugEnabled()) log.debug("POST Model to named graph with URI: {}", getURI());
+            // First remove old dct:modified values from the triplestore, then add new data
+            existingModel.createResource(getURI().toString()).removeAll(DCTerms.modified);
+            Model updatedModel = existingModel.add(model);
 
-        // the payload was validated on its own when it was read, where a constraint that spans the document -
-        // a block the payload appends to a document it does not type - had nothing to apply to; what is written
-        // is the whole document, so that is what is held to the constraints
-        validateConstraints(updatedModel);
+            // the payload was validated on its own when it was read, where a constraint that spans the document -
+            // a block the payload appends to a document it does not type - had nothing to apply to; what is written
+            // is the whole document, so that is what is held to the constraints
+            validateConstraints(updatedModel);
 
-        getSystem().getServiceContext(getService()).getGraphStoreClient().putModel(getURI().toString(), updatedModel); // replace entire graph to avoid accumulating dct:modified
+            getSystem().getServiceContext(getService()).getGraphStoreClient().putModel(getURI().toString(), updatedModel); // replace entire graph to avoid accumulating dct:modified
 
-        submitImports(model);
+            submitImports(model);
         
-        return Response.noContent().
-            tag(getInternalResponse(updatedModel, null).getVariantEntityTag()). // entity tag of the updated graph
-            build();
+            return Response.noContent().
+                tag(getInternalResponse(updatedModel, null).getVariantEntityTag()). // entity tag of the updated graph
+                build();
+        });
     }
     
     /**
@@ -443,84 +449,87 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             throw new BadRequestException("Double slashes not allowed in document URIs");
         }
         
-        new Skolemizer(getURI().toString()).apply(model);
-        Model existingModel = null;
-        try
+        return writeLocked(() ->
         {
-            existingModel = getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(getURI().toString());
-            
-            Response.ResponseBuilder rb = evaluatePreconditions(existingModel, getHttpHeaders());
-            if (rb != null) return rb.build(); // preconditions not met
-        }
-        catch (NotFoundException ex)
-        {
-            //if (existingModel == null) existingModel = null;
-        }
-
-        Resource parent = model.createResource(getURI().resolve("..").toString());
-        Resource resource = model.createResource(getURI().toString()).
-            removeAll(SIOC.HAS_PARENT).
-            removeAll(SIOC.HAS_CONTAINER);
-
-        boolean typed = false; // whether the document's class is assigned here rather than by the payload
-        if (!getDataspace().getBaseURI().equals(getURI())) // don't update Root document's metadata
-        {
-            if (resource.hasProperty(RDF.type, DH.Container))
-                resource.addProperty(SIOC.HAS_PARENT, parent);
-            else
-            {
-                typed = !resource.hasProperty(RDF.type, DH.Item);
-                resource.addProperty(SIOC.HAS_CONTAINER, parent).
-                    addProperty(RDF.type, DH.Item); // TO-DO: replace with foaf:Document?
-            }
-        }
-
-        // the payload was validated when it was read, while the document was still untyped and so held to no
-        // class's constraints; a document typed here is held to dh:Item's now, before it is written
-        if (typed) validateConstraints(model);
-
-        if (existingModel == null) // creating new graph and attaching it to the document hierarchy
-        {
-            resource.removeAll(DCTerms.created). // remove any client-supplied dct:created values
-                addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
-            
-            if (getAgentContext().isPresent()) resource.addProperty(DCTerms.creator, getAgentContext().get().getAgent()).
-                    addProperty(ACL.owner, getAgentContext().get().getAgent());
-
-            if (log.isDebugEnabled()) log.debug("PUT Model into new named graph with URI: {}", getURI());
-            getSystem().getServiceContext(getService()).getGraphStoreClient().putModel(getURI().toString(), model); // TO-DO: catch exceptions
-
-            submitImports(model);
-
-            return Response.created(getURI()).
-                build();
-        }
-        else // updating existing graph
-        {        
-            // retain metadata from existing document resource
-            ExtendedIterator<Statement> it = existingModel.createResource(getURI().toString()).listProperties(DCTerms.created).
-                andThen(existingModel.createResource(getURI().toString()).listProperties(DCTerms.creator)).
-                andThen(existingModel.createResource(getURI().toString()).listProperties(ACL.owner));
+            new Skolemizer(getURI().toString()).apply(model);
+            Model existingModel = null;
             try
             {
-                it.forEach(stmt -> model.add(stmt));
+                existingModel = getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(getURI().toString());
+            
+                Response.ResponseBuilder rb = evaluatePreconditions(existingModel, getHttpHeaders());
+                if (rb != null) return rb.build(); // preconditions not met
             }
-            finally
+            catch (NotFoundException ex)
             {
-                it.close();
+                //if (existingModel == null) existingModel = null;
             }
 
-            resource.removeAll(DCTerms.modified).
-                addLiteral(DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
+            Resource parent = model.createResource(getURI().resolve("..").toString());
+            Resource resource = model.createResource(getURI().toString()).
+                removeAll(SIOC.HAS_PARENT).
+                removeAll(SIOC.HAS_CONTAINER);
 
-            if (log.isDebugEnabled()) log.debug("PUT Model into existing named graph with URI: {}", getURI());
-            getSystem().getServiceContext(getService()).getGraphStoreClient().putModel(getURI().toString(), model); // TO-DO: catch exceptions
+            boolean typed = false; // whether the document's class is assigned here rather than by the payload
+            if (!getDataspace().getBaseURI().equals(getURI())) // don't update Root document's metadata
+            {
+                if (resource.hasProperty(RDF.type, DH.Container))
+                    resource.addProperty(SIOC.HAS_PARENT, parent);
+                else
+                {
+                    typed = !resource.hasProperty(RDF.type, DH.Item);
+                    resource.addProperty(SIOC.HAS_CONTAINER, parent).
+                        addProperty(RDF.type, DH.Item); // TO-DO: replace with foaf:Document?
+                }
+            }
 
-            submitImports(model);
+            // the payload was validated when it was read, while the document was still untyped and so held to no
+            // class's constraints; a document typed here is held to dh:Item's now, before it is written
+            if (typed) validateConstraints(model);
 
-            return getInternalResponse(existingModel, null).getResponseBuilder().
-                build();
-        }
+            if (existingModel == null) // creating new graph and attaching it to the document hierarchy
+            {
+                resource.removeAll(DCTerms.created). // remove any client-supplied dct:created values
+                    addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
+            
+                if (getAgentContext().isPresent()) resource.addProperty(DCTerms.creator, getAgentContext().get().getAgent()).
+                        addProperty(ACL.owner, getAgentContext().get().getAgent());
+
+                if (log.isDebugEnabled()) log.debug("PUT Model into new named graph with URI: {}", getURI());
+                getSystem().getServiceContext(getService()).getGraphStoreClient().putModel(getURI().toString(), model); // TO-DO: catch exceptions
+
+                submitImports(model);
+
+                return Response.created(getURI()).
+                    build();
+            }
+            else // updating existing graph
+            {        
+                // retain metadata from existing document resource
+                ExtendedIterator<Statement> it = existingModel.createResource(getURI().toString()).listProperties(DCTerms.created).
+                    andThen(existingModel.createResource(getURI().toString()).listProperties(DCTerms.creator)).
+                    andThen(existingModel.createResource(getURI().toString()).listProperties(ACL.owner));
+                try
+                {
+                    it.forEach(stmt -> model.add(stmt));
+                }
+                finally
+                {
+                    it.close();
+                }
+
+                resource.removeAll(DCTerms.modified).
+                    addLiteral(DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
+
+                if (log.isDebugEnabled()) log.debug("PUT Model into existing named graph with URI: {}", getURI());
+                getSystem().getServiceContext(getService()).getGraphStoreClient().putModel(getURI().toString(), model); // TO-DO: catch exceptions
+
+                submitImports(model);
+
+                return getInternalResponse(existingModel, null).getResponseBuilder().
+                    build();
+            }
+        });
     }
     
     /**
@@ -558,53 +567,56 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         }
         // no need to set WITH <graphUri> since we'll be updating model in memory before persisting it
 
-        final Dataset dataset;
-        final Model existingModel = getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(getURI().toString());
-        if (existingModel == null) throw new NotFoundException("Named graph with URI <" + getURI() + "> not found");
-
-        Response.ResponseBuilder rb = evaluatePreconditions(existingModel, getHttpHeaders());
-        if (rb != null) return rb.build(); // preconditions not met
-
-        Model beforeUpdateModel = ModelFactory.createDefaultModel().add(existingModel);
-        dataset = DatasetFactory.wrap(existingModel);
-        UpdateAction.execute(updateRequest, dataset); // update model in memory
-        new Skolemizer(getURI().toString()).apply(existingModel); // skolemize blank nodes introduced by INSERT
-
-        // if PATCH results in an empty graph, treat it as a DELETE request
-        if (existingModel.isEmpty()) return delete();
-
-        // SPIN constraints are class-scoped; allowing rdf:type removal would silently bypass them
-        for (Resource resource : getChangedResources(beforeUpdateModel, existingModel))
+        return writeLocked(() ->
         {
-            Resource before = resource.inModel(beforeUpdateModel);
-            Resource after = resource.inModel(existingModel);
-            if (before.hasProperty(RDF.type) && !after.hasProperty(RDF.type) && after.listProperties().hasNext())
-                throw new WebApplicationException("rdf:type cannot be removed from resource <" + resource + ">", UNPROCESSABLE_ENTITY.getStatusCode());
-        }
+            final Dataset dataset;
+            final Model existingModel = getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(getURI().toString());
+            if (existingModel == null) throw new NotFoundException("Named graph with URI <" + getURI() + "> not found");
 
-        try
-        {
-            validate(dataset.getDefaultModel()); // this would normally be done transparently by the ValidatingModelProvider
-        }
-        catch (SPINConstraintViolationException ex)
-        {
-            // the whole post-PATCH graph gets validated, but the 422 body must describe only the
-            // violating resources - the full graph would leak every sibling resource into the
-            // error response
-            throw describeViolations(ex, dataset.getDefaultModel());
-        }
-        catch (SHACLConstraintViolationException ex)
-        {
-            throw describeViolations(ex, dataset.getDefaultModel());
-        }
-        put(dataset.getDefaultModel(), Boolean.FALSE, getURI());
+            Response.ResponseBuilder rb = evaluatePreconditions(existingModel, getHttpHeaders());
+            if (rb != null) return rb.build(); // preconditions not met
+
+            Model beforeUpdateModel = ModelFactory.createDefaultModel().add(existingModel);
+            dataset = DatasetFactory.wrap(existingModel);
+            UpdateAction.execute(updateRequest, dataset); // update model in memory
+            new Skolemizer(getURI().toString()).apply(existingModel); // skolemize blank nodes introduced by INSERT
+
+            // if PATCH results in an empty graph, treat it as a DELETE request
+            if (existingModel.isEmpty()) return delete();
+
+            // SPIN constraints are class-scoped; allowing rdf:type removal would silently bypass them
+            for (Resource resource : getChangedResources(beforeUpdateModel, existingModel))
+            {
+                Resource before = resource.inModel(beforeUpdateModel);
+                Resource after = resource.inModel(existingModel);
+                if (before.hasProperty(RDF.type) && !after.hasProperty(RDF.type) && after.listProperties().hasNext())
+                    throw new WebApplicationException("rdf:type cannot be removed from resource <" + resource + ">", UNPROCESSABLE_ENTITY.getStatusCode());
+            }
+
+            try
+            {
+                validate(dataset.getDefaultModel()); // this would normally be done transparently by the ValidatingModelProvider
+            }
+            catch (SPINConstraintViolationException ex)
+            {
+                // the whole post-PATCH graph gets validated, but the 422 body must describe only the
+                // violating resources - the full graph would leak every sibling resource into the
+                // error response
+                throw describeViolations(ex, dataset.getDefaultModel());
+            }
+            catch (SHACLConstraintViolationException ex)
+            {
+                throw describeViolations(ex, dataset.getDefaultModel());
+            }
+            put(dataset.getDefaultModel(), Boolean.FALSE, getURI());
         
-        return getInternalResponse(dataset.getDefaultModel(), null).getResponseBuilder(). // entity tag of the updated graph
-            status(Response.Status.NO_CONTENT).
-            entity(null). // 'Content-Type' header has to be explicitly unset in ResponseHeadersFilter
-            header(HttpHeaders.CONTENT_LOCATION, getURI()).
-            tag(getInternalResponse(dataset.getDefaultModel(), null).getVariantEntityTag()). // TO-DO: optimize!
-            build();
+            return getInternalResponse(dataset.getDefaultModel(), null).getResponseBuilder(). // entity tag of the updated graph
+                status(Response.Status.NO_CONTENT).
+                entity(null). // 'Content-Type' header has to be explicitly unset in ResponseHeadersFilter
+                header(HttpHeaders.CONTENT_LOCATION, getURI()).
+                tag(getInternalResponse(dataset.getDefaultModel(), null).getVariantEntityTag()). // TO-DO: optimize!
+                build();
+        });
     }
     
     /**
@@ -646,20 +658,23 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             validate(model);
             if (log.isTraceEnabled()) log.trace("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
 
-            final Model existingModel = getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(getURI().toString());
-            if (existingModel == null) throw new NotFoundException("Named graph with URI <" + getURI() + "> not found");
+            return writeLocked(() ->
+            {
+                final Model existingModel = getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(getURI().toString());
+                if (existingModel == null) throw new NotFoundException("Named graph with URI <" + getURI() + "> not found");
 
-            new Skolemizer(getURI().toString()).apply(model); // skolemize before writing files (they require absolute URIs)
+                new Skolemizer(getURI().toString()).apply(model); // skolemize before writing files (they require absolute URIs)
 
-            // appended to the store rather than written back whole, so no If-Match is asked of an upload; the
-            // document it is appended to is still held to the constraints as a whole, before a file is written
-            validateConstraints(ModelFactory.createDefaultModel().add(existingModel).add(model));
+                // appended to the store rather than written back whole, so no If-Match is asked of an upload; the
+                // document it is appended to is still held to the constraints as a whole, before a file is written
+                validateConstraints(ModelFactory.createDefaultModel().add(existingModel).add(model));
 
-            int fileCount = writeFiles(model, getFileNameBodyPartMap(multiPart));
-            if (log.isDebugEnabled()) log.debug("# of files uploaded: {} ", fileCount);
+                int fileCount = writeFiles(model, getFileNameBodyPartMap(multiPart));
+                if (log.isDebugEnabled()) log.debug("# of files uploaded: {} ", fileCount);
 
-            if (log.isDebugEnabled()) log.debug("POSTed Model size: {}", model.size());
-            return post(model, false, getURI()); // ignore the @QueryParam("graph") value
+                if (log.isDebugEnabled()) log.debug("POSTed Model size: {}", model.size());
+                return post(model, false, getURI()); // ignore the @QueryParam("graph") value
+            });
         }
         catch (URISyntaxException ex)
         {
@@ -731,19 +746,22 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         if (!getAllowedMethods().contains(HttpMethod.DELETE))
             throw new WebApplicationException("Cannot delete document", Response.status(Response.Status.METHOD_NOT_ALLOWED).allow(getAllowedMethods()).build());
 
-        try
+        return writeLocked(() ->
         {
-            Model existingModel = getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(getURI().toString());
+            try
+            {
+                Model existingModel = getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(getURI().toString());
             
-            Response.ResponseBuilder rb = evaluatePreconditions(existingModel, getHttpHeaders());
-            if (rb != null) return rb.build(); // preconditions not met
-        }
-        catch (NotFoundException ex)
-        {
-            //if (existingModel == null) existingModel = null;
-        }
+                Response.ResponseBuilder rb = evaluatePreconditions(existingModel, getHttpHeaders());
+                if (rb != null) return rb.build(); // preconditions not met
+            }
+            catch (NotFoundException ex)
+            {
+                //if (existingModel == null) existingModel = null;
+            }
             
-        return super.delete(false, getURI());
+            return super.delete(false, getURI());
+        });
     }
     
     /**
@@ -1250,6 +1268,34 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         if (rb != null) rb.tag(internalResponse.getVariantEntityTag());
 
         return rb;
+    }
+
+    /**
+     * Runs a write to this document while holding the document's lock.
+     * <p>
+     * The precondition {@link #evaluatePreconditions(Model, HttpHeaders)} checks is evaluated against a graph
+     * read moments earlier and written back moments later, in separate calls to the store. Two writers quoting the
+     * same entity tag that both read before either has written both pass it - the check alone does not close
+     * the lost update it is there to refuse. Holding the lock from the read to the write does: the writer behind
+     * reads the graph as the first one left it, and its tag no longer matches. The lock is reentrant, so a
+     * <code>PATCH</code> that empties the graph can complete as the <code>DELETE</code> it is.
+     * 
+     * @param write the read-check-write sequence
+     * @return the write's response
+     * @see GraphLocks
+     */
+    protected Response writeLocked(Supplier<Response> write)
+    {
+        Lock lock = getSystem().getGraphLocks().get(getURI());
+        lock.lock();
+        try
+        {
+            return write.get();
+        }
+        finally
+        {
+            lock.unlock();
+        }
     }
     
     /**

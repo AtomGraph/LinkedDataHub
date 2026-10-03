@@ -1605,14 +1605,19 @@ WHERE
         <ixsl:set-property name="dataTransfer.dropEffect" select="'copy'" object="ixsl:event()"/>
     </xsl:template>
 
-    <!-- the overlay's panel is pointer-events: none, so in practice a dragleave here means the pointer
-         left the window; the relatedTarget guard keeps that true if anything inside ever takes hits.
-         This is the unmount path that matters for an external drag: dragend fires on the drag's source
-         element, and a file dragged in from the desktop has none in this document -->
-    <xsl:template match="div[@id = 'file-drop']" mode="ixsl:ondragleave" priority="1">
+    <!-- any dragleave that does not land inside the overlay means the drag left the window: once mounted, the
+         overlay is the topmost hit target, so the only in-page transition is element -> overlay, and its panel is
+         pointer-events: none. Matched on every element rather than the overlay alone, because the browser moves
+         its current target onto the overlay only at the next drag tick - a drag that leaves before then fires
+         dragleave on the element underneath, and the overlay would stay stuck. This is the unmount path that
+         matters for an external drag: dragend fires on the drag's source element, and a file dragged in from
+         the desktop has none in this document -->
+    <xsl:template match="*" mode="ixsl:ondragleave">
         <xsl:variable name="related" select="ixsl:get(ixsl:event(), 'relatedTarget')" as="element()?"/>
-        <xsl:if test="empty($related) or empty($related/ancestor-or-self::*[@id = 'file-drop'])">
-            <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:if test="empty($related/ancestor-or-self::*[@id = 'file-drop'])">
+            <xsl:for-each select="id('file-drop', ixsl:page())">
+                <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:for-each>
         </xsl:if>
     </xsl:template>
 
