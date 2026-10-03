@@ -553,10 +553,13 @@ exclude-result-prefixes="#all"
         <xsl:variable name="steps" select="$execution/wa:steps/wa:step" as="element()*"/>
         <xsl:variable name="failed" select="$steps[@outcome = 'error'][last()]" as="element()?"/>
         <!-- a plan still held by its card (one that ran, or is running) lends its elements to the rows - but only when
-             the steps are its operations one to one; a ForEach's iterations are more steps than operations -->
+             the steps are its operations one to one, in the order the executor enters them. A plan that stopped, or is
+             still under way, has reported fewer steps than it has operations: those are its leading operations, and
+             the rows get their XML all the same. A ForEach's iterations are more steps than operations, and get none -->
         <xsl:variable name="plan" select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.chat'), string($card/@id))) then ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.chat'), string($card/@id)) else ()" as="element()?"/>
         <xsl:variable name="elements" select="if (exists($plan)) then ldh:plan-operations($plan/*[not(self::wa:summary | self::wa:operations | self::wa:message)][1]) else ()" as="element()*"/>
-        <xsl:variable name="matched" select="count($elements) = count($steps) and deep-equal($elements/ldh:operation-name(.), $steps/string(@operation))" as="xs:boolean"/>
+        <xsl:variable name="entered" select="subsequence($elements, 1, count($steps))" as="element()*"/>
+        <xsl:variable name="matched" select="count($entered) = count($steps) and deep-equal($entered/ldh:operation-name(.), $steps/string(@operation))" as="xs:boolean"/>
 
         <xsl:for-each select="$card/ul[contains-token(@class, 'chat-steps')]">
             <xsl:result-document href="?." method="ixsl:replace-content">
@@ -565,7 +568,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="depth" select="0"/>
                     <xsl:with-param name="message" select="$execution/wa:message[exists($failed)]" tunnel="yes"/>
                     <xsl:with-param name="failed" select="$failed" tunnel="yes"/>
-                    <xsl:with-param name="elements" select="$elements[$matched]" tunnel="yes"/>
+                    <xsl:with-param name="elements" select="$entered[$matched]" tunnel="yes"/>
                 </xsl:call-template>
             </xsl:result-document>
         </xsl:for-each>
