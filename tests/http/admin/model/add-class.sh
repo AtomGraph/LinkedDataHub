@@ -19,7 +19,6 @@ class="${namespace_doc}#NewClass"
 ldh admin add class \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$ADMIN_BASE_URL" \
   --uri "$class" \
   --label "New class" \
   --sub-class-of "https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Item" \
@@ -30,8 +29,8 @@ ldh admin add class \
 ldh admin clear ontology \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$ADMIN_BASE_URL" \
-  --ontology "$namespace"
+  --ontology "$namespace" \
+  "$ADMIN_BASE_URL"
 
 # check that the class is present in the ontology
 

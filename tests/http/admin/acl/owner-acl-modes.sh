@@ -12,7 +12,6 @@ clear_ontology
 # create a new document to test ACL modes against
 
 doc_url=$(ldh create item \
-  -b "$END_USER_BASE_URL" \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --container "$END_USER_BASE_URL" \

@@ -36,7 +36,6 @@ slug=$(uuidgen | tr '[:upper:]' '[:lower:]')
 file_doc=$(ldh create item \
   -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
-  -b "$END_USER_BASE_URL" \
   --title "Test ontology for upload import" \
   --container "$END_USER_BASE_URL" \
   --slug "$slug")
@@ -45,7 +44,6 @@ file_doc=$(ldh create item \
 ldh add file \
   -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
-  -b "$END_USER_BASE_URL" \
   --title "Test ontology for upload import" \
   --file "$pwd/test-ontology-import.ttl" \
   --content-type "${file_content_type}" \
@@ -80,8 +78,8 @@ ldh admin add ontology-import \
 ldh admin clear ontology \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$ADMIN_BASE_URL" \
-  --ontology "$namespace"
+  --ontology "$namespace" \
+  "$ADMIN_BASE_URL"
 
 # Step 5: Verify the import is present in the loaded ontology
 # This request also triggers ontology loading and would detect deadlock

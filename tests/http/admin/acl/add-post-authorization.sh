@@ -29,11 +29,11 @@ EOF
 ldh admin create authorization \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "https://admin.test.localhost:4443/" \
   --label "Fake POST authorization from test.localhost" \
   --agent "$AGENT_URI" \
   --to "$END_USER_BASE_URL" \
-  --append
+  --append \
+  "https://admin.test.localhost:4443/"
 
 # access is still denied (fake authorization filtered out)
 
@@ -55,11 +55,11 @@ EOF
 ldh admin create authorization \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$ADMIN_BASE_URL" \
   --label "POST authorization" \
   --agent "$AGENT_URI" \
   --to "$END_USER_BASE_URL" \
-  --append
+  --append \
+  "$ADMIN_BASE_URL"
 
 # access is allowed after real authorization is created
 

@@ -26,7 +26,6 @@ slug=$(uuidgen | tr '[:upper:]' '[:lower:]')
 container=$(ldh create container \
   -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
-  -b "$END_USER_BASE_URL" \
   --title "Push target" \
   --parent "$END_USER_BASE_URL" \
   --slug "$slug")
@@ -42,7 +41,6 @@ ${END_USER_BASE_URL}uploads/${sha1sum}"
 # a dry run prints the plan and writes nothing
 
 planned=$(ldh push --dry-run \
-  -b "$END_USER_BASE_URL" \
   --dir "$pwd/app" \
   "$container")
 
@@ -66,7 +64,6 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
 pushed=$(ldh push \
   -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
-  -b "$END_USER_BASE_URL" \
   --dir "$pwd/app" \
   "$container")
 
@@ -126,7 +123,6 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
 ldh push \
   -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
-  -b "$END_USER_BASE_URL" \
   --dir "$pwd/app" \
   "$container" > /dev/null
 

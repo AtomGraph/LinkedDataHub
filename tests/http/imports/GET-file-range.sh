@@ -30,7 +30,6 @@ slug=$(uuidgen | tr '[:upper:]' '[:lower:]')
 file_doc=$(ldh create item \
   -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
-  -b "$END_USER_BASE_URL" \
   --title "Random file" \
   --container "$END_USER_BASE_URL" \
   --slug "$slug")
@@ -39,7 +38,6 @@ file_doc=$(ldh create item \
 ldh add file \
   -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
-  -b "$END_USER_BASE_URL" \
   --title "Random file" \
   --file "$filename" \
   --content-type "${file_content_type}" \

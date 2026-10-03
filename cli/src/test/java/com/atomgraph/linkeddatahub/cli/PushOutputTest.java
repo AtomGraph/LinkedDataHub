@@ -72,8 +72,7 @@ public class PushOutputTest
             StringWriter out = new StringWriter(), err = new StringWriter();
 
             int code = commandLine(out, err).execute("push",
-                "-c", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
-                "--dir", root.toString(), base.toString());
+                "-c", keyStorePath().toString(), "-p", "changeit",                 "--dir", root.toString(), base.toString());
 
             assertEquals(0, code, err.toString());
             List<Request> requests = server.getRequests();
@@ -106,7 +105,7 @@ public class PushOutputTest
             StringWriter out = new StringWriter(), err = new StringWriter();
 
             int code = commandLine(out, err).execute("push", "--dry-run",
-                "-b", base.toString(), "--dir", root.toString(), base.toString());
+                "--dir", root.toString(), base.toString());
 
             assertEquals(0, code, err.toString());
             assertTrue(server.getRequests().isEmpty(), "dry run sent " + server.getRequests());
@@ -126,8 +125,7 @@ public class PushOutputTest
             StringWriter out = new StringWriter(), err = new StringWriter();
 
             int code = commandLine(out, err).execute("push",
-                "-c", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
-                "--dir", root.toString(), base.toString());
+                "-c", keyStorePath().toString(), "-p", "changeit",                 "--dir", root.toString(), base.toString());
 
             assertEquals(CommandLine.ExitCode.SOFTWARE, code);
             // the write that failed and the conditional read before it, and nothing of the next document

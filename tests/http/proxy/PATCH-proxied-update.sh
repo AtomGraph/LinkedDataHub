@@ -22,7 +22,6 @@ ldh admin add agent \
 item=$(ldh create item \
   -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
-  -b "$END_USER_BASE_URL" \
   --title "Test Item" \
   --slug "test-patch-$(date +%s)" \
   --container "$END_USER_BASE_URL")

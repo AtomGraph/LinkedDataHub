@@ -68,8 +68,7 @@ public class CommandOutputTest
             StringWriter out = new StringWriter(), err = new StringWriter();
 
             int code = commandLine(out, err).execute("create", "container",
-                "-c", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
-                "--title", "Test", "--slug", "test", "--parent", base.toString());
+                "-c", keyStorePath().toString(), "-p", "changeit",                 "--title", "Test", "--slug", "test", "--parent", base.toString());
 
             assertEquals(0, code);
             assertEquals(base + "test/", out.toString().strip());
@@ -88,8 +87,7 @@ public class CommandOutputTest
             StringWriter out = new StringWriter(), err = new StringWriter();
 
             commandLine(out, err).execute("create", "container",
-                "-c", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
-                "--title", "Test", "--slug", "test", "--parent", base.toString());
+                "-c", keyStorePath().toString(), "-p", "changeit",                 "--title", "Test", "--slug", "test", "--parent", base.toString());
 
             assertEquals("PUT", server.getLastMethod());
             assertEquals("/test/", server.getLastTarget());
@@ -107,8 +105,7 @@ public class CommandOutputTest
             StringWriter out = new StringWriter(), err = new StringWriter();
 
             int code = commandLine(out, err).execute("create", "container",
-                "-c", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
-                "--title", "Ö", "--slug", "ö x", "--parent", base.toString());
+                "-c", keyStorePath().toString(), "-p", "changeit",                 "--title", "Ö", "--slug", "ö x", "--parent", base.toString());
 
             assertEquals(0, code);
             assertEquals(base + "%C3%B6%20x/", out.toString().strip());
@@ -233,8 +230,7 @@ public class CommandOutputTest
             StringWriter out = new StringWriter(), err = new StringWriter();
 
             int code = commandLine(out, err).execute("create", "container",
-                "-c", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
-                "--title", "Test", "--slug", "test", "--parent", base.toString());
+                "-c", keyStorePath().toString(), "-p", "changeit",                 "--title", "Test", "--slug", "test", "--parent", base.toString());
 
             assertEquals(CommandLine.ExitCode.SOFTWARE, code);
             assertEquals("", out.toString(), "a failed command must print nothing on stdout");
@@ -254,8 +250,7 @@ public class CommandOutputTest
         StringWriter out = new StringWriter(), err = new StringWriter();
 
         int code = commandLine(out, err).execute("create", "container",
-            "-c", keyStorePath().toString(), "-p", "changeit", "-b", base.toString(),
-            "--title", "Test", "--slug", "test", "--parent", base.toString());
+            "-c", keyStorePath().toString(), "-p", "changeit",             "--title", "Test", "--slug", "test", "--parent", base.toString());
 
         assertEquals(CommandLine.ExitCode.SOFTWARE, code);
         assertEquals("", out.toString(), "a failed command must print nothing on stdout");
@@ -387,7 +382,7 @@ public class CommandOutputTest
             StringWriter out = new StringWriter(), err = new StringWriter();
 
             int code = commandLine(out, err).execute("packages", "list",
-                "-c", keyStorePath().toString(), "-p", "changeit", "-b", base.toString());
+                "-c", keyStorePath().toString(), "-p", "changeit", base.toString());
 
             assertEquals(0, code);
             assertEquals(List.of("installed\thttps://packages.linkeddatahub.com/editor/taxonomy/#this\tTaxonomy Editor",

@@ -121,8 +121,8 @@ public class CommandParsingTest
     @Test
     public void pushRequiresATrailingSlashOnTheTarget()
     {
-        assertEquals(CommandLine.ExitCode.USAGE, commandLine().execute("push", "-b", "https://localhost:4443/", "--dry-run", "https://localhost:4443/some"));
-        assertEquals(CommandLine.ExitCode.USAGE, commandLine().execute("push", "-b", "https://localhost:4443/", "--dry-run", "--dir", "/nonexistent/dir", "https://localhost:4443/some/"));
+        assertEquals(CommandLine.ExitCode.USAGE, commandLine().execute("push", "--dry-run", "https://localhost:4443/some"));
+        assertEquals(CommandLine.ExitCode.USAGE, commandLine().execute("push", "--dry-run", "--dir", "/nonexistent/dir", "https://localhost:4443/some/"));
     }
 
     @Test
@@ -163,10 +163,11 @@ public class CommandParsingTest
     public void repeatableOptionsAccumulate()
     {
         ParseResult parseResult = commandLine().parseArgs("admin", "create", "group",
-            "-c", "cert.p12", "-p", "secret", "-b", "https://admin.localhost:4443/",
+            "-c", "cert.p12", "-p", "secret",
             "--name", "Editors",
             "--member", "https://localhost:4443/acl/agents/a/#this",
-            "--member", "https://localhost:4443/acl/agents/b/#this");
+            "--member", "https://localhost:4443/acl/agents/b/#this",
+            "https://admin.localhost:4443/");
 
         ParseResult createGroup = parseResult.subcommand().subcommand().subcommand();
         List<URI> members = createGroup.matchedOption("--member").getValue();

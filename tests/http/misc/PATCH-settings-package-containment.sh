@@ -140,7 +140,6 @@ EOT
 ldh add file \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$END_USER_BASE_URL" \
   --title "Containment probe stylesheet" \
   --file "$stylesheet_file" \
   --content-type "$stylesheet_type" \
