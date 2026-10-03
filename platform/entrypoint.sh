@@ -1221,6 +1221,18 @@ if [ -n "$EGRESS_PROXY" ]; then
     export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.egressProxy=$EGRESS_PROXY"
 fi
 
+if [ -n "$MAX_CONN_PER_ROUTE" ]; then
+    export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.maxConnPerRoute=$MAX_CONN_PER_ROUTE"
+fi
+
+if [ -n "$MAX_TOTAL_CONN" ]; then
+    export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.maxTotalConn=$MAX_TOTAL_CONN"
+fi
+
+if [ -n "$MAX_REQUEST_RETRIES" ]; then
+    export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.maxRequestRetries=$MAX_REQUEST_RETRIES"
+fi
+
 if [ -n "$CONNECTION_REQUEST_TIMEOUT" ]; then
     export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.connectionRequestTimeout=$CONNECTION_REQUEST_TIMEOUT"
 fi
@@ -1279,18 +1291,6 @@ if [ -n "$MAX_CONTENT_LENGTH" ]; then
     MAX_CONTENT_LENGTH_PARAM="--stringparam ldhc:maxContentLength '$MAX_CONTENT_LENGTH' "
 fi
 
-if [ -n "$MAX_CONN_PER_ROUTE" ]; then
-    MAX_CONN_PER_ROUTE_PARAM="--stringparam ldhc:maxConnPerRoute '$MAX_CONN_PER_ROUTE' "
-fi
-
-if [ -n "$MAX_TOTAL_CONN" ]; then
-    MAX_TOTAL_CONN_PARAM="--stringparam ldhc:maxTotalConn '$MAX_TOTAL_CONN' "
-fi
-
-if [ -n "$MAX_REQUEST_RETRIES" ]; then
-    MAX_REQUEST_RETRIES_PARAM="--stringparam ldhc:maxRequestRetries '$MAX_REQUEST_RETRIES' "
-fi
-
 if [ -n "$MAX_IMPORT_THREADS" ]; then
     MAX_IMPORT_THREADS_PARAM="--stringparam ldhc:maxImportThreads '$MAX_IMPORT_THREADS' "
 fi
@@ -1331,6 +1331,11 @@ if [ -f "/run/secrets/orcid_client_secret" ]; then
     ORCID_CLIENT_SECRET_PARAM="--stringparam orcid:clientSecret '$ORCID_CLIENT_SECRET' "
 fi
 
+# https://sandbox.orcid.org for a client registered on ORCID's sandbox; production orcid.org otherwise
+if [ -n "$ORCID_ISSUER" ]; then
+    ORCID_ISSUER_PARAM="--stringparam orcid:issuer '$ORCID_ISSUER' "
+fi
+
 if [ -n "$FRONTEND_PROXY" ]; then
     FRONTEND_PROXY_PARAM="--stringparam 'ldhc:frontendProxy' '$FRONTEND_PROXY' "
 fi
@@ -1365,9 +1370,6 @@ transform="xsltproc \
   $OWNER_AUTH_QUERY_PARAM \
   $ENABLE_LINKED_DATA_PROXY_PARAM \
   $MAX_CONTENT_LENGTH_PARAM \
-  $MAX_CONN_PER_ROUTE_PARAM \
-  $MAX_TOTAL_CONN_PARAM \
-  $MAX_REQUEST_RETRIES_PARAM \
   $MAX_IMPORT_THREADS_PARAM \
   $NOTIFICATION_ADDRESS_PARAM \
   $ENABLE_WEBID_SIGNUP_PARAM \
@@ -1380,6 +1382,7 @@ transform="xsltproc \
   $GOOGLE_CLIENT_SECRET_PARAM \
   $ORCID_CLIENT_ID_PARAM \
   $ORCID_CLIENT_SECRET_PARAM \
+  $ORCID_ISSUER_PARAM \
   $FRONTEND_PROXY_PARAM \
   $BACKEND_PROXY_ADMIN_PARAM \
   $BACKEND_PROXY_END_USER_PARAM \

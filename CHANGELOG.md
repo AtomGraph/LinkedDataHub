@@ -1,6 +1,10 @@
 ## [Unreleased]
 ### Changed
+- `MAX_CONN_PER_ROUTE`, `MAX_TOTAL_CONN` and `MAX_REQUEST_RETRIES` reach the platform as system properties, like the other HTTP client settings, rather than as `ROOT.xml` context parameters; the `ldhc:` context parameters are still read when no system property is set
 - The browser parses and serialises SPARQL with SPARQL.js alone: the last SPARQLBuilder calls were `fromString().build()` and `fromQuery().toString()`, which are its `Parser` and `Generator` with nothing added, so `SPARQLBuilder.js` and its second copy of SPARQL.js (330 KB) no longer ship with the page
+
+### Fixed
+- ORCID login was hardwired to `sandbox.orcid.org`, so a client registered on production ORCID was unknown at authorization and its ID tokens failed signature verification. The endpoints now derive from `ORCID_ISSUER` (default `https://orcid.org`, `https://sandbox.orcid.org` for a sandbox client), and only tokens from that issuer are accepted
 
 ## [6.0.1] - 2026-09-30
 ### Added

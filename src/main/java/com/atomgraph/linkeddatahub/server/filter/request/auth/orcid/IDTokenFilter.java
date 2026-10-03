@@ -18,11 +18,9 @@ package com.atomgraph.linkeddatahub.server.filter.request.auth.orcid;
 
 import com.atomgraph.linkeddatahub.resource.oauth2.orcid.Authorize;
 import com.atomgraph.linkeddatahub.resource.oauth2.orcid.Login;
-import static com.atomgraph.linkeddatahub.resource.oauth2.orcid.Login.TOKEN_ENDPOINT;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilterBase;
 import com.atomgraph.linkeddatahub.vocabulary.ORCID;
 import java.net.URI;
-import java.util.Arrays;
 import java.util.List;
 import jakarta.annotation.Priority;
 import jakarta.ws.rs.Priorities;
@@ -42,9 +40,6 @@ public class IDTokenFilter extends IDTokenFilterBase
 {
     private static final Logger log = LoggerFactory.getLogger(IDTokenFilter.class);
 
-    /** White-list of OIDC issuers (supports both production and sandbox) */
-    private static final List<String> ISSUERS = Arrays.asList("https://orcid.org", "https://sandbox.orcid.org");
-
     @Override
     protected void initClientCredentials()
     {
@@ -55,19 +50,19 @@ public class IDTokenFilter extends IDTokenFilterBase
     @Override
     protected List<String> getIssuers()
     {
-        return ISSUERS;
+        return List.of(Login.getIssuer(getSystem()).toString());
     }
 
     @Override
     protected URI getJWKSEndpoint()
     {
-        return Login.JWKS_ENDPOINT;
+        return Login.getJWKSEndpoint(Login.getIssuer(getSystem()));
     }
 
     @Override
     protected URI getTokenEndpoint()
     {
-        return TOKEN_ENDPOINT;
+        return Login.getTokenEndpoint(Login.getIssuer(getSystem()));
     }
 
     @Override
