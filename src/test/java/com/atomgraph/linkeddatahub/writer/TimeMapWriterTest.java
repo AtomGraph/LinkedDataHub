@@ -28,6 +28,7 @@ import java.util.Optional;
 import org.apache.jena.rdf.model.Model;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Tests the link-format serialization of TimeMaps.
@@ -107,6 +108,42 @@ public class TimeMapWriterTest
             new GitHubClient.CommitInfo("sha-1", Instant.parse("2026-08-03T10:00:00Z"), "https://localhost/agent#this")));
 
         assertEquals(true, write(timeMap).contains("datetime=\"Mon, 03 Aug 2026 10:00:00 GMT\""));
+    }
+
+    @Test
+    public void testEmptyTimeMapListsTheOriginalResource() throws IOException
+    {
+        // a document not written since versioning began: advertised with rel=timemap, no commits yet
+        Model timeMap = GraphVersioningService.toTimeMap(GRAPH, List.of());
+        TimeMapWriter writer = new TimeMapWriter()
+        {
+            @Override
+            protected Optional<URI> getOriginalURI()
+            {
+                return Optional.of(GRAPH);
+            }
+
+            @Override
+            protected Optional<URI> getTimeGateURI()
+            {
+                return Optional.of(URI.create("https://localhost:4443/doc/?timegate"));
+            }
+        };
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        writer.writeTo(timeMap, Model.class, null, null, TimeMapWriter.APPLICATION_LINK_FORMAT_TYPE, null, out);
+
+        assertEquals("""
+            <https://localhost:4443/doc/>;rel="original",
+            <https://localhost:4443/doc/?timemap>;rel="self";type="application/link-format",
+            <https://localhost:4443/doc/?timegate>;rel="timegate\"""",
+            out.toString(StandardCharsets.UTF_8));
+    }
+
+    @Test
+    public void testEmptyTimeMapOutsideARequestIsRefused()
+    {
+        assertThrows(IllegalStateException.class, () -> write(GraphVersioningService.toTimeMap(GRAPH, List.of())));
     }
 
 }

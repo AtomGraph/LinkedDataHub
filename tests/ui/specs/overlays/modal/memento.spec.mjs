@@ -83,6 +83,29 @@ async function restoreOldest(page) {
     return { modal, response, ifMatch: await response.request().headerValue('if-match') };
 }
 
+// The TimeMap of a document no write has reached since versioning began: the TimeMap itself, with no
+// Mementos - what the server answers for it (tests/http/versioning/GET-timemap-empty.sh asserts that half).
+// Served here rather than produced, because the suite can make no such document: every write through the
+// platform is a commit, and the store behind it is not published to the host on a dev stack.
+const emptyTimeMap = uri => `<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:about="${uri}?timemap">
+    <rdf:type rdf:resource="http://www.w3.org/ns/prov#Collection"/>
+  </rdf:Description>
+</rdf:RDF>`;
+
+test('says a document has no versions yet, where it used to fail to load the history', { tag: '@owner' }, async ({ page }) => {
+    // a predicate, not a glob: '?' in a Playwright URL glob matches any one character
+    await page.route(url => url.href === `${doc}?timemap`, route =>
+        route.fulfill({ status: 200, contentType: 'application/rdf+xml', body: emptyTimeMap(doc) }));
+    await goto(page, doc);
+
+    await page.locator('a.document-history').first().click();
+    await expect(historyModal(page).locator('.ac-alert')).toContainText(/no versions yet/);
+    await expect(historyModal(page).locator('.ac-alert.va-negative')).toHaveCount(0);
+    await expect(versionRows(page)).toHaveCount(0);
+});
+
 test('restores a version from the live document', { tag: '@owner' }, async ({ page }) => {
     await goto(page, doc);
     const etag = await liveEtag();

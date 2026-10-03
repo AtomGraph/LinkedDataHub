@@ -880,6 +880,10 @@
         <rdfs:label xml:lang="en-US">Every change to this document is saved as a version. Click a version to view the document as it was at that time.</rdfs:label>
         <rdfs:label xml:lang="es-ES">Cada cambio en este documento se guarda como una versión. Haga clic en una versión para ver el documento tal como era en ese momento.</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="no-versions">
+        <rdfs:label xml:lang="en-US">This document has no versions yet. The next change to it will be the first.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Este documento aún no tiene versiones. El próximo cambio será la primera.</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="version">
         <rdfs:label xml:lang="en-US">Version</rdfs:label>
         <rdfs:label xml:lang="es-ES">Versión</rdfs:label>

@@ -17,6 +17,7 @@
 package com.atomgraph.linkeddatahub.writer;
 
 import com.atomgraph.linkeddatahub.server.model.impl.DocumentHierarchyGraphStoreImpl;
+import com.atomgraph.linkeddatahub.server.util.Link;
 import com.atomgraph.linkeddatahub.vocabulary.PROV;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.WebApplicationException;
@@ -43,6 +44,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
@@ -54,7 +56,8 @@ import org.apache.jena.vocabulary.RDF;
  * TimeMaps to support. The model is the PROV-O description built by
  * {@link com.atomgraph.linkeddatahub.server.util.GraphVersioningService#toTimeMap}: the TimeMap is the
  * <code>prov:Collection</code>, its <code>prov:hadMember</code> values are the Mementos, and the Original
- * Resource is the <code>prov:specializationOf</code> target they share.
+ * Resource is the <code>prov:specializationOf</code> target they share - or, for a document not written since
+ * versioning began, which has no Mementos yet, the resource the request addresses.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  * @see <a href="https://datatracker.ietf.org/doc/html/rfc7089#section-5">RFC 7089: TimeMap</a>
@@ -91,32 +94,51 @@ public class TimeMapWriter implements MessageBodyWriter<Model>
     {
         Resource timeMap = getTimeMap(model);
         List<Resource> mementos = getMementos(timeMap);
-        if (mementos.isEmpty()) throw new IllegalStateException("TimeMap <" + timeMap.getURI() + "> has no mementos");
 
-        Resource original = mementos.get(0).getPropertyResourceValue(PROV.specializationOf);
-        Resource first = mementos.get(0), last = mementos.get(mementos.size() - 1);
+        // the Mementos name the Original Resource; a TimeMap with none yet is served at the Original Resource's ?timemap
+        URI original = mementos.isEmpty() ?
+            getOriginalURI().orElseThrow(() -> new IllegalStateException("TimeMap <" + timeMap.getURI() + "> has no mementos and there is no request to name its Original Resource")) :
+            URI.create(mementos.get(0).getPropertyResourceValue(PROV.specializationOf).getURI());
 
-        List<String> links = new ArrayList<>();
-        links.add("<" + original.getURI() + ">;rel=\"original\"");
-        links.add("<" + timeMap.getURI() + ">;rel=\"self\";type=\"" + APPLICATION_LINK_FORMAT + "\"" +
-            ";from=\"" + datetime(first) + "\";until=\"" + datetime(last) + "\"");
+        List<Link> links = new ArrayList<>();
+        links.add(Link.fromUri(original).rel("original").build());
+        // from and until bound the Mementos, so an empty TimeMap states neither
+        Link.Builder self = Link.fromUri(timeMap.getURI()).rel("self").type(APPLICATION_LINK_FORMAT);
+        if (!mementos.isEmpty()) self.param("from", datetime(mementos.get(0))).param("until", datetime(mementos.get(mementos.size() - 1)));
+        links.add(self.build());
         // the TimeGate is deployment hypermedia rather than part of the version history, so it comes from the request
-        getTimeGateURI().ifPresent(timeGate -> links.add("<" + timeGate + ">;rel=\"timegate\""));
+        getTimeGateURI().ifPresent(timeGate -> links.add(Link.fromUri(timeGate).rel("timegate").build()));
 
-        for (Resource memento : mementos)
+        for (int i = 0; i < mementos.size(); i++)
         {
-            // a single memento is both the first and the last one known
-            List<String> rels = new ArrayList<>();
-            if (memento.equals(first)) rels.add("first");
-            if (memento.equals(last)) rels.add("last");
-            rels.add("memento");
-
-            links.add("<" + memento.getURI() + ">;rel=\"" + String.join(" ", rels) + "\";datetime=\"" + datetime(memento) + "\"");
+            Resource memento = mementos.get(i);
+            // a single memento is both the first and the last one known; the builder joins repeated rels with a space
+            Link.Builder link = Link.fromUri(memento.getURI());
+            if (i == 0) link.rel("first");
+            if (i == mementos.size() - 1) link.rel("last");
+            links.add(link.rel("memento").param("datetime", datetime(memento)).build());
         }
 
         Writer writer = new OutputStreamWriter(entityStream, StandardCharsets.UTF_8);
-        writer.write(String.join(",\n", links));
+        writer.write(links.stream().map(TimeMapWriter::linkFormat).collect(Collectors.joining(",\n")));
         writer.flush();
+    }
+
+    /**
+     * Serializes a link as an RFC 6690 link-value. Not {@link Link#toString()}: Jersey writes the HTTP
+     * <code>Link</code> header form, which puts a space after each <code>;</code>, while the link-format
+     * grammar is <code>"&lt;" URI-Reference "&gt;" *( ";" link-param )</code> with no whitespace.
+     *
+     * @param link the link
+     * @return the link-value
+     * @see <a href="https://datatracker.ietf.org/doc/html/rfc6690#section-2">RFC 6690: Link Format</a>
+     */
+    public static String linkFormat(jakarta.ws.rs.core.Link link)
+    {
+        // parameters in the order they were added: rel and type lead, as in RFC 7089's examples
+        return "<" + link.getUri() + ">" + link.getParams().entrySet().stream().
+            map(param -> ";" + param.getKey() + "=\"" + param.getValue() + "\"").
+            collect(Collectors.joining());
     }
 
     /**
@@ -129,6 +151,19 @@ public class TimeMapWriter implements MessageBodyWriter<Model>
         if (getUriInfo() == null) return Optional.empty();
 
         return Optional.of(URI.create(getUriInfo().getAbsolutePath() + "?" + DocumentHierarchyGraphStoreImpl.TIMEGATE_PARAM_NAME));
+    }
+
+    /**
+     * Returns the Original Resource of the TimeMap being served, if there is a request to derive it from: the
+     * request URI without the query that makes it a TimeMap.
+     *
+     * @return Original Resource URI, or empty outside a request
+     */
+    protected Optional<URI> getOriginalURI()
+    {
+        if (getUriInfo() == null) return Optional.empty();
+
+        return Optional.of(getUriInfo().getAbsolutePath());
     }
 
     /**

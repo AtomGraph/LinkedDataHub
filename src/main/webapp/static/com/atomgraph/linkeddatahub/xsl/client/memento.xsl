@@ -90,6 +90,17 @@ version="3.0"
                             <xsl:with-param name="body" as="item()*">
 
                             <xsl:choose>
+                                <!-- a document not written since versioning began: its TimeMap exists and lists no versions yet -->
+                                <xsl:when test="$response?status = 200 and $response?media-type = 'application/rdf+xml' and empty($response?body//*[@rdf:about][prov:specializationOf/@rdf:resource])">
+                                    <xsl:apply-templates select="." mode="ac:InlineAlert">
+                                        <xsl:with-param name="variant" select="'va-informative'"/>
+                                        <xsl:with-param name="text" as="item()*">
+                                            <xsl:value-of>
+                                                <xsl:apply-templates select="key('resources', 'no-versions', ldh:translations())" mode="ac:label"/>
+                                            </xsl:value-of>
+                                        </xsl:with-param>
+                                    </xsl:apply-templates>
+                                </xsl:when>
                                 <xsl:when test="$response?status = 200 and $response?media-type = 'application/rdf+xml'">
                                     <xsl:variable name="mementos" select="$response?body//*[@rdf:about][prov:specializationOf/@rdf:resource]" as="element()*"/>
                                     <xsl:variable name="sorted-mementos" select="sort($mementos, (), function($memento) { string($memento/prov:generatedAtTime) })" as="element()*"/>
