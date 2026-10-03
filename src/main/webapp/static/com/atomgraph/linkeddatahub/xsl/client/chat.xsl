@@ -329,7 +329,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="result" as="element()?"/>
         <xsl:variable name="cap" select="100" as="xs:integer"/>
         <xsl:variable name="blocks" as="xs:string*">
-            <xsl:for-each select="$result/srx:sparql[srx:results/srx:result]">
+            <xsl:for-each select="$result/srx:sparql[srx:results/srx:result][not(ldh:write-report(.))]">
                 <xsl:variable name="vars" select="srx:head/srx:variable/@name" as="xs:string*"/>
                 <xsl:variable name="rows" select="srx:results/srx:result" as="element()*"/>
                 <xsl:sequence select="'VALUES (' || string-join(for $v in $vars return '?' || $v, ' ') || ') {' || codepoints-to-string(10) || string-join(for $row in $rows[position() le $cap] return '  (' || string-join(for $v in $vars return ldh:sparql-term($row/srx:binding[@name = $v]), ' ') || ')', codepoints-to-string(10)) || codepoints-to-string(10) || '}' || (if (count($rows) gt $cap) then codepoints-to-string(10) || '# and ' || (count($rows) - $cap) || ' more rows not shown' else '')"/>
@@ -476,6 +476,7 @@ exclude-result-prefixes="#all"
              count once the answer has been written, which is then what there is to read -->
         <details class="ldh-chat-trace" open="">
             <summary>
+                <span class="msi sm chev" aria-hidden="true">chevron_right</span>
                 <xsl:value-of select="count(ldh:plan-operations($operation))"/>
                 <xsl:text> </xsl:text>
                 <xsl:apply-templates select="key('resources', 'chat-steps', ldh:translations())" mode="ac:label"/>
@@ -731,6 +732,16 @@ exclude-result-prefixes="#all"
 
         <xsl:for-each select="$card/details[contains-token(@class, 'ldh-chat-trace')]/summary">
             <xsl:result-document href="?." method="ixsl:replace-content">
+                <span class="msi sm chev" aria-hidden="true">chevron_right</span>
+                <!-- the outcome at a glance, so the folded trace still says whether the steps went green -->
+                <xsl:choose>
+                    <xsl:when test="exists($failed)">
+                        <span class="msi sm st is-failed" aria-hidden="true">error</span>
+                    </xsl:when>
+                    <xsl:when test="exists($steps) and empty($steps[@outcome = 'start'])">
+                        <span class="msi sm st is-done" aria-hidden="true">check_circle</span>
+                    </xsl:when>
+                </xsl:choose>
                 <xsl:value-of select="count($steps)"/>
                 <xsl:text> </xsl:text>
                 <xsl:apply-templates select="key('resources', 'chat-steps', ldh:translations())" mode="ac:label"/>
@@ -843,14 +854,16 @@ exclude-result-prefixes="#all"
         <xsl:variable name="plan-held" select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.chat'), string($card/@id))) then ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.chat'), string($card/@id)) else ()" as="element()?"/>
         <xsl:variable name="present" select="$plan-held/wa:present" as="element()?"/>
         <!-- the plan's value: one item, or a sequence's items side by side (a graph, a result set, a value each) -->
-        <xsl:variable name="result" select="$execution/wa:result/*" as="element()*"/>
+        <!-- what the plan returned, without what its writes reported: a write answers a one-row ?status ?url result set,
+             which the documents written already say, and which is no answer to anything -->
+        <xsl:variable name="result" select="$execution/wa:result/*[not(ldh:write-report(.))]" as="element()*"/>
         <!-- a query that matched nothing is not an answer: it is the usual sign the plan guessed wrong -->
         <xsl:variable name="empty" select="not($failed) and empty($written) and empty($result[not(self::srx:sparql[empty(srx:results/srx:result)]) and not(self::rdf:RDF[empty(rdf:Description)])])" as="xs:boolean"/>
         <xsl:variable name="counts" as="xs:string*" select="
           if (exists($result/self::srx:sparql)) then count($result/self::srx:sparql/srx:results/srx:result) || ' rows' else (),
           if (exists($result/self::rdf:RDF)) then count($result/self::rdf:RDF/rdf:Description) || ' resources' else (),
           if (exists($result/self::wa:value)) then count($result/self::wa:value) || ' values' else (),
-          if (exists($written)) then 'wrote ' || string-join($written, ' ') else ()"/>
+          if (exists($written)) then 'wrote ' || string-join(distinct-values($written), ' ') else ()"/>
         <xsl:variable name="outcome" as="xs:string" select="
           if ($failed) then 'failed: ' || $execution/wa:message
           else if ($empty) then 'no results'
@@ -875,7 +888,7 @@ exclude-result-prefixes="#all"
                     <span class="ldh-chat-plan-meta">
                         <xsl:apply-templates select="key('resources', 'changed-documents', ldh:translations())" mode="ac:label"/>
                         <xsl:text> · </xsl:text>
-                        <xsl:value-of select="count($written)"/>
+                        <xsl:value-of select="count(distinct-values($written))"/>
                     </span>
                     <table class="ac-table ap-plain dn-tight is-hoverable ldh-chat-docs">
                         <colgroup>
@@ -1062,6 +1075,13 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ldh:chat-answer($context('card'), $context('execution'), ())"/>
     </xsl:function>
 
+    <!-- a write's report: the one-row result set every write answers (formal-semantics §4.4), ?status and ?url -->
+    <xsl:function name="ldh:write-report" as="xs:boolean">
+        <xsl:param name="item" as="element()"/>
+
+        <xsl:sequence select="exists($item/self::srx:sparql) and deep-equal(sort($item/srx:head/srx:variable/string(@name)), ('status', 'url'))"/>
+    </xsl:function>
+
     <!-- THE ANSWER -->
 
     <!-- What the plan did, as a sentence or two: the question, the plan's summary, the steps and how they went, the
@@ -1074,7 +1094,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="execution" as="element()"/>
         <xsl:param name="object-metadata" as="document-node()?"/>
         <xsl:variable name="plan" select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.chat'), string($card/@id))) then ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.chat'), string($card/@id)) else ()" as="element()?"/>
-        <xsl:variable name="result" select="$execution/wa:result/*" as="element()*"/>
+        <xsl:variable name="result" select="$execution/wa:result/*[not(ldh:write-report(.))]" as="element()*"/>
         <xsl:variable name="cap" select="60" as="xs:integer"/>
         <!-- the rows: a result set's, each binding its value and, for a resource with a known label, the label; a graph's
              described resources as one-column rows, labelled the same way -->

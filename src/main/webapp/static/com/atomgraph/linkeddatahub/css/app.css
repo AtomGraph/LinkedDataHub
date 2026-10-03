@@ -4648,6 +4648,13 @@ form.ldh-chat-composer:not(.is-open) { display: none; }
 /* the trace: the steps under a disclosure whose summary is their count and the plan's time - open while the plan is
    being read or run, folded once the answer has been written. No marker; the meta line is the control */
 details.ldh-chat-trace > summary { font-family: var(--font-mono); font-size: 10px; letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--fg-muted); cursor: pointer; list-style: none; }
+/* the summary is a control and looks like one: a chevron that turns when open, and the outcome's glyph */
+details.ldh-chat-trace > summary { display: inline-flex; align-items: center; gap: var(--sp-1); padding: 2px var(--sp-2) 2px 2px; border-radius: var(--r-sm); }
+details.ldh-chat-trace > summary:hover { background: var(--bg-hover); }
+details.ldh-chat-trace > summary > .chev { transition: transform var(--dur-fast, 120ms) ease; }
+details.ldh-chat-trace[open] > summary > .chev { transform: rotate(90deg); }
+details.ldh-chat-trace > summary > .st.is-done { color: var(--success-500); }
+details.ldh-chat-trace > summary > .st.is-failed { color: var(--danger-500); }
 details.ldh-chat-trace > summary::-webkit-details-marker { display: none; }
 details.ldh-chat-trace > summary:hover { color: var(--fg-2); }
 details.ldh-chat-trace > ul { margin-top: var(--sp-2); }

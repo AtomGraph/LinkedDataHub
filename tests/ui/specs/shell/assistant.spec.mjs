@@ -194,11 +194,12 @@ test('Execute runs the plan, reports its steps and the document it wrote, and th
     await expect(card(page)).toHaveAttribute('id', id);
     await expect(card(page).locator('.ldh-chat-docs a.iri')).toHaveCount(1);
 
-    // the rows name what they return by its label, looked up once the result is in: the written container by its title
-    await expect(card(page).locator('table.ldh-chat-result a').first()).toHaveText('Assistant run', { timeout: 30_000 });
+    // a write's own report - ?status ?url - is no result: the written documents say it, and no result well is drawn
+    await expect(card(page).locator('.ldh-chat-result-block')).toHaveCount(0);
 
-    // what the plan returned stays with the card: a follow-up's "them" is sent with the next question as these rows
-    expect(await page.evaluate(id => id in window.LinkedDataHub.chatResults, id)).toBe(true);
+    // a plan that only wrote returned nothing but its writes' reports, so there are no rows for a follow-up's "them";
+    // what it changed is the documents listed above, and the next question hears that as this card's outcome
+    expect(await page.evaluate(id => id in window.LinkedDataHub.chatResults, id)).toBe(false);
 
     // and what it did is read back as a sentence, first on the card, with the trace folded under its count
     await expect(card(page).locator('.ldh-chat-answer')).not.toBeEmpty({ timeout: 60_000 });
@@ -206,6 +207,9 @@ test('Execute runs the plan, reports its steps and the document it wrote, and th
     const trace = card(page).locator('details.ldh-chat-trace');
     await expect(trace).not.toHaveAttribute('open', '');
     await expect(trace.locator('> summary')).toContainText(/\d+ steps/);
+    // folded, it still says how the steps went and that it opens
+    await expect(trace.locator('> summary > .st.is-done')).toBeVisible();
+    await expect(trace.locator('> summary > .chev')).toBeVisible();
 
     // the trace opens on its line, and its rows still fold out their XML after the render that replaced the body
     await trace.locator('> summary').click();
