@@ -922,7 +922,6 @@ exclude-result-prefixes="#all"
                         <xsl:apply-templates select="$result" mode="ldh:ExecutionResult">
                             <xsl:with-param name="present" select="$present" tunnel="yes"/>
                             <xsl:with-param name="card-id" select="string($card/@id)" tunnel="yes"/>
-                            <xsl:with-param name="keepable" select="exists(ldh:chat-query-step($plan-held))" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:otherwise>
                 </xsl:choose>
@@ -958,8 +957,7 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
         </xsl:for-each>
 
-        <!-- a chart is drawn into its canvas once the canvas is in the page - the card may have left it, in which case
-             the canvas waits, blank, for a Keep to make it a block of its own -->
+        <!-- a chart is drawn into its canvas once the canvas is in the page - the card may have left it -->
         <xsl:if test="not($failed) and $present/@mode = 'chart' and exists($result/self::srx:sparql) and exists($card/ancestor::body)">
             <xsl:variable name="results" as="document-node()">
                 <xsl:document>
@@ -1160,7 +1158,7 @@ exclude-result-prefixes="#all"
     <!-- A result as a block inside the card: a result set as the table the document's query blocks use, or drawn as a
          chart when the plan said so; a graph through the view block's own list, grid or table rendering by the plan's
          word, the list when it gave none. Each sits in a nested well headed the way a block is - the mode's icon and
-         name at compact density - so what the reader sees in the card is what Keep would write into the document.
+         name at compact density.
          The chart's canvas is drawn into once it is in the page (ldh:execution-ended) -->
     <xsl:template match="srx:sparql" mode="ldh:ExecutionResult">
         <xsl:param name="present" as="element()?" tunnel="yes"/>
@@ -1231,12 +1229,11 @@ exclude-result-prefixes="#all"
     <xsl:template match="*" mode="ldh:ExecutionResult"/>
 
     <!-- the well a result sits in: the kit's nested block at depth 2 under the card, headed with the mode's icon and
-         name, as a block in the document would be - the actions cluster is where Keep goes -->
+         name, as a block in the document would be -->
     <xsl:template name="ldh:ChatResultWell">
         <xsl:param name="mode-key" as="xs:string"/>
         <xsl:param name="icon" as="xs:string"/>
         <xsl:param name="body" as="item()*"/>
-        <xsl:param name="keepable" select="false()" as="xs:boolean" tunnel="yes"/>
         <xsl:variable name="mode" select="map{ 'table-mode': '&ac;TableMode', 'list-mode': '&ac;ListMode', 'grid-mode': '&ac;GridMode', 'chart-mode': '&ac;ChartMode' }($mode-key)" as="xs:string"/>
 
         <div class="ldh-nblock ldh-chat-result-block" data-depth="2" data-mode="{$mode-key}">
@@ -1254,14 +1251,7 @@ exclude-result-prefixes="#all"
                         </h3>
                     </div>
                 </div>
-                <div class="actions">
-                    <!-- Keep: the result as a block of the document, written by a plan built from this card's own query -->
-                    <xsl:if test="$keepable">
-                        <button type="button" class="ac-iconbtn sz-sm in-neutral ap-ghost ldh-chat-keep" aria-label="{ac:label(key('resources', 'keep', ldh:translations()))}" title="{ac:label(key('resources', 'keep', ldh:translations()))}">
-                            <span class="msi sm" aria-hidden="true">push_pin</span>
-                        </button>
-                    </xsl:if>
-                </div>
+                <div class="actions"/>
             </div>
             <div class="ldh-nblock-body">
                 <xsl:sequence select="$body"/>
@@ -1269,124 +1259,6 @@ exclude-result-prefixes="#all"
         </div>
     </xsl:template>
 
-    <!-- KEEP -->
-
-    <!-- The query step a plan ends on - the SELECT, DESCRIBE or CONSTRUCT whose rows the card shows - when it has one:
-         the last step of a Sequence, or the operation itself, with an endpoint of its own and a query written out or
-         generated. That is what Keep stores in the document -->
-    <xsl:function name="ldh:chat-query-step" as="element()?">
-        <xsl:param name="plan" as="element()?"/>
-        <xsl:variable name="operation" select="$plan/*[not(self::wa:summary | self::wa:operations | self::wa:present | self::wa:message)][1]" as="element()?"/>
-        <xsl:variable name="last" select="if ($operation/self::wa:Sequence) then $operation/*[last()] else $operation" as="element()?"/>
-
-        <xsl:sequence select="$last[self::wa:SELECT | self::wa:DESCRIBE | self::wa:CONSTRUCT][wa:endpoint[not(*)]][wa:query]"/>
-    </xsl:function>
-
-    <!-- The fragments below carry their '#': the waldh: operations resolve <fragment> against <url> as a relative
-         URI, so a bare 'abc-query' would name a sibling of the document rather than a resource in it -->
-    <!-- Keep writes what the card shows into the document the reader is on, as a plan of this card's own making:
-         the query stored on the document (with the endpoint registered as a service first when it is not the
-         dataspace's own), then a view or a chart over it by the plan's presentation hint - a view in the mode the
-         card drew, a chart with the axes the card drew. The plan is its own card, and runs at once: Keep is the
-         press of Execute. The catch-up that follows every write puts the new block above the conversation -->
-    <xsl:template match="*[ancestor-or-self::button[contains-token(@class, 'ldh-chat-keep')]]" mode="ixsl:onclick">
-        <xsl:variable name="card" select="ancestor::div[contains-token(@class, 'ldh-chat-plan')][1]" as="element()"/>
-        <xsl:variable name="log" select="$card/.." as="element()"/>
-        <xsl:variable name="plan" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.chat'), string($card/@id))" as="element()"/>
-        <xsl:variable name="present" select="$plan/wa:present" as="element()?"/>
-        <xsl:variable name="step" select="ldh:chat-query-step($plan)" as="element()"/>
-        <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:request-uri())" as="xs:anyURI"/>
-        <xsl:variable name="endpoint" select="normalize-space($step/wa:endpoint)" as="xs:string"/>
-        <xsl:variable name="remote" select="$endpoint != string(sd:endpoint())" as="xs:boolean"/>
-        <xsl:variable name="title" select="string($card/@data-question)" as="xs:string"/>
-        <xsl:variable name="id" select="ac:uuid()" as="xs:string"/>
-        <xsl:variable name="query-uri" select="$doc-uri || '#' || $id || '-query'" as="xs:string"/>
-        <xsl:variable name="mode" as="xs:string" select="
-          if ($present/@mode = 'chart') then 'chart'
-          else if ($present/@mode = ('list', 'grid', 'table')) then string($present/@mode)
-          else if ($step/self::wa:SELECT) then 'table' else 'list'"/>
-        <xsl:variable name="chart-types" select="map{ 'bar': '&ac;BarChart', 'line': '&ac;LineChart', 'scatter': '&ac;ScatterChart' }" as="map(xs:string, xs:string)"/>
-        <xsl:variable name="view-modes" select="map{ 'list': '&ac;ListMode', 'grid': '&ac;GridMode', 'table': '&ac;TableMode' }" as="map(xs:string, xs:string)"/>
-
-        <xsl:variable name="kept" as="element()">
-            <wa:plan>
-                <wa:summary>
-                    <xsl:apply-templates select="key('resources', 'keep-summary', ldh:translations())" mode="ac:label"/>
-                    <xsl:text>: </xsl:text>
-                    <xsl:value-of select="$title"/>
-                </wa:summary>
-                <wa:Sequence>
-                    <xsl:if test="$remote">
-                        <waldh:AddGenericService>
-                            <wa:url><xsl:value-of select="$doc-uri"/></wa:url>
-                            <wa:fragment>#<xsl:value-of select="$id"/>-service</wa:fragment>
-                            <wa:title><xsl:value-of select="$endpoint"/></wa:title>
-                            <wa:endpoint><xsl:value-of select="$endpoint"/></wa:endpoint>
-                        </waldh:AddGenericService>
-                    </xsl:if>
-                    <xsl:element name="{if ($step/self::wa:SELECT) then 'waldh:AddSelect' else 'waldh:AddConstruct'}" namespace="&waldh;">
-                        <wa:url><xsl:value-of select="$doc-uri"/></wa:url>
-                        <wa:fragment>#<xsl:value-of select="$id"/>-query</wa:fragment>
-                        <wa:title><xsl:value-of select="$title"/></wa:title>
-                        <!-- the query as the plan had it: text, or the SPARQLString that writes it at run time -->
-                        <wa:query>
-                            <xsl:copy-of select="$step/wa:query/node()"/>
-                        </wa:query>
-                        <xsl:if test="$remote">
-                            <wa:service><xsl:value-of select="$doc-uri"/>#<xsl:value-of select="$id"/>-service</wa:service>
-                        </xsl:if>
-                    </xsl:element>
-                    <xsl:choose>
-                        <xsl:when test="$mode = 'chart'">
-                            <waldh:AddResultSetChart>
-                                <wa:url><xsl:value-of select="$doc-uri"/></wa:url>
-                                <wa:fragment>#<xsl:value-of select="$id"/>-block</wa:fragment>
-                                <wa:query><xsl:value-of select="$query-uri"/></wa:query>
-                                <wa:title><xsl:value-of select="$title"/></wa:title>
-                                <wa:chart_type><xsl:value-of select="$chart-types(string($present/@type))"/></wa:chart_type>
-                                <wa:category_var_name><xsl:value-of select="$present/@category"/></wa:category_var_name>
-                                <wa:series_var_name><xsl:value-of select="tokenize($present/@series)[1]"/></wa:series_var_name>
-                            </waldh:AddResultSetChart>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <waldh:AddView>
-                                <wa:url><xsl:value-of select="$doc-uri"/></wa:url>
-                                <wa:fragment>#<xsl:value-of select="$id"/>-block</wa:fragment>
-                                <wa:query><xsl:value-of select="$query-uri"/></wa:query>
-                                <wa:title><xsl:value-of select="$title"/></wa:title>
-                                <wa:mode><xsl:value-of select="$view-modes($mode)"/></wa:mode>
-                            </waldh:AddView>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                    <!-- a view or a chart is a resource of the document; an object block is what places it among the
-                         document's blocks, after the last one -->
-                    <waldh:AddObjectBlock>
-                        <wa:url><xsl:value-of select="$doc-uri"/></wa:url>
-                        <wa:value><xsl:value-of select="$doc-uri"/>#<xsl:value-of select="$id"/>-block</wa:value>
-                    </waldh:AddObjectBlock>
-                </wa:Sequence>
-            </wa:plan>
-        </xsl:variable>
-
-        <!-- the Keep card: its turn says what is kept, its plan is the one built here, and it runs at once -->
-        <xsl:variable name="card-id" select="'chat-' || ac:uuid()" as="xs:string"/>
-        <xsl:for-each select="$log">
-            <xsl:result-document href="?." method="ixsl:append-content">
-                <p class="ldh-chat-turn">
-                    <xsl:apply-templates select="key('resources', 'keep', ldh:translations())" mode="ac:label"/>
-                    <xsl:text>: </xsl:text>
-                    <xsl:value-of select="$title"/>
-                </p>
-                <div class="ldh-nblock ldh-chat-plan" data-depth="1" id="{$card-id}" data-question="{$title}" data-attempt="0">
-                    <xsl:apply-templates select="$kept" mode="ldh:PlanCard"/>
-                </div>
-            </xsl:result-document>
-        </xsl:for-each>
-        <ixsl:set-property name="{$card-id}" select="$kept" object="ixsl:get(ixsl:window(), 'LinkedDataHub.chat')"/>
-        <xsl:call-template name="ldh:ChatExecute">
-            <xsl:with-param name="card" select="id($card-id, ixsl:page())"/>
-        </xsl:call-template>
-    </xsl:template>
 
     <!-- FAILURE -->
 

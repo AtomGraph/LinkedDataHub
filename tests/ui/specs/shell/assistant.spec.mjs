@@ -219,7 +219,7 @@ test('Execute runs the plan, reports its steps and the document it wrote, and th
     await expect(done.locator('pre')).toBeVisible();
 });
 
-test('a question is answered in words with its result as a block, and Keep makes the block the document\'s', { tag: '@owner' }, async ({ page }) => {
+test('a question is answered in words, with its result as a block in the card', { tag: '@owner' }, async ({ page }) => {
     test.setTimeout(300_000);
     // two documents in the scratch container, so the question has rows to answer from
     for (const title of ['Keep alpha', 'Keep beta'])
@@ -235,16 +235,4 @@ test('a question is answered in words with its result as a block, and Keep makes
     const well = card(page).locator('.ldh-chat-result-block').first();
     await expect(well).toBeVisible();
     await expect(well.locator('.ldh-block-head .ttl')).not.toBeEmpty();
-
-    // Keep writes it into the document: a plan of its own, run at once, and the document comes back in ContentMode
-    // with the new block placed above the conversation
-    const blocks = page.locator('.ldh-pane.is-active .content-body > .ldh-block-row');
-    const before = await blocks.count();
-    await well.locator('.ldh-chat-keep').click();
-    const kept = card(page);
-    await expect(kept).toHaveAttribute('data-outcome', /wrote/, { timeout: 120_000 });
-    await expect(page).toHaveURL(/mode=https%3A%2F%2Fw3id\.org%2Fatomgraph%2Flinkeddatahub%23ContentMode/, { timeout: 30_000 });
-    await expect(blocks).toHaveCount(before + 1, { timeout: 30_000 });
-    await expect(page.locator('.ldh-pane.is-active .content-body > .ldh-block-row + .ldh-chat-block')).toHaveCount(1);
 });
-
