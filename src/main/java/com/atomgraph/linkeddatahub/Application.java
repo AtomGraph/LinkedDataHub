@@ -93,6 +93,7 @@ import com.atomgraph.linkeddatahub.server.event.SignUp;
 import com.atomgraph.linkeddatahub.server.factory.AgentContextFactory;
 import com.atomgraph.linkeddatahub.server.factory.ApplicationFactory;
 import com.atomgraph.linkeddatahub.server.factory.AuthorizationContextFactory;
+import com.atomgraph.linkeddatahub.server.filter.request.AcceptLanguageFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.ApplicationFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.WebIDFilter;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
@@ -266,6 +267,8 @@ public class Application extends ResourceConfig
     public static final String CLIENT_SEF_PATH = "/static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json";
     /** Milliseconds a request waits for a connection from the client pool when nothing configures it; the image sets the same through CONNECTION_REQUEST_TIMEOUT */
     public static final int DEFAULT_CONNECTION_REQUEST_TIMEOUT = 30000;
+    /** ORCID's production environment, used when no issuer is configured; a client registered on the sandbox sets <code>https://sandbox.orcid.org</code> */
+    public static final String ORCID_ISSUER = "https://orcid.org";
     /** Path of the client stylesheet source in the webapp, composed with package stylesheets per import set */
     public static final String CLIENT_XSL_PATH = "/static/com/atomgraph/linkeddatahub/xsl/client.xsl";
 
@@ -369,8 +372,11 @@ public class Application extends ResourceConfig
             System.getProperty("com.atomgraph.linkeddatahub.allowInternalUrls") != null ? Boolean.parseBoolean(System.getProperty("com.atomgraph.linkeddatahub.allowInternalUrls")) :
             servletConfig.getServletContext().getInitParameter(LDHC.allowInternalUrls.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.allowInternalUrls.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(LDHC.maxContentLength.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxContentLength.getURI())) : null,
+            System.getProperty("com.atomgraph.linkeddatahub.maxConnPerRoute") != null ? Integer.valueOf(System.getProperty("com.atomgraph.linkeddatahub.maxConnPerRoute")) :
             servletConfig.getServletContext().getInitParameter(LDHC.maxConnPerRoute.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxConnPerRoute.getURI())) : null,
+            System.getProperty("com.atomgraph.linkeddatahub.maxTotalConn") != null ? Integer.valueOf(System.getProperty("com.atomgraph.linkeddatahub.maxTotalConn")) :
             servletConfig.getServletContext().getInitParameter(LDHC.maxTotalConn.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxTotalConn.getURI())) : null,
+            System.getProperty("com.atomgraph.linkeddatahub.maxRequestRetries") != null ? Integer.valueOf(System.getProperty("com.atomgraph.linkeddatahub.maxRequestRetries")) :
             servletConfig.getServletContext().getInitParameter(LDHC.maxRequestRetries.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxRequestRetries.getURI())) : null,
             System.getProperty("com.atomgraph.linkeddatahub.connectionRequestTimeout") != null ? Integer.valueOf(System.getProperty("com.atomgraph.linkeddatahub.connectionRequestTimeout")) :
             servletConfig.getServletContext().getInitParameter(LDHC.connectionRequestTimeout.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.connectionRequestTimeout.getURI())) :
@@ -394,7 +400,8 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(Google.clientID.getURI()) != null ? servletConfig.getServletContext().getInitParameter(Google.clientID.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(Google.clientSecret.getURI()) != null ? servletConfig.getServletContext().getInitParameter(Google.clientSecret.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(ORCID.clientID.getURI()) != null ? servletConfig.getServletContext().getInitParameter(ORCID.clientID.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(ORCID.clientSecret.getURI()) != null ? servletConfig.getServletContext().getInitParameter(ORCID.clientSecret.getURI()) : null
+            servletConfig.getServletContext().getInitParameter(ORCID.clientSecret.getURI()) != null ? servletConfig.getServletContext().getInitParameter(ORCID.clientSecret.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(ORCID.issuer.getURI()) != null ? servletConfig.getServletContext().getInitParameter(ORCID.issuer.getURI()) : ORCID_ISSUER
         );
     }
     
@@ -450,6 +457,7 @@ public class Application extends ResourceConfig
      * @param googleClientSecret client secret for Google's OAuth
      * @param orcidClientID client ID for ORCID's OAuth
      * @param orcidClientSecret client secret for ORCID's OAuth
+     * @param orcidIssuer ORCID environment the client is registered with (production or sandbox)
      * @param frontendProxyString frontend (Varnish) proxy URI used for cache invalidation BAN requests, or null
      * @param backendProxyAdminString backend proxy URI for the admin SPARQL service (endpoint URI rewriting + cache invalidation), or null
      * @param backendProxyEndUserString backend proxy URI for the end-user SPARQL service (endpoint URI rewriting + cache invalidation), or null
@@ -472,7 +480,7 @@ public class Application extends ResourceConfig
             final String frontendProxyString, final String backendProxyAdminString, final String backendProxyEndUserString,
             final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort,
             final String googleClientID, final String googleClientSecret,
-            final String orcidClientID, final String orcidClientSecret)
+            final String orcidClientID, final String orcidClientSecret, final String orcidIssuer)
     {
         if (contextDatasetURIString == null)
         {
@@ -614,6 +622,7 @@ public class Application extends ResourceConfig
         if (googleClientSecret != null) this.property(Google.clientSecret.getURI(), googleClientSecret);
         if (orcidClientID != null) this.property(ORCID.clientID.getURI(), orcidClientID);
         if (orcidClientSecret != null) this.property(ORCID.clientSecret.getURI(), orcidClientSecret);
+        this.property(ORCID.issuer.getURI(), URI.create(orcidIssuer));
 
         try
         {
@@ -1211,6 +1220,7 @@ public class Application extends ResourceConfig
     protected void registerContainerRequestFilters()
     {
         register(new HttpMethodOverrideFilter());
+        register(AcceptLanguageFilter.class);
         register(ApplicationFilter.class);
         register(OntologyFilter.class);
         register(ProxiedWebIDFilter.class);

@@ -256,7 +256,7 @@ exclude-result-prefixes="#all"
         ]]>
     </xsl:param>
 
-    <!-- target URIs of the Link header entries whose parameters contain $marker (a rel URI, or 'rel=timemap').
+    <!-- target URIs of the Link header entries whose parameters contain $marker (a rel URI, or 'rel=&quot;timemap&quot;' for a registered relation type).
          Entries are split by regex rather than tokenize(','), because a Link value may carry commas inside
          quoted parameters; the marker is tested against the parameter section only, so a target URI cannot
          match it. Shared: the server passes the whole $ldh:httpHeaders('Link') sequence, the client one

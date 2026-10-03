@@ -88,7 +88,7 @@ exclude-result-prefixes="#all"
              concept's. Scoping both to one GRAPH silently drops every child linked from above -
              measured against a fixture where it returned one top concept of two. -->
         <!-- Written out whole rather than a SELECT for something else to wrap, and handed to the
-             endpoint as the string it already is. It used to go through SPARQLBuilder twice - parsed
+             endpoint as the string it already is. It used to go through SPARQL.js twice - parsed
              from a string here, re-serialised in the fetch - and that round-trip MERGED the two
              sibling GRAPH blocks into one keeping only the last graph variable, putting the type
              requirement back inside the link's graph and silently dropping every child linked from the

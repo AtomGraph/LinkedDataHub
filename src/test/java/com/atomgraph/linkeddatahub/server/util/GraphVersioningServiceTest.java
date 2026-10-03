@@ -113,6 +113,16 @@ public class GraphVersioningServiceTest
     }
 
     @Test
+    public void testTimeMapWithoutCommitsIsEmpty()
+    {
+        Model model = GraphVersioningService.toTimeMap(URI.create("https://localhost:4443/doc/"), List.of());
+
+        Resource timeMap = model.createResource("https://localhost:4443/doc/?timemap");
+        assertTrue(model.contains(timeMap, RDF.type, PROV.Collection));
+        assertTrue(timeMap.getPropertyResourceValue(PROV.hadMember) == null);
+    }
+
+    @Test
     public void testTimeMapRevisionChain()
     {
         URI graphURI = URI.create("https://localhost:4443/doc/");

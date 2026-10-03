@@ -30,6 +30,7 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,18 +45,6 @@ public class Login extends LoginBase
 {
 
     private static final Logger log = LoggerFactory.getLogger(Login.class);
-
-    /** OAuth token endpoint URL */
-    public static final URI TOKEN_ENDPOINT = URI.create("https://sandbox.orcid.org/oauth/token"); // URI.create("https://orcid.org/oauth/token");
-
-    /** User info endpoint URL */
-    public static final URI USER_INFO_ENDPOINT = URI.create("https://sandbox.orcid.org/oauth/userinfo"); // URI.create("https://orcid.org/oauth/userinfo");
-
-    /** JWKS endpoint URL for JWT signature verification */
-    public static final URI JWKS_ENDPOINT = URI.create("https://sandbox.orcid.org/oauth/jwks"); // URI.create("https://orcid.org/oauth/jwks");
-
-    /** Valid ORCID issuers (supports both production and sandbox) */
-    private static final java.util.List<String> ISSUERS = java.util.Arrays.asList("https://orcid.org", "https://sandbox.orcid.org");
 
     /**
      * Constructs endpoint.
@@ -77,6 +66,61 @@ public class Login extends LoginBase
     }
 
     /**
+     * Returns the configured ORCID issuer (production or sandbox), which all the endpoints are on.
+     *
+     * @param system system application
+     * @return issuer URI
+     */
+    public static URI getIssuer(com.atomgraph.linkeddatahub.Application system)
+    {
+        return (URI)system.getProperty(ORCID.issuer.getURI());
+    }
+
+    /**
+     * Returns the authorization endpoint of an ORCID issuer.
+     *
+     * @param issuer ORCID issuer
+     * @return authorization endpoint URI
+     */
+    public static URI getAuthorizeEndpoint(URI issuer)
+    {
+        return UriBuilder.fromUri(issuer).path("oauth/authorize").build();
+    }
+
+    /**
+     * Returns the token endpoint of an ORCID issuer.
+     *
+     * @param issuer ORCID issuer
+     * @return token endpoint URI
+     */
+    public static URI getTokenEndpoint(URI issuer)
+    {
+        return UriBuilder.fromUri(issuer).path("oauth/token").build();
+    }
+
+    /**
+     * Returns the UserInfo endpoint of an ORCID issuer.
+     *
+     * @param issuer ORCID issuer
+     * @return UserInfo endpoint URI
+     */
+    public static URI getUserInfoEndpoint(URI issuer)
+    {
+        return UriBuilder.fromUri(issuer).path("oauth/userinfo").build();
+    }
+
+    /**
+     * Returns the JWKS endpoint of an ORCID issuer, for fetching the public keys that sign its JWTs.
+     *
+     * @param issuer ORCID issuer
+     * @return JWKS endpoint URI
+     */
+    public static URI getJWKSEndpoint(URI issuer)
+    {
+        return UriBuilder.fromUri(issuer).path("oauth/jwks").build();
+    }
+
+    /**
      * Returns ORCID's OAuth token endpoint URL.
      *
      * @return ORCID token endpoint URI
@@ -84,7 +128,7 @@ public class Login extends LoginBase
     @Override
     public URI getTokenEndpoint()
     {
-        return TOKEN_ENDPOINT;
+        return getTokenEndpoint(getIssuer(getSystem()));
     }
 
     /**
@@ -95,18 +139,18 @@ public class Login extends LoginBase
     @Override
     protected URI getJWKSEndpoint()
     {
-        return JWKS_ENDPOINT;
+        return getJWKSEndpoint(getIssuer(getSystem()));
     }
 
     /**
-     * Returns the list of valid ORCID issuers.
+     * Returns the configured ORCID issuer, the only one whose tokens are accepted.
      *
      * @return list of valid issuer URLs
      */
     @Override
     protected java.util.List<String> getIssuers()
     {
-        return ISSUERS;
+        return java.util.List.of(getIssuer(getSystem()).toString());
     }
 
     /**
@@ -122,7 +166,7 @@ public class Login extends LoginBase
     protected Map<String, String> getUserInfo(DecodedJWT jwt, String accessToken)
     {
         // ORCID requires a separate UserInfo endpoint call to get user details
-        try (Response userInfoResponse = getSystem().getClient().target(USER_INFO_ENDPOINT).
+        try (Response userInfoResponse = getSystem().getClient().target(getUserInfoEndpoint(getIssuer(getSystem()))).
                 request().
                 header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken).
                 get())

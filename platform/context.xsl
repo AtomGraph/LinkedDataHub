@@ -37,9 +37,6 @@ xmlns:orcid="&orcid;"
     <xsl:param name="ldhc:ownerAuthQuery"/>
     <xsl:param name="ldhc:enableLinkedDataProxy"/>
     <xsl:param name="ldhc:maxContentLength"/>
-    <xsl:param name="ldhc:maxConnPerRoute"/>
-    <xsl:param name="ldhc:maxTotalConn"/>
-    <xsl:param name="ldhc:maxRequestRetries"/>
     <xsl:param name="ldhc:maxImportThreads"/>
     <xsl:param name="ldhc:notificationAddress"/>
     <xsl:param name="ldhc:enableWebIDSignUp"/>
@@ -52,6 +49,7 @@ xmlns:orcid="&orcid;"
     <xsl:param name="google:clientSecret"/>
     <xsl:param name="orcid:clientID"/>
     <xsl:param name="orcid:clientSecret"/>
+    <xsl:param name="orcid:issuer"/>
     <xsl:param name="ldhc:frontendProxy"/>
     <xsl:param name="ldhc:backendProxyAdmin"/>
     <xsl:param name="ldhc:backendProxyEndUser"/>
@@ -127,15 +125,6 @@ xmlns:orcid="&orcid;"
             <xsl:if test="$ldhc:maxContentLength">
                 <Parameter name="&ldhc;maxContentLength" value="{$ldhc:maxContentLength}" override="false"/>
             </xsl:if>
-            <xsl:if test="$ldhc:maxConnPerRoute">
-                <Parameter name="&ldhc;maxConnPerRoute" value="{$ldhc:maxConnPerRoute}" override="false"/>
-            </xsl:if>
-            <xsl:if test="$ldhc:maxTotalConn">
-                <Parameter name="&ldhc;maxTotalConn" value="{$ldhc:maxTotalConn}" override="false"/>
-            </xsl:if>
-            <xsl:if test="$ldhc:maxRequestRetries">
-                <Parameter name="&ldhc;maxRequestRetries" value="{$ldhc:maxRequestRetries}" override="false"/>
-            </xsl:if>
             <xsl:if test="$ldhc:maxImportThreads">
                 <Parameter name="&ldhc;maxImportThreads" value="{$ldhc:maxImportThreads}" override="false"/>
             </xsl:if>
@@ -171,6 +160,9 @@ xmlns:orcid="&orcid;"
             </xsl:if>
             <xsl:if test="$orcid:clientSecret">
                 <Parameter name="&orcid;clientSecret" value="{$orcid:clientSecret}" override="false"/>
+            </xsl:if>
+            <xsl:if test="$orcid:issuer">
+                <Parameter name="&orcid;issuer" value="{$orcid:issuer}" override="false"/>
             </xsl:if>
             <xsl:if test="$ldhc:frontendProxy">
                 <Parameter name="&ldhc;frontendProxy" value="{$ldhc:frontendProxy}" override="false"/>

@@ -18,6 +18,7 @@ package com.atomgraph.linkeddatahub.server.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
@@ -25,6 +26,9 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.sparql.modify.request.UpdateData;
+import org.apache.jena.update.UpdateFactory;
+import org.apache.jena.update.UpdateRequest;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -45,6 +49,8 @@ public class FileContextPersistenceTest
     private static final String END_USER = "urn:linkeddatahub:apps/end-user";
     private static final String ADMIN = "urn:linkeddatahub:apps/admin";
     private static final String TITLE = "http://purl.org/dc/terms/title";
+    private static final String IMPORT = "https://w3id.org/atomgraph/linkeddatahub#import";
+    private static final String VERSIONING = "https://w3id.org/atomgraph/linkeddatahub/dataspaces#versioningRepository";
 
     @TempDir
     private Path dir;
@@ -67,6 +73,26 @@ public class FileContextPersistenceTest
             getString();
     }
 
+    private static boolean states(Dataset dataset, String uri, String property, String object)
+    {
+        return dataset.getNamedModel(uri).contains(ResourceFactory.createResource(uri), ResourceFactory.createProperty(property), ResourceFactory.createResource(object));
+    }
+
+    private static void state(Dataset dataset, String uri, String property, String object)
+    {
+        dataset.getNamedModel(uri).add(ResourceFactory.createResource(uri), ResourceFactory.createProperty(property), ResourceFactory.createResource(object));
+    }
+
+    private static void unstate(Dataset dataset, String uri, String property, String object)
+    {
+        dataset.getNamedModel(uri).remove(ResourceFactory.createResource(uri), ResourceFactory.createProperty(property), ResourceFactory.createResource(object));
+    }
+
+    private UpdateRequest written() throws IOException
+    {
+        return UpdateFactory.create(Files.readString(overlay.toPath()));
+    }
+
     @BeforeEach
     public void setUp()
     {
@@ -74,7 +100,7 @@ public class FileContextPersistenceTest
         configured.addNamedModel(END_USER, describing(END_USER, "End-user"));
         configured.addNamedModel(ADMIN, describing(ADMIN, "Admin"));
 
-        overlay = dir.resolve("dataspaces.trig").toFile();
+        overlay = dir.resolve("dataspaces.ru").toFile();
     }
 
     @Test
@@ -112,10 +138,11 @@ public class FileContextPersistenceTest
         updated.addNamedModel(END_USER, describing(END_USER, "Renamed"));
         persistence.persist(updated);
 
-        Dataset written = RDFDataMgr.loadDataset(overlay.toURI().toString());
-        assertTrue(written.containsNamedModel(END_USER));
-        assertFalse(written.containsNamedModel(ADMIN),
-            "a dataspace nobody changed was copied into the overlay, where it would shadow its own configuration");
+        var graphs = written().getOperations().stream().
+            flatMap(op -> ((UpdateData)op).getQuads().stream()).
+            map(quad -> quad.getGraph().getURI()).
+            distinct().toList();
+        assertEquals(java.util.List.of(END_USER), graphs, "a dataspace nobody changed was written to the overlay");
     }
 
     @Test
@@ -144,8 +171,77 @@ public class FileContextPersistenceTest
         persistence.persist(persistence.load());
 
         assertTrue(overlay.exists());
-        assertFalse(RDFDataMgr.loadDataset(overlay.toURI().toString()).listModelNames().hasNext(),
-            "an unchanged configuration put something in the overlay");
+        assertTrue(written().getOperations().isEmpty(), "an unchanged configuration put something in the overlay");
+    }
+
+    @Test
+    public void testAStatementAddedToTheConfigurationReachesAChangedDataspace() throws IOException
+    {
+        var persistence = new FileContextPersistence(configured, overlay, null);
+        Dataset updated = persistence.load();
+        state(updated, END_USER, IMPORT, "https://packages.example/taxonomy/#this");
+        persistence.persist(updated);
+
+        // the deployer enables versioning for the dataspace a package was installed into
+        Dataset edited = DatasetFactory.create();
+        edited.addNamedModel(END_USER, describing(END_USER, "End-user"));
+        edited.addNamedModel(ADMIN, describing(ADMIN, "Admin"));
+        state(edited, END_USER, VERSIONING, "urn:linkeddatahub:versioning/end-user");
+
+        Dataset live = new FileContextPersistence(edited, overlay, null).load();
+        assertTrue(states(live, END_USER, VERSIONING, "urn:linkeddatahub:versioning/end-user"), "the configuration edit was shadowed by the runtime change");
+        assertTrue(states(live, END_USER, IMPORT, "https://packages.example/taxonomy/#this"), "the runtime change was lost");
+    }
+
+    @Test
+    public void testAStatementRemovedAtRuntimeStaysRemoved() throws IOException
+    {
+        state(configured, END_USER, IMPORT, "https://packages.example/taxonomy/#this");
+        var persistence = new FileContextPersistence(configured, overlay, null);
+        Dataset updated = persistence.load();
+        unstate(updated, END_USER, IMPORT, "https://packages.example/taxonomy/#this");
+        persistence.persist(updated);
+
+        Dataset live = new FileContextPersistence(configured, overlay, null).load();
+        assertFalse(states(live, END_USER, IMPORT, "https://packages.example/taxonomy/#this"), "the uninstalled package came back from the configuration");
+        assertEquals("End-user", titleOf(live, END_USER));
+    }
+
+    @Test
+    public void testLoadingLeavesTheConfigurationAlone() throws IOException
+    {
+        state(configured, END_USER, IMPORT, "https://packages.example/taxonomy/#this");
+        var persistence = new FileContextPersistence(configured, overlay, null);
+        Dataset updated = persistence.load();
+        unstate(updated, END_USER, IMPORT, "https://packages.example/taxonomy/#this");
+        persistence.persist(updated);
+
+        new FileContextPersistence(configured, overlay, null).load();
+        assertTrue(states(configured, END_USER, IMPORT, "https://packages.example/taxonomy/#this"), "applying the overlay deleted from the configuration itself");
+    }
+
+    @Test
+    public void testALegacyCopyIsConvertedToChanges() throws IOException
+    {
+        // what the copy-style overlay held: the whole end-user description, renamed at runtime
+        Dataset copy = DatasetFactory.create();
+        copy.addNamedModel(END_USER, describing(END_USER, "Renamed"));
+        try (var out = new java.io.FileOutputStream(dir.resolve("dataspaces.trig").toFile()))
+        {
+            RDFDataMgr.write(out, copy, org.apache.jena.riot.Lang.TRIG);
+        }
+
+        Dataset live = new FileContextPersistence(configured, overlay, null).load();
+        assertEquals("Renamed", titleOf(live, END_USER), "the legacy change was not carried over");
+        assertEquals("Admin", titleOf(live, ADMIN));
+        assertTrue(overlay.exists(), "the conversion was not written");
+
+        // converted once: the change file decides from now on
+        Dataset edited = DatasetFactory.create();
+        edited.addNamedModel(END_USER, describing(END_USER, "End-user"));
+        edited.addNamedModel(ADMIN, describing(ADMIN, "Admin"));
+        state(edited, END_USER, VERSIONING, "urn:linkeddatahub:versioning/end-user");
+        assertTrue(states(new FileContextPersistence(edited, overlay, null).load(), END_USER, VERSIONING, "urn:linkeddatahub:versioning/end-user"));
     }
 
     @Test
@@ -171,7 +267,7 @@ public class FileContextPersistenceTest
     @Test
     public void testAnUnknownFormatIsRefusedRatherThanGuessed()
     {
-        var persistence = new FileContextPersistence(configured, dir.resolve("dataspaces.wat").toFile(), null);
+        var persistence = new FileContextPersistence(configured, null, dir.resolve("system.wat").toFile());
 
         assertThrows(IOException.class, () -> persistence.persist(configured));
     }

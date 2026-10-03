@@ -356,7 +356,7 @@ LinkedDataHub includes an HTTP [test suite](https://github.com/AtomGraph/LinkedD
 ### Browser
 
 * [Saxon-JS](https://www.saxonica.com/saxon-js/)
-* [SPARQLBuilder](https://github.com/AtomGraph/sparql-builder)
+* [SPARQL.js](https://github.com/RubenVerborgh/SPARQL.js)
 * [OpenLayers](https://openlayers.org)
 * [Google Charts](https://developers.google.com/chart)
 * [xml-c14n-sync](https://github.com/AtomGraph/xml-c14n-sync)

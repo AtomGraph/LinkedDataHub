@@ -278,12 +278,10 @@ public class GraphVersioningService
         if (repository == null) return Optional.empty();
 
         String path = path(repository.pathPrefix(), appBase, graphURI);
-        List<GitHubClient.CommitInfo> commits = repository.client().listCommits(path);
-        // a TimeMap is a list of Mementos; without any, there is no history to describe and the Original Resource
-        // would not be derivable from the model either (it is reached through prov:specializationOf)
-        if (commits.isEmpty()) return Optional.empty();
-
-        return Optional.of(toTimeMap(graphURI, commits));
+        // a document of a versioned dataspace has a TimeMap whether or not it has been written since versioning
+        // began - every one is advertised with rel=timemap - so one with no commits yet has an empty TimeMap
+        // rather than none: a 404 there was a History link leading nowhere for every document that predated it
+        return Optional.of(toTimeMap(graphURI, repository.client().listCommits(path)));
     }
 
     /**

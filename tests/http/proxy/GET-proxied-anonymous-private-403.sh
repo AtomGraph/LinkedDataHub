@@ -44,7 +44,7 @@ if ! echo "$status" | grep -qE "^($STATUS_UNAUTHORIZED|$STATUS_FORBIDDEN)$"; the
     exit 1
 fi
 
-if grep -qi "rel=http://www.w3.org/ns/auth/acl#agent" "$response_headers"; then
+if grep -qi "rel=\"http://www.w3.org/ns/auth/acl#agent\"" "$response_headers"; then
     echo "An anonymous proxied read asserts an agent"
     exit 1
 fi

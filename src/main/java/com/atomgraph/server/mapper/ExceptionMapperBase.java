@@ -31,7 +31,7 @@ import jakarta.ws.rs.core.UriInfo;
 import jakarta.ws.rs.core.Variant;
 import jakarta.ws.rs.ext.Provider;
 import com.atomgraph.core.MediaTypes;
-import com.atomgraph.core.util.Link;
+import com.atomgraph.linkeddatahub.server.util.Link;
 import com.atomgraph.linkeddatahub.vocabulary.LDS;
 import com.atomgraph.server.vocabulary.HTTP;
 import jakarta.inject.Inject;
@@ -93,7 +93,7 @@ abstract public class ExceptionMapperBase
         return Response.ok(). // status will be overriden in the subclasses
             entity(model).
             variant(variant).
-            header(HttpHeaders.LINK, new Link(getUriInfo().getBaseUri(), LDS.base.getURI(), null));
+            header(HttpHeaders.LINK, Link.fromUri(getUriInfo().getBaseUri()).rel(LDS.base.getURI()).build());
     }
 
     /**

@@ -5,6 +5,7 @@
     <!ENTITY ac      "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf     "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY prov    "http://www.w3.org/ns/prov#">
+    <!ENTITY dct     "http://purl.org/dc/terms/">
     <!ENTITY sp      "http://spinrdf.org/sp#">
     <!ENTITY acl     "http://www.w3.org/ns/auth/acl#">
 ]>
@@ -18,6 +19,7 @@ xmlns:lds="&lds;"
 xmlns:ac="&ac;"
 xmlns:rdf="&rdf;"
 xmlns:prov="&prov;"
+xmlns:dct="&dct;"
 xmlns:sp="&sp;"
 xmlns:acl="&acl;"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
@@ -44,6 +46,7 @@ version="3.0"
             => ixsl:then(ldh:rethread-response($context, ?))
             => ixsl:then(ldh:handle-response#1)
             => ixsl:then(ldh:load-document-modes#1)
+            => ixsl:then(ldh:load-creator-metadata#1)
             => ixsl:then(ldh:timemap-response#1) =>
             ixsl:finally(ldh:reset-cursor#0)
         " on-failure="ldh:promise-failure($container, 'version-history-not-loaded', ?)"/>
@@ -59,6 +62,30 @@ version="3.0"
           ixsl:http-request(ldh:head-request($context('doc-uri')))
             => ixsl:then(ldh:rethread-response($context, ?, 'doc-response'))
         "/>
+    </xsl:function>
+
+    <!-- loads the WebID documents of the agents who wrote the versions, so that ac:object-label can name them.
+         Agents live in the admin dataspace, which the end-user SPARQL endpoint does not see, so their documents are
+         dereferenced through the ?uri= proxy, like the signed-in agent's own. all-settled: an agent whose document
+         cannot be loaded keeps its URI as the label, it does not stop the history from opening. -->
+    <xsl:function name="ldh:load-creator-metadata" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="doc-uris" select="if ($response?status = 200 and $response?media-type = 'application/rdf+xml') then distinct-values($response?body//*[@rdf:about][prov:specializationOf/@rdf:resource]/dct:creator/@rdf:resource/ac:document-uri(.)) else ()" as="xs:anyURI*"/>
+
+        <xsl:sequence select="
+          ixsl:all-settled(array { for $doc-uri in $doc-uris return ixsl:http-request(map{ 'method': 'GET', 'href': ldh:href($doc-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }) })
+            => ixsl:then(ldh:set-creator-metadata($context, ?))
+        "/>
+    </xsl:function>
+
+    <!-- merges the agent documents that loaded into the 'object-metadata' document that ac:object-label reads -->
+    <xsl:function name="ldh:set-creator-metadata" as="map(*)">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="results" as="array(*)"/>
+        <xsl:variable name="documents" select="$results?*[?status = 'fulfilled']?value[?status = 200][?media-type = 'application/rdf+xml']?body" as="document-node()*"/>
+
+        <xsl:sequence select="map:merge(($context, map{ 'object-metadata': fold-left($documents, (), ldh:merge-metadata#2) }))"/>
     </xsl:function>
 
     <!-- renders the version history modal from the TimeMap RDF response -->
@@ -90,6 +117,17 @@ version="3.0"
                             <xsl:with-param name="body" as="item()*">
 
                             <xsl:choose>
+                                <!-- a document not written since versioning began: its TimeMap exists and lists no versions yet -->
+                                <xsl:when test="$response?status = 200 and $response?media-type = 'application/rdf+xml' and empty($response?body//*[@rdf:about][prov:specializationOf/@rdf:resource])">
+                                    <xsl:apply-templates select="." mode="ac:InlineAlert">
+                                        <xsl:with-param name="variant" select="'va-informative'"/>
+                                        <xsl:with-param name="text" as="item()*">
+                                            <xsl:value-of>
+                                                <xsl:apply-templates select="key('resources', 'no-versions', ldh:translations())" mode="ac:label"/>
+                                            </xsl:value-of>
+                                        </xsl:with-param>
+                                    </xsl:apply-templates>
+                                </xsl:when>
                                 <xsl:when test="$response?status = 200 and $response?media-type = 'application/rdf+xml'">
                                     <xsl:variable name="mementos" select="$response?body//*[@rdf:about][prov:specializationOf/@rdf:resource]" as="element()*"/>
                                     <xsl:variable name="sorted-mementos" select="sort($mementos, (), function($memento) { string($memento/prov:generatedAtTime) })" as="element()*"/>
@@ -136,6 +174,7 @@ version="3.0"
                                                     <xsl:with-param name="from-memento" select="$from-memento"/>
                                                     <xsl:with-param name="to-memento" select="$current-memento"/>
                                                     <xsl:with-param name="writable" select="$writable"/>
+                                                    <xsl:with-param name="object-metadata" select="$context('object-metadata')" tunnel="yes"/>
                                                 </xsl:apply-templates>
                                             </xsl:with-param>
                                         </xsl:apply-templates>
@@ -226,11 +265,12 @@ version="3.0"
                 <!-- the graph store takes the document node directly; the server restamps dct:modified -->
                 <!-- conditional on the live document's current state: restoring a version overwrites the whole
                      graph, so without a validator it would silently discard anything written since the timemap
-                     was rendered -->
+                     was rendered. Started from a ?version= view the browser holds no tag for the live document - a
+                     memento's is never stored as its - so ldh:with-document-etag HEADs the live document for one -->
                 <xsl:variable name="request" select="map{ 'method': 'PUT', 'href': ldh:href($context('doc-uri')), 'media-type': 'application/rdf+xml', 'body': $response?body, 'headers': ldh:conditional-headers(map{ 'Accept': 'application/rdf+xml' }, ldh:document-etag($context('doc-uri'))) }" as="map(*)"/>
                 <xsl:sequence select="
-                  ixsl:http-request($request)
-                    => ixsl:then(ldh:rethread-response(map:remove($context, 'response'), ?))
+                  ldh:with-document-etag(map:put(map:remove($context, 'response'), 'request', $request))
+                    => ixsl:then(ldh:http-request-threaded#1)
                     => ixsl:then(ldh:restored-version#1)"/>
             </xsl:when>
             <xsl:otherwise>

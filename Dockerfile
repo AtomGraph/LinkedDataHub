@@ -11,12 +11,18 @@ RUN mkdir /jena && \
     tar -xzf - -C /jena
 
 # copy platform source code and POM
+#
+# the POM comes first and resolves the dependency tree in a layer of its own, so a source change
+# does not invalidate it. go-offline does not cover every profile-bound plugin, which is why the
+# install below stays online and fetches whatever is left rather than failing on it
 
 WORKDIR /usr/src/platform
 
-COPY src /usr/src/platform/src
-
 COPY pom.xml /usr/src/platform/pom.xml
+
+RUN mvn -B -Pstandalone dependency:go-offline
+
+COPY src /usr/src/platform/src
 
 RUN mvn -Pstandalone clean install
 # ==============================
