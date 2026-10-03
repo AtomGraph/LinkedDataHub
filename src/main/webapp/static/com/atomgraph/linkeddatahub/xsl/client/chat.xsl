@@ -470,11 +470,20 @@ exclude-result-prefixes="#all"
                 <xsl:value-of select="wa:summary"/>
             </p>
         </xsl:if>
-        <!-- the same rows execution reports into: an operation is a step that has not run yet. The rows nest as
-             the operations do, and each folds out its own operation's XML - the first, the outermost, the whole plan -->
-        <ul class="ldh-chat-steps">
-            <xsl:apply-templates select="$operation" mode="ldh:OperationTree"/>
-        </ul>
+        <!-- the trace: the same rows execution reports into - an operation is a step that has not run yet. The rows
+             nest as the operations do, and each folds out its own operation's XML - the first, the outermost, the whole
+             plan. Open while the plan is being read and run, since the rows are what there is to see; folded under its
+             count once the answer has been written, which is then what there is to read -->
+        <details class="ldh-chat-trace" open="">
+            <summary>
+                <xsl:value-of select="count(ldh:plan-operations($operation))"/>
+                <xsl:text> </xsl:text>
+                <xsl:apply-templates select="key('resources', 'chat-steps', ldh:translations())" mode="ac:label"/>
+            </summary>
+            <ul class="ldh-chat-steps">
+                <xsl:apply-templates select="$operation" mode="ldh:OperationTree"/>
+            </ul>
+        </details>
         <div class="ldh-chat-plan-actions">
             <button type="button" class="ac-btn in-primary ap-solid sz-md ldh-chat-execute">
                 <span class="msi sm" aria-hidden="true">play_arrow</span>
@@ -599,13 +608,16 @@ exclude-result-prefixes="#all"
 
         <!-- the actions and what a previous attempt reported - everything after the rows - go; the rows go back to
              planned and report anew -->
-        <xsl:for-each select="$card/*[preceding-sibling::ul[contains-token(@class, 'ldh-chat-steps')]] | $card/div[contains-token(@class, 'ac-pbar')]">
+        <xsl:for-each select="$card/*[preceding-sibling::details[contains-token(@class, 'ldh-chat-trace')]] | $card/div[contains-token(@class, 'ac-pbar')] | $card/p[contains-token(@class, 'ldh-chat-answer')]">
             <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
-        <xsl:for-each select="$card/ul[contains-token(@class, 'ldh-chat-steps')]">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:apply-templates select="$operation" mode="ldh:OperationTree"/>
-            </xsl:result-document>
+        <xsl:for-each select="$card/details[contains-token(@class, 'ldh-chat-trace')]">
+            <ixsl:set-attribute name="open" select="''"/>
+            <xsl:for-each select="ul[contains-token(@class, 'ldh-chat-steps')]">
+                <xsl:result-document href="?." method="ixsl:replace-content">
+                    <xsl:apply-templates select="$operation" mode="ldh:OperationTree"/>
+                </xsl:result-document>
+            </xsl:for-each>
         </xsl:for-each>
         <xsl:for-each select="$card/p[1]">
             <xsl:result-document href="?." method="ixsl:insert-after">
@@ -717,7 +729,18 @@ exclude-result-prefixes="#all"
         <xsl:variable name="entered" select="subsequence($elements, 1, count($steps))" as="element()*"/>
         <xsl:variable name="matched" select="count($entered) = count($steps) and deep-equal($entered/ldh:operation-name(.), $steps/string(@operation))" as="xs:boolean"/>
 
-        <xsl:for-each select="$card/ul[contains-token(@class, 'ldh-chat-steps')]">
+        <xsl:for-each select="$card/details[contains-token(@class, 'ldh-chat-trace')]/summary">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:value-of select="count($steps)"/>
+                <xsl:text> </xsl:text>
+                <xsl:apply-templates select="key('resources', 'chat-steps', ldh:translations())" mode="ac:label"/>
+                <xsl:for-each select="$steps[1]/@elapsed">
+                    <xsl:text> · </xsl:text>
+                    <xsl:value-of select="format-number(. div 1000, '0.0') || ' s'"/>
+                </xsl:for-each>
+            </xsl:result-document>
+        </xsl:for-each>
+        <xsl:for-each select="$card/details[contains-token(@class, 'ldh-chat-trace')]/ul[contains-token(@class, 'ldh-chat-steps')]">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:call-template name="ldh:StepTree">
                     <xsl:with-param name="steps" select="$steps"/>
@@ -924,6 +947,7 @@ exclude-result-prefixes="#all"
             <xsl:variable name="endpoints" select="distinct-values($plan//wa:endpoint[not(*)]/normalize-space())" as="xs:string*"/>
             <xsl:variable name="endpoint" select="if (count($endpoints) = 1) then xs:anyURI($endpoints) else sd:endpoint()" as="xs:anyURI"/>
             <xsl:variable name="labels-context" select="map{ 'card': $card, 'result': $result/self::srx:sparql, 'endpoint': $endpoint, 'object-uris': $uris[position() le 100] }" as="map(*)"/>
+            <xsl:variable name="labels-context" select="map:put($labels-context, 'execution', $execution)" as="map(*)"/>
             <ixsl:promise select="
               ldh:http-request-threaded(ldh:load-object-metadata($labels-context), 'metadata-request', 'metadata-response')
                 => ixsl:then(ldh:handle-response(?, 'metadata-response'))
@@ -933,7 +957,12 @@ exclude-result-prefixes="#all"
                 => ixsl:then(ldh:set-object-metadata-ns#1)
                 => ixsl:then(ldh:merge-object-metadata#1)
                 => ixsl:then(ldh:chat-result-labelled#1)
-            " on-failure="ldh:chat-labels-missed#1"/>
+            " on-failure="ldh:chat-labels-missed($labels-context, ?)"/>
+        </xsl:if>
+        <!-- the answer is read off the rows as the reader will see them: with their labels, so it waits for them when
+             there are any to wait for, and goes straight away otherwise - a failure and a write included -->
+        <xsl:if test="$failed or empty($uris)">
+            <xsl:sequence select="ldh:chat-answer($card, $execution, ())"/>
         </xsl:if>
 
         <!-- the plan stays with its card: it is what Retry runs again and what the next question is told was tried -->
@@ -991,13 +1020,92 @@ exclude-result-prefixes="#all"
                 </xsl:result-document>
             </xsl:for-each>
         </xsl:for-each>
+
+        <xsl:sequence select="ldh:chat-answer($card, $context('execution'), $context('object-metadata'))"/>
     </xsl:function>
 
-    <!-- labels are a courtesy: a lookup that fails leaves the rows naming their URIs -->
+    <!-- labels are a courtesy: a lookup that fails leaves the rows naming their URIs, and the answer is read off them as they are -->
     <xsl:function name="ldh:chat-labels-missed" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
         <xsl:param name="error" as="item()*"/>
 
         <xsl:message>ldh:chat-labels-missed</xsl:message>
+        <xsl:sequence select="ldh:chat-answer($context('card'), $context('execution'), ())"/>
+    </xsl:function>
+
+    <!-- THE ANSWER -->
+
+    <!-- What the plan did, as a sentence or two: the question, the plan's summary, the steps and how they went, the
+         documents written, and the rows - a label beside each resource that has one - go to the answer service beside
+         the plan service, and its reading comes back as the card's first line. The rows stay the authority and stay
+         on the card; the trace folds under its count once there is an answer to read instead. A service that cannot
+         answer leaves the card as it was: the rows are the answer then, as they were before there was a service -->
+    <xsl:function name="ldh:chat-answer" as="item()*" ixsl:updating="yes">
+        <xsl:param name="card" as="element()"/>
+        <xsl:param name="execution" as="element()"/>
+        <xsl:param name="object-metadata" as="document-node()?"/>
+        <xsl:variable name="plan" select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.chat'), string($card/@id))) then ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.chat'), string($card/@id)) else ()" as="element()?"/>
+        <xsl:variable name="result" select="$execution/wa:result/*" as="element()*"/>
+        <xsl:variable name="cap" select="60" as="xs:integer"/>
+        <!-- the rows: a result set's, each binding its value and, for a resource with a known label, the label; a graph's
+             described resources as one-column rows, labelled the same way -->
+        <xsl:variable name="rows" as="array(*)" select="array {
+          for $row in ($result/self::srx:sparql)[1]/srx:results/srx:result[position() le $cap] return map:merge(
+            for $binding in $row/srx:binding return map{ string($binding/@name):
+              if ($binding/srx:uri) then map:merge((map{ 'value': string($binding/srx:uri) }, for $label in (if (exists($object-metadata)) then ac:object-label($binding/srx:uri, $object-metadata) else ()) return map{ 'label': $label }))
+              else string($binding/*) }),
+          for $resource in ($result/self::rdf:RDF)[1]/rdf:Description[@rdf:about][position() le $cap] return map{ 'resource':
+            map:merge((map{ 'value': string($resource/@rdf:about) }, for $label in (if (exists($object-metadata)) then ac:object-label($resource/@rdf:about, $object-metadata) else ()) return map{ 'label': $label })) }
+        }"/>
+        <xsl:variable name="body" as="map(*)" select="map:merge((
+          map{ 'question': string($card/@data-question) },
+          for $summary in $plan/wa:summary[normalize-space()] return map{ 'summary': normalize-space($summary) },
+          map{ 'steps': array { for $step in $execution/wa:steps/wa:step return map{ 'operation': string($step/@operation), 'outcome': string($step/@outcome), 'elapsed': string($step/@elapsed) } } },
+          map{ 'written': array { for $uri in $execution/wa:written/wa:document/@uri return string($uri) } },
+          for $message in $execution/wa:message[$execution/wa:status = 'error'] return map{ 'failed': string($message) },
+          if (exists($result/self::srx:sparql | $result/self::rdf:RDF)) then map{ 'rows': $rows } else map{},
+          map{ 'values': array { for $value in $result/self::wa:value return string($value) } }
+        ))"/>
+        <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:chat-href('webalgebra/answers'), 'media-type': 'application/json', 'body': serialize($body, map{ 'method': 'json' }), 'headers': map{ 'Accept': 'application/xml' } }" as="map(*)"/>
+        <xsl:variable name="context" select="map{ 'request': $request, 'card': $card }" as="map(*)"/>
+        <ixsl:promise select="
+          ixsl:http-request($context('request'))
+            => ixsl:then(ldh:rethread-response($context, ?))
+            => ixsl:then(ldh:handle-response#1)
+            => ixsl:then(ldh:chat-answered#1)
+        " on-failure="ldh:chat-answer-missed#1"/>
+    </xsl:function>
+
+    <!-- the answer lands first on the card, and the trace folds under it; an envelope without one changes nothing -->
+    <xsl:function name="ldh:chat-answered" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="card" select="$context('card')" as="element()"/>
+        <xsl:variable name="answer" select="normalize-space($response?body/wa:answer)" as="xs:string"/>
+
+        <xsl:if test="$response?status = 200 and $answer">
+            <xsl:for-each select="$card/p[contains-token(@class, 'ldh-chat-answer')]">
+                <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:for-each>
+            <xsl:for-each select="$card/*[1]">
+                <xsl:result-document href="?." method="ixsl:insert-before">
+                    <p class="ldh-chat-answer">
+                        <xsl:value-of select="$answer"/>
+                    </p>
+                </xsl:result-document>
+            </xsl:for-each>
+            <xsl:for-each select="$card/details[contains-token(@class, 'ldh-chat-trace')]">
+                <ixsl:remove-attribute name="open"/>
+            </xsl:for-each>
+            <xsl:sequence select="ldh:chat-scroll($card)"/>
+        </xsl:if>
+    </xsl:function>
+
+    <!-- the answer is a courtesy too: without it the card says what it said before -->
+    <xsl:function name="ldh:chat-answer-missed" as="item()*" ixsl:updating="yes">
+        <xsl:param name="error" as="item()*"/>
+
+        <xsl:message>ldh:chat-answer-missed</xsl:message>
     </xsl:function>
 
     <!-- a result set rides the same table the document's query blocks use; a graph is counted, since the page it

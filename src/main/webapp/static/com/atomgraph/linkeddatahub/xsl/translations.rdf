@@ -1780,6 +1780,10 @@
         <rdfs:label xml:lang="en-US">Executing</rdfs:label>
         <rdfs:label xml:lang="es-ES">Ejecutando</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="chat-steps">
+        <rdfs:label xml:lang="en-US">steps</rdfs:label>
+        <rdfs:label xml:lang="es-ES">pasos</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="changed-documents">
         <rdfs:label xml:lang="en-US">Changed documents</rdfs:label>
         <rdfs:label xml:lang="es-ES">Documentos modificados</rdfs:label>

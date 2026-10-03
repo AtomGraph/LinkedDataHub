@@ -107,6 +107,8 @@ test('a question becomes a plan that waits for Execute', { tag: '@owner' }, asyn
     await expect(form(page).locator('.ldh-chat-run input')).toBeChecked();
     await expect(card(page).locator('.ldh-chat-execute')).toBeVisible({ timeout: 90_000 });
     await expect(card(page).locator('.ldh-chat-cancel')).toBeVisible();
+    // the rows live under the trace, which stands open while there is nothing else to read
+    await expect(card(page).locator('details.ldh-chat-trace')).toHaveAttribute('open', '');
     const first = card(page).locator('.ldh-chat-steps .ldh-chat-step.is-planned').first();
     await expect(first).toBeVisible();
     // the row is the control: it folds out its operation's XML, the first row's being the whole plan
@@ -191,13 +193,24 @@ test('Execute runs the plan, reports its steps and the document it wrote, and th
     await expect(page.locator('.content-body > .ldh-chat-block + .ldh-create-dock')).toHaveCount(1);
     await expect(card(page)).toHaveAttribute('id', id);
     await expect(card(page).locator('.ldh-chat-docs a.iri')).toHaveCount(1);
-    const done = card(page).locator('.ldh-chat-step.is-done').first();
-    await done.locator('summary').click();
-    await expect(done.locator('pre')).toBeVisible();
 
     // the rows name what they return by its label, looked up once the result is in: the written container by its title
     await expect(card(page).locator('table.ldh-chat-result a').first()).toHaveText('Assistant run', { timeout: 30_000 });
 
     // what the plan returned stays with the card: a follow-up's "them" is sent with the next question as these rows
     expect(await page.evaluate(id => id in window.LinkedDataHub.chatResults, id)).toBe(true);
+
+    // and what it did is read back as a sentence, first on the card, with the trace folded under its count
+    await expect(card(page).locator('.ldh-chat-answer')).not.toBeEmpty({ timeout: 60_000 });
+    await expect(card(page).locator('> :first-child')).toHaveClass(/ldh-chat-answer/);
+    const trace = card(page).locator('details.ldh-chat-trace');
+    await expect(trace).not.toHaveAttribute('open', '');
+    await expect(trace.locator('> summary')).toContainText(/\d+ steps/);
+
+    // the trace opens on its line, and its rows still fold out their XML after the render that replaced the body
+    await trace.locator('> summary').click();
+    await expect(trace).toHaveAttribute('open', '');
+    const done = card(page).locator('.ldh-chat-step.is-done').first();
+    await done.locator('summary').click();
+    await expect(done.locator('pre')).toBeVisible();
 });

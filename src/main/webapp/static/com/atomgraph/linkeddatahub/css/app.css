@@ -4643,6 +4643,14 @@ form.ldh-chat-composer:not(.is-open) { display: none; }
 .ldh-chat-plan .ac-codefield { margin: var(--sp-2) 0 var(--sp-1); max-height: 210px; overflow: auto; }
 .ldh-chat-plan .ac-codefield pre { margin: 0; padding: var(--sp-2) var(--sp-3); font-family: var(--font-mono); font-size: 11px; line-height: var(--lh-snug); color: var(--fg-2); white-space: pre; }
 .ldh-chat-plan-actions { display: flex; gap: var(--sp-2); }
+/* the answer: the card's first line once there is one, read off the rows below it */
+.ldh-chat-answer { margin: 0; font-size: var(--fs-md); line-height: var(--lh-base); color: var(--fg-1); white-space: pre-line; }
+/* the trace: the steps under a disclosure whose summary is their count and the plan's time - open while the plan is
+   being read or run, folded once the answer has been written. No marker; the meta line is the control */
+details.ldh-chat-trace > summary { font-family: var(--font-mono); font-size: 10px; letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--fg-muted); cursor: pointer; list-style: none; }
+details.ldh-chat-trace > summary::-webkit-details-marker { display: none; }
+details.ldh-chat-trace > summary:hover { color: var(--fg-2); }
+details.ldh-chat-trace > ul { margin-top: var(--sp-2); }
 /* The steps: one row per operation, there from the moment the plan is shown and changing state as the
    executor reports - planned, running, done, failed. Each row is a disclosure whose summary is the row
    and whose body is the operation's own XML (the first row's is the whole plan) and, when it failed,
