@@ -24,61 +24,207 @@ xmlns:srx="&srx;"
 xmlns:sd="&sd;"
 xmlns:wa="&wa;"
 xmlns:waldh="&waldh;"
+xmlns:acl="http://www.w3.org/ns/auth/acl#"
 extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
 
-    <!-- The assistant drawer: a question becomes a Web-Algebra plan, the plan is shown, and only a press of Execute
-         runs it. The plan service sits beside this instance (the web-algebra container, behind nginx at /webalgebra)
-         and acts for the reader whose certificate nginx forwards, so what a plan may write is what the reader may write.
+    <!-- The assistant: a question becomes a Web-Algebra plan, the plan is shown, and only a press of Execute runs
+         it. The plan service sits beside this instance (the web-algebra container, behind nginx at /webalgebra) and
+         acts for the reader whose certificate nginx forwards, so what a plan may write is what the reader may write.
 
-         The drawer is chrome the server renders once (layout.xsl, ldh:AssistantDrawer); everything inside the log is
-         built here. A conversation is a sequence of cards, one per question, each holding its plan under its own id
-         in LinkedDataHub.chat so that a card's Execute runs that card's plan and no other. -->
+         The assistant is a block producer, and it lives where its blocks go: in the content body, as an ephemeral
+         block that is never written, with its composer docked onto the create bar. The server renders none of it -
+         only the button in the bar that opens the composer (document.xsl) - because a conversation exists only once
+         this stylesheet runs. What the server renders is replaced on every navigation and on every write's catch-up,
+         so the conversation is not the DOM in the body: each document's log is an element kept in
+         LinkedDataHub.chatLogs under the document's URI, and the one composer form in LinkedDataHub.chatComposer,
+         and ldh:ChatMount moves them into whatever body was just rendered. A card is painted into the log whether
+         the log is in the page or not, so a plan still running when the body is replaced finishes into its log and
+         is there when the document is next shown. A conversation is a sequence of cards, one per question, each
+         holding its plan under its own id in LinkedDataHub.chat so that a card's Execute runs that card's plan and
+         no other. -->
+
+    <!-- THE MOUNT -->
+
+    <!-- Called once a tab's body is rendered (client.xsl, ldh:RenderTab): the document's log goes into the body as
+         the last block, before the create bar, and the composer onto the bar - created the first time, moved every
+         time after, so what they hold survives the render that replaced the body around them. A body without a
+         create bar (a proxied resource, a search result, a reader without acl:Append) gets a bar holding the
+         composer alone. For a reader who can be acted for: the service acts for the WebID in the certificate nginx
+         forwards, and a reader without one has nobody to send a plan as -->
+    <xsl:template name="ldh:ChatMount">
+        <xsl:param name="content-body" as="element()"/>
+        <xsl:param name="doc-uri" as="xs:anyURI"/>
+        <xsl:message>ldh:ChatMount: <xsl:value-of select="$doc-uri"/> agent: <xsl:value-of select="$acl:agent"/></xsl:message>
+
+        <!-- $acl:agent rather than $foaf:Agent: the agent's document is only in document()'s pool once something
+             loaded it, and on the client that is not a given, where the WebID itself always is -->
+        <xsl:if test="exists($acl:agent)">
+            <xsl:variable name="translations" select="ldh:translations()" as="document-node()"/>
+            <xsl:variable name="key" select="'`' || $doc-uri || '`'" as="xs:string"/>
+
+            <!-- the bar the composer docks onto, made where the body has none -->
+            <xsl:if test="empty($content-body/div[contains-token(@class, 'ldh-create-dock')])">
+                <xsl:for-each select="$content-body">
+                    <xsl:result-document href="?." method="ixsl:append-content">
+                        <div class="create-resource ldh-create-dock chat-only"/>
+                    </xsl:result-document>
+                </xsl:for-each>
+            </xsl:if>
+            <xsl:variable name="dock" select="$content-body/div[contains-token(@class, 'ldh-create-dock')]" as="element()"/>
+
+            <!-- the block: its head, and the document's log - a placeholder that the kept log replaces when there is one -->
+            <xsl:for-each select="$dock">
+                <xsl:result-document href="?." method="ixsl:insert-before">
+                    <div class="ldh-block chat-block">
+                        <div class="ldh-block-head chat-block-head">
+                            <span class="msi outline sm" aria-hidden="true">forum</span>
+                            <span class="ttl">
+                                <xsl:apply-templates select="key('resources', 'assistant', $translations)" mode="ac:label"/>
+                            </span>
+                            <!-- Clear empties the log: every turn and card goes, and the plans they held with them -->
+                            <button type="button" class="ac-iconbtn sz-sm in-neutral ap-ghost chat-clear" aria-label="{ac:label(key('resources', 'clear-chat', $translations))}" title="{ac:label(key('resources', 'clear-chat', $translations))}">
+                                <span class="msi sm" aria-hidden="true">delete_sweep</span>
+                            </button>
+                        </div>
+                        <div class="chat-log"/>
+                    </div>
+                </xsl:result-document>
+            </xsl:for-each>
+            <xsl:variable name="placeholder" select="$content-body/div[contains-token(@class, 'chat-block')]/div[contains-token(@class, 'chat-log')]" as="element()"/>
+            <xsl:choose>
+                <xsl:when test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.chatLogs'), $key)">
+                    <xsl:sequence select="ixsl:call($placeholder, 'replaceWith', [ ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.chatLogs'), $key) ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <ixsl:set-property name="{$key}" select="$placeholder" object="ixsl:get(ixsl:window(), 'LinkedDataHub.chatLogs')"/>
+                </xsl:otherwise>
+            </xsl:choose>
+
+            <!-- the composer: one form for the session, so a draft and the checkboxes survive a navigation -->
+            <xsl:choose>
+                <xsl:when test="ixsl:contains(ixsl:window(), 'LinkedDataHub.chatComposer')">
+                    <xsl:sequence select="ixsl:call($dock, 'prepend', [ ixsl:get(ixsl:window(), 'LinkedDataHub.chatComposer') ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:for-each select="$dock">
+                        <xsl:result-document href="?." method="ixsl:append-content">
+                            <xsl:call-template name="ldh:ChatComposer">
+                                <xsl:with-param name="translations" select="$translations"/>
+                            </xsl:call-template>
+                        </xsl:result-document>
+                    </xsl:for-each>
+                    <xsl:variable name="form" select="$dock/form[contains-token(@class, 'chat-composer')]" as="element()"/>
+                    <xsl:sequence select="ixsl:call($dock, 'prepend', [ $form ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <ixsl:set-property name="chatComposer" select="$form" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- the composer: the design's Checkbox twice - run a plan as soon as it arrives (reads only - a write always
+         waits for Execute), and revise a plan that returned nothing (or failed) by itself, a few times - and the
+         question. Closed until the bar's button opens it -->
+    <xsl:template name="ldh:ChatComposer">
+        <xsl:param name="translations" as="document-node()"/>
+
+        <form class="chat-composer chat-dock" accept-charset="UTF-8">
+            <div class="chat-options">
+                <label class="ac-choice chat-run">
+                    <input type="checkbox" name="run" checked="checked"/>
+                    <span class="ac-box">
+                        <span class="msi sm" aria-hidden="true">check</span>
+                    </span>
+                    <span class="ac-choice-body">
+                        <span>
+                            <xsl:apply-templates select="key('resources', 'execute-by-default', $translations)" mode="ac:label"/>
+                        </span>
+                    </span>
+                </label>
+                <label class="ac-choice chat-auto">
+                    <input type="checkbox" name="auto"/>
+                    <span class="ac-box">
+                        <span class="msi sm" aria-hidden="true">check</span>
+                    </span>
+                    <span class="ac-choice-body">
+                        <span>
+                            <xsl:apply-templates select="key('resources', 'retry-on-empty', $translations)" mode="ac:label"/>
+                        </span>
+                    </span>
+                </label>
+            </div>
+            <div class="chat-composer-row">
+                <div class="ac-field">
+                    <div class="ac-field-box sz-md">
+                        <textarea rows="2" name="question" placeholder="{ac:label(key('resources', 'chat-placeholder', $translations))}" aria-label="{ac:label(key('resources', 'assistant', $translations))}"/>
+                    </div>
+                </div>
+                <button type="submit" class="ac-btn in-primary ap-solid sz-md" aria-label="{ac:label(key('resources', 'send', $translations))}" title="{ac:label(key('resources', 'send', $translations))}">
+                    <span class="msi sm" aria-hidden="true">send</span>
+                </button>
+            </div>
+        </form>
+    </xsl:template>
+
+    <!-- the document's log: kept across renders under the document's URI (ldh:ChatMount), so it is the same element
+         whether or not the body that showed it is still in the page -->
+    <xsl:function name="ldh:chat-log" as="element()?">
+        <xsl:param name="doc-uri" as="xs:anyURI"/>
+        <xsl:variable name="key" select="'`' || $doc-uri || '`'" as="xs:string"/>
+
+        <xsl:sequence select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.chatLogs'), $key)) then ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.chatLogs'), $key) else ()"/>
+    </xsl:function>
+
+    <!-- the one composer form of the session -->
+    <xsl:function name="ldh:chat-composer" as="element()?">
+        <xsl:sequence select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.chatComposer')) then ixsl:get(ixsl:window(), 'LinkedDataHub.chatComposer') else ()"/>
+    </xsl:function>
 
     <!-- OPEN AND CLOSE -->
 
-    <!-- the handle at the right edge opens the drawer; a persistent panel that insets the page is opened on purpose,
-         not by a pointer straying to the edge, which is why hover only reveals the handle (app.css) -->
+    <!-- the bar's button opens the composer, and closes it again; open, the composer takes the focus -->
     <xsl:template match="*[ancestor-or-self::button[contains-token(@class, 'chat-open')]]" mode="ixsl:onclick">
-        <xsl:apply-templates select="ixsl:page()//div[contains-token(@class, 'chat-drawer')]" mode="ldh:OpenDrawer"/>
+        <xsl:for-each select="ldh:chat-composer()">
+            <xsl:choose>
+                <xsl:when test="contains-token(@class, 'is-open')">
+                    <xsl:apply-templates select="." mode="ldh:CloseComposer"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:apply-templates select="." mode="ldh:OpenComposer"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
     </xsl:template>
 
-    <xsl:template match="*[ancestor-or-self::button[contains-token(@class, 'chat-close')]]" mode="ixsl:onclick">
-        <xsl:apply-templates select="ancestor::div[contains-token(@class, 'chat-drawer')][1]" mode="ldh:CloseDrawer"/>
+    <xsl:template match="form[contains-token(@class, 'chat-composer')]" mode="ldh:OpenComposer">
+        <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-open', true())"/>
+        <xsl:sequence select="ixsl:call((.//textarea)[1], 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
-    <!-- Clear empties the log - every turn and every card - and drops the plans the cards held, so the next question
-         starts a conversation with no history. The composer is enabled again, whatever a removed card left it as -->
+    <xsl:template match="form[contains-token(@class, 'chat-composer')]" mode="ldh:CloseComposer">
+        <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-open', false())"/>
+    </xsl:template>
+
+    <!-- Clear empties this document's log - every turn and every card - and drops the plans the cards held, so the
+         next question starts a conversation with no history. The composer is enabled again, whatever a removed card
+         left it as -->
     <xsl:template match="*[ancestor-or-self::button[contains-token(@class, 'chat-clear')]]" mode="ixsl:onclick">
-        <xsl:variable name="drawer" select="ancestor::div[contains-token(@class, 'chat-drawer')][1]" as="element()"/>
-        <xsl:variable name="log" select="$drawer/div[contains-token(@class, 'chat-log')]" as="element()"/>
+        <xsl:variable name="log" select="ancestor::div[contains-token(@class, 'chat-block')][1]/div[contains-token(@class, 'chat-log')]" as="element()"/>
 
         <xsl:for-each select="$log/div[contains-token(@class, 'chat-plan')]/@id">
             <ixsl:remove-property name="{.}" object="ixsl:get(ixsl:window(), 'LinkedDataHub.chat')"/>
             <ixsl:remove-property name="{.}" object="ixsl:get(ixsl:window(), 'LinkedDataHub.chatResults')"/>
         </xsl:for-each>
         <xsl:sequence select="ixsl:call($log, 'replaceChildren', [])[current-date() lt xs:date('2000-01-01')]"/>
-        <xsl:apply-templates select="$drawer/form[contains-token(@class, 'chat-composer')]" mode="ldh:ComposerEnabled">
+        <xsl:apply-templates select="ldh:chat-composer()" mode="ldh:ComposerEnabled">
             <xsl:with-param name="enabled" select="true()"/>
         </xsl:apply-templates>
     </xsl:template>
 
-    <!-- inert while closed keeps the hidden subtree out of the tab order, as the dataspace drawer does -->
-    <xsl:template match="div[contains-token(@class, 'chat-drawer')]" mode="ldh:OpenDrawer">
-        <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-open', true())"/>
-        <ixsl:remove-attribute name="inert"/>
-        <xsl:sequence select="ixsl:call((.//textarea)[1], 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
-    </xsl:template>
-
-    <xsl:template match="div[contains-token(@class, 'chat-drawer')]" mode="ldh:CloseDrawer">
-        <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-open', false())"/>
-        <ixsl:set-attribute name="inert" select="''"/>
-    </xsl:template>
-
     <!-- THE COMPOSER -->
 
-    <!-- Enter sends, Shift+Enter breaks the line; Escape closes the drawer from inside it as it does from the page
+    <!-- Enter sends, Shift+Enter breaks the line; Escape closes the composer from inside it as it does from the page
          (client/navigation.xsl handles the key when focus is on the body). keydown, not keyup: the default that
          inserts the newline fires on keydown, and only the event carrying a default can prevent it -->
     <xsl:template match="textarea[ancestor::form[contains-token(@class, 'chat-composer')]]" mode="ixsl:onkeydown">
@@ -90,7 +236,7 @@ exclude-result-prefixes="#all"
                 <xsl:apply-templates select="ancestor::form[contains-token(@class, 'chat-composer')][1]" mode="ixsl:onsubmit"/>
             </xsl:when>
             <xsl:when test="$key = 'Escape'">
-                <xsl:apply-templates select="ancestor::div[contains-token(@class, 'chat-drawer')][1]" mode="ldh:CloseDrawer"/>
+                <xsl:apply-templates select="ancestor::form[contains-token(@class, 'chat-composer')][1]" mode="ldh:CloseComposer"/>
             </xsl:when>
         </xsl:choose>
     </xsl:template>
@@ -118,7 +264,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="question" as="xs:string"/>
         <!-- 0 when the reader asked; counts up when the drawer asks again by itself, so it stops asking -->
         <xsl:param name="attempt" select="0" as="xs:integer"/>
-        <xsl:variable name="log" select="$form/ancestor::div[contains-token(@class, 'chat-drawer')][1]/div[contains-token(@class, 'chat-log')]" as="element()"/>
+        <!-- the log of the document the reader is on: the card lands in the body as its last block -->
+        <xsl:variable name="log" select="ldh:chat-log(ac:absolute-path(ldh:request-uri()))" as="element()"/>
         <xsl:variable name="card-id" select="'chat-' || ac:uuid()" as="xs:string"/>
         <xsl:variable name="history" as="array(*)" select="array { for $card in ($log/div[contains-token(@class, 'chat-plan')][@data-outcome])[position() gt last() - 3] return ldh:chat-turn($card) }"/>
 
@@ -132,7 +279,7 @@ exclude-result-prefixes="#all"
                 </div>
             </xsl:result-document>
         </xsl:for-each>
-        <xsl:sequence select="ldh:chat-scroll($log)"/>
+        <xsl:sequence select="ldh:chat-scroll(id($card-id, ixsl:page()))"/>
 
         <xsl:apply-templates select="$form" mode="ldh:ComposerEnabled">
             <xsl:with-param name="enabled" select="false()"/>
@@ -216,7 +363,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="card" select="ancestor::div[contains-token(@class, 'chat-plan')][1]" as="element()"/>
 
         <xsl:call-template name="ldh:ChatAsk">
-            <xsl:with-param name="form" select="ancestor::div[contains-token(@class, 'chat-drawer')][1]/form[contains-token(@class, 'chat-composer')]"/>
+            <xsl:with-param name="form" select="ldh:chat-composer()"/>
             <xsl:with-param name="question" select="string($card/@data-question)"/>
         </xsl:call-template>
     </xsl:template>
@@ -268,7 +415,7 @@ exclude-result-prefixes="#all"
                     </xsl:result-document>
                 </xsl:for-each>
 
-                <!-- a plan runs on arrival when the reader asked for that (Execute by default), and a revision the drawer
+                <!-- a plan runs on arrival when the reader asked for that (Execute by default), and a revision the assistant
                      asked for by itself always does - in both cases only when every operation in it reads. One that writes
                      waits for Execute like any other, whatever the checkboxes say: a write cannot be taken back -->
                 <xsl:variable name="run" select="ixsl:get(($context('form')//input[@name = 'run'])[1], 'checked')" as="xs:boolean"/>
@@ -299,7 +446,7 @@ exclude-result-prefixes="#all"
         <xsl:apply-templates select="$context('form')" mode="ldh:ComposerEnabled">
             <xsl:with-param name="enabled" select="true()"/>
         </xsl:apply-templates>
-        <xsl:sequence select="ldh:chat-scroll($card/..)"/>
+        <xsl:sequence select="ldh:chat-scroll($card)"/>
     </xsl:function>
 
     <!-- the plan card: what the plan does in a sentence, its operations as the rows they will be executed as, the
@@ -415,7 +562,7 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="*[ancestor-or-self::button[contains-token(@class, 'chat-cancel') or contains-token(@class, 'chat-dismiss')]]" mode="ixsl:onclick">
         <xsl:variable name="card" select="ancestor::div[contains-token(@class, 'chat-plan')][1]" as="element()"/>
-        <xsl:variable name="form" select="ancestor::div[contains-token(@class, 'chat-drawer')][1]/form[contains-token(@class, 'chat-composer')]" as="element()"/>
+        <xsl:variable name="form" select="ldh:chat-composer()" as="element()"/>
 
         <ixsl:remove-property name="{$card/@id}" object="ixsl:get(ixsl:window(), 'LinkedDataHub.chat')"/>
         <ixsl:remove-property name="{$card/@id}" object="ixsl:get(ixsl:window(), 'LinkedDataHub.chatResults')"/>
@@ -437,7 +584,7 @@ exclude-result-prefixes="#all"
 
     <xsl:template name="ldh:ChatExecute">
         <xsl:param name="card" as="element()"/>
-        <xsl:variable name="form" select="$card/ancestor::div[contains-token(@class, 'chat-drawer')][1]/form[contains-token(@class, 'chat-composer')]" as="element()"/>
+        <xsl:variable name="form" select="ldh:chat-composer()" as="element()"/>
         <xsl:variable name="plan" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.chat'), string($card/@id))" as="element()"/>
         <xsl:variable name="operation" select="$plan/*[not(self::wa:summary | self::wa:operations | self::wa:message)][1]" as="element()"/>
 
@@ -785,9 +932,9 @@ exclude-result-prefixes="#all"
         <xsl:apply-templates select="$context('form')" mode="ldh:ComposerEnabled">
             <xsl:with-param name="enabled" select="true()"/>
         </xsl:apply-templates>
-        <xsl:sequence select="ldh:chat-scroll($card/..)"/>
+        <xsl:sequence select="ldh:chat-scroll($card)"/>
 
-        <!-- with the checkbox on, nothing (or a failure) is asked again by the drawer itself, a few times at most;
+        <!-- with the checkbox on, nothing (or a failure) is asked again by the assistant itself, a few times at most;
              the reader sees every attempt as its own card and can stop it with the checkbox -->
         <xsl:variable name="form" select="$context('form')" as="element()"/>
         <xsl:if test="($failed or $empty) and ixsl:get(($form//input[@name = 'auto'])[1], 'checked') and xs:integer($card/@data-attempt) lt 3">
@@ -887,7 +1034,7 @@ exclude-result-prefixes="#all"
         </xsl:apply-templates>
 
         <xsl:sequence select="ldh:promise-failure($card, $title-key, $error)"/>
-        <xsl:sequence select="ldh:chat-scroll($card/..)"/>
+        <xsl:sequence select="ldh:chat-scroll($card)"/>
     </xsl:function>
 
     <!-- HELPERS -->
@@ -925,11 +1072,13 @@ exclude-result-prefixes="#all"
         </div>
     </xsl:function>
 
-    <!-- the newest card is the one being read -->
+    <!-- the newest card is the one being read: the page scrolls it into view, when the card is in the page at all -->
     <xsl:function name="ldh:chat-scroll" ixsl:updating="yes">
-        <xsl:param name="log" as="element()"/>
+        <xsl:param name="card" as="element()?"/>
 
-        <ixsl:set-property name="scrollTop" select="ixsl:get($log, 'scrollHeight')" object="$log"/>
+        <xsl:for-each select="$card[ancestor::body]">
+            <xsl:sequence select="ixsl:call(., 'scrollIntoView', [ map{ 'block': 'nearest', 'behavior': 'smooth' } ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
     </xsl:function>
 
 </xsl:stylesheet>

@@ -1,15 +1,17 @@
-// The assistant drawer: a request in words becomes a plan, and the plan runs only when the reader
-// says so.
+// The assistant: a request in words becomes a plan, and the plan runs only when the reader says so.
 //
-// The drawer is chrome the server renders for a signed-in reader, closed and inert; its handle
-// opens it and Escape closes it, and an open drawer insets the page rather than covering it. The
-// rest is a conversation with the plan service beside the instance: a question gets a card that
-// shows the plan - its operations as tags, the XML it will execute - behind an Execute button, and
-// pressing that reports the steps as they happen and the documents the plan wrote.
+// The assistant is a block producer and lives where its blocks go: its conversation is an ephemeral
+// block at the end of the content body, and its composer docks onto the create bar, opened by the
+// bar's own button. The server renders only that button; the block and the composer are the
+// client's, kept across renders, so a card is still there - fold-outs and all - after the write it
+// reported made the page catch up. The rest is a conversation with the plan service beside the
+// instance: a question gets a card that shows the plan - its operations as rows, the XML it will
+// execute - behind an Execute button, and pressing that reports the steps as they happen and the
+// documents the plan wrote.
 //
-// The second and third specs need the web-algebra service and a model key behind it: the plan is
-// written by a model, so what they assert is the shape of the exchange, not the model's exact
-// wording. The request is deliberately one the ldh-* family answers with a single operation.
+// The second, third and fourth specs need the web-algebra service and a model key behind it: the
+// plan is written by a model, so what they assert is the shape of the exchange, not the model's
+// exact wording. The request is deliberately one the ldh-* family answers with a single operation.
 import { randomUUID } from 'node:crypto';
 import { test, expect } from '../../lib/console.mjs';
 import { goto } from '../../lib/settle.mjs';
@@ -32,43 +34,47 @@ test.afterEach(async () => {
     if (scratch.container) await ldh(['delete', scratch.container], { allowFailure: true });
 });
 
-const drawer = page => page.locator('.chat-drawer');
-const handle = page => page.locator('.chat-sensor .chat-open');
-const composer = page => drawer(page).locator('form.chat-composer textarea');
-const card = page => drawer(page).locator('.chat-plan').last();
+const dock = page => page.locator('.content-body > .ldh-create-dock');
+const button = page => dock(page).locator('.chat-open');
+const form = page => page.locator('form.chat-composer');
+const composer = page => form(page).locator('textarea');
+const block = page => page.locator('.content-body > .chat-block');
+const card = page => block(page).locator('.chat-plan').last();
 
 async function open(page) {
-    await handle(page).click();
-    await expect(drawer(page)).toBeVisible();
+    await button(page).click();
+    await expect(form(page)).toBeVisible();
 }
 
-test('opens from its edge handle, insets the page, and closes on Escape', { tag: '@owner' }, async ({ page }) => {
+test('opens from the create bar, docked above it, and closes on Escape', { tag: '@owner' }, async ({ page }) => {
     await goto(page, itemUri(1));
 
-    // present but closed: inert keeps its subtree out of the tab order while nothing shows it
-    await expect(drawer(page)).toHaveCount(1);
-    await expect(drawer(page)).not.toBeVisible();
-    await expect(drawer(page)).toHaveAttribute('inert', '');
+    // the composer is mounted on the bar but closed, and the block is there but empty, so neither shows
+    await expect(form(page)).toHaveCount(1);
+    await expect(form(page)).not.toBeVisible();
+    await expect(block(page)).toHaveCount(1);
+    await expect(block(page)).not.toBeVisible();
 
-    const right = selector => page.evaluate(selector => document.querySelector(selector).getBoundingClientRect().right, selector);
-    const before = await right('#tab-content');
     await open(page);
-    await expect(drawer(page)).not.toHaveAttribute('inert', '');
     await expect(composer(page)).toBeFocused();
 
-    // the dataspace's panes move over, so the action bar's controls stay reachable beside the drawer, while the
-    // header above the drawer keeps the full width: the drawer belongs to the panel, not to the frame
-    const after = await right('#tab-content');
-    expect(after).toBeLessThan(before);
-    expect(await right('.ldh-header')).toBe(before);
-
-    // its head stands beside the action bar, seam to seam
-    const bottom = selector => page.evaluate(selector => document.querySelector(selector).getBoundingClientRect().bottom, selector);
-    expect(await bottom('.chat-drawer > .ac-drawer-head')).toBe(await bottom('.ldh-actionbar'));
+    // docked onto the bar: inside it, on a line of its own above the bar's buttons
+    const box = async locator => await locator.boundingBox();
+    const composerBox = await box(form(page));
+    const buttonBox = await box(button(page));
+    expect(composerBox.y + composerBox.height).toBeLessThanOrEqual(buttonBox.y + 1);
+    expect(await dock(page).locator('form.chat-composer').count()).toBe(1);
 
     await page.keyboard.press('Escape');
-    await expect(drawer(page)).not.toBeVisible();
-    await expect(drawer(page)).toHaveAttribute('inert', '');
+    await expect(form(page)).not.toBeVisible();
+
+    // the button toggles it, and Escape from inside closes it too
+    await open(page);
+    await composer(page).press('Escape');
+    await expect(form(page)).not.toBeVisible();
+    await open(page);
+    await button(page).click();
+    await expect(form(page)).not.toBeVisible();
 });
 
 test('a question becomes a plan that waits for Execute', { tag: '@owner' }, async ({ page }) => {
@@ -79,13 +85,17 @@ test('a question becomes a plan that waits for Execute', { tag: '@owner' }, asyn
     await composer(page).fill('Create a child container titled Assistant test under this document');
     await composer(page).press('Enter');
 
-    // the question is echoed as the reader's turn and the composer waits for the answer
-    await expect(drawer(page).locator('.chat-turn').last()).toHaveText('Create a child container titled Assistant test under this document');
+    // the question is echoed as the reader's turn in the block, which shows now that it has one, and the composer waits
+    await expect(block(page)).toBeVisible();
+    await expect(block(page).locator('.chat-turn').last()).toHaveText('Create a child container titled Assistant test under this document');
     await expect(composer(page)).toBeDisabled();
+
+    // the block is the last thing in the body before the bar: what the plan writes will land above it
+    await expect(page.locator('.content-body > .chat-block + .ldh-create-dock')).toHaveCount(1);
 
     // the plan: its operations as rows that have not run, the executable XML, and the two things that can happen to it.
     // Execute by default is on, and this plan writes - a write waits for Execute whatever the checkbox says
-    await expect(page.locator('.chat-run input')).toBeChecked();
+    await expect(form(page).locator('.chat-run input')).toBeChecked();
     await expect(card(page).locator('.chat-execute')).toBeVisible({ timeout: 90_000 });
     await expect(card(page).locator('.chat-cancel')).toBeVisible();
     const first = card(page).locator('.chat-steps .chat-step.is-planned').first();
@@ -106,7 +116,7 @@ test('a question becomes a plan that waits for Execute', { tag: '@owner' }, asyn
 
     // Cancel takes the card and its plan away and asks nothing of the service
     await card(page).locator('.chat-cancel').click();
-    await expect(drawer(page).locator('.chat-plan')).toHaveCount(0);
+    await expect(block(page).locator('.chat-plan')).toHaveCount(0);
     expect(await page.evaluate(id => id in window.LinkedDataHub.chat, id)).toBe(false);
 });
 
@@ -121,16 +131,18 @@ test('Clear empties the conversation and forgets its plans', { tag: '@owner' }, 
     const id = await card(page).getAttribute('id');
     expect(await page.evaluate(id => id in window.LinkedDataHub.chat, id)).toBe(true);
 
-    // the head's Clear takes the turn and the card away, and the plan the card held; the composer is ready
-    await drawer(page).locator('.ac-drawer-head .chat-clear').click();
-    await expect(drawer(page).locator('.chat-plan')).toHaveCount(0);
-    await expect(drawer(page).locator('.chat-turn')).toHaveCount(0);
+    // the block head's Clear takes the turn and the card away, and the plan the card held; the block hides again
+    // with nothing in it, and the composer is ready
+    await block(page).locator('.chat-block-head .chat-clear').click();
+    await expect(block(page).locator('.chat-plan')).toHaveCount(0);
+    await expect(block(page).locator('.chat-turn')).toHaveCount(0);
+    await expect(block(page)).not.toBeVisible();
     expect(await page.evaluate(id => id in window.LinkedDataHub.chat, id)).toBe(false);
     expect(await page.evaluate(id => id in window.LinkedDataHub.chatResults, id)).toBe(false);
     await expect(composer(page)).toBeEnabled();
 });
 
-test('Execute runs the plan, reports its steps and the document it wrote, and the page catches up', { tag: '@owner' }, async ({ page }) => {
+test('Execute runs the plan, reports its steps and the document it wrote, and the card survives the catch-up', { tag: '@owner' }, async ({ page }) => {
     test.setTimeout(180_000);
     await goto(page, scratch.container);
     await open(page);
@@ -138,6 +150,7 @@ test('Execute runs the plan, reports its steps and the document it wrote, and th
     await composer(page).fill('Create a child container titled Assistant run under this document');
     await composer(page).press('Enter');
     await expect(card(page).locator('.chat-execute')).toBeVisible({ timeout: 90_000 });
+    const id = await card(page).getAttribute('id');
     await card(page).locator('.chat-execute').click();
 
     // the steps appear as the executor reports them, under a progress bar, with the composer waiting
@@ -162,13 +175,20 @@ test('Execute runs the plan, reports its steps and the document it wrote, and th
     expect(href.startsWith(scratch.container)).toBe(true);
     await expect(card(page).locator('.chat-execute')).toHaveCount(0);
 
-    // the page reloaded the document it is on, so the new child is there without a refresh by hand
+    // the page reloaded the document it is on, so the new child is there without a refresh by hand - and the
+    // conversation came through the render that replaced the body: the same card, by id, last before the bar,
+    // its rows still folding out their XML
     await expect(page.locator(`.document-body a[href="${href}"]`).first()).toBeVisible({ timeout: 30_000 });
+    await expect(page.locator('.content-body > .chat-block + .ldh-create-dock')).toHaveCount(1);
+    await expect(card(page)).toHaveAttribute('id', id);
+    await expect(card(page).locator('.chat-docs a.iri')).toHaveCount(1);
+    const done = card(page).locator('.chat-step.is-done').first();
+    await done.locator('summary').click();
+    await expect(done.locator('pre')).toBeVisible();
 
     // the rows name what they return by its label, looked up once the result is in: the written container by its title
     await expect(card(page).locator('table.chat-result a').first()).toHaveText('Assistant run', { timeout: 30_000 });
 
     // what the plan returned stays with the card: a follow-up's "them" is sent with the next question as these rows
-    const id = await card(page).getAttribute('id');
     expect(await page.evaluate(id => id in window.LinkedDataHub.chatResults, id)).toBe(true);
 });

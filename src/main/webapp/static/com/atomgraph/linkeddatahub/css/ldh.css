@@ -977,39 +977,24 @@ div.ldh-failure > .ac-alert { margin: 0; }
 .rdfa-editor-content .rdfa-editor-island { border-color: var(--border-default); background: var(--bg-recess); }
 
 /* =========================================================================
-   Assistant drawer (client/chat.xsl; the frame is layout.xsl's).
-   The core Drawer primitive (surfaces.css: .ac-drawer + head/title/body/foot)
-   parked under the dataspace tab bar instead of spanning the viewport, where
-   the dataspace's panel begins: the header and the tab bar keep the full
-   width, and its head stands beside the action bar at the action bar's
-   height, so the two seams are one line. Lifted onto LDH's chrome stacking
-   scale: above the tab bar (88), below the header (90), so the sticky chrome
-   keeps its layering and modal backdrops (100+) still cover it. The design's Drawer is not in the tree while closed; here
-   the server renders it once and the client toggles .is-open, so closed is a
-   state rather than an absence.
+   The assistant: an ephemeral block at the end of the content body, where the
+   blocks it produces land above it, and a composer docked onto the create
+   bar. Neither is in the document: client/chat.xsl keeps them across renders
+   (ldh:ChatMount). The bar wraps so the composer takes a full first line above
+   the buttons, which keeps the bar's own stickiness and parking as they are.
    ========================================================================= */
-:root { --chat-w: min(400px, 92vw); }
-.chat-drawer { top: var(--action-bar-top); width: var(--chat-w); z-index: 89; }
-.chat-drawer:not(.is-open) { display: none; }
-.chat-drawer > .ac-drawer-head { height: var(--ldh-actionbar-height); box-sizing: border-box; }
-.chat-sensor { top: var(--action-bar-top); height: calc(100vh - var(--action-bar-top)); z-index: 87; }
-body:has(.chat-drawer.is-open) .chat-sensor { display: none; }
-/* the edge handle is the design's, made a button: the drawer opens on a press, not on a pointer straying to the edge */
-.ldh-edge-handle.chat-open { padding: 0; font: inherit; cursor: pointer; }
-
-/* An open drawer insets the dataspace's panes rather than covering them: the
-   drawer is a fixed overlay, and the action bar's mode switcher and export
-   menu would sit under it for the whole session. The inset lands on the panes
-   as one, so the action bar and the content reflow together and nothing needs
-   a per-bar width rule; the header and the tab bar above the drawer keep the
-   full width. The footer is outside the panel but under the drawer's foot, so
-   it gives way too. */
-body:has(.chat-drawer.is-open) { --ldh-pane-w: calc(100vw - var(--chat-w)); }
-body:has(.chat-drawer.is-open) #tab-content, body:has(.chat-drawer.is-open) .ldh-footer { margin-right: var(--chat-w); }
+.chat-block:has(> .chat-log:empty) { display: none; }
+.chat-block-head { display: flex; align-items: center; gap: var(--sp-2); }
+.chat-block-head > .ttl { flex: 1; }
+.chat-log { display: flex; flex-direction: column; gap: var(--sp-3); padding: var(--sp-3); }
+.ldh-create-dock { flex-wrap: wrap; }
+.ldh-create-dock.chat-only:not(:has(> form.chat-composer.is-open)) { display: none; }
+.ldh-create-dock > form.chat-composer { flex-basis: 100%; order: -1; display: flex; flex-direction: column; gap: var(--sp-2); margin: 0 0 var(--sp-2); padding-bottom: var(--sp-2); border-bottom: 1px solid var(--border-default); }
+.ldh-create-dock.chat-only > form.chat-composer { margin-bottom: 0; padding-bottom: 0; border-bottom: 0; }
+form.chat-composer:not(.is-open) { display: none; }
 
 /* turns: the reader's message hugs the sender's edge, the assistant's cards sit flush left */
 .chat-turn { align-self: flex-end; max-width: 85%; margin: 0; padding: var(--sp-2) var(--sp-3); background: var(--bg-accent-quiet); color: var(--fg-1); border-radius: var(--r-md) var(--r-md) var(--r-xs) var(--r-md); font-size: var(--fs-sm); line-height: var(--lh-base); }
-.ac-drawer-body.chat-log { display: flex; flex-direction: column; gap: var(--sp-3); }
 
 /* the plan card rides the design's nested-block well; chat scopes its rhythm */
 .chat-plan { padding: var(--sp-3); display: flex; flex-direction: column; gap: var(--sp-3); font-size: var(--fs-sm); }
@@ -1047,11 +1032,10 @@ details.chat-step > summary:hover { background: var(--bg-hover); }
 /* changed-document links: one row per affected graph, mono URI leaf */
 .chat-docs .op { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 0; }
 
-/* a plan that only read shows its result set in the drawer's width */
+/* a plan that only read shows its result set in the block's width */
 .chat-plan .chat-result { display: block; max-width: 100%; overflow-x: auto; }
 
-/* the composer rides the drawer's footer slot */
-.ac-drawer-foot.chat-composer { display: flex; flex-direction: column; gap: var(--sp-2); margin: 0; }
+/* the composer's rows */
 .chat-composer-row { display: flex; align-items: flex-end; gap: var(--sp-2); }
 .chat-composer .ac-field { flex: 1; }
 .chat-options { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-4); }
