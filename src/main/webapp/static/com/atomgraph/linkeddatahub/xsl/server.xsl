@@ -43,7 +43,7 @@ exclude-result-prefixes="#all">
 
     <!-- TimeMap URI from the Link response header (rel=timemap), present when the document is versioned -->
     <xsl:function name="ldh:timemap" as="xs:anyURI?">
-        <xsl:sequence select="ldh:link-targets($ldh:httpHeaders('Link'), 'rel=timemap')[1]"/>
+        <xsl:sequence select="ldh:link-targets($ldh:httpHeaders('Link'), 'rel=&quot;timemap&quot;')[1]"/>
     </xsl:function>
 
     <!-- Compiled client stylesheet composed with this application's imported packages, from the Link

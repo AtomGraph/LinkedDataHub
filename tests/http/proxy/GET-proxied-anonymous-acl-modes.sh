@@ -60,23 +60,23 @@ fi
 
 # the public grant is what the reader holds
 
-grep -q "Link:.*<http://www.w3.org/ns/auth/acl#Read>; rel=http://www.w3.org/ns/auth/acl#mode" "$response_headers"
+grep -q "Link:.*<http://www.w3.org/ns/auth/acl#Read>; rel=\"http://www.w3.org/ns/auth/acl#mode\"" "$response_headers"
 
 # and nothing the secretary holds
 
-if grep -q "<http://www.w3.org/ns/auth/acl#Write>; rel=http://www.w3.org/ns/auth/acl#mode" "$response_headers"; then
+if grep -q "<http://www.w3.org/ns/auth/acl#Write>; rel=\"http://www.w3.org/ns/auth/acl#mode\"" "$response_headers"; then
     echo "An anonymous proxied read reports acl:Write"
     exit 1
 fi
-if grep -q "<http://www.w3.org/ns/auth/acl#Append>; rel=http://www.w3.org/ns/auth/acl#mode" "$response_headers"; then
+if grep -q "<http://www.w3.org/ns/auth/acl#Append>; rel=\"http://www.w3.org/ns/auth/acl#mode\"" "$response_headers"; then
     echo "An anonymous proxied read reports acl:Append"
     exit 1
 fi
-if grep -q "<http://www.w3.org/ns/auth/acl#Control>; rel=http://www.w3.org/ns/auth/acl#mode" "$response_headers"; then
+if grep -q "<http://www.w3.org/ns/auth/acl#Control>; rel=\"http://www.w3.org/ns/auth/acl#mode\"" "$response_headers"; then
     echo "An anonymous proxied read reports acl:Control"
     exit 1
 fi
-if grep -qi "rel=http://www.w3.org/ns/auth/acl#agent" "$response_headers"; then
+if grep -qi "rel=\"http://www.w3.org/ns/auth/acl#agent\"" "$response_headers"; then
     echo "An anonymous proxied read asserts an agent"
     exit 1
 fi

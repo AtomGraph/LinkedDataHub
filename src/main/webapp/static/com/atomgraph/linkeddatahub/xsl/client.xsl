@@ -315,7 +315,7 @@ WHERE
                         <ixsl:set-property name="application" select="$application" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     </xsl:if>
                     <!-- store TimeMap URI from Link header (present when the document is versioned); blank it when absent so non-versioned documents don't show the History link -->
-                    <xsl:variable name="timemap" select="ldh:link-targets(?headers?link, 'rel=timemap')[1]" as="xs:anyURI?"/>
+                    <xsl:variable name="timemap" select="ldh:link-targets(?headers?link, 'rel=&quot;timemap&quot;')[1]" as="xs:anyURI?"/>
                     <ixsl:set-property name="timemap" select="($timemap, '')[1]" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     <xsl:for-each select="?body">
                         <xsl:variable name="results" select="." as="document-node()"/>

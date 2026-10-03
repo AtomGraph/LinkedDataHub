@@ -72,10 +72,10 @@ ldh get \
 
 # RFC 7089: the Original Resource advertises rel=timemap with the link-format media type,
 # and MUST NOT carry rel=original
-echo "$response_headers" | grep -q 'rel=timemap'
+echo "$response_headers" | grep -q 'rel="timemap"'
 echo "$response_headers" | grep -q 'type="application/link-format"'
 
-if echo "$response_headers" | grep -q 'rel=original'; then
+if echo "$response_headers" | grep -q 'rel="original"'; then
     exit 1
 fi
 

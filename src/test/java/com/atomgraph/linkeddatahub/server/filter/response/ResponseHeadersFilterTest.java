@@ -287,7 +287,7 @@ public class ResponseHeadersFilterTest
 
         filter.filter(request, response);
 
-        assertTrue(link().contains("<https://admin.localhost:4443/acl/agents/1/#this>; rel=" + ACL.agent.getURI()));
+        assertTrue(link().contains("<https://admin.localhost:4443/acl/agents/1/#this>; rel=\"" + ACL.agent.getURI() + "\""));
     }
 
     @Test
@@ -307,8 +307,8 @@ public class ResponseHeadersFilterTest
 
         filter.filter(request, response);
 
-        assertTrue(link().contains("<" + ACL.Read.getURI() + ">; rel=" + ACL.mode.getURI()));
-        assertTrue(link().contains("<" + ACL.Write.getURI() + ">; rel=" + ACL.mode.getURI()));
+        assertTrue(link().contains("<" + ACL.Read.getURI() + ">; rel=\"" + ACL.mode.getURI() + "\""));
+        assertTrue(link().contains("<" + ACL.Write.getURI() + ">; rel=\"" + ACL.mode.getURI() + "\""));
     }
 
     /**
@@ -323,7 +323,7 @@ public class ResponseHeadersFilterTest
 
         filter.filter(request, response);
 
-        assertTrue(link().contains("<" + ACL.Read.getURI() + ">; rel=" + ACL.mode.getURI()));
+        assertTrue(link().contains("<" + ACL.Read.getURI() + ">; rel=\"" + ACL.mode.getURI() + "\""));
         assertFalse(link().contains(ACL.Write.getURI()));
     }
 
@@ -345,8 +345,8 @@ public class ResponseHeadersFilterTest
     {
         filter.filter(request, response);
 
-        assertTrue(link().contains("<" + BASE_URI + "sparql>; rel=" + SD.endpoint.getURI()));
-        assertTrue(link().contains("<" + APP_URI + ">; rel=" + LDS.dataspace.getURI()));
+        assertTrue(link().contains("<" + BASE_URI + "sparql>; rel=\"" + SD.endpoint.getURI() + "\""));
+        assertTrue(link().contains("<" + APP_URI + ">; rel=\"" + LDS.dataspace.getURI() + "\""));
     }
 
     @Test
@@ -361,8 +361,8 @@ public class ResponseHeadersFilterTest
 
         filter.filter(request, response);
 
-        assertTrue(link().contains("<https://localhost:4443/ns#>; rel=" + LDS.ontology.getURI()));
-        assertTrue(link().contains("<https://localhost:4443/static/xsl/layout.xsl>; rel=" + AC.stylesheet.getURI()));
+        assertTrue(link().contains("<https://localhost:4443/ns#>; rel=\"" + LDS.ontology.getURI() + "\""));
+        assertTrue(link().contains("<https://localhost:4443/static/xsl/layout.xsl>; rel=\"" + AC.stylesheet.getURI() + "\""));
     }
 
     @Test
@@ -414,9 +414,9 @@ public class ResponseHeadersFilterTest
     {
         filter.filter(request, response);
 
-        assertFalse(link().contains("rel=timemap"));
-        assertFalse(link().contains("rel=timegate"));
-        assertFalse(link().contains("rel=original"));
+        assertFalse(link().contains("rel=\"timemap\""));
+        assertFalse(link().contains("rel=\"timegate\""));
+        assertFalse(link().contains("rel=\"original\""));
     }
 
     /**
@@ -430,10 +430,10 @@ public class ResponseHeadersFilterTest
 
         filter.filter(request, response);
 
-        assertTrue(link().contains("<" + DOCUMENT_URI + "?timemap>; rel=timemap; type=\"application/link-format\""));
-        assertTrue(link().contains("<" + DOCUMENT_URI + "?timegate>; rel=timegate"));
-        assertFalse(link().contains("rel=original"));
-        assertFalse(link().contains("rel=self"));
+        assertTrue(link().contains("<" + DOCUMENT_URI + "?timemap>; rel=\"timemap\"; type=\"application/link-format\""));
+        assertTrue(link().contains("<" + DOCUMENT_URI + "?timegate>; rel=\"timegate\""));
+        assertFalse(link().contains("rel=\"original\""));
+        assertFalse(link().contains("rel=\"self\""));
     }
 
     /** The TimeMap is the one resource that identifies itself, so it uses rel=self where everything else uses rel=timemap. */
@@ -445,9 +445,9 @@ public class ResponseHeadersFilterTest
 
         filter.filter(request, response);
 
-        assertTrue(link().contains("<" + DOCUMENT_URI + "?timemap>; rel=self; type=\"application/link-format\""));
-        assertFalse(link().contains("rel=timemap"));
-        assertTrue(link().contains("<" + DOCUMENT_URI + ">; rel=original"));
+        assertTrue(link().contains("<" + DOCUMENT_URI + "?timemap>; rel=\"self\"; type=\"application/link-format\""));
+        assertFalse(link().contains("rel=\"timemap\""));
+        assertTrue(link().contains("<" + DOCUMENT_URI + ">; rel=\"original\""));
     }
 
     /** A TimeGate links to the TimeMap and to the Original Resource, but never to itself. */
@@ -459,9 +459,9 @@ public class ResponseHeadersFilterTest
 
         filter.filter(request, response);
 
-        assertTrue(link().contains("rel=timemap"));
-        assertFalse(link().contains("rel=timegate"));
-        assertTrue(link().contains("<" + DOCUMENT_URI + ">; rel=original"));
+        assertTrue(link().contains("rel=\"timemap\""));
+        assertFalse(link().contains("rel=\"timegate\""));
+        assertTrue(link().contains("<" + DOCUMENT_URI + ">; rel=\"original\""));
     }
 
     /** A Memento is not the original, so it says which resource it is a version of. */
@@ -473,9 +473,9 @@ public class ResponseHeadersFilterTest
 
         filter.filter(request, response);
 
-        assertTrue(link().contains("<" + DOCUMENT_URI + ">; rel=original"));
-        assertTrue(link().contains("rel=timemap"));
-        assertTrue(link().contains("rel=timegate"));
+        assertTrue(link().contains("<" + DOCUMENT_URI + ">; rel=\"original\""));
+        assertTrue(link().contains("rel=\"timemap\""));
+        assertTrue(link().contains("rel=\"timegate\""));
     }
 
     // SERIALIZATION
