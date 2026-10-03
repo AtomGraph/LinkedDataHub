@@ -18,7 +18,6 @@ package com.atomgraph.linkeddatahub.cli.command.content;
 
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
 import com.atomgraph.linkeddatahub.cli.http.HttpException;
-import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
 import com.atomgraph.linkeddatahub.rdf.Blocks;
 import com.atomgraph.linkeddatahub.rdf.SequenceNumbers;
 import jakarta.ws.rs.core.Response;
@@ -27,7 +26,6 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.ResourceFactory;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
@@ -39,9 +37,6 @@ import picocli.CommandLine.Parameters;
 @Command(name = "object-block", description = "Appends an object content block to a document.")
 public class AddObjectBlock extends BaseCommand
 {
-
-    @Mixin
-    private BaseMixin baseMixin; // accepted for script interface parity, unused
 
     @Option(names = "--value", required = true, paramLabel = "RESOURCE_URI", description = "URI of the object resource")
     private URI value;

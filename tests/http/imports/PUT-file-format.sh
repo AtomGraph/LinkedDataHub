@@ -32,7 +32,6 @@ slug=$(uuidgen | tr '[:upper:]' '[:lower:]')
 file_doc=$(ldh create item \
   -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
-  -b "$END_USER_BASE_URL" \
   --title "Test File for Browser Media Type" \
   --container "$END_USER_BASE_URL" \
   --slug "$slug")
@@ -41,7 +40,6 @@ file_doc=$(ldh create item \
 ldh add file \
   -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
-  -b "$END_USER_BASE_URL" \
   --title "Test File for Browser Media Type" \
   --file "$test_file" \
   "$file_doc"
@@ -70,7 +68,6 @@ initial_format=$(echo "$file_doc_ntriples" | sed -rn "s/<${file_uri//\//\\/}> <h
 ldh add file \
   -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
-  -b "$END_USER_BASE_URL" \
   --title "Test File for Browser Media Type" \
   --file "$test_file" \
   --content-type "text/csv" \

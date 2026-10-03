@@ -18,19 +18,23 @@ package com.atomgraph.linkeddatahub.cli.mixin;
 
 import java.net.URI;
 import picocli.CommandLine.Model.CommandSpec;
-import picocli.CommandLine.Option;
 import picocli.CommandLine.ParameterException;
+import picocli.CommandLine.Parameters;
 
 /**
- * Application base URI option shared by commands whose script counterpart takes <code>-b</code>.
+ * Application base URI, the positional parameter of the commands that address no document of their
+ * own and so need the dataspace named: the <code>packages</code> family, the admin
+ * <code>create</code>, <code>clear</code> and <code>import</code> commands and <code>make-public</code>.
+ * It is the thing those commands act on, which is why it sits where every other command puts its
+ * target.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public class BaseMixin
 {
 
-    @Option(names = {"-b", "--base"}, defaultValue = "${env:LDH_BASE}", paramLabel = "BASE_URI",
-        description = "Base URI of the application (env: LDH_BASE)")
+    @Parameters(index = "0", arity = "0..1", defaultValue = "${env:LDH_BASE}", paramLabel = "BASE_URI",
+        description = "Base URI of the application (default: LDH_BASE)")
     private URI base;
 
     /**
@@ -41,7 +45,7 @@ public class BaseMixin
      */
     public URI require(CommandSpec spec)
     {
-        if (base == null) throw new ParameterException(spec.commandLine(), "Missing required option: '--base=BASE_URI' (or set LDH_BASE)");
+        if (base == null) throw new ParameterException(spec.commandLine(), "Missing required parameter: 'BASE_URI' (or set LDH_BASE)");
 
         return base;
     }

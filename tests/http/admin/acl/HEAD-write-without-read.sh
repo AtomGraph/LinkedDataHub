@@ -28,11 +28,11 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
 ldh admin create authorization \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$ADMIN_BASE_URL" \
   --label "Write-only authorization" \
   --agent "$AGENT_URI" \
   --to "$END_USER_BASE_URL" \
-  --write
+  --write \
+  "$ADMIN_BASE_URL"
 
 # the writer can now read the validator it has to quote
 

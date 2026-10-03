@@ -16,7 +16,6 @@ slug=$(uuidgen | tr '[:upper:]' '[:lower:]')
 container=$(ldh create container \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$END_USER_BASE_URL" \
   --title "Graph scope one" \
   --slug "$slug" \
   --parent "$END_USER_BASE_URL")

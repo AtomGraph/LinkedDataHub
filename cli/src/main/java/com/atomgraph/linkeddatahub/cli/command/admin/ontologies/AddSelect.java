@@ -17,14 +17,12 @@
 package com.atomgraph.linkeddatahub.cli.command.admin.ontologies;
 
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
-import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
 import com.atomgraph.linkeddatahub.rdf.Ontologies;
 import com.atomgraph.linkeddatahub.rdf.vocabulary.SP;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
@@ -36,9 +34,6 @@ import picocli.CommandLine.Parameters;
 @Command(name = "select", description = "Adds a SELECT query to an ontology.")
 public class AddSelect extends BaseCommand
 {
-
-    @Mixin
-    private BaseMixin baseMixin;
 
     @Option(names = "--label", required = true, paramLabel = "LABEL", description = "Label of the query")
     private String label;
@@ -61,8 +56,6 @@ public class AddSelect extends BaseCommand
     @Override
     public Integer call() throws Exception
     {
-        baseMixin.require(getSpec()); // required by the script interface
-
         post(getClient(), target, Ontologies.constructor(target, uri, SP.Select, label, Files.readString(queryFile), service, comment));
         print(target);
 

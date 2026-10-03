@@ -48,8 +48,8 @@ curl -k -f -s -o /dev/null \
 ldh admin clear ontology \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$ADMIN_BASE_URL" \
-  --ontology "$namespace"
+  --ontology "$namespace" \
+  "$ADMIN_BASE_URL"
 
 # Second save: PATCH the same document via the end-user proxy.
 # Before the fix, ProxyRequestFilter intercepts this with a false 200.

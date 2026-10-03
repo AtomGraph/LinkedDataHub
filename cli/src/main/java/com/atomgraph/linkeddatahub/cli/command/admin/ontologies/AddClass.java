@@ -17,13 +17,11 @@
 package com.atomgraph.linkeddatahub.cli.command.admin.ontologies;
 
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
-import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
 import com.atomgraph.linkeddatahub.rdf.Ontologies;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
@@ -35,9 +33,6 @@ import picocli.CommandLine.Parameters;
 @Command(name = "class", description = "Adds a class to an ontology.")
 public class AddClass extends BaseCommand
 {
-
-    @Mixin
-    private BaseMixin baseMixin;
 
     @Option(names = "--label", required = true, paramLabel = "LABEL", description = "Label of the class")
     private String label;
@@ -63,8 +58,6 @@ public class AddClass extends BaseCommand
     @Override
     public Integer call() throws Exception
     {
-        baseMixin.require(getSpec()); // required by the script interface
-
         post(getClient(), target, Ontologies.owlClass(target, uri, label, comment, constructor, constraint, superClasses));
         print(target);
 

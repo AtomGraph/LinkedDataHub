@@ -19,7 +19,6 @@ class="${namespace}NewClass"
 ldh admin add class \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$ADMIN_BASE_URL" \
   --uri "$class" \
   --label "New class" \
   "$ontology_doc"
@@ -29,8 +28,8 @@ ldh admin add class \
 ldh admin clear ontology \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$ADMIN_BASE_URL" \
-  --ontology "$namespace"
+  --ontology "$namespace" \
+  "$ADMIN_BASE_URL"
 
 # query using relative URI - <#NewClass> should resolve to ${namespace}NewClass
 

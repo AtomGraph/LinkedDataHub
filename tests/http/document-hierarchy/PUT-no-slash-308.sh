@@ -20,14 +20,14 @@ ldh admin add agent \
 # add an explicit read/write authorization for the parent since the child document will inherit it
 
 ldh admin create authorization \
-  -b "$ADMIN_BASE_URL" \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --label "Write base" \
   --agent "$AGENT_URI" \
   --to "$END_USER_BASE_URL" \
   --read \
-  --write
+  --write \
+  "$ADMIN_BASE_URL"
 
 # check URI without trailing slash gets redirected
 

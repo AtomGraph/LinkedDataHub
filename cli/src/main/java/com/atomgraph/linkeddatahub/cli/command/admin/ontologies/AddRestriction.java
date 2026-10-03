@@ -17,12 +17,10 @@
 package com.atomgraph.linkeddatahub.cli.command.admin.ontologies;
 
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
-import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
 import com.atomgraph.linkeddatahub.rdf.Ontologies;
 import java.net.URI;
 import org.apache.jena.vocabulary.OWL;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
@@ -34,9 +32,6 @@ import picocli.CommandLine.Parameters;
 @Command(name = "restriction", description = "Adds an OWL restriction to an ontology.")
 public class AddRestriction extends BaseCommand
 {
-
-    @Mixin
-    private BaseMixin baseMixin;
 
     @Option(names = "--label", required = true, paramLabel = "LABEL", description = "Label of the restriction")
     private String label;
@@ -62,8 +57,6 @@ public class AddRestriction extends BaseCommand
     @Override
     public Integer call() throws Exception
     {
-        baseMixin.require(getSpec()); // required by the script interface
-
         post(getClient(), target, Ontologies.restriction(target, uri, label, comment, onProperty, allValuesFrom, hasValue));
         print(target);
 

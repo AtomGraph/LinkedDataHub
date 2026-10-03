@@ -22,11 +22,11 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
 ldh admin create authorization \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "https://admin.test.localhost:4443/" \
   --label "Fake GET authorization from test.localhost" \
   --agent "$AGENT_URI" \
   --to "$END_USER_BASE_URL" \
-  --read
+  --read \
+  "https://admin.test.localhost:4443/"
 
 # access is still denied (fake authorization filtered out)
 
@@ -41,11 +41,11 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
 ldh admin create authorization \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$ADMIN_BASE_URL" \
   --label "GET authorization" \
   --agent "$AGENT_URI" \
   --to "$END_USER_BASE_URL" \
-  --read
+  --read \
+  "$ADMIN_BASE_URL"
 
 # access is allowed after real authorization is created
 

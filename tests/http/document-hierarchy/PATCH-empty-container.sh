@@ -24,7 +24,6 @@ slug=$(uuidgen | tr '[:upper:]' '[:lower:]')
 container=$(ldh create container \
   -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
-  -b "$END_USER_BASE_URL" \
   --title "Test container" \
   --slug "$slug" \
   --parent "$END_USER_BASE_URL")
