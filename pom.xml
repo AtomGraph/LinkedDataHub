@@ -83,6 +83,13 @@
     </repositories>
     
     <dependencies>
+        <!-- ahead of Web-Client's transitive Core: the boolean result of an ASK, which the Web-Algebra assistant
+             checks its queries with, is a 5.0.6 feature -->
+        <dependency>
+            <groupId>com.atomgraph</groupId>
+            <artifactId>core</artifactId>
+            <version>5.0.6-SNAPSHOT</version>
+        </dependency>
         <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
@@ -414,6 +421,11 @@
                         <overlay>
                             <groupId>${project.groupId}</groupId>
                             <artifactId>client</artifactId>
+                            <!-- the overlay's own Core, 5.0.5, would sit beside the 5.0.6 snapshot pinned above and win the
+                                 class loading; goes with the pin -->
+                            <excludes>
+                                <exclude>WEB-INF/lib/core-*.jar</exclude>
+                            </excludes>
                         </overlay>
                     </overlays>
                 </configuration>
