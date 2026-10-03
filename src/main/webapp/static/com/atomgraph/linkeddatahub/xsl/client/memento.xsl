@@ -5,6 +5,7 @@
     <!ENTITY ac      "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf     "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY prov    "http://www.w3.org/ns/prov#">
+    <!ENTITY dct     "http://purl.org/dc/terms/">
     <!ENTITY sp      "http://spinrdf.org/sp#">
     <!ENTITY acl     "http://www.w3.org/ns/auth/acl#">
 ]>
@@ -18,6 +19,7 @@ xmlns:lds="&lds;"
 xmlns:ac="&ac;"
 xmlns:rdf="&rdf;"
 xmlns:prov="&prov;"
+xmlns:dct="&dct;"
 xmlns:sp="&sp;"
 xmlns:acl="&acl;"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
@@ -44,6 +46,7 @@ version="3.0"
             => ixsl:then(ldh:rethread-response($context, ?))
             => ixsl:then(ldh:handle-response#1)
             => ixsl:then(ldh:load-document-modes#1)
+            => ixsl:then(ldh:load-creator-metadata#1)
             => ixsl:then(ldh:timemap-response#1) =>
             ixsl:finally(ldh:reset-cursor#0)
         " on-failure="ldh:promise-failure($container, 'version-history-not-loaded', ?)"/>
@@ -59,6 +62,30 @@ version="3.0"
           ixsl:http-request(ldh:head-request($context('doc-uri')))
             => ixsl:then(ldh:rethread-response($context, ?, 'doc-response'))
         "/>
+    </xsl:function>
+
+    <!-- loads the WebID documents of the agents who wrote the versions, so that ac:object-label can name them.
+         Agents live in the admin dataspace, which the end-user SPARQL endpoint does not see, so their documents are
+         dereferenced through the ?uri= proxy, like the signed-in agent's own. all-settled: an agent whose document
+         cannot be loaded keeps its URI as the label, it does not stop the history from opening. -->
+    <xsl:function name="ldh:load-creator-metadata" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="doc-uris" select="if ($response?status = 200 and $response?media-type = 'application/rdf+xml') then distinct-values($response?body//*[@rdf:about][prov:specializationOf/@rdf:resource]/dct:creator/@rdf:resource/ac:document-uri(.)) else ()" as="xs:anyURI*"/>
+
+        <xsl:sequence select="
+          ixsl:all-settled(array { for $doc-uri in $doc-uris return ixsl:http-request(map{ 'method': 'GET', 'href': ldh:href($doc-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }) })
+            => ixsl:then(ldh:set-creator-metadata($context, ?))
+        "/>
+    </xsl:function>
+
+    <!-- merges the agent documents that loaded into the 'object-metadata' document that ac:object-label reads -->
+    <xsl:function name="ldh:set-creator-metadata" as="map(*)">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="results" as="array(*)"/>
+        <xsl:variable name="documents" select="$results?*[?status = 'fulfilled']?value[?status = 200][?media-type = 'application/rdf+xml']?body" as="document-node()*"/>
+
+        <xsl:sequence select="map:merge(($context, map{ 'object-metadata': fold-left($documents, (), ldh:merge-metadata#2) }))"/>
     </xsl:function>
 
     <!-- renders the version history modal from the TimeMap RDF response -->
@@ -147,6 +174,7 @@ version="3.0"
                                                     <xsl:with-param name="from-memento" select="$from-memento"/>
                                                     <xsl:with-param name="to-memento" select="$current-memento"/>
                                                     <xsl:with-param name="writable" select="$writable"/>
+                                                    <xsl:with-param name="object-metadata" select="$context('object-metadata')" tunnel="yes"/>
                                                 </xsl:apply-templates>
                                             </xsl:with-param>
                                         </xsl:apply-templates>
