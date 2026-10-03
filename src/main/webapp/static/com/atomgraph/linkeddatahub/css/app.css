@@ -4678,3 +4678,7 @@ details.ldh-chat-step > summary:hover { background: var(--bg-hover); }
 .ldh-chat-docs .op { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 0; }
 /* a plan that only read shows its result set in the block's width */
 .ldh-chat-plan .ldh-chat-result { display: block; max-width: 100%; overflow-x: auto; }
+/* a result sits in a well of its own under the card - depth 2 - headed like a block; a chart's canvas gets the height a chart block gets */
+.ldh-chat-result-block { margin-top: var(--sp-2); }
+.ldh-chat-result-block > .ldh-nblock-body { padding: var(--sp-2) var(--sp-3) var(--sp-3); }
+.ldh-chat-result-block .ldh-chat-chart { min-height: 320px; }

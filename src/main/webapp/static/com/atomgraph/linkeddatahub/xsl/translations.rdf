@@ -1784,6 +1784,14 @@
         <rdfs:label xml:lang="en-US">steps</rdfs:label>
         <rdfs:label xml:lang="es-ES">pasos</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="keep">
+        <rdfs:label xml:lang="en-US">Keep</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Guardar</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="keep-summary">
+        <rdfs:label xml:lang="en-US">Keeps the result as a block of this document</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Guarda el resultado como un bloque de este documento</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="changed-documents">
         <rdfs:label xml:lang="en-US">Changed documents</rdfs:label>
         <rdfs:label xml:lang="es-ES">Documentos modificados</rdfs:label>
