@@ -25,6 +25,10 @@ import { goto } from '../../lib/settle.mjs';
 import { fixtures, itemTitle } from '../../lib/fixtures.mjs';
 import { chartBlock, drawing } from '../../lib/chart.mjs';
 import { fixtureView } from '../../lib/view.mjs';
+import { createHash } from 'node:crypto';
+
+// DEBUG: a short id per exact request, so the timeline shows whether two sends are one request twice
+const idOf = key => createHash('sha1').update(key).digest('hex').slice(0, 8);
 
 // The requests the blocks make: XHR to this stack. Not the SEF - refusing that refuses the whole
 // client, and there is nothing left to retry anything - nor a third party's.
@@ -44,6 +48,8 @@ async function record(page, { refuse }) {
     const sent = new Set();
     const shapes = new Map();
     const refused = new Set();
+    const events = []; // DEBUG
+    const t0 = Date.now(); // DEBUG
     await page.route('**/*', route => {
         const request = route.request();
         if (!fromBlocks(request, origin)) return route.fallback();
@@ -51,14 +57,16 @@ async function record(page, { refuse }) {
         const key = keyOf(request);
         if (refuse && !refused.has(key)) {
             refused.add(key);
+            events.push({ t: Date.now() - t0, action: 'refused', id: idOf(key), shape: shapeOf(key) }); // DEBUG
             // No Retry-After, as nginx sends none: the client falls back to its default wait.
             return route.fulfill({ status: 429, contentType: 'text/html', body: '<html><body>429 Too Many Requests</body></html>' });
         }
+        events.push({ t: Date.now() - t0, action: refused.has(key) ? 'sent (after refusal)' : 'sent', id: idOf(key), shape: shapeOf(key) }); // DEBUG
         sent.add(key);
         shapes.set(shapeOf(key), (shapes.get(shapeOf(key)) ?? 0) + 1);
         return route.fallback();
     });
-    return { sent, shapes, refused };
+    return { sent, shapes, refused, events };
 }
 
 // Every block on the fixture page, drawn: the chart has a picture, the view its first item, the
@@ -86,7 +94,7 @@ test('every request refused with 429 is retried as itself, and every block still
     await unrefused.waitForLoadState('networkidle');
     await unrefused.close();
 
-    const { sent, shapes, refused } = await record(page, { refuse: true });
+    const { sent, shapes, refused, events } = await record(page, { refuse: true });
     await goto(page, fixtures.container);
     await rendered(page);
 
@@ -100,5 +108,15 @@ test('every request refused with 429 is retried as itself, and every block still
     await page.waitForLoadState('networkidle');
     const extra = [...shapes].filter(([shape, count]) => count > (baseline.shapes.get(shape) ?? 0))
         .map(([shape, count]) => `${count}x (baseline ${baseline.shapes.get(shape) ?? 0}x) ${shape}`);
+    // DEBUG: the timeline of each over-fetched shape, under both loads, and every request around it
+    for (const [shape, count] of shapes) {
+        if (count <= (baseline.shapes.get(shape) ?? 0)) continue;
+        console.log(`DEBUG: over-fetched ${count}x (baseline ${baseline.shapes.get(shape) ?? 0}x):\n${shape}`);
+        for (const [load, log] of [['baseline', baseline.events], ['refused', events]])
+            console.log(`DEBUG: ${load} timeline of that shape:\n` + log.filter(e => e.shape === shape)
+                .map(e => `  ${String(e.t).padStart(6)}ms ${e.action.padEnd(20)} ${e.id}`).join('\n'));
+    }
+    console.log('DEBUG: refused load, every block request:\n' + events
+        .map(e => `  ${String(e.t).padStart(6)}ms ${e.action.padEnd(20)} ${e.id} ${e.shape.split('\n')[0]}`).join('\n'));
     expect(extra, 'nothing is fetched more often than an unrefused load fetches it').toEqual([]);
 });
