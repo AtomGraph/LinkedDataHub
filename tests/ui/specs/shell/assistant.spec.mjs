@@ -65,6 +65,15 @@ test('opens from the create bar, docked above it, and closes on Escape', { tag: 
     expect(composerBox.y + composerBox.height).toBeLessThanOrEqual(buttonBox.y + 1);
     expect(await dock(page).locator('form.chat-composer').count()).toBe(1);
 
+    // and as wide as the content column, starting where it starts: the composer's box is the column's box inside its padding
+    const column = await page.evaluate(() => {
+        const body = document.querySelector('.ldh-pane.is-active > .document-body > .content-body');
+        const rect = body.getBoundingClientRect(); const style = getComputedStyle(body);
+        return { x: rect.x + parseFloat(style.paddingLeft), width: rect.width - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight) };
+    });
+    expect(Math.abs(composerBox.x - column.x)).toBeLessThanOrEqual(1);
+    expect(Math.abs(composerBox.width - column.width)).toBeLessThanOrEqual(1);
+
     await page.keyboard.press('Escape');
     await expect(form(page)).not.toBeVisible();
 
