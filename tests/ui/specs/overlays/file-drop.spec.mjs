@@ -13,11 +13,14 @@
 // every other spec. The write is checked at the API as well as on the page, because the page is
 // re-rendered from the graph after the drop and could show a triple the server never stored.
 import { createHash } from 'node:crypto';
+import { writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { test, expect } from '../../lib/console.mjs';
 import { goto } from '../../lib/settle.mjs';
 import { fixtures, ldh } from '../../lib/fixtures.mjs';
 import { endUserBase } from '../../lib/stack.mjs';
-import { dragIn, dropFile, fileTransfer } from '../../lib/file-drop.mjs';
+import { dragIn, dropFile, externalDrag, fileTransfer } from '../../lib/file-drop.mjs';
 
 const DCT = 'http://purl.org/dc/terms/';
 const NFO = 'http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#';
@@ -81,6 +84,25 @@ test('says what a drop does, both ways', { tag: '@owner' }, async ({ page }) => 
     await page.dispatchEvent('body', 'dragend', { dataTransfer: transfer });
     await expect(overlay(page)).toHaveCount(0);
 });
+
+// A drag dragged back out of the window has no dragend to clear the overlay - a desktop file has no
+// source element here - so the dragleave is the only way out. The browser hands its current target over
+// to the overlay only at the next drag tick, so a drag that leaves before one fires dragleave on the
+// element underneath rather than on the overlay; both have to take the overlay with them.
+for (const [when, ticks] of [['before the overlay takes over', 0], ['after the overlay took over', 3]]) {
+    test(`a drag that leaves the window ${when} takes the overlay with it`, { tag: '@owner' }, async ({ page }) => {
+        const path = join(tmpdir(), 'ldh-file-drop-leave.txt');
+        writeFileSync(path, 'dragged, not dropped');
+        const drag = await externalDrag(page, path);
+
+        await drag.enter(700, 400);
+        for (let i = 0; i < ticks; i++) await drag.over(700, 400);
+        await expect(overlay(page)).toBeVisible();
+
+        await drag.leaveWindow();
+        await expect(overlay(page)).toHaveCount(0);
+    });
+}
 
 test('an RDF file is imported as triples', { tag: '@owner' }, async ({ page }) => {
     // About a resource of its own rather than the document: the document's own description is
