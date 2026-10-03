@@ -411,11 +411,13 @@ LIMIT   10
                                 <xsl:with-param name="size" select="'sz-md'"/>
                                 <xsl:with-param name="select" as="item()*">
                                 <select id="request-access-for">
-                                    <option value="{$agent}">
-                                        <xsl:value-of select="$agent"/> (<xsl:value-of>
-                                            <xsl:apply-templates select="key('resources', 'me', ldh:translations())" mode="ac:label"/>
-                                        </xsl:value-of>)
-                                    </option>
+                                    <!-- the signed-in agent, whose WebID document the page has already loaded -->
+                                    <xsl:apply-templates select="key('resources', $agent, $foaf:Agent)" mode="xhtml:Option"/>
+                                    <xsl:on-empty>
+                                        <option value="{$agent}">
+                                            <xsl:value-of select="$agent"/>
+                                        </option>
+                                    </xsl:on-empty>
                                 </select>
                                 </xsl:with-param>
                             </xsl:apply-templates>

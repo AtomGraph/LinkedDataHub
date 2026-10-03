@@ -1540,17 +1540,12 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="object-var-name" select="json:string[@key = 'object']/substring-after(., '?')" as="xs:string"/>
                     <!-- render the facet header synchronously from the /ns property-metadata; fall back to the predicate's local name when it is not in the closure -->
                     <xsl:variable name="predicate-desc" as="element()">
-                        <xsl:variable name="ns-desc" select="$property-metadata!key('resources', $predicate, .)" as="element()?"/>
-                        <xsl:choose>
-                            <xsl:when test="exists($ns-desc)">
-                                <xsl:sequence select="$ns-desc"/>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <rdf:Description rdf:about="{$predicate}">
-                                    <rdfs:label><xsl:value-of select="tokenize($predicate, '[/#]')[last()]"/></rdfs:label>
-                                </rdf:Description>
-                            </xsl:otherwise>
-                        </xsl:choose>
+                        <xsl:sequence select="$property-metadata!key('resources', $predicate, .)"/>
+                        <xsl:on-empty>
+                            <rdf:Description rdf:about="{$predicate}">
+                                <rdfs:label><xsl:value-of select="tokenize($predicate, '[/#]')[last()]"/></rdfs:label>
+                            </rdf:Description>
+                        </xsl:on-empty>
                     </xsl:variable>
                     <xsl:for-each select="$sub-container">
                         <xsl:result-document href="?." method="ixsl:append-content">
