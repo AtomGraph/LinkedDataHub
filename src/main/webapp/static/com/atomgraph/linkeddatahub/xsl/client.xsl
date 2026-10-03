@@ -330,8 +330,12 @@ WHERE
                         <!-- store document under window.LinkedDataHub.contents[$doc-uri].results -->
                         <!-- should be possible to cache the document using SaxonJS when this issue is resolved: https://saxonica.plan.io/issues/6355 -->
                         <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`')"/>
-                        <!-- store ETag header value under window.LinkedDataHub.contents[$doc-uri].etag -->
-                        <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`')"/>
+                        <!-- store ETag header value under window.LinkedDataHub.contents[$doc-uri].etag. Not a memento's: its tag is
+                             the commit SHA, which validates no write to the live document filed under the same key - a restore
+                             started from a ?version= view quoted it and was refused 412 -->
+                        <xsl:if test="not(map:contains($query-params, 'version'))">
+                            <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`')"/>
+                        </xsl:if>
 
                         <xsl:variable name="pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][./div[contains-token(@class, 'document-body')]/@about = $doc-uri]" as="element()?"/>
                         <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>

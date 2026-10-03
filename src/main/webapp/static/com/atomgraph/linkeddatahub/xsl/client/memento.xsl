@@ -226,11 +226,12 @@ version="3.0"
                 <!-- the graph store takes the document node directly; the server restamps dct:modified -->
                 <!-- conditional on the live document's current state: restoring a version overwrites the whole
                      graph, so without a validator it would silently discard anything written since the timemap
-                     was rendered -->
+                     was rendered. Started from a ?version= view the browser holds no tag for the live document - a
+                     memento's is never stored as its - so ldh:with-document-etag HEADs the live document for one -->
                 <xsl:variable name="request" select="map{ 'method': 'PUT', 'href': ldh:href($context('doc-uri')), 'media-type': 'application/rdf+xml', 'body': $response?body, 'headers': ldh:conditional-headers(map{ 'Accept': 'application/rdf+xml' }, ldh:document-etag($context('doc-uri'))) }" as="map(*)"/>
                 <xsl:sequence select="
-                  ixsl:http-request($request)
-                    => ixsl:then(ldh:rethread-response(map:remove($context, 'response'), ?))
+                  ldh:with-document-etag(map:put(map:remove($context, 'response'), 'request', $request))
+                    => ixsl:then(ldh:http-request-threaded#1)
                     => ixsl:then(ldh:restored-version#1)"/>
             </xsl:when>
             <xsl:otherwise>
