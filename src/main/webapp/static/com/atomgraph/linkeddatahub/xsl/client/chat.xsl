@@ -139,9 +139,10 @@ exclude-result-prefixes="#all"
         </xsl:apply-templates>
         <xsl:sequence select="ldh:busy-cursor()"/>
 
-        <!-- where the reader is: the document in the address bar and its dataspace's endpoint, the context a plan
-             against this instance needs. Read now rather than stamped at render, since navigation moves them -->
-        <xsl:variable name="body" select="serialize(map{ 'question': $question, 'document': string(ac:absolute-path(ldh:request-uri())), 'endpoint': string(sd:endpoint()), 'history': $history }, map{ 'method': 'json' })" as="xs:string"/>
+        <!-- where the reader is: the document in the address bar, its dataspace's endpoint and the dataspace's ontology, the
+             context a plan against this instance needs. Read now rather than stamped at render, since navigation moves them -->
+        <xsl:variable name="ontology" select="if (exists(lds:ontology())) then map{ 'ontology': string(lds:ontology()) } else map{}" as="map(xs:string, xs:string)"/>
+        <xsl:variable name="body" select="serialize(map:merge((map{ 'question': $question, 'document': string(ac:absolute-path(ldh:request-uri())), 'endpoint': string(sd:endpoint()), 'history': $history }, $ontology)), map{ 'method': 'json' })" as="xs:string"/>
         <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:chat-href('webalgebra/plans'), 'media-type': 'application/json', 'body': $body, 'headers': map{ 'Accept': 'application/xml' } }" as="map(*)"/>
         <xsl:variable name="context" select="map{ 'request': $request, 'card': id($card-id, ixsl:page()), 'form': $form }" as="map(*)"/>
         <ixsl:promise select="

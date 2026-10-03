@@ -317,6 +317,10 @@ WHERE
                     <xsl:if test="$application">
                         <ixsl:set-property name="application" select="$application" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     </xsl:if>
+                    <!-- store the dataspace's ontology from the Link header, the vocabulary its domain data is described in; blank
+                         when absent (a proxied document advertises none), so the assistant does not hand a plan the previous document's -->
+                    <xsl:variable name="ontology" select="ldh:link-targets(?headers?link, '&lds;ontology')[1]" as="xs:anyURI?"/>
+                    <ixsl:set-property name="ontology" select="($ontology, '')[1]" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     <!-- store TimeMap URI from Link header (present when the document is versioned); blank it when absent so non-versioned documents don't show the History link -->
                     <xsl:variable name="timemap" select="ldh:link-targets(?headers?link, 'rel=&quot;timemap&quot;')[1]" as="xs:anyURI?"/>
                     <ixsl:set-property name="timemap" select="($timemap, '')[1]" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
