@@ -247,8 +247,10 @@ exclude-result-prefixes="#all"
     <!-- THE PLAN -->
 
     <!-- The plan service answers with an envelope: a summary, the operations the plan invokes, and the operation
-         element itself, already checked against the executor. An envelope holding a message instead is a reply too -
-         the service declining, in words, whatever the status - and is shown as one rather than reported as a failure. -->
+         element itself, already checked against the executor. An envelope holding a message instead is a reply when
+         the status is 200 - the service declining, in words - and is shown as one. On any other status the message
+         is the service's reason for failing (a plan refused by the validator, with the parser's line and column), and
+         it reports as the failure it is, with the reason as the detail, where Revise can act on it. -->
     <xsl:function name="ldh:plan-response" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
@@ -276,7 +278,7 @@ exclude-result-prefixes="#all"
                     </xsl:call-template>
                 </xsl:if>
             </xsl:when>
-            <xsl:when test="exists($plan/wa:message)">
+            <xsl:when test="$response?status = 200 and exists($plan/wa:message)">
                 <xsl:for-each select="$card">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <p>
@@ -284,6 +286,10 @@ exclude-result-prefixes="#all"
                         </p>
                     </xsl:result-document>
                 </xsl:for-each>
+            </xsl:when>
+            <!-- the service's own words beat the status line as the detail; the chain's on-failure reports it in the card -->
+            <xsl:when test="exists($plan/wa:message)">
+                <xsl:sequence select="error(QName('&ldh;', 'ldh:ResponseError'), string($plan/wa:message), $response)"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:sequence select="ldh:response-error($response)"/>
