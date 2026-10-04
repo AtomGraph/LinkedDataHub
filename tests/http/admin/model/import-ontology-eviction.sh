@@ -85,7 +85,6 @@ echo "DEBUG: [baseline] constructors for skos:Concept before the import: $before
 item=$(ldh create item \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$ADMIN_BASE_URL" \
   --title "Evicted" \
   --slug "evicted" \
   --container "${ADMIN_BASE_URL}ontologies/")
@@ -93,9 +92,9 @@ item=$(ldh create item \
 ldh admin import ontology \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$ADMIN_BASE_URL" \
   --source "$import_uri" \
-  --graph "$item"
+  --graph "$item" \
+  "$ADMIN_BASE_URL"
 
 # the application ontology imports the VOCABULARY, and resolving it reaches the document above
 ldh admin add ontology-import \
@@ -107,8 +106,8 @@ ldh admin add ontology-import \
 ldh admin clear ontology \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$ADMIN_BASE_URL" \
-  --ontology "$namespace"
+  --ontology "$namespace" \
+  "$ADMIN_BASE_URL"
 
 store_report "imported"
 ns_probe

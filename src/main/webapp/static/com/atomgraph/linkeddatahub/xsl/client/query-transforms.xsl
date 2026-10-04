@@ -100,6 +100,18 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="json:number[@key = 'offset']" mode="ldh:replace-offset" priority="1"/>
 
+    <!-- The name of a SELECT's first projected variable, without the '?': a plain ?x, which SPARQL.js gives as the
+         string "?x", or the alias of an expression, (expr AS ?x), which it gives as a map with a "variable". A view
+         lists the resources this variable binds, so an aliased one - (?s AS ?resource), or (IRI(...) AS ?r) - is as
+         good as a plain one; reading only the plain form left the name empty and the view's whole render failing.
+         SELECT * has no first variable, and gives the empty string, as it always did -->
+    <xsl:function name="ldh:first-var-name" as="xs:string">
+        <xsl:param name="query" as="element(json:map)"/>
+        <xsl:variable name="first" select="$query/json:array[@key = 'variables']/*[1]" as="element()?"/>
+
+        <xsl:sequence select="substring-after(string(($first/self::json:string, $first/self::json:map/json:string[@key = 'variable'])[1]), '?')"/>
+    </xsl:function>
+
     <!-- wrap SELECT into DESCRIBE -->
     
     <!-- identity transform -->
@@ -216,7 +228,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="uuid" as="xs:string" tunnel="yes"/>
         <xsl:param name="limit" select="100" as="xs:integer" tunnel="yes"/>
         <xsl:variable name="suffix" select="translate($uuid, '-', '_')" as="xs:string"/>
-        <xsl:variable name="focus-var" select="string(json:array[@key = 'variables']/json:string[1])" as="xs:string"/>
+        <xsl:variable name="focus-var" select="'?' || ldh:first-var-name(.)" as="xs:string"/>
         <xsl:variable name="predicate-var" select="'?predicate' || $suffix" as="xs:string"/>
         <xsl:variable name="inverse-var" select="'?inverse' || $suffix" as="xs:string"/>
         <xsl:variable name="object-var" select="'?object' || $suffix" as="xs:string"/>
@@ -333,9 +345,20 @@ extension-element-prefixes="ixsl"
         </xsl:copy>
     </xsl:template>
 
+    <!-- an expression's alias is unbound in the WHERE the step is appended to (ldh:wrap-subquery) -->
+    <xsl:template match="/json:map[json:array[@key = 'variables']/*[1][self::json:map]]" mode="ldh:add-parallax-step" priority="2">
+        <xsl:variable name="wrapped" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="." mode="ldh:wrap-subquery"/>
+            </xsl:document>
+        </xsl:variable>
+
+        <xsl:apply-templates select="$wrapped/json:map" mode="#current"/>
+    </xsl:template>
+
     <xsl:template match="/json:map" mode="ldh:add-parallax-step" priority="1">
         <!-- use the first ?var from the SELECT -->
-        <xsl:param name="var-name" select="/json:map/json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string" tunnel="yes"/>
+        <xsl:param name="var-name" select="ldh:first-var-name(/json:map)" as="xs:string" tunnel="yes"/>
         <xsl:param name="uuid" select="ac:uuid()" as="xs:string" tunnel="yes"/>
         <xsl:param name="new-var-name" select="'subject' || translate($uuid, '-', '_')" as="xs:string" tunnel="yes"/>
         <xsl:param name="graph-var-name" select="'graph' || translate($uuid, '-', '_')" as="xs:string" tunnel="yes"/>
@@ -357,7 +380,7 @@ extension-element-prefixes="ixsl"
         </xsl:apply-templates>
     </xsl:template>
     
-    <xsl:template match="json:array[@key = 'where']" mode="ldh:add-parallax-step" priority="1">
+    <xsl:template match="/json:map/json:array[@key = 'where']" mode="ldh:add-parallax-step" priority="1">
         <!-- use the first ?var from the SELECT -->
         <xsl:param name="var-name" as="xs:string" tunnel="yes"/>
         <xsl:param name="predicate" as="xs:anyURI" tunnel="yes"/>
@@ -787,6 +810,33 @@ extension-element-prefixes="ixsl"
         </xsl:copy>
     </xsl:template>
     
+    <!-- A SELECT whose first projection is an expression - (?s AS ?resource), (YEAR(NOW()) AS ?year) - binds that
+         variable in its projection alone, so a rewrite that projects something else or appends patterns to its WHERE
+         sees the variable unbound there: a COUNT counts nothing, and a pattern joined on it matches every triple in the
+         store. This keeps the original whole, as a subquery, under a plain SELECT of the first variable, which the
+         rewrites then treat like any other. The wrapper carries no prefixes, as the other wrappers here do: with any,
+         the generator abbreviates IRIs and emits the subquery's prologue inside the group -->
+    <xsl:template match="/json:map" mode="ldh:wrap-subquery">
+        <json:map>
+            <json:string key="type">query</json:string>
+            <json:string key="queryType">SELECT</json:string>
+            <json:array key="variables">
+                <json:string><xsl:text>?</xsl:text><xsl:value-of select="ldh:first-var-name(.)"/></json:string>
+            </json:array>
+            <!-- the dataset clause is only legal on the outermost query (see ldh:wrap-describe) -->
+            <xsl:copy-of select="json:map[@key = 'from']"/>
+            <!-- a subquery stands in a group: bare, the generator prints it without braces -->
+            <json:array key="where">
+                <json:map>
+                    <json:string key="type">group</json:string>
+                    <json:array key="patterns">
+                        <xsl:apply-templates select="." mode="ldh:strip-from"/>
+                    </json:array>
+                </json:map>
+            </json:array>
+        </json:map>
+    </xsl:template>
+
     <!-- result COUNT -->
     
     <!-- identity transform -->
@@ -796,8 +846,21 @@ extension-element-prefixes="ixsl"
         </xsl:copy>
     </xsl:template>
     
+    <!-- a SELECT whose first projection is an expression binds its alias only in the projection, which the count
+         replaces - COUNT(?alias) over the bare WHERE would count nothing. So the count is taken over the
+         subquery's rows (ldh:wrap-subquery) -->
+    <xsl:template match="/json:map[json:array[@key = 'variables']/*[1][self::json:map]]" mode="ldh:result-count" priority="2">
+        <xsl:variable name="wrapped" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="." mode="ldh:wrap-subquery"/>
+            </xsl:document>
+        </xsl:variable>
+
+        <xsl:apply-templates select="$wrapped/json:map" mode="#current"/>
+    </xsl:template>
+
     <!-- replace query variables with (COUNT(DISTINCT *) AS ?count) -->
-    <xsl:template match="json:map/json:array[@key = 'variables']" mode="ldh:result-count" priority="1">
+    <xsl:template match="/json:map/json:array[@key = 'variables']" mode="ldh:result-count" priority="1">
         <xsl:param name="expression-var-name" as="xs:string?" tunnel="yes"/>
         <xsl:param name="count-var-name" as="xs:string" tunnel="yes"/>
 
@@ -851,6 +914,17 @@ extension-element-prefixes="ixsl"
         <xsl:copy>
             <xsl:apply-templates select="@* | node()" mode="#current"/>
         </xsl:copy>
+    </xsl:template>
+
+    <!-- an expression's alias is unbound in the WHERE the joins are appended to (ldh:wrap-subquery) -->
+    <xsl:template match="/json:map[json:array[@key = 'variables']/*[1][self::json:map]]" mode="ldh:container-select" priority="2">
+        <xsl:variable name="wrapped" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="." mode="ldh:wrap-subquery"/>
+            </xsl:document>
+        </xsl:variable>
+
+        <xsl:apply-templates select="$wrapped/json:map" mode="#current"/>
     </xsl:template>
 
     <xsl:template match="/json:map" mode="ldh:container-select" priority="1">

@@ -1944,8 +1944,7 @@ WHERE
         <xsl:param name="label-var-name" select="'label'" as="xs:string"/>
         <xsl:param name="type-var-name" select="'Type'" as="xs:string?"/>
         <xsl:variable name="key-code" select="ixsl:get(ixsl:event(), 'code')" as="xs:string"/>
-        <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
-        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
+        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($sparql-parser, 'parse', [ $select-string ]) ])" as="xs:string"/>
         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
         <!-- append FILTER(regex()) -->
         <xsl:variable name="select-xml" as="document-node()">
@@ -1990,7 +1989,7 @@ WHERE
         </xsl:variable>
         <xsl:variable name="query-json-string" select="xml-to-json($query-xml)" as="xs:string"/>
         <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
-        <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
+        <xsl:variable name="query-string" select="ixsl:call($sparql-generator, 'stringify', [ $query-json ])" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/> <!-- proxy the results -->
         <!-- TO-DO: use <ixsl:schedule-action> instead of document() -->

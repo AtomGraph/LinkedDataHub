@@ -27,8 +27,8 @@ ldh admin add ontology-import \
 ldh admin clear ontology \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$ADMIN_BASE_URL" \
-  --ontology "$namespace"
+  --ontology "$namespace" \
+  "$ADMIN_BASE_URL"
 
 # check that the import is present in the namespace ontology
 

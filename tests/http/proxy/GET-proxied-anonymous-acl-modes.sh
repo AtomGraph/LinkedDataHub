@@ -24,7 +24,6 @@ clear_ontology
 item=$(ldh create item \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$END_USER_BASE_URL" \
   --title "Proxied public document" \
   --slug "proxied-public-$(date +%s)" \
   --container "$END_USER_BASE_URL")
@@ -32,11 +31,11 @@ item=$(ldh create item \
 ldh admin create authorization \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$ADMIN_BASE_URL" \
   --label "Public read of the proxied document" \
   --agent-class "http://xmlns.com/foaf/0.1/Agent" \
   --to "$item" \
-  --read > /dev/null
+  --read \
+  "$ADMIN_BASE_URL" > /dev/null
 
 # read it anonymously through the admin origin's proxy, so the request crosses origins and is
 # forwarded rather than rewritten onto the local document
@@ -60,23 +59,23 @@ fi
 
 # the public grant is what the reader holds
 
-grep -q "Link:.*<http://www.w3.org/ns/auth/acl#Read>; rel=http://www.w3.org/ns/auth/acl#mode" "$response_headers"
+grep -q "Link:.*<http://www.w3.org/ns/auth/acl#Read>; rel=\"http://www.w3.org/ns/auth/acl#mode\"" "$response_headers"
 
 # and nothing the secretary holds
 
-if grep -q "<http://www.w3.org/ns/auth/acl#Write>; rel=http://www.w3.org/ns/auth/acl#mode" "$response_headers"; then
+if grep -q "<http://www.w3.org/ns/auth/acl#Write>; rel=\"http://www.w3.org/ns/auth/acl#mode\"" "$response_headers"; then
     echo "An anonymous proxied read reports acl:Write"
     exit 1
 fi
-if grep -q "<http://www.w3.org/ns/auth/acl#Append>; rel=http://www.w3.org/ns/auth/acl#mode" "$response_headers"; then
+if grep -q "<http://www.w3.org/ns/auth/acl#Append>; rel=\"http://www.w3.org/ns/auth/acl#mode\"" "$response_headers"; then
     echo "An anonymous proxied read reports acl:Append"
     exit 1
 fi
-if grep -q "<http://www.w3.org/ns/auth/acl#Control>; rel=http://www.w3.org/ns/auth/acl#mode" "$response_headers"; then
+if grep -q "<http://www.w3.org/ns/auth/acl#Control>; rel=\"http://www.w3.org/ns/auth/acl#mode\"" "$response_headers"; then
     echo "An anonymous proxied read reports acl:Control"
     exit 1
 fi
-if grep -qi "rel=http://www.w3.org/ns/auth/acl#agent" "$response_headers"; then
+if grep -qi "rel=\"http://www.w3.org/ns/auth/acl#agent\"" "$response_headers"; then
     echo "An anonymous proxied read asserts an agent"
     exit 1
 fi

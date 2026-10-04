@@ -83,7 +83,7 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
         if (request.getSecurityContext().getUserPrincipal() instanceof Agent)
         {
             Agent agent = ((Agent)(request.getSecurityContext().getUserPrincipal()));
-            response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(agent.getURI()), ACL.agent.getURI(), null));
+            response.getHeaders().add(HttpHeaders.LINK, Link.fromUri(URI.create(agent.getURI())).rel(ACL.agent.getURI()).build());
         }
 
         boolean isTimeMap = request.getUriInfo().getQueryParameters().containsKey(DocumentHierarchyGraphStoreImpl.TIMEMAP_PARAM_NAME);
@@ -105,23 +105,23 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
         if (getAuthorizationContext().isPresent())
             getAuthorizationContext().get().getModeURIs().stream().
                 filter(mode -> !isSnapshotRequest || mode.toString().equals(ACL.Read.getURI())).
-                forEach(mode -> response.getHeaders().add(HttpHeaders.LINK, new Link(mode, ACL.mode.getURI(), null)));
+                forEach(mode -> response.getHeaders().add(HttpHeaders.LINK, Link.fromUri(mode).rel(ACL.mode.getURI()).build()));
 
         // for proxy requests the external Link headers are forwarded by ProxyRequestFilter; suppress local-only hypermedia
         boolean isProxyRequest = request.getProperty(AC.uri.getURI()) != null;
 
         if (!isProxyRequest)
-            response.getHeaders().add(HttpHeaders.LINK, new Link(request.getUriInfo().getBaseUriBuilder().path(Dispatcher.class, "getSPARQLEndpoint").build(), SD.endpoint.getURI(), null));
+            response.getHeaders().add(HttpHeaders.LINK, Link.fromUri(request.getUriInfo().getBaseUriBuilder().path(Dispatcher.class, "getSPARQLEndpoint").build()).rel(SD.endpoint.getURI()).build());
 
         // Only add application-specific links if application is present and this is not a proxy request
         if (!isProxyRequest && getDataspace().isPresent())
         {
             Dataspace application = getDataspace().get();
             // add Link rel=lds:dataspace
-            response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(application.getURI()), LDS.dataspace.getURI(), null));
+            response.getHeaders().add(HttpHeaders.LINK, Link.fromUri(URI.create(application.getURI())).rel(LDS.dataspace.getURI()).build());
             // add Link rel=lds:ontology, if the ontology URI is specified
             if (application.getOntology() != null)
-                response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(application.getOntology().getURI()), LDS.ontology.getURI(), null));
+                response.getHeaders().add(HttpHeaders.LINK, Link.fromUri(URI.create(application.getOntology().getURI())).rel(LDS.ontology.getURI()).build());
             // add Memento (RFC 7089) hypermedia, if the document is versioned
             if (getSystem().getGraphVersioningService().getRepository(application.getURI()).isPresent() &&
                     request.getUriInfo().getMatchedResources().stream().anyMatch(DocumentHierarchyGraphStoreImpl.class::isInstance))
@@ -132,29 +132,29 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
 
                 // the TimeMap identifies itself with rel=self; everything else points at it with rel=timemap
                 if (isTimeMap)
-                    response.getHeaders().add(HttpHeaders.LINK, new Link(timeMapURI, "self", TimeMapWriter.APPLICATION_LINK_FORMAT));
+                    response.getHeaders().add(HttpHeaders.LINK, Link.fromUri(timeMapURI).rel("self").type(TimeMapWriter.APPLICATION_LINK_FORMAT).build());
                 else
-                    response.getHeaders().add(HttpHeaders.LINK, new Link(timeMapURI, "timemap", TimeMapWriter.APPLICATION_LINK_FORMAT));
+                    response.getHeaders().add(HttpHeaders.LINK, Link.fromUri(timeMapURI).rel("timemap").type(TimeMapWriter.APPLICATION_LINK_FORMAT).build());
 
                 // the Original Resource MUST advertise a preferred TimeGate; the TimeGate does not link to itself
                 if (!isTimeGate)
-                    response.getHeaders().add(HttpHeaders.LINK, new Link(timeGateURI, "timegate", null));
+                    response.getHeaders().add(HttpHeaders.LINK, Link.fromUri(timeGateURI).rel("timegate").build());
 
                 // a Memento and a TimeGate MUST link to the Original Resource, and a TimeMap lists it;
                 // the Original Resource itself MUST NOT carry rel=original
                 if (isSnapshotRequest)
-                    response.getHeaders().add(HttpHeaders.LINK, new Link(originalURI, "original", null));
+                    response.getHeaders().add(HttpHeaders.LINK, Link.fromUri(originalURI).rel("original").build());
             }
             // add Link rel=ac:stylesheet, if the stylesheet URI is specified
             if (application.getStylesheet() != null)
-                response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(application.getStylesheet().getURI()), AC.stylesheet.getURI(), null));
+                response.getHeaders().add(HttpHeaders.LINK, Link.fromUri(URI.create(application.getStylesheet().getURI())).rel(AC.stylesheet.getURI()).build());
 
             // the compiled client stylesheet composed with this application's packages, set by
             // XsltExecutableFilter only once it exists. Advertised rather than injected as a stylesheet
             // parameter, so the client reads it the same way it reads acl:mode and the Memento relations
             Object clientStylesheet = request.getProperty(LDH.clientStylesheet.getURI());
             if (clientStylesheet != null)
-                response.getHeaders().add(HttpHeaders.LINK, new Link(application.getBaseURI().resolve(clientStylesheet.toString()), LDH.clientStylesheet.getURI(), null));
+                response.getHeaders().add(HttpHeaders.LINK, Link.fromUri(application.getBaseURI().resolve(clientStylesheet.toString())).rel(LDH.clientStylesheet.getURI()).build());
         }
 
         if (response.getHeaders().get(HttpHeaders.LINK) != null)

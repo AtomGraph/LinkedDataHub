@@ -19,7 +19,6 @@ restriction="${namespace_doc}#Restriction"
 ldh admin add restriction \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$ADMIN_BASE_URL" \
   --uri "$restriction" \
   --label "Topic of document" \
   --on-property "http://xmlns.com/foaf/0.1/primaryTopic" \
@@ -31,8 +30,8 @@ ldh admin add restriction \
 ldh admin clear ontology \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$ADMIN_BASE_URL" \
-  --ontology "$namespace"
+  --ontology "$namespace" \
+  "$ADMIN_BASE_URL"
 
 # check that the restriction is present in the ontology
 

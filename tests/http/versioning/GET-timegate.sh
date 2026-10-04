@@ -78,7 +78,7 @@ ldh get \
   "$doc_url" \
 | tr -d '\r')
 
-echo "$response_headers" | grep -q "<${doc_url}?timegate>; rel=timegate"
+echo "$response_headers" | grep -q "<${doc_url}?timegate>; rel=\"timegate\""
 
 # without Accept-Datetime the TimeGate selects the most recent Memento
 
@@ -94,7 +94,7 @@ ldh get \
 echo "$timegate_headers" | grep -q '^HTTP 302'
 echo "$timegate_headers" | grep -qi "^Location: ${doc_url}?version=${sha2}"
 echo "$timegate_headers" | grep -qi '^Vary:.*accept-datetime'
-echo "$timegate_headers" | grep -q "<${doc_url}>; rel=original"
+echo "$timegate_headers" | grep -q "<${doc_url}>; rel=\"original\""
 # the redirect must not be cached: it would outlive the commit that made it the most recent
 echo "$timegate_headers" | grep -qi '^Cache-Control:.*no-store'
 

@@ -105,7 +105,7 @@ WHERE { OPTIONAL { <${constructor}> sp:text ?old } }`,
 
 // The editor's save clears the constructor's own ontology and then the application's; a restore
 // through the API has to do the same, or the next form renders from whatever closure was cached.
-const clearOntologies = () => ldh(['admin', 'clear', 'ontology', '-b', adminBase], { allowFailure: true });
+const clearOntologies = () => ldh(['admin', 'clear', 'ontology', adminBase], { allowFailure: true });
 
 // Which templated properties a stored text names. The package writes them as skos: prefixed
 // names and the editor's builder writes them back as full URIs, so both spellings count.

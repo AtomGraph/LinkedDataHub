@@ -46,4 +46,7 @@ public class ORCID
     /** Client secret property */
     public static final Property clientSecret = m_model.createDataProperty( NS + "clientSecret" );
 
+    /** Issuer property: the ORCID environment the client is registered with, such as <code>https://sandbox.orcid.org</code> */
+    public static final Property issuer = m_model.createDataProperty( NS + "issuer" );
+
 }

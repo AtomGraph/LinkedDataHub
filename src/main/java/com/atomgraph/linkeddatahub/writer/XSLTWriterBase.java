@@ -24,8 +24,8 @@ import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.linkeddatahub.vocabulary.LDHT;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.linkeddatahub.vocabulary.ORCID;
+import com.atomgraph.linkeddatahub.server.util.Link;
 import com.atomgraph.linkeddatahub.vocabulary.LDS;
-import com.atomgraph.core.util.Link;
 import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LDHC;
@@ -191,14 +191,14 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
                 {
                     return Link.valueOf(header.trim());
                 }
-                catch (URISyntaxException ex)
+                catch (IllegalArgumentException ex)
                 {
-                    if (log.isWarnEnabled()) log.warn("Could not parse Link URI", ex);
+                    if (log.isWarnEnabled()) log.warn("Could not parse Link header value: {}", header, ex);
                     return null;
                 }
             }).
-            filter(link -> link != null && link.getRel() != null && link.getRel().equals(property.getURI())).
-            map(link -> link.getHref()).
+            filter(link -> link != null && link.getRels().contains(property.getURI())).
+            map(Link::getUri).
             collect(Collectors.toList());
 
         if (!baseLinks.isEmpty()) return baseLinks.get(0);

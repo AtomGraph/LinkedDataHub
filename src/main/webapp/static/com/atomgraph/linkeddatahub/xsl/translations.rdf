@@ -823,6 +823,14 @@
         <rdfs:label xml:lang="en-US">An object block cannot embed the document it is part of.</rdfs:label>
         <rdfs:label xml:lang="es-ES">Un bloque de objeto no puede incrustar el documento del que forma parte.</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="view-no-resources">
+        <rdfs:label xml:lang="en-US">This view's query lists no resources</rdfs:label>
+        <rdfs:label xml:lang="es-ES">La consulta de esta vista no enumera recursos</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="view-no-resources-explanation">
+        <rdfs:label xml:lang="en-US">Its first variable binds values rather than resources, and a view lists resources. A query or chart block shows values.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Su primera variable enlaza valores en lugar de recursos, y una vista enumera recursos. Un bloque de consulta o de gráfico muestra valores.</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="block-resource-not-described-explanation">
         <rdfs:label xml:lang="en-US">The document was retrieved, but it contains no description of this resource.</rdfs:label>
         <rdfs:label xml:lang="es-ES">El documento se obtuvo, pero no contiene ninguna descripción de este recurso.</rdfs:label>
@@ -879,6 +887,10 @@
     <rdf:Description rdf:nodeID="history-description">
         <rdfs:label xml:lang="en-US">Every change to this document is saved as a version. Click a version to view the document as it was at that time.</rdfs:label>
         <rdfs:label xml:lang="es-ES">Cada cambio en este documento se guarda como una versión. Haga clic en una versión para ver el documento tal como era en ese momento.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="no-versions">
+        <rdfs:label xml:lang="en-US">This document has no versions yet. The next change to it will be the first.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Este documento aún no tiene versiones. El próximo cambio será la primera.</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="version">
         <rdfs:label xml:lang="en-US">Version</rdfs:label>

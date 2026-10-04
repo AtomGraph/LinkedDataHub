@@ -18,14 +18,12 @@ package com.atomgraph.linkeddatahub.cli.command;
 
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
 import com.atomgraph.linkeddatahub.cli.http.LDHClient;
-import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
 import com.atomgraph.linkeddatahub.rdf.Queries;
 import com.atomgraph.linkeddatahub.rdf.vocabulary.SP;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
@@ -37,9 +35,6 @@ import picocli.CommandLine.Parameters;
 @Command(name = "construct", description = "Adds a CONSTRUCT query to a document.")
 public class AddConstruct extends BaseCommand
 {
-
-    @Mixin
-    private BaseMixin baseMixin;
 
     @Option(names = "--title", required = true, paramLabel = "TITLE", description = "Title of the query")
     private String title;
@@ -62,8 +57,6 @@ public class AddConstruct extends BaseCommand
     @Override
     public Integer call() throws Exception
     {
-        baseMixin.require(getSpec()); // required by the script interface
-
         core(getClient(), target, uri, title, Files.readString(queryFile), service, description);
         print(target);
 

@@ -21,7 +21,6 @@ slug="test"
 item=$(ldh create item \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$ADMIN_BASE_URL" \
   --title "Test" \
   --slug "$slug" \
   --container "${ADMIN_BASE_URL}ontologies/")
@@ -32,9 +31,9 @@ item=$(ldh create item \
 ldh admin import ontology \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$ADMIN_BASE_URL" \
   --source "$import_uri" \
-  --graph "$item"
+  --graph "$item" \
+  "$ADMIN_BASE_URL"
 
 # check that the item graph DOES hold the vocabulary, using a query scoped to it via the SPARQL
 # Protocol dataset specification. The vocabulary staying is what makes the import an import: the graph
@@ -105,8 +104,8 @@ ldh admin add ontology-import \
 ldh admin clear ontology \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$ADMIN_BASE_URL" \
-  --ontology "$namespace"
+  --ontology "$namespace" \
+  "$ADMIN_BASE_URL"
 
 # check that the vocabulary is present in the ontology closure
 

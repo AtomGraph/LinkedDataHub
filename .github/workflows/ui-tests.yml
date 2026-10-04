@@ -33,6 +33,14 @@ jobs:
       - name: Add bin/ and its subdirectories to PATH
         run: |
           find "$GITHUB_WORKSPACE/bin" -type d >> "$GITHUB_PATH"
+      # cli/ resolves linkeddatahub-rdf by ${project.version}, and the library lives in this same
+      # checkout - so it is built here rather than fetched. Resolving a sibling through a remote
+      # repository would make every version bump wait on a publish: the post-release develop asks
+      # for a SNAPSHOT nothing has deployed yet, and the release tag asks for a version Central has
+      # not seen. `make cli` does the same thing locally.
+      - name: Build the linkeddatahub-rdf library
+        run: mvn -B install
+        working-directory: rdf
       - name: Build the ldh CLI
         run: mvn -B package # the suite builds its fixtures with ldh, the way tests/http does
         working-directory: cli

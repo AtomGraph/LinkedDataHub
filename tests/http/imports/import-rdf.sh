@@ -24,7 +24,6 @@ ldh admin add agent \
 item=$(ldh create item \
   -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
-  -b "$END_USER_BASE_URL" \
   --title "RDF import" \
   --container "$END_USER_BASE_URL")
 
@@ -33,7 +32,6 @@ item=$(ldh create item \
 container=$(ldh create container \
   -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
-  -b "$END_USER_BASE_URL" \
   --title "Concepts" \
   --slug "concepts" \
   --parent "$END_USER_BASE_URL")
@@ -43,7 +41,6 @@ container=$(ldh create container \
 ldh import rdf \
   -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
-  -b "$END_USER_BASE_URL" \
   --title "Test" \
   --query-file "$pwd/rdf-test.rq" \
   --rdf-file "$pwd/test.ttl" \

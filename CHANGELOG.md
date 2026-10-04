@@ -1,3 +1,29 @@
+## [Unreleased]
+### Migration
+- **BREAKING**: `ldh` drops `-b`/`--base`; dataspace-level commands take the base URI as their positional, defaulting to `LDH_BASE`
+- `Link` relation types are always quoted, e.g. `rel="timemap"`
+- Runtime settings are kept as a change set in `settings/dataspaces.ru`; an existing `settings/dataspaces.trig` is converted once
+
+### Changed
+- `ldh add file`, `import csv`, `import rdf` and `push` derive the upload URI from the target document
+- `Link` headers are built with `jakarta.ws.rs.core.Link`, keeping empty fragments such as `ns#`
+- Release images are built natively per architecture, with a layer cache
+- `MAX_CONN_PER_ROUTE`, `MAX_TOTAL_CONN` and `MAX_REQUEST_RETRIES` are passed as system properties
+- The browser parses and serialises SPARQL with SPARQL.js alone; `SPARQLBuilder.js` is gone
+
+### Fixed
+- ORCID endpoints derive from `ORCID_ISSUER` (default `https://orcid.org`) instead of the hardwired sandbox
+- Concurrent writes quoting the same `ETag` no longer both pass `If-Match`
+- Runtime settings no longer mask later edits to `config/dataspaces.trig` and `config/system.trig`
+- Restoring a version from a historical view no longer fails `412`
+- An unwritten versioned document has an empty TimeMap instead of `404`
+- The History dialog names every author, not only the signed-in agent
+- The request access dialog names the signed-in agent instead of showing their WebID
+- A malformed `Accept-Language` is ignored instead of causing a `500`
+- Views support an aliased first variable, and say when it binds no resources
+- The file drop overlay clears when a drag leaves the window early
+- CI builds `linkeddatahub-rdf` from the checkout, so version bumps no longer break the suites
+
 ## [6.0.1] - 2026-09-30
 ### Added
 - `linkeddatahub-rdf`, a separately published library of the vocabularies and the document shapes the HTTP API accepts, so the CLI and other clients build against one description of the request bodies

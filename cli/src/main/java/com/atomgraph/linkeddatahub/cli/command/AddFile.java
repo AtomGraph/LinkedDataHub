@@ -19,7 +19,6 @@ package com.atomgraph.linkeddatahub.cli.command;
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
 import com.atomgraph.linkeddatahub.cli.http.HttpException;
 import com.atomgraph.linkeddatahub.cli.http.LDHClient;
-import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
 import com.atomgraph.linkeddatahub.rdf.Digests;
 import com.atomgraph.linkeddatahub.rdf.vocabulary.NFO;
 import jakarta.ws.rs.client.Entity;
@@ -35,7 +34,6 @@ import org.apache.jena.vocabulary.RDF;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.file.FileDataBodyPart;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
@@ -47,9 +45,6 @@ import picocli.CommandLine.Parameters;
 @Command(name = "file", description = "Uploads a file.")
 public class AddFile extends BaseCommand
 {
-
-    @Mixin
-    private BaseMixin baseMixin;
 
     @Option(names = "--title", required = true, paramLabel = "TITLE", description = "Title of the file")
     private String title;
@@ -69,9 +64,7 @@ public class AddFile extends BaseCommand
     @Override
     public Integer call() throws Exception
     {
-        URI base = baseMixin.require(getSpec());
-
-        URI fileURI = core(getClient(), base, target, file, contentType, title, description);
+        URI fileURI = core(getClient(), target, file, contentType, title, description);
         print(fileURI);
 
         return 0;
@@ -83,7 +76,6 @@ public class AddFile extends BaseCommand
      * its <code>ol</code>/<code>ou</code> value.
      *
      * @param client client instance
-     * @param base application base URI
      * @param target target document URI
      * @param file file path
      * @param contentType file media type (optional, auto-detected if null)
@@ -92,7 +84,7 @@ public class AddFile extends BaseCommand
      * @return upload URI derived from the SHA1 hash of the file content
      * @throws IOException file read error
      */
-    public static URI core(LDHClient client, URI base, URI target, Path file, String contentType, String title, String description) throws IOException
+    public static URI core(LDHClient client, URI target, Path file, String contentType, String title, String description) throws IOException
     {
         String fileContentType = contentType != null ? contentType : detectContentType(file);
 
@@ -101,20 +93,21 @@ public class AddFile extends BaseCommand
             HttpException.check(target, client.post(target, Entity.entity(multiPart, multiPart.getMediaType()), ACCEPT_TURTLE)).close();
         }
 
-        return uploadURI(base, file);
+        return uploadURI(target, file);
     }
 
     /**
-     * Returns the content-addressed URI an upload gets, <code>{base}uploads/{sha1}</code>. It is
-     * derived from the file content alone, so it can be computed without sending the file.
+     * Returns the content-addressed URI an upload gets, <code>uploads/{sha1}</code> under the root of
+     * the target document's dataspace. It is derived from the file content alone, so it can be computed
+     * without sending the file.
      *
-     * @param base application base URI
+     * @param target target document URI
      * @param file file path
      * @return upload URI
      */
-    public static URI uploadURI(URI base, Path file)
+    public static URI uploadURI(URI target, Path file)
     {
-        return URI.create(base.toString() + "uploads/" + Digests.sha1Hex(file));
+        return target.resolve("/uploads/" + Digests.sha1Hex(file));
     }
 
     /**

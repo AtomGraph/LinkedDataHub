@@ -111,8 +111,20 @@ Repeated options can be set once via environment variables:
 |---|---|
 | `LDH_CERT_FILE` | `-c`, `--cert` |
 | `LDH_CERT_PASSWORD` | `-p`, `--cert-password` |
-| `LDH_BASE` | `-b`, `--base` |
+| `LDH_BASE` | `BASE_URI`, the positional of the dataspace-addressing commands |
 | `LDH_PROXY` | `--proxy` |
+
+The commands that address no document of their own take the dataspace's base URI as their positional
+argument instead, where every other command puts its target: the `packages` family,
+`admin clear ontology`, `admin create ontology`, `admin create group`, `admin create authorization`,
+`admin import ontology` and `admin make-public`. `LDH_BASE` is its default, so with it exported the
+argument is left out:
+
+```bash
+ldh packages add --package https://packages.linkeddatahub.com/editor/taxonomy/#this https://localhost:4443/
+ldh admin clear ontology https://admin.localhost:4443/
+ldh admin create group --name Editors --member "$AGENT_URI" https://admin.localhost:4443/
+```
 
 ```bash
 export LDH_CERT_FILE=ssl/owner/keystore.p12 LDH_CERT_PASSWORD=... LDH_BASE=https://localhost:4443/
@@ -138,7 +150,7 @@ without them (the taxonomy editor package rejects a concept with no `skos:inSche
 
 - Commands that create or append to a document print its URL as the only line on stdout, so shell
   pipelines keep working: `item=$(ldh create item ...)`. `add file` prints the content-addressed
-  upload URI (`{base}uploads/{sha1}`). All diagnostics go to stderr.
+  upload URI (`uploads/{sha1}` under the root of the document's origin). All diagnostics go to stderr.
 - `push` writes many documents in one run and prints one line per written document URL or upload
   URI, in write order, so the listing greps and cuts like `packages list` does. Progress
   (`PUT <url> <- <path>`, `POST <url> <- <path>`) and `Skipping <path>` lines go to stderr. On the
@@ -210,7 +222,7 @@ ldh packages list | grep ^available | cut -f2
 
 The registry defaults to `https://packages.linkeddatahub.com/` and `--registry` overrides it. It is
 read through the application's Linked Data proxy rather than fetched directly, the same way the
-application settings modal reads it, so `packages list` needs `--base` as much as the other two do.
+application settings modal reads it, so `packages list` needs the application URI as much as the other two do.
 
 The commands go through `PATCH /settings`, which is the live path: the change is in effect
 immediately but lives in the running application's context dataset. Declaring the same
@@ -235,7 +247,7 @@ With `D` the URL of the directory being walked (`TARGET_URI` for the pushed dire
 - Any other RDF file `name.ext` is `PUT` to `D/name/`, with its relative URIs resolved against
   that URL (the same `turtle --base` resolution `put` applies).
 - Every other file is uploaded into `D`, as `add file` would: title = file name, media type
-  detected, upload URI `{base}uploads/{sha1}`.
+  detected, upload URI `uploads/{sha1}` under the root of the document's origin.
 - A subdirectory `name` maps to `D/name/`: its document is the RDF file `name.ext` beside it, its
   files are uploaded into that document, and its subdirectories recurse.
 
@@ -309,6 +321,10 @@ shell scripts.
 
 ### Differences from the scripts
 
+- `-b/--base` is gone. The commands that take a document URI never needed it (the scripts required it
+  but never read it, resolving relative URIs against the target instead; the upload URI `add file`,
+  `import csv`, `import rdf` and `push` print is `uploads/{sha1}` under the root of the target's
+  origin), and the ones that act on the dataspace itself take its base URI as the positional argument.
 - `-f/--cert-pem-file` is now `-c/--cert` and takes either the PKCS12 keystore or the PEM the
   scripts fed `curl -E`, whichever is at hand.
 - `admin create group` writes the `--name` value into `foaf:name`/`dct:title` (the script wrote an

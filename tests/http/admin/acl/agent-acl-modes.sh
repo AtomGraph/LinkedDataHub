@@ -20,7 +20,6 @@ ldh admin add agent \
 # create a new document to test ACL modes against
 
 doc_url=$(ldh create item \
-  -b "$END_USER_BASE_URL" \
   -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
   --container "$END_USER_BASE_URL" \
@@ -43,11 +42,11 @@ cat "$response_headers"
 
 # check that each expected ACL mode is present in Link header (order independent)
 # signed up agents should have Read, Write, Append but NOT Control
-grep -q "Link:.*<http://www.w3.org/ns/auth/acl#Read>; rel=http://www.w3.org/ns/auth/acl#mode" "$response_headers"
-grep -q "Link:.*<http://www.w3.org/ns/auth/acl#Write>; rel=http://www.w3.org/ns/auth/acl#mode" "$response_headers"
-grep -q "Link:.*<http://www.w3.org/ns/auth/acl#Append>; rel=http://www.w3.org/ns/auth/acl#mode" "$response_headers"
+grep -q "Link:.*<http://www.w3.org/ns/auth/acl#Read>; rel=\"http://www.w3.org/ns/auth/acl#mode\"" "$response_headers"
+grep -q "Link:.*<http://www.w3.org/ns/auth/acl#Write>; rel=\"http://www.w3.org/ns/auth/acl#mode\"" "$response_headers"
+grep -q "Link:.*<http://www.w3.org/ns/auth/acl#Append>; rel=\"http://www.w3.org/ns/auth/acl#mode\"" "$response_headers"
 
 # verify Control mode is NOT present for signed up agent
-! grep -q "Link:.*<http://www.w3.org/ns/auth/acl#Control>; rel=http://www.w3.org/ns/auth/acl#mode" "$response_headers"
+! grep -q "Link:.*<http://www.w3.org/ns/auth/acl#Control>; rel=\"http://www.w3.org/ns/auth/acl#mode\"" "$response_headers"
 
 rm "$response_headers"

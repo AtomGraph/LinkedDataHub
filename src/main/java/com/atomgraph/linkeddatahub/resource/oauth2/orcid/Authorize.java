@@ -48,7 +48,7 @@ public class Authorize extends AuthorizeBase
     @Override
     protected URI getAuthorizeEndpoint()
     {
-        return URI.create("https://sandbox.orcid.org/oauth/authorize"); // "https://orcid.org/oauth/authorize"
+        return Login.getAuthorizeEndpoint(Login.getIssuer(getSystem()));
     }
 
     @Override
