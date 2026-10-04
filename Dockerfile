@@ -37,7 +37,7 @@ RUN mvn -Pstandalone clean install
 # are the deployed bytes by construction: no mount, no shared volume, and no way for the
 # compiler to drift from the application it compiles for.
 
-FROM node:22-alpine AS sef-compiler
+FROM node:26-alpine AS sef-compiler
 
 # must match the SaxonJS runtime shipped in the webapp (js/saxon-js/SaxonJS3.js). A skew
 # between compiler and runtime surfaces as "Cannot read properties of undefined (reading
