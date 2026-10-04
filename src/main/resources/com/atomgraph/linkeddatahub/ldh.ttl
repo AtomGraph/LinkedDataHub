@@ -111,6 +111,41 @@
     rdfs:comment "Whether the view block is shown when its query returns no results. Defaults to true" ;
     rdfs:isDefinedBy : .
 
+:question a owl:DatatypeProperty ;
+    rdfs:domain :ChatTurn ;
+    rdfs:range xsd:string ;
+    rdfs:label "Question" ;
+    rdfs:comment "What the reader asked the assistant in this turn" ;
+    rdfs:isDefinedBy : .
+
+:answer a owl:DatatypeProperty ;
+    rdfs:domain :ChatTurn ;
+    rdfs:range xsd:string ;
+    rdfs:label "Answer" ;
+    rdfs:comment "The assistant's reading, in words, of what the turn's plan did" ;
+    rdfs:isDefinedBy : .
+
+:plan a owl:DatatypeProperty ;
+    rdfs:domain :ChatTurn ;
+    rdfs:range rdf:XMLLiteral ;
+    rdfs:label "Plan" ;
+    rdfs:comment "The Web-Algebra plan the question became: the wa:plan envelope with its summary and operation" ;
+    rdfs:isDefinedBy : .
+
+:execution a owl:DatatypeProperty ;
+    rdfs:domain :ChatTurn ;
+    rdfs:range rdf:XMLLiteral ;
+    rdfs:label "Execution" ;
+    rdfs:comment "What running the plan reported: the wa:execution with its steps, the documents written and a capped snapshot of the result" ;
+    rdfs:isDefinedBy : .
+
+:outcome a owl:DatatypeProperty ;
+    rdfs:domain :ChatTurn ;
+    rdfs:range xsd:string ;
+    rdfs:label "Outcome" ;
+    rdfs:comment "How the turn went, in one line: rows or resources returned, documents written, no results, or the failure's message" ;
+    rdfs:isDefinedBy : .
+
 # CLASSES
 
 # constructor
@@ -341,6 +376,18 @@
       }
       WHERE {}""" ;
     rdfs:label "View constructor" ;
+    rdfs:isDefinedBy : .
+
+# chat
+
+:Chat a rdfs:Class, owl:Class ;
+    rdfs:label "Assistant" ;
+    rdfs:comment "A conversation with the assistant, placed in a document by an object block. Its turns are its rdf:_N members, in the order they were asked" ;
+    rdfs:isDefinedBy : .
+
+:ChatTurn a rdfs:Class, owl:Class ;
+    rdfs:label "Assistant turn" ;
+    rdfs:comment "One question to the assistant and what came of it" ;
     rdfs:isDefinedBy : .
 
 # exception

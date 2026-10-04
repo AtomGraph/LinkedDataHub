@@ -4605,34 +4605,29 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 
    The create bar is the strip at the foot of the content body that holds the
    document's Create button and, for a reader who can be acted for, the
-   Assistant button. It wraps, so the assistant's composer - a form docked onto
-   the bar's upper edge, opened by that button - takes a full first line above
-   the buttons. The host decides where the bar parks (LinkedDataHub pins it
-   sticky at the column's foot); this is what it looks like.
+   Assistant button. The host decides where the bar parks (LinkedDataHub pins
+   it sticky at the column's foot); this is what it looks like.
 
-   The assistant is a block producer and lives where its blocks go: its
-   conversation is an EPHEMERAL BLOCK at the end of the content body - never
-   written, headed by THE block header at compact density with Clear in the
-   actions cluster - so what a plan writes lands above it in order. A turn is
-   the reader's question; a plan card is a nested block holding the plan's
-   summary, its operations as step rows (planned / running / done / failed,
-   each a disclosure folding out its XML and, when it failed, the message),
-   and what came of it: the documents written, the rows returned. The block
-   hides while its log is empty.
+   A conversation is a BLOCK - a chat, placed in the document like a view or a
+   chart - headed by THE block header, so a page holds as many as it has chat
+   blocks, and the Assistant button adds another before the bar. Its body is the
+   log, then its own composer as the block's footer: two checkboxes over the
+   question and the send button. A turn is the reader's question; a plan card is
+   a nested block holding the plan's summary, its operations as step rows
+   (planned / running / done / failed, each a disclosure folding out its XML
+   and, when it failed, the message), and what came of it: the documents
+   written, the rows returned.
    ========================================================================= */
 .ldh-create-dock { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--sp-2); padding: var(--sp-2) var(--sp-6); background: var(--bg-card); border-top: 1px solid var(--border-default); }
-/* a bar made only to carry the composer shows only while the composer is open */
-.ldh-create-dock.ldh-chat-only:not(:has(> form.ldh-chat-composer.is-open)) { display: none; }
-.ldh-create-dock > form.ldh-chat-composer { flex: 1 1 100%; order: -1; display: flex; flex-direction: column; gap: var(--sp-2); margin: 0 0 var(--sp-2); padding-bottom: var(--sp-2); border-bottom: 1px solid var(--border-default); }
-.ldh-create-dock.ldh-chat-only > form.ldh-chat-composer { margin-bottom: 0; padding-bottom: 0; border-bottom: 0; }
-form.ldh-chat-composer:not(.is-open) { display: none; }
+.ldh-chat > form.ldh-chat-composer { display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-3); border-top: 1px solid var(--border-default); }
 .ldh-chat-composer-row { display: flex; align-items: flex-end; gap: var(--sp-2); }
 .ldh-chat-composer .ac-field { flex: 1; }
 .ldh-chat-options { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-4); }
 .ldh-chat-composer .ac-choice { font-size: var(--fs-sm); color: var(--fg-muted); }
 .ldh-chat-composer textarea { resize: none; }
 
-.ldh-chat-block:has(> .ldh-chat-log:empty) { display: none; }
+/* an empty log takes no room: a new chat block is its header and its composer */
+.ldh-chat-log:empty { display: none; }
 .ldh-chat-log { display: flex; flex-direction: column; gap: var(--sp-3); padding: var(--sp-3); }
 /* turns: the reader's message hugs the sender's edge, the assistant's cards sit flush left */
 .ldh-chat-turn { align-self: flex-end; max-width: 85%; margin: 0; padding: var(--sp-2) var(--sp-3); background: var(--bg-accent-quiet); color: var(--fg-1); border-radius: var(--r-md) var(--r-md) var(--r-xs) var(--r-md); font-size: var(--fs-sm); line-height: var(--lh-base); }

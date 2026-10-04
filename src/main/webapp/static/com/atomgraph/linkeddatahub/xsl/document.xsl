@@ -734,8 +734,8 @@ exclude-result-prefixes="#all"
              The dock is a full-bleed sticky bar that parks on the footer, per tab pane -->
         <xsl:if test="acl:mode() = '&acl;Append'">
             <div class="create-resource ldh-create-dock">
-                <!-- the assistant, for a reader who can be acted for: the button is the bar's, the composer it opens and the
-                     conversation it feeds are the client's (client/chat.xsl, ldh:ChatMount) -->
+                <!-- the assistant, for a reader who can be acted for: the button starts a chat block before the bar, which
+                     the client draws and writes on its first question (client/chat.xsl) -->
                 <xsl:if test="$foaf:Agent//@rdf:about">
                     <button type="button" class="ac-btn in-neutral ap-outline sz-md ldh-chat-open" title="{ac:label(key('resources', 'open-assistant', ldh:translations()))}">
                         <span class="msi sm" aria-hidden="true">forum</span>
@@ -780,14 +780,15 @@ exclude-result-prefixes="#all"
         
         <!-- render the rest of the resources -->
         <!-- hide the content resources - cannot suppress them in the resource-level block template because its being reused ldh:ContentList/ldh:BlockRow modes -->
-        <xsl:apply-templates select="*[not(rdf:type/@rdf:resource = ('&ldh;XHTML', '&ldh;Object'))] except ($doc | $topic)" mode="#current">                                     
+        <!-- a chat's turns are drawn by the chat block (client/chat.xsl), not as resources of their own -->
+        <xsl:apply-templates select="*[not(rdf:type/@rdf:resource = ('&ldh;XHTML', '&ldh;Object', '&ldh;ChatTurn'))] except ($doc | $topic)" mode="#current">                                     
             <xsl:sort select="ac:label(.)"/>                                                                                                                                     
         </xsl:apply-templates>
         
         <xsl:if test="$create-resource and acl:mode() = '&acl;Append' and not(key('resources-by-type', '&http;Response'))">
             <div class="create-resource ldh-create-dock">
-                <!-- the assistant, for a reader who can be acted for: the button is the bar's, the composer it opens and the
-                     conversation it feeds are the client's (client/chat.xsl, ldh:ChatMount) -->
+                <!-- the assistant, for a reader who can be acted for: the button starts a chat block before the bar, which
+                     the client draws and writes on its first question (client/chat.xsl) -->
                 <xsl:if test="$foaf:Agent//@rdf:about">
                     <button type="button" class="ac-btn in-neutral ap-outline sz-md ldh-chat-open" title="{ac:label(key('resources', 'open-assistant', ldh:translations()))}">
                         <span class="msi sm" aria-hidden="true">forum</span>

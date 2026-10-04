@@ -974,15 +974,4 @@ div.ldh-failure > .ac-alert { margin: 0; }
 .rdfa-editor-content caption { color: var(--fg-muted); }
 .rdfa-editor-content .rdfa-editor-island { border-color: var(--border-default); background: var(--bg-recess); }
 
-/* =========================================================================
-   The assistant (client/chat.xsl, ldh:ChatMount). Its skin is the app kit's
-   (app.css, "The assistant"); what stays here is the page's geometry: the
-   composer docked onto the create bar is as wide as the content column and
-   starts where it starts, which only this page's --ldh-content-w and
-   --ldh-pane-w can say. The bar's left padding is sp-6 and the column's inset
-   is (pane - column) / 2 + sp-6, so the composer's left margin makes up the
-   difference, and its width is the column's inside its padding; margin plus
-   width fill the bar's line exactly, which is what wraps the buttons below.
-   ========================================================================= */
-.ldh-create-dock > form.ldh-chat-composer { flex: 0 0 auto; width: calc(min(var(--ldh-content-w), var(--ldh-pane-w)) - 2 * var(--sp-6)); margin-left: calc((var(--ldh-pane-w) - min(var(--ldh-content-w), var(--ldh-pane-w))) / 2); }
 

@@ -1,238 +1,346 @@
 // The assistant: a request in words becomes a plan, and the plan runs only when the reader says so.
 //
-// The assistant is a block producer and lives where its blocks go: its conversation is an ephemeral
-// block at the end of the content body, and its composer docks onto the create bar, opened by the
-// bar's own button. The server renders only that button; the block and the composer are the
-// client's, kept across renders, so a card is still there - fold-outs and all - after the write it
-// reported made the page catch up. The rest is a conversation with the plan service beside the
-// instance: a question gets a card that shows the plan - its operations as rows, the XML it will
-// execute - behind an Execute button, and pressing that reports the steps as they happen and the
-// documents the plan wrote.
+// A conversation is a block. An ldh:Chat resource is placed in a document by an object block, like a
+// view or a chart, and its turns are ldh:ChatTurn resources, its rdf:_N members. So a page holds as
+// many conversations as it has chat blocks, a conversation is there when the reader comes back, and
+// each chat block ends in its own composer. The create bar's Assistant button starts a new chat
+// block before the bar; nothing is written until its first question, which writes the chat and the
+// block that places it. Every turn is written when it ends, and the block draws its turns from the
+// store whenever it is rendered.
 //
-// The second, third and fourth specs need the web-algebra service and a model key behind it: the
-// plan is written by a model, so what they assert is the shape of the exchange, not the model's
-// exact wording. The request is deliberately one the ldh-* family answers with a single operation.
+// Most of what follows needs no model: a chat is seeded with the CLI, and the plan service is
+// answered by the spec where only the exchange matters - a reply that declines in words is a whole
+// turn, and the request carries the history the conversation sends. The last specs need the
+// web-algebra service and a model key behind it; what they assert is the shape of the exchange, not
+// the model's wording, and their requests are ones the ldh-* family answers with one operation.
 import { randomUUID } from 'node:crypto';
 import { test, expect } from '../../lib/console.mjs';
 import { goto } from '../../lib/settle.mjs';
-import { itemUri, ldh } from '../../lib/fixtures.mjs';
-import { endUserBase } from '../../lib/stack.mjs';
+import { ldh } from '../../lib/fixtures.mjs';
+import { adminBase, endUserBase } from '../../lib/stack.mjs';
+import { CONTENT_MODE, inMode } from '../../lib/mode.mjs';
 
-// A container of this spec's own under the root, since the plan creates a document: a fixture
-// item cannot parent a container, and the fixture container's child count is asserted by the
-// document tree. Nothing counts the root's children, and the spec removes what it made.
-const scratch = { container: null, written: [] };
+const WA = 'https://w3id.org/atomgraph/web-algebra';
+const SEEDED_QUESTION = 'Which titles are in the seeded chat?';
+const SEEDED_ANSWER = 'Two titles: Seeded alpha and Seeded beta.';
+const DECLINED = 'Declined by the spec.';
+
+// A container of this spec's own under the root: the plans create documents, and nothing counts the
+// root's children. The spec removes what it made.
+const scratch = { container: null, written: [], authorization: null };
 
 test.beforeEach(async () => {
     const slug = `assistant-${randomUUID().slice(0, 8)}`;
     scratch.container = (await ldh(['create', 'container', '--parent', endUserBase, '--title', 'Assistant spec', '--slug', slug])).stdout;
     scratch.written = [];
+    scratch.authorization = null;
 });
 
 test.afterEach(async () => {
     for (const uri of scratch.written) await ldh(['delete', uri], { allowFailure: true });
     if (scratch.container) await ldh(['delete', scratch.container], { allowFailure: true });
+    if (scratch.authorization) await ldh(['delete', scratch.authorization], { allowFailure: true });
 });
 
-const dock = page => page.locator('.content-body > .ldh-create-dock');
-const button = page => dock(page).locator('.ldh-chat-open');
-const form = page => page.locator('form.ldh-chat-composer');
-const composer = page => form(page).locator('textarea');
-const block = page => page.locator('.content-body > .ldh-chat-block');
-const card = page => block(page).locator('.ldh-chat-plan').last();
-
-async function open(page) {
-    await button(page).click();
-    await expect(form(page)).toBeVisible();
+// A stored chat with one read-only turn that returned two rows: placed by an object block, which the
+// CLI appends as the document's next rdf:_N, and described by one POST of the chat and its turn
+async function seedChat(doc, name = 'seeded') {
+    const chat = `${doc}#${name}-chat`;
+    const turn = `${doc}#${name}-turn-1`;
+    await ldh(['add', 'object-block', '--title', `${name} block`, '--uri', `#${name}-block`, '--value', chat, doc]);
+    const plan = `<wa:plan xmlns:wa="${WA}"><wa:summary>Lists the titles</wa:summary><SELECT xmlns="${WA}"><endpoint>${endUserBase}sparql</endpoint><query>SELECT ?title WHERE { GRAPH ?g { ?s &lt;http://purl.org/dc/terms/title&gt; ?title } } LIMIT 2</query></SELECT></wa:plan>`;
+    const execution = `<wa:execution xmlns:wa="${WA}"><wa:status>complete</wa:status><wa:steps><wa:step operation="SELECT" depth="0" outcome="complete" elapsed="120"/></wa:steps><wa:result><sparql xmlns="http://www.w3.org/2005/sparql-results#"><head><variable name="title"/></head><results><result><binding name="title"><literal>Seeded alpha</literal></binding></result><result><binding name="title"><literal>Seeded beta</literal></binding></result></results></sparql></wa:result></wa:execution>`;
+    const turtle = `@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ldh: <https://w3id.org/atomgraph/linkeddatahub#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+<${chat}> a ldh:Chat ; dct:title "Seeded chat" ; rdf:_1 <${turn}> .
+<${turn}> a ldh:ChatTurn ;
+    ldh:question "${SEEDED_QUESTION}" ;
+    ldh:answer "${SEEDED_ANSWER}" ;
+    ldh:plan """${plan}"""^^rdf:XMLLiteral ;
+    ldh:execution """${execution}"""^^rdf:XMLLiteral ;
+    ldh:outcome "2 rows" .
+`;
+    await ldh(['post', '--content-type', 'text/turtle', doc], { stdin: turtle });
+    return chat;
 }
 
-test('opens from the create bar, docked above it, and closes on Escape', { tag: '@owner' }, async ({ page }) => {
-    await goto(page, itemUri(1));
+const content = page => page.locator('.ldh-pane.is-active .content-body');
+const dock = page => content(page).locator('> .ldh-create-dock');
+const button = page => dock(page).locator('.ldh-chat-open');
+const chatOf = (page, uri) => page.locator(`.ldh-chat[data-chat="${uri}"]`);
+const ephemeral = page => content(page).locator('> .ldh-chat-ephemeral');
+const composer = chat => chat.locator('> form.ldh-chat-composer textarea');
+const cards = chat => chat.locator('.ldh-chat-log > .ldh-chat-plan');
 
-    // the composer is mounted on the bar but closed, and the block is there but empty, so neither shows
-    await expect(form(page)).toHaveCount(1);
-    await expect(form(page)).not.toBeVisible();
-    await expect(block(page)).toHaveCount(1);
-    await expect(block(page)).not.toBeVisible();
-
-    await open(page);
-    await expect(composer(page)).toBeFocused();
-
-    // docked onto the bar: inside it, on a line of its own above the bar's buttons
-    const box = async locator => await locator.boundingBox();
-    const composerBox = await box(form(page));
-    const buttonBox = await box(button(page));
-    expect(composerBox.y + composerBox.height).toBeLessThanOrEqual(buttonBox.y + 1);
-    expect(await dock(page).locator('form.ldh-chat-composer').count()).toBe(1);
-
-    // and as wide as the content column, starting where it starts: the composer's box is the column's box inside its padding
-    const column = await page.evaluate(() => {
-        const body = document.querySelector('.ldh-pane.is-active > .document-body > .content-body');
-        const rect = body.getBoundingClientRect(); const style = getComputedStyle(body);
-        return { x: rect.x + parseFloat(style.paddingLeft), width: rect.width - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight) };
+// the plan service answered by the spec: it declines in words, which is a whole turn, and the request
+// is kept so the history it carried can be read
+async function declinePlans(page) {
+    const requests = [];
+    await page.route(/\/webalgebra\/plans$/, async route => {
+        requests.push(route.request().postDataJSON());
+        await route.fulfill({ status: 200, contentType: 'application/xml', body: `<wa:plan xmlns:wa="${WA}"><wa:message>${DECLINED}</wa:message></wa:plan>` });
     });
-    expect(Math.abs(composerBox.x - column.x)).toBeLessThanOrEqual(1);
-    expect(Math.abs(composerBox.width - column.width)).toBeLessThanOrEqual(1);
+    return requests;
+}
 
-    await page.keyboard.press('Escape');
-    await expect(form(page)).not.toBeVisible();
+const stored = async doc => (await ldh(['get', '--accept', 'text/turtle', doc])).stdout;
 
-    // the button toggles it, and Escape from inside closes it too
-    await open(page);
-    await composer(page).press('Escape');
-    await expect(form(page)).not.toBeVisible();
-    await open(page);
+test('the Assistant button starts a chat block with its own composer, and nothing is written until a question', { tag: '@owner' }, async ({ page }) => {
+    await goto(page, inMode(scratch.container, CONTENT_MODE));
+
+    // the bar holds the button and nothing else of the assistant's
+    await expect(dock(page).locator('form')).toHaveCount(0);
     await button(page).click();
-    await expect(form(page)).not.toBeVisible();
+
+    // a chat block before the bar, headed as a block is, ending in its own composer, which takes the focus
+    await expect(ephemeral(page)).toHaveCount(1);
+    await expect(content(page).locator('> .ldh-chat-ephemeral + .ldh-create-dock')).toHaveCount(1);
+    const first = ephemeral(page).nth(0).locator('.ldh-chat');
+    await expect(first.locator('> form.ldh-chat-composer')).toBeVisible();
+    await expect(composer(first)).toBeFocused();
+    await expect(ephemeral(page).locator('.ldh-block-head .ttl')).toHaveText(/\S/);
+
+    // every press starts another
+    await button(page).click();
+    await expect(ephemeral(page)).toHaveCount(2);
+    const second = ephemeral(page).nth(1).locator('.ldh-chat');
+    await expect(composer(second)).toBeFocused();
+    expect(await first.getAttribute('data-chat')).not.toBe(await second.getAttribute('data-chat'));
+
+    // one nothing was asked in goes with Escape from its composer, or with its x
+    await composer(second).press('Escape');
+    await expect(ephemeral(page)).toHaveCount(1);
+    await ephemeral(page).locator('.ldh-chat-close').click();
+    await expect(ephemeral(page)).toHaveCount(0);
+
+    // and none of it reached the document
+    expect(await stored(scratch.container)).not.toContain('linkeddatahub#Chat');
 });
 
-test('a question becomes a plan that waits for Execute', { tag: '@owner' }, async ({ page }) => {
+test('a stored chat draws its turns, continues with its own history, and stores the new turn', { tag: '@owner' }, async ({ page }) => {
+    const chatUri = await seedChat(scratch.container);
+    const requests = await declinePlans(page);
+    await goto(page, inMode(scratch.container, CONTENT_MODE));
+
+    // the turn as it was stored: the question, the answer first on its card, the trace folded under its count and
+    // gone green, and the rows it returned in a well
+    const chat = chatOf(page, chatUri);
+    await expect(chat.locator('.ldh-chat-turn')).toHaveText([SEEDED_QUESTION], { timeout: 30_000 });
+    const card = cards(chat).first();
+    await expect(card.locator('> :first-child')).toHaveClass(/ldh-chat-answer/);
+    await expect(card.locator('.ldh-chat-answer')).toHaveText(SEEDED_ANSWER);
+    const trace = card.locator('details.ldh-chat-trace');
+    await expect(trace).not.toHaveAttribute('open', '');
+    await expect(trace.locator('> summary')).toContainText(/1 steps/);
+    await expect(trace.locator('> summary > .st.is-done')).toBeVisible();
+    await expect(card.locator('.ldh-chat-result-block table')).toContainText('Seeded alpha');
+    await expect(card.locator('.ldh-chat-result-block table')).toContainText('Seeded beta');
+    // the trace's row folds out the stored plan's XML
+    await trace.locator('> summary').click();
+    const step = card.locator('.ldh-chat-step.is-done').first();
+    await step.locator('summary').click();
+    await expect(step.locator('pre')).toContainText(WA);
+
+    // the block ends in its own composer
+    await expect(composer(chat)).toBeEnabled();
+
+    // a follow-up is sent with the stored turn as its history: the question, the plan it became and its rows
+    await composer(chat).fill('And how many are there?');
+    await composer(chat).press('Enter');
+    await expect(cards(chat).last().locator('.ldh-chat-answer')).toHaveText(DECLINED, { timeout: 30_000 });
+    expect(requests).toHaveLength(1);
+    expect(requests[0].history.map(turn => turn.question)).toEqual([SEEDED_QUESTION]);
+    expect(requests[0].history[0].plan).toContain('SELECT');
+    expect(requests[0].history[0].result).toContain('Seeded alpha');
+
+    // and the new turn is written to the chat as its second member
+    await expect.poll(() => stored(scratch.container), { timeout: 30_000 }).toContain(DECLINED);
+    await expect(cards(chat).last()).toHaveAttribute('data-turn', /#turn-/);
+
+    // leave the page and come back: the conversation is there, both turns, and it continues
+    await goto(page, endUserBase);
+    await page.goBack();
+    const back = chatOf(page, chatUri);
+    await expect(back.locator('.ldh-chat-turn')).toHaveText([SEEDED_QUESTION, 'And how many are there?'], { timeout: 30_000 });
+    await expect(cards(back).last().locator('.ldh-chat-answer')).toHaveText(DECLINED);
+    await expect(composer(back)).toBeEnabled();
+});
+
+test('a step shows the value it resolved to, and the operation around it shows the call resolved', { tag: '@owner' }, async ({ page }) => {
+    // a SELECT whose query a SPARQLString wrote, and the step reports carrying what it wrote
+    const chat = `${scratch.container}#resolved-chat`;
+    const turn = `${scratch.container}#resolved-turn-1`;
+    const generated = 'SELECT ?title WHERE { GRAPH ?g { ?s <http://purl.org/dc/terms/title> ?title } }';
+    await ldh(['add', 'object-block', '--title', 'resolved block', '--uri', '#resolved-block', '--value', chat, scratch.container]);
+    const plan = `<wa:plan xmlns:wa="${WA}"><wa:summary>Lists the titles</wa:summary><SELECT xmlns="${WA}"><endpoint>${endUserBase}sparql</endpoint><query><SPARQLString><endpoint>${endUserBase}sparql</endpoint><question>Which titles are there?</question></SPARQLString></query></SELECT></wa:plan>`;
+    const escaped = generated.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const execution = `<wa:execution xmlns:wa="${WA}"><wa:status>complete</wa:status><wa:steps><wa:step operation="SELECT" depth="0" outcome="complete" elapsed="900"/><wa:step operation="SPARQLString" depth="1" outcome="complete" elapsed="800"><wa:value>${escaped}</wa:value></wa:step></wa:steps></wa:execution>`;
+    await ldh(['post', '--content-type', 'text/turtle', scratch.container], { stdin: `@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ldh: <https://w3id.org/atomgraph/linkeddatahub#> .
+<${chat}> a ldh:Chat ; rdf:_1 <${turn}> .
+<${turn}> a ldh:ChatTurn ; ldh:question "Which titles are there?" ; ldh:outcome "executed" ;
+    ldh:plan """${plan}"""^^rdf:XMLLiteral ;
+    ldh:execution """${execution}"""^^rdf:XMLLiteral .
+` });
+    await goto(page, inMode(scratch.container, CONTENT_MODE));
+
+    const card = cards(chatOf(page, chat)).first();
+    await card.locator('details.ldh-chat-trace > summary').click();
+    const [select, sparqlString] = [card.locator('.ldh-chat-step').nth(0), card.locator('.ldh-chat-step').nth(1)];
+    await expect(select.locator('.op')).toHaveText('SELECT');
+    await expect(sparqlString.locator('.op')).toHaveText('SPARQLString');
+
+    // the SELECT as it ran: the query it executed where the call was
+    await select.locator('> summary').click();
+    // (as XML, so the query's angle brackets are escaped), declaring no namespace the plan did not use
+    await expect(select.locator('> .ac-codefield pre')).toContainText(escaped);
+    await expect(select.locator('> .ac-codefield pre')).not.toContainText('SPARQLString');
+    await expect(select.locator('> .ac-codefield pre')).not.toContainText('xmlns:j.');
+
+    // the SPARQLString as written, and what it resolved to
+    await sparqlString.locator('> summary').click();
+    await expect(sparqlString.locator('> .ac-codefield pre').first()).toContainText('<question>Which titles are there?</question>');
+    await expect(sparqlString.locator('> .ldh-chat-plan-meta')).toHaveText(/\S/);
+    await expect(sparqlString.locator('> .ac-codefield pre').last()).toHaveText(generated);
+});
+
+test('two chat blocks on one page are independent, and the first question writes a new one', { tag: '@owner' }, async ({ page }) => {
+    const seeded = await seedChat(scratch.container);
+    const requests = await declinePlans(page);
+    await goto(page, inMode(scratch.container, CONTENT_MODE));
+    await expect(chatOf(page, seeded).locator('.ldh-chat-turn')).toHaveCount(1, { timeout: 30_000 });
+
+    await button(page).click();
+    // addressed by its chat: the draft's class goes once the first question writes it
+    const chatUri = await ephemeral(page).locator('.ldh-chat').getAttribute('data-chat');
+    const chat = chatOf(page, chatUri);
+    await composer(chat).fill('A question for the new chat');
+    await composer(chat).press('Enter');
+
+    // the turn lands in the block it was asked in, and only there
+    await expect(cards(chat).last().locator('.ldh-chat-answer')).toHaveText(DECLINED, { timeout: 30_000 });
+    await expect(chat.locator('.ldh-chat-turn')).toHaveText(['A question for the new chat']);
+    await expect(chatOf(page, seeded).locator('.ldh-chat-turn')).toHaveText([SEEDED_QUESTION]);
+    // with a history of its own, which is none
+    expect(requests).toHaveLength(1);
+    expect(requests[0].history).toEqual([]);
+
+    // asking made the block the document's: written, a member of the document, no longer closable as a draft
+    const block = content(page).locator('> .ldh-block-row').filter({ has: chatOf(page, chatUri) });
+    await expect(block).toHaveAttribute('about', /#block-/);
+    await expect(block).not.toHaveClass(/ldh-chat-ephemeral/);
+    await expect(block.locator('.ldh-chat-close')).toHaveCount(0);
+    await expect.poll(() => stored(scratch.container), { timeout: 30_000 }).toContain('A question for the new chat');
+
+    // drawn again from the store, the page has both conversations, each with its own turns and composer
+    await page.reload();
+    await expect(chatOf(page, chatUri).locator('.ldh-chat-turn')).toHaveText(['A question for the new chat'], { timeout: 30_000 });
+    await expect(chatOf(page, seeded).locator('.ldh-chat-turn')).toHaveText([SEEDED_QUESTION]);
+    await expect(page.locator('.ldh-chat > form.ldh-chat-composer')).toHaveCount(2);
+});
+
+test('a reader who may not append sees the transcript and nothing to type into', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'anonymous', 'the claim is about holding no certificate');
+    const chatUri = await seedChat(scratch.container);
+    const slug = `assistant-public-${randomUUID().slice(0, 8)}`;
+    await ldh(['admin', 'create', 'authorization', '-b', adminBase, '--label', 'Assistant spec public chat', '--slug', slug,
+        '--agent-class', 'http://xmlns.com/foaf/0.1/Agent', '--to', scratch.container, '--read']);
+    scratch.authorization = `${adminBase}acl/authorizations/${slug}/`;
+
+    await goto(page, inMode(scratch.container, CONTENT_MODE));
+    const chat = chatOf(page, chatUri);
+    await expect(chat.locator('.ldh-chat-turn')).toHaveText([SEEDED_QUESTION], { timeout: 30_000 });
+    await expect(chat.locator('.ldh-chat-answer')).toHaveText(SEEDED_ANSWER);
+    await expect(chat.locator('form.ldh-chat-composer')).toHaveCount(0);
+    await expect(page.locator('.ldh-chat-open')).toHaveCount(0);
+});
+
+test('a question becomes a plan that waits for Execute, and Cancel takes it away', { tag: '@owner' }, async ({ page }) => {
     test.setTimeout(120_000);
-    await goto(page, scratch.container);
-    await open(page);
+    await goto(page, inMode(scratch.container, CONTENT_MODE));
+    await button(page).click();
+    const chat = chatOf(page, await ephemeral(page).locator('.ldh-chat').getAttribute('data-chat'));
 
-    await composer(page).fill('Create a child container titled Assistant test under this document');
-    await composer(page).press('Enter');
+    await composer(chat).fill('Create a child container titled Assistant test under this document');
+    await composer(chat).press('Enter');
+    await expect(chat.locator('.ldh-chat-turn').last()).toHaveText('Create a child container titled Assistant test under this document');
 
-    // the question is echoed as the reader's turn in the block, which shows now that it has one, and the composer waits
-    await expect(block(page)).toBeVisible();
-    await expect(block(page).locator('.ldh-chat-turn').last()).toHaveText('Create a child container titled Assistant test under this document');
-    await expect(composer(page)).toBeDisabled();
-
-    // the block is the last thing in the body before the bar: what the plan writes will land above it
-    await expect(page.locator('.content-body > .ldh-chat-block + .ldh-create-dock')).toHaveCount(1);
-
-    // the plan: its operations as rows that have not run, the executable XML, and the two things that can happen to it.
     // Execute by default is on, and this plan writes - a write waits for Execute whatever the checkbox says
-    await expect(form(page).locator('.ldh-chat-run input')).toBeChecked();
-    await expect(card(page).locator('.ldh-chat-execute')).toBeVisible({ timeout: 90_000 });
-    await expect(card(page).locator('.ldh-chat-cancel')).toBeVisible();
-    // the rows live under the trace, which stands open while there is nothing else to read
-    await expect(card(page).locator('details.ldh-chat-trace')).toHaveAttribute('open', '');
-    const first = card(page).locator('.ldh-chat-steps .ldh-chat-step.is-planned').first();
-    await expect(first).toBeVisible();
-    // the row is the control: it folds out its operation's XML, the first row's being the whole plan
-    await expect(first.locator('pre')).toBeHidden();
+    const card = cards(chat).last();
+    await expect(chat.locator('.ldh-chat-run input')).toBeChecked();
+    await expect(card.locator('.ldh-chat-execute')).toBeVisible({ timeout: 90_000 });
+    await expect(card.locator('.ldh-chat-cancel')).toBeVisible();
+    await expect(card.locator('details.ldh-chat-trace')).toHaveAttribute('open', '');
+    const first = card.locator('.ldh-chat-steps .ldh-chat-step.is-planned').first();
     await first.locator('summary').click();
-    await expect(first.locator('pre')).toBeVisible();
-    await expect(first.locator('pre')).toContainText('https://w3id.org/atomgraph/web-algebra');
-    await expect(composer(page)).toBeEnabled();
+    await expect(first.locator('pre')).toContainText(WA);
+    await expect(composer(chat)).toBeEnabled();
 
-    // the card keeps its own plan, so Execute on it runs this plan and no other
-    const id = await card(page).getAttribute('id');
+    // the card keeps its own plan; nothing ran
+    const id = await card.getAttribute('id');
     expect(await page.evaluate(id => !!window.LinkedDataHub.chat[id], id)).toBe(true);
+    await expect(card.locator('.ldh-chat-step.is-done, .ldh-chat-step.is-failed, .ldh-chat-step.is-running')).toHaveCount(0);
 
-    // nothing ran: no row has an outcome
-    await expect(card(page).locator('.ldh-chat-step.is-done, .ldh-chat-step.is-failed, .ldh-chat-step.is-running')).toHaveCount(0);
-
-    // Cancel takes the card and its plan away and asks nothing of the service
-    await card(page).locator('.ldh-chat-cancel').click();
-    await expect(block(page).locator('.ldh-chat-plan')).toHaveCount(0);
+    // Cancel takes the card and its plan away
+    await card.locator('.ldh-chat-cancel').click();
+    await expect(cards(chat)).toHaveCount(0);
     expect(await page.evaluate(id => id in window.LinkedDataHub.chat, id)).toBe(false);
 });
 
-test('Clear empties the conversation and forgets its plans', { tag: '@owner' }, async ({ page }) => {
-    test.setTimeout(120_000);
-    await goto(page, scratch.container);
-    await open(page);
+test('Execute runs the plan, reports what it wrote, and the stored turn comes back with the block', { tag: '@owner' }, async ({ page }) => {
+    test.setTimeout(240_000);
+    await goto(page, inMode(scratch.container, CONTENT_MODE));
+    await button(page).click();
+    const chatUri = await ephemeral(page).locator('.ldh-chat').getAttribute('data-chat');
+    const chat = chatOf(page, chatUri);
 
-    await composer(page).fill('Create a child container titled Assistant clear under this document');
-    await composer(page).press('Enter');
-    await expect(card(page).locator('.ldh-chat-execute')).toBeVisible({ timeout: 90_000 });
-    const id = await card(page).getAttribute('id');
-    expect(await page.evaluate(id => id in window.LinkedDataHub.chat, id)).toBe(true);
+    await composer(chat).fill('Create a child container titled Assistant run under this document');
+    await composer(chat).press('Enter');
+    await expect(cards(chat).last().locator('.ldh-chat-execute')).toBeVisible({ timeout: 90_000 });
+    await cards(chat).last().locator('.ldh-chat-execute').click();
 
-    // the block head's Clear takes the turn and the card away, and the plan the card held; the block hides again
-    // with nothing in it, and the composer is ready
-    await block(page).locator('.ldh-block-head .ldh-chat-clear').click();
-    await expect(block(page).locator('.ldh-chat-plan')).toHaveCount(0);
-    await expect(block(page).locator('.ldh-chat-turn')).toHaveCount(0);
-    await expect(block(page)).not.toBeVisible();
-    expect(await page.evaluate(id => id in window.LinkedDataHub.chat, id)).toBe(false);
-    expect(await page.evaluate(id => id in window.LinkedDataHub.chatResults, id)).toBe(false);
-    await expect(composer(page)).toBeEnabled();
-});
-
-test('Execute runs the plan, reports its steps and the document it wrote, and the card survives the catch-up', { tag: '@owner' }, async ({ page }) => {
-    test.setTimeout(180_000);
-    await goto(page, scratch.container);
-    await open(page);
-
-    await composer(page).fill('Create a child container titled Assistant run under this document');
-    await composer(page).press('Enter');
-    await expect(card(page).locator('.ldh-chat-execute')).toBeVisible({ timeout: 90_000 });
-    const id = await card(page).getAttribute('id');
-    await card(page).locator('.ldh-chat-execute').click();
-
-    // the steps appear as the executor reports them, under a progress bar, with the composer waiting
-    await expect(card(page).locator('.ldh-chat-plan-actions')).toHaveCount(0);
-    await expect(card(page).locator('.ac-pbar')).toBeVisible();
-    await expect(composer(page)).toBeDisabled();
-
-    // it ends one way or the other, and the rows say which: the same rows the plan showed, now with an outcome
-    const rows = card(page).locator('.ldh-chat-step');
+    // the steps end one way or the other; this one wrote one document under this container
+    const rows = cards(chat).last().locator('.ldh-chat-step');
     await expect(rows.first()).toHaveClass(/is-done|is-failed/, { timeout: 120_000 });
-    await expect(card(page).locator('.ac-pbar')).toHaveCount(0);
-    await expect(composer(page)).toBeEnabled();
-
-    // a single creation under this container: every row went green, the written document is listed
-    // under the container it was created in, and the card offers nothing more to run
-    await expect(card(page).locator('.ldh-chat-step.is-failed')).toHaveCount(0);
-    await expect(rows.first()).toHaveClass(/is-done/);
-    const written = card(page).locator('.ldh-chat-docs a.iri');
+    await expect(cards(chat).last().locator('.ldh-chat-step.is-failed')).toHaveCount(0);
+    const written = cards(chat).last().locator('.ldh-chat-docs a.iri');
     await expect(written).toHaveCount(1);
     const href = await written.getAttribute('href');
     scratch.written.push(href);
     expect(href.startsWith(scratch.container)).toBe(true);
-    await expect(card(page).locator('.ldh-chat-execute')).toHaveCount(0);
 
-    // the page reloaded the document it is on, so the new child is there without a refresh by hand - and the
-    // conversation came through the render that replaced the body: the same card, by id, last before the bar,
-    // its rows still folding out their XML
-    await expect(page.locator(`.document-body a[href="${href}"]`).first()).toBeVisible({ timeout: 30_000 });
-    await expect(page.locator('.content-body > .ldh-chat-block + .ldh-create-dock')).toHaveCount(1);
-    await expect(card(page)).toHaveAttribute('id', id);
-    await expect(card(page).locator('.ldh-chat-docs a.iri')).toHaveCount(1);
-
-    // a write's own report - ?status ?url - is no result: the written documents say it, and no result well is drawn
-    await expect(card(page).locator('.ldh-chat-result-block')).toHaveCount(0);
-
-    // a plan that only wrote returned nothing but its writes' reports, so there are no rows for a follow-up's "them";
-    // what it changed is the documents listed above, and the next question hears that as this card's outcome
-    expect(await page.evaluate(id => id in window.LinkedDataHub.chatResults, id)).toBe(false);
-
-    // and what it did is read back as a sentence, first on the card, with the trace folded under its count
-    await expect(card(page).locator('.ldh-chat-answer')).not.toBeEmpty({ timeout: 60_000 });
-    await expect(card(page).locator('> :first-child')).toHaveClass(/ldh-chat-answer/);
-    const trace = card(page).locator('details.ldh-chat-trace');
-    await expect(trace).not.toHaveAttribute('open', '');
-    await expect(trace.locator('> summary')).toContainText(/\d+ steps/);
-    // folded, it still says how the steps went and that it opens
-    await expect(trace.locator('> summary > .st.is-done')).toBeVisible();
-    await expect(trace.locator('> summary > .chev')).toBeVisible();
-
-    // the trace opens on its line, and its rows still fold out their XML after the render that replaced the body
-    await trace.locator('> summary').click();
-    await expect(trace).toHaveAttribute('open', '');
-    const done = card(page).locator('.ldh-chat-step.is-done').first();
-    await done.locator('summary').click();
-    await expect(done.locator('pre')).toBeVisible();
+    // once answered, the turn is stored and the page catches up with the write: the new child is listed, and the
+    // chat block, drawn again from the store, holds the turn with its answer and the document it wrote
+    await expect(page.locator(`.document-body a[href="${href}"]`).first()).toBeVisible({ timeout: 90_000 });
+    const card = cards(chatOf(page, chatUri)).last();
+    await expect(card).toHaveAttribute('data-turn', /#turn-/, { timeout: 30_000 });
+    await expect(card.locator('.ldh-chat-answer')).not.toBeEmpty();
+    await expect(card.locator('.ldh-chat-docs a.iri')).toHaveAttribute('href', href);
+    await expect(card.locator('.ldh-chat-result-block')).toHaveCount(0);
+    await expect(composer(chatOf(page, chatUri))).toBeEnabled();
 });
 
-test('a question is answered in words, with its result as a block in the card', { tag: '@owner' }, async ({ page }) => {
+test('a question is answered in words, with its result as a block in the card, also after a reload', { tag: '@owner' }, async ({ page }) => {
     test.setTimeout(300_000);
-    // two documents in the scratch container, so the question has rows to answer from
-    for (const title of ['Keep alpha', 'Keep beta'])
+    for (const title of ['Answer alpha', 'Answer beta'])
         scratch.written.push((await ldh(['create', 'item', '--container', scratch.container, '--title', title, '--slug', title.toLowerCase().replace(' ', '-')])).stdout);
-    await goto(page, scratch.container);
-    await open(page);
+    await goto(page, inMode(scratch.container, CONTENT_MODE));
+    await button(page).click();
+    const chatUri = await ephemeral(page).locator('.ldh-chat').getAttribute('data-chat');
+    const chat = chatOf(page, chatUri);
 
-    await composer(page).fill('List the titles of the documents in this container');
-    await composer(page).press('Enter');
+    await composer(chat).fill('List the titles of the documents in this container');
+    await composer(chat).press('Enter');
 
     // a read-only plan runs on arrival; it ends in an answer, and its result sits in a well headed like a block
-    await expect(card(page).locator('.ldh-chat-answer')).not.toBeEmpty({ timeout: 180_000 });
-    const well = card(page).locator('.ldh-chat-result-block').first();
-    await expect(well).toBeVisible();
-    await expect(well.locator('.ldh-block-head .ttl')).not.toBeEmpty();
+    await expect(cards(chat).last().locator('.ldh-chat-answer')).not.toBeEmpty({ timeout: 180_000 });
+    await expect(cards(chat).last().locator('.ldh-chat-result-block').first()).toBeVisible();
+    await expect(cards(chat).last()).toHaveAttribute('data-turn', /#turn-/, { timeout: 30_000 });
+
+    // the same turn, drawn from the store
+    await page.reload();
+    const card = cards(chatOf(page, chatUri)).last();
+    await expect(card.locator('.ldh-chat-answer')).not.toBeEmpty({ timeout: 30_000 });
+    await expect(card.locator('.ldh-chat-result-block .ldh-block-head .ttl').first()).not.toBeEmpty();
 });

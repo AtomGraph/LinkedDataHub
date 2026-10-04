@@ -1776,9 +1776,13 @@
         <rdfs:label xml:lang="en-US">Dismiss</rdfs:label>
         <rdfs:label xml:lang="es-ES">Descartar</rdfs:label>
     </rdf:Description>
-    <rdf:Description rdf:nodeID="clear-chat">
-        <rdfs:label xml:lang="en-US">Clear the conversation</rdfs:label>
-        <rdfs:label xml:lang="es-ES">Vaciar la conversación</rdfs:label>
+    <rdf:Description rdf:nodeID="chat-step-value">
+        <rdfs:label xml:lang="en-US">Resolved to</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Resuelto como</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="chat-not-saved">
+        <rdfs:label xml:lang="en-US">The conversation could not be saved</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo guardar la conversación</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="thinking">
         <rdfs:label xml:lang="en-US">Thinking…</rdfs:label>

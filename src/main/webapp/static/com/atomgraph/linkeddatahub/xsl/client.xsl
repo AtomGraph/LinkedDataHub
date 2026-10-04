@@ -194,7 +194,7 @@ WHERE
         <ixsl:set-property name="yasqe" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="chat" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- the assistant's plans, keyed by card id (client/chat.xsl) -->
         <ixsl:set-property name="chatResults" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- what each executed plan returned, keyed by card id: the next question's "them" -->
-        <ixsl:set-property name="chatLogs" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- each document's conversation as the element it is painted into, keyed by document URI; moved into the body by ldh:ChatMount (client/chat.xsl) -->
+        <ixsl:set-property name="chatExecutions" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- what each executed plan reported, keyed by card id: what its turn stores (client/chat.xsl) -->
         <ixsl:set-property name="pending-scrolls" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- deferred fragment scrolls awaiting block hydration, keyed by scroll id (ldh:RenderTab/ldh:block-hydrated) -->
         <!-- MUST exist from bootstrap, empty, before any document response fills it: acl:mode() reaches it with
              ixsl:contains(), which THROWS on a missing intermediate segment rather than returning false, and
@@ -790,14 +790,6 @@ WHERE
             </xsl:call-template>
         </xsl:if>
 
-        <!-- the assistant's block and composer go into the rendered body last: they are the client's, kept across
-             renders, and the body just rendered knows nothing of them (client/chat.xsl) -->
-        <xsl:for-each select="$content-body">
-            <xsl:call-template name="ldh:ChatMount">
-                <xsl:with-param name="content-body" select="."/>
-                <xsl:with-param name="doc-uri" select="$doc-uri"/>
-            </xsl:call-template>
-        </xsl:for-each>
     </xsl:template>
 
     <!-- scroll to the fragment-targeted element if present, otherwise to top -->

@@ -699,7 +699,7 @@ exclude-result-prefixes="#all"
          fills. Embedded under an ldh:Object carrier (the $embedded tunnel), the card is the block's single
          header-bearing surface and takes the is-embedded mark - the hairline that distinguishes a resource
          rendered inside a content slot from the same resource rendered standalone -->
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&ldh;View', '&ldh;GraphChart', '&ldh;ResultSetChart', '&sp;Describe', '&sp;Construct', '&sp;Ask', '&sp;Select')]" mode="ldh:Block" priority="1">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&ldh;View', '&ldh;GraphChart', '&ldh;ResultSetChart', '&sp;Describe', '&sp;Construct', '&sp;Ask', '&sp;Select', '&ldh;Chat')]" mode="ldh:Block" priority="1">
         <!-- TO-DO: use ldh:request-uri() to resolve URIs server-side -->
         <xsl:param name="class" select="'block ldh-block'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
