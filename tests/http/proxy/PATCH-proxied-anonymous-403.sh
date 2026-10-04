@@ -24,7 +24,6 @@ clear_ontology
 item=$(ldh create item \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$END_USER_BASE_URL" \
   --title "Proxied write target" \
   --slug "proxied-write-target-$(date +%s)" \
   --container "$END_USER_BASE_URL")

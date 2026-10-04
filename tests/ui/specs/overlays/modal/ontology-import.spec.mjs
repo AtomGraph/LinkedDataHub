@@ -43,7 +43,7 @@ test.describe('the Import ontology dialog', { tag: '@owner' }, () => {
 
         // The document the vocabulary goes into, created ahead like the CLI test does: the dialog
         // imports into a document that exists, it does not mint one.
-        const created = await ldh(['create', 'item', '-b', adminBase,
+        const created = await ldh(['create', 'item',
             '--container', ontologies, '--title', 'UI test vocabulary',
             '--slug', `ui-import-${testInfo.testId.replace(/[^a-z0-9]/gi, '')}`]);
         target = created.stdout;
@@ -53,7 +53,7 @@ test.describe('the Import ontology dialog', { tag: '@owner' }, () => {
         if (target) await ldh(['delete', target], { allowFailure: true });
         // The import cleared the caches on the way through, and the deletion has to as well, or
         // the closure keeps serving the vocabulary from a document that is gone.
-        await ldh(['admin', 'clear', 'ontology', '-b', adminBase], { allowFailure: true });
+        await ldh(['admin', 'clear', 'ontology', adminBase], { allowFailure: true });
     });
 
     test('leaves the vocabulary, its derived constructors and a primary topic in the document', async ({ page }) => {

@@ -29,11 +29,11 @@ EOF
 ldh admin create authorization \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "https://admin.test.localhost:4443/" \
   --label "Fake PUT authorization from test.localhost" \
   --agent "$AGENT_URI" \
   --to "$END_USER_BASE_URL" \
-  --write
+  --write \
+  "https://admin.test.localhost:4443/"
 
 # access is still denied (fake authorization filtered out)
 
@@ -55,11 +55,11 @@ EOF
 ldh admin create authorization \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$ADMIN_BASE_URL" \
   --label "PUT authorization" \
   --agent "$AGENT_URI" \
   --to "$END_USER_BASE_URL" \
-  --write
+  --write \
+  "$ADMIN_BASE_URL"
 
 # get the graph content
 

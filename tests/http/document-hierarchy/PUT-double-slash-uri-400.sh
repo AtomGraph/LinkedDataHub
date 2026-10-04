@@ -23,7 +23,6 @@ ldh admin add agent \
 container=$(ldh create container \
   -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
-  -b "$END_USER_BASE_URL" \
   --title "Test Container" \
   --slug "new-item" \
   --parent "$END_USER_BASE_URL")

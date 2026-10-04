@@ -17,7 +17,7 @@ cert="$2"
 password="$3"
 dir="$(cd "$(dirname "$0")" && pwd)"
 
-ldh push -c "$cert" -p "$password" -b "$base" --dir "$dir" "$base" > /dev/null
+ldh push -c "$cert" -p "$password" --dir "$dir" "$base" > /dev/null
 
 # a package is the folder its stylesheet is in, e.g. editor/taxonomy/skos.xsl -> ${base}editor/taxonomy/#this
 (cd "$dir" && find . -name '*.xsl' | sed 's|^\./||' | sort) | while read -r stylesheet; do

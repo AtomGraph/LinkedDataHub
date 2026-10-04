@@ -17,11 +17,9 @@
 package com.atomgraph.linkeddatahub.cli.command;
 
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
-import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
 import com.atomgraph.linkeddatahub.rdf.Services;
 import java.net.URI;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
@@ -33,9 +31,6 @@ import picocli.CommandLine.Parameters;
 @Command(name = "generic-service", description = "Appends a generic SPARQL service to a document.")
 public class AddGenericService extends BaseCommand
 {
-
-    @Mixin
-    private BaseMixin baseMixin;
 
     @Option(names = "--title", required = true, paramLabel = "TITLE", description = "Title of the service")
     private String title;
@@ -64,8 +59,6 @@ public class AddGenericService extends BaseCommand
     @Override
     public Integer call() throws Exception
     {
-        baseMixin.require(getSpec()); // required by the script interface
-
         post(getClient(), target, Services.service(target, uri, title, endpoint, graphStore, authUser, authPwd, description));
         print(target);
 

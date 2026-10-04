@@ -39,7 +39,6 @@ slug="test-children-query"
 container=$(ldh create container \
   -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
-  -b "$END_USER_BASE_URL" \
   --title "Test Children Query" \
   --slug "$slug" \
   --parent "$END_USER_BASE_URL")

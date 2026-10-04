@@ -22,7 +22,6 @@ remote_base="https://test.localhost:4443/"
 item=$(ldh create item \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$remote_base" \
   --title "Federation write target" \
   --slug "federation-patch-$(date +%s)" \
   --container "$remote_base")

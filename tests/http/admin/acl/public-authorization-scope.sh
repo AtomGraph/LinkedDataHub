@@ -21,11 +21,11 @@ curl -k -w "%{http_code}\n" -o /dev/null -v \
 ldh admin create authorization \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "https://admin.test.localhost:4443/" \
   --label "Fake public access from test.localhost" \
   --agent-class 'http://xmlns.com/foaf/0.1/Agent' \
   --to "$END_USER_BASE_URL" \
-  --read
+  --read \
+  "https://admin.test.localhost:4443/"
 
 # public access is still forbidden (fake authorization filtered out)
 
@@ -39,11 +39,11 @@ curl -k -w "%{http_code}\n" -o /dev/null -v \
 ldh admin create authorization \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$ADMIN_BASE_URL" \
   --label "Public access authorization" \
   --agent-class 'http://xmlns.com/foaf/0.1/Agent' \
   --to "$END_USER_BASE_URL" \
-  --read
+  --read \
+  "$ADMIN_BASE_URL"
 
 # public access is allowed after real authorization is created
 

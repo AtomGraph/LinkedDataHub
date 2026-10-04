@@ -22,11 +22,11 @@ ldh admin add agent \
 ldh admin create authorization \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$ADMIN_BASE_URL" \
   --label "Public access authorization" \
   --agent-class 'http://xmlns.com/foaf/0.1/Agent' \
   --to "$END_USER_BASE_URL" \
-  --read
+  --read \
+  "$ADMIN_BASE_URL"
 
 # store the ETag value
 

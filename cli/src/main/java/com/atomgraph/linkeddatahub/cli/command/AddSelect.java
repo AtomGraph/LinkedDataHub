@@ -17,14 +17,12 @@
 package com.atomgraph.linkeddatahub.cli.command;
 
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
-import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
 import com.atomgraph.linkeddatahub.rdf.Queries;
 import com.atomgraph.linkeddatahub.rdf.vocabulary.SP;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
@@ -36,9 +34,6 @@ import picocli.CommandLine.Parameters;
 @Command(name = "select", description = "Adds a SELECT query to a document.")
 public class AddSelect extends BaseCommand
 {
-
-    @Mixin
-    private BaseMixin baseMixin;
 
     @Option(names = "--title", required = true, paramLabel = "TITLE", description = "Title of the query")
     private String title;
@@ -61,8 +56,6 @@ public class AddSelect extends BaseCommand
     @Override
     public Integer call() throws Exception
     {
-        baseMixin.require(getSpec()); // required by the script interface
-
         post(getClient(), target, Queries.query(target, uri, SP.Select, title, Files.readString(queryFile), service, description));
         print(target);
 

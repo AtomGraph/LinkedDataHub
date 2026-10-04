@@ -17,11 +17,9 @@
 package com.atomgraph.linkeddatahub.cli.command;
 
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
-import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
 import com.atomgraph.linkeddatahub.rdf.Views;
 import java.net.URI;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
@@ -33,9 +31,6 @@ import picocli.CommandLine.Parameters;
 @Command(name = "view", description = "Appends a view to a document.")
 public class AddView extends BaseCommand
 {
-
-    @Mixin
-    private BaseMixin baseMixin;
 
     @Option(names = "--query", required = true, paramLabel = "QUERY_URI", description = "URI of the SELECT query")
     private URI query;
@@ -58,8 +53,6 @@ public class AddView extends BaseCommand
     @Override
     public Integer call() throws Exception
     {
-        baseMixin.require(getSpec()); // required by the script interface
-
         post(getClient(), target, Views.view(target, uri, query, title, description, mode));
         print(target);
 
