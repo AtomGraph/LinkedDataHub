@@ -1,4 +1,4 @@
-## [Unreleased]
+## [6.1.0] - 2026-10-05
 ### Migration
 - **BREAKING**: `ldh` drops `-b`/`--base`; dataspace-level commands take the base URI as their positional, defaulting to `LDH_BASE`
 - `Link` relation types are always quoted, e.g. `rel="timemap"`
