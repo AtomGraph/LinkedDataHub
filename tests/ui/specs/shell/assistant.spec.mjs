@@ -205,6 +205,73 @@ test('a step shows the value it resolved to, and the operation around it shows t
     await expect(sparqlString.locator('> .ac-codefield pre').last()).toHaveText(generated);
 });
 
+test('a plan that shows a grid draws its graph as cards with their images, also from the store', { tag: '@owner' }, async ({ page }) => {
+    // the plan service answered by the spec: a CONSTRUCT shown as a grid, and its graph of two depicted resources
+    const AC = 'https://w3id.org/atomgraph/client#';
+    const plan = `<wa:plan xmlns:wa="${WA}"><wa:summary>Shows two presidents with their portraits.</wa:summary><wa:present xmlns:ac="${AC}" ac:mode="${AC}GridMode"/><wa:operations><wa:operation name="CONSTRUCT"/></wa:operations><CONSTRUCT xmlns="${WA}"><endpoint>https://query.wikidata.org/sparql</endpoint><query>CONSTRUCT { ?p &lt;http://xmlns.com/foaf/0.1/depiction&gt; ?image } WHERE { ?p &lt;http://www.wikidata.org/prop/direct/P18&gt; ?image } LIMIT 2</query></CONSTRUCT></wa:plan>`;
+    const people = [['Q76', 'Barack Obama'], ['Q207', 'George W. Bush']];
+    const graph = `<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:foaf="http://xmlns.com/foaf/0.1/">${people.map(([q, name]) =>
+        `<rdf:Description rdf:about="http://www.wikidata.org/entity/${q}"><rdfs:label>${name}</rdfs:label><foaf:depiction rdf:resource="https://images.example/${q}.svg"/></rdf:Description>`).join('')}</rdf:RDF>`;
+    const execution = `<wa:execution xmlns:wa="${WA}"><wa:id>grid</wa:id><wa:status>complete</wa:status><wa:steps><wa:step operation="CONSTRUCT" depth="0" outcome="complete" elapsed="300"/></wa:steps><wa:result>${graph}</wa:result></wa:execution>`;
+    await page.route(/\/webalgebra\/plans$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: plan }));
+    await page.route(/\/webalgebra$/, route => route.fulfill({ status: 202, contentType: 'application/xml', body: `<wa:execution xmlns:wa="${WA}"><wa:id>grid</wa:id></wa:execution>` }));
+    await page.route(/\/webalgebra\/grid\/result$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: execution }));
+    await page.route(/\/webalgebra\/answers$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: `<wa:answer xmlns:wa="${WA}">Two presidents, with their portraits.</wa:answer>` }));
+    await page.route(/^https:\/\/images\.example\//, route => route.fulfill({ status: 200, contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4"/>' }));
+    // the cards' labels: the view's metadata lookups against Wikidata, answered empty
+    await page.route(/query\.wikidata\.org/, route => route.fulfill({ status: 200, contentType: 'application/rdf+xml', body: '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"/>' }));
+
+    await goto(page, inMode(scratch.container, CONTENT_MODE));
+    await button(page).click();
+    const chatUri = await ephemeral(page).locator('.ldh-chat').getAttribute('data-chat');
+    await composer(chatOf(page, chatUri)).fill('Show the latest presidents with images');
+    await composer(chatOf(page, chatUri)).press('Enter');
+
+    const grid = card => card.locator(`.ldh-chat-result-block[data-mode="${AC}GridMode"] ul.ldh-grid-block`);
+    const assertCards = async card => {
+        await expect(grid(card).locator('a.card')).toHaveCount(2, { timeout: 30_000 });
+        for (const [q, name] of people)
+            await expect(grid(card).locator(`a.card[title="http://www.wikidata.org/entity/${q}"] .img img`)).toHaveAttribute('src', `https://images.example/${q}.svg`);
+        await expect(card.locator('.ldh-chat-result-block .ldh-block-head .ttl')).toHaveText(/\S/);
+    };
+    await assertCards(cards(chatOf(page, chatUri)).last());
+    await expect(cards(chatOf(page, chatUri)).last()).toHaveAttribute('data-turn', /#turn-/, { timeout: 30_000 });
+
+    // stored with its plan, the hint included, the turn draws the same grid again
+    await page.reload();
+    await assertCards(cards(chatOf(page, chatUri)).last());
+});
+
+test('a plan that shows a timeline draws each row as a span, the one still under way included', { tag: '@owner' }, async ({ page }) => {
+    const AC = 'https://w3id.org/atomgraph/client#';
+    const LDH = 'https://w3id.org/atomgraph/linkeddatahub#';
+    const XSD = 'http://www.w3.org/2001/XMLSchema#';
+    const plan = `<wa:plan xmlns:wa="${WA}"><wa:summary>Shows the latest presidents' terms.</wa:summary><wa:present xmlns:ac="${AC}" xmlns:ldh="${LDH}" ac:mode="${AC}ChartMode" ldh:chartType="${AC}Timeline" ldh:categoryVarName="name" ldh:seriesVarName="start until"/><wa:operations><wa:operation name="SELECT"/></wa:operations><SELECT xmlns="${WA}"><endpoint>https://query.wikidata.org/sparql</endpoint><query>SELECT ?name ?start (COALESCE(?end, NOW()) AS ?until) WHERE { ?p &lt;http://example.org/name&gt; ?name ; &lt;http://example.org/start&gt; ?start . OPTIONAL { ?p &lt;http://example.org/end&gt; ?end } } ORDER BY ?start</query></SELECT></wa:plan>`;
+    // the last term has no end of its own: COALESCE gave it the time of the query
+    const terms = [['Barack Obama', '2009-01-20T00:00:00Z', '2017-01-20T00:00:00Z'], ['Joe Biden', '2021-01-20T00:00:00Z', '2025-01-20T00:00:00Z'], ['Donald Trump', '2025-01-20T00:00:00Z', '2026-10-04T12:00:00.000Z']];
+    const literal = value => `<literal datatype="${XSD}dateTime">${value}</literal>`;
+    const rows = terms.map(([name, start, until]) => `<result><binding name="name"><literal xml:lang="en">${name}</literal></binding><binding name="start">${literal(start)}</binding><binding name="until">${literal(until)}</binding></result>`).join('');
+    const results = `<sparql xmlns="http://www.w3.org/2005/sparql-results#"><head><variable name="name"/><variable name="start"/><variable name="until"/></head><results>${rows}</results></sparql>`;
+    const execution = `<wa:execution xmlns:wa="${WA}"><wa:id>timeline</wa:id><wa:status>complete</wa:status><wa:steps><wa:step operation="SELECT" depth="0" outcome="complete" elapsed="300"/></wa:steps><wa:result>${results}</wa:result></wa:execution>`;
+    await page.route(/\/webalgebra\/plans$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: plan }));
+    await page.route(/\/webalgebra$/, route => route.fulfill({ status: 202, contentType: 'application/xml', body: `<wa:execution xmlns:wa="${WA}"><wa:id>timeline</wa:id></wa:execution>` }));
+    await page.route(/\/webalgebra\/timeline\/result$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: execution }));
+    await page.route(/\/webalgebra\/answers$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: `<wa:answer xmlns:wa="${WA}">Three terms.</wa:answer>` }));
+
+    await goto(page, inMode(scratch.container, CONTENT_MODE));
+    await button(page).click();
+    const chatUri = await ephemeral(page).locator('.ldh-chat').getAttribute('data-chat');
+    await composer(chatOf(page, chatUri)).fill('Who were the latest presidents, and when?');
+    await composer(chatOf(page, chatUri)).press('Enter');
+
+    // a chart well, and in its canvas Google's timeline: one labelled row per term, each with its bar
+    const card = cards(chatOf(page, chatUri)).last();
+    const canvas = card.locator(`.ldh-chat-result-block[data-mode="${AC}ChartMode"] .ldh-chat-chart`);
+    await expect(canvas.locator('svg')).toBeVisible({ timeout: 30_000 });
+    for (const [name] of terms) await expect(canvas.locator('svg text', { hasText: name })).toHaveCount(1);
+    await expect(canvas.locator('svg rect[stroke]')).not.toHaveCount(0);
+});
+
 test('two chat blocks on one page are independent, and the first question writes a new one', { tag: '@owner' }, async ({ page }) => {
     const seeded = await seedChat(scratch.container);
     const requests = await declinePlans(page);

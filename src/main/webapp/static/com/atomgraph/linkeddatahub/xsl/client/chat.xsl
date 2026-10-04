@@ -1479,15 +1479,15 @@ exclude-result-prefixes="#all"
         <xsl:param name="present" as="element()?"/>
         <xsl:variable name="summary" select="ldh:execution-summary($execution)" as="map(*)"/>
 
-        <xsl:if test="not($summary?failed) and $present/@mode = 'chart' and exists($summary?result/self::srx:sparql) and exists($card/ancestor::body)">
+        <xsl:if test="not($summary?failed) and ldh:present-mode($present) = '&ac;ChartMode' and exists($summary?result/self::srx:sparql) and exists($card/ancestor::body)">
             <xsl:variable name="results" as="document-node()">
                 <xsl:document>
                     <xsl:copy-of select="($summary?result/self::srx:sparql)[1]"/>
                 </xsl:document>
             </xsl:variable>
-            <xsl:variable name="chart-type" select="xs:anyURI(map{ 'bar': '&ac;BarChart', 'line': '&ac;LineChart', 'scatter': '&ac;ScatterChart' }(string($present/@type)))" as="xs:anyURI"/>
-            <xsl:variable name="category" select="string($present/@category)" as="xs:string"/>
-            <xsl:variable name="series" select="tokenize($present/@series)" as="xs:string*"/>
+            <xsl:variable name="chart-type" select="ldh:present-chart-type($present)" as="xs:anyURI"/>
+            <xsl:variable name="category" select="string(($present/@ldh:categoryVarName, $present/@category)[1])" as="xs:string"/>
+            <xsl:variable name="series" select="tokenize(($present/@ldh:seriesVarName, $present/@series)[1])" as="xs:string*"/>
             <xsl:call-template name="ldh:RenderChart">
                 <xsl:with-param name="data-table" select="ac:sparql-results-data-table($results, $category, $series, $chart-type)"/>
                 <xsl:with-param name="canvas-id" select="$card/@id || '-chart'"/>
@@ -1665,9 +1665,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="card-id" as="xs:string" tunnel="yes"/>
 
         <xsl:choose>
-            <xsl:when test="$present/@mode = 'chart'">
+            <xsl:when test="ldh:present-mode($present) = '&ac;ChartMode'">
                 <xsl:call-template name="ldh:ChatResultWell">
-                    <xsl:with-param name="mode-key" select="'chart-mode'"/>
+                    <xsl:with-param name="mode" select="xs:anyURI('&ac;ChartMode')"/>
                     <xsl:with-param name="icon" select="'show_chart'"/>
                     <xsl:with-param name="body" as="element()">
                         <div id="{$card-id}-chart" class="chart-canvas ldh-chat-chart"/>
@@ -1676,7 +1676,7 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <xsl:otherwise>
                 <xsl:call-template name="ldh:ChatResultWell">
-                    <xsl:with-param name="mode-key" select="'table-mode'"/>
+                    <xsl:with-param name="mode" select="xs:anyURI('&ac;TableMode')"/>
                     <xsl:with-param name="icon" select="'table'"/>
                     <xsl:with-param name="body" as="element()">
                         <xsl:apply-templates select="." mode="ac:ResultsTable">
@@ -1690,20 +1690,21 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="rdf:RDF" mode="ldh:ExecutionResult">
         <xsl:param name="present" as="element()?" tunnel="yes"/>
-        <xsl:variable name="mode" select="(string($present/@mode)[. = ('list', 'grid', 'table')], 'list')[1]" as="xs:string"/>
+        <!-- a graph is drawn as a list, a grid or a table; a list unless the plan said one of the others -->
+        <xsl:variable name="mode" select="(ldh:present-mode($present)[. = ('&ac;GridMode', '&ac;TableMode')], xs:anyURI('&ac;ListMode'))[1]" as="xs:anyURI"/>
 
         <xsl:call-template name="ldh:ChatResultWell">
-            <xsl:with-param name="mode-key" select="$mode || '-mode'"/>
-            <xsl:with-param name="icon" select="map{ 'list': 'view_list', 'grid': 'grid_view', 'table': 'table' }($mode)"/>
+            <xsl:with-param name="mode" select="$mode"/>
+            <xsl:with-param name="icon" select="map{ '&ac;ListMode': 'view_list', '&ac;GridMode': 'grid_view', '&ac;TableMode': 'table' }(string($mode))"/>
             <xsl:with-param name="body" as="element()*">
                 <xsl:choose>
-                    <xsl:when test="$mode = 'grid'">
+                    <xsl:when test="$mode = '&ac;GridMode'">
                         <xsl:apply-templates select="." mode="ldh:GridViewBlock">
                             <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
                             <xsl:with-param name="endpoint" select="sd:endpoint()" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:when>
-                    <xsl:when test="$mode = 'table'">
+                    <xsl:when test="$mode = '&ac;TableMode'">
                         <xsl:apply-templates select="." mode="ldh:TableViewBlock">
                             <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
                             <xsl:with-param name="endpoint" select="sd:endpoint()" tunnel="yes"/>
@@ -1728,15 +1729,33 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="*" mode="ldh:ExecutionResult"/>
 
+    <!-- THE PRESENTATION HINT -->
+
+    <!-- How the plan said its result is best shown: wa:present carries the client's layout mode as ac:mode, the URI a
+         view block's ac:mode takes, and a chart's details as the properties a chart block has - ldh:chartType,
+         ldh:categoryVarName, ldh:seriesVarName. Turns stored before the hint took URIs said the same with the tokens
+         table, list, grid and chart and with type, category and series; those are read too -->
+    <xsl:function name="ldh:present-mode" as="xs:anyURI?">
+        <xsl:param name="present" as="element()?"/>
+
+        <xsl:sequence select="(for $mode in $present/@ac:mode return xs:anyURI($mode), for $token in $present/@mode return map{ 'table': xs:anyURI('&ac;TableMode'), 'list': xs:anyURI('&ac;ListMode'), 'grid': xs:anyURI('&ac;GridMode'), 'chart': xs:anyURI('&ac;ChartMode') }(string($token)))[1]"/>
+    </xsl:function>
+
+    <!-- a chart's type, a bar chart when the hint names none -->
+    <xsl:function name="ldh:present-chart-type" as="xs:anyURI">
+        <xsl:param name="present" as="element()?"/>
+
+        <xsl:sequence select="(for $type in $present/@ldh:chartType return xs:anyURI($type), for $token in $present/@type return map{ 'bar': xs:anyURI('&ac;BarChart'), 'line': xs:anyURI('&ac;LineChart'), 'scatter': xs:anyURI('&ac;ScatterChart') }(string($token)), xs:anyURI('&ac;BarChart'))[1]"/>
+    </xsl:function>
+
     <!-- the well a result sits in: the kit's nested block at depth 2 under the card, headed with the mode's icon and
          name, as a block in the document would be -->
     <xsl:template name="ldh:ChatResultWell">
-        <xsl:param name="mode-key" as="xs:string"/>
+        <xsl:param name="mode" as="xs:anyURI"/>
         <xsl:param name="icon" as="xs:string"/>
         <xsl:param name="body" as="item()*"/>
-        <xsl:variable name="mode" select="map{ 'table-mode': '&ac;TableMode', 'list-mode': '&ac;ListMode', 'grid-mode': '&ac;GridMode', 'chart-mode': '&ac;ChartMode' }($mode-key)" as="xs:string"/>
 
-        <div class="ldh-nblock ldh-chat-result-block" data-depth="2" data-mode="{$mode-key}">
+        <div class="ldh-nblock ldh-chat-result-block" data-depth="2" data-mode="{$mode}">
             <div class="ldh-block-head ldh-res-head" data-density="compact">
                 <span class="ldh-res-icon">
                     <span class="msi outline" aria-hidden="true">
