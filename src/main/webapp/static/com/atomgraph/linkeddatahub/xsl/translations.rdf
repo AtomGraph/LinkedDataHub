@@ -823,6 +823,14 @@
         <rdfs:label xml:lang="en-US">An object block cannot embed the document it is part of.</rdfs:label>
         <rdfs:label xml:lang="es-ES">Un bloque de objeto no puede incrustar el documento del que forma parte.</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="view-no-resources">
+        <rdfs:label xml:lang="en-US">This view's query lists no resources</rdfs:label>
+        <rdfs:label xml:lang="es-ES">La consulta de esta vista no enumera recursos</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="view-no-resources-explanation">
+        <rdfs:label xml:lang="en-US">Its first variable binds values rather than resources, and a view lists resources. A query or chart block shows values.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Su primera variable enlaza valores en lugar de recursos, y una vista enumera recursos. Un bloque de consulta o de gráfico muestra valores.</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="block-resource-not-described-explanation">
         <rdfs:label xml:lang="en-US">The document was retrieved, but it contains no description of this resource.</rdfs:label>
         <rdfs:label xml:lang="es-ES">El documento se obtuvo, pero no contiene ninguna descripción de este recurso.</rdfs:label>
