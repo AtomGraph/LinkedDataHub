@@ -143,7 +143,7 @@ export async function seedTaxonomy() {
     // cached - including graphs from fixtures this setup has just torn down. Clearing here makes
     // the starting state the same either way. No ontology is named: nothing needs reloading, and
     // the closures rebuild on the first page the suite opens.
-    await ldh(['admin', 'clear', 'ontology', '-b', adminBase]);
+    await ldh(['admin', 'clear', 'ontology', adminBase]);
 
     const container = await ldh(['create', 'container',
         '--parent', endUserBase, '--title', 'UI test taxonomy', '--slug', slug]);

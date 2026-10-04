@@ -18,11 +18,9 @@ package com.atomgraph.linkeddatahub.cli.command.imports;
 
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
 import com.atomgraph.linkeddatahub.cli.http.LDHClient;
-import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
 import com.atomgraph.linkeddatahub.rdf.Imports;
 import java.net.URI;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
@@ -34,9 +32,6 @@ import picocli.CommandLine.Parameters;
 @Command(name = "csv-import", description = "Adds CSV import metadata to a document.")
 public class AddCSVImport extends BaseCommand
 {
-
-    @Mixin
-    private BaseMixin baseMixin;
 
     @Option(names = "--title", required = true, paramLabel = "TITLE", description = "Title of the import")
     private String title;
@@ -62,8 +57,6 @@ public class AddCSVImport extends BaseCommand
     @Override
     public Integer call() throws Exception
     {
-        baseMixin.require(getSpec()); // required by the script interface
-
         core(getClient(), target, uri, title, query, file, delimiter, description);
         print(target);
 

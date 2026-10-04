@@ -32,7 +32,6 @@ slug=$(uuidgen | tr '[:upper:]' '[:lower:]')
 file_doc=$(ldh create item \
   -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
-  -b "$END_USER_BASE_URL" \
   --title "Test File for Media Type Update" \
   --container "$END_USER_BASE_URL" \
   --slug "$slug")
@@ -41,7 +40,6 @@ file_doc=$(ldh create item \
 ldh add file \
   -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
-  -b "$END_USER_BASE_URL" \
   --title "Test File for Media Type Update" \
   --file "$test_file" \
   --content-type "text/plain" \
@@ -77,7 +75,6 @@ fi
 ldh add file \
   -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
-  -b "$END_USER_BASE_URL" \
   --title "Test File for Media Type Update" \
   --file "$test_file" \
   --content-type "text/csv" \

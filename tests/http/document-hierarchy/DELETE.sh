@@ -16,7 +16,6 @@ slug="test"
 container=$(ldh create container \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$END_USER_BASE_URL" \
   --title "Test" \
   --slug "$slug" \
   --parent "$END_USER_BASE_URL")
@@ -24,14 +23,14 @@ container=$(ldh create container \
 # add an explicit read/write authorization for the owner because add-agent-to-group.sh won't work non-existing URI
 
 ldh admin create authorization \
--b "$ADMIN_BASE_URL" \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
   --label "Write base" \
   --agent "$AGENT_URI" \
   --to "$container" \
   --read \
-  --write
+  --write \
+  "$ADMIN_BASE_URL"
 
 # delete document
 

@@ -17,11 +17,9 @@
 package com.atomgraph.linkeddatahub.cli.command;
 
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
-import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
 import com.atomgraph.linkeddatahub.rdf.Views;
 import java.net.URI;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
@@ -33,9 +31,6 @@ import picocli.CommandLine.Parameters;
 @Command(name = "result-set-chart", description = "Appends a result set chart to a document.")
 public class AddResultSetChart extends BaseCommand
 {
-
-    @Mixin
-    private BaseMixin baseMixin;
 
     @Option(names = "--title", required = true, paramLabel = "TITLE", description = "Title of the chart")
     private String title;
@@ -64,8 +59,6 @@ public class AddResultSetChart extends BaseCommand
     @Override
     public Integer call() throws Exception
     {
-        baseMixin.require(getSpec()); // required by the script interface
-
         post(getClient(), target, Views.resultSetChart(target, uri, title, query, chartType, categoryVarName, seriesVarName, description));
         print(target);
 

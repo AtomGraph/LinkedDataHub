@@ -24,7 +24,6 @@ clear_ontology
 item=$(ldh create item \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$END_USER_BASE_URL" \
   --title "Proxied public document" \
   --slug "proxied-public-$(date +%s)" \
   --container "$END_USER_BASE_URL")
@@ -32,11 +31,11 @@ item=$(ldh create item \
 ldh admin create authorization \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$ADMIN_BASE_URL" \
   --label "Public read of the proxied document" \
   --agent-class "http://xmlns.com/foaf/0.1/Agent" \
   --to "$item" \
-  --read > /dev/null
+  --read \
+  "$ADMIN_BASE_URL" > /dev/null
 
 # read it anonymously through the admin origin's proxy, so the request crosses origins and is
 # forwarded rather than rewritten onto the local document

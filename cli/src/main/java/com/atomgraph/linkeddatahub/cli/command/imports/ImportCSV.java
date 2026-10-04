@@ -19,13 +19,11 @@ package com.atomgraph.linkeddatahub.cli.command.imports;
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
 import com.atomgraph.linkeddatahub.cli.command.AddConstruct;
 import com.atomgraph.linkeddatahub.cli.command.AddFile;
-import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
 import com.atomgraph.linkeddatahub.rdf.Slugs;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
@@ -39,9 +37,6 @@ import picocli.CommandLine.Parameters;
 @Command(name = "csv", description = "Imports CSV data using a transformation query. Workflow composing add construct, add file and add csv-import.")
 public class ImportCSV extends BaseCommand
 {
-
-    @Mixin
-    private BaseMixin baseMixin;
 
     @Option(names = "--title", required = true, paramLabel = "TITLE", description = "Title of the import")
     private String title;
@@ -64,13 +59,11 @@ public class ImportCSV extends BaseCommand
     @Override
     public Integer call() throws Exception
     {
-        URI base = baseMixin.require(getSpec());
-
         String queryId = Slugs.defaultSlug();
         AddConstruct.core(getClient(), target, "#" + queryId, title, Files.readString(queryFile), null, null);
         URI query = target.resolve("#" + queryId);
 
-        URI fileURI = AddFile.core(getClient(), base, target, csvFile, "text/csv", title, null);
+        URI fileURI = AddFile.core(getClient(), target, csvFile, "text/csv", title, null);
 
         AddCSVImport.core(getClient(), target, null, title, query, fileURI, delimiter, description);
         print(target);

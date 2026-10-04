@@ -17,13 +17,11 @@
 package com.atomgraph.linkeddatahub.cli.command;
 
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
-import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
 import com.atomgraph.linkeddatahub.rdf.Documents;
 import com.atomgraph.linkeddatahub.rdf.Slugs;
 import com.atomgraph.linkeddatahub.rdf.URIs;
 import java.net.URI;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 
 /**
@@ -34,9 +32,6 @@ import picocli.CommandLine.Option;
 @Command(name = "container", description = "Creates a container document.")
 public class CreateContainer extends BaseCommand
 {
-
-    @Mixin
-    private BaseMixin baseMixin;
 
     @Option(names = "--title", required = true, paramLabel = "TITLE", description = "Title of the container")
     private String title;
@@ -62,8 +57,6 @@ public class CreateContainer extends BaseCommand
     @Override
     public Integer call() throws Exception
     {
-        baseMixin.require(getSpec()); // required by the script interface
-
         URI doc = URIs.childURI(parent, slug != null ? slug : Slugs.defaultSlug());
         put(getClient(), doc, Documents.container(doc, title, description, block, mode, primaryTopic));
         print(doc);

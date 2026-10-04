@@ -24,7 +24,6 @@ slug=$(uuidgen | tr '[:upper:]' '[:lower:]')
 item=$(ldh create item \
   -c "$AGENT_CERT_KEYSTORE" \
   -p "$AGENT_CERT_PWD" \
-  -b "$END_USER_BASE_URL" \
   --title "Test item" \
   --slug "$slug" \
   --container "$END_USER_BASE_URL")
