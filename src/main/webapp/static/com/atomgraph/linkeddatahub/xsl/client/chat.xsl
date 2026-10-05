@@ -1485,16 +1485,13 @@ exclude-result-prefixes="#all"
                     <xsl:copy-of select="($summary?result/self::srx:sparql)[1]"/>
                 </xsl:document>
             </xsl:variable>
-            <xsl:variable name="chart-type" select="ldh:present-chart-type($present)" as="xs:anyURI"/>
-            <xsl:variable name="category" select="string(($present/@ldh:categoryVarName, $present/@category)[1])" as="xs:string"/>
-            <xsl:variable name="series" select="tokenize(($present/@ldh:seriesVarName, $present/@series)[1])" as="xs:string*"/>
-            <xsl:call-template name="ldh:RenderChart">
-                <xsl:with-param name="data-table" select="ac:sparql-results-data-table($results, $category, $series, $chart-type)"/>
-                <xsl:with-param name="canvas-id" select="$card/@id || '-chart'"/>
-                <xsl:with-param name="chart-type" select="$chart-type"/>
-                <xsl:with-param name="category" select="$category"/>
-                <xsl:with-param name="series" select="$series"/>
-            </xsl:call-template>
+            <!-- drawn as every chart is (ldh:InitCanvas), with the plan's type, category and series -->
+            <xsl:apply-templates select="id($card/@id || '-chart', ixsl:page())" mode="ldh:InitCanvas">
+                <xsl:with-param name="results" select="$results" tunnel="yes"/>
+                <xsl:with-param name="chart-type" select="ldh:present-chart-type($present)" tunnel="yes"/>
+                <xsl:with-param name="category" select="($present/@ldh:categoryVarName, $present/@category)[1]/string()" tunnel="yes"/>
+                <xsl:with-param name="series" select="tokenize(($present/@ldh:seriesVarName, $present/@series)[1])" tunnel="yes"/>
+            </xsl:apply-templates>
         </xsl:if>
     </xsl:function>
 

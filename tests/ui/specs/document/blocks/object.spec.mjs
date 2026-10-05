@@ -9,9 +9,12 @@
 // `.ldh-obj-value` precisely so that block-level tools address the HOST block rather than the
 // resource it happens to be showing - one card, one header, one set of controls, however deep the
 // thing inside it goes.
+import { randomUUID } from 'node:crypto';
 import { test, expect } from '../../../lib/console.mjs';
 import { goto, settled } from '../../../lib/settle.mjs';
-import { fixtures, remoteDocumentTitle } from '../../../lib/fixtures.mjs';
+import { fixtures, itemUri, ldh, remoteDocumentTitle } from '../../../lib/fixtures.mjs';
+import { endUserBase } from '../../../lib/stack.mjs';
+import { CONTENT_MODE, inMode } from '../../../lib/mode.mjs';
 
 const objectValue = page => page.locator('.ldh-obj-value').first();
 
@@ -68,4 +71,33 @@ test.describe('a resource embedded from another dataspace', () => {
         await expect(embedded(page)).toContainText(remoteDocumentTitle);
         await expect(pencil(page)).toHaveCount(0);
     });
+});
+
+// An object block whose layout mode is a canvas mode draws its object on that canvas: a chart, a map
+// or a 3D graph of the resource it names, started by the same template every canvas is
+// (ldh:InitCanvas). Asserted is the library's own surface inside the canvas.
+test.describe('an object block in a canvas mode', { tag: '@owner' }, () => {
+    const AC = 'https://w3id.org/atomgraph/client#';
+    const scratch = {};
+
+    test.beforeEach(async () => {
+        scratch.container = (await ldh(['create', 'container', '--parent', endUserBase, '--title', 'Object canvas modes',
+            '--slug', `object-canvas-${randomUUID().slice(0, 8)}`])).stdout;
+    });
+
+    test.afterEach(async () => {
+        if (scratch.container) await ldh(['delete', scratch.container], { allowFailure: true });
+    });
+
+    for (const [mode, canvas, surface] of [['ChartMode', 'chart-canvas', 'svg, table'], ['MapMode', 'map-canvas', '.ol-viewport'], ['GraphMode', 'graph-3d-canvas', 'canvas']]) {
+        test(`draws its object in ${mode}`, async ({ page }) => {
+            const fragment = `${mode.toLowerCase()}-block`;
+            await ldh(['add', 'object-block', '--title', `${mode} block`, '--uri', `#${fragment}`,
+                '--value', itemUri(1), '--mode', AC + mode, scratch.container]);
+            await goto(page, inMode(scratch.container, CONTENT_MODE));
+
+            await expect(page.locator(`div.block[about="${scratch.container}#${fragment}"] .${canvas}`).locator(surface).first())
+                .toBeVisible({ timeout: 30_000 });
+        });
+    }
 });
