@@ -311,8 +311,8 @@ test('a reader who may not append sees the transcript and nothing to type into',
     test.skip(testInfo.project.name !== 'anonymous', 'the claim is about holding no certificate');
     const chatUri = await seedChat(scratch.container);
     const slug = `assistant-public-${randomUUID().slice(0, 8)}`;
-    await ldh(['admin', 'create', 'authorization', '-b', adminBase, '--label', 'Assistant spec public chat', '--slug', slug,
-        '--agent-class', 'http://xmlns.com/foaf/0.1/Agent', '--to', scratch.container, '--read']);
+    await ldh(['admin', 'create', 'authorization', '--label', 'Assistant spec public chat', '--slug', slug,
+        '--agent-class', 'http://xmlns.com/foaf/0.1/Agent', '--to', scratch.container, '--read', adminBase]);
     scratch.authorization = `${adminBase}acl/authorizations/${slug}/`;
 
     await goto(page, inMode(scratch.container, CONTENT_MODE));
