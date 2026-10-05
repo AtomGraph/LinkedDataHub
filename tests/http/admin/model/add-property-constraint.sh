@@ -19,7 +19,6 @@ constraint="${namespace_doc}#NewConstraint"
 ldh admin add property-constraint \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$ADMIN_BASE_URL" \
   --uri "$constraint" \
   --label "New constraint" \
   --property "http://rdfs.org/sioc/ns#content" \
@@ -30,7 +29,6 @@ ldh admin add property-constraint \
 ldh admin add class \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$ADMIN_BASE_URL" \
   --uri "${namespace_doc}#ConstrainedClass" \
   --label "Constrained class" \
   --constraint "$constraint" \
@@ -42,8 +40,8 @@ ldh admin add class \
 ldh admin clear ontology \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$ADMIN_BASE_URL" \
-  --ontology "$namespace"
+  --ontology "$namespace" \
+  "$ADMIN_BASE_URL"
 
 # check that the constraint is present in the ontology
 

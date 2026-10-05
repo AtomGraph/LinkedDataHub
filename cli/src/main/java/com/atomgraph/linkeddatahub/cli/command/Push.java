@@ -17,7 +17,6 @@
 package com.atomgraph.linkeddatahub.cli.command;
 
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
-import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
 import com.atomgraph.linkeddatahub.cli.util.PushPlan;
 import com.atomgraph.linkeddatahub.cli.util.PushPlan.Step;
 import java.io.IOException;
@@ -26,7 +25,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import org.apache.jena.rdf.model.Model;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.ParameterException;
 import picocli.CommandLine.Parameters;
@@ -43,9 +41,6 @@ import picocli.CommandLine.Parameters;
 public class Push extends BaseCommand
 {
 
-    @Mixin
-    private BaseMixin baseMixin;
-
     @Option(names = "--dir", defaultValue = ".", paramLabel = "DIR", description = "Directory to push (default: current directory)")
     private Path dir;
 
@@ -58,12 +53,11 @@ public class Push extends BaseCommand
     @Override
     public Integer call() throws Exception
     {
-        URI base = baseMixin.require(getSpec());
         if (!target.isAbsolute() || !target.toString().endsWith("/")) throw new ParameterException(getSpec().commandLine(), "TARGET_URI must be an absolute URI ending with '/': '" + target + "'");
         if (!Files.isDirectory(dir)) throw new ParameterException(getSpec().commandLine(), "Not a directory: '" + dir + "'");
 
         for (Step step : PushPlan.plan(dir.toAbsolutePath().normalize(), target))
-            execute(step, base);
+            execute(step);
 
         return 0;
     }
@@ -73,10 +67,9 @@ public class Push extends BaseCommand
      * and prints the written URI on standard output.
      *
      * @param step plan step
-     * @param base application base URI
      * @throws IOException file read error
      */
-    protected void execute(Step step, URI base) throws IOException
+    protected void execute(Step step) throws IOException
     {
         switch (step.kind())
         {
@@ -92,7 +85,7 @@ public class Push extends BaseCommand
             {
                 printErr("POST " + step.target() + " <- " + step.relative());
                 String title = step.file().getFileName().toString();
-                URI upload = dryRun ? AddFile.uploadURI(base, step.file()) : AddFile.core(getClient(), base, step.target(), step.file(), null, title, null);
+                URI upload = dryRun ? AddFile.uploadURI(step.target(), step.file()) : AddFile.core(getClient(), step.target(), step.file(), null, title, null);
                 print(upload);
             }
         }

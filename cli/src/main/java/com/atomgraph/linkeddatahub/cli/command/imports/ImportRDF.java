@@ -19,13 +19,11 @@ package com.atomgraph.linkeddatahub.cli.command.imports;
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
 import com.atomgraph.linkeddatahub.cli.command.AddConstruct;
 import com.atomgraph.linkeddatahub.cli.command.AddFile;
-import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
 import com.atomgraph.linkeddatahub.rdf.Slugs;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
@@ -39,9 +37,6 @@ import picocli.CommandLine.Parameters;
 @Command(name = "rdf", description = "Imports RDF data, optionally using a transformation query. Workflow composing add construct, add file and add rdf-import.")
 public class ImportRDF extends BaseCommand
 {
-
-    @Mixin
-    private BaseMixin baseMixin;
 
     @Option(names = "--title", required = true, paramLabel = "TITLE", description = "Title of the import")
     private String title;
@@ -67,8 +62,6 @@ public class ImportRDF extends BaseCommand
     @Override
     public Integer call() throws Exception
     {
-        URI base = baseMixin.require(getSpec());
-
         URI query = null;
         if (queryFile != null)
         {
@@ -77,7 +70,7 @@ public class ImportRDF extends BaseCommand
             query = target.resolve("#" + queryId);
         }
 
-        URI fileURI = AddFile.core(getClient(), base, target, rdfFile, contentType, title, null);
+        URI fileURI = AddFile.core(getClient(), target, rdfFile, contentType, title, null);
 
         String importId = Slugs.defaultSlug();
         AddRDFImport.core(getClient(), target, "#" + importId, title, fileURI, query, query == null ? graph : null, description);

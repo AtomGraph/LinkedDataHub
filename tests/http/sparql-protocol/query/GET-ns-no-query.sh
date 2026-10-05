@@ -19,7 +19,6 @@ class="${namespace}ClassThree"
 ldh admin add class \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$ADMIN_BASE_URL" \
   --uri "$class" \
   --label "Class Three" \
   "$ontology_doc"
@@ -29,8 +28,8 @@ ldh admin add class \
 ldh admin clear ontology \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$ADMIN_BASE_URL" \
-  --ontology "$namespace"
+  --ontology "$namespace" \
+  "$ADMIN_BASE_URL"
 
 # GET <ns> with no ?query= should return the raw namespace ontology graph (asserted
 # triples only, no RDFS materialization) rather than run a SPARQL query

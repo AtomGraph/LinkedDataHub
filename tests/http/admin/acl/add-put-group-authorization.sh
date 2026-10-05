@@ -29,9 +29,9 @@ EOF
 group_doc=$(ldh admin create group \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$ADMIN_BASE_URL" \
   --name "Test group" \
-  --member "$AGENT_URI")
+  --member "$AGENT_URI" \
+  "$ADMIN_BASE_URL")
 
 group=$(curl -s -k \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
@@ -45,11 +45,11 @@ group=$(curl -s -k \
 ldh admin create authorization \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "https://admin.test.localhost:4443/" \
   --label "Fake PUT group authorization from test.localhost" \
   --agent-group "$group" \
   --to "$END_USER_BASE_URL" \
-  --write
+  --write \
+  "https://admin.test.localhost:4443/"
 
 # access is still denied (fake authorization filtered out)
 
@@ -71,11 +71,11 @@ EOF
 ldh admin create authorization \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$ADMIN_BASE_URL" \
   --label "DELETE authorization" \
   --agent-group "$group" \
   --to "$END_USER_BASE_URL" \
-  --write
+  --write \
+  "$ADMIN_BASE_URL"
 
 # get the graph content
 

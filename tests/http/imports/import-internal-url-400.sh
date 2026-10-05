@@ -11,24 +11,12 @@ clear_ontology
 
 # create the import target item
 
-item=$(create-item.sh \
-  -f "$OWNER_CERT_FILE" \
+item=$(ldh create item \
+  -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  -b "$END_USER_BASE_URL" \
   --title "RDF import" \
-  --container "$END_USER_BASE_URL" 2>/tmp/create-item.err) || {
-    echo "DEBUG: create-item.sh FAILED (exit $?)" >&2
-    echo "DEBUG: create-item.sh stderr:" >&2
-    cat /tmp/create-item.err >&2
-    exit 1
-  }
+  --container "$END_USER_BASE_URL")
 echo "DEBUG: created import target item = [$item]"
-if [ -z "$item" ] || [[ "$item" != http* ]]; then
-  echo "DEBUG: item is not a URL - create-item.sh emitted something unexpected on stdout" >&2
-  echo "DEBUG: create-item.sh stderr:" >&2
-  cat /tmp/create-item.err >&2
-  exit 1
-fi
 
 # POST an ldh:RDFImport with the given ldh:file / spin:query and assert 400 Bad Request:
 # the import URIs must be SSRF-validated before the server dereferences them (loopback stays allowed)

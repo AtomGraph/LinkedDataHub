@@ -245,15 +245,16 @@ export async function seed() {
     // owner owns every dataspace of the stack, the entrypoint sees to that), and the host here that
     // embeds it. The remote grant is what makes the embedded rendering an anonymous reader's to
     // see; the platform's own secretary is a writer of every end-user dataspace already.
-    await ldh(['create', 'item', '-b', remoteEndUserBase(),
+    await ldh(['create', 'item',
         '--container', remoteEndUserBase(),
         '--title', remoteDocumentTitle,
         '--slug', `${slug}-remote`]);
-    await ldh(['admin', 'create', 'authorization', '-b', remoteAdminBase(),
+    await ldh(['admin', 'create', 'authorization',
         '--label', 'UI test public remote document', '--slug', remoteAuthSlug,
         '--agent-class', FOAF_AGENT,
         '--to', remoteDocument(),
-        '--read']);
+        '--read',
+        remoteAdminBase()]);
     await ldh(['create', 'item',
         '--container', endUserBase,
         '--title', 'Fixture remote host',
@@ -266,14 +267,15 @@ export async function seed() {
     // the SPARQL endpoint. Without the endpoint the page raises a Saxon-JS alert
     // ("Required cardinality of first argument of ac:document-uri()...") plus three 403s, so a
     // document-scoped grant alone does not produce a working anonymous page.
-    await ldh(['admin', 'create', 'authorization', '-b', adminBase,
+    await ldh(['admin', 'create', 'authorization',
         '--label', 'UI test public documents', '--slug', authSlugs.documents,
         '--agent-class', FOAF_AGENT,
         '--to', endUserBase,
         '--to', fixtures.container,
         '--to', fixtures.readable,
         '--to', fixtures.remoteHost,
-        '--read']);
+        '--read',
+        adminBase]);
 
     // Separate, because its scope is the one that cannot be narrowed. The endpoint enforces no
     // per-graph ACL: with this in place an anonymous SELECT reads EVERY graph in the dataspace,
@@ -281,11 +283,12 @@ export async function seed() {
     // is the platform's behaviour, not this suite's (ldh admin make-public grants the same
     // thing), and it is why fixtures.private proves only that no blanket DOCUMENT grant is in
     // force. Append as well as read: the client sends some queries over POST.
-    await ldh(['admin', 'create', 'authorization', '-b', adminBase,
+    await ldh(['admin', 'create', 'authorization',
         '--label', 'UI test public SPARQL', '--slug', authSlugs.endpoint,
         '--agent-class', FOAF_AGENT,
         '--to', `${endUserBase}sparql`,
-        '--read', '--append']);
+        '--read', '--append',
+        adminBase]);
 
     return fixtures;
 }
