@@ -87,6 +87,7 @@ extension-element-prefixes="ixsl"
     <xsl:include href="client/functions.xsl"/>
     <xsl:include href="client/tree.xsl"/>
     <xsl:include href="client/navigation.xsl"/>
+    <xsl:include href="client/chat.xsl"/>
     <xsl:include href="client/block.xsl"/>
     <xsl:include href="client/modal.xsl"/>
     <xsl:include href="client/memento.xsl"/>
@@ -191,6 +192,9 @@ WHERE
         <ixsl:set-property name="combobox" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by combobox.xsl -->
         <ixsl:set-property name="graphs" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by graph3d.xsl -->
         <ixsl:set-property name="yasqe" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <ixsl:set-property name="chat" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- the assistant's plans, keyed by card id (client/chat.xsl) -->
+        <ixsl:set-property name="chatResults" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- what each executed plan returned, keyed by card id: the next question's "them" -->
+        <ixsl:set-property name="chatExecutions" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- what each executed plan reported, keyed by card id: what its turn stores (client/chat.xsl) -->
         <ixsl:set-property name="pending-scrolls" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- deferred fragment scrolls awaiting block hydration, keyed by scroll id (ldh:RenderTab/ldh:block-hydrated) -->
         <!-- MUST exist from bootstrap, empty, before any document response fills it: acl:mode() reaches it with
              ixsl:contains(), which THROWS on a missing intermediate segment rather than returning false, and
@@ -314,6 +318,10 @@ WHERE
                     <xsl:if test="$application">
                         <ixsl:set-property name="application" select="$application" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     </xsl:if>
+                    <!-- store the dataspace's ontology from the Link header, the vocabulary its domain data is described in; blank
+                         when absent (a proxied document advertises none), so the assistant does not hand a plan the previous document's -->
+                    <xsl:variable name="ontology" select="ldh:link-targets(?headers?link, '&lds;ontology')[1]" as="xs:anyURI?"/>
+                    <ixsl:set-property name="ontology" select="($ontology, '')[1]" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     <!-- store TimeMap URI from Link header (present when the document is versioned); blank it when absent so non-versioned documents don't show the History link -->
                     <xsl:variable name="timemap" select="ldh:link-targets(?headers?link, 'rel=&quot;timemap&quot;')[1]" as="xs:anyURI?"/>
                     <ixsl:set-property name="timemap" select="($timemap, '')[1]" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
@@ -781,6 +789,7 @@ WHERE
                 <xsl:with-param name="fragment" select="$fragment"/>
             </xsl:call-template>
         </xsl:if>
+
     </xsl:template>
 
     <!-- scroll to the fragment-targeted element if present, otherwise to top -->

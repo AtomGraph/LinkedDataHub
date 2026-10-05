@@ -1748,4 +1748,76 @@
         <rdfs:label xml:lang="en-US">Failed to load block data</rdfs:label>
         <rdfs:label xml:lang="es-ES">No se pudieron cargar los datos del bloque</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="assistant">
+        <rdfs:label xml:lang="en-US">Assistant</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Asistente</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="open-assistant">
+        <rdfs:label xml:lang="en-US">Open the assistant</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Abrir el asistente</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="chat-placeholder">
+        <rdfs:label xml:lang="en-US">Ask about this data, or tell me what to change…</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Pregunta sobre estos datos o dime qué cambiar…</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="send">
+        <rdfs:label xml:lang="en-US">Send</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Enviar</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="execute">
+        <rdfs:label xml:lang="en-US">Execute</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Ejecutar</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="retry">
+        <rdfs:label xml:lang="en-US">Retry</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Reintentar</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="dismiss">
+        <rdfs:label xml:lang="en-US">Dismiss</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Descartar</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="chat-step-value">
+        <rdfs:label xml:lang="en-US">Resolved to</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Resuelto como</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="chat-not-saved">
+        <rdfs:label xml:lang="en-US">The conversation could not be saved</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo guardar la conversación</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="thinking">
+        <rdfs:label xml:lang="en-US">Thinking…</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Pensando…</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="executing">
+        <rdfs:label xml:lang="en-US">Executing</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Ejecutando</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="chat-steps">
+        <rdfs:label xml:lang="en-US">steps</rdfs:label>
+        <rdfs:label xml:lang="es-ES">pasos</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="changed-documents">
+        <rdfs:label xml:lang="en-US">Changed documents</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Documentos modificados</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="plan-not-generated">
+        <rdfs:label xml:lang="en-US">The plan could not be written</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo escribir el plan</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="execution-not-started">
+        <rdfs:label xml:lang="en-US">The plan could not be started</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo iniciar el plan</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="revise">
+        <rdfs:label xml:lang="en-US">Revise</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Revisar</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="retry-on-empty">
+        <rdfs:label xml:lang="en-US">Retry on empty result</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Reintentar si no hay resultados</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="execute-by-default">
+        <rdfs:label xml:lang="en-US">Execute by default</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Ejecutar por defecto</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>

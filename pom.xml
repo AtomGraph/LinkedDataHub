@@ -169,13 +169,13 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>6.0.3</version>
+            <version>6.0.4</version>
             <classifier>classes</classifier>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>6.0.3</version>
+            <version>6.0.4</version>
             <type>war</type>
         </dependency>
         <dependency>
@@ -399,6 +399,17 @@
                     <webappDirectory>${project.build.directory}/${build.warName}</webappDirectory>
                     <failOnMissingWebXml>true</failOnMissingWebXml>
                     <attachClasses>true</attachClasses>
+                    <!-- the agent guide is served at /AGENTS.md on every dataspace origin (web.xml maps it to the
+                         default servlet), so a query-writing client can read how the endpoint is laid out; one file,
+                         kept at the repository root where agents expect it, and shipped from there -->
+                    <webResources>
+                        <resource>
+                            <directory>${basedir}</directory>
+                            <includes>
+                                <include>AGENTS.md</include>
+                            </includes>
+                        </resource>
+                    </webResources>
                     <overlays>
                         <overlay>
                             <groupId>${project.groupId}</groupId>

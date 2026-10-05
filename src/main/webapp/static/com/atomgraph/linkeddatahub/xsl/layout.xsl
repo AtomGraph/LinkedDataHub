@@ -760,10 +760,9 @@ WHERE
 
                 <xsl:apply-templates select="." mode="ac:Footer"/>
             </div>
-
         </body>
     </xsl:template>
-    
+
     <!-- only lookup resource locally using DESCRIBE if it's external (not relative to the app's base URI) and the agent is authenticated -->
     <xsl:template match="*[*][@rdf:about = ac:absolute-path(ldh:base-uri(.))][not(starts-with(@rdf:about, lds:base()))][$foaf:Agent//@rdf:about]" mode="ac:PropertyEditor">
         <xsl:param name="endpoint" select="sd:endpoint()" as="xs:anyURI"/>

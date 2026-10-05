@@ -135,7 +135,7 @@ object { display: block; margin: auto; max-height: 400px; overflow: hidden; widt
 .graph-3d-show-panel label.sub-option { margin-left: 16px; }
 .graph-3d-zoom { position: absolute; top: 10px; left: 10px; z-index: 10; }
 .graph-3d-fullscreen { position: absolute; bottom: 10px; right: 10px; z-index: 10; }
-.graph-3d-canvas.graph-3d-maximized { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; }
+.graph-3d-canvas.graph-3d-maximized { position: fixed; inset: 0; width: auto; height: auto; z-index: 1000; }
 /* OpenLayers specific */
 /* the marker info window borrows the modal's head/body anatomy but its host is ol.Overlay's own
    wrapper, not a dialog - so the panel treatment lands here: the overlay IS the card, which is why
@@ -268,7 +268,7 @@ circle { cursor: move; }
 /* ---------- sticky chrome: header on top, action bar (legacy --action-bar-top) right under it.
    Bar heights are tokens that size the bars, not mirrors of their content, so stacked sticky
    offsets (.editor-bar) can compose them without drifting ---------- */
-:root { --ldh-header-height: 56px; --ldh-tabbar-height: 40px; --ldh-actionbar-height: 61px; --action-bar-top: var(--ldh-header-height); --ldh-content-w: 1280px; }
+:root { --ldh-header-height: 56px; --ldh-tabbar-height: 40px; --ldh-actionbar-height: 61px; --action-bar-top: var(--ldh-header-height); --ldh-content-w: 1280px; --ldh-pane-w: 100vw; /* the width the dataspace's panes span: the viewport, less whatever stands beside them */ }
 /* image caps for RDF-pointed depictions: the pixel size is whatever the dataset points at, so the
    SURFACE picks the height. These once lived in the pre-refresh vendored app.css; a re-vendor lost
    the definitions while the var() uses stayed, silently voiding every declaration that read them
@@ -583,21 +583,21 @@ button.tree-link { border: 0; background: transparent; width: 100%; font: inheri
    modes' Create picker) sits in a full-bleed header-like row. Sticky, not fixed: it rides
    the viewport bottom while the content scrolls, but parks at its flow position at the end
    of the content - stacked on the footer, never over it. The negative side margins bleed
-   the row out of the centered content column to the viewport edges; the right padding brings
+   the row out of the centered content column to the panes' edges; the right padding brings
    the buttons back to the content column's right edge, flush with the blocks. The margin bleed
-   and the padding must share the 100vw base: each is half a classic scrollbar off the layout
-   width, in the same direction, so the errors cancel and the buttons land exactly on the column
-   edge - rebasing one without the other breaks the alignment ---------- */
+   and the padding must share the --ldh-pane-w base: each is half a classic scrollbar off the
+   layout width, in the same direction, so the errors cancel and the buttons land exactly on the
+   column edge - rebasing one without the other breaks the alignment. The base is the panes'
+   width rather than the viewport's because the assistant drawer stands beside the panes and
+   narrows it (the chat section below) ---------- */
 html { overflow-x: clip; } /* the 50vw bleed overshoots by half a classic scrollbar; clip never creates a scroll container */
+/* the bar's look is the app kit's (app.css, .ldh-create-dock); this is where the page parks it */
 .ldh-create-dock {
   position: sticky;
   bottom: 0;
-  display: flex; align-items: center; justify-content: flex-end; gap: var(--sp-2);
   z-index: 24; /* above content, below popovers (40) and modal chrome */
-  margin: auto calc(50% - 50vw) 0; /* margin-top: auto parks it at the bottom of the stretched column */
-  padding: var(--sp-2) calc((100vw - min(var(--ldh-content-w), 100vw)) / 2 + var(--sp-6)) var(--sp-2) var(--sp-6);
-  background: var(--bg-card);
-  border-top: 1px solid var(--border-default);
+  margin: auto calc(50% - var(--ldh-pane-w) / 2) 0; /* margin-top: auto parks it at the bottom of the stretched column */
+  padding-right: calc((var(--ldh-pane-w) - min(var(--ldh-content-w), var(--ldh-pane-w))) / 2 + var(--sp-6));
 }
 /* the modal dim overlay is pointer-inert, so hide the dock while a modal is open */
 body:has(.ac-backdrop.modal) .ldh-create-dock { display: none; }
@@ -973,3 +973,5 @@ div.ldh-failure > .ac-alert { margin: 0; }
 .rdfa-editor-content th { background: var(--bg-recess); }
 .rdfa-editor-content caption { color: var(--fg-muted); }
 .rdfa-editor-content .rdfa-editor-island { border-color: var(--border-default); background: var(--bg-recess); }
+
+

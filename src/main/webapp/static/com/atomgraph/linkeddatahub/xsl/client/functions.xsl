@@ -245,6 +245,11 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.application')) then xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.application')) else ()"/>
     </xsl:function>
 
+    <!-- the dataspace's ontology, extracted from the Link response header by ldh:rdf-document-response; empty when the document advertised none -->
+    <xsl:function name="lds:ontology" as="xs:anyURI?">
+        <xsl:sequence select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.ontology') and not(ixsl:get(ixsl:window(), 'LinkedDataHub.ontology') = '')) then xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.ontology')) else ()"/>
+    </xsl:function>
+
     <!-- TimeMap URI extracted from the Link response header by ldh:rdf-document-response; blank when the document is not versioned -->
     <xsl:function name="ldh:timemap" as="xs:anyURI?">
         <xsl:sequence select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.timemap') and not(ixsl:get(ixsl:window(), 'LinkedDataHub.timemap') = '')) then xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.timemap')) else ()"/>

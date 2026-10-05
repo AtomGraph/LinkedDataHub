@@ -2154,6 +2154,8 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-view-toolbar.is-collapsed,
 .ldh-pivot-bar.is-collapsed,
 .chart-controls.is-collapsed { display: none; }
+/* the chart's Save stores what its controls picked, so it goes with them */
+.chart-controls.is-collapsed ~ .ldh-block-foot { display: none; }
 .ldh-grid-block .card {
   position: relative;
   display: flex; flex-direction: column; align-items: stretch;
@@ -4599,3 +4601,89 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
   box-shadow: inset 2px 0 0 var(--fg-selected);
 }
 .sb-other > li.is-active > * { color: var(--fg-selected); font-weight: var(--fw-medium); }
+
+/* =========================================================================
+   The create bar and the assistant (Assistant.jsx).
+
+   The create bar is the strip at the foot of the content body that holds the
+   document's Create button and, for a reader who can be acted for, the
+   Assistant button. The host decides where the bar parks (LinkedDataHub pins
+   it sticky at the column's foot); this is what it looks like.
+
+   A conversation is a BLOCK - a chat, placed in the document like a view or a
+   chart - headed by THE block header, so a page holds as many as it has chat
+   blocks, and the Assistant button adds another before the bar. Its body is the
+   log, then its own composer as the block's footer: two checkboxes over the
+   question and the send button. A turn is the reader's question; a plan card is
+   a nested block holding the plan's summary, its operations as step rows
+   (planned / running / done / failed, each a disclosure folding out its XML
+   and, when it failed, the message), and what came of it: the documents
+   written, the rows returned.
+   ========================================================================= */
+.ldh-create-dock { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--sp-2); padding: var(--sp-2) var(--sp-6); background: var(--bg-card); border-top: 1px solid var(--border-default); }
+.ldh-chat > form.ldh-chat-composer { display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-3); border-top: 1px solid var(--border-default); }
+.ldh-chat-composer-row { display: flex; align-items: flex-end; gap: var(--sp-2); }
+.ldh-chat-composer .ac-field { flex: 1; }
+.ldh-chat-options { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-4); }
+.ldh-chat-composer .ac-choice { font-size: var(--fs-sm); color: var(--fg-muted); }
+.ldh-chat-composer textarea { resize: none; }
+
+/* an empty log takes no room: a new chat block is its header and its composer */
+.ldh-chat-log:empty { display: none; }
+.ldh-chat-log { display: flex; flex-direction: column; gap: var(--sp-3); padding: var(--sp-3); }
+/* turns: the reader's message hugs the sender's edge, the assistant's cards sit flush left */
+.ldh-chat-turn { align-self: flex-end; max-width: 85%; margin: 0; padding: var(--sp-2) var(--sp-3); background: var(--bg-accent-quiet); color: var(--fg-1); border-radius: var(--r-md) var(--r-md) var(--r-xs) var(--r-md); font-size: var(--fs-sm); line-height: var(--lh-base); }
+/* the plan card rides the nested-block well; chat scopes its rhythm */
+.ldh-chat-plan { padding: var(--sp-3); display: flex; flex-direction: column; gap: var(--sp-3); font-size: var(--fs-sm); }
+.ldh-chat-plan > p { margin: 0; line-height: var(--lh-base); color: var(--fg-2); }
+.ldh-chat-plan-meta { font-family: var(--font-mono); font-size: 10px; letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--fg-muted); }
+.ldh-chat-plan .ac-codefield { margin: var(--sp-2) 0 var(--sp-1); max-height: 210px; overflow: auto; }
+/* the field is the kit's flex row; the pre stands where its .ac-cf-area would and fills the row like it, else it is only as wide as its longest line */
+.ldh-chat-plan .ac-codefield pre { flex: 1; min-width: 0; margin: 0; padding: var(--sp-2) var(--sp-3); font-family: var(--font-mono); font-size: 11px; line-height: var(--lh-snug); color: var(--fg-2); white-space: pre; }
+.ldh-chat-plan-actions { display: flex; gap: var(--sp-2); }
+/* the answer: the card's first line once there is one, read off the rows below it */
+.ldh-chat-answer { margin: 0; font-size: var(--fs-md); line-height: var(--lh-base); color: var(--fg-1); white-space: pre-line; }
+/* the trace: the steps under a disclosure whose summary is their count and the plan's time - open while the plan is
+   being read or run, folded once the answer has been written. No marker; the meta line is the control */
+details.ldh-chat-trace > summary { font-family: var(--font-mono); font-size: 10px; letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--fg-muted); cursor: pointer; list-style: none; }
+/* the summary is a control and looks like one: a chevron that turns when open, and the outcome's glyph */
+details.ldh-chat-trace > summary { display: inline-flex; align-items: center; gap: var(--sp-1); padding: 2px var(--sp-2) 2px 2px; border-radius: var(--r-sm); }
+details.ldh-chat-trace > summary:hover { background: var(--bg-hover); }
+details.ldh-chat-trace > summary > .chev { transition: transform var(--dur-fast, 120ms) ease; }
+details.ldh-chat-trace[open] > summary > .chev { transform: rotate(90deg); }
+details.ldh-chat-trace > summary > .st.is-done { color: var(--success-500); }
+details.ldh-chat-trace > summary > .st.is-failed { color: var(--danger-500); }
+details.ldh-chat-trace > summary::-webkit-details-marker { display: none; }
+details.ldh-chat-trace > summary:hover { color: var(--fg-2); }
+details.ldh-chat-trace > ul { margin-top: var(--sp-2); }
+/* The steps: one row per operation, there from the moment the plan is shown and changing state as the
+   executor reports - planned, running, done, failed. Each row is a disclosure whose summary is the row
+   and whose body is the operation's own XML (the first row's is the whole plan) and, when it failed,
+   the message; no marker, the row itself is the control. The tint is the status colour set the
+   alerts use (success-50 / danger-50), so a row that went green or red reads like the alert it replaces */
+.ldh-chat-steps, .ldh-chat-steps ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+/* the rows nest as the operations do: a step inside another's argument sits one level in, under a hairline */
+.ldh-chat-steps ul { margin: 2px 0 0 calc(12px + var(--sp-1)); padding-left: var(--sp-2); border-left: 1px solid var(--border-default); }
+details.ldh-chat-step { display: block; }
+details.ldh-chat-step > summary { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; align-items: center; gap: var(--sp-2); padding: var(--sp-1) var(--sp-2); border-radius: var(--r-sm); font-size: var(--fs-sm); color: var(--fg-1); cursor: pointer; list-style: none; }
+details.ldh-chat-step > summary::-webkit-details-marker { display: none; }
+details.ldh-chat-step > summary:hover { background: var(--bg-hover); }
+.ldh-chat-step .st { display: inline-flex; color: var(--fg-hint); }
+.ldh-chat-step .op { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ldh-chat-step.is-running > summary { background: var(--bg-accent-quiet); }
+.ldh-chat-step.is-running .st { justify-self: center; }
+.ldh-chat-step.is-done > summary { background: var(--success-50); }
+.ldh-chat-step.is-done .st { color: var(--success-500); }
+.ldh-chat-step.is-failed > summary { background: var(--danger-50); }
+.ldh-chat-step.is-failed .st { color: var(--danger-500); }
+.ldh-chat-step.kd-write .st { color: var(--warning-500); }
+.ldh-chat-step.kd-destructive .st { color: var(--danger-500); }
+.ldh-chat-step-message { margin: var(--sp-2) var(--sp-2) 0; font-size: var(--fs-sm); line-height: var(--lh-base); color: var(--fg-2); }
+/* changed-document links: one row per affected graph, mono URI leaf */
+.ldh-chat-docs .op { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 0; }
+/* a plan that only read shows its result set in the block's width */
+.ldh-chat-plan .ldh-chat-result { display: block; max-width: 100%; overflow-x: auto; }
+/* a result sits in a well of its own under the card - depth 2 - headed like a block; a chart's canvas gets the height a chart block gets */
+.ldh-chat-result-block { margin-top: var(--sp-2); }
+.ldh-chat-result-block > .ldh-nblock-body { padding: var(--sp-2) var(--sp-3) var(--sp-3); }
+.ldh-chat-result-block .ldh-chat-chart { min-height: 320px; }

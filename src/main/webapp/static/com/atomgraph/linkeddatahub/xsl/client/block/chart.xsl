@@ -225,7 +225,8 @@ exclude-result-prefixes="#all"
                 </xsl:choose>
                 <xsl:choose>
                     <xsl:when test="$chart-type = '&ac;BarChart'">
-                        <xsl:map-entry key="'hAxis'" select="map{ 'title': $series-title, 'textStyle': $axis-text-style, 'titleTextStyle': $axis-title-style, 'gridlines': $gridline-style, 'baselineColor': $baseline-color }"/>
+                        <!-- a bar's length is its value, so the value axis starts at zero; minValue is ignored when the data goes below it -->
+                        <xsl:map-entry key="'hAxis'" select="map{ 'title': $series-title, 'textStyle': $axis-text-style, 'titleTextStyle': $axis-title-style, 'gridlines': $gridline-style, 'baselineColor': $baseline-color, 'minValue': 0 }"/>
                         <xsl:map-entry key="'vAxis'" select="map{ 'title': $category-title, 'textStyle': $axis-text-style, 'titleTextStyle': $axis-title-style, 'gridlines': $gridline-style, 'baselineColor': $baseline-color }"/>
                     </xsl:when>
                     <xsl:otherwise>
