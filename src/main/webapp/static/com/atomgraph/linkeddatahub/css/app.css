@@ -2154,6 +2154,8 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-view-toolbar.is-collapsed,
 .ldh-pivot-bar.is-collapsed,
 .chart-controls.is-collapsed { display: none; }
+/* the chart's Save stores what its controls picked, so it goes with them */
+.chart-controls.is-collapsed ~ .ldh-block-foot { display: none; }
 .ldh-grid-block .card {
   position: relative;
   display: flex; flex-direction: column; align-items: stretch;
