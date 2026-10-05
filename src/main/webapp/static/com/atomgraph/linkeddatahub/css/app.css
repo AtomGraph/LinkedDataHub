@@ -4636,7 +4636,8 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-chat-plan > p { margin: 0; line-height: var(--lh-base); color: var(--fg-2); }
 .ldh-chat-plan-meta { font-family: var(--font-mono); font-size: 10px; letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--fg-muted); }
 .ldh-chat-plan .ac-codefield { margin: var(--sp-2) 0 var(--sp-1); max-height: 210px; overflow: auto; }
-.ldh-chat-plan .ac-codefield pre { margin: 0; padding: var(--sp-2) var(--sp-3); font-family: var(--font-mono); font-size: 11px; line-height: var(--lh-snug); color: var(--fg-2); white-space: pre; }
+/* the field is the kit's flex row; the pre stands where its .ac-cf-area would and fills the row like it, else it is only as wide as its longest line */
+.ldh-chat-plan .ac-codefield pre { flex: 1; min-width: 0; margin: 0; padding: var(--sp-2) var(--sp-3); font-family: var(--font-mono); font-size: 11px; line-height: var(--lh-snug); color: var(--fg-2); white-space: pre; }
 .ldh-chat-plan-actions { display: flex; gap: var(--sp-2); }
 /* the answer: the card's first line once there is one, read off the rows below it */
 .ldh-chat-answer { margin: 0; font-size: var(--fs-md); line-height: var(--lh-base); color: var(--fg-1); white-space: pre-line; }
