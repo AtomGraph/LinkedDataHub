@@ -86,6 +86,18 @@ async function declinePlans(page) {
 
 const stored = async doc => (await ldh(['get', '--accept', 'text/turtle', doc])).stdout;
 
+// The question to the real plan service, for the specs that need a model to write the plan. A stack
+// whose plan service has no model key - CI declares none - answers 503, and such a spec is skipped:
+// it cannot say anything about a plan nobody wrote. Any other answer is the spec's to judge.
+async function askTheModel(page, chat, question, allowNoise) {
+    allowNoise.push({ pattern: /^HTTP 503: .*\/webalgebra\/plans$/, reason: 'a plan service without a model key declines with 503' });
+    allowNoise.push({ pattern: /^console\.error: Failed to load resource: the server responded with a status of 503 /, reason: 'the browser logs that 503 too' });
+    const planned = page.waitForResponse(response => /\/webalgebra\/plans$/.test(response.url()));
+    await composer(chat).fill(question);
+    await composer(chat).press('Enter');
+    test.skip((await planned).status() === 503, 'the plan service runs without a model key');
+}
+
 test('the Assistant button starts a chat block with its own composer, and nothing is written until a question', { tag: '@owner' }, async ({ page }) => {
     await goto(page, inMode(scratch.container, CONTENT_MODE));
 
@@ -323,14 +335,13 @@ test('a reader who may not append sees the transcript and nothing to type into',
     await expect(page.locator('.ldh-chat-open')).toHaveCount(0);
 });
 
-test('a question becomes a plan that waits for Execute, and Cancel takes it away', { tag: '@owner' }, async ({ page }) => {
+test('a question becomes a plan that waits for Execute, and Cancel takes it away', { tag: '@owner' }, async ({ page, allowNoise }) => {
     test.setTimeout(120_000);
     await goto(page, inMode(scratch.container, CONTENT_MODE));
     await button(page).click();
     const chat = chatOf(page, await ephemeral(page).locator('.ldh-chat').getAttribute('data-chat'));
 
-    await composer(chat).fill('Create a child container titled Assistant test under this document');
-    await composer(chat).press('Enter');
+    await askTheModel(page, chat, 'Create a child container titled Assistant test under this document', allowNoise);
     await expect(chat.locator('.ldh-chat-turn').last()).toHaveText('Create a child container titled Assistant test under this document');
 
     // Execute by default is on, and this plan writes - a write waits for Execute whatever the checkbox says
@@ -355,15 +366,14 @@ test('a question becomes a plan that waits for Execute, and Cancel takes it away
     expect(await page.evaluate(id => id in window.LinkedDataHub.chat, id)).toBe(false);
 });
 
-test('Execute runs the plan, reports what it wrote, and the stored turn comes back with the block', { tag: '@owner' }, async ({ page }) => {
+test('Execute runs the plan, reports what it wrote, and the stored turn comes back with the block', { tag: '@owner' }, async ({ page, allowNoise }) => {
     test.setTimeout(240_000);
     await goto(page, inMode(scratch.container, CONTENT_MODE));
     await button(page).click();
     const chatUri = await ephemeral(page).locator('.ldh-chat').getAttribute('data-chat');
     const chat = chatOf(page, chatUri);
 
-    await composer(chat).fill('Create a child container titled Assistant run under this document');
-    await composer(chat).press('Enter');
+    await askTheModel(page, chat, 'Create a child container titled Assistant run under this document', allowNoise);
     await expect(cards(chat).last().locator('.ldh-chat-execute')).toBeVisible({ timeout: 90_000 });
     await cards(chat).last().locator('.ldh-chat-execute').click();
 
@@ -388,7 +398,7 @@ test('Execute runs the plan, reports what it wrote, and the stored turn comes ba
     await expect(composer(chatOf(page, chatUri))).toBeEnabled();
 });
 
-test('a question is answered in words, with its result as a block in the card, also after a reload', { tag: '@owner' }, async ({ page }) => {
+test('a question is answered in words, with its result as a block in the card, also after a reload', { tag: '@owner' }, async ({ page, allowNoise }) => {
     test.setTimeout(300_000);
     for (const title of ['Answer alpha', 'Answer beta'])
         scratch.written.push((await ldh(['create', 'item', '--container', scratch.container, '--title', title, '--slug', title.toLowerCase().replace(' ', '-')])).stdout);
@@ -397,8 +407,7 @@ test('a question is answered in words, with its result as a block in the card, a
     const chatUri = await ephemeral(page).locator('.ldh-chat').getAttribute('data-chat');
     const chat = chatOf(page, chatUri);
 
-    await composer(chat).fill('List the titles of the documents in this container');
-    await composer(chat).press('Enter');
+    await askTheModel(page, chat, 'List the titles of the documents in this container', allowNoise);
 
     // a read-only plan runs on arrival; it ends in an answer, and its result sits in a well headed like a block
     await expect(cards(chat).last().locator('.ldh-chat-answer')).not.toBeEmpty({ timeout: 180_000 });

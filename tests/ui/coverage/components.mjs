@@ -62,9 +62,9 @@ export const components = [
                 ],
             },
             { id: 'footer', name: 'Footer', selector: '.ldh-footer' },
-            // Rendered for a signed-in reader only, closed and inert until its handle is pressed:
-            // present on the page, not visible, which is what a presence probe measures.
-            { id: 'assistant', name: 'Assistant drawer', selector: '.chat-drawer' },
+            // The create bar's Assistant button, rendered for a signed-in reader who may append: it starts
+            // a chat block, and the chat blocks it starts are what specs/shell/assistant asserts.
+            { id: 'assistant', name: 'Assistant', selector: '.ldh-chat-open' },
         ],
     },
     {
