@@ -20,6 +20,11 @@ services:
       - ./tests/http/ssl/server:/var/linkeddatahub/ssl/server
       - ./tests/http/ssl/owner:/var/linkeddatahub/ssl/owner
       - ./tests/http/ssl/secretary:/var/linkeddatahub/ssl/secretary
+  web-algebra:
+    # the secretary keystore linkeddatahub generates above, and the server certificate nginx presents
+    volumes:
+      - ./tests/http/ssl/secretary:/var/webalgebra/ssl/secretary:ro
+      - ./tests/http/ssl/server:/var/webalgebra/ssl/server:ro
   fuseki:
     ports:
       - 3030:3030
