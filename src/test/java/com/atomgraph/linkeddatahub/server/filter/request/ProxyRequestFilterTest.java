@@ -160,4 +160,40 @@ public class ProxyRequestFilterTest
         }
     }
 
+    /**
+     * An upstream's Vary used to replace the proxy's own, so a cache stored the proxied RDF under the bare URL and
+     * served it to the next browser navigation: Rotten Tomatoes sends Cache-Control: max-age=300 with Vary: Accept-Encoding.
+     */
+    @Test
+    public void testUpstreamVaryDoesNotReplaceAccept()
+    {
+        Response local = Response.ok().header(HttpHeaders.VARY, "Accept, Accept-Language").build();
+        Response upstream = Response.ok().header(HttpHeaders.VARY, "Accept-Encoding").header(HttpHeaders.CACHE_CONTROL, "max-age=300").build();
+
+        try (Response response = filter.overlayHeaders(local, upstream, true))
+        {
+            assertEquals("Accept, Accept-Language, Accept-Encoding", response.getHeaderString(HttpHeaders.VARY));
+            assertEquals("max-age=300", response.getHeaderString(HttpHeaders.CACHE_CONTROL), "Cache-Control is still forwarded");
+        }
+    }
+
+    /** The raw branch stamps no Vary of its own, and still chose this body by Accept */
+    @Test
+    public void testRawResponseVariesOnAccept()
+    {
+        try (Response response = filter.overlayHeaders(Response.ok().build(), Response.ok().build(), true))
+        {
+            assertEquals("Accept", response.getHeaderString(HttpHeaders.VARY));
+        }
+    }
+
+    @Test
+    public void testMergeVary()
+    {
+        assertEquals("Accept", ProxyRequestFilter.mergeVary(null, null));
+        assertEquals("Accept, Origin", ProxyRequestFilter.mergeVary("accept", "Origin"), "field names are case-insensitive");
+        assertEquals("Accept, Accept-Language, Accept-Encoding", ProxyRequestFilter.mergeVary("Accept,Accept-Language", " Accept-Encoding , accept-language"));
+        assertEquals("*", ProxyRequestFilter.mergeVary("Accept", "*"));
+    }
+
 }

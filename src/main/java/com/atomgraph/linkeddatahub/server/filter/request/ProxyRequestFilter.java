@@ -34,7 +34,9 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import jakarta.annotation.Priority;
@@ -121,12 +123,12 @@ public class ProxyRequestFilter implements ContainerRequestFilter
      * End-to-end response headers forwarded verbatim from the upstream. Excludes hop-by-hop headers
      * (RFC 7230 §6.1), framing headers re-emitted by the container, origin-bound security headers
      * (CSP, HSTS, CORS), cookies, and {@code Content-Type}/{@code Link} which are set explicitly.
+     * {@code Vary} is not among them: it is merged, see {@link #mergeVary(String, String)}.
      */
     private static final Set<String> FORWARDED_RESPONSE_HEADERS = Set.of(
         HttpHeaders.ETAG,
         HttpHeaders.LAST_MODIFIED,
         HttpHeaders.CACHE_CONTROL,
-        HttpHeaders.VARY,
         HttpHeaders.EXPIRES,
         HttpHeaders.CONTENT_LANGUAGE,
         HttpHeaders.CONTENT_DISPOSITION,
@@ -429,7 +431,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
      * @param copyValidators whether to forward {@code ETag} and {@code Last-Modified}
      * @return response with overlaid upstream headers
      */
-    private Response overlayHeaders(Response response, Response clientResponse, boolean copyValidators)
+    protected Response overlayHeaders(Response response, Response clientResponse, boolean copyValidators)
     {
         Response.ResponseBuilder rb = Response.fromResponse(response);
 
@@ -448,7 +450,37 @@ public class ProxyRequestFilter implements ContainerRequestFilter
             if (value != null) rb.header(name, null).header(name, value); // replace, not append - the upstream value overlays any locally stamped one
         }
 
+        rb.header(HttpHeaders.VARY, null).header(HttpHeaders.VARY, mergeVary(response.getHeaderString(HttpHeaders.VARY), clientResponse.getHeaderString(HttpHeaders.VARY)));
+
         return rb.build();
+    }
+
+    /**
+     * Merges the locally stamped {@code Vary} with the upstream's, always including {@code Accept}. The upstream's
+     * value describes how the upstream's representation varies, and the proxy's varies on more: this filter itself
+     * chooses between the application shell and the proxied body by {@code Accept}, and the typed branches re-serialize
+     * into the negotiated format. Replacing the local value with the upstream's let a cache store the proxied RDF under
+     * the bare URL — an upstream's {@code Cache-Control: max-age=300} with {@code Vary: Accept-Encoding} served the
+     * next browser navigation RDF/XML for five minutes.
+     *
+     * @param local the {@code Vary} stamped on the locally built response, or {@code null}
+     * @param upstream the upstream's {@code Vary}, or {@code null}
+     * @return the merged field list, or {@code *} if either side varies on everything
+     */
+    protected static String mergeVary(String local, String upstream)
+    {
+        Set<String> seen = new HashSet<>();
+        List<String> fields = new ArrayList<>();
+        for (String value : new String[] { HttpHeaders.ACCEPT, local, upstream })
+            if (value != null)
+                for (String field : value.split(","))
+                {
+                    String trimmed = field.trim();
+                    if (trimmed.equals("*")) return "*";
+                    if (!trimmed.isEmpty() && seen.add(trimmed.toLowerCase(Locale.ROOT))) fields.add(trimmed); // field names are case-insensitive
+                }
+
+        return String.join(", ", fields);
     }
 
     /**
