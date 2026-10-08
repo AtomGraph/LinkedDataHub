@@ -62,12 +62,14 @@ import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RiotException;
 import org.apache.jena.riot.resultset.ResultSetReaderRegistry;
+import org.apache.jena.sparql.resultset.SPARQLResult;
 import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundException;
 import java.util.regex.Pattern;
 import jakarta.ws.rs.NotAcceptableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.atomgraph.core.io.ModelProvider;
+import com.atomgraph.core.io.SPARQLResultProvider;
 import com.atomgraph.core.util.ResultSetUtils;
 
 /**
@@ -300,8 +302,8 @@ public class ProxyRequestFilter implements ContainerRequestFilter
      * Dispatches on upstream {@code Content-Type} via Jena's live RIOT registry:
      * <ul>
      *   <li>{@link RDFLanguages#contentTypeToLang} + {@link ResultSetReaderRegistry#isRegistered}
-     *       → parse as {@code ResultSetRewindable}, re-serialize through
-     *       {@link #getResponse(ResultSetRewindable, Response.StatusType)};</li>
+     *       → parse as {@code SPARQLResult}, re-serialize through
+     *       {@link #getResponse(SPARQLResult, Response.StatusType)}: a result set, or the boolean an ASK answers with;</li>
      *   <li>{@link RDFLanguages#contentTypeToLang} only → parse as {@code Model}, re-serialize
      *       through {@link #getResponse(Model, Response.StatusType)} so the client gets the
      *       format it asked for via {@code Accept};</li>
@@ -384,8 +386,10 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
         if (lang != null && ResultSetReaderRegistry.isRegistered(lang))
         {
-            ResultSetRewindable results = clientResponse.readEntity(ResultSetRewindable.class);
-            return overlayHeaders(getResponse(results, clientResponse.getStatusInfo()), clientResponse, false);
+            // a results body is a result set or, when the upstream answered an ASK, a boolean; the content type does not
+            // say which, and reading a boolean as a result set throws
+            SPARQLResult result = clientResponse.readEntity(SPARQLResult.class);
+            return overlayHeaders(getResponse(result, clientResponse.getStatusInfo()), clientResponse, false);
         }
 
         if (lang != null)
@@ -467,6 +471,46 @@ public class ProxyRequestFilter implements ContainerRequestFilter
                 null,
                 new EntityTag(Long.toHexString(ModelUtils.hashModel(model))),
                 writableTypes,
+                getSystem().getSupportedLanguages(),
+                new ArrayList<>(),
+                new HTMLMediaTypePredicate()).
+            getResponseBuilder().
+            status(statusType).
+            build();
+    }
+
+    /**
+     * Builds a response for a SPARQL results body: a result set, or the boolean an ASK answers with.
+     *
+     * @param result SPARQL result as read from the upstream response
+     * @param statusType response status
+     * @return JAX-RS response
+     */
+    protected Response getResponse(SPARQLResult result, Response.StatusType statusType)
+    {
+        if (result.isBoolean()) return getBooleanResponse(result, statusType);
+        if (result.isResultSet()) return getResponse((ResultSetRewindable)result.getResultSet(), statusType); // SPARQLResultProvider reads rows rewindable
+
+        throw new IllegalArgumentException("A SPARQL results body holds a result set or a boolean");
+    }
+
+    /**
+     * Builds a response for the boolean result of an ASK, offering only the result set media types a boolean can be
+     * written in: Jena has no boolean encoding in Thrift or Protobuf, and (X)HTML has no writer for one.
+     *
+     * @param result boolean result
+     * @param statusType response status
+     * @return JAX-RS response
+     */
+    protected Response getBooleanResponse(SPARQLResult result, Response.StatusType statusType)
+    {
+        if (!result.isBoolean()) throw new IllegalArgumentException("SPARQLResult is not a boolean");
+
+        return new com.atomgraph.core.model.impl.Response(getRequest(),
+                result,
+                null,
+                new EntityTag(Long.toHexString(ResultSetUtils.hashBoolean(result.getBooleanResult()))),
+                getMediaTypes().getWritable(ResultSet.class).stream().filter(SPARQLResultProvider::isBooleanWriteable).toList(),
                 getSystem().getSupportedLanguages(),
                 new ArrayList<>(),
                 new HTMLMediaTypePredicate()).

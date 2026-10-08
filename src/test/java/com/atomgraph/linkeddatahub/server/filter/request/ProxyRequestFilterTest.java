@@ -18,17 +18,31 @@ package com.atomgraph.linkeddatahub.server.filter.request;
 
 import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.vocabulary.AC;
+import jakarta.ws.rs.NotAcceptableException;
 import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Request;
+import jakarta.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
+import org.apache.jena.query.QueryExecutionFactory;
+import org.apache.jena.query.ResultSetFactory;
+import org.apache.jena.query.ResultSetRewindable;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.sparql.resultset.SPARQLResult;
+import org.glassfish.jersey.internal.MapPropertiesDelegate;
+import org.glassfish.jersey.server.ContainerRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
 
@@ -89,6 +103,61 @@ public class ProxyRequestFilterTest
         filter.filter(requestContext);
         verify(request, never()).selectVariant(anyList());
         verify(requestContext, never()).abortWith(any());
+    }
+
+    /**
+     * The filter answering, after the upstream has, a request that accepts the given media type: a real request, so
+     * the content negotiation is Jersey's rather than a stub's.
+     */
+    private ProxyRequestFilter accepting(String accept)
+    {
+        ContainerRequest containerRequest = new ContainerRequest(URI.create("https://localhost:4443/"),
+            URI.create("https://localhost:4443/?uri=https%3A%2F%2Fremote.example%2Fsparql"), "GET", null, new MapPropertiesDelegate(), null);
+        containerRequest.header(HttpHeaders.ACCEPT, accept);
+        filter.request = containerRequest;
+        return filter;
+    }
+
+    /** An upstream that answered an ASK: the boolean is served, not read as a result set (which throws) */
+    @Test
+    public void testBooleanResultIsServedAsBoolean()
+    {
+        for (String accept : List.of("application/sparql-results+json", "application/sparql-results+xml"))
+            try (Response response = accepting(accept).getResponse(new SPARQLResult(true), Response.Status.OK))
+            {
+                assertEquals(200, response.getStatus(), accept);
+                assertTrue(response.getMediaType().isCompatible(MediaType.valueOf(accept)), response.getMediaType().toString());
+                SPARQLResult entity = (SPARQLResult)response.getEntity();
+                assertTrue(entity.isBoolean() && entity.getBooleanResult(), accept);
+            }
+    }
+
+    @Test
+    public void testBooleanResultTagsTellTrueFromFalse()
+    {
+        String trueTag, falseTag;
+        try (Response response = accepting("application/sparql-results+json").getResponse(new SPARQLResult(true), Response.Status.OK)) { trueTag = response.getHeaderString(HttpHeaders.ETAG); }
+        try (Response response = accepting("application/sparql-results+json").getResponse(new SPARQLResult(false), Response.Status.OK)) { falseTag = response.getHeaderString(HttpHeaders.ETAG); }
+        assertNotEquals(trueTag, falseTag);
+    }
+
+    /** Jena has no boolean encoding in Protobuf, and HTML has no writer for a boolean: neither is offered */
+    @Test
+    public void testBooleanResultNotOfferedInFormatsWithoutABooleanWriter()
+    {
+        assertThrows(NotAcceptableException.class, () -> accepting("application/x-protobuf+sparql-results").getResponse(new SPARQLResult(true), Response.Status.OK));
+        assertThrows(NotAcceptableException.class, () -> accepting("text/html").getResponse(new SPARQLResult(true), Response.Status.OK));
+    }
+
+    @Test
+    public void testResultSetResultIsServedAsResultSet()
+    {
+        ResultSetRewindable rows = ResultSetFactory.copyResults(QueryExecutionFactory.create("SELECT ?x WHERE { VALUES ?x { 1 2 } }", ModelFactory.createDefaultModel()).execSelect());
+        try (Response response = accepting("application/sparql-results+json").getResponse(new SPARQLResult(rows), Response.Status.OK))
+        {
+            assertEquals(200, response.getStatus());
+            assertTrue(response.getEntity() instanceof ResultSetRewindable, "the result set arm keeps its own response");
+        }
     }
 
 }
