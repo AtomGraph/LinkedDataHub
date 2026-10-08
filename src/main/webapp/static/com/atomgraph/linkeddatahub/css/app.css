@@ -1488,6 +1488,13 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
      display:contents, so it generates no box for margin-inline-start to hit. */
   margin: 0;
 }
+/* A list nested in a value cell — a blank node described in place — is its own query container,
+   like a nested .ldh-block: otherwise its groups query the enclosing block, which stays wide while
+   each level spends 264px of fixed track, and the narrow-container collapse below never fires.
+   Measured on schema.org JSON-LD three blank nodes deep: an 84px value column inside a 1232px block.
+   The full flex-basis is what gives it a width: the value cell is a wrapping flex row, which sizes
+   an item by its content, and inline-size containment makes that content 0. */
+.ldh-prop-row .ldh-prop-form { container-type: inline-size; flex: 1 1 100%; }
 
 /* One predicate (with N values) lives in a .ldh-prop-group grid. The label
    cell spans N rows; each value's .ldh-prop-row uses display:contents so its
