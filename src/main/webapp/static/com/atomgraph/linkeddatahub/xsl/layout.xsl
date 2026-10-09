@@ -710,12 +710,12 @@ WHERE
                                 <xsl:variable name="values" select="' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
                                 <!-- instance labels from /sparql merged with ontology-term (rdf:type/class) labels from /ns, so ac:object-label resolves both on the initial server render (matches the client-side merge) -->
                                 <xsl:variable name="sparql-metadata" as="document-node()?">
-                                    <xsl:try select="ldh:send-request(sd:endpoint(), 'POST', 'application/sparql-query', $object-metadata-query || $values, map{ 'Accept': 'application/rdf+xml' })">
+                                    <xsl:try select="ldh:query-result(sd:endpoint(), $object-metadata-query || $values)">
                                         <xsl:catch/>
                                     </xsl:try>
                                 </xsl:variable>
                                 <xsl:variable name="ns-metadata" as="document-node()?">
-                                    <xsl:try select="ldh:send-request(resolve-uri('ns', lds:base()), 'POST', 'application/sparql-query', $object-metadata-ns-query || $values, map{ 'Accept': 'application/rdf+xml' })">
+                                    <xsl:try select="ldh:query-result(resolve-uri('ns', lds:base()), $object-metadata-ns-query || $values)">
                                         <xsl:catch/>
                                     </xsl:try>
                                 </xsl:variable>
@@ -730,7 +730,7 @@ WHERE
                         <xsl:variable name="property-metadata" as="document-node()?">
                             <xsl:if test="exists($property-uris)">
                                 <xsl:variable name="values" select="' VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
-                                <xsl:try select="ldh:send-request(resolve-uri('ns', lds:base()), 'POST', 'application/sparql-query', $property-metadata-query || $values, map{ 'Accept': 'application/rdf+xml' })">
+                                <xsl:try select="ldh:query-result(resolve-uri('ns', lds:base()), $property-metadata-query || $values)">
                                     <xsl:catch/>
                                 </xsl:try>
                             </xsl:if>
@@ -767,7 +767,7 @@ WHERE
     <xsl:template match="*[*][@rdf:about = ac:absolute-path(ldh:base-uri(.))][not(starts-with(@rdf:about, lds:base()))][$foaf:Agent//@rdf:about]" mode="ac:PropertyEditor">
         <xsl:param name="endpoint" select="sd:endpoint()" as="xs:anyURI"/>
         <xsl:param name="property-uris" select="distinct-values(*/concat(namespace-uri(), local-name()))" as="xs:anyURI*"/>
-        <xsl:param name="property-metadata" select="ldh:send-request(resolve-uri('ns', lds:base()), 'POST', 'application/sparql-query', 'DESCRIBE ' || string-join(for $uri in distinct-values(/rdf:RDF/*/*/concat(namespace-uri(), local-name())) return '&lt;' || $uri || '&gt;', ' '), map{ 'Accept': 'application/rdf+xml' })" as="document-node()"/>
+        <xsl:param name="property-metadata" select="ldh:query-result(resolve-uri('ns', lds:base()), 'DESCRIBE ' || string-join(for $uri in distinct-values(/rdf:RDF/*/*/concat(namespace-uri(), local-name())) return '&lt;' || $uri || '&gt;', ' '))" as="document-node()"/>
         <xsl:param name="object-metadata" as="document-node()?" tunnel="yes"/>
         <xsl:variable name="local-doc" select="ldh:query-result($endpoint, 'DESCRIBE &lt;' || @rdf:about || '&gt;')" as="document-node()"/>
         <xsl:variable name="original-doc" as="document-node()">
@@ -790,7 +790,7 @@ WHERE
         <xsl:variable name="triples-original" select="ldh:triples-map($original-doc, true())" as="map(xs:string, element())"/>
         <xsl:variable name="triples-local" select="ldh:triples-map($local-doc, true())" as="map(xs:string, element())"/>
 
-        <xsl:variable name="properties-original" select="for $triple-key in ac:value-except(map:keys($triples-original), map:keys($triples-local)) return map:get($triples-original, $triple-key)" as="element()*"/>
+        <xsl:variable name="properties-original" select="for $triple-key in map:keys($triples-original)[not(map:contains($triples-local, .))] return map:get($triples-original, $triple-key)" as="element()*"/>
         <xsl:if test="exists($properties-original)">
             <div>
                 <h2 class="ldh-section-heading">
@@ -816,7 +816,7 @@ WHERE
             </div>
         </xsl:if>
 
-        <xsl:variable name="properties-local" select="for $triple-key in ac:value-except(map:keys($triples-local), map:keys($triples-original)) return map:get($triples-local, $triple-key)" as="element()*"/>
+        <xsl:variable name="properties-local" select="for $triple-key in map:keys($triples-local)[not(map:contains($triples-original, .))] return map:get($triples-local, $triple-key)" as="element()*"/>
         <xsl:if test="exists($properties-local)">
             <div>
                 <h2 class="ldh-section-heading">
@@ -842,7 +842,7 @@ WHERE
             </div>
         </xsl:if>
         
-        <xsl:variable name="properties-common" select="for $triple-key in ac:value-intersect(map:keys($triples-original), map:keys($triples-local)) return map:get($triples-original, $triple-key)" as="element()*"/>
+        <xsl:variable name="properties-common" select="for $triple-key in map:keys($triples-original)[map:contains($triples-local, .)] return map:get($triples-original, $triple-key)" as="element()*"/>
         <xsl:if test="exists($properties-common)">
             <div>
                 <h2 class="ldh-section-heading">

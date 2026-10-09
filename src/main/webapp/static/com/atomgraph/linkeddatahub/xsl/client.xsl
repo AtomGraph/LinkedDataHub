@@ -329,10 +329,10 @@ WHERE
                         <xsl:variable name="results" select="." as="document-node()"/>
                         <!-- ?diff= view: render the union of both versions' descriptions, with the one-sided triple keys classifying added/removed content -->
                         <xsl:variable name="diff-results" select="if ($context('diff-response')?status = 200 and $context('diff-response')?media-type = 'application/rdf+xml') then $context('diff-response')?body else ()" as="document-node()?"/>
-                        <xsl:variable name="result-keys" select="if (exists($diff-results)) then map:keys(ldh:triples-map($results, false())) else ()" as="xs:string*"/>
-                        <xsl:variable name="diff-keys" select="if (exists($diff-results)) then map:keys(ldh:triples-map($diff-results, false())) else ()" as="xs:string*"/>
-                        <xsl:variable name="diff-added-keys" select="ac:value-except($result-keys, $diff-keys)" as="xs:string*"/>
-                        <xsl:variable name="diff-removed-keys" select="ac:value-except($diff-keys, $result-keys)" as="xs:string*"/>
+                        <xsl:variable name="result-triples" select="if (exists($diff-results)) then ldh:triples-map($results, false()) else map{}" as="map(xs:string, element())"/>
+                        <xsl:variable name="diff-triples" select="if (exists($diff-results)) then ldh:triples-map($diff-results, false()) else map{}" as="map(xs:string, element())"/>
+                        <xsl:variable name="diff-added-keys" select="map:keys($result-triples)[not(map:contains($diff-triples, .))]" as="xs:string*"/>
+                        <xsl:variable name="diff-removed-keys" select="map:keys($diff-triples)[not(map:contains($result-triples, .))]" as="xs:string*"/>
                         <xsl:variable name="render-results" select="if (exists($diff-results)) then ldh:diff-union($results, $diff-results, $diff-removed-keys) else $results" as="document-node()"/>
                         <ixsl:set-property name="{'`' || $doc-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
                         <!-- store document under window.LinkedDataHub.contents[$doc-uri].results -->

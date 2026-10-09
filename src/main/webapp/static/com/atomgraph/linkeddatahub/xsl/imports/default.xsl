@@ -435,7 +435,16 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="if (exists($mode)) then map{ 'mode': for $m in $mode return string($m) } else map{}"/>
     </xsl:function>
 
-    <xsl:function name="ldh:query-result" as="document-node()">
+    <!-- SSR: a SPARQL Protocol POST through the ldh:send-request extension function, the server's only HTTP primitive -->
+    <xsl:function name="ldh:query-result" as="document-node()?" use-when="system-property('xsl:product-name') = 'SAXON'">
+        <xsl:param name="endpoint" as="xs:anyURI"/>
+        <xsl:param name="query" as="xs:string"/>
+
+        <xsl:sequence select="ldh:send-request($endpoint, 'POST', 'application/sparql-query', $query, map{ 'Accept': 'application/rdf+xml, application/sparql-results+xml' })"/>
+    </xsl:function>
+
+    <!-- CSR: a SPARQL Protocol GET loaded with document(), an endpoint on another origin through the ?uri= proxy -->
+    <xsl:function name="ldh:query-result" as="document-node()" use-when="system-property('xsl:product-name') = 'SaxonJS'">
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <xsl:param name="query" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query })" as="xs:anyURI"/>
@@ -782,20 +791,6 @@ exclude-result-prefixes="#all"
         </xsl:copy>
     </xsl:template>
 
-    <xsl:function name="ac:value-intersect" as="xs:anyAtomicType*">
-        <xsl:param name="arg1" as="xs:anyAtomicType*"/>
-        <xsl:param name="arg2" as="xs:anyAtomicType*"/>
-        
-        <xsl:sequence select="distinct-values($arg1[.=$arg2])"/>
-    </xsl:function>
-
-    <xsl:function name="ac:value-except" as="xs:anyAtomicType*">
-        <xsl:param name="arg1" as="xs:anyAtomicType*"/>
-        <xsl:param name="arg2" as="xs:anyAtomicType*"/>
-
-        <xsl:sequence select="distinct-values($arg1[not(.=$arg2)])"/>
-    </xsl:function>
-
     <!-- caps a key component's length: SaxonJS backs distinct-values() and xsl:for-each-group with a hash trie whose
          insert recurses once per character of the key, so keys over the JS stack limit (~6-7K frames) crash the transform
          ("too much recursion"). Long values keep a prefix and fold the whole string into a length + rolling hash -->
@@ -872,19 +867,6 @@ exclude-result-prefixes="#all"
             ,
             map { 'duplicates': 'combine' }
         )"/>
-    </xsl:function>
-
-    <!-- function stub so that Saxon-EE doesn't complain when compiling SEF -->
-    <xsl:function name="ldh:send-request" as="document-node()?" override-extension-function="no" cache="yes">
-        <xsl:param name="href" as="xs:anyURI"/>
-        <xsl:param name="method" as="xs:string"/>
-        <xsl:param name="media-type" as="xs:string?"/>
-        <xsl:param name="body" as="item()?"/>
-        <xsl:param name="headers" as="map(xs:string, xs:string)"/>
-        
-        <xsl:message use-when="system-property('xsl:product-name') = 'SAXON'" terminate="yes">
-            Not implemented -- com.atomgraph.linkeddatahub.writer.function.SendHTTPRequest needs to be registered as an extension function
-        </xsl:message>
     </xsl:function>
 
     <!-- SHARED FUNCTIONS -->
