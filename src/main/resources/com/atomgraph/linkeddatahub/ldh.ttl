@@ -18,7 +18,7 @@
 @prefix dct:	<http://purl.org/dc/terms/> .
 
 : a owl:Ontology ;
-    owl:imports dh:, ac:, <http://spinrdf.org/spin>, foaf:, sd:, nfo:, owl: ;
+    owl:imports dh:, ac:, <http://spinrdf.org/spin>, foaf:, sd:, nfo:, <http://www.w3.org/2002/07/owl> ;
     rdfs:label "LinkedDataHub ontology" ;
     rdfs:comment "Should be imported and reused by all extending applications" ;
     owl:versionInfo "1.1.7" .

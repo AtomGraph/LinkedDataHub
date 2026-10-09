@@ -18,7 +18,7 @@
 : a owl:Ontology ;
     rdfs:label "Default" ;
     rdfs:comment "Default document model" ;
-    owl:imports ldh:, lds:, sd:, sp: ;
+    owl:imports ldh:, lds:, sd:, <http://spinrdf.org/sp> ;
     owl:versionInfo "1.0-SNAPSHOT" .
 
 :Root a owl:Class ;
