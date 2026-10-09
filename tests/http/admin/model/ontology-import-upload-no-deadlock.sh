@@ -61,16 +61,18 @@ curl -k -f -s \
   -H "Accept: ${file_content_type}" \
   "$upload_uri" > /dev/null
 
-# Step 3: Add the uploaded file as an owl:import to the namespace ontology
+# Step 3: Add the uploaded ontology as an owl:import to the namespace ontology
+# The upload declares the ontology <#>, so its URI is the upload's hash URI
 
 namespace_doc="${END_USER_BASE_URL}ns"
 namespace="${namespace_doc}#"
 ontology_doc="${ADMIN_BASE_URL}ontologies/namespace/"
+upload_ontology="${upload_uri}#"
 
 ldh admin add ontology-import \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  --import "$upload_uri" \
+  --import "$upload_ontology" \
   "$ontology_doc"
 
 # Step 4: Clear the namespace ontology from memory to force reload on next request
@@ -87,7 +89,7 @@ ldh admin clear ontology \
 curl -k -f -s \
   -H "Accept: application/n-triples" \
   "$namespace_doc" \
-| grep "<${namespace}> <http://www.w3.org/2002/07/owl#imports> <${upload_uri}>" > /dev/null
+| grep "<${namespace}> <http://www.w3.org/2002/07/owl#imports> <${upload_ontology}>" > /dev/null
 
 # Step 6: Verify the uploaded file is still accessible after ontology loading
 
@@ -103,6 +105,6 @@ curl -k -f -s \
   -G \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
   -H 'Accept: application/sparql-results+xml' \
-  --data-urlencode "query=SELECT * { <https://example.org/test#TestClass> ?p ?o }" \
+  --data-urlencode "query=SELECT * { <${upload_uri}#TestClass> ?p ?o }" \
   "$namespace_doc" \
 | grep '<literal>Test Class</literal>' > /dev/null
