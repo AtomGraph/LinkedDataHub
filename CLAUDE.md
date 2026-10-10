@@ -108,6 +108,7 @@ The application runs as a multi-container setup:
 - **linkeddatahub**: Main Java application (Tomcat)
 - **fuseki**: One SPARQL server holding a TDB2 dataset per dataspace role (`config/fuseki/config.ttl`), named after the dataspace origin (deployment host dropped, role appended: `end-user`, `admin`, `northwind-traders.demo.end-user`, …), each under `fuseki/<dataset>/`; bound to apps in `config/system.trig`
 - **egress**: Squid forward proxy for the store's and platform's outbound requests (SPARQL `SERVICE`, `LOAD`): public destinations only, so a query cannot reach another dataset, Varnish or the platform
+- **web-algebra**: REST-VKG's `webalgebra-server-ldh` image — executes Web-Algebra plans and writes them from natural language for the assistant drawer (`xsl/client/chat.xsl`). nginx forwards `/webalgebra` (a reserved path, like `/static/` and `/uploads/`) to it with the caller's certificate; it presents the secretary's certificate to this instance with `On-Behalf-Of` naming the caller, which `WebIDFilter` honours because every agent's WebID document carries `<secretary> acl:delegates <agent>`. It addresses the instance by its public origin, rewritten to `nginx:9443` (`WEBALGEBRA_PROXY_HOST`), the same trick the platform's own `ClientUriRewriteFilter` plays
 - **varnish-frontend/varnish-admin/varnish-end-user**: Caching layers (admin and end-user caches both front the single `fuseki`)
 
 ### Data Flow

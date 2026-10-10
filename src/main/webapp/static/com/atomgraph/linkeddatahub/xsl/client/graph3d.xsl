@@ -498,6 +498,36 @@ WHERE
 
     <!-- DOCUMENT-MODE GRAPH INIT (called from ldh:rdf-document-response) -->
 
+    <!-- CANVAS -->
+
+    <!-- A 3D graph canvas: its graph is started the first time, and fed the graph it is handed every time after, so a
+         view that renders again redraws the same graph. `graph-results` is what the graph shows, the results unless the
+         caller says otherwise - an object block's graph is the whole document its resource came from -->
+    <xsl:template match="div[contains-token(@class, 'graph-3d-canvas')]" mode="ldh:InitCanvas">
+        <xsl:param name="results" as="document-node()" tunnel="yes"/>
+        <xsl:param name="graph-results" select="$results" as="document-node()" tunnel="yes"/>
+        <xsl:variable name="graphs" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graphs')"/>
+
+        <xsl:choose>
+            <xsl:when test="not(ixsl:contains($graphs, @id))">
+                <xsl:call-template name="ldh:InitDocumentGraph3D">
+                    <xsl:with-param name="canvas" select="."/>
+                    <xsl:with-param name="canvas-id" select="string(@id)"/>
+                    <xsl:with-param name="rdf-doc" select="$graph-results"/>
+                </xsl:call-template>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="graph-state" select="ixsl:get($graphs, @id)"/>
+                <ixsl:set-property name="document" select="$graph-results" object="$graph-state"/>
+                <xsl:call-template name="ldh:redisplay-graph">
+                    <xsl:with-param name="canvas-id" select="string(@id)"/>
+                    <xsl:with-param name="graph-state" select="$graph-state"/>
+                    <xsl:with-param name="graph-instance" select="ixsl:get($graph-state, 'instance')"/>
+                </xsl:call-template>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
     <xsl:template name="ldh:InitDocumentGraph3D">
         <xsl:param name="canvas" as="element()"/>
         <xsl:param name="canvas-id" as="xs:string"/>
@@ -510,7 +540,8 @@ WHERE
                 <xsl:with-param name="container" select="$canvas"/>
                 <xsl:with-param name="builder" select="ixsl:apply(ixsl:get(ixsl:window(), 'ForceGraph3D'), [])"/>
                 <xsl:with-param name="graph-width" select="xs:double(ixsl:get($canvas, 'offsetWidth'))"/>
-                <xsl:with-param name="graph-height" select="xs:double(ixsl:get($canvas, 'offsetHeight'))"/>
+                <!-- a canvas emitted just now, as a view's is on first activation, has no height of its own yet -->
+                <xsl:with-param name="graph-height" select="(xs:double(ixsl:get($canvas, 'offsetHeight'))[. gt 0], xs:double(600))[1]"/>
                 <xsl:with-param name="node-rel-size" select="xs:double(4)"/>
                 <xsl:with-param name="link-width" select="xs:double(1.5)"/>
                 <xsl:with-param name="node-label-color" select="'white'"/>

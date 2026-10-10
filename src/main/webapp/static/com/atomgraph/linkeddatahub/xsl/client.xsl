@@ -87,6 +87,7 @@ extension-element-prefixes="ixsl"
     <xsl:include href="client/functions.xsl"/>
     <xsl:include href="client/tree.xsl"/>
     <xsl:include href="client/navigation.xsl"/>
+    <xsl:include href="client/chat.xsl"/>
     <xsl:include href="client/block.xsl"/>
     <xsl:include href="client/modal.xsl"/>
     <xsl:include href="client/memento.xsl"/>
@@ -191,6 +192,9 @@ WHERE
         <ixsl:set-property name="combobox" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by combobox.xsl -->
         <ixsl:set-property name="graphs" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by graph3d.xsl -->
         <ixsl:set-property name="yasqe" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <ixsl:set-property name="chat" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- the assistant's plans, keyed by card id (client/chat.xsl) -->
+        <ixsl:set-property name="chatResults" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- what each executed plan returned, keyed by card id: the next question's "them" -->
+        <ixsl:set-property name="chatExecutions" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- what each executed plan reported, keyed by card id: what its turn stores (client/chat.xsl) -->
         <ixsl:set-property name="pending-scrolls" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- deferred fragment scrolls awaiting block hydration, keyed by scroll id (ldh:RenderTab/ldh:block-hydrated) -->
         <!-- MUST exist from bootstrap, empty, before any document response fills it: acl:mode() reaches it with
              ixsl:contains(), which THROWS on a missing intermediate segment rather than returning false, and
@@ -314,6 +318,10 @@ WHERE
                     <xsl:if test="$application">
                         <ixsl:set-property name="application" select="$application" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     </xsl:if>
+                    <!-- store the dataspace's ontology from the Link header, the vocabulary its domain data is described in; blank
+                         when absent (a proxied document advertises none), so the assistant does not hand a plan the previous document's -->
+                    <xsl:variable name="ontology" select="ldh:link-targets(?headers?link, '&lds;ontology')[1]" as="xs:anyURI?"/>
+                    <ixsl:set-property name="ontology" select="($ontology, '')[1]" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     <!-- store TimeMap URI from Link header (present when the document is versioned); blank it when absent so non-versioned documents don't show the History link -->
                     <xsl:variable name="timemap" select="ldh:link-targets(?headers?link, 'rel=&quot;timemap&quot;')[1]" as="xs:anyURI?"/>
                     <ixsl:set-property name="timemap" select="($timemap, '')[1]" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
@@ -321,10 +329,10 @@ WHERE
                         <xsl:variable name="results" select="." as="document-node()"/>
                         <!-- ?diff= view: render the union of both versions' descriptions, with the one-sided triple keys classifying added/removed content -->
                         <xsl:variable name="diff-results" select="if ($context('diff-response')?status = 200 and $context('diff-response')?media-type = 'application/rdf+xml') then $context('diff-response')?body else ()" as="document-node()?"/>
-                        <xsl:variable name="result-keys" select="if (exists($diff-results)) then map:keys(ldh:triples-map($results, false())) else ()" as="xs:string*"/>
-                        <xsl:variable name="diff-keys" select="if (exists($diff-results)) then map:keys(ldh:triples-map($diff-results, false())) else ()" as="xs:string*"/>
-                        <xsl:variable name="diff-added-keys" select="ac:value-except($result-keys, $diff-keys)" as="xs:string*"/>
-                        <xsl:variable name="diff-removed-keys" select="ac:value-except($diff-keys, $result-keys)" as="xs:string*"/>
+                        <xsl:variable name="result-triples" select="if (exists($diff-results)) then ldh:triples-map($results, false()) else map{}" as="map(xs:string, element())"/>
+                        <xsl:variable name="diff-triples" select="if (exists($diff-results)) then ldh:triples-map($diff-results, false()) else map{}" as="map(xs:string, element())"/>
+                        <xsl:variable name="diff-added-keys" select="map:keys($result-triples)[not(map:contains($diff-triples, .))]" as="xs:string*"/>
+                        <xsl:variable name="diff-removed-keys" select="map:keys($diff-triples)[not(map:contains($result-triples, .))]" as="xs:string*"/>
                         <xsl:variable name="render-results" select="if (exists($diff-results)) then ldh:diff-union($results, $diff-results, $diff-removed-keys) else $results" as="document-node()"/>
                         <ixsl:set-property name="{'`' || $doc-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
                         <!-- store document under window.LinkedDataHub.contents[$doc-uri].results -->
@@ -473,54 +481,34 @@ WHERE
                              a second map in every other tab's map canvas (measured 2026-09-28 with three dataspace tabs) -->
                         <xsl:variable name="rendered-pane" select="id($effective-pane-id, ixsl:page())" as="element()"/>
 
-                        <!-- initialize maps -->
-                        <xsl:if test="key('elements-by-class', 'map-canvas', $rendered-pane)">
-                            <xsl:variable name="canvas-id" select="key('elements-by-class', 'map-canvas', $rendered-pane)/@id" as="xs:string"/>
-                            <xsl:variable name="initial-load" select="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`'), 'map'))" as="xs:boolean"/>
-                            <xsl:variable name="map" select="if ($initial-load) then ldh:create-map($canvas-id, 0, 0, 4) else ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`'), 'map')" as="item()"/>
-
-                            <xsl:if test="$initial-load">
-                                <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`')"/>
-                            </xsl:if>
-
-                            <xsl:call-template name="ldh:DrawMap">
-                                <xsl:with-param name="canvas-id" select="$canvas-id"/>
-                                <xsl:with-param name="initial-load" select="$initial-load"/>
-                                <xsl:with-param name="map" select="$map"/>
-                            </xsl:call-template>
+                        <!-- the document's canvases - a map, a chart, a 3D graph, whichever its mode rendered - drawn from it,
+                             their state kept with the document's -->
+                        <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`'))">
+                            <ixsl:set-property name="{'`' || $doc-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
                         </xsl:if>
-
-                        <!-- initialize charts -->
-                        <xsl:for-each select="key('elements-by-class', 'chart-canvas', $rendered-pane)">
-                            <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
-                            <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
-                            <xsl:variable name="category" as="xs:string?"/>
-                            <xsl:variable name="series" select="distinct-values($results/*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
-                            <xsl:variable name="data-table" select="ac:rdf-data-table($results, $category, $series, $chart-type, $context('object-metadata'))"/>
-
-                            <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-
-                            <xsl:call-template name="ldh:RenderChart">
-                                <xsl:with-param name="data-table" select="$data-table"/>
-                                <xsl:with-param name="canvas-id" select="$canvas-id"/>
-                                <xsl:with-param name="chart-type" select="$chart-type"/>
-                                <xsl:with-param name="category" select="$category"/>
-                                <xsl:with-param name="series" select="$series"/>
-                            </xsl:call-template>
-                        </xsl:for-each>
-
-                        <!-- initialize 3D force graphs -->
-                        <xsl:for-each select="key('elements-by-class', 'graph-3d-canvas', $rendered-pane)">
-                            <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
-                            <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.graphs'), $canvas-id))">
-                                <xsl:call-template name="ldh:InitDocumentGraph3D">
-                                    <xsl:with-param name="canvas" select="."/>
-                                    <xsl:with-param name="canvas-id" select="$canvas-id"/>
-                                    <xsl:with-param name="rdf-doc" select="$results"/>
-                                </xsl:call-template>
-                            </xsl:if>
-                        </xsl:for-each>
+                        <xsl:apply-templates select="key('elements-by-class', ('map-canvas', 'chart-canvas', 'graph-3d-canvas'), $rendered-pane)" mode="ldh:InitCanvas">
+                            <xsl:with-param name="results" select="$results" tunnel="yes"/>
+                            <xsl:with-param name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`')" tunnel="yes"/>
+                            <xsl:with-param name="object-metadata" select="$context('object-metadata')" tunnel="yes"/>
+                        </xsl:apply-templates>
                     </xsl:for-each>
+                </xsl:when>
+                <!-- an external document with no RDF representation (the proxy answers 406 for an HTML page carrying no JSON-LD)
+                     is a page for people: open it as a target="_blank" link would, and leave the address bar, history and tab
+                     bar on the current document. Opened without the user activation of a click (it expired during the request,
+                     or the page loaded with ?uri= in the address bar) the popup is blocked, and the window navigates there itself -->
+                <xsl:when test="?status = 406 and not(starts-with($doc-uri, lds:origin(ldh:request-uri())))">
+                    <xsl:variable name="href" select="$doc-uri || (if ($fragment) then '#' || $fragment else '')" as="xs:string"/>
+                    <xsl:variable name="window" select="ixsl:call(ixsl:window(), 'open', [ $href, '_blank' ])" as="item()?"/>
+                    <xsl:choose>
+                        <xsl:when test="exists($window)">
+                            <!-- what rel="noopener" does for a link: the external page gets no handle on this one -->
+                            <ixsl:set-property name="opener" select="()" object="$window"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'location'), 'assign', [ $href ])[current-date() lt xs:date('2000-01-01')]"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
                 </xsl:when>
                 <xsl:otherwise>
                     <!-- LDH error responses arrive as http:Response RDF; non-LDH errors (e.g. 401 JSON from an external API) carry no RDF body, so synthesize a matching http:Response so the same render path can show the error -->
@@ -781,6 +769,7 @@ WHERE
                 <xsl:with-param name="fragment" select="$fragment"/>
             </xsl:call-template>
         </xsl:if>
+
     </xsl:template>
 
     <!-- scroll to the fragment-targeted element if present, otherwise to top -->

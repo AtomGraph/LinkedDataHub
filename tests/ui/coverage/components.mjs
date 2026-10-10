@@ -62,6 +62,9 @@ export const components = [
                 ],
             },
             { id: 'footer', name: 'Footer', selector: '.ldh-footer' },
+            // The create bar's Assistant button, rendered for a signed-in reader who may append: it starts
+            // a chat block, and the chat blocks it starts are what specs/shell/assistant asserts.
+            { id: 'assistant', name: 'Assistant', selector: '.ldh-chat-open' },
         ],
     },
     {

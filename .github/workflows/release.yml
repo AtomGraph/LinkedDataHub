@@ -161,6 +161,13 @@ jobs:
           # strip the literal prefix
           echo "FULL_VERSION=${RAW_REF#linkeddatahub-}" >> $GITHUB_ENV
 
+      # The CLI resolves linkeddatahub-rdf at its own version, which the tagged checkout holds. Maven
+      # Central does not: release.sh deploys the library after pushing the tag, and Central publishes
+      # it minutes later, while this job runs seconds after the push.
+      - name: Build the linkeddatahub-rdf library
+        run: mvn -B install
+        working-directory: rdf
+
       # release.sh keeps cli/pom.xml at the platform version, so the tagged commit already carries it
       # and the jar manifest ldh --version reads gets it from there
       - name: Build the ldh CLI

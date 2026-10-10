@@ -47,6 +47,7 @@ import com.atomgraph.core.io.DatasetProvider;
 import com.atomgraph.core.io.ModelProvider;
 import com.atomgraph.core.io.QueryProvider;
 import com.atomgraph.core.io.ResultSetProvider;
+import com.atomgraph.core.io.SPARQLResultProvider;
 import com.atomgraph.core.io.UpdateRequestProvider;
 import com.atomgraph.core.mapper.BadGatewayExceptionMapper;
 import com.atomgraph.core.provider.QueryParamProvider;
@@ -94,7 +95,7 @@ import com.atomgraph.linkeddatahub.server.event.SignUp;
 import com.atomgraph.linkeddatahub.server.factory.AgentContextFactory;
 import com.atomgraph.linkeddatahub.server.factory.ApplicationFactory;
 import com.atomgraph.linkeddatahub.server.factory.AuthorizationContextFactory;
-import com.atomgraph.linkeddatahub.server.filter.request.AcceptLanguageFilter;
+import com.atomgraph.linkeddatahub.server.filter.request.AcceptHeadersFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.ApplicationFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.WebIDFilter;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
@@ -1072,6 +1073,7 @@ public class Application extends ResourceConfig
         
         register(new ValidatingModelProvider(getMessageDigest()));
         register(new ResultSetProvider());
+        register(new SPARQLResultProvider()); // the boolean of an ASK, which ResultSetProvider cannot write
         register(new QueryProvider());
         register(new QueryParamProvider());
         register(new UpdateRequestProvider());
@@ -1222,7 +1224,7 @@ public class Application extends ResourceConfig
     protected void registerContainerRequestFilters()
     {
         register(new HttpMethodOverrideFilter());
-        register(AcceptLanguageFilter.class);
+        register(AcceptHeadersFilter.class);
         register(ApplicationFilter.class);
         register(OntologyFilter.class);
         register(ProxiedWebIDFilter.class);
@@ -1723,6 +1725,7 @@ public class Application extends ResourceConfig
         config.register(new ModelProvider());
         config.register(new DatasetProvider());
         config.register(new ResultSetProvider());
+        config.register(new SPARQLResultProvider());
         config.register(new QueryProvider());
         config.register(new UpdateRequestProvider());
         config.property(ClientProperties.FOLLOW_REDIRECTS, true);
@@ -1831,6 +1834,7 @@ public class Application extends ResourceConfig
             config.register(new ModelProvider());
             config.register(new DatasetProvider());
             config.register(new ResultSetProvider());
+            config.register(new SPARQLResultProvider());
             config.register(new QueryProvider());
             config.register(new UpdateRequestProvider()); // TO-DO: UpdateRequestProvider
             config.property(ClientProperties.FOLLOW_REDIRECTS, true);

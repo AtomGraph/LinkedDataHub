@@ -1,3 +1,10 @@
+## [Unreleased]
+### Added
+- An assistant for a signed-in reader: a request in natural language becomes a Web-Algebra plan, shown with its operations and its XML, and runs only on Execute; the steps, the documents the plan wrote and its result are reported as they happen, and the result is answered in words and drawn as a table, a list, a grid or a chart
+- A conversation is an `ldh:Chat` block, placed in the document by an object block: the create bar's Assistant button starts one, each ends in its own composer, and every turn is stored as an `ldh:ChatTurn` with its plan and what the execution reported, so a chat is there when the reader comes back
+- A `web-algebra` service in the stack (`ghcr.io/atomgraph/webalgebra-server-ldh`), reached through nginx at the reserved `/webalgebra` path with a WebID certificate on the connection; it acts for the reader through the secretary agent's delegation, so a plan may write exactly what its reader may. Needs the `openai_api_key` secret
+- The agent guide (`AGENTS.md`) is served at `/AGENTS.md` on every dataspace origin, public and outside the dispatcher, so a client writing a query against the endpoint - the assistant's `SPARQLString` reads it as service documentation - learns that every document is a named graph and the default graph is empty
+
 ## [6.1.0] - 2026-10-05
 ### Migration
 - **BREAKING**: `ldh` drops `-b`/`--base`; dataspace-level commands take the base URI as their positional, defaulting to `LDH_BASE`

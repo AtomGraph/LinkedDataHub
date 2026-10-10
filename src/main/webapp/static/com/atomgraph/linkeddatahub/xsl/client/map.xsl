@@ -154,6 +154,58 @@ exclude-result-prefixes="#all"
             on-failure="ldh:promise-failure($container, 'block-query-failed', ?)"/>
     </xsl:template>
     
+    <!-- CANVAS -->
+
+    <!-- A map canvas. Its OpenLayers map is kept on the cache the caller hands over, created on the first render and
+         moved onto the canvas on every later one, since a render replaces the canvas element. Its features come from
+         the view's query when there is one (all of its matches, loaded by bounding box), or else from the graph the
+         caller hands over - a document's or an object's -->
+    <xsl:template match="div[contains-token(@class, 'map-canvas')]" mode="ldh:InitCanvas">
+        <xsl:param name="results" as="document-node()?" tunnel="yes"/>
+        <xsl:param name="cache" as="item()" tunnel="yes"/>
+        <xsl:param name="select-xml" as="document-node()?" tunnel="yes"/>
+        <xsl:param name="endpoint" as="xs:anyURI?" tunnel="yes"/>
+        <xsl:param name="container" as="element()?" tunnel="yes"/>
+        <xsl:param name="container-id" as="xs:string?" tunnel="yes"/>
+        <xsl:variable name="canvas-id" select="string(@id)" as="xs:string"/>
+        <xsl:variable name="initial-load" select="not(ixsl:contains($cache, 'map'))" as="xs:boolean"/>
+        <xsl:variable name="map" select="if ($initial-load) then ldh:create-map($canvas-id, 0, 0, 4) else ixsl:get($cache, 'map')" as="item()"/> <!-- OpenLayers map object -->
+
+        <xsl:choose>
+            <xsl:when test="$initial-load">
+                <ixsl:set-property name="map" select="$map" object="$cache"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ixsl:call($map, 'setTarget', [ () ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call($map, 'setTarget', [ $canvas-id ])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call($map, 'updateSize', [])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:otherwise>
+        </xsl:choose>
+
+        <xsl:choose>
+            <xsl:when test="exists($select-xml)">
+                <xsl:sequence select="ldh:busy-cursor()"/>
+                <xsl:call-template name="ldh:LoadGeoResources">
+                    <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="container-id" select="$container-id"/>
+                    <xsl:with-param name="select-xml" select="$select-xml"/>
+                    <xsl:with-param name="endpoint" select="$endpoint"/>
+                    <xsl:with-param name="map" select="$map"/>
+                    <xsl:with-param name="initial-load" select="$initial-load"/>
+                </xsl:call-template>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:for-each select="$results">
+                    <xsl:call-template name="ldh:DrawMap">
+                        <xsl:with-param name="canvas-id" select="$canvas-id"/>
+                        <xsl:with-param name="initial-load" select="$initial-load"/>
+                        <xsl:with-param name="map" select="$map"/>
+                    </xsl:call-template>
+                </xsl:for-each>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
     <!-- create and render OpenLayers map -->
     
     <xsl:template name="ldh:DrawMap">

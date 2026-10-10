@@ -17,7 +17,7 @@
 @prefix doap:	<http://usefulinc.com/ns/doap#> .
 
 : a owl:Ontology ;
-    owl:imports ldh:, sd:, sp:, spin: ;
+    owl:imports ldh:, sd:, <http://spinrdf.org/sp>, <http://spinrdf.org/spin> ;
     rdfs:label "LinkedDataHub dataspace ontology" ;
     rdfs:comment "Ontology of LinkedDataHub dataspaces" ;
     owl:versionInfo "2.0.0" .

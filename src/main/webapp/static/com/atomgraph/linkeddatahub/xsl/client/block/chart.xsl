@@ -225,7 +225,8 @@ exclude-result-prefixes="#all"
                 </xsl:choose>
                 <xsl:choose>
                     <xsl:when test="$chart-type = '&ac;BarChart'">
-                        <xsl:map-entry key="'hAxis'" select="map{ 'title': $series-title, 'textStyle': $axis-text-style, 'titleTextStyle': $axis-title-style, 'gridlines': $gridline-style, 'baselineColor': $baseline-color }"/>
+                        <!-- a bar's length is its value, so the value axis starts at zero; minValue is ignored when the data goes below it -->
+                        <xsl:map-entry key="'hAxis'" select="map{ 'title': $series-title, 'textStyle': $axis-text-style, 'titleTextStyle': $axis-title-style, 'gridlines': $gridline-style, 'baselineColor': $baseline-color, 'minValue': 0 }"/>
                         <xsl:map-entry key="'vAxis'" select="map{ 'title': $category-title, 'textStyle': $axis-text-style, 'titleTextStyle': $axis-title-style, 'gridlines': $gridline-style, 'baselineColor': $baseline-color }"/>
                     </xsl:when>
                     <xsl:otherwise>
@@ -406,13 +407,14 @@ exclude-result-prefixes="#all"
     
     <!-- EVENT LISTENERS -->
     
-    <!-- chart-type onchange -->
-    
-    <xsl:template match="select[contains-token(@class, 'chart-type')]" mode="ixsl:onchange">
-        <xsl:variable name="chart-type" select="ixsl:get(., 'value')" as="xs:anyURI"/>
-        <xsl:variable name="category" select="ancestor::div[contains-token(@class, 'chart-controls')][1]//select[contains-token(@class, 'chart-category')]/ixsl:get(., 'value')" as="xs:string?"/>
+    <!-- a chart control changed: the chart is drawn again from what all three controls now say, over the results
+         the block holds -->
+    <xsl:template match="select[ancestor::div[contains-token(@class, 'chart-controls')]][tokenize(@class) = ('chart-type', 'chart-category', 'chart-series')]" mode="ixsl:onchange">
+        <xsl:variable name="controls" select="ancestor::div[contains-token(@class, 'chart-controls')][1]" as="element()"/>
+        <xsl:variable name="chart-type" select="$controls//select[contains-token(@class, 'chart-type')]/ixsl:get(., 'value')" as="xs:anyURI"/>
+        <xsl:variable name="category" select="$controls//select[contains-token(@class, 'chart-category')]/ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:variable name="series" as="xs:string*">
-            <xsl:for-each select="ancestor::div[contains-token(@class, 'chart-controls')][1]//select[contains-token(@class, 'chart-series')]">
+            <xsl:for-each select="$controls//select[contains-token(@class, 'chart-series')]">
                 <xsl:variable name="select" select="." as="element()"/>
                 <xsl:for-each select="0 to xs:integer(ixsl:get(., 'selectedOptions.length')) - 1">
                     <xsl:sequence select="ixsl:get(ixsl:call(ixsl:get($select, 'selectedOptions'), 'item', [ . ]), 'value')"/>
@@ -423,101 +425,94 @@ exclude-result-prefixes="#all"
         <xsl:variable name="block-id" select="$block/ldh:block-id(.)" as="xs:string?"/>
         <!-- if there is no block, the chart is rendering the current document -->
         <xsl:variable name="block-uri" select="if ($block/@about) then $block/@about else (if ($block-id) then xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id) else ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/>
-        <xsl:variable name="chart-canvas-id" select="ancestor::div[contains-token(@class, 'chart-controls')][1]/following-sibling::div[contains-token(@class, 'chart-canvas')][1]/@id" as="xs:string"/>
-        <xsl:variable name="results" select="if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'results')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'results') else root(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'content'))" as="document-node()"/>
-        <!-- the labels of the resources the results link to, where whoever loaded the results left them on the cache (ldh:RenderViewResults does) -->
-        <xsl:variable name="object-metadata" select="if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'object-metadata')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'object-metadata') else ()" as="document-node()?"/>
-        
+        <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
+        <xsl:variable name="results" select="if (ixsl:contains($cache, 'results')) then ixsl:get($cache, 'results') else root(ixsl:get($cache, 'content'))" as="document-node()"/>
+
         <xsl:if test="not($chart-type) or not($category or $results/rdf:RDF) or empty($series)">
             <xsl:message terminate="yes">Chart control values missing for content '<xsl:value-of select="$block-id"/>'</xsl:message>
         </xsl:if>
 
-        <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series, $chart-type, $object-metadata) else ac:sparql-results-data-table($results, $category, $series, $chart-type)"/>
-        <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
-
-        <xsl:call-template name="ldh:RenderChart">
-            <xsl:with-param name="data-table" select="$data-table"/>
-            <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
-            <xsl:with-param name="chart-type" select="$chart-type"/>
-            <xsl:with-param name="category" select="$category"/>
-            <xsl:with-param name="series" select="$series"/>
-        </xsl:call-template>
+        <xsl:apply-templates select="$controls/following-sibling::div[contains-token(@class, 'chart-canvas')][1]" mode="ldh:InitCanvas">
+            <xsl:with-param name="results" select="$results" tunnel="yes"/>
+            <xsl:with-param name="cache" select="$cache" tunnel="yes"/>
+            <!-- the labels of the resources the results link to, where whoever loaded the results left them on the cache (ldh:RenderViewResults does) -->
+            <xsl:with-param name="object-metadata" select="if (ixsl:contains($cache, 'object-metadata')) then ixsl:get($cache, 'object-metadata') else ()" tunnel="yes"/>
+            <xsl:with-param name="chart-type" select="$chart-type" tunnel="yes"/>
+            <xsl:with-param name="category" select="$category" tunnel="yes"/>
+            <xsl:with-param name="series" select="$series" tunnel="yes"/>
+        </xsl:apply-templates>
     </xsl:template>
 
-    <!-- category onchange -->
+    <!-- CANVAS -->
 
-    <xsl:template match="select[contains-token(@class, 'chart-category')]" mode="ixsl:onchange">
-        <xsl:variable name="chart-type" select="ancestor::div[contains-token(@class, 'chart-controls')][1]//select[contains-token(@class, 'chart-type')]/ixsl:get(., 'value')" as="xs:anyURI"/>
-        <xsl:variable name="category" select="ixsl:get(., 'value')" as="xs:string?"/>
-        <xsl:variable name="series" as="xs:string*">
-            <xsl:for-each select="ancestor::div[contains-token(@class, 'chart-controls')][1]//select[contains-token(@class, 'chart-series')]">
-                <xsl:variable name="select" select="." as="element()"/>
-                <xsl:for-each select="0 to xs:integer(ixsl:get(., 'selectedOptions.length')) - 1">
-                    <xsl:sequence select="ixsl:get(ixsl:call(ixsl:get($select, 'selectedOptions'), 'item', [ . ]), 'value')"/>
-                </xsl:for-each>
-            </xsl:for-each>
+    <!-- A chart canvas, drawn from the results it is handed: a graph or a SPARQL result set, the chart type and the
+         category and series to plot - a table of every property, when the caller names none. The data table is kept
+         on the cache the caller hands over, when it hands one. Every chart is drawn here: a chart block's, a view's in
+         ChartMode, a document's in ChartMode, an object block's, the assistant's -->
+    <xsl:template match="div[contains-token(@class, 'chart-canvas')]" mode="ldh:InitCanvas">
+        <xsl:param name="results" as="document-node()" tunnel="yes"/>
+        <xsl:param name="cache" as="item()?" tunnel="yes"/>
+        <xsl:param name="object-metadata" as="document-node()?" tunnel="yes"/>
+        <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI" tunnel="yes"/>
+        <xsl:param name="category" as="xs:string?" tunnel="yes"/>
+        <xsl:param name="series" as="xs:string*" tunnel="yes">
+            <xsl:apply-templates select="$results/*" mode="ldh:ChartSeries">
+                <xsl:with-param name="category" select="$category"/>
+            </xsl:apply-templates>
+        </xsl:param>
+        <xsl:variable name="data-table" as="item()">
+            <xsl:apply-templates select="$results/*" mode="ldh:ChartDataTable">
+                <xsl:with-param name="category" select="$category"/>
+                <xsl:with-param name="series" select="$series"/>
+                <xsl:with-param name="chart-type" select="$chart-type"/>
+                <xsl:with-param name="object-metadata" select="$object-metadata"/>
+            </xsl:apply-templates>
         </xsl:variable>
-        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()?"/>
-        <xsl:variable name="block-id" select="$block/ldh:block-id(.)" as="xs:string?"/>
-        <!-- if there is no block, the chart is rendering the current document -->
-        <xsl:variable name="block-uri" select="if ($block/@about) then $block/@about else (if ($block-id) then xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id) else ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/>
-        <xsl:variable name="chart-canvas-id" select="ancestor::div[contains-token(@class, 'chart-controls')][1]/following-sibling::div[contains-token(@class, 'chart-canvas')][1]/@id" as="xs:string"/>
-        <xsl:variable name="results" select="if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'results')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'results') else root(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'content'))" as="document-node()"/>
-        <!-- the labels of the resources the results link to, where whoever loaded the results left them on the cache (ldh:RenderViewResults does) -->
-        <xsl:variable name="object-metadata" select="if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'object-metadata')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'object-metadata') else ()" as="document-node()?"/>
 
-        <xsl:if test="not($chart-type) or not($category or $results/rdf:RDF) or empty($series)">
-            <xsl:message terminate="yes">Chart control values missing for content '<xsl:value-of select="$block-id"/>'</xsl:message>
-        </xsl:if>
-
-        <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series, $chart-type, $object-metadata) else ac:sparql-results-data-table($results, $category, $series, $chart-type)"/>
-        <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
+        <xsl:for-each select="$cache">
+            <ixsl:set-property name="data-table" select="$data-table" object="."/>
+        </xsl:for-each>
 
         <xsl:call-template name="ldh:RenderChart">
             <xsl:with-param name="data-table" select="$data-table"/>
-            <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
+            <xsl:with-param name="canvas-id" select="@id"/>
             <xsl:with-param name="chart-type" select="$chart-type"/>
             <xsl:with-param name="category" select="$category"/>
             <xsl:with-param name="series" select="$series"/>
         </xsl:call-template>
     </xsl:template>
-    
-    <!-- series onchange -->
 
-    <xsl:template match="select[contains-token(@class, 'chart-series')]" mode="ixsl:onchange">
-        <xsl:variable name="chart-type" select="ancestor::div[contains-token(@class, 'chart-controls')][1]//select[contains-token(@class, 'chart-type')]/ixsl:get(., 'value')" as="xs:anyURI"/>
-        <xsl:variable name="category" select="ancestor::div[contains-token(@class, 'chart-controls')][1]//select[contains-token(@class, 'chart-category')]/ixsl:get(., 'value')" as="xs:string?"/>
-        <xsl:variable name="series" as="xs:string*">
-            <xsl:variable name="select" select="." as="element()"/>
-            <xsl:for-each select="0 to xs:integer(ixsl:get(., 'selectedOptions.length')) - 1">
-                <xsl:sequence select="ixsl:get(ixsl:call(ixsl:get($select, 'selectedOptions'), 'item', [ . ]), 'value')"/>
-            </xsl:for-each>
-        </xsl:variable>
-        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()?"/>
-        <xsl:variable name="block-id" select="$block/ldh:block-id(.)" as="xs:string?"/>
-        <!-- if there is no block, the chart is rendering the current document -->
-        <xsl:variable name="block-uri" select="if ($block/@about) then $block/@about else (if ($block-id) then xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id) else ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/>
-        <xsl:variable name="chart-canvas-id" select="ancestor::div[contains-token(@class, 'chart-controls')][1]/following-sibling::div[contains-token(@class, 'chart-canvas')][1]/@id" as="xs:string"/>
-        <xsl:variable name="results" select="if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'results')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'results') else root(ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'content'))" as="document-node()"/>
-        <!-- the labels of the resources the results link to, where whoever loaded the results left them on the cache (ldh:RenderViewResults does) -->
-        <xsl:variable name="object-metadata" select="if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'object-metadata')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'object-metadata') else ()" as="document-node()?"/>
+    <!-- the data table of a graph: its resources, labelled with the object metadata when there is any -->
+    <xsl:template match="rdf:RDF" mode="ldh:ChartDataTable">
+        <xsl:param name="category" as="xs:string?"/>
+        <xsl:param name="series" as="xs:string*"/>
+        <xsl:param name="chart-type" as="xs:anyURI"/>
+        <xsl:param name="object-metadata" as="document-node()?"/>
 
-        <xsl:if test="not($chart-type) or not($category or $results/rdf:RDF) or empty($series)">
-            <xsl:message terminate="yes">Chart control values missing for content '<xsl:value-of select="$block-id"/>'</xsl:message>
-        </xsl:if>
-
-        <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series, $chart-type, $object-metadata) else ac:sparql-results-data-table($results, $category, $series, $chart-type)"/>
-        <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
-
-        <xsl:call-template name="ldh:RenderChart">
-            <xsl:with-param name="data-table" select="$data-table"/>
-            <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
-            <xsl:with-param name="chart-type" select="$chart-type"/>
-            <xsl:with-param name="category" select="$category"/>
-            <xsl:with-param name="series" select="$series"/>
-        </xsl:call-template>
+        <xsl:sequence select="ac:rdf-data-table(root(.), $category, $series, $chart-type, $object-metadata)"/>
     </xsl:template>
-    
+
+    <!-- the data table of a result set: its rows -->
+    <xsl:template match="srx:sparql" mode="ldh:ChartDataTable">
+        <xsl:param name="category" as="xs:string?"/>
+        <xsl:param name="series" as="xs:string*"/>
+        <xsl:param name="chart-type" as="xs:anyURI"/>
+
+        <xsl:sequence select="ac:sparql-results-data-table(root(.), $category, $series, $chart-type)"/>
+    </xsl:template>
+
+    <!-- what is plotted when the caller does not say: every property a graph's resources carry -->
+    <xsl:template match="rdf:RDF" mode="ldh:ChartSeries">
+        <xsl:sequence select="distinct-values(*/*/concat(namespace-uri(), local-name()))"/>
+    </xsl:template>
+
+    <!-- ... and every variable of a result set but the category -->
+    <xsl:template match="srx:sparql" mode="ldh:ChartSeries">
+        <xsl:param name="category" as="xs:string?"/>
+
+        <xsl:sequence select="srx:head/srx:variable/@name[not(. = $category)]/string()"/>
+    </xsl:template>
+
     <!-- create chart onclick (appends a new chart block after this, with query and category/series fields filled out) -->
 
     <!-- the block wrapper carries @about but not @typeof - ldh:BlockRow has the typeof attribute commented out
@@ -732,16 +727,13 @@ exclude-result-prefixes="#all"
 
                         <!-- Store results in cache -->
                         <ixsl:set-property name="results" select="$results" object="$context('cache')"/>
-                        <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series, $chart-type, ()) else ac:sparql-results-data-table($results, $category, $series, $chart-type)"/>
-                        <ixsl:set-property name="data-table" select="$data-table" object="$context('cache')"/>
-
-                        <xsl:call-template name="ldh:RenderChart">
-                            <xsl:with-param name="data-table" select="$data-table"/>
-                            <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
-                            <xsl:with-param name="chart-type" select="$chart-type"/>
-                            <xsl:with-param name="category" select="$category"/>
-                            <xsl:with-param name="series" select="$series"/>
-                        </xsl:call-template>
+                        <xsl:apply-templates select="id($chart-canvas-id, ixsl:page())" mode="ldh:InitCanvas">
+                            <xsl:with-param name="results" select="$results" tunnel="yes"/>
+                            <xsl:with-param name="cache" select="$context('cache')" tunnel="yes"/>
+                            <xsl:with-param name="chart-type" select="$chart-type" tunnel="yes"/>
+                            <xsl:with-param name="category" select="$category" tunnel="yes"/>
+                            <xsl:with-param name="series" select="$series" tunnel="yes"/>
+                        </xsl:apply-templates>
 
                         <!-- Mark results response as complete -->
                         <xsl:sequence select="ldh:update-progress-counter($context('cache'), $context, 'complete', ())"/>

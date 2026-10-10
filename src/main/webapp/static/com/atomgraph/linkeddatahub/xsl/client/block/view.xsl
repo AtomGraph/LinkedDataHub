@@ -1038,124 +1038,37 @@ exclude-result-prefixes="#all"
             </xsl:choose>
         </xsl:if>
 
-        <!-- after we've created the map container element, create the JS objects using it -->
-        <xsl:if test="$active-mode = '&ac;MapMode'">
-            <!-- unset LIMIT and OFFSET - we want all of the container's children on the map -->
-            <xsl:variable name="select-xml" as="document-node()">
-                <xsl:document>
-                    <xsl:apply-templates select="$select-xml" mode="ldh:replace-limit"/>
-                </xsl:document>
-            </xsl:variable>
-            <xsl:variable name="select-xml" as="document-node()">
-                <xsl:document>
-                    <xsl:apply-templates select="$select-xml" mode="ldh:replace-offset"/>
-                </xsl:document>
-            </xsl:variable>
-
-            <xsl:sequence select="ldh:busy-cursor()"/>
-
-            <xsl:variable name="canvas-id" select="$container-id || '-map-canvas'" as="xs:string"/>
-            <xsl:variable name="initial-load" select="not(ixsl:contains($cache, 'map'))" as="xs:boolean"/>
-            <xsl:variable name="map" select="if ($initial-load) then ldh:create-map($canvas-id, 0, 0, 4) else ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), 'map')" as="item()"/>  <!-- OpenLayers map object -->
-
-            <xsl:if test="not($initial-load)">
-                <ixsl:set-property name="map" select="$map" object="$cache"/>
-            </xsl:if>
-                        
-            <!-- dettach the old canvas element (since it's destroyed and regenerated during AJAX page load) -->
-            <xsl:sequence select="ixsl:call($map, 'setTarget', [ () ])[current-date() lt xs:date('2000-01-01')]"/>
-            <!-- attach the new canvas element -->
-            <xsl:sequence select="ixsl:call($map, 'setTarget', [ $canvas-id ])[current-date() lt xs:date('2000-01-01')]"/>
-            <xsl:sequence select="ixsl:call($map, 'updateSize', [])[current-date() lt xs:date('2000-01-01')]"/>
-
-            <xsl:call-template name="ldh:LoadGeoResources">
-                <xsl:with-param name="container" select="$container"/>
-                <xsl:with-param name="container-id" select="$container-id"/>
-                <xsl:with-param name="select-xml" select="$select-xml"/>
-                <xsl:with-param name="endpoint" select="$endpoint"/>
-                <xsl:with-param name="map" select="$map"/>
-                <xsl:with-param name="initial-load" select="$initial-load"/>
-            </xsl:call-template>
+        <!-- GraphMode: the persistent canvas lives in graph-host (visible since the toggle above), emitted on first
+             activation; later renders feed the same canvas the new results -->
+        <xsl:if test="$active-mode = '&ac;GraphMode' and empty(id($container-id || '-graph-canvas', ixsl:page()))">
+            <xsl:for-each select="id($container-id || '-graph-host', ixsl:page())">
+                <xsl:result-document href="?." method="ixsl:append-content">
+                    <div id="{$container-id}-graph-canvas" class="graph-3d-canvas"/>
+                </xsl:result-document>
+            </xsl:for-each>
         </xsl:if>
-        <xsl:if test="$active-mode = '&ac;ChartMode'">
-            <xsl:variable name="canvas-id" select="$container-id || '-chart-canvas'" as="xs:string"/>
-            <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
-            <xsl:variable name="category" as="xs:string?"/>
-            <xsl:variable name="series" select="distinct-values($results/*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
-            <xsl:variable name="data-table" select="ac:rdf-data-table($results, $category, $series, $chart-type, $object-metadata)"/>
 
-            <ixsl:set-property name="data-table" select="$data-table" object="$cache"/>
-
-            <xsl:call-template name="ldh:RenderChart">
-                <xsl:with-param name="data-table" select="$data-table"/>
-                <xsl:with-param name="canvas-id" select="$canvas-id"/>
-                <xsl:with-param name="chart-type" select="$chart-type"/>
-                <xsl:with-param name="category" select="$category"/>
-                <xsl:with-param name="series" select="$series"/>
-            </xsl:call-template>
-        </xsl:if>
-        <!-- GraphMode: the persistent canvas lives in graph-host (visible since the toggle above). Lazily emit the canvas div + init ForceGraph3D on first activation; subsequent re-renders just feed new $results via redisplay-graph. -->
-        <xsl:if test="$active-mode = '&ac;GraphMode'">
-            <xsl:variable name="canvas-id" select="$container-id || '-graph-canvas'" as="xs:string"/>
-            <xsl:variable name="graph-host" select="id($container-id || '-graph-host', ixsl:page())" as="element()"/>
-            <xsl:variable name="graphs" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graphs')"/>
-            <xsl:variable name="needs-init" select="not(ixsl:contains($graphs, $canvas-id))" as="xs:boolean"/>
-
-            <xsl:if test="$needs-init">
-                <xsl:for-each select="$graph-host">
-                    <xsl:result-document href="?." method="ixsl:append-content">
-                        <div id="{$canvas-id}" class="graph-3d-canvas"/>
-                    </xsl:result-document>
-                </xsl:for-each>
-
-                <xsl:variable name="canvas" select="id($canvas-id, ixsl:page())" as="element()"/>
-                <xsl:variable name="graph-state" as="item()">
-                    <xsl:call-template name="ldh:ForceGraph3D-init">
-                        <xsl:with-param name="graph-id" select="$canvas-id"/>
-                        <xsl:with-param name="container" select="$canvas"/>
-                        <xsl:with-param name="builder" select="ixsl:apply(ixsl:get(ixsl:window(), 'ForceGraph3D'), [])"/>
-                        <xsl:with-param name="graph-width" select="xs:double(ixsl:get($graph-host, 'offsetWidth'))"/>
-                        <xsl:with-param name="graph-height" select="xs:double(600)"/>
-                        <xsl:with-param name="node-rel-size" select="xs:double(4)"/>
-                        <xsl:with-param name="link-width" select="xs:double(1.5)"/>
-                        <xsl:with-param name="node-label-color" select="'white'"/>
-                        <xsl:with-param name="node-label-text-height" select="xs:double(5)"/>
-                        <xsl:with-param name="node-label-position-y" select="xs:double(10)"/>
-                        <xsl:with-param name="link-label-color" select="'lightgrey'"/>
-                        <xsl:with-param name="link-label-text-height" select="xs:double(4)"/>
-                        <xsl:with-param name="link-force-distance" select="xs:double(100)"/>
-                        <xsl:with-param name="charge-force-strength" select="xs:double(-200)"/>
-                        <xsl:with-param name="node-click-event-name" select="'ForceGraph3DNodeClick'"/>
-                        <xsl:with-param name="node-dblclick-event-name" select="'ForceGraph3DNodeDblClick'"/>
-                        <xsl:with-param name="node-rightclick-event-name" select="'ForceGraph3DNodeRightClick'"/>
-                        <xsl:with-param name="node-hover-on-event-name" select="'ForceGraph3DNodeHoverOn'"/>
-                        <xsl:with-param name="node-hover-off-event-name" select="'ForceGraph3DNodeHoverOff'"/>
-                        <xsl:with-param name="link-click-event-name" select="'ForceGraph3DLinkClick'"/>
-                        <xsl:with-param name="background-click-event-name" select="'ForceGraph3DBackgroundClick'"/>
-                    </xsl:call-template>
+        <!-- the active mode's canvas, now in the page, is drawn: a map from the view's own query - every match, so
+             without LIMIT and OFFSET - a chart or a graph from these results -->
+        <xsl:variable name="unpaged-select-xml" as="document-node()">
+            <xsl:document>
+                <xsl:variable name="unlimited" as="document-node()">
+                    <xsl:document>
+                        <xsl:apply-templates select="$select-xml" mode="ldh:replace-limit"/>
+                    </xsl:document>
                 </xsl:variable>
-                <ixsl:set-property name="document" select="$results" object="$graph-state"/>
-                <ixsl:set-property name="loaded-uris" select="ixsl:new('Array', [])" object="$graph-state"/>
-                <ixsl:set-property name="loaded-backlink-uris" select="ixsl:new('Array', [])" object="$graph-state"/>
-                <ixsl:set-property name="{$canvas-id}" select="$graph-state" object="$graphs"/>
-
-                <xsl:call-template name="ldh:AppendGraph3DPanels">
-                    <xsl:with-param name="canvas" select="$canvas"/>
-                    <xsl:with-param name="canvas-id" select="$canvas-id"/>
-                </xsl:call-template>
-            </xsl:if>
-
-            <xsl:variable name="graph-state" select="ixsl:get($graphs, $canvas-id)"/>
-            <xsl:if test="not($needs-init)">
-                <ixsl:set-property name="document" select="$results" object="$graph-state"/>
-            </xsl:if>
-            <xsl:variable name="graph-instance" select="ixsl:get($graph-state, 'instance')"/>
-            <xsl:call-template name="ldh:redisplay-graph">
-                <xsl:with-param name="canvas-id" select="$canvas-id"/>
-                <xsl:with-param name="graph-state" select="$graph-state"/>
-                <xsl:with-param name="graph-instance" select="$graph-instance"/>
-            </xsl:call-template>
-        </xsl:if>
+                <xsl:apply-templates select="$unlimited" mode="ldh:replace-offset"/>
+            </xsl:document>
+        </xsl:variable>
+        <xsl:apply-templates select="id(($container-id || '-map-canvas')[$active-mode = '&ac;MapMode'], ixsl:page()) | id(($container-id || '-chart-canvas')[$active-mode = '&ac;ChartMode'], ixsl:page()) | id(($container-id || '-graph-canvas')[$active-mode = '&ac;GraphMode'], ixsl:page())" mode="ldh:InitCanvas">
+            <xsl:with-param name="results" select="$results" tunnel="yes"/>
+            <xsl:with-param name="cache" select="$cache" tunnel="yes"/>
+            <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
+            <xsl:with-param name="select-xml" select="$unpaged-select-xml" tunnel="yes"/>
+            <xsl:with-param name="endpoint" select="$endpoint" tunnel="yes"/>
+            <xsl:with-param name="container" select="$container" tunnel="yes"/>
+            <xsl:with-param name="container-id" select="$container-id" tunnel="yes"/>
+        </xsl:apply-templates>
     </xsl:template>
     
     <!-- view mode choice -->

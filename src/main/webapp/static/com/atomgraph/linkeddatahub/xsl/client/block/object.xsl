@@ -313,62 +313,15 @@ exclude-result-prefixes="#all"
                         <ixsl:set-property name="{'`' || $block/@about || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
                     </xsl:if>
                     
-                    <!-- TO-DO: reuse similar initialization code from client.xsl -->
-                    <xsl:if test="$mode = '&ac;MapMode' and key('elements-by-class', 'map-canvas', $block)">
-                        <xsl:for-each select="$resource-doc">
-                            <!-- initialize maps -->
-                            <xsl:if test="key('elements-by-class', 'map-canvas', $block)">
-                                <xsl:variable name="block-uri" select="$block/@about" as="xs:anyURI"/>
-                                <xsl:variable name="canvas-id" select="key('elements-by-class', 'map-canvas', $block)/@id" as="xs:string"/>
-                                <xsl:variable name="initial-load" select="not(ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'map'))" as="xs:boolean"/>
-                                <xsl:variable name="map" select="if ($initial-load) then ldh:create-map($canvas-id, 0, 0, 4) else ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'map')" as="item()"/>
-
-                                <xsl:if test="$initial-load">
-                                    <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
-                                </xsl:if>
-
-                                <xsl:call-template name="ldh:DrawMap">
-                                    <xsl:with-param name="canvas-id" select="$canvas-id"/>
-                                    <xsl:with-param name="initial-load" select="$initial-load"/>
-                                    <xsl:with-param name="map" select="$map"/>
-                                </xsl:call-template>
-                            </xsl:if>
-                        </xsl:for-each>
-                    </xsl:if>
-                    <xsl:if test="$mode = '&ac;ChartMode' and key('elements-by-class', 'chart-canvas', $block)">
-                        <!-- initialize charts -->
-                        <xsl:for-each select="key('elements-by-class', 'chart-canvas', $block)">
-                            <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
-                            <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
-                            <xsl:variable name="category" as="xs:string?"/>
-                            <xsl:variable name="series" select="distinct-values($resource-doc/*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
-                            <xsl:variable name="data-table" select="ac:rdf-data-table($resource-doc, $category, $series, $chart-type, ())"/>
-
-                            <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block/@about || '`')"/>
-
-                            <xsl:call-template name="ldh:RenderChart">
-                                <xsl:with-param name="data-table" select="$data-table"/>
-                                <xsl:with-param name="canvas-id" select="$canvas-id"/>
-                                <xsl:with-param name="chart-type" select="$chart-type"/>
-                                <xsl:with-param name="category" select="$category"/>
-                                <xsl:with-param name="series" select="$series"/>
-                            </xsl:call-template>
-                        </xsl:for-each>
-                    </xsl:if>
-                    <xsl:if test="$mode = '&ac;GraphMode' and key('elements-by-class', 'graph-3d-canvas', $block)">
-                        <!-- initialize 3D force graphs -->
-                        <xsl:for-each select="key('elements-by-class', 'graph-3d-canvas', $block)">
-                            <xsl:variable name="canvas-id" select="@id" as="xs:string"/>
-                            <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.graphs'), $canvas-id))">
-                                <xsl:call-template name="ldh:InitDocumentGraph3D">
-                                    <xsl:with-param name="canvas" select="."/>
-                                    <xsl:with-param name="canvas-id" select="$canvas-id"/>
-                                    <!-- whole loaded document, deliberately not $resource-doc: matches the ac:Graph rendering in ldh:BlockRow -->
-                                    <xsl:with-param name="rdf-doc" select="root($resource)"/>
-                                </xsl:call-template>
-                            </xsl:if>
-                        </xsl:for-each>
-                    </xsl:if>
+                    <!-- the canvas of the object's layout mode - a map, a chart or a 3D graph - drawn from the object, its
+                         state kept with the block's. Only that mode's: a chart resource the object embeds renders a chart
+                         canvas of its own, which its own block draws from its query. The graph shows the whole loaded
+                         document, deliberately not the object alone: it matches the ac:Graph rendering in ldh:BlockRow -->
+                    <xsl:apply-templates select="key('elements-by-class', (for $m in $mode return map{ '&ac;MapMode': 'map-canvas', '&ac;ChartMode': 'chart-canvas', '&ac;GraphMode': 'graph-3d-canvas' }($m)), $block)" mode="ldh:InitCanvas">
+                        <xsl:with-param name="results" select="$resource-doc" tunnel="yes"/>
+                        <xsl:with-param name="graph-results" select="root($resource)" tunnel="yes"/>
+                        <xsl:with-param name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block/@about || '`')" tunnel="yes"/>
+                    </xsl:apply-templates>
                 </xsl:for-each>
             </xsl:when>
             <!-- do nothing since there is no RDF $resource in the $context map (maybe it was an non-RDF URI, e.g. an image) -->

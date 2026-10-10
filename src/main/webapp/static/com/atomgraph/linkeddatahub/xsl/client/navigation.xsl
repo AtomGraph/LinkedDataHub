@@ -358,8 +358,9 @@ ORDER BY DESC(?created)
         <xsl:apply-templates select="ancestor::div[contains-token(@class, 'ldh-sidebar')][1]" mode="ldh:CloseDrawer"/>
     </xsl:template>
 
-    <!-- Escape dismisses the open drawer (unless a modal owns the key); ⌘K/Ctrl+K opens the search
-         dialog from anywhere. Chains to the RDFa editor's body shortcuts (lower import precedence) -->
+    <!-- Escape dismisses the open dataspace drawer - unless a modal
+         owns the key; ⌘K/Ctrl+K opens the search dialog from anywhere. Chains to the RDFa editor's body shortcuts
+         (lower import precedence) -->
     <xsl:template match="body" mode="ixsl:onkeydown">
         <xsl:variable name="key" select="ixsl:get(ixsl:event(), 'key')" as="xs:string"/>
 
