@@ -25,6 +25,7 @@ import com.atomgraph.linkeddatahub.dataspaces.model.Dataset;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
 import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
+import com.atomgraph.linkeddatahub.io.HtmlJsonLDReaderFactory;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
 import com.atomgraph.linkeddatahub.server.security.WebIDSecurityContext;
@@ -398,7 +399,22 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         {
             // base URI hint so ModelProvider (and HtmlJsonLDReader through it) resolve relative IRIs against the upstream URI
             clientResponse.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, targetURI.toString());
-            Model model = clientResponse.readEntity(Model.class);
+            Model model;
+            try
+            {
+                model = clientResponse.readEntity(Model.class);
+            }
+            catch (RiotException ex)
+            {
+                // an HTML page carrying no JSON-LD is a document for people with no RDF representation, which is what
+                // the caller asked for: 406, so the client opens the page itself. A 502 would say the origin failed
+                if (HtmlJsonLDReaderFactory.HTML.equals(lang))
+                {
+                    if (log.isDebugEnabled()) log.debug("Proxied URI {} returned HTML with no readable JSON-LD", targetURI);
+                    throw new NotAcceptableException(ex);
+                }
+                throw ex;
+            }
             // forward the origin's validators (replacing the ones the Model builder stamps off the re-serialized
             // bytes): a client editing the proxied document sends If-Match through this proxy to the origin, which
             // compares against its own ETag - a re-serialization validator would 412 every proxied write. The proxy

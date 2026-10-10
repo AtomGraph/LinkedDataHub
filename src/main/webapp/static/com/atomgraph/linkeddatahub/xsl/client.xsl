@@ -493,6 +493,23 @@ WHERE
                         </xsl:apply-templates>
                     </xsl:for-each>
                 </xsl:when>
+                <!-- an external document with no RDF representation (the proxy answers 406 for an HTML page carrying no JSON-LD)
+                     is a page for people: open it as a target="_blank" link would, and leave the address bar, history and tab
+                     bar on the current document. Opened without the user activation of a click (it expired during the request,
+                     or the page loaded with ?uri= in the address bar) the popup is blocked, and the window navigates there itself -->
+                <xsl:when test="?status = 406 and not(starts-with($doc-uri, lds:origin(ldh:request-uri())))">
+                    <xsl:variable name="href" select="$doc-uri || (if ($fragment) then '#' || $fragment else '')" as="xs:string"/>
+                    <xsl:variable name="window" select="ixsl:call(ixsl:window(), 'open', [ $href, '_blank' ])" as="item()?"/>
+                    <xsl:choose>
+                        <xsl:when test="exists($window)">
+                            <!-- what rel="noopener" does for a link: the external page gets no handle on this one -->
+                            <ixsl:set-property name="opener" select="()" object="$window"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'location'), 'assign', [ $href ])[current-date() lt xs:date('2000-01-01')]"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:when>
                 <xsl:otherwise>
                     <!-- LDH error responses arrive as http:Response RDF; non-LDH errors (e.g. 401 JSON from an external API) carry no RDF body, so synthesize a matching http:Response so the same render path can show the error -->
                     <xsl:variable name="results" as="document-node()">
