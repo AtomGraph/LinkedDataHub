@@ -229,7 +229,7 @@ exclude-result-prefixes="#all"
                     <xsl:choose>
                         <!-- versioned document: the timestamp links to its version history (Memento TimeMap) -->
                         <xsl:when test="exists(ldh:timemap())">
-                            <a href="{ldh:timemap()}" class="document-history" title="{ac:label(key('resources', 'history', ldh:translations()))}">
+                            <a href="{ldh:timemap()}" class="document-history" aria-haspopup="dialog" title="{ac:label(key('resources', 'history', ldh:translations()))}">
                                 <xsl:apply-templates select="$document" mode="ldh:Timestamp"/>
                             </a>
                         </xsl:when>
