@@ -108,7 +108,7 @@ exclude-result-prefixes="#all">
          rather than over the network. Keep the two lists in step - a namespace dropped from the mapping file
          and left here asks the proxy for something the server no longer maps. A namespace earns a place by
          being imported by a system ontology or used by the stylesheets. -->
-    <xsl:param name="ontology-namespaces" as="xs:anyURI*" select="(
+    <xsl:param name="ldh:ontology-namespaces" as="xs:anyURI*" select="(
         xs:anyURI('&ac;'), xs:anyURI('&adm;'), xs:anyURI('&lacl;'),
         xs:anyURI('&lds;'), xs:anyURI('&ldh;'), xs:anyURI('&def;'),
         xs:anyURI('&dh;'), xs:anyURI('&sp;'), xs:anyURI('&spin;'),
@@ -123,7 +123,7 @@ exclude-result-prefixes="#all">
         xs:anyURI('http://usefulinc.com/ns/doap#')
     )"/>
 
-    <xsl:param name="location-mapping" as="map(xs:anyURI, xs:anyURI)">
+    <xsl:param name="ldh:location-mapping" as="map(xs:anyURI, xs:anyURI)">
         <xsl:map>
             <xsl:if test="lds:origin()">
                 <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', lds:origin())" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', lds:origin())"/>
@@ -131,7 +131,7 @@ exclude-result-prefixes="#all">
                 <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/admin/countries.rdf', lds:origin())" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/admin/countries.rdf', lds:origin())"/>                
             </xsl:if>
 
-            <xsl:for-each select="$ontology-namespaces">
+            <xsl:for-each select="$ldh:ontology-namespaces">
                 <xsl:map-entry key="ac:document-uri(.)" select="ac:build-uri(lds:base(), map{ 'uri': string(ac:document-uri(.)), 'accept': 'application/rdf+xml' })"/>
             </xsl:for-each>
             <xsl:if test="$acl:agent">
@@ -141,7 +141,7 @@ exclude-result-prefixes="#all">
     </xsl:param>
 
     <!-- the query has to support services that do not belong to any app. Use type URIs because that is what triggers Varnish invalidation. -->
-    <xsl:variable name="app-query" as="xs:string">
+    <xsl:variable name="ldh:app-query" as="xs:string">
         <![CDATA[
             DESCRIBE ?app ?service
             WHERE
@@ -155,9 +155,9 @@ exclude-result-prefixes="#all">
               }
         ]]>
     </xsl:variable>
-    <xsl:variable name="app-request-uri" select="ac:build-uri(sd:endpoint(), map{ 'query': $app-query })" as="xs:anyURI"/>
+    <xsl:variable name="ldh:app-request-uri" select="ac:build-uri(sd:endpoint(), map{ 'query': $ldh:app-query })" as="xs:anyURI"/>
     <!-- graph-free variant of object-metadata-query for the /ns ontology endpoint: its dataset is the in-memory OntModel served as the default graph (no named graphs), so a GRAPH ?graph pattern would match nothing -->
-    <!-- server-side twin of client.xsl's $property-metadata-query, so ac:property-label resolves predicate labels from
+    <!-- server-side twin of client.xsl's $ldh:property-metadata-query, so ac:property-label resolves predicate labels from
          the application ontology on the initial render as it does client-side -->
 
     <xsl:key name="apps-by-origin" match="*" use="lds:origin/@rdf:resource"/>
@@ -319,7 +319,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="load-google-charts" select="not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="load-graph3d" select="not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="output-schema-org" select="true()" as="xs:boolean"/>
-        <xsl:param name="location-mapping" select="$location-mapping" as="map(xs:anyURI, xs:anyURI)"/>
+        <xsl:param name="location-mapping" select="$ldh:location-mapping" as="map(xs:anyURI, xs:anyURI)"/>
 
         <!-- LinkedDataHub scripts -->
         <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/functions.js', lds:origin())}" defer="defer"></script>
@@ -558,7 +558,7 @@ WHERE
     </xsl:template>
 
     <xsl:template match="rdf:RDF[lds:origin()][lds:dataspace-description()/rdf:type/@rdf:resource = '&lds;EndUserDataspace'] | srx:sparql[lds:origin()][lds:dataspace-description()/rdf:type/@rdf:resource = '&lds;EndUserDataspace']" mode="ldh:DataspaceTabs" priority="1">
-            <xsl:variable name="user-defined-apps" select="if (doc-available($app-request-uri)) then document($app-request-uri)//*[lds:origin/@rdf:resource] else ()" as="element()*"/>
+            <xsl:variable name="user-defined-apps" select="if (doc-available($ldh:app-request-uri)) then document($ldh:app-request-uri)//*[lds:origin/@rdf:resource] else ()" as="element()*"/>
             <xsl:variable name="system-apps" select="$lds:Context//*[rdf:type/@rdf:resource = '&lds;EndUserDataspace'][lds:origin/@rdf:resource]" as="element()*"/>
 
             <!-- .ldh-header-actions IS the flex cluster (AppShell): controls are its direct children,
@@ -710,12 +710,12 @@ WHERE
                                 <xsl:variable name="values" select="' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
                                 <!-- instance labels from /sparql merged with ontology-term (rdf:type/class) labels from /ns, so ac:object-label resolves both on the initial server render (matches the client-side merge) -->
                                 <xsl:variable name="sparql-metadata" as="document-node()?">
-                                    <xsl:try select="ldh:query-result(sd:endpoint(), $object-metadata-query || $values)">
+                                    <xsl:try select="ldh:query-result(sd:endpoint(), $ldh:object-metadata-query || $values)">
                                         <xsl:catch/>
                                     </xsl:try>
                                 </xsl:variable>
                                 <xsl:variable name="ns-metadata" as="document-node()?">
-                                    <xsl:try select="ldh:query-result(resolve-uri('ns', lds:base()), $object-metadata-ns-query || $values)">
+                                    <xsl:try select="ldh:query-result(resolve-uri('ns', lds:base()), $ldh:object-metadata-ns-query || $values)">
                                         <xsl:catch/>
                                     </xsl:try>
                                 </xsl:variable>
@@ -730,7 +730,7 @@ WHERE
                         <xsl:variable name="property-metadata" as="document-node()?">
                             <xsl:if test="exists($property-uris)">
                                 <xsl:variable name="values" select="' VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
-                                <xsl:try select="ldh:query-result(resolve-uri('ns', lds:base()), $property-metadata-query || $values)">
+                                <xsl:try select="ldh:query-result(resolve-uri('ns', lds:base()), $ldh:property-metadata-query || $values)">
                                     <xsl:catch/>
                                 </xsl:try>
                             </xsl:if>

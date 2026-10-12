@@ -49,7 +49,7 @@ extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
 
-    <xsl:param name="select-labelled-class-or-shape-string" as="xs:string">
+    <xsl:param name="ldh:select-labelled-class-or-shape-string" as="xs:string">
 <![CDATA[
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX  sh:   <http://www.w3.org/ns/shacl#>
@@ -72,17 +72,17 @@ WHERE
     
 
     <!-- types of the violation/response machinery resources that accompany form submissions - suppressed from form rendering and excluded from instance type harvesting -->
-    <xsl:variable name="system-types" select="('&spin;ConstraintViolation', '&sh;ValidationResult', '&sh;ValidationReport', '&http;Response')" as="xs:string*"/>
+    <xsl:variable name="ldh:system-types" select="('&spin;ConstraintViolation', '&sh;ValidationResult', '&sh;ValidationReport', '&http;Response')" as="xs:string*"/>
 
     <!-- TEMPLATES -->
     
     <!-- suppress constraint violations and HTTP responses in the row form - they are displayed as errors on the edited resources -->
-    <xsl:template match="*[rdf:type/@rdf:resource = $system-types]" mode="ldh:RowForm" priority="3"/>
+    <xsl:template match="*[rdf:type/@rdf:resource = $ldh:system-types]" mode="ldh:RowForm" priority="3"/>
 
     <!-- suppress constraint violations and HTTP responses in the form - they are displayed as errors on the edited resources -->
-    <xsl:template match="*[rdf:type/@rdf:resource = $system-types]" mode="ac:ResourceForm" priority="3"/>
+    <xsl:template match="*[rdf:type/@rdf:resource = $ldh:system-types]" mode="ac:ResourceForm" priority="3"/>
 
-    <!-- suppress the constraint descriptions the exception mapper includes for kind discrimination - they are referenced via spin:violationSource/sh:sourceShape and their types are open-ended (ldh:MissingPropertyValue, per-app templates), so the $system-types list cannot enumerate them -->
+    <!-- suppress the constraint descriptions the exception mapper includes for kind discrimination - they are referenced via spin:violationSource/sh:sourceShape and their types are open-ended (ldh:MissingPropertyValue, per-app templates), so the $ldh:system-types list cannot enumerate them -->
     <xsl:template match="*[key('predicates-by-object', (@rdf:nodeID, @rdf:about))[self::spin:violationSource or self::sh:sourceShape]]" mode="ldh:RowForm" priority="3"/>
 
     <xsl:template match="*[key('predicates-by-object', (@rdf:nodeID, @rdf:about))[self::spin:violationSource or self::sh:sourceShape]]" mode="ac:ResourceForm" priority="3"/>
@@ -923,7 +923,7 @@ WHERE
     <xsl:function name="ldh:load-constraints" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="types" select="$context('types')" as="xs:anyURI*"/>
-        <xsl:variable name="query-string" select="$constraint-query || ' VALUES $Type { ' || string-join(for $t in $types return '&lt;' || $t || '&gt;', ' ') || ' }'" as="xs:string"/>
+        <xsl:variable name="query-string" select="$ldh:constraint-query || ' VALUES $Type { ' || string-join(for $t in $types return '&lt;' || $t || '&gt;', ' ') || ' }'" as="xs:string"/>
         <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', lds:base())), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
         <xsl:sequence select="map:merge(($context, map{ 'constraints-request': $request }))"/>
     </xsl:function>
@@ -1018,7 +1018,7 @@ WHERE
     <xsl:function name="ldh:load-constructors" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="types" select="$context('types')" as="xs:anyURI*"/>
-        <xsl:variable name="query-string" select="$constructor-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+        <xsl:variable name="query-string" select="$ldh:constructor-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
         <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', lds:base())), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
         <xsl:sequence select="map:merge(($context, map{ 'constructors-request': $request }))"/>
     </xsl:function>
@@ -1044,7 +1044,7 @@ WHERE
     <xsl:function name="ldh:load-shapes" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="types" select="$context('types')" as="xs:anyURI*"/>
-        <xsl:variable name="query-string" select="$shape-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+        <xsl:variable name="query-string" select="$ldh:shape-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
         <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', lds:base())), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <xsl:sequence select="map:merge(($context, map{ 'shapes-request': $request }))"/>
     </xsl:function>
@@ -1115,7 +1115,7 @@ WHERE
             <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', lds:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
             <xsl:variable name="property-metadata" select="document($request-uri)" as="document-node()"/>
 
-            <xsl:variable name="query-string" select="$constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
+            <xsl:variable name="query-string" select="$ldh:constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
             <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', lds:base()), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' }), map{})" as="xs:anyURI"/>
             <xsl:variable name="constraints" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
 
@@ -1778,8 +1778,8 @@ WHERE
                 'types': $types,
                 'forClass': $types,
                 'endpoint': sd:endpoint(),
-                'property-uris': distinct-values($body/rdf:RDF/*[not(@rdf:about = $doc-uri)][not(rdf:type/@rdf:resource = $system-types)]/*/concat(namespace-uri(), local-name())),
-                'object-uris': distinct-values($body/rdf:RDF/*[not(rdf:type/@rdf:resource = $system-types)]/*/@rdf:resource[not(key('resources', .))])
+                'property-uris': distinct-values($body/rdf:RDF/*[not(@rdf:about = $doc-uri)][not(rdf:type/@rdf:resource = $ldh:system-types)]/*/concat(namespace-uri(), local-name())),
+                'object-uris': distinct-values($body/rdf:RDF/*[not(rdf:type/@rdf:resource = $ldh:system-types)]/*/@rdf:resource[not(key('resources', .))])
             }
         ), map{ 'duplicates': 'use-last' })"/>
 
@@ -1926,7 +1926,7 @@ WHERE
     <xsl:template match="input[contains-token(@class, 'type-combobox')]" mode="ixsl:onkeyup" priority="1">
         <xsl:next-match>
             <xsl:with-param name="endpoint" select="resolve-uri('ns', lds:base())"/>
-            <xsl:with-param name="select-string" select="$select-labelled-class-or-shape-string"/>
+            <xsl:with-param name="select-string" select="$ldh:select-labelled-class-or-shape-string"/>
             <!-- undefine $type-var-name in order not to set apply FILTER($Type) on the SPARQL query (since it's absent in the above query) -->
             <xsl:with-param name="type-var-name" select="()"/>
         </xsl:next-match>
@@ -1939,12 +1939,12 @@ WHERE
         <xsl:param name="delay" select="400" as="xs:integer"/>
         <xsl:param name="endpoint" select="sd:endpoint()" as="xs:anyURI"/>
         <xsl:param name="forClass" select="../ixsl:get(., 'dataset.forClass') ! tokenize(.) ! xs:anyURI(.)" as="xs:anyURI*"/>
-        <xsl:param name="select-string" select="$select-labelled-string" as="xs:string?"/>
+        <xsl:param name="select-string" select="$ldh:select-labelled-string" as="xs:string?"/>
         <xsl:param name="limit" select="100" as="xs:integer?"/>
         <xsl:param name="label-var-name" select="'label'" as="xs:string"/>
         <xsl:param name="type-var-name" select="'Type'" as="xs:string?"/>
         <xsl:variable name="key-code" select="ixsl:get(ixsl:event(), 'code')" as="xs:string"/>
-        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($sparql-parser, 'parse', [ $select-string ]) ])" as="xs:string"/>
+        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($ldh:sparql-parser, 'parse', [ $select-string ]) ])" as="xs:string"/>
         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
         <!-- append FILTER(regex()) -->
         <xsl:variable name="select-xml" as="document-node()">
@@ -1989,7 +1989,7 @@ WHERE
         </xsl:variable>
         <xsl:variable name="query-json-string" select="xml-to-json($query-xml)" as="xs:string"/>
         <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
-        <xsl:variable name="query-string" select="ixsl:call($sparql-generator, 'stringify', [ $query-json ])" as="xs:string"/>
+        <xsl:variable name="query-string" select="ixsl:call($ldh:sparql-generator, 'stringify', [ $query-json ])" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/> <!-- proxy the results -->
         <!-- TO-DO: use <ixsl:schedule-action> instead of document() -->
@@ -2306,7 +2306,7 @@ WHERE
                     </xsl:variable>
                     <xsl:variable name="update-json-string" select="xml-to-json($update-xml)" as="xs:string"/>
                     <xsl:variable name="update-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $update-json-string ])"/>
-                    <xsl:variable name="update-string" select="ixsl:call($sparql-generator, 'stringify', [ $update-json ])" as="xs:string"/>
+                    <xsl:variable name="update-string" select="ixsl:call($ldh:sparql-generator, 'stringify', [ $update-json ])" as="xs:string"/>
                     <xsl:variable name="request-uri" select="ldh:href($action, map{})" as="xs:anyURI"/>
 
                     <xsl:variable name="request" as="item()*">

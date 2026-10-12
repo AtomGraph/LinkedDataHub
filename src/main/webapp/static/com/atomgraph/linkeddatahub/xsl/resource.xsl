@@ -1085,8 +1085,8 @@ exclude-result-prefixes="#all"
 
         <div>
             <!--
-            <xsl:if test="doc-available($app-request-uri)">
-                <xsl:variable name="apps" select="document($app-request-uri)" as="document-node()"/>
+            <xsl:if test="doc-available($ldh:app-request-uri)">
+                <xsl:variable name="apps" select="document($ldh:app-request-uri)" as="document-node()"/>
                 <xsl:if test="$apps//*[sd:endpoint/@rdf:resource]">
                     <xsl:variable name="resource" select="." as="element()"/>
                     

@@ -294,7 +294,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="query" as="xs:string"/>
 
         <!-- read the parse tree through JSON serialization - SaxonJS does not marshal plain JS arrays for ixsl:get() access -->
-        <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($sparql-parser, 'parse', [ $query ]) ])"/>
+        <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($ldh:sparql-parser, 'parse', [ $query ]) ])"/>
     </xsl:function>
 
     <xsl:function name="ldh:url-decode" as="xs:string">
@@ -620,7 +620,7 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:variable name="update-json-string" select="xml-to-json($update-xml)" as="xs:string"/>
         <xsl:variable name="update-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $update-json-string ])"/>
-        <xsl:sequence select="ixsl:call($sparql-generator, 'stringify', [ $update-json ])"/>
+        <xsl:sequence select="ixsl:call($ldh:sparql-generator, 'stringify', [ $update-json ])"/>
     </xsl:function>
     
     <!-- generic HTTP client promises (SaxonJS 3) -->

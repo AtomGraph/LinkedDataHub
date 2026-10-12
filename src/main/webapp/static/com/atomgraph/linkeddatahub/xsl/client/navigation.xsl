@@ -39,7 +39,7 @@ exclude-result-prefixes="#all"
 
     <!-- PARAMS -->
 
-    <xsl:param name="class-types-string" as="xs:string">
+    <xsl:param name="ldh:class-types-string" as="xs:string">
 <![CDATA[
 SELECT DISTINCT  ?type (COUNT(?s) AS ?count)
 WHERE
@@ -55,7 +55,7 @@ LIMIT   10
 ]]>
     </xsl:param>
 
-    <xsl:param name="geo-resources-string" as="xs:string">
+    <xsl:param name="ldh:geo-resources-string" as="xs:string">
 <![CDATA[
 PREFIX geo: <http://www.w3.org/2003/01/geo/wgs84_pos#>
 PREFIX dct: <http://purl.org/dc/terms/>
@@ -75,7 +75,7 @@ ORDER BY ?title
 ]]>
     </xsl:param>
 
-    <xsl:param name="latest-resources-string" as="xs:string">
+    <xsl:param name="ldh:latest-resources-string" as="xs:string">
 <![CDATA[
 PREFIX dct: <http://purl.org/dc/terms/>
 
@@ -641,15 +641,15 @@ ORDER BY DESC(?created)
 
         <xsl:sequence select="ldh:busy-cursor()"/>
 
-        <xsl:variable name="select-string" select="$class-types-string" as="xs:string"/>
+        <xsl:variable name="select-string" select="$ldh:class-types-string" as="xs:string"/>
         <xsl:variable name="select-json" as="item()">
-            <xsl:sequence select="ixsl:call($sparql-parser, 'parse', [ $select-string ])"/>
+            <xsl:sequence select="ixsl:call($ldh:sparql-parser, 'parse', [ $select-string ])"/>
         </xsl:variable>
         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
         <xsl:variable name="query-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
         <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
-        <xsl:variable name="query-string" select="ixsl:call($sparql-generator, 'stringify', [ $query-json ])" as="xs:string"/>
+        <xsl:variable name="query-string" select="ixsl:call($ldh:sparql-generator, 'stringify', [ $query-json ])" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
@@ -872,7 +872,7 @@ ORDER BY DESC(?created)
         <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $container-id || '`')" as="item()"/>
 
         <xsl:variable name="select-json" as="item()">
-            <xsl:sequence select="ixsl:call($sparql-parser, 'parse', [ $select-string ])"/>
+            <xsl:sequence select="ixsl:call($ldh:sparql-parser, 'parse', [ $select-string ])"/>
         </xsl:variable>
         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
         <xsl:variable name="select-xml" as="document-node()">
@@ -936,7 +936,7 @@ ORDER BY DESC(?created)
         <xsl:variable name="pane-id" select="$target/ancestor::div[contains-token(@class, 'ldh-pane')]/@id" as="xs:string"/>
         <xsl:variable name="modal-id" select="'geo-modal-' || $pane-id" as="xs:string"/>
         <xsl:variable name="container-id" select="'geo-container-' || $pane-id" as="xs:string"/>
-        <xsl:variable name="select-string" select="$geo-resources-string" as="xs:string"/>
+        <xsl:variable name="select-string" select="$ldh:geo-resources-string" as="xs:string"/>
 
         <xsl:variable name="modal" as="element()">
             <div class="ac-backdrop pos-top modal modal-constructor modal-geo" id="{$modal-id}" data-container-id="{$container-id}">
@@ -985,7 +985,7 @@ ORDER BY DESC(?created)
         </xsl:if>
         <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $container-id || '`')" as="item()"/>
         <ixsl:set-property name="select-string" select="$select-string" object="$cache"/>
-        <ixsl:set-property name="initial-var-name" select="'resource'" object="$cache"/> <!-- has to match $geo-resources-string -->
+        <ixsl:set-property name="initial-var-name" select="'resource'" object="$cache"/> <!-- has to match $ldh:geo-resources-string -->
         <ixsl:set-property name="endpoint" select="sd:endpoint()" object="$cache"/>
 
         <xsl:call-template name="ldh:GeoResourcesLoad">
@@ -1006,7 +1006,7 @@ ORDER BY DESC(?created)
         <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="select-json" as="item()">
-            <xsl:sequence select="ixsl:call($sparql-parser, 'parse', [ $select-string ])"/>
+            <xsl:sequence select="ixsl:call($ldh:sparql-parser, 'parse', [ $select-string ])"/>
         </xsl:variable>
         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
         <xsl:variable name="select-xml" as="document-node()">
@@ -1047,7 +1047,7 @@ ORDER BY DESC(?created)
         <xsl:variable name="pane-id" select="$target/ancestor::div[contains-token(@class, 'ldh-pane')]/@id" as="xs:string"/>
         <xsl:variable name="modal-id" select="'latest-modal-' || $pane-id" as="xs:string"/>
         <xsl:variable name="container-id" select="'latest-container-' || $pane-id" as="xs:string"/>
-        <xsl:variable name="select-string" select="$latest-resources-string" as="xs:string"/>
+        <xsl:variable name="select-string" select="$ldh:latest-resources-string" as="xs:string"/>
 
         <xsl:variable name="modal" as="element()">
             <div class="ac-backdrop pos-top modal modal-constructor modal-latest" id="{$modal-id}" data-container-id="{$container-id}">
@@ -1096,7 +1096,7 @@ ORDER BY DESC(?created)
         </xsl:if>
         <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $container-id || '`')" as="item()"/>
         <ixsl:set-property name="select-string" select="$select-string" object="$cache"/>
-        <ixsl:set-property name="initial-var-name" select="'dated'" object="$cache"/> <!-- has to match $latest-resources-string -->
+        <ixsl:set-property name="initial-var-name" select="'dated'" object="$cache"/> <!-- has to match $ldh:latest-resources-string -->
         <ixsl:set-property name="endpoint" select="sd:endpoint()" object="$cache"/>
 
         <xsl:sequence select="ldh:update-progress-counter($cache, map{'container': id($container-id, ixsl:page())}, 'init', 3)"/>
@@ -1120,7 +1120,7 @@ ORDER BY DESC(?created)
         <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="select-json" as="item()">
-            <xsl:sequence select="ixsl:call($sparql-parser, 'parse', [ $select-string ])"/>
+            <xsl:sequence select="ixsl:call($ldh:sparql-parser, 'parse', [ $select-string ])"/>
         </xsl:variable>
         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
         <xsl:variable name="select-xml" as="document-node()">
@@ -1232,7 +1232,7 @@ ORDER BY DESC(?created)
             <ixsl:set-property name="{'`' || $container-id || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
         </xsl:if>
         <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $container-id || '`')" as="item()"/>
-        <ixsl:set-property name="select-string" select="$select-labelled-string" object="$cache"/>
+        <ixsl:set-property name="select-string" select="$ldh:select-labelled-string" object="$cache"/>
         <ixsl:set-property name="initial-var-name" select="'resource'" object="$cache"/>
         <ixsl:set-property name="endpoint" select="sd:endpoint()" object="$cache"/>
 
@@ -1343,13 +1343,13 @@ ORDER BY DESC(?created)
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <xsl:param name="page-size" select="20" as="xs:integer"/>
         <xsl:param name="cache" as="item()"/>
-        <xsl:param name="select-string" select="$select-labelled-string" as="xs:string"/>
+        <xsl:param name="select-string" select="$ldh:select-labelled-string" as="xs:string"/>
         <xsl:param name="label-var-name" select="'label'" as="xs:string"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
 
         <xsl:variable name="select-json" as="item()">
-            <xsl:sequence select="ixsl:call($sparql-parser, 'parse', [ $select-string ])"/>
+            <xsl:sequence select="ixsl:call($ldh:sparql-parser, 'parse', [ $select-string ])"/>
         </xsl:variable>
         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
@@ -1377,8 +1377,8 @@ ORDER BY DESC(?created)
         <xsl:sequence select="ldh:update-progress-counter($cache, map{'container': $container}, 'init', 3)"/>
 
         <!-- preserve user's chosen view mode across re-runs of the same search container; default to ListMode on first render (no view-mode-list yet) -->
-        <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/*[contains-token(@class, 'mi')][contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string?"/>
-        <xsl:variable name="active-mode" select="if (exists($active-class)) then map:get($class-modes, $active-class) else xs:anyURI('&ac;ListMode')" as="xs:anyURI"/>
+        <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/*[contains-token(@class, 'mi')][contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($ldh:class-modes)]" as="xs:string?"/>
+        <xsl:variable name="active-mode" select="if (exists($active-class)) then map:get($ldh:class-modes, $active-class) else xs:anyURI('&ac;ListMode')" as="xs:anyURI"/>
 
         <xsl:variable name="view-context" as="map(*)">
             <xsl:call-template name="ldh:RenderView">

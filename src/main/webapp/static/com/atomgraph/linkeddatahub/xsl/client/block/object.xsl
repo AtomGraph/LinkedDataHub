@@ -198,10 +198,10 @@ exclude-result-prefixes="#all"
                             <xsl:when test="$resource">
                                 <xsl:variable name="object-uris" select="distinct-values($resource/*/@rdf:resource[starts-with(., lds:base())][not(key('resources', ., root($resource)))])" as="xs:string*"/>
                                 <xsl:variable name="values" select="' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
-                                <xsl:variable name="query-string" select="$object-metadata-query || $values" as="xs:string"/>
+                                <xsl:variable name="query-string" select="$ldh:object-metadata-query || $values" as="xs:string"/>
                                 <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href($context('endpoint')), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                                 <!-- second request resolves ontology-term object labels (rdf:type/class values etc.) from the /ns endpoint; merged with the /sparql result in ldh:block-object-metadata-response -->
-                                <xsl:variable name="ns-query-string" select="$object-metadata-ns-query || $values" as="xs:string"/>
+                                <xsl:variable name="ns-query-string" select="$ldh:object-metadata-ns-query || $values" as="xs:string"/>
                                 <xsl:variable name="ns-request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', lds:base())), 'media-type': 'application/sparql-query', 'body': $ns-query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                                 <xsl:sequence select="map:put(map:merge(($context, map{
                                     'object-metadata-request': $request,

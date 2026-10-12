@@ -151,7 +151,7 @@ exclude-result-prefixes="#all"
 
     <!-- metadata and constructor queries shared by the server and client renderers; each used to be
          declared once per entry point, with the copies drifting only in whitespace -->
-    <xsl:param name="object-metadata-query" as="xs:string">
+    <xsl:param name="ldh:object-metadata-query" as="xs:string">
         <![CDATA[
             PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
             PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
@@ -179,7 +179,7 @@ exclude-result-prefixes="#all"
         <!-- VALUES $this goes here -->
     </xsl:param>
 
-    <xsl:param name="object-metadata-ns-query" as="xs:string">
+    <xsl:param name="ldh:object-metadata-ns-query" as="xs:string">
         <![CDATA[
             PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
             PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
@@ -205,14 +205,14 @@ exclude-result-prefixes="#all"
         <!-- VALUES $this goes here -->
     </xsl:param>
 
-    <xsl:param name="property-metadata-query" as="xs:string">
+    <xsl:param name="ldh:property-metadata-query" as="xs:string">
         <![CDATA[
             DESCRIBE $Type
         ]]>
         <!-- VALUES $Type goes here -->
     </xsl:param>
 
-    <xsl:param name="constraint-query" as="xs:string">
+    <xsl:param name="ldh:constraint-query" as="xs:string">
         <![CDATA[
             PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
             PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -229,7 +229,7 @@ exclude-result-prefixes="#all"
         <!-- VALUES $Type goes here -->
     </xsl:param>
 
-    <xsl:param name="constructor-query" as="xs:string">
+    <xsl:param name="ldh:constructor-query" as="xs:string">
         <![CDATA[
             PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
             PREFIX sp:   <http://spinrdf.org/sp#>
@@ -243,7 +243,7 @@ exclude-result-prefixes="#all"
         ]]>
     </xsl:param>
 
-    <xsl:param name="shape-query" as="xs:string">
+    <xsl:param name="ldh:shape-query" as="xs:string">
         <![CDATA[
             PREFIX  sh:   <http://www.w3.org/ns/shacl#>
 

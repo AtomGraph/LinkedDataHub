@@ -56,7 +56,7 @@ exclude-result-prefixes="#all"
     <xsl:include href="block/chart.xsl"/>
     <xsl:include href="block/query.xsl"/>
 
-    <xsl:variable name="block-delete-string" as="xs:string">
+    <xsl:variable name="ldh:block-delete-string" as="xs:string">
         <!-- TO-DO: refactor to update the following index properties -->
         <![CDATA[
             PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -80,7 +80,7 @@ exclude-result-prefixes="#all"
     <!-- moves ?source after ?target in ?doc's rdf:_N sequence, shifting the members between them by one.
          The VALUES row is substituted at the call site. The OPTIONAL re-derives the source/target indexes:
          BINDs inside the left join cannot see the outer bindings, so the duplication is required. -->
-    <xsl:variable name="block-move-string" as="xs:string">
+    <xsl:variable name="ldh:block-move-string" as="xs:string">
         <![CDATA[
             PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
             PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -132,7 +132,7 @@ exclude-result-prefixes="#all"
          (property range for forward views, domain for inverse ones) and the view's ldh:showWhenEmpty.
          No container: where a view creates into is a property of its results rather than of its declaration,
          so it is determined per view by ldh:ViewContainer in block/view.xsl. -->
-    <xsl:variable name="ontology-view-query" as="xs:string">
+    <xsl:variable name="ldh:ontology-view-query" as="xs:string">
         <![CDATA[
             PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
             PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
@@ -322,7 +322,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="backlinks-container" select="$links-nav/descendant::div[contains-token(@class, 'backlinks-nav')][1]" as="element()"/>
                 <xsl:if test="not($backlinks-container/div)">
                     <xsl:variable name="block-uri" select="ancestor::div[contains-token(@class, 'block')][1]/@about" as="xs:anyURI"/>
-                    <xsl:variable name="query-string" select="replace($backlinks-string, '$this', '&lt;' || $block-uri || '&gt;', 'q')" as="xs:string"/>
+                    <xsl:variable name="query-string" select="replace($ldh:backlinks-string, '$this', '&lt;' || $block-uri || '&gt;', 'q')" as="xs:string"/>
                     <xsl:variable name="service-uri" select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')) then (if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'service-uri')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'service-uri') else ()) else ()" as="xs:anyURI?"/>
                     <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ()))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
                     <xsl:variable name="endpoint" select="ldh:query-endpoint($service, .)" as="xs:anyURI"/>
@@ -513,7 +513,7 @@ exclude-result-prefixes="#all"
 
                     <xsl:variable name="block-uri" select="$block/@about" as="xs:anyURI"/>
                     <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
-                    <xsl:variable name="update-string" select="replace($block-delete-string, '$this', '&lt;' || $doc-uri || '&gt;', 'q')" as="xs:string"/>
+                    <xsl:variable name="update-string" select="replace($ldh:block-delete-string, '$this', '&lt;' || $doc-uri || '&gt;', 'q')" as="xs:string"/>
                     <xsl:variable name="update-string" select="replace($update-string, '$block', '&lt;' || $block-uri || '&gt;', 'q')" as="xs:string"/>
                     <xsl:variable name="request-uri" select="ldh:href($doc-uri, map{})" as="xs:anyURI"/>
                     <xsl:variable name="context" as="map(*)" select="
@@ -685,7 +685,7 @@ exclude-result-prefixes="#all"
                          element lands outside the embedded subtree and hides it. -->
                     <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri($block))" as="xs:anyURI"/>
                     <xsl:variable name="values-row" select="'(&lt;' || $doc-uri || '&gt; &lt;' || $source-uri || '&gt; &lt;' || $target-uri || '&gt;)'" as="xs:string"/>
-                    <xsl:variable name="update-string" select="replace($block-move-string, '($doc $source $target)', $values-row, 'q')" as="xs:string"/>
+                    <xsl:variable name="update-string" select="replace($ldh:block-move-string, '($doc $source $target)', $values-row, 'q')" as="xs:string"/>
                     <xsl:variable name="request-uri" select="ldh:href($doc-uri, map{})" as="xs:anyURI"/>
                     <xsl:variable name="request" select="map{ 'method': 'PATCH', 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': ldh:conditional-headers(map{}, ldh:document-etag($doc-uri)) }" as="map(*)"/>
                     <xsl:variable name="context" select="map{ 'request': $request, 'doc-uri': $doc-uri, 'source-block': $source-block, 'source-next': $source-next }" as="map(*)"/>
@@ -1174,10 +1174,10 @@ exclude-result-prefixes="#all"
                        then distinct-values($response?body/rdf:RDF/rdf:Description/*/@rdf:resource[not(key('resources', .))])
                        else ()"/>
         <xsl:variable name="values" select="' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
-        <xsl:variable name="query-string" select="$object-metadata-query || $values" as="xs:string"/>
+        <xsl:variable name="query-string" select="$ldh:object-metadata-query || $values" as="xs:string"/>
         <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href($endpoint), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
         <!-- second request resolves labels of object URIs that are ontology terms (rdf:type/class values etc.) from the /ns endpoint, whose graph-free query targets the in-memory ontology default graph; merged with the /sparql result by ldh:merge-object-metadata -->
-        <xsl:variable name="ns-query-string" select="$object-metadata-ns-query || $values" as="xs:string"/>
+        <xsl:variable name="ns-query-string" select="$ldh:object-metadata-ns-query || $values" as="xs:string"/>
         <xsl:variable name="ns-request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', lds:base())), 'media-type': 'application/sparql-query', 'body': $ns-query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
 
         <xsl:message>ldh:load-object-metadata</xsl:message>
@@ -1261,7 +1261,7 @@ exclude-result-prefixes="#all"
                 return if ($response?status = 200 and $response?media-type = 'application/rdf+xml')
                        then distinct-values($response?body/rdf:RDF/rdf:Description/*/concat(namespace-uri(), local-name()))
                        else ()"/>
-        <xsl:variable name="query-string" select="$property-metadata-query || ' VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
+        <xsl:variable name="query-string" select="$ldh:property-metadata-query || ' VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
         <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', lds:base())), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
 
         <xsl:message>ldh:load-property-metadata</xsl:message>

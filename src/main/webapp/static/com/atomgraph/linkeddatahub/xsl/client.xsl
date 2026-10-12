@@ -102,13 +102,13 @@ extension-element-prefixes="ixsl"
     <xsl:param name="ac:contextUri" as="xs:anyURI"/>
     <xsl:param name="lds:origin" select="lds:origin(ldh:request-uri())" as="xs:anyURI"/> <!-- emulates the server-side writer-set param: the shell origin serving static assets, as opposed to the pane-scoped lds:origin() -->
     <xsl:param name="ac:query" select="ldh:query-params()?query" as="xs:string?"/>
-    <xsl:param name="sparql-parser" select="ixsl:call(ixsl:window(), 'Reflect.construct', [ ixsl:get(ixsl:get(ixsl:window(), '`' || 'SPARQL.js' || '`'), 'Parser'), [] ] )"/>
-    <xsl:param name="sparql-generator" select="ixsl:call(ixsl:window(), 'Reflect.construct', [ ixsl:get(ixsl:get(ixsl:window(), '`' || 'SPARQL.js' || '`'), 'Generator'), [] ] )"/>
-    <xsl:param name="page-size" select="20" as="xs:integer"/>
+    <xsl:param name="ldh:sparql-parser" select="ixsl:call(ixsl:window(), 'Reflect.construct', [ ixsl:get(ixsl:get(ixsl:window(), '`' || 'SPARQL.js' || '`'), 'Parser'), [] ] )"/>
+    <xsl:param name="ldh:sparql-generator" select="ixsl:call(ixsl:window(), 'Reflect.construct', [ ixsl:get(ixsl:get(ixsl:window(), '`' || 'SPARQL.js' || '`'), 'Generator'), [] ] )"/>
+    <xsl:param name="ldh:page-size" select="20" as="xs:integer"/>
     <!-- RDF triple syntaxes a dropped file may carry, keyed by file extension. Top-level because two
          things read it: the drop handler, which infers the request's Content-Type, and the drop
          overlay, which lists the extensions so they cannot drift apart -->
-    <xsl:param name="rdf-media-types" as="map(xs:string, xs:string)">
+    <xsl:param name="ldh:rdf-media-types" as="map(xs:string, xs:string)">
         <xsl:map>
             <xsl:map-entry key="'nt'" select="'application/n-triples'"/>
             <xsl:map-entry key="'ttl'" select="'text/turtle'"/>
@@ -117,7 +117,7 @@ extension-element-prefixes="ixsl"
             <xsl:map-entry key="'jsonld'" select="'application/ld+json'"/>
         </xsl:map>
     </xsl:param>
-    <xsl:param name="select-labelled-string" as="xs:string">
+    <xsl:param name="ldh:select-labelled-string" as="xs:string">
 <![CDATA[
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
@@ -149,7 +149,7 @@ WHERE
 ORDER BY ?label
 ]]>
     </xsl:param>
-    <xsl:param name="backlinks-string" as="xs:string">
+    <xsl:param name="ldh:backlinks-string" as="xs:string">
 <![CDATA[
 DESCRIBE ?subject
 WHERE
@@ -166,7 +166,7 @@ WHERE
   }
 ]]></xsl:param>
     <!-- graph-free variant of object-metadata-query for the /ns ontology endpoint: its dataset is the in-memory OntModel served as the default graph (no named graphs), so a GRAPH ?graph pattern would match nothing -->
-    <xsl:param name="body-id" select="'visible-body'" as="xs:string"/>
+    <xsl:param name="ldh:body-id" select="'visible-body'" as="xs:string"/>
     
     <xsl:key name="resources" match="*[*][@rdf:about] | *[*][@rdf:nodeID]" use="@rdf:about | @rdf:nodeID"/>
     <xsl:key name="elements-by-class" match="*" use="tokenize(@class, ' ')"/>
@@ -835,7 +835,7 @@ WHERE
          <!-- $href has to be a proxied URI with the actual URI encoded as ?uri, otherwise we get a "DOMException: The operation is insecure" -->
         <xsl:param name="href" as="xs:anyURI"/>
         <xsl:param name="title" as="xs:string?"/>
-        <xsl:param name="container" as="element()" select="id($body-id, ixsl:page())"/>
+        <xsl:param name="container" as="element()" select="id($ldh:body-id, ixsl:page())"/>
         <xsl:param name="query" as="xs:string?"/>
         <xsl:param name="replace" select="false()" as="xs:boolean"/>
 
@@ -876,7 +876,7 @@ WHERE
         <xsl:param name="query-params" select="map{}" as="map(xs:string, xs:string*)"/>
         <xsl:param name="tab-li" as="element()"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
-        <xsl:param name="container" as="element()" select="id($body-id, ixsl:page())"/>
+        <xsl:param name="container" as="element()" select="id($ldh:body-id, ixsl:page())"/>
 
         <!-- the user has switched intent; cancel any in-flight DocumentNavigate fetch so its response doesn't reactivate the previous tab -->
         <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')">
@@ -921,7 +921,7 @@ WHERE
         <xsl:param name="fragment" as="xs:string?"/>
         <xsl:param name="query-params" select="map{}" as="map(xs:string, xs:string*)"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
-        <xsl:param name="container" as="element()" select="id($body-id, ixsl:page())"/>
+        <xsl:param name="container" as="element()" select="id($ldh:body-id, ixsl:page())"/>
         <!-- true when the document body currently in the DOM was rendered by the server; see the caller in the 'main' template -->
         <xsl:param name="server-rendered" select="false()" as="xs:boolean"/>
 
@@ -1540,7 +1540,7 @@ WHERE
                             <xsl:apply-templates select="key('resources', 'rdf-imported-as-data', ldh:translations())" mode="ac:label"/>
                         </span>
                         <span class="ac-dropzone-sub">
-                            <xsl:value-of select="sort(map:keys($rdf-media-types)) ! ('.' || .)" separator=" "/>
+                            <xsl:value-of select="sort(map:keys($ldh:rdf-media-types)) ! ('.' || .)" separator=" "/>
                         </span>
                     </div>
                     <div class="ac-dropzone-lane">
@@ -1634,9 +1634,9 @@ WHERE
 
             <xsl:choose>
                 <!-- file extension is a map key or media type is a map value -->
-                <xsl:when test="map:contains($rdf-media-types, $file-ext) or $file-type = $rdf-media-types?*">
+                <xsl:when test="map:contains($ldh:rdf-media-types, $file-ext) or $file-type = $ldh:rdf-media-types?*">
                     <!-- attempt to infer RDF media type from file extension first, fallback to file type -->
-                    <xsl:variable name="media-type" select="if (map:contains($rdf-media-types, $file-ext)) then map:get($rdf-media-types, $file-ext) else $file-type" as="xs:string"/>
+                    <xsl:variable name="media-type" select="if (map:contains($ldh:rdf-media-types, $file-ext)) then map:get($ldh:rdf-media-types, $file-ext) else $file-type" as="xs:string"/>
                     <xsl:message>Importing RDF file. Name: '<xsl:value-of select="ixsl:get($file, 'name')"/>' Media type: '<xsl:value-of select="$media-type"/>'</xsl:message>
 
                     <xsl:variable name="headers" select="ldh:new-object()"/>

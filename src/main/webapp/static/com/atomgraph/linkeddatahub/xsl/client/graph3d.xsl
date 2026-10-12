@@ -24,7 +24,7 @@ exclude-result-prefixes="#all"
     <xsl:include href="3d-force-graph.xsl"/>
     <xsl:include href="normalize-rdfxml.xsl"/>
 
-    <xsl:param name="backlinks-graph-string" as="xs:string">
+    <xsl:param name="ldh:backlinks-graph-string" as="xs:string">
 <![CDATA[
 DESCRIBE ?subject
 WHERE
@@ -142,7 +142,7 @@ WHERE
             <xsl:variable name="loaded-backlink-uris" select="ixsl:get($graph-state, 'loaded-backlink-uris', map{ 'convert-result': false() })"/>
 
             <xsl:if test="not(ixsl:call($loaded-backlink-uris, 'includes', [ $node-id ]))">
-                <xsl:variable name="query-string" select="replace($backlinks-graph-string, '$this', '&lt;' || $node-id || '&gt;', 'q')" as="xs:string"/>
+                <xsl:variable name="query-string" select="replace($ldh:backlinks-graph-string, '$this', '&lt;' || $node-id || '&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="service-uri" select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $node-id || '`')) then (if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $node-id || '`'), 'service-uri')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $node-id || '`'), 'service-uri') else ()) else ()" as="xs:anyURI?"/>
                 <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ()))) else ()" as="element()?"/>
                 <xsl:variable name="endpoint" select="ldh:query-endpoint($service, ())" as="xs:anyURI"/>
