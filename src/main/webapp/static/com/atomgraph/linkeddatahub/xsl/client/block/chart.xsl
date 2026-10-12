@@ -447,8 +447,7 @@ exclude-result-prefixes="#all"
 
     <!-- A chart canvas, drawn from the results it is handed: a graph or a SPARQL result set, the chart type and the
          category and series to plot - a table of every property, when the caller names none. The data table is kept
-         on the cache the caller hands over, when it hands one. Every chart is drawn here: a chart block's, a view's in
-         ChartMode, a document's in ChartMode, an object block's, the assistant's -->
+         on the cache the caller hands over, when it hands one. Every chart is drawn here, whoever emitted its canvas -->
     <xsl:template match="div[contains-token(@class, 'chart-canvas')]" mode="ldh:InitCanvas">
         <xsl:param name="results" as="document-node()" tunnel="yes"/>
         <xsl:param name="cache" as="item()?" tunnel="yes"/>

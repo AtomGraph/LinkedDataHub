@@ -486,7 +486,7 @@ WHERE
                         <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`'))">
                             <ixsl:set-property name="{'`' || $doc-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
                         </xsl:if>
-                        <xsl:apply-templates select="key('elements-by-class', ('map-canvas', 'chart-canvas', 'graph-3d-canvas'), $rendered-pane)" mode="ldh:InitCanvas">
+                        <xsl:apply-templates select="key('elements-by-class', $ldh:canvas-classes?*, $rendered-pane)" mode="ldh:InitCanvas">
                             <xsl:with-param name="results" select="$results" tunnel="yes"/>
                             <xsl:with-param name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`')" tunnel="yes"/>
                             <xsl:with-param name="object-metadata" select="$context('object-metadata')" tunnel="yes"/>

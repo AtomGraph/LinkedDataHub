@@ -75,6 +75,12 @@ exclude-result-prefixes="#all"
         '&ac;ChartMode': 'bar_chart',
         '&ac;GraphMode': 'hub'
     }"/>
+    <!-- the class of the canvas a layout mode draws on (ldh:InitCanvas), for the modes that draw on one -->
+    <xsl:variable name="ldh:canvas-classes" as="map(xs:string, xs:string)" select="map{
+        '&ac;MapMode': 'map-canvas',
+        '&ac;ChartMode': 'chart-canvas',
+        '&ac;GraphMode': 'graph-3d-canvas'
+    }"/>
     <!-- document-class glyphs shared by the breadcrumb and constructor items; sites supply their own fallback -->
     <xsl:variable name="ldh:class-icons" as="map(xs:string, xs:string)" select="map{
         '&def;Root': 'folder',

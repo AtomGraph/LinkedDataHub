@@ -278,10 +278,66 @@ test('a plan that shows a timeline draws each row as a span, the one still under
 
     // a chart well, and in its canvas Google's timeline: one labelled row per term, each with its bar
     const card = cards(chatOf(page, chatUri)).last();
-    const canvas = card.locator(`.ldh-chat-result-block[data-mode="${AC}ChartMode"] .ldh-chat-chart`);
+    const canvas = card.locator(`.ldh-chat-result-block[data-mode="${AC}ChartMode"] .chart-canvas`);
     await expect(canvas.locator('svg')).toBeVisible({ timeout: 30_000 });
     for (const [name] of terms) await expect(canvas.locator('svg text', { hasText: name })).toHaveCount(1);
     await expect(canvas.locator('svg rect[stroke]')).not.toHaveCount(0);
+});
+
+test('a plan that shows a map or a 3D graph draws its canvas, both on one page, and again from the store', { tag: '@owner' }, async ({ page }) => {
+    // the plan service answered by the spec: two CONSTRUCTs, the first shown as a map, the second as a graph
+    const AC = 'https://w3id.org/atomgraph/client#';
+    const construct = `<CONSTRUCT xmlns="${WA}"><endpoint>https://query.wikidata.org/sparql</endpoint><query>CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o } LIMIT 2</query></CONSTRUCT>`;
+    const plans = [
+        ['map', `<wa:plan xmlns:wa="${WA}"><wa:summary>Shows two capitals on a map.</wa:summary><wa:present xmlns:ac="${AC}" ac:mode="${AC}MapMode"/><wa:operations><wa:operation name="CONSTRUCT"/></wa:operations>${construct}</wa:plan>`],
+        ['graph', `<wa:plan xmlns:wa="${WA}"><wa:summary>Shows how two capitals connect.</wa:summary><wa:present xmlns:ac="${AC}" ac:mode="${AC}GraphMode"/><wa:operations><wa:operation name="CONSTRUCT"/></wa:operations>${construct}</wa:plan>`],
+    ];
+    const capitals = [['Q1748', 'Copenhagen', 55.6761, 12.5683], ['Q216', 'Vilnius', 54.6872, 25.2797]];
+    const rdf = body => `<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:schema="https://schema.org/">${body}</rdf:RDF>`;
+    const graphs = {
+        map: rdf(capitals.map(([q, name, lat, long]) => `<rdf:Description rdf:about="http://www.wikidata.org/entity/${q}"><rdfs:label>${name}</rdfs:label><geo:lat rdf:datatype="http://www.w3.org/2001/XMLSchema#double">${lat}</geo:lat><geo:long rdf:datatype="http://www.w3.org/2001/XMLSchema#double">${long}</geo:long></rdf:Description>`).join('')),
+        graph: rdf(`<rdf:Description rdf:about="http://www.wikidata.org/entity/Q1748"><rdfs:label>Copenhagen</rdfs:label><schema:isPartOf rdf:resource="http://www.wikidata.org/entity/Q216"/></rdf:Description><rdf:Description rdf:about="http://www.wikidata.org/entity/Q216"><rdfs:label>Vilnius</rdfs:label></rdf:Description>`),
+    };
+    let asked = 0, executed = 0;
+    await page.route(/\/webalgebra\/plans$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: plans[asked++][1] }));
+    await page.route(/\/webalgebra$/, route => route.fulfill({ status: 202, contentType: 'application/xml', body: `<wa:execution xmlns:wa="${WA}"><wa:id>${plans[executed++][0]}</wa:id></wa:execution>` }));
+    await page.route(/\/webalgebra\/(map|graph)\/result$/, route => {
+        const id = route.request().url().match(/\/webalgebra\/(map|graph)\/result$/)[1];
+        route.fulfill({ status: 200, contentType: 'application/xml', body: `<wa:execution xmlns:wa="${WA}"><wa:id>${id}</wa:id><wa:status>complete</wa:status><wa:steps><wa:step operation="CONSTRUCT" depth="0" outcome="complete" elapsed="300"/></wa:steps><wa:result>${graphs[id]}</wa:result></wa:execution>` });
+    });
+    await page.route(/\/webalgebra\/answers$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: `<wa:answer xmlns:wa="${WA}">Two capitals.</wa:answer>` }));
+    // the map's tiles, answered blank: what is drawn is the map, not the tile server's availability
+    await page.route(/tile\.openstreetmap\.org/, route => route.fulfill({ status: 200, contentType: 'image/png', body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', 'base64') }));
+
+    await goto(page, inMode(scratch.container, CONTENT_MODE));
+    await button(page).click();
+    const chatUri = await ephemeral(page).locator('.ldh-chat').getAttribute('data-chat');
+    const chat = () => chatOf(page, chatUri);
+
+    // each drawn on its own canvas in its well, headed with its mode's name, the canvases named apart
+    const well = mode => chat().locator(`.ldh-chat-result-block[data-mode="${AC}${mode}"]`);
+    const assertCanvases = async () => {
+        await expect(well('MapMode').locator('.map-canvas .ol-viewport')).toBeVisible({ timeout: 30_000 });
+        await expect(well('GraphMode').locator('.graph-3d-canvas canvas').first()).toBeVisible({ timeout: 30_000 });
+        await expect(well('MapMode').locator('.ldh-block-head .ttl')).toHaveText('Map');
+        await expect(well('GraphMode').locator('.ldh-block-head .ttl')).toHaveText('Graph');
+        const ids = [await well('MapMode').locator('.map-canvas').getAttribute('id'), await well('GraphMode').locator('.graph-3d-canvas').getAttribute('id')];
+        expect(ids[0]).not.toBe(ids[1]);
+    };
+
+    await composer(chat()).fill('Where are Copenhagen and Vilnius?');
+    await composer(chat()).press('Enter');
+    await expect(well('MapMode').locator('.map-canvas .ol-viewport')).toBeVisible({ timeout: 30_000 });
+    await expect(cards(chat()).last()).toHaveAttribute('data-turn', /#turn-/, { timeout: 30_000 });
+    await expect(composer(chat())).toBeEnabled();
+    await composer(chat()).fill('How are they connected?');
+    await composer(chat()).press('Enter');
+    await assertCanvases();
+    await expect(cards(chat()).last()).toHaveAttribute('data-turn', /#turn-/, { timeout: 30_000 });
+
+    // stored with their plans, the hints included, the turns draw both canvases again
+    await page.reload();
+    await assertCanvases();
 });
 
 test('two chat blocks on one page are independent, and the first question writes a new one', { tag: '@owner' }, async ({ page }) => {

@@ -1071,11 +1071,12 @@ exclude-result-prefixes="#all"
         </xsl:apply-templates>
     </xsl:template>
     
-    <!-- view mode choice -->
+    <!-- view mode choice: results drawn in a layout mode. Results with no query of their own have no sort order to
+         show, and pass no $select-xml -->
     
     <xsl:template name="ldh:ViewModeChoice">
         <xsl:param name="container-id" as="xs:string"/>
-        <xsl:param name="select-xml" as="document-node()"/>
+        <xsl:param name="select-xml" as="document-node()?"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <!-- the endpoint of the pane this view is rendered in, handed down rather than read off the window -->
         <xsl:param name="local-endpoint" as="xs:anyURI?"/>
@@ -1703,6 +1704,11 @@ exclude-result-prefixes="#all"
                 <xsl:apply-templates select="." mode="ac:ResultsTable"/>
             </xsl:otherwise>
         </xsl:choose>
+    </xsl:template>
+
+    <!-- a result set's table: its rows, as the results table draws them -->
+    <xsl:template match="srx:sparql" mode="ldh:TableViewBlock" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
+        <xsl:apply-templates select="." mode="ac:ResultsTable"/>
     </xsl:template>
 
     <!-- hide documents that are paired with resources -->

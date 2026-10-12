@@ -317,7 +317,7 @@ exclude-result-prefixes="#all"
                          state kept with the block's. Only that mode's: a chart resource the object embeds renders a chart
                          canvas of its own, which its own block draws from its query. The graph shows the whole loaded
                          document, deliberately not the object alone: it matches the ac:Graph rendering in ldh:BlockRow -->
-                    <xsl:apply-templates select="key('elements-by-class', (for $m in $mode return map{ '&ac;MapMode': 'map-canvas', '&ac;ChartMode': 'chart-canvas', '&ac;GraphMode': 'graph-3d-canvas' }($m)), $block)" mode="ldh:InitCanvas">
+                    <xsl:apply-templates select="key('elements-by-class', $mode ! $ldh:canvas-classes(.), $block)" mode="ldh:InitCanvas">
                         <xsl:with-param name="results" select="$resource-doc" tunnel="yes"/>
                         <xsl:with-param name="graph-results" select="root($resource)" tunnel="yes"/>
                         <xsl:with-param name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block/@about || '`')" tunnel="yes"/>

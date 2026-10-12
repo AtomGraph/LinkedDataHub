@@ -300,7 +300,7 @@ exclude-result-prefixes="#all"
                     <ixsl:set-property name="{$card/@id}" select="$execution/wa:result" object="ixsl:get(ixsl:window(), 'LinkedDataHub.chatResults')"/>
                 </xsl:if>
                 <xsl:sequence select="ldh:chat-steps($card, $execution)"/>
-                <xsl:sequence select="ldh:chat-draw-chart($card, $execution, $plan/wa:present)"/>
+                <xsl:sequence select="ldh:chat-draw-canvases($card, $summary?result, $plan/wa:present, ())"/>
                 <xsl:sequence select="ldh:chat-label-rows($card, $execution, false())"/>
             </xsl:if>
         </xsl:for-each>
@@ -1347,7 +1347,7 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
         </xsl:for-each>
 
-        <xsl:sequence select="ldh:chat-draw-chart($card, $execution, $plan-held/wa:present)"/>
+        <xsl:sequence select="ldh:chat-draw-canvases($card, $summary?result, $plan-held/wa:present, ())"/>
 
         <!-- the answer is read off the rows as the reader will see them: with their labels, so it waits for them when
              there are any to wait for, and goes straight away otherwise - a failure and a write included -->
@@ -1472,27 +1472,25 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
 
-    <!-- a chart is drawn into its canvas once the canvas is in the page - the card may have left it -->
-    <xsl:function name="ldh:chat-draw-chart" as="item()*" ixsl:updating="yes">
+    <!-- the canvases among a card's results - a map, a 3D graph, a chart - are drawn once their wells are in the page,
+         as every canvas is (ldh:InitCanvas): from the result, with the plan's chart type, category and series. A well
+         the card no longer holds in the page has nothing to draw -->
+    <xsl:function name="ldh:chat-draw-canvases" as="item()*" ixsl:updating="yes">
         <xsl:param name="card" as="element()"/>
-        <xsl:param name="execution" as="element()"/>
+        <xsl:param name="results" as="element()*"/>
         <xsl:param name="present" as="element()?"/>
-        <xsl:variable name="summary" select="ldh:execution-summary($execution)" as="map(*)"/>
+        <xsl:param name="object-metadata" as="document-node()?"/>
 
-        <xsl:if test="not($summary?failed) and ldh:present-mode($present) = '&ac;ChartMode' and exists($summary?result/self::srx:sparql) and exists($card/ancestor::body)">
-            <xsl:variable name="results" as="document-node()">
-                <xsl:document>
-                    <xsl:copy-of select="($summary?result/self::srx:sparql)[1]"/>
-                </xsl:document>
-            </xsl:variable>
-            <!-- drawn as every chart is (ldh:InitCanvas), with the plan's type, category and series -->
-            <xsl:apply-templates select="id($card/@id || '-chart', ixsl:page())" mode="ldh:InitCanvas">
-                <xsl:with-param name="results" select="$results" tunnel="yes"/>
+        <xsl:for-each select="$results">
+            <xsl:apply-templates select="id(ldh:chat-result-id($card/@id, .), ixsl:page())/key('elements-by-class', $ldh:canvas-classes?*, .)" mode="ldh:InitCanvas">
+                <xsl:with-param name="results" select="ldh:result-document(.)" tunnel="yes"/>
+                <xsl:with-param name="cache" select="ldh:new-object()" tunnel="yes"/>
+                <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
                 <xsl:with-param name="chart-type" select="ldh:present-chart-type($present)" tunnel="yes"/>
                 <xsl:with-param name="category" select="($present/@ldh:categoryVarName, $present/@category)[1]/string()" tunnel="yes"/>
                 <xsl:with-param name="series" select="tokenize(($present/@ldh:seriesVarName, $present/@series)[1])" tunnel="yes"/>
             </xsl:apply-templates>
-        </xsl:if>
+        </xsl:for-each>
     </xsl:function>
 
     <!-- The URIs the rows name get their labels: the two lookups a view block runs, against the endpoint the plan
@@ -1511,7 +1509,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="plan" select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.chat'), string($card/@id))) then ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.chat'), string($card/@id)) else ()" as="element()?"/>
                 <xsl:variable name="endpoints" select="distinct-values($plan//wa:endpoint[not(*)]/normalize-space())" as="xs:string*"/>
                 <xsl:variable name="endpoint" select="if (count($endpoints) = 1) then xs:anyURI($endpoints) else sd:endpoint()" as="xs:anyURI"/>
-                <xsl:variable name="labels-context" select="map{ 'card': $card, 'result': $summary?result/self::srx:sparql, 'endpoint': $endpoint, 'object-uris': $uris[position() le 100], 'execution': $execution, 'answer': $answer }" as="map(*)"/>
+                <xsl:variable name="labels-context" select="map{ 'card': $card, 'result': $summary?result/self::srx:sparql, 'present': $plan/wa:present, 'endpoint': $endpoint, 'object-uris': $uris[position() le 100], 'execution': $execution, 'answer': $answer }" as="map(*)"/>
                 <ixsl:promise select="
                   ldh:http-request-threaded(ldh:load-object-metadata($labels-context), 'metadata-request', 'metadata-response')
                     => ixsl:then(ldh:handle-response(?, 'metadata-response'))
@@ -1529,25 +1527,25 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:function>
 
-    <!-- the rows again, now with the labels: the metadata is tunnelled through the table's rows to the link leaf, whose
-         ac:object-label reads it before anything else, so the table needs no rule of its own. Results pair with
-         tables by position, as a sequence's items were drawn side by side -->
+    <!-- the result sets again, now with the labels: each well drawn the way it first was, with the metadata that the
+         table's link leaf (ac:object-label) and the chart's data table read before anything else -->
     <xsl:function name="ldh:chat-result-labelled" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="card" select="$context('card')" as="element()"/>
-        <xsl:variable name="results" select="$context('result')" as="element()*"/>
-        <xsl:variable name="tables" select="$card//table[contains-token(@class, 'ldh-chat-result')]" as="element()*"/>
 
-        <xsl:for-each select="$results">
-            <xsl:variable name="position" select="position()" as="xs:integer"/>
-            <xsl:for-each select="$tables[$position]/tbody">
+        <xsl:for-each select="$context('result')">
+            <xsl:variable name="result" select="." as="element()"/>
+            <xsl:for-each select="id(ldh:chat-result-id($card/@id, .), ixsl:page())/div[contains-token(@class, 'ldh-nblock-body')]">
                 <xsl:result-document href="?." method="ixsl:replace-content">
-                    <xsl:apply-templates select="$results[$position]/srx:results/srx:result" mode="ac:ResultsTable">
-                        <xsl:with-param name="object-metadata" select="$context('object-metadata')" tunnel="yes"/>
+                    <xsl:apply-templates select="$result" mode="ldh:ChatResultBody">
+                        <xsl:with-param name="container-id" select="string(../@id)"/>
+                        <xsl:with-param name="present" select="$context('present')"/>
+                        <xsl:with-param name="object-metadata" select="$context('object-metadata')"/>
                     </xsl:apply-templates>
                 </xsl:result-document>
             </xsl:for-each>
         </xsl:for-each>
+        <xsl:sequence select="ldh:chat-draw-canvases($card, $context('result'), $context('present'), $context('object-metadata'))"/>
 
         <xsl:if test="$context('answer')">
             <xsl:sequence select="ldh:chat-answer($card, $context('execution'), $context('object-metadata'))"/>
@@ -1652,69 +1650,54 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ldh:chat-store-turn($context('card'))"/>
     </xsl:function>
 
-    <!-- A result as a block inside the card: a result set as the table the document's query blocks use, or drawn as a
-         chart when the plan said so; a graph through the view block's own list, grid or table rendering by the plan's
-         word, the list when it gave none. Each sits in a nested well headed the way a block is - the mode's icon and
-         name at compact density.
-         The chart's canvas is drawn into once it is in the page (ldh:execution-ended) -->
-    <xsl:template match="srx:sparql" mode="ldh:ExecutionResult">
+    <!-- A result as a block inside the card, in a nested well headed the way a block is - the mode's icon and name at
+         compact density - and named after the result, so its canvas can be drawn (ldh:chat-draw-canvases) and its rows
+         labelled (ldh:chat-result-labelled) once it is in the page -->
+    <xsl:template match="srx:sparql | rdf:RDF" mode="ldh:ExecutionResult">
         <xsl:param name="present" as="element()?" tunnel="yes"/>
         <xsl:param name="card-id" as="xs:string" tunnel="yes"/>
+        <xsl:variable name="id" select="ldh:chat-result-id($card-id, .)" as="xs:string"/>
+        <xsl:variable name="mode" select="ldh:result-mode(., $present)" as="xs:anyURI"/>
 
-        <xsl:choose>
-            <xsl:when test="ldh:present-mode($present) = '&ac;ChartMode'">
-                <xsl:call-template name="ldh:ChatResultWell">
-                    <xsl:with-param name="mode" select="xs:anyURI('&ac;ChartMode')"/>
-                    <xsl:with-param name="icon" select="'show_chart'"/>
-                    <xsl:with-param name="body" as="element()">
-                        <div id="{$card-id}-chart" class="chart-canvas ldh-chat-chart"/>
-                    </xsl:with-param>
-                </xsl:call-template>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:call-template name="ldh:ChatResultWell">
-                    <xsl:with-param name="mode" select="xs:anyURI('&ac;TableMode')"/>
-                    <xsl:with-param name="icon" select="'table'"/>
-                    <xsl:with-param name="body" as="element()">
-                        <xsl:apply-templates select="." mode="ac:ResultsTable">
-                            <xsl:with-param name="class" select="'ac-table ap-plain dn-tight ldh-chat-result'"/>
-                        </xsl:apply-templates>
-                    </xsl:with-param>
-                </xsl:call-template>
-            </xsl:otherwise>
-        </xsl:choose>
+        <div id="{$id}" class="ldh-nblock ldh-chat-result-block" data-depth="2" data-mode="{$mode}">
+            <div class="ldh-block-head ldh-res-head" data-density="compact">
+                <span class="ldh-res-icon">
+                    <span class="msi outline" aria-hidden="true">
+                        <xsl:value-of select="map:get($ldh:mode-icons, string($mode))"/>
+                    </span>
+                </span>
+                <div class="ldh-res-text">
+                    <div class="ldh-res-titleline">
+                        <!-- the mode's own label, from the vocabulary that defines it, as the view mode switcher shows it -->
+                        <h3 class="ttl">
+                            <xsl:apply-templates select="key('resources', $mode, document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                        </h3>
+                    </div>
+                </div>
+                <div class="actions"/>
+            </div>
+            <div class="ldh-nblock-body">
+                <xsl:apply-templates select="." mode="ldh:ChatResultBody">
+                    <xsl:with-param name="container-id" select="$id"/>
+                    <xsl:with-param name="present" select="$present"/>
+                </xsl:apply-templates>
+            </div>
+        </div>
     </xsl:template>
 
-    <xsl:template match="rdf:RDF" mode="ldh:ExecutionResult">
-        <xsl:param name="present" as="element()?" tunnel="yes"/>
-        <!-- a graph is drawn as a list, a grid or a table; a list unless the plan said one of the others -->
-        <xsl:variable name="mode" select="(ldh:present-mode($present)[. = ('&ac;GridMode', '&ac;TableMode')], xs:anyURI('&ac;ListMode'))[1]" as="xs:anyURI"/>
+    <!-- a result drawn as a view draws its results (ldh:ViewModeChoice), the well's id naming its canvases -->
+    <xsl:template match="srx:sparql | rdf:RDF" mode="ldh:ChatResultBody">
+        <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="present" as="element()?"/>
+        <xsl:param name="object-metadata" as="document-node()?"/>
 
-        <xsl:call-template name="ldh:ChatResultWell">
-            <xsl:with-param name="mode" select="$mode"/>
-            <xsl:with-param name="icon" select="map{ '&ac;ListMode': 'view_list', '&ac;GridMode': 'grid_view', '&ac;TableMode': 'table' }(string($mode))"/>
-            <xsl:with-param name="body" as="element()*">
-                <xsl:choose>
-                    <xsl:when test="$mode = '&ac;GridMode'">
-                        <xsl:apply-templates select="." mode="ldh:GridViewBlock">
-                            <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
-                            <xsl:with-param name="endpoint" select="sd:endpoint()" tunnel="yes"/>
-                        </xsl:apply-templates>
-                    </xsl:when>
-                    <xsl:when test="$mode = '&ac;TableMode'">
-                        <xsl:apply-templates select="." mode="ldh:TableViewBlock">
-                            <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
-                            <xsl:with-param name="endpoint" select="sd:endpoint()" tunnel="yes"/>
-                        </xsl:apply-templates>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:apply-templates select="." mode="ldh:ListViewBlock">
-                            <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
-                            <xsl:with-param name="endpoint" select="sd:endpoint()" tunnel="yes"/>
-                        </xsl:apply-templates>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </xsl:with-param>
+        <xsl:call-template name="ldh:ViewModeChoice">
+            <xsl:with-param name="container-id" select="$container-id"/>
+            <xsl:with-param name="endpoint" select="sd:endpoint()"/>
+            <xsl:with-param name="local-endpoint" select="sd:endpoint()"/>
+            <xsl:with-param name="results" select="ldh:result-document(.)"/>
+            <xsl:with-param name="active-mode" select="ldh:result-mode(., $present)"/>
+            <xsl:with-param name="object-metadata" select="$object-metadata"/>
         </xsl:call-template>
     </xsl:template>
 
@@ -1745,36 +1728,46 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="(for $type in $present/@ldh:chartType return xs:anyURI($type), for $token in $present/@type return map{ 'bar': xs:anyURI('&ac;BarChart'), 'line': xs:anyURI('&ac;LineChart'), 'scatter': xs:anyURI('&ac;ScatterChart') }(string($token)), xs:anyURI('&ac;BarChart'))[1]"/>
     </xsl:function>
 
-    <!-- the well a result sits in: the kit's nested block at depth 2 under the card, headed with the mode's icon and
-         name, as a block in the document would be -->
-    <xsl:template name="ldh:ChatResultWell">
-        <xsl:param name="mode" as="xs:anyURI"/>
-        <xsl:param name="icon" as="xs:string"/>
-        <xsl:param name="body" as="item()*"/>
+    <!-- the layout mode a result is drawn in: the one the plan asked for, when it draws that form of result -->
+    <xsl:function name="ldh:result-mode" as="xs:anyURI">
+        <xsl:param name="result" as="element()"/>
+        <xsl:param name="present" as="element()?"/>
 
-        <div class="ldh-nblock ldh-chat-result-block" data-depth="2" data-mode="{$mode}">
-            <div class="ldh-block-head ldh-res-head" data-density="compact">
-                <span class="ldh-res-icon">
-                    <span class="msi outline" aria-hidden="true">
-                        <xsl:value-of select="$icon"/>
-                    </span>
-                </span>
-                <div class="ldh-res-text">
-                    <div class="ldh-res-titleline">
-                        <!-- the mode's own label, from the vocabulary that defines it, as the view mode switcher shows it -->
-                        <h3 class="ttl">
-                            <xsl:apply-templates select="key('resources', $mode, document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                        </h3>
-                    </div>
-                </div>
-                <div class="actions"/>
-            </div>
-            <div class="ldh-nblock-body">
-                <xsl:sequence select="$body"/>
-            </div>
-        </div>
+        <xsl:apply-templates select="$result" mode="ldh:ResultMode">
+            <xsl:with-param name="mode" select="ldh:present-mode($present)"/>
+        </xsl:apply-templates>
+    </xsl:function>
+
+    <!-- a result set is a table, or a chart -->
+    <xsl:template match="srx:sparql" mode="ldh:ResultMode" as="xs:anyURI">
+        <xsl:param name="mode" as="xs:anyURI?"/>
+
+        <xsl:sequence select="($mode[. = '&ac;ChartMode'], xs:anyURI('&ac;TableMode'))[1]"/>
     </xsl:template>
 
+    <!-- a graph is a list, or a grid, a table, a map or a 3D graph -->
+    <xsl:template match="rdf:RDF" mode="ldh:ResultMode" as="xs:anyURI">
+        <xsl:param name="mode" as="xs:anyURI?"/>
+
+        <xsl:sequence select="($mode[. = ('&ac;GridMode', '&ac;TableMode', '&ac;MapMode', '&ac;GraphMode')], xs:anyURI('&ac;ListMode'))[1]"/>
+    </xsl:template>
+
+    <!-- a result's well is named after the card and the result's place among what the plan returned -->
+    <xsl:function name="ldh:chat-result-id" as="xs:string">
+        <xsl:param name="card-id" as="xs:string"/>
+        <xsl:param name="result" as="element()"/>
+
+        <xsl:sequence select="$card-id || '-result-' || count($result/preceding-sibling::*)"/>
+    </xsl:function>
+
+    <!-- a result as the document every layout mode draws from -->
+    <xsl:function name="ldh:result-document" as="document-node()">
+        <xsl:param name="result" as="element()"/>
+
+        <xsl:document>
+            <xsl:sequence select="$result"/>
+        </xsl:document>
+    </xsl:function>
 
     <!-- FAILURE -->
 
