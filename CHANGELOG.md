@@ -1,9 +1,28 @@
 ## [Unreleased]
+### Migration
+- Top-level LDH stylesheet params and variables carry the `ldh:` prefix (e.g. `$ldh:select-labelled-string`); an override of the unprefixed name is silently ignored
+- Shared stylesheets query through `ldh:query-result()`; `ldh:send-request()` exists only server-side, and `ac:value-intersect()`/`ac:value-except()` are removed
+
 ### Added
-- An assistant for a signed-in reader: a request in natural language becomes a Web-Algebra plan, shown with its operations and its XML, and runs only on Execute; the steps, the documents the plan wrote and its result are reported as they happen, and the result is answered in words and drawn as a table, a list, a grid or a chart
+- An assistant for a signed-in reader: a request in natural language becomes a Web-Algebra plan, shown with its operations and its XML, and runs only on Execute; the steps, the documents the plan wrote and its result are reported as they happen, and the result is answered in words and drawn as a view draws it: a table, a list, a grid, a chart, a map or a 3D graph
 - A conversation is an `ldh:Chat` block, placed in the document by an object block: the create bar's Assistant button starts one, each ends in its own composer, and every turn is stored as an `ldh:ChatTurn` with its plan and what the execution reported, so a chat is there when the reader comes back
 - A `web-algebra` service in the stack (`ghcr.io/atomgraph/webalgebra-server-ldh`), reached through nginx at the reserved `/webalgebra` path with a WebID certificate on the connection; it acts for the reader through the secretary agent's delegation, so a plan may write exactly what its reader may. Needs the `openai_api_key` secret
 - The agent guide (`AGENTS.md`) is served at `/AGENTS.md` on every dataspace origin, public and outside the dispatcher, so a client writing a query against the endpoint - the assistant's `SPARQLString` reads it as service documentation - learns that every document is a named graph and the default graph is empty
+
+### Changed
+- An external HTML page with no RDF representation opens in a new tab; the proxy answers `406` instead of `502`
+- Every chart, map and 3D graph canvas is initialised by one template, wherever it is rendered
+- Web-Client dependency bumped to 6.0.5
+
+### Fixed
+- A malformed `Accept`-family header no longer turns an error response into a `500`; an invalid `accept` parameter is refused with `400`
+- Proxied responses always vary on `Accept`, so a cached RDF response is no longer served to a browser navigation
+- The proxy serves the boolean result of an upstream `ASK` query
+- A document imported under another name than its ontology's no longer takes the dataspace down
+- LDH's ontologies import SPIN, SP and OWL by the IRIs those ontologies declare
+- Nested property lists of blank nodes lay out for their own cell instead of collapsing to one word per line
+- Charts no longer fail on datetimes with fractional milliseconds
+- The version history link announces that it opens a dialog
 
 ## [6.1.0] - 2026-10-05
 ### Migration
