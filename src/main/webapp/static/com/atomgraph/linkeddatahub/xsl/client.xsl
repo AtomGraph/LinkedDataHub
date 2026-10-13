@@ -461,10 +461,24 @@ WHERE
                             </xsl:otherwise>
                         </xsl:choose>
 
+                        <!-- a write that added blocks takes the reader to the first of them (ldh:DocumentNavigate's $known-blocks):
+                             the document's rdf:_N members in order, less the ones the page already showed. Only the scroll
+                             gets it - the address stays the document's, as the reader did not navigate to the block -->
+                        <xsl:variable name="new-block" as="xs:anyURI?">
+                            <xsl:if test="map:contains($context, 'known-blocks') and not($fragment)">
+                                <xsl:variable name="members" as="element()*">
+                                    <xsl:perform-sort select="key('resources', $doc-uri, $results)/*[namespace-uri() = '&rdf;'][starts-with(local-name(), '_')][@rdf:resource]">
+                                        <xsl:sort select="xs:integer(substring-after(local-name(), '_'))"/>
+                                    </xsl:perform-sort>
+                                </xsl:variable>
+                                <xsl:sequence select="$members/xs:anyURI(@rdf:resource)[not(. = array:flatten($context('known-blocks')))][1]"/>
+                            </xsl:if>
+                        </xsl:variable>
+
                         <xsl:call-template name="ldh:RenderTab">
                             <xsl:with-param name="pane-id" select="$effective-pane-id"/>
                             <xsl:with-param name="doc-uri" select="$doc-uri"/>
-                            <xsl:with-param name="fragment" select="$fragment"/>
+                            <xsl:with-param name="fragment" select="($fragment, $new-block[starts-with(., $doc-uri || '#')]!substring-after(., '#'))[1]"/>
                             <xsl:with-param name="mode" select="$mode"/>
                             <xsl:with-param name="response" select="$response"/>
                             <xsl:with-param name="refresh-content" select="$refresh-content"/>
@@ -924,6 +938,10 @@ WHERE
         <xsl:param name="container" as="element()" select="id($ldh:body-id, ixsl:page())"/>
         <!-- true when the document body currently in the DOM was rendered by the server; see the caller in the 'main' template -->
         <xsl:param name="server-rendered" select="false()" as="xs:boolean"/>
+        <!-- the blocks the page showed before a write to this document, when the caller wants the reader taken to what the
+             write added: with no $fragment, the first block of the reloaded document not among them is scrolled to. An empty
+             array is a page that had no blocks; absent, nothing is looked for -->
+        <xsl:param name="known-blocks" as="array(xs:anyURI)?"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
         <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')">
@@ -972,6 +990,7 @@ WHERE
             <xsl:with-param name="query-params" select="$query-params"/>
             <xsl:with-param name="controller" select="$controller"/>
             <xsl:with-param name="server-rendered" select="$server-rendered"/>
+            <xsl:with-param name="known-blocks" select="$known-blocks"/>
         </xsl:call-template>
     </xsl:template>
 
@@ -984,6 +1003,8 @@ WHERE
         <xsl:param name="refresh-content" as="xs:boolean?"/>
         <xsl:param name="server-rendered" select="false()" as="xs:boolean"/>
         <xsl:param name="controller" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')"/>
+        <!-- see ldh:DocumentNavigate -->
+        <xsl:param name="known-blocks" as="array(xs:anyURI)?"/>
         <!-- representation-selecting params (?version=, ?timemap, the SPARQL protocol's) ride along on the request; display params do not -->
         <xsl:variable name="representation-params" select="ldh:representation-params($query-params)" as="map(xs:string, xs:string*)"/>
         <!-- ?diff= is display state (like ?mode=): the compared version is fetched client-side, the param never reaches the server but must survive into ldh:PushState -->
@@ -1007,7 +1028,8 @@ WHERE
               'server-rendered': $server-rendered,
               'endpoint': sd:endpoint()
             },
-            if (exists($diff-version)) then map{ 'diff-request': map{ 'method': 'GET', 'href': ldh:href($doc-uri, map{ 'version': $diff-version }, ()), 'headers': map{ 'Accept': 'application/rdf+xml' } } } else map{}
+            if (exists($diff-version)) then map{ 'diff-request': map{ 'method': 'GET', 'href': ldh:href($doc-uri, map{ 'version': $diff-version }, ()), 'headers': map{ 'Accept': 'application/rdf+xml' } } } else map{},
+            if (exists($known-blocks)) then map{ 'known-blocks': $known-blocks } else map{}
           ))"/>
         <ixsl:promise select="ixsl:http-request($context('request'), $controller) =>
             ixsl:then(ldh:rethread-response($context, ?)) =>
