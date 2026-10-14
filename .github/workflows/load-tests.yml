@@ -14,8 +14,13 @@ jobs:
           find "$GITHUB_WORKSPACE/bin" -type d >> "$GITHUB_PATH"
       # the SPARQL load tests make the end-user dataspace public first (ldh admin make-public), the way a
       # real deployment does - anonymous /sparql is what they put under load. That needs the ldh CLI, built
-      # here from this checkout exactly as the HTTP-tests workflow does (cli/ resolves the sibling library by
-      # version, so the library is installed first).
+      # here from this checkout exactly as the HTTP-tests workflow does (JDK 21, then the sibling library
+      # cli/ resolves by version, then the CLI).
+      - name: Set up Java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
       - name: Build the linkeddatahub-rdf library
         run: mvn -B install
         working-directory: rdf
