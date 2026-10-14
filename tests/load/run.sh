@@ -40,6 +40,9 @@ function run_tests()
     local tests_total=0 tests_passed=0 tests_failed=0
     for script_pathname in "$@"
     do
+        # the previous test's aftermath (a render burst still draining, a Fuseki restarting) must not be
+        # measured by the next one; a platform that never comes back is left for the test to fail on
+        wait_ready || echo >&2 "The platform did not answer within 300 s of the previous test."
         echo -n "$script_pathname"
         local log_file t_start_ms t_end_ms duration_ms exit_code status message=""
         log_file=$(mktemp)
@@ -76,16 +79,23 @@ function run_tests()
     return $tests_failed
 }
 
-# the platform must be answering before the burst, or the assertion measures the boot instead. 403 on a
-# private dataspace, 200 once the workflow has made it public - any answer from the platform itself, not
-# the proxy's 502/503/504 while it boots. Bounded, so a stack that never comes up fails instead of hanging
-ready_deadline=$(( $(date +%s) + 300 ))
-until case "$(curl -k -s -o /dev/null -w '%{http_code}' --max-time 5 "$END_USER_BASE_URL")" in 200|403) true ;; *) false ;; esac; do
-    [ "$(date +%s)" -lt "$ready_deadline" ] || { echo >&2 "The platform did not answer within 300 s. Aborting."; exit 1; }
-    sleep 1
-done
+# wait_ready: block until the platform answers, bounded at 300 s. 403 on a private dataspace, 200 once the
+# workflow has made it public - any answer from the platform itself, not the proxy's 502/503/504 while it
+# boots or recovers. Bounded, so a stack that never comes up fails instead of hanging
+function wait_ready()
+{
+    local deadline=$(( $(date +%s) + 300 ))
+    until case "$(curl -k -s -o /dev/null -w '%{http_code}' --max-time 5 "$END_USER_BASE_URL")" in 200|403) true ;; *) false ;; esac; do
+        [ "$(date +%s)" -lt "$deadline" ] || return 1
+        sleep 1
+    done
+}
 
-run_tests "load" $(find . -maxdepth 1 -type f -name '*.sh' ! -name 'run.sh' | sort)
+# the platform must be answering before the first burst, or the assertion measures the boot instead
+wait_ready || { echo >&2 "The platform did not answer within 300 s. Aborting."; exit 1; }
+
+# compare.sh is a one-off measurement that builds a stack per git ref, not a test
+run_tests "load" $(find . -maxdepth 1 -type f -name '*.sh' ! -name 'run.sh' ! -name 'compare.sh' | sort)
 
 echo "### Failed tests: $error_count"
 if [ "$error_count" -gt 0 ]; then

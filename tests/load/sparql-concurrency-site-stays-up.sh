@@ -10,6 +10,12 @@ set -uo pipefail
 # many /sparql requests are in flight at once, leaving threads for everything else, and turns the
 # surplus into 429s. So while 24 concurrent queries (1.5x the threads) run for 90 s, a visitor fetching
 # the public root must still get an answer within the probe bound.
+#
+# The site staying up proves nothing if the queries never held their slots, so the test also rebuilds,
+# from each response's start and end, how many queries were in flight at once: the total must reach the
+# cap (the load really pressed against it) and never pass it, and no single client may pass its own cap.
+# A rejected worker backs off a second before retrying, like a client honouring the 429, so the
+# rejections come from the concurrency caps, not from a spin that trips the rate limit.
 
 . "$(dirname "$0")/lib/load.sh"
 
@@ -18,6 +24,7 @@ CONC="${CONC:-$(( THREADS * 3 / 2 ))}"
 DURATION="${DURATION:-90}"
 # a visitor's request must get an answer within this many seconds for the site to count as available
 PROBE_BOUND="${PROBE_BOUND:-30}"
+BACKOFF="${BACKOFF:-1}"
 QUERY="$(dirname "$0")/queries/cpu-bound.rq"
 
 load_out=$(mktemp)
@@ -26,7 +33,7 @@ trap 'rm -f "$load_out" "$probe_out"' EXIT
 
 probe "$DURATION" "$probe_out" &
 probe_pid=$!
-run_load "$CONC" "$DURATION" "$QUERY" "$load_out"
+run_load "$CONC" "$DURATION" "$QUERY" "$load_out" "$BACKOFF"
 wait "$probe_pid"
 
 report "concurrency (${CONC} concurrent for ${DURATION}s)" "$load_out" "$probe_out"
@@ -53,9 +60,29 @@ fi
 
 # the cap engaged: the surplus was rejected rather than queued onto the threads
 rejected=$(count_status "$load_out" '^429$')
-echo "DEBUG: 429 responses (cap NGINX_SPARQL_CONN_TOTAL=${NGINX_SPARQL_CONN_TOTAL:-8}): ${rejected}"
+echo "DEBUG: 429 responses: ${rejected}"
 if [ "$rejected" -eq 0 ]; then
     echo "FAIL: nothing was rejected - the concurrency cap did not engage, so nothing bounded the load" >&2
+    status=1
+fi
+
+# the total cap held, and the load actually reached it: fewer in flight means the queries were too cheap to
+# hold a request open, and the site staying up says nothing about the cap
+inflight=$(max_inflight "$load_out")
+echo "DEBUG: most queries in flight at once: ${inflight} (NGINX_SPARQL_CONN_TOTAL=${SPARQL_CONN_TOTAL})"
+if [ "$inflight" -gt "$SPARQL_CONN_TOTAL" ]; then
+    echo "FAIL: ${inflight} queries were in flight at once, past the cap of ${SPARQL_CONN_TOTAL}" >&2
+    status=1
+elif [ "$inflight" -lt "$SPARQL_CONN_TOTAL" ]; then
+    echo "FAIL: at most ${inflight} queries were in flight at once, never the cap of ${SPARQL_CONN_TOTAL} - the load did not press against it" >&2
+    status=1
+fi
+
+# and so did the per-client cap
+per_client=$(max_inflight_per_client "$load_out")
+echo "DEBUG: most queries in flight at once from one client: ${per_client} (NGINX_SPARQL_CONN_PER_CLIENT=${SPARQL_CONN_PER_CLIENT})"
+if [ "$per_client" -gt "$SPARQL_CONN_PER_CLIENT" ]; then
+    echo "FAIL: one client had ${per_client} queries in flight at once, past the per-client cap of ${SPARQL_CONN_PER_CLIENT}" >&2
     status=1
 fi
 

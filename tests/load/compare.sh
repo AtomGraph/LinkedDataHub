@@ -22,7 +22,8 @@ here=$(cd "$(dirname "$0")" && pwd)
 repo=$(cd "$here/../.." && pwd)
 work=$(mktemp -d)
 results=$(mktemp -d)
-trap 'rm -rf "$work" "$results"' EXIT
+# an aborted run leaves its worktree registered; prune drops it once the directory is gone
+trap 'rm -rf "$work" "$results"; git -C "$repo" worktree prune' EXIT
 
 echo "repo:    $repo"
 echo "refs:    ${REFS[*]}"
