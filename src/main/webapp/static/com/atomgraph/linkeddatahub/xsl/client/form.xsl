@@ -1706,33 +1706,20 @@ WHERE
                 <xsl:when test="empty($resources/rdf:RDF/*)">
                     <xsl:sequence select="ixsl:call(($block/ancestor::div[contains-token(@class, 'ldh-block-row')][1], $block)[1], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:when>
+                <!-- the row is drawn from the submitted triples alone, so the labels of their objects are queried first,
+                     as every other block render does; if the query fails, the row is drawn without them -->
                 <xsl:otherwise>
-                    <xsl:variable name="classes" select="()" as="element()*"/>
-                    <xsl:variable name="new-block" as="element()">
-                        <xsl:apply-templates select="$resources/rdf:RDF/*" mode="ldh:BlockRow">
-                            <xsl:with-param name="classes" select="$classes"/>
-                            <xsl:with-param name="style" select="()"/> <!-- TO-DO: remove? -->
-                            <xsl:with-param name="type-content" select="false()"/>
-                            <xsl:sort select="ac:label(.)"/>
-                        </xsl:apply-templates>
-                    </xsl:variable>
-
-                    <!-- ldh:BlockRow renders a whole .ldh-block-row, so the row is what gets replaced (the card alone would nest a row inside the old row) -->
-                    <xsl:for-each select="($block/ancestor::div[contains-token(@class, 'ldh-block-row')][1], $block)[1]">
-                        <xsl:result-document href="?." method="ixsl:replace-element">
-                            <xsl:copy-of select="$new-block"/>
-                        </xsl:result-document>
-                    </xsl:for-each>
-
-                    <!-- the replacement detaches $block — re-resolve the inserted block by the rendered element's id -->
-                    <xsl:variable name="factory" as="function(item()?) as item()*?">
-                        <xsl:apply-templates select="id($new-block/@id, ixsl:page())" mode="ldh:RenderRow"/>
-                    </xsl:variable>
-
-                    <xsl:if test="exists($factory)">
-                        <!-- invoke the factory -->
-                        <xsl:sequence select="$factory(())"/>
-                    </xsl:if>
+                    <xsl:variable name="metadata-context" select="map:merge(($context, map{ 'endpoint': sd:endpoint(), 'object-uris': distinct-values($resources//@rdf:resource) }), map{ 'duplicates': 'use-last' })" as="map(*)"/>
+                    <ixsl:promise select="
+                      ldh:http-request-threaded(ldh:load-object-metadata($metadata-context), 'metadata-request', 'metadata-response')
+                        => ixsl:then(ldh:handle-response(?, 'metadata-response'))
+                        => ixsl:then(ldh:set-object-metadata#1)
+                        => ixsl:then(ldh:http-request-threaded(?, 'ns-metadata-request', 'ns-metadata-response'))
+                        => ixsl:then(ldh:handle-response(?, 'ns-metadata-response'))
+                        => ixsl:then(ldh:set-object-metadata-ns#1)
+                        => ixsl:then(ldh:merge-object-metadata#1)
+                        => ixsl:then(ldh:form-horizontal-render#1)
+                    " on-failure="ldh:form-horizontal-render($metadata-context, ?)"/>
                 </xsl:otherwise>
             </xsl:choose>
 
@@ -1741,6 +1728,51 @@ WHERE
             <xsl:call-template name="rdfae:hide-overlay"/>
             <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
         </xsl:for-each>
+    </xsl:function>
+
+    <!-- draws the saved row again from the submitted triples, with the labels of their objects when the query for them succeeded -->
+    <xsl:function name="ldh:form-horizontal-render" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+
+        <xsl:sequence select="ldh:form-horizontal-render($context, ())"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:form-horizontal-render" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="error" as="item()*"/>
+        <xsl:variable name="block" select="$context('block')" as="element()"/>
+        <xsl:variable name="resources" select="$context('resources')" as="document-node()"/>
+        <xsl:variable name="object-metadata" select="if (map:contains($context, 'object-metadata')) then $context('object-metadata') else ()" as="document-node()?"/>
+
+        <xsl:message>ldh:form-horizontal-render</xsl:message>
+
+        <xsl:variable name="classes" select="()" as="element()*"/>
+        <xsl:variable name="new-block" as="element()">
+            <xsl:apply-templates select="$resources/rdf:RDF/*" mode="ldh:BlockRow">
+                <xsl:with-param name="classes" select="$classes"/>
+                <xsl:with-param name="style" select="()"/> <!-- TO-DO: remove? -->
+                <xsl:with-param name="type-content" select="false()"/>
+                <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
+                <xsl:sort select="ac:label(.)"/>
+            </xsl:apply-templates>
+        </xsl:variable>
+
+        <!-- ldh:BlockRow renders a whole .ldh-block-row, so the row is what gets replaced (the card alone would nest a row inside the old row) -->
+        <xsl:for-each select="($block/ancestor::div[contains-token(@class, 'ldh-block-row')][1], $block)[1]">
+            <xsl:result-document href="?." method="ixsl:replace-element">
+                <xsl:copy-of select="$new-block"/>
+            </xsl:result-document>
+        </xsl:for-each>
+
+        <!-- the replacement detaches $block — re-resolve the inserted block by the rendered element's id -->
+        <xsl:variable name="factory" as="function(item()?) as item()*?">
+            <xsl:apply-templates select="id($new-block/@id, ixsl:page())" mode="ldh:RenderRow"/>
+        </xsl:variable>
+
+        <xsl:if test="exists($factory)">
+            <!-- invoke the factory -->
+            <xsl:sequence select="$factory(())"/>
+        </xsl:if>
     </xsl:function>
 
     <xsl:function name="ldh:form-submit-created" ixsl:updating="yes">
