@@ -24,7 +24,7 @@
 //   · IT STAYS OUT OF THE READING LINE. `is-reveal` is opacity, never display, so the control
 //     keeps its footprint and the prose does not reflow when a reader's pointer crosses it.
 import { test, expect } from '../../lib/console.mjs';
-import { goto } from '../../lib/settle.mjs';
+import { goto, loaded } from '../../lib/settle.mjs';
 import { fixtures, proseSample } from '../../lib/fixtures.mjs';
 import { endUserBase } from '../../lib/stack.mjs';
 
@@ -39,12 +39,19 @@ const glyph = button => button.locator('span.msi').first();
 // so the denial shows up as a broken control rather than as a missing permission.
 const readClipboard = page => page.evaluate(() => navigator.clipboard.readText());
 
+// The fixture page with every block loaded: the prose block sits below the view, which expands when its
+// results arrive, so a hover or a click aimed at the code block before then lands on the view instead.
+async function open(page) {
+    await goto(page, fixtures.container);
+    await loaded(page);
+}
+
 test.beforeEach(async ({ page }) => {
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write'], { origin: endUserBase });
 });
 
 test('puts the sample in a wrapper of its own, with the control beside it', async ({ page }) => {
-    await goto(page, fixtures.container);
+    await open(page);
 
     // The anatomy, in the order it has to be: the wrapper holds the `pre` and the button as
     // siblings. The button cannot live inside the `pre` - preformatted text would take its glyph
@@ -61,7 +68,7 @@ test('puts the sample in a wrapper of its own, with the control beside it', asyn
 });
 
 test('no pre the page shows is left without one', async ({ page }) => {
-    await goto(page, fixtures.container);
+    await open(page);
 
     // The claim the emitter exists to make, asserted over the page rather than over the one
     // sample: a `pre` reaching the reader outside a wrapper is a `pre` with no way to be copied.
@@ -72,7 +79,7 @@ test('no pre the page shows is left without one', async ({ page }) => {
 });
 
 test('stays out of the reading line until the block is hovered', async ({ page }) => {
-    await goto(page, fixtures.container);
+    await open(page);
 
     const button = copyButton(codeBlock(page));
     const opacity = () => button.evaluate(node => getComputedStyle(node).opacity);
@@ -89,7 +96,7 @@ test('stays out of the reading line until the block is hovered', async ({ page }
 });
 
 test('copies the sample, newline and all - not the block it sits in', async ({ page }) => {
-    await goto(page, fixtures.container);
+    await open(page);
 
     await copyButton(codeBlock(page)).click();
 
@@ -100,7 +107,7 @@ test('copies the sample, newline and all - not the block it sits in', async ({ p
 });
 
 test('confirms, then goes back to offering', async ({ page }) => {
-    await goto(page, fixtures.container);
+    await open(page);
 
     const button = copyButton(codeBlock(page));
     await button.click();

@@ -46,6 +46,15 @@ export async function settled(page, { selector = BLOCKS, quietFor = 400, timeout
     return page.locator(selector).count();
 }
 
+// Every block on the page has finished loading. A block carries aria-busy until ldh:end-block-loading
+// clears it, and what it renders then - a view's rows above a prose block, say - moves everything after
+// it. settled() counts blocks, not their content, so a pointer gesture aimed at a later element waits for
+// this as well: hovered before a view above it expands, the element slides out from under the pointer,
+// which then rests on the view's rows (measured 2026-10-14, the code block's copy control on the CI runner).
+export async function loaded(page, { timeout = 30_000 } = {}) {
+    await page.waitForFunction(() => !document.querySelector('.block[aria-busy="true"]'), null, { timeout });
+}
+
 // Navigate and wait for hydration in one step, since no spec wants the un-hydrated shell.
 export async function goto(page, url, options) {
     const response = await page.goto(url, { waitUntil: 'domcontentloaded', ...options });

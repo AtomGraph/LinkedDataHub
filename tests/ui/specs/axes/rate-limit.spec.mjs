@@ -48,8 +48,8 @@ async function record(page, { refuse }) {
     const sent = new Set();
     const shapes = new Map();
     const refused = new Set();
-    const events = []; // DEBUG
-    const t0 = Date.now(); // DEBUG
+    const events = []; // every block request in order: what quiet() waits on, and the timeline a failure prints
+    const t0 = Date.now();
     await page.route('**/*', route => {
         const request = route.request();
         if (!fromBlocks(request, origin)) return route.fallback();
@@ -57,11 +57,11 @@ async function record(page, { refuse }) {
         const key = keyOf(request);
         if (refuse && !refused.has(key)) {
             refused.add(key);
-            events.push({ t: Date.now() - t0, action: 'refused', id: idOf(key), shape: shapeOf(key) }); // DEBUG
+            events.push({ t: Date.now() - t0, action: 'refused', id: idOf(key), shape: shapeOf(key) });
             // No Retry-After, as nginx sends none: the client falls back to its default wait.
             return route.fulfill({ status: 429, contentType: 'text/html', body: '<html><body>429 Too Many Requests</body></html>' });
         }
-        events.push({ t: Date.now() - t0, action: refused.has(key) ? 'sent (after refusal)' : 'sent', id: idOf(key), shape: shapeOf(key) }); // DEBUG
+        events.push({ t: Date.now() - t0, action: refused.has(key) ? 'sent (after refusal)' : 'sent', id: idOf(key), shape: shapeOf(key) });
         sent.add(key);
         shapes.set(shapeOf(key), (shapes.get(shapeOf(key)) ?? 0) + 1);
         return route.fallback();
@@ -78,6 +78,21 @@ async function rendered(page) {
         'the object block renders its resource').not.toBeEmpty({ timeout: 30_000 });
 }
 
+// A load is over when its blocks have made no request for a while, and both loads end the same way so their
+// counts compare. networkidle alone ends one too soon: it resolves once, at the first 500 ms with nothing in
+// flight, and the page's two views each send a parallax label lookup after their results - the second one
+// measured going out 38 ms after networkidle on a CPU throttled 4x (2026-10-14). A baseline cut there is one
+// request short, and the refused load, which waits far longer, "over-fetches" a request every load sends twice.
+async function quiet(page, events, { idle = 2_000, timeout = 30_000 } = {}) {
+    await page.waitForLoadState('networkidle');
+    const deadline = Date.now() + timeout;
+    let count = -1;
+    while (count !== events.length && Date.now() < deadline) {
+        count = events.length;
+        await page.waitForTimeout(idle);
+    }
+}
+
 test('every request refused with 429 is retried as itself, and every block still renders', async ({ page, allowNoise }) => {
     test.setTimeout(120_000);
     allowNoise.push({ pattern: /^HTTP 429: /, reason: 'this spec refuses every block request once on purpose' });
@@ -91,7 +106,7 @@ test('every request refused with 429 is retried as itself, and every block still
     await goto(unrefused, fixtures.container);
     await rendered(unrefused);
     // Every request the page makes unprovoked, not just the ones the blocks render from.
-    await unrefused.waitForLoadState('networkidle');
+    await quiet(unrefused, baseline.events);
     await unrefused.close();
 
     const { sent, shapes, refused, events } = await record(page, { refuse: true });
@@ -105,7 +120,7 @@ test('every request refused with 429 is retried as itself, and every block still
         message: 'every refused request is sent again',
         timeout: 20_000,
     }).toEqual([]);
-    await page.waitForLoadState('networkidle');
+    await quiet(page, events);
     const extra = [...shapes].filter(([shape, count]) => count > (baseline.shapes.get(shape) ?? 0))
         .map(([shape, count]) => `${count}x (baseline ${baseline.shapes.get(shape) ?? 0}x) ${shape}`);
     // DEBUG: the timeline of each over-fetched shape, under both loads, and every request around it
