@@ -26,3 +26,29 @@ services:
     # the HTTP suite publishes the triplestore for its fixtures; this suite only talks to the front
     # door, and a developer's own stack may already hold the port
     ports: !override []
+    # the adversarial SPARQL tests exhaust the heap on purpose: at the base's 2304m an empty store's cross
+    # product reaches the 60 s query timeout before it reaches the heap, and the OOM path would go untested
+    environment:
+      - JAVA_OPTIONS=-Xmx512m -Xms512m
+  nginx:
+    # the adversarial SPARQL tests' clients reach the front door from outside: see the adversary service
+    networks:
+      default:
+      adversary:
+  # Clients of the public internet, for the SPARQL tests. nginx caps /sparql per client address and exempts
+  # RFC 1918 ones as the platform's own calls - and a curl on the runner arrives from the Docker bridge
+  # (172.x) or Docker Desktop's VM (192.168.65.x), which the caps would never count. This network takes
+  # its addresses from 100.64.0.0/10 (carrier-grade NAT: neither RFC 1918 nor site-local), so each replica
+  # is a distinct external client. Idle; the tests drive it with `docker compose exec --index N`.
+  adversary:
+    image: curlimages/curl:8.17.0
+    command: [ "sleep", "infinity" ]
+    deploy:
+      replicas: 6
+    networks:
+      - adversary
+networks:
+  adversary:
+    ipam:
+      config:
+        - subnet: 100.64.0.0/24

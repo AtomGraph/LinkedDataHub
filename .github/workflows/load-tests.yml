@@ -12,6 +12,18 @@ jobs:
       - name: Add bin/ and its subdirectories to PATH
         run: |
           find "$GITHUB_WORKSPACE/bin" -type d >> "$GITHUB_PATH"
+      # the SPARQL load tests make the end-user dataspace public first (ldh admin make-public), the way a
+      # real deployment does - anonymous /sparql is what they put under load. That needs the ldh CLI, built
+      # here from this checkout exactly as the HTTP-tests workflow does (cli/ resolves the sibling library by
+      # version, so the library is installed first).
+      - name: Build the linkeddatahub-rdf library
+        run: mvn -B install
+        working-directory: rdf
+      - name: Build the ldh CLI
+        run: mvn -B package
+        working-directory: cli
+      - name: Add the ldh launcher to PATH
+        run: echo "$GITHUB_WORKSPACE/cli/bin" >> "$GITHUB_PATH"
       - name: Generating server certificate
         run: |
           server-cert-gen.sh .env nginx ssl
@@ -28,10 +40,27 @@ jobs:
         run: docker compose -f docker-compose.yml -f ./tests/http/docker-compose.http-tests.yml -f ./tests/load/docker-compose.load-tests.yml --env-file ./tests/http/.env up --build -d
       - name: Wait for the server to start...
         run: while ! (status=$(curl -k -s -w "%{http_code}\n" https://localhost:4443 -o /dev/null) && echo "$status" && echo "$status" | grep "403") ; do sleep 1 ; done # wait for the webapp to start (returns 403 by default)
+      - name: Make the end-user dataspace public
+        # the platform writes the owner keystore into the bind-mounted ssl/owner on first boot; the suite's
+        # SPARQL tests send anonymous queries, which only reach the store once the dataspace is public
+        run: |
+          ldh admin make-public \
+            -c tests/http/ssl/owner/keystore.p12 \
+            -p "$(cat secrets/owner_cert_password.txt)" \
+            https://localhost:4443/
       - name: Run load test scripts
         run: ./run.sh
         shell: bash
         working-directory: tests/load
+        env:
+          # the same stack the steps above brought up (project name from tests/http/.env); the SPARQL tests
+          # drive the adversary containers and inspect fuseki through this
+          COMPOSE_CMD: >-
+            docker compose
+            -f ${{ github.workspace }}/docker-compose.yml
+            -f ${{ github.workspace }}/tests/http/docker-compose.http-tests.yml
+            -f ${{ github.workspace }}/tests/load/docker-compose.load-tests.yml
+            --env-file ${{ github.workspace }}/tests/http/.env
       - name: Generate test summary
         if: always()
         run: python3 scripts/generate_test_summary.py tests/load/out tests/load/out/report.md
