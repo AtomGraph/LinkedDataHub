@@ -32,7 +32,8 @@ now_s() { date +%s; }
 
 # send_query <index> <query_file>: one anonymous POST of the query from adversary container <index>,
 # printing "<http_status> <seconds>". --connect-to keeps Host and SNI at the public name while the
-# connection goes to nginx on the shared network.
+# connection goes to nginx on the shared network. One-shot, for the recovery check - the sustained load
+# is driven by attack() below, which loops inside the container instead.
 send_query() {
     local idx="$1" qfile="$2" q
     q=$(cat "$qfile")
@@ -44,20 +45,26 @@ send_query() {
         "https://${SPARQL_HOST}/sparql" 2>/dev/null || echo "000 0"
 }
 
+# the body each attack worker runs INSIDE its adversary container: curl the query back-to-back until
+# DUR seconds have passed, one result line per request. The loop runs in the container so the whole
+# burst costs one `docker compose exec` per worker, not one per request - a per-request exec buried the
+# runner under compose-CLI launches and starved the very stack under test. DUR, Q and HOST come in as
+# env so this stays a fixed single-quoted string on the host side (no query text to quote through).
+_WORKER_LOOP='end=$(( $(date +%s) + DUR )); while [ "$(date +%s)" -lt "$end" ]; do curl -k -s -o /dev/null -w "%{http_code} %{time_total}\n" --max-time 120 --connect-to "$HOST:nginx:8443" -H "Accept: application/sparql-results+json" --data-urlencode "query=$Q" "https://$HOST/sparql" || echo "000 0"; done'
+
 # attack <concurrency> <duration_s> <query_file> <out_file>: hold <concurrency> anonymous queries in
-# flight for <duration_s>, one worker per slot, each looping back-to-back. Every response's
-# "<status> <seconds>" is appended to <out_file>. Returns when all workers have stopped.
+# flight for <duration_s>, one in-container worker per slot looping back-to-back, spread across the
+# adversary replicas. Every response's "<status> <seconds>" is appended to <out_file>. Returns when all
+# workers have stopped (bounded by <duration_s> plus one in-flight query).
 attack() {
-    local conc="$1" dur="$2" qfile="$3" out="$4"
+    local conc="$1" dur="$2" qfile="$3" out="$4" q
+    q=$(cat "$qfile")
     : > "$out"
-    local deadline=$(( $(now_s) + dur )) i pids=()
+    local i idx pids=()
     for i in $(seq 1 "$conc"); do
-        (
-            local idx=$(( (i - 1) % ADVERSARY_REPLICAS + 1 ))
-            while [ "$(now_s)" -lt "$deadline" ]; do
-                send_query "$idx" "$qfile" >> "$out"
-            done
-        ) &
+        idx=$(( (i - 1) % ADVERSARY_REPLICAS + 1 ))
+        dc exec -T -e DUR="$dur" -e Q="$q" -e HOST="$SPARQL_HOST" --index "$idx" adversary \
+            sh -c "$_WORKER_LOOP" >> "$out" 2>/dev/null &
         pids+=("$!")
     done
     # wait only on this function's own workers, so a probe running in the caller's background is left alone
