@@ -3,11 +3,11 @@
 #   docker compose -f docker-compose.yml -f tests/http/docker-compose.http-tests.yml \
 #                  -f tests/load/docker-compose.load-tests.yml --env-file tests/http/.env up --build -d
 #
-# A stack sized so that a burst the test runner can produce reproduces what only real traffic
+# A stack sized so that a batch the test runner can produce reproduces what only real traffic
 # reaches on a production connector of 200 threads. The ratio is what matters and it mirrors the
 # image's defaults: the client pool holds as many connections per route as the connector has
 # threads, so a self-call never waits for a pool slot behind other self-calls, only on its own
-# bounded read. (With a pool of 4 against these 16 threads, as before the fix, a burst drained
+# bounded read. (With a pool of 4 against these 16 threads, as before the fix, a batch drained
 # one bounded wait at a time and recovery took over three minutes.)
 services:
   linkeddatahub:
@@ -15,14 +15,40 @@ services:
       - HTTP_MAX_THREADS=16   # Tomcat's connector behind the proxy; default 200
       - MAX_CONN_PER_ROUTE=16 # the platform's outbound client pool, per host; the image's 200 scaled with the connector
       - MAX_TOTAL_CONN=32
-      # far past any bound the tests use: a wedge that resolves only because the platform's reads
-      # time out is still the wedge, and the dev default of two minutes would hide it behind the probe
+      # far past any bound the tests use: a stall that resolves only because the platform's reads
+      # time out is still the stall, and the dev default of two minutes would hide it behind the probe
       - CLIENT_SOCKET_TIMEOUT=600000
     volumes:
       # the base mounts the repository's ./settings, a developer's own package imports included; the
-      # burst renders the stock dataspace, so this stack starts from settings of its own, kept empty
+      # batch renders the stock dataspace, so this stack starts from settings of its own, kept empty
       - ./tests/load/settings:/var/www/linkeddatahub/settings
   fuseki:
     # the HTTP suite publishes the triplestore for its fixtures; this suite only talks to the front
     # door, and a developer's own stack may already hold the port
     ports: !override []
+    # the load SPARQL tests fill the heap on purpose: at the base's 2304m an empty store's cross
+    # product reaches the 60 s query timeout before it reaches the heap, and the OOM path would go untested
+    environment:
+      - JAVA_OPTIONS=-Xmx512m -Xms512m
+  nginx:
+    # the load SPARQL tests' clients reach the front door from outside: see the loadgen service
+    networks:
+      default:
+      loadgen:
+  # Clients of the public internet, for the SPARQL tests. nginx caps /sparql per client address and exempts
+  # RFC 1918 ones as the platform's own calls - and a curl on the runner arrives from the Docker bridge
+  # (172.x) or Docker Desktop's VM (192.168.65.x), which the caps would never count. This network takes
+  # its addresses from 100.64.0.0/10 (carrier-grade NAT: neither RFC 1918 nor site-local), so each replica
+  # is a distinct external client. Idle; the tests drive it with `docker compose exec --index N`.
+  loadgen:
+    image: curlimages/curl:8.17.0
+    command: [ "sleep", "infinity" ]
+    deploy:
+      replicas: 6
+    networks:
+      - loadgen
+networks:
+  loadgen:
+    ipam:
+      config:
+        - subnet: 100.64.0.0/24

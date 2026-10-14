@@ -136,8 +136,10 @@ services:
       # every outbound request (SPARQL SERVICE, LOAD) goes through egress, which only lets it reach public addresses.
       # JAVA_TOOL_OPTIONS rather than JAVA_OPTIONS, which an override setting the heap would replace. The empty
       # nonProxyHosts is load-bearing: by default the JVM bypasses the proxy for localhost, and
-      # SERVICE <http://localhost:3030/other-dataset/> would read a sibling dataset in this same server
-      - JAVA_TOOL_OPTIONS=-Dhttp.proxyHost=${EGRESS_PROXY_HOST:-egress} -Dhttp.proxyPort=3128 -Dhttps.proxyHost=${EGRESS_PROXY_HOST:-egress} -Dhttps.proxyPort=3128 -Dhttp.nonProxyHosts=
+      # SERVICE <http://localhost:3030/other-dataset/> would read a sibling dataset in this same server.
+      # ExitOnOutOfMemoryError: a query that exhausts the heap kills the JVM and restart: on-failure brings it back in
+      # seconds - the query timeout bounds time, not memory, and a JVM past an OutOfMemoryError keeps running broken
+      - JAVA_TOOL_OPTIONS=-Dhttp.proxyHost=${EGRESS_PROXY_HOST:-egress} -Dhttp.proxyPort=3128 -Dhttps.proxyHost=${EGRESS_PROXY_HOST:-egress} -Dhttps.proxyPort=3128 -Dhttp.nonProxyHosts= -XX:+ExitOnOutOfMemoryError
     expose:
       - 3030
     volumes:
@@ -260,6 +262,23 @@ configs:
           limit_req_zone $$limit_key zone=web_algebra:10m rate=5r/s; # a plan is a model call; polling is what bursts
           limit_req_status 429;
 
+          # SPARQL endpoints are capped by concurrency, not only by rate: a handful of heavy queries in flight at once is
+          # what exhausts the store's heap, however slowly they arrive. The keys are set for an external client's
+          # /sparql request only - every other path and every internal (RFC 1918) caller maps to "", which nginx does not
+          # count - so the caps sit in the generic locations below without touching anything else
+          map $$uri $$sparql_key {
+              default "";
+              /sparql $$limit_key;
+          }
+          map $$sparql_key $$sparql_all {
+              default sparql;
+              "" "";
+          }
+          limit_conn_zone $$sparql_key zone=sparql_per_client:10m;
+          limit_conn_zone $$sparql_all zone=sparql_total:1m;
+          limit_req_zone $$sparql_key zone=sparql:10m rate=${NGINX_SPARQL_RATE:-2r/s};
+          limit_conn_status 429;
+
           client_max_body_size ${MAX_CONTENT_LENGTH:-2097152};
 
           # server with optional client cert authentication
@@ -314,6 +333,9 @@ configs:
                   proxy_pass http://linkeddatahub;
                   #proxy_cache backcache;
                   limit_req zone=linked_data burst=30 nodelay;
+                  limit_req zone=sparql burst=10 nodelay;
+                  limit_conn sparql_per_client ${NGINX_SPARQL_CONN_PER_CLIENT:-2};
+                  limit_conn sparql_total ${NGINX_SPARQL_CONN_TOTAL:-8};
 
                   proxy_set_header Host $$host;
                   proxy_set_header X-Forwarded-Host $$host;
@@ -386,6 +408,9 @@ configs:
                   proxy_pass http://linkeddatahub;
                   #proxy_cache backcache;
                   limit_req zone=linked_data burst=30 nodelay;
+                  limit_req zone=sparql burst=10 nodelay;
+                  limit_conn sparql_per_client ${NGINX_SPARQL_CONN_PER_CLIENT:-2};
+                  limit_conn sparql_total ${NGINX_SPARQL_CONN_TOTAL:-8};
 
                   proxy_set_header Host $$host;
                   proxy_set_header X-Forwarded-Host $$host;
