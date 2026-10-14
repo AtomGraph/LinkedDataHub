@@ -51,8 +51,6 @@ echo "DEBUG: fuseki restarts after: ${restarts_after} (delta $(( restarts_after 
 echo "DEBUG: JVM exits on OutOfMemoryError logged: ${oom_exits}"
 echo "DEBUG: store answers a trivial query again: $([ "$recovered" = 1 ] && echo yes || echo no)"
 
-if [ -n "${MEASURE_ONLY:-}" ]; then exit 0; fi
-
 status=0
 
 # the guard fired: the JVM exited on the heap pressure and the container restarted at least once. Without

@@ -36,8 +36,6 @@ wait "$probe_pid"
 
 report "rate limit (${CONC} clients sending trivial queries back-to-back for ${DURATION}s)" "$load_out" "$probe_out"
 
-if [ -n "${MEASURE_ONLY:-}" ]; then exit 0; fi
-
 status=0
 
 rejected=$(count_status "$load_out" '^429$')

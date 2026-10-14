@@ -38,8 +38,6 @@ wait "$probe_pid"
 
 report "concurrency (${CONC} concurrent for ${DURATION}s)" "$load_out" "$probe_out"
 
-if [ -n "${MEASURE_ONLY:-}" ]; then exit 0; fi
-
 status=0
 
 # the site stayed available: no probe saw the platform down

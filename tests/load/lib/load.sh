@@ -11,7 +11,7 @@
 
 set -uo pipefail
 
-# The compose invocation that owns the running stack. compare.sh and the CI workflow export COMPOSE_CMD;
+# The compose invocation that owns the running stack. The CI workflow exports COMPOSE_CMD;
 # a developer running one test by hand gets the default built from this file's location.
 if [ -z "${COMPOSE_CMD:-}" ]; then
     _root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
@@ -155,7 +155,7 @@ max_inflight_per_client() {
     echo "$m"
 }
 
-# report <label> <load_out> <probe_out>: the standard block both the asserting tests and compare.sh print
+# report <label> <load_out> <probe_out>: the standard block every test prints
 report() {
     local label="$1" aout="$2" pout="$3"
     echo "=== ${label} ==="

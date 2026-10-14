@@ -94,8 +94,7 @@ function wait_ready()
 # the platform must be answering before the first burst, or the assertion measures the boot instead
 wait_ready || { echo >&2 "The platform did not answer within 300 s. Aborting."; exit 1; }
 
-# compare.sh is a one-off measurement that builds a stack per git ref, not a test
-run_tests "load" $(find . -maxdepth 1 -type f -name '*.sh' ! -name 'run.sh' ! -name 'compare.sh' | sort)
+run_tests "load" $(find . -maxdepth 1 -type f -name '*.sh' ! -name 'run.sh' | sort)
 
 echo "### Failed tests: $error_count"
 if [ "$error_count" -gt 0 ]; then
