@@ -59,7 +59,7 @@ jobs:
         working-directory: tests/load
         env:
           # the same stack the steps above brought up (project name from tests/http/.env); the SPARQL tests
-          # drive the adversary containers and inspect fuseki through this
+          # drive the loadgen containers and inspect fuseki through this
           COMPOSE_CMD: >-
             docker compose
             -f ${{ github.workspace }}/docker-compose.yml

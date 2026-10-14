@@ -4,11 +4,11 @@ set -euo pipefail
 # Measure the SPARQL load scenarios against two or more revisions and print them side by side - the
 # before/after for the concurrency-cap + OOM-restart change. For each ref this builds the stack from
 # that ref's own docker-compose.yml (so the "before" ref runs without the guards) but with THIS
-# worktree's tests/load/ copied in (so both runs use the same adversary network, heap and scenarios).
+# worktree's tests/load/ copied in (so both runs use the same loadgen network, heap and scenarios).
 # The scenarios run in MEASURE_ONLY mode - they report, they do not assert - so a ref without the
 # guards produces numbers rather than a failure.
 #
-# This is a one-off measurement, not part of `run.sh`. It is heavy: it builds an image and brings up a
+# This is a one-off measurement, not part of `run.sh`. It is resource-intensive: it builds an image and brings up a
 # full stack per ref, one at a time. Needs ~8 GB free disk, the ports 81/4443/5443 free (stop any
 # other local LDH stack first), and `ldh` on PATH (any version - make-public is an HTTP-API call).
 #
@@ -64,7 +64,7 @@ for ref in "${REFS[@]}"; do
     out="$results/$safe.txt"
     {
         echo "================ $ref ================"
-        for scenario in sparql-heavy-burst-site-stays-up sparql-oom-fuseki-recovers sparql-flood-rate-limited; do
+        for scenario in sparql-concurrency-site-stays-up sparql-heap-fuseki-recovers sparql-rate-limited; do
             echo "[$ref] $scenario" >&2
             COMPOSE_CMD="$compose" MEASURE_ONLY=1 bash "$tree/tests/load/$scenario.sh" 2>&1 || true
             echo

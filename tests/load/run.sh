@@ -76,8 +76,14 @@ function run_tests()
     return $tests_failed
 }
 
-# the platform must be answering before the burst, or the assertion measures the boot instead
-until [ "$(curl -k -s -o /dev/null -w '%{http_code}' --max-time 5 "$END_USER_BASE_URL")" = 403 ]; do sleep 1; done
+# the platform must be answering before the burst, or the assertion measures the boot instead. 403 on a
+# private dataspace, 200 once the workflow has made it public - any answer from the platform itself, not
+# the proxy's 502/503/504 while it boots. Bounded, so a stack that never comes up fails instead of hanging
+ready_deadline=$(( $(date +%s) + 300 ))
+until case "$(curl -k -s -o /dev/null -w '%{http_code}' --max-time 5 "$END_USER_BASE_URL")" in 200|403) true ;; *) false ;; esac; do
+    [ "$(date +%s)" -lt "$ready_deadline" ] || { echo >&2 "The platform did not answer within 300 s. Aborting."; exit 1; }
+    sleep 1
+done
 
 run_tests "load" $(find . -maxdepth 1 -type f -name '*.sh' ! -name 'run.sh' | sort)
 
