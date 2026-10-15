@@ -463,7 +463,12 @@ WHERE
 
                         <!-- a write that added blocks takes the reader to the first of them (ldh:DocumentNavigate's $known-blocks):
                              the document's rdf:_N members in order, less the ones the page already showed. Only the scroll
-                             gets it - the address stays the document's, as the reader did not navigate to the block -->
+                             gets it - the address stays the document's, as the reader did not navigate to the block.
+                             A block placing a chat is not one: the copy the page was loaded with predates the chat block its
+                             first question writes, and that block is where the reader already is, not what the plan wrote.
+                             The whole path is parenthesized before [1]: unparenthesized, [1] applies per member and every new
+                             block comes back, which the zero-or-one variable refuses - the reload stopped there, the body
+                             drawn but no breadcrumb, no scroll and the chat card never finished -->
                         <xsl:variable name="new-block" as="xs:anyURI?">
                             <xsl:if test="map:contains($context, 'known-blocks') and not($fragment)">
                                 <xsl:variable name="members" as="element()*">
@@ -471,7 +476,7 @@ WHERE
                                         <xsl:sort select="xs:integer(substring-after(local-name(), '_'))"/>
                                     </xsl:perform-sort>
                                 </xsl:variable>
-                                <xsl:sequence select="$members/xs:anyURI(@rdf:resource)[not(. = array:flatten($context('known-blocks')))][1]"/>
+                                <xsl:sequence select="($members/xs:anyURI(@rdf:resource)[not(. = array:flatten($context('known-blocks')))][not(key('resources', key('resources', ., $results)/rdf:value/@rdf:resource, $results)/rdf:type/@rdf:resource = '&ldh;Chat')])[1]"/>
                             </xsl:if>
                         </xsl:variable>
 

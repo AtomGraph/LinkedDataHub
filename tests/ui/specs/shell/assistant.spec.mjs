@@ -454,6 +454,43 @@ test('Execute runs the plan, reports what it wrote, and the stored turn comes ba
     await expect(composer(chatOf(page, chatUri))).toBeEnabled();
 });
 
+test('a plan that adds a block to the page being read reloads the page with the block shown and scrolled to', { tag: '@owner' }, async ({ page }) => {
+    // the plan service and the executor answered by the spec; the executor's write is a real one, made with the
+    // CLI, so the page that catches up reads a document that has the block
+    const WALDH = 'https://w3id.org/atomgraph/web-algebra/linkeddatahub';
+    const block = `${scratch.container}#added-block`;
+    const plan = `<wa:plan xmlns:wa="${WA}"><wa:summary>Adds a block to this document.</wa:summary><wa:operations><wa:operation name="waldh:AddObjectBlock"/></wa:operations><waldh:AddObjectBlock xmlns:waldh="${WALDH}" xmlns="${WA}"><url>${scratch.container}</url><value>${endUserBase}</value><title>Added block</title></waldh:AddObjectBlock></wa:plan>`;
+    const execution = `<wa:execution xmlns:wa="${WA}"><wa:id>added</wa:id><wa:status>complete</wa:status><wa:steps><wa:step operation="waldh:AddObjectBlock" depth="0" outcome="complete" elapsed="200"/></wa:steps><wa:written><wa:document uri="${scratch.container}"/></wa:written></wa:execution>`;
+    await page.route(/\/webalgebra\/plans$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: plan }));
+    await page.route(/\/webalgebra$/, async route => {
+        await ldh(['add', 'object-block', '--title', 'Added block', '--uri', '#added-block', '--value', endUserBase, scratch.container]);
+        await route.fulfill({ status: 202, contentType: 'application/xml', body: `<wa:execution xmlns:wa="${WA}"><wa:id>added</wa:id></wa:execution>` });
+    });
+    await page.route(/\/webalgebra\/added\/result$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: execution }));
+    await page.route(/\/webalgebra\/answers$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: `<wa:answer xmlns:wa="${WA}">Added a block to this document.</wa:answer>` }));
+
+    await goto(page, inMode(scratch.container, CONTENT_MODE));
+    const breadcrumb = page.locator('.ldh-pane.is-active .ldh-bc');
+    await expect(breadcrumb).toContainText('Assistant spec');
+    await button(page).click();
+    const chatUri = await ephemeral(page).locator('.ldh-chat').getAttribute('data-chat');
+    await composer(chatOf(page, chatUri)).fill('Add a block to this document');
+    await composer(chatOf(page, chatUri)).press('Enter');
+    const execute = cards(chatOf(page, chatUri)).last().locator('.ldh-chat-execute');
+    await expect(execute).toBeVisible();
+    await execute.click();
+
+    // the page reloads with what the plan wrote: the same document, its breadcrumb included, the added block drawn
+    // and brought into view, and the chat with the turn and its answer
+    const added = page.locator(`.ldh-pane.is-active .content-body [about="${block}"]`).first();
+    await expect(added).toBeVisible({ timeout: 30_000 });
+    await expect(added).toBeInViewport();
+    await expect(breadcrumb).toContainText('Assistant spec');
+    const card = cards(chatOf(page, chatUri)).last();
+    await expect(card).toHaveAttribute('data-turn', /#turn-/, { timeout: 30_000 });
+    await expect(card.locator('.ldh-chat-answer')).toHaveText('Added a block to this document.');
+});
+
 test('a question is answered in words, with its result as a block in the card, also after a reload', { tag: '@owner' }, async ({ page, allowNoise }) => {
     test.setTimeout(300_000);
     for (const title of ['Answer alpha', 'Answer beta'])
