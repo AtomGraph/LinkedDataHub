@@ -1724,7 +1724,11 @@ WHERE
             </xsl:choose>
 
             <!-- the editor has reverted to read-only; dismiss the annotation overlay so it does
-                 not linger orphaned over the read view (it rebuilds on the next right-click) -->
+                 not linger orphaned over the read view (it rebuilds on the next right-click).
+                 The save is the editor's exit, so focus is not returned to its content: the row is
+                 redrawn once the labels are in, and removing an editor that holds focus fires its
+                 focusout (in Chrome), whose autosave would cancel the block in the middle of the redraw -->
+            <ixsl:set-property name="activeBlock" select="()" object="rdfae:editor-state()"/>
             <xsl:call-template name="rdfae:hide-overlay"/>
             <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
         </xsl:for-each>
