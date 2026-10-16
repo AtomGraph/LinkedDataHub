@@ -315,33 +315,32 @@ These demo applications can be installed into a LinkedDataHub instance using `ma
 
 ## AI-Powered Automation
 
-### [Web-Algebra](https://github.com/AtomGraph/Web-Algebra)
+AI agents work with LinkedDataHub through the same HTTP API and access control as people do: an agent acts as a WebID, and can read and write only what that WebID may.
 
-Web-Algebra enables AI agents to consume Linked Data and SPARQL as well as control and automate LinkedDataHub operations through natural language instructions.
-This innovative system translates human language into JSON-formatted RDF operations that can be executed against your LinkedDataHub instance.
+### Assistant
 
-**Key capabilities:**
-* **Natural Language to RDF Operations**: Translate complex instructions into executable semantic workflows
-* **LLM Agent Integration**: AI agents can compose and execute complex multi-step operations automatically
-* **Atomic Execution**: Complex workflows are compiled into optimized JSON "bytecode" that executes as a single unit
-* **Model Context Protocol (MCP)**: Interactive tools for AI assistants to manage LinkedDataHub content
+Users signed in with a WebID certificate who have append access to a document can open the assistant from its creation bar. A question becomes a Web-Algebra plan, and the plan is shown before anything runs. A plan that only reads can run straight away, and one that writes waits for the user to press Execute. The plan runs as the user who asked. Each conversation is stored in the document as a block, so it is still there when the user comes back.
 
-**Example use cases:**
+The assistant is served by the `web-algebra` service in `docker-compose.yml`. Writing plans needs an OpenAI API key (`secrets/openai_api_key.txt`, see [Setup](#setup)). Without one, the assistant can still run plans but cannot write them.
 
-*Business Analytics:*
-> Analyze quarterly sales performance from our Northwind dataset, identify the top 5 customers by revenue, and create an interactive dashboard showing regional sales trends with automated alerts for territories underperforming by more than 15%
+### [Claude Code plugin and skills](https://github.com/AtomGraph/LinkedDataHub/tree/master/plugins/ldh)
 
-*FAIR Life Sciences Integration:*
-> Query federated endpoints for protein interaction data from UniProt, gene expression profiles from EBI, and clinical trial outcomes from ClinicalTrials.gov, then integrate these datasets through SPARQL CONSTRUCT queries, create cross-references using shared identifiers, and embed the unified knowledge graph into an interactive research article with live data visualizations
+The `ldh` plugin gives [Claude Code](https://claude.com/claude-code) skills for building on LinkedDataHub with the `ldh` CLI: provisioning a dataspace, modelling and importing a dataset, building an app, and writing a reusable package. Install it in Claude Code with:
 
-**Perfect for:**
-* Business intelligence automation and reporting
-* Federated biomedical data integration and analysis
-* AI-assisted research data discovery and linking
-* Natural language interfaces to knowledge graphs
-* Intelligent data processing and monitoring pipelines
+```
+/plugin marketplace add AtomGraph/LinkedDataHub
+/plugin install ldh@linkeddatahub
+```
 
-See the [Web-Algebra repository](https://github.com/AtomGraph/Web-Algebra) for setup instructions and examples of AI agents managing LinkedDataHub instances.
+Claude loads a skill by itself when a request matches it, for example:
+
+> Here are products.csv and categories.csv. Model them with schema.org, import them into the inventory dataspace, and make each category's page list its products.
+
+The skills need a LinkedDataHub instance, the owner's WebID certificate and the `ldh` CLI. See [`plugins/ldh/README.md`](https://github.com/AtomGraph/LinkedDataHub/blob/master/plugins/ldh/README.md) for the skills and more example requests.
+
+### [Web-Algebra](https://github.com/AtomGraph/Web-Algebra) and MCP
+
+Web-Algebra expresses LinkedDataHub operations, SPARQL queries and Linked Data reads as plans that run as one unit. The assistant writes its plans in it, and its [Model Context Protocol](https://modelcontextprotocol.io/) server exposes LinkedDataHub operations as tools to any MCP client, such as Claude Code or Cursor. Connected with a WebID certificate, an agent can create containers and items, add views, queries and charts, and run SPARQL. It can build a working application in a dataspace this way. The application is documents like any other, and you can keep editing them by hand. See [Connect an agent](https://docs.linkeddatahub.com/get-started/agents/) for the setup, and [`AGENTS.md`](AGENTS.md) for the conventions an agent should follow when it writes to LinkedDataHub.
 
 ## How to get involved
 
