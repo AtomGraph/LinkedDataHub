@@ -1,3 +1,44 @@
+## [Unreleased]
+### Migration
+- Top-level LDH stylesheet params and variables carry the `ldh:` prefix; overrides of the unprefixed names are ignored
+- Shared stylesheets query through `ldh:query-result()`; `ac:value-intersect()`/`ac:value-except()` are removed
+- **BREAKING**: the `$lds:Context` stylesheet param is removed, as it exposed service credentials to stylesheets; use `lds:context()`
+- Existing dataspaces need an authorization granting public read access to `/context` on both origins (new ones get it seeded)
+- **BREAKING**: `ldh import csv|rdf` print the URI of the created import instead of the target document's
+- **BREAKING**: `ldh --proxy` keeps the request's `Host`; pass the plain proxy instead of an `admin.`-prefixed one
+
+### Added
+- `/context` serves the public description of every dataspace, and end-user responses link their admin application (`lds:admin`)
+- `ldh admin` commands take the end-user base URI
+- `ldh admin import ontology --file` installs the namespace ontology from a local file in one step
+- `ldh import csv|rdf --wait` waits for the import to finish
+- An assistant that turns a natural-language request into a Web-Algebra plan, runs it on Execute and shows the result as a view
+- Assistant conversations are stored as `ldh:Chat` blocks in the document
+- A `web-algebra` service in the stack, acting on the reader's behalf; the assistant writes plans only when the optional `openai_api_key` secret is declared
+- The agent guide is served at `/AGENTS.md` on every dataspace
+- An `ldh` Claude Code plugin with skills for building dataspaces, datasets, apps and packages with the CLI
+- A `GET` on `/sparql` without a query returns the endpoint's SPARQL Service Description
+
+### Changed
+- An external HTML page with no RDF representation opens in a new tab; the proxy answers `406` instead of `502`
+- Every chart, map and 3D graph canvas is initialised by one template, wherever it is rendered
+- External `/sparql` requests are capped per client and in total by nginx (`NGINX_SPARQL_*`), answering `429` beyond the limits
+- Fuseki restarts on an out-of-memory error instead of running on broken
+- Web-Client dependency bumped to 6.0.6
+
+### Fixed
+- A malformed `Accept`-family header no longer turns an error response into a `500`; an invalid `accept` parameter is refused with `400`
+- Proxied responses always vary on `Accept`, so a cached RDF response is no longer served to a browser navigation
+- The proxy serves the boolean result of an upstream `ASK` query
+- A document imported under another name than its ontology's no longer takes the dataspace down
+- LDH's ontologies import SPIN, SP and OWL by the IRIs those ontologies declare
+- Nested property lists of blank nodes lay out for their own cell instead of collapsing to one word per line
+- Charts no longer fail on datetimes with fractional milliseconds
+- The version history link announces that it opens a dialog
+- `rdf:XMLLiteral` values are stored as Exclusive XML Canonicalization again
+- A block saved through its edit form labels its resource values instead of showing the URI's fragment
+- An ontology-defined view no longer flashes its own metadata before its results
+
 ## [6.1.0] - 2026-10-05
 ### Migration
 - **BREAKING**: `ldh` drops `-b`/`--base`; dataspace-level commands take the base URI as their positional, defaulting to `LDH_BASE`

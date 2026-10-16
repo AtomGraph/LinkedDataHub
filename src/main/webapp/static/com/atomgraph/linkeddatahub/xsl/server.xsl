@@ -82,6 +82,13 @@ exclude-result-prefixes="#all">
     <xsl:function name="lds:origin" as="xs:anyURI?">
         <xsl:sequence select="$lds:origin"/>
     </xsl:function>
+    <!-- the public dataspace context, dereferenced like any other document: every origin's /context describes all the
+         dataspaces. The Saxon-JS twin reads the copy the bootstrap preloads from the same URL -->
+    <xsl:function name="lds:context" as="document-node()?">
+        <xsl:variable name="uri" select="if (lds:origin()) then resolve-uri('context', lds:base()) else ()" as="xs:anyURI?"/>
+        <!-- absent rather than an error: a page renders without the dataspace descriptions instead of failing -->
+        <xsl:sequence select="if ($uri and doc-available($uri)) then document($uri) else ()"/>
+    </xsl:function>
 
     <!-- the dataspace base: the origin with a trailing slash. ApplicationImpl.getBaseURI() derives it the
          same way - getOriginURI().resolve("/"), which discards any path - so there is no separate

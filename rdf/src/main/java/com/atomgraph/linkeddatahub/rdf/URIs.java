@@ -21,7 +21,8 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * Where LinkedDataHub puts things: how a child document's URI is derived from its parent and a
- * slug, and how an end-user application's base URI relates to its admin application's.
+ * slug. An end-user application's admin application is not derived here: the platform advertises it
+ * as the <code>lds:admin</code> link.
  * <p>
  * Conventions, not manipulation - every method here encodes a rule the platform also applies, so
  * a client that follows them addresses documents the platform will agree exist.
@@ -69,19 +70,6 @@ public final class URIs
         }
 
         return sb.toString();
-    }
-
-    /**
-     * Converts an end-user application base URI to the base URI of its admin application
-     * by prefixing the host with the <code>admin.</code> subdomain, which is how nginx's
-     * wildcard routing tells the two apart.
-     *
-     * @param base end-user base URI
-     * @return admin base URI
-     */
-    public static URI adminBase(URI base)
-    {
-        return URI.create(base.toString().replaceFirst("://", "://admin."));
     }
 
 }

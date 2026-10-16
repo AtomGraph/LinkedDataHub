@@ -27,12 +27,6 @@ public class URIsTest
 {
 
     @Test
-    public void adminBasePrefixesHostWithAdminSubdomain()
-    {
-        assertEquals(URI.create("https://admin.localhost:4443/"), URIs.adminBase(URI.create("https://localhost:4443/")));
-    }
-
-    @Test
     public void encodeSlugKeepsUnreservedCharacters()
     {
         assertEquals("abc-._~123", URIs.encodeSlug("abc-._~123"));

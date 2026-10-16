@@ -18,10 +18,8 @@ package com.atomgraph.linkeddatahub.cli.http;
 
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.client.GraphStoreClient;
-import com.atomgraph.linkeddatahub.cli.util.URIRewriter;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.Entity;
-import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.Form;
 import jakarta.ws.rs.core.HttpHeaders;
@@ -35,8 +33,8 @@ import org.apache.jena.rdf.model.Model;
 /**
  * Graph Store Protocol client for LinkedDataHub documents (direct graph identification),
  * extended with SPARQL update over PATCH and form-encoded POST. When a proxy URI is given,
- * every request URI has its origin rewritten to the proxy's origin, matching the
- * <code>--proxy</code> handling of the <code>bin/</code> shell scripts.
+ * every request connects to the proxy and keeps its logical <code>Host</code>
+ * ({@link ProxyRewriteFilter}), so dataspaces stay routed by host and responses carry logical URIs.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -53,18 +51,12 @@ public class LDHClient extends GraphStoreClient
      *
      * @param client Jersey client with WebID client certificate
      * @param mediaTypes registry of readable/writable media types
-     * @param proxy proxy URI whose origin replaces the request URI origin (optional, can be null)
+     * @param proxy proxy URI that receives the connections (optional, can be null)
      */
     public LDHClient(Client client, MediaTypes mediaTypes, URI proxy)
     {
-        super(client, mediaTypes);
+        super(proxy != null ? client.register(new ProxyRewriteFilter(proxy)) : client, mediaTypes);
         this.proxy = proxy;
-    }
-
-    @Override
-    protected WebTarget getWebTarget(URI uri)
-    {
-        return super.getWebTarget(getProxy() != null ? URIRewriter.rewrite(uri, getProxy()) : uri);
     }
 
     /**

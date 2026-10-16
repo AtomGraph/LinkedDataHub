@@ -245,6 +245,18 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.application')) then xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.application')) else ()"/>
     </xsl:function>
 
+    <!-- the public dataspace context, preloaded into the document pool by the bootstrap ($ldh:location-mapping in layout.xsl).
+         Read from the shell origin: every origin's /context describes all the dataspaces, so one copy serves every pane -->
+    <xsl:function name="lds:context" as="document-node()?">
+        <xsl:variable name="uri" select="resolve-uri('context', $lds:origin || '/')" as="xs:anyURI"/>
+        <xsl:sequence select="if (doc-available($uri)) then document($uri) else ()"/>
+    </xsl:function>
+
+    <!-- the dataspace's ontology, extracted from the Link response header by ldh:rdf-document-response; empty when the document advertised none -->
+    <xsl:function name="lds:ontology" as="xs:anyURI?">
+        <xsl:sequence select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.ontology') and not(ixsl:get(ixsl:window(), 'LinkedDataHub.ontology') = '')) then xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.ontology')) else ()"/>
+    </xsl:function>
+
     <!-- TimeMap URI extracted from the Link response header by ldh:rdf-document-response; blank when the document is not versioned -->
     <xsl:function name="ldh:timemap" as="xs:anyURI?">
         <xsl:sequence select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.timemap') and not(ixsl:get(ixsl:window(), 'LinkedDataHub.timemap') = '')) then xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.timemap')) else ()"/>
@@ -289,7 +301,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="query" as="xs:string"/>
 
         <!-- read the parse tree through JSON serialization - SaxonJS does not marshal plain JS arrays for ixsl:get() access -->
-        <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($sparql-parser, 'parse', [ $query ]) ])"/>
+        <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($ldh:sparql-parser, 'parse', [ $query ]) ])"/>
     </xsl:function>
 
     <xsl:function name="ldh:url-decode" as="xs:string">
@@ -615,7 +627,7 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:variable name="update-json-string" select="xml-to-json($update-xml)" as="xs:string"/>
         <xsl:variable name="update-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $update-json-string ])"/>
-        <xsl:sequence select="ixsl:call($sparql-generator, 'stringify', [ $update-json ])"/>
+        <xsl:sequence select="ixsl:call($ldh:sparql-generator, 'stringify', [ $update-json ])"/>
     </xsl:function>
     
     <!-- generic HTTP client promises (SaxonJS 3) -->

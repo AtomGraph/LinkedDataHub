@@ -55,9 +55,6 @@ public class LDS
     
     /** The namespace of the vocabulary as a resource */
     public static final Resource NAMESPACE = m_model.createResource( NS );
-
-    /** System context class */
-    public static final Resource Context = m_model.createOntClass( NS + "Context" );
     
     /** Dataset class */
     public static final Resource Dataset = m_model.createOntClass( NS + "Dataset" );
@@ -85,6 +82,9 @@ public class LDS
 
     /** Origin property for subdomain-based dataspace matching */
     public static final Property origin = m_model.createObjectProperty(NS + "origin");
+
+    /** Admin property: the base URI of an end-user dataspace's administration application (for Link header rel) */
+    public static final Property admin = m_model.createObjectProperty( NS + "admin" );
 
     /** Base URI property */
     public static final Property base = m_model.createObjectProperty( NS + "base" );

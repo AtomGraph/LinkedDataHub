@@ -26,6 +26,8 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFParser;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
@@ -185,7 +187,7 @@ public class GraphVersioningServiceTest
         model.add(model.createResource("https://localhost:4443/doc/"), DCTerms.title, ResourceFactory.createLangLiteral("multi\nline", "en"));
 
         Model parsed = ModelFactory.createDefaultModel();
-        parsed.read(new java.io.ByteArrayInputStream(GraphVersioningService.toSortedNTriples(model)), null, "N-TRIPLES");
+        RDFParser.source(new java.io.ByteArrayInputStream(GraphVersioningService.toSortedNTriples(model))).lang(Lang.NTRIPLES).parse(parsed);
 
         assertTrue(model.isIsomorphicWith(parsed));
     }

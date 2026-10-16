@@ -32,6 +32,7 @@ import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.container.PreMatching;
 import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.UriBuilder;
@@ -70,7 +71,7 @@ public class ApplicationFilter implements ContainerRequestFilter
 
         // set early so content negotiation works even if app matching fails
         if (request.getUriInfo().getQueryParameters().containsKey(AC.accept.getLocalName()))
-            request.getHeaders().putSingle(HttpHeaders.ACCEPT, request.getUriInfo().getQueryParameters().getFirst(AC.accept.getLocalName()));
+            setAccept(request, request.getUriInfo().getQueryParameters().getFirst(AC.accept.getLocalName()));
 
         // there always have to be an app
         Resource appResource = getSystem().matchApp(request.getUriInfo().getAbsolutePath());
@@ -154,6 +155,32 @@ public class ApplicationFilter implements ContainerRequestFilter
             if (log.isDebugEnabled()) log.debug("Request URI <{}> has not matched any lds:Dataset", request.getUriInfo().getRequestUri());
             request.setProperty(LDS.Dataset.getURI(), Optional.empty());
         }
+    }
+
+    /**
+     * Replaces the <code>Accept</code> header with the value of the <code>accept</code> query parameter.
+     * The parameter names a single media type, which <code>DocumentHierarchyGraphStoreImpl.getWritableMediaTypes()</code>
+     * parses as one. A value that does not parse as one is refused with 400 Bad Request before the header is touched:
+     * the exception mapper that writes the 400 negotiates its response through that header, and would fail on the
+     * malformed value and send a 500 instead.
+     * The typical malformed value is <code>application/ld json</code>, from a link that left the <code>+</code> of
+     * <code>application/ld+json</code> unencoded.
+     *
+     * @param request request context
+     * @param accept query parameter value
+     */
+    public void setAccept(ContainerRequestContext request, String accept)
+    {
+        try
+        {
+            MediaType.valueOf(accept);
+        }
+        catch (IllegalArgumentException ex)
+        {
+            throw new BadRequestException("Malformed '" + AC.accept.getLocalName() + "' query parameter value: '" + accept + "'", ex);
+        }
+
+        request.getHeaders().putSingle(HttpHeaders.ACCEPT, accept);
     }
 
     /**

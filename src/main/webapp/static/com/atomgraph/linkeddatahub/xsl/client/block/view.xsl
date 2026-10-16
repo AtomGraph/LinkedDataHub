@@ -43,7 +43,7 @@ exclude-result-prefixes="#all"
 
     <xsl:key name="resources-by-primary-topic" match="*[@rdf:about] | *[@rdf:nodeID]" use="foaf:primaryTopic/@rdf:resource"/>
     
-    <xsl:param name="class-modes" as="map(xs:string, xs:anyURI)">
+    <xsl:param name="ldh:class-modes" as="map(xs:string, xs:anyURI)">
         <xsl:map>
             <xsl:map-entry key="'read-mode'" select="xs:anyURI('&ac;ReadMode')"/>
             <xsl:map-entry key="'list-mode'" select="xs:anyURI('&ac;ListMode')"/>
@@ -378,7 +378,7 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:variable name="select-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
         <xsl:variable name="select-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $select-json-string ])"/>
-        <xsl:variable name="query-string" select="ixsl:call($sparql-generator, 'stringify', [ $select-json ])" as="xs:string"/>
+        <xsl:variable name="query-string" select="ixsl:call($ldh:sparql-generator, 'stringify', [ $select-json ])" as="xs:string"/>
         <xsl:variable name="request-uri" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
@@ -434,7 +434,7 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:variable name="select-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
         <xsl:variable name="select-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $select-json-string ])"/>
-        <xsl:variable name="query-string" select="ixsl:call($sparql-generator, 'stringify', [ $select-json ])" as="xs:string"/>
+        <xsl:variable name="query-string" select="ixsl:call($ldh:sparql-generator, 'stringify', [ $select-json ])" as="xs:string"/>
         <xsl:variable name="request-uri" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
@@ -838,7 +838,7 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:variable name="query-json-string" select="xml-to-json($query-xml)" as="xs:string"/>
         <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
-        <xsl:variable name="query-string" select="ixsl:call($sparql-generator, 'stringify', [ $query-json ])" as="xs:string"/>
+        <xsl:variable name="query-string" select="ixsl:call($ldh:sparql-generator, 'stringify', [ $query-json ])" as="xs:string"/>
         <xsl:variable name="request-uri" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
         <xsl:variable name="headers" as="map(xs:string, xs:string)">
             <xsl:map>
@@ -880,7 +880,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="direction" as="xs:string"/> <!-- 'previous' or 'next' -->
 
         <!-- step by the query's own LIMIT so paging stays aligned after the page size is changed -->
-        <xsl:variable name="limit" select="if ($select-xml/json:map/json:number[@key = 'limit']) then xs:integer($select-xml/json:map/json:number[@key = 'limit']) else $page-size" as="xs:integer"/>
+        <xsl:variable name="limit" select="if ($select-xml/json:map/json:number[@key = 'limit']) then xs:integer($select-xml/json:map/json:number[@key = 'limit']) else $ldh:page-size" as="xs:integer"/>
         <xsl:variable name="offset" select="if ($select-xml/json:map/json:number[@key = 'offset']) then xs:integer($select-xml/json:map/json:number[@key = 'offset']) else 0" as="xs:integer"/>
         <xsl:variable name="offset" select="if ($direction = 'previous') then $offset - $limit else $offset + $limit" as="xs:integer"/>
 
@@ -1038,131 +1038,45 @@ exclude-result-prefixes="#all"
             </xsl:choose>
         </xsl:if>
 
-        <!-- after we've created the map container element, create the JS objects using it -->
-        <xsl:if test="$active-mode = '&ac;MapMode'">
-            <!-- unset LIMIT and OFFSET - we want all of the container's children on the map -->
-            <xsl:variable name="select-xml" as="document-node()">
-                <xsl:document>
-                    <xsl:apply-templates select="$select-xml" mode="ldh:replace-limit"/>
-                </xsl:document>
-            </xsl:variable>
-            <xsl:variable name="select-xml" as="document-node()">
-                <xsl:document>
-                    <xsl:apply-templates select="$select-xml" mode="ldh:replace-offset"/>
-                </xsl:document>
-            </xsl:variable>
-
-            <xsl:sequence select="ldh:busy-cursor()"/>
-
-            <xsl:variable name="canvas-id" select="$container-id || '-map-canvas'" as="xs:string"/>
-            <xsl:variable name="initial-load" select="not(ixsl:contains($cache, 'map'))" as="xs:boolean"/>
-            <xsl:variable name="map" select="if ($initial-load) then ldh:create-map($canvas-id, 0, 0, 4) else ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), 'map')" as="item()"/>  <!-- OpenLayers map object -->
-
-            <xsl:if test="not($initial-load)">
-                <ixsl:set-property name="map" select="$map" object="$cache"/>
-            </xsl:if>
-                        
-            <!-- dettach the old canvas element (since it's destroyed and regenerated during AJAX page load) -->
-            <xsl:sequence select="ixsl:call($map, 'setTarget', [ () ])[current-date() lt xs:date('2000-01-01')]"/>
-            <!-- attach the new canvas element -->
-            <xsl:sequence select="ixsl:call($map, 'setTarget', [ $canvas-id ])[current-date() lt xs:date('2000-01-01')]"/>
-            <xsl:sequence select="ixsl:call($map, 'updateSize', [])[current-date() lt xs:date('2000-01-01')]"/>
-
-            <xsl:call-template name="ldh:LoadGeoResources">
-                <xsl:with-param name="container" select="$container"/>
-                <xsl:with-param name="container-id" select="$container-id"/>
-                <xsl:with-param name="select-xml" select="$select-xml"/>
-                <xsl:with-param name="endpoint" select="$endpoint"/>
-                <xsl:with-param name="map" select="$map"/>
-                <xsl:with-param name="initial-load" select="$initial-load"/>
-            </xsl:call-template>
+        <!-- GraphMode: the persistent canvas lives in graph-host (visible since the toggle above), emitted on first
+             activation; later renders feed the same canvas the new results -->
+        <xsl:if test="$active-mode = '&ac;GraphMode' and empty(id($container-id || '-graph-canvas', ixsl:page()))">
+            <xsl:for-each select="id($container-id || '-graph-host', ixsl:page())">
+                <xsl:result-document href="?." method="ixsl:append-content">
+                    <div id="{$container-id}-graph-canvas" class="graph-3d-canvas"/>
+                </xsl:result-document>
+            </xsl:for-each>
         </xsl:if>
-        <xsl:if test="$active-mode = '&ac;ChartMode'">
-            <xsl:variable name="canvas-id" select="$container-id || '-chart-canvas'" as="xs:string"/>
-            <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
-            <xsl:variable name="category" as="xs:string?"/>
-            <xsl:variable name="series" select="distinct-values($results/*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
-            <xsl:variable name="data-table" select="ac:rdf-data-table($results, $category, $series, $chart-type, $object-metadata)"/>
 
-            <ixsl:set-property name="data-table" select="$data-table" object="$cache"/>
-
-            <xsl:call-template name="ldh:RenderChart">
-                <xsl:with-param name="data-table" select="$data-table"/>
-                <xsl:with-param name="canvas-id" select="$canvas-id"/>
-                <xsl:with-param name="chart-type" select="$chart-type"/>
-                <xsl:with-param name="category" select="$category"/>
-                <xsl:with-param name="series" select="$series"/>
-            </xsl:call-template>
-        </xsl:if>
-        <!-- GraphMode: the persistent canvas lives in graph-host (visible since the toggle above). Lazily emit the canvas div + init ForceGraph3D on first activation; subsequent re-renders just feed new $results via redisplay-graph. -->
-        <xsl:if test="$active-mode = '&ac;GraphMode'">
-            <xsl:variable name="canvas-id" select="$container-id || '-graph-canvas'" as="xs:string"/>
-            <xsl:variable name="graph-host" select="id($container-id || '-graph-host', ixsl:page())" as="element()"/>
-            <xsl:variable name="graphs" select="ixsl:get(ixsl:window(), 'LinkedDataHub.graphs')"/>
-            <xsl:variable name="needs-init" select="not(ixsl:contains($graphs, $canvas-id))" as="xs:boolean"/>
-
-            <xsl:if test="$needs-init">
-                <xsl:for-each select="$graph-host">
-                    <xsl:result-document href="?." method="ixsl:append-content">
-                        <div id="{$canvas-id}" class="graph-3d-canvas"/>
-                    </xsl:result-document>
-                </xsl:for-each>
-
-                <xsl:variable name="canvas" select="id($canvas-id, ixsl:page())" as="element()"/>
-                <xsl:variable name="graph-state" as="item()">
-                    <xsl:call-template name="ldh:ForceGraph3D-init">
-                        <xsl:with-param name="graph-id" select="$canvas-id"/>
-                        <xsl:with-param name="container" select="$canvas"/>
-                        <xsl:with-param name="builder" select="ixsl:apply(ixsl:get(ixsl:window(), 'ForceGraph3D'), [])"/>
-                        <xsl:with-param name="graph-width" select="xs:double(ixsl:get($graph-host, 'offsetWidth'))"/>
-                        <xsl:with-param name="graph-height" select="xs:double(600)"/>
-                        <xsl:with-param name="node-rel-size" select="xs:double(4)"/>
-                        <xsl:with-param name="link-width" select="xs:double(1.5)"/>
-                        <xsl:with-param name="node-label-color" select="'white'"/>
-                        <xsl:with-param name="node-label-text-height" select="xs:double(5)"/>
-                        <xsl:with-param name="node-label-position-y" select="xs:double(10)"/>
-                        <xsl:with-param name="link-label-color" select="'lightgrey'"/>
-                        <xsl:with-param name="link-label-text-height" select="xs:double(4)"/>
-                        <xsl:with-param name="link-force-distance" select="xs:double(100)"/>
-                        <xsl:with-param name="charge-force-strength" select="xs:double(-200)"/>
-                        <xsl:with-param name="node-click-event-name" select="'ForceGraph3DNodeClick'"/>
-                        <xsl:with-param name="node-dblclick-event-name" select="'ForceGraph3DNodeDblClick'"/>
-                        <xsl:with-param name="node-rightclick-event-name" select="'ForceGraph3DNodeRightClick'"/>
-                        <xsl:with-param name="node-hover-on-event-name" select="'ForceGraph3DNodeHoverOn'"/>
-                        <xsl:with-param name="node-hover-off-event-name" select="'ForceGraph3DNodeHoverOff'"/>
-                        <xsl:with-param name="link-click-event-name" select="'ForceGraph3DLinkClick'"/>
-                        <xsl:with-param name="background-click-event-name" select="'ForceGraph3DBackgroundClick'"/>
-                    </xsl:call-template>
+        <!-- the active mode's canvas, now in the page, is drawn: a map from the view's own query - every match, so
+             without LIMIT and OFFSET - a chart or a graph from these results -->
+        <xsl:variable name="unpaged-select-xml" as="document-node()">
+            <xsl:document>
+                <xsl:variable name="unlimited" as="document-node()">
+                    <xsl:document>
+                        <xsl:apply-templates select="$select-xml" mode="ldh:replace-limit"/>
+                    </xsl:document>
                 </xsl:variable>
-                <ixsl:set-property name="document" select="$results" object="$graph-state"/>
-                <ixsl:set-property name="loaded-uris" select="ixsl:new('Array', [])" object="$graph-state"/>
-                <ixsl:set-property name="loaded-backlink-uris" select="ixsl:new('Array', [])" object="$graph-state"/>
-                <ixsl:set-property name="{$canvas-id}" select="$graph-state" object="$graphs"/>
-
-                <xsl:call-template name="ldh:AppendGraph3DPanels">
-                    <xsl:with-param name="canvas" select="$canvas"/>
-                    <xsl:with-param name="canvas-id" select="$canvas-id"/>
-                </xsl:call-template>
-            </xsl:if>
-
-            <xsl:variable name="graph-state" select="ixsl:get($graphs, $canvas-id)"/>
-            <xsl:if test="not($needs-init)">
-                <ixsl:set-property name="document" select="$results" object="$graph-state"/>
-            </xsl:if>
-            <xsl:variable name="graph-instance" select="ixsl:get($graph-state, 'instance')"/>
-            <xsl:call-template name="ldh:redisplay-graph">
-                <xsl:with-param name="canvas-id" select="$canvas-id"/>
-                <xsl:with-param name="graph-state" select="$graph-state"/>
-                <xsl:with-param name="graph-instance" select="$graph-instance"/>
-            </xsl:call-template>
-        </xsl:if>
+                <xsl:apply-templates select="$unlimited" mode="ldh:replace-offset"/>
+            </xsl:document>
+        </xsl:variable>
+        <xsl:apply-templates select="id(($container-id || '-map-canvas')[$active-mode = '&ac;MapMode'], ixsl:page()) | id(($container-id || '-chart-canvas')[$active-mode = '&ac;ChartMode'], ixsl:page()) | id(($container-id || '-graph-canvas')[$active-mode = '&ac;GraphMode'], ixsl:page())" mode="ldh:InitCanvas">
+            <xsl:with-param name="results" select="$results" tunnel="yes"/>
+            <xsl:with-param name="cache" select="$cache" tunnel="yes"/>
+            <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
+            <xsl:with-param name="select-xml" select="$unpaged-select-xml" tunnel="yes"/>
+            <xsl:with-param name="endpoint" select="$endpoint" tunnel="yes"/>
+            <xsl:with-param name="container" select="$container" tunnel="yes"/>
+            <xsl:with-param name="container-id" select="$container-id" tunnel="yes"/>
+        </xsl:apply-templates>
     </xsl:template>
     
-    <!-- view mode choice -->
+    <!-- view mode choice: results drawn in a layout mode. Results with no query of their own have no sort order to
+         show, and pass no $select-xml -->
     
     <xsl:template name="ldh:ViewModeChoice">
         <xsl:param name="container-id" as="xs:string"/>
-        <xsl:param name="select-xml" as="document-node()"/>
+        <xsl:param name="select-xml" as="document-node()?"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <!-- the endpoint of the pane this view is rendered in, handed down rather than read off the window -->
         <xsl:param name="local-endpoint" as="xs:anyURI?"/>
@@ -1521,7 +1435,7 @@ exclude-result-prefixes="#all"
         <xsl:context-item as="element()" use="required"/>
         <xsl:param name="select-string" as="xs:string"/>
         <xsl:param name="property-metadata" as="document-node()?"/>
-        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($sparql-parser, 'parse', [ $select-string ]) ])" as="xs:string"/>
+        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($ldh:sparql-parser, 'parse', [ $select-string ]) ])" as="xs:string"/>
         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
         <!-- use the first SELECT variable as the facet variable name (so that we do not generate facets based on other variables) -->
         <xsl:variable name="initial-var-name" select="ldh:first-var-name($select-xml/json:map)" as="xs:string"/>
@@ -1792,6 +1706,11 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
 
+    <!-- a result set's table: its rows, as the results table draws them -->
+    <xsl:template match="srx:sparql" mode="ldh:TableViewBlock" use-when="system-property('xsl:product-name') eq 'SaxonJS'">
+        <xsl:apply-templates select="." mode="ac:ResultsTable"/>
+    </xsl:template>
+
     <!-- hide documents that are paired with resources -->
     <xsl:template match="*[key('resources', foaf:primaryTopic/@rdf:resource)]" mode="ac:ResultsTable"/>
 
@@ -1905,7 +1824,7 @@ exclude-result-prefixes="#all"
                     </xsl:variable>
                     <xsl:variable name="query-json-string" select="xml-to-json($query-xml)" as="xs:string"/>
                     <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
-                    <xsl:variable name="query-string" select="ixsl:call($sparql-generator, 'stringify', [ $query-json ])" as="xs:string"/>
+                    <xsl:variable name="query-string" select="ixsl:call($ldh:sparql-generator, 'stringify', [ $query-json ])" as="xs:string"/>
                     <xsl:variable name="request-uri" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
                     <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
                     <xsl:variable name="context" as="map(*)" select="
@@ -1962,8 +1881,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
         <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
         <xsl:variable name="endpoint" select="ixsl:get($cache, 'endpoint')" as="xs:anyURI"/>
-        <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/*[contains-token(@class, 'mi')][contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string"/>
-        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
+        <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/*[contains-token(@class, 'mi')][contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($ldh:class-modes)]" as="xs:string"/>
+        <xsl:variable name="active-mode" select="map:get($ldh:class-modes, $active-class)" as="xs:anyURI"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
 
@@ -2004,8 +1923,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
         <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
         <xsl:variable name="endpoint" select="ixsl:get($cache, 'endpoint')" as="xs:anyURI"/>
-        <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/*[contains-token(@class, 'mi')][contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string"/>
-        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
+        <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/*[contains-token(@class, 'mi')][contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($ldh:class-modes)]" as="xs:string"/>
+        <xsl:variable name="active-mode" select="map:get($ldh:class-modes, $active-class)" as="xs:anyURI"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
 
@@ -2047,8 +1966,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
         <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
         <xsl:variable name="endpoint" select="ixsl:get($cache, 'endpoint')" as="xs:anyURI"/>
-        <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/*[contains-token(@class, 'mi')][contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string"/>
-        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
+        <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/*[contains-token(@class, 'mi')][contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($ldh:class-modes)]" as="xs:string"/>
+        <xsl:variable name="active-mode" select="map:get($ldh:class-modes, $active-class)" as="xs:anyURI"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
 
@@ -2161,8 +2080,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
         <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
         <xsl:variable name="endpoint" select="ixsl:get($cache, 'endpoint')" as="xs:anyURI"/>
-        <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/*[contains-token(@class, 'mi')][contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string"/>
-        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
+        <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/*[contains-token(@class, 'mi')][contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($ldh:class-modes)]" as="xs:string"/>
+        <xsl:variable name="active-mode" select="map:get($ldh:class-modes, $active-class)" as="xs:anyURI"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
 
@@ -2209,8 +2128,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
         <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
         <xsl:variable name="endpoint" select="ixsl:get($cache, 'endpoint')" as="xs:anyURI"/>
-        <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/*[contains-token(@class, 'mi')][contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string"/>
-        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
+        <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/*[contains-token(@class, 'mi')][contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($ldh:class-modes)]" as="xs:string"/>
+        <xsl:variable name="active-mode" select="map:get($ldh:class-modes, $active-class)" as="xs:anyURI"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
 
@@ -2260,8 +2179,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
         <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
         <xsl:variable name="endpoint" select="ixsl:get($cache, 'endpoint')" as="xs:anyURI"/>
-        <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/*[contains-token(@class, 'mi')][contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string"/>
-        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
+        <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/*[contains-token(@class, 'mi')][contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($ldh:class-modes)]" as="xs:string"/>
+        <xsl:variable name="active-mode" select="map:get($ldh:class-modes, $active-class)" as="xs:anyURI"/>
         <xsl:variable name="order-by-var-name" select="$select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:string[@key = 'expression']/substring-after(., '?')" as="xs:string?"/>
         <xsl:variable name="desc" select="boolean($select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:boolean[@key = 'descending'][. = 'true'])" as="xs:boolean"/>
 
@@ -2317,8 +2236,8 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[@typeof = '&ldh;View']//*[contains-token(@class, 'view-mode-list')]/*[contains-token(@class, 'mi')][not(contains-token(@class, 'is-active'))]" mode="ixsl:onclick">
         <xsl:param name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
         <xsl:param name="cache" select="ldh:view-cache($container)" as="item()"/>
-        <xsl:variable name="active-class" select="tokenize(@class, ' ')[. = map:keys($class-modes)]" as="xs:string"/>
-        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
+        <xsl:variable name="active-class" select="tokenize(@class, ' ')[. = map:keys($ldh:class-modes)]" as="xs:string"/>
+        <xsl:variable name="active-mode" select="map:get($ldh:class-modes, $active-class)" as="xs:anyURI"/>
         <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
         <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
         <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
@@ -2373,7 +2292,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="object-var-name" select="input[@name = 'object']/@value" as="xs:string"/>
         <!-- load facet values using the initial (not the current transformed) SELECT query, so that one facet's selection does not constrain another facet's value list -->
         <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
-        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($sparql-parser, 'parse', [ $select-string ]) ])" as="xs:string"/>
+        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($ldh:sparql-parser, 'parse', [ $select-string ]) ])" as="xs:string"/>
         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
         <!-- TO-DO: can we get multiple BGPs here with the same ?s/p/?o ? -->
         <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $subject-var-name][json:string[@key = 'predicate'] = $predicate][json:string[@key = 'object'] = '?' || $object-var-name]" as="element()"/>
@@ -2458,7 +2377,7 @@ exclude-result-prefixes="#all"
                     </xsl:variable>
                     <xsl:variable name="select-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
                     <xsl:variable name="select-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $select-json-string ])"/>
-                    <xsl:variable name="query-string" select="ixsl:call($sparql-generator, 'stringify', [ $select-json ])" as="xs:string"/>
+                    <xsl:variable name="query-string" select="ixsl:call($ldh:sparql-generator, 'stringify', [ $select-json ])" as="xs:string"/>
                     <xsl:variable name="request-uri" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
                     <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
                     <xsl:variable name="context" as="map(*)" select="
@@ -2616,8 +2535,8 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[contains-token(@class, 'facet')]" mode="ldh:FilterFacet">
         <xsl:param name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
         <xsl:param name="cache" select="ldh:view-cache($container)" as="item()"/>
-        <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/*[contains-token(@class, 'mi')][contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string"/>
-        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
+        <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/*[contains-token(@class, 'mi')][contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($ldh:class-modes)]" as="xs:string"/>
+        <xsl:variable name="active-mode" select="map:get($ldh:class-modes, $active-class)" as="xs:anyURI"/>
         <xsl:variable name="var-name" select="button[contains-token(@class, 'facet-pill')]/input[@name = 'object']/@value" as="xs:string"/>
         <!-- collect the values/types/datatypes/languages of the options that are on and build an array of maps -->
         <xsl:variable name="options" select="child::div[contains-token(@class, 'facet-pop')]/div[contains-token(@class, 'facet-values')]/button[contains-token(@class, 'opt')][contains-token(@class, 'is-on')]" as="element()*"/>
@@ -2666,8 +2585,8 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[@typeof = '&ldh;View']//div[contains-token(@class, 'ldh-pivot-bar')]//button[contains-token(@class, 'ldh-pivot-pill')]" mode="ixsl:onclick">
         <xsl:param name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
         <xsl:param name="cache" select="ldh:view-cache($container)" as="item()"/>
-        <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/*[contains-token(@class, 'mi')][contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string"/>
-        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
+        <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/*[contains-token(@class, 'mi')][contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($ldh:class-modes)]" as="xs:string"/>
+        <xsl:variable name="active-mode" select="map:get($ldh:class-modes, $active-class)" as="xs:anyURI"/>
         <xsl:variable name="predicate" select="input/@value" as="xs:anyURI"/>
         <xsl:variable name="label" select="string(span[contains-token(@class, 'lbl')])" as="xs:string"/>
         <xsl:variable name="inverse" select="@data-dir = 'in'" as="xs:boolean"/>
@@ -2808,8 +2727,8 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[@typeof = '&ldh;View']//span[contains-token(@class, 'parallax-steps')]/button[contains-token(@class, 'parallax-step')]" mode="ldh:RemoveParallaxStep">
         <xsl:param name="container" select="ancestor::div[@typeof = '&ldh;View'][1]" as="element()"/>
         <xsl:param name="cache" select="ldh:view-cache($container)" as="item()"/>
-        <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/*[contains-token(@class, 'mi')][contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string"/>
-        <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
+        <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/*[contains-token(@class, 'mi')][contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($ldh:class-modes)]" as="xs:string"/>
+        <xsl:variable name="active-mode" select="map:get($ldh:class-modes, $active-class)" as="xs:anyURI"/>
         <xsl:variable name="position" select="count(preceding-sibling::button[contains-token(@class, 'parallax-step')]) + 1" as="xs:integer"/>
         <xsl:variable name="select-string" select="ixsl:get($cache, 'select-string')" as="xs:string"/>
         <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
@@ -2820,7 +2739,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ldh:busy-cursor()"/>
 
         <!-- rebuild the initial query XML from the cached SELECT string -->
-        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($sparql-parser, 'parse', [ $select-string ]) ])" as="xs:string"/>
+        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($ldh:sparql-parser, 'parse', [ $select-string ]) ])" as="xs:string"/>
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:call-template name="ldh:ReplayParallaxSteps">
                 <xsl:with-param name="select-xml" select="json-to-xml($select-json-string)"/>
@@ -2910,7 +2829,7 @@ exclude-result-prefixes="#all"
                         <xsl:variable name="select-string" select="replace($select-string, '$about', '&lt;' || $about || '&gt;', 'q')" as="xs:string"/>
                         <xsl:variable name="select-xml" as="document-node()">
                             <xsl:variable name="select-json" as="item()">
-                                <xsl:sequence select="ixsl:call($sparql-parser, 'parse', [ $select-string ])"/>
+                                <xsl:sequence select="ixsl:call($ldh:sparql-parser, 'parse', [ $select-string ])"/>
                             </xsl:variable>
                             <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
                             <xsl:sequence select="json-to-xml($select-json-string)"/>
@@ -2940,7 +2859,7 @@ exclude-result-prefixes="#all"
                                 <xsl:variable name="select-xml" as="document-node()">
                                     <xsl:document>
                                         <xsl:apply-templates select="$select-xml" mode="ldh:replace-limit">
-                                            <xsl:with-param name="limit" select="$page-size" tunnel="yes"/>
+                                            <xsl:with-param name="limit" select="$ldh:page-size" tunnel="yes"/>
                                         </xsl:apply-templates>
                                     </xsl:document>
                                 </xsl:variable>
@@ -3219,7 +3138,7 @@ exclude-result-prefixes="#all"
                             <xsl:sequence select="ldh:render-parallax-chips($container, $links, $context('property-metadata'))"/>
 
                             <xsl:variable name="values" select="' VALUES $this { ' || string-join(distinct-values($links ! ('&lt;' || ?predicate || '&gt;')), ' ') || ' }'" as="xs:string"/>
-                            <xsl:variable name="query-string" select="$object-metadata-ns-query || $values" as="xs:string"/>
+                            <xsl:variable name="query-string" select="$ldh:object-metadata-ns-query || $values" as="xs:string"/>
                             <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', lds:base())), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                             <xsl:variable name="context" select="map:merge((
                               $context,
@@ -3354,7 +3273,7 @@ exclude-result-prefixes="#all"
                                             <xsl:variable name="object-type" select="srx:binding[@name = $object-var-name]/srx:uri" as="xs:anyURI"/>
                                             <xsl:variable name="value-result" select="." as="element()"/>
                                             <!-- DESCRIBE the class over the application's /ns ontology endpoint (ACL-enforced) instead of proxying its vocab document -->
-                                            <xsl:variable name="query-string" select="$property-metadata-query || ' VALUES $Type { &lt;' || $object-type || '&gt; }'" as="xs:string"/>
+                                            <xsl:variable name="query-string" select="$ldh:property-metadata-query || ' VALUES $Type { &lt;' || $object-type || '&gt; }'" as="xs:string"/>
                                             <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('ns', lds:base())), 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                                             <xsl:variable name="context" as="map(*)" select="
                                               map{
@@ -3556,7 +3475,7 @@ exclude-result-prefixes="#all"
     <!-- INLINE CREATION -->
 
     <!-- update template for the forward linking triple, substituted with the same replace() idiom as the constructor update strings. INSERT/WHERE form: PATCH only accepts INSERT/WHERE and DELETE WHERE (DocumentHierarchyGraphStoreImpl) -->
-    <xsl:variable name="view-instance-link-string" as="xs:string">
+    <xsl:variable name="ldh:view-instance-link-string" as="xs:string">
         <![CDATA[
             INSERT
               { $about  $property  $this }
@@ -3778,7 +3697,7 @@ exclude-result-prefixes="#all"
                     </xsl:when>
                     <!-- forward: INSERT the linking triple into the current document, then refresh -->
                     <xsl:otherwise>
-                        <xsl:variable name="update-string" select="replace($view-instance-link-string, '$about', '&lt;' || $about || '&gt;', 'q')" as="xs:string"/>
+                        <xsl:variable name="update-string" select="replace($ldh:view-instance-link-string, '$about', '&lt;' || $about || '&gt;', 'q')" as="xs:string"/>
                         <xsl:variable name="update-string" select="replace($update-string, '$property', '&lt;' || $property || '&gt;', 'q')" as="xs:string"/>
                         <xsl:variable name="update-string" select="replace($update-string, '$this', '&lt;' || $instance || '&gt;', 'q')" as="xs:string"/>
                         <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`'), 'etag')" as="xs:string"/>
@@ -3844,8 +3763,8 @@ exclude-result-prefixes="#all"
             <xsl:variable name="select-xml" select="ixsl:get($cache, 'select-xml')" as="document-node()"/>
             <xsl:variable name="initial-var-name" select="ixsl:get($cache, 'initial-var-name')" as="xs:string"/>
             <xsl:variable name="endpoint" select="ixsl:get($cache, 'endpoint')" as="xs:anyURI"/>
-            <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/*[contains-token(@class, 'mi')][contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($class-modes)]" as="xs:string"/>
-            <xsl:variable name="active-mode" select="map:get($class-modes, $active-class)" as="xs:anyURI"/>
+            <xsl:variable name="active-class" select="tokenize($container//*[contains-token(@class, 'view-mode-list')]/*[contains-token(@class, 'mi')][contains-token(@class, 'is-active')]/@class, ' ')[. = map:keys($ldh:class-modes)]" as="xs:string"/>
+            <xsl:variable name="active-mode" select="map:get($ldh:class-modes, $active-class)" as="xs:anyURI"/>
 
             <xsl:variable name="view-context" as="map(*)">
                 <xsl:call-template name="ldh:RenderView">

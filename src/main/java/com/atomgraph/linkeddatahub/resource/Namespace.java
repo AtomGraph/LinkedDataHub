@@ -63,7 +63,6 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     private static final Logger log = LoggerFactory.getLogger(Namespace.class);
 
     private final URI uri;
-    private final UriInfo uriInfo;
     private final Dataspace application;
     private final OntModel ontology;
     private final com.atomgraph.linkeddatahub.Application system;
@@ -84,9 +83,8 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
             Dataspace application, Optional<OntModel> ontology, MediaTypes mediaTypes,
             @Context SecurityContext securityContext, com.atomgraph.linkeddatahub.Application system)
     {
-        super(request, new ServiceImpl(DatasetFactory.create(ontology.get()), mediaTypes), mediaTypes);
+        super(request, uriInfo, new ServiceImpl(DatasetFactory.create(ontology.get()), mediaTypes), mediaTypes);
         this.uri = uriInfo.getAbsolutePath();
-        this.uriInfo = uriInfo;
         this.application = application;
         this.ontology = ontology.get();
         this.system = system;
@@ -163,16 +161,6 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     public URI getURI()
     {
         return uri;
-    }
-    
-    /**
-     * Returns URI info for the current request.
-     * 
-     * @return URI info
-     */
-    public UriInfo getUriInfo()
-    {
-        return uriInfo;
     }
     
     /**

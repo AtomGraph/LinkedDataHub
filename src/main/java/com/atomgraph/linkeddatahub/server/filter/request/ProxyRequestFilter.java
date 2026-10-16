@@ -25,6 +25,7 @@ import com.atomgraph.linkeddatahub.dataspaces.model.Dataset;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
 import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
+import com.atomgraph.linkeddatahub.io.HtmlJsonLDReaderFactory;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
 import com.atomgraph.linkeddatahub.server.security.WebIDSecurityContext;
@@ -34,7 +35,9 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import jakarta.annotation.Priority;
@@ -62,12 +65,14 @@ import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RiotException;
 import org.apache.jena.riot.resultset.ResultSetReaderRegistry;
+import org.apache.jena.sparql.resultset.SPARQLResult;
 import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundException;
 import java.util.regex.Pattern;
 import jakarta.ws.rs.NotAcceptableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.atomgraph.core.io.ModelProvider;
+import com.atomgraph.core.io.SPARQLResultProvider;
 import com.atomgraph.core.util.ResultSetUtils;
 
 /**
@@ -119,12 +124,12 @@ public class ProxyRequestFilter implements ContainerRequestFilter
      * End-to-end response headers forwarded verbatim from the upstream. Excludes hop-by-hop headers
      * (RFC 7230 §6.1), framing headers re-emitted by the container, origin-bound security headers
      * (CSP, HSTS, CORS), cookies, and {@code Content-Type}/{@code Link} which are set explicitly.
+     * {@code Vary} is not among them: it is merged, see {@link #mergeVary(String, String)}.
      */
     private static final Set<String> FORWARDED_RESPONSE_HEADERS = Set.of(
         HttpHeaders.ETAG,
         HttpHeaders.LAST_MODIFIED,
         HttpHeaders.CACHE_CONTROL,
-        HttpHeaders.VARY,
         HttpHeaders.EXPIRES,
         HttpHeaders.CONTENT_LANGUAGE,
         HttpHeaders.CONTENT_DISPOSITION,
@@ -300,8 +305,8 @@ public class ProxyRequestFilter implements ContainerRequestFilter
      * Dispatches on upstream {@code Content-Type} via Jena's live RIOT registry:
      * <ul>
      *   <li>{@link RDFLanguages#contentTypeToLang} + {@link ResultSetReaderRegistry#isRegistered}
-     *       → parse as {@code ResultSetRewindable}, re-serialize through
-     *       {@link #getResponse(ResultSetRewindable, Response.StatusType)};</li>
+     *       → parse as {@code SPARQLResult}, re-serialize through
+     *       {@link #getResponse(SPARQLResult, Response.StatusType)}: a result set, or the boolean an ASK answers with;</li>
      *   <li>{@link RDFLanguages#contentTypeToLang} only → parse as {@code Model}, re-serialize
      *       through {@link #getResponse(Model, Response.StatusType)} so the client gets the
      *       format it asked for via {@code Accept};</li>
@@ -384,15 +389,32 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
         if (lang != null && ResultSetReaderRegistry.isRegistered(lang))
         {
-            ResultSetRewindable results = clientResponse.readEntity(ResultSetRewindable.class);
-            return overlayHeaders(getResponse(results, clientResponse.getStatusInfo()), clientResponse, false);
+            // a results body is a result set or, when the upstream answered an ASK, a boolean; the content type does not
+            // say which, and reading a boolean as a result set throws
+            SPARQLResult result = clientResponse.readEntity(SPARQLResult.class);
+            return overlayHeaders(getResponse(result, clientResponse.getStatusInfo()), clientResponse, false);
         }
 
         if (lang != null)
         {
             // base URI hint so ModelProvider (and HtmlJsonLDReader through it) resolve relative IRIs against the upstream URI
             clientResponse.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, targetURI.toString());
-            Model model = clientResponse.readEntity(Model.class);
+            Model model;
+            try
+            {
+                model = clientResponse.readEntity(Model.class);
+            }
+            catch (RiotException ex)
+            {
+                // an HTML page carrying no JSON-LD is a document for people with no RDF representation, which is what
+                // the caller asked for: 406, so the client opens the page itself. A 502 would say the origin failed
+                if (HtmlJsonLDReaderFactory.HTML.equals(lang))
+                {
+                    if (log.isDebugEnabled()) log.debug("Proxied URI {} returned HTML with no readable JSON-LD", targetURI);
+                    throw new NotAcceptableException(ex);
+                }
+                throw ex;
+            }
             // forward the origin's validators (replacing the ones the Model builder stamps off the re-serialized
             // bytes): a client editing the proxied document sends If-Match through this proxy to the origin, which
             // compares against its own ETag - a re-serialization validator would 412 every proxied write. The proxy
@@ -425,7 +447,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
      * @param copyValidators whether to forward {@code ETag} and {@code Last-Modified}
      * @return response with overlaid upstream headers
      */
-    private Response overlayHeaders(Response response, Response clientResponse, boolean copyValidators)
+    protected Response overlayHeaders(Response response, Response clientResponse, boolean copyValidators)
     {
         Response.ResponseBuilder rb = Response.fromResponse(response);
 
@@ -444,7 +466,37 @@ public class ProxyRequestFilter implements ContainerRequestFilter
             if (value != null) rb.header(name, null).header(name, value); // replace, not append - the upstream value overlays any locally stamped one
         }
 
+        rb.header(HttpHeaders.VARY, null).header(HttpHeaders.VARY, mergeVary(response.getHeaderString(HttpHeaders.VARY), clientResponse.getHeaderString(HttpHeaders.VARY)));
+
         return rb.build();
+    }
+
+    /**
+     * Merges the locally stamped {@code Vary} with the upstream's, always including {@code Accept}. The upstream's
+     * value describes how the upstream's representation varies, and the proxy's varies on more: this filter itself
+     * chooses between the application shell and the proxied body by {@code Accept}, and the typed branches re-serialize
+     * into the negotiated format. Replacing the local value with the upstream's let a cache store the proxied RDF under
+     * the bare URL — an upstream's {@code Cache-Control: max-age=300} with {@code Vary: Accept-Encoding} served the
+     * next browser navigation RDF/XML for five minutes.
+     *
+     * @param local the {@code Vary} stamped on the locally built response, or {@code null}
+     * @param upstream the upstream's {@code Vary}, or {@code null}
+     * @return the merged field list, or {@code *} if either side varies on everything
+     */
+    protected static String mergeVary(String local, String upstream)
+    {
+        Set<String> seen = new HashSet<>();
+        List<String> fields = new ArrayList<>();
+        for (String value : new String[] { HttpHeaders.ACCEPT, local, upstream })
+            if (value != null)
+                for (String field : value.split(","))
+                {
+                    String trimmed = field.trim();
+                    if (trimmed.equals("*")) return "*";
+                    if (!trimmed.isEmpty() && seen.add(trimmed.toLowerCase(Locale.ROOT))) fields.add(trimmed); // field names are case-insensitive
+                }
+
+        return String.join(", ", fields);
     }
 
     /**
@@ -467,6 +519,46 @@ public class ProxyRequestFilter implements ContainerRequestFilter
                 null,
                 new EntityTag(Long.toHexString(ModelUtils.hashModel(model))),
                 writableTypes,
+                getSystem().getSupportedLanguages(),
+                new ArrayList<>(),
+                new HTMLMediaTypePredicate()).
+            getResponseBuilder().
+            status(statusType).
+            build();
+    }
+
+    /**
+     * Builds a response for a SPARQL results body: a result set, or the boolean an ASK answers with.
+     *
+     * @param result SPARQL result as read from the upstream response
+     * @param statusType response status
+     * @return JAX-RS response
+     */
+    protected Response getResponse(SPARQLResult result, Response.StatusType statusType)
+    {
+        if (result.isBoolean()) return getBooleanResponse(result, statusType);
+        if (result.isResultSet()) return getResponse((ResultSetRewindable)result.getResultSet(), statusType); // SPARQLResultProvider reads rows rewindable
+
+        throw new IllegalArgumentException("A SPARQL results body holds a result set or a boolean");
+    }
+
+    /**
+     * Builds a response for the boolean result of an ASK, offering only the result set media types a boolean can be
+     * written in: Jena has no boolean encoding in Thrift or Protobuf, and (X)HTML has no writer for one.
+     *
+     * @param result boolean result
+     * @param statusType response status
+     * @return JAX-RS response
+     */
+    protected Response getBooleanResponse(SPARQLResult result, Response.StatusType statusType)
+    {
+        if (!result.isBoolean()) throw new IllegalArgumentException("SPARQLResult is not a boolean");
+
+        return new com.atomgraph.core.model.impl.Response(getRequest(),
+                result,
+                null,
+                new EntityTag(Long.toHexString(ResultSetUtils.hashBoolean(result.getBooleanResult()))),
+                getMediaTypes().getWritable(ResultSet.class).stream().filter(SPARQLResultProvider::isBooleanWriteable).toList(),
                 getSystem().getSupportedLanguages(),
                 new ArrayList<>(),
                 new HTMLMediaTypePredicate()).

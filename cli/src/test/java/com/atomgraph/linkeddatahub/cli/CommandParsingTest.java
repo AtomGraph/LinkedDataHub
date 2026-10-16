@@ -99,6 +99,15 @@ public class CommandParsingTest
         assertEquals(CommandLine.ExitCode.USAGE, commandLine().execute("create", "item", "--container", "https://localhost:4443/some/"));
     }
 
+    /** <code>import ontology</code> imports one thing: an external ontology or a local file, never both or neither. */
+    @Test
+    public void importOntologyTakesSourceOrFile()
+    {
+        assertEquals(CommandLine.ExitCode.USAGE, commandLine().execute("admin", "import", "ontology", "https://localhost:4443/"));
+        assertEquals(CommandLine.ExitCode.USAGE, commandLine().execute("admin", "import", "ontology",
+            "--source", "https://example.org/ns#", "--file", "ns.ttl", "https://localhost:4443/"));
+    }
+
     @Test
     public void unknownOptionIsUsageError()
     {

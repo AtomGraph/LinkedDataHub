@@ -111,6 +111,31 @@ public class OntologyFilterTest
         assertFalse(app.contains(uri(APP), OWL.imports.asNode(), uri("http://example.org/pkg#")), "the package import should be retracted");
     }
 
+    /**
+     * A document imported by its location may declare an ontology of another name. ontapi reconciles the
+     * importer by adding an import of the declared name, and that write must stay with the closure: in the
+     * shared graph, the next closure would resolve the declared name into a second graph of that name
+     * (here, the placeholder for an unresolvable one) and fail to load.
+     */
+    @Test
+    public void testClosureLeavesSharedGraphsUnchanged()
+    {
+        PrefixGraphRepository repository = new PrefixGraphRepository(null);
+        String upload = "http://example.org/uploads/abc";
+        Graph app = ontology(APP);
+        app.add(Triple.create(uri(APP), OWL.imports.asNode(), uri(upload)));
+        repository.put(APP, app);
+        repository.put(upload, ontology("http://example.org/test#", LABELLED)); // the name does not dereference to the document
+
+        OntologyFilter.loadOntology(repository, APP);
+
+        assertEquals(List.of(uri(upload)), app.find(uri(APP), OWL.imports.asNode(), Node.ANY).mapWith(Triple::getObject).toList(), "the shared graph should keep only its own import");
+
+        UnionGraph union = OntologyFilter.loadOntology(repository, APP); // a rebuild over the same cache
+
+        assertTrue(union.contains(LABELLED), "the imported document should be in the rebuilt closure");
+    }
+
     private static final String APP = "http://example.org/app#";
 
     private static final Triple LABELLED = Triple.create(uri("http://example.org/pkg/ns/#Thing"), RDFS.label.asNode(), NodeFactory.createLiteralString("Thing"));

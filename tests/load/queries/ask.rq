@@ -1,0 +1,4 @@
+# The cheapest possible query: answers immediately whatever the store holds. Used for the flood
+# scenario, where the point is the request rate, not the per-query cost - so the rate limit is what
+# answers, not the query timeout.
+ASK {}

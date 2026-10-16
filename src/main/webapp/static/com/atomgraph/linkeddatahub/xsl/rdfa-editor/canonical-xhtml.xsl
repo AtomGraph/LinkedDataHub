@@ -3,6 +3,7 @@
 xmlns="http://www.w3.org/1999/xhtml"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
+xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:cm="https://w3id.org/atomgraph/rdfa-editor/content-model#"
 xpath-default-namespace="http://www.w3.org/1999/xhtml"
 exclude-result-prefixes="#all"
@@ -29,8 +30,8 @@ version="3.0">
     RDFa attributes and pre whitespace are never touched; text is never reflowed.
 -->
 
-    <!-- serialization is the caller's job (view-source runs exclusive XML c14n via
-         rdfae:canonicalize-xml in edit.xsl, tests use -o output); no xsl:output
+    <!-- serialization is the caller's job (view-source in edit.xsl calls cm:c14n(),
+         tests use -o output); no xsl:output
          here - it would conflict with the including stylesheet's -->
     <xsl:mode name="cm:canonical" on-no-match="shallow-copy"/>
     <xsl:mode name="cm:normalize" on-no-match="shallow-copy"/>
@@ -441,5 +442,76 @@ version="3.0">
     <xsl:template match="label[ancestor::label]" mode="cm:normalize" priority="1">
         <xsl:apply-templates select="node()" mode="#current"/>
     </xsl:template>
+
+    <!-- ................ Exclusive XML Canonicalization ................ -->
+
+    <!-- W3C Exclusive XML Canonicalization 1.0, without comments
+         (http://www.w3.org/2001/10/xml-exc-c14n#) - the canonical lexical form of an
+         rdf:XMLLiteral. Each node in $nodes is an apex with no output ancestors, so a
+         region's children canonicalize as a fragment. Expanded empty tags, attributes
+         sorted by (namespace URI, local name), only visibly utilized namespaces declared,
+         each where first utilized on the output path, sorted by prefix -->
+    <xsl:function name="cm:c14n" as="xs:string">
+        <xsl:param name="nodes" as="node()*"/>
+        <xsl:variable name="parts" as="xs:string*">
+            <xsl:apply-templates select="$nodes" mode="cm:c14n">
+                <xsl:with-param name="rendered" select="map{ '': '' }" tunnel="yes"/>
+            </xsl:apply-templates>
+        </xsl:variable>
+        <xsl:sequence select="string-join($parts)"/>
+    </xsl:function>
+
+    <xsl:function name="cm:c14n-text" as="xs:string">
+        <xsl:param name="value" as="xs:string"/>
+        <xsl:sequence select="$value => replace('&amp;', '&amp;amp;') => replace('&lt;', '&amp;lt;') => replace('&gt;', '&amp;gt;') => replace('&#xD;', '&amp;#xD;')"/>
+    </xsl:function>
+
+    <xsl:function name="cm:c14n-attribute" as="xs:string">
+        <xsl:param name="value" as="xs:string"/>
+        <xsl:sequence select="$value => replace('&amp;', '&amp;amp;') => replace('&lt;', '&amp;lt;') => replace('&quot;', '&amp;quot;') => replace('&#x9;', '&amp;#x9;') => replace('&#xA;', '&amp;#xA;') => replace('&#xD;', '&amp;#xD;')"/>
+    </xsl:function>
+
+    <xsl:template match="document-node()" mode="cm:c14n" as="xs:string*">
+        <xsl:apply-templates select="* | processing-instruction()" mode="#current"/>
+    </xsl:template>
+
+    <!-- $rendered: prefix -> namespace URI as declared on the output ancestors ('' is the default namespace) -->
+    <xsl:template match="*" mode="cm:c14n" as="xs:string*">
+        <xsl:param name="rendered" as="map(xs:string, xs:string)" tunnel="yes"/>
+        <!-- visibly utilized: the element's own prefix and its prefixed attributes' (xml: is never declared) -->
+        <xsl:variable name="utilized" as="map(xs:string, xs:string)" select="map:merge((
+            map:entry(string(prefix-from-QName(node-name(.))), string(namespace-uri(.))),
+            for $attribute in @*[exists(prefix-from-QName(node-name(.)))][namespace-uri(.) ne 'http://www.w3.org/XML/1998/namespace']
+            return map:entry(string(prefix-from-QName(node-name($attribute))), string(namespace-uri($attribute)))), map{ 'duplicates': 'use-first' })"/>
+        <xsl:variable name="declared" select="map:keys($utilized)[not(map:get($rendered, .) = map:get($utilized, .))]" as="xs:string*"/>
+
+        <xsl:sequence select="'&lt;' || name()"/>
+        <xsl:for-each select="$declared">
+            <xsl:sort select="." collation="http://www.w3.org/2005/xpath-functions/collation/codepoint"/>
+            <xsl:sequence select="' xmlns' || (if (. = '') then '' else ':' || .) || '=&quot;' || cm:c14n-attribute(map:get($utilized, .)) || '&quot;'"/>
+        </xsl:for-each>
+        <xsl:for-each select="@*">
+            <xsl:sort select="namespace-uri()" collation="http://www.w3.org/2005/xpath-functions/collation/codepoint"/>
+            <xsl:sort select="local-name()" collation="http://www.w3.org/2005/xpath-functions/collation/codepoint"/>
+            <xsl:sequence select="' ' || name() || '=&quot;' || cm:c14n-attribute(.) || '&quot;'"/>
+        </xsl:for-each>
+        <xsl:sequence select="'&gt;'"/>
+        <xsl:apply-templates select="node()" mode="#current">
+            <xsl:with-param name="rendered" select="map:merge(($utilized, $rendered), map{ 'duplicates': 'use-first' })" tunnel="yes"/>
+        </xsl:apply-templates>
+        <xsl:sequence select="'&lt;/' || name() || '&gt;'"/>
+    </xsl:template>
+
+    <xsl:template match="text()" mode="cm:c14n" as="xs:string">
+        <xsl:sequence select="cm:c14n-text(.)"/>
+    </xsl:template>
+
+    <!-- outside the document element a PI is separated from it by a line feed -->
+    <xsl:template match="processing-instruction()" mode="cm:c14n" as="xs:string">
+        <xsl:variable name="pi" select="'&lt;?' || name() || (if (string(.)) then ' ' || cm:c14n-text(.) else '') || '?&gt;'"/>
+        <xsl:sequence select="if (parent::document-node()) then (if (following-sibling::*) then $pi || '&#xA;' else '&#xA;' || $pi) else $pi"/>
+    </xsl:template>
+
+    <xsl:template match="comment()" mode="cm:c14n" as="xs:string*"/>
 
 </xsl:stylesheet>

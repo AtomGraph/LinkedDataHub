@@ -1,0 +1,19 @@
+{
+  "name": "ldh",
+  "version": "6.2.0",
+  "description": "Build Linked Data dataspaces, datasets and applications on LinkedDataHub with the ldh CLI: provision a dataspace, model and import data, declare documents, views and charts, and write reusable packages",
+  "author": {
+    "name": "AtomGraph",
+    "url": "https://atomgraph.com"
+  },
+  "homepage": "https://docs.linkeddatahub.com/",
+  "repository": "https://github.com/AtomGraph/LinkedDataHub",
+  "license": "Apache-2.0",
+  "keywords": [
+    "linked-data",
+    "rdf",
+    "sparql",
+    "knowledge-graph",
+    "linkeddatahub"
+  ]
+}

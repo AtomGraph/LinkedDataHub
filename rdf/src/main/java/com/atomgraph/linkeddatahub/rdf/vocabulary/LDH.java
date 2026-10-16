@@ -45,6 +45,10 @@ public final class LDH
     public static final Resource CSVImport = ResourceFactory.createResource(NS + "CSVImport");
     /** ldh:RDFImport class */
     public static final Resource RDFImport = ResourceFactory.createResource(NS + "RDFImport");
+    /** ldh:Chat class: a conversation with the assistant, its turns the rdf:_N members */
+    public static final Resource Chat = ResourceFactory.createResource(NS + "Chat");
+    /** ldh:ChatTurn class: one question and what came of it */
+    public static final Resource ChatTurn = ResourceFactory.createResource(NS + "ChatTurn");
     /** ldh:MissingPropertyValue constraint class */
     public static final Resource MissingPropertyValue = ResourceFactory.createResource(NS + "MissingPropertyValue");
     /** ldh:ChildrenView resource */
@@ -62,6 +66,16 @@ public final class LDH
     public static final Property delimiter = ResourceFactory.createProperty(NS + "delimiter");
     /** ldh:chartType property */
     public static final Property chartType = ResourceFactory.createProperty(NS + "chartType");
+    /** ldh:question property: what a chat turn asked */
+    public static final Property question = ResourceFactory.createProperty(NS + "question");
+    /** ldh:answer property: the assistant's answer in words */
+    public static final Property answer = ResourceFactory.createProperty(NS + "answer");
+    /** ldh:plan property: the turn's Web-Algebra plan, an rdf:XMLLiteral */
+    public static final Property plan = ResourceFactory.createProperty(NS + "plan");
+    /** ldh:execution property: what running the plan reported, an rdf:XMLLiteral */
+    public static final Property execution = ResourceFactory.createProperty(NS + "execution");
+    /** ldh:outcome property: how the turn went, in one line */
+    public static final Property outcome = ResourceFactory.createProperty(NS + "outcome");
     /** ldh:categoryVarName property */
     public static final Property categoryVarName = ResourceFactory.createProperty(NS + "categoryVarName");
     /** ldh:seriesVarName property */

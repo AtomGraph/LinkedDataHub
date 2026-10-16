@@ -41,7 +41,7 @@ make drop                                    # Complete reset (down -v, then wip
 
 make rdf                                     # Install the linkeddatahub-rdf library
 make cli                                     # Build the ldh CLI (installs rdf first), print the PATH export
-make cli-version                             # Set rdf/ and cli/ poms to the platform version in pom.xml
+make cli-version                             # Set the rdf/ and cli/ poms and the ldh plugin to the platform version in pom.xml
 ```
 
 ### Testing
@@ -102,12 +102,23 @@ Configuration is split across two files:
 
 Multiple dataspaces can share the same backend SPARQL service.
 
+The admin pairing is the `admin.` subdomain and nothing else: the server derives it
+(`EndUserDataspaceImpl.getAdminDataspace()`) and publishes it, so no client derives it again. An
+end-user response carries `Link: <admin base>; rel="…/dataspaces#admin"` (the CLI's admin commands
+follow it), and `/context` serves `PublicContext`: every dataspace's description (type, title,
+origin, ontology, stylesheet, `lds:public`) plus `lds:admin`, readable by anyone through a seeded
+authorization. Stylesheets read it through `lds:context()`: the server twin dereferences `/context`
+(same-site, so `SameSiteSourceResolver` fetches it), the client twin reads the copy the bootstrap
+preloads. No stylesheet param carries context: the full context dataset also holds the service
+endpoints and credentials from `system.trig` and `secrets/credentials`, and stays in Java.
+
 ### Service Architecture
 The application runs as a multi-container setup:
 - **nginx**: Reverse proxy and SSL termination (wildcard subdomain routing for dataspaces)
 - **linkeddatahub**: Main Java application (Tomcat)
 - **fuseki**: One SPARQL server holding a TDB2 dataset per dataspace role (`config/fuseki/config.ttl`), named after the dataspace origin (deployment host dropped, role appended: `end-user`, `admin`, `northwind-traders.demo.end-user`, …), each under `fuseki/<dataset>/`; bound to apps in `config/system.trig`
 - **egress**: Squid forward proxy for the store's and platform's outbound requests (SPARQL `SERVICE`, `LOAD`): public destinations only, so a query cannot reach another dataset, Varnish or the platform
+- **web-algebra**: REST-VKG's `webalgebra-server-ldh` image — executes Web-Algebra plans and writes them from natural language for the assistant drawer (`xsl/client/chat.xsl`). nginx forwards `/webalgebra` (a reserved path, like `/static/` and `/uploads/`) to it with the caller's certificate; it presents the secretary's certificate to this instance with `On-Behalf-Of` naming the caller, which `WebIDFilter` honours because every agent's WebID document carries `<secretary> acl:delegates <agent>`. It addresses the instance by its public origin, rewritten to `nginx:9443` (`WEBALGEBRA_PROXY_HOST`), the same trick the platform's own `ClientUriRewriteFilter` plays
 - **varnish-frontend/varnish-admin/varnish-end-user**: Caching layers (admin and end-user caches both front the single `fuseki`)
 
 ### Data Flow
@@ -162,6 +173,12 @@ ldh create container --parent "$LDH_BASE" --title "Some" --slug some
 ldh admin add agent --agent "$AGENT_URI" "${ADMIN_BASE}acl/groups/writers/"
 ```
 
+The `ldh` Claude Code plugin (`plugins/ldh/`, published by the marketplace in `.claude-plugin/`)
+teaches agents to build on LinkedDataHub with this CLI: one skill each for provisioning a dataspace,
+modelling and importing a dataset, building an app, and writing a package. Its skills quote command
+options and config shapes, so a change to either updates them in the same commit. `plugin.json`
+carries the platform version, set by `release.sh` and `make cli-version` along with the poms.
+
 ## The RDF library
 
 `rdf/` builds `com.atomgraph:linkeddatahub-rdf` — the vocabularies (`com.atomgraph.linkeddatahub.rdf.vocabulary`)
@@ -199,6 +216,12 @@ keystore or a PEM file with the certificate and its PKCS#8 private key — told 
 by extension. Commands that create or append to a document print its URL as the only line on
 stdout (diagnostics go to stderr), so `item=$(ldh create item ...)` works; exit codes are `0`
 success, `1` HTTP or runtime failure, `2` usage error.
+
+The admin commands take the end-user base and find the admin application from its `lds:admin` link,
+so scripts never prefix `admin.` themselves. `--proxy` connects to the proxy but keeps the logical
+`Host`, which is how nginx routes dataspaces. `admin import ontology --file ns.ttl` installs the
+namespace ontology in one step, and `import csv|rdf` print the import's URI, with `--wait` to block
+until it ends.
 
 Packages are declarative: an application imports one with a single `<app> ldh:import <package>`
 triple in its settings, and `ldh packages list`, `ldh packages add` and

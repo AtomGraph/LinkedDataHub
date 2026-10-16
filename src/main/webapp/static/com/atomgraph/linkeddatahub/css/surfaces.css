@@ -87,20 +87,28 @@
    ========================================================================= */
 table {
   width: 100%;
-  border-collapse: collapse; border-spacing: 0; text-indent: 0;
+  border-collapse: separate; border-spacing: 0; text-indent: 0;
   background: var(--surface-0);
   border: 1px solid var(--border-default);
   border-radius: var(--r-md);
 }
 table.ap-plain { border: 0; border-radius: 0; background: transparent; }
 caption { caption-side: top; }
-/* border-radius does not clip the corner cells of a border-collapse table, so the corner cells
-   round themselves. overflow: hidden is not the fix and would cost: it makes the table its own
-   scrollport, which leaves a position: sticky header inert — and a result set pinned under a
-   toolbar is exactly where that matters. */
-table > thead > tr:first-child > *:first-child { border-top-left-radius: var(--r-md); }
-table > thead > tr:first-child > *:last-child  { border-top-right-radius: var(--r-md); }
-table.ap-plain > thead > tr:first-child > * { border-radius: 0; }
+/* The SEPARATED border model, because the collapsing one ignores border-radius on the table
+   altogether: the border drew square while the head cells rounded inside it, leaving a wedge of
+   page in each corner. Separated, the table draws its own rounded border, and the rules between
+   rows move onto the cells - a row's border exists only in the collapsing model.
+   The table still does not clip its cells, so the four corner cells round their own fills (the
+   head band, a group heading, a hovered row) to the table's inner curve: its radius less its 1px
+   border. overflow: hidden is not the fix and would cost: it makes the table its own scrollport,
+   which leaves a position: sticky header inert — and a result set pinned under a toolbar is
+   exactly where that matters. The first and last row GROUPS are named by their siblings, since a
+   caption or colgroup can precede them and a table need not have a head. */
+table > :is(thead, tbody, tfoot):not(:is(thead, tbody, tfoot) ~ *) > tr:first-child > :first-child { border-top-left-radius: calc(var(--r-md) - 1px); }
+table > :is(thead, tbody, tfoot):not(:is(thead, tbody, tfoot) ~ *) > tr:first-child > :last-child { border-top-right-radius: calc(var(--r-md) - 1px); }
+table > :is(thead, tbody, tfoot):not(:has(~ :is(thead, tbody, tfoot))) > tr:last-child > :first-child { border-bottom-left-radius: calc(var(--r-md) - 1px); }
+table > :is(thead, tbody, tfoot):not(:has(~ :is(thead, tbody, tfoot))) > tr:last-child > :last-child { border-bottom-right-radius: calc(var(--r-md) - 1px); }
+table.ap-plain > * > tr > * { border-radius: 0; }
 /* Density is CELL padding now: under table layout a tr is not a box that takes
    padding, so the row-level rule it used to carry was inert the moment the grid
    came off. */
@@ -117,17 +125,16 @@ table.dn-tight th, table.dn-tight td { padding: 5px var(--sp-3); }
    exactly where a pinned head is worth having. The rest of the band is inherited text and
    travels with the cell either way. */
 thead tr {
-  border-bottom: 1px solid var(--border-default);
   font-family: var(--font-mono); font-size: 10px;
   letter-spacing: var(--tracking-wide); text-transform: uppercase;
   color: var(--fg-hint);
 }
-thead > tr > * { background: var(--surface-2); }
+thead > tr > * { background: var(--surface-2); border-bottom: 1px solid var(--border-default); }
 tbody tr {
-  border-bottom: 1px solid var(--border-default);
   font-size: var(--fs-sm); color: var(--fg-2);
 }
-tbody tr:last-child { border-bottom: 0; }
+tbody > tr > * { border-bottom: 1px solid var(--border-default); }
+tbody > tr:last-child > * { border-bottom: 0; }
 table.is-hoverable tbody tr:hover { background: var(--surface-1); }
 /* A th in the body heads its ROW, not a column: it names the row's subject, so it
    reads at body weight rather than borrowing the head band's mono caps. */

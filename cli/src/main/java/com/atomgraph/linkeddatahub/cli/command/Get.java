@@ -19,7 +19,6 @@ package com.atomgraph.linkeddatahub.cli.command;
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
 import com.atomgraph.linkeddatahub.cli.http.HttpException;
 import com.atomgraph.linkeddatahub.cli.util.Mementos;
-import com.atomgraph.linkeddatahub.cli.util.URIRewriter;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
@@ -107,14 +106,14 @@ public class Get extends BaseCommand
      * Returns the URI of the Memento a TimeGate redirected to.
      *
      * @param response TimeGate response
-     * @return Memento URI, with the logical origin restored when the request went through a proxy
+     * @return Memento URI; a proxied request keeps its logical Host, so the platform answers with the logical origin
      */
     private URI mementoURI(Response response)
     {
         URI location = response.getLocation();
         if (location == null) throw new IllegalStateException("TimeGate <" + requestURI() + "> did not redirect to a version of <" + target + ">");
 
-        return getEffectiveProxy() != null ? URIRewriter.rewrite(location, target) : location;
+        return location;
     }
 
     /**

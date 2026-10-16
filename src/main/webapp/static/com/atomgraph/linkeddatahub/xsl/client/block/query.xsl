@@ -737,18 +737,15 @@ exclude-result-prefixes="#all"
                         </xsl:result-document>
                     </xsl:for-each>
 
-                    <!-- store results and data-table in cache -->
+                    <!-- store results in cache; the canvas keeps its data table beside them -->
                     <ixsl:set-property name="results" select="$results" object="$cache"/>
-                    <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series, $chart-type, ()) else ac:sparql-results-data-table($results, $category, $series, $chart-type)"/>
-                    <ixsl:set-property name="data-table" select="$data-table" object="$cache"/>
-
-                    <xsl:call-template name="ldh:RenderChart">
-                        <xsl:with-param name="data-table" select="$data-table"/>
-                        <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
-                        <xsl:with-param name="chart-type" select="$chart-type"/>
-                        <xsl:with-param name="category" select="$category"/>
-                        <xsl:with-param name="series" select="$series"/>
-                    </xsl:call-template>
+                    <xsl:apply-templates select="id($chart-canvas-id, ixsl:page())" mode="ldh:InitCanvas">
+                        <xsl:with-param name="results" select="$results" tunnel="yes"/>
+                        <xsl:with-param name="cache" select="$cache" tunnel="yes"/>
+                        <xsl:with-param name="chart-type" select="$chart-type" tunnel="yes"/>
+                        <xsl:with-param name="category" select="$category" tunnel="yes"/>
+                        <xsl:with-param name="series" select="$series" tunnel="yes"/>
+                    </xsl:apply-templates>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>

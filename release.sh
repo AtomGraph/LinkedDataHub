@@ -131,20 +131,23 @@ print_status "GPG check passed"
 # platform reactor, so maven-release-plugin does not rewrite them - they are kept in step here
 # instead, once for the release version and once for the next development version. The CLI resolves
 # the library by ${project.version}, so the two must move together or the CLI build breaks.
+# The ldh plugin's skills describe the same CLI, so its plugin.json follows too.
 sync_cli_version() {
     local version="$1"
     local project
+    local plugin=plugins/ldh/.claude-plugin/plugin.json
 
     for project in rdf cli; do
         (cd "$project" && mvn -B -q versions:set -DnewVersion="$version" -DgenerateBackupPoms=false)
     done
+    jq --arg version "$version" '.version = $version' "$plugin" > "$plugin.tmp" && mv "$plugin.tmp" "$plugin"
 
-    if git diff --quiet -- rdf/pom.xml cli/pom.xml; then
-        print_status "rdf/pom.xml and cli/pom.xml already at $version"
+    if git diff --quiet -- rdf/pom.xml cli/pom.xml "$plugin"; then
+        print_status "rdf/pom.xml, cli/pom.xml and $plugin already at $version"
     else
-        git add rdf/pom.xml cli/pom.xml
-        git commit -m "Set the RDF library and CLI versions to $version"
-        print_status "rdf/pom.xml and cli/pom.xml set to $version"
+        git add rdf/pom.xml cli/pom.xml "$plugin"
+        git commit -m "Set the RDF library, CLI and ldh plugin versions to $version"
+        print_status "rdf/pom.xml, cli/pom.xml and $plugin set to $version"
     fi
 }
 

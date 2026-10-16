@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.model.impl;
 
+import com.atomgraph.linkeddatahub.resource.Context;
 import com.atomgraph.linkeddatahub.resource.Namespace;
 import com.atomgraph.linkeddatahub.resource.admin.ClearOntology;
 import com.atomgraph.linkeddatahub.resource.Settings;
@@ -138,6 +139,17 @@ public class Dispatcher
     public Class getClearEndpoint()
     {
         return ClearOntology.class;
+    }
+
+    /**
+     * Returns the public dataspace context: every dataspace's description and the admin pairing.
+     *
+     * @return context resource
+     */
+    @Path("context")
+    public Class getContext()
+    {
+        return Context.class;
     }
 
     /**

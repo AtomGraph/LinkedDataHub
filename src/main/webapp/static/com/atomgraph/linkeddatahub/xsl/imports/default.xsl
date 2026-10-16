@@ -101,29 +101,15 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$labels[1]"/>
     </xsl:function>
 
-    <!-- Strips the leftmost subdomain and returns parent dataspace origin (scheme + host + port) -->
-    <xsl:function name="ldh:parent-origin" as="xs:anyURI?">
-        <xsl:param name="uri" as="xs:anyURI"/>
+    <!-- dataspace descriptions in the public dataspace context (lds:context(), served at /context), by origin and by the
+         base URI of their admin dataspace -->
+    <xsl:key name="apps-by-origin" match="*" use="lds:origin/@rdf:resource"/>
+    <xsl:key name="apps-by-admin" match="*" use="lds:admin/@rdf:resource"/>
 
-        <xsl:variable name="scheme" select="replace($uri, '^(https?://).*$', '$1')" as="xs:string"/>
-        <xsl:variable name="host" select="replace($uri, '^https?://([^/:]+).*$', '$1')" as="xs:string"/>
-        <xsl:variable name="port" select="if (matches($uri, ':\d+')) then replace($uri, '^https?://[^:]+:(\d+).*$', '$1') else ''" as="xs:string"/>
-
-        <!-- Split host by dots -->
-        <xsl:variable name="parts" select="tokenize($host, '\.')" as="xs:string+"/>
-
-        <xsl:choose>
-            <!-- If only one part (e.g., "localhost"), return empty - no parent -->
-            <xsl:when test="count($parts) = 1">
-                <xsl:sequence select="()"/>
-            </xsl:when>
-            <!-- Strip leftmost subdomain -->
-            <xsl:otherwise>
-                <xsl:variable name="parent-host" select="string-join(subsequence($parts, 2), '.')" as="xs:string"/>
-                <xsl:variable name="parent-origin" select="$scheme || $parent-host || (if ($port != '') then (':' || $port) else '') || '/'" as="xs:string"/>
-                <xsl:sequence select="xs:anyURI($parent-origin)"/>
-            </xsl:otherwise>
-        </xsl:choose>
+    <!-- the dataspace this origin resolves to, as described in the public dataspace context. lds:origin() is the writer's
+         param on the server and the active pane's base on the client, so a proxied pane resolves to none -->
+    <xsl:function name="lds:dataspace-description" as="element()*">
+        <xsl:sequence select="for $context in lds:context() return key('apps-by-origin', lds:origin(), $context)"/>
     </xsl:function>
 
     <xsl:function name="ldh:query-params" as="map(xs:string, xs:string*)">
@@ -151,7 +137,7 @@ exclude-result-prefixes="#all"
 
     <!-- metadata and constructor queries shared by the server and client renderers; each used to be
          declared once per entry point, with the copies drifting only in whitespace -->
-    <xsl:param name="object-metadata-query" as="xs:string">
+    <xsl:param name="ldh:object-metadata-query" as="xs:string">
         <![CDATA[
             PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
             PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
@@ -179,7 +165,7 @@ exclude-result-prefixes="#all"
         <!-- VALUES $this goes here -->
     </xsl:param>
 
-    <xsl:param name="object-metadata-ns-query" as="xs:string">
+    <xsl:param name="ldh:object-metadata-ns-query" as="xs:string">
         <![CDATA[
             PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
             PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
@@ -205,14 +191,14 @@ exclude-result-prefixes="#all"
         <!-- VALUES $this goes here -->
     </xsl:param>
 
-    <xsl:param name="property-metadata-query" as="xs:string">
+    <xsl:param name="ldh:property-metadata-query" as="xs:string">
         <![CDATA[
             DESCRIBE $Type
         ]]>
         <!-- VALUES $Type goes here -->
     </xsl:param>
 
-    <xsl:param name="constraint-query" as="xs:string">
+    <xsl:param name="ldh:constraint-query" as="xs:string">
         <![CDATA[
             PREFIX  ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
             PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -229,7 +215,7 @@ exclude-result-prefixes="#all"
         <!-- VALUES $Type goes here -->
     </xsl:param>
 
-    <xsl:param name="constructor-query" as="xs:string">
+    <xsl:param name="ldh:constructor-query" as="xs:string">
         <![CDATA[
             PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
             PREFIX sp:   <http://spinrdf.org/sp#>
@@ -243,7 +229,7 @@ exclude-result-prefixes="#all"
         ]]>
     </xsl:param>
 
-    <xsl:param name="shape-query" as="xs:string">
+    <xsl:param name="ldh:shape-query" as="xs:string">
         <![CDATA[
             PREFIX  sh:   <http://www.w3.org/ns/shacl#>
 
@@ -435,7 +421,16 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="if (exists($mode)) then map{ 'mode': for $m in $mode return string($m) } else map{}"/>
     </xsl:function>
 
-    <xsl:function name="ldh:query-result" as="document-node()">
+    <!-- SSR: a SPARQL Protocol POST through the ldh:send-request extension function, the server's only HTTP primitive -->
+    <xsl:function name="ldh:query-result" as="document-node()?" use-when="system-property('xsl:product-name') = 'SAXON'">
+        <xsl:param name="endpoint" as="xs:anyURI"/>
+        <xsl:param name="query" as="xs:string"/>
+
+        <xsl:sequence select="ldh:send-request($endpoint, 'POST', 'application/sparql-query', $query, map{ 'Accept': 'application/rdf+xml, application/sparql-results+xml' })"/>
+    </xsl:function>
+
+    <!-- CSR: a SPARQL Protocol GET loaded with document(), an endpoint on another origin through the ?uri= proxy -->
+    <xsl:function name="ldh:query-result" as="document-node()" use-when="system-property('xsl:product-name') = 'SaxonJS'">
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <xsl:param name="query" as="xs:string"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query })" as="xs:anyURI"/>
@@ -782,20 +777,6 @@ exclude-result-prefixes="#all"
         </xsl:copy>
     </xsl:template>
 
-    <xsl:function name="ac:value-intersect" as="xs:anyAtomicType*">
-        <xsl:param name="arg1" as="xs:anyAtomicType*"/>
-        <xsl:param name="arg2" as="xs:anyAtomicType*"/>
-        
-        <xsl:sequence select="distinct-values($arg1[.=$arg2])"/>
-    </xsl:function>
-
-    <xsl:function name="ac:value-except" as="xs:anyAtomicType*">
-        <xsl:param name="arg1" as="xs:anyAtomicType*"/>
-        <xsl:param name="arg2" as="xs:anyAtomicType*"/>
-
-        <xsl:sequence select="distinct-values($arg1[not(.=$arg2)])"/>
-    </xsl:function>
-
     <!-- caps a key component's length: SaxonJS backs distinct-values() and xsl:for-each-group with a hash trie whose
          insert recurses once per character of the key, so keys over the JS stack limit (~6-7K frames) crash the transform
          ("too much recursion"). Long values keep a prefix and fold the whole string into a length + rolling hash -->
@@ -872,19 +853,6 @@ exclude-result-prefixes="#all"
             ,
             map { 'duplicates': 'combine' }
         )"/>
-    </xsl:function>
-
-    <!-- function stub so that Saxon-EE doesn't complain when compiling SEF -->
-    <xsl:function name="ldh:send-request" as="document-node()?" override-extension-function="no" cache="yes">
-        <xsl:param name="href" as="xs:anyURI"/>
-        <xsl:param name="method" as="xs:string"/>
-        <xsl:param name="media-type" as="xs:string?"/>
-        <xsl:param name="body" as="item()?"/>
-        <xsl:param name="headers" as="map(xs:string, xs:string)"/>
-        
-        <xsl:message use-when="system-property('xsl:product-name') = 'SAXON'" terminate="yes">
-            Not implemented -- com.atomgraph.linkeddatahub.writer.function.SendHTTPRequest needs to be registered as an extension function
-        </xsl:message>
     </xsl:function>
 
     <!-- SHARED FUNCTIONS -->

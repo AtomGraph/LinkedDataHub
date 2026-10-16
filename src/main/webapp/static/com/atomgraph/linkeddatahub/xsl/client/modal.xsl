@@ -48,7 +48,7 @@ extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
 
-    <xsl:param name="endpoint-classes-string" as="xs:string">
+    <xsl:param name="ldh:endpoint-classes-string" as="xs:string">
 <![CDATA[
 SELECT DISTINCT  ?type (COUNT(?s) AS ?count) (SAMPLE(?g) AS ?namedGraph)
 WHERE
@@ -1462,9 +1462,9 @@ LIMIT   10
         <xsl:variable name="limit-prop-group" select="$fieldset/descendant::div[contains-token(@class, 'ldh-prop-group')][input[@name = 'pu'][@value = '&sp;limit']]" as="element()"/>
         <xsl:variable name="limit-string" select="$limit-prop-group/descendant::input[@name = 'ol']/ixsl:get(., 'value')" as="xs:string"/>
         <xsl:variable name="limit" select="xs:integer($limit-string)" as="xs:integer"/>
-        <xsl:variable name="select-string" select="$endpoint-classes-string" as="xs:string"/>
+        <xsl:variable name="select-string" select="$ldh:endpoint-classes-string" as="xs:string"/>
         <xsl:variable name="select-json" as="item()">
-            <xsl:sequence select="ixsl:call($sparql-parser, 'parse', [ $select-string ])"/>
+            <xsl:sequence select="ixsl:call($ldh:sparql-parser, 'parse', [ $select-string ])"/>
         </xsl:variable>
         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
@@ -1478,7 +1478,7 @@ LIMIT   10
         </xsl:variable>
         <xsl:variable name="query-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
         <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
-        <xsl:variable name="query-string" select="ixsl:call($sparql-generator, 'stringify', [ $query-json ])" as="xs:string"/>
+        <xsl:variable name="query-string" select="ixsl:call($ldh:sparql-generator, 'stringify', [ $query-json ])" as="xs:string"/>
         <!-- resolve the endpoint (async fetch of the service description when a service is selected, otherwise local), then fetch the class-discovery results; keeps the whole flow non-blocking so the progress cursor shows -->
         <xsl:variable name="context" as="map(*)" select="
           map{
@@ -2243,8 +2243,8 @@ LIMIT   10
 
         <xsl:choose>
             <xsl:when test="$response?status = (200, 204)">
-                <!-- the admin app manages its parent dataspace's end-user app, whose ontology is <ns#> on the parent origin -->
-                <xsl:variable name="ontology-uri" select="resolve-uri('ns#', ldh:parent-origin(ldh:request-uri()))" as="xs:anyURI"/>
+                <!-- the admin app manages the end-user dataspace that names it as its lds:admin; clear that dataspace's ontology -->
+                <xsl:variable name="ontology-uri" select="(for $context in lds:context() return key('apps-by-admin', lds:base(), $context))/lds:ontology/@rdf:resource/xs:anyURI(.)" as="xs:anyURI"/>
                 <xsl:variable name="request" select="map{ 'method': 'POST', 'href': resolve-uri('clear', lds:base()), 'media-type': 'application/x-www-form-urlencoded', 'body': 'uri=' || encode-for-uri($ontology-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                 <xsl:variable name="clear-context" select="map:put($context, 'request', $request)" as="map(*)"/>
                 <xsl:sequence select="
@@ -2321,7 +2321,7 @@ LIMIT   10
                 'forClass': $types,
                 'endpoint': sd:endpoint(),
                 'property-uris': distinct-values($body/rdf:RDF/*[@rdf:about = $about]/*/concat(namespace-uri(), local-name())),
-                'object-uris': distinct-values($body/rdf:RDF/*[not(rdf:type/@rdf:resource = $system-types)]/*/@rdf:resource[not(key('resources', .))])
+                'object-uris': distinct-values($body/rdf:RDF/*[not(rdf:type/@rdf:resource = $ldh:system-types)]/*/@rdf:resource[not(key('resources', .))])
             }
         ), map{ 'duplicates': 'use-last' })"/>
 

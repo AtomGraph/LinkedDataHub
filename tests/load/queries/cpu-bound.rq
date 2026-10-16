@@ -1,0 +1,18 @@
+# A query that runs long without a large result or much memory: the store's quads joined with
+# themselves six times and counted. COUNT streams, so the heap stays flat while the join runs for
+# as long as the query timeout allows. Used to hold a /sparql request open, so a handful in flight
+# together occupy request slots - what the concurrency cap is meant to bound.
+#
+# Six, not five: the stock end-user dataset is 24 quads, and a five-way join (24^5, ~8M rows) counts
+# in about 4 s - it never reaches the 60 s timeout, so each request gives its slot back almost at
+# once. 24^6 (~190M rows) still runs past 70 s in-memory on a 64 MB heap; a bigger store only makes
+# it longer.
+SELECT (COUNT(*) AS ?n)
+WHERE {
+  GRAPH ?g1 { ?s1 ?p1 ?o1 }
+  GRAPH ?g2 { ?s2 ?p2 ?o2 }
+  GRAPH ?g3 { ?s3 ?p3 ?o3 }
+  GRAPH ?g4 { ?s4 ?p4 ?o4 }
+  GRAPH ?g5 { ?s5 ?p5 ?o5 }
+  GRAPH ?g6 { ?s6 ?p6 ?o6 }
+}

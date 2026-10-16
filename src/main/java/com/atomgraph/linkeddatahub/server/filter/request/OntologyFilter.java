@@ -26,8 +26,10 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.container.ContainerRequestContext;
@@ -47,6 +49,7 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.OWL2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -275,6 +278,26 @@ public class OntologyFilter implements ContainerRequestFilter
     }
 
     /**
+     * Returns the URIs the graph declares as its ontology names: the subjects of its {@code owl:Ontology}
+     * headers and their {@code owl:versionIRI}s. An import resolves cleanly when its URI is one of them; a
+     * document that declares names but not the imported URI is a document imported by its location while
+     * naming an ontology elsewhere.
+     *
+     * @param graph ontology graph
+     * @return declared ontology URIs, empty if the graph carries no header
+     */
+    public static Set<String> getOntologyNames(Graph graph)
+    {
+        Set<String> names = new HashSet<>();
+        graph.find(Node.ANY, RDF.type.asNode(), OWL.Ontology.asNode()).mapWith(Triple::getSubject).filterKeep(Node::isURI).forEach(ontology ->
+        {
+            names.add(ontology.getURI());
+            graph.find(ontology, OWL2.versionIRI.asNode(), Node.ANY).mapWith(Triple::getObject).filterKeep(Node::isURI).forEach(version -> names.add(version.getURI()));
+        });
+        return names;
+    }
+
+    /**
      * Returns the graph the repository supplies for the given ID, or null if it cannot supply one.
      *
      * @param repository graph repository
@@ -309,7 +332,8 @@ public class OntologyFilter implements ContainerRequestFilter
     {
         if (log.isDebugEnabled()) log.debug("Started loading ontology with URI '{}'", uri);
         ScopedGraphRepository scoped = new ScopedGraphRepository(repository);
-        OntModel ontology = OntModelFactory.createModel(repository.get(uri), OntSpecification.OWL2_FULL_MEM, scoped);
+        // the root is read through the view too: it is the graph ontapi writes the imports it reconciles into
+        OntModel ontology = OntModelFactory.createModel(scoped.get(uri), OntSpecification.OWL2_FULL_MEM, scoped);
         UnionGraph union = (UnionGraph)ontology.getGraph();
         // promote rdfs:Class to owl:Class so the OWL2 profile recognises third-party vocab terms (e.g. sp:Describe
         // in sp.ttl) as named classes. The promotions live in their own union member so no document graph is

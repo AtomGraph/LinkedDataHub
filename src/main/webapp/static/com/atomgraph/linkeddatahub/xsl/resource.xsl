@@ -75,6 +75,12 @@ exclude-result-prefixes="#all"
         '&ac;ChartMode': 'bar_chart',
         '&ac;GraphMode': 'hub'
     }"/>
+    <!-- the class of the canvas a layout mode draws on (ldh:InitCanvas), for the modes that draw on one -->
+    <xsl:variable name="ldh:canvas-classes" as="map(xs:string, xs:string)" select="map{
+        '&ac;MapMode': 'map-canvas',
+        '&ac;ChartMode': 'chart-canvas',
+        '&ac;GraphMode': 'graph-3d-canvas'
+    }"/>
     <!-- document-class glyphs shared by the breadcrumb and constructor items; sites supply their own fallback -->
     <xsl:variable name="ldh:class-icons" as="map(xs:string, xs:string)" select="map{
         '&def;Root': 'folder',
@@ -510,6 +516,14 @@ exclude-result-prefixes="#all"
         <xsl:apply-templates select="." mode="ac:PropertyEditor"/>
     </xsl:template>
 
+    <!-- a view's body is its results, not its definition: ldh:RowHook (client/block/view.xsl) reads spin:query, ac:mode
+         and ldh:graph off this RDFa, and ldh:RenderViewResults then replaces the body. Rendered as the property list, the
+         view's own metadata painted until the results arrived - visibly so for ontology-defined views, which are fetched
+         and injected client-side. Invisible link/meta carriers keep the triples the hook reads without painting them -->
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;View']" priority="1">
+        <xsl:apply-templates select="." mode="ac:RDFaCarrier"/>
+    </xsl:template>
+
     <!-- embed file content -->
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&nfo;FileDataObject'][dct:format]" priority="2">
         <xsl:apply-templates select="." mode="ac:PropertyEditor"/>
@@ -699,7 +713,7 @@ exclude-result-prefixes="#all"
          fills. Embedded under an ldh:Object carrier (the $embedded tunnel), the card is the block's single
          header-bearing surface and takes the is-embedded mark - the hairline that distinguishes a resource
          rendered inside a content slot from the same resource rendered standalone -->
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&ldh;View', '&ldh;GraphChart', '&ldh;ResultSetChart', '&sp;Describe', '&sp;Construct', '&sp;Ask', '&sp;Select')]" mode="ldh:Block" priority="1">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&ldh;View', '&ldh;GraphChart', '&ldh;ResultSetChart', '&sp;Describe', '&sp;Construct', '&sp;Ask', '&sp;Select', '&ldh;Chat')]" mode="ldh:Block" priority="1">
         <!-- TO-DO: use ldh:request-uri() to resolve URIs server-side -->
         <xsl:param name="class" select="'block ldh-block'" as="xs:string?"/>
         <xsl:param name="about" select="@rdf:about" as="xs:anyURI?"/>
@@ -1085,8 +1099,8 @@ exclude-result-prefixes="#all"
 
         <div>
             <!--
-            <xsl:if test="doc-available($app-request-uri)">
-                <xsl:variable name="apps" select="document($app-request-uri)" as="document-node()"/>
+            <xsl:if test="doc-available($ldh:app-request-uri)">
+                <xsl:variable name="apps" select="document($ldh:app-request-uri)" as="document-node()"/>
                 <xsl:if test="$apps//*[sd:endpoint/@rdf:resource]">
                     <xsl:variable name="resource" select="." as="element()"/>
                     
@@ -1617,7 +1631,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <!-- Admin app override: allow subject editing for non-hierarchy resources by flipping the $show-subject default. -->
-    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][starts-with(replace(lds:origin(), '^https?://', ''), 'admin.')]" mode="ac:FormControl" priority="1">
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][lds:dataspace-description()/rdf:type/@rdf:resource = '&lds;AdminDataspace']" mode="ac:FormControl" priority="1">
         <xsl:param name="legend" select="true()" as="xs:boolean"/>
         <xsl:param name="show-subject" select="not(rdf:type/@rdf:resource = ('&dh;Item', '&dh;Container'))" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="required" select="false()" as="xs:boolean"/>

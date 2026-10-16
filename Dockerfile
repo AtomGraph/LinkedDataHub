@@ -24,6 +24,9 @@ RUN mvn -B -Pstandalone dependency:go-offline
 
 COPY src /usr/src/platform/src
 
+# the agent guide the WAR serves at /AGENTS.md (pom.xml, maven-war-plugin webResources)
+COPY AGENTS.md /usr/src/platform/AGENTS.md
+
 RUN mvn -Pstandalone clean install
 # ==============================
 

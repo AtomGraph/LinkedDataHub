@@ -18,8 +18,10 @@ package com.atomgraph.linkeddatahub.server.io;
 
 import com.atomgraph.linkeddatahub.dataspaces.model.AdminDataspace;
 import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
+import com.atomgraph.client.util.jena.PrefixGraphRepository;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
+import com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import org.apache.jena.query.QueryFactory;
@@ -50,6 +52,7 @@ import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import jakarta.inject.Inject;
@@ -58,6 +61,7 @@ import jakarta.ws.rs.core.SecurityContext;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.codec.binary.Hex;
+import org.apache.jena.graph.Graph;
 import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
@@ -236,6 +240,8 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
             // clear cached raw graph and closure union graph if ontology is updated. TO-DO: send event instead
             getSystem().getRepository().remove(resource.getURI());
             getSystem().getOntologyGraphs().remove(resource.getURI());
+
+            validateImports(resource);
         }
 
         if (getDataspace().isPresent() && resource.hasProperty(RDF.type, ACL.Authorization))
@@ -249,6 +255,42 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
         return resource;
     }
     
+    /**
+     * Rejects an <code>owl:imports</code> of a document that declares another ontology than the imported URI.
+     * An import names an ontology, and the URI has to dereference to a document declaring it - directly
+     * (<code>skos/core</code>) or as its hash URI (<code>ns#</code>, whose document is <code>ns</code>). A
+     * document imported by its location while naming an ontology elsewhere is imported under both names,
+     * and the second one resolves to whatever that URI dereferences to. An import that cannot be resolved,
+     * or resolves to a document without an ontology header, is let through: it contributes nothing, and
+     * whether a remote server answers is not the writer's error.
+     *
+     * @param ontology ontology resource
+     */
+    public void validateImports(Resource ontology)
+    {
+        PrefixGraphRepository repository = getSystem().getRepository(getEndUserDataspace());
+        List<ConstraintViolation> cvs = new ArrayList<>();
+
+        ontology.listProperties(OWL.imports).filterKeep(stmt -> stmt.getObject().isURIResource()).forEach(stmt ->
+        {
+            String importURI = stmt.getResource().getURI();
+            Graph imported = OntologyFilter.resolve(repository, importURI);
+            if (imported == null) return;
+
+            Set<String> names = OntologyFilter.getOntologyNames(imported);
+            if (!names.isEmpty() && !names.contains(importURI))
+            {
+                if (log.isDebugEnabled()) log.debug("Bad request - imported document <{}> declares the ontologies {}", importURI, names);
+                List<SimplePropertyPath> paths = new ArrayList<>();
+                paths.add(new ObjectPropertyPath(ontology, OWL.imports));
+                String declared = names.stream().map(name -> "<" + name + ">").collect(Collectors.joining(", "));
+                cvs.add(new ConstraintViolation(ontology, paths, null, "Imported document <" + importURI + "> declares the ontology " + declared + ", not <" + importURI + ">", null));
+            }
+        });
+
+        if (!cvs.isEmpty()) throw new SPINConstraintViolationException(cvs, ontology.getModel());
+    }
+
     @Override
     public Model processWrite(Model model)
     {

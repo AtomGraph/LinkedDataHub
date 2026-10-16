@@ -92,23 +92,17 @@ exclude-result-prefixes="#all">
     <xsl:param name="lds:origin" as="xs:anyURI?"/>
     <xsl:param name="ldh:requestUri" as="xs:anyURI"/>
     <xsl:param name="ac:uri" as="xs:anyURI?"/>
-    <xsl:param name="lds:Context" as="document-node()"/>
     <xsl:param name="ldh:httpHeaders" select="map{}" as="map(xs:string, xs:string*)"/>
     <xsl:param name="ldh:ajaxRendering" select="true()" as="xs:boolean"/>
     <xsl:param name="ldhc:enableWebIDSignUp" as="xs:boolean"/>
     <xsl:param name="ldh:renderSystemResources" select="false()" as="xs:boolean"/>
     <xsl:param name="google:clientID" as="xs:string?"/>
     <xsl:param name="orcid:clientID" as="xs:string?"/>
-    <!-- the application this origin resolves to, as described in the system context -->
-    <xsl:function name="lds:dataspace-description" as="element()*">
-        <xsl:sequence select="key('apps-by-origin', lds:origin(), $lds:Context)"/>
-    </xsl:function>
-
     <!-- The client-side half of prefix-mapping.ttl: each namespace here is resolved through the ?uri= proxy
          rather than over the network. Keep the two lists in step - a namespace dropped from the mapping file
          and left here asks the proxy for something the server no longer maps. A namespace earns a place by
          being imported by a system ontology or used by the stylesheets. -->
-    <xsl:param name="ontology-namespaces" as="xs:anyURI*" select="(
+    <xsl:param name="ldh:ontology-namespaces" as="xs:anyURI*" select="(
         xs:anyURI('&ac;'), xs:anyURI('&adm;'), xs:anyURI('&lacl;'),
         xs:anyURI('&lds;'), xs:anyURI('&ldh;'), xs:anyURI('&def;'),
         xs:anyURI('&dh;'), xs:anyURI('&sp;'), xs:anyURI('&spin;'),
@@ -123,15 +117,18 @@ exclude-result-prefixes="#all">
         xs:anyURI('http://usefulinc.com/ns/doap#')
     )"/>
 
-    <xsl:param name="location-mapping" as="map(xs:anyURI, xs:anyURI)">
+    <xsl:param name="ldh:location-mapping" as="map(xs:anyURI, xs:anyURI)">
         <xsl:map>
             <xsl:if test="lds:origin()">
                 <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', lds:origin())" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', lds:origin())"/>
                 <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/http-statusCodes.rdf', lds:origin())" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/http-statusCodes.rdf', lds:origin())"/>
-                <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/admin/countries.rdf', lds:origin())" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/admin/countries.rdf', lds:origin())"/>                
+                <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/admin/countries.rdf', lds:origin())" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/admin/countries.rdf', lds:origin())"/>
+                <!-- the public dataspace context, which client/functions.xsl's lds:context() reads from the document pool. Fetched
+                     as RDF/XML explicitly: the bootstrap's fetch sends no Accept of its own, and */* negotiates HTML -->
+                <xsl:map-entry key="resolve-uri('context', lds:base())" select="ac:build-uri(resolve-uri('context', lds:base()), map{ 'accept': 'application/rdf+xml' })"/>
             </xsl:if>
 
-            <xsl:for-each select="$ontology-namespaces">
+            <xsl:for-each select="$ldh:ontology-namespaces">
                 <xsl:map-entry key="ac:document-uri(.)" select="ac:build-uri(lds:base(), map{ 'uri': string(ac:document-uri(.)), 'accept': 'application/rdf+xml' })"/>
             </xsl:for-each>
             <xsl:if test="$acl:agent">
@@ -141,7 +138,7 @@ exclude-result-prefixes="#all">
     </xsl:param>
 
     <!-- the query has to support services that do not belong to any app. Use type URIs because that is what triggers Varnish invalidation. -->
-    <xsl:variable name="app-query" as="xs:string">
+    <xsl:variable name="ldh:app-query" as="xs:string">
         <![CDATA[
             DESCRIBE ?app ?service
             WHERE
@@ -155,12 +152,10 @@ exclude-result-prefixes="#all">
               }
         ]]>
     </xsl:variable>
-    <xsl:variable name="app-request-uri" select="ac:build-uri(sd:endpoint(), map{ 'query': $app-query })" as="xs:anyURI"/>
+    <xsl:variable name="ldh:app-request-uri" select="ac:build-uri(sd:endpoint(), map{ 'query': $ldh:app-query })" as="xs:anyURI"/>
     <!-- graph-free variant of object-metadata-query for the /ns ontology endpoint: its dataset is the in-memory OntModel served as the default graph (no named graphs), so a GRAPH ?graph pattern would match nothing -->
-    <!-- server-side twin of client.xsl's $property-metadata-query, so ac:property-label resolves predicate labels from
+    <!-- server-side twin of client.xsl's $ldh:property-metadata-query, so ac:property-label resolves predicate labels from
          the application ontology on the initial render as it does client-side -->
-
-    <xsl:key name="apps-by-origin" match="*" use="lds:origin/@rdf:resource"/>
 
     <rdf:Description rdf:about="">
     </rdf:Description>
@@ -319,7 +314,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="load-google-charts" select="not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="load-graph3d" select="not(ac:mode(root()) = ('&ac;ModalMode', '&ldht;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="output-schema-org" select="true()" as="xs:boolean"/>
-        <xsl:param name="location-mapping" select="$location-mapping" as="map(xs:anyURI, xs:anyURI)"/>
+        <xsl:param name="location-mapping" select="$ldh:location-mapping" as="map(xs:anyURI, xs:anyURI)"/>
 
         <!-- LinkedDataHub scripts -->
         <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/functions.js', lds:origin())}" defer="defer"></script>
@@ -486,9 +481,9 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- Admin app override: notification menu for pending AuthorizationRequests + account menu.
-         Admin apps are identified by the 'admin.' subdomain prefix on lds:origin() (nginx wildcard routing convention).
+         Admin apps are identified by their lds:AdminDataspace type in the dataspace context.
          TO-DO: refactor into component templates -->
-    <xsl:template match="rdf:RDF[starts-with(replace(lds:origin(), '^https?://', ''), 'admin.')]" mode="ldh:HeaderActions" priority="1">
+    <xsl:template match="rdf:RDF[lds:dataspace-description()/rdf:type/@rdf:resource = '&lds;AdminDataspace']" mode="ldh:HeaderActions" priority="1">
         <xsl:if test="$foaf:Agent//@rdf:about">
                 <xsl:variable name="notification-query" as="xs:string">
                     <![CDATA[
@@ -558,8 +553,8 @@ WHERE
     </xsl:template>
 
     <xsl:template match="rdf:RDF[lds:origin()][lds:dataspace-description()/rdf:type/@rdf:resource = '&lds;EndUserDataspace'] | srx:sparql[lds:origin()][lds:dataspace-description()/rdf:type/@rdf:resource = '&lds;EndUserDataspace']" mode="ldh:DataspaceTabs" priority="1">
-            <xsl:variable name="user-defined-apps" select="if (doc-available($app-request-uri)) then document($app-request-uri)//*[lds:origin/@rdf:resource] else ()" as="element()*"/>
-            <xsl:variable name="system-apps" select="$lds:Context//*[rdf:type/@rdf:resource = '&lds;EndUserDataspace'][lds:origin/@rdf:resource]" as="element()*"/>
+            <xsl:variable name="user-defined-apps" select="if (doc-available($ldh:app-request-uri)) then document($ldh:app-request-uri)//*[lds:origin/@rdf:resource] else ()" as="element()*"/>
+            <xsl:variable name="system-apps" select="lds:context()//*[rdf:type/@rdf:resource = '&lds;EndUserDataspace'][lds:origin/@rdf:resource]" as="element()*"/>
 
             <!-- .ldh-header-actions IS the flex cluster (AppShell): controls are its direct children,
                  no intermediate list -->
@@ -633,7 +628,7 @@ WHERE
         <xsl:param name="google-signup" select="exists($google:clientID)" as="xs:boolean"/>
         <xsl:param name="orcid-signup" select="exists($orcid:clientID)" as="xs:boolean"/>
         <xsl:param name="webid-signup" select="$ldhc:enableWebIDSignUp" as="xs:boolean"/>
-        <xsl:param name="admin-origin" select="xs:anyURI(replace(string($ac:contextUri), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
+        <xsl:param name="admin-origin" select="lds:dataspace-description()/lds:admin/@rdf:resource/xs:anyURI(.)" as="xs:anyURI"/>
         <xsl:param name="webid-signup-uri" select="ac:build-uri(resolve-uri('sign%20up', $admin-origin), map{ 'referer': string(ac:absolute-path(ldh:request-uri())) })" as="xs:anyURI"/>
 
         <!-- OAuth providers menu -->
@@ -710,12 +705,12 @@ WHERE
                                 <xsl:variable name="values" select="' VALUES $this { ' || string-join(for $uri in $object-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
                                 <!-- instance labels from /sparql merged with ontology-term (rdf:type/class) labels from /ns, so ac:object-label resolves both on the initial server render (matches the client-side merge) -->
                                 <xsl:variable name="sparql-metadata" as="document-node()?">
-                                    <xsl:try select="ldh:send-request(sd:endpoint(), 'POST', 'application/sparql-query', $object-metadata-query || $values, map{ 'Accept': 'application/rdf+xml' })">
+                                    <xsl:try select="ldh:query-result(sd:endpoint(), $ldh:object-metadata-query || $values)">
                                         <xsl:catch/>
                                     </xsl:try>
                                 </xsl:variable>
                                 <xsl:variable name="ns-metadata" as="document-node()?">
-                                    <xsl:try select="ldh:send-request(resolve-uri('ns', lds:base()), 'POST', 'application/sparql-query', $object-metadata-ns-query || $values, map{ 'Accept': 'application/rdf+xml' })">
+                                    <xsl:try select="ldh:query-result(resolve-uri('ns', lds:base()), $ldh:object-metadata-ns-query || $values)">
                                         <xsl:catch/>
                                     </xsl:try>
                                 </xsl:variable>
@@ -730,7 +725,7 @@ WHERE
                         <xsl:variable name="property-metadata" as="document-node()?">
                             <xsl:if test="exists($property-uris)">
                                 <xsl:variable name="values" select="' VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
-                                <xsl:try select="ldh:send-request(resolve-uri('ns', lds:base()), 'POST', 'application/sparql-query', $property-metadata-query || $values, map{ 'Accept': 'application/rdf+xml' })">
+                                <xsl:try select="ldh:query-result(resolve-uri('ns', lds:base()), $ldh:property-metadata-query || $values)">
                                     <xsl:catch/>
                                 </xsl:try>
                             </xsl:if>
@@ -760,15 +755,14 @@ WHERE
 
                 <xsl:apply-templates select="." mode="ac:Footer"/>
             </div>
-
         </body>
     </xsl:template>
-    
+
     <!-- only lookup resource locally using DESCRIBE if it's external (not relative to the app's base URI) and the agent is authenticated -->
     <xsl:template match="*[*][@rdf:about = ac:absolute-path(ldh:base-uri(.))][not(starts-with(@rdf:about, lds:base()))][$foaf:Agent//@rdf:about]" mode="ac:PropertyEditor">
         <xsl:param name="endpoint" select="sd:endpoint()" as="xs:anyURI"/>
         <xsl:param name="property-uris" select="distinct-values(*/concat(namespace-uri(), local-name()))" as="xs:anyURI*"/>
-        <xsl:param name="property-metadata" select="ldh:send-request(resolve-uri('ns', lds:base()), 'POST', 'application/sparql-query', 'DESCRIBE ' || string-join(for $uri in distinct-values(/rdf:RDF/*/*/concat(namespace-uri(), local-name())) return '&lt;' || $uri || '&gt;', ' '), map{ 'Accept': 'application/rdf+xml' })" as="document-node()"/>
+        <xsl:param name="property-metadata" select="ldh:query-result(resolve-uri('ns', lds:base()), 'DESCRIBE ' || string-join(for $uri in distinct-values(/rdf:RDF/*/*/concat(namespace-uri(), local-name())) return '&lt;' || $uri || '&gt;', ' '))" as="document-node()"/>
         <xsl:param name="object-metadata" as="document-node()?" tunnel="yes"/>
         <xsl:variable name="local-doc" select="ldh:query-result($endpoint, 'DESCRIBE &lt;' || @rdf:about || '&gt;')" as="document-node()"/>
         <xsl:variable name="original-doc" as="document-node()">
@@ -791,7 +785,7 @@ WHERE
         <xsl:variable name="triples-original" select="ldh:triples-map($original-doc, true())" as="map(xs:string, element())"/>
         <xsl:variable name="triples-local" select="ldh:triples-map($local-doc, true())" as="map(xs:string, element())"/>
 
-        <xsl:variable name="properties-original" select="for $triple-key in ac:value-except(map:keys($triples-original), map:keys($triples-local)) return map:get($triples-original, $triple-key)" as="element()*"/>
+        <xsl:variable name="properties-original" select="for $triple-key in map:keys($triples-original)[not(map:contains($triples-local, .))] return map:get($triples-original, $triple-key)" as="element()*"/>
         <xsl:if test="exists($properties-original)">
             <div>
                 <h2 class="ldh-section-heading">
@@ -817,7 +811,7 @@ WHERE
             </div>
         </xsl:if>
 
-        <xsl:variable name="properties-local" select="for $triple-key in ac:value-except(map:keys($triples-local), map:keys($triples-original)) return map:get($triples-local, $triple-key)" as="element()*"/>
+        <xsl:variable name="properties-local" select="for $triple-key in map:keys($triples-local)[not(map:contains($triples-original, .))] return map:get($triples-local, $triple-key)" as="element()*"/>
         <xsl:if test="exists($properties-local)">
             <div>
                 <h2 class="ldh-section-heading">
@@ -843,7 +837,7 @@ WHERE
             </div>
         </xsl:if>
         
-        <xsl:variable name="properties-common" select="for $triple-key in ac:value-intersect(map:keys($triples-original), map:keys($triples-local)) return map:get($triples-original, $triple-key)" as="element()*"/>
+        <xsl:variable name="properties-common" select="for $triple-key in map:keys($triples-original)[map:contains($triples-local, .)] return map:get($triples-original, $triple-key)" as="element()*"/>
         <xsl:if test="exists($properties-common)">
             <div>
                 <h2 class="ldh-section-heading">
@@ -909,7 +903,7 @@ WHERE
                             <xsl:apply-templates select="key('resources', '&lds;Dataspace', document(ac:document-uri('&lds;')))" mode="ac:label"/>
                         </xsl:value-of>
                     </button>
-                    <a href="{replace(string(lds:origin()), '^(https?://)', '$1admin.')}" class="ac-menu-item external" role="menuitem" target="_blank">
+                    <a href="{lds:dataspace-description()/lds:admin/@rdf:resource}" class="ac-menu-item external" role="menuitem" target="_blank">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'administration', document('translations.rdf'))" mode="ac:label"/>
                         </xsl:value-of>
