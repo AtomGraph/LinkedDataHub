@@ -118,12 +118,28 @@ The commands that address no document of their own take the dataspace's base URI
 argument instead, where every other command puts its target: the `packages` family,
 `admin clear ontology`, `admin create ontology`, `admin create group`, `admin create authorization`,
 `admin import ontology` and `admin make-public`. `LDH_BASE` is its default, so with it exported the
-argument is left out:
+argument is left out.
+
+The admin commands take the end-user base too. They find the admin application from its
+`lds:admin` `Link` header, so a script never derives the admin URI; a base without that link, such as
+the admin base itself, is used as given:
 
 ```bash
 ldh packages add --package https://packages.linkeddatahub.com/editor/taxonomy/#this https://localhost:4443/
-ldh admin clear ontology https://admin.localhost:4443/
-ldh admin create group --name Editors --member "$AGENT_URI" https://admin.localhost:4443/
+ldh admin clear ontology https://localhost:4443/
+ldh admin create group --name Editors --member "$AGENT_URI" https://localhost:4443/
+```
+
+`admin import ontology --file` installs a local file as the dataspace's namespace ontology in one step:
+it takes the ontology IRI from the end-user base's `lds:ontology` link and resolves the file against it
+(so `@prefix : <#>` names the ontology), replaces the `ontologies/namespace/` document keeping its own
+description and seeded header (with the `owl:imports` of the platform's ontology), and clears the
+ontology cache. A re-run converges, and a term removed from the file is gone. `--file -` reads stdin
+with `-t/--content-type`. `--source` still imports an external ontology by URI with derived
+constructors.
+
+```bash
+ldh admin import ontology --file admin/model/ns.ttl
 ```
 
 ```bash
@@ -150,15 +166,22 @@ without them (the taxonomy editor package rejects a concept with no `skos:inSche
 
 - Commands that create or append to a document print its URL as the only line on stdout, so shell
   pipelines keep working: `item=$(ldh create item ...)`. `add file` prints the content-addressed
-  upload URI (`uploads/{sha1}` under the root of the document's origin). All diagnostics go to stderr.
+  upload URI (`uploads/{sha1}` under the root of the document's origin). `import csv` and
+  `import rdf` print the URI of the import they create, a fragment of the target document
+  (`${import%%#*}` is the document). All diagnostics go to stderr.
+- An import runs in the background on the server. `import csv|rdf --wait` waits until it has ended
+  (`prov:endedAtTime`), prints its triple count to stderr, and exits `1` with the error message if it
+  failed, or after `--timeout` seconds (default 1200).
 - `push` writes many documents in one run and prints one line per written document URL or upload
   URI, in write order, so the listing greps and cuts like `packages list` does. Progress
   (`PUT <url> <- <path>`, `POST <url> <- <path>`) and `Skipping <path>` lines go to stderr. On the
   first failed request the run stops with exit code `1`; stdout holds what was written before it.
 - Exit codes: `0` success, `1` HTTP error status or runtime failure (message on stderr, stack trace
   with `--verbose`), `2` usage error.
-- `--proxy` rewrites the request URI's origin to the proxy's origin, like the scripts do; printed
-  URLs keep the logical origin.
+- `--proxy` sends every request to the proxy's scheme, host and port but keeps the logical URI's
+  path and `Host` header, so the platform still routes the dataspace (an admin request through the
+  end-user proxy reaches the admin application) and answers with logical URIs, which are the ones
+  printed. No admin proxy is derived.
 - `post`/`put` read RDF from an optional `FILE` argument, recognizing the syntax from its
   extension (`ldh put "$LDH_BASE" root.ttl`), or from stdin, where `-t/--content-type` is
   required since a stream carries no name; either way relative URIs resolve against the target
@@ -332,11 +355,16 @@ shell scripts.
 - `add generic-service` drops the documented-but-unparsed `--slug` option.
 - `add csv-import`/`import csv` default `--delimiter` to `,` (the script required it despite
   documenting a default).
-- `import csv`/`import rdf` run their steps in-process instead of spawning subscripts, and pass
-  `--description` through to the import metadata.
+- `import csv`/`import rdf` run their steps in-process instead of spawning subscripts, pass
+  `--description` through to the import metadata, print the import's URI instead of the target's, and
+  add `--wait`.
+- The admin commands accept the end-user base and follow its `lds:admin` link; the scripts derived the
+  admin base and proxy by prefixing `admin.` to the host. `--proxy` keeps the `Host` header instead of
+  rewriting it.
 - `admin import ontology` reads the `construct-constructors` query text by dereferencing its
   document instead of going through a `SELECT` on `/sparql`; the CONSTRUCT it then runs over the
-  scratch graph is unchanged.
+  scratch graph is unchanged. It adds `--file`, which has no script equivalent: the apps scripted the
+  same install as a reset `PATCH`, a `POST` with an `@base` and a cache clear.
 - `create item`/`create container` add `--primary-topic`, which the scripts have no equivalent for:
   they could only create a document that says nothing about what it is about, leaving a `patch` as
   the only way to assert it.
