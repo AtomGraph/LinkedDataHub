@@ -516,6 +516,14 @@ exclude-result-prefixes="#all"
         <xsl:apply-templates select="." mode="ac:PropertyEditor"/>
     </xsl:template>
 
+    <!-- a view's body is its results, not its definition: ldh:RowHook (client/block/view.xsl) reads spin:query, ac:mode
+         and ldh:graph off this RDFa, and ldh:RenderViewResults then replaces the body. Rendered as the property list, the
+         view's own metadata painted until the results arrived - visibly so for ontology-defined views, which are fetched
+         and injected client-side. Invisible link/meta carriers keep the triples the hook reads without painting them -->
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&ldh;View']" priority="1">
+        <xsl:apply-templates select="." mode="ac:RDFaCarrier"/>
+    </xsl:template>
+
     <!-- embed file content -->
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&nfo;FileDataObject'][dct:format]" priority="2">
         <xsl:apply-templates select="." mode="ac:PropertyEditor"/>
