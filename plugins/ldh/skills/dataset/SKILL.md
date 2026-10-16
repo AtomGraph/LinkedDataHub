@@ -331,7 +331,12 @@ and is not only displayed side by side.
 
 - Jena's `shacl validate` ignores named graphs and always exits `0`. Merge the TriG to N-Triples
   first (`riot --merge`), and treat any report other than `Conforms` as a failure.
-- `arq` 6.x cannot write quad `CONSTRUCT` results (apache/jena#4091). Graphify with Jena 5.6.
+- `arq` 6.x cannot write quad `CONSTRUCT` results (apache/jena#4091). Graphify with Jena 5.6, and
+  point `JENA_HOME` at it too: Jena's `bin/` scripts load their jars from `$JENA_HOME`, so 5.6's `arq`
+  run with `JENA_HOME` set to a 6.x install still fails with "No dataset writer for Turtle_pretty".
+- `arq` writes a quad `CONSTRUCT` as TriG by default and has no `--results=trig`; pass no `--results`.
+- `make load` restarts the Varnish caches right before `make public`, whose first request can meet them
+  mid-restart and answer `500`. The load itself has succeeded by then; run `make public` again.
 
 - Documents built without `foaf:primaryTopic`, or with the domain properties on the document itself,
   render an empty page. The properties go on `#this`.
