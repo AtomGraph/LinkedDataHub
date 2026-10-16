@@ -16,19 +16,17 @@
  */
 package com.atomgraph.linkeddatahub.resource;
 
+import com.atomgraph.client.util.HTMLMediaTypePredicate;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.server.util.EntityTags;
 import com.atomgraph.linkeddatahub.server.util.PublicContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.core.CacheControl;
-import jakarta.ws.rs.core.EntityTag;
-import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
-import jakarta.ws.rs.core.Variant;
-import java.util.List;
+import java.util.ArrayList;
 import org.apache.jena.rdf.model.Model;
 
 /**
@@ -76,23 +74,19 @@ public class Context
     public Response get()
     {
         Model context = PublicContext.of(getSystem().getContextModel());
-
-        // negotiated over the registered model media types, as the documents are: left to the provider ordering, */* could
-        // select a writer that handles one kind of model only, such as the link-format TimeMap writer
-        List<Variant> variants = Variant.mediaTypes(getMediaTypes().getWritable(Model.class).toArray(MediaType[]::new)).build();
-        Variant variant = getRequest().selectVariant(variants);
-        if (variant == null) return Response.notAcceptable(variants).build();
-
-        EntityTag entityTag = EntityTags.entityTag(getUriInfo().getAbsolutePath(), context);
         CacheControl cacheControl = new CacheControl();
         cacheControl.setNoCache(true);
 
-        Response.ResponseBuilder rb = getRequest().evaluatePreconditions(entityTag);
-        if (rb != null) return rb.cacheControl(cacheControl).build();
-
-        return Response.ok(context, variant).
-            variants(variants).
-            tag(entityTag).
+        // negotiated, conditional and Vary-ing the way the documents' responses are
+        return new com.atomgraph.core.model.impl.Response(getRequest(),
+                context,
+                null,
+                EntityTags.entityTag(getUriInfo().getAbsolutePath(), context),
+                getMediaTypes().getWritable(Model.class),
+                getSystem().getSupportedLanguages(),
+                new ArrayList<>(),
+                new HTMLMediaTypePredicate()).
+            getResponseBuilder().
             cacheControl(cacheControl).
             build();
     }
