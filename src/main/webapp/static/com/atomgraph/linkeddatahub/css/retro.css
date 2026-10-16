@@ -415,6 +415,7 @@
    page wallpaper refracts through every panel.
    ========================================================================= */
 :root[data-retro="glass"] {
+  --ldh-block-radius: 20px; /* the frost list's radius below; the embedded card reads it */
   /* A skin committed to one scheme says so, rather than leaving the base tokens
      to follow the browser underneath it: the tokens it does not remap, and every
      native control the UA paints, would otherwise come out the other way round. */
@@ -536,9 +537,8 @@
 :root[data-retro="glass"] .ldh-block.is-embedded:hover { transform: none; }
 :root[data-retro="glass"] .ldh-block.is-embedded,
 :root[data-retro="glass"] .ldh-block.is-embedded:hover {
-  background: transparent; border: 0; /* inherit, not 0: the carrier is rounded and no longer clips, so a
-     square-cornered inset hairline escapes past its corners. */
-  border-radius: inherit;
+  background: transparent; border: 0; /* the carrier's inner curve - see :root .ldh-block.is-embedded in app.css */
+  border-radius: max(0px, calc(var(--ldh-block-radius) - 1px));
   -webkit-backdrop-filter: none; backdrop-filter: none;
   box-shadow: inset 2px 0 0 var(--border-default);
 }
@@ -625,6 +625,7 @@ blue glow — overrides the
    Result: stands out as futuristic, stays functional where the work happens.
    ========================================================================= */
 :root[data-retro="glasspro"] {
+  --ldh-block-radius: 18px; /* the data-surface list's radius below; the embedded card reads it */
   /* A skin committed to one scheme says so, rather than leaving the base tokens
      to follow the browser underneath it: the tokens it does not remap, and every
      native control the UA paints, would otherwise come out the other way round. */
@@ -737,9 +738,8 @@ blue glow — overrides the
 :root[data-retro="glasspro"] .ldh-block.is-embedded:hover { transform: none; box-shadow: none; }
 :root[data-retro="glasspro"] .ldh-block.is-embedded,
 :root[data-retro="glasspro"] .ldh-block.is-embedded:hover {
-  background: transparent; border: 0; /* inherit, not 0: the carrier is rounded and no longer clips, so a
-     square-cornered inset hairline escapes past its corners. */
-  border-radius: inherit;
+  background: transparent; border: 0; /* the carrier's inner curve - see :root .ldh-block.is-embedded in app.css */
+  border-radius: max(0px, calc(var(--ldh-block-radius) - 1px));
   box-shadow: inset 2px 0 0 var(--border-default);
 }
 :root[data-retro="glasspro"] .ldh-grid-block .card { overflow: hidden; }
@@ -858,9 +858,8 @@ but a touch more solid ---- */
 :root[data-retro="aurora"] .ldh-block.is-embedded:hover { transform: none; }
 :root[data-retro="aurora"] .ldh-block.is-embedded,
 :root[data-retro="aurora"] .ldh-block.is-embedded:hover {
-  background: transparent; border: 0; /* inherit, not 0: the carrier is rounded and no longer clips, so a
-     square-cornered inset hairline escapes past its corners. */
-  border-radius: inherit;
+  background: transparent; border: 0; /* the carrier's inner curve - see :root .ldh-block.is-embedded in app.css */
+  border-radius: max(0px, calc(var(--ldh-block-radius) - 1px));
   box-shadow: inset 2px 0 0 var(--border-default);
 }
 
@@ -885,6 +884,7 @@ but a touch more solid ---- */
      adaptive window-size classes, canonical layouts, HCT dynamic-colour gen.
    ========================================================================= */
 :root[data-retro^="m3"] {
+  --ldh-block-radius: 12px; /* the elevated card's radius below; the embedded card reads it */
   /* ===== M3 tonalSpot scheme — generated from seed #0061a4 (OKLab tonal palettes, tone = CIE L*) =====
      ONE set of roles carrying both schemes. M3 already separates palette from
      scheme: the tonal ramps below are the palette and belong to neither mode,
@@ -1148,6 +1148,7 @@ but a touch more solid ---- */
 
 /* Flow block style under M3: dissolve the elevated-card treatment so blocks
    read as document sections (the inner grid cards / chart plots keep theirs). */
+:root[data-retro^="m3"][data-tweak-block-edges="flow"] { --ldh-block-radius: 0; }
 :root[data-retro^="m3"][data-tweak-block-edges="flow"] .ldh-block {
   background: transparent;
   border: 0;
@@ -1173,9 +1174,8 @@ but a touch more solid ---- */
 :root[data-retro^="m3"] .ldh-block.is-embedded:hover { transform: none; box-shadow: none; }
 :root[data-retro^="m3"] .ldh-block.is-embedded,
 :root[data-retro^="m3"] .ldh-block.is-embedded:hover {
-  background: transparent; border: 0; /* inherit, not 0: the carrier is rounded and no longer clips, so a
-     square-cornered inset hairline escapes past its corners. */
-  border-radius: inherit;
+  background: transparent; border: 0; /* the carrier's inner curve - see :root .ldh-block.is-embedded in app.css */
+  border-radius: max(0px, calc(var(--ldh-block-radius) - 1px));
   box-shadow: inset 2px 0 0 var(--md-outline-variant, var(--border-default));
 }
 /* The slot bar takes the skin's own toolbar tint. It has to be a step away from

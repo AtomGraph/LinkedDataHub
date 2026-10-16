@@ -234,7 +234,7 @@ circle { cursor: move; }
    The two :has() tests together say "a row holding a block of its own AND something derived from it",
    which is what separates this from the Object embed's inner .row-main - that one holds the embedded
    card alone, and its surface belongs to the carrier. */
-.row-main:has(> .ldh-block:not(.is-embedded)):has(> .ldh-block.is-embedded) { background: var(--bg-card); border: 1px solid var(--border-default); border-radius: var(--r-lg); margin-bottom: var(--sp-4); }
+.row-main:has(> .ldh-block:not(.is-embedded)):has(> .ldh-block.is-embedded) { background: var(--bg-card); border: 1px solid var(--border-default); border-radius: var(--ldh-block-radius); margin-bottom: var(--sp-4); }
 /* No skin rule needed: --bg-card tracks --surface-0, which every skin redefines for its own card
    (m3 maps it to --md-surface-container-lowest), and the m3 block below already rests flat on the
    same 1px border. */

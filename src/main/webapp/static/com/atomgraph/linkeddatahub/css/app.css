@@ -30,6 +30,11 @@ button { font-family: inherit; cursor: pointer; }
 /* Chrome geometry, declared once. The rail's top offset is derived from these,
    so changing a height cannot silently misalign it. */
 :root {
+  /* A block card's corner radius. A token rather than a property alone because the card is not
+     the only thing that has to follow it: an embedded card draws its hairline inside its carrier's
+     corner, several DOM levels down, and `border-radius: inherit` only reaches the parent. Skins
+     and the block-edges tweak set the token; .ldh-block paints it. */
+  --ldh-block-radius: var(--r-lg);
   --ldh-header-h: 56px;
   --ldh-tabs-h: 40px;
   --ldh-chrome-h: calc(var(--ldh-header-h) + var(--ldh-tabs-h));
@@ -756,16 +761,16 @@ html[data-tweak-header="flat"] .ldh-address .msi { color: var(--fg-muted); }
 html[data-tweak-header="flat"] .ldh-avatar { border: 2px solid var(--border-default); }
 
 /* Block edges — sharp = no radius, borderless = no border + no radius. */
-html[data-tweak-block-edges="sharp"] .ldh-block,
+html[data-tweak-block-edges="sharp"], html[data-tweak-block-edges="borderless"], html[data-tweak-block-edges="flow"] { --ldh-block-radius: 0; }
 html[data-tweak-block-edges="sharp"] .ldh-view {
   border-radius: 0;
 }
 html[data-tweak-block-edges="borderless"] .ldh-block,
 html[data-tweak-block-edges="borderless"] .ldh-view {
   border: 0;
-  border-radius: 0;
   box-shadow: none;
 }
+html[data-tweak-block-edges="borderless"] .ldh-view { border-radius: 0; }
 html[data-tweak-block-edges="borderless"] .ldh-block-head {
   border-bottom: 1px solid var(--border-default);
 }
@@ -779,9 +784,9 @@ html[data-tweak-block-edges="flow"] .ldh-block,
 html[data-tweak-block-edges="flow"] .ldh-view {
   background: transparent;
   border: 0;
-  border-radius: 0;
   box-shadow: none;
 }
+html[data-tweak-block-edges="flow"] .ldh-view { border-radius: 0; }
 html[data-tweak-block-edges="flow"] .ldh-block:hover {
   box-shadow: none;
   transform: none;
@@ -1092,7 +1097,7 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-block {
   background: var(--bg-card);
   border: 1px solid var(--border-default);
-  border-radius: var(--r-lg);
+  border-radius: var(--ldh-block-radius);
   /* The card ANCHORS its corner affordances (.ldh-block-corner, the rail) and
      the block-scoped drawer, and must not clip dropdown menus rendered inline
      inside it (.modes-pop, .ldh-add-menu). `overflow: hidden` breaks both —
@@ -4433,13 +4438,17 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
    header-bearing surface in the slot. Flattened onto the carrier (no surface,
    shadow or lift of its own) with an inset left hairline as the embedding
    signal, so it reads differently from the same resource standalone.
+   The carrier is rounded and does not clip, so the card takes its carrier's
+   INNER curve itself - the block radius less the carrier's 1px border - or the
+   hairline's square end escapes past the carrier's corner. Read from the token,
+   not `inherit`: the carrier is several DOM levels up (.block-row, .row-main,
+   .ldh-block-row) and `inherit` stops at the parent, which has no radius.
    :root matches the skins' base and hover specificity, so load order wins —
    whether a card is flattened is STRUCTURE, which the component owns, not
    theme. Each skin also carries the hover-lift exemption. */
 :root .ldh-block.is-embedded {
-  background: transparent; border: 0; /* inherit, not 0: the carrier is rounded and no longer clips, so a
-     square-cornered inset hairline escapes past its corners. */
-  border-radius: inherit;
+  background: transparent; border: 0;
+  border-radius: max(0px, calc(var(--ldh-block-radius) - 1px));
   box-shadow: inset 2px 0 0 var(--border-default);
 }
 :root .ldh-block.is-embedded:hover {
@@ -4451,9 +4460,9 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 :root .ldh-block.is-quiet:hover { transform: none; }
 
 /* An embedded card only meets a carrier CORNER on edges where it is flush, so
-   `border-radius: inherit` is right at the bottom always, and at the top only
+   the carrier's inner curve is right at the bottom always, and at the top only
    when nothing sits above it. A slot bar occupies that edge, and there the
-   inherited curve pulls the hairline away from the bar's bottom border as a
+   curve pulls the hairline away from the bar's bottom border as a
    detached arc — the junction has to read as one continuous left edge.
    Tested on the CAUSE (a slot bar is present), not on position: the rail is a
    DOM sibling that precedes the card while being absolutely positioned, so
