@@ -16,11 +16,15 @@
 - Assistant conversations are stored as `ldh:Chat` blocks in the document
 - A `web-algebra` service in the stack, acting on the reader's behalf; needs the `openai_api_key` secret
 - The agent guide is served at `/AGENTS.md` on every dataspace
+- An `ldh` Claude Code plugin with skills for building dataspaces, datasets, apps and packages with the CLI
+- A `GET` on `/sparql` without a query returns the endpoint's SPARQL Service Description
 
 ### Changed
 - An external HTML page with no RDF representation opens in a new tab; the proxy answers `406` instead of `502`
 - Every chart, map and 3D graph canvas is initialised by one template, wherever it is rendered
-- Web-Client dependency bumped to 6.0.5
+- External `/sparql` requests are capped per client and in total by nginx (`NGINX_SPARQL_*`), answering `429` beyond the limits
+- Fuseki restarts on an out-of-memory error instead of running on broken
+- Web-Client dependency bumped to 6.0.6
 
 ### Fixed
 - A malformed `Accept`-family header no longer turns an error response into a `500`; an invalid `accept` parameter is refused with `400`
@@ -31,6 +35,9 @@
 - Nested property lists of blank nodes lay out for their own cell instead of collapsing to one word per line
 - Charts no longer fail on datetimes with fractional milliseconds
 - The version history link announces that it opens a dialog
+- `rdf:XMLLiteral` values are stored as Exclusive XML Canonicalization again
+- A block saved through its edit form labels its resource values instead of showing the URI's fragment
+- An ontology-defined view no longer flashes its own metadata before its results
 
 ## [6.1.0] - 2026-10-05
 ### Migration
