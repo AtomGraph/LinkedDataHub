@@ -164,15 +164,15 @@ WHERE
     </xsl:function>
 
     <!-- the region's canonical lexical form: the single canonicalization point for rdf:XMLLiteral values
-         (cm:canonical, canonical-xhtml.xsl, serialized by Saxon). Shared by the ol-input serialization,
+         (cm:canonical, then Exclusive XML Canonicalization by cm:c14n - both in canonical-xhtml.xsl). Shared by the ol-input serialization,
          the activation baseline and the autosave dirty check, so their verdicts can't drift.
 
          The div the stored literal is rooted in is built here, as a node, rather than concatenated around
          the serialized fragment afterwards: serializing the region's children on their own puts an
          xmlns on each of them, since nothing in that sequence carries the XHTML namespace they are in,
          and wrapping that in a div which declares it again stores a lexical form that differs from the
-         authored one by a redundant declaration - drift on the first save of prose nobody edited. Inside
-         the wrapper the children inherit the declaration and Saxon emits it once -->
+         authored one by a redundant declaration - drift on the first save of prose nobody edited. The
+         wrapper is the c14n apex: it declares the namespace once and the children inherit it -->
     <xsl:function name="ldh:canonical-content" as="xs:string">
         <xsl:param name="region" as="element()"/>
 
@@ -181,7 +181,7 @@ WHERE
                 <xsl:apply-templates select="$region/node()" mode="cm:canonical"/>
             </div>
         </xsl:variable>
-        <xsl:sequence select="serialize($canonical, map{ 'method': 'xml' })"/>
+        <xsl:sequence select="cm:c14n($canonical)"/>
     </xsl:function>
 
     <!-- the form's RDF/POST state: the same controls, through the same parse, that the submit path sends,
@@ -792,15 +792,12 @@ WHERE
     </xsl:template>
 
     <!-- view source (overrides edit.xsl): an LDH region is chrome around an XMLLiteral fragment, not the
-         RDFa document root the standalone editor serializes - canonicalize the region's children (the same
-         payload ldh:FormPreSubmit stores in the ol input), not the region element, which rule C7b unwraps -->
+         RDFa document root the standalone editor serializes - show the literal ldh:FormPreSubmit stores in
+         the ol input, not the region element, which rule C7b unwraps -->
     <xsl:template match="button[@id = 'view-source']" mode="ixsl:onclick">
-        <xsl:variable name="canonical" as="node()*">
-            <xsl:apply-templates select="rdfae:active-root()/node()" mode="cm:canonical"/>
-        </xsl:variable>
         <xsl:call-template name="rdfae:show-output">
             <xsl:with-param name="title" select="ac:label(key('resources', 'canonical-xhtml-rdfa', ldh:translations()))"/>
-            <xsl:with-param name="text" select="serialize($canonical, map{ 'method': 'xml' })"/>
+            <xsl:with-param name="text" select="ldh:canonical-content(rdfae:active-root())"/>
             <xsl:with-param name="filename" select="'content.xhtml'"/>
             <xsl:with-param name="media-type" select="'application/xhtml+xml'"/>
         </xsl:call-template>
