@@ -15,15 +15,18 @@ sef:
 release:
 	./release.sh
 
-# Set rdf/pom.xml and cli/pom.xml to the platform version in pom.xml. Both ship with the platform
-# release, so all three versions are kept in step; release.sh runs this around the release version
-# bumps, and this target is for drift and for manual SNAPSHOT bumps
+# Set rdf/pom.xml, cli/pom.xml and the ldh plugin's plugin.json to the platform version in pom.xml.
+# All ship with the platform release, so the versions are kept in step; release.sh runs this around
+# the release version bumps, and this target is for drift and for manual SNAPSHOT bumps
 cli-version:
 	@version=$$(mvn -q help:evaluate -Dexpression=project.version -DforceStdout); \
 	for project in rdf cli; do \
 		(cd $$project && mvn -B -q versions:set -DnewVersion="$$version" -DgenerateBackupPoms=false) && \
 		echo "$$project/pom.xml set to $$version"; \
-	done
+	done; \
+	plugin=plugins/ldh/.claude-plugin/plugin.json; \
+	jq --arg version "$$version" '.version = $$version' $$plugin > $$plugin.tmp && mv $$plugin.tmp $$plugin && \
+	echo "$$plugin set to $$version"
 
 # Build the linkeddatahub-rdf library: the vocabularies and the document shapes the API accepts.
 # Installed rather than packaged because the CLI - and Web-Algebra's ldh-* operations, in their own

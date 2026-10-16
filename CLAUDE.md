@@ -41,7 +41,7 @@ make drop                                    # Complete reset (down -v, then wip
 
 make rdf                                     # Install the linkeddatahub-rdf library
 make cli                                     # Build the ldh CLI (installs rdf first), print the PATH export
-make cli-version                             # Set rdf/ and cli/ poms to the platform version in pom.xml
+make cli-version                             # Set the rdf/ and cli/ poms and the ldh plugin to the platform version in pom.xml
 ```
 
 ### Testing
@@ -172,6 +172,12 @@ make cli && export PATH="$PWD/cli/bin:$PATH"
 ldh create container --parent "$LDH_BASE" --title "Some" --slug some
 ldh admin add agent --agent "$AGENT_URI" "${ADMIN_BASE}acl/groups/writers/"
 ```
+
+The `ldh` Claude Code plugin (`plugins/ldh/`, published by the marketplace in `.claude-plugin/`)
+teaches agents to build on LinkedDataHub with this CLI: one skill each for provisioning a dataspace,
+modelling and importing a dataset, building an app, and writing a package. Its skills quote command
+options and config shapes, so a change to either updates them in the same commit. `plugin.json`
+carries the platform version, set by `release.sh` and `make cli-version` along with the poms.
 
 ## The RDF library
 
