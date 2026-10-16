@@ -18,6 +18,8 @@ package com.atomgraph.linkeddatahub.server.filter.response;
 
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.vocabulary.SD;
+import com.atomgraph.linkeddatahub.dataspaces.model.AdminDataspace;
+import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.server.model.impl.DocumentHierarchyGraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
@@ -374,6 +376,47 @@ public class ResponseHeadersFilterTest
         assertFalse(link().contains(AC.stylesheet.getURI()));
     }
 
+    /** An end-user dataspace advertises its administration application, so that clients do not derive it from the URI. */
+    @Test
+    public void testEndUserDataspaceAdvertisesAdmin() throws IOException
+    {
+        EndUserDataspace endUser = mock(EndUserDataspace.class);
+        AdminDataspace admin = mock(AdminDataspace.class);
+        when(application.canAs(EndUserDataspace.class)).thenReturn(true);
+        when(application.as(EndUserDataspace.class)).thenReturn(endUser);
+        when(endUser.getAdminDataspace()).thenReturn(admin);
+        when(admin.getBaseURI()).thenReturn(URI.create("https://admin.localhost:4443/"));
+
+        filter.filter(request, response);
+
+        assertTrue(link().contains("<https://admin.localhost:4443/>; rel=\"" + LDS.admin.getURI() + "\""));
+    }
+
+    /** An admin dataspace, which is not an end-user one, has no administration application to point at. */
+    @Test
+    public void testAdminDataspaceOmitsAdmin() throws IOException
+    {
+        when(application.canAs(EndUserDataspace.class)).thenReturn(false);
+
+        filter.filter(request, response);
+
+        assertFalse(link().contains(LDS.admin.getURI()));
+    }
+
+    /** An end-user dataspace whose admin dataspace is not configured advertises none. */
+    @Test
+    public void testEndUserDataspaceWithoutAdminOmitsAdmin() throws IOException
+    {
+        EndUserDataspace endUser = mock(EndUserDataspace.class);
+        when(application.canAs(EndUserDataspace.class)).thenReturn(true);
+        when(application.as(EndUserDataspace.class)).thenReturn(endUser);
+        when(endUser.getAdminDataspace()).thenReturn(null);
+
+        filter.filter(request, response);
+
+        assertFalse(link().contains(LDS.admin.getURI()));
+    }
+
     /**
      * A proxy response describes a remote application, and ProxyRequestFilter forwards that application's own Link headers.
      * Emitting the local ones as well would attribute this instance's endpoint, ontology and stylesheet to someone else's
@@ -390,6 +433,7 @@ public class ResponseHeadersFilterTest
         assertFalse(link().contains(LDS.dataspace.getURI()));
         assertFalse(link().contains(LDS.ontology.getURI()));
         assertFalse(link().contains(AC.stylesheet.getURI()));
+        assertFalse(link().contains(LDS.admin.getURI()));
     }
 
     /** The agent is a property of the request, not of the application, so it survives a proxy request. */

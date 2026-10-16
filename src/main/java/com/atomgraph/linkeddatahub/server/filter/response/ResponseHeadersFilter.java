@@ -20,8 +20,10 @@ import com.atomgraph.client.util.HTMLMediaTypePredicate;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.server.util.LanguageNegotiator;
+import com.atomgraph.linkeddatahub.dataspaces.model.AdminDataspace;
 import com.atomgraph.linkeddatahub.dataspaces.model.Dataspace;
 import com.atomgraph.linkeddatahub.dataspaces.model.Dataset;
+import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.server.model.impl.Dispatcher;
 import com.atomgraph.linkeddatahub.server.model.impl.DocumentHierarchyGraphStoreImpl;
@@ -122,6 +124,14 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
             // add Link rel=lds:ontology, if the ontology URI is specified
             if (application.getOntology() != null)
                 response.getHeaders().add(HttpHeaders.LINK, Link.fromUri(URI.create(application.getOntology().getURI())).rel(LDS.ontology.getURI()).build());
+            // add Link rel=lds:admin on an end-user dataspace: the pairing the server derives from the admin
+            // subdomain, published so that clients never derive it themselves
+            if (application.canAs(EndUserDataspace.class))
+            {
+                AdminDataspace admin = application.as(EndUserDataspace.class).getAdminDataspace();
+                if (admin != null)
+                    response.getHeaders().add(HttpHeaders.LINK, Link.fromUri(admin.getBaseURI()).rel(LDS.admin.getURI()).build());
+            }
             // add Memento (RFC 7089) hypermedia, if the document is versioned
             if (getSystem().getGraphVersioningService().getRepository(application.getURI()).isPresent() &&
                     request.getUriInfo().getMatchedResources().stream().anyMatch(DocumentHierarchyGraphStoreImpl.class::isInstance))

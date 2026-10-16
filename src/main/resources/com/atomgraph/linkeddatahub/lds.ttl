@@ -37,6 +37,13 @@
     rdfs:comment "Links a resource to a dataspace" ;
     rdfs:isDefinedBy : .
 
+:admin a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain :EndUserDataspace ;
+    rdfs:range rdfs:Resource ;
+    rdfs:label "Admin" ;
+    rdfs:comment "Base URI of the dataspace's administration application. Computed by the server from the admin subdomain and published in the dataspace context and as a Link relation; not configuration" ;
+    rdfs:isDefinedBy : .
+
 :base a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain :Dataspace ;
     rdfs:label "Base URI" ;

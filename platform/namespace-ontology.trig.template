@@ -54,6 +54,25 @@
 
 }
 
+# public dataspace context authorization
+
+<acl/authorizations/public-context/>
+{
+
+    <acl/authorizations/public-context/> a dh:Item ;
+        sioc:has_container <acl/authorizations/> ;
+        dct:title "Public dataspace context access" ;
+        foaf:primaryTopic <acl/authorizations/public-context/#this> .
+
+    <acl/authorizations/public-context/#this> a acl:Authorization ;
+        rdfs:label "Public dataspace context access" ;
+        rdfs:comment "Allows non-authenticated read access to the dataspace descriptions, which the client-side stylesheet preloads for every visitor" ;
+        acl:accessTo <${end_user_origin}/context> ;
+        acl:mode acl:Read ;
+        acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
+
+}
+
 # SPARQL endpoint authorization
 
 <acl/authorizations/sparql-endpoint/>
