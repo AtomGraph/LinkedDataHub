@@ -1,0 +1,15 @@
+{
+  "name": "linkeddatahub",
+  "description": "Skills for building Linked Data dataspaces, datasets and applications on LinkedDataHub",
+  "owner": {
+    "name": "AtomGraph",
+    "url": "https://atomgraph.com"
+  },
+  "plugins": [
+    {
+      "name": "ldh",
+      "source": "./plugins/ldh",
+      "description": "Build Linked Data dataspaces, datasets and applications on LinkedDataHub with the ldh CLI"
+    }
+  ]
+}
