@@ -33,7 +33,8 @@ import picocli.CommandLine.Option;
  * next request already reads the new version. Without it nothing is reloaded and the closures rebuild
  * lazily, which is what a caller wanting only a cold cache should ask for.
  *
- * The base URI is the base of the <em>admin</em> application.
+ * The base URI is the dataspace's, end-user or admin: an end-user base is followed to its admin application
+ * through its <code>lds:admin</code> link.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -50,7 +51,7 @@ public class ClearOntology extends BaseCommand
     @Override
     public Integer call() throws Exception
     {
-        URI base = baseMixin.require(getSpec());
+        URI base = getAdminBase(baseMixin.require(getSpec()));
         URI target = URI.create(base + "clear");
         Form form = ontology != null ? new Form("uri", ontology.toString()) : new Form();
 

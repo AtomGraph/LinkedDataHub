@@ -24,6 +24,7 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
@@ -31,6 +32,9 @@ import picocli.CommandLine.Parameters;
  * Imports CSV data: adds the transformation query, uploads the CSV file and creates the
  * import metadata on the target document. Mirrors <code>bin/imports/import-csv.sh</code>,
  * calling the same steps in-process instead of via subscripts.
+ * <p>
+ * Prints the URI of the import it creates, a fragment of the target document, as the only stdout line. The
+ * import runs in the background on the server; <code>--wait</code> waits for it to end ({@link ImportWait}).
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -53,8 +57,11 @@ public class ImportCSV extends BaseCommand
     @Option(names = "--delimiter", defaultValue = ",", paramLabel = "CHAR", description = "CSV delimiter character (default: ${DEFAULT-VALUE})")
     private String delimiter;
 
-    @Parameters(paramLabel = "TARGET_URI", description = "URI of the import document")
+    @Parameters(paramLabel = "TARGET_URI", description = "URI of the document the import is added to: the container its documents go under")
     private URI target;
+
+    @Mixin
+    private ImportWait importWait;
 
     @Override
     public Integer call() throws Exception
@@ -65,10 +72,12 @@ public class ImportCSV extends BaseCommand
 
         URI fileURI = AddFile.core(getClient(), target, csvFile, "text/csv", title, null);
 
-        AddCSVImport.core(getClient(), target, null, title, query, fileURI, delimiter, description);
-        print(target);
+        String importId = Slugs.defaultSlug();
+        AddCSVImport.core(getClient(), target, "#" + importId, title, query, fileURI, delimiter, description);
+        URI importURI = target.resolve("#" + importId);
+        print(importURI);
 
-        return 0;
+        return importWait.isWait() ? importWait.await(getClient(), importURI, getSpec().commandLine().getErr()) : 0;
     }
 
 }

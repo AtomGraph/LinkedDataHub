@@ -93,7 +93,7 @@ public class CreateAuthorization extends BaseCommand
         if (!append && !control && !read && !write)
             throw new ParameterException(getSpec().commandLine(), "At least one of '--append', '--control', '--read', '--write' is required");
 
-        URI doc = URIs.childURI(URI.create(base + "acl/authorizations/"), slug != null ? slug : Slugs.defaultSlug());
+        URI doc = URIs.childURI(URI.create(getAdminBase(base) + "acl/authorizations/"), slug != null ? slug : Slugs.defaultSlug());
 
         List<Resource> modes = new ArrayList<>();
         if (append) modes.add(ACL.Append);

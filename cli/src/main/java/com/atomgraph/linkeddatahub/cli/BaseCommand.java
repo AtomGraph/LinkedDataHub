@@ -20,15 +20,19 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.cli.http.ClientFactory;
 import com.atomgraph.linkeddatahub.cli.http.HttpException;
 import com.atomgraph.linkeddatahub.cli.http.LDHClient;
+import com.atomgraph.linkeddatahub.cli.http.Links;
 import com.atomgraph.linkeddatahub.cli.mixin.CertAuthMixin;
 import com.atomgraph.linkeddatahub.cli.mixin.ProxyMixin;
+import com.atomgraph.linkeddatahub.rdf.vocabulary.LDS;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.concurrent.Callable;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -82,21 +86,40 @@ public abstract class BaseCommand implements Callable<Integer>
         {
             getCertAuth().validate(getSpec());
             client = new LDHClient(ClientFactory.createClient(getCertAuth().getCertFile(), getCertAuth().getCertPassword()),
-                new MediaTypes(), getEffectiveProxy());
+                new MediaTypes(), getProxyMixin().getProxy());
         }
 
         return client;
     }
 
     /**
-     * Returns the proxy URI applied to requests. Commands that target the admin application
-     * override this to convert the proxy to the admin subdomain.
+     * Returns the targets of a resource's <code>Link</code> response headers with the given relation, read with HEAD.
      *
-     * @return proxy URI or null
+     * @param uri resource URI
+     * @param rel relation URI
+     * @return link targets, possibly empty
      */
-    protected URI getEffectiveProxy()
+    protected List<URI> getLinkTargets(URI uri, String rel)
     {
-        return getProxyMixin().getProxy();
+        try (Response response = HttpException.check(uri, getClient().head(uri, ACCEPT_TURTLE)))
+        {
+            return Links.targets(response, rel);
+        }
+    }
+
+    /**
+     * Returns the base URI of the administration application of a dataspace.
+     * An end-user dataspace advertises it as <code>lds:admin</code>; a base without that link is taken to be the admin
+     * base already, so callers may pass either.
+     *
+     * @param base end-user or admin base URI
+     * @return admin base URI
+     */
+    protected URI getAdminBase(URI base)
+    {
+        List<URI> admin = getLinkTargets(base, LDS.admin.getURI());
+
+        return admin.isEmpty() ? base : admin.get(0);
     }
 
     /**

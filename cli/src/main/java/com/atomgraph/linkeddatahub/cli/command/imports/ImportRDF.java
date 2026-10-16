@@ -24,6 +24,7 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
@@ -31,6 +32,9 @@ import picocli.CommandLine.Parameters;
  * Imports RDF data: optionally adds a transformation query, uploads the RDF file and creates
  * the import metadata on the target document. Mirrors <code>bin/imports/import-rdf.sh</code>,
  * calling the same steps in-process instead of via subscripts.
+ * <p>
+ * Prints the URI of the import it creates, a fragment of the target document, as the only stdout line. The
+ * import runs in the background on the server; <code>--wait</code> waits for it to end ({@link ImportWait}).
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -56,8 +60,11 @@ public class ImportRDF extends BaseCommand
     @Option(names = "--graph", paramLabel = "GRAPH_URI", description = "URI of the target named graph (optional)")
     private URI graph;
 
-    @Parameters(paramLabel = "TARGET_URI", description = "URI of the import document")
+    @Parameters(paramLabel = "TARGET_URI", description = "URI of the document the import is added to: the container its documents go under")
     private URI target;
+
+    @Mixin
+    private ImportWait importWait;
 
     @Override
     public Integer call() throws Exception
@@ -74,9 +81,10 @@ public class ImportRDF extends BaseCommand
 
         String importId = Slugs.defaultSlug();
         AddRDFImport.core(getClient(), target, "#" + importId, title, fileURI, query, query == null ? graph : null, description);
-        print(target);
+        URI importURI = target.resolve("#" + importId);
+        print(importURI);
 
-        return 0;
+        return importWait.isWait() ? importWait.await(getClient(), importURI, getSpec().commandLine().getErr()) : 0;
     }
 
 }

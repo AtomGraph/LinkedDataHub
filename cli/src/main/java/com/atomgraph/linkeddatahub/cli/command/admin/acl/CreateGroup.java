@@ -57,7 +57,7 @@ public class CreateGroup extends BaseCommand
     @Override
     public Integer call() throws Exception
     {
-        URI base = baseMixin.require(getSpec());
+        URI base = getAdminBase(baseMixin.require(getSpec()));
         URI doc = URIs.childURI(URI.create(base + "acl/groups/"), slug != null ? slug : Slugs.defaultSlug());
 
         put(getClient(), doc, Acl.group(doc, uri, name, description, members));
