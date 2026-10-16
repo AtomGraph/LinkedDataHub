@@ -26,6 +26,11 @@ References:
   `foaf:primaryTopic`, and its properties go there.
 - Setup: `export LDH_BASE=https://<dataspace>/ LDH_CERT_FILE=<owner keystore.p12> LDH_CERT_PASSWORD=…`.
   The password is the deployment's, never a guess.
+- **Use an `ldh` that matches the instance.** Build it from the same LinkedDataHub checkout or release
+  as the running image (`ldh --version`). An instance whose end-user responses carry no
+  `https://w3id.org/atomgraph/linkeddatahub/dataspaces#admin` `Link` (check with `ldh get --head --accept text/turtle "$LDH_BASE"`)
+  predates the CLI's admin discovery. There, `ldh admin` commands answer `403` for the end-user base,
+  and `import ontology --file` refuses it. Use the image built from the same checkout as the CLI.
 
 ## The document model
 

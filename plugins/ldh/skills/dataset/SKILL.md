@@ -29,6 +29,11 @@ References:
 - Setup: `export LDH_BASE=https://<dataspace>/ LDH_CERT_FILE=<owner keystore.p12> LDH_CERT_PASSWORD=…`.
   The password is the deployment's, never a guess (in a checkout: `secrets/owner_cert_password.txt`).
   Commands that create a document print its URL as the only stdout line; exit `1` is an HTTP failure.
+- **Use an `ldh` that matches the instance.** Build it from the same LinkedDataHub checkout or release
+  as the running image (`ldh --version`). An instance whose end-user responses carry no
+  `https://w3id.org/atomgraph/linkeddatahub/dataspaces#admin` `Link` (check with `ldh get --head --accept text/turtle "$LDH_BASE"`)
+  predates the CLI's admin discovery. There, `ldh admin` commands answer `403` for the end-user base,
+  and `import ontology --file` refuses it. Use the image built from the same checkout as the CLI.
 
 ## 1. Reuse vocabulary before inventing it
 
@@ -91,8 +96,10 @@ schema:Product spin:constructor :ProductConstructor ;
     sp:arg1 schema:name ;
     rdfs:isDefinedBy : .
 
-# inverse property view: on a category page, list the products pointing at it
-schema:category ldh:inverseView :ProductsInCategory .
+# inverse property view: on a category page, list the products pointing at it. The view shows on the
+# types in the property's rdfs:range, so the range is what puts it on a category's page
+schema:category rdfs:range schema:ProductGroup ;
+    ldh:inverseView :ProductsInCategory .
 
 :ProductsInCategory a ldh:View ;
     dct:title "Products in this category" ;
@@ -112,6 +119,11 @@ schema:category ldh:inverseView :ProductsInCategory .
 - `$this` in a constructor is the new instance; `$about` in a view query is the resource whose page
   shows it. `ldh:view` attaches a view to a property for forward links, `ldh:inverseView` for
   backlinks.
+- **A property view shows only on the types the property declares.** An `ldh:inverseView` appears on
+  pages whose resource has a type in the property's `rdfs:range`. An `ldh:view` appears on those with a
+  type in its `rdfs:domain`. Declare the range or domain in `ns.ttl`, even for a reused term like
+  `schema:author`, since the dataspace does not import schema.org. Without it the view never appears.
+  Its query can be correct and still never be run, so check the page itself, not only the query.
 - Constraints run on every write, imports included. A violating write answers `422`, and an import
   attaches its violations to the import document. Do not add a constraint the data cannot satisfy.
 - View queries `SELECT` resources (one variable, the resource) and do not aggregate. Aggregates
