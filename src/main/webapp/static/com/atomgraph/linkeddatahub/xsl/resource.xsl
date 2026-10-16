@@ -1623,7 +1623,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <!-- Admin app override: allow subject editing for non-hierarchy resources by flipping the $show-subject default. -->
-    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][starts-with(replace(lds:origin(), '^https?://', ''), 'admin.')]" mode="ac:FormControl" priority="1">
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][lds:dataspace-description()/rdf:type/@rdf:resource = '&lds;AdminDataspace']" mode="ac:FormControl" priority="1">
         <xsl:param name="legend" select="true()" as="xs:boolean"/>
         <xsl:param name="show-subject" select="not(rdf:type/@rdf:resource = ('&dh;Item', '&dh;Container'))" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="required" select="false()" as="xs:boolean"/>

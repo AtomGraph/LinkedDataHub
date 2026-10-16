@@ -176,8 +176,8 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <!-- Admin app override: replace the default "Generate containers" with "Import ontology".
-         Admin apps are identified by the 'admin.' subdomain prefix on lds:origin() (nginx wildcard routing convention). -->
-    <xsl:template match="rdf:RDF[acl:mode() = '&acl;Append'][key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:type/@rdf:resource = ('&def;Root', '&dh;Container')][starts-with(replace(lds:origin(), '^https?://', ''), 'admin.')]" mode="ldh:AddData" priority="2">
+         Admin apps are identified by their lds:AdminDataspace type in the dataspace context. -->
+    <xsl:template match="rdf:RDF[acl:mode() = '&acl;Append'][key('resources', ac:absolute-path(ldh:base-uri(.)))/rdf:type/@rdf:resource = ('&def;Root', '&dh;Container')][lds:dataspace-description()/rdf:type/@rdf:resource = '&lds;AdminDataspace']" mode="ldh:AddData" priority="2">
         <xsl:next-match>
             <xsl:with-param name="menu-items" as="element()*">
                 <button type="button" class="it btn-add-ontology" title="{ac:label(key('resources', 'import-ontology-title', ldh:translations()))}">
@@ -805,8 +805,8 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <!-- Admin app override: ontology/SHACL/ACL/foaf class list instead of the end-user default.
-         Admin apps are identified by the 'admin.' subdomain prefix on lds:origin() (nginx wildcard routing convention). -->
-    <xsl:template match="rdf:RDF[starts-with(replace(lds:origin(), '^https?://', ''), 'admin.')]" mode="ldh:BlockRow">
+         Admin apps are identified by their lds:AdminDataspace type in the dataspace context. -->
+    <xsl:template match="rdf:RDF[lds:dataspace-description()/rdf:type/@rdf:resource = '&lds;AdminDataspace']" mode="ldh:BlockRow">
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" select="'block-row'" as="xs:string?"/>
         <xsl:param name="method" select="'patch'" as="xs:string"/>
@@ -1377,7 +1377,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*" mode="ac:Create"/>
 
     <!-- Admin app override: hide hardcoded NamedIndividual+divider so the dropdown only shows the admin $class-uris from ldh:BlockRow. -->
-    <xsl:template match="rdf:RDF[$foaf:Agent][starts-with(replace(lds:origin(), '^https?://', ''), 'admin.')]" mode="ac:Create" priority="2">
+    <xsl:template match="rdf:RDF[$foaf:Agent][lds:dataspace-description()/rdf:type/@rdf:resource = '&lds;AdminDataspace']" mode="ac:Create" priority="2">
         <xsl:param name="classes" as="element()*"/>
         <xsl:param name="create-graph" select="false()" as="xs:boolean"/>
         <xsl:param name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>

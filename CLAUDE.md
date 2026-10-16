@@ -102,6 +102,16 @@ Configuration is split across two files:
 
 Multiple dataspaces can share the same backend SPARQL service.
 
+The admin pairing is the `admin.` subdomain and nothing else: the server derives it
+(`EndUserDataspaceImpl.getAdminDataspace()`) and publishes it, so no client derives it again. An
+end-user response carries `Link: <admin base>; rel="…/dataspaces#admin"` (the CLI's admin commands
+follow it), and `/context` serves `PublicContext`: every dataspace's description (type, title,
+origin, ontology, stylesheet, `lds:public`) plus `lds:admin`, readable by anyone through a seeded
+authorization. Stylesheets read it through `lds:context()`: the server twin dereferences `/context`
+(same-site, so `SameSiteSourceResolver` fetches it), the client twin reads the copy the bootstrap
+preloads. No stylesheet param carries context: the full context dataset also holds the service
+endpoints and credentials from `system.trig` and `secrets/credentials`, and stays in Java.
+
 ### Service Architecture
 The application runs as a multi-container setup:
 - **nginx**: Reverse proxy and SSL termination (wildcard subdomain routing for dataspaces)
@@ -200,6 +210,12 @@ keystore or a PEM file with the certificate and its PKCS#8 private key — told 
 by extension. Commands that create or append to a document print its URL as the only line on
 stdout (diagnostics go to stderr), so `item=$(ldh create item ...)` works; exit codes are `0`
 success, `1` HTTP or runtime failure, `2` usage error.
+
+The admin commands take the end-user base and find the admin application from its `lds:admin` link,
+so scripts never prefix `admin.` themselves. `--proxy` connects to the proxy but keeps the logical
+`Host`, which is how nginx routes dataspaces. `admin import ontology --file ns.ttl` installs the
+namespace ontology in one step, and `import csv|rdf` print the import's URI, with `--wait` to block
+until it ends.
 
 Packages are declarative: an application imports one with a single `<app> ldh:import <package>`
 triple in its settings, and `ldh packages list`, `ldh packages add` and

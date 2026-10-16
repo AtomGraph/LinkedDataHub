@@ -1,13 +1,21 @@
 ## [Unreleased]
 ### Migration
-- Top-level LDH stylesheet params and variables carry the `ldh:` prefix (e.g. `$ldh:select-labelled-string`); an override of the unprefixed name is silently ignored
-- Shared stylesheets query through `ldh:query-result()`; `ldh:send-request()` exists only server-side, and `ac:value-intersect()`/`ac:value-except()` are removed
+- Top-level LDH stylesheet params and variables carry the `ldh:` prefix; overrides of the unprefixed names are ignored
+- Shared stylesheets query through `ldh:query-result()`; `ac:value-intersect()`/`ac:value-except()` are removed
+- **BREAKING**: the `$lds:Context` stylesheet param is removed, as it exposed service credentials to stylesheets; use `lds:context()`
+- Existing dataspaces need an authorization granting public read access to `/context` on both origins (new ones get it seeded)
+- **BREAKING**: `ldh import csv|rdf` print the URI of the created import instead of the target document's
+- **BREAKING**: `ldh --proxy` keeps the request's `Host`; pass the plain proxy instead of an `admin.`-prefixed one
 
 ### Added
-- An assistant for a signed-in reader: a request in natural language becomes a Web-Algebra plan, shown with its operations and its XML, and runs only on Execute; the steps, the documents the plan wrote and its result are reported as they happen, and the result is answered in words and drawn as a view draws it: a table, a list, a grid, a chart, a map or a 3D graph
-- A conversation is an `ldh:Chat` block, placed in the document by an object block: the create bar's Assistant button starts one, each ends in its own composer, and every turn is stored as an `ldh:ChatTurn` with its plan and what the execution reported, so a chat is there when the reader comes back
-- A `web-algebra` service in the stack (`ghcr.io/atomgraph/webalgebra-server-ldh`), reached through nginx at the reserved `/webalgebra` path with a WebID certificate on the connection; it acts for the reader through the secretary agent's delegation, so a plan may write exactly what its reader may. Needs the `openai_api_key` secret
-- The agent guide (`AGENTS.md`) is served at `/AGENTS.md` on every dataspace origin, public and outside the dispatcher, so a client writing a query against the endpoint - the assistant's `SPARQLString` reads it as service documentation - learns that every document is a named graph and the default graph is empty
+- `/context` serves the public description of every dataspace, and end-user responses link their admin application (`lds:admin`)
+- `ldh admin` commands take the end-user base URI
+- `ldh admin import ontology --file` installs the namespace ontology from a local file in one step
+- `ldh import csv|rdf --wait` waits for the import to finish
+- An assistant that turns a natural-language request into a Web-Algebra plan, runs it on Execute and shows the result as a view
+- Assistant conversations are stored as `ldh:Chat` blocks in the document
+- A `web-algebra` service in the stack, acting on the reader's behalf; needs the `openai_api_key` secret
+- The agent guide is served at `/AGENTS.md` on every dataspace
 
 ### Changed
 - An external HTML page with no RDF representation opens in a new tab; the proxy answers `406` instead of `502`

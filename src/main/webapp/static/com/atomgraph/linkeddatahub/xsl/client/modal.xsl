@@ -2243,8 +2243,8 @@ LIMIT   10
 
         <xsl:choose>
             <xsl:when test="$response?status = (200, 204)">
-                <!-- the admin app manages its parent dataspace's end-user app, whose ontology is <ns#> on the parent origin -->
-                <xsl:variable name="ontology-uri" select="resolve-uri('ns#', ldh:parent-origin(ldh:request-uri()))" as="xs:anyURI"/>
+                <!-- the admin app manages the end-user dataspace that names it as its lds:admin; clear that dataspace's ontology -->
+                <xsl:variable name="ontology-uri" select="(for $context in lds:context() return key('apps-by-admin', lds:base(), $context))/lds:ontology/@rdf:resource/xs:anyURI(.)" as="xs:anyURI"/>
                 <xsl:variable name="request" select="map{ 'method': 'POST', 'href': resolve-uri('clear', lds:base()), 'media-type': 'application/x-www-form-urlencoded', 'body': 'uri=' || encode-for-uri($ontology-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                 <xsl:variable name="clear-context" select="map:put($context, 'request', $request)" as="map(*)"/>
                 <xsl:sequence select="

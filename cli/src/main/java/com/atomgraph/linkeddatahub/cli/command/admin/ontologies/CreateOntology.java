@@ -53,7 +53,7 @@ public class CreateOntology extends BaseCommand
     @Override
     public Integer call() throws Exception
     {
-        URI base = baseMixin.require(getSpec());
+        URI base = getAdminBase(baseMixin.require(getSpec()));
         URI doc = URIs.childURI(URI.create(base + "ontologies/"), slug != null ? slug : Slugs.defaultSlug());
 
         put(getClient(), doc, Ontologies.ontology(doc, uri, label, comment));

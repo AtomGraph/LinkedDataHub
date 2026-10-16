@@ -212,7 +212,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="constructors" select="$context('constructors')" as="document-node()?"/>
         <xsl:variable name="constructor-uris" select="distinct-values($constructors//srx:binding[@name = 'constructor']/srx:uri)" as="xs:string*"/>
         <xsl:variable name="query-string" select="$ldh:constructor-graph-query || ' VALUES $constructor { ' || string-join(for $uri in $constructor-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
-        <xsl:variable name="admin-base-uri" select="xs:anyURI(replace(lds:base(), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
+        <xsl:variable name="admin-base-uri" select="lds:dataspace-description()/lds:admin/@rdf:resource/xs:anyURI(.)" as="xs:anyURI"/>
         <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('sparql', $admin-base-uri), map{ 'query': $query-string })" as="xs:anyURI"/>
         <!-- not read from cache, for the reason ldh:graph-query-request records: which document holds a
              constructor decides where Save writes -->
@@ -820,7 +820,7 @@ exclude-result-prefixes="#all"
 
         <xsl:variable name="query-string" select="replace($query, '$Type', '&lt;' || $type || '&gt;', 'q')" as="xs:string"/>
         <xsl:variable name="query-string" select="replace($query-string, '$Ontology', '&lt;' || resolve-uri('ns#', lds:base()) || '&gt;', 'q')" as="xs:string"/>
-        <xsl:variable name="admin-base-uri" select="xs:anyURI(replace(lds:base(), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
+        <xsl:variable name="admin-base-uri" select="lds:dataspace-description()/lds:admin/@rdf:resource/xs:anyURI(.)" as="xs:anyURI"/>
         <xsl:variable name="results-uri" select="ac:build-uri(resolve-uri('sparql', $admin-base-uri), map{ 'query': $query-string })" as="xs:anyURI"/>
 
         <xsl:sequence select="map{ 'method': 'GET', 'href': ldh:href($results-uri, map{}), 'headers': map{ 'Accept': 'application/sparql-results+xml', 'Cache-Control': 'no-cache, no-store, must-revalidate' } }"/>
@@ -1193,7 +1193,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="form-data" select="ixsl:new('URLSearchParams', [ ixsl:new('FormData', []) ])"/>
         <xsl:sequence select="ixsl:call($form-data, 'append', [ 'uri', $ontology-uri ])[current-date() lt xs:date('2000-01-01')]"/>
 
-        <xsl:variable name="admin-base-uri" select="xs:anyURI(replace(lds:base(), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
+        <xsl:variable name="admin-base-uri" select="lds:dataspace-description()/lds:admin/@rdf:resource/xs:anyURI(.)" as="xs:anyURI"/>
         <xsl:variable name="clear-uri" select="resolve-uri('clear', $admin-base-uri)" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($clear-uri)" as="xs:anyURI"/>
         <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/x-www-form-urlencoded', 'body': $form-data, 'headers': map{ 'Accept': 'application/rdf+xml' } }">

@@ -92,18 +92,12 @@ exclude-result-prefixes="#all">
     <xsl:param name="lds:origin" as="xs:anyURI?"/>
     <xsl:param name="ldh:requestUri" as="xs:anyURI"/>
     <xsl:param name="ac:uri" as="xs:anyURI?"/>
-    <xsl:param name="lds:Context" as="document-node()"/>
     <xsl:param name="ldh:httpHeaders" select="map{}" as="map(xs:string, xs:string*)"/>
     <xsl:param name="ldh:ajaxRendering" select="true()" as="xs:boolean"/>
     <xsl:param name="ldhc:enableWebIDSignUp" as="xs:boolean"/>
     <xsl:param name="ldh:renderSystemResources" select="false()" as="xs:boolean"/>
     <xsl:param name="google:clientID" as="xs:string?"/>
     <xsl:param name="orcid:clientID" as="xs:string?"/>
-    <!-- the application this origin resolves to, as described in the system context -->
-    <xsl:function name="lds:dataspace-description" as="element()*">
-        <xsl:sequence select="key('apps-by-origin', lds:origin(), $lds:Context)"/>
-    </xsl:function>
-
     <!-- The client-side half of prefix-mapping.ttl: each namespace here is resolved through the ?uri= proxy
          rather than over the network. Keep the two lists in step - a namespace dropped from the mapping file
          and left here asks the proxy for something the server no longer maps. A namespace earns a place by
@@ -128,7 +122,10 @@ exclude-result-prefixes="#all">
             <xsl:if test="lds:origin()">
                 <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', lds:origin())" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', lds:origin())"/>
                 <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/http-statusCodes.rdf', lds:origin())" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/http-statusCodes.rdf', lds:origin())"/>
-                <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/admin/countries.rdf', lds:origin())" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/admin/countries.rdf', lds:origin())"/>                
+                <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/admin/countries.rdf', lds:origin())" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/admin/countries.rdf', lds:origin())"/>
+                <!-- the public dataspace context, which client/functions.xsl's lds:context() reads from the document pool. Fetched
+                     as RDF/XML explicitly: the bootstrap's fetch sends no Accept of its own, and */* negotiates HTML -->
+                <xsl:map-entry key="resolve-uri('context', lds:base())" select="ac:build-uri(resolve-uri('context', lds:base()), map{ 'accept': 'application/rdf+xml' })"/>
             </xsl:if>
 
             <xsl:for-each select="$ldh:ontology-namespaces">
@@ -159,8 +156,6 @@ exclude-result-prefixes="#all">
     <!-- graph-free variant of object-metadata-query for the /ns ontology endpoint: its dataset is the in-memory OntModel served as the default graph (no named graphs), so a GRAPH ?graph pattern would match nothing -->
     <!-- server-side twin of client.xsl's $ldh:property-metadata-query, so ac:property-label resolves predicate labels from
          the application ontology on the initial render as it does client-side -->
-
-    <xsl:key name="apps-by-origin" match="*" use="lds:origin/@rdf:resource"/>
 
     <rdf:Description rdf:about="">
     </rdf:Description>
@@ -486,9 +481,9 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- Admin app override: notification menu for pending AuthorizationRequests + account menu.
-         Admin apps are identified by the 'admin.' subdomain prefix on lds:origin() (nginx wildcard routing convention).
+         Admin apps are identified by their lds:AdminDataspace type in the dataspace context.
          TO-DO: refactor into component templates -->
-    <xsl:template match="rdf:RDF[starts-with(replace(lds:origin(), '^https?://', ''), 'admin.')]" mode="ldh:HeaderActions" priority="1">
+    <xsl:template match="rdf:RDF[lds:dataspace-description()/rdf:type/@rdf:resource = '&lds;AdminDataspace']" mode="ldh:HeaderActions" priority="1">
         <xsl:if test="$foaf:Agent//@rdf:about">
                 <xsl:variable name="notification-query" as="xs:string">
                     <![CDATA[
@@ -559,7 +554,7 @@ WHERE
 
     <xsl:template match="rdf:RDF[lds:origin()][lds:dataspace-description()/rdf:type/@rdf:resource = '&lds;EndUserDataspace'] | srx:sparql[lds:origin()][lds:dataspace-description()/rdf:type/@rdf:resource = '&lds;EndUserDataspace']" mode="ldh:DataspaceTabs" priority="1">
             <xsl:variable name="user-defined-apps" select="if (doc-available($ldh:app-request-uri)) then document($ldh:app-request-uri)//*[lds:origin/@rdf:resource] else ()" as="element()*"/>
-            <xsl:variable name="system-apps" select="$lds:Context//*[rdf:type/@rdf:resource = '&lds;EndUserDataspace'][lds:origin/@rdf:resource]" as="element()*"/>
+            <xsl:variable name="system-apps" select="lds:context()//*[rdf:type/@rdf:resource = '&lds;EndUserDataspace'][lds:origin/@rdf:resource]" as="element()*"/>
 
             <!-- .ldh-header-actions IS the flex cluster (AppShell): controls are its direct children,
                  no intermediate list -->
@@ -633,7 +628,7 @@ WHERE
         <xsl:param name="google-signup" select="exists($google:clientID)" as="xs:boolean"/>
         <xsl:param name="orcid-signup" select="exists($orcid:clientID)" as="xs:boolean"/>
         <xsl:param name="webid-signup" select="$ldhc:enableWebIDSignUp" as="xs:boolean"/>
-        <xsl:param name="admin-origin" select="xs:anyURI(replace(string($ac:contextUri), '^(https?://)', '$1admin.'))" as="xs:anyURI"/>
+        <xsl:param name="admin-origin" select="lds:dataspace-description()/lds:admin/@rdf:resource/xs:anyURI(.)" as="xs:anyURI"/>
         <xsl:param name="webid-signup-uri" select="ac:build-uri(resolve-uri('sign%20up', $admin-origin), map{ 'referer': string(ac:absolute-path(ldh:request-uri())) })" as="xs:anyURI"/>
 
         <!-- OAuth providers menu -->
@@ -908,7 +903,7 @@ WHERE
                             <xsl:apply-templates select="key('resources', '&lds;Dataspace', document(ac:document-uri('&lds;')))" mode="ac:label"/>
                         </xsl:value-of>
                     </button>
-                    <a href="{replace(string(lds:origin()), '^(https?://)', '$1admin.')}" class="ac-menu-item external" role="menuitem" target="_blank">
+                    <a href="{lds:dataspace-description()/lds:admin/@rdf:resource}" class="ac-menu-item external" role="menuitem" target="_blank">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'administration', document('translations.rdf'))" mode="ac:label"/>
                         </xsl:value-of>
