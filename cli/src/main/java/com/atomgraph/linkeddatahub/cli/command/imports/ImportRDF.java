@@ -60,7 +60,7 @@ public class ImportRDF extends BaseCommand
     @Option(names = "--graph", paramLabel = "GRAPH_URI", description = "URI of the target named graph (optional)")
     private URI graph;
 
-    @Parameters(paramLabel = "TARGET_URI", description = "URI of the document the import is added to: the container its documents go under")
+    @Parameters(paramLabel = "TARGET_URI", description = "URI of the document the import is added to")
     private URI target;
 
     @Mixin

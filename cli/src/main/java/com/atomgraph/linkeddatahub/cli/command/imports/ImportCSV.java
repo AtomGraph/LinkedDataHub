@@ -57,7 +57,7 @@ public class ImportCSV extends BaseCommand
     @Option(names = "--delimiter", defaultValue = ",", paramLabel = "CHAR", description = "CSV delimiter character (default: ${DEFAULT-VALUE})")
     private String delimiter;
 
-    @Parameters(paramLabel = "TARGET_URI", description = "URI of the document the import is added to: the container its documents go under")
+    @Parameters(paramLabel = "TARGET_URI", description = "URI of the document the import is added to")
     private URI target;
 
     @Mixin
