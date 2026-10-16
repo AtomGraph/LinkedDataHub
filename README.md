@@ -6,6 +6,8 @@
 
 Version 6 redraws the interface on a design system that ships with the platform: the app shell, content blocks, action bar, property lists, tables, modals and forms all render one class vocabulary, and `ldh.css` is the single app layer a dataspace stylesheet overrides. Bootstrap 2 is gone with the `bs2:` template modes — the [CHANGELOG](CHANGELOG.md) has what that means for an application stylesheet written against it.
 
+[![LinkedDataHub 6 overview](https://img.youtube.com/vi/g3i-yH95WZA/maxresdefault.jpg)](https://www.youtube.com/watch?v=g3i-yH95WZA)
+
 We started the project with the intention to use it for Linked Data publishing, but gradually realized that we've built a multi-purpose data-driven platform.
 
 We are building LinkedDataHub primarily for:
