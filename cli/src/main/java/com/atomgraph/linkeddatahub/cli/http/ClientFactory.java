@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.cli.http;
 import com.atomgraph.core.io.ModelProvider;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
+import java.net.URI;
 import java.nio.file.Path;
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
@@ -27,15 +28,9 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.glassfish.jersey.apache.connector.ApacheClientProperties;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
+import org.glassfish.jersey.apache.connector.ApacheHttpClientBuilderConfigurator;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.RequestEntityProcessing;
@@ -59,9 +54,10 @@ public final class ClientFactory
      *
      * @param certFile PKCS12 keystore or PEM file with the WebID certificate and private key
      * @param certPassword keystore password, or the passphrase of an encrypted PEM key; null for an unencrypted PEM
+     * @param proxy proxy URI that receives the connections (optional, can be null)
      * @return client instance
      */
-    public static Client createClient(Path certFile, String certPassword)
+    public static Client createClient(Path certFile, String certPassword, URI proxy)
     {
         SSLContext ctx;
         // a PEM with an unencrypted key has no password: its in-memory keystore is protected with an empty one
@@ -80,18 +76,13 @@ public final class ClientFactory
             throw new IllegalArgumentException("Could not set up client authentication with '" + certFile + "': " + ex.getMessage(), ex);
         }
 
-        Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create().
-            register("https", new SSLConnectionSocketFactory(ctx, NoopHostnameVerifier.INSTANCE)).
-            register("http", new PlainConnectionSocketFactory()).
-            build();
-
         ClientConfig config = new ClientConfig();
         config.connectorProvider(new ApacheConnectorProvider());
         config.register(MultiPartFeature.class);
         config.register(new ModelProvider());
         config.property(ClientProperties.FOLLOW_REDIRECTS, false); // scripts use curl without -L
         config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED);
-        config.property(ApacheClientProperties.CONNECTION_MANAGER, new PoolingHttpClientConnectionManager(socketFactoryRegistry));
+        if (proxy != null) config.register((ApacheHttpClientBuilderConfigurator)builder -> builder.setRoutePlanner(new ProxyRoutePlanner(proxy)));
 
         return ClientBuilder.newBuilder().
             withConfig(config).

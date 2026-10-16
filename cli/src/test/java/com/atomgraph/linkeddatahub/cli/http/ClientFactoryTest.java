@@ -64,19 +64,19 @@ public class ClientFactoryTest
     @Test
     public void createsClientFromPKCS12Keystore() throws Exception
     {
-        assertNotNull(ClientFactory.createClient(keyStorePath(), "changeit"));
+        assertNotNull(ClientFactory.createClient(keyStorePath(), "changeit", null));
     }
 
     @Test
     public void createsClientFromPEM() throws Exception
     {
-        assertNotNull(ClientFactory.createClient(certPEMPath(), "changeit"));
+        assertNotNull(ClientFactory.createClient(certPEMPath(), "changeit", null));
     }
 
     @Test
     public void createsClientFromPEMWithUnencryptedKeyAndNoPassword() throws Exception
     {
-        assertNotNull(ClientFactory.createClient(unencryptedPEM(), null));
+        assertNotNull(ClientFactory.createClient(unencryptedPEM(), null, null));
     }
 
     @Test
@@ -84,13 +84,13 @@ public class ClientFactoryTest
     {
         Path keyStore = keyStorePath();
 
-        assertThrows(IllegalArgumentException.class, () -> ClientFactory.createClient(keyStore, "wrong"));
+        assertThrows(IllegalArgumentException.class, () -> ClientFactory.createClient(keyStore, "wrong", null));
     }
 
     @Test
     public void failsCleanlyOnMissingFile()
     {
-        assertThrows(IllegalArgumentException.class, () -> ClientFactory.createClient(Path.of("/nonexistent.p12"), "changeit"));
+        assertThrows(IllegalArgumentException.class, () -> ClientFactory.createClient(Path.of("/nonexistent.p12"), "changeit", null));
     }
 
 }
