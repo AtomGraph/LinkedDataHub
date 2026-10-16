@@ -16,15 +16,19 @@
  */
 package com.atomgraph.linkeddatahub.resource;
 
+import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.server.util.EntityTags;
 import com.atomgraph.linkeddatahub.server.util.PublicContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.core.CacheControl;
 import jakarta.ws.rs.core.EntityTag;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
+import jakarta.ws.rs.core.Variant;
+import java.util.List;
 import org.apache.jena.rdf.model.Model;
 
 /**
@@ -41,6 +45,7 @@ public class Context
 {
 
     private final com.atomgraph.linkeddatahub.Application system;
+    private final MediaTypes mediaTypes;
     private final Request request;
     private final UriInfo uriInfo;
 
@@ -48,13 +53,15 @@ public class Context
      * Constructs the context resource.
      *
      * @param system the system application
+     * @param mediaTypes registry of the media types models are written in
      * @param request JAX-RS request context
      * @param uriInfo request URI information
      */
     @Inject
-    public Context(com.atomgraph.linkeddatahub.Application system, @jakarta.ws.rs.core.Context Request request, @jakarta.ws.rs.core.Context UriInfo uriInfo)
+    public Context(com.atomgraph.linkeddatahub.Application system, MediaTypes mediaTypes, @jakarta.ws.rs.core.Context Request request, @jakarta.ws.rs.core.Context UriInfo uriInfo)
     {
         this.system = system;
+        this.mediaTypes = mediaTypes;
         this.request = request;
         this.uriInfo = uriInfo;
     }
@@ -70,6 +77,12 @@ public class Context
     {
         Model context = PublicContext.of(getSystem().getContextModel());
 
+        // negotiated over the registered model media types, as the documents are: left to the provider ordering, */* could
+        // select a writer that handles one kind of model only, such as the link-format TimeMap writer
+        List<Variant> variants = Variant.mediaTypes(getMediaTypes().getWritable(Model.class).toArray(MediaType[]::new)).build();
+        Variant variant = getRequest().selectVariant(variants);
+        if (variant == null) return Response.notAcceptable(variants).build();
+
         EntityTag entityTag = EntityTags.entityTag(getUriInfo().getAbsolutePath(), context);
         CacheControl cacheControl = new CacheControl();
         cacheControl.setNoCache(true);
@@ -77,7 +90,8 @@ public class Context
         Response.ResponseBuilder rb = getRequest().evaluatePreconditions(entityTag);
         if (rb != null) return rb.cacheControl(cacheControl).build();
 
-        return Response.ok(context).
+        return Response.ok(context, variant).
+            variants(variants).
             tag(entityTag).
             cacheControl(cacheControl).
             build();
@@ -91,6 +105,16 @@ public class Context
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;
+    }
+
+    /**
+     * Returns the registry of the media types models are written in.
+     * 
+     * @return media types
+     */
+    public MediaTypes getMediaTypes()
+    {
+        return mediaTypes;
     }
 
     /**
