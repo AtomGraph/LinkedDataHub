@@ -14,7 +14,7 @@
 - `ldh import csv|rdf --wait` waits for the import to finish
 - An assistant that turns a natural-language request into a Web-Algebra plan, runs it on Execute and shows the result as a view
 - Assistant conversations are stored as `ldh:Chat` blocks in the document
-- A `web-algebra` service in the stack, acting on the reader's behalf; needs the `openai_api_key` secret
+- A `web-algebra` service in the stack, acting on the reader's behalf; the assistant writes plans only when the optional `openai_api_key` secret is declared
 - The agent guide is served at `/AGENTS.md` on every dataspace
 - An `ldh` Claude Code plugin with skills for building dataspaces, datasets, apps and packages with the CLI
 - A `GET` on `/sparql` without a query returns the endpoint's SPARQL Service Description
