@@ -141,7 +141,7 @@ public class ImportOntology extends BaseCommand
         String mediaType = resolveContentType(contentType, path);
 
         URI adminBase = getAdminBase(base);
-        if (adminBase.equals(base)) throw new ParameterException(getSpec().commandLine(), "<" + base + "> advertises no lds:admin link: --file needs the end-user base URI");
+        if (adminBase.equals(base)) throw new ParameterException(getSpec().commandLine(), "<" + base + "> is the admin base URI: --file needs the end-user base URI");
         List<URI> ontologies = getLinkTargets(base, LDS.ontology.getURI());
         if (ontologies.isEmpty()) throw new IllegalStateException("<" + base + "> advertises no lds:ontology link");
         URI ontology = ontologies.get(0);

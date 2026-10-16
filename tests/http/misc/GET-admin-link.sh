@@ -18,12 +18,10 @@ links() {
 end_user_links=$(links "$END_USER_BASE_URL")
 echo "$end_user_links" | grep "$admin_rel" | grep -q "<${ADMIN_BASE_URL}>" || { echo "DEBUG: end-user links: $end_user_links"; exit 1; }
 
-# an admin response does not
+# an admin response links itself
 
-if links "$ADMIN_BASE_URL" | grep -q "$admin_rel"; then
-  echo "DEBUG: the admin root advertises lds:admin"
-  exit 1
-fi
+admin_links=$(links "$ADMIN_BASE_URL")
+echo "$admin_links" | grep "$admin_rel" | grep -q "<${ADMIN_BASE_URL}>" || { echo "DEBUG: admin links: $admin_links"; exit 1; }
 
 # nor does a proxied response, which describes a remote application
 

@@ -29,8 +29,8 @@ https://docs.linkeddatahub.com/reference/configuration/
 - **Use an `ldh` that matches the instance.** Build it from the same LinkedDataHub checkout or release
   as the running image (`ldh --version`). An instance whose end-user responses carry no
   `https://w3id.org/atomgraph/linkeddatahub/dataspaces#admin` `Link` (check with `ldh get --head --accept text/turtle "$LDH_BASE"`)
-  predates the CLI's admin discovery. There, `ldh admin` commands answer `403` for the end-user base,
-  and `import ontology --file` refuses it. Use the image built from the same checkout as the CLI.
+  predates the CLI's admin discovery. There, `ldh admin` commands stop with "advertises no lds:admin link".
+  An admin base advertises itself as its `lds:admin` only from 6.2.1 on. Use the image built from the same checkout as the CLI.
 
 ## Steps
 

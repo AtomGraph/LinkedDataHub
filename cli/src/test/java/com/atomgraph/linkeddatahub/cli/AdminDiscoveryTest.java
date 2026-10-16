@@ -80,11 +80,11 @@ public class AdminDiscoveryTest
     }
 
     @Test
-    public void baseWithoutAdminLinkIsTakenAsAdminBase() throws Exception
+    public void adminBaseLinkingItselfIsAdminBase() throws Exception
     {
         try (StubServer admin = new StubServer())
         {
-            admin.responds(200, "");
+            admin.respondsWithHeader("Link", link(admin.baseURI(), LDS + "admin")).responds(200, "");
             StringWriter out = new StringWriter(), err = new StringWriter();
 
             int code = commandLine(out, err).execute("admin", "clear", "ontology", "-c", keyStorePath().toString(), "-p", "changeit",
@@ -92,6 +92,23 @@ public class AdminDiscoveryTest
 
             assertEquals(0, code, err.toString());
             assertEquals(List.of("HEAD /", "POST /clear"), methodsAndTargets(admin));
+        }
+    }
+
+    @Test
+    public void baseWithoutAdminLinkIsRefused() throws Exception
+    {
+        try (StubServer endUser = new StubServer())
+        {
+            endUser.responds(200, "");
+            StringWriter out = new StringWriter(), err = new StringWriter();
+
+            int code = commandLine(out, err).execute("admin", "clear", "ontology", "-c", keyStorePath().toString(), "-p", "changeit",
+                endUser.baseURI().toString());
+
+            assertEquals(1, code);
+            assertTrue(err.toString().contains("advertises no lds:admin link"), err.toString());
+            assertEquals(List.of("HEAD /"), methodsAndTargets(endUser));
         }
     }
 
@@ -158,7 +175,7 @@ public class AdminDiscoveryTest
     {
         try (StubServer admin = new StubServer())
         {
-            admin.responds(200, "");
+            admin.respondsWithHeader("Link", link(admin.baseURI(), LDS + "admin")).responds(200, "");
             Path file = dir.resolve("ns.ttl");
             Files.writeString(file, "<#> a <http://www.w3.org/2002/07/owl#Ontology> .");
             StringWriter out = new StringWriter(), err = new StringWriter();

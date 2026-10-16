@@ -121,8 +121,9 @@ argument instead, where every other command puts its target: the `packages` fami
 argument is left out.
 
 The admin commands take the end-user base too. They find the admin application from its
-`lds:admin` `Link` header, so a script never derives the admin URI; a base without that link, such as
-the admin base itself, is used as given:
+`lds:admin` `Link` header, so a script never derives the admin URI. The admin base advertises itself,
+so it works too. A base without that link comes from an older platform, and the command stops instead of
+guessing:
 
 ```bash
 ldh packages add --package https://packages.linkeddatahub.com/editor/taxonomy/#this https://localhost:4443/
