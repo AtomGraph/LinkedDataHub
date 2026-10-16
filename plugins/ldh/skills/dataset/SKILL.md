@@ -119,39 +119,34 @@ schema:category ldh:inverseView :ProductsInCategory .
 
 ### Install it
 
-The ontology lives in the admin document `ontologies/namespace/`. This is the sequence the demo
-apps run. It converges on re-run.
+The ontology lives in the admin app's document `ontologies/namespace/`, and the dataspace serves it at
+`${LDH_BASE}ns`. Install the file with one command, given the end-user base (`LDH_BASE`):
 
 ```bash
-admin_base=$(echo "$LDH_BASE" | sed 's|://|://admin.|')
-ontology_doc="${admin_base}ontologies/namespace/"
-
-# 1. reset the document to its own description, keeping the document and its foaf:primaryTopic
-{ echo "BASE <${ontology_doc}>"; cat <<'EOF'
-PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-DELETE { ?s ?p ?o }
-WHERE {
-  ?s ?p ?o
-  MINUS { <> ?p ?o BIND(<> AS ?s) }
-  MINUS { <> foaf:primaryTopic ?primaryTopic . ?primaryTopic ?p ?o BIND(?primaryTopic AS ?s) }
-}
-EOF
-} | ldh patch "$ontology_doc"
-
-# 2. append ns.ttl, based so that : is the end-user namespace
-{ echo "@base <${LDH_BASE}ns> ."; cat admin/model/ns.ttl; } | ldh post -t text/turtle "$ontology_doc"
-
-# 3. evict the cached ontology — against the ADMIN base
-ldh admin clear ontology --ontology "${LDH_BASE}ns#" "$admin_base"
+ldh admin import ontology --file admin/model/ns.ttl
 ```
+
+`ldh` finds the admin app and the ontology IRI (`${LDH_BASE}ns#`) from the base's `Link` headers,
+`lds:admin` and `lds:ontology`. It parses the file against that IRI, so `@prefix : <#>` names the
+end-user namespace. Then it replaces the document, keeping the document's own description and the
+ontology's header, and clears the ontology cache. It prints the document's URL. A re-run converges,
+and a class or property removed from the file is gone. Triples about the ontology IRI itself (its
+label, its `owl:imports`) accumulate instead, because the header carries the platform's own
+`owl:imports <https://w3id.org/atomgraph/linkeddatahub/default#>` and must keep it. To read from
+stdin, use `--file -` with `-t text/turtle`.
 
 Then check it: `ldh get --accept text/turtle "${LDH_BASE}ns"` shows the new terms.
 
-For a single change to a live ontology, `ldh patch "$ontology_doc"` with a SPARQL update, then step 3.
-A `PATCH` body must not contain the `GRAPH` keyword (it runs inside the document's graph), and a
-plain `INSERT { … } WHERE {}` is the safe shape. `ldh admin add class|constructor|restriction|property-constraint`
-exist for one-off additions, but `admin add constructor` only creates the query resource; linking it
-with `spin:constructor` is a separate `patch`.
+For a single change to a live ontology, `ldh patch` that document with a SPARQL update. Get its URL
+from the output above, or from `lds:admin` in `${LDH_BASE}context`. Then run
+`ldh admin clear ontology --ontology "${LDH_BASE}ns#"`. A `PATCH` body must not contain the `GRAPH`
+keyword, because it runs inside the document's graph. A plain `INSERT { … } WHERE {}` is the safe
+shape. `ldh admin add class|constructor|restriction|property-constraint` exist for one-off
+additions. But `admin add constructor` only creates the query resource: linking it with
+`spin:constructor` is a separate `patch`.
+
+`ldh admin` commands take the end-user base and follow its `lds:admin` link to the admin app, so
+never derive the admin URI yourself.
 
 ## 3. Import the data
 
@@ -227,23 +222,20 @@ Pass `--graph` or `--query-file`, not both.
 
 ### Imports run in the background
 
-The command returns once the import exists, before the data does. It prints the target document's
-URL, not the import's. The import is a `ldh:CSVImport` (or `ldh:RDFImport`) resource in that
-document, and it is done when it carries `prov:endedAtTime`. Its outcome points back at it with
-`prov:wasGeneratedBy`: a `void:Dataset` with `void:triples` and `void:distinctSubjects` on success,
-an entity with the message in `dct:description` on failure. Wait until no import in the document
-is still running, then read it:
+The command returns once the import exists, before the data does. It prints the URI of the import, an
+`ldh:CSVImport` or `ldh:RDFImport` resource in the target document. Add `--wait` to return only once
+the import has ended: it prints the triple count to stderr, and exits `1` with the error if the import
+failed or did not end within `--timeout` seconds (default 1200).
 
 ```bash
-pending() {   # imports in a document that do not carry prov:endedAtTime yet
-    ldh get --accept application/n-triples "$1" | awk '
-        $2 == "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>" && $3 ~ /#(CSV|RDF)Import>$/ { i[$1] }
-        $2 == "<http://www.w3.org/ns/prov#endedAtTime>" { e[$1] }
-        END { n = 0; for (k in i) if (!(k in e)) n++; print n }'
-}
-until [ "$(pending "${LDH_BASE}products/")" = 0 ]; do sleep 5; done
-ldh get --accept text/turtle "${LDH_BASE}products/"     # each import, its triple count, any error
+import=$(ldh import csv --title "Products" --query-file "$PWD/products.rq" \
+    --csv-file "$PWD/products.csv" --wait "${LDH_BASE}products/")
+ldh get --accept text/turtle "${import%%#*}"     # the import, its triple count and any error
 ```
+
+Without `--wait`, the import is done when it carries `prov:endedAtTime`. Its outcome points back at
+it with `prov:wasGeneratedBy`: a `void:Dataset` with `void:triples` on success, an entity with the
+message in `dct:description` on failure.
 
 Then confirm the data landed with a `GRAPH` query against the dataspace's SPARQL endpoint, the
 `sd:endpoint` `Link` header of any response (conventionally `${LDH_BASE}sparql`):
@@ -343,7 +335,6 @@ and is not only displayed side by side.
 
 - Documents built without `foaf:primaryTopic`, or with the domain properties on the document itself,
   render an empty page. The properties go on `#this`.
-- `ldh admin clear ontology` against the end-user base answers `403`. It goes to the admin base.
 - A `403` for a URL you expect to be missing is normal. Non-owners get `403`, not `404`, for
   nonexistent documents.
 - Package imports added with `ldh packages add` are lost on a platform restart. Re-add them, or

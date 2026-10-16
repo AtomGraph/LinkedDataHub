@@ -160,7 +160,7 @@ failed to compile and the dataspace fell back to its own. Check the platform log
 admin `ontologies/` container, and the stylesheet is copied under
 `/static/com/linkeddatahub/packages/`. A republished package does not reach a dataspace that already
 imported it until that ontology document is deleted (the next request recreates it) and the ontology
-cache is cleared (`ldh admin clear ontology` against the admin base). A changed stylesheet gets a new
+cache is cleared (`ldh admin clear ontology`). A changed stylesheet gets a new
 upload URI and so a new copy, once the dataspace reads the updated descriptor. Confirm on the page
 that the new version is live and do not assume it.
 

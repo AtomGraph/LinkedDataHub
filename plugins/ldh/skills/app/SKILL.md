@@ -178,36 +178,19 @@ set -euo pipefail
 : "${LDH_BASE:?}" "${LDH_CERT_FILE:?}" "${LDH_CERT_PASSWORD:?}"
 
 app_dir="$(cd "$(dirname "$0")" && pwd)"
-admin_base=$(echo "$LDH_BASE" | sed 's|://|://admin.|')
-ontology_doc="${admin_base}ontologies/namespace/"
 
 ldh admin make-public
-
-# namespace ontology: reset, append, evict the cache (ldh:dataset)
-{ echo "BASE <${ontology_doc}>"; cat "$app_dir/admin/model/patch-ontology.ru"; } | ldh patch "$ontology_doc"
-{ echo "@base <${LDH_BASE}ns> ."; cat "$app_dir/admin/model/ns.ttl"; } | ldh post -t text/turtle "$ontology_doc"
-ldh admin clear ontology --ontology "${LDH_BASE}ns#" "$admin_base"
-
+ldh admin import ontology --file "$app_dir/admin/model/ns.ttl"   # ldh:dataset
 ldh push --dir "$app_dir" "$LDH_BASE"
 
-# the target is the container the documents go under; the import is added to that document
+# the target document the import is added to; --wait returns once the data is in, and fails if it is not
 ldh import csv --title "Books" --query-file "$app_dir/books/books.rq" \
-    --csv-file "$app_dir/books/books.csv" "${LDH_BASE}books/"
-
-# imports in a document that do not carry prov:endedAtTime yet
-pending() {
-    ldh get --accept application/n-triples "$1" | awk '
-        $2 == "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>" && $3 ~ /#(CSV|RDF)Import>$/ { i[$1] }
-        $2 == "<http://www.w3.org/ns/prov#endedAtTime>" { e[$1] }
-        END { n = 0; for (k in i) if (!(k in e)) n++; print n }'
-}
-for doc in "${LDH_BASE}books/"; do
-    until [ "$(pending "$doc")" = 0 ]; do sleep 5; done
-done
+    --csv-file "$app_dir/books/books.csv" --wait "${LDH_BASE}books/"
 ```
 
-`patch-ontology.ru` is the reset update from ldh:dataset, saved in the app directory. Keep `admin/`,
-`*.sh`, `*.rq` and `*.csv` in `.ldhignore` so `push` does not upload them.
+Every command takes the end-user base. The admin commands find the admin app from it, so the script
+never derives an `admin.` URI. Keep `admin/`, `*.sh`, `*.rq` and `*.csv` in `.ldhignore` so `push`
+does not upload them.
 
 Finer access control: `ldh admin create group`, `ldh admin add agent`, `ldh admin create authorization`
 (https://docs.linkeddatahub.com/reference/administration/acl/).

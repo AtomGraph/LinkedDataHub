@@ -145,9 +145,14 @@ Wait for Tomcat's startup to finish (the root URL can answer from cache before i
 export LDH_BASE=https://inventory.localhost:4443/
 ldh get --accept text/turtle "$LDH_BASE"                          # the seeded root document
 ldh get --accept text/turtle https://admin.inventory.localhost:4443/ontologies/namespace/
+ldh get --accept text/turtle "${LDH_BASE}context"                 # every dataspace, public
 ```
 
-Both answer `200` with RDF. `*.localhost` resolves to the loopback address without a hosts entry;
+All three answer `200` with RDF. `/context` lists every dataspace of the instance: its type, title,
+origin and ontology, and `lds:admin` on each end-user dataspace, the admin base the server pairs it
+with. If the new dataspace is missing there, the config was not loaded. If it has no `lds:admin`, its
+admin origin is not the `admin.` subdomain of its end-user origin. The services and credentials from
+`system.trig` and `secrets/` never appear in it. `*.localhost` resolves to the loopback address without a hosts entry;
 any other host needs DNS (or `/etc/hosts`) for both subdomains. nginx routes every subdomain of the
 host, so it needs no change.
 
