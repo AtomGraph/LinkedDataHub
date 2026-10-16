@@ -11,6 +11,10 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 # for an end-user dataspace, the admin pairing - but none of the services, endpoints or credentials beside them
 
 for base in "$END_USER_BASE_URL" "$ADMIN_BASE_URL"; do
+  # what a browser fetch without an Accept of its own sends, and what the bootstrap's preload ends up with
+  status=$(curl -k -s -o /dev/null -w '%{http_code}' -H "Accept: */*" "${base}context")
+  [ "$status" = "200" ] || { echo "DEBUG: ${base}context with Accept */* answered $status"; exit 1; }
+
   context=$(curl -k -f -s -H "Accept: application/n-triples" "${base}context")
 
   echo "$context" | grep -q '<https://w3id.org/atomgraph/linkeddatahub/dataspaces#EndUserDataspace>' || { echo "DEBUG: no EndUserDataspace in ${base}context"; exit 1; }
