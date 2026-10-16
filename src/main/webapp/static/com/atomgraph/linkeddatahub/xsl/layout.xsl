@@ -123,8 +123,9 @@ exclude-result-prefixes="#all">
                 <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', lds:origin())" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', lds:origin())"/>
                 <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/http-statusCodes.rdf', lds:origin())" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/http-statusCodes.rdf', lds:origin())"/>
                 <xsl:map-entry key="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/admin/countries.rdf', lds:origin())" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/admin/countries.rdf', lds:origin())"/>
-                <!-- the public dataspace context, which client/functions.xsl's lds:context() reads from the document pool -->
-                <xsl:map-entry key="resolve-uri('context', lds:base())" select="resolve-uri('context', lds:base())"/>
+                <!-- the public dataspace context, which client/functions.xsl's lds:context() reads from the document pool. Fetched
+                     as RDF/XML explicitly: the bootstrap's fetch sends no Accept of its own, and */* negotiates HTML -->
+                <xsl:map-entry key="resolve-uri('context', lds:base())" select="ac:build-uri(resolve-uri('context', lds:base()), map{ 'accept': 'application/rdf+xml' })"/>
             </xsl:if>
 
             <xsl:for-each select="$ldh:ontology-namespaces">
