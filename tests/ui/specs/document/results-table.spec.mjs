@@ -73,4 +73,40 @@ test.describe('SPARQL results', () => {
 
         await expectResults(page);
     });
+
+    // The table's frame is its own rounded border, which the collapsing border model ignores: the border
+    // drew square while the head cells rounded inside it, and left a wedge of page in each corner. In the
+    // separating model the radius takes, the row rules have to live on the cells - a row's border exists
+    // only in the collapsing one - and the table still does not clip (overflow would make it a
+    // scrollport, and the sticky head inert), so the four corner cells round their own fills to the
+    // table's inner curve. Two rows, so there is a rule between rows to find and a last row without one.
+    test('draws a rounded frame with the corner cells inside it and rules between the rows', async ({ page }) => {
+        const twoRows = 'SELECT ?s ?label WHERE { VALUES (?s ?label) { (<https://example.org/results-table/1> "One") (<https://example.org/results-table/2> "Two") } }';
+        const refetched = refetch(page);
+        await page.goto(`${endUserBase}sparql?query=${encodeURIComponent(twoRows)}`, { waitUntil: 'domcontentloaded' });
+        await refetched;
+        await settled(page);
+
+        await expect(table(page).locator('tbody tr')).toHaveCount(2);
+        const frame = await table(page).evaluate(t => {
+            const s = getComputedStyle(t), px = (el, prop) => parseFloat(getComputedStyle(el)[prop]);
+            const head = t.tHead.rows[0].cells, rows = t.tBodies[0].rows, last = rows[rows.length - 1].cells;
+            return {
+                collapse: s.borderCollapse,
+                inner: Math.max(0, parseFloat(s.borderTopLeftRadius) - parseFloat(s.borderLeftWidth)),
+                corners: [px(head[0], 'borderTopLeftRadius'), px(head[head.length - 1], 'borderTopRightRadius'),
+                    px(last[0], 'borderBottomLeftRadius'), px(last[last.length - 1], 'borderBottomRightRadius')],
+                headRule: px(head[0], 'borderBottomWidth'),
+                rowRule: px(rows[0].cells[0], 'borderBottomWidth'),
+                lastRowRule: px(last[0], 'borderBottomWidth'),
+            };
+        });
+
+        expect(frame.collapse).toBe('separate');
+        expect(frame.inner).toBeGreaterThan(0);
+        for (const corner of frame.corners) expect(corner).toBeCloseTo(frame.inner, 2);
+        expect(frame.headRule).toBe(1);
+        expect(frame.rowRule).toBe(1);
+        expect(frame.lastRowRule).toBe(0);
+    });
 });
