@@ -16,6 +16,8 @@
  */
 package com.atomgraph.linkeddatahub.resource;
 
+import com.atomgraph.client.util.HTMLMediaTypePredicate;
+import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.util.ModelUtils;
 import com.atomgraph.linkeddatahub.dataspaces.model.Dataspace;
 import com.atomgraph.linkeddatahub.resource.admin.ClearOntology;
@@ -39,6 +41,7 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.MessageBodyReader;
 import jakarta.ws.rs.ext.Providers;
 import java.io.IOException;
+import java.util.ArrayList;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
@@ -63,6 +66,7 @@ public class Settings
 
     private final Dataspace application;
     private final com.atomgraph.linkeddatahub.Application system;
+    private final MediaTypes mediaTypes;
     private final Providers providers;
     private final Request request;
     private final ResourceContext resourceContext;
@@ -72,15 +76,17 @@ public class Settings
      *
      * @param application the current dataspace application
      * @param system the system application
+     * @param mediaTypes registry of the media types models are written in
      * @param providers JAX-RS provider registry
      * @param request JAX-RS request context
      * @param resourceContext JAX-RS resource context (for delegating to sub-resources)
      */
     @Inject
-    public Settings(Dataspace application, com.atomgraph.linkeddatahub.Application system, @Context Providers providers, @Context Request request, @Context ResourceContext resourceContext)
+    public Settings(Dataspace application, com.atomgraph.linkeddatahub.Application system, MediaTypes mediaTypes, @Context Providers providers, @Context Request request, @Context ResourceContext resourceContext)
     {
         this.application = application;
         this.system = system;
+        this.mediaTypes = mediaTypes;
         this.providers = providers;
         this.request = request;
         this.resourceContext = resourceContext;
@@ -104,12 +110,16 @@ public class Settings
 
         if (log.isDebugEnabled()) log.debug("Retrieved settings for dataspace <{}>", getDataspace().getURI());
 
-        EntityTag entityTag = getEntityTag(dataspaceModel);
-        Response.ResponseBuilder rb = getRequest().evaluatePreconditions(entityTag);
-        if (rb != null) return rb.build();
-
-        return Response.ok(dataspaceModel).
-            tag(entityTag).
+        // negotiated, conditional and Vary-ing the way the documents' responses are
+        return new com.atomgraph.core.model.impl.Response(getRequest(),
+                dataspaceModel,
+                null,
+                getEntityTag(dataspaceModel),
+                getMediaTypes().getWritable(Model.class),
+                getSystem().getSupportedLanguages(),
+                new ArrayList<>(),
+                new HTMLMediaTypePredicate()).
+            getResponseBuilder().
             build();
     }
 
@@ -188,6 +198,16 @@ public class Settings
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;
+    }
+
+    /**
+     * Returns the registry of the media types models are written in.
+     *
+     * @return media types
+     */
+    public MediaTypes getMediaTypes()
+    {
+        return mediaTypes;
     }
 
     /**
