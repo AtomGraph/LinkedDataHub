@@ -44,6 +44,13 @@
     rdfs:comment "Base URI of the dataspace's administration application; an administration application's is its own. Computed by the server from the admin subdomain and published in the dataspace context and as a Link relation; not configuration" ;
     rdfs:isDefinedBy : .
 
+:assistant a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain :Dataspace ;
+    rdfs:range xsd:boolean ;
+    rdfs:label "Assistant" ;
+    rdfs:comment "True if the dataspace's documents can open the assistant, i.e. its plan service is deployed beside the instance (the "assistant" compose profile). Published by the server in the dataspace context; not configuration" ;
+    rdfs:isDefinedBy : .
+
 :base a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain :Dataspace ;
     rdfs:label "Base URI" ;

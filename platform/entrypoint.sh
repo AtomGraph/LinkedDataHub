@@ -1211,6 +1211,12 @@ if [ -n "$ENABLE_LINKED_DATA_PROXY" ]; then
     ENABLE_LINKED_DATA_PROXY_PARAM="--stringparam ldhc:enableLinkedDataProxy '$ENABLE_LINKED_DATA_PROXY' "
 fi
 
+# the assistant is opt-in: its plan service is the web-algebra container, which runs only under the "assistant" compose
+# profile, so the same profile list says whether the UI offers it. COMPOSE_PROFILES is comma-separated
+case ",${COMPOSE_PROFILES// /}," in
+    *,assistant,*) export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.enableAssistant=true" ;;
+esac
+
 if [ -n "$ALLOW_INTERNAL_URLS" ]; then
     export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.allowInternalUrls=$ALLOW_INTERNAL_URLS"
 fi

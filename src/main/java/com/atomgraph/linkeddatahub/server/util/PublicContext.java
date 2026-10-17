@@ -21,6 +21,7 @@ import com.atomgraph.linkeddatahub.dataspaces.model.AdminDataspace;
 import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import com.atomgraph.linkeddatahub.vocabulary.LDS;
 import java.util.Set;
+import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
@@ -39,7 +40,8 @@ import org.apache.jena.vocabulary.RDF;
  * backend endpoints, the versioning repositories - and the credentials for them. This view copies a whitelist of
  * properties of the <code>lds:Dataspace</code> resources only, so none of that can reach a stylesheet, a browser or an
  * HTTP client. It adds <code>lds:admin</code> to each end-user dataspace: the pairing the server derives from the admin
- * subdomain, published so that clients never derive it themselves.
+ * subdomain, published so that clients never derive it themselves. When the assistant is enabled, it adds
+ * <code>lds:assistant true</code> to every dataspace, so the UI offers the assistant only where its plan service runs.
  *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
@@ -56,9 +58,10 @@ public final class PublicContext
      * Returns the public view of a context model.
      *
      * @param context context model, with dataspace personalities registered
+     * @param assistant true if the assistant's plan service is deployed
      * @return new model with the public dataspace descriptions
      */
-    public static Model of(Model context)
+    public static Model of(Model context, boolean assistant)
     {
         if (context == null) throw new IllegalArgumentException("Context Model cannot be null");
 
@@ -84,6 +87,8 @@ public final class PublicContext
                 {
                     it.close();
                 }
+
+                if (assistant) view.addLiteral(dataspace, LDS.assistant, view.createTypedLiteral(true, XSDDatatype.XSDboolean));
 
                 if (dataspace.canAs(EndUserDataspace.class))
                 {
