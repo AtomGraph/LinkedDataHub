@@ -1,7 +1,7 @@
 ## [Unreleased]
 ### Migration
 - The assistant is opt-in: set `COMPOSE_PROFILES=assistant` in `.env` to run the `web-algebra` service and offer the assistant in the UI
-- The sitemap is opt-in: set `ENABLE_SITEMAP=true` (`GENERATE_SITEMAP` is still read); without it every `/robots.txt` disallows crawling
+- **BREAKING**: `GENERATE_SITEMAP` is replaced by `ENABLE_SITEMAP`, and the sitemap is opt-in: set `ENABLE_SITEMAP=true`; without it every `/robots.txt` disallows crawling
 
 ### Added
 - Object blocks can read an external value from a dataspace-local description, set with `ldh:graph` (and from the CLI)

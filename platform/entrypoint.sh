@@ -1064,9 +1064,7 @@ case ",${COMPOSE_PROFILES// /}," in
     *,assistant,*) export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.enableAssistant=true" ;;
 esac
 
-# the sitemap is opt-in, since its queries walk every public document of a dataspace. GENERATE_SITEMAP is the name
-# it had when the entrypoint generated it
-ENABLE_SITEMAP="${ENABLE_SITEMAP:-$GENERATE_SITEMAP}"
+# the sitemap is opt-in, since its queries walk every public document of a dataspace
 if [ -n "$ENABLE_SITEMAP" ]; then
     export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.enableSitemap=$ENABLE_SITEMAP"
 fi
