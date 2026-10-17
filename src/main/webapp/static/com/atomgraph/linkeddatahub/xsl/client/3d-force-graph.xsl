@@ -295,7 +295,7 @@
 
         <!-- Guard: ForceGraph3D library must be loaded -->
         <xsl:if test="empty($builder)">
-            <xsl:message terminate="yes">ForceGraph3D constructor not found on window. Ensure 3d-force-graph.min.js is loaded before Saxon-JS.</xsl:message>
+            <xsl:message terminate="yes">ForceGraph3D constructor not found on window. Ensure graph3d.min.js is loaded before Saxon-JS.</xsl:message>
         </xsl:if>
 
         <!-- Create the graph instance -->
