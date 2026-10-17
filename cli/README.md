@@ -336,8 +336,7 @@ computes every upload URI and prints the plan, without sending a request or load
 | `update-folder.sh` (LinkedDataHub-Apps, one copy per app) | `ldh push` |
 
 Local certificate tooling (`webid-keygen.sh`, `webid-keygen-pem.sh`, `webid-uri.sh`,
-`webid-modulus.sh`, `server-cert-gen.sh`) and the experimental `sitemap/` generator remain
-shell scripts.
+`webid-modulus.sh`, `server-cert-gen.sh`) remains shell scripts.
 
 `bin/admin/packages/` has no counterpart under that name: a package is imported by declaring an
 `ldh:import` triple rather than by installing files, and `ldh packages list`,

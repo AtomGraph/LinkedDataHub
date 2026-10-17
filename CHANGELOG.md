@@ -1,11 +1,13 @@
 ## [6.2.1] - 2026-10-17
 ### Migration
 - The assistant is opt-in: set `COMPOSE_PROFILES=assistant` in `.env` to run the `web-algebra` service and offer the assistant in the UI
+- **BREAKING**: `GENERATE_SITEMAP` is replaced by `ENABLE_SITEMAP`, and the sitemap is opt-in: set `ENABLE_SITEMAP=true`; without it every `/robots.txt` disallows crawling
 
 ### Added
 - Object blocks can read an external value from a dataspace-local description, set with `ldh:graph` (and from the CLI)
 
 ### Changed
+- `/sitemap.xml` is queried per request instead of generated at startup, and past 50,000 documents it is a sitemap index over MD5 buckets of the document URIs (`?bucket=`)
 - Assistant answers are XHTML (lists, emphasis, code, links to the results), stored as `rdf:XMLLiteral`
 - Admin responses link to themselves as `lds:admin`, and `ldh admin` commands refuse a base that advertises no such link
 - jsoup bumped to 1.23.2, fixing memory exhaustion on deeply nested XML namespace declarations

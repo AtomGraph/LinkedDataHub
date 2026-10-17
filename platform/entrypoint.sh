@@ -375,29 +375,6 @@ WHERE
     fi
 }
 
-# Runs a SPARQL query read from a file and writes SPARQL Results XML to a file. POST, because a query carrying
-# VALUES rows grows with the data. Credentials are passed the way every other store call passes them: a Bearer
-# token if there is one, Basic auth if there is a user and a password, neither otherwise - a store that requires
-# auth answers an unauthenticated query with 401.
-
-sparql_select()
-{
-    local endpoint_url="$1"
-    local auth_user="$2"
-    local auth_pwd="$3"
-    local auth_token="$4"
-    local query_file="$5"
-    local results_file="$6"
-
-    if [ -n "$auth_token" ]; then
-        curl -k -f -sS "$endpoint_url" -H "Authorization: Bearer $auth_token" -H "Content-Type: application/sparql-query" -H "Accept: application/sparql-results+xml" --data-binary @"$query_file" -o "$results_file"
-    elif [ -n "$auth_user" ] && [ -n "$auth_pwd" ]; then
-        curl -k -f -sS "$endpoint_url" --user "$auth_user":"$auth_pwd" -H "Content-Type: application/sparql-query" -H "Accept: application/sparql-results+xml" --data-binary @"$query_file" -o "$results_file"
-    else
-        curl -k -f -sS "$endpoint_url" -H "Content-Type: application/sparql-query" -H "Accept: application/sparql-results+xml" --data-binary @"$query_file" -o "$results_file"
-    fi
-}
-
 # function to append quad data to an RDF graph store
 
 append_quads()
@@ -758,12 +735,6 @@ readarray apps < <(xmlstarlet sel -B \
     -n \
     root_service_metadata.xml)
 
-# each app's service, keyed by its origin: the loop below overwrites its locals on every iteration,
-# while the per-dataspace sitemap pass that runs after it needs each end-user app together with the
-# admin app of the same dataspace
-declare -A end_user_endpoint end_user_auth_user end_user_auth_pwd end_user_auth_token
-declare -A admin_endpoint admin_auth_user admin_auth_pwd admin_auth_token
-
 for app in "${apps[@]}"; do
     app_array=(${app})
     app_uri="${app_array[0]//\"/}"
@@ -803,19 +774,6 @@ for app in "${apps[@]}"; do
         app_store_content_type="application/n-triples"
         app_store_fn="gsp_append_quads"
         printf "\n### Graph store URL (GSP fallback): %s\n" "$app_graph_store_url"
-    fi
-
-    if [ "$app_type" = "https://w3id.org/atomgraph/linkeddatahub/dataspaces#EndUserDataspace" ]; then
-        end_user_endpoint["$app_origin"]="$app_endpoint_url"
-        end_user_auth_user["$app_origin"]="$app_service_auth_user"
-        end_user_auth_pwd["$app_origin"]="$app_service_auth_pwd"
-        end_user_auth_token["$app_origin"]="$app_service_auth_token"
-    fi
-    if [ "$app_type" = "https://w3id.org/atomgraph/linkeddatahub/dataspaces#AdminDataspace" ]; then
-        admin_endpoint["$app_origin"]="$app_endpoint_url"
-        admin_auth_user["$app_origin"]="$app_service_auth_user"
-        admin_auth_pwd["$app_origin"]="$app_service_auth_pwd"
-        admin_auth_token["$app_origin"]="$app_service_auth_token"
     fi
 
     # check if this is the root end-user or root admin app by comparing origins
@@ -1044,117 +1002,6 @@ if [ -n "$OIDC_REFRESH_TOKENS" ] && [ ! -f "$OIDC_REFRESH_TOKENS" ]; then
     touch "$OIDC_REFRESH_TOKENS"
 fi
 
-# if configured, generate an XML sitemap per dataspace: https://www.sitemaps.org/protocol.html
-# The public read rules are queried on the dataspace's own admin service and passed to its end-user query as VALUES,
-# instead of the end-user store fetching them itself through SPARQL SERVICE - a call a deployment isolating its
-# stores refuses. One sitemap per dataspace rather than one per instance: the location of a sitemap determines the
-# URLs it may contain, so an origin may only list its own documents, and passing each dataspace its own base keeps
-# the documents of dataspaces that share a store apart. The file is named after the host, which is the name
-# WEB-INF/rewrite.config resolves a request for /sitemap.xml to.
-# A subshell, so the temp directory is removed on every exit path.
-
-generate_sitemap()
-(
-    origin="$1"
-    admin_origin="$2"
-    base="${origin}/" # the dataspace's documents start with it, and its admin authorizations with the admin one
-
-    # the host alone, because that is what %{HTTP_HOST} gives the rewrite. Dataspaces are routed by subdomain,
-    # so they differ by host and never by port only
-    host=$(echo "$origin" | sed -e 's|^[a-z]*://||' -e 's|:.*$||')
-
-    dir=$(mktemp -d)
-    trap 'rm -rf "$dir"' EXIT
-
-    admin_base="${admin_origin}/" envsubst '$admin_base' < /var/linkeddatahub/sitemap/public-rules.rq > "$dir/public-rules.rq" || exit 1
-
-    sparql_select "${admin_endpoint[$admin_origin]}" "${admin_auth_user[$admin_origin]}" "${admin_auth_pwd[$admin_origin]}" \
-        "${admin_auth_token[$admin_origin]}" "$dir/public-rules.rq" "$dir/public-rules.srx" || exit 1
-
-    # <class> and <document> rows. Only IRI bindings are selected, so nothing else is pasted into the query.
-    # xmlstarlet exits 1 when nothing matches, which only means there are no rules of that kind
-    class_rules=$(xmlstarlet sel -N srx="http://www.w3.org/2005/sparql-results#" -T -t \
-        -m "/srx:sparql/srx:results/srx:result[srx:binding[@name = 'Type']/srx:uri]" \
-        -o "<" -v "srx:binding[@name = 'Type']/srx:uri" -o "> " \
-        "$dir/public-rules.srx") || [ $? -eq 1 ] || exit 1
-    document_rules=$(xmlstarlet sel -N srx="http://www.w3.org/2005/sparql-results#" -T -t \
-        -m "/srx:sparql/srx:results/srx:result[srx:binding[@name = 'to']/srx:uri]" \
-        -o "<" -v "srx:binding[@name = 'to']/srx:uri" -o "> " \
-        "$dir/public-rules.srx") || [ $? -eq 1 ] || exit 1
-
-    base="$base" class_rules="$class_rules" document_rules="$document_rules" \
-        envsubst '$base $class_rules $document_rules' < /var/linkeddatahub/sitemap/sitemap.rq.template > "$dir/sitemap.rq" || exit 1
-
-    sparql_select "${end_user_endpoint[$origin]}" "${end_user_auth_user[$origin]}" "${end_user_auth_pwd[$origin]}" \
-        "${end_user_auth_token[$origin]}" "$dir/sitemap.rq" "$dir/sitemap.srx" || exit 1
-
-    # a dataspace with nothing public gets no file, so its /sitemap.xml is a 404 rather than an empty urlset
-    results=$(xmlstarlet sel -N srx="http://www.w3.org/2005/sparql-results#" -T -t \
-        -v "count(/srx:sparql/srx:results/srx:result)" "$dir/sitemap.srx") || exit 1
-
-    if [ "$results" -eq 0 ]; then
-        printf "\n### No public documents in <%s>, writing no sitemap\n" "$base"
-
-        rm -f "${SITEMAP_ROOT}/${host}.xml" # a dataspace whose documents have gone private keeps no stale sitemap
-
-        exit 0
-    fi
-
-    printf "\n### Writing the sitemap of <%s>: %s public documents\n" "$base" "$results"
-
-    xsltproc --output "${SITEMAP_ROOT}/${host}.xml" /var/linkeddatahub/sitemap/sitemap.xsl "$dir/sitemap.srx"
-)
-
-# robots.txt beside each sitemap, named the same way: a crawler finds a sitemap through this directive, and it may
-# only name a sitemap of the host serving it. Having a sitemap is what makes a dataspace crawlable - an admin
-# dataspace, which describes agents, keys and authorizations, never gets one, and neither does an end-user
-# dataspace with nothing public.
-
-write_robots()
-{
-    local origin="$1"
-
-    local host
-    host=$(echo "$origin" | sed -e 's|^[a-z]*://||' -e 's|:.*$||')
-
-    {
-        printf "User-agent: *\n"
-
-        if [ -f "${SITEMAP_ROOT}/${host}.xml" ]; then
-            printf "Allow: /\n"
-            printf "Sitemap: %s/sitemap.xml\n" "$origin"
-        else
-            printf "Disallow: /\n"
-        fi
-    } > "${SITEMAP_ROOT}/${host}.txt"
-
-    printf "\n### Wrote %s:\n%s\n" "${SITEMAP_ROOT}/${host}.txt" "$(cat "${SITEMAP_ROOT}/${host}.txt")"
-}
-
-if [ "$GENERATE_SITEMAP" = true ] && [ -n "$SITEMAP_ROOT" ]; then
-    mkdir -p "$SITEMAP_ROOT"
-
-    for dataspace_origin in "${!end_user_endpoint[@]}"; do
-        dataspace_admin_origin=$(echo "$dataspace_origin" | sed 's|://|://admin.|') # the inverse of the app loop's pairing
-
-        # only the root dataspace is required to have both of its apps, so a lone end-user app is not an error.
-        # A sitemap is also not worth a platform that does not start: under set -e a failed query used to exit the
-        # container. Per dataspace, so one failure costs that dataspace its sitemap and nothing more
-        if [ -z "${admin_endpoint[$dataspace_admin_origin]}" ]; then
-            printf "\n### No admin app <%s> of the <%s> dataspace, skipping its sitemap\n" "$dataspace_admin_origin" "$dataspace_origin"
-        elif ! generate_sitemap "$dataspace_origin" "$dataspace_admin_origin"; then
-            printf "\n### Could not generate the sitemap of <%s>, continuing without it\n" "$dataspace_origin"
-        fi
-
-        # written either way: with no sitemap to name, it is the one that disallows crawling
-        write_robots "$dataspace_origin"
-    done
-
-    for dataspace_origin in "${!admin_endpoint[@]}"; do
-        write_robots "$dataspace_origin"
-    done
-fi
-
 # change context configuration
 
 BASE_URI_PARAM="--stringparam ldhc:baseUri '$BASE_URI' "
@@ -1216,6 +1063,11 @@ fi
 case ",${COMPOSE_PROFILES// /}," in
     *,assistant,*) export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.enableAssistant=true" ;;
 esac
+
+# the sitemap is opt-in, since its queries walk every public document of a dataspace
+if [ -n "$ENABLE_SITEMAP" ]; then
+    export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.enableSitemap=$ENABLE_SITEMAP"
+fi
 
 if [ -n "$ALLOW_INTERNAL_URLS" ]; then
     export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.allowInternalUrls=$ALLOW_INTERNAL_URLS"
@@ -1397,7 +1249,7 @@ transform="xsltproc \
 
 eval "$transform"
 
-# composed client stylesheets and generated sitemaps live outside the WAR so they survive redeploys,
+# composed client stylesheets live outside the WAR so they survive redeploys,
 # and are served under /static/ by the default servlet through a Context alias. Added here rather than
 # in context.xsl because that transform has no argv budget left for another --stringparam
 #
@@ -1422,7 +1274,7 @@ add_post_resources()
       conf/Catalina/localhost/ROOT.xml
 }
 
-if [ -n "$SEF_ROOT" ] || [ -n "$SITEMAP_ROOT" ] || [ -n "$PACKAGE_ROOT" ]; then
+if [ -n "$SEF_ROOT" ] || [ -n "$PACKAGE_ROOT" ]; then
     # Deleted before being added because a restart reuses the container filesystem and runs this again.
     xmlstarlet ed --inplace \
       -d "/Context/Resources" \
@@ -1431,11 +1283,6 @@ if [ -n "$SEF_ROOT" ] || [ -n "$SITEMAP_ROOT" ] || [ -n "$PACKAGE_ROOT" ]; then
 
     if [ -n "$SEF_ROOT" ]; then
         add_post_resources "$SEF_ROOT" "/static/xsl/sef"
-    fi
-
-    # where rewrite.config sends /sitemap.xml and /robots.txt, each to the file named after the requested host
-    if [ -n "$SITEMAP_ROOT" ]; then
-        add_post_resources "$SITEMAP_ROOT" "/static/sitemaps"
     fi
 
     # copies of imported packages' stylesheets, so that ac:stylesheet names a URL on the application's

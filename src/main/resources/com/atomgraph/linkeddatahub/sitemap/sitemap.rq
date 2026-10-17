@@ -1,0 +1,30 @@
+PREFIX  dct:  <http://purl.org/dc/terms/>
+
+# The public documents of one sitemap page: those of sitemap-index.rq whose URI's MD5 starts with ?bucket,
+# which is replaced with a prefix of zero to two hex digits - the empty one lists every public document.
+
+SELECT  ?loc (max(?date) AS ?lastmod)
+WHERE
+  {   { VALUES ?Type { }
+        GRAPH ?loc
+          { ?loc  a  ?Type }
+        FILTER strstarts(str(?loc), str(?base))
+      }
+    UNION
+      { VALUES ?loc { }
+        GRAPH ?loc
+          { ?loc  a  ?any }
+        FILTER strstarts(str(?loc), str(?base))
+      }
+    FILTER strstarts(md5(str(?loc)), ?bucket)
+    OPTIONAL
+      { GRAPH ?loc
+          { ?loc  dct:created  ?created }
+      }
+    OPTIONAL
+      { GRAPH ?loc
+          { ?loc  dct:modified  ?modified }
+      }
+    BIND(coalesce(?modified, ?created) AS ?date)
+  }
+GROUP BY ?loc

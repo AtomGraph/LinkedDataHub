@@ -115,7 +115,7 @@ The TimeMap is described with PROV-O (`prov:Entity` mementos, `prov:specializati
 | `/uploads/{sha1}` | `GET` | per ACL | A content-addressed upload |
 | `/sign up` | `GET`, `POST` | public | WebID sign-up, which hands back a PKCS12 keystore |
 | `/oauth2/login/{google,orcid}`, `/oauth2/authorize/{google,orcid}` | `GET` | public | Human login flows |
-| `/sitemap.xml`, `/robots.txt` | `GET` | public | Per-dataspace, generated at startup from that dataspace's public read rules and served at servlet level |
+| `/sitemap.xml`, `/robots.txt` | `GET` | public | Per-dataspace, queried from that dataspace's public read rules and served at servlet level; opt-in (`ENABLE_SITEMAP`) |
 
 `/ns` and `/sign up` are public in the ACL query itself. The rest of the access column is the authorizations a dataspace is seeded with, which a deployment is free to change — read the `acl:mode` `Link` headers of a response to learn what the agent actually holds.
 

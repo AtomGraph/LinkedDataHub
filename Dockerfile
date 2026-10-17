@@ -98,10 +98,6 @@ ARG SEF_COMPILER=http://sef-compiler:8080/compile
 # rules and the packages' reach the browser together
 ARG CLIENT_STYLESHEET=/static/com/atomgraph/linkeddatahub/xsl/client.xsl
 
-# one generated sitemap and robots.txt per dataspace, kept outside the WAR for the same reason and
-# mounted under /static/sitemaps, where WEB-INF/rewrite.config sends the requests for them
-ARG SITEMAP_ROOT=/var/www/linkeddatahub/sitemaps
-
 # an imported package's stylesheet is copied here and served from the application's own origin, so it
 # resolves like every other stylesheet the platform compiles: an absolute URL under /static/ that never
 # leaves the container. Outside the WAR for the same reason as the others - a copy taken at import
@@ -129,8 +125,6 @@ ENV SEF_ROOT=$SEF_ROOT
 ENV SEF_COMPILER=$SEF_COMPILER
 
 ENV CLIENT_STYLESHEET=$CLIENT_STYLESHEET
-
-ENV SITEMAP_ROOT=$SITEMAP_ROOT
 
 ENV PACKAGE_ROOT=$PACKAGE_ROOT
 ENV SETTINGS_ROOT=$SETTINGS_ROOT
@@ -224,8 +218,6 @@ ENV MAX_IMPORT_THREADS=10
 
 ENV SERVLET_NAME=
 
-ENV GENERATE_SITEMAP=true
-
 # remove default Tomcat webapps and install xmlstarlet (used for XPath queries) and envsubst (for variable substitution)
 
 RUN apt-get update --allow-releaseinfo-change && \
@@ -282,14 +274,6 @@ COPY platform/datasets/admin.trig /var/linkeddatahub/datasets/admin.trig
 
 COPY platform/datasets/end-user.trig /var/linkeddatahub/datasets/end-user.trig
 
-# copy sitemap queries & stylesheet
-
-COPY platform/sitemap/public-rules.rq /var/linkeddatahub/sitemap/public-rules.rq
-
-COPY platform/sitemap/sitemap.rq.template /var/linkeddatahub/sitemap/sitemap.rq.template
-
-COPY platform/sitemap/sitemap.xsl /var/linkeddatahub/sitemap/sitemap.xsl
-
 # copy webapp config
 
 COPY platform/conf/ROOT.xml conf/Catalina/localhost/ROOT.xml
@@ -318,8 +302,6 @@ RUN useradd --no-log-init -U ldh && \
     chown -R ldh:ldh "$UPLOAD_ROOT" && \
     mkdir -p "$SEF_ROOT" && \
     chown -R ldh:ldh "$SEF_ROOT" && \
-    mkdir -p "$SITEMAP_ROOT" && \
-    chown -R ldh:ldh "$SITEMAP_ROOT" && \
     mkdir -p "$PACKAGE_ROOT" && \
     chown -R ldh:ldh "$PACKAGE_ROOT" && \
     mkdir -p "$SETTINGS_ROOT" && \
