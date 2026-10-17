@@ -120,9 +120,9 @@
 
 :answer a owl:DatatypeProperty ;
     rdfs:domain :ChatTurn ;
-    rdfs:range xsd:string ;
+    rdfs:range rdf:XMLLiteral ;
     rdfs:label "Answer" ;
-    rdfs:comment "The assistant's reading, in words, of what the turn's plan did" ;
+    rdfs:comment "The assistant's reading of what the turn's plan did: an XHTML div of paragraphs, lists, emphasis, code and links to what the plan returned" ;
     rdfs:isDefinedBy : .
 
 :plan a owl:DatatypeProperty ;
