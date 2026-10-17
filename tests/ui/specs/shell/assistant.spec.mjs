@@ -99,7 +99,17 @@ async function askTheModel(page, chat, question, allowNoise) {
     test.skip((await planned).status() === 503, 'the plan service runs without a model key');
 }
 
+// The Assistant button is offered only by a stack that runs the assistant - the "assistant" compose profile, which
+// /context advertises as lds:assistant - and CI runs without it. A spec that starts a chat from the button is skipped
+// there; a stored chat block draws its turns and continues without it, so those specs run on every stack.
+let assistantOffered;
+async function requireAssistant() {
+    assistantOffered ??= (await ldh(['get', '--accept', 'application/n-triples', `${endUserBase}context`])).stdout.includes('<https://w3id.org/atomgraph/linkeddatahub/dataspaces#assistant>');
+    test.skip(!assistantOffered, 'the stack runs without the assistant');
+}
+
 test('the Assistant button starts a chat block with its own composer, and nothing is written until a question', { tag: '@owner' }, async ({ page }) => {
+    await requireAssistant();
     await goto(page, inMode(scratch.container, CONTENT_MODE));
 
     // the bar holds the button and nothing else of the assistant's
@@ -219,6 +229,7 @@ test('a step shows the value it resolved to, and the operation around it shows t
 });
 
 test('a plan that shows a grid draws its graph as cards with their images, also from the store', { tag: '@owner' }, async ({ page }) => {
+    await requireAssistant();
     // the plan service answered by the spec: a CONSTRUCT shown as a grid, and its graph of two depicted resources
     const AC = 'https://w3id.org/atomgraph/client#';
     const plan = `<wa:plan xmlns:wa="${WA}"><wa:summary>Shows two presidents with their portraits.</wa:summary><wa:present xmlns:ac="${AC}" ac:mode="${AC}GridMode"/><wa:operations><wa:operation name="CONSTRUCT"/></wa:operations><CONSTRUCT xmlns="${WA}"><endpoint>https://query.wikidata.org/sparql</endpoint><query>CONSTRUCT { ?p &lt;http://xmlns.com/foaf/0.1/depiction&gt; ?image } WHERE { ?p &lt;http://www.wikidata.org/prop/direct/P18&gt; ?image } LIMIT 2</query></CONSTRUCT></wa:plan>`;
@@ -256,6 +267,7 @@ test('a plan that shows a grid draws its graph as cards with their images, also 
 });
 
 test('a plan that shows a timeline draws each row as a span, the one still under way included', { tag: '@owner' }, async ({ page }) => {
+    await requireAssistant();
     const AC = 'https://w3id.org/atomgraph/client#';
     const LDH = 'https://w3id.org/atomgraph/linkeddatahub#';
     const XSD = 'http://www.w3.org/2001/XMLSchema#';
@@ -286,6 +298,7 @@ test('a plan that shows a timeline draws each row as a span, the one still under
 });
 
 test('an answer is XHTML: its list and links are drawn, anything else is not, and it is stored as canonical XML', { tag: '@owner' }, async ({ page }) => {
+    await requireAssistant();
     // the plan service answered by the spec: a SELECT that returned two customers, and an answer that lists them -
     // with what a model must not get into the page: a script, an attribute, an element outside the answer's, a
     // javascript: link and an element left empty
@@ -336,6 +349,7 @@ test('an answer is XHTML: its list and links are drawn, anything else is not, an
 });
 
 test('a plan that shows a map or a 3D graph draws its canvas, both on one page, and again from the store', { tag: '@owner' }, async ({ page }) => {
+    await requireAssistant();
     // the plan service answered by the spec: two CONSTRUCTs, the first shown as a map, the second as a graph
     const AC = 'https://w3id.org/atomgraph/client#';
     const construct = `<CONSTRUCT xmlns="${WA}"><endpoint>https://query.wikidata.org/sparql</endpoint><query>CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o } LIMIT 2</query></CONSTRUCT>`;
@@ -392,6 +406,7 @@ test('a plan that shows a map or a 3D graph draws its canvas, both on one page, 
 });
 
 test('two chat blocks on one page are independent, and the first question writes a new one', { tag: '@owner' }, async ({ page }) => {
+    await requireAssistant();
     const seeded = await seedChat(scratch.container);
     const requests = await declinePlans(page);
     await goto(page, inMode(scratch.container, CONTENT_MODE));
@@ -443,6 +458,7 @@ test('a reader who may not append sees the transcript and nothing to type into',
 });
 
 test('a question becomes a plan that waits for Execute, and Cancel takes it away', { tag: '@owner' }, async ({ page, allowNoise }) => {
+    await requireAssistant();
     test.setTimeout(120_000);
     await goto(page, inMode(scratch.container, CONTENT_MODE));
     await button(page).click();
@@ -474,6 +490,7 @@ test('a question becomes a plan that waits for Execute, and Cancel takes it away
 });
 
 test('Execute runs the plan, reports what it wrote, and the stored turn comes back with the block', { tag: '@owner' }, async ({ page, allowNoise }) => {
+    await requireAssistant();
     test.setTimeout(240_000);
     await goto(page, inMode(scratch.container, CONTENT_MODE));
     await button(page).click();
@@ -506,6 +523,7 @@ test('Execute runs the plan, reports what it wrote, and the stored turn comes ba
 });
 
 test('a plan that adds a block to the page being read reloads the page with the block shown and scrolled to', { tag: '@owner' }, async ({ page }) => {
+    await requireAssistant();
     // the plan service and the executor answered by the spec; the executor's write is a real one, made with the
     // CLI, so the page that catches up reads a document that has the block
     const WALDH = 'https://w3id.org/atomgraph/web-algebra/linkeddatahub';
@@ -543,6 +561,7 @@ test('a plan that adds a block to the page being read reloads the page with the 
 });
 
 test('a question is answered in words, with its result as a block in the card, also after a reload', { tag: '@owner' }, async ({ page, allowNoise }) => {
+    await requireAssistant();
     test.setTimeout(300_000);
     for (const title of ['Answer alpha', 'Answer beta'])
         scratch.written.push((await ldh(['create', 'item', '--container', scratch.container, '--title', title, '--slug', title.toLowerCase().replace(' ', '-')])).stdout);

@@ -1,4 +1,4 @@
-## [Unreleased]
+## [6.2.1] - 2026-10-17
 ### Migration
 - The assistant is opt-in: set `COMPOSE_PROFILES=assistant` in `.env` to run the `web-algebra` service and offer the assistant in the UI
 - **BREAKING**: `GENERATE_SITEMAP` is replaced by `ENABLE_SITEMAP`, and the sitemap is opt-in: set `ENABLE_SITEMAP=true`; without it every `/robots.txt` disallows crawling
