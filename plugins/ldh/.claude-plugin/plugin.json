@@ -1,6 +1,6 @@
 {
   "name": "ldh",
-  "version": "6.2.1-SNAPSHOT",
+  "version": "6.2.2-SNAPSHOT",
   "description": "Build Linked Data dataspaces, datasets and applications on LinkedDataHub with the ldh CLI: provision a dataspace, model and import data, declare documents, views and charts, and write reusable packages",
   "author": {
     "name": "AtomGraph",
