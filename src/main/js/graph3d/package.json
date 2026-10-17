@@ -1,0 +1,16 @@
+{
+  "name": "ldh-graph3d",
+  "private": true,
+  "description": "Bundles 3d-force-graph and three-spritetext over a single Three.js instance into js/graph3d.min.js",
+  "scripts": {
+    "build": "esbuild index.js --bundle --minify --format=iife --legal-comments=none --outfile=../../webapp/static/com/atomgraph/linkeddatahub/js/graph3d.min.js"
+  },
+  "dependencies": {
+    "3d-force-graph": "1.73.3",
+    "three": "0.162.0",
+    "three-spritetext": "1.8.2"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.10"
+  }
+}
