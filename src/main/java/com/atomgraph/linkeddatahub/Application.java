@@ -1193,6 +1193,8 @@ public class Application extends ResourceConfig
             }
         });
         
+        getServletConfig().getServletContext().setAttribute(Application.class.getName(), this); // used in SitemapServlet, which serves outside JAX-RS
+        
 //        if (log.isTraceEnabled()) log.trace("Application.init() with Classes: {} and Singletons: {}", getClasses(), getSingletons());
     }
     

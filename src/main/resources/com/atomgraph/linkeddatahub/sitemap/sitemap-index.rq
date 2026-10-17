@@ -1,0 +1,33 @@
+PREFIX  dct:  <http://purl.org/dc/terms/>
+
+# The public documents of a dataspace counted per bucket, the first two hex digits of the MD5 of their URI:
+# a document always falls in the same bucket, so a sitemap page keeps its URLs as documents come and go.
+# A document is public if a public read rule of the dataspace grants access to it or to one of its classes;
+# both VALUES blocks are filled with the rows of public-rules.rq, and ?base is replaced with the dataspace's
+# base, so a store shared between dataspaces yields only this dataspace's documents.
+
+SELECT  ?bucket (count(DISTINCT ?loc) AS ?count) (max(?date) AS ?lastmod)
+WHERE
+  {   { VALUES ?Type { }
+        GRAPH ?loc
+          { ?loc  a  ?Type }
+        FILTER strstarts(str(?loc), str(?base))
+      }
+    UNION
+      { VALUES ?loc { }
+        GRAPH ?loc
+          { ?loc  a  ?any }
+        FILTER strstarts(str(?loc), str(?base))
+      }
+    OPTIONAL
+      { GRAPH ?loc
+          { ?loc  dct:created  ?created }
+      }
+    OPTIONAL
+      { GRAPH ?loc
+          { ?loc  dct:modified  ?modified }
+      }
+    BIND(coalesce(?modified, ?created) AS ?date)
+    BIND(substr(md5(str(?loc)), 1, 2) AS ?bucket)
+  }
+GROUP BY ?bucket
