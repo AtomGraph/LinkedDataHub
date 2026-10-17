@@ -69,7 +69,7 @@ The [`ldh` command line interface](#command-line-interface) is attached to every
      - `secrets/client_truststore_password.txt`
      - `secrets/owner_cert_password.txt`
      - `secrets/secretary_cert_password.txt`
-     - `secrets/openai_api_key.txt` — optional: an OpenAI API key for the assistant drawer, declared in `docker-compose.override.yml` like the OAuth secrets; without it the assistant runs plans but cannot write them
+     - `secrets/openai_api_key.txt` — optional, only if you [enable the assistant](#assistant): an OpenAI API key, declared in `docker-compose.override.yml` like the OAuth secrets; without it the assistant runs plans but cannot write them
      The one you will need to remember in order to authenticate with LinkedDataHub using WebID client certificate is `owner_cert_password`.
   5. Launch the application services by running this from command line:
      ```shell
@@ -221,7 +221,7 @@ _:warning: Do not use blank nodes to identify applications or services. We recom
     <dt><code>client_truststore_password</code></dt>
     <dd>Password of the client truststore</dd>
     <dt><code>openai_api_key</code></dt>
-    <dd>OpenAI API key the <code>web-algebra</code> service writes the assistant's plans with. Optional, declared in the override together with <code>OPENAI_API_KEY_FILE</code>; the service executes plans without it, and the drawer then reports that a plan could not be written</dd>
+    <dd>OpenAI API key the <code>web-algebra</code> service writes the <a href="#assistant">assistant</a>'s plans with. Optional, declared in the override together with <code>OPENAI_API_KEY_FILE</code>; the service executes plans without it, and the drawer then reports that a plan could not be written</dd>
     <dt><code>google_client_id</code></dt>
     <dd>Google's OAuth client ID</dd>
     <dd>Login with Google authentication is enabled when this value is provided</dd>
@@ -246,6 +246,8 @@ _:warning: Do not use blank nodes to identify applications or services. We recom
     <dd>The period for which the data import can keep an open HTTP connection before it times out, in ms. The larger files are being imported, the longer it has to be in order for the import to complete.</dd>
     <dt><code>MAX_CONTENT_LENGTH</code></dt>
     <dd>Maximum allowed size of the request body, in bytes</dd>
+    <dt><code>COMPOSE_PROFILES</code></dt>
+    <dd><code>assistant</code> to run and offer the <a href="#assistant">assistant</a>. Disabled by default</dd>
     <dt><code>MAIL_SMTP_HOST</code></dt>
     <dd>Hostname of the mail server</dd>
     <dt><code>MAIL_SMTP_PORT</code></dt>
@@ -321,7 +323,13 @@ AI agents work with LinkedDataHub through the same HTTP API and access control a
 
 Users signed in with a WebID certificate who have append access to a document can open the assistant from its creation bar. A question becomes a Web-Algebra plan, and the plan is shown before anything runs. A plan that only reads can run straight away, and one that writes waits for the user to press Execute. The plan runs as the user who asked. Each conversation is stored in the document as a block, so it is still there when the user comes back.
 
-The assistant is served by the `web-algebra` service in `docker-compose.yml`. Writing plans needs an OpenAI API key (`secrets/openai_api_key.txt`, see [Setup](#setup)). Without one, the assistant can still run plans but cannot write them.
+_:warning: The assistant is **opt-in**. It is served by the `web-algebra` service, whose image (`ghcr.io/atomgraph/webalgebra-server-ldh`) is proprietary: AtomGraph publishes the image but not its source, and LinkedDataHub's license does not cover it._
+
+To enable it, add to `.env`:
+```
+COMPOSE_PROFILES=assistant
+```
+The profile starts the service, and the platform reads the same variable to show the Assistant button. Set it in `.env` rather than with `docker compose --profile`, which the platform does not see. Writing plans needs an OpenAI API key (`secrets/openai_api_key.txt`, see [Setup](#setup)). Without one, the assistant can still run plans but cannot write them. See the [assistant reference](https://docs.linkeddatahub.com/reference/assistant/#setup) for details.
 
 ### [Claude Code plugin and skills](https://github.com/AtomGraph/LinkedDataHub/tree/master/plugins/ldh)
 
@@ -382,6 +390,7 @@ LinkedDataHub includes an HTTP [test suite](https://github.com/AtomGraph/LinkedD
 * [varnish](https://hub.docker.com/_/varnish)
 * [atomgraph/fuseki](https://hub.docker.com/r/atomgraph/fuseki)
 * [namshi/smtp](https://hub.docker.com/r/namshi/smtp)
+* `ghcr.io/atomgraph/webalgebra-server-ldh` — optional, proprietary (see [Assistant](#assistant))
 
 ## Support
 
