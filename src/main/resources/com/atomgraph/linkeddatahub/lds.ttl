@@ -48,7 +48,7 @@
     rdfs:domain :Dataspace ;
     rdfs:range xsd:boolean ;
     rdfs:label "Assistant" ;
-    rdfs:comment "True if the dataspace's documents can open the assistant, i.e. its plan service is deployed beside the instance (the "assistant" compose profile). Published by the server in the dataspace context; not configuration" ;
+    rdfs:comment "True if the dataspace's documents can open the assistant, i.e. its plan service is deployed beside the instance (the assistant compose profile). Published by the server in the dataspace context; not configuration" ;
     rdfs:isDefinedBy : .
 
 :base a owl:ObjectProperty, owl:FunctionalProperty ;
