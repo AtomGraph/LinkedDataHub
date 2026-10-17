@@ -1439,6 +1439,25 @@ exclude-result-prefixes="#all"
         </xsl:call-template>
     </xsl:template>
 
+    <!-- a heading with an id addresses a section of the document, so it carries a pilcrow linking to its own
+         fragment, which is how a section URI gets copied. The fragment is left unresolved like any other, so
+         it addresses this rendering in proxy mode too -->
+    <xsl:template match="xhtml:h1[@id] | xhtml:h2[@id] | xhtml:h3[@id] | xhtml:h4[@id] | xhtml:h5[@id] | xhtml:h6[@id]" mode="ldh:XHTMLContent">
+        <xsl:copy copy-namespaces="no">
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+
+            <xsl:apply-templates select="@id" mode="ldh:HeadingAnchor"/>
+        </xsl:copy>
+    </xsl:template>
+
+    <xsl:template match="@id" mode="ldh:HeadingAnchor">
+        <xsl:variable name="label" as="xs:string">
+            <xsl:apply-templates select="key('resources', 'link-to-section', ldh:translations())" mode="ac:label"/>
+        </xsl:variable>
+
+        <a href="#{.}" class="ldh-heading-anchor" title="{$label}" aria-label="{$label}">&#182;</a>
+    </xsl:template>
+
     <!-- resolve relative @href URIs against base in proxy mode. A path-absolute reference is relative too:
          it carries no authority, so the browser fills in the one it is displayed on - the proxying dataspace,
          not the document the content came from - and only a fragment stays unresolved, because it addresses
