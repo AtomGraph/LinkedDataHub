@@ -103,13 +103,14 @@ public class SitemapServlet extends HttpServlet
     private static final Var TYPE_VAR = Var.alloc("Type"), LOC_VAR = Var.alloc("loc"), TO_VAR = Var.alloc("to");
 
     private boolean enabled;
-    private Query publicRulesQuery, indexQuery, sitemapQuery;
+    private Query publicRulesQuery, publicDocumentQuery, indexQuery, sitemapQuery;
 
     @Override
     public void init() throws ServletException
     {
         enabled = Boolean.parseBoolean(System.getProperty("com.atomgraph.linkeddatahub.enableSitemap"));
         publicRulesQuery = loadQuery("public-rules.rq");
+        publicDocumentQuery = loadQuery("public-document.rq");
         indexQuery = loadQuery("sitemap-index.rq");
         sitemapQuery = loadQuery("sitemap.rq");
     }
@@ -144,7 +145,7 @@ public class SitemapServlet extends HttpServlet
         try
         {
             if (req.getServletPath().equals(ROBOTS_PATH))
-                writeRobots(resp, enabled && adminApp != null && getPublicRules(system, adminApp).size() > 0 ? endUserApp : null);
+                writeRobots(resp, enabled && adminApp != null && hasPublicDocument(system, endUserApp, getPublicRules(system, adminApp)) ? endUserApp : null);
             else
             {
                 if (!enabled || adminApp == null)
@@ -303,6 +304,19 @@ public class SitemapServlet extends HttpServlet
     {
         return select(system, adminApp.getService(), QueryTransformOps.replaceVars(publicRulesQuery,
             Map.of(Var.alloc("adminBase"), NodeFactory.createURI(adminApp.getBaseURI().toString()))));
+    }
+
+    /**
+     * Returns true if the dataspace has a public document, which is what gives it a sitemap.
+     *
+     * @param system system application
+     * @param app end-user dataspace
+     * @param publicRules public read rules
+     * @return true if a public read rule grants access to a document of the dataspace
+     */
+    public boolean hasPublicDocument(Application system, EndUserDataspace app, ResultSetRewindable publicRules)
+    {
+        return select(system, app.getService(), bindPublicRules(substitute(publicDocumentQuery, app, null), publicRules)).hasNext();
     }
 
     /**
