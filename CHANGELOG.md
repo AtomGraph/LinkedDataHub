@@ -1,4 +1,4 @@
-## [Unreleased]
+## [6.2.0] - 2026-10-17
 ### Migration
 - Top-level LDH stylesheet params and variables carry the `ldh:` prefix; overrides of the unprefixed names are ignored
 - Shared stylesheets query through `ldh:query-result()`; `ac:value-intersect()`/`ac:value-except()` are removed
