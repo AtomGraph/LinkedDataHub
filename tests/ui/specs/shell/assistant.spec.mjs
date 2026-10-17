@@ -518,7 +518,7 @@ test('a plan that adds a block to the page being read reloads the page with the 
         await route.fulfill({ status: 202, contentType: 'application/xml', body: `<wa:execution xmlns:wa="${WA}"><wa:id>added</wa:id></wa:execution>` });
     });
     await page.route(/\/webalgebra\/added\/result$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: execution }));
-    await page.route(/\/webalgebra\/answers$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: `<wa:answer xmlns:wa="${WA}">Added a block to this document.</wa:answer>` }));
+    await page.route(/\/webalgebra\/answers$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: `<wa:answer xmlns:wa="${WA}"><div xmlns="${XHTML}"><p>Added a block to this document.</p></div></wa:answer>` }));
 
     await goto(page, inMode(scratch.container, CONTENT_MODE));
     const breadcrumb = page.locator('.ldh-pane.is-active .ldh-bc');
