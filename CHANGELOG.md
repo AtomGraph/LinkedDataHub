@@ -1,4 +1,4 @@
-## [Unreleased]
+## [6.2.1] - 2026-10-17
 ### Migration
 - The assistant is opt-in: set `COMPOSE_PROFILES=assistant` in `.env` to run the `web-algebra` service and offer the assistant in the UI
 
