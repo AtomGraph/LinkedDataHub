@@ -4660,7 +4660,12 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-chat-plan .ac-codefield pre { flex: 1; min-width: 0; margin: 0; padding: var(--sp-2) var(--sp-3); font-family: var(--font-mono); font-size: 11px; line-height: var(--lh-snug); color: var(--fg-2); white-space: pre; }
 .ldh-chat-plan-actions { display: flex; gap: var(--sp-2); }
 /* the answer: the card's first line once there is one, read off the rows below it */
-.ldh-chat-answer { margin: 0; font-size: var(--fs-md); line-height: var(--lh-base); color: var(--fg-1); white-space: pre-line; }
+.ldh-chat-answer { margin: 0; font-size: var(--fs-md); line-height: var(--lh-base); color: var(--fg-1); }
+/* its paragraphs and lists, spaced like a short passage of text */
+.ldh-chat-answer > p, .ldh-chat-answer > ul, .ldh-chat-answer > ol { margin: 0; }
+.ldh-chat-answer > * + * { margin-top: var(--sp-2); }
+.ldh-chat-answer ul, .ldh-chat-answer ol { padding-left: var(--sp-5); }
+.ldh-chat-answer code { font-family: var(--font-mono); font-size: 0.9em; }
 /* the trace: the steps under a disclosure whose summary is their count and the plan's time - open while the plan is
    being read or run, folded once the answer has been written. No marker; the meta line is the control */
 details.ldh-chat-trace > summary { font-family: var(--font-mono); font-size: 10px; letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--fg-muted); cursor: pointer; list-style: none; }

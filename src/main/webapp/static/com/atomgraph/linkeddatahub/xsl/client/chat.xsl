@@ -240,6 +240,80 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="($property/*[1], for $text in $property[empty(*)][normalize-space()] return parse-xml(string($text))/*)[1]"/>
     </xsl:function>
 
+    <!-- THE ANSWER -->
+
+    <!-- An answer is an XHTML fragment the model wrote, so it is markup from outside, inserted into the page: the
+         service keeps it to paragraphs, lists, emphasis, code and links to what the plan returned, and the client keeps
+         it to the same again rather than trust the service. An element outside them is unwrapped to its content, one
+         whose content is not text goes whole, an element left with no text goes, and a link keeps only an http(s) href.
+         What is left serializes as canonical XML, which is how it is stored (ldh:answer is an rdf:XMLLiteral) -->
+    <xsl:template match="xhtml:p | xhtml:ul | xhtml:ol | xhtml:li | xhtml:strong | xhtml:em | xhtml:code" mode="ldh:ChatAnswer">
+        <xsl:if test="normalize-space()">
+            <xsl:element name="{local-name()}" namespace="http://www.w3.org/1999/xhtml">
+                <xsl:apply-templates mode="#current"/>
+            </xsl:element>
+        </xsl:if>
+    </xsl:template>
+
+    <xsl:template match="xhtml:a[matches(@href, '^https?://')]" mode="ldh:ChatAnswer">
+        <xsl:if test="normalize-space()">
+            <a href="{@href}">
+                <xsl:apply-templates mode="#current"/>
+            </a>
+        </xsl:if>
+    </xsl:template>
+
+    <xsl:template match="xhtml:script | xhtml:style | xhtml:iframe | xhtml:object | xhtml:embed | xhtml:template | xhtml:noscript" mode="ldh:ChatAnswer"/>
+
+    <xsl:template match="*" mode="ldh:ChatAnswer">
+        <xsl:apply-templates mode="#current"/>
+    </xsl:template>
+
+    <xsl:template match="text()" mode="ldh:ChatAnswer">
+        <xsl:copy/>
+    </xsl:template>
+
+    <!-- the answer as the card shows it: its kept content, in a paragraph when none of it is a paragraph or a list -->
+    <xsl:function name="ldh:chat-answer-block" as="element()?">
+        <xsl:param name="answer" as="element()?"/>
+        <xsl:variable name="content" as="node()*">
+            <xsl:apply-templates select="$answer/node()" mode="ldh:ChatAnswer"/>
+        </xsl:variable>
+
+        <xsl:if test="normalize-space(string-join($content))">
+            <div class="ldh-chat-answer">
+                <xsl:choose>
+                    <xsl:when test="$content/self::xhtml:p | $content/self::xhtml:ul | $content/self::xhtml:ol">
+                        <xsl:sequence select="$content"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <p>
+                            <xsl:sequence select="$content"/>
+                        </p>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </div>
+        </xsl:if>
+    </xsl:function>
+
+    <!-- a stored answer: an rdf:XMLLiteral, or the plain string a turn stored before answers were markup -->
+    <xsl:function name="ldh:stored-answer" as="element()?">
+        <xsl:param name="answer" as="element()?"/>
+
+        <xsl:choose>
+            <xsl:when test="$answer/@rdf:parseType = 'Literal' or $answer/@rdf:datatype = '&rdf;XMLLiteral'">
+                <xsl:sequence select="ldh:chat-answer-block(ldh:xml-literal($answer))"/>
+            </xsl:when>
+            <xsl:when test="normalize-space($answer)">
+                <div class="ldh-chat-answer">
+                    <p>
+                        <xsl:value-of select="$answer"/>
+                    </p>
+                </div>
+            </xsl:when>
+        </xsl:choose>
+    </xsl:function>
+
     <!-- a stored turn, drawn as the live card ended: the question, the answer, the plan's summary, the trace folded under
          its count, and what it returned or wrote - the turn's outcome, not a fresh run of its plan -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;ChatTurn']" mode="ldh:StoredTurn">
@@ -252,11 +326,7 @@ exclude-result-prefixes="#all"
             <xsl:value-of select="ldh:question"/>
         </p>
         <div class="ldh-nblock ldh-chat-plan" data-depth="1" id="{$card-id}" data-question="{ldh:question}" data-attempt="0" data-outcome="{ldh:outcome}" data-turn="{@rdf:about}">
-            <xsl:for-each select="ldh:answer[normalize-space()]">
-                <p class="ldh-chat-answer">
-                    <xsl:value-of select="."/>
-                </p>
-            </xsl:for-each>
+            <xsl:sequence select="ldh:stored-answer(ldh:answer[1])"/>
             <xsl:if test="normalize-space($plan/wa:summary)">
                 <p>
                     <xsl:value-of select="$plan/wa:summary"/>
@@ -514,7 +584,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="turn-uri" select="xs:anyURI($doc-uri || '#turn-' || ac:uuid())" as="xs:anyURI"/>
         <xsl:variable name="plan" select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.chat'), string($card/@id))) then ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.chat'), string($card/@id)) else ()" as="element()?"/>
         <xsl:variable name="execution" select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.chatExecutions'), string($card/@id))) then ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.chatExecutions'), string($card/@id)) else ()" as="element()?"/>
-        <xsl:variable name="answer" select="normalize-space(string-join($card/p[contains-token(@class, 'ldh-chat-answer')]))" as="xs:string"/>
+        <xsl:variable name="answer" select="$card/*[contains-token(@class, 'ldh-chat-answer')][1]" as="element()?"/>
 
         <xsl:if test="not($response?status = 200 and $response?media-type = 'application/rdf+xml')">
             <xsl:sequence select="ldh:response-error($response)"/>
@@ -533,11 +603,18 @@ exclude-result-prefixes="#all"
                         <ldh:question>
                             <xsl:value-of select="$card/@data-question"/>
                         </ldh:question>
-                        <xsl:if test="$answer">
-                            <ldh:answer>
-                                <xsl:value-of select="$answer"/>
+                        <!-- the answer as the card shows it, kept to the answer's elements again and without the card's
+                             class: a div in the XHTML namespace, which serializes as canonical XML -->
+                        <xsl:for-each select="$answer">
+                            <xsl:variable name="literal" as="element()">
+                                <xsl:element name="div" namespace="http://www.w3.org/1999/xhtml">
+                                    <xsl:apply-templates select="node()" mode="ldh:ChatAnswer"/>
+                                </xsl:element>
+                            </xsl:variable>
+                            <ldh:answer rdf:datatype="&rdf;XMLLiteral">
+                                <xsl:value-of select="serialize($literal, map{ 'method': 'xml' })"/>
                             </ldh:answer>
-                        </xsl:if>
+                        </xsl:for-each>
                         <!-- the literals travel escaped, as text typed rdf:XMLLiteral, never as rdf:parseType="Literal" markup: a
                              result that is a graph is an rdf:RDF element, and Jena's RDF/XML parser refuses an rdf:RDF inside a
                              literal ("Inconsistent parserMode:TOP") - the whole write answered 400 for a turn whose plan had read
@@ -863,9 +940,11 @@ exclude-result-prefixes="#all"
                 <xsl:for-each select="$card">
                     <ixsl:set-attribute name="data-outcome" select="'declined'"/>
                     <xsl:result-document href="?." method="ixsl:replace-content">
-                        <p class="ldh-chat-answer">
-                            <xsl:value-of select="$plan/wa:message"/>
-                        </p>
+                        <div class="ldh-chat-answer">
+                            <p>
+                                <xsl:value-of select="$plan/wa:message"/>
+                            </p>
+                        </div>
                     </xsl:result-document>
                 </xsl:for-each>
                 <xsl:sequence select="ldh:chat-store-turn($card)"/>
@@ -1036,7 +1115,7 @@ exclude-result-prefixes="#all"
 
         <!-- the actions and what a previous attempt reported - everything after the rows - go; the rows go back to
              planned and report anew -->
-        <xsl:for-each select="$card/*[preceding-sibling::details[contains-token(@class, 'ldh-chat-trace')]] | $card/div[contains-token(@class, 'ac-pbar')] | $card/p[contains-token(@class, 'ldh-chat-answer')]">
+        <xsl:for-each select="$card/*[preceding-sibling::details[contains-token(@class, 'ldh-chat-trace')]] | $card/div[contains-token(@class, 'ac-pbar')] | $card/div[contains-token(@class, 'ldh-chat-answer')]">
             <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
         <xsl:for-each select="$card/details[contains-token(@class, 'ldh-chat-trace')]">
@@ -1580,7 +1659,7 @@ exclude-result-prefixes="#all"
 
     <!-- THE ANSWER -->
 
-    <!-- What the plan did, as a sentence or two: the question, the plan's summary, the steps and how they went, the
+    <!-- What the plan did, in a few sentences or a short list: the question, the plan's summary, the steps and how they went, the
          documents written, and the rows - a label beside each resource that has one - go to the answer service beside
          the plan service, and its reading comes back as the card's first line. The rows stay the authority and stay
          on the card; the trace folds under its count once there is an answer to read instead. A service that cannot
@@ -1626,17 +1705,15 @@ exclude-result-prefixes="#all"
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
         <xsl:variable name="card" select="$context('card')" as="element()"/>
-        <xsl:variable name="answer" select="normalize-space($response?body/wa:answer)" as="xs:string"/>
+        <xsl:variable name="answer" select="if ($response?status = 200) then ldh:chat-answer-block($response?body/wa:answer/xhtml:div) else ()" as="element()?"/>
 
-        <xsl:if test="$response?status = 200 and $answer">
-            <xsl:for-each select="$card/p[contains-token(@class, 'ldh-chat-answer')]">
+        <xsl:if test="exists($answer)">
+            <xsl:for-each select="$card/div[contains-token(@class, 'ldh-chat-answer')]">
                 <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:for-each>
             <xsl:for-each select="$card/*[1]">
                 <xsl:result-document href="?." method="ixsl:insert-before">
-                    <p class="ldh-chat-answer">
-                        <xsl:value-of select="$answer"/>
-                    </p>
+                    <xsl:sequence select="$answer"/>
                 </xsl:result-document>
             </xsl:for-each>
             <xsl:for-each select="$card/details[contains-token(@class, 'ldh-chat-trace')]">
