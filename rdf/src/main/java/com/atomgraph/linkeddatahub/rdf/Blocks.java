@@ -54,6 +54,25 @@ public final class Blocks
      */
     public static Model object(URI target, Property seq, String uri, URI value, String title, String description, URI mode)
     {
+        return object(target, seq, uri, value, title, description, mode, null);
+    }
+
+    /**
+     * Builds an object block whose value is described in a given document rather than at its own URI,
+     * so an external resource can be shown from a dataspace-local description.
+     *
+     * @param target target document URI
+     * @param seq container membership property fixing the block's position
+     * @param uri block URI, relative or absolute (optional, blank node when absent)
+     * @param value URI of the resource the block shows
+     * @param title block title (optional)
+     * @param description block description (optional)
+     * @param mode layout mode URI (optional)
+     * @param graph URI of the document holding the value's description (optional, the value's own document when absent)
+     * @return block model
+     */
+    public static Model object(URI target, Property seq, String uri, URI value, String title, String description, URI mode, URI graph)
+    {
         Model model = ModelFactory.createDefaultModel();
 
         Resource block = Subjects.of(model, target, uri).
@@ -63,6 +82,7 @@ public final class Blocks
         if (title != null) block.addProperty(DCTerms.title, title);
         if (description != null) block.addProperty(DCTerms.description, description);
         if (mode != null) block.addProperty(AC.mode, model.createResource(mode.toString()));
+        if (graph != null) block.addProperty(LDH.graph, model.createResource(graph.toString()));
 
         return model;
     }
