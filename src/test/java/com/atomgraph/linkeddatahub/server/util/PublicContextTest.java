@@ -95,6 +95,7 @@ public class PublicContextTest
         }
         """;
 
+    private static Model context;
     private static Model view;
 
     @BeforeAll
@@ -106,7 +107,8 @@ public class PublicContextTest
 
         Dataset dataset = DatasetFactory.create();
         RDFParser.create().source(new StringReader(CONTEXT)).lang(Lang.TRIG).parse(dataset);
-        view = PublicContext.of(dataset.getUnionModel());
+        context = dataset.getUnionModel();
+        view = PublicContext.of(context, false);
     }
 
     @Test
@@ -146,6 +148,16 @@ public class PublicContextTest
         // an admin dataspace has no admin, and an end-user dataspace without one gets none
         assertFalse(view.contains(view.createResource("urn:linkeddatahub:apps/admin"), LDS.admin));
         assertFalse(view.contains(view.createResource("urn:linkeddatahub:apps/orphan"), LDS.admin));
+    }
+
+    @Test
+    public void testPublishesAssistantOnlyWhenEnabled()
+    {
+        assertFalse(view.contains(null, LDS.assistant));
+
+        // every dataspace, admin included: the assistant opens wherever a document can be appended to
+        Model enabled = PublicContext.of(context, true);
+        assertEquals(3, enabled.listResourcesWithProperty(LDS.assistant, true).toList().size());
     }
 
 }

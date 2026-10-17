@@ -297,6 +297,7 @@ public class Application extends ResourceConfig
     private final boolean invalidateCache;
     private final Integer cookieMaxAge;
     private final boolean enableLinkedDataProxy;
+    private final boolean enableAssistant;
     private final boolean allowInternalUrls;
     private final URLValidator urlValidator;
     private final Integer maxContentLength;
@@ -372,6 +373,7 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(LDHC.invalidateCache.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.invalidateCache.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(LDHC.cookieMaxAge.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.cookieMaxAge.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.enableLinkedDataProxy.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.enableLinkedDataProxy.getURI())) : true,
+            Boolean.parseBoolean(System.getProperty("com.atomgraph.linkeddatahub.enableAssistant")), // opt-in: the plan service is a separate, optional container
             System.getProperty("com.atomgraph.linkeddatahub.allowInternalUrls") != null ? Boolean.parseBoolean(System.getProperty("com.atomgraph.linkeddatahub.allowInternalUrls")) :
             servletConfig.getServletContext().getInitParameter(LDHC.allowInternalUrls.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.allowInternalUrls.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(LDHC.maxContentLength.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxContentLength.getURI())) : null,
@@ -443,6 +445,7 @@ public class Application extends ResourceConfig
      * @param invalidateCache true if Varnish proxy cache should be invalidated
      * @param cookieMaxAge max age of auth cookies
      * @param enableLinkedDataProxy true if Linked Data proxy is enabled
+     * @param enableAssistant true if the assistant's plan service is deployed beside this instance
      * @param allowInternalUrls true if internal/private network URLs are allowed (disables SSRF protection)
      * @param maxContentLength maximum size of request entity
      * @param maxConnPerRoute maximum client connections per rout
@@ -476,7 +479,7 @@ public class Application extends ResourceConfig
             final String webIDQueryString, final String agentQueryString, final String userAccountQueryString, final String ontologyQueryString,
             final String baseURIString, final String proxyScheme, final String proxyHostname, final Integer proxyPort,
             final String uploadRootString, final String sefRootString, final String sefCompilerString, final String clientStylesheetString, final boolean invalidateCache,
-            final Integer cookieMaxAge, final boolean enableLinkedDataProxy, final boolean allowInternalUrls, final Integer maxContentLength,
+            final Integer cookieMaxAge, final boolean enableLinkedDataProxy, final boolean enableAssistant, final boolean allowInternalUrls, final Integer maxContentLength,
             final Integer maxConnPerRoute, final Integer maxTotalConn, final Integer maxRequestRetries, final Integer connectionRequestTimeout,
             final Integer socketTimeout, final Integer connectTimeout, final Integer selfRequestTimeout, final Long connectionTimeToLive, final Integer validateAfterInactivity, final Integer maxImportThreads,
             final String notificationAddressString, final boolean enableWebIDSignUp, final String oidcRefreshTokensPropertiesPath,
@@ -613,6 +616,7 @@ public class Application extends ResourceConfig
         this.cacheStylesheet = cacheStylesheet;
         this.resolvingUncached = resolvingUncached;
         this.enableLinkedDataProxy = enableLinkedDataProxy;
+        this.enableAssistant = enableAssistant;
         this.allowInternalUrls = allowInternalUrls;
         this.urlValidator = new URLValidator(allowInternalUrls);
         configureServiceExecution(allowInternalUrls);
@@ -2447,6 +2451,17 @@ public class Application extends ResourceConfig
     public boolean isEnableLinkedDataProxy()
     {
         return enableLinkedDataProxy;
+    }
+
+    /**
+     * Returns true if the assistant is enabled, i.e. its plan service is deployed beside this instance.
+     * Published in the public dataspace context as <code>lds:assistant</code>, which the UI reads.
+     * 
+     * @return true if enabled
+     */
+    public boolean isEnableAssistant()
+    {
+        return enableAssistant;
     }
 
     /**

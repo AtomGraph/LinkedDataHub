@@ -86,6 +86,9 @@ public class LDS
     /** Admin property: the base URI of an end-user dataspace's administration application (for Link header rel) */
     public static final Property admin = m_model.createObjectProperty( NS + "admin" );
 
+    /** Assistant property: true if the dataspace's documents can open the assistant (published in the dataspace context) */
+    public static final Property assistant = m_model.createDataProperty( NS + "assistant" );
+
     /** Base URI property */
     public static final Property base = m_model.createObjectProperty( NS + "base" );
 
