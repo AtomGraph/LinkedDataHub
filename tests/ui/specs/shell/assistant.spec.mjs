@@ -21,6 +21,7 @@ import { adminBase, endUserBase } from '../../lib/stack.mjs';
 import { CONTENT_MODE, inMode } from '../../lib/mode.mjs';
 
 const WA = 'https://w3id.org/atomgraph/web-algebra';
+const XHTML = 'http://www.w3.org/1999/xhtml';
 const SEEDED_QUESTION = 'Which titles are in the seeded chat?';
 const SEEDED_ANSWER = 'Two titles: Seeded alpha and Seeded beta.';
 const DECLINED = 'Declined by the spec.';
@@ -228,7 +229,7 @@ test('a plan that shows a grid draws its graph as cards with their images, also 
     await page.route(/\/webalgebra\/plans$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: plan }));
     await page.route(/\/webalgebra$/, route => route.fulfill({ status: 202, contentType: 'application/xml', body: `<wa:execution xmlns:wa="${WA}"><wa:id>grid</wa:id></wa:execution>` }));
     await page.route(/\/webalgebra\/grid\/result$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: execution }));
-    await page.route(/\/webalgebra\/answers$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: `<wa:answer xmlns:wa="${WA}">Two presidents, with their portraits.</wa:answer>` }));
+    await page.route(/\/webalgebra\/answers$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: `<wa:answer xmlns:wa="${WA}"><div xmlns="${XHTML}"><p>Two presidents, with their portraits.</p></div></wa:answer>` }));
     await page.route(/^https:\/\/images\.example\//, route => route.fulfill({ status: 200, contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4"/>' }));
     // the cards' labels: the view's metadata lookups against Wikidata, answered empty
     await page.route(/query\.wikidata\.org/, route => route.fulfill({ status: 200, contentType: 'application/rdf+xml', body: '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"/>' }));
@@ -268,7 +269,7 @@ test('a plan that shows a timeline draws each row as a span, the one still under
     await page.route(/\/webalgebra\/plans$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: plan }));
     await page.route(/\/webalgebra$/, route => route.fulfill({ status: 202, contentType: 'application/xml', body: `<wa:execution xmlns:wa="${WA}"><wa:id>timeline</wa:id></wa:execution>` }));
     await page.route(/\/webalgebra\/timeline\/result$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: execution }));
-    await page.route(/\/webalgebra\/answers$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: `<wa:answer xmlns:wa="${WA}">Three terms.</wa:answer>` }));
+    await page.route(/\/webalgebra\/answers$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: `<wa:answer xmlns:wa="${WA}"><div xmlns="${XHTML}"><p>Three terms.</p></div></wa:answer>` }));
 
     await goto(page, inMode(scratch.container, CONTENT_MODE));
     await button(page).click();
@@ -282,6 +283,56 @@ test('a plan that shows a timeline draws each row as a span, the one still under
     await expect(canvas.locator('svg')).toBeVisible({ timeout: 30_000 });
     for (const [name] of terms) await expect(canvas.locator('svg text', { hasText: name })).toHaveCount(1);
     await expect(canvas.locator('svg rect[stroke]')).not.toHaveCount(0);
+});
+
+test('an answer is XHTML: its list and links are drawn, anything else is not, and it is stored as canonical XML', { tag: '@owner' }, async ({ page }) => {
+    // the plan service answered by the spec: a SELECT that returned two customers, and an answer that lists them -
+    // with what a model must not get into the page: a script, an attribute, an element outside the answer's, a
+    // javascript: link and an element left empty
+    const customers = [['https://example.org/customers/SAVEA/#this', 'Save-a-lot Markets', '17'], ['https://example.org/customers/ERNSH/#this', 'Ernst Handel', '15']];
+    const plan = `<wa:plan xmlns:wa="${WA}"><wa:summary>Finds the customers with the most orders.</wa:summary><wa:operations><wa:operation name="SELECT"/></wa:operations><SELECT xmlns="${WA}"><endpoint>${endUserBase}sparql</endpoint><query>SELECT ?customer ?orders WHERE { ?customer ?p ?orders } LIMIT 2</query></SELECT></wa:plan>`;
+    const rows = customers.map(([uri, , orders]) => `<result><binding name="customer"><uri>${uri}</uri></binding><binding name="orders"><literal>${orders}</literal></binding></result>`).join('');
+    const execution = `<wa:execution xmlns:wa="${WA}"><wa:id>answer</wa:id><wa:status>complete</wa:status><wa:steps><wa:step operation="SELECT" depth="0" outcome="complete" elapsed="300"/></wa:steps><wa:result><sparql xmlns="http://www.w3.org/2005/sparql-results#"><head><variable name="customer"/><variable name="orders"/></head><results>${rows}</results></sparql></wa:result></wa:execution>`;
+    const items = customers.map(([uri, name, orders]) => `<li><a href="${uri}">${name}</a>: <strong>${orders}</strong> orders</li>`).join('');
+    const answer = `<div xmlns="${XHTML}"><p class="lead" onclick="alert(1)">The customers with the most orders:<script>alert(2)</script></p><ol>${items}<li><span>Also</span> <a href="javascript:alert(3)">this</a><em></em></li></ol></div>`;
+    await page.route(/\/webalgebra\/plans$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: plan }));
+    await page.route(/\/webalgebra$/, route => route.fulfill({ status: 202, contentType: 'application/xml', body: `<wa:execution xmlns:wa="${WA}"><wa:id>answer</wa:id></wa:execution>` }));
+    await page.route(/\/webalgebra\/answer\/result$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: execution }));
+    await page.route(/\/webalgebra\/answers$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: `<wa:answer xmlns:wa="${WA}">${answer}</wa:answer>` }));
+
+    await goto(page, inMode(scratch.container, CONTENT_MODE));
+    await button(page).click();
+    const chatUri = await ephemeral(page).locator('.ldh-chat').getAttribute('data-chat');
+    await composer(chatOf(page, chatUri)).fill('Which customers ordered the most?');
+    await composer(chatOf(page, chatUri)).press('Enter');
+
+    // the answer first on the card: a paragraph and an ordered list, each customer a link, the hostile parts gone
+    const assertAnswer = async card => {
+        const drawn = card.locator('> .ldh-chat-answer');
+        await expect(drawn).toBeVisible({ timeout: 30_000 });
+        await expect(drawn.locator('> p')).toHaveText('The customers with the most orders:');
+        await expect(drawn.locator('> ol > li')).toHaveCount(3);
+        for (const [uri, name] of customers) await expect(drawn.locator(`a[href="${uri}"]`)).toHaveText(name);
+        await expect(drawn.locator('strong')).toHaveText(['17', '15']);
+        await expect(drawn.locator('script, span, em, [onclick], [class]:not(.ldh-chat-answer)')).toHaveCount(0);
+        await expect(drawn.locator('a')).toHaveCount(2);
+        await expect(drawn.locator('> ol > li').last()).toHaveText('Also this');
+    };
+    await assertAnswer(cards(chatOf(page, chatUri)).last());
+    await expect(cards(chatOf(page, chatUri)).last()).toHaveAttribute('data-turn', /#turn-/, { timeout: 30_000 });
+
+    // stored as an rdf:XMLLiteral holding the kept markup in exclusive canonical form: one namespace declaration,
+    // no attribute but a link's href, every end tag written
+    const canonical = `<div xmlns="${XHTML}"><p>The customers with the most orders:</p><ol>${items}<li>Also this</li></ol></div>`;
+    const ntriples = (await ldh(['get', '--accept', 'application/n-triples', scratch.container])).stdout;
+    const line = ntriples.split('\n').find(l => l.includes('<https://w3id.org/atomgraph/linkeddatahub#answer>'));
+    expect(line).toBeDefined();
+    expect(line).toContain('^^<http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral>');
+    expect(JSON.parse(line.slice(line.indexOf('"'), line.lastIndexOf('"^^') + 1))).toBe(canonical);
+
+    // and drawn the same way from the store
+    await page.reload();
+    await assertAnswer(cards(chatOf(page, chatUri)).last());
 });
 
 test('a plan that shows a map or a 3D graph draws its canvas, both on one page, and again from the store', { tag: '@owner' }, async ({ page }) => {
@@ -305,7 +356,7 @@ test('a plan that shows a map or a 3D graph draws its canvas, both on one page, 
         const id = route.request().url().match(/\/webalgebra\/(map|graph)\/result$/)[1];
         route.fulfill({ status: 200, contentType: 'application/xml', body: `<wa:execution xmlns:wa="${WA}"><wa:id>${id}</wa:id><wa:status>complete</wa:status><wa:steps><wa:step operation="CONSTRUCT" depth="0" outcome="complete" elapsed="300"/></wa:steps><wa:result>${graphs[id]}</wa:result></wa:execution>` });
     });
-    await page.route(/\/webalgebra\/answers$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: `<wa:answer xmlns:wa="${WA}">Two capitals.</wa:answer>` }));
+    await page.route(/\/webalgebra\/answers$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: `<wa:answer xmlns:wa="${WA}"><div xmlns="${XHTML}"><p>Two capitals.</p></div></wa:answer>` }));
     // the map's tiles, answered blank: what is drawn is the map, not the tile server's availability
     await page.route(/tile\.openstreetmap\.org/, route => route.fulfill({ status: 200, contentType: 'image/png', body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', 'base64') }));
 
