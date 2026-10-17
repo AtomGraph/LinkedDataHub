@@ -21,6 +21,7 @@ import { adminBase, endUserBase } from '../../lib/stack.mjs';
 import { CONTENT_MODE, inMode } from '../../lib/mode.mjs';
 
 const WA = 'https://w3id.org/atomgraph/web-algebra';
+const XHTML = 'http://www.w3.org/1999/xhtml';
 const SEEDED_QUESTION = 'Which titles are in the seeded chat?';
 const SEEDED_ANSWER = 'Two titles: Seeded alpha and Seeded beta.';
 const DECLINED = 'Declined by the spec.';
@@ -98,7 +99,17 @@ async function askTheModel(page, chat, question, allowNoise) {
     test.skip((await planned).status() === 503, 'the plan service runs without a model key');
 }
 
+// The Assistant button is offered only by a stack that runs the assistant - the "assistant" compose profile, which
+// /context advertises as lds:assistant - and CI runs without it. A spec that starts a chat from the button is skipped
+// there; a stored chat block draws its turns and continues without it, so those specs run on every stack.
+let assistantOffered;
+async function requireAssistant() {
+    assistantOffered ??= (await ldh(['get', '--accept', 'application/n-triples', `${endUserBase}context`])).stdout.includes('<https://w3id.org/atomgraph/linkeddatahub/dataspaces#assistant>');
+    test.skip(!assistantOffered, 'the stack runs without the assistant');
+}
+
 test('the Assistant button starts a chat block with its own composer, and nothing is written until a question', { tag: '@owner' }, async ({ page }) => {
+    await requireAssistant();
     await goto(page, inMode(scratch.container, CONTENT_MODE));
 
     // the bar holds the button and nothing else of the assistant's
@@ -218,6 +229,7 @@ test('a step shows the value it resolved to, and the operation around it shows t
 });
 
 test('a plan that shows a grid draws its graph as cards with their images, also from the store', { tag: '@owner' }, async ({ page }) => {
+    await requireAssistant();
     // the plan service answered by the spec: a CONSTRUCT shown as a grid, and its graph of two depicted resources
     const AC = 'https://w3id.org/atomgraph/client#';
     const plan = `<wa:plan xmlns:wa="${WA}"><wa:summary>Shows two presidents with their portraits.</wa:summary><wa:present xmlns:ac="${AC}" ac:mode="${AC}GridMode"/><wa:operations><wa:operation name="CONSTRUCT"/></wa:operations><CONSTRUCT xmlns="${WA}"><endpoint>https://query.wikidata.org/sparql</endpoint><query>CONSTRUCT { ?p &lt;http://xmlns.com/foaf/0.1/depiction&gt; ?image } WHERE { ?p &lt;http://www.wikidata.org/prop/direct/P18&gt; ?image } LIMIT 2</query></CONSTRUCT></wa:plan>`;
@@ -228,7 +240,7 @@ test('a plan that shows a grid draws its graph as cards with their images, also 
     await page.route(/\/webalgebra\/plans$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: plan }));
     await page.route(/\/webalgebra$/, route => route.fulfill({ status: 202, contentType: 'application/xml', body: `<wa:execution xmlns:wa="${WA}"><wa:id>grid</wa:id></wa:execution>` }));
     await page.route(/\/webalgebra\/grid\/result$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: execution }));
-    await page.route(/\/webalgebra\/answers$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: `<wa:answer xmlns:wa="${WA}">Two presidents, with their portraits.</wa:answer>` }));
+    await page.route(/\/webalgebra\/answers$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: `<wa:answer xmlns:wa="${WA}"><div xmlns="${XHTML}"><p>Two presidents, with their portraits.</p></div></wa:answer>` }));
     await page.route(/^https:\/\/images\.example\//, route => route.fulfill({ status: 200, contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4"/>' }));
     // the cards' labels: the view's metadata lookups against Wikidata, answered empty
     await page.route(/query\.wikidata\.org/, route => route.fulfill({ status: 200, contentType: 'application/rdf+xml', body: '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"/>' }));
@@ -255,6 +267,7 @@ test('a plan that shows a grid draws its graph as cards with their images, also 
 });
 
 test('a plan that shows a timeline draws each row as a span, the one still under way included', { tag: '@owner' }, async ({ page }) => {
+    await requireAssistant();
     const AC = 'https://w3id.org/atomgraph/client#';
     const LDH = 'https://w3id.org/atomgraph/linkeddatahub#';
     const XSD = 'http://www.w3.org/2001/XMLSchema#';
@@ -268,7 +281,7 @@ test('a plan that shows a timeline draws each row as a span, the one still under
     await page.route(/\/webalgebra\/plans$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: plan }));
     await page.route(/\/webalgebra$/, route => route.fulfill({ status: 202, contentType: 'application/xml', body: `<wa:execution xmlns:wa="${WA}"><wa:id>timeline</wa:id></wa:execution>` }));
     await page.route(/\/webalgebra\/timeline\/result$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: execution }));
-    await page.route(/\/webalgebra\/answers$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: `<wa:answer xmlns:wa="${WA}">Three terms.</wa:answer>` }));
+    await page.route(/\/webalgebra\/answers$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: `<wa:answer xmlns:wa="${WA}"><div xmlns="${XHTML}"><p>Three terms.</p></div></wa:answer>` }));
 
     await goto(page, inMode(scratch.container, CONTENT_MODE));
     await button(page).click();
@@ -284,7 +297,59 @@ test('a plan that shows a timeline draws each row as a span, the one still under
     await expect(canvas.locator('svg rect[stroke]')).not.toHaveCount(0);
 });
 
+test('an answer is XHTML: its list and links are drawn, anything else is not, and it is stored as canonical XML', { tag: '@owner' }, async ({ page }) => {
+    await requireAssistant();
+    // the plan service answered by the spec: a SELECT that returned two customers, and an answer that lists them -
+    // with what a model must not get into the page: a script, an attribute, an element outside the answer's, a
+    // javascript: link and an element left empty
+    const customers = [['https://example.org/customers/SAVEA/#this', 'Save-a-lot Markets', '17'], ['https://example.org/customers/ERNSH/#this', 'Ernst Handel', '15']];
+    const plan = `<wa:plan xmlns:wa="${WA}"><wa:summary>Finds the customers with the most orders.</wa:summary><wa:operations><wa:operation name="SELECT"/></wa:operations><SELECT xmlns="${WA}"><endpoint>${endUserBase}sparql</endpoint><query>SELECT ?customer ?orders WHERE { ?customer ?p ?orders } LIMIT 2</query></SELECT></wa:plan>`;
+    const rows = customers.map(([uri, , orders]) => `<result><binding name="customer"><uri>${uri}</uri></binding><binding name="orders"><literal>${orders}</literal></binding></result>`).join('');
+    const execution = `<wa:execution xmlns:wa="${WA}"><wa:id>answer</wa:id><wa:status>complete</wa:status><wa:steps><wa:step operation="SELECT" depth="0" outcome="complete" elapsed="300"/></wa:steps><wa:result><sparql xmlns="http://www.w3.org/2005/sparql-results#"><head><variable name="customer"/><variable name="orders"/></head><results>${rows}</results></sparql></wa:result></wa:execution>`;
+    const items = customers.map(([uri, name, orders]) => `<li><a href="${uri}">${name}</a>: <strong>${orders}</strong> orders</li>`).join('');
+    const answer = `<div xmlns="${XHTML}"><p class="lead" onclick="alert(1)">The customers with the most orders:<script>alert(2)</script></p><ol>${items}<li><span>Also</span> <a href="javascript:alert(3)">this</a><em></em></li></ol></div>`;
+    await page.route(/\/webalgebra\/plans$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: plan }));
+    await page.route(/\/webalgebra$/, route => route.fulfill({ status: 202, contentType: 'application/xml', body: `<wa:execution xmlns:wa="${WA}"><wa:id>answer</wa:id></wa:execution>` }));
+    await page.route(/\/webalgebra\/answer\/result$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: execution }));
+    await page.route(/\/webalgebra\/answers$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: `<wa:answer xmlns:wa="${WA}">${answer}</wa:answer>` }));
+
+    await goto(page, inMode(scratch.container, CONTENT_MODE));
+    await button(page).click();
+    const chatUri = await ephemeral(page).locator('.ldh-chat').getAttribute('data-chat');
+    await composer(chatOf(page, chatUri)).fill('Which customers ordered the most?');
+    await composer(chatOf(page, chatUri)).press('Enter');
+
+    // the answer first on the card: a paragraph and an ordered list, each customer a link, the hostile parts gone
+    const assertAnswer = async card => {
+        const drawn = card.locator('> .ldh-chat-answer');
+        await expect(drawn).toBeVisible({ timeout: 30_000 });
+        await expect(drawn.locator('> p')).toHaveText('The customers with the most orders:');
+        await expect(drawn.locator('> ol > li')).toHaveCount(3);
+        for (const [uri, name] of customers) await expect(drawn.locator(`a[href="${uri}"]`)).toHaveText(name);
+        await expect(drawn.locator('strong')).toHaveText(['17', '15']);
+        await expect(drawn.locator('script, span, em, [onclick], [class]:not(.ldh-chat-answer)')).toHaveCount(0);
+        await expect(drawn.locator('a')).toHaveCount(2);
+        await expect(drawn.locator('> ol > li').last()).toHaveText('Also this');
+    };
+    await assertAnswer(cards(chatOf(page, chatUri)).last());
+    await expect(cards(chatOf(page, chatUri)).last()).toHaveAttribute('data-turn', /#turn-/, { timeout: 30_000 });
+
+    // stored as an rdf:XMLLiteral holding the kept markup in exclusive canonical form: one namespace declaration,
+    // no attribute but a link's href, every end tag written
+    const canonical = `<div xmlns="${XHTML}"><p>The customers with the most orders:</p><ol>${items}<li>Also this</li></ol></div>`;
+    const ntriples = (await ldh(['get', '--accept', 'application/n-triples', scratch.container])).stdout;
+    const line = ntriples.split('\n').find(l => l.includes('<https://w3id.org/atomgraph/linkeddatahub#answer>'));
+    expect(line).toBeDefined();
+    expect(line).toContain('^^<http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral>');
+    expect(JSON.parse(line.slice(line.indexOf('"'), line.lastIndexOf('"^^') + 1))).toBe(canonical);
+
+    // and drawn the same way from the store
+    await page.reload();
+    await assertAnswer(cards(chatOf(page, chatUri)).last());
+});
+
 test('a plan that shows a map or a 3D graph draws its canvas, both on one page, and again from the store', { tag: '@owner' }, async ({ page }) => {
+    await requireAssistant();
     // the plan service answered by the spec: two CONSTRUCTs, the first shown as a map, the second as a graph
     const AC = 'https://w3id.org/atomgraph/client#';
     const construct = `<CONSTRUCT xmlns="${WA}"><endpoint>https://query.wikidata.org/sparql</endpoint><query>CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o } LIMIT 2</query></CONSTRUCT>`;
@@ -305,7 +370,7 @@ test('a plan that shows a map or a 3D graph draws its canvas, both on one page, 
         const id = route.request().url().match(/\/webalgebra\/(map|graph)\/result$/)[1];
         route.fulfill({ status: 200, contentType: 'application/xml', body: `<wa:execution xmlns:wa="${WA}"><wa:id>${id}</wa:id><wa:status>complete</wa:status><wa:steps><wa:step operation="CONSTRUCT" depth="0" outcome="complete" elapsed="300"/></wa:steps><wa:result>${graphs[id]}</wa:result></wa:execution>` });
     });
-    await page.route(/\/webalgebra\/answers$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: `<wa:answer xmlns:wa="${WA}">Two capitals.</wa:answer>` }));
+    await page.route(/\/webalgebra\/answers$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: `<wa:answer xmlns:wa="${WA}"><div xmlns="${XHTML}"><p>Two capitals.</p></div></wa:answer>` }));
     // the map's tiles, answered blank: what is drawn is the map, not the tile server's availability
     await page.route(/tile\.openstreetmap\.org/, route => route.fulfill({ status: 200, contentType: 'image/png', body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', 'base64') }));
 
@@ -341,6 +406,7 @@ test('a plan that shows a map or a 3D graph draws its canvas, both on one page, 
 });
 
 test('two chat blocks on one page are independent, and the first question writes a new one', { tag: '@owner' }, async ({ page }) => {
+    await requireAssistant();
     const seeded = await seedChat(scratch.container);
     const requests = await declinePlans(page);
     await goto(page, inMode(scratch.container, CONTENT_MODE));
@@ -392,6 +458,7 @@ test('a reader who may not append sees the transcript and nothing to type into',
 });
 
 test('a question becomes a plan that waits for Execute, and Cancel takes it away', { tag: '@owner' }, async ({ page, allowNoise }) => {
+    await requireAssistant();
     test.setTimeout(120_000);
     await goto(page, inMode(scratch.container, CONTENT_MODE));
     await button(page).click();
@@ -423,6 +490,7 @@ test('a question becomes a plan that waits for Execute, and Cancel takes it away
 });
 
 test('Execute runs the plan, reports what it wrote, and the stored turn comes back with the block', { tag: '@owner' }, async ({ page, allowNoise }) => {
+    await requireAssistant();
     test.setTimeout(240_000);
     await goto(page, inMode(scratch.container, CONTENT_MODE));
     await button(page).click();
@@ -455,6 +523,7 @@ test('Execute runs the plan, reports what it wrote, and the stored turn comes ba
 });
 
 test('a plan that adds a block to the page being read reloads the page with the block shown and scrolled to', { tag: '@owner' }, async ({ page }) => {
+    await requireAssistant();
     // the plan service and the executor answered by the spec; the executor's write is a real one, made with the
     // CLI, so the page that catches up reads a document that has the block
     const WALDH = 'https://w3id.org/atomgraph/web-algebra/linkeddatahub';
@@ -467,7 +536,7 @@ test('a plan that adds a block to the page being read reloads the page with the 
         await route.fulfill({ status: 202, contentType: 'application/xml', body: `<wa:execution xmlns:wa="${WA}"><wa:id>added</wa:id></wa:execution>` });
     });
     await page.route(/\/webalgebra\/added\/result$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: execution }));
-    await page.route(/\/webalgebra\/answers$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: `<wa:answer xmlns:wa="${WA}">Added a block to this document.</wa:answer>` }));
+    await page.route(/\/webalgebra\/answers$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: `<wa:answer xmlns:wa="${WA}"><div xmlns="${XHTML}"><p>Added a block to this document.</p></div></wa:answer>` }));
 
     await goto(page, inMode(scratch.container, CONTENT_MODE));
     const breadcrumb = page.locator('.ldh-pane.is-active .ldh-bc');
@@ -492,6 +561,7 @@ test('a plan that adds a block to the page being read reloads the page with the 
 });
 
 test('a question is answered in words, with its result as a block in the card, also after a reload', { tag: '@owner' }, async ({ page, allowNoise }) => {
+    await requireAssistant();
     test.setTimeout(300_000);
     for (const title of ['Answer alpha', 'Answer beta'])
         scratch.written.push((await ldh(['create', 'item', '--container', scratch.container, '--title', title, '--slug', title.toLowerCase().replace(' ', '-')])).stdout);

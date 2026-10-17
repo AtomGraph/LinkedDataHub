@@ -3,7 +3,7 @@
 
     <groupId>com.atomgraph</groupId>
     <artifactId>linkeddatahub</artifactId>
-    <version>6.2.0</version>
+    <version>6.2.1</version>
     <packaging>${packaging.type}</packaging>
 
     <name>AtomGraph LinkedDataHub</name>
@@ -46,7 +46,7 @@
         <url>https://github.com/AtomGraph/LinkedDataHub</url>
         <connection>scm:git:git://github.com/AtomGraph/LinkedDataHub.git</connection>
         <developerConnection>scm:git:git@github.com:AtomGraph/LinkedDataHub.git</developerConnection>
-        <tag>linkeddatahub-6.2.0</tag>
+        <tag>linkeddatahub-6.2.1</tag>
     </scm>
 
     <repositories>
@@ -191,7 +191,7 @@
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
-            <version>1.23.1</version>
+            <version>1.23.2</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

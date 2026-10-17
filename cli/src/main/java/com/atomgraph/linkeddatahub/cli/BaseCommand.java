@@ -85,8 +85,8 @@ public abstract class BaseCommand implements Callable<Integer>
         if (client == null)
         {
             getCertAuth().validate(getSpec());
-            client = new LDHClient(ClientFactory.createClient(getCertAuth().getCertFile(), getCertAuth().getCertPassword()),
-                new MediaTypes(), getProxyMixin().getProxy());
+            client = new LDHClient(ClientFactory.createClient(getCertAuth().getCertFile(), getCertAuth().getCertPassword(), getProxyMixin().getProxy()),
+                new MediaTypes());
         }
 
         return client;
@@ -109,17 +109,20 @@ public abstract class BaseCommand implements Callable<Integer>
 
     /**
      * Returns the base URI of the administration application of a dataspace.
-     * An end-user dataspace advertises it as <code>lds:admin</code>; a base without that link is taken to be the admin
-     * base already, so callers may pass either.
+     * Both applications advertise it as <code>lds:admin</code>, the administration one pointing at itself, so callers
+     * may pass either base. A base without that link is served by a platform that predates it, and is refused rather
+     * than guessed at: an admin write sent to the end-user application would fail as unauthorized.
      *
      * @param base end-user or admin base URI
      * @return admin base URI
+     * @throws IllegalStateException if the base advertises no <code>lds:admin</code> link
      */
     protected URI getAdminBase(URI base)
     {
         List<URI> admin = getLinkTargets(base, LDS.admin.getURI());
+        if (admin.isEmpty()) throw new IllegalStateException("<" + base + "> advertises no lds:admin link: LinkedDataHub serves it on end-user bases since 6.2.0 and on admin bases since 6.2.1");
 
-        return admin.isEmpty() ? base : admin.get(0);
+        return admin.get(0);
     }
 
     /**

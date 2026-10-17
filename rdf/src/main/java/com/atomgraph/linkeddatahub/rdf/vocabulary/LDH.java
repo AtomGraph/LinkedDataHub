@@ -60,6 +60,8 @@ public final class LDH
     public static final Property importPackage = ResourceFactory.createProperty(NS + "import");
     /** ldh:service property */
     public static final Property service = ResourceFactory.createProperty(NS + "service");
+    /** ldh:graph property: the document holding the description of an object block's value */
+    public static final Property graph = ResourceFactory.createProperty(NS + "graph");
     /** ldh:file property */
     public static final Property file = ResourceFactory.createProperty(NS + "file");
     /** ldh:delimiter property */

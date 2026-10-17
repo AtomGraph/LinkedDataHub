@@ -1,0 +1,19 @@
+# One public document of the dataspace, if it has any: the pattern of sitemap-index.rq, stopping at the first match.
+# A dataspace always has public read rules - its ns, context and access endpoints are seeded public - but none of
+# them grants access to a document, so the rules alone do not tell whether there is anything to list.
+
+SELECT  ?loc
+WHERE
+  {   { VALUES ?Type { }
+        GRAPH ?loc
+          { ?loc  a  ?Type }
+        FILTER strstarts(str(?loc), str(?base))
+      }
+    UNION
+      { VALUES ?loc { }
+        GRAPH ?loc
+          { ?loc  a  ?any }
+        FILTER strstarts(str(?loc), str(?base))
+      }
+  }
+LIMIT 1

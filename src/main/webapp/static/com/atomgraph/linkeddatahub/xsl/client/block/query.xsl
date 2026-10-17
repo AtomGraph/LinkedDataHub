@@ -139,7 +139,6 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[@typeof = ('&sp;Ask', '&sp;Select', '&sp;Describe', '&sp;Construct')][descendant::*[@property = '&sp;text'][.//pre/text()]]" mode="ldh:RowHook" as="function(item()?) as map(*)">
         <xsl:param name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:param name="container" select="." as="element()"/>
-        <xsl:param name="graph" select="descendant::*[@property = '&ldh;graph']/@resource" as="xs:anyURI?"/>
         <xsl:param name="mode" select="descendant::*[@property = '&ac;mode']/@resource" as="xs:anyURI?"/>
         <xsl:param name="show-edit-button" select="false()" as="xs:boolean?"/>
         <xsl:param name="textarea-id" select="generate-id() || '-textarea'" as="xs:string?"/>

@@ -104,8 +104,8 @@ Multiple dataspaces can share the same backend SPARQL service.
 
 The admin pairing is the `admin.` subdomain and nothing else: the server derives it
 (`EndUserDataspaceImpl.getAdminDataspace()`) and publishes it, so no client derives it again. An
-end-user response carries `Link: <admin base>; rel="…/dataspaces#admin"` (the CLI's admin commands
-follow it), and `/context` serves `PublicContext`: every dataspace's description (type, title,
+end-user response carries `Link: <admin base>; rel="…/dataspaces#admin"`, an admin response the same
+link to itself (the CLI's admin commands follow it and stop on a base without it), and `/context` serves `PublicContext`: every dataspace's description (type, title,
 origin, ontology, stylesheet, `lds:public`) plus `lds:admin`, readable by anyone through a seeded
 authorization. Stylesheets read it through `lds:context()`: the server twin dereferences `/context`
 (same-site, so `SameSiteSourceResolver` fetches it), the client twin reads the copy the bootstrap
@@ -118,7 +118,7 @@ The application runs as a multi-container setup:
 - **linkeddatahub**: Main Java application (Tomcat)
 - **fuseki**: One SPARQL server holding a TDB2 dataset per dataspace role (`config/fuseki/config.ttl`), named after the dataspace origin (deployment host dropped, role appended: `end-user`, `admin`, `northwind-traders.demo.end-user`, …), each under `fuseki/<dataset>/`; bound to apps in `config/system.trig`
 - **egress**: Squid forward proxy for the store's and platform's outbound requests (SPARQL `SERVICE`, `LOAD`): public destinations only, so a query cannot reach another dataset, Varnish or the platform
-- **web-algebra**: REST-VKG's `webalgebra-server-ldh` image — executes Web-Algebra plans and writes them from natural language for the assistant drawer (`xsl/client/chat.xsl`). nginx forwards `/webalgebra` (a reserved path, like `/static/` and `/uploads/`) to it with the caller's certificate; it presents the secretary's certificate to this instance with `On-Behalf-Of` naming the caller, which `WebIDFilter` honours because every agent's WebID document carries `<secretary> acl:delegates <agent>`. It addresses the instance by its public origin, rewritten to `nginx:9443` (`WEBALGEBRA_PROXY_HOST`), the same trick the platform's own `ClientUriRewriteFilter` plays
+- **web-algebra** (opt-in: the `assistant` compose profile, `COMPOSE_PROFILES=assistant` in `.env`; the entrypoint reads the same variable, and `/context` publishes it as `lds:assistant` and the Assistant button is gated on; the image is proprietary): REST-VKG's `webalgebra-server-ldh` image — executes Web-Algebra plans and writes them from natural language for the assistant drawer (`xsl/client/chat.xsl`). nginx forwards `/webalgebra` (a reserved path, like `/static/` and `/uploads/`) to it with the caller's certificate; it presents the secretary's certificate to this instance with `On-Behalf-Of` naming the caller, which `WebIDFilter` honours because every agent's WebID document carries `<secretary> acl:delegates <agent>`. It addresses the instance by its public origin, rewritten to `nginx:9443` (`WEBALGEBRA_PROXY_HOST`), the same trick the platform's own `ClientUriRewriteFilter` plays
 - **varnish-frontend/varnish-admin/varnish-end-user**: Caching layers (admin and end-user caches both front the single `fuseki`)
 
 ### Data Flow

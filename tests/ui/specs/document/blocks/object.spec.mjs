@@ -39,6 +39,42 @@ test('stays one block, however much is rendered inside it', async ({ page }) => 
     await expect(host.locator('.ldh-block-head')).toHaveCount(1);
 });
 
+// The embedded card marks itself with a hairline down its left edge (an inset shadow), and that
+// edge runs into the carrier's corners. The carrier is rounded and does not clip, so the card has to
+// take the carrier's INNER curve itself - the block radius less the carrier's border - or the
+// hairline's square end stands proud of the rounded corner. It used to ask for that curve with
+// `border-radius: inherit`, which reads the DOM parent; the carrier is several levels up and the
+// parent has no radius, so the card came out square in every skin. Each skin restates the rule, so
+// each is driven: the stylesheet ships m3 (layout.xsl), the others are switched here.
+// Where a slot bar sits above the card (the carrier's authoring chrome, so the owner's), the card
+// meets the bar's bottom border rather than a corner, and its top stays square.
+test.describe('the embedded card', () => {
+    for (const skin of ['m3', 'glass', 'glasspro', 'aurora', null]) {
+        test(`draws its hairline inside the carrier's corners ${skin ? `in the ${skin} skin` : 'with no skin'}`, async ({ page }) => {
+            await goto(page, fixtures.container);
+            await settled(page);
+            await page.evaluate(retro => retro ? document.documentElement.setAttribute('data-retro', retro) : document.documentElement.removeAttribute('data-retro'), skin);
+
+            const card = page.locator(`.block.ldh-block[about="${fixtures.object}"] .ldh-block.is-embedded`).first();
+            await expect(card).toBeVisible();
+            const corners = await card.evaluate(card => {
+                const carrier = card.parentElement.closest('.ldh-block'), c = getComputedStyle(carrier), e = getComputedStyle(card);
+                return {
+                    inner: Math.max(0, parseFloat(c.borderBottomLeftRadius) - parseFloat(c.borderLeftWidth)),
+                    slotBar: carrier.querySelector(':scope > .ldh-slot-bar') !== null,
+                    top: parseFloat(e.borderTopLeftRadius),
+                    bottom: parseFloat(e.borderBottomLeftRadius),
+                };
+            });
+
+            // a square carrier would pass the comparisons below with a square card, and prove nothing
+            expect(corners.inner).toBeGreaterThan(0);
+            expect(corners.bottom).toBeCloseTo(corners.inner, 2);
+            expect(corners.top).toBeCloseTo(corners.slotBar ? 0 : corners.inner, 2);
+        });
+    }
+});
+
 // A resource embedded from ANOTHER dataspace is fetched through the Linked Data proxy, and the
 // edit affordance on its header is decided by the acl:mode the proxied response carries - the
 // embedded document's own modes, read off the Link header (ldh:block-object-value-response). That
@@ -100,4 +136,53 @@ test.describe('an object block in a canvas mode', { tag: '@owner' }, () => {
                 .toBeVisible({ timeout: 30_000 });
         });
     }
+});
+
+// An object block with ldh:graph reads its value's description from that document instead of
+// dereferencing the value's URI. That is how a dataspace shows an external resource it describes
+// itself - one the proxy cannot reach (disabled, unreachable, a URI that serves no RDF) or whose
+// remote description is not the one the dataspace curates. The external URIs below resolve to
+// nothing an RDF client could read, so a block that went to the proxy instead would render an error.
+test.describe('an object block with ldh:graph', { tag: '@owner' }, () => {
+    const DCT = 'http://purl.org/dc/terms/', SCHEMA = 'https://schema.org/';
+    const scratch = {};
+
+    test.beforeEach(async () => {
+        scratch.container = (await ldh(['create', 'container', '--parent', endUserBase, '--title', 'Object graph',
+            '--slug', `object-graph-${randomUUID().slice(0, 8)}`])).stdout;
+        scratch.descriptions = (await ldh(['create', 'item', '--container', scratch.container, '--title', 'Descriptions',
+            '--slug', 'descriptions'])).stdout;
+    });
+
+    test.afterEach(async () => {
+        if (scratch.container) await ldh(['delete', scratch.container], { allowFailure: true });
+    });
+
+    // the value's description in the local document, and an object block naming that document
+    const describe = async (value, triples, fragment) => {
+        await ldh(['patch', scratch.descriptions], { stdin: `INSERT { <${value}> ${triples} } WHERE {}` });
+        await ldh(['add', 'object-block', '--title', 'External', '--uri', `#${fragment}`,
+            '--value', value, '--graph', scratch.descriptions, scratch.container]);
+        return page => page.locator(`div.block[about="${scratch.container}#${fragment}"] .ldh-obj-value`);
+    };
+
+    test('renders the local description of an external resource, without the proxy', async ({ page }) => {
+        const value = `https://example.invalid/things/${randomUUID()}`, title = 'Described locally';
+        const embedded = await describe(value, `<${DCT}title> "${title}"`, 'external-block');
+
+        const proxied = [];
+        page.on('request', request => { if (new URL(request.url()).searchParams.get('uri') === value) proxied.push(request.url()); });
+        await goto(page, inMode(scratch.container, CONTENT_MODE));
+
+        await expect(embedded(page)).toContainText(title);
+        expect(proxied).toEqual([]);
+    });
+
+    test('embeds a YouTube video described as a schema:VideoObject', async ({ page }) => {
+        const embedded = await describe('https://www.youtube.com/watch?v=g3i-yH95WZA',
+            `a <${SCHEMA}VideoObject> ; <${SCHEMA}name> "LinkedDataHub 6 overview"`, 'video-block');
+        await goto(page, inMode(scratch.container, CONTENT_MODE));
+
+        await expect(embedded(page).locator('.ldh-video-embed iframe')).toHaveAttribute('src', 'https://www.youtube.com/embed/g3i-yH95WZA');
+    });
 });

@@ -53,13 +53,16 @@ public class AddObjectBlock extends BaseCommand
     @Option(names = "--mode", paramLabel = "MODE_URI", description = "URI of the layout mode (optional)")
     private URI mode;
 
+    @Option(names = "--graph", paramLabel = "DOCUMENT_URI", description = "URI of the document holding the description of the object resource (optional, the resource's own document if not set)")
+    private URI graph;
+
     @Parameters(paramLabel = "TARGET_URI", description = "URI of the document")
     private URI target;
 
     @Override
     public Integer call() throws Exception
     {
-        post(getClient(), target, Blocks.object(target, nextSequenceProperty(), uri, value, title, description, mode));
+        post(getClient(), target, Blocks.object(target, nextSequenceProperty(), uri, value, title, description, mode, graph));
         print(target);
 
         return 0;

@@ -30,8 +30,6 @@ services:
     depends_on:
       linkeddatahub:
         condition: service_healthy
-      web-algebra:
-        condition: service_started # its upstream has to resolve when nginx starts
     ports:
       - ${HTTP_PORT}:8080 # allow Tomcat to do HTTP to HTTPS redirect
       - ${HTTPS_PORT}:8443 # HTTPS
@@ -69,6 +67,8 @@ services:
       - SIGN_UP_CERT_VALIDITY=180
       - MAX_CONTENT_LENGTH=${MAX_CONTENT_LENGTH:-2097152}
       - ALLOW_INTERNAL_URLS=${ALLOW_INTERNAL_URLS:-}
+      - ENABLE_SITEMAP=${ENABLE_SITEMAP:-} # opt-in: /sitemap.xml queries every public document of the dataspace
+      - COMPOSE_PROFILES=${COMPOSE_PROFILES:-} # the "assistant" profile also makes the UI offer the assistant (entrypoint.sh)
       - EGRESS_PROXY=${EGRESS_PROXY:-egress:3128} # the platform's own SPARQL SERVICE (PATCH, imports) goes through egress too
 
       - CONNECTION_REQUEST_TIMEOUT=${CONNECTION_REQUEST_TIMEOUT:-}
@@ -155,8 +155,13 @@ services:
         target: /etc/squid/squid.conf
     expose:
       - 3128
-  web-algebra: # runs Web-Algebra plans against this instance, and writes them from natural language for the assistant drawer
+  # runs Web-Algebra plans against this instance, and writes them from natural language for the assistant drawer.
+  # Opt-in, since the image is distributed without its source: it starts only under the "assistant" profile
+  # (COMPOSE_PROFILES=assistant in .env), which the platform reads too, so the UI offers it only then
+  web-algebra:
     image: ghcr.io/atomgraph/webalgebra-server-ldh:${WEBALGEBRA_VERSION:-latest}
+    profiles:
+      - assistant
     mem_limit: 1024m
     restart: on-failure
     depends_on:
@@ -238,10 +243,6 @@ configs:
       }
 
       http {
-          upstream web-algebra {
-              server web-algebra:8080;
-          }
-
           upstream linkeddatahub {
               server ${NGINX_UPSTREAM_SERVER:-varnish-frontend:6060};
           }
@@ -296,12 +297,16 @@ configs:
               # sidecar as they are. Reachable only with a WebID certificate on the connection: the sidecar acts for the
               # WebID in the certificate nginx forwards, and a caller without one has nobody to act for. On-Behalf-Of is
               # cleared for the same reason Client-Cert is - identity comes from the connection, never from a header
+              # The sidecar is opt-in (the "assistant" profile), so its name is resolved per request through Docker's DNS
+              # rather than once at startup: without it nginx still starts, and this location answers 502
               location ^~ /webalgebra {
                   if ($$ssl_client_verify = NONE) {
                       return 401;
                   }
 
-                  proxy_pass http://web-algebra;
+                  resolver 127.0.0.11 valid=30s ipv6=off;
+                  set $$web_algebra http://web-algebra:8080;
+                  proxy_pass $$web_algebra;
                   limit_req zone=web_algebra burst=10 nodelay;
                   proxy_read_timeout 120s; # writing a plan is a 10-30 s model call
 

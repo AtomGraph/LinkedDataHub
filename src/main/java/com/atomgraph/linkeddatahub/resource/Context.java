@@ -73,7 +73,7 @@ public class Context
     @GET
     public Response get()
     {
-        Model context = PublicContext.of(getSystem().getContextModel());
+        Model context = PublicContext.of(getSystem().getContextModel(), getSystem().isEnableAssistant());
         CacheControl cacheControl = new CacheControl();
         cacheControl.setNoCache(true);
 

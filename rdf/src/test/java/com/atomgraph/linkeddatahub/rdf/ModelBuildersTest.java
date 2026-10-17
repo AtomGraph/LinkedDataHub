@@ -409,6 +409,22 @@ public class ModelBuildersTest
     }
 
     /**
+     * An external value described in a local document names that document with ldh:graph.
+     */
+    @Test
+    public void addObjectBlockWithGraph()
+    {
+        assertIsomorphic(parse("""
+            <> rdf:_2 _:block .
+            _:block a ldh:Object ;
+                rdf:value <https://www.youtube.com/watch?v=abc> ;
+                ldh:graph <https://localhost:4443/videos/> .
+            """),
+            Blocks.object(TARGET, RDF.li(2), null, URI.create("https://www.youtube.com/watch?v=abc"),
+                null, null, null, URI.create("https://localhost:4443/videos/")));
+    }
+
+    /**
      * The document says what it is about and nothing more. It is not typed owl:Ontology: the vocabulary
      * stored alongside it carries its own header, which is what resolving the ontology URI finds.
      */

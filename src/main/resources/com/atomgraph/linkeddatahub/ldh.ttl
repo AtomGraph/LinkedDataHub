@@ -66,6 +66,13 @@
     rdfs:range sd:Service ;
     rdfs:isDefinedBy : .
 
+:graph a owl:ObjectProperty ;
+    rdfs:domain :Object ;
+    rdfs:range foaf:Document ;
+    rdfs:label "Graph" ;
+    rdfs:comment "The document that holds the description of the object's value, read in place of dereferencing the value's URI. Lets a block show an external resource described in a dataspace-local document" ;
+    rdfs:isDefinedBy : .
+
 :categoryProperty a owl:ObjectProperty ;
     rdfs:domain :GraphChart ;
     rdfs:range rdf:Property ;
@@ -120,9 +127,9 @@
 
 :answer a owl:DatatypeProperty ;
     rdfs:domain :ChatTurn ;
-    rdfs:range xsd:string ;
+    rdfs:range rdf:XMLLiteral ;
     rdfs:label "Answer" ;
-    rdfs:comment "The assistant's reading, in words, of what the turn's plan did" ;
+    rdfs:comment "The assistant's reading of what the turn's plan did: an XHTML div of paragraphs, lists, emphasis, code and links to what the plan returned" ;
     rdfs:isDefinedBy : .
 
 :plan a owl:DatatypeProperty ;

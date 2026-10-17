@@ -32,9 +32,7 @@ import org.apache.jena.rdf.model.Model;
 
 /**
  * Graph Store Protocol client for LinkedDataHub documents (direct graph identification),
- * extended with SPARQL update over PATCH and form-encoded POST. When a proxy URI is given,
- * every request connects to the proxy and keeps its logical <code>Host</code>
- * ({@link ProxyRewriteFilter}), so dataspaces stay routed by host and responses carry logical URIs.
+ * extended with SPARQL update over PATCH and form-encoded POST.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -44,19 +42,15 @@ public class LDHClient extends GraphStoreClient
     /** SPARQL update media type */
     public static final MediaType APPLICATION_SPARQL_UPDATE_TYPE = MediaType.valueOf("application/sparql-update");
 
-    private final URI proxy;
-
     /**
      * Constructs the client.
      *
      * @param client Jersey client with WebID client certificate
      * @param mediaTypes registry of readable/writable media types
-     * @param proxy proxy URI that receives the connections (optional, can be null)
      */
-    public LDHClient(Client client, MediaTypes mediaTypes, URI proxy)
+    public LDHClient(Client client, MediaTypes mediaTypes)
     {
-        super(proxy != null ? client.register(new ProxyRewriteFilter(proxy)) : client, mediaTypes);
-        this.proxy = proxy;
+        super(client, mediaTypes);
     }
 
     /**
@@ -157,16 +151,6 @@ public class LDHClient extends GraphStoreClient
     public Response postForm(URI uri, Form form, MediaType... acceptedTypes)
     {
         return getWebTarget(uri).request(acceptedTypes).post(Entity.form(form));
-    }
-
-    /**
-     * Returns the proxy URI, if any.
-     *
-     * @return proxy URI or null
-     */
-    public URI getProxy()
-    {
-        return proxy;
     }
 
 }

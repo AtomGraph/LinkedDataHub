@@ -10,6 +10,7 @@ services:
       - 8001:8000 # debugger
     environment:
       - JPDA_ADDRESS=*:8000 # debugger host - performance hit when enabled
+      - ENABLE_SITEMAP=true # dataspaces/sitemap.sh
     volumes:
       - ./tests/http/config/dataspaces.trig:/var/linkeddatahub/datasets/dataspaces.trig:ro
       - ./tests/http/config/system.trig:/var/linkeddatahub/datasets/system.trig:ro

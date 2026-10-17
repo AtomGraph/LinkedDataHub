@@ -38,7 +38,7 @@ public class HttpExceptionTest
 
     static LDHClient client() throws Exception
     {
-        return new LDHClient(ClientFactory.createClient(ClientFactoryTest.keyStorePath(), "changeit"), new MediaTypes(), null);
+        return new LDHClient(ClientFactory.createClient(ClientFactoryTest.keyStorePath(), "changeit", null), new MediaTypes());
     }
 
     @Test

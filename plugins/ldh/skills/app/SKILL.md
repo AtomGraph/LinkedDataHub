@@ -29,8 +29,8 @@ References:
 - **Use an `ldh` that matches the instance.** Build it from the same LinkedDataHub checkout or release
   as the running image (`ldh --version`). An instance whose end-user responses carry no
   `https://w3id.org/atomgraph/linkeddatahub/dataspaces#admin` `Link` (check with `ldh get --head --accept text/turtle "$LDH_BASE"`)
-  predates the CLI's admin discovery. There, `ldh admin` commands answer `403` for the end-user base,
-  and `import ontology --file` refuses it. Use the image built from the same checkout as the CLI.
+  predates the CLI's admin discovery. There, `ldh admin` commands stop with "advertises no lds:admin link".
+  An admin base advertises itself as its `lds:admin` only from 6.2.1 on. Use the image built from the same checkout as the CLI.
 
 ## The document model
 
@@ -221,6 +221,11 @@ ldh remove block --block "${products}#products-block" "$products"   # without --
 Pass `--uri` so later commands can reference what you added; without it the resource is a blank
 node. If the app is meant to be reinstalled, put the change in the directory too, since the next
 push overwrites the document.
+
+An object block whose value is an external URI loads it through the Linked Data proxy. When the
+dataspace describes that resource itself, in one of its own documents, `--graph <document>` makes
+the block read the description from there (`ldh:graph`), with no proxy request. Edits to the embedded
+resource then write to that document.
 
 ## Verify
 

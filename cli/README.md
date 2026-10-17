@@ -121,8 +121,9 @@ argument instead, where every other command puts its target: the `packages` fami
 argument is left out.
 
 The admin commands take the end-user base too. They find the admin application from its
-`lds:admin` `Link` header, so a script never derives the admin URI; a base without that link, such as
-the admin base itself, is used as given:
+`lds:admin` `Link` header, so a script never derives the admin URI. The admin base advertises itself,
+so it works too. A base without that link comes from an older platform, and the command stops instead of
+guessing:
 
 ```bash
 ldh packages add --package https://packages.linkeddatahub.com/editor/taxonomy/#this https://localhost:4443/
@@ -335,8 +336,7 @@ computes every upload URI and prints the plan, without sending a request or load
 | `update-folder.sh` (LinkedDataHub-Apps, one copy per app) | `ldh push` |
 
 Local certificate tooling (`webid-keygen.sh`, `webid-keygen-pem.sh`, `webid-uri.sh`,
-`webid-modulus.sh`, `server-cert-gen.sh`) and the experimental `sitemap/` generator remain
-shell scripts.
+`webid-modulus.sh`, `server-cert-gen.sh`) remains shell scripts.
 
 `bin/admin/packages/` has no counterpart under that name: a package is imported by declaring an
 `ldh:import` triple rather than by installing files, and `ldh packages list`,

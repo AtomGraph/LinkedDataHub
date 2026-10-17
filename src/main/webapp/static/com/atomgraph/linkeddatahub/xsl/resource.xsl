@@ -840,13 +840,15 @@ exclude-result-prefixes="#all"
         <xsl:param name="main-class" select="'main ldh-block-body'" as="xs:string?"/>
         <xsl:param name="show-header" select="true()" as="xs:boolean"/>
         <xsl:param name="show-drag-handle" select="true()" as="xs:boolean" tunnel="yes"/>
+        <!-- embedded under an ldh:Object carrier: the is-embedded hairline, as on the typed card -->
+        <xsl:param name="embedded" select="false()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="diff-added-keys" as="xs:string*" tunnel="yes"/>
         <xsl:param name="diff-removed-keys" as="xs:string*" tunnel="yes"/>
         <xsl:variable name="diff-class" select="ldh:diff-class(., $diff-added-keys, $diff-removed-keys)" as="xs:string?"/>
 
         <div>
-            <xsl:if test="$class or $diff-class">
-                <xsl:attribute name="class" select="string-join(($class, $diff-class), ' ')"/>
+            <xsl:if test="$class or $diff-class or $embedded">
+                <xsl:attribute name="class" select="string-join(($class, 'is-embedded'[$embedded], $diff-class), ' ')"/>
             </xsl:if>
             <xsl:if test="$about">
                 <xsl:attribute name="about" select="$about"/>
