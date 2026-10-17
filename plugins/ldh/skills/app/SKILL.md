@@ -222,6 +222,11 @@ Pass `--uri` so later commands can reference what you added; without it the reso
 node. If the app is meant to be reinstalled, put the change in the directory too, since the next
 push overwrites the document.
 
+An object block whose value is an external URI loads it through the Linked Data proxy. When the
+dataspace describes that resource itself, in one of its own documents, `--graph <document>` makes
+the block read the description from there (`ldh:graph`), with no proxy request. Edits to the embedded
+resource then write to that document.
+
 ## Verify
 
 - `ldh get --accept text/turtle <doc>` shows the document as stored.
