@@ -4,7 +4,7 @@
 
     <groupId>com.atomgraph</groupId>
     <artifactId>linkeddatahub-cli</artifactId>
-    <version>6.2.1</version>
+    <version>6.2.2-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>LinkedDataHub CLI</name>
