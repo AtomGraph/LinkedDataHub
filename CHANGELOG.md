@@ -1,5 +1,21 @@
 ## [Unreleased]
 ### Migration
+- The assistant is opt-in: set `COMPOSE_PROFILES=assistant` in `.env` to run the `web-algebra` service and offer the assistant in the UI
+
+### Added
+- Object blocks can read an external value from a dataspace-local description, set with `ldh:graph` (and from the CLI)
+
+### Changed
+- Assistant answers are XHTML (lists, emphasis, code, links to the results), stored as `rdf:XMLLiteral`
+- Admin responses link to themselves as `lds:admin`, and `ldh admin` commands refuse a base that advertises no such link
+- jsoup bumped to 1.23.2, fixing memory exhaustion on deeply nested XML namespace declarations
+
+### Fixed
+- `ldh --proxy` no longer gets `421` from nginx
+- Embedded resource cards carry the same frame and corners whether typed or not
+
+## [6.2.0] - 2026-10-17
+### Migration
 - Top-level LDH stylesheet params and variables carry the `ldh:` prefix; overrides of the unprefixed names are ignored
 - Shared stylesheets query through `ldh:query-result()`; `ac:value-intersect()`/`ac:value-except()` are removed
 - **BREAKING**: the `$lds:Context` stylesheet param is removed, as it exposed service credentials to stylesheets; use `lds:context()`
