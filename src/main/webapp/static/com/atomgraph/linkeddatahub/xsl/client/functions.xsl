@@ -643,18 +643,26 @@ exclude-result-prefixes="#all"
         <xsl:param name="response-key" as="xs:string"/>
 
         <xsl:variable name="response" select="$context($response-key)" as="map(*)"/>
-        <xsl:variable name="default-retry-after" select="1" as="xs:integer"/>
+        <!-- 429 retries are counted per response key, so each request of a chain gets its own allowance -->
+        <xsl:variable name="retries-key" select="$response-key || '-retries'" as="xs:string"/>
+        <xsl:variable name="retries" select="($context($retries-key), 0)[1]" as="xs:integer"/>
 
         <xsl:choose>
-            <xsl:when test="$response?status = 429">
-                <xsl:variable name="retry-after" select="
-                  if (map:contains($response?headers, 'Retry-After'))
-                  then xs:integer($response?headers('Retry-After'))
-                  else $default-retry-after"/>
+            <!-- past the last retry the 429 is handed on like any other error status, for the chain's own error handling -->
+            <xsl:when test="$response?status = 429 and $retries lt 5">
+                <!-- fetch() lower-cases header names; only the delta-seconds form of Retry-After is honoured -->
+                <xsl:variable name="retry-after" select="($response?headers?('retry-after'), $response?headers?('Retry-After'))[. castable as xs:integer][1] ! xs:integer(.)" as="xs:integer?"/>
+                <!-- without Retry-After (nginx's limit_req sends none) back off exponentially with jitter: the requests of a
+                     burst that are rejected together must not come back together, or they make the next burst. Mean delays
+                     1, 2, 4, 8, 8 s, each drawn from 0.5-1.5 times that -->
+                <xsl:variable name="delay" select="
+                  if (exists($retry-after))
+                  then $retry-after * 1000
+                  else xs:integer(round((1000, 2000, 4000, 8000, 8000)[$retries + 1] * (0.5 + ixsl:call(ixsl:get(ixsl:window(), 'Math'), 'random', []))))" as="xs:integer"/>
 
                 <xsl:sequence select="
-                  ixsl:sleep($retry-after * 1000)
-                      => ixsl:then(ldh:retry-request($context, ?, $response-key))
+                  ixsl:sleep($delay)
+                      => ixsl:then(ldh:retry-request(map:put($context, $retries-key, $retries + 1), ?, $response-key))
                 "/>
             </xsl:when>
             <xsl:otherwise>

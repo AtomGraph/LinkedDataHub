@@ -976,6 +976,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="local-endpoint" as="xs:anyURI?"/>
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="object-metadata" as="document-node()?"/>
+        <xsl:param name="property-metadata" as="document-node()?"/>
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="var-predicates" as="map(xs:string, xs:anyURI*)?"/>
@@ -998,6 +999,7 @@ exclude-result-prefixes="#all"
                         <xsl:with-param name="results" select="$results"/>
                         <xsl:with-param name="active-mode" select="$active-mode"/>
                         <xsl:with-param name="object-metadata" select="$object-metadata"/>
+                        <xsl:with-param name="property-metadata" select="$property-metadata"/>
                         <xsl:with-param name="total-count" select="$total-count"/>
                         <xsl:with-param name="var-predicates" select="$var-predicates"/>
                         <xsl:with-param name="order-by-var-name" select="$order-by-var-name"/>
@@ -1081,6 +1083,10 @@ exclude-result-prefixes="#all"
         <xsl:param name="local-endpoint" as="xs:anyURI?"/>
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="object-metadata" as="document-node()?"/>
+        <!-- the /ns labels of the result properties, fetched by the view-results chain (ldh:load-property-metadata). The
+             table needs them for its column headers: without them its own default looked them up with a synchronous
+             document() GET, which ldh:handle-response cannot retry, so a 429 on it dropped the table -->
+        <xsl:param name="property-metadata" as="document-node()?"/>
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="total-count" as="xs:integer?"/>
         <xsl:param name="var-predicates" as="map(xs:string, xs:anyURI*)?"/>
@@ -1107,6 +1113,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
                     <xsl:with-param name="endpoint" select="$remote-endpoint" tunnel="yes"/>
                     <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
+                    <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                     <xsl:with-param name="var-predicates" select="$var-predicates" tunnel="yes"/>
                     <xsl:with-param name="order-by-var-name" select="$order-by-var-name" tunnel="yes"/>
                     <xsl:with-param name="order-by-desc" select="$order-by-desc" tunnel="yes"/>
@@ -1419,6 +1426,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="local-endpoint" select="$local-endpoint"/>
             <xsl:with-param name="results" select="$results"/>
             <xsl:with-param name="object-metadata" select="$object-metadata"/>
+            <xsl:with-param name="property-metadata" select="$property-metadata"/>
             <xsl:with-param name="active-mode" select="$active-mode"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
             <xsl:with-param name="var-predicates" select="$var-predicates"/>
