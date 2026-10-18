@@ -62,7 +62,7 @@ exclude-result-prefixes="#all"
          else, so an unmatched node yields no output rather than the built-in rule's text -->
     <xsl:mode name="ldh:ConstructorActions" on-no-match="deep-skip"/>
 
-    <xsl:key name="shapes-by-target-class" match="*[@rdf:about] | *[@rdf:nodeID]" use="sh:targetClass/@rdf:resource | sh:targetClass/@rdf:resource"/>
+    <xsl:key name="shapes-by-target-class" match="*[@rdf:about][not(ancestor::*[@rdf:parseType = 'Literal'])] | *[@rdf:nodeID][not(ancestor::*[@rdf:parseType = 'Literal'])]" use="sh:targetClass/@rdf:resource | sh:targetClass/@rdf:resource"/>
 
     <!-- Material Symbols glyph per layout mode (shared by the action-bar mode switcher and the mode list) -->
     <xsl:variable name="ldh:mode-icons" as="map(xs:string, xs:string)" select="map{

@@ -65,15 +65,15 @@ exclude-result-prefixes="#all"
         vocabulary (the dh: document slug control) or is not a value at all.
     -->
 
-    <xsl:key name="predicates-by-object" match="*[@rdf:about]/* | *[@rdf:nodeID]/*" use="@rdf:resource | @rdf:nodeID"/>
+    <xsl:key name="predicates-by-object" match="*[@rdf:about][not(ancestor::*[@rdf:parseType = 'Literal'])]/* | *[@rdf:nodeID][not(ancestor::*[@rdf:parseType = 'Literal'])]/*" use="@rdf:resource | @rdf:nodeID"/>
 
-    <xsl:key name="violations-by-root" match="*[@rdf:about] | *[@rdf:nodeID]" use="spin:violationRoot/@rdf:resource | spin:violationRoot/@rdf:nodeID"/>
+    <xsl:key name="violations-by-root" match="*[@rdf:about][not(ancestor::*[@rdf:parseType = 'Literal'])] | *[@rdf:nodeID][not(ancestor::*[@rdf:parseType = 'Literal'])]" use="spin:violationRoot/@rdf:resource | spin:violationRoot/@rdf:nodeID"/>
 
-    <xsl:key name="violations-by-value" match="*" use="ldh:violationValue/text()"/>
+    <xsl:key name="violations-by-value" match="*[not(ancestor::*[@rdf:parseType = 'Literal'])]" use="ldh:violationValue/text()"/>
 
-    <xsl:key name="violations-by-focus-node" match="*" use="sh:focusNode/@rdf:resource | sh:focusNode/@rdf:nodeID"/>
+    <xsl:key name="violations-by-focus-node" match="*[not(ancestor::*[@rdf:parseType = 'Literal'])]" use="sh:focusNode/@rdf:resource | sh:focusNode/@rdf:nodeID"/>
 
-    <xsl:key name="resources-by-type" match="*[*][@rdf:about] | *[*][@rdf:nodeID]" use="rdf:type/@rdf:resource"/>
+    <xsl:key name="resources-by-type" match="*[*][@rdf:about][not(ancestor::*[@rdf:parseType = 'Literal'])] | *[*][@rdf:nodeID][not(ancestor::*[@rdf:parseType = 'Literal'])]" use="rdf:type/@rdf:resource"/>
 
     <xsl:param name="ac:contextUri" as="xs:anyURI?"/>
 
@@ -103,8 +103,8 @@ exclude-result-prefixes="#all"
 
     <!-- dataspace descriptions in the public dataspace context (lds:context(), served at /context), by origin and by the
          base URI of their admin dataspace -->
-    <xsl:key name="apps-by-origin" match="*" use="lds:origin/@rdf:resource"/>
-    <xsl:key name="apps-by-admin" match="*" use="lds:admin/@rdf:resource"/>
+    <xsl:key name="apps-by-origin" match="*[not(ancestor::*[@rdf:parseType = 'Literal'])]" use="lds:origin/@rdf:resource"/>
+    <xsl:key name="apps-by-admin" match="*[not(ancestor::*[@rdf:parseType = 'Literal'])]" use="lds:admin/@rdf:resource"/>
 
     <!-- the dataspace this origin resolves to, as described in the public dataspace context. lds:origin() is the writer's
          param on the server and the active pane's base on the client, so a proxied pane resolves to none -->
