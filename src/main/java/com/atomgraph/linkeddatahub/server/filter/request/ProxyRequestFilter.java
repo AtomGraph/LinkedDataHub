@@ -32,16 +32,12 @@ import com.atomgraph.linkeddatahub.server.security.WebIDSecurityContext;
 import com.atomgraph.linkeddatahub.vocabulary.LDS;
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import jakarta.annotation.Priority;
@@ -154,16 +150,6 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         HttpHeaders.IF_NONE_MATCH,
         HttpHeaders.IF_MODIFIED_SINCE,
         HttpHeaders.IF_UNMODIFIED_SINCE);
-    /**
-     * Graph formats asked of the proxy target ahead of the client's own, most preferred first. The proxy parses the
-     * target's graph and serializes it again in the format the client accepts, so what it reads need not be what the
-     * client asked for. Line-based formats come first because they parse with no XML: Jena's default RDF/XML parser
-     * rejects an {@code rdf:RDF} element inside an {@code rdf:parseType="Literal"} - well-formed RDF/XML that Jena
-     * itself writes, for an XML literal holding a graph - and the proxy answered 502 for every such document.
-     */
-    private static final List<MediaType> PREFERRED_GRAPH_TYPES = List.of(
-        new MediaType("application", "n-triples"),
-        new MediaType("text", "turtle"));
 
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject MediaTypes mediaTypes;
@@ -245,13 +231,13 @@ public class ProxyRequestFilter implements ContainerRequestFilter
                     idTokenSecurityContext.getJWTToken(), requestContext.getUriInfo().getBaseUri().getPath(), null));
         }
 
-        MediaType[] upstreamAcceptTypes = getUpstreamAcceptTypes(requestContext.getAcceptableMediaTypes());
+        MediaType[] clientAcceptTypes = requestContext.getAcceptableMediaTypes().toArray(MediaType[]::new);
         if (log.isDebugEnabled()) log.debug("Proxying {} {} → {}", requestContext.getMethod(), requestContext.getUriInfo().getRequestUri(), targetURI);
 
         try
         {
             Invocation.Builder builder = target.request().
-                accept(upstreamAcceptTypes).
+                accept(clientAcceptTypes).
                 header(HttpHeaders.USER_AGENT, GraphStoreClient.USER_AGENT);
 
             // forward conditional request headers so preconditions reach the origin, which owns the
@@ -312,62 +298,6 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         }
 
         return Optional.empty();
-    }
-
-    /**
-     * Returns the {@code Accept} types sent to the proxy target.
-     * <p>
-     * A client that asks for a graph format gets {@link #PREFERRED_GRAPH_TYPES} ahead of its own types, which follow in
-     * their order at a lower {@code q}; any other client's types go as they are. The client's types are kept, not
-     * replaced by everything Jena reads: all of them at {@code q=1.0} let the target pick any format it could write,
-     * such as {@code application/rdf+thrift}. Only explicit RDF graph types count - a wildcard, {@code application/xml}
-     * (Saxon-JS {@code document()}) and SPARQL results types leave the header as the client sent it.
-     * <p>
-     * Every method gets the same header, writes included: the target folds the selected variant into its entity tag,
-     * so a write's {@code If-Match}, taken from a proxied read, validates only if the write selects that variant too.
-     *
-     * @param clientTypes the client's acceptable types, most preferred first
-     * @return the types for the upstream request
-     */
-    public static MediaType[] getUpstreamAcceptTypes(List<MediaType> clientTypes)
-    {
-        boolean asksForGraph = clientTypes.stream().
-            filter(type -> !type.isWildcardType() && !type.isWildcardSubtype()).
-            map(type -> RDFLanguages.contentTypeToLang(type.getType() + "/" + type.getSubtype())).
-            anyMatch(lang -> lang != null && RDFLanguages.isTriples(lang));
-        if (!asksForGraph) return clientTypes.toArray(MediaType[]::new);
-
-        List<MediaType> upstream = new ArrayList<>();
-        BigDecimal q = BigDecimal.ONE;
-        for (MediaType preferred : PREFERRED_GRAPH_TYPES)
-        {
-            upstream.add(withQuality(preferred, q));
-            q = q.subtract(new BigDecimal("0.1"));
-        }
-        // the client's own, below the preferred ones and in the order it gave
-        for (MediaType type : clientTypes)
-        {
-            if (PREFERRED_GRAPH_TYPES.stream().anyMatch(preferred -> preferred.isCompatible(type) && !type.isWildcardType() && !type.isWildcardSubtype())) continue;
-            String clientQ = type.getParameters().get("q");
-            BigDecimal quality = clientQ != null ? new BigDecimal(clientQ) : BigDecimal.ONE;
-            upstream.add(withQuality(type, quality.multiply(q)));
-        }
-
-        return upstream.toArray(MediaType[]::new);
-    }
-
-    /**
-     * Returns a media type with its {@code q} parameter set, rounded to the three decimals HTTP allows.
-     *
-     * @param type media type
-     * @param quality quality value
-     * @return media type with the quality
-     */
-    private static MediaType withQuality(MediaType type, BigDecimal quality)
-    {
-        Map<String, String> parameters = new HashMap<>(type.getParameters());
-        parameters.put("q", quality.setScale(3, RoundingMode.HALF_UP).stripTrailingZeros().toPlainString());
-        return new MediaType(type.getType(), type.getSubtype(), parameters);
     }
 
     /**
