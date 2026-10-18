@@ -416,15 +416,13 @@ exclude-result-prefixes="#all"
         </xsl:if>
         
         <!-- a promise rather than ixsl:schedule-action, so the results request goes through ldh:handle-response: a 429
-             on a scheduled action reached ldh:SPARQLResultsLoad as the response and failed the block -->
+             on a scheduled action reached the results callback as the response and failed the block -->
         <xsl:variable name="context" as="map(*)" select="map{
             'request': $request,
             'endpoint': $endpoint,
             'cache': $cache,
-            'container': $container,
             'chart-canvas-id': $block-id || '-chart-canvas',
             'results-container-id': $results-container-id,
-            'query-string': $query-string,
             'document-mode': $document-mode,
             'acl-modes': $acl-modes,
             'local-endpoint': $local-endpoint
@@ -438,21 +436,79 @@ exclude-result-prefixes="#all"
 
     <xsl:function name="ldh:sparql-results-load" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="cache" select="$context('cache')" as="item()"/>
+        <xsl:variable name="chart-canvas-id" select="$context('chart-canvas-id')" as="xs:string"/>
+        <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
+        <xsl:variable name="endpoint" select="$context('endpoint')" as="xs:anyURI?"/>
+        <!-- looked up when the response arrives, as the scheduled action did -->
+        <xsl:variable name="results-container" select="id($context('results-container-id'), ixsl:page())" as="element()"/>
+        <xsl:variable name="document-mode" select="$context('document-mode')" as="xs:anyURI?"/>
+        <xsl:variable name="acl-modes" select="$context('acl-modes')" as="xs:anyURI*"/>
+        <xsl:variable name="local-endpoint" select="$context('local-endpoint')" as="xs:anyURI?"/>
 
-        <xsl:for-each select="$context('response')">
-            <xsl:call-template name="ldh:SPARQLResultsLoad">
-                <xsl:with-param name="endpoint" select="$context('endpoint')"/>
-                <xsl:with-param name="cache" select="$context('cache')"/>
-                <xsl:with-param name="container" select="$context('container')"/>
-                <xsl:with-param name="chart-canvas-id" select="$context('chart-canvas-id')"/>
-                <!-- looked up when the response arrives, as the scheduled action did -->
-                <xsl:with-param name="results-container" select="id($context('results-container-id'), ixsl:page())"/>
-                <xsl:with-param name="query-string" select="$context('query-string')"/>
-                <xsl:with-param name="document-mode" select="$context('document-mode')"/>
-                <xsl:with-param name="acl-modes" select="$context('acl-modes')"/>
-                <xsl:with-param name="local-endpoint" select="$context('local-endpoint')"/>
-            </xsl:call-template>
-        </xsl:for-each>
+        <xsl:choose>
+            <xsl:when test="$response?status = 200 and $response?media-type = ('application/rdf+xml', 'application/sparql-results+xml')">
+                <xsl:for-each select="$response?body">
+                    <xsl:variable name="results" select="." as="document-node()"/>
+                    <xsl:variable name="category" select="ldh:default-category($results)" as="xs:string?"/>
+                    <xsl:variable name="series" select="ldh:default-series($results, $category)" as="xs:string*"/>
+
+                    <xsl:for-each select="$results-container">
+                        <xsl:result-document href="?." method="ixsl:replace-content">
+                            <xsl:apply-templates select="$results" mode="ldh:Chart">
+                                <xsl:with-param name="endpoint" select="if (not($endpoint = $local-endpoint)) then $endpoint else ()" tunnel="yes"/>
+                                <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
+                                <xsl:with-param name="chart-type" select="$chart-type"/>
+                                <xsl:with-param name="category" select="$category"/>
+                                <xsl:with-param name="series" select="$series"/>
+                                <xsl:with-param name="form-actions" as="element()?">
+                                    <!-- creating POSTs a new chart into the current document, so the button only appears to an agent who may
+                                         append to it. Only the Properties layout offers it: what this creates is a resource of the document,
+                                         which is what Properties renders, while the content layout renders the rdf:_N sequence, whose members
+                                         are ldh:Object and ldh:XHTML blocks - a chart is reached from content by an ldh:Object block pointing
+                                         at it, which is the same rule the document's own Create menu follows -->
+                                    <xsl:if test="$acl-modes = '&acl;Append' and $document-mode = '&ac;ReadMode'">
+                                        <div class="ldh-block-foot">
+                                            <button class="ac-btn in-primary ap-solid sz-md btn-create-chart" type="button">
+                                                <xsl:value-of>
+                                                    <xsl:apply-templates select="key('resources', 'create', ldh:translations())" mode="ac:label"/>
+                                                </xsl:value-of>
+                                            </button>
+                                        </div>
+                                    </xsl:if>
+                                </xsl:with-param>
+                            </xsl:apply-templates>
+                        </xsl:result-document>
+                    </xsl:for-each>
+
+                    <!-- store results in cache; the canvas keeps its data table beside them -->
+                    <ixsl:set-property name="results" select="$results" object="$cache"/>
+                    <xsl:apply-templates select="id($chart-canvas-id, ixsl:page())" mode="ldh:InitCanvas">
+                        <xsl:with-param name="results" select="$results" tunnel="yes"/>
+                        <xsl:with-param name="cache" select="$cache" tunnel="yes"/>
+                        <xsl:with-param name="chart-type" select="$chart-type" tunnel="yes"/>
+                        <xsl:with-param name="category" select="$category" tunnel="yes"/>
+                        <xsl:with-param name="series" select="$series" tunnel="yes"/>
+                    </xsl:apply-templates>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <!-- error response - could not load query results -->
+                <xsl:sequence select="ldh:render-block-error($results-container, 'block-query-failed', ac:http-error-key($response?status), (), $response)"/>
+                
+                <xsl:sequence select="ldh:end-block-loading(map{ 'container': $results-container }, ())[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="
+                    error(
+                      QName('&ldh;', 'ldh:HTTPError'),
+                      concat('HTTP ', $response?status, ' returned: ', $response?message),
+                      $response
+                    )
+                "/>
+            </xsl:otherwise>
+        </xsl:choose>
+        
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:function>
 
     <!-- Move the active state onto the clicked tab of a design-system tablist. Not to be confused with
@@ -699,91 +755,6 @@ exclude-result-prefixes="#all"
                 " on-failure="ldh:promise-failure(($container//div[contains-token(@class, 'main')])[1], 'document-not-loaded', ?)"/>
             </xsl:otherwise>
         </xsl:choose>
-    </xsl:template>
-    
-    <!-- callbacks -->
-    
-    <xsl:template name="ldh:SPARQLResultsLoad">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="container" as="element()"/>
-        <xsl:param name="cache" as="item()"/>
-        <xsl:param name="chart-canvas-id" as="xs:string"/>
-        <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
-        <xsl:param name="category" as="xs:string?"/>
-        <xsl:param name="series" as="xs:string*"/>
-        <xsl:param name="query-string" as="xs:string?"/>
-        <xsl:param name="endpoint" as="xs:anyURI?"/>
-        <xsl:param name="content-method" select="xs:QName('ixsl:replace-content')" as="xs:QName"/>
-        <xsl:param name="show-editor" select="true()" as="xs:boolean"/>
-        <xsl:param name="show-chart-save" select="true()" as="xs:boolean"/>
-        <xsl:param name="results-container" as="element()"/>
-        <xsl:param name="document-mode" as="xs:anyURI?"/>
-        <xsl:param name="acl-modes" as="xs:anyURI*"/>
-        <xsl:param name="local-endpoint" as="xs:anyURI?"/>
-        
-        <xsl:variable name="response" select="." as="map(*)"/>
-        <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = ('application/rdf+xml', 'application/sparql-results+xml')">
-                <xsl:for-each select="?body">
-                    <xsl:variable name="results" select="." as="document-node()"/>
-                    <xsl:variable name="category" select="if (exists($category)) then $category else ldh:default-category($results)" as="xs:string?"/>
-                    <xsl:variable name="series" select="if (exists($series)) then $series else ldh:default-series($results, $category)" as="xs:string*"/>
-
-                    <xsl:for-each select="$results-container">
-                        <xsl:result-document href="?." method="ixsl:replace-content">
-                            <xsl:apply-templates select="$results" mode="ldh:Chart">
-                                <xsl:with-param name="endpoint" select="if (not($endpoint = $local-endpoint)) then $endpoint else ()" tunnel="yes"/>
-                                <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
-                                <xsl:with-param name="chart-type" select="$chart-type"/>
-                                <xsl:with-param name="category" select="$category"/>
-                                <xsl:with-param name="series" select="$series"/>
-                                <xsl:with-param name="form-actions" as="element()?">
-                                    <!-- creating POSTs a new chart into the current document, so the button only appears to an agent who may
-                                         append to it. Only the Properties layout offers it: what this creates is a resource of the document,
-                                         which is what Properties renders, while the content layout renders the rdf:_N sequence, whose members
-                                         are ldh:Object and ldh:XHTML blocks - a chart is reached from content by an ldh:Object block pointing
-                                         at it, which is the same rule the document's own Create menu follows -->
-                                    <xsl:if test="$acl-modes = '&acl;Append' and $document-mode = '&ac;ReadMode'">
-                                        <div class="ldh-block-foot">
-                                            <button class="ac-btn in-primary ap-solid sz-md btn-create-chart" type="button">
-                                                <xsl:value-of>
-                                                    <xsl:apply-templates select="key('resources', 'create', ldh:translations())" mode="ac:label"/>
-                                                </xsl:value-of>
-                                            </button>
-                                        </div>
-                                    </xsl:if>
-                                </xsl:with-param>
-                            </xsl:apply-templates>
-                        </xsl:result-document>
-                    </xsl:for-each>
-
-                    <!-- store results in cache; the canvas keeps its data table beside them -->
-                    <ixsl:set-property name="results" select="$results" object="$cache"/>
-                    <xsl:apply-templates select="id($chart-canvas-id, ixsl:page())" mode="ldh:InitCanvas">
-                        <xsl:with-param name="results" select="$results" tunnel="yes"/>
-                        <xsl:with-param name="cache" select="$cache" tunnel="yes"/>
-                        <xsl:with-param name="chart-type" select="$chart-type" tunnel="yes"/>
-                        <xsl:with-param name="category" select="$category" tunnel="yes"/>
-                        <xsl:with-param name="series" select="$series" tunnel="yes"/>
-                    </xsl:apply-templates>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <!-- error response - could not load query results -->
-                <xsl:sequence select="ldh:render-block-error($results-container, 'block-query-failed', ac:http-error-key($response?status), (), $response)"/>
-                
-                <xsl:sequence select="ldh:end-block-loading(map{ 'container': $results-container }, ())[current-date() lt xs:date('2000-01-01')]"/>
-                <xsl:sequence select="
-                    error(
-                      QName('&ldh;', 'ldh:HTTPError'),
-                      concat('HTTP ', ?status, ' returned: ', ?message),
-                      $response
-                    )
-                "/>
-            </xsl:otherwise>
-        </xsl:choose>
-        
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
     
 </xsl:stylesheet>
