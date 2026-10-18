@@ -139,6 +139,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import org.apache.jena.enhanced.BuiltinPersonalities;
 import org.apache.jena.riot.RDFParserRegistry;
+import org.apache.jena.riot.lang.rdfxml.RRX;
 import org.slf4j.Logger;
 import java.net.URI;
 import java.io.FileInputStream;
@@ -736,6 +737,8 @@ public class Application extends ResourceConfig
 
         // register plain RDF/XML writer as default
         RDFWriterRegistry.register(Lang.RDFXML, RDFFormat.RDFXML_PLAIN);
+        // and the StAX parser, which reads back what that writer writes (apache/jena#4334)
+        registerRDFXMLParser();
 
         try
         {
@@ -1465,6 +1468,21 @@ public class Application extends ResourceConfig
         return null;
     }
     
+    /**
+     * Registers Jena's StAX RDF/XML parser in place of its default, the SAX one.
+     * <p>
+     * Workaround for <a href="https://github.com/apache/jena/issues/4334">apache/jena#4334</a>: the SAX parser
+     * mistakes an {@code </rdf:RDF>} inside {@code rdf:parseType="Literal"} content for the end of the document. It
+     * throws "Inconsistent parserMode:TOP", or with two nested {@code rdf:RDF}s returns an incomplete graph and no
+     * error. Jena writes exactly that for an XML literal holding RDF/XML - an assistant turn's stored CONSTRUCT result -
+     * so the platform could not read back its own documents: the Linked Data proxy answered 502 for them. The StAX
+     * and ARP1 parsers read them correctly. Remove once the SAX parser is fixed.
+     */
+    public static void registerRDFXMLParser()
+    {
+        RDFParserRegistry.registerLangTriples(Lang.RDFXML, RDFParserRegistry.getFactory(RRX.RDFXML_StAX_sr));
+    }
+
     /**
      * Normalizes a URI origin by adding explicit default ports (80 for HTTP, 443 for HTTPS).
      * An origin consists of scheme, hostname, and port.

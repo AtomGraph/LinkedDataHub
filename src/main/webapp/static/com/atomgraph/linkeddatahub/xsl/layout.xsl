@@ -334,9 +334,7 @@ exclude-result-prefixes="#all">
             <script src="{resolve-uri('static/js/yasqe.js', lds:origin())}" type="text/javascript"></script>
         </xsl:if>
         <xsl:if test="$load-graph3d">
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/three.min.js', lds:origin())}"></script>
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/three-spritetext.min.js', lds:origin())}"></script>
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/3d-force-graph.min.js', lds:origin())}"></script>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/graph3d.min.js', lds:origin())}"></script>
         </xsl:if>
         <xsl:if test="$load-saxon-js">
             <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/resource-resolver.js', lds:origin())}"></script>

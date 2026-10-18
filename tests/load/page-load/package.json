@@ -1,0 +1,10 @@
+{
+    "name": "linkeddatahub-page-load",
+    "version": "0.0.0",
+    "private": true,
+    "type": "module",
+    "description": "Page loads with and without the front door's rate limits - run by tests/load/page-load.sh in the pageload container",
+    "dependencies": {
+        "playwright": "1.61.1"
+    }
+}

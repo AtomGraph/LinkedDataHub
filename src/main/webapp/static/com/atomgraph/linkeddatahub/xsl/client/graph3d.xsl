@@ -111,10 +111,10 @@ WHERE
                     <xsl:variable name="request" select="map{
                         'method': 'GET',
                         'href': $request-uri,
-                        'headers': map{ 'Accept': 'application/rdf+xml' },
-                        'pool': 'xml'
+                        'headers': map{ 'Accept': 'application/rdf+xml' }
                     }" as="map(*)"/>
                     <xsl:variable name="context" select="map{
+                        'request': $request,
                         'canvas-id': $canvas-id,
                         'document-uri': xs:anyURI($node-uri-without-fragment),
                         'graph-state': $graph-state
@@ -122,9 +122,12 @@ WHERE
 
                     <xsl:sequence select="ldh:busy-cursor()"/>
 
+                    <!-- through ldh:handle-response, so a 429 is retried rather than failing the expansion -->
                     <ixsl:promise select="
                         ixsl:http-request($request)
-                            => ixsl:then(ldh:handle-graph3d-rdf-response($context, ?)) =>
+                            => ixsl:then(ldh:rethread-response($context, ?))
+                            => ixsl:then(ldh:handle-response#1)
+                            => ixsl:then(ldh:handle-graph3d-rdf-response#1) =>
                             ixsl:finally(ldh:reset-cursor#0)
                         " on-failure="ldh:promise-failure(id($canvas-id, ixsl:page())/.., 'block-resource-not-loaded', ?)"/>
                 </xsl:otherwise>
@@ -144,33 +147,44 @@ WHERE
             <xsl:if test="not(ixsl:call($loaded-backlink-uris, 'includes', [ $node-id ]))">
                 <xsl:variable name="query-string" select="replace($ldh:backlinks-graph-string, '$this', '&lt;' || $node-id || '&gt;', 'q')" as="xs:string"/>
                 <xsl:variable name="service-uri" select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $node-id || '`')) then (if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $node-id || '`'), 'service-uri')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $node-id || '`'), 'service-uri') else ()) else ()" as="xs:anyURI?"/>
-                <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ()))) else ()" as="element()?"/>
-                <xsl:variable name="endpoint" select="ldh:query-endpoint($service, ())" as="xs:anyURI"/>
-                <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
-                <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
-
-                <xsl:variable name="request" select="map{
-                    'method': 'GET',
-                    'href': $request-uri,
-                    'headers': map{ 'Accept': 'application/rdf+xml' },
-                    'pool': 'xml'
-                }" as="map(*)"/>
                 <xsl:variable name="context" select="map{
                     'canvas-id': $canvas-id,
                     'document-uri': xs:anyURI($node-id),
-                    'graph-state': $graph-state
+                    'graph-state': $graph-state,
+                    'query-string': $query-string
                 }" as="map(*)"/>
 
                 <xsl:sequence select="ldh:busy-cursor()"/>
 
+                <!-- the endpoint is the node's service's, loaded first -->
                 <ixsl:promise select="
-                    ixsl:http-request($request)
-                        => ixsl:then(ldh:handle-graph3d-backlinks-response($context, ?)) =>
+                    ldh:load-service($context, $service-uri)
+                        => ixsl:then(ldh:graph3d-backlinks-request#1) =>
                         ixsl:finally(ldh:reset-cursor#0)
                     " on-failure="ldh:promise-failure(id($canvas-id, ixsl:page())/.., 'backlinks-not-loaded', ?)"/>
             </xsl:if>
         </xsl:if>
     </xsl:template>
+
+    <xsl:function name="ldh:graph3d-backlinks-request" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="endpoint" select="ldh:query-endpoint($context('service'), ())" as="xs:anyURI"/>
+        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($context('query-string')) })" as="xs:anyURI"/>
+        <xsl:variable name="request" select="map{
+            'method': 'GET',
+            'href': ldh:href($results-uri, map{}),
+            'headers': map{ 'Accept': 'application/rdf+xml' }
+        }" as="map(*)"/>
+        <xsl:variable name="context" select="map:put($context, 'request', $request)" as="map(*)"/>
+
+        <!-- through ldh:handle-response, so a 429 is retried rather than failing the backlinks -->
+        <xsl:sequence select="
+            ixsl:http-request($request)
+                => ixsl:then(ldh:rethread-response($context, ?))
+                => ixsl:then(ldh:handle-response#1)
+                => ixsl:then(ldh:handle-graph3d-backlinks-response#1)
+        "/>
+    </xsl:function>
 
     <xsl:template match="." mode="ixsl:onForceGraph3DNodeHoverOn">
         <xsl:variable name="event-detail" select="ixsl:get(ixsl:event(), 'detail')"/>
@@ -343,7 +357,7 @@ WHERE
 
     <xsl:function name="ldh:handle-graph3d-rdf-response" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:param name="response" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
 
         <xsl:variable name="canvas-id" select="$context('canvas-id')" as="xs:string"/>
         <xsl:variable name="document-uri" select="$context('document-uri')" as="xs:anyURI"/>
@@ -384,7 +398,7 @@ WHERE
 
     <xsl:function name="ldh:handle-graph3d-backlinks-response" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:param name="response" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
 
         <xsl:variable name="canvas-id" select="$context('canvas-id')" as="xs:string"/>
         <xsl:variable name="document-uri" select="$context('document-uri')" as="xs:anyURI"/>

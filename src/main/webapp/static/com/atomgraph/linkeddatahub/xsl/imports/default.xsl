@@ -65,15 +65,15 @@ exclude-result-prefixes="#all"
         vocabulary (the dh: document slug control) or is not a value at all.
     -->
 
-    <xsl:key name="predicates-by-object" match="*[@rdf:about]/* | *[@rdf:nodeID]/*" use="@rdf:resource | @rdf:nodeID"/>
+    <xsl:key name="predicates-by-object" match="*[@rdf:about][not(ancestor::*[@rdf:parseType = 'Literal'])]/* | *[@rdf:nodeID][not(ancestor::*[@rdf:parseType = 'Literal'])]/*" use="@rdf:resource | @rdf:nodeID"/>
 
-    <xsl:key name="violations-by-root" match="*[@rdf:about] | *[@rdf:nodeID]" use="spin:violationRoot/@rdf:resource | spin:violationRoot/@rdf:nodeID"/>
+    <xsl:key name="violations-by-root" match="*[@rdf:about][not(ancestor::*[@rdf:parseType = 'Literal'])] | *[@rdf:nodeID][not(ancestor::*[@rdf:parseType = 'Literal'])]" use="spin:violationRoot/@rdf:resource | spin:violationRoot/@rdf:nodeID"/>
 
-    <xsl:key name="violations-by-value" match="*" use="ldh:violationValue/text()"/>
+    <xsl:key name="violations-by-value" match="*[not(ancestor::*[@rdf:parseType = 'Literal'])]" use="ldh:violationValue/text()"/>
 
-    <xsl:key name="violations-by-focus-node" match="*" use="sh:focusNode/@rdf:resource | sh:focusNode/@rdf:nodeID"/>
+    <xsl:key name="violations-by-focus-node" match="*[not(ancestor::*[@rdf:parseType = 'Literal'])]" use="sh:focusNode/@rdf:resource | sh:focusNode/@rdf:nodeID"/>
 
-    <xsl:key name="resources-by-type" match="*[*][@rdf:about] | *[*][@rdf:nodeID]" use="rdf:type/@rdf:resource"/>
+    <xsl:key name="resources-by-type" match="*[*][@rdf:about][not(ancestor::*[@rdf:parseType = 'Literal'])] | *[*][@rdf:nodeID][not(ancestor::*[@rdf:parseType = 'Literal'])]" use="rdf:type/@rdf:resource"/>
 
     <xsl:param name="ac:contextUri" as="xs:anyURI?"/>
 
@@ -103,8 +103,8 @@ exclude-result-prefixes="#all"
 
     <!-- dataspace descriptions in the public dataspace context (lds:context(), served at /context), by origin and by the
          base URI of their admin dataspace -->
-    <xsl:key name="apps-by-origin" match="*" use="lds:origin/@rdf:resource"/>
-    <xsl:key name="apps-by-admin" match="*" use="lds:admin/@rdf:resource"/>
+    <xsl:key name="apps-by-origin" match="*[not(ancestor::*[@rdf:parseType = 'Literal'])]" use="lds:origin/@rdf:resource"/>
+    <xsl:key name="apps-by-admin" match="*[not(ancestor::*[@rdf:parseType = 'Literal'])]" use="lds:admin/@rdf:resource"/>
 
     <!-- the dataspace this origin resolves to, as described in the public dataspace context. lds:origin() is the writer's
          param on the server and the active pane's base on the client, so a proxied pane resolves to none -->
@@ -1437,6 +1437,25 @@ exclude-result-prefixes="#all"
                 </xsl:copy>
             </xsl:with-param>
         </xsl:call-template>
+    </xsl:template>
+
+    <!-- a heading with an id addresses a section of the document, so it carries a pilcrow linking to its own
+         fragment, which is how a section URI gets copied. The fragment is left unresolved like any other, so
+         it addresses this rendering in proxy mode too -->
+    <xsl:template match="xhtml:h1[@id] | xhtml:h2[@id] | xhtml:h3[@id] | xhtml:h4[@id] | xhtml:h5[@id] | xhtml:h6[@id]" mode="ldh:XHTMLContent">
+        <xsl:copy copy-namespaces="no">
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+
+            <xsl:apply-templates select="@id" mode="ldh:HeadingAnchor"/>
+        </xsl:copy>
+    </xsl:template>
+
+    <xsl:template match="@id" mode="ldh:HeadingAnchor">
+        <xsl:variable name="label" as="xs:string">
+            <xsl:apply-templates select="key('resources', 'link-to-section', ldh:translations())" mode="ac:label"/>
+        </xsl:variable>
+
+        <a href="#{.}" class="ldh-heading-anchor" title="{$label}" aria-label="{$label}">&#182;</a>
     </xsl:template>
 
     <!-- resolve relative @href URIs against base in proxy mode. A path-absolute reference is relative too:

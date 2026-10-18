@@ -58,7 +58,9 @@ public class ProxyRoutePlanner implements HttpRoutePlanner
     {
         try
         {
-            HttpHost host = new HttpHost(InetAddress.getByName(getProxy().getHost()), target.getHostName(), getProxy().getPort(), getProxy().getScheme());
+            // an explicit port: HttpRoute rebuilds a host with a negative one from its address, dropping the logical name
+            int port = getProxy().getPort() != -1 ? getProxy().getPort() : "https".equalsIgnoreCase(getProxy().getScheme()) ? 443 : 80;
+            HttpHost host = new HttpHost(InetAddress.getByName(getProxy().getHost()), target.getHostName(), port, getProxy().getScheme());
 
             return new HttpRoute(host, null, "https".equalsIgnoreCase(host.getSchemeName()));
         }

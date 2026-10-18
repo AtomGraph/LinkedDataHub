@@ -104,6 +104,11 @@ div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"] .main .ac-alert { m
 .ldh-code-block > pre { margin: 0; }
 .ldh-code-block > .btn-copy-code { position: absolute; top: var(--sp-2); right: var(--sp-2); }
 .ac-disclosure > .ldh-code-block { margin: var(--sp-2) 0 0; }
+/* the pilcrow after a heading with an id links to its section; like is-reveal it stays out of the prose
+   until the heading is hovered or the link takes focus */
+.ldh-heading-anchor { margin-left: 0.3em; color: var(--fg-muted); font-weight: var(--fw-regular); text-decoration: none; opacity: 0; }
+.ldh-heading-anchor:hover { color: var(--fg-1); }
+:hover > .ldh-heading-anchor, .ldh-heading-anchor:focus-visible { opacity: 1; }
 /* click-to-edit affordance only when the pane's document grants acl:Write (mirrors the ixsl:onclick guard in block.xsl) */
 div[data-acl-modes~="http://www.w3.org/ns/auth/acl#Write"] div[typeof="https://w3id.org/atomgraph/linkeddatahub#XHTML"]:not(:has(form)) .main { cursor: pointer; }
 /* collapse the property grid in the XHTML block's edit form: the region spans the block as a document

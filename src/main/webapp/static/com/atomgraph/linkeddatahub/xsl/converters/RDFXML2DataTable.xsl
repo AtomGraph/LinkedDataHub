@@ -33,7 +33,7 @@ exclude-result-prefixes="xs">
     <xsl:output indent="no" omit-xml-declaration="yes" method="text" encoding="UTF-8" media-type="application/json"/>
     <xsl:strip-space elements="*"/>
 
-    <xsl:key name="properties" match="*[@rdf:about or @rdf:nodeID]/*" use="concat(namespace-uri(), local-name())"/>
+    <xsl:key name="properties" match="*[@rdf:about or @rdf:nodeID][not(ancestor::*[@rdf:parseType = 'Literal'])]/*" use="concat(namespace-uri(), local-name())"/>
 
     <!-- 
     https://developers.google.com/chart/interactive/docs/reference#dataparam
