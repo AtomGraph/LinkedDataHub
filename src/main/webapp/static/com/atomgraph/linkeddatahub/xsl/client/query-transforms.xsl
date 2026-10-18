@@ -112,6 +112,27 @@ extension-element-prefixes="ixsl"
         <xsl:sequence select="substring-after(string(($first/self::json:string, $first/self::json:map/json:string[@key = 'variable'])[1]), '?')"/>
     </xsl:function>
 
+    <!-- A suffix that turns each of $stems into a variable name the query does not use: the first of _ldh, _ldh1,
+         _ldh2, ... with which no stem collides. A rewrite's own variables have to avoid the query's (a subquery
+         exports its projected variables, so a clash would silently join), and they have to come out the same
+         every time the same query is rewritten: a random name makes every visitor's query text different, so no
+         cache in front of the endpoint can answer one visitor's query with another's result. -->
+    <xsl:function name="ldh:fresh-var-suffix" as="xs:string">
+        <xsl:param name="query" as="element(json:map)"/>
+        <xsl:param name="stems" as="xs:string+"/>
+
+        <xsl:sequence select="ldh:fresh-var-suffix(distinct-values($query//json:string[matches(., '^[?$]')]/substring(., 2)), $stems, 0)"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:fresh-var-suffix" as="xs:string">
+        <xsl:param name="used" as="xs:string*"/>
+        <xsl:param name="stems" as="xs:string+"/>
+        <xsl:param name="n" as="xs:integer"/>
+        <xsl:variable name="suffix" select="'_ldh' || (if ($n = 0) then '' else string($n))" as="xs:string"/>
+
+        <xsl:sequence select="if (some $stem in $stems satisfies ($stem || $suffix) = $used) then ldh:fresh-var-suffix($used, $stems, $n + 1) else $suffix"/>
+    </xsl:function>
+
     <!-- wrap SELECT into DESCRIBE -->
     
     <!-- identity transform -->
@@ -220,14 +241,14 @@ extension-element-prefixes="ixsl"
          out: a pivot onto them would render an empty view. Incoming subjects need no such check -
          each is by construction the subject of the triple that matched.
 
-         Variable names carry the caller's UUID because a subquery exports its projected variables:
-         a view projecting ?predicate would otherwise silently join with ours. The wrapper
+         Variable names carry a suffix the view's query does not use (ldh:fresh-var-suffix), because a
+         subquery exports its projected variables: a view projecting ?predicate would otherwise silently
+         join with ours. The wrapper
          deliberately carries no prefixes - with any, the generator abbreviates IRIs and then emits
          the subquery's own prologue inside the group, which is a syntax error. -->
     <xsl:template match="/json:map" mode="ldh:link-predicates" priority="1">
-        <xsl:param name="uuid" as="xs:string" tunnel="yes"/>
+        <xsl:param name="suffix" select="ldh:fresh-var-suffix(., ('predicate', 'inverse', 'object', 'subject'))" as="xs:string" tunnel="yes"/>
         <xsl:param name="limit" select="100" as="xs:integer" tunnel="yes"/>
-        <xsl:variable name="suffix" select="translate($uuid, '-', '_')" as="xs:string"/>
         <xsl:variable name="focus-var" select="'?' || ldh:first-var-name(.)" as="xs:string"/>
         <xsl:variable name="predicate-var" select="'?predicate' || $suffix" as="xs:string"/>
         <xsl:variable name="inverse-var" select="'?inverse' || $suffix" as="xs:string"/>
@@ -359,9 +380,9 @@ extension-element-prefixes="ixsl"
     <xsl:template match="/json:map" mode="ldh:add-parallax-step" priority="1">
         <!-- use the first ?var from the SELECT -->
         <xsl:param name="var-name" select="ldh:first-var-name(/json:map)" as="xs:string" tunnel="yes"/>
-        <xsl:param name="uuid" select="ac:uuid()" as="xs:string" tunnel="yes"/>
-        <xsl:param name="new-var-name" select="'subject' || translate($uuid, '-', '_')" as="xs:string" tunnel="yes"/>
-        <xsl:param name="graph-var-name" select="'graph' || translate($uuid, '-', '_')" as="xs:string" tunnel="yes"/>
+        <xsl:param name="suffix" select="ldh:fresh-var-suffix(., ('subject', 'graph'))" as="xs:string" tunnel="yes"/>
+        <xsl:param name="new-var-name" select="'subject' || $suffix" as="xs:string" tunnel="yes"/>
+        <xsl:param name="graph-var-name" select="'graph' || $suffix" as="xs:string" tunnel="yes"/>
 
         <xsl:copy>
             <xsl:apply-templates select="@* | node()" mode="#current">
@@ -929,12 +950,11 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="/json:map" mode="ldh:container-select" priority="1">
         <!-- every helper name is derived here and passed on, so no downstream template has to re-derive it
-             from $uuid - a tunnel parameter declared without a default downstream is a required one, and the
+             from $suffix - a tunnel parameter declared without a default downstream is a required one, and the
              whole rewrite failed outright without it -->
-        <xsl:param name="uuid" select="ac:uuid()" as="xs:string" tunnel="yes"/>
-        <xsl:param name="container-var-name" select="'container' || translate($uuid, '-', '_')" as="xs:string" tunnel="yes"/>
-        <xsl:param name="doc-var-name" select="'doc' || translate($uuid, '-', '_')" as="xs:string" tunnel="yes"/>
-        <xsl:variable name="suffix" select="translate($uuid, '-', '_')" as="xs:string"/>
+        <xsl:param name="suffix" select="ldh:fresh-var-suffix(., ('container', 'doc', 'p', 'o', 'cg'))" as="xs:string" tunnel="yes"/>
+        <xsl:param name="container-var-name" select="'container' || $suffix" as="xs:string" tunnel="yes"/>
+        <xsl:param name="doc-var-name" select="'doc' || $suffix" as="xs:string" tunnel="yes"/>
 
         <xsl:copy>
             <xsl:apply-templates select="@* | node()" mode="#current">
