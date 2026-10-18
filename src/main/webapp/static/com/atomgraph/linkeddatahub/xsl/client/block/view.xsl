@@ -153,6 +153,7 @@ exclude-result-prefixes="#all"
             ixsl:http-request($context('request')) =>
                 ixsl:then(ldh:rethread-response($context, ?)) =>
                 ixsl:then(ldh:handle-response#1) =>
+                ixsl:then(ldh:load-query-service#1) =>
                 ixsl:then(ldh:view-query-response#1)
         "/>
     </xsl:function>
@@ -2847,8 +2848,8 @@ exclude-result-prefixes="#all"
                         </xsl:variable>
                         <xsl:variable name="initial-var-name" select="ldh:first-var-name($select-xml/json:map)" as="xs:string"/>
                         <xsl:variable name="focus-var-name" select="$initial-var-name" as="xs:string"/>
-                        <!-- service can be explicitly specified on content using ldh:service -->
-                        <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ()))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
+                        <!-- service can be explicitly specified on content using ldh:service; ldh:load-query-service loaded it -->
+                        <xsl:variable name="service" select="$context('service')" as="element()?"/>
                         <xsl:variable name="endpoint" select="ldh:query-endpoint($service, $block)" as="xs:anyURI"/>
 
                         <xsl:choose>

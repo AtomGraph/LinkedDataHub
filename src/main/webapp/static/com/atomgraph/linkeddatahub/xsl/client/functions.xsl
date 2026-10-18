@@ -762,6 +762,74 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:function>
 
+    <!-- The SPARQL service a block or query names with ldh:service, described in the service's own document. Loaded
+         asynchronously, through ldh:handle-response so a 429 is retried, where it used to be a synchronous document() call
+         that blocked the page and failed outright on a 429. A description is loaded once per page, as document() loaded it
+         once into the document pool: LinkedDataHub.services keeps it for the next block naming the same service.
+         Resolves to the context with 'service' set to the service's description - empty when no service is named, or
+         when its document does not describe it, which each caller reports or falls back on as it did. -->
+    <xsl:function name="ldh:load-service" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="service-uri" as="xs:anyURI?"/>
+        <xsl:variable name="services" select="ixsl:get(ixsl:window(), 'LinkedDataHub.services')"/>
+        <xsl:variable name="key" select="'`' || $service-uri || '`'" as="xs:string"/>
+
+        <xsl:choose>
+            <xsl:when test="empty($service-uri)">
+                <xsl:sequence select="ixsl:resolve(map:put($context, 'service', ()))"/>
+            </xsl:when>
+            <xsl:when test="ixsl:contains($services, $key)">
+                <xsl:sequence select="ixsl:resolve(map:put($context, 'service', key('resources', $service-uri, ixsl:get($services, $key))))"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <!-- RDF/XML is asked for explicitly, otherwise the document comes back as HTML -->
+                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ()), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                <xsl:variable name="context" select="map:put($context, 'service-request', $request)" as="map(*)"/>
+                <xsl:sequence select="
+                  ixsl:http-request($request)
+                    => ixsl:then(ldh:rethread-response($context, ?, 'service-response'))
+                    => ixsl:then(ldh:handle-response(?, 'service-response'))
+                    => ixsl:then(ldh:set-service(?, $service-uri))
+                "/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <!-- a description that could not be loaded is raised as the failure it is, for the chain's own on-failure, as the
+         document() call raised it -->
+    <xsl:function name="ldh:set-service" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:param name="service-uri" as="xs:anyURI"/>
+        <xsl:variable name="response" select="$context('service-response')" as="map(*)"/>
+
+        <xsl:choose>
+            <xsl:when test="$response?status = 200 and $response?media-type = 'application/rdf+xml'">
+                <ixsl:set-property name="{'`' || $service-uri || '`'}" select="$response?body" object="ixsl:get(ixsl:window(), 'LinkedDataHub.services')"/>
+                <xsl:sequence select="map:put(map:remove($context, ('service-request', 'service-response', 'service-response-retries')), 'service', key('resources', $service-uri, $response?body))"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ldh:response-error($response)"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <!-- the service of the query a view or chart block loaded: its ldh:service, read off the query document in
+         context('response'). A response that is not the query document passes through untouched, for the block's own
+         response handler to report -->
+    <xsl:function name="ldh:load-query-service" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+
+        <xsl:choose>
+            <xsl:when test="$response?status = 200 and $response?media-type = 'application/rdf+xml'">
+                <xsl:sequence select="ldh:load-service($context, key('resources', $context('query-uri'), $response?body)/ldh:service/@rdf:resource/xs:anyURI(.))"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ixsl:resolve($context)"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
     <!-- Parallel load/set pair runner. $pairs is a single array whose members are 4-element arrays [load-fn, request-key, response-key, set-fn]; load-fn is a pure context-transformer that populates context($request-key). The helper folds every load-fn over $context (collecting all request specs), fans out one http-request → rethread → handle → set per pair via ixsl:all, then merges all per-branch contexts back into one. ixsl:all is fail-fast — first rejected branch propagates through on-failure of the enclosing chain. -->
     <xsl:function name="ldh:fire-load-set-parallel" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
