@@ -415,24 +415,45 @@ exclude-result-prefixes="#all"
             </xsl:for-each>
         </xsl:if>
         
-        <!-- TO-DO: refactor as promise -->
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="$request">
-                <xsl:call-template name="ldh:SPARQLResultsLoad">
-                    <xsl:with-param name="endpoint" select="$endpoint"/>
-                    <xsl:with-param name="cache" select="$cache"/>
-                    <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="chart-canvas-id" select="$block-id || '-chart-canvas'"/>
-                    <xsl:with-param name="results-container" select="id($results-container-id, ixsl:page())"/>
-                    <xsl:with-param name="query-string" select="$query-string"/>
-                    <xsl:with-param name="document-mode" select="$document-mode"/>
-                    <xsl:with-param name="acl-modes" select="$acl-modes"/>
-                    <xsl:with-param name="local-endpoint" select="$local-endpoint"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+        <!-- a promise rather than ixsl:schedule-action, so the results request goes through ldh:handle-response: a 429
+             on a scheduled action reached ldh:SPARQLResultsLoad as the response and failed the block -->
+        <xsl:variable name="context" as="map(*)" select="map{
+            'request': $request,
+            'endpoint': $endpoint,
+            'cache': $cache,
+            'container': $container,
+            'chart-canvas-id': $block-id || '-chart-canvas',
+            'results-container-id': $results-container-id,
+            'query-string': $query-string,
+            'document-mode': $document-mode,
+            'acl-modes': $acl-modes,
+            'local-endpoint': $local-endpoint
+        }"/>
+        <ixsl:promise select="ixsl:http-request($context('request')) =>
+            ixsl:then(ldh:rethread-response($context, ?)) =>
+            ixsl:then(ldh:handle-response#1) =>
+            ixsl:then(ldh:sparql-results-load#1)"
+            on-failure="ldh:promise-failure($container, 'block-query-failed', ?)"/>
     </xsl:template>
+
+    <xsl:function name="ldh:sparql-results-load" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+
+        <xsl:for-each select="$context('response')">
+            <xsl:call-template name="ldh:SPARQLResultsLoad">
+                <xsl:with-param name="endpoint" select="$context('endpoint')"/>
+                <xsl:with-param name="cache" select="$context('cache')"/>
+                <xsl:with-param name="container" select="$context('container')"/>
+                <xsl:with-param name="chart-canvas-id" select="$context('chart-canvas-id')"/>
+                <!-- looked up when the response arrives, as the scheduled action did -->
+                <xsl:with-param name="results-container" select="id($context('results-container-id'), ixsl:page())"/>
+                <xsl:with-param name="query-string" select="$context('query-string')"/>
+                <xsl:with-param name="document-mode" select="$context('document-mode')"/>
+                <xsl:with-param name="acl-modes" select="$context('acl-modes')"/>
+                <xsl:with-param name="local-endpoint" select="$context('local-endpoint')"/>
+            </xsl:call-template>
+        </xsl:for-each>
+    </xsl:function>
 
     <!-- Move the active state onto the clicked tab of a design-system tablist. Not to be confused with
          ldh:ActivateTab in client.xsl, which activates a document tab in the tab bar and re-syncs that

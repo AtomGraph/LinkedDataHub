@@ -649,16 +649,17 @@ exclude-result-prefixes="#all"
 
         <xsl:choose>
             <!-- past the last retry the 429 is handed on like any other error status, for the chain's own error handling -->
-            <xsl:when test="$response?status = 429 and $retries lt 5">
+            <xsl:when test="$response?status = 429 and $retries lt 8">
                 <!-- fetch() lower-cases header names; only the delta-seconds form of Retry-After is honoured -->
                 <xsl:variable name="retry-after" select="($response?headers?('retry-after'), $response?headers?('Retry-After'))[. castable as xs:integer][1] ! xs:integer(.)" as="xs:integer?"/>
                 <!-- without Retry-After (nginx's limit_req sends none) back off exponentially with jitter: the requests of a
                      burst that are rejected together must not come back together, or they make the next burst. Mean delays
-                     1, 2, 4, 8, 8 s, each drawn from 0.5-1.5 times that -->
+                     1, 2, 4 s, then 8 s for the remaining five, each drawn from 0.5-1.5 times that - about 47 s in all, which
+                     lets a rich page finish under a 2 r/s SPARQL limit (five retries, 23 s, dropped requests there) -->
                 <xsl:variable name="delay" select="
                   if (exists($retry-after))
                   then $retry-after * 1000
-                  else xs:integer(round((1000, 2000, 4000, 8000, 8000)[$retries + 1] * (0.5 + ixsl:call(ixsl:get(ixsl:window(), 'Math'), 'random', []))))" as="xs:integer"/>
+                  else xs:integer(round((1000, 2000, 4000, 8000, 8000, 8000, 8000, 8000)[$retries + 1] * (0.5 + ixsl:call(ixsl:get(ixsl:window(), 'Math'), 'random', []))))" as="xs:integer"/>
 
                 <xsl:sequence select="
                   ixsl:sleep($delay)

@@ -22,7 +22,7 @@
 // every block rendered.
 import { test, expect } from '../../lib/console.mjs';
 import { goto } from '../../lib/settle.mjs';
-import { fixtures, itemTitle } from '../../lib/fixtures.mjs';
+import { fixtures, itemCount, itemTitle } from '../../lib/fixtures.mjs';
 import { chartBlock, drawing } from '../../lib/chart.mjs';
 import { fixtureView, rows, switchMode } from '../../lib/view.mjs';
 import { controlToggle } from '../../lib/block.mjs';
@@ -167,10 +167,10 @@ test('a table view renders through refusals, all its requests retried', async ({
 });
 
 // The retry is bounded: a limiter that keeps refusing must end in the view's error, not in a request re-sent every
-// second for as long as the page is open. Five retries after the first refusal, then the 429 goes to the chain's
-// own error handling. The waits back off (mean 1, 2, 4, 8, 8 s), so the whole run takes about half a minute.
-test('a request refused every time is retried five times, then the view reports the failure', async ({ page, allowNoise }) => {
-    test.setTimeout(150_000);
+// second for as long as the page is open. Eight retries after the first refusal, then the 429 goes to the chain's
+// own error handling. The waits back off (mean 1, 2, 4 s, then 8 s), so the whole run takes about 47 s, 71 s at most.
+test('a request refused every time is retried eight times, then the view reports the failure', async ({ page, allowNoise }) => {
+    test.setTimeout(200_000);
     allowNoise.push({ pattern: /^HTTP 429: /, reason: 'this spec refuses the view results request on purpose' });
     allowNoise.push({
         pattern: /console\.error: Failed to load resource.*429/i,
@@ -198,12 +198,42 @@ test('a request refused every time is retried five times, then the view reports 
     await goto(page, fixtures.container);
     const block = fixtureView(page);
 
-    await expect(block.locator('.ac-alert-title'), 'the view reports the failure').toBeVisible({ timeout: 90_000 });
+    await expect(block.locator('.ac-alert-title'), 'the view reports the failure').toBeVisible({ timeout: 120_000 });
     // a request the client is still retrying would come in after the alert; give it the longest wait there is
     const settledAt = attempts.length;
     await page.waitForTimeout(13_000);
     expect(attempts.length, 'nothing is sent after the view gave up').toBe(settledAt);
-    expect(attempts.length, 'the first refusal and five retries').toBe(6);
+    expect(attempts.length, 'the first refusal and eight retries').toBe(9);
     const gaps = attempts.slice(1).map((t, i) => t - attempts[i]);
     expect(gaps[gaps.length - 1], 'the retries back off').toBeGreaterThan(gaps[0]);
+});
+
+// A query block runs its stored query on arrival. It used to send that request as an ixsl:schedule-action, outside the
+// promise chains, so ldh:handle-response never saw its 429: the refused results became the block's "query failed"
+// alert - every load of the Northwind front page under the limiter showed one on its CONSTRUCT graph block.
+test('a query block retries its results request and tables them', { tag: '@owner' }, async ({ page, allowNoise }) => {
+    test.setTimeout(120_000);
+    allowNoise.push({ pattern: /^HTTP 429: /, reason: 'this spec refuses every block request once on purpose' });
+    allowNoise.push({
+        pattern: /console\.error: Failed to load resource.*429/i,
+        reason: 'the browser logs each injected 429 the route fulfils',
+    });
+    allowNoise.push({
+        pattern: /prefix\.cc/,
+        reason: 'YASQE 2 fetches http://prefix.cc for prefix completion, blocked as mixed content (as in query.spec.mjs)',
+    });
+
+    const { sent, refused } = await record(page, { refuse: true });
+    await goto(page, fixtures.queryDocument);
+    const block = page.locator(`div.block.ldh-block[about="${fixtures.query}"]`);
+    const table = block.locator('.sparql-query-results .google-visualization-table');
+
+    await expect(table, 'the results are tabled').toBeVisible({ timeout: 30_000 });
+    await expect(table.locator('tr')).toHaveCount(itemCount + 1);
+    await expect(block.locator('.ac-alert-title'), 'and the block reports no failure').toHaveCount(0);
+    expect(refused.size, 'the page made block requests to refuse').toBeGreaterThan(0);
+    await expect.poll(() => [...refused].filter(key => !sent.has(key)), {
+        message: 'every refused request is sent again',
+        timeout: 30_000,
+    }).toEqual([]);
 });
