@@ -47,8 +47,11 @@ version="3.0">
     <xsl:param name="translations-lang" as="xs:string" select="rdfae:langs()[1]"/>
 
     <!-- keyed by rdf:nodeID, the catalog's own identifiers; also matches rdf:about so a
-         host catalog that names its terms with IRIs resolves through the same lookup -->
-    <xsl:key name="resources" match="*[*][@rdf:about] | *[*][@rdf:nodeID]" use="@rdf:about | @rdf:nodeID"/>
+         host catalog that names its terms with IRIs resolves through the same lookup. Not the
+         content of an rdf:parseType="Literal": an XML literal is a value, not RDF (RDF/XML 6),
+         and a host's keys of the same name are merged with this one - matching a description
+         inside a literal gave the host two for one IRI -->
+    <xsl:key name="resources" match="*[*][@rdf:about][not(ancestor::*[@rdf:parseType = 'Literal'])] | *[*][@rdf:nodeID][not(ancestor::*[@rdf:parseType = 'Literal'])]" use="@rdf:about | @rdf:nodeID"/>
 
     <!-- one declaration for both products: a relative href resolves against the stylesheet,
          which is src/ under Saxon and - because the SEF is compiled with -relocate:on - the
