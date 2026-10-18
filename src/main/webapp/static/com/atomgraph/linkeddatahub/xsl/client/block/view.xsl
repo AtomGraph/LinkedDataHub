@@ -1826,11 +1826,11 @@ exclude-result-prefixes="#all"
                         <xsl:result-document href="?." method="ixsl:replace-content"/>
                     </xsl:for-each>
 
-                    <xsl:variable name="uuid" select="ac:uuid()" as="xs:string"/>
+                    <xsl:variable name="suffix" select="ldh:fresh-var-suffix($select-xml/json:map, ('predicate', 'inverse', 'object', 'subject'))" as="xs:string"/>
                     <xsl:variable name="query-xml" as="document-node()">
                         <xsl:document>
                             <xsl:apply-templates select="$select-xml" mode="ldh:link-predicates">
-                                <xsl:with-param name="uuid" select="$uuid" tunnel="yes"/>
+                                <xsl:with-param name="suffix" select="$suffix" tunnel="yes"/>
                             </xsl:apply-templates>
                         </xsl:document>
                     </xsl:variable>
@@ -1843,8 +1843,8 @@ exclude-result-prefixes="#all"
                       map{
                         'request': $request,
                         'container': .,
-                        'predicate-var-name': 'predicate' || translate($uuid, '-', '_'),
-                        'inverse-var-name': 'inverse' || translate($uuid, '-', '_'),
+                        'predicate-var-name': 'predicate' || $suffix,
+                        'inverse-var-name': 'inverse' || $suffix,
                         'property-metadata': $property-metadata
                       }"/>
                     <ixsl:promise select="ixsl:http-request($context('request')) =>
