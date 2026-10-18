@@ -22,9 +22,10 @@
 // every block rendered.
 import { test, expect } from '../../lib/console.mjs';
 import { goto } from '../../lib/settle.mjs';
-import { fixtures, itemTitle } from '../../lib/fixtures.mjs';
+import { fixtures, itemCount, itemTitle } from '../../lib/fixtures.mjs';
 import { chartBlock, drawing } from '../../lib/chart.mjs';
-import { fixtureView } from '../../lib/view.mjs';
+import { fixtureView, rows, switchMode } from '../../lib/view.mjs';
+import { controlToggle } from '../../lib/block.mjs';
 import { createHash } from 'node:crypto';
 
 // DEBUG: a short id per exact request, so the timeline shows whether two sends are one request twice
@@ -134,4 +135,105 @@ test('every request refused with 429 is retried as itself, and every block still
     console.log('DEBUG: refused load, every block request:\n' + events
         .map(e => `  ${String(e.t).padStart(6)}ms ${e.action.padEnd(20)} ${e.id} ${e.shape.split('\n')[0]}`).join('\n'));
     expect(extra, 'nothing is fetched more often than an unrefused load fetches it').toEqual([]);
+});
+
+// A table names its columns by the /ns labels of the result properties. The view-results chain fetches them,
+// but did not hand them to the table, so the table's own default looked them up again - a synchronous document()
+// GET, which ldh:handle-response never sees: one 429 on it and the table was gone, with nothing retried. Refusing
+// every request of the switch to table mode once leaves such a fetch as the one refused request never sent again.
+test('a table view renders through refusals, all its requests retried', async ({ page, allowNoise }) => {
+    test.setTimeout(120_000);
+    allowNoise.push({ pattern: /^HTTP 429: /, reason: 'this spec refuses every block request once on purpose' });
+    allowNoise.push({
+        pattern: /console\.error: Failed to load resource.*429/i,
+        reason: 'the browser logs each injected 429 the route fulfils',
+    });
+
+    await goto(page, fixtures.container);
+    const block = fixtureView(page);
+    await expect(block, 'the view lists the items').toContainText(itemTitle(1), { timeout: 30_000 });
+
+    const { sent, refused } = await record(page, { refuse: true });
+    await controlToggle(block).click();
+    await switchMode(block, 'table');
+
+    await expect(rows(block).first(), 'the table renders its rows').toBeVisible({ timeout: 30_000 });
+    await expect(block.locator('table thead th').first(), 'and its column headers').toBeVisible();
+    expect(refused.size, 'the switch made requests to refuse').toBeGreaterThan(0);
+    await expect.poll(() => [...refused].filter(key => !sent.has(key)), {
+        message: 'every refused request is sent again',
+        timeout: 30_000,
+    }).toEqual([]);
+});
+
+// The retry is bounded: a limiter that keeps refusing must end in the view's error, not in a request re-sent every
+// second for as long as the page is open. Eight retries after the first refusal, then the 429 goes to the chain's
+// own error handling. The waits back off (mean 1, 2, 4 s, then 8 s), so the whole run takes about 47 s, 71 s at most.
+test('a request refused every time is retried eight times, then the view reports the failure', async ({ page, allowNoise }) => {
+    test.setTimeout(200_000);
+    allowNoise.push({ pattern: /^HTTP 429: /, reason: 'this spec refuses the view results request on purpose' });
+    allowNoise.push({
+        pattern: /console\.error: Failed to load resource.*429/i,
+        reason: 'the browser logs each injected 429 the route fulfils',
+    });
+
+    const origin = new URL(fixtures.container).origin;
+    const attempts = [];
+    // The fixture view's results: its SELECT wrapped into a DESCRIBE and POSTed to the endpoint. dct:description is
+    // what tells it from the children view's DESCRIBE on the same page; the view renames the variables per render,
+    // never the predicates.
+    const isViewResults = request => fromBlocks(request, origin) && request.method() === 'POST'
+        && new URL(request.url()).pathname.endsWith('/sparql')
+        && /\bDESCRIBE\b/i.test(request.postData() ?? '')
+        && /description/.test(request.postData() ?? '');
+    await page.route('**/*', route => {
+        const request = route.request();
+        if (isViewResults(request)) {
+            attempts.push(Date.now());
+            return route.fulfill({ status: 429, contentType: 'text/html', body: '<html><body>429 Too Many Requests</body></html>' });
+        }
+        return route.fallback();
+    });
+
+    await goto(page, fixtures.container);
+    const block = fixtureView(page);
+
+    await expect(block.locator('.ac-alert-title'), 'the view reports the failure').toBeVisible({ timeout: 120_000 });
+    // a request the client is still retrying would come in after the alert; give it the longest wait there is
+    const settledAt = attempts.length;
+    await page.waitForTimeout(13_000);
+    expect(attempts.length, 'nothing is sent after the view gave up').toBe(settledAt);
+    expect(attempts.length, 'the first refusal and eight retries').toBe(9);
+    const gaps = attempts.slice(1).map((t, i) => t - attempts[i]);
+    expect(gaps[gaps.length - 1], 'the retries back off').toBeGreaterThan(gaps[0]);
+});
+
+// A query block runs its stored query on arrival. It used to send that request as an ixsl:schedule-action, outside the
+// promise chains, so ldh:handle-response never saw its 429: the refused results became the block's "query failed"
+// alert - every load of the Northwind front page under the limiter showed one on its CONSTRUCT graph block.
+test('a query block retries its results request and tables them', { tag: '@owner' }, async ({ page, allowNoise }) => {
+    test.setTimeout(120_000);
+    allowNoise.push({ pattern: /^HTTP 429: /, reason: 'this spec refuses every block request once on purpose' });
+    allowNoise.push({
+        pattern: /console\.error: Failed to load resource.*429/i,
+        reason: 'the browser logs each injected 429 the route fulfils',
+    });
+    allowNoise.push({
+        pattern: /prefix\.cc/,
+        reason: 'YASQE 2 fetches http://prefix.cc for prefix completion, blocked as mixed content (as in query.spec.mjs)',
+    });
+
+    const { sent, refused } = await record(page, { refuse: true });
+    await goto(page, fixtures.queryDocument);
+    const block = page.locator(`div.block.ldh-block[about="${fixtures.query}"]`);
+    const table = block.locator('.sparql-query-results .google-visualization-table');
+
+    await expect(table, 'the results are tabled').toBeVisible({ timeout: 30_000 });
+    await expect(table.locator('tr')).toHaveCount(itemCount + 1);
+    await expect(block.locator('.ac-alert-title'), 'and the block reports no failure').toHaveCount(0);
+    expect(refused.size, 'the page made block requests to refuse').toBeGreaterThan(0);
+    await expect.poll(() => [...refused].filter(key => !sent.has(key)), {
+        message: 'every refused request is sent again',
+        timeout: 30_000,
+    }).toEqual([]);
 });

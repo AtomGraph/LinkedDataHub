@@ -994,9 +994,6 @@ WHERE
     <xsl:function name="ldh:set-type-metadata" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('type-metadata-response')" as="map(*)"/>
-        <xsl:variable name="block" select="$context('block')" as="element()"/>
-        <xsl:variable name="resource" select="$context('resource')" as="element()"/>
-        <xsl:variable name="types" select="$context('types')" as="xs:anyURI*"/>
 
         <xsl:for-each select="$response">
             <xsl:choose>
@@ -1077,7 +1074,8 @@ WHERE
         <xsl:sequence select="map:merge(($context, map{
             'instance-doc': $instance-doc,
             'resource': $resource,
-            'types': $types
+            'types': $types,
+            'property-uris': distinct-values($resource/*/concat(namespace-uri(), local-name()))
         }), map{ 'duplicates': 'use-last' })"/>
     </xsl:function>
 
@@ -1101,20 +1099,13 @@ WHERE
         <xsl:variable name="constructors" select="$context('constructors')" as="document-node()?"/>
         <xsl:variable name="shapes" select="$context('shapes')" as="document-node()?"/>
 
+        <!-- fetched by the chain's ldh:fire-load-set-parallel step, so a 429 on any of them is retried; a synchronous
+             document() fetch could not be -->
+        <xsl:variable name="type-metadata" select="$context('type-metadata')" as="document-node()?"/>
+        <xsl:variable name="property-metadata" select="$context('property-metadata')" as="document-node()?"/>
+        <xsl:variable name="constraints" select="$context('constraints')" as="document-node()?"/>
+
         <xsl:variable name="row-form" as="element()">
-            <!-- TO-DO: refactor remaining synchronous document() calls (type-metadata, property-metadata, constraints) into load/set pairs -->
-            <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
-            <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', lds:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
-            <xsl:variable name="type-metadata" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
-
-            <xsl:variable name="property-uris" select="distinct-values($resource/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
-            <xsl:variable name="query-string" select="'DESCRIBE $Type VALUES $Type { ' || string-join(for $uri in $property-uris return '&lt;' || $uri || '&gt;', ' ') || ' }'" as="xs:string"/>
-            <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', lds:base()), map{ 'query': $query-string, 'accept': 'application/rdf+xml' }), map{})" as="xs:anyURI"/>
-            <xsl:variable name="property-metadata" select="document($request-uri)" as="document-node()"/>
-
-            <xsl:variable name="query-string" select="$ldh:constraint-query || ' VALUES $Type { ' || string-join(for $type in $types return '&lt;' || $type || '&gt;', ' ') || ' }'" as="xs:string"/>
-            <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', lds:base()), map{ 'query': $query-string, 'accept': 'application/sparql-results+xml' }), map{})" as="xs:anyURI"/>
-            <xsl:variable name="constraints" select="if (exists($types)) then document($request-uri) else ()" as="document-node()?"/>
 
             <xsl:apply-templates select="$resource" mode="ldh:RowForm">
                 <xsl:with-param name="about" select="()"/>
@@ -1950,6 +1941,11 @@ WHERE
             ixsl:then(ldh:http-request-threaded(?, 'shapes-request', 'shapes-response')) =>
             ixsl:then(ldh:handle-response(?, 'shapes-response')) =>
             ixsl:then(ldh:set-shapes#1) =>
+            ixsl:then(ldh:fire-load-set-parallel(?, [
+              [ ldh:load-type-metadata#1,     'type-metadata-request',     'type-metadata-response',     ldh:set-type-metadata#1 ],
+              [ ldh:load-property-metadata#1, 'property-metadata-request', 'property-metadata-response', ldh:set-property-metadata#1 ],
+              [ ldh:load-constraints#1,       'constraints-request',       'constraints-response',       ldh:set-constraints#1 ]
+            ])) =>
             ixsl:then(ldh:render-add-row-form#1) =>
             ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure($container, 'form-not-loaded', ?)"/>
