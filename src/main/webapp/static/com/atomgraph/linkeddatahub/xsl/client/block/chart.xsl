@@ -350,6 +350,7 @@ exclude-result-prefixes="#all"
             ixsl:http-request($context('request')) =>
                 ixsl:then(ldh:rethread-response($context, ?)) =>
                 ixsl:then(ldh:handle-response#1) =>
+                ixsl:then(ldh:load-query-service#1) =>
                 ixsl:then(ldh:chart-query-response#1)
         "/>
     </xsl:function>
@@ -636,8 +637,8 @@ exclude-result-prefixes="#all"
                     <xsl:for-each select="?body">
                         <xsl:variable name="query-string" select="key('resources', $query-uri)/sp:text" as="xs:string"/>
                         <xsl:variable name="query-string" select="replace($query-string, '$this', '&lt;' || $this || '&gt;', 'q')" as="xs:string"/>
-                        <xsl:variable name="service-uri" select="xs:anyURI(key('resources', $query-uri)/ldh:service/@rdf:resource)" as="xs:anyURI?"/>
-                        <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ()))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
+                        <!-- the query's ldh:service, loaded by ldh:load-query-service -->
+                        <xsl:variable name="service" select="$context('service')" as="element()?"/>
                         <xsl:variable name="endpoint" select="ldh:query-endpoint($service, $block)" as="xs:anyURI"/>
                         <xsl:variable name="request-uri" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
 

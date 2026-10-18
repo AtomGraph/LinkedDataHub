@@ -153,6 +153,7 @@ exclude-result-prefixes="#all"
             ixsl:http-request($context('request')) =>
                 ixsl:then(ldh:rethread-response($context, ?)) =>
                 ixsl:then(ldh:handle-response#1) =>
+                ixsl:then(ldh:load-query-service#1) =>
                 ixsl:then(ldh:view-query-response#1)
         "/>
     </xsl:function>
@@ -200,7 +201,11 @@ exclude-result-prefixes="#all"
 
                     <xsl:sequence select="ldh:render-block-error($container, 'block-query-failed', ac:http-error-key($response?status), $endpoint, $response)"/>
 
-                    <xsl:sequence select="ldh:end-block-loading($context, ())[current-date() lt xs:date('2000-01-01')]"/>
+                    <!-- the nearest block that is LOADING, not just the nearest block: a view embedded in an Object block
+                         never carries the state itself, its host does, and the host's ldh:load-block ends it only when the
+                         chain resolves - which a failure does not. Left on, .is-loading > .ldh-block-body is display:none
+                         and the alert just rendered stays hidden (seen for a 500 as for a 429 past its last retry) -->
+                    <xsl:sequence select="ldh:end-block-loading(map{ 'container': ($container/ancestor-or-self::div[contains-token(@class, 'block')][contains-token(@class, 'is-loading')][1], $container)[1] }, ())[current-date() lt xs:date('2000-01-01')]"/>
 
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
@@ -976,6 +981,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="local-endpoint" as="xs:anyURI?"/>
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="object-metadata" as="document-node()?"/>
+        <xsl:param name="property-metadata" as="document-node()?"/>
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="var-predicates" as="map(xs:string, xs:anyURI*)?"/>
@@ -998,6 +1004,7 @@ exclude-result-prefixes="#all"
                         <xsl:with-param name="results" select="$results"/>
                         <xsl:with-param name="active-mode" select="$active-mode"/>
                         <xsl:with-param name="object-metadata" select="$object-metadata"/>
+                        <xsl:with-param name="property-metadata" select="$property-metadata"/>
                         <xsl:with-param name="total-count" select="$total-count"/>
                         <xsl:with-param name="var-predicates" select="$var-predicates"/>
                         <xsl:with-param name="order-by-var-name" select="$order-by-var-name"/>
@@ -1081,6 +1088,10 @@ exclude-result-prefixes="#all"
         <xsl:param name="local-endpoint" as="xs:anyURI?"/>
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="object-metadata" as="document-node()?"/>
+        <!-- the /ns labels of the result properties, fetched by the view-results chain (ldh:load-property-metadata). The
+             table needs them for its column headers: without them its own default looked them up with a synchronous
+             document() GET, which ldh:handle-response cannot retry, so a 429 on it dropped the table -->
+        <xsl:param name="property-metadata" as="document-node()?"/>
         <xsl:param name="active-mode" as="xs:anyURI"/>
         <xsl:param name="total-count" as="xs:integer?"/>
         <xsl:param name="var-predicates" as="map(xs:string, xs:anyURI*)?"/>
@@ -1107,6 +1118,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="show-edit-button" select="false()" tunnel="yes"/>
                     <xsl:with-param name="endpoint" select="$remote-endpoint" tunnel="yes"/>
                     <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
+                    <xsl:with-param name="property-metadata" select="$property-metadata" tunnel="yes"/>
                     <xsl:with-param name="var-predicates" select="$var-predicates" tunnel="yes"/>
                     <xsl:with-param name="order-by-var-name" select="$order-by-var-name" tunnel="yes"/>
                     <xsl:with-param name="order-by-desc" select="$order-by-desc" tunnel="yes"/>
@@ -1419,6 +1431,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="local-endpoint" select="$local-endpoint"/>
             <xsl:with-param name="results" select="$results"/>
             <xsl:with-param name="object-metadata" select="$object-metadata"/>
+            <xsl:with-param name="property-metadata" select="$property-metadata"/>
             <xsl:with-param name="active-mode" select="$active-mode"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
             <xsl:with-param name="var-predicates" select="$var-predicates"/>
@@ -2835,8 +2848,8 @@ exclude-result-prefixes="#all"
                         </xsl:variable>
                         <xsl:variable name="initial-var-name" select="ldh:first-var-name($select-xml/json:map)" as="xs:string"/>
                         <xsl:variable name="focus-var-name" select="$initial-var-name" as="xs:string"/>
-                        <!-- service can be explicitly specified on content using ldh:service -->
-                        <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ()))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
+                        <!-- service can be explicitly specified on content using ldh:service; ldh:load-query-service loaded it -->
+                        <xsl:variable name="service" select="$context('service')" as="element()?"/>
                         <xsl:variable name="endpoint" select="ldh:query-endpoint($service, $block)" as="xs:anyURI"/>
 
                         <xsl:choose>

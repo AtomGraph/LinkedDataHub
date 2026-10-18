@@ -324,22 +324,18 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="block-uri" select="ancestor::div[contains-token(@class, 'block')][1]/@about" as="xs:anyURI"/>
                     <xsl:variable name="query-string" select="replace($ldh:backlinks-string, '$this', '&lt;' || $block-uri || '&gt;', 'q')" as="xs:string"/>
                     <xsl:variable name="service-uri" select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')) then (if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'service-uri')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'service-uri') else ()) else ()" as="xs:anyURI?"/>
-                    <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ()))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
-                    <xsl:variable name="endpoint" select="ldh:query-endpoint($service, .)" as="xs:anyURI"/>
-                    <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
-                    <xsl:variable name="request-uri" select="ldh:href($results-uri, map{})" as="xs:anyURI"/>
 
                     <xsl:sequence select="ldh:busy-cursor()"/>
 
-                    <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                    <!-- the endpoint is the block's service's, loaded first -->
                     <xsl:variable name="context" as="map(*)" select="
                       map{
-                        'request': $request,
+                        'node': .,
+                        'query-string': $query-string,
                         'backlinks-container': $backlinks-container
                       }"/>
-                    <ixsl:promise select="ixsl:http-request($context('request')) =>
-                        ixsl:then(ldh:rethread-response($context, ?)) =>
-                        ixsl:then(ldh:handle-response#1) =>
+                    <ixsl:promise select="ldh:load-service($context, $service-uri) =>
+                        ixsl:then(ldh:backlinks-request#1) =>
                         ixsl:then(ldh:backlinks-response#1) =>
                         ixsl:finally(ldh:reset-cursor#0)"
                         on-failure="ldh:promise-failure($backlinks-container, 'backlinks-not-loaded', ?)"/>
@@ -347,6 +343,20 @@ exclude-result-prefixes="#all"
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
+
+    <xsl:function name="ldh:backlinks-request" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="endpoint" select="ldh:query-endpoint($context('service'), $context('node'))" as="xs:anyURI"/>
+        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($context('query-string')) })" as="xs:anyURI"/>
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': ldh:href($results-uri, map{}), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+        <xsl:variable name="context" select="map:put($context, 'request', $request)" as="map(*)"/>
+
+        <xsl:sequence select="
+          ixsl:http-request($request)
+            => ixsl:then(ldh:rethread-response($context, ?))
+            => ixsl:then(ldh:handle-response#1)
+        "/>
+    </xsl:function>
 
     <!-- closes a block links popover and resets its button state -->
 
@@ -794,6 +804,11 @@ exclude-result-prefixes="#all"
             ixsl:then(ldh:http-request-threaded(?, 'shapes-request', 'shapes-response')) =>
             ixsl:then(ldh:handle-response(?, 'shapes-response')) =>
             ixsl:then(ldh:set-shapes#1) =>
+            ixsl:then(ldh:fire-load-set-parallel(?, [
+              [ ldh:load-type-metadata#1,     'type-metadata-request',     'type-metadata-response',     ldh:set-type-metadata#1 ],
+              [ ldh:load-property-metadata#1, 'property-metadata-request', 'property-metadata-response', ldh:set-property-metadata#1 ],
+              [ ldh:load-constraints#1,       'constraints-request',       'constraints-response',       ldh:set-constraints#1 ]
+            ])) =>
             ixsl:then(ldh:render-add-row-form#1) =>
             ixsl:finally(ldh:reset-cursor#0)"
             on-failure="ldh:promise-failure(($anchor//div[contains-token(@class, 'main')])[1], 'form-not-loaded', ?)"/>
