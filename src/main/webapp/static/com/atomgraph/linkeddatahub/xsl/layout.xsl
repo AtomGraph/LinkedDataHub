@@ -217,9 +217,12 @@ exclude-result-prefixes="#all">
                 <meta name="twitter:description" content="{ac:description(.)}"/>
             </xsl:if>
 
-            <xsl:if test="ac:image(.)">
-                <meta property="og:image" content="{ac:image(.)}"/>
-                <meta name="twitter:image" content="{ac:image(.)}"/>
+            <!-- the document's own image, else its primary topic's: an item document rarely carries one itself, the
+                 thing it describes does (a photo, a logo). ac:image may return several - a card takes one -->
+            <xsl:variable name="image" select="(ac:image(.), foaf:primaryTopic/@rdf:resource/key('resources', ., root(.)) ! ac:image(.))[1]" as="attribute()?"/>
+            <xsl:if test="$image">
+                <meta property="og:image" content="{$image}"/>
+                <meta name="twitter:image" content="{$image}"/>
             </xsl:if>
 
             <xsl:for-each select="foaf:maker/@rdf:resource">
