@@ -32,10 +32,10 @@ item=$(ldh create item \
 
 echo "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
-INSERT DATA {
+INSERT {
   <${item}#result> <http://example.org/graph> \"\"\"<wa:result xmlns:wa=\"https://w3id.org/atomgraph/web-algebra\"><rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"><rdf:Description rdf:about=\"http://example.org/inner\"></rdf:Description></rdf:RDF></wa:result>\"\"\"^^rdf:XMLLiteral .
   <${item}#result> <http://example.org/after> \"after\" .
-}" | \
+} WHERE {}" | \
   ldh patch \
     -c "$OWNER_CERT_KEYSTORE" \
     -p "$OWNER_CERT_PWD" \
