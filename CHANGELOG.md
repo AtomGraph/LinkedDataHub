@@ -1,3 +1,24 @@
+## [6.2.2] - 2026-10-18
+### Migration
+- Deployments that keep a copy of `docker-compose.yml` need to re-sync it to get the new nginx limits
+
+### Added
+- Headings with an `id` link to their own section
+- The load test suite fails a change that makes pages hit the nginx rate limits or send more requests than their baseline
+
+### Changed
+- nginx queues a page's burst of requests instead of refusing it, and LinkedDataHub's own `/sparql` queries get a higher tier of limits (`NGINX_SPARQL_UI_*`)
+- The client retries a request answered `429` instead of failing that part of the page
+- The 3D graph loads a single Three.js bundle
+- Web-Client dependency bumped to 6.0.7
+
+### Fixed
+- A document holding an assistant result that describes the document itself renders again
+- RDF/XML holding an XML literal that contains RDF/XML is read correctly, so the proxy no longer answers `502` for it (works around apache/jena#4334)
+- The query block's Open button opens the results as a document
+- The 3D graph's node expansion and backlinks survive a `429`
+- `ldh --proxy` keeps the logical host for a proxy URI without a port
+
 ## [6.2.1] - 2026-10-17
 ### Migration
 - The assistant is opt-in: set `COMPOSE_PROFILES=assistant` in `.env` to run the `web-algebra` service and offer the assistant in the UI
