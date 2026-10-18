@@ -26,3 +26,4 @@
 /tests/ui/out
 /tests/ui/test-results
 /rdf/target/
+/src/main/js/graph3d/node_modules
