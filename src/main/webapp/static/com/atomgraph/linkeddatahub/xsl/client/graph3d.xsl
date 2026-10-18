@@ -111,8 +111,7 @@ WHERE
                     <xsl:variable name="request" select="map{
                         'method': 'GET',
                         'href': $request-uri,
-                        'headers': map{ 'Accept': 'application/rdf+xml' },
-                        'pool': 'xml'
+                        'headers': map{ 'Accept': 'application/rdf+xml' }
                     }" as="map(*)"/>
                     <xsl:variable name="context" select="map{
                         'request': $request,
@@ -156,8 +155,7 @@ WHERE
                 <xsl:variable name="request" select="map{
                     'method': 'GET',
                     'href': $request-uri,
-                    'headers': map{ 'Accept': 'application/rdf+xml' },
-                    'pool': 'xml'
+                    'headers': map{ 'Accept': 'application/rdf+xml' }
                 }" as="map(*)"/>
                 <xsl:variable name="context" select="map{
                     'request': $request,
