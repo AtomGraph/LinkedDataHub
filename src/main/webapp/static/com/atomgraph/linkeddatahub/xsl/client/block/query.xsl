@@ -179,7 +179,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="context" as="map(*)"/>
         <xsl:message>ldh:chart-self-thunk</xsl:message>
         <xsl:sequence select="
-            ixsl:resolve($context) =>
+            ldh:load-service($context, $context('service-uri')) =>
                 ixsl:then(ldh:render-query#1)
         "/>
     </xsl:function>
@@ -193,6 +193,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="textarea-rows" select="$context('textarea-rows')" as="xs:integer?"/>
         <xsl:variable name="query" select="$context('query')" as="xs:string"/>
         <xsl:variable name="service-uri" select="$context('service-uri')" as="xs:anyURI?"/>
+        <xsl:variable name="service" select="$context('service')" as="element()?"/>
         <xsl:variable name="forClass" select="$context('forClass')" as="xs:anyURI"/>
         
         <xsl:variable name="acl-modes" select="$context('acl-modes')" as="xs:anyURI*"/>
@@ -242,10 +243,8 @@ exclude-result-prefixes="#all"
 
                                 <xsl:choose>
                                     <xsl:when test="$service-uri">
-                                        <!-- need to explicitly request RDF/XML, otherwise we get HTML -->
-                                        <xsl:variable name="request-uri" select="ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ())" as="xs:anyURI"/>
-                                        <!-- TO-DO: refactor asynchronously -->
-                                        <xsl:apply-templates select="key('resources', $service-uri, document($request-uri))" mode="ldh:ComboboxChip">
+                                        <!-- loaded by ldh:load-service before this step -->
+                                        <xsl:apply-templates select="$service" mode="ldh:ComboboxChip">
                                             <xsl:with-param name="forClass" select="$forClass"/>
                                         </xsl:apply-templates>
                                     </xsl:when>
@@ -345,14 +344,10 @@ exclude-result-prefixes="#all"
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
         <xsl:variable name="service-meta" select="descendant::div[contains-token(@class, 'ldh-sparql-meta')][input[@name = 'pu'][@value = '&ldh;service']]" as="element()"/>
         <xsl:variable name="service-uri" select="$service-meta/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI?"/>
-        <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ()))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
-        <xsl:variable name="endpoint" select="ldh:query-endpoint($service, .)" as="xs:anyURI"/>
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="container" select="$block" as="element()"/> <!-- since we're not in content mode -->
         <xsl:variable name="block-id" select="ldh:block-id($block)" as="xs:string"/>
         <xsl:variable name="block-uri" select="if ($block/@about) then $block/@about else xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id)" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
-        <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(xs:string, item())"/>
         <xsl:variable name="results-container-id" select="$block-id || '-query-results'" as="xs:string"/>
         <xsl:variable name="results-container-class" select="'sparql-query-results'" as="xs:string"/>
         <xsl:variable name="results-container-about" select="xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $results-container-id)" as="xs:anyURI"/>
@@ -416,10 +411,11 @@ exclude-result-prefixes="#all"
         </xsl:if>
         
         <!-- a promise rather than ixsl:schedule-action, so the results request goes through ldh:handle-response: a 429
-             on a scheduled action reached the results callback as the response and failed the block -->
+             on a scheduled action reached the results callback as the response and failed the block. The endpoint is
+             the block's service's, loaded first -->
         <xsl:variable name="context" as="map(*)" select="map{
-            'request': $request,
-            'endpoint': $endpoint,
+            'form': .,
+            'query-string': $query-string,
             'cache': $cache,
             'chart-canvas-id': $block-id || '-chart-canvas',
             'results-container-id': $results-container-id,
@@ -427,12 +423,24 @@ exclude-result-prefixes="#all"
             'acl-modes': $acl-modes,
             'local-endpoint': $local-endpoint
         }"/>
-        <ixsl:promise select="ixsl:http-request($context('request')) =>
-            ixsl:then(ldh:rethread-response($context, ?)) =>
-            ixsl:then(ldh:handle-response#1) =>
+        <ixsl:promise select="ldh:load-service($context, $service-uri) =>
+            ixsl:then(ldh:query-results-request#1) =>
             ixsl:then(ldh:sparql-results-load#1)"
             on-failure="ldh:promise-failure($container, 'block-query-failed', ?)"/>
     </xsl:template>
+
+    <xsl:function name="ldh:query-results-request" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="endpoint" select="ldh:query-endpoint($context('service'), $context('form'))" as="xs:anyURI"/>
+        <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href($endpoint, map{}), 'media-type': 'application/sparql-query', 'body': $context('query-string'), 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(xs:string, item())"/>
+        <xsl:variable name="context" select="map:merge(($context, map{ 'endpoint': $endpoint, 'request': $request }), map{ 'duplicates': 'use-last' })" as="map(*)"/>
+
+        <xsl:sequence select="
+          ixsl:http-request($request)
+            => ixsl:then(ldh:rethread-response($context, ?))
+            => ixsl:then(ldh:handle-response#1)
+        "/>
+    </xsl:function>
 
     <xsl:function name="ldh:sparql-results-load" as="item()*" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
@@ -710,17 +718,18 @@ exclude-result-prefixes="#all"
         " on-failure="ldh:promise-failure(($container//div[contains-token(@class, 'main')])[1], 'query-not-saved', ?)"/>
     </xsl:template>
     
-    <!-- open query onclick -->
+    <!-- open query onclick: the DESCRIBE or CONSTRUCT results open as a document of their own, {endpoint}?query=, the
+         way a link to one opens - through ldh:DocumentNavigate, so the document is loaded like any other: with the metadata
+         its rendering needs, 429s retried, and an address that can be reloaded and shared. The handler used to POST the
+         query and hand the response to ldh:rdf-document-response itself, with none of that, and without the 'doc-uri' it
+         requires, so the response failed to render -->
     
     <xsl:template match="button[contains-token(@class, 'btn-open-query')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
-        <xsl:variable name="content-value" select="ixsl:get($container//div[contains-token(@class, 'main')]//input[@name = 'ou'], 'value')" as="xs:anyURI"/>
         <xsl:variable name="textarea" select="ancestor::form/descendant::textarea[@name = 'query']" as="element()"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea/@id)"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string?"/> <!-- get query string from YASQE -->
         <xsl:variable name="service-uri" select="ancestor::form[1]/descendant::div[contains-token(@class, 'ldh-sparql-meta')]/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI?"/>
-        <xsl:variable name="service" select="if ($service-uri) then key('resources', $service-uri, document(ldh:href(ac:document-uri($service-uri), map{ 'accept': 'application/rdf+xml' }, ()))) else ()" as="element()?"/> <!-- TO-DO: refactor asynchronously -->
-        <xsl:variable name="endpoint" select="ldh:query-endpoint($service, $container)" as="xs:anyURI"/>
         <xsl:variable name="query-type" select="ldh:query-type($query-string)" as="xs:string?"/>
 
         <xsl:choose>
@@ -729,32 +738,27 @@ exclude-result-prefixes="#all"
                 <xsl:message>Can only open DESCRIBE or CONSTRUCT query results</xsl:message>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:variable name="href" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
-
-                <xsl:sequence select="ldh:busy-cursor()"/>
-
-                <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')">
-                    <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
-                    <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.saxonController'), 'abort', [])"/>
-                </xsl:if>
-                <xsl:variable name="controller" select="ixsl:abort-controller()"/>
-                <ixsl:set-property name="saxonController" select="$controller" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-
-                <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $href, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                <!-- the endpoint is the block's service's, loaded first -->
                 <xsl:variable name="context" select="
                   map{
-                    'request': $request,
-                    'uri': $href
+                    'container': $container,
+                    'query-string': $query-string
                   }" as="map(*)"/>
                 <ixsl:promise select="
-                  ixsl:http-request($context('request'), $controller)
-                    => ixsl:then(ldh:rethread-response($context, ?))
-                    => ixsl:then(ldh:handle-response#1)
-                    => ixsl:then(ldh:rdf-document-response#1) =>
-                    ixsl:finally(ldh:reset-cursor#0)
+                  ldh:load-service($context, $service-uri)
+                    => ixsl:then(ldh:open-query#1)
                 " on-failure="ldh:promise-failure(($container//div[contains-token(@class, 'main')])[1], 'document-not-loaded', ?)"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
+
+    <xsl:function name="ldh:open-query" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+
+        <xsl:call-template name="ldh:DocumentNavigate">
+            <xsl:with-param name="doc-uri" select="ldh:query-endpoint($context('service'), $context('container'))"/>
+            <xsl:with-param name="query-params" select="map{ 'query': $context('query-string') }"/>
+        </xsl:call-template>
+    </xsl:function>
     
 </xsl:stylesheet>
