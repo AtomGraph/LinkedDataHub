@@ -22,7 +22,8 @@
 // develop. The test passes the day the tab renders rows, and then reports the annotation as stale.
 import { test, expect } from '../../../lib/console.mjs';
 import { goto } from '../../../lib/settle.mjs';
-import { fixtures, itemCount, itemTitle } from '../../../lib/fixtures.mjs';
+import { fixtures, itemCount, itemTitle, itemUri } from '../../../lib/fixtures.mjs';
+import { endUserBase } from '../../../lib/stack.mjs';
 
 // The block that carries the query's @about is the inner one: it owns the head with the editor
 // toggle, the form, and the results container.
@@ -90,6 +91,32 @@ test.describe('the query block', { tag: '@owner' }, () => {
 
         await expect(table.locator('tr')).toHaveCount(3 + 1);
         await expect(table.locator('tr').nth(1)).toContainText(itemTitle(1));
+    });
+
+    // Open is for a query whose results are a graph: they open as a document of their own, the
+    // endpoint asked the query, which is what a link to {endpoint}?query= opens too. It used to POST
+    // the query and hand the response to the document renderer without the document URI the renderer
+    // requires, so the click ended in a type error and the page never changed.
+    test('Open shows a DESCRIBE\'s results as a document of their own', async ({ page }) => {
+        await goto(page, fixtures.queryDocument);
+        const block = queryBlock(page);
+        await expect(resultsTable(block)).toBeVisible({ timeout: 30_000 });
+
+        await editorToggle(block).click();
+        const textareaId = await block.locator('textarea.sparql-query-string').getAttribute('id');
+        await page.evaluate(([id, query]) => window.LinkedDataHub.yasqe[id].setValue(query),
+            [textareaId, `DESCRIBE <${itemUri(2)}>`]);
+        await block.locator('button.btn-open-query').click();
+
+        // an address that can be reloaded: the endpoint, with the query that was opened
+        await page.waitForURL(url => url.href.startsWith(`${endUserBase}sparql?`)
+            && new URL(url).searchParams.get('query') === `DESCRIBE <${itemUri(2)}>`, { timeout: 30_000 });
+        const body = page.locator('#tab-content .ldh-pane:visible div.document-body');
+        await expect(body).toHaveAttribute('about', `${endUserBase}sparql`, { timeout: 30_000 });
+        // the described document is what the pane shows, and the query block is gone with its page
+        await expect(body).toContainText(itemTitle(2), { timeout: 30_000 });
+        await expect(body.locator(`div.block.ldh-block[about="${fixtures.query}"]`)).toHaveCount(0);
+        await expect(page.locator('.ldh-failure')).toHaveCount(0);
     });
 
     test('the View tab renders the same result set as rows', async ({ page, allowNoise }) => {

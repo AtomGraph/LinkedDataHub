@@ -633,11 +633,14 @@ exclude-result-prefixes="#all"
         " on-failure="ldh:promise-failure(($container//div[contains-token(@class, 'main')])[1], 'query-not-saved', ?)"/>
     </xsl:template>
     
-    <!-- open query onclick -->
+    <!-- open query onclick: the DESCRIBE or CONSTRUCT results open as a document of their own, {endpoint}?query=, the
+         way a link to one opens - through ldh:DocumentNavigate, so the document is loaded like any other: with the metadata
+         its rendering needs, 429s retried, and an address that can be reloaded and shared. The handler used to POST the
+         query and hand the response to ldh:rdf-document-response itself, with none of that, and without the 'doc-uri' that
+         function requires, so the results never rendered -->
     
     <xsl:template match="button[contains-token(@class, 'btn-open-query')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
-        <xsl:variable name="content-value" select="ixsl:get($container//div[contains-token(@class, 'main')]//input[@name = 'ou'], 'value')" as="xs:anyURI"/>
         <xsl:variable name="textarea" select="ancestor::form/descendant::textarea[@name = 'query']" as="element()"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea/@id)"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string?"/> <!-- get query string from YASQE -->
@@ -652,30 +655,10 @@ exclude-result-prefixes="#all"
                 <xsl:message>Can only open DESCRIBE or CONSTRUCT query results</xsl:message>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:variable name="href" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
-
-                <xsl:sequence select="ldh:busy-cursor()"/>
-
-                <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'saxonController')">
-                    <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
-                    <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.saxonController'), 'abort', [])"/>
-                </xsl:if>
-                <xsl:variable name="controller" select="ixsl:abort-controller()"/>
-                <ixsl:set-property name="saxonController" select="$controller" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-
-                <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $href, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-                <xsl:variable name="context" select="
-                  map{
-                    'request': $request,
-                    'uri': $href
-                  }" as="map(*)"/>
-                <ixsl:promise select="
-                  ixsl:http-request($context('request'), $controller)
-                    => ixsl:then(ldh:rethread-response($context, ?))
-                    => ixsl:then(ldh:handle-response#1)
-                    => ixsl:then(ldh:rdf-document-response#1) =>
-                    ixsl:finally(ldh:reset-cursor#0)
-                " on-failure="ldh:promise-failure(($container//div[contains-token(@class, 'main')])[1], 'document-not-loaded', ?)"/>
+                <xsl:call-template name="ldh:DocumentNavigate">
+                    <xsl:with-param name="doc-uri" select="$endpoint"/>
+                    <xsl:with-param name="query-params" select="map{ 'query': $query-string }"/>
+                </xsl:call-template>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>

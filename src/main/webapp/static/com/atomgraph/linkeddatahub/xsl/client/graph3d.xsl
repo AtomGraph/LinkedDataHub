@@ -115,6 +115,7 @@ WHERE
                         'pool': 'xml'
                     }" as="map(*)"/>
                     <xsl:variable name="context" select="map{
+                        'request': $request,
                         'canvas-id': $canvas-id,
                         'document-uri': xs:anyURI($node-uri-without-fragment),
                         'graph-state': $graph-state
@@ -122,9 +123,12 @@ WHERE
 
                     <xsl:sequence select="ldh:busy-cursor()"/>
 
+                    <!-- through ldh:handle-response, so a 429 is retried rather than failing the expansion -->
                     <ixsl:promise select="
                         ixsl:http-request($request)
-                            => ixsl:then(ldh:handle-graph3d-rdf-response($context, ?)) =>
+                            => ixsl:then(ldh:rethread-response($context, ?))
+                            => ixsl:then(ldh:handle-response#1)
+                            => ixsl:then(ldh:handle-graph3d-rdf-response#1) =>
                             ixsl:finally(ldh:reset-cursor#0)
                         " on-failure="ldh:promise-failure(id($canvas-id, ixsl:page())/.., 'block-resource-not-loaded', ?)"/>
                 </xsl:otherwise>
@@ -156,6 +160,7 @@ WHERE
                     'pool': 'xml'
                 }" as="map(*)"/>
                 <xsl:variable name="context" select="map{
+                    'request': $request,
                     'canvas-id': $canvas-id,
                     'document-uri': xs:anyURI($node-id),
                     'graph-state': $graph-state
@@ -163,9 +168,12 @@ WHERE
 
                 <xsl:sequence select="ldh:busy-cursor()"/>
 
+                <!-- through ldh:handle-response, so a 429 is retried rather than failing the backlinks -->
                 <ixsl:promise select="
                     ixsl:http-request($request)
-                        => ixsl:then(ldh:handle-graph3d-backlinks-response($context, ?)) =>
+                        => ixsl:then(ldh:rethread-response($context, ?))
+                        => ixsl:then(ldh:handle-response#1)
+                        => ixsl:then(ldh:handle-graph3d-backlinks-response#1) =>
                         ixsl:finally(ldh:reset-cursor#0)
                     " on-failure="ldh:promise-failure(id($canvas-id, ixsl:page())/.., 'backlinks-not-loaded', ?)"/>
             </xsl:if>
@@ -343,7 +351,7 @@ WHERE
 
     <xsl:function name="ldh:handle-graph3d-rdf-response" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:param name="response" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
 
         <xsl:variable name="canvas-id" select="$context('canvas-id')" as="xs:string"/>
         <xsl:variable name="document-uri" select="$context('document-uri')" as="xs:anyURI"/>
@@ -384,7 +392,7 @@ WHERE
 
     <xsl:function name="ldh:handle-graph3d-backlinks-response" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
-        <xsl:param name="response" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
 
         <xsl:variable name="canvas-id" select="$context('canvas-id')" as="xs:string"/>
         <xsl:variable name="document-uri" select="$context('document-uri')" as="xs:anyURI"/>
