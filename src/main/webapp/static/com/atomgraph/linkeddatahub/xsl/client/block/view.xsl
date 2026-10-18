@@ -168,18 +168,12 @@ exclude-result-prefixes="#all"
                 ixsl:then(ldh:rethread-response($context, ?, 'view-results-response')) =>
                 ixsl:then(ldh:handle-response(?, 'view-results-response')) =>
                 ixsl:then(ldh:view-results-error-handler#1) =>
-                ixsl:then(ldh:load-object-metadata(?, 'view-results-response')) =>
-                ixsl:then(ldh:http-request-threaded(?, 'metadata-request', 'metadata-response')) =>
-                ixsl:then(ldh:handle-response(?, 'metadata-response')) =>
-                ixsl:then(ldh:set-object-metadata#1) =>
-                ixsl:then(ldh:http-request-threaded(?, 'ns-metadata-request', 'ns-metadata-response')) =>
-                ixsl:then(ldh:handle-response(?, 'ns-metadata-response')) =>
-                ixsl:then(ldh:set-object-metadata-ns#1) =>
+                ixsl:then(ldh:fire-load-set-parallel(?, [
+                  [ ldh:load-object-metadata(?, 'view-results-response'),   'metadata-request',          'metadata-response',          ldh:set-object-metadata#1 ],
+                  [ ldh:load-object-metadata(?, 'view-results-response'),   'ns-metadata-request',       'ns-metadata-response',       ldh:set-object-metadata-ns#1 ],
+                  [ ldh:load-property-metadata(?, 'view-results-response'), 'property-metadata-request', 'property-metadata-response', ldh:set-property-metadata#1 ]
+                ])) =>
                 ixsl:then(ldh:merge-object-metadata#1) =>
-                ixsl:then(ldh:load-property-metadata(?, 'view-results-response')) =>
-                ixsl:then(ldh:http-request-threaded(?, 'property-metadata-request', 'property-metadata-response')) =>
-                ixsl:then(ldh:handle-response(?, 'property-metadata-response')) =>
-                ixsl:then(ldh:set-property-metadata#1) =>
                 ixsl:then(ldh:render-view#1)
         "/>
     </xsl:function>
