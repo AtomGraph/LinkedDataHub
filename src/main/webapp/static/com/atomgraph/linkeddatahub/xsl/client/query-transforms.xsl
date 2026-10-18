@@ -233,9 +233,20 @@ extension-element-prefixes="ixsl"
 
     <!-- Turns the view's SELECT into a query for the predicates that link its results to the rest
          of the graph: ?predicate paired with ?inverse, which flags the incoming ones. The SELECT
-         becomes a subquery (in its own group - a SubSelect has to be the sole content of its
-         braces, and the WHERE has a second member), so discovery covers the whole result set
-         rather than the loaded page; the caller strips LIMIT/OFFSET/ORDER off it first.
+         becomes a subquery, so discovery covers the whole result set rather than the loaded page;
+         the caller strips LIMIT/OFFSET/ORDER off it first.
+
+             SELECT ?predicate ?inverse {
+               { SELECT ?predicate (false AS ?inverse) { { <view> } <outgoing> } GROUP BY ?predicate }
+               UNION
+               { SELECT ?predicate (true AS ?inverse) { { <view> } <incoming> } GROUP BY ?predicate }
+             } LIMIT 100
+
+         Each direction joins the view on its own and collapses to its predicates with GROUP BY before
+         the UNION. Joining the view once with an outgoing/incoming UNION and deduplicating with a
+         top-level DISTINCT returns the same rows, but materialises every joined triple first: on a
+         view whose results have millions of incoming triples (Seimas members and their ~4.9M roll-call
+         votes) that took 27.7 s, this takes 8.5 s.
 
          Outgoing objects that are literals, or that are never subjects themselves, are filtered
          out: a pivot onto them would render an empty view. Incoming subjects need no such check -
@@ -249,111 +260,131 @@ extension-element-prefixes="ixsl"
     <xsl:template match="/json:map" mode="ldh:link-predicates" priority="1">
         <xsl:param name="suffix" select="ldh:fresh-var-suffix(., ('predicate', 'inverse', 'object', 'subject'))" as="xs:string" tunnel="yes"/>
         <xsl:param name="limit" select="100" as="xs:integer" tunnel="yes"/>
-        <xsl:variable name="focus-var" select="'?' || ldh:first-var-name(.)" as="xs:string"/>
-        <xsl:variable name="predicate-var" select="'?predicate' || $suffix" as="xs:string"/>
-        <xsl:variable name="inverse-var" select="'?inverse' || $suffix" as="xs:string"/>
-        <xsl:variable name="object-var" select="'?object' || $suffix" as="xs:string"/>
-        <xsl:variable name="subject-var" select="'?subject' || $suffix" as="xs:string"/>
+        <xsl:variable name="select" select="." as="element(json:map)"/>
 
         <json:map>
             <json:string key="queryType">SELECT</json:string>
-            <json:boolean key="distinct">true</json:boolean>
             <json:array key="variables">
-                <json:string><xsl:value-of select="$predicate-var"/></json:string>
-                <json:string><xsl:value-of select="$inverse-var"/></json:string>
+                <json:string><xsl:value-of select="'?predicate' || $suffix"/></json:string>
+                <json:string><xsl:value-of select="'?inverse' || $suffix"/></json:string>
             </json:array>
             <!-- hoist the dataset clause, which is only legal on the outermost query (see ldh:wrap-describe) -->
             <xsl:copy-of select="json:map[@key = 'from']"/>
             <json:array key="where">
                 <json:map>
-                    <json:string key="type">group</json:string>
-                    <json:array key="patterns">
-                        <xsl:apply-templates select="." mode="ldh:strip-from"/>
-                    </json:array>
-                </json:map>
-
-                <json:map>
                     <json:string key="type">union</json:string>
                     <json:array key="patterns">
-                        <!-- outgoing: the result set's own properties -->
-                        <json:map>
-                            <json:string key="type">group</json:string>
-                            <json:array key="patterns">
-                                <xsl:call-template name="ldh:GraphUnionPattern">
-                                    <xsl:with-param name="subject" select="$focus-var"/>
-                                    <xsl:with-param name="predicate" select="$predicate-var"/>
-                                    <xsl:with-param name="object" select="$object-var"/>
-                                    <xsl:with-param name="graph-var" select="'?graph' || $suffix"/>
-                                </xsl:call-template>
-
-                                <json:map>
-                                    <json:string key="type">filter</json:string>
-                                    <json:map key="expression">
-                                        <json:string key="type">operation</json:string>
-                                        <json:string key="operator">!</json:string>
-                                        <json:array key="args">
-                                            <json:map>
-                                                <json:string key="type">operation</json:string>
-                                                <json:string key="operator">isliteral</json:string>
-                                                <json:array key="args">
-                                                    <json:string><xsl:value-of select="$object-var"/></json:string>
-                                                </json:array>
-                                            </json:map>
-                                        </json:array>
-                                    </json:map>
-                                </json:map>
-
-                                <json:map>
-                                    <json:string key="type">filter</json:string>
-                                    <json:map key="expression">
-                                        <json:string key="type">operation</json:string>
-                                        <json:string key="operator">exists</json:string>
-                                        <json:array key="args">
-                                            <json:map>
-                                                <json:string key="type">group</json:string>
-                                                <json:array key="patterns">
-                                                    <xsl:call-template name="ldh:GraphUnionPattern">
-                                                        <xsl:with-param name="subject" select="$object-var"/>
-                                                        <xsl:with-param name="predicate" select="'?objectPredicate' || $suffix"/>
-                                                        <xsl:with-param name="object" select="'?objectObject' || $suffix"/>
-                                                        <xsl:with-param name="graph-var" select="'?objectGraph' || $suffix"/>
-                                                    </xsl:call-template>
-                                                </json:array>
-                                            </json:map>
-                                        </json:array>
-                                    </json:map>
-                                </json:map>
-
-                                <json:map>
-                                    <json:string key="type">bind</json:string>
-                                    <json:string key="variable"><xsl:value-of select="$inverse-var"/></json:string>
-                                    <json:string key="expression">"false"^^&xsd;boolean</json:string>
-                                </json:map>
-                            </json:array>
-                        </json:map>
-
-                        <!-- incoming: what points at the result set -->
-                        <json:map>
-                            <json:string key="type">group</json:string>
-                            <json:array key="patterns">
-                                <xsl:call-template name="ldh:GraphUnionPattern">
-                                    <xsl:with-param name="subject" select="$subject-var"/>
-                                    <xsl:with-param name="predicate" select="$predicate-var"/>
-                                    <xsl:with-param name="object" select="$focus-var"/>
-                                    <xsl:with-param name="graph-var" select="'?subjectGraph' || $suffix"/>
-                                </xsl:call-template>
-
-                                <json:map>
-                                    <json:string key="type">bind</json:string>
-                                    <json:string key="variable"><xsl:value-of select="$inverse-var"/></json:string>
-                                    <json:string key="expression">"true"^^&xsd;boolean</json:string>
-                                </json:map>
-                            </json:array>
-                        </json:map>
+                        <xsl:for-each select="(false(), true())">
+                            <json:map>
+                                <json:string key="type">group</json:string>
+                                <json:array key="patterns">
+                                    <xsl:call-template name="ldh:LinkPredicatesSubquery">
+                                        <xsl:with-param name="select" select="$select"/>
+                                        <xsl:with-param name="suffix" select="$suffix"/>
+                                        <xsl:with-param name="inverse" select="."/>
+                                    </xsl:call-template>
+                                </json:array>
+                            </json:map>
+                        </xsl:for-each>
                     </json:array>
                 </json:map>
             </json:array>
             <json:number key="limit"><xsl:value-of select="$limit"/></json:number>
+        </json:map>
+    </xsl:template>
+
+    <!-- one direction of the link-predicate discovery: the view's results joined with their outgoing (or incoming) triples, grouped by predicate -->
+    <xsl:template name="ldh:LinkPredicatesSubquery">
+        <xsl:param name="select" as="element(json:map)"/>
+        <xsl:param name="suffix" as="xs:string"/>
+        <xsl:param name="inverse" as="xs:boolean"/>
+        <xsl:variable name="focus-var" select="'?' || ldh:first-var-name($select)" as="xs:string"/>
+        <xsl:variable name="predicate-var" select="'?predicate' || $suffix" as="xs:string"/>
+        <xsl:variable name="object-var" select="'?object' || $suffix" as="xs:string"/>
+
+        <json:map>
+            <json:string key="type">query</json:string>
+            <json:string key="queryType">SELECT</json:string>
+            <json:array key="variables">
+                <json:string><xsl:value-of select="$predicate-var"/></json:string>
+                <json:map>
+                    <json:string key="expression">"<xsl:value-of select="$inverse"/>"^^&xsd;boolean</json:string>
+                    <json:string key="variable"><xsl:value-of select="'?inverse' || $suffix"/></json:string>
+                </json:map>
+            </json:array>
+            <json:array key="where">
+                <!-- the view's SELECT in its own group: a SubSelect has to be the sole content of its braces -->
+                <json:map>
+                    <json:string key="type">group</json:string>
+                    <json:array key="patterns">
+                        <xsl:apply-templates select="$select" mode="ldh:strip-from"/>
+                    </json:array>
+                </json:map>
+
+                <xsl:choose>
+                    <!-- incoming: what points at the result set -->
+                    <xsl:when test="$inverse">
+                        <xsl:call-template name="ldh:GraphUnionPattern">
+                            <xsl:with-param name="subject" select="'?subject' || $suffix"/>
+                            <xsl:with-param name="predicate" select="$predicate-var"/>
+                            <xsl:with-param name="object" select="$focus-var"/>
+                            <xsl:with-param name="graph-var" select="'?subjectGraph' || $suffix"/>
+                        </xsl:call-template>
+                    </xsl:when>
+                    <!-- outgoing: the result set's own properties -->
+                    <xsl:otherwise>
+                        <xsl:call-template name="ldh:GraphUnionPattern">
+                            <xsl:with-param name="subject" select="$focus-var"/>
+                            <xsl:with-param name="predicate" select="$predicate-var"/>
+                            <xsl:with-param name="object" select="$object-var"/>
+                            <xsl:with-param name="graph-var" select="'?graph' || $suffix"/>
+                        </xsl:call-template>
+
+                        <json:map>
+                            <json:string key="type">filter</json:string>
+                            <json:map key="expression">
+                                <json:string key="type">operation</json:string>
+                                <json:string key="operator">!</json:string>
+                                <json:array key="args">
+                                    <json:map>
+                                        <json:string key="type">operation</json:string>
+                                        <json:string key="operator">isliteral</json:string>
+                                        <json:array key="args">
+                                            <json:string><xsl:value-of select="$object-var"/></json:string>
+                                        </json:array>
+                                    </json:map>
+                                </json:array>
+                            </json:map>
+                        </json:map>
+
+                        <json:map>
+                            <json:string key="type">filter</json:string>
+                            <json:map key="expression">
+                                <json:string key="type">operation</json:string>
+                                <json:string key="operator">exists</json:string>
+                                <json:array key="args">
+                                    <json:map>
+                                        <json:string key="type">group</json:string>
+                                        <json:array key="patterns">
+                                            <xsl:call-template name="ldh:GraphUnionPattern">
+                                                <xsl:with-param name="subject" select="$object-var"/>
+                                                <xsl:with-param name="predicate" select="'?objectPredicate' || $suffix"/>
+                                                <xsl:with-param name="object" select="'?objectObject' || $suffix"/>
+                                                <xsl:with-param name="graph-var" select="'?objectGraph' || $suffix"/>
+                                            </xsl:call-template>
+                                        </json:array>
+                                    </json:map>
+                                </json:array>
+                            </json:map>
+                        </json:map>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </json:array>
+            <json:array key="group">
+                <json:map>
+                    <json:string key="expression"><xsl:value-of select="$predicate-var"/></json:string>
+                </json:map>
+            </json:array>
         </json:map>
     </xsl:template>
 
