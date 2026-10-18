@@ -137,6 +137,8 @@ export const components = [
             // Rendered wherever a pre is: in prose, around a stored query's text, inside an error
             // disclosure. One emitter, so one record, like the menu above it.
             { id: 'code-block', name: 'Code block', selector: '.ldh-code-block' },
+            // Emitted for h1-h6[@id] by the ldh:XHTMLContent override, so wherever authored prose is.
+            { id: 'heading-anchor', name: 'Heading anchor', selector: 'a.ldh-heading-anchor' },
         ],
     },
     {
