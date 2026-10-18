@@ -488,6 +488,7 @@ configs:
       vcl 4.0;
 
       import std;
+      import bodyaccess;
 
       backend default {
           .host = "${VARNISH_FRONTEND_BACKEND_HOST:-linkeddatahub}";
@@ -535,6 +536,25 @@ configs:
               return (pipe);
           }
 
+          # Anonymous SPARQL queries are cached on their body. The platform's client POSTs every query (the
+          # SPARQL 1.1 Protocol's "query via POST"), and a URL-keyed cache cannot tell two of those apart, so
+          # without this every visitor's views reach the platform. Only reads are cached - a query body, never
+          # an update - and only anonymous ones, for the same reason the GET branch below passes authenticated
+          # requests: the response would carry the agent's identity. Bodies over 64 KB pass.
+          if (req.method == "POST" && req.url ~ "^/(sparql|ns)(\?|$)" &&
+            !req.http.Client-Cert && !req.http.On-Behalf-Of && req.http.Cookie !~ "LinkedDataHub\.id_token=" &&
+            (req.http.Content-Type ~ "^application/sparql-query" || req.http.Content-Type ~ "^application/x-www-form-urlencoded")) {
+              if (std.cache_req_body(64KB)) {
+                  if (req.http.Content-Type ~ "^application/sparql-query" ||
+                    (bodyaccess.rematch_req_body("(^|&)query=") == 1 && bodyaccess.rematch_req_body("(^|&)update=") == 0)) {
+                      set req.http.X-SPARQL-Query = "cache";
+                      unset req.http.Cookie;
+                      return (hash);
+                  }
+              }
+          }
+          unset req.http.X-SPARQL-Query;
+
           if (req.method != "GET" && req.method != "HEAD") {
               /* We only deal with GET and HEAD by default */
               return (pass);
@@ -576,7 +596,33 @@ configs:
           return (hash);
       }
 
+      sub vcl_hash {
+          # a cached query is keyed on its body as well as the URL (and, through Vary, the Accept header)
+          if (req.http.X-SPARQL-Query == "cache") {
+              bodyaccess.hash_req_body();
+          }
+      }
+
+      sub vcl_backend_fetch {
+          # a cache miss is fetched as a GET unless told otherwise; the query is the POST's body
+          if (bereq.http.X-SPARQL-Query == "cache") {
+              set bereq.method = "POST";
+          }
+      }
+
       sub vcl_backend_response {
+          if (bereq.http.X-SPARQL-Query == "cache") {
+              # an error is not kept; a result is kept for an hour at most, and dropped by any write (below)
+              if (beresp.status != 200) {
+                  set beresp.uncacheable = true;
+                  set beresp.ttl = 0s;
+              } else {
+                  set beresp.ttl = 1h;
+                  set beresp.http.X-SPARQL-Query = "cached";
+              }
+              return (deliver);
+          }
+
           /* Add Vary: Origin for static files to enable proper CORS caching */
           if (bereq.url ~ "^/static/") {
               if (beresp.http.Vary) {
@@ -590,6 +636,8 @@ configs:
           if ((beresp.status == 200 || beresp.status == 201 || beresp.status == 204) && bereq.method ~ "POST|PUT|DELETE|PATCH") {
               set beresp.http.X-LinkedDataHub = "Banned";
               ban("req.url == " + bereq.url + " && req.http.host == " + bereq.http.host);
+              # a write can change any query's result
+              ban("obj.http.X-SPARQL-Query == cached");
           }
 
           /* NS (ontology) SPARQL queries from authenticated clients are cache-busted per-request with _nc;
@@ -601,6 +649,10 @@ configs:
           }
 
           return (deliver);
+      }
+
+      sub vcl_deliver {
+          unset resp.http.X-SPARQL-Query;
       }
   varnish-admin_vcl:
     content: |
