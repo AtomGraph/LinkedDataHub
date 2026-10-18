@@ -17,8 +17,10 @@ ldh admin add agent \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/readers/"
 
-# Regression: ProxyRequestFilter must forward the client's Accept header verbatim to the
-# upstream, NOT substitute its own readable-types list. Previously the filter built its
+# Regression: ProxyRequestFilter must keep the client's Accept types in what it sends the
+# upstream, NOT substitute its own readable-types list. (A graph request gets N-Triples and
+# Turtle ahead of the client's types - see GET-proxied-xmlliteral-graph.sh - and is served
+# in the client's format all the same.) Previously the filter built its
 # outbound Accept from MediaTypes.getReadable(Model.class) + getReadable(ResultSet.class)
 # (everything Jena could ingest, all q=1.0), discarding what the client actually asked for.
 # The upstream then content-negotiated against that broad list and could legally pick any

@@ -196,4 +196,39 @@ public class ProxyRequestFilterTest
         assertEquals("*", ProxyRequestFilter.mergeVary("Accept", "*"));
     }
 
+    /**
+     * Saxon-JS asks for RDF/XML, and Jena's default RDF/XML parser rejects a document holding an rdf:RDF inside an XML
+     * literal: the line-based formats are asked for first, the client's type after them
+     */
+    @Test
+    public void testGraphRequestPrefersLineBasedFormats()
+    {
+        assertEquals(List.of("application/n-triples;q=1", "text/turtle;q=0.9", "application/rdf+xml;q=0.8"),
+            upstreamAccept("application/rdf+xml"));
+    }
+
+    /** The client's own types keep their order below the preferred ones, and one of the preferred is not asked for twice */
+    @Test
+    public void testGraphRequestKeepsClientOrder()
+    {
+        assertEquals(List.of("application/n-triples;q=1", "text/turtle;q=0.9", "application/ld+json;q=0.72", "application/rdf+xml;q=0.4"),
+            upstreamAccept("text/turtle", "application/ld+json;q=0.9", "application/rdf+xml;q=0.5"));
+    }
+
+    /** Only an explicit graph type is a graph request: everything else goes as the client sent it */
+    @Test
+    public void testOtherRequestsAreForwardedAsTheyAre()
+    {
+        assertEquals(List.of("application/xml", "application/xhtml+xml;q=0.8"), upstreamAccept("application/xml", "application/xhtml+xml;q=0.8"));
+        assertEquals(List.of("application/sparql-results+xml", "application/sparql-results+json;q=0.9"), upstreamAccept("application/sparql-results+xml", "application/sparql-results+json;q=0.9"));
+        assertEquals(List.of("*/*"), upstreamAccept("*/*"));
+    }
+
+    private static List<String> upstreamAccept(String... clientTypes)
+    {
+        return List.of(ProxyRequestFilter.getUpstreamAcceptTypes(List.of(clientTypes).stream().map(MediaType::valueOf).toList())).stream().
+            map(MediaType::toString).
+            toList();
+    }
+
 }
