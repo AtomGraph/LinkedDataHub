@@ -200,7 +200,11 @@ exclude-result-prefixes="#all"
 
                     <xsl:sequence select="ldh:render-block-error($container, 'block-query-failed', ac:http-error-key($response?status), $endpoint, $response)"/>
 
-                    <xsl:sequence select="ldh:end-block-loading($context, ())[current-date() lt xs:date('2000-01-01')]"/>
+                    <!-- the nearest block that is LOADING, not just the nearest block: a view embedded in an Object block
+                         never carries the state itself, its host does, and the host's ldh:load-block ends it only when the
+                         chain resolves - which a failure does not. Left on, .is-loading > .ldh-block-body is display:none
+                         and the alert just rendered stays hidden (seen for a 500 as for a 429 past its last retry) -->
+                    <xsl:sequence select="ldh:end-block-loading(map{ 'container': ($container/ancestor-or-self::div[contains-token(@class, 'block')][contains-token(@class, 'is-loading')][1], $container)[1] }, ())[current-date() lt xs:date('2000-01-01')]"/>
 
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
