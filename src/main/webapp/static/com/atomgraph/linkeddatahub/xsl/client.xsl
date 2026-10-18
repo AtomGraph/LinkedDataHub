@@ -513,11 +513,15 @@ WHERE
                         </xsl:apply-templates>
                     </xsl:for-each>
                 </xsl:when>
-                <!-- an external document with no RDF representation (the proxy answers 406 for an HTML page carrying no JSON-LD)
-                     is a page for people: open it as a target="_blank" link would, and leave the address bar, history and tab
-                     bar on the current document. Opened without the user activation of a click (it expired during the request,
-                     or the page loaded with ?uri= in the address bar) the popup is blocked, and the window navigates there itself -->
-                <xsl:when test="?status = 406 and not(starts-with($doc-uri, lds:origin(ldh:request-uri())))">
+                <!-- an external document whose RDF could not be retrieved is a page for people: open it as a target="_blank"
+                     link would, and leave the address bar, history and tab bar on the current document. That is any error but
+                     the ones a reader can act on here (401/403 render the login and access request; a 429 that outlasted
+                     ldh:handle-response's retries is this platform's own rate limit, not the origin's): the proxy answers 405
+                     when the Linked Data proxy is disabled and 406 for an HTML page carrying no JSON-LD, and relays the
+                     origin's own error, e.g. a 500 from a site that fails on an RDF Accept but serves the page to a browser.
+                     Opened without the user activation of a click (it expired during the request, or the page loaded with
+                     ?uri= in the address bar) the popup is blocked, and the window navigates there itself -->
+                <xsl:when test="?status ge 400 and not(?status = (401, 403, 429)) and not(starts-with($doc-uri, lds:origin(ldh:request-uri())))">
                     <xsl:variable name="href" select="$doc-uri || (if ($fragment) then '#' || $fragment else '')" as="xs:string"/>
                     <xsl:variable name="window" select="ixsl:call(ixsl:window(), 'open', [ $href, '_blank' ])" as="item()?"/>
                     <xsl:choose>
