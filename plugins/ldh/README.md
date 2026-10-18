@@ -16,6 +16,18 @@ In Claude Code:
 You need a LinkedDataHub instance (or a checkout to run one from), the owner's WebID certificate, and the `ldh`
 CLI (`make cli` in this repository).
 
+## Data handling
+
+The plugin runs no service of its own and sends nothing to AtomGraph. Its skills have the agent run the `ldh`
+CLI, which sends requests only to:
+
+- the LinkedDataHub instance named in `LDH_BASE`, authenticated with the user's WebID client certificate
+  (`LDH_CERT_FILE`, `LDH_CERT_PASSWORD`);
+- a package registry the user names, when publishing or importing a package (`ldh:package`).
+
+What is sent is the data the user asks the agent to load: documents, ontologies, imported CSV and RDF. It stays on
+those instances, under their operators' control. See also [PRIVACY.md](PRIVACY.md).
+
 ## Skills
 
 Claude loads a skill on its own when your request matches what the skill covers, so you don't need to name it.

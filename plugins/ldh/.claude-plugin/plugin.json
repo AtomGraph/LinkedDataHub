@@ -1,14 +1,19 @@
 {
   "name": "ldh",
+  "displayName": "LinkedDataHub",
   "version": "6.2.3-SNAPSHOT",
   "description": "Build Linked Data dataspaces, datasets and applications on LinkedDataHub with the ldh CLI: provision a dataspace, model and import data, declare documents, views and charts, and write reusable packages",
   "author": {
     "name": "AtomGraph",
     "url": "https://atomgraph.com"
   },
-  "homepage": "https://docs.linkeddatahub.com/",
+  "homepage": "https://linkeddatahub.com/",
+  "documentationUrl": "https://docs.linkeddatahub.com/get-started/agents/#claude-code-plugin",
+  "supportUrl": "https://github.com/AtomGraph/LinkedDataHub/issues",
   "repository": "https://github.com/AtomGraph/LinkedDataHub",
   "license": "Apache-2.0",
+  "termsOfServiceUrl": "https://github.com/AtomGraph/LinkedDataHub/blob/master/LICENSE",
+  "privacyPolicyUrl": "https://github.com/AtomGraph/LinkedDataHub/blob/master/plugins/ldh/PRIVACY.md",
   "keywords": [
     "linked-data",
     "rdf",

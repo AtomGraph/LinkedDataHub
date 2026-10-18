@@ -27,7 +27,7 @@ References:
   variable: `GRAPH ?o { ?order schema:customer ?c } GRAPH ?cg { ?c schema:name ?name }`.
 - Writes go to document URLs (`PUT`/`POST`/`PATCH`); `/sparql` is read-only. Use standard SPARQL 1.1.
 - Setup: `export LDH_BASE=https://<dataspace>/ LDH_CERT_FILE=<owner keystore.p12> LDH_CERT_PASSWORD=…`.
-  The password is the deployment's, never a guess (in a checkout: `secrets/owner_cert_password.txt`).
+  The password is the deployment's, never a guess.
   Commands that create a document print its URL as the only stdout line; exit `1` is an HTTP failure.
 - **Use an `ldh` that matches the instance.** Build it from the same LinkedDataHub checkout or release
   as the running image (`ldh --version`). An instance whose end-user responses carry no
