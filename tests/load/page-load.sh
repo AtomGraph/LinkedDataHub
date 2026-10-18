@@ -35,16 +35,16 @@ hash ldh 2>/dev/null || { echo >&2 "ldh not on \$PATH (make cli). Aborting."; ex
 items=()
 authorizations=()
 teardown() {
-    for a in "${authorizations[@]}"; do ldh delete "$a" >/dev/null 2>&1; done
-    for i in "${items[@]}"; do ldh delete "$i" >/dev/null 2>&1; done
-    ldh delete "$container" >/dev/null 2>&1
+    for a in "${authorizations[@]}"; do ldh delete "$a" >/dev/null 2>&1 || true; done
+    for i in "${items[@]}"; do ldh delete "$i" >/dev/null 2>&1 || true; done
+    ldh delete "$container" >/dev/null 2>&1 || true
     rm -rf "$tmpd"
 }
 tmpd=$(mktemp -d)
 trap teardown EXIT
 
 # a previous run that never reached its teardown
-ldh delete "$container" >/dev/null 2>&1
+ldh delete "$container" >/dev/null 2>&1 || true
 
 ldh create container --parent "$base" --title "Page load fixtures" --slug "$slug" >/dev/null || exit 1
 
@@ -104,9 +104,12 @@ authorizations+=("$(ldh admin create authorization --label "Page load SPARQL" --
 
 # the authorizations and the new documents must not be outlived by cached 403s and 404s
 for cache in varnish-frontend varnish-end-user varnish-admin; do
-    dc exec -T "$cache" varnishadm "ban req.url ~ /" >/dev/null 2>&1
+    dc exec -T "$cache" varnishadm "ban req.url ~ /" >/dev/null 2>&1 || true
 done
 
+# run.sh runs each test under bash -e: the deletes above may find nothing to delete, and this may fail
+# with the verdict, which must still reach the job summary
+status=0
 dc run --rm \
     -e PAGES="$base $container ${items[0]}" \
     -e LOADS="${LOADS:-5}" \
@@ -116,8 +119,8 @@ dc run --rm \
     -e UPDATE_BASELINE="${UPDATE_BASELINE:-}" \
     ${NGINX_EXEMPT:+-e NGINX_EXEMPT="$NGINX_EXEMPT"} \
     ${NGINX_LIMITED:+-e NGINX_LIMITED="$NGINX_LIMITED"} \
-    pageload
-status=$?
+    pageload \
+    || status=$?
 
 out="${root}/tests/load/out/page-load.md" # where the pageload service mounts /out
 if [ -n "${GITHUB_STEP_SUMMARY:-}" ] && [ -f "$out" ]; then
