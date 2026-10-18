@@ -19,9 +19,9 @@ ldh admin add agent \
 
 # Regression: a document holding an XML literal whose content is a graph - an rdf:RDF element, as an assistant turn
 # stores a CONSTRUCT result - is well-formed RDF/XML, and Jena writes it as rdf:parseType="Literal" markup. Jena's
-# default RDF/XML parser rejects it ("Inconsistent parserMode:TOP"), and the proxy, which forwarded the client's
-# Accept: application/rdf+xml and parsed what came back, answered 502 for the whole document. It asks for N-Triples
-# first now, and serves the client RDF/XML of its own.
+# default RDF/XML parser (RDFXML-SAX) rejects it ("Inconsistent parserMode:TOP", apache/jena#4334), and the proxy,
+# which forwards the client's Accept: application/rdf+xml and parses what comes back, answered 502 for the whole
+# document. The platform reads RDF/XML with the StAX parser instead.
 
 item=$(ldh create item \
   -c "$OWNER_CERT_KEYSTORE" \
