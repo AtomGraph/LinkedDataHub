@@ -41,7 +41,7 @@ extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
 
-    <xsl:key name="resources-by-primary-topic" match="*[@rdf:about] | *[@rdf:nodeID]" use="foaf:primaryTopic/@rdf:resource"/>
+    <xsl:key name="resources-by-primary-topic" match="*[@rdf:about][not(ancestor::*[@rdf:parseType = 'Literal'])] | *[@rdf:nodeID][not(ancestor::*[@rdf:parseType = 'Literal'])]" use="foaf:primaryTopic/@rdf:resource"/>
     
     <xsl:param name="ldh:class-modes" as="map(xs:string, xs:anyURI)">
         <xsl:map>

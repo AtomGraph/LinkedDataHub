@@ -350,8 +350,9 @@
     <xsl:template match="rdf:RDF" mode="ldh:flatten-rdfxml">
         <xsl:copy>
             <xsl:copy-of select="@*"/>
-            <!-- Process all rdf:Description elements (top-level and nested) -->
-            <xsl:apply-templates select=".//rdf:Description" mode="ldh:flatten-description"/>
+            <!-- Process all rdf:Description elements (top-level and nested), but not the content of an XML literal, which is a
+                 value and not part of the graph -->
+            <xsl:apply-templates select=".//rdf:Description[not(ancestor::*[@rdf:parseType = 'Literal'])]" mode="ldh:flatten-description"/>
         </xsl:copy>
     </xsl:template>
 
@@ -367,8 +368,9 @@
     <!-- Copy property elements, excluding nested rdf:Description -->
     <xsl:template match="rdf:Description/*" mode="ldh:flatten-properties">
         <xsl:choose>
-            <!-- If property contains nested rdf:Description, copy property with nodeID reference from nested element -->
-            <xsl:when test="rdf:Description">
+            <!-- If property contains nested rdf:Description, copy property with nodeID reference from nested element - unless it
+                 is an XML literal, whose content is copied as it is below -->
+            <xsl:when test="rdf:Description and not(@rdf:parseType = 'Literal')">
                 <xsl:copy>
                     <!-- Use the rdf:nodeID from the nested rdf:Description -->
                     <xsl:attribute name="rdf:nodeID" select="rdf:Description/@rdf:nodeID"/>
