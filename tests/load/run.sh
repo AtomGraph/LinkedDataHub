@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 
 # Runs every test under tests/load against the stack on https://localhost:4443/, which must have been
-# brought up with tests/load/docker-compose.load-tests.yml (see its header). No certificates: the
-# suite drives the platform the way unauthenticated traffic does. Writes a CTRF report per suite to
+# brought up with tests/load/docker-compose.load-tests.yml (see its header). The load itself is
+# unauthenticated, the way the traffic it stands for is; only page-load.sh seeds its fixture as the
+# owner (OWNER_CERT_KEYSTORE and OWNER_CERT_PWD, defaulting to the tests/http stack's keystore and
+# secrets/owner_cert_password.txt). Writes a CTRF report per suite to
 # $TEST_RESULTS_DIR (default: out/), the same shape tests/http/run.sh writes, so
 # scripts/generate_test_summary.py reads both.
 

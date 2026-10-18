@@ -31,10 +31,14 @@ services:
     environment:
       - JAVA_OPTIONS=-Xmx512m -Xms512m
   nginx:
-    # the load SPARQL tests' clients reach the front door from outside: see the loadgen service
+    # the load SPARQL tests' clients reach the front door from outside: see the loadgen service. The aliases
+    # name nginx's address on each network, for the pageload container, which shares both and so would get
+    # only one of them back for `nginx`
     networks:
       default:
+        aliases: [ nginx-exempt ]
       loadgen:
+        aliases: [ nginx-limited ]
   # Clients of the public internet, for the SPARQL tests. nginx caps /sparql per client address and exempts
   # RFC 1918 ones as the platform's own calls - and a curl on the runner arrives from the Docker bridge
   # (172.x) or Docker Desktop's VM (192.168.65.x), which the caps would never count. This network takes
@@ -47,6 +51,22 @@ services:
       replicas: 6
     networks:
       - loadgen
+  # A browser for page-load.sh, on both networks: nginx exempts its address on the default network and
+  # limits the loadgen one like a visitor's, and measure.mjs alternates between them. Under a profile, so
+  # `up` leaves it out; the test starts it with `run`. The image's Playwright matches page-load/package.json.
+  pageload:
+    image: mcr.microsoft.com/playwright:v1.61.1-noble
+    profiles: [ "pageload" ]
+    init: true
+    ipc: host # Chromium's shared memory; the container default of 64 MB crashes its renderers
+    working_dir: /work
+    volumes:
+      - ./tests/load/page-load:/work
+      - ./tests/load/out:/out
+    command: [ "sh", "-c", "npm ci --no-audit --no-fund --loglevel=error && node measure.mjs && node evaluate.mjs" ]
+    networks:
+      default:
+      loadgen:
 networks:
   loadgen:
     ipam:
