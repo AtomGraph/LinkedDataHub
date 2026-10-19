@@ -1,3 +1,20 @@
+## [6.2.3] - 2026-10-19
+### Migration
+- Deployments that keep a copy of `docker-compose.yml` need to re-sync it to get the SPARQL query cache
+
+### Added
+- `og:image` falls back to the image of the document's primary topic
+
+### Changed
+- The front Varnish caches anonymous SPARQL queries, and a view sends the same query text on every load so they hit the cache
+- Views defer their whole-result-set queries until they scroll into sight, and load their metadata in parallel with the document's
+- Discovering a view's link predicates is faster
+- The `ldh` plugin is named LinkedDataHub, has an icon and documents where it sends data
+
+### Fixed
+- An external document whose RDF could not be retrieved opens as a page instead of an error
+- Opening an external document in a new tab leaves the current window where it was
+
 ## [6.2.2] - 2026-10-18
 ### Migration
 - Deployments that keep a copy of `docker-compose.yml` need to re-sync it to get the new nginx limits
