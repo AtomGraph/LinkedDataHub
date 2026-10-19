@@ -767,7 +767,7 @@ WHERE
             <xsl:otherwise>
                 <xsl:for-each select="$factories">
                     <xsl:variable name="factory" select="."/>
-                    <ixsl:promise select="$factory(())" on-failure="ldh:promise-failure($content-body, 'failed-to-load-block-data', ?)"/>
+                    <ixsl:promise select="$factory(())" on-failure="ldh:block-load-failure($content-body, ?)"/>
                 </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
@@ -837,7 +837,18 @@ WHERE
         </xsl:if>
     </xsl:function>
 
-    <!-- failure twin of ldh:block-hydrated: reports the error like ldh:promise-failure would, then counts the block down all the same so the deferred scroll is not stuck pending -->
+    <!-- reports a content block's failed load in its pane. A pane that has left the page was replaced by a later
+         navigation, which superseded the load: the chain ran on against a detached block and failed there, and that is
+         nothing to report - no host, so ldh:promise-failure only resets the cursor and the busy regions. Checked when the
+         failure arrives, not when the load starts -->
+    <xsl:function name="ldh:block-load-failure" ixsl:updating="yes">
+        <xsl:param name="host" as="element()?"/> <!-- the pane's content body -->
+        <xsl:param name="error" as="map(*)"/>
+
+        <xsl:sequence select="ldh:promise-failure($host[ancestor::body], 'failed-to-load-block-data', $error)"/>
+    </xsl:function>
+
+    <!-- failure twin of ldh:block-hydrated: reports the error like ldh:block-load-failure, then counts the block down all the same so the deferred scroll is not stuck pending -->
     <xsl:function name="ldh:block-hydration-failure" ixsl:updating="yes">
         <xsl:param name="host" as="element()?"/> <!-- the pane's content body -->
         <xsl:param name="scroll-id" as="xs:string"/>
@@ -845,7 +856,7 @@ WHERE
         <xsl:param name="fragment" as="xs:string"/>
         <xsl:param name="error" as="map(*)"/>
 
-        <xsl:sequence select="ldh:promise-failure($host, 'failed-to-load-block-data', $error)"/>
+        <xsl:sequence select="ldh:block-load-failure($host, $error)"/>
         <xsl:sequence select="ldh:block-hydrated($scroll-id, $doc-uri, $fragment, ())"/>
     </xsl:function>
 
