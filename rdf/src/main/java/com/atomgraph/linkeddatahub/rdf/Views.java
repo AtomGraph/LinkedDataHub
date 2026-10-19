@@ -20,6 +20,7 @@ import com.atomgraph.linkeddatahub.rdf.vocabulary.AC;
 import com.atomgraph.linkeddatahub.rdf.vocabulary.LDH;
 import com.atomgraph.linkeddatahub.rdf.vocabulary.SPIN;
 import java.net.URI;
+import java.util.List;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
@@ -77,6 +78,26 @@ public final class Views
      */
     public static Model resultSetChart(URI target, String uri, String title, URI query, URI chartType, String categoryVarName, String seriesVarName, String description)
     {
+        return resultSetChart(target, uri, title, query, chartType, categoryVarName, List.of(seriesVarName), description);
+    }
+
+    /**
+     * Builds a chart of a SELECT query's result set with one or more series. The values of
+     * <code>ldh:seriesVarName</code> are unordered, so the chart orders its series by the query's
+     * projection, not by this list.
+     *
+     * @param target target document URI
+     * @param uri chart URI, relative or absolute (optional, blank node when absent)
+     * @param title chart title
+     * @param query URI of the query the chart runs
+     * @param chartType chart type URI
+     * @param categoryVarName result-set variable name providing the categories
+     * @param seriesVarNames result-set variable names providing the series
+     * @param description chart description (optional)
+     * @return chart model
+     */
+    public static Model resultSetChart(URI target, String uri, String title, URI query, URI chartType, String categoryVarName, List<String> seriesVarNames, String description)
+    {
         Model model = ModelFactory.createDefaultModel();
 
         Resource chart = Subjects.of(model, target, uri).
@@ -84,8 +105,8 @@ public final class Views
             addProperty(DCTerms.title, title).
             addProperty(SPIN.query, model.createResource(query.toString())).
             addProperty(LDH.chartType, model.createResource(chartType.toString())).
-            addProperty(LDH.categoryVarName, categoryVarName).
-            addProperty(LDH.seriesVarName, seriesVarName);
+            addProperty(LDH.categoryVarName, categoryVarName);
+        for (String seriesVarName : seriesVarNames) chart.addProperty(LDH.seriesVarName, seriesVarName);
         if (description != null) chart.addProperty(DCTerms.description, description);
 
         return model;

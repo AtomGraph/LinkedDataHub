@@ -121,6 +121,8 @@ ORDER BY DESC(?productCount)""" .
   resources need `geo:lat`/`geo:long`), `ac:GraphMode`.
 - Chart types (`ldh:chartType`): `ac:BarChart`, `ac:LineChart`, `ac:ScatterChart`.
   `ldh:categoryVarName` and `ldh:seriesVarName` name the query's variables, without `?`.
+  `ldh:seriesVarName` may repeat (`--series-var-name` too); the series are drawn in the order the
+  query's `SELECT` projects them.
 - A query runs against the dataspace's own endpoint unless it names a service:
   `<#q> ldh:service <#dbpedia>` with `<#dbpedia> a sd:Service ; dct:title "DBpedia" ;
   sd:endpoint <https://dbpedia.org/sparql> ; sd:supportedLanguage sd:SPARQL11Query`. Time a remote
