@@ -1853,10 +1853,16 @@ exclude-result-prefixes="#all"
                         'inverse-var-name': 'inverse' || translate($uuid, '-', '_'),
                         'property-metadata': $property-metadata
                       }"/>
+
+                    <!-- discovery runs only while the pivot bar is open, so someone is waiting on it, and the bar
+                         stays hidden until its first chip arrives: the cursor is all that says it is underway -->
+                    <xsl:sequence select="ldh:busy-cursor()"/>
+
                     <ixsl:promise select="ixsl:http-request($context('request')) =>
                         ixsl:then(ldh:rethread-response($context, ?)) =>
                         ixsl:then(ldh:handle-response#1) =>
-                        ixsl:then(ldh:parallax-response#1)"
+                        ixsl:then(ldh:parallax-response#1) =>
+                        ixsl:finally(ldh:reset-cursor#0)"
                         on-failure="ldh:promise-failure(., 'block-query-failed', ?)"/>
                 </xsl:if>
             </xsl:if>
