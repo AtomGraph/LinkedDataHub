@@ -15,9 +15,9 @@
 // Injected rather than reached: the proxy's answer is the variable, and no origin can be made to
 // produce each status on demand. The routes fulfil the proxy request itself, and the external origin
 // is a reserved name that never resolves, served by a route as well, so nothing leaves the browser.
-import { test, expect } from '../../../lib/console.mjs';
-import { goto } from '../../../lib/settle.mjs';
-import { itemUri } from '../../../lib/fixtures.mjs';
+import { test, expect } from '../../../../lib/console.mjs';
+import { goto } from '../../../../lib/settle.mjs';
+import { itemUri } from '../../../../lib/fixtures.mjs';
 
 const EXTERNAL = 'https://external.example/document';
 const EXTERNAL_ORIGIN = /^https:\/\/external\.example\//;
@@ -67,6 +67,8 @@ for (const status of [405, 406, 500]) {
         allowInjected(allowNoise, status);
         await proxyAnswers(page, status);
         await goto(page, itemUri(1));
+        // the URL the document was loaded at, mode and all: the address it is to be left on
+        const reading = page.url();
 
         const popup = page.waitForEvent('popup');
         await follow(page, EXTERNAL);
@@ -78,7 +80,7 @@ for (const status of [405, 406, 500]) {
         expect(await opened.evaluate(() => window.opener)).toBeNull();
 
         // and this window stays on the document being read: address, bar, pane and tab bar
-        await expect(page).toHaveURL(itemUri(1));
+        await expect(page).toHaveURL(reading);
         await expect(uri(page)).toHaveValue(itemUri(1));
         await expect(activeBody(page)).toHaveAttribute('about', itemUri(1));
         await expect(page.locator(`#tab-bar-list li[data-uri="${EXTERNAL}"]`)).toHaveCount(0);
