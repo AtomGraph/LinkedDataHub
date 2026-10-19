@@ -523,14 +523,23 @@ WHERE
                      ?uri= in the address bar) the popup is blocked, and the window navigates there itself -->
                 <xsl:when test="?status ge 400 and not(?status = (401, 403, 429)) and not(starts-with($doc-uri, lds:origin(ldh:request-uri())))">
                     <xsl:variable name="href" select="$doc-uri || (if ($fragment) then '#' || $fragment else '')" as="xs:string"/>
+                    <!-- ldh:DocumentNavigate pushed an entry for this document before requesting it, and pointed the address bar
+                         and the active pane at it: the entry that stands for it is the one to step back from, not to leave behind -->
+                    <xsl:variable name="state" select="ixsl:get(ixsl:window(), 'history.state')"/>
+                    <xsl:variable name="pushed" select="exists($state) and map:contains($state, 'href') and map:get(ldh:parse-href(xs:anyURI(map:get($state, 'href'))), 'doc-uri') = $doc-uri" as="xs:boolean"/>
                     <xsl:variable name="window" select="ixsl:call(ixsl:window(), 'open', [ $href, '_blank' ])" as="item()?"/>
                     <xsl:choose>
                         <xsl:when test="exists($window)">
                             <!-- what rel="noopener" does for a link: the external page gets no handle on this one -->
                             <ixsl:set-property name="opener" select="()" object="$window"/>
+                            <!-- back to the document being read: its popstate switches to the tab it is still open in -->
+                            <xsl:if test="$pushed">
+                                <xsl:sequence select="ixsl:call(ixsl:window(), 'history.back', [])[current-date() lt xs:date('2000-01-01')]"/>
+                            </xsl:if>
                         </xsl:when>
+                        <!-- replacing the entry: one that stayed would fail again on Back and send the reader straight out again -->
                         <xsl:otherwise>
-                            <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'location'), 'assign', [ $href ])[current-date() lt xs:date('2000-01-01')]"/>
+                            <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'location'), if ($pushed) then 'replace' else 'assign', [ $href ])[current-date() lt xs:date('2000-01-01')]"/>
                         </xsl:otherwise>
                     </xsl:choose>
                 </xsl:when>
