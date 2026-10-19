@@ -933,7 +933,7 @@ exclude-result-prefixes="#all"
             <!-- fn:error's third argument survives into the failure map as the JS error's errorObject -->
             <xsl:variable name="response" select="if ($error?code = 'Q{&ldh;}ResponseError') then ixsl:get($error?error, 'errorObject') else ()" as="map(*)?"/>
             <!-- SaxonJS raises SXJS0008 for a timed-out request and SXJS0009 for one that never got a response -->
-            <xsl:variable name="explanation-key" select="if (exists($response)) then ac:http-error-key($response?status) else if ($error?code = ('SXJS0008', 'SXJS0009')) then 'http-error-unknown' else 'client-error'" as="xs:string"/>
+            <xsl:variable name="explanation-key" select="if (exists($response)) then ldh:http-error-key($response) else if ($error?code = ('SXJS0008', 'SXJS0009')) then 'http-error-unknown' else 'client-error'" as="xs:string"/>
 
             <xsl:sequence select="ldh:render-failure($host, $title-key, $explanation-key, $error?message)"/>
         </xsl:if>
@@ -1054,6 +1054,14 @@ exclude-result-prefixes="#all"
                 <xsl:apply-templates select="key('resources', $title-key, $translations)" mode="ac:label"/>
             </span>
         </span>
+    </xsl:function>
+
+    <!-- The sentence that explains a failed response: one the server refused for its length (ldh:ResponseTooLarge) says
+         so, where its 502 alone would read as an upstream that could not be reached; any other by its status -->
+    <xsl:function name="ldh:http-error-key" as="xs:string">
+        <xsl:param name="response" as="map(*)"/>
+
+        <xsl:sequence select="if ($response?body instance of document-node() and $response?body/rdf:RDF/*/rdf:type/@rdf:resource = '&ldh;ResponseTooLarge') then 'http-error-response-too-large' else ac:http-error-key($response?status)"/>
     </xsl:function>
 
     <!-- The status line and message a failed response contributes to the technical detail. -->

@@ -193,7 +193,7 @@ exclude-result-prefixes="#all"
                 <xsl:otherwise>
                     <xsl:sequence select="ldh:show-view-block($container)"/>
 
-                    <xsl:sequence select="ldh:render-block-error($container, 'block-query-failed', ac:http-error-key($response?status), $endpoint, $response)"/>
+                    <xsl:sequence select="ldh:render-block-error($container, 'block-query-failed', ldh:http-error-key($response), $endpoint, $response)"/>
 
                     <!-- the nearest block that is LOADING, not just the nearest block: a view embedded in an Object block
                          never carries the state itself, its host does, and the host's ldh:load-block ends it only when the
@@ -2953,7 +2953,7 @@ exclude-result-prefixes="#all"
                 <xsl:otherwise>
                     <xsl:sequence select="ldh:show-view-block($container)"/>
 
-                    <xsl:sequence select="ldh:render-block-error($container//div[contains-token(@class, 'main')], 'block-query-not-loaded', ac:http-error-key($response?status), $query-uri, $response)"/>
+                    <xsl:sequence select="ldh:render-block-error($container//div[contains-token(@class, 'main')], 'block-query-not-loaded', ldh:http-error-key($response), $query-uri, $response)"/>
 
                     <xsl:sequence select="ldh:end-block-loading($context, ())[current-date() lt xs:date('2000-01-01')]"/>
 
@@ -3219,7 +3219,7 @@ exclude-result-prefixes="#all"
                         <xsl:result-document href="?." method="ixsl:append-content">
                             <!-- appended beside the parallax rows rather than filling a block body, so the bare alert
                                  without the ldh-block-error wrapper - it must not ring the view card it sits in -->
-                            <xsl:sequence select="ldh:error-alert('block-query-failed', ac:http-error-key($response?status), ())"/>
+                            <xsl:sequence select="ldh:error-alert('block-query-failed', ldh:http-error-key($response), ())"/>
                         </xsl:result-document>
                     </xsl:for-each>
 
@@ -3391,7 +3391,7 @@ exclude-result-prefixes="#all"
                     <xsl:for-each select="$container/div[contains-token(@class, 'facet-pop')]/div[contains-token(@class, 'facet-values')]">
                         <xsl:result-document href="?." method="ixsl:replace-content">
                             <div>
-                                <xsl:sequence select="ldh:error-alert('block-values-failed', ac:http-error-key($response?status), ())"/>
+                                <xsl:sequence select="ldh:error-alert('block-values-failed', ldh:http-error-key($response), ())"/>
                             </div>
                         </xsl:result-document>
                     </xsl:for-each>
@@ -3518,7 +3518,7 @@ exclude-result-prefixes="#all"
                         <xsl:result-document href="?." method="ixsl:replace-content">
                             <!-- the count sits inline in the view toolbar, where a full alert would outweigh the row it
                                  reports on - the design system's compact negative tag is the status marker at this size -->
-                            <xsl:sequence select="ldh:failure-tag('block-count-failed', ac:http-error-key($response?status))"/>
+                            <xsl:sequence select="ldh:failure-tag('block-count-failed', ldh:http-error-key($response))"/>
                         </xsl:result-document>
                     </xsl:for-each>
                 </xsl:otherwise>

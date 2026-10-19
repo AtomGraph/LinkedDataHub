@@ -208,7 +208,7 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ldh:render-block-error($container, 'block-resource-not-loaded', ac:http-error-key($response?status), $chat-uri, $response)"/>
+                <xsl:sequence select="ldh:render-block-error($container, 'block-resource-not-loaded', ldh:http-error-key($response), $chat-uri, $response)"/>
             </xsl:otherwise>
         </xsl:choose>
 

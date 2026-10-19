@@ -1149,6 +1149,10 @@ if [ -n "$MAX_CONTENT_LENGTH" ]; then
     MAX_CONTENT_LENGTH_PARAM="--stringparam ldhc:maxContentLength '$MAX_CONTENT_LENGTH' "
 fi
 
+if [ -n "$MAX_QUERY_RESPONSE_LENGTH" ]; then
+    MAX_QUERY_RESPONSE_LENGTH_PARAM="--stringparam ldhc:maxQueryResponseLength '$MAX_QUERY_RESPONSE_LENGTH' "
+fi
+
 if [ -n "$MAX_IMPORT_THREADS" ]; then
     MAX_IMPORT_THREADS_PARAM="--stringparam ldhc:maxImportThreads '$MAX_IMPORT_THREADS' "
 fi
@@ -1228,6 +1232,7 @@ transform="xsltproc \
   $OWNER_AUTH_QUERY_PARAM \
   $ENABLE_LINKED_DATA_PROXY_PARAM \
   $MAX_CONTENT_LENGTH_PARAM \
+  $MAX_QUERY_RESPONSE_LENGTH_PARAM \
   $MAX_IMPORT_THREADS_PARAM \
   $NOTIFICATION_ADDRESS_PARAM \
   $ENABLE_WEBID_SIGNUP_PARAM \

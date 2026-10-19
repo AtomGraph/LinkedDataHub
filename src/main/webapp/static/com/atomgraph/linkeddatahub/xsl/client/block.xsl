@@ -971,7 +971,7 @@ exclude-result-prefixes="#all"
         <xsl:if test="not($response?status = 200 and $response?media-type = 'application/sparql-results+xml')">
             <xsl:for-each select="$context('container')/div[contains-token(@class, 'row-main')]">
                 <xsl:result-document href="?." method="ixsl:append-content">
-                    <xsl:sequence select="ldh:error-alert('views-not-loaded', ac:http-error-key($response?status), ())"/>
+                    <xsl:sequence select="ldh:error-alert('views-not-loaded', ldh:http-error-key($response), ())"/>
                 </xsl:result-document>
             </xsl:for-each>
         </xsl:if>
@@ -1153,7 +1153,7 @@ exclude-result-prefixes="#all"
             <xsl:otherwise>
                 <xsl:for-each select="$span12">
                     <xsl:result-document href="?." method="ixsl:append-content">
-                        <xsl:sequence select="ldh:error-alert('views-not-loaded', ac:http-error-key($response?status), $view-uri)"/>
+                        <xsl:sequence select="ldh:error-alert('views-not-loaded', ldh:http-error-key($response), $view-uri)"/>
                     </xsl:result-document>
                 </xsl:for-each>
 

@@ -1185,7 +1185,7 @@ exclude-result-prefixes="#all"
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
-        <xsl:sequence select="ldh:render-failure(($context?form//div[contains-token(@class, 'ac-modal-body')])[1], 'constructor-not-updated', ac:http-error-key($response?status), ldh:response-detail($response))"/>
+        <xsl:sequence select="ldh:render-failure(($context?form//div[contains-token(@class, 'ac-modal-body')])[1], 'constructor-not-updated', ldh:http-error-key($response), ldh:response-detail($response))"/>
     </xsl:function>
 
     <xsl:template name="ldh:ClearNamespace">

@@ -54,7 +54,7 @@ public class SPARQLEndpointImpl extends com.atomgraph.core.model.impl.SPARQLEndp
     public SPARQLEndpointImpl(@Context Request request, @Context UriInfo uriInfo, Optional<Service> service, MediaTypes mediaTypes,
             com.atomgraph.linkeddatahub.Application system)
     {
-        super(request, uriInfo, system.getServiceContext(service.get()).getEndpointAccessor(), mediaTypes);
+        super(request, uriInfo, system.getServiceContext(service.get()).getQueryEndpointAccessor(system.getMaxQueryResponseLength()), mediaTypes);
     }
     
     /**

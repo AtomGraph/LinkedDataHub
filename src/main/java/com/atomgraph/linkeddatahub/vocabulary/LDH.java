@@ -80,6 +80,9 @@ public class LDH
 
     /** URI syntax violation class */
     public static final Resource URISyntaxViolation = m_model.createOntClass(NS + "URISyntaxViolation");
+
+    /** Class of a response refused for its length */
+    public static final Resource ResponseTooLarge = m_model.createOntClass(NS + "ResponseTooLarge");
     
     /** Base property */
     public static final Property base = m_model.createObjectProperty( NS + "base" );

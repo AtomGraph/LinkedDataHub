@@ -138,6 +138,7 @@ A single instance hosts multiple **dataspaces**, each a subdomain (origin). Each
 - **`403` where you expect `404`.** The ACL query fails closed on a typeless resource, so a non-owner request for a URL that does not exist is answered `403`.
 - **`428`** on any write to an existing document that carries no `If-Match`; **`412`** when the tag quoted was read under a different negotiated variant. See *Conditional writes*.
 - **`502`** (rather than `413`) when an upstream response exceeds `MAX_CONTENT_LENGTH`: what was too large is the upstream's response. Requests to the deployment's own SPARQL, Graph Store and Quad Store services are exempt from the bound.
+- **`502`** from `/sparql` when the query's result exceeds `MAX_QUERY_RESPONSE_LENGTH` (5 MiB unless set), its body typed `ldh:ResponseTooLarge`. The result is refused, not truncated: page through it with `LIMIT`/`OFFSET`.
 - **`406`** for `application/link-format` on anything but `?timemap`.
 
 ## Tooling

@@ -47,6 +47,9 @@ public class ContentLengthLimitFilter implements ContainerRequestFilter, ClientR
     /** Request property that exempts the response of a single client request from the limit */
     public static final String UNLIMITED = ContentLengthLimitFilter.class.getName() + ".unlimited";
 
+    /** Request property that sets the response limit of a single client request, in bytes, in place of the configured one */
+    public static final String MAX_CONTENT_LENGTH = ContentLengthLimitFilter.class.getName() + ".maxContentLength";
+
     private final int maxContentLength;
     
     /**
@@ -88,6 +91,8 @@ public class ContentLengthLimitFilter implements ContainerRequestFilter, ClientR
         // the limit bounds untrusted content the proxy and the imports pull in; a configured internal
         // service whose payload is large by design opts out per request instead of widening it for all
         if (Boolean.TRUE.equals(requestContext.getProperty(UNLIMITED))) return;
+        // a client that answers to a consumer with a bound of its own (the public SPARQL endpoint) sets it per request
+        final int maxContentLength = requestContext.getProperty(MAX_CONTENT_LENGTH) instanceof Integer limit ? limit : getMaxContentLength();
 
         if (!responseContext.hasEntity()) return;
         
@@ -95,22 +100,22 @@ public class ContentLengthLimitFilter implements ContainerRequestFilter, ClientR
         // we cannot abort here with Status.LENGTH_REQUIRED if we want to allow streaming. That is the job of RejectTooLongInputStream
         if (contentLengthString == null)
         {
-            responseContext.setEntityStream(new RejectTooLargeResponseInputStream(responseContext.getEntityStream(), getMaxContentLength()));
+            responseContext.setEntityStream(new RejectTooLargeResponseInputStream(responseContext.getEntityStream(), maxContentLength));
             return;
         }
         
         int contentLength = Integer.parseInt(contentLengthString);
-        if (contentLength > getMaxContentLength())
+        if (contentLength > maxContentLength)
         {
             // ResponseContentTooLargeException (502), not RequestContentTooLargeException (413): what was too
             // large is the upstream's response, and 413 states that the caller's request body was - false on a
             // GET that carries none. The streaming branch above already throws this, so a response with a
             // Content-Length and the same response chunked no longer answer with different statuses
-            if (log.isDebugEnabled()) log.debug("Response rejected due to Content-Length: {} which is larger than the configured limit {}", contentLength, getMaxContentLength());
-            throw new ResponseContentTooLargeException(getMaxContentLength(), contentLength);
+            if (log.isDebugEnabled()) log.debug("Response rejected due to Content-Length: {} which is larger than the configured limit {}", contentLength, maxContentLength);
+            throw new ResponseContentTooLargeException(maxContentLength, contentLength);
         }
 
-        responseContext.setEntityStream(new RejectTooLargeResponseInputStream(responseContext.getEntityStream(), getMaxContentLength()));
+        responseContext.setEntityStream(new RejectTooLargeResponseInputStream(responseContext.getEntityStream(), maxContentLength));
     }
 
     /**

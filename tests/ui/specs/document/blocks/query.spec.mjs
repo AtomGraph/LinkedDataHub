@@ -93,6 +93,30 @@ test.describe('the query block', { tag: '@owner' }, () => {
         await expect(table.locator('tr').nth(1)).toContainText(itemTitle(1));
     });
 
+    // A query whose result is longer than the endpoint answers with (MAX_QUERY_RESPONSE_LENGTH, 5 MiB unless set) is
+    // refused by the server, so the page never parses it: the block says why, where a 502 alone reads as an endpoint
+    // that could not be reached. Before the limit, a CONSTRUCT that matched the whole dataset held the page's thread for
+    // ~30 s while Saxon-JS tabled ~9 MB of it. A three-way cross join of the dataset's triples is far past the limit.
+    test('a result longer than the endpoint answers with is reported, not rendered', async ({ page, allowNoise }) => {
+        allowNoise.push({ pattern: /HTTP 502/, reason: 'the spec runs a query the endpoint is configured to refuse' });
+        allowNoise.push({ pattern: /console\.error: Failed to load resource.*502/, reason: 'the browser logs the same refusal' });
+
+        await goto(page, fixtures.queryDocument);
+        const block = queryBlock(page);
+        await expect(resultsTable(block)).toBeVisible({ timeout: 30_000 });
+
+        await editorToggle(block).click();
+        const textareaId = await block.locator('textarea.sparql-query-string').getAttribute('id');
+        await page.evaluate(([id, query]) => window.LinkedDataHub.yasqe[id].setValue(query),
+            [textareaId, 'SELECT * { GRAPH ?g1 { ?a ?b ?c } GRAPH ?g2 { ?d ?e ?f } GRAPH ?g3 { ?h ?i ?j } } LIMIT 100000']);
+        await block.locator('button.btn-run-query').click();
+
+        const error = block.locator('.ldh-block-error');
+        await expect(error).toBeVisible({ timeout: 30_000 });
+        await expect(error).toContainText('larger than this server returns');
+        await expect(resultsTable(block)).toHaveCount(0);
+    });
+
     // Open is for a query whose results are a graph: they open as a document of their own, the
     // endpoint asked the query, which is what a link to {endpoint}?query= opens too. It used to POST
     // the query and hand the response to the document renderer without the document URI the renderer
