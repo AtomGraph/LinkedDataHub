@@ -1433,7 +1433,7 @@ exclude-result-prefixes="#all"
                 </div>
 
                 <span class="ac-alert-text">
-                    <xsl:apply-templates select="key('resources', ac:http-error-key(xs:double(http:statusCodeValue)), ldh:translations())" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', if (rdf:type/@rdf:resource = '&ldh;ResponseTooLarge') then 'http-error-response-too-large' else ac:http-error-key(xs:double(http:statusCodeValue)), ldh:translations())" mode="ac:label"/>
                 </span>
             </xsl:with-param>
         </xsl:apply-templates>

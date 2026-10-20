@@ -2367,7 +2367,7 @@ WHERE
                 <xsl:message>Resource deleted</xsl:message>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ldh:render-failure(($block//div[contains-token(@class, 'main')])[1], 'resource-not-deleted', ac:http-error-key(?status), ldh:response-detail(.))"/>
+                <xsl:sequence select="ldh:render-failure(($block//div[contains-token(@class, 'main')])[1], 'resource-not-deleted', ldh:http-error-key(.), ldh:response-detail(.))"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>

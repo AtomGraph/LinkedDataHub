@@ -196,7 +196,7 @@ version="3.0"
                                     </form>
                                 </xsl:when>
                                 <xsl:otherwise>
-                                    <xsl:sequence select="ldh:error-alert('version-history-not-loaded', ac:http-error-key($response?status), ())"/>
+                                    <xsl:sequence select="ldh:error-alert('version-history-not-loaded', ldh:http-error-key($response), ())"/>
                                 </xsl:otherwise>
                             </xsl:choose>
                         
@@ -310,7 +310,7 @@ version="3.0"
 
         <!-- the shared failure report, which also replaces an earlier one: SaxonJS has no prepend-content method, so the
              result document this wrote raised instead of reporting -->
-        <xsl:sequence select="ldh:render-failure(($context('modal')//div[contains-token(@class, 'ac-modal-body')])[1], $title-key, ac:http-error-key($context('response')?status), ldh:response-detail($context('response')))"/>
+        <xsl:sequence select="ldh:render-failure(($context('modal')//div[contains-token(@class, 'ac-modal-body')])[1], $title-key, ldh:http-error-key($context('response')), ldh:response-detail($context('response')))"/>
     </xsl:function>
 
     <!-- fetches the ?diff= comparison version when the context carries a diff request; passes the context through otherwise -->

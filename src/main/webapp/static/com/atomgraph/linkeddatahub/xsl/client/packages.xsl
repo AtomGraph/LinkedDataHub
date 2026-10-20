@@ -54,7 +54,7 @@ version="3.0"
                 <!-- the registry is another dataspace, and the settings are still editable without it: the form renders and
                      says where its package list would have been -->
                 <xsl:otherwise>
-                    <xsl:sequence select="map:merge(($context, map{ 'package-catalog-error': ac:http-error-key(?status) }))"/>
+                    <xsl:sequence select="map:merge(($context, map{ 'package-catalog-error': ldh:http-error-key(.) }))"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>

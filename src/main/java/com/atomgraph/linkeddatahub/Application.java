@@ -24,6 +24,7 @@ import com.atomgraph.linkeddatahub.server.util.GraphLocks;
 import com.atomgraph.linkeddatahub.server.util.OntologyRepository;
 import org.apache.jena.riot.RDFParser;
 import com.atomgraph.linkeddatahub.server.mapper.HttpHostConnectExceptionMapper;
+import com.atomgraph.linkeddatahub.server.mapper.ResponseContentTooLargeExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.InternalURLExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.MessagingExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.auth.webid.WebIDLoadingExceptionMapper;
@@ -270,6 +271,8 @@ public class Application extends ResourceConfig
     public static final String CLIENT_SEF_PATH = "/static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json";
     /** Milliseconds a request waits for a connection from the client pool when nothing configures it; the image sets the same through CONNECTION_REQUEST_TIMEOUT */
     public static final int DEFAULT_CONNECTION_REQUEST_TIMEOUT = 30000;
+    /** Bytes of a SPARQL endpoint query result when nothing configures it; the image sets the same through MAX_QUERY_RESPONSE_LENGTH */
+    public static final int DEFAULT_MAX_QUERY_RESPONSE_LENGTH = 5242880;
     /** ORCID's production environment, used when no issuer is configured; a client registered on the sandbox sets <code>https://sandbox.orcid.org</code> */
     public static final String ORCID_ISSUER = "https://orcid.org";
     /** Path of the client stylesheet source in the webapp, composed with package stylesheets per import set */
@@ -302,6 +305,7 @@ public class Application extends ResourceConfig
     private final boolean allowInternalUrls;
     private final URLValidator urlValidator;
     private final Integer maxContentLength;
+    private final int maxQueryResponseLength;
     private final Address notificationAddress;
     private final Authenticator authenticator;
     private final Properties emailProperties = new Properties();
@@ -378,6 +382,8 @@ public class Application extends ResourceConfig
             System.getProperty("com.atomgraph.linkeddatahub.allowInternalUrls") != null ? Boolean.parseBoolean(System.getProperty("com.atomgraph.linkeddatahub.allowInternalUrls")) :
             servletConfig.getServletContext().getInitParameter(LDHC.allowInternalUrls.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.allowInternalUrls.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(LDHC.maxContentLength.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxContentLength.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.maxQueryResponseLength.getURI()) != null ? Integer.parseInt(servletConfig.getServletContext().getInitParameter(LDHC.maxQueryResponseLength.getURI())) :
+            DEFAULT_MAX_QUERY_RESPONSE_LENGTH, // unset means the endpoint buffers, and a page renders, a result of any length
             System.getProperty("com.atomgraph.linkeddatahub.maxConnPerRoute") != null ? Integer.valueOf(System.getProperty("com.atomgraph.linkeddatahub.maxConnPerRoute")) :
             servletConfig.getServletContext().getInitParameter(LDHC.maxConnPerRoute.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxConnPerRoute.getURI())) : null,
             System.getProperty("com.atomgraph.linkeddatahub.maxTotalConn") != null ? Integer.valueOf(System.getProperty("com.atomgraph.linkeddatahub.maxTotalConn")) :
@@ -449,6 +455,7 @@ public class Application extends ResourceConfig
      * @param enableAssistant true if the assistant's plan service is deployed beside this instance
      * @param allowInternalUrls true if internal/private network URLs are allowed (disables SSRF protection)
      * @param maxContentLength maximum size of request entity
+     * @param maxQueryResponseLength maximum length of a SPARQL endpoint query result in bytes
      * @param maxConnPerRoute maximum client connections per rout
      * @param maxTotalConn maximum total client connections
      * @param maxRequestRetries maximum number of times that the HTTP client will retry a request
@@ -480,7 +487,7 @@ public class Application extends ResourceConfig
             final String webIDQueryString, final String agentQueryString, final String userAccountQueryString, final String ontologyQueryString,
             final String baseURIString, final String proxyScheme, final String proxyHostname, final Integer proxyPort,
             final String uploadRootString, final String sefRootString, final String sefCompilerString, final String clientStylesheetString, final boolean invalidateCache,
-            final Integer cookieMaxAge, final boolean enableLinkedDataProxy, final boolean enableAssistant, final boolean allowInternalUrls, final Integer maxContentLength,
+            final Integer cookieMaxAge, final boolean enableLinkedDataProxy, final boolean enableAssistant, final boolean allowInternalUrls, final Integer maxContentLength, final int maxQueryResponseLength,
             final Integer maxConnPerRoute, final Integer maxTotalConn, final Integer maxRequestRetries, final Integer connectionRequestTimeout,
             final Integer socketTimeout, final Integer connectTimeout, final Integer selfRequestTimeout, final Long connectionTimeToLive, final Integer validateAfterInactivity, final Integer maxImportThreads,
             final String notificationAddressString, final boolean enableWebIDSignUp, final String oidcRefreshTokensPropertiesPath,
@@ -622,6 +629,7 @@ public class Application extends ResourceConfig
         this.urlValidator = new URLValidator(allowInternalUrls);
         configureServiceExecution(allowInternalUrls);
         this.maxContentLength = maxContentLength;
+        this.maxQueryResponseLength = maxQueryResponseLength;
         this.invalidateCache = invalidateCache;
         this.enableWebIDSignUp = enableWebIDSignUp;
         this.oidcRefreshTokensPropertiesPath = oidcRefreshTokensPropertiesPath;
@@ -1288,6 +1296,7 @@ public class Application extends ResourceConfig
         register(NotAcceptableExceptionMapper.class);
         register(ClientErrorExceptionMapper.class);
         register(HttpHostConnectExceptionMapper.class);
+        register(ResponseContentTooLargeExceptionMapper.class);
         register(InternalURLExceptionMapper.class);
         register(BadGatewayExceptionMapper.class);
         register(OntClassNotFoundExceptionMapper.class);
@@ -2512,6 +2521,16 @@ public class Application extends ResourceConfig
     public Integer getMaxContentLength()
     {
         return maxContentLength;
+    }
+
+    /**
+     * Maximum length of the result the SPARQL endpoint answers a query with.
+     * 
+     * @return length in bytes
+     */
+    public int getMaxQueryResponseLength()
+    {
+        return maxQueryResponseLength;
     }
 
     /**

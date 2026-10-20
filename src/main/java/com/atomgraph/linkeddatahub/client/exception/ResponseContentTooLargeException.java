@@ -33,9 +33,10 @@ public class ResponseContentTooLargeException extends WebApplicationException
      * @param maxContentLength maximum content length in bytes
      * @param contentLength actual content length in bytes
      */
-    public ResponseContentTooLargeException(long maxContentLength, long contentLength) // TO-DO: use sizes to generate a message?
+    public ResponseContentTooLargeException(long maxContentLength, long contentLength)
     {
-        super(Response.Status.BAD_GATEWAY);
+        // a streamed response is refused once it passes the limit, so its count is where it stopped, not its length
+        super("Response is larger than the limit of " + maxContentLength + " bytes", Response.Status.BAD_GATEWAY);
     }
     
 }

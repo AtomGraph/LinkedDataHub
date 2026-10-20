@@ -492,7 +492,7 @@ WHERE
 
                         <!-- a ?diff= whose compared version could not be read renders this version alone, which would read as nothing having changed -->
                         <xsl:if test="map:contains($context, 'diff-response') and empty($diff-results)">
-                            <xsl:sequence select="ldh:render-failure(id($effective-pane-id, ixsl:page())/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')], 'version-not-read', ac:http-error-key($context('diff-response')?status), ldh:response-detail($context('diff-response')))"/>
+                            <xsl:sequence select="ldh:render-failure(id($effective-pane-id, ixsl:page())/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')], 'version-not-read', ldh:http-error-key($context('diff-response')), ldh:response-detail($context('diff-response')))"/>
                         </xsl:if>
 
                         <!-- the canvases to initialize are the rendered document's own, so the lookups search the pane it

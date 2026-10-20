@@ -409,6 +409,12 @@
     rdfs:label "URI syntax violation" ;
     rdfs:isDefinedBy : .
 
+# a response refused for its length: a query result, or content the proxy fetched
+
+:ResponseTooLarge a rdfs:Class, owl:Class ;
+    rdfs:label "Response too large" ;
+    rdfs:isDefinedBy : .
+
 :ConstructMissingPropertyValue a sp:Construct ;
       sp:text """PREFIX spin:	<http://spinrdf.org/spin#>
 CONSTRUCT {
