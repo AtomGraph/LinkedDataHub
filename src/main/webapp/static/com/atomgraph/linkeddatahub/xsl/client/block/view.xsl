@@ -149,8 +149,11 @@ exclude-result-prefixes="#all"
 
         <xsl:message>ldh:view-query-thunk</xsl:message>
 
+        <!-- the query's document is often the view's own: an ontology view and its query both live in the namespace
+             ontology, which the view fan-out has just put into the document pool. A query in a content document is not
+             pooled, so it is still requested - and seen as edited - every time -->
         <xsl:sequence select="
-            ixsl:http-request($context('request')) =>
+            ldh:http-request-from-pool($context('request')) =>
                 ixsl:then(ldh:rethread-response($context, ?)) =>
                 ixsl:then(ldh:handle-response#1) =>
                 ixsl:then(ldh:load-query-service#1) =>

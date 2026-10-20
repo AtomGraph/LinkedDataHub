@@ -1007,21 +1007,55 @@ exclude-result-prefixes="#all"
             </xsl:if>
         </xsl:variable>
 
+        <!-- views share their definition documents - every ldh:inverseView view of a dataspace lives in its one
+             namespace ontology document - so the document, and the labels of what it mentions, are loaded once per
+             distinct document and every view defined in it renders from that one response. Per view this was one GET
+             of the whole ontology plus three metadata lookups that came out byte-identical. The fetch goes through the
+             document pool, which also answers ldh:view-query-thunk's GET of the same document for each view's query -->
+        <xsl:variable name="hrefs" select="distinct-values(for $view-context in $view-contexts return $view-context?request?href)" as="xs:string*"/>
+        <xsl:sequence select="
+            ixsl:all(array {
+                for $href in $hrefs return
+                    ldh:ontology-view-document-load($view-contexts[?request?href = $href])
+            }) => ixsl:then(ldh:ontology-views-inserted($context, ?))
+            "/>
+    </xsl:function>
+
+    <!-- load one view definition document and its metadata, then render every view it defines. $view-contexts all
+         request the same document; the first one's request is sent -->
+    <xsl:function name="ldh:ontology-view-document-load" as="item()*" ixsl:updating="yes">
+        <xsl:param name="view-contexts" as="map(*)+"/>
+
+        <xsl:sequence select="
+            ldh:http-request-pooled($view-contexts[1]('request')) =>
+                ixsl:then(ldh:rethread-response($view-contexts[1], ?)) =>
+                ixsl:then(ldh:handle-response#1) =>
+                ixsl:then(ldh:fire-load-set-parallel(?, [
+                  [ ldh:load-object-metadata#1,   'metadata-request',          'metadata-response',          ldh:set-object-metadata#1 ],
+                  [ ldh:load-object-metadata#1,   'ns-metadata-request',       'ns-metadata-response',       ldh:set-object-metadata-ns#1 ],
+                  [ ldh:load-property-metadata#1, 'property-metadata-request', 'property-metadata-response', ldh:set-property-metadata#1 ]
+                ])) =>
+                ixsl:then(ldh:merge-object-metadata#1) =>
+                ixsl:then(ldh:ontology-view-document-render(?, $view-contexts))
+        "/>
+    </xsl:function>
+
+    <!-- render each view of a loaded definition document: the shared context (the document's response and metadata)
+         with only the view's own entries taken from its context - the rest of a view context is the outer context, whose
+         'response' is the /ns view query's results and would displace the document's -->
+    <xsl:function name="ldh:ontology-view-document-render" as="item()*" ixsl:updating="yes">
+        <xsl:param name="shared" as="map(*)"/>
+        <xsl:param name="view-contexts" as="map(*)+"/>
+        <xsl:variable name="view-keys" select="('view-uri', 'view-property', 'view-inverse', 'view-for-class', 'view-show-when-empty')" as="xs:string+"/>
+        <xsl:variable name="shared" select="map:remove($shared, $view-keys)" as="map(*)"/>
+
         <xsl:sequence select="
             ixsl:all(array {
                 for $view-context in $view-contexts return
-                    ixsl:http-request($view-context('request')) =>
-                        ixsl:then(ldh:rethread-response($view-context, ?)) =>
-                        ixsl:then(ldh:handle-response#1) =>
-                        ixsl:then(ldh:fire-load-set-parallel(?, [
-                          [ ldh:load-object-metadata#1,   'metadata-request',          'metadata-response',          ldh:set-object-metadata#1 ],
-                          [ ldh:load-object-metadata#1,   'ns-metadata-request',       'ns-metadata-response',       ldh:set-object-metadata-ns#1 ],
-                          [ ldh:load-property-metadata#1, 'property-metadata-request', 'property-metadata-response', ldh:set-property-metadata#1 ]
-                        ])) =>
-                        ixsl:then(ldh:merge-object-metadata#1) =>
+                    ixsl:resolve(map:merge(($shared, for $key in $view-keys[map:contains($view-context, .)] return map{ $key: $view-context($key) }))) =>
                         ixsl:then(ldh:ontology-view-render-thunk#1)
-            }) => ixsl:then(ldh:ontology-views-inserted($context, ?))
-            "/>
+            })
+        "/>
     </xsl:function>
 
     <!-- join callback for the view fan-out. The per-view contexts have served their purpose by the time their blocks
@@ -1192,7 +1226,9 @@ exclude-result-prefixes="#all"
         <xsl:message>ldh:load-object-metadata</xsl:message>
 
         <!-- always emit both requests so the downstream http-request-threaded steps have keys to read; empty VALUES results in empty responses which set-object-metadata / set-object-metadata-ns store as empty documents and ac:object-label falls through to its fragment fallback -->
-        <xsl:sequence select="map:merge(($context, map{ 'metadata-request': $request, 'ns-metadata-request': $ns-request }))"/>
+        <!-- the '-empty' flags let ldh:fire-load-set-parallel / ldh:http-request-threaded answer a lookup with no URIs locally;
+             the requests are still emitted for any caller that sends them itself -->
+        <xsl:sequence select="map:merge(($context, map{ 'metadata-request': $request, 'ns-metadata-request': $ns-request, 'metadata-request-empty': empty($object-uris), 'ns-metadata-request-empty': empty($object-uris) }))"/>
     </xsl:function>
 
     <xsl:function name="ldh:set-object-metadata" as="map(*)" ixsl:updating="yes">
@@ -1275,7 +1311,7 @@ exclude-result-prefixes="#all"
 
         <xsl:message>ldh:load-property-metadata</xsl:message>
 
-        <xsl:sequence select="map:merge(($context, map{ 'property-metadata-request': $request }))"/>
+        <xsl:sequence select="map:merge(($context, map{ 'property-metadata-request': $request, 'property-metadata-request-empty': empty($property-uris) }))"/>
     </xsl:function>
 
     <xsl:function name="ldh:set-property-metadata" as="map(*)" ixsl:updating="yes">
