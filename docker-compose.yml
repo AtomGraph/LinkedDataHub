@@ -216,7 +216,7 @@ services:
       - linkeddatahub
     tmpfs: /var/lib/varnish/varnishd:exec
     entrypoint: varnishd
-    command: [ "-F", "-f", "/etc/varnish/default.vcl", "-a", "http=:80,HTTP", "-a", "proxy=:8443,PROXY", "-p", "feature=+http2", "-s", "malloc,1G", "-t", "86400", "-p", "timeout_idle=60s" ] # -F: foreground, -f: config, -a: listeners, -p: http2 + idle timeout, -s: storage, -t: TTL
+    command: [ "-F", "-f", "/etc/varnish/default.vcl", "-a", "http=:80,HTTP", "-a", "proxy=:8443,PROXY", "-p", "feature=+http2", "-s", "main=malloc,1G", "-s", "sparql=malloc,${VARNISH_SPARQL_STORAGE:-64M}", "-t", "86400", "-p", "timeout_idle=60s" ] # -F: foreground, -f: config, -a: listeners, -p: http2 + idle timeout, -s: storage (main, and one for SPARQL results), -t: TTL
   varnish-end-user:
     image: varnish:7.7.3
     user: root # otherwise varnish user does not have permissions to the mounted folder which is owner by root
@@ -229,7 +229,7 @@ services:
     volumes:
       - varnish_end_user_cache:/var/lib/varnish
     entrypoint: varnishd
-    command: [ "-F", "-f", "/etc/varnish/default.vcl", "-a", "http=:80,HTTP", "-a", "proxy=:8443,PROXY", "-p", "feature=+http2", "-s", "file,/var/lib/varnish/storage.bin,3G", "-t", "86400", "-p", "timeout_idle=60s" ] # -F: foreground, -f: config, -a: listeners, -p: http2 + idle timeout, -s: storage, -t: TTL
+    command: [ "-F", "-f", "/etc/varnish/default.vcl", "-a", "http=:80,HTTP", "-a", "proxy=:8443,PROXY", "-p", "feature=+http2", "-s", "main=file,/var/lib/varnish/storage.bin,3G", "-s", "sparql=malloc,${VARNISH_SPARQL_STORAGE:-64M}", "-t", "86400", "-p", "timeout_idle=60s" ] # -F: foreground, -f: config, -a: listeners, -p: http2 + idle timeout, -s: storage (main, and one for SPARQL results), -t: TTL
   email-server:
     image: namshi/smtp
     environment:
@@ -741,6 +741,17 @@ configs:
               set beresp.http.xkey = bereq.http.X-Xkey-Promote;
           }
 
+          /* SPARQL results get a store of their own, so a result too large for it ends the fetch there: a cached fetch runs
+             on after its client has gone - the platform refusing an oversize result included - and would otherwise go on
+             filling the main store while the triplestore keeps evaluating the query. Failing the fetch closes the backend
+             connection, which is what makes the triplestore abandon the query. Everything else is sent to the main store by
+             name: left unset, Varnish spreads objects across both stores in turn */
+          if (bereq.url ~ "\?(query|default-graph-uri|named-graph-uri)=") {
+              set beresp.storage = storage.sparql;
+          } else {
+              set beresp.storage = storage.main;
+          }
+
           return (deliver);
       }
   varnish-end-user_vcl:
@@ -807,6 +818,17 @@ configs:
               ban("req.url == " + bereq.url + " && req.http.host == " + bereq.http.host);
               /* SPARQL query results depend on dataset state — any write invalidates every cached query. */
               ban("req.url ~ \?(query|default-graph-uri|named-graph-uri)=");
+          }
+
+          /* SPARQL results get a store of their own, so a result too large for it ends the fetch there: a cached fetch runs
+             on after its client has gone - the platform refusing an oversize result included - and would otherwise go on
+             filling the main store while the triplestore keeps evaluating the query. Failing the fetch closes the backend
+             connection, which is what makes the triplestore abandon the query. Everything else is sent to the main store by
+             name: left unset, Varnish spreads objects across both stores in turn */
+          if (bereq.url ~ "\?(query|default-graph-uri|named-graph-uri)=") {
+              set beresp.storage = storage.sparql;
+          } else {
+              set beresp.storage = storage.main;
           }
 
           return (deliver);

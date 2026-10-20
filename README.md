@@ -248,6 +248,8 @@ _:warning: Do not use blank nodes to identify applications or services. We recom
     <dd>Maximum allowed size of the request body, in bytes</dd>
     <dt><code>MAX_QUERY_RESPONSE_LENGTH</code></dt>
     <dd>Maximum length of a query result the <code>/sparql</code> endpoint answers with, in bytes. A longer one is refused with <code>502</code>. 5242880 (5 MiB) by default</dd>
+    <dt><code>VARNISH_SPARQL_STORAGE</code></dt>
+    <dd>Size of the store the Varnish caches in front of the triplestore keep SPARQL results in, apart from their main one (Varnish size syntax, e.g. <code>64M</code>). A result too large for it ends the fetch, and the triplestore abandons the query, which bounds what one runaway query costs. <code>64M</code> by default</dd>
     <dt><code>COMPOSE_PROFILES</code></dt>
     <dd><code>assistant</code> to run and offer the <a href="#assistant">assistant</a>. Disabled by default</dd>
     <dt><code>MAIL_SMTP_HOST</code></dt>
