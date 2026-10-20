@@ -103,63 +103,6 @@ exclude-result-prefixes="#all"
 
     <!-- TEMPLATES -->
 
-    <!-- update the chart resource before saving. A mode of its own, not shared with the query save. -->
-
-    <!-- identity transform -->
-    <xsl:template match="@* | node()" mode="ldh:replace-chart">
-        <xsl:copy>
-            <xsl:apply-templates select="@* | node()" mode="#current"/>
-        </xsl:copy>
-    </xsl:template>
-
-    <!-- set chart properties -->
-
-    <xsl:template match="ldh:chartType | ldh:categoryVarName | ldh:categoryProperty | ldh:seriesVarName | ldh:seriesProperty" mode="ldh:replace-chart" priority="1"/>
-
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;ResultSetChart']" mode="ldh:replace-chart" priority="1">
-        <xsl:param name="chart-type" as="xs:anyURI" tunnel="yes"/>
-        <xsl:param name="category" as="xs:string?" tunnel="yes"/>
-        <xsl:param name="series" as="xs:string*" tunnel="yes"/>
-
-        <xsl:copy>
-            <xsl:apply-templates select="@* | node()" mode="#current"/>
-            
-            <xsl:for-each select="$chart-type">
-                <ldh:chartType rdf:resource="{.}"/>
-            </xsl:for-each>
-            <xsl:for-each select="$category">
-                <ldh:categoryVarName>
-                    <xsl:value-of select="."/>
-                </ldh:categoryVarName>
-            </xsl:for-each>
-            <xsl:for-each select="$series">
-                <ldh:seriesVarName>
-                    <xsl:value-of select="."/>
-                </ldh:seriesVarName>
-            </xsl:for-each>
-        </xsl:copy>
-    </xsl:template>
-    
-    <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;GraphChart']" mode="ldh:replace-chart" priority="1">
-        <xsl:param name="chart-type" as="xs:anyURI" tunnel="yes"/>
-        <xsl:param name="category" as="xs:string?" tunnel="yes"/>
-        <xsl:param name="series" as="xs:string*" tunnel="yes"/>
-
-        <xsl:copy>
-            <xsl:apply-templates select="@* | node()" mode="#current"/>
-
-            <xsl:for-each select="$chart-type">
-                <ldh:chartType rdf:resource="{.}"/>
-            </xsl:for-each>
-            <xsl:for-each select="$category">
-                <ldh:categoryProperty rdf:resource="{.}"/>
-            </xsl:for-each>
-            <xsl:for-each select="$series">
-                <ldh:seriesProperty rdf:resource="{.}"/>
-            </xsl:for-each>
-        </xsl:copy>
-    </xsl:template>
-    
     <!-- TO-DO: make 'data-table' configurable -->
     <xsl:template name="ac:draw-chart">
         <xsl:param name="data-table"/>
@@ -565,7 +508,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:variable name="container" select="ancestor::div[@typeof][1]" as="element()"/>
         <xsl:variable name="about" select="$block/@about" as="xs:anyURI"/>
-        <xsl:variable name="query-uri" select="$container//descendant::*[@property = '&spin;query']/@resource" as="xs:anyURI"/>
         <xsl:variable name="chart-type" select="$container//div[contains-token(@class, 'chart-controls')]//select[contains-token(@class, 'chart-type')]/ixsl:get(., 'value')" as="xs:anyURI?"/>
         <xsl:variable name="category" select="$container//div[contains-token(@class, 'chart-controls')]//select[contains-token(@class, 'chart-category')]/ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:variable name="series" as="xs:string*">
@@ -576,45 +518,71 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:for-each>
         </xsl:variable>
-        <xsl:variable name="method" select="'PATCH'" as="xs:string"/>
-        <xsl:variable name="action" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
-        <xsl:variable name="accept" select="'application/rdf+xml'" as="xs:string"/>
-        <xsl:variable name="etag" select="ldh:document-etag(ac:absolute-path(ldh:base-uri(.)))" as="xs:string"/>
-        <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
-        <xsl:variable name="chart" select="key('resources', $about, $doc)" as="element()"/>
-        <!-- update the properties on the chart resource -->
-        <xsl:variable name="chart" as="element()">
-            <xsl:apply-templates select="$chart" mode="ldh:replace-chart">
-                <xsl:with-param name="chart-type" select="$chart-type" tunnel="yes"/>
-                <xsl:with-param name="series" select="$series" tunnel="yes"/>
-                <xsl:with-param name="category" select="$category" tunnel="yes"/>
-            </xsl:apply-templates>
+        <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
+        <!-- the chart's class decides which properties hold the category and the series; the block's RDFa states it -->
+        <xsl:variable name="graph-chart" select="tokenize($container/@typeof) = '&ldh;GraphChart'" as="xs:boolean"/>
+        <!-- the controls' values, as the triples that replace the chart's stored ones -->
+        <xsl:variable name="triples" as="element()*">
+            <xsl:for-each select="$chart-type">
+                <json:map>
+                    <json:string key="subject"><xsl:value-of select="$about"/></json:string>
+                    <json:string key="predicate">&ldh;chartType</json:string>
+                    <json:string key="object"><xsl:value-of select="."/></json:string>
+                </json:map>
+            </xsl:for-each>
+            <xsl:for-each select="$category">
+                <json:map>
+                    <json:string key="subject"><xsl:value-of select="$about"/></json:string>
+                    <json:string key="predicate"><xsl:value-of select="if ($graph-chart) then '&ldh;categoryProperty' else '&ldh;categoryVarName'"/></json:string>
+                    <json:string key="object"><xsl:value-of select="if ($graph-chart) then . else '&quot;' || . || '&quot;'"/></json:string>
+                </json:map>
+            </xsl:for-each>
+            <xsl:for-each select="$series">
+                <json:map>
+                    <json:string key="subject"><xsl:value-of select="$about"/></json:string>
+                    <json:string key="predicate"><xsl:value-of select="if ($graph-chart) then '&ldh;seriesProperty' else '&ldh;seriesVarName'"/></json:string>
+                    <json:string key="object"><xsl:value-of select="if ($graph-chart) then . else '&quot;' || . || '&quot;'"/></json:string>
+                </json:map>
+            </xsl:for-each>
         </xsl:variable>
-        <xsl:variable name="triples" select="ldh:descriptions-to-triples($chart)" as="element()*"/>
-        <xsl:variable name="update-string" select="ldh:insertdelete-update(ldh:triples-to-bgp(ldh:uri-po-pattern($about)), ldh:triples-to-bgp($triples), ldh:triples-to-bgp(ldh:uri-po-pattern($about)))" as="xs:string"/>
-        <xsl:variable name="resources" as="document-node()">
-            <xsl:document>
-                <rdf:RDF>
-                    <xsl:sequence select="ldh:triples-to-descriptions($triples)"/>
-                </rdf:RDF>
-            </xsl:document>
+        <!-- only the properties the controls own are replaced: the rest of the chart stays as the document stores it,
+             whoever wrote it since the page was loaded -->
+        <xsl:variable name="where-pattern" as="element()">
+            <json:map>
+                <json:string key="type">optional</json:string>
+                <json:array key="patterns">
+                    <xsl:sequence select="ldh:triples-to-bgp(ldh:uri-po-pattern($about))"/>
+                    <json:map>
+                        <json:string key="type">filter</json:string>
+                        <json:map key="expression">
+                            <json:string key="type">operation</json:string>
+                            <json:string key="operator">in</json:string>
+                            <json:array key="args">
+                                <json:string>?p</json:string>
+                                <json:array>
+                                    <json:string>&ldh;chartType</json:string>
+                                    <json:string>&ldh;categoryVarName</json:string>
+                                    <json:string>&ldh;categoryProperty</json:string>
+                                    <json:string>&ldh;seriesVarName</json:string>
+                                    <json:string>&ldh;seriesProperty</json:string>
+                                </json:array>
+                            </json:array>
+                        </json:map>
+                    </json:map>
+                </json:array>
+            </json:map>
         </xsl:variable>
-        <xsl:variable name="request-uri" select="ldh:href($action, map{})" as="xs:anyURI"/>
-        <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile -->
-        <xsl:variable name="request" select="map{ 'method': $method, 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': map{ 'If-Match': $etag, 'Accept': 'application/rdf+xml', 'Cache-Control': 'no-cache' } }" as="map(*)"/>
-        <xsl:variable name="context" as="map(*)" select="
-          map{
-            'request': $request,
-            'doc-uri': ac:absolute-path(ldh:base-uri(.)),
-            'block': $block,
-            'resources': $resources
-          }"/>
+        <xsl:variable name="update-string" select="ldh:insertdelete-update(ldh:triples-to-bgp(ldh:uri-po-pattern($about)), ldh:triples-to-bgp($triples), $where-pattern)" as="xs:string"/>
+        <xsl:variable name="request" select="map{ 'method': 'PATCH', 'href': ldh:href($doc-uri, map{}), 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': ldh:conditional-headers(map{}, ldh:document-etag($doc-uri)) }" as="map(*)"/>
+        <xsl:variable name="context" select="map{ 'request': $request, 'doc-uri': $doc-uri, 'block': $block, 'about': $about }" as="map(*)"/>
+        <!-- ldh:with-document-etag first: a server-rendered page holds no validator until something loads the document -->
         <ixsl:promise select="
-          ixsl:http-request($context('request'))
-            => ixsl:then(ldh:rethread-response($context, ?))
+          ixsl:resolve($context)
+            => ixsl:then(ldh:with-document-etag#1)
+            => ixsl:then(ldh:http-request-threaded#1)
             => ixsl:then(ldh:handle-response#1)
-            => ixsl:then(ldh:row-form-response#1) =>
-            ixsl:finally(ldh:reset-cursor#0)
+            => ixsl:then(ldh:row-saved#1)
+            => ixsl:finally(ldh:reset-cursor#0)
         " on-failure="ldh:promise-failure(($container//div[contains-token(@class, 'main')])[1], 'chart-not-saved', ?)"/>
     </xsl:template>
     

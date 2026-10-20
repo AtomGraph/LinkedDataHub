@@ -89,6 +89,21 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]"/>
     </xsl:function>
 
+    <!-- the pane a document is shown in -->
+    <xsl:function name="ldh:document-pane" as="element()?">
+        <xsl:param name="doc-uri" as="xs:anyURI"/>
+
+        <xsl:sequence select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][./div[contains-token(@class, 'document-body')]/@about = $doc-uri]"/>
+    </xsl:function>
+
+    <!-- whether a document is shown in a pane as it loaded: ldh:rdf-document-response stamps the status of the response a
+         pane renders, an error included, and ldh:chat-catch-up clears it from a pane whose document the assistant wrote -->
+    <xsl:function name="ldh:document-loaded" as="xs:boolean">
+        <xsl:param name="doc-uri" as="xs:anyURI"/>
+
+        <xsl:sequence select="exists(ldh:document-pane($doc-uri)[@data-status = '200'])"/>
+    </xsl:function>
+
     <xsl:function name="lds:base" as="xs:anyURI">
         <xsl:variable name="active-pane" select="ldh:active-pane()" as="element()?"/>
         <xsl:sequence select="if ($active-pane and ixsl:contains($active-pane, 'dataset.base')) then xs:anyURI(ixsl:get($active-pane, 'dataset.base')) else xs:anyURI(lds:origin(ldh:request-uri()) || '/')"/>
@@ -592,6 +607,13 @@ exclude-result-prefixes="#all"
         </json:map>
     </xsl:function>
     
+    <!-- a string as a quoted SPARQL literal, escaped per the grammar -->
+    <xsl:function name="ldh:sparql-literal" as="xs:string">
+        <xsl:param name="value" as="xs:string"/>
+
+        <xsl:sequence select="'&quot;' || replace(replace(replace(replace($value, '\\', '\\\\'), '&quot;', '\\&quot;'), codepoints-to-string(10), '\\n'), codepoints-to-string(13), '\\r') || '&quot;'"/>
+    </xsl:function>
+
     <!-- builds SPARQL update by injecting SPARQL.js triples into the INSERT block -->
 
     <xsl:function name="ldh:insertdelete-update" as="xs:string">
