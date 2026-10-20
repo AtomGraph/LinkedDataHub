@@ -426,7 +426,7 @@ exclude-result-prefixes="#all"
         <!-- if there is no block, the chart is rendering the current document -->
         <xsl:variable name="block-uri" select="if ($block/@about) then $block/@about else (if ($block-id) then xs:anyURI(ac:absolute-path(ldh:base-uri(.)) || '#' || $block-id) else ac:absolute-path(ldh:base-uri(.)))" as="xs:anyURI"/>
         <xsl:variable name="cache" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')"/>
-        <xsl:variable name="results" select="if (ixsl:contains($cache, 'results')) then ixsl:get($cache, 'results') else root(ixsl:get($cache, 'content'))" as="document-node()"/>
+        <xsl:variable name="results" select="ixsl:get($cache, 'results')" as="document-node()"/>
 
         <xsl:if test="not($chart-type) or not($category or $results/rdf:RDF) or empty($series)">
             <xsl:message terminate="yes">Chart control values missing for content '<xsl:value-of select="$block-id"/>'</xsl:message>

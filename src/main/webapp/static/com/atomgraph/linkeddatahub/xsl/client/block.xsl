@@ -323,18 +323,17 @@ exclude-result-prefixes="#all"
                 <xsl:if test="not($backlinks-container/div)">
                     <xsl:variable name="block-uri" select="ancestor::div[contains-token(@class, 'block')][1]/@about" as="xs:anyURI"/>
                     <xsl:variable name="query-string" select="replace($ldh:backlinks-string, '$this', '&lt;' || $block-uri || '&gt;', 'q')" as="xs:string"/>
-                    <xsl:variable name="service-uri" select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`')) then (if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'service-uri')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $block-uri || '`'), 'service-uri') else ()) else ()" as="xs:anyURI?"/>
 
                     <xsl:sequence select="ldh:busy-cursor()"/>
 
-                    <!-- the endpoint is the block's service's, loaded first -->
+                    <!-- no service is recorded for a block, so the backlinks query the local endpoint -->
                     <xsl:variable name="context" as="map(*)" select="
                       map{
                         'node': .,
                         'query-string': $query-string,
                         'backlinks-container': $backlinks-container
                       }"/>
-                    <ixsl:promise select="ldh:load-service($context, $service-uri) =>
+                    <ixsl:promise select="ldh:load-service($context, ()) =>
                         ixsl:then(ldh:backlinks-request#1) =>
                         ixsl:then(ldh:backlinks-response#1) =>
                         ixsl:finally(ldh:reset-cursor#0)"
