@@ -875,7 +875,8 @@ WHERE
         <!-- the block content's source document (per-subtree via the data-base-uri stamp for embeds); if the URI is external, dereference it through the proxy -->
         <xsl:variable name="base-uri" select="ldh:base-uri(.)" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($base-uri)" as="xs:anyURI"/>
-        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+        <!-- pooled: the fresh copy replaces the one the document's pane was loaded with, which ldh:pane-document reads -->
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' }, 'pool': 'xml' }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
           map{
             'request': $request,
@@ -955,12 +956,6 @@ WHERE
                     <xsl:for-each select="?body">
                         <!-- key by the loaded document's URI threaded from the requesting handler (a response document has no stamped DOM ancestor for ldh:base-uri() to resolve); flows that do not thread it are page-level and fall back -->
                         <xsl:variable name="base-uri" select="($context('base-uri'), ldh:base-uri(.))[1]" as="xs:anyURI"/>
-                        <!-- reuse the existing per-URI object: replacing it would wipe the 'block-html' snapshot stored by the btn-edit handler when $about equals the document URI (proxied external resources) -->
-                        <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path($base-uri) || '`'))">
-                            <ixsl:set-property name="{'`' || ac:absolute-path($base-uri) || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
-                        </xsl:if>
-                        <!-- store document under window.LinkedDataHub.contents[$base-uri].results -->
-                        <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path($base-uri) || '`')"/>
                         <!-- store ETag header value under window.LinkedDataHub.etags[$base-uri] -->
                         <xsl:sequence select="ldh:set-document-etag(ac:absolute-path($base-uri), $etag)"/>
 

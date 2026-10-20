@@ -580,7 +580,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="action" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:variable name="accept" select="'application/rdf+xml'" as="xs:string"/>
         <xsl:variable name="etag" select="ldh:document-etag(ac:absolute-path(ldh:base-uri(.)))" as="xs:string"/>
-        <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(xs:anyURI(ixsl:location())) || '`'), 'results')" as="document-node()"/>
+        <xsl:variable name="doc" select="ldh:pane-document(ldh:active-pane())" as="document-node()"/>
         <xsl:variable name="chart" select="key('resources', $about, $doc)" as="element()"/>
         <!-- update the properties on the chart resource -->
         <xsl:variable name="chart" as="element()">

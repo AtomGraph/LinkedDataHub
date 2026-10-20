@@ -692,15 +692,14 @@ exclude-result-prefixes="#all"
         <!-- a block the assistant added to the document being read is scrolled to once it is shown: the reload is told the
              blocks the document held before - its copy as loaded, read before it goes, so whatever mode it was shown in - and
              the first one it holds that was not among them is the new one. No copy, nothing to tell new from old -->
-        <xsl:variable name="contents" select="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
-        <xsl:variable name="loaded" select="if ($written = $doc-uri and ixsl:contains($contents, '`' || $doc-uri || '`') and ixsl:contains(ixsl:get($contents, '`' || $doc-uri || '`'), 'results')) then ixsl:get(ixsl:get($contents, '`' || $doc-uri || '`'), 'results') else ()" as="document-node()?"/>
+        <xsl:variable name="loaded" select="if ($written = $doc-uri) then ldh:pane-document(ldh:document-pane($doc-uri)) else ()" as="document-node()?"/>
         <xsl:variable name="known-blocks" select="if (exists($loaded)) then array { key('resources', $doc-uri, $loaded)/*[namespace-uri() = '&rdf;'][starts-with(local-name(), '_')]/@rdf:resource/xs:anyURI(.) } else ()" as="array(xs:anyURI)?"/>
 
         <xsl:for-each select="$written">
-            <ixsl:remove-property name="{'`' || . || '`'}" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+            <xsl:sequence select="ldh:discard-pane-document(ldh:document-pane(.))"/>
         </xsl:for-each>
         <xsl:if test="exists($written) and exists($card/ancestor::body)">
-            <ixsl:remove-property name="{'`' || $doc-uri || '`'}" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
+            <xsl:sequence select="ldh:discard-pane-document(ldh:document-pane($doc-uri))"/>
 
             <!-- the navigation is written for a click, with a context node; the card stands in for one -->
             <xsl:for-each select="$card">

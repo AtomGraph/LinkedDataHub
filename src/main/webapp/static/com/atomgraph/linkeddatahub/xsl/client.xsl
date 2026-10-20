@@ -336,10 +336,9 @@ WHERE
                         <xsl:variable name="diff-added-keys" select="map:keys($result-triples)[not(map:contains($diff-triples, .))]" as="xs:string*"/>
                         <xsl:variable name="diff-removed-keys" select="map:keys($diff-triples)[not(map:contains($result-triples, .))]" as="xs:string*"/>
                         <xsl:variable name="render-results" select="if (exists($diff-results)) then ldh:diff-union($results, $diff-results, $diff-removed-keys) else $results" as="document-node()"/>
+                        <!-- the state the document's own canvases keep starts afresh; the document itself is in the document pool,
+                             where ldh:RDFDocumentLoad's request put it, and is read back through the pane (ldh:pane-document) -->
                         <ixsl:set-property name="{'`' || $doc-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
-                        <!-- store document under window.LinkedDataHub.contents[$doc-uri].results -->
-                        <!-- should be possible to cache the document using SaxonJS when this issue is resolved: https://saxonica.plan.io/issues/6355 -->
-                        <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`')"/>
                         <!-- store ETag header value under window.LinkedDataHub.etags[$doc-uri]. Not a memento's: its tag is
                              the commit SHA, which validates no write to the live document filed under the same key - a restore
                              started from a ?version= view quoted it and was refused 412 -->
@@ -462,6 +461,11 @@ WHERE
                                 </xsl:if>
                             </xsl:otherwise>
                         </xsl:choose>
+
+                        <!-- the href the document is pooled under, which ldh:pane-document reads it back by -->
+                        <xsl:for-each select="id($effective-pane-id, ixsl:page())">
+                            <ixsl:set-attribute name="data-href" select="string($context('request')?href)" object="."/>
+                        </xsl:for-each>
 
                         <!-- a write that added blocks takes the reader to the first of them (ldh:DocumentNavigate's $known-blocks):
                              the document's rdf:_N members in order, less the ones the page already showed. Only the scroll
@@ -914,7 +918,7 @@ WHERE
         </xsl:call-template>
     </xsl:template>
 
-    <!-- switch to a tab whose pane DOM and LinkedDataHub.contents[$doc-uri] are already populated: no fetch, no re-render -->
+    <!-- switch to a tab whose pane already shows the document it loaded (ldh:pane-document): no fetch, no re-render -->
     <xsl:template name="ldh:TabSwitch">
         <xsl:param name="doc-uri" as="xs:anyURI"/>
         <xsl:param name="fragment" as="xs:string?"/>
@@ -1047,7 +1051,8 @@ WHERE
              ASK, a graph for CONSTRUCT and DESCRIBE - and which one is not knowable without parsing it, so both are accepted
              and the response's own media type decides how it is rendered. Asking for RDF alone is answered 406 by half of them -->
         <xsl:variable name="accept" select="if (map:contains($representation-params, 'query')) then 'application/sparql-results+xml,application/rdf+xml' else 'application/rdf+xml'" as="xs:string"/>
-        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': $accept } }" as="map(*)"/>
+        <!-- pooled, so the document can be read back as it was loaded (ldh:pane-document) -->
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': $accept }, 'pool': 'xml' }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
           map:merge((
             map{
@@ -1062,7 +1067,7 @@ WHERE
             if (exists($diff-version)) then map{ 'diff-request': map{ 'method': 'GET', 'href': ldh:href($doc-uri, map{ 'version': $diff-version }, ()), 'headers': map{ 'Accept': 'application/rdf+xml' } } } else map{},
             if (exists($known-blocks)) then map{ 'known-blocks': $known-blocks } else map{}
           ))"/>
-        <ixsl:promise select="ixsl:http-request($context('request'), $controller) =>
+        <ixsl:promise select="ldh:send-request($context('request'), $controller) =>
             ixsl:then(ldh:rethread-response($context, ?)) =>
             ixsl:then(ldh:handle-response#1) =>
             ixsl:then(ldh:load-diff-version#1) =>
@@ -1103,7 +1108,7 @@ WHERE
             <xsl:variable name="tab-li" select="id('tab-bar-list', ixsl:page())/li[ixsl:get(., 'dataset.uri') = string($doc-uri)]" as="element()?"/>
 
             <xsl:choose>
-                <xsl:when test="exists($tab-li) and ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`') and deep-equal($query-params, map:remove(ldh:query-params(), 'uri'))">
+                <xsl:when test="exists($tab-li) and exists(ldh:pane-document(ldh:document-pane($doc-uri))) and deep-equal($query-params, map:remove(ldh:query-params(), 'uri'))">
                     <xsl:call-template name="ldh:TabSwitch">
                         <xsl:with-param name="doc-uri" select="$doc-uri"/>
                         <xsl:with-param name="fragment" select="$fragment"/>
@@ -1137,7 +1142,7 @@ WHERE
 
         <xsl:choose>
             <!-- same-doc cached AND non-uri query params unchanged: switch (no fetch, no re-render), just scroll to the new fragment if any -->
-            <xsl:when test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`') and exists($tab-li) and deep-equal($query-params, map:remove(ldh:query-params(), 'uri'))">
+            <xsl:when test="exists(ldh:pane-document(ldh:document-pane($doc-uri))) and exists($tab-li) and deep-equal($query-params, map:remove(ldh:query-params(), 'uri'))">
                 <xsl:call-template name="ldh:TabSwitch">
                     <xsl:with-param name="doc-uri" select="$doc-uri"/>
                     <xsl:with-param name="fragment" select="$fragment"/>
@@ -1479,7 +1484,7 @@ WHERE
 
         <xsl:choose>
             <!-- cache populated AND non-uri query params unchanged: pure CSS toggle + scroll, no fetch, no re-render -->
-            <xsl:when test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`') and deep-equal($query-params, map:remove(ldh:query-params(), 'uri'))">
+            <xsl:when test="exists(ldh:pane-document(ldh:document-pane($doc-uri))) and deep-equal($query-params, map:remove(ldh:query-params(), 'uri'))">
                 <xsl:call-template name="ldh:TabSwitch">
                     <xsl:with-param name="doc-uri" select="$doc-uri"/>
                     <xsl:with-param name="fragment" select="$fragment"/>
@@ -1524,7 +1529,7 @@ WHERE
             <xsl:variable name="fallback-fragment" select="map:get($fallback-parsed, 'fragment')" as="xs:string?"/>
 
             <xsl:choose>
-                <xsl:when test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $fallback-doc-uri || '`') and deep-equal($fallback-query-params, map:remove(ldh:query-params(), 'uri'))">
+                <xsl:when test="exists(ldh:pane-document(ldh:document-pane($fallback-doc-uri))) and deep-equal($fallback-query-params, map:remove(ldh:query-params(), 'uri'))">
                     <xsl:call-template name="ldh:TabSwitch">
                         <xsl:with-param name="doc-uri" select="$fallback-doc-uri"/>
                         <xsl:with-param name="fragment" select="$fallback-fragment"/>
