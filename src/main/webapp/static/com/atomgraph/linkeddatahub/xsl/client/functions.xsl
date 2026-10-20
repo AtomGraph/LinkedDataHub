@@ -698,6 +698,64 @@ exclude-result-prefixes="#all"
         "/>
     </xsl:function>
 
+    <!-- GET an RDF/XML document through the SaxonJS document pool. A document already in the pool resolves without a
+         request (ixsl:doc-fetched only looks at the pool; fn:doc-available would fall back to a synchronous fetch);
+         otherwise it is fetched with 'pool': 'xml', so the next caller finds it there. The pool is keyed by the exact
+         href, so callers must pass the same ldh:href() result every time.
+         'pool' turns an unsuccessful status (a 429, a 404) or a non-XML body into a rejected promise instead of a
+         response, which would bypass ldh:handle-response's 429 retry and fail an ixsl:all join; such a request is sent
+         again unpooled, so the chain sees the real response as before. Only for documents that are not edited while the
+         page is open (ontology documents): the pool keeps what it fetched until saxon:discard-document drops it -->
+    <xsl:function name="ldh:http-request-pooled" as="item()*" ixsl:updating="yes">
+        <xsl:param name="request" as="map(*)"/>
+
+        <xsl:sequence select="
+          if (ixsl:doc-fetched($request?href))
+          then ixsl:resolve(ldh:pooled-response($request?href))
+          else ixsl:http-request(map:put($request, 'pool', 'xml')) => ixsl:catch(ldh:http-request-unpooled($request, ?))
+        "/>
+    </xsl:function>
+
+    <!-- the read-only half of ldh:http-request-pooled: answer from the pool when the document is there, otherwise
+         request it as before without adding it - for chains that also load documents which are edited in place -->
+    <xsl:function name="ldh:http-request-from-pool" as="item()*" ixsl:updating="yes">
+        <xsl:param name="request" as="map(*)"/>
+
+        <xsl:sequence select="
+          if ($request?method = 'GET' and ixsl:doc-fetched($request?href))
+          then ixsl:resolve(ldh:pooled-response($request?href))
+          else ixsl:http-request($request)
+        "/>
+    </xsl:function>
+
+    <!-- partial application, not an inline function: an inline function item built in a loop can capture the loop's
+         last value in SaxonJS -->
+    <xsl:function name="ldh:http-request-unpooled" as="item()*" ixsl:updating="yes">
+        <xsl:param name="request" as="map(*)"/>
+        <xsl:param name="error" as="item()*"/>
+
+        <xsl:sequence select="ixsl:http-request($request)"/>
+    </xsl:function>
+
+    <!-- a pooled document as the response map a request would have resolved with. Only the body is pooled: the
+         documents read this way are definitions (views, queries) whose response headers no caller reads -->
+    <xsl:function name="ldh:pooled-response" as="map(*)">
+        <xsl:param name="href" as="xs:string"/>
+
+        <xsl:sequence select="map{ 'status': 200, 'message': 'OK', 'media-type': 'application/rdf+xml', 'headers': map{}, 'body': document($href) }"/>
+    </xsl:function>
+
+    <!-- what a metadata lookup with an empty VALUES block answers, without sending it -->
+    <xsl:function name="ldh:empty-rdf-response" as="map(*)">
+        <xsl:variable name="body" as="document-node()">
+            <xsl:document>
+                <rdf:RDF/>
+            </xsl:document>
+        </xsl:variable>
+
+        <xsl:sequence select="map{ 'status': 200, 'message': 'OK', 'media-type': 'application/rdf+xml', 'headers': map{}, 'body': $body }"/>
+    </xsl:function>
+
     <xsl:function name="ldh:rethread-response" as="map(*)" ixsl:updating="no">
         <xsl:param name="context" as="map(*)"/>
         <xsl:param name="response" as="map(*)"/>
@@ -724,7 +782,11 @@ exclude-result-prefixes="#all"
         <xsl:param name="request-key" as="xs:string"/>
         <xsl:param name="response-key" as="xs:string"/>
 
+        <!-- a request its loader marked empty (a metadata lookup with no URIs to look up) is answered locally -->
         <xsl:sequence select="
+          if ($context($request-key || '-empty') = true())
+          then ixsl:resolve(ldh:rethread-response($context, ldh:empty-rdf-response(), $response-key))
+          else
           ixsl:http-request($context($request-key))
             => ixsl:then(ldh:rethread-response($context, ?, $response-key))
         "/>
@@ -842,6 +904,11 @@ exclude-result-prefixes="#all"
         <xsl:variable name="promises" as="array(*)" select="
           array {
             for $pair in $pairs?* return
+              (: a request its loader marked empty (a metadata lookup with no URIs to look up) is answered locally :)
+              if ($ctx-with-requests($pair?2 || '-empty') = true())
+              then ixsl:resolve(ldh:rethread-response($ctx-with-requests, ldh:empty-rdf-response(), $pair?3))
+                => ixsl:then($pair?4)
+              else
               ixsl:http-request($ctx-with-requests($pair?2))
                 => ixsl:then(ldh:rethread-response($ctx-with-requests, ?, $pair?3))
                 => ixsl:then(ldh:handle-response(?, $pair?3))
