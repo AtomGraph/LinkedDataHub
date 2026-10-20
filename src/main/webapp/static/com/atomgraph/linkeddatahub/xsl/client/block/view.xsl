@@ -3759,7 +3759,7 @@ exclude-result-prefixes="#all"
                         <xsl:variable name="update-string" select="replace($ldh:view-instance-link-string, '$about', '&lt;' || $about || '&gt;', 'q')" as="xs:string"/>
                         <xsl:variable name="update-string" select="replace($update-string, '$property', '&lt;' || $property || '&gt;', 'q')" as="xs:string"/>
                         <xsl:variable name="update-string" select="replace($update-string, '$this', '&lt;' || $instance || '&gt;', 'q')" as="xs:string"/>
-                        <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`'), 'etag')" as="xs:string"/>
+                        <xsl:variable name="etag" select="ldh:document-etag($doc-uri)" as="xs:string"/>
                         <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile -->
                         <xsl:variable name="link-request" select="map{ 'method': 'PATCH', 'href': ldh:href($doc-uri, map{}), 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': map{ 'If-Match': $etag, 'Accept': 'application/rdf+xml', 'Cache-Control': 'no-cache' } }" as="map(*)"/>
                         <xsl:variable name="link-context" as="map(*)" select="map{ 'request': $link-request, 'doc-uri': $doc-uri, 'block-id': $block-id }"/>
@@ -3794,8 +3794,8 @@ exclude-result-prefixes="#all"
             <xsl:when test="$response?status = (200, 204)">
                 <xsl:variable name="etag" select="$response?headers?etag" as="xs:string?"/>
                 <xsl:if test="$etag">
-                    <!-- store ETag header value under window.LinkedDataHub.contents[$doc-uri].etag so subsequent edits of the current document don't fail preconditions -->
-                    <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`')"/>
+                    <!-- store ETag header value under window.LinkedDataHub.etags[$doc-uri] so subsequent edits of the current document don't fail preconditions -->
+                    <xsl:sequence select="ldh:set-document-etag($doc-uri, $etag)"/>
                 </xsl:if>
 
                 <!-- the cursor stays 'progress' (set on form submit) until ldh:render-view restores it -->

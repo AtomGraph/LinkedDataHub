@@ -893,7 +893,7 @@ LIMIT   10
         <xsl:sequence select="ldh:busy-cursor()"/>
 
 <!--        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`')">
-            <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
+            <xsl:variable name="etag" select="ldh:document-etag(ac:absolute-path(ldh:base-uri(.)))" as="xs:string"/>
         </xsl:if>-->
         <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $about || '`'))">
             <ixsl:set-property name="{'`' || $about || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
@@ -966,7 +966,7 @@ LIMIT   10
         <xsl:variable name="id" select="string($form/@id)" as="xs:string"/>
         <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
         <xsl:variable name="enctype" select="ixsl:get($form, 'enctype')" as="xs:string"/>
-        <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
+        <xsl:variable name="etag" select="ldh:document-etag(ac:absolute-path(ldh:base-uri(.)))" as="xs:string"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
         
@@ -2096,7 +2096,7 @@ LIMIT   10
                     </xsl:document>
                 </xsl:variable>
                 <!-- The target is a document the agent named in the form, not one this browser loaded, so
-                     LinkedDataHub.contents holds no validator for it - and the server refuses an unconditional
+                     LinkedDataHub.etags holds no validator for it - and the server refuses an unconditional
                      write to a document that already exists. A HEAD is the smallest read that answers, and the
                      second append later in this chain needs no read of its own: a GSP write responds with the
                      entity tag of the graph it just wrote. -->

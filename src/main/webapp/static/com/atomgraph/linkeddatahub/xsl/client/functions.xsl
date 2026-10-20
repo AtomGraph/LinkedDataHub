@@ -132,16 +132,15 @@ exclude-result-prefixes="#all"
     <!-- The validator of a document the browser has loaded, for a conditional write. The server requires
          If-Match of any write to a document that already exists, because it applies one by reading the graph,
          changing it in memory and writing the whole thing back - two unconditional writers overwrite each
-         other with nothing to show for it. LinkedDataHub.contents only holds documents this browser fetched,
-         so a write to a document it never loaded gets nothing here and has to HEAD for the tag instead
+         other with nothing to show for it. LinkedDataHub.etags only holds documents this browser fetched or
+         wrote, keyed by document URI, so a write to a document it never loaded gets nothing here and has to HEAD for the tag instead
          (ldh:head-request above), which is what the constructor dialog and the import chain do. -->
     <xsl:function name="ldh:document-etag" as="xs:string?">
         <xsl:param name="doc-uri" as="xs:anyURI"/>
 
-        <xsl:variable name="contents" select="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
-        <xsl:variable name="entry" select="if (ixsl:contains($contents, '`' || $doc-uri || '`')) then ixsl:get($contents, '`' || $doc-uri || '`') else ()"/>
+        <xsl:variable name="etags" select="ixsl:get(ixsl:window(), 'LinkedDataHub.etags')"/>
 
-        <xsl:sequence select="if (exists($entry) and ixsl:contains($entry, 'etag')) then ixsl:get($entry, 'etag') else ()"/>
+        <xsl:sequence select="if (ixsl:contains($etags, '`' || $doc-uri || '`')) then ixsl:get($etags, '`' || $doc-uri || '`') else ()"/>
     </xsl:function>
 
     <!-- The headers a conditional write sends. An absent validator sends no If-Match rather than an empty one:
@@ -171,25 +170,19 @@ exclude-result-prefixes="#all"
          the move itself had invalidated. Measured 2026-09-28 - two consecutive moves, one page, the same
          If-Match on both: 204 then 412, with "Could not move block" on the second.
 
-         The per-document entry is created only when the browser has none. Replacing an existing one would
-         wipe the 'results' document and the 'block-html' snapshot the rest of the client keeps beside the
-         tag, which is the same reason ldh:form-horizontal-submit-success reuses it (form.xsl). -->
+         A response without a tag leaves the stored one in place. -->
     <xsl:function name="ldh:set-document-etag" as="empty-sequence()" ixsl:updating="yes">
         <xsl:param name="doc-uri" as="xs:anyURI"/>
         <xsl:param name="etag" as="xs:string?"/>
 
         <xsl:for-each select="$etag[. ne '']">
-            <xsl:variable name="contents" select="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
-            <xsl:if test="not(ixsl:contains($contents, '`' || $doc-uri || '`'))">
-                <ixsl:set-property name="{'`' || $doc-uri || '`'}" select="ldh:new-object()" object="$contents"/>
-            </xsl:if>
-            <ixsl:set-property name="etag" select="string(.)" object="ixsl:get($contents, '`' || $doc-uri || '`')"/>
+            <ixsl:set-property name="{'`' || $doc-uri || '`'}" select="string(.)" object="ixsl:get(ixsl:window(), 'LinkedDataHub.etags')"/>
         </xsl:for-each>
     </xsl:function>
 
     <!-- Supplies the validator a pending conditional write has to quote, HEADing the document when the
          browser holds none. A server-rendered page never fetches its own document as RDF, so
-         LinkedDataHub.contents is empty until something navigates and ldh:document-etag() returns nothing;
+         LinkedDataHub.etags is empty until something navigates and ldh:document-etag() returns nothing;
          the write then went out with no If-Match at all and the server refused it 428 Precondition
          Required - the same "Could not move block" as above, from a page that was opened rather than
          navigated to. The HEAD asks for application/rdf+xml because the tag is per REPRESENTATION and that

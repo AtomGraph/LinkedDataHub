@@ -189,6 +189,7 @@ WHERE
         <!-- create a LinkedDataHub namespace -->
         <ixsl:set-property name="LinkedDataHub" select="ldh:new-object()"/>
         <ixsl:set-property name="contents" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <ixsl:set-property name="etags" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- the validators of the documents loaded or written so far, keyed by document URI (ldh:document-etag) -->
         <ixsl:set-property name="combobox" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by combobox.xsl -->
         <ixsl:set-property name="graphs" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by graph3d.xsl -->
         <ixsl:set-property name="services" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- the ldh:service descriptions loaded so far, keyed by service URI (ldh:load-service) -->
@@ -339,11 +340,11 @@ WHERE
                         <!-- store document under window.LinkedDataHub.contents[$doc-uri].results -->
                         <!-- should be possible to cache the document using SaxonJS when this issue is resolved: https://saxonica.plan.io/issues/6355 -->
                         <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`')"/>
-                        <!-- store ETag header value under window.LinkedDataHub.contents[$doc-uri].etag. Not a memento's: its tag is
+                        <!-- store ETag header value under window.LinkedDataHub.etags[$doc-uri]. Not a memento's: its tag is
                              the commit SHA, which validates no write to the live document filed under the same key - a restore
                              started from a ?version= view quoted it and was refused 412 -->
                         <xsl:if test="not(map:contains($query-params, 'version'))">
-                            <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`')"/>
+                            <xsl:sequence select="ldh:set-document-etag($doc-uri, $etag)"/>
                         </xsl:if>
 
                         <xsl:variable name="pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][./div[contains-token(@class, 'document-body')]/@about = $doc-uri]" as="element()?"/>

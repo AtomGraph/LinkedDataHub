@@ -672,7 +672,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="method" select="'PATCH'" as="xs:string"/>
         <xsl:variable name="action" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:variable name="accept" select="'application/rdf+xml'" as="xs:string"/>
-        <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
+        <xsl:variable name="etag" select="ldh:document-etag(ac:absolute-path(ldh:base-uri(.)))" as="xs:string"/>
         <!-- the query form the agent has just typed: editing an ASK into a SELECT has to retype the resource,
              since leaving sp:Ask on SELECT text is exactly what the server rejects. Empty when the string
              does not parse, in which case the existing type is kept. -->

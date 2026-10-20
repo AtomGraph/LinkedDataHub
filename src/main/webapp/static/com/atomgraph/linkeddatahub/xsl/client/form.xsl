@@ -961,8 +961,8 @@ WHERE
                         </xsl:if>
                         <!-- store document under window.LinkedDataHub.contents[$base-uri].results -->
                         <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path($base-uri) || '`')"/>
-                        <!-- store ETag header value under window.LinkedDataHub.contents[$base-uri].etag -->
-                        <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path($base-uri) || '`')"/>
+                        <!-- store ETag header value under window.LinkedDataHub.etags[$base-uri] -->
+                        <xsl:sequence select="ldh:set-document-etag(ac:absolute-path($base-uri), $etag)"/>
 
                         <xsl:variable name="resource" select="key('resources', $about)" as="element()"/> <!-- TO-DO: handle error -->
                         <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
@@ -1387,7 +1387,7 @@ WHERE
         <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
         <xsl:variable name="enctype" select="ixsl:get($form, 'enctype')" as="xs:string"/>
         <xsl:variable name="accept" select="'application/rdf+xml'" as="xs:string"/>
-        <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
+        <xsl:variable name="etag" select="ldh:document-etag(ac:absolute-path(ldh:base-uri(.)))" as="xs:string"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
 
@@ -1456,7 +1456,7 @@ WHERE
         <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
         <xsl:variable name="enctype" select="ixsl:get($form, 'enctype')" as="xs:string"/>
         <xsl:variable name="about" select="$block/@about" as="xs:anyURI"/>
-        <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
+        <xsl:variable name="etag" select="ldh:document-etag(ac:absolute-path(ldh:base-uri(.)))" as="xs:string"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
         
@@ -1685,8 +1685,8 @@ WHERE
         <xsl:for-each select="$response">
             <xsl:variable name="etag" select="?headers?etag" as="xs:string?"/>
             <xsl:if test="$etag">
-                <!-- store ETag header value under window.LinkedDataHub.contents[$doc-uri].etag -->
-                <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`')"/>
+                <!-- store ETag header value under window.LinkedDataHub.etags[$doc-uri] -->
+                <xsl:sequence select="ldh:set-document-etag($doc-uri, $etag)"/>
             </xsl:if>
 
             <xsl:choose>
@@ -2294,7 +2294,7 @@ WHERE
         <xsl:variable name="block" select="($outer-block, $inner-block)[1]" as="element()"/>
         <xsl:variable name="form" select="ancestor::form" as="element()"/>
         <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
-        <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path($action) || '`'), 'etag')" as="xs:string"/>
+        <xsl:variable name="etag" select="ldh:document-etag(ac:absolute-path($action))" as="xs:string"/>
 
         <xsl:choose>
             <!-- delete existing content -->
