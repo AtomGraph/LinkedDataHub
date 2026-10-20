@@ -10,10 +10,12 @@
 - Views defer their whole-result-set queries until they scroll into sight, and load their metadata in parallel with the document's
 - Discovering a view's link predicates is faster
 - The `ldh` plugin is named LinkedDataHub, has an icon and documents where it sends data
+- `ldh add result-set-chart` takes `--series-var-name` more than once, for charts with several series
 
 ### Fixed
 - An external document whose RDF could not be retrieved opens as a page instead of an error
 - Opening an external document in a new tab leaves the current window where it was
+- A result-set chart takes its series in the order its query projects them, so charts with positional columns (a Timeline) no longer fail with "column #1 must be of type 'string'"
 
 ## [6.2.2] - 2026-10-18
 ### Migration

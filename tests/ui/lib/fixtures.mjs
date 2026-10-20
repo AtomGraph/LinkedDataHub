@@ -73,6 +73,13 @@ export const fixtures = {
     // hold; a sibling of the container, so the document tree's item count does too.
     remoteHost: `${endUserBase}${slug}-remote/`,
     remoteBlock: `${endUserBase}${slug}-remote/#remote-block`,
+    // A chart of several series, in a document of its own so the container's block count holds.
+    // ldh:seriesVarName is multi-valued and RDF keeps no order among the values, so the chart has to
+    // take its column order from the query's projection; see seriesQuery below.
+    seriesDocument: `${endUserBase}${slug}-series/`,
+    seriesQuery: `${endUserBase}${slug}-series/#measures-query`,
+    seriesChart: `${endUserBase}${slug}-series/#measures-chart`,
+    seriesBlock: `${endUserBase}${slug}-series/#measures-block`,
 };
 
 // The embedded resource itself, in the second end-user dataspace the preflight resolved. Functions
@@ -191,6 +198,24 @@ WHERE
 GROUP BY ?kind
 ORDER BY ?kind`;
 
+// Four series, so that a chart ordering them by anything but the projection matches it by chance
+// one time in 24 rather than one in two. Projected in this order, declared in the reverse.
+export const seriesProjection = ['items', 'chars', 'shortest', 'longest'];
+
+const seriesQuery = `PREFIX  sioc: <http://rdfs.org/sioc/ns#>
+PREFIX  dct:  <http://purl.org/dc/terms/>
+
+SELECT  ?kind (COUNT(?item) AS ?items) (SUM(STRLEN(?title)) AS ?chars) (MIN(STRLEN(?title)) AS ?shortest) (MAX(STRLEN(?title)) AS ?longest)
+WHERE
+  { GRAPH ?g
+      { ?item  sioc:has_container  <${fixtures.container}> ;
+               dct:title           ?title ;
+               dct:description     ?kind
+      }
+  }
+GROUP BY ?kind
+ORDER BY ?kind`;
+
 export async function seed() {
     const container = await ldh(['create', 'container',
         '--parent', endUserBase, '--title', containerTitle, '--slug', slug]);
@@ -242,6 +267,25 @@ export async function seed() {
     await ldh(['add', 'object-block', '--title', 'Fixture query block', '--uri', fixtures.queryBlock,
         '--value', fixtures.query, fixtures.queryDocument]);
 
+    await ldh(['create', 'item',
+        '--container', endUserBase,
+        '--title', 'Fixture series',
+        '--slug', `${slug}-series`]);
+    const seriesQueryFile = join(mkdtempSync(join(tmpdir(), 'ui-tests-')), 'measures.rq');
+    writeFileSync(seriesQueryFile, seriesQuery);
+    await ldh(['add', 'select', '--title', 'Fixture item measures',
+        '--uri', fixtures.seriesQuery, '--query-file', seriesQueryFile, fixtures.seriesDocument]);
+    // A Table, because its header row IS the column order: a chart type draws the same columns as
+    // bars and legend entries, which say nothing about position.
+    await ldh(['add', 'result-set-chart', '--title', 'Fixture measures chart',
+        '--uri', fixtures.seriesChart, '--query', fixtures.seriesQuery,
+        '--chart-type', 'https://w3id.org/atomgraph/client#Table',
+        '--category-var-name', 'kind',
+        ...seriesProjection.toReversed().flatMap(name => ['--series-var-name', name]),
+        fixtures.seriesDocument]);
+    await ldh(['add', 'object-block', '--title', 'Fixture measures block', '--uri', fixtures.seriesBlock,
+        '--value', fixtures.seriesChart, fixtures.seriesDocument]);
+
     // The cross-origin pair: a document in the other dataspace, created by the same owner (the root
     // owner owns every dataspace of the stack, the entrypoint sees to that), and the host here that
     // embeds it. The remote grant is what makes the embedded rendering an anonymous reader's to
@@ -275,6 +319,7 @@ export async function seed() {
         '--to', fixtures.container,
         '--to', fixtures.readable,
         '--to', fixtures.remoteHost,
+        '--to', fixtures.seriesDocument,
         '--read',
         adminBase]);
 
@@ -305,6 +350,7 @@ export async function teardown() {
     }
     await ldh(['delete', fixtures.private], { allowFailure: true });
     await ldh(['delete', fixtures.queryDocument], { allowFailure: true });
+    await ldh(['delete', fixtures.seriesDocument], { allowFailure: true });
     await ldh(['delete', fixtures.remoteHost], { allowFailure: true });
     // Only once the preflight has resolved the remote dataspace: a teardown that runs before it
     // (UI_TESTS_SKIP_SEED, or a run that failed earlier in the preflight) has nothing to remove there.

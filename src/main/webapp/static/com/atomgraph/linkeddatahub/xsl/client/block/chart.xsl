@@ -497,7 +497,14 @@ exclude-result-prefixes="#all"
         <xsl:param name="series" as="xs:string*"/>
         <xsl:param name="chart-type" as="xs:anyURI"/>
 
-        <xsl:sequence select="ac:sparql-results-data-table(root(.), $category, $series, $chart-type)"/>
+        <!-- ldh:seriesVarName is multi-valued and RDF keeps no order among the values, so the page lists them
+             in whatever order the server serialized them. Columns are positional for some charts (a Timeline is
+             row label, bar label, start, end), so the series follow the order the query projects them in; a
+             series the projection lacks keeps its place after them -->
+        <xsl:variable name="projection" select="srx:head/srx:variable/@name/string()" as="xs:string*"/>
+        <xsl:variable name="ordered-series" select="$projection[. = $series], $series[not(. = $projection)]" as="xs:string*"/>
+
+        <xsl:sequence select="ac:sparql-results-data-table(root(.), $category, $ordered-series, $chart-type)"/>
     </xsl:template>
 
     <!-- what is plotted when the caller does not say: every property a graph's resources carry -->
