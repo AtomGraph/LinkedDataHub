@@ -18,6 +18,7 @@
 import { test, expect } from '../../../../lib/console.mjs';
 import { goto } from '../../../../lib/settle.mjs';
 import { itemUri } from '../../../../lib/fixtures.mjs';
+import { inMode, READ_MODE } from '../../../../lib/mode.mjs';
 
 const EXTERNAL = 'https://external.example/document';
 const EXTERNAL_ORIGIN = /^https:\/\/external\.example\//;
@@ -135,7 +136,10 @@ test('a failing document on this origin renders the error here', async ({ page, 
     page.on('popup', popup => popups.push(popup));
     await follow(page, local);
 
-    await expect(page).toHaveURL(local);
+    // once the response is in, ldh:SetDocumentState replaces the entry with the URI in the mode the
+    // document resolves to (ReadMode for an error), so the bare URI is only there until it loads -
+    // tens of milliseconds, which the assertion can miss
+    await expect(page).toHaveURL(url => [local, inMode(local, READ_MODE)].includes(url.href));
     await expect(activeBody(page)).toHaveAttribute('about', local, { timeout: 30_000 });
     expect(popups).toHaveLength(0);
 });
