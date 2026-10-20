@@ -30,7 +30,6 @@ xmlns:srx="&srx;"
 xmlns:acl="&acl;"
 xmlns:sd="&sd;"
 xmlns:sioc="&sioc;"
-xmlns:saxon="http://saxon.sf.net/"
 extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
@@ -88,33 +87,6 @@ exclude-result-prefixes="#all"
          lds:base() and sd:endpoint() read the active one, so the lookup lives here once -->
     <xsl:function name="ldh:active-pane" as="element()?">
         <xsl:sequence select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][contains-token(@class, 'is-active')]"/>
-    </xsl:function>
-
-    <!-- the pane a document is shown in, matched by the document body's @about -->
-    <xsl:function name="ldh:document-pane" as="element()?">
-        <xsl:param name="doc-uri" as="xs:anyURI"/>
-
-        <xsl:sequence select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][div[contains-token(@class, 'document-body')]/@about = $doc-uri][1]"/>
-    </xsl:function>
-
-    <!-- The document a pane shows, as it was loaded. ldh:RDFDocumentLoad requests it with 'pool': 'xml', so SaxonJS keeps
-         the response in its document pool under the request's href, and ldh:rdf-document-response stamps that href on the
-         pane as @data-href - the href cannot be rebuilt later, since a proxied document's is built on the path of the page
-         it was opened from. Empty when the pane's load failed (an unsuccessful response is never pooled) or has not
-         completed yet. ixsl:doc-fetched, not fn:doc-available, which falls back to a synchronous fetch -->
-    <xsl:function name="ldh:pane-document" as="document-node()?">
-        <xsl:param name="pane" as="element()?"/>
-
-        <xsl:sequence select="$pane/@data-href[ixsl:doc-fetched(string(.))] ! document(string(.))"/>
-    </xsl:function>
-
-    <!-- drops the document a pane shows from the pool, so the next visit to the pane loads it again instead of switching to it -->
-    <xsl:function name="ldh:discard-pane-document" as="empty-sequence()" ixsl:updating="yes">
-        <xsl:param name="pane" as="element()*"/>
-
-        <xsl:for-each select="$pane/@data-href[ixsl:doc-fetched(string(.))]">
-            <xsl:sequence select="saxon:discard-document(document(string(.)))[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
     </xsl:function>
 
     <xsl:function name="lds:base" as="xs:anyURI">
@@ -713,7 +685,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="request" select="if ($request-key ne $response-key and map:contains($context, $request-key)) then $context($request-key) else $context('request')"/>
 
         <xsl:sequence select="
-          ldh:send-request($request)
+          ixsl:http-request($request)
             => ixsl:then(ldh:rethread-response($context, ?, $response-key))
             => ixsl:then(ldh:handle-response(?, $response-key))
         "/>
@@ -749,33 +721,6 @@ exclude-result-prefixes="#all"
         "/>
     </xsl:function>
 
-    <!-- Sends a request, adding its response to the SaxonJS document pool when the request asks for it with 'pool' - and
-         fetching every time, unlike ldh:http-request-pooled, since the documents requested this way are edited while the
-         page is open and a later request has to replace the pooled copy, which it does. A pooled request rejects on an
-         unsuccessful status or a non-XML body instead of resolving with the response; it is sent again unpooled, so the
-         chain sees the real response, and a 429 retried by ldh:retry-request goes through here again. An aborted request
-         is sent again with the same, aborted, controller, and fails as it would have unpooled -->
-    <xsl:function name="ldh:send-request" as="item()*" ixsl:updating="yes">
-        <xsl:param name="request" as="map(*)"/>
-
-        <xsl:sequence select="
-          if (map:contains($request, 'pool'))
-          then ixsl:http-request($request) => ixsl:catch(ldh:http-request-unpooled(map:remove($request, 'pool'), ?))
-          else ixsl:http-request($request)
-        "/>
-    </xsl:function>
-
-    <xsl:function name="ldh:send-request" as="item()*" ixsl:updating="yes">
-        <xsl:param name="request" as="map(*)"/>
-        <xsl:param name="controller" as="item()?"/>
-
-        <xsl:sequence select="
-          if (map:contains($request, 'pool'))
-          then ixsl:http-request($request, $controller) => ixsl:catch(ldh:http-request-unpooled(map:remove($request, 'pool'), $controller, ?))
-          else ixsl:http-request($request, $controller)
-        "/>
-    </xsl:function>
-
     <!-- partial application, not an inline function: an inline function item built in a loop can capture the loop's
          last value in SaxonJS -->
     <xsl:function name="ldh:http-request-unpooled" as="item()*" ixsl:updating="yes">
@@ -783,14 +728,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="error" as="item()*"/>
 
         <xsl:sequence select="ixsl:http-request($request)"/>
-    </xsl:function>
-
-    <xsl:function name="ldh:http-request-unpooled" as="item()*" ixsl:updating="yes">
-        <xsl:param name="request" as="map(*)"/>
-        <xsl:param name="controller" as="item()?"/>
-        <xsl:param name="error" as="item()*"/>
-
-        <xsl:sequence select="ixsl:http-request($request, $controller)"/>
     </xsl:function>
 
     <!-- a pooled document as the response map a request would have resolved with. Only the body is pooled: the
@@ -1020,7 +957,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="context" as="map(*)"/>
 
         <xsl:sequence select="
-          ldh:send-request($context('request'))
+          ixsl:http-request($context('request'))
             => ixsl:then(ldh:rethread-response($context, ?))
             => ixsl:then(ldh:handle-response#1)
             => ixsl:then(ldh:load-edited-resource#1)
