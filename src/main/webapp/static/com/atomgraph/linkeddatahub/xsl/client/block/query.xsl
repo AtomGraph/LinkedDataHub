@@ -40,33 +40,38 @@ exclude-result-prefixes="#all"
 
     <!-- TEMPLATES -->
 
-    <!-- update the query resource before saving. A mode of its own, not shared with the chart save: the
-         two rewrite different resources and have nothing in common but the identity walk. -->
+    <!-- Saving a query replaces its text and, when the text names another query form, its form type - nothing else on
+         the resource, which stays as the document stores it. $type is the form the text names, or ?oldType when the text
+         does not parse, which puts the stored one back; any rdf:type but the four query forms is left alone -->
+    <xsl:variable name="ldh:query-update-string" as="xs:string">
+        <![CDATA[
+            PREFIX sp: <http://spinrdf.org/sp#>
 
-    <!-- identity transform -->
-    <xsl:template match="@* | node()" mode="ldh:replace-query">
-        <xsl:copy>
-            <xsl:apply-templates select="@* | node()" mode="#current"/>
-        </xsl:copy>
-    </xsl:template>
+            DELETE
+            {
+                $this sp:text ?oldText .
+                $this a ?oldType .
+            }
+            INSERT
+            {
+                $this sp:text $text .
+                $this a $type .
+            }
+            WHERE
+            {
+                OPTIONAL
+                {
+                    $this sp:text ?oldText .
+                }
+                OPTIONAL
+                {
+                    $this a ?oldType .
+                    FILTER(?oldType IN (sp:Ask, sp:Select, sp:Construct, sp:Describe))
+                }
+            }
+        ]]>
+    </xsl:variable>
 
-    <!-- set query string -->
-
-    <xsl:template match="sp:text/text()" mode="ldh:replace-query" priority="1">
-        <xsl:param name="query-string" as="xs:string" tunnel="yes"/>
-
-        <xsl:sequence select="$query-string"/>
-    </xsl:template>
-
-    <!-- set query form. Only the four query-form types are matched, so any other rdf:type on the resource is
-         left alone, and an absent $query-type (an unparseable query string) keeps the existing type. -->
-
-    <xsl:template match="rdf:type/@rdf:resource[. = ('&sp;Ask', '&sp;Select', '&sp;Construct', '&sp;Describe')]" mode="ldh:replace-query" priority="1">
-        <xsl:param name="query-type" as="xs:anyURI?" tunnel="yes"/>
-
-        <xsl:attribute name="rdf:resource" select="($query-type, .)[1]"/>
-    </xsl:template>
-    
     <!-- render query editor -->
     
     <xsl:template match="textarea[@id][contains-token(@class, 'sparql-query-string')]" mode="ldh:RenderRowForm" priority="1">
@@ -669,52 +674,26 @@ exclude-result-prefixes="#all"
         <xsl:variable name="textarea" select="ancestor::form/descendant::textarea[@name = 'query']" as="element()"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea/@id)"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string?"/> <!-- get query string from YASQE -->
-        <xsl:variable name="method" select="'PATCH'" as="xs:string"/>
-        <xsl:variable name="action" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
-        <xsl:variable name="accept" select="'application/rdf+xml'" as="xs:string"/>
-        <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
+        <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <!-- the query form the agent has just typed: editing an ASK into a SELECT has to retype the resource,
              since leaving sp:Ask on SELECT text is exactly what the server rejects. Empty when the string
-             does not parse, in which case the existing type is kept. -->
+             does not parse, in which case the stored type is kept. -->
         <xsl:variable name="query-form" select="ldh:query-type($query-string)" as="xs:string?"/>
-        <xsl:variable name="query-type" select="if ($query-form) then xs:anyURI('&sp;' || upper-case(substring($query-form, 1, 1)) || lower-case(substring($query-form, 2))) else ()" as="xs:anyURI?"/>
-        <!-- not using ldh:base-uri(.) because it goes stale when DOM is replaced -->
-        <xsl:variable name="doc" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:request-uri()) || '`'), 'results')" as="document-node()"/>
-        <!-- TO-DO: this breaks if the query resource has not yet been loaded as part of the $doc (e.g. freshly saved) -->
-        <xsl:variable name="query" select="key('resources', $about, $doc)" as="element()"/>
-       
-        <!-- replace the query string (sp:text value) and the query form (rdf:type), which the edit may have changed -->
-        <xsl:variable name="query" as="element()">
-            <xsl:apply-templates select="$query" mode="ldh:replace-query">
-                <xsl:with-param name="query-string" select="$query-string" tunnel="yes"/>
-                <xsl:with-param name="query-type" select="$query-type" tunnel="yes"/>
-            </xsl:apply-templates>
-        </xsl:variable>
-        <xsl:variable name="triples" select="ldh:descriptions-to-triples($query)" as="element()*"/>
-        <xsl:variable name="update-string" select="ldh:insertdelete-update(ldh:triples-to-bgp(ldh:uri-po-pattern($about)), ldh:triples-to-bgp($triples), ldh:triples-to-bgp(ldh:uri-po-pattern($about)))" as="xs:string"/>
-        <xsl:variable name="resources" as="document-node()">
-            <xsl:document>
-                <rdf:RDF>
-                    <xsl:sequence select="ldh:triples-to-descriptions($triples)"/>
-                </rdf:RDF>
-            </xsl:document>
-        </xsl:variable>
-        <xsl:variable name="request-uri" select="ldh:href($action, map{})" as="xs:anyURI"/>
-        <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile -->
-        <xsl:variable name="request" select="map{ 'method': $method, 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': map{ 'If-Match': $etag, 'Accept': 'application/rdf+xml', 'Cache-Control': 'no-cache' } }" as="map(*)"/>
-        <xsl:variable name="context" as="map(*)" select="
-          map{
-            'request': $request,
-            'doc-uri': ac:absolute-path(ldh:base-uri(.)),
-            'block': $block,
-            'resources': $resources
-          }"/>
+        <xsl:variable name="query-type" select="if ($query-form) then '&lt;&sp;' || upper-case(substring($query-form, 1, 1)) || lower-case(substring($query-form, 2)) || '&gt;' else '?oldType'" as="xs:string"/>
+        <!-- the text last: a query's own text is full of variables such as $this, which no later replace may reach -->
+        <xsl:variable name="update-string" select="replace($ldh:query-update-string, '$this', '&lt;' || $about || '&gt;', 'q')" as="xs:string"/>
+        <xsl:variable name="update-string" select="replace($update-string, '$type', $query-type, 'q')" as="xs:string"/>
+        <xsl:variable name="update-string" select="replace($update-string, '$text', ldh:sparql-literal(string($query-string)), 'q')" as="xs:string"/>
+        <xsl:variable name="request" select="map{ 'method': 'PATCH', 'href': ldh:href($doc-uri, map{}), 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': ldh:conditional-headers(map{}, ldh:document-etag($doc-uri)) }" as="map(*)"/>
+        <xsl:variable name="context" select="map{ 'request': $request, 'doc-uri': $doc-uri, 'block': $block, 'about': $about }" as="map(*)"/>
+        <!-- ldh:with-document-etag first: a server-rendered page holds no validator until something loads the document -->
         <ixsl:promise select="
-          ixsl:http-request($context('request'))
-            => ixsl:then(ldh:rethread-response($context, ?))
+          ixsl:resolve($context)
+            => ixsl:then(ldh:with-document-etag#1)
+            => ixsl:then(ldh:http-request-threaded#1)
             => ixsl:then(ldh:handle-response#1)
-            => ixsl:then(ldh:row-form-response#1) =>
-            ixsl:finally(ldh:reset-cursor#0)
+            => ixsl:then(ldh:row-saved#1)
+            => ixsl:finally(ldh:reset-cursor#0)
         " on-failure="ldh:promise-failure(($container//div[contains-token(@class, 'main')])[1], 'query-not-saved', ?)"/>
     </xsl:template>
     
