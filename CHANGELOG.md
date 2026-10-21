@@ -5,9 +5,14 @@
 - A file upload (multipart `POST`) is the same append as any `POST`: it needs `If-Match`, updates `dct:modified`, submits imports and answers `204` with the new `ETag` (#456)
 - `ldh` exits `1` on a redirect, which it does not follow, naming the `Location` on stderr (#454)
 
+- The seeded admin authorization that granted every authenticated agent `acl:Append` on `acl/authorization-requests/` is gone: `acl:Append` on a container now lets an agent create documents in it. Access requests go through `/access/request` and never used it, so delete `acl/authorizations/append-request/` from existing admin datasets
 ### Added
+- A `PUT` with `If-None-Match: *` requires `acl:Append` instead of `acl:Write`: it can only create a document, never replace one, so an agent with `acl:Append` on a container may create documents in it and nothing more
 - `MAX_UPLOAD_LENGTH` sets a separate size limit for file uploads (multipart bodies), `MAX_CONTENT_LENGTH` unless set
 - `ldh add file --replace` replaces the document with the file's description (multipart `PUT`)
+
+### Changed
+- Access modes follow the ACL ontology's hierarchy: `acl:Append` is a subclass of `acl:Write`, so a grant of `acl:Write` covers an operation that requires `acl:Append`, and responses report the covered mode in their `acl:mode` `Link` headers
 
 ### Fixed
 - A `PATCH` with `GRAPH` in a `DELETE WHERE` or anywhere in its `WHERE` pattern, or with `WITH`/`USING`, is refused with `422` instead of answering `204` having changed nothing; `PATCH /settings` is held to the same forms (#453)

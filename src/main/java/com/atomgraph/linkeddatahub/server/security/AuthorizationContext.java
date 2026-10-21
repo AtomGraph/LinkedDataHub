@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Set;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ResIterator;
+import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.RDF;
 
 /**
@@ -46,9 +47,11 @@ public class AuthorizationContext
     }
     
     /**
-     * Returns the URIs of all authorization modes in this context.
+     * Returns the URIs of all authorization modes in this context, including the modes they cover in the ACL
+     * ontology: a grant of <code>acl:Write</code> also reports <code>acl:Append</code>.
      * 
      * @return URIs of auth modes
+     * @see AccessModes#covered(org.apache.jena.rdf.model.Resource)
      */
     public Set<URI> getModeURIs()
     {
@@ -60,7 +63,9 @@ public class AuthorizationContext
             while (it.hasNext())
             {
                 Authorization auth = it.next().as(Authorization.class);
-                modeURIs.addAll(auth.getModeURIs());
+                auth.getModeURIs().stream().
+                    flatMap(mode -> AccessModes.covered(ResourceFactory.createResource(mode.toString())).stream()).
+                    forEach(mode -> modeURIs.add(URI.create(mode.getURI())));
             }
             
             return modeURIs;

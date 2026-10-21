@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Unit tests for the pure authorization logic in {@link AuthorizationFilter}:
- * the HTTP-method-to-access-mode contract, mode lookup, and the owner grant.
+ * the HTTP-method-to-access-mode contract, mode lookup over the ACL ontology's mode hierarchy, and the owner grant.
  * These methods do not touch the injected collaborators, so the filter is exercised directly.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
@@ -71,6 +71,31 @@ public class AuthorizationFilterTest
         assertNull(AuthorizationFilter.ACCESS_MODES.get(HttpMethod.OPTIONS));
     }
 
+    // getAccessMode: the mode follows what the operation does - a create-only PUT only adds
+
+    @Test
+    public void testCreateOnlyPutRequiresAppend()
+    {
+        assertEquals(ACL.Append, AuthorizationFilter.getAccessMode(HttpMethod.PUT, "*"));
+        assertEquals(ACL.Append, AuthorizationFilter.getAccessMode(HttpMethod.PUT, " * "));
+    }
+
+    @Test
+    public void testPutWithoutCreateOnlyPreconditionRequiresWrite()
+    {
+        assertEquals(ACL.Write, AuthorizationFilter.getAccessMode(HttpMethod.PUT, null));
+        assertEquals(ACL.Write, AuthorizationFilter.getAccessMode(HttpMethod.PUT, "\"some-tag\""));
+    }
+
+    @Test
+    public void testIfNoneMatchDoesNotChangeOtherMethods()
+    {
+        assertEquals(ACL.Write, AuthorizationFilter.getAccessMode(HttpMethod.DELETE, "*"));
+        assertEquals(ACL.Write, AuthorizationFilter.getAccessMode(HttpMethod.PATCH, "*"));
+        assertEquals(ACL.Read, AuthorizationFilter.getAccessMode(HttpMethod.GET, "*"));
+        assertEquals(ACL.Append, AuthorizationFilter.getAccessMode(HttpMethod.POST, null));
+    }
+
     // getAuthorizationByMode: find an authorization in the model that grants the requested mode
 
     @Test
@@ -95,6 +120,56 @@ public class AuthorizationFilterTest
             addProperty(ACL.mode, ACL.Read);
 
         assertNull(new AuthorizationFilter().getAuthorizationByMode(model, ACL.Write));
+    }
+
+    // getAuthorizationByMode follows the ACL ontology: acl:Append rdfs:subClassOf acl:Write
+
+    @Test
+    public void testWriteGrantCoversAppend()
+    {
+        Model model = ModelFactory.createDefaultModel();
+        Resource auth = model.createResource("https://localhost/acl/authorizations/1/#this").
+            addProperty(RDF.type, ACL.Authorization).
+            addProperty(ACL.mode, ACL.Write);
+
+        assertEquals(auth, new AuthorizationFilter().getAuthorizationByMode(model, ACL.Append));
+    }
+
+    @Test
+    public void testAppendGrantDoesNotCoverWrite()
+    {
+        Model model = ModelFactory.createDefaultModel();
+        model.createResource("https://localhost/acl/authorizations/1/#this").
+            addProperty(RDF.type, ACL.Authorization).
+            addProperty(ACL.mode, ACL.Append);
+
+        assertNull(new AuthorizationFilter().getAuthorizationByMode(model, ACL.Write));
+    }
+
+    @Test
+    public void testReadGrantCoversNeitherWriteMode()
+    {
+        Model model = ModelFactory.createDefaultModel();
+        model.createResource("https://localhost/acl/authorizations/1/#this").
+            addProperty(RDF.type, ACL.Authorization).
+            addProperty(ACL.mode, ACL.Read);
+
+        assertNull(new AuthorizationFilter().getAuthorizationByMode(model, ACL.Append));
+        assertNull(new AuthorizationFilter().getAuthorizationByMode(model, ACL.Write));
+    }
+
+    @Test
+    public void testAccessGrantCoversNothing()
+    {
+        Model model = ModelFactory.createDefaultModel();
+        model.createResource("https://localhost/acl/authorizations/1/#this").
+            addProperty(RDF.type, ACL.Authorization).
+            addProperty(ACL.mode, ACL.Access);
+
+        assertNull(new AuthorizationFilter().getAuthorizationByMode(model, ACL.Read));
+        assertNull(new AuthorizationFilter().getAuthorizationByMode(model, ACL.Append));
+        assertNull(new AuthorizationFilter().getAuthorizationByMode(model, ACL.Write));
+        assertNull(new AuthorizationFilter().getAuthorizationByMode(model, ACL.Control));
     }
 
     // createOwnerAuthorization: owner is granted Read/Write/Append on the document
