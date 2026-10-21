@@ -28,7 +28,9 @@ import jakarta.ws.rs.client.ClientResponseFilter;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.container.PreMatching;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,6 +53,7 @@ public class ContentLengthLimitFilter implements ContainerRequestFilter, ClientR
     public static final String MAX_CONTENT_LENGTH = ContentLengthLimitFilter.class.getName() + ".maxContentLength";
 
     private final int maxContentLength;
+    private final long maxUploadLength;
     
     /**
      * Constructs content length limit filter.
@@ -59,30 +62,52 @@ public class ContentLengthLimitFilter implements ContainerRequestFilter, ClientR
      */
     public ContentLengthLimitFilter(int maxContentLength)
     {
+        this(maxContentLength, maxContentLength);
+    }
+
+    /**
+     * Constructs content length limit filter with a separate limit for <code>multipart/form-data</code> request
+     * bodies, which carry file uploads.
+     * 
+     * @param maxContentLength maximum content length
+     * @param maxUploadLength maximum content length of a multipart request
+     */
+    public ContentLengthLimitFilter(int maxContentLength, long maxUploadLength)
+    {
         this.maxContentLength = maxContentLength;
+        this.maxUploadLength = maxUploadLength;
     }
 
     @Override
     public void filter(ContainerRequestContext crc) throws IOException
     {
         if (!crc.hasEntity()) return;
-            
+
+        final long limit = crc.getMediaType() != null && crc.getMediaType().isCompatible(MediaType.MULTIPART_FORM_DATA_TYPE) ? getMaxUploadLength() : getMaxContentLength();
         String contentLengthString = crc.getHeaders().getFirst(HttpHeaders.CONTENT_LENGTH);
         // we cannot abort here with Status.LENGTH_REQUIRED if we want to allow streaming. That is the job of RejectTooLongInputStream
         if (contentLengthString == null)
         {
-            crc.setEntityStream(new RejectTooLargeRequestInputStream(crc.getEntityStream(), getMaxContentLength()));
+            crc.setEntityStream(new RejectTooLargeRequestInputStream(crc.getEntityStream(), limit));
             return;
         }
         
-        int contentLength = Integer.parseInt(contentLengthString);
-        if (contentLength > getMaxContentLength())
+        final long contentLength;
+        try
         {
-            if (log.isDebugEnabled()) log.debug("POST or PUT request rejected due to Content-Length: {} which is larger than the configured limit {}", contentLength, getMaxContentLength());
-            throw new RequestContentTooLargeException(getMaxContentLength(), contentLength);
+            contentLength = Long.parseLong(contentLengthString.strip()); // a long: a body over 2 GiB is too large, not malformed
+        }
+        catch (NumberFormatException ex)
+        {
+            throw new BadRequestException("Invalid Content-Length: " + contentLengthString);
+        }
+        if (contentLength > limit)
+        {
+            if (log.isDebugEnabled()) log.debug("POST or PUT request rejected due to Content-Length: {} which is larger than the configured limit {}", contentLength, limit);
+            throw new RequestContentTooLargeException(limit, contentLength);
         }
         
-        crc.setEntityStream(new RejectTooLargeRequestInputStream(crc.getEntityStream(), getMaxContentLength()));
+        crc.setEntityStream(new RejectTooLargeRequestInputStream(crc.getEntityStream(), limit));
     }
 
     @Override
@@ -126,6 +151,16 @@ public class ContentLengthLimitFilter implements ContainerRequestFilter, ClientR
     public int getMaxContentLength()
     {
         return maxContentLength;
+    }
+
+    /**
+     * Returns the maximum content length of a <code>multipart/form-data</code> request.
+     * 
+     * @return maximum content length in bytes
+     */
+    public long getMaxUploadLength()
+    {
+        return maxUploadLength;
     }
     
 }

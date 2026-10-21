@@ -17,9 +17,7 @@
 package com.atomgraph.linkeddatahub.server.model.impl;
 
 import com.atomgraph.linkeddatahub.vocabulary.SIOC;
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -28,6 +26,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 import org.apache.jena.datatypes.xsd.XSDDateTime;
 import org.apache.jena.rdf.model.Model;
@@ -170,94 +169,115 @@ public class DocumentHierarchyGraphStoreImplTest
         assertEquals(expected, gs.getLastModified(model, graphURI));
     }
 
-    // writeFile(File, InputStream)
+    // getFile(URI, URI, URI)
 
     @Test
-    public void testWriteFileNullFile()
+    public void testGetFileNullURI(@TempDir Path tempDir)
     {
-        assertThrows(IllegalArgumentException.class, () -> gs.writeFile((File)null, new ByteArrayInputStream(new byte[0])));
+        assertThrows(IllegalArgumentException.class, () -> gs.getFile(null, URI.create("http://localhost/"), tempDir.toUri()));
     }
 
     @Test
-    public void testWriteFileNullInputStream(@TempDir Path tempDir)
+    public void testGetFileRelativeURIRejected(@TempDir Path tempDir)
     {
-        File file = tempDir.resolve("out.bin").toFile();
-        assertThrows(IllegalArgumentException.class, () -> gs.writeFile(file, (InputStream)null));
+        assertThrows(IllegalArgumentException.class, () -> gs.getFile(URI.create("relative/path"), URI.create("http://localhost/"), tempDir.toUri()));
     }
 
     @Test
-    public void testWriteFileWritesContent(@TempDir Path tempDir) throws Exception
+    public void testGetFileNullBase(@TempDir Path tempDir)
     {
-        File file = tempDir.resolve("out.bin").toFile();
-        byte[] data = "hello world".getBytes(StandardCharsets.UTF_8);
-
-        gs.writeFile(file, new ByteArrayInputStream(data));
-
-        assertTrue(file.exists());
-        assertArrayEquals(data, Files.readAllBytes(file.toPath()));
-    }
-
-    // writeFile(URI, URI, URI, InputStream)
-
-    @Test
-    public void testWriteFileByURINullURI(@TempDir Path tempDir)
-    {
-        assertThrows(IllegalArgumentException.class, () -> gs.writeFile(null, URI.create("http://localhost/"), tempDir.toUri(), new ByteArrayInputStream(new byte[0])));
+        assertThrows(IllegalArgumentException.class, () -> gs.getFile(URI.create("http://localhost/myfile"), null, tempDir.toUri()));
     }
 
     @Test
-    public void testWriteFileByURIRelativeURIRejected(@TempDir Path tempDir)
+    public void testGetFileNullUploadRoot()
     {
-        assertThrows(IllegalArgumentException.class, () -> gs.writeFile(URI.create("relative/path"), URI.create("http://localhost/"), tempDir.toUri(), new ByteArrayInputStream(new byte[0])));
+        assertThrows(IllegalArgumentException.class, () -> gs.getFile(URI.create("http://localhost/myfile"), URI.create("http://localhost/"), null));
     }
 
     @Test
-    public void testWriteFileByURINullBase(@TempDir Path tempDir)
+    public void testGetFileResolvesRelativePath(@TempDir Path tempDir)
     {
-        assertThrows(IllegalArgumentException.class, () -> gs.writeFile(URI.create("http://localhost/myfile"), null, tempDir.toUri(), new ByteArrayInputStream(new byte[0])));
-    }
-
-    @Test
-    public void testWriteFileByURINullUploadRoot()
-    {
-        assertThrows(IllegalArgumentException.class, () -> gs.writeFile(URI.create("http://localhost/myfile"), URI.create("http://localhost/"), null, new ByteArrayInputStream(new byte[0])));
-    }
-
-    @Test
-    public void testWriteFileByURIResolvesRelativePath(@TempDir Path tempDir) throws Exception
-    {
-        URI base = URI.create("http://localhost/");
-        URI uri = URI.create("http://localhost/myfile");
         URI uploadRoot = tempDir.toUri(); // ends with '/'
-        byte[] data = "content-addressed".getBytes(StandardCharsets.UTF_8);
 
-        File written = gs.writeFile(uri, base, uploadRoot, new ByteArrayInputStream(data));
-
-        assertEquals(new File(uploadRoot.resolve("myfile")), written);
-        assertArrayEquals(data, Files.readAllBytes(written.toPath()));
+        assertEquals(new File(uploadRoot.resolve("myfile")), gs.getFile(URI.create("http://localhost/myfile"), URI.create("http://localhost/"), uploadRoot));
     }
 
-    // writeFiles(Model, Map)
+    // stageFiles(Model, Map)
 
     @Test
-    public void testWriteFilesNullModel()
+    public void testStageFilesNullModel()
     {
-        assertThrows(IllegalArgumentException.class, () -> gs.writeFiles(null, new HashMap<>()));
+        assertThrows(IllegalArgumentException.class, () -> gs.stageFiles(null, new HashMap<>()));
     }
 
     @Test
-    public void testWriteFilesNullMap()
+    public void testStageFilesNullMap()
     {
-        assertThrows(IllegalArgumentException.class, () -> gs.writeFiles(ModelFactory.createDefaultModel(), null));
+        assertThrows(IllegalArgumentException.class, () -> gs.stageFiles(ModelFactory.createDefaultModel(), null));
     }
 
     @Test
-    public void testWriteFilesNoFileResourcesWritesNothing()
+    public void testStageFilesNoFileResourcesStagesNothing()
     {
         Model model = ModelFactory.createDefaultModel();
         model.createResource("http://localhost/doc").addProperty(DCTerms.creator, model.createResource("http://localhost/agent"));
 
-        assertEquals(0, gs.writeFiles(model, new HashMap<>()));
+        assertTrue(gs.stageFiles(model, new HashMap<>()).isEmpty());
+    }
+
+    // commitFiles(List), discardFiles(List)
+
+    @Test
+    public void testCommitFilesMovesTheStagedFile(@TempDir Path tempDir) throws Exception
+    {
+        byte[] data = "content-addressed".getBytes(StandardCharsets.UTF_8);
+        Path temp = Files.write(tempDir.resolve(".upload-1.tmp"), data);
+        Path target = tempDir.resolve("sha1");
+
+        gs.commitFiles(List.of(new DocumentHierarchyGraphStoreImpl.StagedFile(temp, target)));
+
+        assertFalse(Files.exists(temp));
+        assertArrayEquals(data, Files.readAllBytes(target));
+    }
+
+    @Test
+    public void testCommitFilesKeepsAnExistingTarget(@TempDir Path tempDir) throws Exception
+    {
+        byte[] data = "content-addressed".getBytes(StandardCharsets.UTF_8);
+        Path temp = Files.write(tempDir.resolve(".upload-1.tmp"), data);
+        Path target = Files.write(tempDir.resolve("sha1"), data);
+        long modified = Files.getLastModifiedTime(target).toMillis();
+
+        gs.commitFiles(List.of(new DocumentHierarchyGraphStoreImpl.StagedFile(temp, target)));
+
+        assertFalse(Files.exists(temp));
+        assertEquals(modified, Files.getLastModifiedTime(target).toMillis(), "an existing content-addressed file is not rewritten");
+    }
+
+    @Test
+    public void testDiscardFilesLeavesNothingBehind(@TempDir Path tempDir) throws Exception
+    {
+        Path temp = Files.write(tempDir.resolve(".upload-1.tmp"), new byte[] { 1 });
+        Path target = tempDir.resolve("sha1");
+
+        gs.discardFiles(List.of(new DocumentHierarchyGraphStoreImpl.StagedFile(temp, target)));
+
+        assertFalse(Files.exists(temp));
+        assertFalse(Files.exists(target));
+    }
+
+    @Test
+    public void testDiscardFilesAfterCommitIsHarmless(@TempDir Path tempDir) throws Exception
+    {
+        Path temp = Files.write(tempDir.resolve(".upload-1.tmp"), new byte[] { 1 });
+        Path target = tempDir.resolve("sha1");
+        List<DocumentHierarchyGraphStoreImpl.StagedFile> staged = List.of(new DocumentHierarchyGraphStoreImpl.StagedFile(temp, target));
+
+        gs.commitFiles(staged);
+        gs.discardFiles(staged);
+
+        assertTrue(Files.exists(target), "discarding after a commit must not delete the committed file");
     }
 
     @Test

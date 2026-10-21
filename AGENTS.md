@@ -45,22 +45,22 @@ Writes go through the **document URLs**, never through the SPARQL endpoint (whic
 | Intent | Method | Body | Answer |
 |--------|--------|------|--------|
 | Create a document at a URL you choose | `PUT` document URL | RDF (e.g. `Content-Type: text/turtle`) | `201` with `Location` = that URL. The parent container must already exist |
-| Replace an existing document | `PUT` document URL | RDF | `200`; replaces the whole named graph |
+| Replace an existing document | `PUT` document URL | RDF | `204`, with no `ETag`; replaces the whole named graph |
 | Append to a document | `POST` document URL | RDF | `204` with the updated `ETag`; merges into the named graph |
 | Update a document in place | `PATCH` document URL | `Content-Type: application/sparql-update` | `204` with the updated `ETag`; one SPARQL Update, `INSERT`/`DELETE … WHERE` or `DELETE WHERE`, applied to that named graph |
 | Delete a document | `DELETE` document URL | — | Removes the named graph |
-| Upload a file | `POST`/`PUT` document URL | `multipart/form-data` | The file is content-addressed at `{base}uploads/{sha1}` |
+| Upload a file | `POST`/`PUT` document URL | `multipart/form-data` | As `POST`/`PUT` with an RDF body; the file is content-addressed at `{base}uploads/{sha1}`, and stored only if the write goes ahead |
 
 There is no LDP-style `POST` to a container that mints a child URL: the client picks the URL (a slug, or a UUID), and `PUT` creates it. Relative URIs in a request body resolve against the target URL. Blank nodes are skolemized against it.
 
-The `PATCH` body is a single SPARQL Update operation in a pattern-matching form: `INSERT { … } WHERE { … }`, `DELETE { … } INSERT { … } WHERE { … }`, `DELETE { … } WHERE { … }` or `DELETE WHERE { … }`. `INSERT DATA`, `DELETE DATA` and a request of several operations answer `422`; write a ground triple as `INSERT { <s> <p> <o> } WHERE { }`. The update is executed in the context of the one named graph, so the `GRAPH` keyword is not allowed in it (`422`). An update that empties the graph is treated as a `DELETE`. An update that strips `rdf:type` off a resource that keeps other properties answers `422` — SPIN constraints are class-scoped, and removing the type would bypass them silently. So does a result that violates the ontology's SHACL shapes, carrying bounded descriptions of the violating resources.
+The `PATCH` body is a single SPARQL Update operation in a pattern-matching form: `INSERT { … } WHERE { … }`, `DELETE { … } INSERT { … } WHERE { … }`, `DELETE { … } WHERE { … }` or `DELETE WHERE { … }`. `INSERT DATA`, `DELETE DATA` and a request of several operations answer `422`; write a ground triple as `INSERT { <s> <p> <o> } WHERE { }`. The update is executed in the context of the one named graph, so the `GRAPH` keyword is not allowed anywhere in it, nor are `WITH`, `USING` and `USING NAMED` (`422`). An update that empties the graph is treated as a `DELETE`. An update that strips `rdf:type` off a resource that keeps other properties answers `422` — SPIN constraints are class-scoped, and removing the type would bypass them silently. So does a result that violates the ontology's SHACL shapes, carrying bounded descriptions of the violating resources.
 
 ### Conditional writes are mandatory
 
 Since 6.0.0 every write is conditional:
 
-- A write to a document that **already exists** must carry `If-Match: <ETag>`. Without it the server answers `428 Precondition Required`. An empty `If-Match` counts as absent.
-- A write meant to **create** carries `If-None-Match: *` instead, and cannot also carry `If-Match`.
+- A write to a document that **already exists** must carry `If-Match: <ETag>`. Without it the server answers `428 Precondition Required`. An empty `If-Match`, `If-Match: *` and any `If-None-Match` other than `*` count as absent.
+- A write meant to **create** carries `If-None-Match: *` instead, and cannot also carry `If-Match`: an `If-Match` to a document that does not exist answers `412`.
 - A failed precondition answers `412` **with the document's current entity tag**, so the retry needs no second read.
 - An entity tag identifies a **negotiated variant** (a SHA-256 digest of the graph URI and its statements, folded with the variant, languages included). The read that supplies the validator must therefore send the same `Accept` and `Accept-Language` as the write that quotes it. A tag read as `application/rdf+xml` and quoted by a write that negotiates to HTML can never agree — `412`.
 - A write invalidates the tag it quoted, so the next one cannot reuse it. `POST` and `PATCH` answer `204` with the updated tag — record it. After a `PUT`, re-read the validator with `HEAD` under the same `Accept` and `Accept-Language`.

@@ -37,6 +37,7 @@ xmlns:orcid="&orcid;"
     <xsl:param name="ldhc:ownerAuthQuery"/>
     <xsl:param name="ldhc:enableLinkedDataProxy"/>
     <xsl:param name="ldhc:maxContentLength"/>
+    <xsl:param name="ldhc:maxUploadLength"/>
     <xsl:param name="ldhc:maxQueryResponseLength"/>
     <xsl:param name="ldhc:maxImportThreads"/>
     <xsl:param name="ldhc:notificationAddress"/>
@@ -125,6 +126,9 @@ xmlns:orcid="&orcid;"
             </xsl:if>
             <xsl:if test="$ldhc:maxContentLength">
                 <Parameter name="&ldhc;maxContentLength" value="{$ldhc:maxContentLength}" override="false"/>
+            </xsl:if>
+            <xsl:if test="$ldhc:maxUploadLength">
+                <Parameter name="&ldhc;maxUploadLength" value="{$ldhc:maxUploadLength}" override="false"/>
             </xsl:if>
             <xsl:if test="$ldhc:maxQueryResponseLength">
                 <Parameter name="&ldhc;maxQueryResponseLength" value="{$ldhc:maxQueryResponseLength}" override="false"/>

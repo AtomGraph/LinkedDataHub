@@ -27,8 +27,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Tests the <code>curl -f</code> equivalent: error statuses become exceptions, success statuses
- * pass through. Driven against {@link StubServer} so the responses are real inbound ones - an
+ * Tests the status checks: error and redirect statuses become exceptions, success statuses pass
+ * through. Driven against {@link StubServer} so the responses are real inbound ones - an
  * outbound {@code Response} built in-process cannot be read back.
  */
 public class HttpExceptionTest
@@ -116,6 +116,80 @@ public class HttpExceptionTest
             assertTrue(e.getMessage().endsWith("…"), "excerpt is not marked as truncated");
             assertTrue(e.getMessage().contains("x".repeat(1024)), "excerpt is shorter than the limit");
             assertFalse(e.getMessage().contains("x".repeat(1025)), "excerpt exceeds the limit");
+        }
+    }
+
+    @Test
+    public void redirectIsAFailureNamingItsLocation() throws Exception
+    {
+        try (StubServer server = new StubServer())
+        {
+            URI target = server.baseURI().resolve("some");
+            server.responds(308, "").respondsWithHeader("Location", target + "/");
+
+            HttpException e = assertThrows(HttpException.class, () -> HttpException.check(target, client().get(target, ACCEPT_TURTLE)));
+
+            assertEquals(308, e.getStatus());
+            assertTrue(e.getMessage().startsWith("HTTP 308"), e.getMessage());
+            assertTrue(e.getMessage().endsWith("\nLocation: " + target + "/"), e.getMessage());
+        }
+    }
+
+    @Test
+    public void seeOtherPassesAWriteCheckOnly() throws Exception
+    {
+        try (StubServer server = new StubServer())
+        {
+            URI target = server.baseURI().resolve("some/");
+            server.responds(303, "").respondsWithHeader("Location", target + "result/");
+
+            try (Response response = HttpException.checkWrite(target, client().get(target, ACCEPT_TURTLE)))
+            {
+                assertEquals(303, response.getStatus());
+            }
+            HttpException e = assertThrows(HttpException.class, () -> HttpException.check(target, client().get(target, ACCEPT_TURTLE)));
+            assertEquals(303, e.getStatus());
+        }
+    }
+
+    @Test
+    public void writeCheckStillRefusesOtherRedirects() throws Exception
+    {
+        try (StubServer server = new StubServer())
+        {
+            URI target = server.baseURI().resolve("some");
+            server.responds(308, "").respondsWithHeader("Location", target + "/");
+
+            HttpException e = assertThrows(HttpException.class, () -> HttpException.checkWrite(target, client().get(target, ACCEPT_TURTLE)));
+            assertEquals(308, e.getStatus());
+        }
+    }
+
+    @Test
+    public void redirectCheckPassesARedirectWithALocation() throws Exception
+    {
+        try (StubServer server = new StubServer())
+        {
+            URI target = server.baseURI().resolve("some/");
+            server.responds(302, "").respondsWithHeader("Location", target + "?version=a1b2c3");
+
+            try (Response response = HttpException.checkRedirect(target, client().get(target, ACCEPT_TURTLE)))
+            {
+                assertEquals(302, response.getStatus());
+            }
+        }
+    }
+
+    @Test
+    public void redirectCheckRefusesARedirectWithoutALocation() throws Exception
+    {
+        try (StubServer server = new StubServer())
+        {
+            URI target = server.baseURI().resolve("some/");
+            server.responds(302, "");
+
+            HttpException e = assertThrows(HttpException.class, () -> HttpException.checkRedirect(target, client().get(target, ACCEPT_TURTLE)));
+            assertEquals(302, e.getStatus());
         }
     }
 

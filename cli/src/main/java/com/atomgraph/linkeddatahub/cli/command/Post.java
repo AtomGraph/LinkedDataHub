@@ -50,7 +50,7 @@ public class Post extends BaseCommand
     {
         String mediaType = resolveContentType(contentType, file);
         Model model = file != null ? readModel(mediaType, target, file) : readModel(mediaType, target, System.in);
-        HttpException.check(target, getClient().post(target, Entity.entity(model, MediaType.valueOf(mediaType)), ACCEPT_TURTLE)).close();
+        HttpException.checkWrite(target, getClient().post(target, Entity.entity(model, MediaType.valueOf(mediaType)), ACCEPT_TURTLE)).close();
         print(target);
 
         return 0;

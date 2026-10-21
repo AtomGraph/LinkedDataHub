@@ -44,12 +44,8 @@ import com.atomgraph.spinrdf.constraints.ConstraintViolation;
 import com.atomgraph.spinrdf.constraints.ObjectPropertyPath;
 import com.atomgraph.spinrdf.constraints.SimplePropertyPath;
 import com.atomgraph.spinrdf.vocabulary.SP;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.security.DigestInputStream;
-import java.security.MessageDigest;
+import org.apache.commons.codec.digest.DigestUtils;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -60,7 +56,6 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.SecurityContext;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.commons.codec.binary.Hex;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.Statement;
@@ -90,17 +85,6 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject jakarta.inject.Provider<Optional<AgentContext>> agentContextProvider;
 
-    private final MessageDigest messageDigest;
-
-    /**
-     * Constructs provider.
-     * 
-     * @param messageDigest message digest
-     */
-    public ValidatingModelProvider(MessageDigest messageDigest)
-    {
-        this.messageDigest = messageDigest;
-    }
     
     @Override
     public Model write(Model model, OutputStream os, Lang lang, String baseURI)
@@ -303,16 +287,15 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
         if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent) return super.processWrite(model);
 
         // show foaf:mbox_sha1sum for all other agents (in admin apps)
-        return super.processWrite(hashMboxes(getMessageDigest()).apply(model)); // apply processing from superclasses
+        return super.processWrite(hashMboxes().apply(model)); // apply processing from superclasses
     }
 
     /**
      * Replaces <code>foaf:mbox</code> values in an RDF model with hashed <code>foaf:mbox_sha1sum</code> values.
      * 
-     * @param messageDigest digest used for SHA1 hashing
      * @return fixed up RDF model
      */
-    public static Function<Model, Model> hashMboxes(MessageDigest messageDigest)
+    public static Function<Model, Model> hashMboxes()
     {
         return model ->
         {
@@ -320,7 +303,7 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
             List<Statement> mboxes = it.toList();
             it.close();
 
-            List<Statement> mboxHashes = mboxes.stream().map(stmt -> mboxHashStmt(stmt, messageDigest)).
+            List<Statement> mboxHashes = mboxes.stream().map(stmt -> mboxHashStmt(stmt)).
                 filter(Objects::nonNull).
                 collect(Collectors.toList());
 
@@ -332,27 +315,18 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
     }
     
     /**
-     * Replaces <code>foaf:mbox</code> value in an RDF statement with a hashed <code>foaf:mbox_sha1sum</code> value.
+     * Replaces <code>foaf:mbox</code> value in an RDF statement with a hashed <code>foaf:mbox_sha1sum</code> value:
+     * the SHA1 of the <code>mailto:</code> URI, in hex, as FOAF defines it.
      * 
      * @param stmt RDF statement
-     * @param messageDigest digest used for SHA1 hashing
      * @return fixed up statement
      */
-    public static Statement mboxHashStmt(Statement stmt, MessageDigest messageDigest)
+    public static Statement mboxHashStmt(Statement stmt)
     {
         if (!stmt.getObject().isURIResource()) return stmt; // don't hash if the mbox value is not a URI
-        
-        try (InputStream is = new ByteArrayInputStream(stmt.getResource().getURI().getBytes(StandardCharsets.UTF_8));
-            DigestInputStream dis = new DigestInputStream(is, messageDigest))
-        {
-            String sha1Sum = Hex.encodeHexString(dis.getMessageDigest().digest());
-            return stmt.getModel().createStatement(stmt.getSubject(), FOAF.mbox_sha1sum, sha1Sum);
-        }
-        catch (IOException ex)
-        {
-            // ignore mbox
-            return null;
-        }
+
+        String sha1Sum = DigestUtils.sha1Hex(stmt.getResource().getURI().getBytes(StandardCharsets.UTF_8));
+        return stmt.getModel().createStatement(stmt.getSubject(), FOAF.mbox_sha1sum, sha1Sum);
     }
     
     /**
@@ -394,15 +368,7 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
         return securityContext;
     }
     
-    /**
-     * Returns cryptographic digest using for SHA1 hashing.
-     * 
-     * @return message digest
-     */
-    public MessageDigest getMessageDigest()
-    {
-        return messageDigest;
-    }
+
     
     /**
      * Returns system application.

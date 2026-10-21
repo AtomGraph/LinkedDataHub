@@ -1402,21 +1402,26 @@ WHERE
         <xsl:variable name="request-body" select="($request-body, $resources)[1]" as="document-node()"/>
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($action, map{})" as="xs:anyURI"/>
+        <!-- the tag held is the page document's, so it is quoted only to the page document. A PUT anywhere else is a
+             creation (the Container/Item modals) and says so with If-None-Match: *; quoting the page's tag to a URI
+             that does not exist yet is refused 412, as If-Match is false where there is no current state -->
+        <xsl:variable name="preconditions" select="if (ac:absolute-path($action) = $doc-uri) then ldh:conditional-headers(map{ 'Accept': $accept }, $etag) else if ($method = 'PUT') then map{ 'Accept': $accept, 'If-None-Match': '*' } else map{ 'Accept': $accept }" as="map(*)"/>
 
         <xsl:choose>
             <!-- we need to handle multipart requests specially because of Saxon-JS 2 limitations: https://saxonica.plan.io/issues/4732 -->
             <xsl:when test="$enctype = 'multipart/form-data'">
                 <xsl:variable name="form-data" select="ixsl:new('FormData', [ $form ])"/> <!-- only for file uploads! XMLLiterals will not be canonicalized -->
                 <xsl:variable name="headers" select="ldh:new-object()"/>
-                <ixsl:set-property name="Accept" select="$accept" object="$headers"/>
-                <ixsl:set-property name="If-Match" select="$etag" object="$headers"/>
+                <xsl:for-each select="map:keys($preconditions)">
+                    <ixsl:set-property name="{.}" select="$preconditions(.)" object="$headers"/>
+                </xsl:for-each>
                 
                 <!-- TO-DO: refactor fetchDispatchXML using IXSL -->
                 <xsl:sequence select="js:fetchDispatchXML($request-uri, $method, $headers, $form-data, ., $doc-uri, $resources, $block, 'MultipartResourceUpdated')[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <xsl:otherwise>
                 <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile -->
-                <xsl:variable name="request" select="map{ 'method': $method, 'href': $request-uri, 'media-type': 'application/rdf+xml', 'body': $request-body, 'headers': map{ 'If-Match': $etag, 'Accept': $accept } }" as="map(*)"/>
+                <xsl:variable name="request" select="map{ 'method': $method, 'href': $request-uri, 'media-type': 'application/rdf+xml', 'body': $request-body, 'headers': $preconditions }" as="map(*)"/>
                 <!-- 'about' = the resource URL being submitted to; the wrapping block carries it on @about uniformly (btn-edit / btn-app-settings / Container-Item creation modals all set it). $doc-uri is the page URL and can't be used for this -->
                 <xsl:variable name="context" as="map(*)" select="
                   map{

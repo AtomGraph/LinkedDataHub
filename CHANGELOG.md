@@ -1,3 +1,25 @@
+## [6.2.4] - 2026-10-21
+### Migration
+- A write to an existing document has to quote its entity tag in `If-Match`, or send `If-None-Match: *` to create: `If-Match: *` and any other `If-None-Match` are refused with `428`, and a `PUT` with `If-Match` to a document that does not exist with `412` (#452)
+- `PUT` answers `204 No Content` when it replaces a document and `201 Created` when it creates one, neither with an `ETag` or `Last-Modified`: what is stored is not the payload (RFC 9110 9.3.4), so a client that wants the new tag reads it (#456)
+- A file upload (multipart `POST`) is the same append as any `POST`: it needs `If-Match`, updates `dct:modified`, submits imports and answers `204` with the new `ETag` (#456)
+- `ldh` exits `1` on a redirect, which it does not follow, naming the `Location` on stderr (#454)
+
+### Added
+- `MAX_UPLOAD_LENGTH` sets a separate size limit for file uploads (multipart bodies), `MAX_CONTENT_LENGTH` unless set
+- `ldh add file --replace` replaces the document with the file's description (multipart `PUT`)
+
+### Fixed
+- A `PATCH` with `GRAPH` in a `DELETE WHERE` or anywhere in its `WHERE` pattern, or with `WITH`/`USING`, is refused with `422` instead of answering `204` having changed nothing; `PATCH /settings` is held to the same forms (#453)
+- An upload refused by a precondition, a redirect or a constraint leaves no file behind, and a stored file is moved into place whole (#455)
+- Concurrent uploads no longer get each other's SHA1: every upload is hashed on its own (#455)
+- `foaf:mbox_sha1sum` is the SHA1 of the agent's address, not of the empty string (#455)
+- An upload larger than 100 MiB is stored whole, or refused with `413` past the size limit, instead of being truncated; a `Content-Length` over 2 GiB is answered `413` rather than `500` (#455)
+- Every upload no longer leaves a copy in the temporary folder (#455)
+- Documents created from the UI say so with `If-None-Match: *` instead of quoting the current page's entity tag
+- `ldh create` with a parent URI that lacks its trailing slash creates the document inside it rather than next to it
+- An import that cannot append to an existing document says so, instead of reporting that its `PUT` failed (#456)
+
 ## [6.2.3] - 2026-10-21
 ### Migration
 - Deployments that keep a copy of `docker-compose.yml` need to re-sync it to get the SPARQL query cache and the Varnish store kept for SPARQL results

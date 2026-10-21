@@ -34,7 +34,6 @@ import jakarta.ws.rs.core.UriInfo;
 import jakarta.ws.rs.core.Variant;
 import jakarta.ws.rs.ext.Providers;
 import java.net.URI;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -119,7 +118,6 @@ public class DocumentHierarchyGraphStoreImplWriteLockTest
         when(system.getServiceContext(service)).thenReturn(serviceContext);
         when(system.getGraphLocks()).thenReturn(new GraphLocks());
         when(system.getSecretaryWebIDURI()).thenReturn(URI.create("https://localhost:4443/acl/agents/secretary/#this"));
-        when(system.getMessageDigest()).thenReturn(MessageDigest.getInstance("SHA-1"));
 
         Dataspace dataspace = mock(Dataspace.class);
         when(dataspace.getMaker()).thenReturn(ResourceFactory.createResource("https://localhost:4443/acl/agents/owner/#this"));

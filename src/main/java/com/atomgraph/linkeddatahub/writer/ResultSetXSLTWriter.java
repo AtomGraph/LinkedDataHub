@@ -32,7 +32,6 @@ import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.math.BigInteger;
-import java.security.MessageDigest;
 import java.util.Arrays;
 import javax.xml.transform.TransformerException;
 import net.sf.saxon.s9api.SaxonApiException;
@@ -61,11 +60,10 @@ public class ResultSetXSLTWriter extends XSLTWriterBase implements MessageBodyWr
      * 
      * @param xsltExec compiled XSLT stylesheet
      * @param resolver RDF source resolver
-     * @param messageDigest message digest
      */
-    public ResultSetXSLTWriter(XsltExecutable xsltExec, RDFSourceResolver resolver, MessageDigest messageDigest)
+    public ResultSetXSLTWriter(XsltExecutable xsltExec, RDFSourceResolver resolver)
     {
-        super(xsltExec, resolver, messageDigest);
+        super(xsltExec, resolver);
     }
 
     @Override

@@ -23,6 +23,7 @@ import com.atomgraph.linkeddatahub.dataspaces.model.Dataspace;
 import com.atomgraph.linkeddatahub.resource.admin.ClearOntology;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
 import com.atomgraph.linkeddatahub.server.util.EntityTags;
+import com.atomgraph.linkeddatahub.server.util.PatchUpdateVisitor;
 import com.atomgraph.linkeddatahub.vocabulary.LDS;
 import java.net.URI;
 import jakarta.ws.rs.container.ResourceContext;
@@ -138,6 +139,10 @@ public class Settings
 
         if (log.isDebugEnabled()) log.debug("PATCH request for dataspace <{}>", getDataspace().getURI());
         if (log.isDebugEnabled()) log.debug("PATCH update string: {}", updateRequest.toString());
+
+        // the same forms a document PATCH accepts: the update runs against the dataspace model alone, so GRAPH and
+        // WITH/USING match nothing, and LOAD, CLEAR or a second operation would reach past the settings
+        PatchUpdateVisitor.validate(updateRequest);
 
         Model dataspaceModel = getSystem().getDataspaceModel(getDataspace());
         if (dataspaceModel == null || dataspaceModel.isEmpty())

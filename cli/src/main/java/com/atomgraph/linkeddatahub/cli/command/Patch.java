@@ -44,7 +44,7 @@ public class Patch extends BaseCommand
         // validate as standard SPARQL 1.1 before sending; the original text is sent unmodified
         UpdateFactory.create(update, target.toString(), Syntax.syntaxSPARQL_11);
 
-        HttpException.check(target, getClient().patch(target, update)).close();
+        HttpException.checkWrite(target, getClient().patch(target, update)).close();
 
         return 0;
     }

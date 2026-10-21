@@ -1149,6 +1149,11 @@ if [ -n "$MAX_CONTENT_LENGTH" ]; then
     MAX_CONTENT_LENGTH_PARAM="--stringparam ldhc:maxContentLength '$MAX_CONTENT_LENGTH' "
 fi
 
+# a separate limit for multipart (file upload) bodies; unset, uploads share MAX_CONTENT_LENGTH
+if [ -n "$MAX_UPLOAD_LENGTH" ]; then
+    MAX_UPLOAD_LENGTH_PARAM="--stringparam ldhc:maxUploadLength '$MAX_UPLOAD_LENGTH' "
+fi
+
 if [ -n "$MAX_QUERY_RESPONSE_LENGTH" ]; then
     MAX_QUERY_RESPONSE_LENGTH_PARAM="--stringparam ldhc:maxQueryResponseLength '$MAX_QUERY_RESPONSE_LENGTH' "
 fi
@@ -1232,6 +1237,7 @@ transform="xsltproc \
   $OWNER_AUTH_QUERY_PARAM \
   $ENABLE_LINKED_DATA_PROXY_PARAM \
   $MAX_CONTENT_LENGTH_PARAM \
+  $MAX_UPLOAD_LENGTH_PARAM \
   $MAX_QUERY_RESPONSE_LENGTH_PARAM \
   $MAX_IMPORT_THREADS_PARAM \
   $NOTIFICATION_ADDRESS_PARAM \
