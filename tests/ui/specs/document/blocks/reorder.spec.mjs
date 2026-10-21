@@ -21,7 +21,7 @@
 // moment, exactly like a saved one. Each is a test here:
 //
 //   · A page that was OPENED rather than navigated to has never fetched its own document as RDF, so
-//     LinkedDataHub.contents is empty, ldh:document-etag() returns nothing and the write went out with
+//     LinkedDataHub.etags is empty, ldh:document-etag() returns nothing and the write went out with
 //     no If-Match at all - 428 Precondition Required. Hence `goto`, not a click-through, in every test.
 //   · The write named no representation and went out as Accept: */*, which negotiates to HTML, while
 //     the tag it quoted came from an application/rdf+xml read. The validator is per representation, so

@@ -47,13 +47,13 @@ Writes go through the **document URLs**, never through the SPARQL endpoint (whic
 | Create a document at a URL you choose | `PUT` document URL | RDF (e.g. `Content-Type: text/turtle`) | `201` with `Location` = that URL. The parent container must already exist |
 | Replace an existing document | `PUT` document URL | RDF | `200`; replaces the whole named graph |
 | Append to a document | `POST` document URL | RDF | `204` with the updated `ETag`; merges into the named graph |
-| Update a document in place | `PATCH` document URL | `Content-Type: application/sparql-update` | `204` with the updated `ETag`; a SPARQL Update (`INSERT`/`DELETE`) applied to that named graph |
+| Update a document in place | `PATCH` document URL | `Content-Type: application/sparql-update` | `204` with the updated `ETag`; one SPARQL Update, `INSERT`/`DELETE … WHERE` or `DELETE WHERE`, applied to that named graph |
 | Delete a document | `DELETE` document URL | — | Removes the named graph |
 | Upload a file | `POST`/`PUT` document URL | `multipart/form-data` | The file is content-addressed at `{base}uploads/{sha1}` |
 
 There is no LDP-style `POST` to a container that mints a child URL: the client picks the URL (a slug, or a UUID), and `PUT` creates it. Relative URIs in a request body resolve against the target URL. Blank nodes are skolemized against it.
 
-The `PATCH` update is executed in the context of the one named graph, so the `GRAPH` keyword is not allowed in it. An update that empties the graph is treated as a `DELETE`. An update that strips `rdf:type` off a resource that keeps other properties answers `422` — SPIN constraints are class-scoped, and removing the type would bypass them silently. So does a result that violates the ontology's SHACL shapes, carrying bounded descriptions of the violating resources.
+The `PATCH` body is a single SPARQL Update operation in a pattern-matching form: `INSERT { … } WHERE { … }`, `DELETE { … } INSERT { … } WHERE { … }`, `DELETE { … } WHERE { … }` or `DELETE WHERE { … }`. `INSERT DATA`, `DELETE DATA` and a request of several operations answer `422`; write a ground triple as `INSERT { <s> <p> <o> } WHERE { }`. The update is executed in the context of the one named graph, so the `GRAPH` keyword is not allowed in it (`422`). An update that empties the graph is treated as a `DELETE`. An update that strips `rdf:type` off a resource that keeps other properties answers `422` — SPIN constraints are class-scoped, and removing the type would bypass them silently. So does a result that violates the ontology's SHACL shapes, carrying bounded descriptions of the violating resources.
 
 ### Conditional writes are mandatory
 
