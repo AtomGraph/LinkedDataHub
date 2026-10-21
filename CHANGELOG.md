@@ -33,6 +33,7 @@
 - A `PATCH` that would empty a document that cannot be deleted (the root, the owner's and the secretary's WebID documents) answers `422` instead of `405`: `PATCH` is supported there, the update is what cannot be applied (RFC 9110 15.5.6)
 - A `428 Precondition Required` (documents and `PATCH /settings`) carries a plain-text body naming `If-Match` and how to get the current entity tag with `HEAD` (RFC 6585 3)
 - A `POST`, `PUT`, `PATCH` or `DELETE` whose `Accept` names no RDF syntax is no longer refused with `406`: the response has no body, `If-Match` holds when it names the current tag of any variant, and the response carries no `ETag` (GSP 5.3, 5.4; RFC 9110 12.5.1)
+- Byte ranges of uploaded files follow RFC 9110: a `Range` in another unit, a malformed one, several ranges, or one on `HEAD` serves the whole file instead of a wrong range or `500`; suffix ranges (`bytes=-500`) are served; an inverted or unsatisfiable range answers `416` with `Content-Range: bytes */N`; `If-Range` is honoured; an open range (`bytes=N-`) runs to the end of the file instead of stopping after 1 MB
 
 ## [6.2.3] - 2026-10-21
 ### Migration
