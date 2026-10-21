@@ -1,10 +1,12 @@
 ## [6.2.3] - 2026-10-19
 ### Migration
-- Deployments that keep a copy of `docker-compose.yml` need to re-sync it to get the SPARQL query cache
+- Deployments that keep a copy of `docker-compose.yml` need to re-sync it to get the SPARQL query cache and the Varnish store kept for SPARQL results
+- `/sparql` refuses a result longer than `MAX_QUERY_RESPONSE_LENGTH` (5 MiB unless set): an API client that reads larger results pages through them with `LIMIT`/`OFFSET`, or the setting is raised
 - Scripts that call the `bin/` HTTP API scripts switch to the `ldh` CLI: `cli/README.md` maps each script to its command
 
 ### Added
 - `og:image` falls back to the image of the document's primary topic
+- `MAX_QUERY_RESPONSE_LENGTH` bounds the result the `/sparql` endpoint answers a query with, and `VARNISH_SPARQL_STORAGE` sizes the Varnish store SPARQL results are kept in (64M unless set)
 
 ### Changed
 - The front Varnish caches anonymous SPARQL queries, and a view sends the same query text on every load so they hit the cache
@@ -17,6 +19,7 @@
 - **BREAKING**: the deprecated `bin/` HTTP API scripts (`get.sh`, `create-item.sh`, `bin/admin/`, `bin/content/`, `bin/imports/` and the rest), which the `ldh` CLI replaces. The certificate and WebID tooling stays in `bin/`
 
 ### Fixed
+- A query whose result is too large no longer freezes the page: `/sparql` refuses it with `502`, the block says the result is too large, and the triplestore stops evaluating the query
 - An external document whose RDF could not be retrieved opens as a page instead of an error
 - Opening an external document in a new tab leaves the current window where it was
 - A result-set chart takes its series in the order its query projects them, so charts with positional columns (a Timeline) no longer fail with "column #1 must be of type 'string'"

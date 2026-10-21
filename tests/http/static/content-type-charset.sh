@@ -9,7 +9,7 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 reset_packages
 clear_ontology
 
-# Every text type served from /static declares UTF-8.
+# Every text file the app serves - from /static, and the agent guide at /AGENTS.md - declares UTF-8.
 #
 # Tomcat's default mime mappings name no charset, and a response that does not name one is decoded
 # by the client's fallback encoding - windows-1252 in a browser tab - which breaks every multi-byte
@@ -23,11 +23,12 @@ clear_ontology
 # source of truth that could disagree with it (RFC 7303).
 
 declare -a expectations=(
-    "com/atomgraph/linkeddatahub/css/ldh.css|text/css;charset=UTF-8"
-    "com/atomgraph/linkeddatahub/xsl/client.xsl|text/xsl;charset=UTF-8"
-    "com/atomgraph/linkeddatahub/js/SPARQL.js|text/javascript;charset=UTF-8"
-    "com/atomgraph/linkeddatahub/js/saxon-js/LICENSE.txt|text/plain;charset=UTF-8"
-    "com/atomgraph/linkeddatahub/css/ol.css.map|application/json"
+    "static/com/atomgraph/linkeddatahub/css/ldh.css|text/css;charset=UTF-8"
+    "static/com/atomgraph/linkeddatahub/xsl/client.xsl|text/xsl;charset=UTF-8"
+    "static/com/atomgraph/linkeddatahub/js/SPARQL.js|text/javascript;charset=UTF-8"
+    "static/com/atomgraph/linkeddatahub/js/saxon-js/LICENSE.txt|text/plain;charset=UTF-8"
+    "static/com/atomgraph/linkeddatahub/css/ol.css.map|application/json"
+    "AGENTS.md|text/markdown;charset=UTF-8"
 )
 
 failures=0
@@ -37,7 +38,7 @@ do
     path="${expectation%%|*}"
     expected="${expectation#*|}"
 
-    headers=$(curl -k -s -D - -o /dev/null "${END_USER_BASE_URL}static/${path}")
+    headers=$(curl -k -s -D - -o /dev/null "${END_USER_BASE_URL}${path}")
     status=$(grep -o "HTTP/[0-9.]* [0-9]*" <<< "$headers" | tail -1 | grep -o "[0-9]*$")
     # the header name is case-insensitive and the value may carry whitespace around the parameter
     actual=$(grep -i "^content-type:" <<< "$headers" | tail -1 | cut -d: -f2- | tr -d " \r")
