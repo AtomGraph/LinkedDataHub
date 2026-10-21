@@ -126,7 +126,7 @@ public class ModelBuildersTest
         assertIsomorphic(parse("""
             <> a dh:Container ;
                 dct:title "Some" ;
-                rdf:_1 [ a ldh:Object ; rdf:value [ a ldh:View ; spin:query ldh:SelectChildren ; ac:mode <https://w3id.org/atomgraph/client#GridMode> ] ] .
+                rdf:_1 [ a ldh:Object ; rdf:value [ a ldh:View ; dct:title "Children view" ; spin:query ldh:SelectChildren ; ac:mode <https://w3id.org/atomgraph/client#GridMode> ] ] .
             """),
             Documents.container(TARGET, "Some", null, null, URI.create("https://w3id.org/atomgraph/client#GridMode"), null));
     }

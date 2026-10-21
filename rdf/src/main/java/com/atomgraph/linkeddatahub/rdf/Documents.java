@@ -36,6 +36,9 @@ import org.apache.jena.vocabulary.RDF;
 public final class Documents
 {
 
+    /** The title of a children view made in a layout mode: the label of ldh:ChildrenView. */
+    public static final String CHILDREN_VIEW_TITLE = "Children view";
+
     private Documents() { }
 
     /**
@@ -59,10 +62,13 @@ public final class Documents
             addProperty(DCTerms.title, title);
 
         if (block != null) container.addProperty(RDF.li(1), model.createResource(block.toString()));
+        // the children view in another layout: titled as ldh:ChildrenView is labelled, which a client shows
+        // as the block's heading - untitled, it fell back to the ID the server mints for the blank node
         else if (mode != null) container.addProperty(RDF.li(1), model.createResource().
                 addProperty(RDF.type, LDH.Object).
                 addProperty(RDF.value, model.createResource().
                     addProperty(RDF.type, LDH.View).
+                    addProperty(DCTerms.title, CHILDREN_VIEW_TITLE).
                     addProperty(SPIN.query, LDH.SelectChildren).
                     addProperty(AC.mode, model.createResource(mode.toString()))));
         else container.addProperty(RDF.li(1), model.createResource().
