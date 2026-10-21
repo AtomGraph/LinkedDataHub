@@ -23,6 +23,7 @@ import com.atomgraph.linkeddatahub.dataspaces.model.Dataspace;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.model.ServiceContext;
 import com.atomgraph.linkeddatahub.server.util.GraphLocks;
+import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MultivaluedHashMap;
@@ -42,10 +43,12 @@ import org.apache.jena.ontapi.OntModelFactory;
 import org.apache.jena.ontapi.OntSpecification;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.vocabulary.DCTerms;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -145,6 +148,22 @@ public class DocumentHierarchyGraphStoreImplWriteTest
         verify(store, never()).getModel(anyString());
         verify(store, never()).putModel(anyString(), any(Model.class));
         assertEquals(before, graph.get(), "the graph is untouched");
+    }
+
+    // item 13: a PATCH that empties a document that cannot be deleted
+
+    @Test
+    public void patchEmptyingTheRootIsUnprocessable()
+    {
+        DocumentHierarchyGraphStoreImpl gs = graphStore(BASE);
+        when(headers.getHeaderString(HttpHeaders.IF_MATCH)).thenReturn("\"current\"");
+        when(request.evaluatePreconditions(any(Date.class), any(EntityTag.class))).thenReturn(null);
+        when(request.evaluatePreconditions(any(EntityTag.class))).thenReturn(null);
+
+        WebApplicationException ex = assertThrows(WebApplicationException.class, () -> gs.patch(UpdateFactory.create("DELETE WHERE { ?s ?p ?o }")));
+
+        assertEquals(422, ex.getResponse().getStatus(), "PATCH is supported on the root; the update is what cannot be applied");
+        verify(store, never()).putModel(anyString(), any(Model.class));
     }
 
 }

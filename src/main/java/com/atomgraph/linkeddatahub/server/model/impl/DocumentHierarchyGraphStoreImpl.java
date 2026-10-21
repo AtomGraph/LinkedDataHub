@@ -620,7 +620,15 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             new Skolemizer(getURI().toString()).apply(existingModel); // skolemize blank nodes introduced by INSERT
 
             // if PATCH results in an empty graph, treat it as a DELETE request
-            if (existingModel.isEmpty()) return delete();
+            if (existingModel.isEmpty())
+            {
+                // the document cannot be deleted (the root, the owner's and the secretary's), but PATCH is supported on it:
+                // 405 would say otherwise, and the update itself is what cannot be applied
+                if (!getAllowedMethods().contains(HttpMethod.DELETE))
+                    throw new WebApplicationException("The update would empty document <" + getURI() + ">, which cannot be deleted", UNPROCESSABLE_ENTITY.getStatusCode());
+
+                return delete();
+            }
 
             // SPIN constraints are class-scoped; allowing rdf:type removal would silently bypass them
             for (Resource resource : getChangedResources(beforeUpdateModel, existingModel))
