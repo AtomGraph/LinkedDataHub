@@ -53,6 +53,8 @@ types take the same blocks.
 
 Built-ins worth knowing: `rdf:value ldh:ChildrenView` lists the container's children, and the query
 `ldh:SelectChildren` selects them for a view of your own (e.g. a map of the children).
+`ldh create container` writes the children view as the first block; `--no-children-view` leaves it
+out, for a container that embeds its own view of them.
 
 ## Views and charts
 

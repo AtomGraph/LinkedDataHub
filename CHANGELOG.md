@@ -1,8 +1,9 @@
-## [6.2.3] - 2026-10-19
+## [6.2.3] - 2026-10-21
 ### Migration
 - Deployments that keep a copy of `docker-compose.yml` need to re-sync it to get the SPARQL query cache and the Varnish store kept for SPARQL results
 - `/sparql` refuses a result longer than `MAX_QUERY_RESPONSE_LENGTH` (5 MiB unless set): an API client that reads larger results pages through them with `LIMIT`/`OFFSET`, or the setting is raised
 - Scripts that call the `bin/` HTTP API scripts switch to the `ldh` CLI: `cli/README.md` maps each script to its command
+- `ldh create container` no longer takes `--block` or `--mode`: pass `--no-children-view` and add the view with `ldh add view` and `ldh add object-block`
 
 ### Added
 - `og:image` falls back to the image of the document's primary topic
@@ -12,6 +13,9 @@
 - The front Varnish caches anonymous SPARQL queries, and a view sends the same query text on every load so they hit the cache
 - Views defer their whole-result-set queries until they scroll into sight, and load their metadata in parallel with the document's
 - Discovering a view's link predicates is faster
+- A page with ontology views fetches the ontology document once and shares its metadata lookups between the views
+- **BREAKING**: `ldh create container` takes `--no-children-view` to leave out the children view, in place of `--block` and `--mode`
+- `AGENTS.md` names the SPARQL Update forms `PATCH` accepts and says a view's first query variable must bind resources
 - The `ldh` plugin is named LinkedDataHub, has an icon and documents where it sends data
 - `ldh add result-set-chart` takes `--series-var-name` more than once, for charts with several series
 
@@ -23,6 +27,7 @@
 - An external document whose RDF could not be retrieved opens as a page instead of an error
 - Opening an external document in a new tab leaves the current window where it was
 - A result-set chart takes its series in the order its query projects them, so charts with positional columns (a Timeline) no longer fail with "column #1 must be of type 'string'"
+- `/AGENTS.md` is served as UTF-8, so a browser no longer garbles its dashes
 
 ## [6.2.2] - 2026-10-18
 ### Migration
