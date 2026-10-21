@@ -388,7 +388,10 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             Response.ResponseBuilder rb = evaluatePreconditions(existingModel, getHttpHeaders());
             if (rb != null) return rb.build(); // preconditions not met
         
+            // dct:created and dct:modified are the server's to assign: the document keeps the creation date it has, and
+            // the append is its modification
             model.createResource(getURI().toString()).
+                removeAll(DCTerms.created).
                 removeAll(DCTerms.modified).
                 addLiteral(DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
         
@@ -513,7 +516,9 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
 
             if (existingModel == null) // creating new graph and attaching it to the document hierarchy
             {
-                resource.removeAll(DCTerms.created). // remove any client-supplied dct:created values
+                // a new document was created now and has not been modified since: neither date is the client's
+                resource.removeAll(DCTerms.created).
+                    removeAll(DCTerms.modified).
                     addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
             
                 if (getAgentContext().isPresent()) resource.addProperty(DCTerms.creator, getAgentContext().get().getAgent()).
@@ -530,6 +535,10 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             }
             else // updating existing graph
             {        
+                // the creation date is the stored one, not the client's: a client-supplied dct:created would be kept
+                // alongside it and, being the later of the two, could move Last-Modified anywhere it likes
+                resource.removeAll(DCTerms.created);
+
                 // retain metadata from existing document resource
                 ExtendedIterator<Statement> it = existingModel.createResource(getURI().toString()).listProperties(DCTerms.created).
                     andThen(existingModel.createResource(getURI().toString()).listProperties(DCTerms.creator)).
@@ -609,6 +618,8 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
                     throw new WebApplicationException("rdf:type cannot be removed from resource <" + resource + ">", UNPROCESSABLE_ENTITY.getStatusCode());
             }
 
+            stampModified(getURI(), beforeUpdateModel, existingModel);
+
             try
             {
                 validate(dataset.getDefaultModel()); // this would normally be done transparently by the ValidatingModelProvider
@@ -635,6 +646,38 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         });
     }
     
+    /**
+     * Keeps the document's dates server-managed across a <code>PATCH</code>.
+     * The update can change the document's <code>dct:created</code> and <code>dct:modified</code> like any other
+     * triple, and <code>Last-Modified</code> is derived from them: the stored creation date is restored, and an update
+     * that changed the graph is stamped with the current time as its modification, so that a cache revalidating with
+     * <code>If-Modified-Since</code> sees the change. An update that changed nothing leaves the graph, and its
+     * validators, as they were.
+     *
+     * @param documentURI the document's URI
+     * @param beforeUpdateModel the graph before the update
+     * @param afterUpdateModel the graph after the update, which is changed in place
+     */
+    public static void stampModified(URI documentURI, Model beforeUpdateModel, Model afterUpdateModel)
+    {
+        if (documentURI == null) throw new IllegalArgumentException("Document URI cannot be null");
+        if (beforeUpdateModel == null) throw new IllegalArgumentException("Model before update cannot be null");
+        if (afterUpdateModel == null) throw new IllegalArgumentException("Model after update cannot be null");
+
+        Resource before = beforeUpdateModel.createResource(documentURI.toString());
+        Resource after = afterUpdateModel.createResource(documentURI.toString());
+
+        after.removeAll(DCTerms.created);
+        before.listProperties(DCTerms.created).forEach(stmt -> after.addProperty(DCTerms.created, stmt.getObject()));
+
+        after.removeAll(DCTerms.modified);
+        before.listProperties(DCTerms.modified).forEach(stmt -> after.addProperty(DCTerms.modified, stmt.getObject()));
+
+        if (!afterUpdateModel.isIsomorphicWith(beforeUpdateModel))
+            after.removeAll(DCTerms.modified).
+                addLiteral(DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
+    }
+
     /**
      * Overrides <code>OPTIONS</code> HTTP header values.Specifies allowed methods.
      *
@@ -1129,9 +1172,13 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             modifiedIt.close();
         }
         
-        if (!dates.isEmpty()) return Collections.max(dates);
-        
-        return null;
+        if (dates.isEmpty()) return null;
+
+        // an origin must not send a Last-Modified later than the time of the response (RFC 9110 8.8.2.1); the dates are
+        // data, and a document can still hold one in the future - written before they were server-managed, or imported
+        Date lastModified = Collections.max(dates);
+        Date now = new Date();
+        return lastModified.after(now) ? now : lastModified;
     }
     
     /**

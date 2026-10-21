@@ -27,6 +27,7 @@
 - Opening the settings dialog no longer replaces the entity tag the browser holds for the current page with the settings', which got the next write to the page refused with `412`; the dialog's save quotes the settings' own tag
 - `ldh create` with a parent URI that lacks its trailing slash creates the document inside it rather than next to it
 - An import that cannot append to an existing document says so, instead of reporting that its `PUT` failed (#456)
+- `PATCH` stamps the document's `dct:modified`, so `Last-Modified` moves with the change and `If-Modified-Since` no longer gets `304` for changed content; `dct:created` and `dct:modified` are server-managed on every write (a client-supplied value in a `PUT`, `POST` or `PATCH` is dropped), and `Last-Modified` is never later than the response (RFC 9110 8.8.2.1)
 
 ## [6.2.3] - 2026-10-21
 ### Migration
