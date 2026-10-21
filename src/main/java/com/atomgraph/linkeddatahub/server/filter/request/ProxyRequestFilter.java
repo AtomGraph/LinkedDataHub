@@ -23,6 +23,7 @@ import com.atomgraph.core.exception.BadGatewayException;
 import com.atomgraph.core.util.ModelUtils;
 import com.atomgraph.linkeddatahub.dataspaces.model.Dataset;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
+import com.atomgraph.linkeddatahub.client.RedirectingClient;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
 import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.io.HtmlJsonLDReaderFactory;
@@ -38,6 +39,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.NotAllowedException;
@@ -212,32 +214,41 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         // plus On-Behalf-Of, which the origin verifies against acl:delegates. Every other request goes out with no
         // certificate and no delegation
         AgentContext agentContext = (AgentContext) requestContext.getProperty(AgentContext.class.getCanonicalName());
-        boolean isDelegated = agentContext != null && isRegisteredApp;
-        WebTarget target = (isDelegated ? getSystem().getExternalClient() : getSystem().getExternalNoCertClient()).target(targetURI);
-        GraphStoreClient.delegate(target, agentContext, isRegisteredApp, requestContext.getUriInfo().getBaseUri().getPath());
+        // a target per redirect hop, delegated only when that hop is one of this instance's dataspaces
+        Function<URI, WebTarget> targets = uri ->
+        {
+            boolean isDataspace = getSystem().matchApp(uri) != null;
+            boolean isDelegated = agentContext != null && isDataspace;
+            WebTarget target = (isDelegated ? getSystem().getExternalClient() : getSystem().getExternalNoCertClient()).target(uri);
+            return GraphStoreClient.delegate(target, agentContext, isDataspace, requestContext.getUriInfo().getBaseUri().getPath());
+        };
 
         MediaType[] clientAcceptTypes = requestContext.getAcceptableMediaTypes().toArray(MediaType[]::new);
         if (log.isDebugEnabled()) log.debug("Proxying {} {} → {}", requestContext.getMethod(), requestContext.getUriInfo().getRequestUri(), targetURI);
 
         try
         {
-            Invocation.Builder builder = target.request().
-                accept(clientAcceptTypes).
-                header(HttpHeaders.USER_AGENT, GraphStoreClient.USER_AGENT);
-
-            // forward conditional request headers so preconditions reach the origin, which owns the
-            // validators - without this the origin sees an unconditional request and a proxied If-Match
-            // write silently loses its optimistic-concurrency guard
-            for (String name : FORWARDED_REQUEST_HEADERS)
+            // redirects are followed here rather than by the client, so that every hop passes the SSRF check above
+            Response clientResponse = new RedirectingClient(getSystem().getURLValidator()).invoke(targets, targetURI, requestContext.getMethod(), (target, method) ->
             {
-                String value = requestContext.getHeaderString(name);
-                if (value != null) builder.header(name, value);
-            }
+                Invocation.Builder builder = target.request().
+                    accept(clientAcceptTypes).
+                    header(HttpHeaders.USER_AGENT, GraphStoreClient.USER_AGENT);
 
-            Response clientResponse = requestContext.hasEntity()
-                ? builder.method(requestContext.getMethod(),
-                    Entity.entity(requestContext.getEntityStream(), requestContext.getMediaType()))
-                : builder.method(requestContext.getMethod());
+                // forward conditional request headers so preconditions reach the origin, which owns the
+                // validators - without this the origin sees an unconditional request and a proxied If-Match
+                // write silently loses its optimistic-concurrency guard
+                for (String name : FORWARDED_REQUEST_HEADERS)
+                {
+                    String value = requestContext.getHeaderString(name);
+                    if (value != null) builder.header(name, value);
+                }
+
+                // the entity goes with the request's own method only: a 303 continues as an entity-less GET
+                return requestContext.hasEntity() && method.equalsIgnoreCase(requestContext.getMethod())
+                    ? builder.method(method, Entity.entity(requestContext.getEntityStream(), requestContext.getMediaType()))
+                    : builder.method(method);
+            });
 
             try (clientResponse)
             {

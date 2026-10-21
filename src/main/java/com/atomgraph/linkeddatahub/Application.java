@@ -774,6 +774,9 @@ public class Application extends ResourceConfig
             
             client = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null, false, connectionRequestTimeout, socketTimeout, connectTimeout, connectionTimeToLive, validateAfterInactivity);
             externalClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null, false, connectionRequestTimeout, socketTimeout, connectTimeout, connectionTimeToLive, validateAfterInactivity);
+            // the Linked Data proxy dereferences URIs from outside: a redirect the connector followed would reach
+            // its target unvalidated, so the proxy follows them itself (RedirectingClient), checking every hop
+            externalClient.property(ClientProperties.FOLLOW_REDIRECTS, false);
             // the external client's twin without the secretary's certificate: the Linked Data proxy's
             // upstream request for a caller who holds no identity, so the origin answers nobody rather
             // than the platform. Same pool sizing and timeouts, and like its twin no retries - a proxied
@@ -1781,6 +1784,7 @@ public class Application extends ResourceConfig
     
     /**
      * Builds HTTP client instance without TLS client certificates.
+     * It does not follow redirects: see {@link com.atomgraph.linkeddatahub.client.RedirectingClient}.
      * 
      * @param trustStore client truststore
      * @param maxConnPerRoute max connections per route
@@ -1836,7 +1840,10 @@ public class Application extends ResourceConfig
             config.register(new SPARQLResultProvider());
             config.register(new QueryProvider());
             config.register(new UpdateRequestProvider()); // TO-DO: UpdateRequestProvider
-            config.property(ClientProperties.FOLLOW_REDIRECTS, true);
+            // no automatic redirects: the no-cert clients dereference URIs from outside (the proxy's anonymous
+            // requests, WebID documents), whose redirects RedirectingClient follows with the SSRF check on every hop.
+            // The backend store, the other use, does not redirect
+            config.property(ClientProperties.FOLLOW_REDIRECTS, false);
             config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED); // https://stackoverflow.com/questions/42139436/jersey-client-throws-cannot-retry-request-with-a-non-repeatable-request-entity
             config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
             config.property(ApacheClientProperties.CONNECTION_MANAGER_SHARED, true); // the pool is not the connector's to shut down: a target with its own filters runs on a connector of its own, which Jersey closes once it is collected - https://github.com/eclipse-ee4j/jersey/issues/4449
