@@ -164,6 +164,17 @@ topic — it would entail that the two topics are the same resource. It writes t
 topic's own type and properties are the constructor's business, and a vocabulary may refuse a topic
 without them (the taxonomy editor package rejects a concept with no `skos:inScheme`).
 
+A container's first content block shows its children, as the `dh:Container` constructor makes it.
+`--no-children-view` leaves it out, and the content is then appended like any other document's. A
+container whose children are laid out in another mode embeds its own view:
+
+```bash
+container=$(ldh create container --parent "$LDH_BASE" --title "Products" --slug products --no-children-view)
+ldh add view --uri '#children' --query https://w3id.org/atomgraph/linkeddatahub#SelectChildren \
+    --mode https://w3id.org/atomgraph/client#GridMode --title "Products" "$container"
+ldh add object-block --value "${container}#children" "$container"
+```
+
 ## Conventions
 
 - Commands that create or append to a document print its URL as the only line on stdout, so shell
@@ -372,6 +383,9 @@ Local certificate tooling (`webid-keygen.sh`, `webid-keygen-pem.sh`, `webid-uri.
 - `create item`/`create container` add `--primary-topic`, which the scripts have no equivalent for:
   they could only create a document that says nothing about what it is about, leaving a `patch` as
   the only way to assert it.
+- `create container` has no `--block` or `--mode`. The script's `--block` wrote a bare `rdf:_1`,
+  which the platform rejects, and its `--mode` built a children view in place; `--no-children-view`
+  followed by `add view` and `add object-block` builds the same content (see above).
 - `push` replaces the apps' `update-folder.sh` together with the `root.ttl` step of their
   `install.sh`: `root.ttl` maps to the target document, so it needs neither the separate `put` nor
   its `.ldhignore` entry. `.ldhignore` applies to the whole subtree, as the apps documentation
