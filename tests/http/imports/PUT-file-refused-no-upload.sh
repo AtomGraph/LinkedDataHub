@@ -13,11 +13,20 @@ clear_ontology
 # ahead. A multipart PUT used to write it before the precondition, the redirect and the constraints were
 # checked, so a refused upload still left the file in the upload folder (#455). Whether bytes are on disk
 # cannot be told over HTTP - an upload no document describes answers 403 either way - so the folder is read
-# directly: the ./uploads bind mount of the platform's docker-compose.yml.
+# inside the platform container, where it has the same path whichever host directory is mounted on it.
 
-uploads="$(realpath "$PWD/../../uploads")"
-echo "DEBUG: upload folder: $uploads"
-[ -d "$uploads" ] || exit 1
+compose=(docker compose -f "$HTTP_TEST_ROOT/../../docker-compose.yml" -f "$HTTP_TEST_ROOT/docker-compose.http-tests.yml" --env-file "$HTTP_TEST_ROOT/.env")
+uploads="/var/www/linkeddatahub/uploads"
+
+# linkeddatahub_exec <command> [args]: runs a command in the linkeddatahub container
+function linkeddatahub_exec() { "${compose[@]}" exec -T linkeddatahub "$@"; }
+
+echo "DEBUG: upload folder: $(linkeddatahub_exec ls -ld "$uploads")"
+
+function assert_no_staged_file()
+{
+    if linkeddatahub_exec ls -A "$uploads" | grep -q '^\.upload-'; then echo "DEBUG: a staged file was left behind"; exit 1; fi
+}
 
 # add agent to the writers group
 
@@ -61,8 +70,8 @@ function upload()
 function assert_not_stored()
 {
     echo "DEBUG: $1"
-    [ ! -e "${uploads}/${sha1sum}" ] || exit 1
-    if ls -A "$uploads" | grep -q '^\.upload-'; then echo "DEBUG: a staged file was left behind"; exit 1; fi
+    if linkeddatahub_exec test -e "${uploads}/${sha1sum}"; then echo "DEBUG: ${sha1sum} was stored"; exit 1; fi
+    assert_no_staged_file
 }
 
 status=$(upload PUT 'If-Match: "bogus"')
@@ -97,7 +106,8 @@ echo "DEBUG: multipart PUT to the URI without a slash. Expected exit: 1 Got: $co
 [ "$code" = 1 ] || exit 1
 assert_not_stored "nothing stored after 308"
 
-# the same upload that goes ahead stores the file under its SHA1
+# the same file appended to the document goes ahead and is stored under its SHA1 (a replace would need the
+# document's own title in the body, which add file does not send)
 
 file_uri=$(ldh add file \
   -c "$AGENT_CERT_KEYSTORE" \
@@ -105,17 +115,16 @@ file_uri=$(ldh add file \
   --title "Accepted upload" \
   --file "$test_file" \
   --content-type application/octet-stream \
-  --replace \
   "$file_doc")
 echo "DEBUG: upload URI: $file_uri"
 [ "$file_uri" = "${END_USER_BASE_URL}uploads/${sha1sum}" ] || exit 1
 
-cmp "$test_file" "${uploads}/${sha1sum}" || exit 1
+linkeddatahub_exec cat "${uploads}/${sha1sum}" | cmp "$test_file" - || exit 1
 
 downloaded=$(curl -k -f -s -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" "$file_uri" | shasum -a 1 | awk '{print $1}')
 echo "DEBUG: downloaded SHA1. Expected: $sha1sum Got: $downloaded"
 [ "$downloaded" = "$sha1sum" ] || exit 1
 
-if ls -A "$uploads" | grep -q '^\.upload-'; then echo "DEBUG: a staged file was left behind"; exit 1; fi
+assert_no_staged_file
 
 rm -f "$test_file"
