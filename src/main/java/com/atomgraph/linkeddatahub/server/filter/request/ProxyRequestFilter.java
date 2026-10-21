@@ -222,14 +222,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         WebTarget target = (agentContext != null ? getSystem().getExternalClient() : getSystem().getExternalNoCertClient()).target(targetURI);
 
         // forward agent identity to the target endpoint
-        if (agentContext != null)
-        {
-            if (agentContext instanceof WebIDSecurityContext)
-                target.register(new WebIDDelegationFilter(agentContext.getAgent()));
-            else if (agentContext instanceof IDTokenSecurityContext idTokenSecurityContext)
-                target.register(new IDTokenDelegationFilter(agentContext.getAgent(),
-                    idTokenSecurityContext.getJWTToken(), requestContext.getUriInfo().getBaseUri().getPath(), null));
-        }
+        delegate(target, agentContext, isRegisteredApp, requestContext.getUriInfo().getBaseUri().getPath());
 
         MediaType[] clientAcceptTypes = requestContext.getAcceptableMediaTypes().toArray(MediaType[]::new);
         if (log.isDebugEnabled()) log.debug("Proxying {} {} → {}", requestContext.getMethod(), requestContext.getUriInfo().getRequestUri(), targetURI);
@@ -274,6 +267,29 @@ public class ProxyRequestFilter implements ContainerRequestFilter
             if (log.isWarnEnabled()) log.warn("Could not dereference proxied URI: {}", targetURI);
             throw new BadGatewayException(ex);
         }
+    }
+
+    /**
+     * Registers the delegation of the caller's identity on the outbound request.
+     * A WebID caller is named in <code>On-Behalf-Of</code>, which the origin verifies against
+     * <code>acl:delegates</code>. An ID token caller's token is a bearer credential: it goes only to this
+     * instance's dataspaces, which verify it themselves. Any other origin could replay it here as the caller, so
+     * there the caller is only named in <code>On-Behalf-Of</code>, like a WebID caller.
+     *
+     * @param target outbound web target
+     * @param agentContext caller's agent context, or null if the caller is anonymous
+     * @param isRegisteredApp true if the target's origin is one of this instance's dataspaces
+     * @param cookiePath path of the delegated ID token cookie
+     */
+    protected void delegate(WebTarget target, AgentContext agentContext, boolean isRegisteredApp, String cookiePath)
+    {
+        if (agentContext == null) return;
+
+        if (agentContext instanceof IDTokenSecurityContext idTokenSecurityContext && isRegisteredApp)
+            target.register(new IDTokenDelegationFilter(agentContext.getAgent(),
+                idTokenSecurityContext.getJWTToken(), cookiePath, null));
+        else if (agentContext instanceof WebIDSecurityContext || agentContext instanceof IDTokenSecurityContext)
+            target.register(new WebIDDelegationFilter(agentContext.getAgent()));
     }
 
     /**

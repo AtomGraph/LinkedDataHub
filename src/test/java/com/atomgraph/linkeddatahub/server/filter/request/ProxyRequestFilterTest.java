@@ -18,7 +18,12 @@ package com.atomgraph.linkeddatahub.server.filter.request;
 
 import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.vocabulary.AC;
+import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
+import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
+import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
+import com.atomgraph.linkeddatahub.server.security.WebIDSecurityContext;
 import jakarta.ws.rs.NotAcceptableException;
+import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
@@ -194,6 +199,58 @@ public class ProxyRequestFilterTest
         assertEquals("Accept, Origin", ProxyRequestFilter.mergeVary("accept", "Origin"), "field names are case-insensitive");
         assertEquals("Accept, Accept-Language, Accept-Encoding", ProxyRequestFilter.mergeVary("Accept,Accept-Language", " Accept-Encoding , accept-language"));
         assertEquals("*", ProxyRequestFilter.mergeVary("Accept", "*"));
+    }
+
+    /** An ID token caller proxying an external origin: the token stays here, the caller is only named */
+    @Test
+    public void testIDTokenNotDelegatedToExternalOrigin()
+    {
+        WebTarget target = mock(WebTarget.class);
+        filter.delegate(target, idTokenContext(), false, "/");
+
+        verify(target, never()).register(isA(IDTokenDelegationFilter.class));
+        verify(target).register(isA(WebIDDelegationFilter.class));
+    }
+
+    /** An ID token caller proxying one of this instance's dataspaces: the token is delegated */
+    @Test
+    public void testIDTokenDelegatedToDataspaceOrigin()
+    {
+        WebTarget target = mock(WebTarget.class);
+        filter.delegate(target, idTokenContext(), true, "/");
+
+        verify(target).register(isA(IDTokenDelegationFilter.class));
+        verify(target, never()).register(isA(WebIDDelegationFilter.class));
+    }
+
+    @Test
+    public void testWebIDDelegatedToAnyOrigin()
+    {
+        WebIDSecurityContext webIDContext = mock(WebIDSecurityContext.class);
+        for (boolean isRegisteredApp : new boolean[] { true, false })
+        {
+            WebTarget target = mock(WebTarget.class);
+            filter.delegate(target, webIDContext, isRegisteredApp, "/");
+
+            verify(target).register(isA(WebIDDelegationFilter.class));
+            verify(target, never()).register(isA(IDTokenDelegationFilter.class));
+        }
+    }
+
+    @Test
+    public void testAnonymousNotDelegated()
+    {
+        WebTarget target = mock(WebTarget.class);
+        filter.delegate(target, null, true, "/");
+
+        verifyNoInteractions(target);
+    }
+
+    private static IDTokenSecurityContext idTokenContext()
+    {
+        IDTokenSecurityContext context = mock(IDTokenSecurityContext.class);
+        lenient().when(context.getJWTToken()).thenReturn("header.payload.signature");
+        return context;
     }
 
 }

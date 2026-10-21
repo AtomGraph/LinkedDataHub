@@ -125,10 +125,68 @@ public class JWTVerifierTest
         assertFalse(JWTVerifier.verify(jwt, JWKS_ENDPOINT, allowedIssuers, CLIENT_ID, null, jwksCache));
     }
 
+    /** A genuine token that has expired still verifies its signature: its holder may have it refreshed */
+    @Test
+    public void testSignatureOfExpiredTokenVerifies()
+    {
+        DecodedJWT jwt = JWT.decode(createToken(ISSUER, CLIENT_ID, KID, Instant.now().minusSeconds(3600), keyPair));
+        assertTrue(JWTVerifier.verifySignature(jwt, JWKS_ENDPOINT, allowedIssuers, CLIENT_ID, null, jwksCache));
+    }
+
+    @Test
+    public void testSignatureWithWrongKeyRejected()
+    {
+        DecodedJWT jwt = JWT.decode(createToken(ISSUER, CLIENT_ID, KID, Instant.now().minusSeconds(3600), otherKeyPair));
+        assertFalse(JWTVerifier.verifySignature(jwt, JWKS_ENDPOINT, allowedIssuers, CLIENT_ID, null, jwksCache));
+    }
+
+    @Test
+    public void testUnsignedTokenRejected()
+    {
+        DecodedJWT jwt = JWT.decode(createToken(ISSUER, CLIENT_ID, KID, Instant.now().minusSeconds(3600), Algorithm.none()));
+        assertFalse(JWTVerifier.verifySignature(jwt, JWKS_ENDPOINT, allowedIssuers, CLIENT_ID, null, jwksCache));
+        assertFalse(JWTVerifier.verify(jwt, JWKS_ENDPOINT, allowedIssuers, CLIENT_ID, null, jwksCache));
+    }
+
+    /** An HMAC token keyed with something public (here the published modulus) must not pass as the provider's */
+    @Test
+    public void testHmacTokenRejected()
+    {
+        byte[] secret = ((RSAPublicKey) keyPair.getPublic()).getModulus().toByteArray();
+        DecodedJWT jwt = JWT.decode(createToken(ISSUER, CLIENT_ID, KID, Instant.now().plusSeconds(300), Algorithm.HMAC256(secret)));
+        assertFalse(JWTVerifier.verifySignature(jwt, JWKS_ENDPOINT, allowedIssuers, CLIENT_ID, null, jwksCache));
+        assertFalse(JWTVerifier.verify(jwt, JWKS_ENDPOINT, allowedIssuers, CLIENT_ID, null, jwksCache));
+    }
+
+    @Test
+    public void testSignatureWithWrongIssuerRejected()
+    {
+        DecodedJWT jwt = JWT.decode(createToken("https://evil.example", CLIENT_ID, KID, Instant.now().plusSeconds(300), keyPair));
+        assertFalse(JWTVerifier.verifySignature(jwt, JWKS_ENDPOINT, allowedIssuers, CLIENT_ID, null, jwksCache));
+    }
+
+    @Test
+    public void testSignatureWithWrongAudienceRejected()
+    {
+        DecodedJWT jwt = JWT.decode(createToken(ISSUER, "some-other-client", KID, Instant.now().plusSeconds(300), keyPair));
+        assertFalse(JWTVerifier.verifySignature(jwt, JWKS_ENDPOINT, allowedIssuers, CLIENT_ID, null, jwksCache));
+    }
+
+    @Test
+    public void testSignatureWithUnknownKeyIdRejected()
+    {
+        DecodedJWT jwt = JWT.decode(createToken(ISSUER, CLIENT_ID, "unknown-key", Instant.now().plusSeconds(300), keyPair));
+        assertFalse(JWTVerifier.verifySignature(jwt, JWKS_ENDPOINT, allowedIssuers, CLIENT_ID, null, jwksCache));
+    }
+
     private static String createToken(String issuer, String audience, String kid, Instant expiresAt, KeyPair signingKeyPair)
     {
-        Algorithm algorithm = Algorithm.RSA256((RSAPublicKey) signingKeyPair.getPublic(), (RSAPrivateKey) signingKeyPair.getPrivate());
+        return createToken(issuer, audience, kid, expiresAt,
+            Algorithm.RSA256((RSAPublicKey) signingKeyPair.getPublic(), (RSAPrivateKey) signingKeyPair.getPrivate()));
+    }
 
+    private static String createToken(String issuer, String audience, String kid, Instant expiresAt, Algorithm algorithm)
+    {
         JWTCreator.Builder builder = JWT.create().
             withIssuer(issuer).
             withAudience(audience).

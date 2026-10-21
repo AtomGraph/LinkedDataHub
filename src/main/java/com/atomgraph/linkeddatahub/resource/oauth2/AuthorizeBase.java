@@ -21,6 +21,8 @@ import com.atomgraph.linkeddatahub.dataspaces.model.Dataspace;
 import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import java.math.BigInteger;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.UUID;
@@ -86,12 +88,19 @@ public abstract class AuthorizeBase
             path(getLoginClass()).
             build();
 
+        // the login redirects to the referer with the ID token in the fragment, so it may only be one of this instance's dataspaces
+        URI referer = checkReferer(getSystem(), getEndUserDataspace().getBaseURI(), originUri);
+
         String state = new BigInteger(130, new SecureRandom()).toString(32);
-        String stateValue = Base64.getEncoder().encodeToString((state + ";" + originUri).getBytes());
-        // Cookie path is "/" to make it accessible across all dataspaces
+        String stateValue = Base64.getEncoder().encodeToString((state + ";" + referer).getBytes(StandardCharsets.UTF_8));
+        // Cookie path is "/" to make it accessible across all dataspaces. Lax, not Strict: the provider's redirect back to
+        // the login endpoint is a cross-site top-level navigation, which has to carry it
         NewCookie stateCookie = new NewCookie.Builder(COOKIE_NAME).
             value(stateValue).
             path("/").
+            secure(true).
+            httpOnly(true).
+            sameSite(NewCookie.SameSite.LAX).
             build();
 
         UriBuilder authUriBuilder = getAuthorizeUriBuilder(getAuthorizeEndpoint(), getClientID(), redirectUri.toString(), getScope(), stateValue, UUID.randomUUID().toString());
@@ -99,6 +108,42 @@ public abstract class AuthorizeBase
         return Response.seeOther(authUriBuilder.build()).
             cookie(stateCookie).
             build();
+    }
+
+    /**
+     * Returns the URI to redirect to after login, if the referer is safe to send an ID token to.
+     * That is the referer resolved against the base, when it is an HTTP(S) URI on the origin of one of this instance's
+     * dataspaces; its fragment is dropped, since the login appends its own. Anything else (another origin, another
+     * scheme, a malformed URI, none at all) gives the base.
+     *
+     * @param system JAX-RS application, which knows the registered dataspaces
+     * @param base base URI of the current dataspace, and the fallback
+     * @param referer referer as given by the client, may be null
+     * @return referer URI, or the base
+     */
+    public static URI checkReferer(com.atomgraph.linkeddatahub.Application system, URI base, String referer)
+    {
+        if (referer == null || referer.isBlank()) return base;
+
+        try
+        {
+            URI uri = base.resolve(new URI(referer));
+            if (!"https".equalsIgnoreCase(uri.getScheme()) && !"http".equalsIgnoreCase(uri.getScheme())) return base;
+            if (uri.getHost() == null || uri.getRawUserInfo() != null) return base;
+            if (system.matchApp(uri) == null)
+            {
+                if (log.isWarnEnabled()) log.warn("OAuth referer <{}> is not a registered dataspace, using <{}>", uri, base);
+                return base;
+            }
+
+            String uriString = uri.toString();
+            int hash = uriString.indexOf('#');
+            return hash < 0 ? uri : URI.create(uriString.substring(0, hash));
+        }
+        catch (URISyntaxException | IllegalArgumentException ex)
+        {
+            return base;
+        }
     }
 
     /**
