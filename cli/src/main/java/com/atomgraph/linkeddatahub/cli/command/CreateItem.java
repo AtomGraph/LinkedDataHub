@@ -25,7 +25,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
 /**
- * Creates an item document. Mirrors <code>bin/create-item.sh</code>.
+ * Creates an item document.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */

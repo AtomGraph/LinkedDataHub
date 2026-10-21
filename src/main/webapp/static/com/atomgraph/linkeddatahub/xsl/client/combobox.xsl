@@ -124,7 +124,7 @@ version="3.0"
             </xsl:when>
             <!-- a lookup that failed says so where its suggestions would have been, rather than looking like it found nothing -->
             <xsl:otherwise>
-                <xsl:sequence select="ldh:render-failure($menu, 'block-values-failed', ac:http-error-key(?status), ldh:response-detail(.))"/>
+                <xsl:sequence select="ldh:render-failure($menu, 'block-values-failed', ldh:http-error-key(.), ldh:response-detail(.))"/>
 
                 <xsl:call-template name="ldh:ComboboxShow">
                     <xsl:with-param name="element" select="$element"/>

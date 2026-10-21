@@ -166,6 +166,9 @@ public class LDHC
     /** Max content length property */
     public static final Property maxContentLength = m_model.createDataProperty( NS + "maxContentLength" );
 
+    /** Max length of a SPARQL endpoint query result, in bytes */
+    public static final Property maxQueryResponseLength = m_model.createDataProperty( NS + "maxQueryResponseLength" );
+
     /** Support languages property */
     public static final Property supportedLanguages = m_model.createDataProperty( NS + "supportedLanguages" );
 

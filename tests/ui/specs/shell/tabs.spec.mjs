@@ -9,9 +9,9 @@
 // The apps menu is the other half: it lists the dataspaces this instance serves, each as a link
 // to its origin. Its behaviour as a menu belongs to controls/menu; what it HOLDS is here.
 import { test, expect } from '../../lib/console.mjs';
-import { goto, settled } from '../../lib/settle.mjs';
-import { fixtures, itemUri } from '../../lib/fixtures.mjs';
-import { inMode, MAP_MODE } from '../../lib/mode.mjs';
+import { goto, loaded, settled } from '../../lib/settle.mjs';
+import { fixtures, itemUri, remoteDocument, remoteDocumentTitle } from '../../lib/fixtures.mjs';
+import { inMode, MAP_MODE, READ_MODE } from '../../lib/mode.mjs';
 import { apps, strip } from '../../lib/tabs.mjs';
 
 test.beforeEach(({}, testInfo) => {
@@ -98,4 +98,90 @@ test('a map in the first tab is not initialized again when a second dataspace op
 
     // Before the fix a second map was created into this canvas, and a second set of controls showed.
     await expect(canvas.locator('.ol-viewport'), 'a second map was created in the first tab\'s map canvas').toHaveCount(1);
+});
+
+// A pane records the status of the response it renders (data-status), and a switch to a tab whose pane shows its document
+// as it loaded - a 200 - shows the pane as it is, where any other tab loads its document again. Both tabs in ReadMode,
+// the mode a remote document opens in: a tab whose link names another mode than the page being left is navigated to
+// and loaded again, by design, whatever the pane holds.
+const activePane = page => page.locator('#tab-content div.ldh-pane.is-active');
+const tabOf = (page, uri) => page.locator(`#tab-bar-list li[data-uri="${uri}"]`);
+const allowPrefixCc = allowNoise => allowNoise.push({
+    pattern: /prefix\.cc/,
+    reason: 'YASQE 2 fetches http://prefix.cc for prefix completion, blocked as mixed content (as in query.spec.mjs)',
+});
+
+// the documents' own loads: the local one by its URI, the remote one through the proxy (?uri=)
+function loadsOf(page, remote) {
+    const loads = [];
+    page.on('request', request => {
+        if (request.method() !== 'GET') return;
+        if (request.url() === fixtures.container || new URL(request.url()).searchParams.get('uri') === remote)
+            loads.push(`${request.resourceType()} ${request.headers()['accept'] ?? '-'} ${request.url()}`);
+    });
+    return loads;
+}
+
+async function openRemote(page, remote) {
+    await page.locator('form.ldh-address input#uri').fill(remote);
+    await page.locator('form.ldh-address input#uri').press('Enter');
+    await expect(tabOf(page, remote)).toHaveCount(1, { timeout: 30_000 });
+    await expect(activePane(page).locator('div.document-body')).toHaveAttribute('about', remote, { timeout: 30_000 });
+}
+
+test('a page that was opened records that its document loaded', { tag: '@owner' }, async ({ page, allowNoise }) => {
+    allowPrefixCc(allowNoise);
+    await goto(page, inMode(fixtures.container, READ_MODE));
+
+    await expect(activePane(page)).toHaveAttribute('data-status', '200', { timeout: 30_000 });
+});
+
+test('switching back to a tab shows its pane without loading the document again', { tag: '@owner' }, async ({ page, allowNoise }) => {
+    allowPrefixCc(allowNoise);
+    const remote = remoteDocument();
+    await goto(page, inMode(fixtures.container, READ_MODE));
+    await expect(activePane(page)).toHaveAttribute('data-status', '200', { timeout: 30_000 });
+    await loaded(page);
+    await openRemote(page, remote);
+    await expect(activePane(page)).toHaveAttribute('data-status', '200');
+
+    const loads = loadsOf(page, remote);
+    await tabOf(page, fixtures.container).locator('a').click();
+    await expect(activePane(page).locator('div.document-body')).toHaveAttribute('about', fixtures.container);
+    await tabOf(page, remote).locator('a').click();
+    await expect(activePane(page).locator('div.document-body')).toHaveAttribute('about', remote);
+    await tabOf(page, fixtures.container).locator('a').click();
+    await expect(activePane(page).locator('div.document-body')).toHaveAttribute('about', fixtures.container);
+
+    // the switches settle synchronously; anything they sent would have been issued by now
+    await page.waitForTimeout(1_000);
+    expect(loads, 'a tab switch loaded a document again').toEqual([]);
+});
+
+test('a tab whose document failed to load loads it again when switched back to', { tag: '@owner' }, async ({ page, allowNoise }) => {
+    allowPrefixCc(allowNoise);
+    allowNoise.push({ pattern: /HTTP 401|status of 401/, reason: 'the spec fails the remote document\'s first load on purpose' });
+    const remote = remoteDocument();
+    const isProxied = url => new URL(url).searchParams.get('uri') === remote;
+    await goto(page, inMode(fixtures.container, READ_MODE));
+    await expect(activePane(page)).toHaveAttribute('data-status', '200', { timeout: 30_000 });
+    await loaded(page);
+
+    // the first load is refused; the error renders in the remote document's own tab, and the pane records it
+    await page.route(isProxied, route => route.request().resourceType() === 'document' ? route.fallback()
+        : route.fulfill({ status: 401, contentType: 'text/html', body: '<html><body>401</body></html>' }));
+    await openRemote(page, remote);
+    await expect(activePane(page)).toHaveAttribute('data-status', '401');
+
+    await tabOf(page, fixtures.container).locator('a').click();
+    await expect(activePane(page).locator('div.document-body')).toHaveAttribute('about', fixtures.container);
+
+    // the remote document answers now, and switching back asks it again rather than showing the error it left
+    await page.unroute(isProxied);
+    const loads = loadsOf(page, remote);
+    await tabOf(page, remote).locator('a').click();
+    await expect(activePane(page).locator('div.document-body')).toHaveAttribute('about', remote);
+    await expect(activePane(page)).toHaveAttribute('data-status', '200', { timeout: 30_000 });
+    await expect(activePane(page).locator('div.document-body')).toContainText(remoteDocumentTitle, { timeout: 30_000 });
+    expect(loads.length, 'switching back loaded the document again').toBeGreaterThan(0);
 });

@@ -27,7 +27,7 @@ import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 
 /**
- * Creates a new ontology document. Mirrors <code>bin/admin/ontologies/create-ontology.sh</code>.
+ * Creates a new ontology document.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */

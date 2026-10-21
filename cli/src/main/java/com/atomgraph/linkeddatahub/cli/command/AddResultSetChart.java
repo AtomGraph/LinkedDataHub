@@ -19,12 +19,13 @@ package com.atomgraph.linkeddatahub.cli.command;
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
 import com.atomgraph.linkeddatahub.rdf.Views;
 import java.net.URI;
+import java.util.List;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 /**
- * Appends a chart of SPARQL SELECT results to a document. Mirrors <code>bin/add-result-set-chart.sh</code>.
+ * Appends a chart of SPARQL SELECT results to a document.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -50,8 +51,8 @@ public class AddResultSetChart extends BaseCommand
     @Option(names = "--category-var-name", required = true, paramLabel = "VAR_NAME", description = "Name of the category variable")
     private String categoryVarName;
 
-    @Option(names = "--series-var-name", required = true, paramLabel = "VAR_NAME", description = "Name of the series variable")
-    private String seriesVarName;
+    @Option(names = "--series-var-name", required = true, paramLabel = "VAR_NAME", description = "Name of a series variable (repeatable; the chart orders them as the query projects them)")
+    private List<String> seriesVarNames;
 
     @Parameters(paramLabel = "TARGET_URI", description = "URI of the document")
     private URI target;
@@ -59,7 +60,7 @@ public class AddResultSetChart extends BaseCommand
     @Override
     public Integer call() throws Exception
     {
-        post(getClient(), target, Views.resultSetChart(target, uri, title, query, chartType, categoryVarName, seriesVarName, description));
+        post(getClient(), target, Views.resultSetChart(target, uri, title, query, chartType, categoryVarName, seriesVarNames, description));
         print(target);
 
         return 0;

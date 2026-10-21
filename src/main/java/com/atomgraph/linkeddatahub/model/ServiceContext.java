@@ -22,8 +22,10 @@ import com.atomgraph.core.client.QuadStoreClient;
 import com.atomgraph.core.client.SPARQLClient;
 import com.atomgraph.core.model.EndpointAccessor;
 import com.atomgraph.core.model.impl.remote.EndpointAccessorImpl;
+import com.atomgraph.linkeddatahub.client.filter.ResponseLengthLimitFilter;
 import com.atomgraph.linkeddatahub.client.filter.UnlimitedContentLengthFilter;
 import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientRequestFilter;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.UriBuilder;
 import java.net.URI;
@@ -106,6 +108,20 @@ public class ServiceContext
      */
     public SPARQLClient getSPARQLClient(WebTarget webTarget)
     {
+        // this service is this deployment's own store, not an origin the content limit is meant to bound.
+        // Registered per client rather than taken off the outbound client, which also dereferences WebIDs
+        return getSPARQLClient(webTarget, new UnlimitedContentLengthFilter());
+    }
+
+    /**
+     * Creates a SPARQL Protocol client for the specified URI web target, its responses bounded by the given filter.
+     *
+     * @param webTarget URI web target
+     * @param lengthFilter filter that sets the response length limit
+     * @return SPARQL client
+     */
+    protected SPARQLClient getSPARQLClient(WebTarget webTarget, ClientRequestFilter lengthFilter)
+    {
         SPARQLClient sparqlClient;
 
         if (getMaxGetRequestSize() != null)
@@ -113,9 +129,7 @@ public class ServiceContext
         else
             sparqlClient = SPARQLClient.create(getMediaTypes(), webTarget);
 
-        // this service is this deployment's own store, not an origin the content limit is meant to bound.
-        // Registered per client rather than taken off the outbound client, which also dereferences WebIDs
-        sparqlClient.getEndpoint().register(new UnlimitedContentLengthFilter());
+        sparqlClient.getEndpoint().register(lengthFilter);
 
         if (getService().getAuthUser() != null && getService().getAuthPwd() != null)
         {
@@ -137,6 +151,20 @@ public class ServiceContext
     public EndpointAccessor getEndpointAccessor()
     {
         return new EndpointAccessorImpl(getSPARQLClient());
+    }
+
+    /**
+     * Returns the endpoint accessor that answers HTTP callers of this service's SPARQL endpoint.
+     * Unlike {@link #getEndpointAccessor()}, which the platform's own lookups use, a result longer than the
+     * given limit is refused: the endpoint buffers it whole, and so does whatever receives it.
+     *
+     * @param maxResponseLength maximum length of the store's response in bytes
+     * @return endpoint accessor
+     */
+    public EndpointAccessor getQueryEndpointAccessor(int maxResponseLength)
+    {
+        return new EndpointAccessorImpl(getSPARQLClient(getClient().target(getProxiedURI(URI.create(getService().getSPARQLEndpoint().getURI()))),
+            new ResponseLengthLimitFilter(maxResponseLength)));
     }
 
     /**

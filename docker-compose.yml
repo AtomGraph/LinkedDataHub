@@ -66,6 +66,7 @@ services:
       - SELF_SIGNED_CERT=true # only on localhost
       - SIGN_UP_CERT_VALIDITY=180
       - MAX_CONTENT_LENGTH=${MAX_CONTENT_LENGTH:-2097152}
+      - MAX_QUERY_RESPONSE_LENGTH=${MAX_QUERY_RESPONSE_LENGTH:-} # 5 MiB unless set (Application.DEFAULT_MAX_QUERY_RESPONSE_LENGTH)
       - ALLOW_INTERNAL_URLS=${ALLOW_INTERNAL_URLS:-}
       - ENABLE_SITEMAP=${ENABLE_SITEMAP:-} # opt-in: /sitemap.xml queries every public document of the dataspace
       - COMPOSE_PROFILES=${COMPOSE_PROFILES:-} # the "assistant" profile also makes the UI offer the assistant (entrypoint.sh)
@@ -215,7 +216,7 @@ services:
       - linkeddatahub
     tmpfs: /var/lib/varnish/varnishd:exec
     entrypoint: varnishd
-    command: [ "-F", "-f", "/etc/varnish/default.vcl", "-a", "http=:80,HTTP", "-a", "proxy=:8443,PROXY", "-p", "feature=+http2", "-s", "malloc,1G", "-t", "86400", "-p", "timeout_idle=60s" ] # -F: foreground, -f: config, -a: listeners, -p: http2 + idle timeout, -s: storage, -t: TTL
+    command: [ "-F", "-f", "/etc/varnish/default.vcl", "-a", "http=:80,HTTP", "-a", "proxy=:8443,PROXY", "-p", "feature=+http2", "-s", "main=malloc,1G", "-s", "sparql=malloc,${VARNISH_SPARQL_STORAGE:-64M}", "-t", "86400", "-p", "timeout_idle=60s" ] # -F: foreground, -f: config, -a: listeners, -p: http2 + idle timeout, -s: storage (main, and one for SPARQL results), -t: TTL
   varnish-end-user:
     image: varnish:7.7.3
     user: root # otherwise varnish user does not have permissions to the mounted folder which is owner by root
@@ -228,7 +229,7 @@ services:
     volumes:
       - varnish_end_user_cache:/var/lib/varnish
     entrypoint: varnishd
-    command: [ "-F", "-f", "/etc/varnish/default.vcl", "-a", "http=:80,HTTP", "-a", "proxy=:8443,PROXY", "-p", "feature=+http2", "-s", "file,/var/lib/varnish/storage.bin,3G", "-t", "86400", "-p", "timeout_idle=60s" ] # -F: foreground, -f: config, -a: listeners, -p: http2 + idle timeout, -s: storage, -t: TTL
+    command: [ "-F", "-f", "/etc/varnish/default.vcl", "-a", "http=:80,HTTP", "-a", "proxy=:8443,PROXY", "-p", "feature=+http2", "-s", "main=file,/var/lib/varnish/storage.bin,3G", "-s", "sparql=malloc,${VARNISH_SPARQL_STORAGE:-64M}", "-t", "86400", "-p", "timeout_idle=60s" ] # -F: foreground, -f: config, -a: listeners, -p: http2 + idle timeout, -s: storage (main, and one for SPARQL results), -t: TTL
   email-server:
     image: namshi/smtp
     environment:
@@ -488,6 +489,7 @@ configs:
       vcl 4.0;
 
       import std;
+      import bodyaccess;
 
       backend default {
           .host = "${VARNISH_FRONTEND_BACKEND_HOST:-linkeddatahub}";
@@ -535,6 +537,25 @@ configs:
               return (pipe);
           }
 
+          # Anonymous SPARQL queries are cached on their body. The platform's client POSTs every query (the
+          # SPARQL 1.1 Protocol's "query via POST"), and a URL-keyed cache cannot tell two of those apart, so
+          # without this every visitor's views reach the platform. Only reads are cached - a query body, never
+          # an update - and only anonymous ones, for the same reason the GET branch below passes authenticated
+          # requests: the response would carry the agent's identity. Bodies over 64 KB pass.
+          if (req.method == "POST" && req.url ~ "^/(sparql|ns)(\?|$)" &&
+            !req.http.Client-Cert && !req.http.On-Behalf-Of && req.http.Cookie !~ "LinkedDataHub\.id_token=" &&
+            (req.http.Content-Type ~ "^application/sparql-query" || req.http.Content-Type ~ "^application/x-www-form-urlencoded")) {
+              if (std.cache_req_body(64KB)) {
+                  if (req.http.Content-Type ~ "^application/sparql-query" ||
+                    (bodyaccess.rematch_req_body("(^|&)query=") == 1 && bodyaccess.rematch_req_body("(^|&)update=") == 0)) {
+                      set req.http.X-SPARQL-Query = "cache";
+                      unset req.http.Cookie;
+                      return (hash);
+                  }
+              }
+          }
+          unset req.http.X-SPARQL-Query;
+
           if (req.method != "GET" && req.method != "HEAD") {
               /* We only deal with GET and HEAD by default */
               return (pass);
@@ -576,7 +597,33 @@ configs:
           return (hash);
       }
 
+      sub vcl_hash {
+          # a cached query is keyed on its body as well as the URL (and, through Vary, the Accept header)
+          if (req.http.X-SPARQL-Query == "cache") {
+              bodyaccess.hash_req_body();
+          }
+      }
+
+      sub vcl_backend_fetch {
+          # a cache miss is fetched as a GET unless told otherwise; the query is the POST's body
+          if (bereq.http.X-SPARQL-Query == "cache") {
+              set bereq.method = "POST";
+          }
+      }
+
       sub vcl_backend_response {
+          if (bereq.http.X-SPARQL-Query == "cache") {
+              # an error is not kept; a result is kept for an hour at most, and dropped by any write (below)
+              if (beresp.status != 200) {
+                  set beresp.uncacheable = true;
+                  set beresp.ttl = 0s;
+              } else {
+                  set beresp.ttl = 1h;
+                  set beresp.http.X-SPARQL-Query = "cached";
+              }
+              return (deliver);
+          }
+
           /* Add Vary: Origin for static files to enable proper CORS caching */
           if (bereq.url ~ "^/static/") {
               if (beresp.http.Vary) {
@@ -590,6 +637,8 @@ configs:
           if ((beresp.status == 200 || beresp.status == 201 || beresp.status == 204) && bereq.method ~ "POST|PUT|DELETE|PATCH") {
               set beresp.http.X-LinkedDataHub = "Banned";
               ban("req.url == " + bereq.url + " && req.http.host == " + bereq.http.host);
+              # a write can change any query's result
+              ban("obj.http.X-SPARQL-Query == cached");
           }
 
           /* NS (ontology) SPARQL queries from authenticated clients are cache-busted per-request with _nc;
@@ -601,6 +650,10 @@ configs:
           }
 
           return (deliver);
+      }
+
+      sub vcl_deliver {
+          unset resp.http.X-SPARQL-Query;
       }
   varnish-admin_vcl:
     content: |
@@ -688,6 +741,17 @@ configs:
               set beresp.http.xkey = bereq.http.X-Xkey-Promote;
           }
 
+          /* SPARQL results get a store of their own, so a result too large for it ends the fetch there: a cached fetch runs
+             on after its client has gone - the platform refusing an oversize result included - and would otherwise go on
+             filling the main store while the triplestore keeps evaluating the query. Failing the fetch closes the backend
+             connection, which is what makes the triplestore abandon the query. Everything else is sent to the main store by
+             name: left unset, Varnish spreads objects across both stores in turn */
+          if (bereq.url ~ "\?(query|default-graph-uri|named-graph-uri)=") {
+              set beresp.storage = storage.sparql;
+          } else {
+              set beresp.storage = storage.main;
+          }
+
           return (deliver);
       }
   varnish-end-user_vcl:
@@ -754,6 +818,17 @@ configs:
               ban("req.url == " + bereq.url + " && req.http.host == " + bereq.http.host);
               /* SPARQL query results depend on dataset state — any write invalidates every cached query. */
               ban("req.url ~ \?(query|default-graph-uri|named-graph-uri)=");
+          }
+
+          /* SPARQL results get a store of their own, so a result too large for it ends the fetch there: a cached fetch runs
+             on after its client has gone - the platform refusing an oversize result included - and would otherwise go on
+             filling the main store while the triplestore keeps evaluating the query. Failing the fetch closes the backend
+             connection, which is what makes the triplestore abandon the query. Everything else is sent to the main store by
+             name: left unset, Varnish spreads objects across both stores in turn */
+          if (bereq.url ~ "\?(query|default-graph-uri|named-graph-uri)=") {
+              set beresp.storage = storage.sparql;
+          } else {
+              set beresp.storage = storage.main;
           }
 
           return (deliver);

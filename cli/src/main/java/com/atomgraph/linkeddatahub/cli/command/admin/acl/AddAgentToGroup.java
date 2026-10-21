@@ -25,7 +25,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 /**
- * Adds an agent to a group. Mirrors <code>bin/admin/acl/add-agent-to-group.sh</code>.
+ * Adds an agent to a group.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */

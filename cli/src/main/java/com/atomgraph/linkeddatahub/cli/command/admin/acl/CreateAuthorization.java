@@ -32,7 +32,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.ParameterException;
 
 /**
- * Creates an ACL authorization. Mirrors <code>bin/admin/acl/create-authorization.sh</code>.
+ * Creates an ACL authorization.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */

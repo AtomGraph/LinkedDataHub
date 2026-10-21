@@ -24,7 +24,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 /**
- * Adds a constraint that makes a property required. Mirrors <code>bin/admin/ontologies/add-property-constraint.sh</code>.
+ * Adds a constraint that makes a property required.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */

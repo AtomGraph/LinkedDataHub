@@ -246,6 +246,10 @@ _:warning: Do not use blank nodes to identify applications or services. We recom
     <dd>The period for which the data import can keep an open HTTP connection before it times out, in ms. The larger files are being imported, the longer it has to be in order for the import to complete.</dd>
     <dt><code>MAX_CONTENT_LENGTH</code></dt>
     <dd>Maximum allowed size of the request body, in bytes</dd>
+    <dt><code>MAX_QUERY_RESPONSE_LENGTH</code></dt>
+    <dd>Maximum length of a query result the <code>/sparql</code> endpoint answers with, in bytes. A longer one is refused with <code>502</code>. 5242880 (5 MiB) by default</dd>
+    <dt><code>VARNISH_SPARQL_STORAGE</code></dt>
+    <dd>Size of the store the Varnish caches in front of the triplestore keep SPARQL results in, apart from their main one (Varnish size syntax, e.g. <code>64M</code>). A result too large for it ends the fetch, and the triplestore abandons the query, which bounds what one runaway query costs. <code>64M</code> by default</dd>
     <dt><code>COMPOSE_PROFILES</code></dt>
     <dd><code>assistant</code> to run and offer the <a href="#assistant">assistant</a>. Disabled by default</dd>
     <dt><code>MAIL_SMTP_HOST</code></dt>
@@ -307,7 +311,7 @@ ldh create item --container "${LDH_BASE}concepts/" --title "Example" --slug exam
 
 Commands that create or append to a document print its URL as the only line on stdout, so they compose in shell pipelines: `item=$(ldh create item ...)`. Commands group by verb — `ldh create container`, `ldh add xhtml-block`, `ldh import csv`, `ldh admin create group` — with `import` holding the workflows that compose the atomic commands. See [`cli/README.md`](https://github.com/AtomGraph/LinkedDataHub/blob/master/cli/README.md) for the full command table and the differences from the scripts.
 
-_:warning: The `bin/` HTTP API scripts that `ldh` replaces are **deprecated**. The certificate and WebID tooling (`webid-keygen.sh`, `webid-keygen-pem.sh`, `webid-uri.sh`, `webid-modulus.sh`, `server-cert-gen.sh`) talks to no API and stays in `bin/`._
+_:warning: The `bin/` HTTP API scripts that `ldh` replaces have been **removed**; the [migration table](https://github.com/AtomGraph/LinkedDataHub/blob/master/cli/README.md#script--command-migration) maps each to its command. The certificate and WebID tooling (`webid-keygen.sh`, `webid-keygen-pem.sh`, `webid-uri.sh`, `webid-modulus.sh`, `server-cert-gen.sh`) talks to no API and stays in `bin/`._
 
 ## Sample applications
 

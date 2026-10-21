@@ -887,7 +887,7 @@ exclude-result-prefixes="#all"
             <xsl:when test="ldh:writable-response($response)">
                 <!-- The HEAD that decided writability also carries the validator, so the save can write
                      conditionally without a request of its own. Every other PATCH in the client sends
-                     If-Match from LinkedDataHub.contents, which holds only documents the browser navigated
+                     If-Match from LinkedDataHub.etags, which holds only documents the browser navigated
                      to - and the documents edited here are ontologies it never loaded. -->
                 <xsl:for-each select="$fieldset[exists($response?headers?etag)]">
                     <ixsl:set-attribute name="data-etag" select="$response?headers?etag"/>
@@ -1185,7 +1185,7 @@ exclude-result-prefixes="#all"
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
-        <xsl:sequence select="ldh:render-failure(($context?form//div[contains-token(@class, 'ac-modal-body')])[1], 'constructor-not-updated', ac:http-error-key($response?status), ldh:response-detail($response))"/>
+        <xsl:sequence select="ldh:render-failure(($context?form//div[contains-token(@class, 'ac-modal-body')])[1], 'constructor-not-updated', ldh:http-error-key($response), ldh:response-detail($response))"/>
     </xsl:function>
 
     <xsl:template name="ldh:ClearNamespace">

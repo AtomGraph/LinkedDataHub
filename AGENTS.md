@@ -47,13 +47,13 @@ Writes go through the **document URLs**, never through the SPARQL endpoint (whic
 | Create a document at a URL you choose | `PUT` document URL | RDF (e.g. `Content-Type: text/turtle`) | `201` with `Location` = that URL. The parent container must already exist |
 | Replace an existing document | `PUT` document URL | RDF | `200`; replaces the whole named graph |
 | Append to a document | `POST` document URL | RDF | `204` with the updated `ETag`; merges into the named graph |
-| Update a document in place | `PATCH` document URL | `Content-Type: application/sparql-update` | `204` with the updated `ETag`; a SPARQL Update (`INSERT`/`DELETE`) applied to that named graph |
+| Update a document in place | `PATCH` document URL | `Content-Type: application/sparql-update` | `204` with the updated `ETag`; one SPARQL Update, `INSERT`/`DELETE … WHERE` or `DELETE WHERE`, applied to that named graph |
 | Delete a document | `DELETE` document URL | — | Removes the named graph |
 | Upload a file | `POST`/`PUT` document URL | `multipart/form-data` | The file is content-addressed at `{base}uploads/{sha1}` |
 
 There is no LDP-style `POST` to a container that mints a child URL: the client picks the URL (a slug, or a UUID), and `PUT` creates it. Relative URIs in a request body resolve against the target URL. Blank nodes are skolemized against it.
 
-The `PATCH` update is executed in the context of the one named graph, so the `GRAPH` keyword is not allowed in it. An update that empties the graph is treated as a `DELETE`. An update that strips `rdf:type` off a resource that keeps other properties answers `422` — SPIN constraints are class-scoped, and removing the type would bypass them silently. So does a result that violates the ontology's SHACL shapes, carrying bounded descriptions of the violating resources.
+The `PATCH` body is a single SPARQL Update operation in a pattern-matching form: `INSERT { … } WHERE { … }`, `DELETE { … } INSERT { … } WHERE { … }`, `DELETE { … } WHERE { … }` or `DELETE WHERE { … }`. `INSERT DATA`, `DELETE DATA` and a request of several operations answer `422`; write a ground triple as `INSERT { <s> <p> <o> } WHERE { }`. The update is executed in the context of the one named graph, so the `GRAPH` keyword is not allowed in it (`422`). An update that empties the graph is treated as a `DELETE`. An update that strips `rdf:type` off a resource that keeps other properties answers `422` — SPIN constraints are class-scoped, and removing the type would bypass them silently. So does a result that violates the ontology's SHACL shapes, carrying bounded descriptions of the violating resources.
 
 ### Conditional writes are mandatory
 
@@ -85,7 +85,8 @@ Outbound `SERVICE` and `LOAD` — from the triplestore and from the platform ali
 
 - Documents carry ordered **content blocks**, attached by RDF container membership properties — `rdf:_1`, `rdf:_2`, … on the document resource. Reordering a block rewrites those predicates.
 - Only `ldh:Object` (an embedded RDF resource view, `rdf:value` naming the resource) and `ldh:XHTML` (rich text, `rdf:value` an `rdf:XMLLiteral`) are permitted as block values; anything else must be wrapped in an `ldh:Object`.
-- **Views** (`ldh:View`) are SPARQL-driven blocks (`SELECT`/`CONSTRUCT`/`DESCRIBE`) rendered as lists, tables, grids, charts, maps, or a graph.
+- **Views** (`ldh:View`) list resources. A view's `spin:query` is a stored `SELECT` (`sp:Select`), which the client wraps into a `DESCRIBE` of the query's **first variable** and renders in the view's `ac:mode`: a list, table, grid, map, or a graph. That variable must therefore bind resources (`SELECT ?item WHERE { … }`): one that binds values — a title, a number, a computed `(YEAR(NOW()) AS ?year)` — describes nothing, and the view shows an error instead of results. To show values, use a chart.
+- **Charts** (`ldh:ResultSetChart`) plot a stored `SELECT`'s values: `ldh:categoryVarName` names the category variable and each `ldh:seriesVarName` a series, in `ldh:chartType`'s form.
 - Forms and validation are ontology-driven (SPIN constructors + SHACL shapes), so instance data is shaped by the app's ontology rather than hardcoded schemas.
 - **Imports** are documents too: an `ldh:CSVImport` or `ldh:RDFImport` resource with `ldh:file` (the source), `spin:query` (the transformation) and, for CSV, `ldh:delimiter`. Creating one submits the ingest; the source URIs are validated before being fetched.
 - **Packages** bundle an ontology with an optional stylesheet. An application imports one by declaring a single `<app> ldh:import <package>` triple in its settings — the declaration *is* the installation. It takes effect on the next request, with no restart.
@@ -138,6 +139,7 @@ A single instance hosts multiple **dataspaces**, each a subdomain (origin). Each
 - **`403` where you expect `404`.** The ACL query fails closed on a typeless resource, so a non-owner request for a URL that does not exist is answered `403`.
 - **`428`** on any write to an existing document that carries no `If-Match`; **`412`** when the tag quoted was read under a different negotiated variant. See *Conditional writes*.
 - **`502`** (rather than `413`) when an upstream response exceeds `MAX_CONTENT_LENGTH`: what was too large is the upstream's response. Requests to the deployment's own SPARQL, Graph Store and Quad Store services are exempt from the bound.
+- **`502`** from `/sparql` when the query's result exceeds `MAX_QUERY_RESPONSE_LENGTH` (5 MiB unless set), its body typed `ldh:ResponseTooLarge`. The result is refused, not truncated: page through it with `LIMIT`/`OFFSET`. Behind the platform, the triplestore abandons such a query once the result outgrows the Varnish store kept for SPARQL results (`VARNISH_SPARQL_STORAGE`, 64M unless set).
 - **`406`** for `application/link-format` on anything but `?timemap`.
 
 ## Tooling
@@ -155,7 +157,7 @@ A single instance hosts multiple **dataspaces**, each a subdomain (origin). Each
 
   Authentication is the agent's WebID credential given to `-c/--cert`, as either a PKCS12 keystore or a PEM file holding the certificate and its PKCS#8 private key, told apart by content (`-p/--cert-password`, or `LDH_CERT_FILE`/`LDH_CERT_PASSWORD`; `LDH_BASE` and `LDH_PROXY` for `-b` and `--proxy`). Commands that create or append print the document's URL as the only line on stdout, so they compose in pipelines; exit codes are `0` success, `1` HTTP or runtime failure, `2` usage error. Shell completion: `source <(ldh generate-completion)`.
 
-  Certificate and WebID tooling (`webid-keygen.sh`, `server-cert-gen.sh`) remains in `bin/`; the `bin/` HTTP API scripts `ldh` replaces are deprecated.
+  Certificate and WebID tooling (`webid-keygen.sh`, `server-cert-gen.sh`) remains in `bin/`; the `bin/` HTTP API scripts `ldh` replaced have been removed.
 
 - **Programmatic / MCP**: [Web-Algebra](https://github.com/AtomGraph/Web-Algebra) is the recommended path for agent-composed workflows — a JSON DSL and MCP server whose operations (create container/item, add view/chart, generate portal, …) compose multi-step LDH writes atomically under WebID auth.
 

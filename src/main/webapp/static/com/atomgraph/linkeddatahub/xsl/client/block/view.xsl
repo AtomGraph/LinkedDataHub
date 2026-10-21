@@ -149,8 +149,11 @@ exclude-result-prefixes="#all"
 
         <xsl:message>ldh:view-query-thunk</xsl:message>
 
+        <!-- the query's document is often the view's own: an ontology view and its query both live in the namespace
+             ontology, which the view fan-out has just put into the document pool. A query in a content document is not
+             pooled, so it is still requested - and seen as edited - every time -->
         <xsl:sequence select="
-            ixsl:http-request($context('request')) =>
+            ldh:http-request-from-pool($context('request')) =>
                 ixsl:then(ldh:rethread-response($context, ?)) =>
                 ixsl:then(ldh:handle-response#1) =>
                 ixsl:then(ldh:load-query-service#1) =>
@@ -168,18 +171,12 @@ exclude-result-prefixes="#all"
                 ixsl:then(ldh:rethread-response($context, ?, 'view-results-response')) =>
                 ixsl:then(ldh:handle-response(?, 'view-results-response')) =>
                 ixsl:then(ldh:view-results-error-handler#1) =>
-                ixsl:then(ldh:load-object-metadata(?, 'view-results-response')) =>
-                ixsl:then(ldh:http-request-threaded(?, 'metadata-request', 'metadata-response')) =>
-                ixsl:then(ldh:handle-response(?, 'metadata-response')) =>
-                ixsl:then(ldh:set-object-metadata#1) =>
-                ixsl:then(ldh:http-request-threaded(?, 'ns-metadata-request', 'ns-metadata-response')) =>
-                ixsl:then(ldh:handle-response(?, 'ns-metadata-response')) =>
-                ixsl:then(ldh:set-object-metadata-ns#1) =>
+                ixsl:then(ldh:fire-load-set-parallel(?, [
+                  [ ldh:load-object-metadata(?, 'view-results-response'),   'metadata-request',          'metadata-response',          ldh:set-object-metadata#1 ],
+                  [ ldh:load-object-metadata(?, 'view-results-response'),   'ns-metadata-request',       'ns-metadata-response',       ldh:set-object-metadata-ns#1 ],
+                  [ ldh:load-property-metadata(?, 'view-results-response'), 'property-metadata-request', 'property-metadata-response', ldh:set-property-metadata#1 ]
+                ])) =>
                 ixsl:then(ldh:merge-object-metadata#1) =>
-                ixsl:then(ldh:load-property-metadata(?, 'view-results-response')) =>
-                ixsl:then(ldh:http-request-threaded(?, 'property-metadata-request', 'property-metadata-response')) =>
-                ixsl:then(ldh:handle-response(?, 'property-metadata-response')) =>
-                ixsl:then(ldh:set-property-metadata#1) =>
                 ixsl:then(ldh:render-view#1)
         "/>
     </xsl:function>
@@ -199,7 +196,7 @@ exclude-result-prefixes="#all"
                 <xsl:otherwise>
                     <xsl:sequence select="ldh:show-view-block($container)"/>
 
-                    <xsl:sequence select="ldh:render-block-error($container, 'block-query-failed', ac:http-error-key($response?status), $endpoint, $response)"/>
+                    <xsl:sequence select="ldh:render-block-error($container, 'block-query-failed', ldh:http-error-key($response), $endpoint, $response)"/>
 
                     <!-- the nearest block that is LOADING, not just the nearest block: a view embedded in an Object block
                          never carries the state itself, its host does, and the host's ldh:load-block ends it only when the
@@ -1368,10 +1365,16 @@ exclude-result-prefixes="#all"
              only on the initial load: the answer is a property of the query, so paging, sorting and faceting
              cannot change it. The slot it fills is the card header's, emitted by ac:BlockActions with the
              rest of the block's actions - a view rendered without a card header (a modal-hosted one) has no
-             slot and no @data-for-class to construct from either, so both say the same thing by being absent -->
-        <xsl:if test="$initial-load">
+             slot and no @data-for-class to construct from either, so both say the same thing by being absent.
+             The query spans the whole result set, so it is only asked when its answer could become a button:
+             ldh:view-create-insert needs a class to construct, and an agent who can write - to this document as
+             well, for a forward view. Only the container's own access, which the query has to find first, is
+             left to ldh:view-create-insert -->
+        <xsl:variable name="create-slot" select="$container/ancestor::div[contains-token(@class, 'block')][1]/div[contains-token(@class, 'ldh-block-head')]/div[contains-token(@class, 'actions')]/span[contains-token(@class, 'ldh-view-create')]" as="element()?"/>
+        <xsl:variable name="create-block" select="$create-slot/ancestor::div[contains-token(@class, 'block')][1]" as="element()?"/>
+        <xsl:if test="$initial-load and exists($create-block/@data-for-class) and exists($acl:agent) and (exists($create-block/@data-inverse) or $acl-modes = '&acl;Write')">
             <xsl:call-template name="ldh:ViewContainer">
-                <xsl:with-param name="create-slot" select="$container/ancestor::div[contains-token(@class, 'block')][1]/div[contains-token(@class, 'ldh-block-head')]/div[contains-token(@class, 'actions')]/span[contains-token(@class, 'ldh-view-create')]"/>
+                <xsl:with-param name="create-slot" select="$create-slot"/>
                 <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                 <xsl:with-param name="acl-modes" select="$acl-modes"/>
                 <xsl:with-param name="endpoint" select="$endpoint"/>
@@ -1826,11 +1829,11 @@ exclude-result-prefixes="#all"
                         <xsl:result-document href="?." method="ixsl:replace-content"/>
                     </xsl:for-each>
 
-                    <xsl:variable name="uuid" select="ac:uuid()" as="xs:string"/>
+                    <xsl:variable name="suffix" select="ldh:fresh-var-suffix($select-xml/json:map, ('predicate', 'inverse', 'object', 'subject'))" as="xs:string"/>
                     <xsl:variable name="query-xml" as="document-node()">
                         <xsl:document>
                             <xsl:apply-templates select="$select-xml" mode="ldh:link-predicates">
-                                <xsl:with-param name="uuid" select="$uuid" tunnel="yes"/>
+                                <xsl:with-param name="suffix" select="$suffix" tunnel="yes"/>
                             </xsl:apply-templates>
                         </xsl:document>
                     </xsl:variable>
@@ -1843,20 +1846,53 @@ exclude-result-prefixes="#all"
                       map{
                         'request': $request,
                         'container': .,
-                        'predicate-var-name': 'predicate' || translate($uuid, '-', '_'),
-                        'inverse-var-name': 'inverse' || translate($uuid, '-', '_'),
+                        'predicate-var-name': 'predicate' || $suffix,
+                        'inverse-var-name': 'inverse' || $suffix,
                         'property-metadata': $property-metadata
                       }"/>
+
+                    <!-- discovery runs only while the pivot bar is open, so someone is waiting on it, and the bar
+                         stays hidden until its first chip arrives: the cursor is all that says it is underway -->
+                    <xsl:sequence select="ldh:busy-cursor()"/>
+
                     <ixsl:promise select="ixsl:http-request($context('request')) =>
                         ixsl:then(ldh:rethread-response($context, ?)) =>
                         ixsl:then(ldh:handle-response#1) =>
-                        ixsl:then(ldh:parallax-response#1)"
+                        ixsl:then(ldh:parallax-response#1) =>
+                        ixsl:finally(ldh:reset-cursor#0)"
                         on-failure="ldh:promise-failure(., 'block-query-failed', ?)"/>
                 </xsl:if>
             </xsl:if>
         </xsl:for-each>
     </xsl:template>
-    
+
+    <!-- A view under a collapsed pivot bar renders without discovering its chips (ldh:render-view), so opening
+         the bar is what discovers them, from the result set the view last rendered. The block's own toggle runs
+         first and stays ignorant of views; this rule only reads which bars it left open. A view that has not
+         rendered yet has nothing cached to discover from, and discovers in ldh:render-view instead, where the
+         bar is then found open. Toggling again does not re-query: ldh:ParallaxNav skips an unchanged result set -->
+    <xsl:template match="div[contains-token(@class, 'block')]//button[contains-token(@class, 'tb-controls')]" mode="ixsl:onclick" priority="1">
+        <xsl:variable name="block" select="ancestor::div[contains-token(@class, 'block')][1]" as="element()"/>
+
+        <xsl:next-match/>
+
+        <xsl:for-each select="$block//div[contains-token(@class, 'ldh-pivot-bar')][not(contains-token(@class, 'is-collapsed'))]/div[contains-token(@class, 'ldh-pivot-pills')]">
+            <xsl:variable name="cache" select="ldh:view-cache(.)" as="item()?"/>
+
+            <xsl:if test="exists($cache) and ixsl:contains($cache, 'results') and ixsl:contains($cache, 'focus-var-name')">
+                <xsl:call-template name="ldh:ParallaxNav">
+                    <xsl:with-param name="empty-results" select="empty(ixsl:get($cache, 'results')/rdf:RDF/*)"/>
+                    <xsl:with-param name="select-xml" select="ixsl:get($cache, 'select-xml')"/>
+                    <xsl:with-param name="endpoint" select="ixsl:get($cache, 'endpoint')"/>
+                    <xsl:with-param name="focus-var-name" select="ixsl:get($cache, 'focus-var-name')"/>
+                    <xsl:with-param name="property-metadata" select="if (ixsl:contains($cache, 'property-metadata')) then ixsl:get($cache, 'property-metadata') else ()"/>
+                    <xsl:with-param name="cache" select="$cache"/>
+                    <xsl:with-param name="properties-container-id" select="@id"/>
+                </xsl:call-template>
+            </xsl:if>
+        </xsl:for-each>
+    </xsl:template>
+
     <!-- resolves the view's client-side cache entry: block-hosted views are keyed by the host block's @about, modal-hosted views (geo/latest/search/class instances) by the container's @id -->
     <xsl:function name="ldh:view-cache" as="item()">
         <xsl:param name="container" as="element()"/>
@@ -2920,7 +2956,7 @@ exclude-result-prefixes="#all"
                 <xsl:otherwise>
                     <xsl:sequence select="ldh:show-view-block($container)"/>
 
-                    <xsl:sequence select="ldh:render-block-error($container//div[contains-token(@class, 'main')], 'block-query-not-loaded', ac:http-error-key($response?status), $query-uri, $response)"/>
+                    <xsl:sequence select="ldh:render-block-error($container//div[contains-token(@class, 'main')], 'block-query-not-loaded', ldh:http-error-key($response), $query-uri, $response)"/>
 
                     <xsl:sequence select="ldh:end-block-loading($context, ())[current-date() lt xs:date('2000-01-01')]"/>
 
@@ -3096,15 +3132,26 @@ exclude-result-prefixes="#all"
                 </xsl:call-template>
             </xsl:for-each>
 
-            <xsl:call-template name="ldh:ParallaxNav">
-                <xsl:with-param name="empty-results" select="empty($sorted-results/rdf:RDF/*)"/>
-                <xsl:with-param name="select-xml" select="$select-xml"/>
-                <xsl:with-param name="endpoint" select="$endpoint"/>
-                <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
-                <xsl:with-param name="property-metadata" select="$property-metadata"/>
-                <xsl:with-param name="cache" select="$cache"/>
-                <xsl:with-param name="properties-container-id" select="$container-id || '-parallax-properties'"/>
-            </xsl:call-template>
+            <!-- what a pivot bar opened later discovers from, beside the select-xml, endpoint and results the
+                 cache already holds (the tb-controls rule beside ldh:ParallaxNav) -->
+            <ixsl:set-property name="focus-var-name" select="$focus-var-name" object="$cache"/>
+            <xsl:if test="exists($property-metadata)">
+                <ixsl:set-property name="property-metadata" select="$property-metadata" object="$cache"/>
+            </xsl:if>
+
+            <!-- discovery runs over the whole result set and is the costliest query a view sends, so it runs
+                 only while its chips can be seen: a collapsed pivot bar defers it to the controls toggle -->
+            <xsl:if test="($container//div[contains-token(@class, 'ldh-pivot-bar')])[1][not(contains-token(@class, 'is-collapsed'))]">
+                <xsl:call-template name="ldh:ParallaxNav">
+                    <xsl:with-param name="empty-results" select="empty($sorted-results/rdf:RDF/*)"/>
+                    <xsl:with-param name="select-xml" select="$select-xml"/>
+                    <xsl:with-param name="endpoint" select="$endpoint"/>
+                    <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
+                    <xsl:with-param name="property-metadata" select="$property-metadata"/>
+                    <xsl:with-param name="cache" select="$cache"/>
+                    <xsl:with-param name="properties-container-id" select="$container-id || '-parallax-properties'"/>
+                </xsl:call-template>
+            </xsl:if>
 
             <!-- last, so it reads a toolbar whose facet pills and step chips are already current -->
             <xsl:call-template name="ldh:ViewStatus">
@@ -3175,7 +3222,7 @@ exclude-result-prefixes="#all"
                         <xsl:result-document href="?." method="ixsl:append-content">
                             <!-- appended beside the parallax rows rather than filling a block body, so the bare alert
                                  without the ldh-block-error wrapper - it must not ring the view card it sits in -->
-                            <xsl:sequence select="ldh:error-alert('block-query-failed', ac:http-error-key($response?status), ())"/>
+                            <xsl:sequence select="ldh:error-alert('block-query-failed', ldh:http-error-key($response), ())"/>
                         </xsl:result-document>
                     </xsl:for-each>
 
@@ -3347,7 +3394,7 @@ exclude-result-prefixes="#all"
                     <xsl:for-each select="$container/div[contains-token(@class, 'facet-pop')]/div[contains-token(@class, 'facet-values')]">
                         <xsl:result-document href="?." method="ixsl:replace-content">
                             <div>
-                                <xsl:sequence select="ldh:error-alert('block-values-failed', ac:http-error-key($response?status), ())"/>
+                                <xsl:sequence select="ldh:error-alert('block-values-failed', ldh:http-error-key($response), ())"/>
                             </div>
                         </xsl:result-document>
                     </xsl:for-each>
@@ -3474,7 +3521,7 @@ exclude-result-prefixes="#all"
                         <xsl:result-document href="?." method="ixsl:replace-content">
                             <!-- the count sits inline in the view toolbar, where a full alert would outweigh the row it
                                  reports on - the design system's compact negative tag is the status marker at this size -->
-                            <xsl:sequence select="ldh:failure-tag('block-count-failed', ac:http-error-key($response?status))"/>
+                            <xsl:sequence select="ldh:failure-tag('block-count-failed', ldh:http-error-key($response))"/>
                         </xsl:result-document>
                     </xsl:for-each>
                 </xsl:otherwise>
@@ -3712,7 +3759,7 @@ exclude-result-prefixes="#all"
                         <xsl:variable name="update-string" select="replace($ldh:view-instance-link-string, '$about', '&lt;' || $about || '&gt;', 'q')" as="xs:string"/>
                         <xsl:variable name="update-string" select="replace($update-string, '$property', '&lt;' || $property || '&gt;', 'q')" as="xs:string"/>
                         <xsl:variable name="update-string" select="replace($update-string, '$this', '&lt;' || $instance || '&gt;', 'q')" as="xs:string"/>
-                        <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`'), 'etag')" as="xs:string"/>
+                        <xsl:variable name="etag" select="ldh:document-etag($doc-uri)" as="xs:string"/>
                         <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile -->
                         <xsl:variable name="link-request" select="map{ 'method': 'PATCH', 'href': ldh:href($doc-uri, map{}), 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': map{ 'If-Match': $etag, 'Accept': 'application/rdf+xml', 'Cache-Control': 'no-cache' } }" as="map(*)"/>
                         <xsl:variable name="link-context" as="map(*)" select="map{ 'request': $link-request, 'doc-uri': $doc-uri, 'block-id': $block-id }"/>
@@ -3747,8 +3794,8 @@ exclude-result-prefixes="#all"
             <xsl:when test="$response?status = (200, 204)">
                 <xsl:variable name="etag" select="$response?headers?etag" as="xs:string?"/>
                 <xsl:if test="$etag">
-                    <!-- store ETag header value under window.LinkedDataHub.contents[$doc-uri].etag so subsequent edits of the current document don't fail preconditions -->
-                    <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`')"/>
+                    <!-- store ETag header value under window.LinkedDataHub.etags[$doc-uri] so subsequent edits of the current document don't fail preconditions -->
+                    <xsl:sequence select="ldh:set-document-etag($doc-uri, $etag)"/>
                 </xsl:if>
 
                 <!-- the cursor stays 'progress' (set on form submit) until ldh:render-view restores it -->

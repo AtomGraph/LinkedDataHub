@@ -469,7 +469,7 @@ ORDER BY DESC(?created)
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:sequence select="ldh:render-failure($container, 'breadcrumbs-not-loaded', ac:http-error-key(?status), ldh:response-detail(.))"/>
+                    <xsl:sequence select="ldh:render-failure($container, 'breadcrumbs-not-loaded', ldh:http-error-key(.), ldh:response-detail(.))"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
@@ -624,7 +624,7 @@ ORDER BY DESC(?created)
                     <xsl:for-each select="$backlinks-container">
                         <!-- the popover is a small host, so the bare alert -->
                         <xsl:result-document href="?." method="ixsl:append-content">
-                            <xsl:sequence select="ldh:error-alert('backlinks-not-loaded', ac:http-error-key($response?status), ())"/>
+                            <xsl:sequence select="ldh:error-alert('backlinks-not-loaded', ldh:http-error-key($response), ())"/>
                         </xsl:result-document>
                     </xsl:for-each>
                 </xsl:otherwise>
@@ -711,7 +711,7 @@ ORDER BY DESC(?created)
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:sequence select="ldh:render-failure($container, 'classes-not-loaded', ac:http-error-key(?status), ldh:response-detail(.))"/>
+                    <xsl:sequence select="ldh:render-failure($container, 'classes-not-loaded', ldh:http-error-key(.), ldh:response-detail(.))"/>
                     <xsl:sequence select="ixsl:resolve($context)"/>
                 </xsl:otherwise>
             </xsl:choose>

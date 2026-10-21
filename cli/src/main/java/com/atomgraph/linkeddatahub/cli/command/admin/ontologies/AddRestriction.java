@@ -25,7 +25,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 /**
- * Adds an OWL restriction to an ontology. Mirrors <code>bin/admin/ontologies/add-restriction.sh</code>.
+ * Adds an OWL restriction to an ontology.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */

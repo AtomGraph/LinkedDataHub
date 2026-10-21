@@ -23,7 +23,7 @@ ldh admin add agent \
 # Create test graph URI
 test_graph_uri="${ADMIN_BASE_URL}test-graph-$(date +%s)/"
 
-# Create test graph with multiple triples using bin/put.sh
+# Create test graph with multiple triples
 echo "<http://example.org/resource1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/TestClass> .
 <http://example.org/resource1> <http://example.org/property1> \"value1\" .
 <http://example.org/resource1> <http://example.org/property2> \"value2\" .

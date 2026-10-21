@@ -28,7 +28,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 /**
- * Creates or updates an RDF document from a file or standard input. Mirrors <code>bin/put.sh</code>.
+ * Creates or updates an RDF document from a file or standard input.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */

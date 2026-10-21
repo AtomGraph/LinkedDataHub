@@ -24,7 +24,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 /**
- * Appends a view of a SPARQL SELECT query to a document. Mirrors <code>bin/add-view.sh</code>.
+ * Appends a view of a SPARQL SELECT query to a document.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */

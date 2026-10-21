@@ -955,14 +955,8 @@ WHERE
                     <xsl:for-each select="?body">
                         <!-- key by the loaded document's URI threaded from the requesting handler (a response document has no stamped DOM ancestor for ldh:base-uri() to resolve); flows that do not thread it are page-level and fall back -->
                         <xsl:variable name="base-uri" select="($context('base-uri'), ldh:base-uri(.))[1]" as="xs:anyURI"/>
-                        <!-- reuse the existing per-URI object: replacing it would wipe the 'block-html' snapshot stored by the btn-edit handler when $about equals the document URI (proxied external resources) -->
-                        <xsl:if test="not(ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path($base-uri) || '`'))">
-                            <ixsl:set-property name="{'`' || ac:absolute-path($base-uri) || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
-                        </xsl:if>
-                        <!-- store document under window.LinkedDataHub.contents[$base-uri].results -->
-                        <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path($base-uri) || '`')"/>
-                        <!-- store ETag header value under window.LinkedDataHub.contents[$base-uri].etag -->
-                        <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path($base-uri) || '`')"/>
+                        <!-- store ETag header value under window.LinkedDataHub.etags[$base-uri] -->
+                        <xsl:sequence select="ldh:set-document-etag(ac:absolute-path($base-uri), $etag)"/>
 
                         <xsl:variable name="resource" select="key('resources', $about)" as="element()"/> <!-- TO-DO: handle error -->
                         <xsl:variable name="types" select="distinct-values($resource/rdf:type/@rdf:resource)" as="xs:anyURI*"/>
@@ -1387,7 +1381,7 @@ WHERE
         <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
         <xsl:variable name="enctype" select="ixsl:get($form, 'enctype')" as="xs:string"/>
         <xsl:variable name="accept" select="'application/rdf+xml'" as="xs:string"/>
-        <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
+        <xsl:variable name="etag" select="ldh:document-etag(ac:absolute-path(ldh:base-uri(.)))" as="xs:string"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
 
@@ -1456,7 +1450,7 @@ WHERE
         <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
         <xsl:variable name="enctype" select="ixsl:get($form, 'enctype')" as="xs:string"/>
         <xsl:variable name="about" select="$block/@about" as="xs:anyURI"/>
-        <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path(ldh:base-uri(.)) || '`'), 'etag')" as="xs:string"/>
+        <xsl:variable name="etag" select="ldh:document-etag(ac:absolute-path(ldh:base-uri(.)))" as="xs:string"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
         
@@ -1672,6 +1666,61 @@ WHERE
         </xsl:choose>
     </xsl:function>
     
+    <!-- A block saved in place with a targeted update - a chart's controls, a query's text - wrote only what its control owns,
+         so the row is drawn again from the resource as the document now stores it, other writers' changes included: the
+         document is requested again and the row redrawn from it (ldh:row-reloaded). Every other response takes the row
+         form's path -->
+    <xsl:function name="ldh:row-saved" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="doc-uri" select="$context('doc-uri')" as="xs:anyURI"/>
+
+        <xsl:message>ldh:row-saved</xsl:message>
+
+        <xsl:choose>
+            <xsl:when test="$response?status = (200, 204)">
+                <xsl:sequence select="ldh:set-document-etag($doc-uri, $response?headers?etag)"/>
+
+                <xsl:variable name="context" select="map:put($context, 'request', map{ 'method': 'GET', 'href': ldh:href($doc-uri, map{}), 'headers': map{ 'Accept': 'application/rdf+xml', 'Cache-Control': 'no-cache' } })" as="map(*)"/>
+                <xsl:sequence select="
+                  ixsl:http-request($context('request'))
+                    => ixsl:then(ldh:rethread-response($context, ?))
+                    => ixsl:then(ldh:handle-response#1)
+                    => ixsl:then(ldh:row-reloaded#1)
+                "/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ldh:row-form-response($context)"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <!-- the saved resource's description, out of the document as requested again, is what the row is drawn from -->
+    <xsl:function name="ldh:row-reloaded" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="about" select="$context('about')" as="xs:anyURI"/>
+
+        <xsl:message>ldh:row-reloaded</xsl:message>
+
+        <xsl:choose>
+            <xsl:when test="$response?status = 200 and $response?media-type = 'application/rdf+xml'">
+                <xsl:variable name="resources" as="document-node()">
+                    <xsl:document>
+                        <rdf:RDF>
+                            <xsl:sequence select="key('resources', $about, $response?body)"/>
+                        </rdf:RDF>
+                    </xsl:document>
+                </xsl:variable>
+
+                <xsl:sequence select="ldh:form-horizontal-submit-success(map:put($context, 'resources', $resources))"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ldh:response-error($response)"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
     <xsl:function name="ldh:form-horizontal-submit-success" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
@@ -1685,8 +1734,8 @@ WHERE
         <xsl:for-each select="$response">
             <xsl:variable name="etag" select="?headers?etag" as="xs:string?"/>
             <xsl:if test="$etag">
-                <!-- store ETag header value under window.LinkedDataHub.contents[$doc-uri].etag -->
-                <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`')"/>
+                <!-- store ETag header value under window.LinkedDataHub.etags[$doc-uri] -->
+                <xsl:sequence select="ldh:set-document-etag($doc-uri, $etag)"/>
             </xsl:if>
 
             <xsl:choose>
@@ -2294,7 +2343,7 @@ WHERE
         <xsl:variable name="block" select="($outer-block, $inner-block)[1]" as="element()"/>
         <xsl:variable name="form" select="ancestor::form" as="element()"/>
         <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
-        <xsl:variable name="etag" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || ac:absolute-path($action) || '`'), 'etag')" as="xs:string"/>
+        <xsl:variable name="etag" select="ldh:document-etag(ac:absolute-path($action))" as="xs:string"/>
 
         <xsl:choose>
             <!-- delete existing content -->
@@ -2367,7 +2416,7 @@ WHERE
                 <xsl:message>Resource deleted</xsl:message>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ldh:render-failure(($block//div[contains-token(@class, 'main')])[1], 'resource-not-deleted', ac:http-error-key(?status), ldh:response-detail(.))"/>
+                <xsl:sequence select="ldh:render-failure(($block//div[contains-token(@class, 'main')])[1], 'resource-not-deleted', ldh:http-error-key(.), ldh:response-detail(.))"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>

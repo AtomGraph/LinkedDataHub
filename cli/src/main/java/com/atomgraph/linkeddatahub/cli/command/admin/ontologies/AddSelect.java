@@ -27,7 +27,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 /**
- * Adds a SPARQL SELECT query to an ontology. Mirrors <code>bin/admin/ontologies/add-select.sh</code>.
+ * Adds a SPARQL SELECT query to an ontology.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */

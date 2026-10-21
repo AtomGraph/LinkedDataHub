@@ -20,7 +20,8 @@ ldh admin create ontology ...
 ldh packages list
 ```
 
-The `bin/` HTTP API scripts it replaces are deprecated. The [`tests/http`](../tests/http) suite builds
+The `bin/` HTTP API scripts it replaces have been removed (see
+[Script → command migration](#script--command-migration)). The [`tests/http`](../tests/http) suite builds
 all of its fixtures with `ldh`, so the commands are exercised against a live instance on every CI run;
 `run.sh` aborts if `ldh` is not on `PATH`.
 
@@ -163,6 +164,17 @@ topic — it would entail that the two topics are the same resource. It writes t
 topic's own type and properties are the constructor's business, and a vocabulary may refuse a topic
 without them (the taxonomy editor package rejects a concept with no `skos:inScheme`).
 
+A container's first content block shows its children, as the `dh:Container` constructor makes it.
+`--no-children-view` leaves it out, and the content is then appended like any other document's. A
+container whose children are laid out in another mode embeds its own view:
+
+```bash
+container=$(ldh create container --parent "$LDH_BASE" --title "Products" --slug products --no-children-view)
+ldh add view --uri '#children' --query https://w3id.org/atomgraph/linkeddatahub#SelectChildren \
+    --mode https://w3id.org/atomgraph/client#GridMode --title "Products" "$container"
+ldh add object-block --value "${container}#children" "$container"
+```
+
 ## Conventions
 
 - Commands that create or append to a document print its URL as the only line on stdout, so shell
@@ -298,6 +310,9 @@ computes every upload URI and prints the plan, without sending a request or load
 
 ## Script → command migration
 
+The HTTP API shell scripts that used to live in `bin/` have been removed. For callers still on them,
+each maps to one command:
+
 | Script | Command |
 |---|---|
 | `get.sh` | `ldh get` |
@@ -336,7 +351,7 @@ computes every upload URI and prints the plan, without sending a request or load
 | `update-folder.sh` (LinkedDataHub-Apps, one copy per app) | `ldh push` |
 
 Local certificate tooling (`webid-keygen.sh`, `webid-keygen-pem.sh`, `webid-uri.sh`,
-`webid-modulus.sh`, `server-cert-gen.sh`) remains shell scripts.
+`webid-modulus.sh`, `server-cert-gen.sh`) remains shell scripts in `bin/`.
 
 `bin/admin/packages/` has no counterpart under that name: a package is imported by declaring an
 `ldh:import` triple rather than by installing files, and `ldh packages list`,
@@ -368,6 +383,9 @@ Local certificate tooling (`webid-keygen.sh`, `webid-keygen-pem.sh`, `webid-uri.
 - `create item`/`create container` add `--primary-topic`, which the scripts have no equivalent for:
   they could only create a document that says nothing about what it is about, leaving a `patch` as
   the only way to assert it.
+- `create container` has no `--block` or `--mode`. The script's `--block` wrote a bare `rdf:_1`,
+  which the platform rejects, and its `--mode` built a children view in place; `--no-children-view`
+  followed by `add view` and `add object-block` builds the same content (see above).
 - `push` replaces the apps' `update-folder.sh` together with the `root.ttl` step of their
   `install.sh`: `root.ttl` maps to the target document, so it needs neither the separate `put` nor
   its `.ldhignore` entry. `.ldhignore` applies to the whole subtree, as the apps documentation

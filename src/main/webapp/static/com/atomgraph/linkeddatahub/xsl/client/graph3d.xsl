@@ -146,7 +146,6 @@ WHERE
 
             <xsl:if test="not(ixsl:call($loaded-backlink-uris, 'includes', [ $node-id ]))">
                 <xsl:variable name="query-string" select="replace($ldh:backlinks-graph-string, '$this', '&lt;' || $node-id || '&gt;', 'q')" as="xs:string"/>
-                <xsl:variable name="service-uri" select="if (ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $node-id || '`')) then (if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $node-id || '`'), 'service-uri')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $node-id || '`'), 'service-uri') else ()) else ()" as="xs:anyURI?"/>
                 <xsl:variable name="context" select="map{
                     'canvas-id': $canvas-id,
                     'document-uri': xs:anyURI($node-id),
@@ -156,9 +155,9 @@ WHERE
 
                 <xsl:sequence select="ldh:busy-cursor()"/>
 
-                <!-- the endpoint is the node's service's, loaded first -->
+                <!-- no service is recorded for a node, so the backlinks query the local endpoint -->
                 <ixsl:promise select="
-                    ldh:load-service($context, $service-uri)
+                    ldh:load-service($context, ())
                         => ixsl:then(ldh:graph3d-backlinks-request#1) =>
                         ixsl:finally(ldh:reset-cursor#0)
                     " on-failure="ldh:promise-failure(id($canvas-id, ixsl:page())/.., 'backlinks-not-loaded', ?)"/>

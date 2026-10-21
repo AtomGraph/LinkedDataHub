@@ -108,6 +108,27 @@ public class ContentLengthLimitFilterTest
         verifyNoInteractions(responseContext);
     }
 
+    /**
+     * A request that carries its own limit is held to it, in both directions: a query result the SPARQL
+     * endpoint answers with may be longer than the limit on content the proxy pulls in, and shorter.
+     */
+    @Test
+    public void testRequestLimitReplacesConfiguredLimit() throws IOException
+    {
+        MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
+        headers.putSingle(HttpHeaders.CONTENT_LENGTH, String.valueOf(MAX_CONTENT_LENGTH + 1));
+        when(responseContext.hasEntity()).thenReturn(true);
+        when(responseContext.getHeaders()).thenReturn(headers);
+        when(responseContext.getEntityStream()).thenReturn(new ByteArrayInputStream(new byte[0]));
+
+        lenient().when(requestContext.getProperty(ContentLengthLimitFilter.MAX_CONTENT_LENGTH)).thenReturn(MAX_CONTENT_LENGTH * 2);
+        filter.filter(requestContext, responseContext);
+        verify(responseContext).setEntityStream(isA(RejectTooLargeResponseInputStream.class));
+
+        lenient().when(requestContext.getProperty(ContentLengthLimitFilter.MAX_CONTENT_LENGTH)).thenReturn(MAX_CONTENT_LENGTH / 2);
+        assertThrows(ResponseContentTooLargeException.class, () -> filter.filter(requestContext, responseContext));
+    }
+
     // The inbound half. It is not what the UNLIMITED property exempts - that is checked only on the
     // response path - so a request body over the limit is refused whatever the caller asks for, and
     // these are the assertions saying so. tests/ui covers the same refusal end to end, but through

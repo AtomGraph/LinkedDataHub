@@ -26,7 +26,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 /**
- * Adds a class to an ontology. Mirrors <code>bin/admin/ontologies/add-class.sh</code>.
+ * Adds a class to an ontology.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */

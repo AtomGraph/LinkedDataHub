@@ -275,7 +275,7 @@ exclude-result-prefixes="#all"
                 <xsl:otherwise>
                     <!-- the loading row would otherwise spin for the rest of the session: a tree in the content replaces it with
                          the failure, the drawer's tree goes (client/navigation.xsl) -->
-                    <xsl:sequence select="ldh:render-failure($container, 'tree-children-not-loaded', ac:http-error-key(?status), ldh:response-detail(.))"/>
+                    <xsl:sequence select="ldh:render-failure($container, 'tree-children-not-loaded', ldh:http-error-key(.), ldh:response-detail(.))"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>

@@ -189,6 +189,7 @@ WHERE
         <!-- create a LinkedDataHub namespace -->
         <ixsl:set-property name="LinkedDataHub" select="ldh:new-object()"/>
         <ixsl:set-property name="contents" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <ixsl:set-property name="etags" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- the validators of the documents loaded or written so far, keyed by document URI (ldh:document-etag) -->
         <ixsl:set-property name="combobox" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by combobox.xsl -->
         <ixsl:set-property name="graphs" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by graph3d.xsl -->
         <ixsl:set-property name="services" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- the ldh:service descriptions loaded so far, keyed by service URI (ldh:load-service) -->
@@ -302,6 +303,9 @@ WHERE
             </xsl:call-template>
 
             <xsl:variable name="etag" select="?headers?etag" as="xs:string?"/>
+            <!-- the pane records the status of the response it shows, which is what tells a tab switch whether the pane
+                 holds its document (ldh:document-loaded) - an error is rendered into a pane too -->
+            <xsl:variable name="status" select="?status" as="xs:double"/>
 
             <xsl:choose>
                 <!-- both shapes a document can answer in take this path: ldh:DocumentBody and ldh:TabPanel match srx:sparql as
@@ -335,18 +339,16 @@ WHERE
                         <xsl:variable name="diff-added-keys" select="map:keys($result-triples)[not(map:contains($diff-triples, .))]" as="xs:string*"/>
                         <xsl:variable name="diff-removed-keys" select="map:keys($diff-triples)[not(map:contains($result-triples, .))]" as="xs:string*"/>
                         <xsl:variable name="render-results" select="if (exists($diff-results)) then ldh:diff-union($results, $diff-results, $diff-removed-keys) else $results" as="document-node()"/>
+                        <!-- the state the document's own canvases keep starts afresh -->
                         <ixsl:set-property name="{'`' || $doc-uri || '`'}" select="ldh:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
-                        <!-- store document under window.LinkedDataHub.contents[$doc-uri].results -->
-                        <!-- should be possible to cache the document using SaxonJS when this issue is resolved: https://saxonica.plan.io/issues/6355 -->
-                        <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`')"/>
-                        <!-- store ETag header value under window.LinkedDataHub.contents[$doc-uri].etag. Not a memento's: its tag is
+                        <!-- store ETag header value under window.LinkedDataHub.etags[$doc-uri]. Not a memento's: its tag is
                              the commit SHA, which validates no write to the live document filed under the same key - a restore
                              started from a ?version= view quoted it and was refused 412 -->
                         <xsl:if test="not(map:contains($query-params, 'version'))">
-                            <ixsl:set-property name="etag" select="$etag" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`')"/>
+                            <xsl:sequence select="ldh:set-document-etag($doc-uri, $etag)"/>
                         </xsl:if>
 
-                        <xsl:variable name="pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][./div[contains-token(@class, 'document-body')]/@about = $doc-uri]" as="element()?"/>
+                        <xsl:variable name="pane" select="ldh:document-pane($doc-uri)" as="element()?"/>
                         <xsl:variable name="mode" select="ac:mode($results)" as="xs:anyURI"/>
                         <xsl:variable name="tab-body-id" select="'ldh-pane-' || ac:uuid()" as="xs:string"/>
                         <xsl:variable name="tab-base" select="if ($application) then resolve-uri('/', lds:origin($doc-uri)) else ()" as="xs:anyURI?"/>
@@ -462,11 +464,13 @@ WHERE
                             </xsl:otherwise>
                         </xsl:choose>
 
+                        <ixsl:set-attribute name="data-status" select="string($status)" object="id($effective-pane-id, ixsl:page())"/>
+
                         <!-- a write that added blocks takes the reader to the first of them (ldh:DocumentNavigate's $known-blocks):
                              the document's rdf:_N members in order, less the ones the page already showed. Only the scroll
                              gets it - the address stays the document's, as the reader did not navigate to the block.
-                             A block placing a chat is not one: the copy the page was loaded with predates the chat block its
-                             first question writes, and that block is where the reader already is, not what the plan wrote.
+                             A block placing a chat is not one: the blocks noted when its first question was asked predate the chat
+                             block that question writes, and that block is where the reader already is, not what the plan wrote.
                              The whole path is parenthesized before [1]: unparenthesized, [1] applies per member and every new
                              block comes back, which the zero-or-one variable refuses - the reload stopped there, the body
                              drawn but no breadcrumb, no scroll and the chat card never finished -->
@@ -492,7 +496,7 @@ WHERE
 
                         <!-- a ?diff= whose compared version could not be read renders this version alone, which would read as nothing having changed -->
                         <xsl:if test="map:contains($context, 'diff-response') and empty($diff-results)">
-                            <xsl:sequence select="ldh:render-failure(id($effective-pane-id, ixsl:page())/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')], 'version-not-read', ac:http-error-key($context('diff-response')?status), ldh:response-detail($context('diff-response')))"/>
+                            <xsl:sequence select="ldh:render-failure(id($effective-pane-id, ixsl:page())/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')], 'version-not-read', ldh:http-error-key($context('diff-response')), ldh:response-detail($context('diff-response')))"/>
                         </xsl:if>
 
                         <!-- the canvases to initialize are the rendered document's own, so the lookups search the pane it
@@ -513,20 +517,33 @@ WHERE
                         </xsl:apply-templates>
                     </xsl:for-each>
                 </xsl:when>
-                <!-- an external document with no RDF representation (the proxy answers 406 for an HTML page carrying no JSON-LD)
-                     is a page for people: open it as a target="_blank" link would, and leave the address bar, history and tab
-                     bar on the current document. Opened without the user activation of a click (it expired during the request,
-                     or the page loaded with ?uri= in the address bar) the popup is blocked, and the window navigates there itself -->
-                <xsl:when test="?status = 406 and not(starts-with($doc-uri, lds:origin(ldh:request-uri())))">
+                <!-- an external document whose RDF could not be retrieved is a page for people: open it as a target="_blank"
+                     link would, and leave the address bar, history and tab bar on the current document. That is any error but
+                     the ones a reader can act on here (401/403 render the login and access request; a 429 that outlasted
+                     ldh:handle-response's retries is this platform's own rate limit, not the origin's): the proxy answers 405
+                     when the Linked Data proxy is disabled and 406 for an HTML page carrying no JSON-LD, and relays the
+                     origin's own error, e.g. a 500 from a site that fails on an RDF Accept but serves the page to a browser.
+                     Opened without the user activation of a click (it expired during the request, or the page loaded with
+                     ?uri= in the address bar) the popup is blocked, and the window navigates there itself -->
+                <xsl:when test="?status ge 400 and not(?status = (401, 403, 429)) and not(starts-with($doc-uri, lds:origin(ldh:request-uri())))">
                     <xsl:variable name="href" select="$doc-uri || (if ($fragment) then '#' || $fragment else '')" as="xs:string"/>
+                    <!-- ldh:DocumentNavigate pushed an entry for this document before requesting it, and pointed the address bar
+                         and the active pane at it: the entry that stands for it is the one to step back from, not to leave behind -->
+                    <xsl:variable name="state" select="ixsl:get(ixsl:window(), 'history.state')"/>
+                    <xsl:variable name="pushed" select="exists($state) and map:contains($state, 'href') and map:get(ldh:parse-href(xs:anyURI(map:get($state, 'href'))), 'doc-uri') = $doc-uri" as="xs:boolean"/>
                     <xsl:variable name="window" select="ixsl:call(ixsl:window(), 'open', [ $href, '_blank' ])" as="item()?"/>
                     <xsl:choose>
                         <xsl:when test="exists($window)">
                             <!-- what rel="noopener" does for a link: the external page gets no handle on this one -->
                             <ixsl:set-property name="opener" select="()" object="$window"/>
+                            <!-- back to the document being read: its popstate switches to the tab it is still open in -->
+                            <xsl:if test="$pushed">
+                                <xsl:sequence select="ixsl:call(ixsl:window(), 'history.back', [])[current-date() lt xs:date('2000-01-01')]"/>
+                            </xsl:if>
                         </xsl:when>
+                        <!-- replacing the entry: one that stayed would fail again on Back and send the reader straight out again -->
                         <xsl:otherwise>
-                            <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'location'), 'assign', [ $href ])[current-date() lt xs:date('2000-01-01')]"/>
+                            <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'location'), if ($pushed) then 'replace' else 'assign', [ $href ])[current-date() lt xs:date('2000-01-01')]"/>
                         </xsl:otherwise>
                     </xsl:choose>
                 </xsl:when>
@@ -559,7 +576,7 @@ WHERE
                     </xsl:variable>
 
                     <xsl:variable name="mode" select="xs:anyURI('&ac;ReadMode')" as="xs:anyURI"/>
-                    <xsl:variable name="pane" select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][./div[contains-token(@class, 'document-body')]/@about = $doc-uri]" as="element()?"/>
+                    <xsl:variable name="pane" select="ldh:document-pane($doc-uri)" as="element()?"/>
                     <xsl:variable name="tab-body-id" select="'ldh-pane-' || ac:uuid()" as="xs:string"/>
                     <xsl:variable name="effective-pane-id" select="if ($pane) then $pane/@id else $tab-body-id" as="xs:string"/>
                     <xsl:variable name="label" select="concat('HTTP ', ?status, if (?message) then ' ' || ?message else '')" as="xs:string"/>
@@ -613,6 +630,8 @@ WHERE
                             </xsl:result-document>
                         </xsl:otherwise>
                     </xsl:choose>
+
+                    <ixsl:set-attribute name="data-status" select="string($status)" object="id($effective-pane-id, ixsl:page())"/>
 
                     <xsl:call-template name="ldh:RenderTab">
                         <xsl:with-param name="pane-id" select="$effective-pane-id"/>
@@ -677,7 +696,7 @@ WHERE
             <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-active', false())"/>
         </xsl:for-each>
         <!-- activate the tab pane -->
-        <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][./div[contains-token(@class, 'document-body')]/@about = $doc-uri]">
+        <xsl:for-each select="ldh:document-pane($doc-uri)">
             <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-active', true())"/>
 
             <!-- sync acl:mode() to this pane's data-acl-modes (stamped from its document's Link header); the window flags otherwise go stale on fetch-less tab switches between panes -->
@@ -767,7 +786,7 @@ WHERE
             <xsl:otherwise>
                 <xsl:for-each select="$factories">
                     <xsl:variable name="factory" select="."/>
-                    <ixsl:promise select="$factory(())" on-failure="ldh:promise-failure($content-body, 'failed-to-load-block-data', ?)"/>
+                    <ixsl:promise select="$factory(())" on-failure="ldh:block-load-failure($content-body, ?)"/>
                 </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
@@ -837,7 +856,18 @@ WHERE
         </xsl:if>
     </xsl:function>
 
-    <!-- failure twin of ldh:block-hydrated: reports the error like ldh:promise-failure would, then counts the block down all the same so the deferred scroll is not stuck pending -->
+    <!-- reports a content block's failed load in its pane. A pane that has left the page was replaced by a later
+         navigation, which superseded the load: the chain ran on against a detached block and failed there, and that is
+         nothing to report - no host, so ldh:promise-failure only resets the cursor and the busy regions. Checked when the
+         failure arrives, not when the load starts -->
+    <xsl:function name="ldh:block-load-failure" ixsl:updating="yes">
+        <xsl:param name="host" as="element()?"/> <!-- the pane's content body -->
+        <xsl:param name="error" as="map(*)"/>
+
+        <xsl:sequence select="ldh:promise-failure($host[ancestor::body], 'failed-to-load-block-data', $error)"/>
+    </xsl:function>
+
+    <!-- failure twin of ldh:block-hydrated: reports the error like ldh:block-load-failure, then counts the block down all the same so the deferred scroll is not stuck pending -->
     <xsl:function name="ldh:block-hydration-failure" ixsl:updating="yes">
         <xsl:param name="host" as="element()?"/> <!-- the pane's content body -->
         <xsl:param name="scroll-id" as="xs:string"/>
@@ -845,7 +875,7 @@ WHERE
         <xsl:param name="fragment" as="xs:string"/>
         <xsl:param name="error" as="map(*)"/>
 
-        <xsl:sequence select="ldh:promise-failure($host, 'failed-to-load-block-data', $error)"/>
+        <xsl:sequence select="ldh:block-load-failure($host, $error)"/>
         <xsl:sequence select="ldh:block-hydrated($scroll-id, $doc-uri, $fragment, ())"/>
     </xsl:function>
 
@@ -889,7 +919,7 @@ WHERE
         </xsl:call-template>
     </xsl:template>
 
-    <!-- switch to a tab whose pane DOM and LinkedDataHub.contents[$doc-uri] are already populated: no fetch, no re-render -->
+    <!-- switch to a tab whose pane already shows its document (ldh:document-loaded): no fetch, no re-render -->
     <xsl:template name="ldh:TabSwitch">
         <xsl:param name="doc-uri" as="xs:anyURI"/>
         <xsl:param name="fragment" as="xs:string?"/>
@@ -972,7 +1002,7 @@ WHERE
         <!-- deactivate the local tab pane for external URIs; is-active is the whole visibility contract
              (an inline display here outlived the switch back and kept the reactivated pane hidden) -->
         <xsl:if test="not(ldh:is-local($doc-uri))">
-            <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][./div[contains-token(@class, 'document-body')]/@about = ac:absolute-path(ldh:request-uri())]">
+            <xsl:for-each select="ldh:document-pane(ac:absolute-path(ldh:request-uri()))">
                 <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-active', false())"/>
             </xsl:for-each>
         </xsl:if>
@@ -1041,18 +1071,12 @@ WHERE
             ixsl:then(ldh:rethread-response($context, ?)) =>
             ixsl:then(ldh:handle-response#1) =>
             ixsl:then(ldh:load-diff-version#1) =>
-            ixsl:then(ldh:load-object-metadata#1) =>
-            ixsl:then(ldh:http-request-threaded(?, 'metadata-request', 'metadata-response')) =>
-            ixsl:then(ldh:handle-response(?, 'metadata-response')) =>
-            ixsl:then(ldh:set-object-metadata#1) =>
-            ixsl:then(ldh:http-request-threaded(?, 'ns-metadata-request', 'ns-metadata-response')) =>
-            ixsl:then(ldh:handle-response(?, 'ns-metadata-response')) =>
-            ixsl:then(ldh:set-object-metadata-ns#1) =>
+            ixsl:then(ldh:fire-load-set-parallel(?, [
+              [ ldh:load-object-metadata#1,   'metadata-request',          'metadata-response',          ldh:set-object-metadata#1 ],
+              [ ldh:load-object-metadata#1,   'ns-metadata-request',       'ns-metadata-response',       ldh:set-object-metadata-ns#1 ],
+              [ ldh:load-property-metadata#1, 'property-metadata-request', 'property-metadata-response', ldh:set-property-metadata#1 ]
+            ])) =>
             ixsl:then(ldh:merge-object-metadata#1) =>
-            ixsl:then(ldh:load-property-metadata#1) =>
-            ixsl:then(ldh:http-request-threaded(?, 'property-metadata-request', 'property-metadata-response')) =>
-            ixsl:then(ldh:handle-response(?, 'property-metadata-response')) =>
-            ixsl:then(ldh:set-property-metadata#1) =>
             ixsl:then(ldh:rdf-document-response#1)"
             on-failure="ldh:promise-failure(id('tab-content', ixsl:page()), 'document-not-loaded', ?)"/>
     </xsl:template>
@@ -1084,7 +1108,7 @@ WHERE
             <xsl:variable name="tab-li" select="id('tab-bar-list', ixsl:page())/li[ixsl:get(., 'dataset.uri') = string($doc-uri)]" as="element()?"/>
 
             <xsl:choose>
-                <xsl:when test="exists($tab-li) and ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`') and deep-equal($query-params, map:remove(ldh:query-params(), 'uri'))">
+                <xsl:when test="exists($tab-li) and ldh:document-loaded($doc-uri) and deep-equal($query-params, map:remove(ldh:query-params(), 'uri'))">
                     <xsl:call-template name="ldh:TabSwitch">
                         <xsl:with-param name="doc-uri" select="$doc-uri"/>
                         <xsl:with-param name="fragment" select="$fragment"/>
@@ -1118,7 +1142,7 @@ WHERE
 
         <xsl:choose>
             <!-- same-doc cached AND non-uri query params unchanged: switch (no fetch, no re-render), just scroll to the new fragment if any -->
-            <xsl:when test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`') and exists($tab-li) and deep-equal($query-params, map:remove(ldh:query-params(), 'uri'))">
+            <xsl:when test="ldh:document-loaded($doc-uri) and exists($tab-li) and deep-equal($query-params, map:remove(ldh:query-params(), 'uri'))">
                 <xsl:call-template name="ldh:TabSwitch">
                     <xsl:with-param name="doc-uri" select="$doc-uri"/>
                     <xsl:with-param name="fragment" select="$fragment"/>
@@ -1460,7 +1484,7 @@ WHERE
 
         <xsl:choose>
             <!-- cache populated AND non-uri query params unchanged: pure CSS toggle + scroll, no fetch, no re-render -->
-            <xsl:when test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $doc-uri || '`') and deep-equal($query-params, map:remove(ldh:query-params(), 'uri'))">
+            <xsl:when test="ldh:document-loaded($doc-uri) and deep-equal($query-params, map:remove(ldh:query-params(), 'uri'))">
                 <xsl:call-template name="ldh:TabSwitch">
                     <xsl:with-param name="doc-uri" select="$doc-uri"/>
                     <xsl:with-param name="fragment" select="$fragment"/>
@@ -1489,7 +1513,7 @@ WHERE
         <xsl:variable name="fallback-li" select="($tab-li/preceding-sibling::li[1], $tab-li/following-sibling::li[1])[1]" as="element()?"/>
 
         <!-- remove the associated tab pane (matched by document-body/@about = $doc-uri) -->
-        <xsl:for-each select="id('tab-content', ixsl:page())/div[contains-token(@class, 'ldh-pane')][./div[contains-token(@class, 'document-body')]/@about = $doc-uri]">
+        <xsl:for-each select="ldh:document-pane($doc-uri)">
             <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
 
@@ -1505,7 +1529,7 @@ WHERE
             <xsl:variable name="fallback-fragment" select="map:get($fallback-parsed, 'fragment')" as="xs:string?"/>
 
             <xsl:choose>
-                <xsl:when test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), '`' || $fallback-doc-uri || '`') and deep-equal($fallback-query-params, map:remove(ldh:query-params(), 'uri'))">
+                <xsl:when test="ldh:document-loaded($fallback-doc-uri) and deep-equal($fallback-query-params, map:remove(ldh:query-params(), 'uri'))">
                     <xsl:call-template name="ldh:TabSwitch">
                         <xsl:with-param name="doc-uri" select="$fallback-doc-uri"/>
                         <xsl:with-param name="fragment" select="$fallback-fragment"/>

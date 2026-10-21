@@ -366,10 +366,6 @@ support@atomgraph.com]]></param-value>
     <listener>
         <listener-class>com.atomgraph.linkeddatahub.listener.ClientStylesheetListener</listener-class>
     </listener>
-    <mime-mapping>
-        <extension>md</extension>
-        <mime-type>text/markdown</mime-type>
-    </mime-mapping>
     <servlet-mapping>
         <servlet-name>default</servlet-name>
         <url-pattern>/static/*</url-pattern>
@@ -419,8 +415,8 @@ support@atomgraph.com]]></param-value>
         <filter-name>HSTS filter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
-    <!-- The text types this app serves from /static carry UTF-8: em dashes and middots in the kit
-         stylesheets' comments, a ⤴ in a content: value, translated labels in the XSL. Tomcat's default
+    <!-- The text files this app serves carry UTF-8: em dashes and middots in the kit stylesheets'
+         comments and in AGENTS.md, a ⤴ in a content: value, translated labels in the XSL. Tomcat's default
          mappings name no charset, so a direct fetch decodes them with the client's fallback encoding -
          windows-1252 in a browser tab - and every multi-byte character breaks apart. A stylesheet or
          script loaded from a page escapes this by inheriting the referencing document's encoding, which
@@ -433,6 +429,10 @@ support@atomgraph.com]]></param-value>
     <mime-mapping>
         <extension>js</extension>
         <mime-type>text/javascript;charset=UTF-8</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+        <extension>md</extension>
+        <mime-type>text/markdown;charset=UTF-8</mime-type>
     </mime-mapping>
     <mime-mapping>
         <extension>map</extension>
