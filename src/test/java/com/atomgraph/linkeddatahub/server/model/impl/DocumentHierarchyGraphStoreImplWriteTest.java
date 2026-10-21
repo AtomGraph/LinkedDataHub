@@ -186,4 +186,55 @@ public class DocumentHierarchyGraphStoreImplWriteTest
         verify(store, never()).putModel(anyString(), any(Model.class));
     }
 
+    // item 15: a write whose Accept names no RDF syntax is not refused with 406
+
+    private DocumentHierarchyGraphStoreImpl unnegotiable(String ifMatch)
+    {
+        DocumentHierarchyGraphStoreImpl gs = graphStore(DOC);
+        // the tag a client read with Accept: application/n-triples, before the request that accepts none of them
+        EntityTag ntriples = gs.getInternalResponse(graph.get(), DOC).getVariantEntityTag();
+
+        doReturn(null).when(request).selectVariant(anyList()); // e.g. Accept: application/sparql-results+json
+        String quoted = ifMatch != null ? ifMatch : ntriples.getValue();
+        // the document has no dates, so the tag is all the preconditions are evaluated against
+        when(request.evaluatePreconditions(any(EntityTag.class))).thenAnswer(inv ->
+            ((EntityTag)inv.getArgument(0)).getValue().equals(quoted) ? null : Response.status(Response.Status.PRECONDITION_FAILED));
+        when(headers.getHeaderString(HttpHeaders.IF_MATCH)).thenReturn("\"" + quoted + "\"");
+        return gs;
+    }
+
+    @Test
+    public void unnegotiableWriteQuotingAnyVariantsTagIsAccepted()
+    {
+        DocumentHierarchyGraphStoreImpl gs = unnegotiable(null);
+
+        assertEquals(null, gs.evaluatePreconditions(graph.get(), headers), "the tag of the N-Triples variant identifies the current state");
+
+        Model payload = ModelFactory.createDefaultModel();
+        payload.createResource(DOC.toString()).addProperty(DCTerms.description, "appended");
+        Response response = gs.post(payload);
+        assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
+        assertEquals(null, response.getEntityTag(), "no variant was negotiated, so no variant's tag is sent");
+        assertTrue(graph.get().contains(graph.get().createResource(DOC.toString()), DCTerms.description, "appended"));
+    }
+
+    @Test
+    public void unnegotiableDeleteIsNoContent()
+    {
+        DocumentHierarchyGraphStoreImpl gs = unnegotiable(null);
+        when(store.containsModel(DOC.toString())).thenReturn(true);
+
+        assertEquals(Response.Status.NO_CONTENT.getStatusCode(), gs.delete().getStatus());
+        verify(store).deleteModel(DOC.toString());
+    }
+
+    @Test
+    public void unnegotiableWriteQuotingAStaleTagFails()
+    {
+        DocumentHierarchyGraphStoreImpl gs = unnegotiable("0000000000000000");
+
+        Response.ResponseBuilder rb = gs.evaluatePreconditions(graph.get(), headers);
+        assertEquals(Response.Status.PRECONDITION_FAILED.getStatusCode(), rb.build().getStatus());
+    }
+
 }

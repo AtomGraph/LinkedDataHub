@@ -32,6 +32,7 @@
 - A `PUT` or `POST` runs only the imports it adds or redefines (another source, query, delimiter or target graph), so re-saving a document, or retitling an import, no longer fetches and imports its source again (RFC 9110 9.2.2)
 - A `PATCH` that would empty a document that cannot be deleted (the root, the owner's and the secretary's WebID documents) answers `422` instead of `405`: `PATCH` is supported there, the update is what cannot be applied (RFC 9110 15.5.6)
 - A `428 Precondition Required` (documents and `PATCH /settings`) carries a plain-text body naming `If-Match` and how to get the current entity tag with `HEAD` (RFC 6585 3)
+- A `POST`, `PUT`, `PATCH` or `DELETE` whose `Accept` names no RDF syntax is no longer refused with `406`: the response has no body, `If-Match` holds when it names the current tag of any variant, and the response carries no `ETag` (GSP 5.3, 5.4; RFC 9110 12.5.1)
 
 ## [6.2.3] - 2026-10-21
 ### Migration

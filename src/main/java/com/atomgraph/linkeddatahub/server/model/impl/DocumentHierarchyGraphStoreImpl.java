@@ -64,6 +64,7 @@ import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.InternalServerErrorException;
+import jakarta.ws.rs.NotAcceptableException;
 import jakarta.ws.rs.NotAllowedException;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.OPTIONS;
@@ -82,6 +83,7 @@ import static jakarta.ws.rs.core.Response.Status.PERMANENT_REDIRECT;
 import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
+import jakarta.ws.rs.core.Variant;
 import jakarta.ws.rs.ext.MessageBodyReader;
 import jakarta.ws.rs.ext.Providers;
 import java.io.File;
@@ -425,9 +427,10 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
 
             submitImports(imports.stream().map(_import -> _import.inModel(updatedModel)).toList());
         
-            return Response.noContent().
-                tag(getInternalResponse(updatedModel, null).getVariantEntityTag()). // entity tag of the updated graph
-                build();
+            Response.ResponseBuilder noContent = Response.noContent();
+            // entity tag of the updated graph, for the variant the request negotiates - none when it accepts no RDF syntax
+            getWriteResponse(updatedModel, null).ifPresent(response -> noContent.tag(response.getVariantEntityTag()));
+            return noContent.build();
         });
     }
     
@@ -657,7 +660,11 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
                 throw describeViolations(ex, dataset.getDefaultModel());
             }
             put(dataset.getDefaultModel(), Boolean.FALSE, getURI());
-        
+
+            // a request that accepts no RDF syntax gets no entity tag, which identifies a negotiated variant, but the write stands
+            if (getWriteResponse(dataset.getDefaultModel(), null).isEmpty())
+                return Response.noContent().header(HttpHeaders.CONTENT_LOCATION, getURI()).build();
+
             return getInternalResponse(dataset.getDefaultModel(), null).getResponseBuilder(). // entity tag of the updated graph
                 status(Response.Status.NO_CONTENT).
                 entity(null). // 'Content-Type' header has to be explicitly unset in ResponseHeadersFilter
@@ -1441,7 +1448,10 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             throw new WebApplicationException("Writing an existing document requires If-Match with its current entity tag",
                 getPreconditionRequiredResponse()); // RFC 6585 3: the response SHOULD explain how to resubmit the request
 
-        com.atomgraph.core.model.impl.Response internalResponse = getInternalResponse(model, getURI());
+        Optional<com.atomgraph.core.model.impl.Response> negotiated = getWriteResponse(model, getURI());
+        if (negotiated.isEmpty()) return evaluatePreconditionsUnnegotiated(model, httpHeaders);
+
+        com.atomgraph.core.model.impl.Response internalResponse = negotiated.get();
         Response.ResponseBuilder rb = internalResponse.evaluatePreconditions();
 
         // a precondition that failed says what the current validator IS, so the client can retry against it
@@ -1450,6 +1460,73 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         if (rb != null) rb.tag(internalResponse.getVariantEntityTag());
 
         return rb;
+    }
+
+    /**
+     * Returns the response a write evaluates its preconditions against and takes its entity tag from: the one for the
+     * variant the request negotiates, or none when its <code>Accept</code> names no RDF syntax.
+     * A write answers with no body - <code>204</code>, or <code>201</code> - so there is nothing for the client to
+     * accept, and refusing it with <code>406</code> would refuse the write for the sake of a representation it is not
+     * sent (GSP 5.3, 5.4; RFC 9110 12.5.1).
+     *
+     * @param model RDF model
+     * @param graphUri graph URI, or <code>null</code> to leave out <code>Last-Modified</code>
+     * @return the negotiated response, or empty if no variant is acceptable
+     */
+    public Optional<com.atomgraph.core.model.impl.Response> getWriteResponse(Model model, URI graphUri)
+    {
+        try
+        {
+            return Optional.of(getInternalResponse(model, graphUri));
+        }
+        catch (NotAcceptableException ex)
+        {
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Evaluates a write's preconditions when its <code>Accept</code> selects no variant.
+     * An entity tag identifies a representation of the document, and with none selected the one the client quotes can
+     * be any of them: <code>If-Match</code> holds when it names the current tag of any variant, and
+     * <code>If-None-Match</code> fails when it names the current tag of any variant (or is <code>*</code>).
+     *
+     * @param model RDF model
+     * @param httpHeaders the request headers the preconditions are read from
+     * @return <code>null</code> if the preconditions are met; otherwise a response builder for the failed precondition
+     */
+    protected Response.ResponseBuilder evaluatePreconditionsUnnegotiated(Model model, HttpHeaders httpHeaders)
+    {
+        List<Variant> variants = new ArrayList<>(com.atomgraph.core.model.impl.Response.getVariants(getWritableMediaTypes(Model.class), getLanguages(), getEncodings(), new HTMLMediaTypePredicate()));
+        // the language-neutral variants as well, as Core offers them in negotiation
+        for (Variant languageNeutral : com.atomgraph.core.model.impl.Response.removeLanguages(variants))
+            if (!variants.contains(languageNeutral)) variants.add(languageNeutral);
+
+        boolean ifMatch = quotesEntityTag(httpHeaders.getHeaderString(HttpHeaders.IF_MATCH));
+        Response.ResponseBuilder failed = null;
+        for (Variant variant : variants)
+        {
+            com.atomgraph.core.model.impl.Response response = new com.atomgraph.core.model.impl.Response(getRequest(),
+                model,
+                getLastModified(model, getURI()),
+                getEntityTag(model),
+                variant,
+                new HTMLMediaTypePredicate(),
+                getHttpHeaders().getAcceptableLanguages());
+
+            Response.ResponseBuilder rb = response.evaluatePreconditions();
+            if (rb == null)
+            {
+                if (ifMatch) return null; // the quoted tag is the current tag of this variant
+            }
+            else
+            {
+                if (failed == null) failed = rb.tag(response.getVariantEntityTag());
+                if (!ifMatch) return failed; // If-None-Match named a current tag
+            }
+        }
+
+        return failed;
     }
 
     /**
