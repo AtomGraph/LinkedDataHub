@@ -25,6 +25,8 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   -X PATCH \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
   -H "Content-Type: application/sparql-update" \
+  -H "Accept: application/n-triples" \
+  -H "If-Match: $(etag "${END_USER_BASE_URL}settings" "$OWNER_CERT_FILE" "$OWNER_CERT_PWD")" \
   -d "PREFIX dct: <http://purl.org/dc/terms/>
 DELETE { ?app dct:title ?title }
 INSERT { ?app dct:title \"Updated Title\" }
@@ -59,6 +61,8 @@ fi
 curl -k -w "%{http_code}\n" -o /dev/null -s -X PATCH \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
   -H "Content-Type: application/sparql-update" \
+  -H "Accept: application/n-triples" \
+  -H "If-Match: $(etag "${END_USER_BASE_URL}settings" "$OWNER_CERT_FILE" "$OWNER_CERT_PWD")" \
   -d "PREFIX dct: <http://purl.org/dc/terms/>
 DELETE { ?app dct:title ?title }
 INSERT { ?app dct:title \"LinkedDataHub\" }

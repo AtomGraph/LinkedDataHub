@@ -22,6 +22,7 @@ import com.atomgraph.core.util.ModelUtils;
 import com.atomgraph.linkeddatahub.dataspaces.model.Dataspace;
 import com.atomgraph.linkeddatahub.resource.admin.ClearOntology;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
+import com.atomgraph.linkeddatahub.server.model.impl.DocumentHierarchyGraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.util.EntityTags;
 import com.atomgraph.linkeddatahub.server.util.PatchUpdateVisitor;
 import com.atomgraph.linkeddatahub.vocabulary.LDS;
@@ -37,12 +38,14 @@ import jakarta.ws.rs.WebApplicationException;
 import static com.atomgraph.server.status.UnprocessableEntityStatus.UNPROCESSABLE_ENTITY;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.EntityTag;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.MessageBodyReader;
 import jakarta.ws.rs.ext.Providers;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.concurrent.locks.Lock;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
@@ -71,6 +74,7 @@ public class Settings
     private final Providers providers;
     private final Request request;
     private final ResourceContext resourceContext;
+    private final HttpHeaders httpHeaders;
 
     /**
      * Constructs the Settings endpoint.
@@ -81,9 +85,10 @@ public class Settings
      * @param providers JAX-RS provider registry
      * @param request JAX-RS request context
      * @param resourceContext JAX-RS resource context (for delegating to sub-resources)
+     * @param httpHeaders the request headers the write preconditions are read from
      */
     @Inject
-    public Settings(Dataspace application, com.atomgraph.linkeddatahub.Application system, MediaTypes mediaTypes, @Context Providers providers, @Context Request request, @Context ResourceContext resourceContext)
+    public Settings(Dataspace application, com.atomgraph.linkeddatahub.Application system, MediaTypes mediaTypes, @Context Providers providers, @Context Request request, @Context ResourceContext resourceContext, @Context HttpHeaders httpHeaders)
     {
         this.application = application;
         this.system = system;
@@ -91,6 +96,7 @@ public class Settings
         this.providers = providers;
         this.request = request;
         this.resourceContext = resourceContext;
+        this.httpHeaders = httpHeaders;
     }
 
     /**
@@ -111,7 +117,21 @@ public class Settings
 
         if (log.isDebugEnabled()) log.debug("Retrieved settings for dataspace <{}>", getDataspace().getURI());
 
-        // negotiated, conditional and Vary-ing the way the documents' responses are
+        return getInternalResponse(dataspaceModel).
+            getResponseBuilder().
+            build();
+    }
+
+    /**
+     * Returns the settings response for the given model: negotiated, conditional and Vary-ing the way the
+     * documents' responses are. A write evaluates its preconditions against it, so a tag read with
+     * <code>GET</code> is matched against the variant the write's own <code>Accept</code> selects.
+     *
+     * @param dataspaceModel the dataspace settings
+     * @return the response
+     */
+    public com.atomgraph.core.model.impl.Response getInternalResponse(Model dataspaceModel)
+    {
         return new com.atomgraph.core.model.impl.Response(getRequest(),
                 dataspaceModel,
                 null,
@@ -119,17 +139,17 @@ public class Settings
                 getMediaTypes().getWritable(Model.class),
                 getSystem().getSupportedLanguages(),
                 new ArrayList<>(),
-                new HTMLMediaTypePredicate()).
-            getResponseBuilder().
-            build();
+                new HTMLMediaTypePredicate());
     }
 
     /**
      * Updates the dataspace settings by executing a SPARQL UPDATE request.
      * Accepts SPARQL update as the request body which is executed in the context of the dataspace named graph.
+     * Like a write to an existing document, it has to quote the settings' current entity tag in <code>If-Match</code>:
+     * without one it is refused with <code>428</code>, and with a stale one with <code>412</code>.
      *
      * @param updateRequest SPARQL update
-     * @return response indicating success or failure
+     * @return <code>204</code> carrying the entity tag of the updated settings, or the failed precondition
      * @throws java.io.IOException
      */
     @PATCH
@@ -144,30 +164,57 @@ public class Settings
         // WITH/USING match nothing, and LOAD, CLEAR or a second operation would reach past the settings
         PatchUpdateVisitor.validate(updateRequest);
 
-        Model dataspaceModel = getSystem().getDataspaceModel(getDataspace());
-        if (dataspaceModel == null || dataspaceModel.isEmpty())
-            throw new NotFoundException("No settings found for dataspace <" + getDataspace().getURI() + "> in context dataset");
-
-        // Create a mutable copy since getDataspaceModel() returns a read-only view
-        Model mutableModel = ModelFactory.createDefaultModel().add(dataspaceModel);
-
-        // Execute the SPARQL UPDATE on the dataspace model in memory
-        Dataset dataset = DatasetFactory.wrap(mutableModel);
-        UpdateAction.execute(updateRequest, dataset);
-
-        // Verify the application resource still exists with correct type after PATCH
-        Resource appResource = ResourceFactory.createResource(getDataspace().getURI());
-        if (!mutableModel.contains(appResource, RDF.type, LDS.EndUserDataspace))
+        // the update is a read-modify-write of the whole settings model, the way a document PATCH is, so it is held
+        // to the same terms: it quotes the state it was made against, and nothing writes in between. The lock is
+        // released before the ontology is cleared below, which takes locks of its own
+        final EntityTag entityTag;
+        Lock lock = getSystem().getGraphLocks().get(URI.create(getDataspace().getURI()));
+        lock.lock();
+        try
         {
-            if (log.isWarnEnabled()) log.warn("PATCH removed application resource or its type for <{}>", getDataspace().getURI());
-            throw new WebApplicationException("PATCH cannot remove the application resource or its type", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
+            Model dataspaceModel = getSystem().getDataspaceModel(getDataspace());
+            if (dataspaceModel == null || dataspaceModel.isEmpty())
+                throw new NotFoundException("No settings found for dataspace <" + getDataspace().getURI() + "> in context dataset");
+
+            // the settings always exist, so If-None-Match: * can only fail - it is evaluated below like any other
+            String ifMatch = getHttpHeaders().getHeaderString(HttpHeaders.IF_MATCH);
+            String ifNoneMatch = getHttpHeaders().getHeaderString(HttpHeaders.IF_NONE_MATCH);
+            if (!DocumentHierarchyGraphStoreImpl.quotesEntityTag(ifMatch) && !(ifNoneMatch != null && ifNoneMatch.strip().equals("*")))
+                throw new WebApplicationException("Writing the settings requires If-Match with their current entity tag",
+                    Response.status(Response.Status.PRECONDITION_REQUIRED).build());
+
+            com.atomgraph.core.model.impl.Response internalResponse = getInternalResponse(dataspaceModel);
+            Response.ResponseBuilder rb = internalResponse.evaluatePreconditions();
+            if (rb != null) return rb.tag(internalResponse.getVariantEntityTag()).build(); // says what the current tag is
+
+            // Create a mutable copy since getDataspaceModel() returns a read-only view
+            Model mutableModel = ModelFactory.createDefaultModel().add(dataspaceModel);
+
+            // Execute the SPARQL UPDATE on the dataspace model in memory
+            Dataset dataset = DatasetFactory.wrap(mutableModel);
+            UpdateAction.execute(updateRequest, dataset);
+
+            // Verify the application resource still exists with correct type after PATCH
+            Resource appResource = ResourceFactory.createResource(getDataspace().getURI());
+            if (!mutableModel.contains(appResource, RDF.type, LDS.EndUserDataspace))
+            {
+                if (log.isWarnEnabled()) log.warn("PATCH removed application resource or its type for <{}>", getDataspace().getURI());
+                throw new WebApplicationException("PATCH cannot remove the application resource or its type", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
+            }
+
+            // validate the updated model
+            validate(mutableModel);
+
+            // Write the updated model back to the context dataset file
+            getSystem().updateApp(getDataspace(), mutableModel);
+
+            // the tag of the state just written, in the variant this request negotiated, so the next write can quote it
+            entityTag = getInternalResponse(mutableModel).getVariantEntityTag();
         }
-
-        // validate the updated model
-        validate(mutableModel);
-
-        // Write the updated model back to the context dataset file
-        getSystem().updateApp(getDataspace(), mutableModel);
+        finally
+        {
+            lock.unlock();
+        }
 
         // clear and reload the ontology so the next request re-derives with the updated ldh:import set.
         // Delegate to ClearOntology (context-agnostic) for the full eviction - repository graph + closure
@@ -182,7 +229,7 @@ public class Settings
 
         if (log.isInfoEnabled()) log.info("Updated settings for dataspace <{}> via PATCH", getDataspace().getURI());
 
-        return Response.noContent().build();
+        return Response.noContent().tag(entityTag).build();
     }
 
     /**
@@ -257,6 +304,16 @@ public class Settings
     public Request getRequest()
     {
         return request;
+    }
+
+    /**
+     * Returns the request headers.
+     *
+     * @return the headers
+     */
+    public HttpHeaders getHttpHeaders()
+    {
+        return httpHeaders;
     }
 
     /**

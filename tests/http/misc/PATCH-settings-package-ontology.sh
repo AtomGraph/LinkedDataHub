@@ -56,6 +56,8 @@ patch_settings() {
     -X PATCH \
     -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
     -H "Content-Type: application/sparql-update" \
+    -H "Accept: application/n-triples" \
+    -H "If-Match: $(etag "${END_USER_BASE_URL}settings" "$OWNER_CERT_FILE" "$OWNER_CERT_PWD")" \
     -d "$update" \
     "${END_USER_BASE_URL}settings")
   echo "DEBUG: [$phase] Expected: $STATUS_NO_CONTENT  Got: $status"

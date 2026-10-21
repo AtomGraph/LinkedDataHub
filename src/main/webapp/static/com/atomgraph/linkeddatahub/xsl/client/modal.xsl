@@ -960,13 +960,14 @@ LIMIT   10
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
         <!-- ldh:edit-form-response stamps render-fn=ldh:render-document-form#2 (mode="ldh:DocumentForm", narrow @rdf:about=$about filter) so the violation re-render stays focused on the edited resource. -->
         <xsl:param name="callback" select="ldh:edit-form-response#1" as="function(map(*)) as item()*"/>
+        <xsl:param name="etag-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/> <!-- the document whose tag the write quotes -->
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="form" select="." as="element()"/>
         <xsl:variable name="method" select="upper-case(@method)" as="xs:string"/>
         <xsl:variable name="id" select="string($form/@id)" as="xs:string"/>
         <xsl:variable name="action" select="ixsl:get($form, 'action')" as="xs:anyURI"/>
         <xsl:variable name="enctype" select="ixsl:get($form, 'enctype')" as="xs:string"/>
-        <xsl:variable name="etag" select="ldh:document-etag(ac:absolute-path(ldh:base-uri(.)))" as="xs:string"/>
+        <xsl:variable name="etag" select="ldh:document-etag($etag-uri)" as="xs:string?"/>
 
         <xsl:sequence select="ldh:busy-cursor()"/>
         
@@ -1052,7 +1053,7 @@ LIMIT   10
         </xsl:variable>
         <xsl:variable name="request-uri" select="ldh:href($action, map{})" as="xs:anyURI"/>
         <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile -->
-        <xsl:variable name="request" select="map{ 'method': $method, 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': map{ 'If-Match': $etag, 'Accept': 'application/rdf+xml', 'Cache-Control': 'no-cache' } }" as="map(*)"/>
+        <xsl:variable name="request" select="map{ 'method': $method, 'href': $request-uri, 'media-type': 'application/sparql-update', 'body': $update-string, 'headers': ldh:conditional-headers(map{ 'Accept': 'application/rdf+xml', 'Cache-Control': 'no-cache' }, $etag) }" as="map(*)"/>
         <!-- 'about' = the resource URL being submitted to; the wrapping block carries it on @about uniformly (btn-edit / btn-app-settings / Container-Item creation modals all set it). $doc-uri is the page URL and can't be used for this -->
         <xsl:variable name="context" as="map(*)" select="
           map{
@@ -1159,7 +1160,7 @@ LIMIT   10
         <!-- ldh:fetch-and-load-edited-resource bakes a GET-style type-metadata-request into context, so the type-metadata pair uses an identity load-fn rather than ldh:load-type-metadata (which would build a different POST-style request). ldh:render-app-settings-form has its own cursor reset (shared with btn-edit modal); the finally here is the backstop for the failure-on-parallel path. -->
         <ixsl:promise select="
           ixsl:resolve($context)
-            => ixsl:then(ldh:fetch-and-load-edited-resource#1)
+            => ixsl:then(ldh:fetch-and-load-settings#1)
             => ixsl:then(ldh:fire-load-set-parallel(?, [
                  [ function($ctx as map(*)) as map(*) { $ctx }, 'type-metadata-request',     'type-metadata-response',     ldh:set-type-metadata#1 ],
                  [ ldh:load-property-metadata#1,                'property-metadata-request', 'property-metadata-response', ldh:set-property-metadata#1 ],
@@ -1179,8 +1180,26 @@ LIMIT   10
     <xsl:template match="div[@id = 'app-settings']//form[upper-case(@method) = 'PATCH']" mode="ixsl:onsubmit" priority="3">
         <xsl:next-match>
             <xsl:with-param name="callback" select="ldh:settings-form-response#1"/>
+            <!-- the settings are a document of their own, written against the tag ldh:fetch-and-load-settings stored for them -->
+            <xsl:with-param name="etag-uri" select="ac:absolute-path(xs:anyURI(ixsl:get(., 'action')))"/>
         </xsl:next-match>
     </xsl:template>
+
+    <!-- Loads the settings for editing, keeping their validator under the settings URI. ldh:load-edited-resource keys
+         the tag by 'base-uri' and otherwise by the page, which the settings are not: the page's own tag was replaced by
+         the settings', and the next write to the page quoted it and was refused 412. 'base-uri' is dropped again
+         afterwards because the form renders the dataspace resource, which the settings URI is not the base of -->
+    <xsl:function name="ldh:fetch-and-load-settings" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+
+        <xsl:sequence select="
+          ixsl:http-request($context('request'))
+            => ixsl:then(ldh:rethread-response(map:put($context, 'base-uri', $context('action')), ?))
+            => ixsl:then(ldh:handle-response#1)
+            => ixsl:then(ldh:load-edited-resource#1)
+            => ixsl:then(map:remove(?, 'base-uri'))
+        "/>
+    </xsl:function>
 
     <!-- form-flavor wrapper mode parallel to ldh:DocumentForm; scopes the app-settings UI restrictions (dct:title / dct:description visible, everything else hidden) to this flow. The mode itself is the discriminator — instances of lds:Dataspace created via the generic Create button continue to render through ldh:DocumentForm → ac:FormControl unaffected. -->
     <xsl:template match="rdf:RDF" mode="ldh:AppSettingsForm">

@@ -15,6 +15,8 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   -X PATCH \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
   -H "Content-Type: application/sparql-update" \
+  -H "Accept: application/n-triples" \
+  -H "If-Match: $(etag "${END_USER_BASE_URL}settings" "$OWNER_CERT_FILE" "$OWNER_CERT_PWD")" \
   -d "PREFIX lds: <https://w3id.org/atomgraph/linkeddatahub/dataspaces#>
 DELETE { ?app lds:origin ?origin }
 WHERE { ?app lds:origin ?origin }" \
