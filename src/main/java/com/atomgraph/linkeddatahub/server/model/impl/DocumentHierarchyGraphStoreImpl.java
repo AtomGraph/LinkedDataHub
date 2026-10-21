@@ -381,6 +381,10 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
 
         if (log.isTraceEnabled()) log.trace("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
 
+        // appending nothing is a no-op (GSP 5.5): there is no state to quote, so it needs no If-Match, and nothing is
+        // written - stamping dct:modified would change the graph and its entity tag although no triple was added
+        if (model.isEmpty()) return Response.noContent().build();
+
         return writeLocked(() ->
         {
             final Model existingModel = getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(getURI().toString());

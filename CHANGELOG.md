@@ -28,6 +28,7 @@
 - `ldh create` with a parent URI that lacks its trailing slash creates the document inside it rather than next to it
 - An import that cannot append to an existing document says so, instead of reporting that its `PUT` failed (#456)
 - `PATCH` stamps the document's `dct:modified`, so `Last-Modified` moves with the change and `If-Modified-Since` no longer gets `304` for changed content; `dct:created` and `dct:modified` are server-managed on every write (a client-supplied value in a `PUT`, `POST` or `PATCH` is dropped), and `Last-Modified` is never later than the response (RFC 9110 8.8.2.1)
+- A `POST` with an empty payload is a no-op that answers `204` without requiring `If-Match`, and leaves the document and its `ETag` unchanged (GSP 5.5)
 
 ## [6.2.3] - 2026-10-21
 ### Migration
