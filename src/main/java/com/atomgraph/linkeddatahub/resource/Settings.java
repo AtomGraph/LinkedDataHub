@@ -181,7 +181,7 @@ public class Settings
             String ifNoneMatch = getHttpHeaders().getHeaderString(HttpHeaders.IF_NONE_MATCH);
             if (!DocumentHierarchyGraphStoreImpl.quotesEntityTag(ifMatch) && !(ifNoneMatch != null && ifNoneMatch.strip().equals("*")))
                 throw new WebApplicationException("Writing the settings requires If-Match with their current entity tag",
-                    Response.status(Response.Status.PRECONDITION_REQUIRED).build());
+                    DocumentHierarchyGraphStoreImpl.getPreconditionRequiredResponse());
 
             com.atomgraph.core.model.impl.Response internalResponse = getInternalResponse(dataspaceModel);
             Response.ResponseBuilder rb = internalResponse.evaluatePreconditions();

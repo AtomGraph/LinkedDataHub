@@ -49,6 +49,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -163,6 +164,25 @@ public class DocumentHierarchyGraphStoreImplWriteTest
         WebApplicationException ex = assertThrows(WebApplicationException.class, () -> gs.patch(UpdateFactory.create("DELETE WHERE { ?s ?p ?o }")));
 
         assertEquals(422, ex.getResponse().getStatus(), "PATCH is supported on the root; the update is what cannot be applied");
+        verify(store, never()).putModel(anyString(), any(Model.class));
+    }
+
+    // item 14: the 428 says what to send
+
+    @Test
+    public void preconditionRequiredExplainsItself()
+    {
+        DocumentHierarchyGraphStoreImpl gs = graphStore(DOC);
+        Model payload = ModelFactory.createDefaultModel();
+        payload.createResource(DOC.toString()).addProperty(DCTerms.description, "appended");
+
+        WebApplicationException ex = assertThrows(WebApplicationException.class, () -> gs.post(payload));
+
+        assertEquals(428, ex.getResponse().getStatus());
+        assertEquals("text/plain", ex.getResponse().getMediaType().getType() + "/" + ex.getResponse().getMediaType().getSubtype());
+        String body = (String)ex.getResponse().getEntity();
+        assertTrue(body.contains("If-Match"), "names the precondition");
+        assertTrue(body.contains("HEAD"), "says where to get the entity tag");
         verify(store, never()).putModel(anyString(), any(Model.class));
     }
 

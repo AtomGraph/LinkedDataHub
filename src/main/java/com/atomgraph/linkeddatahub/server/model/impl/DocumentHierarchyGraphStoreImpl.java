@@ -1439,7 +1439,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         String ifNoneMatch = httpHeaders.getHeaderString(HttpHeaders.IF_NONE_MATCH);
         if (model != null && !model.isEmpty() && !quotesEntityTag(ifMatch) && !(ifNoneMatch != null && ifNoneMatch.strip().equals("*")))
             throw new WebApplicationException("Writing an existing document requires If-Match with its current entity tag",
-                Response.status(Response.Status.PRECONDITION_REQUIRED).build());
+                getPreconditionRequiredResponse()); // RFC 6585 3: the response SHOULD explain how to resubmit the request
 
         com.atomgraph.core.model.impl.Response internalResponse = getInternalResponse(model, getURI());
         Response.ResponseBuilder rb = internalResponse.evaluatePreconditions();
@@ -1450,6 +1450,30 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         if (rb != null) rb.tag(internalResponse.getVariantEntityTag());
 
         return rb;
+    }
+
+    /**
+     * The body of a <code>428 Precondition Required</code> response to a write: which precondition the write needs
+     * and where to get the entity tag it quotes (RFC 6585 3).
+     */
+    public static final String PRECONDITION_REQUIRED_MESSAGE =
+        "Writing an existing resource requires the If-Match header with its current entity tag, " +
+        "or If-None-Match: * to create one that does not exist yet.\n" +
+        "Read the entity tag from the ETag header of a HEAD (or GET) request to the same URI, sent with the same " +
+        "Accept header as the write: the tag identifies the negotiated representation.\n";
+
+    /**
+     * Returns the <code>428 Precondition Required</code> response to a write that quotes no state.
+     *
+     * @return response with a plain-text explanation
+     * @see #PRECONDITION_REQUIRED_MESSAGE
+     */
+    public static Response getPreconditionRequiredResponse()
+    {
+        return Response.status(Response.Status.PRECONDITION_REQUIRED).
+            entity(PRECONDITION_REQUIRED_MESSAGE).
+            type(MediaType.TEXT_PLAIN_TYPE.withCharset(StandardCharsets.UTF_8.name())).
+            build();
     }
 
     /**

@@ -31,6 +31,7 @@
 - A `POST` with an empty payload is a no-op that answers `204` without requiring `If-Match`, and leaves the document and its `ETag` unchanged (GSP 5.5)
 - A `PUT` or `POST` runs only the imports it adds or redefines (another source, query, delimiter or target graph), so re-saving a document, or retitling an import, no longer fetches and imports its source again (RFC 9110 9.2.2)
 - A `PATCH` that would empty a document that cannot be deleted (the root, the owner's and the secretary's WebID documents) answers `422` instead of `405`: `PATCH` is supported there, the update is what cannot be applied (RFC 9110 15.5.6)
+- A `428 Precondition Required` (documents and `PATCH /settings`) carries a plain-text body naming `If-Match` and how to get the current entity tag with `HEAD` (RFC 6585 3)
 
 ## [6.2.3] - 2026-10-21
 ### Migration
