@@ -45,8 +45,7 @@ import picocli.CommandLine.ParameterException;
  * Imports an ontology into a document, either an external one by URI or a local file.
  * <p>
  * With <code>--source</code>, imports an external ontology: the vocabulary itself, the class constructors derived
- * from it, and a <code>foaf:primaryTopic</code> naming what the document is about. Mirrors
- * <code>bin/admin/ontologies/import-ontology.sh</code>. The vocabulary is fetched through the Linked Data proxy and
+ * from it, and a <code>foaf:primaryTopic</code> naming what the document is about. The vocabulary is fetched through the Linked Data proxy and
  * stays in the target, which is what makes the import an import: the graph carries the vocabulary's own header, so
  * resolving its URI finds this document with the derived annotations on it. The document remains a
  * <code>dh:Item</code> and never claims to be the ontology. The same shape the browser's import produces, and the one

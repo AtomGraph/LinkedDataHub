@@ -27,7 +27,6 @@ import picocli.CommandLine.Option;
 
 /**
  * Clears the application's cached graphs and assembled imports closures from memory.
- * Mirrors <code>bin/admin/clear-ontology.sh</code>.
  *
  * With <code>--ontology</code> the named ontology is also reloaded before the response returns, so the
  * next request already reads the new version. Without it nothing is reloaded and the closures rebuild

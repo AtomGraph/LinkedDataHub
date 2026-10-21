@@ -1,6 +1,7 @@
 ## [6.2.3] - 2026-10-19
 ### Migration
 - Deployments that keep a copy of `docker-compose.yml` need to re-sync it to get the SPARQL query cache
+- Scripts that call the `bin/` HTTP API scripts switch to the `ldh` CLI: `cli/README.md` maps each script to its command
 
 ### Added
 - `og:image` falls back to the image of the document's primary topic
@@ -11,6 +12,9 @@
 - Discovering a view's link predicates is faster
 - The `ldh` plugin is named LinkedDataHub, has an icon and documents where it sends data
 - `ldh add result-set-chart` takes `--series-var-name` more than once, for charts with several series
+
+### Removed
+- **BREAKING**: the deprecated `bin/` HTTP API scripts (`get.sh`, `create-item.sh`, `bin/admin/`, `bin/content/`, `bin/imports/` and the rest), which the `ldh` CLI replaces. The certificate and WebID tooling stays in `bin/`
 
 ### Fixed
 - An external document whose RDF could not be retrieved opens as a page instead of an error

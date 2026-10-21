@@ -25,7 +25,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 /**
- * Adds an <code>owl:imports</code> statement to an ontology. Mirrors <code>bin/admin/add-ontology-import.sh</code>.
+ * Adds an <code>owl:imports</code> statement to an ontology.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */

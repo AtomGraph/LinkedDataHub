@@ -58,7 +58,7 @@ turtle+="_:item a <${namespace_doc}#ConstrainedClass> .\n"
 turtle+="_:item dct:title \"Failure\" .\n"
 turtle+="_:item sioc:has_container <${END_USER_BASE_URL}> .\n"
 
-# Using direct curl instead of put.sh because put.sh uses -f flag which exits on 4xx errors,
+# Using direct curl instead of `ldh put` because it exits on 4xx errors,
 # but this test expects to capture the 422 response
 response=$(echo -e "$turtle" \
 | turtle --base="$END_USER_BASE_URL" \

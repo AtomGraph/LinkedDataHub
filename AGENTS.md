@@ -156,7 +156,7 @@ A single instance hosts multiple **dataspaces**, each a subdomain (origin). Each
 
   Authentication is the agent's WebID credential given to `-c/--cert`, as either a PKCS12 keystore or a PEM file holding the certificate and its PKCS#8 private key, told apart by content (`-p/--cert-password`, or `LDH_CERT_FILE`/`LDH_CERT_PASSWORD`; `LDH_BASE` and `LDH_PROXY` for `-b` and `--proxy`). Commands that create or append print the document's URL as the only line on stdout, so they compose in pipelines; exit codes are `0` success, `1` HTTP or runtime failure, `2` usage error. Shell completion: `source <(ldh generate-completion)`.
 
-  Certificate and WebID tooling (`webid-keygen.sh`, `server-cert-gen.sh`) remains in `bin/`; the `bin/` HTTP API scripts `ldh` replaces are deprecated.
+  Certificate and WebID tooling (`webid-keygen.sh`, `server-cert-gen.sh`) remains in `bin/`; the `bin/` HTTP API scripts `ldh` replaced have been removed.
 
 - **Programmatic / MCP**: [Web-Algebra](https://github.com/AtomGraph/Web-Algebra) is the recommended path for agent-composed workflows — a JSON DSL and MCP server whose operations (create container/item, add view/chart, generate portal, …) compose multi-step LDH writes atomically under WebID auth.
 

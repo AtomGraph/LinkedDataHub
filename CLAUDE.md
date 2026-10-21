@@ -160,8 +160,8 @@ The SPARQL endpoint forwarding chain ensures ContentMode blocks (charts, maps) q
 
 ## CLI Tools
 
-`ldh` (in `cli/`) is the command line interface for the HTTP API — one command per `bin/` script,
-same option names, grouped by verb (`create`, `add`, `remove`, `import`) plus the `packages`
+`ldh` (in `cli/`) is the command line interface for the HTTP API — one command per former `bin/`
+script, same option names, grouped by verb (`create`, `add`, `remove`, `import`) plus the `packages`
 family and the `admin` scope. Built with Maven on Java 21
 into a shaded `cli/target/ldh.jar` that `cli/bin/ldh` launches. See `cli/README.md` for the full
 script → command table and the behavioral differences from the scripts.
@@ -233,15 +233,12 @@ options: `--timemap` (version history), `--version <sha>` (a historical version)
 with an optional `--datetime` (RFC 1123 or ISO 8601), which prints the selected version's URI as the
 only line on stdout so it pipes into another `ldh get`.
 
-The `bin/` HTTP API scripts are **deprecated** — `ldh` replaces them, and tests/http builds its
-fixtures with it. Authentication moves from the `curl -E` invocation to `-c/--cert`
-(`-c ssl/owner/keystore.p12`).
-
-Certificate and WebID tooling stays in `bin/` and is not deprecated: `webid-keygen.sh`,
-`webid-keygen-pem.sh`, `webid-uri.sh`, `webid-modulus.sh`, `server-cert-gen.sh`.
+The `bin/` HTTP API scripts have been removed — `ldh` replaces them, and tests/http builds its
+fixtures with it. `bin/` holds only the certificate and WebID tooling, which talks to no API:
+`webid-keygen.sh`, `webid-keygen-pem.sh`, `webid-uri.sh`, `webid-modulus.sh`, `server-cert-gen.sh`.
 
 ```bash
-export PATH="$(find bin -type d -exec realpath {} \; | tr '\n' ':')$PATH"
+export PATH="$PWD/bin:$PATH"
 ```
 
 ## XSLT Mode Namespaces

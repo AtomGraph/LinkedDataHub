@@ -28,7 +28,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 /**
- * Adds a SPARQL CONSTRUCT query to a document. Mirrors <code>bin/add-construct.sh</code>.
+ * Adds a SPARQL CONSTRUCT query to a document.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */

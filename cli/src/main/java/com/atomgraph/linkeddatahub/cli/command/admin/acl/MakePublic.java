@@ -25,7 +25,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 
 /**
- * Makes all end-user application documents publicly readable. Mirrors <code>bin/admin/acl/make-public.sh</code>.
+ * Makes all end-user application documents publicly readable.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */

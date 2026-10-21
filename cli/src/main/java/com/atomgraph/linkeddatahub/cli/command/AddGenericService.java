@@ -24,7 +24,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 /**
- * Appends a generic SPARQL service description to a document. Mirrors <code>bin/add-generic-service.sh</code>.
+ * Appends a generic SPARQL service description to a document.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
