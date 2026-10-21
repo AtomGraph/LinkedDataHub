@@ -117,29 +117,17 @@ public class ModelBuildersTest
                 dct:title "Some" ;
                 rdf:_1 [ a ldh:Object ; rdf:value ldh:ChildrenView ] .
             """),
-            Documents.container(TARGET, "Some", null, null, null, null));
+            Documents.container(TARGET, "Some", null, true, null));
     }
 
     @Test
-    public void createContainerWithMode()
+    public void createContainerWithoutChildrenView()
     {
         assertIsomorphic(parse("""
             <> a dh:Container ;
-                dct:title "Some" ;
-                rdf:_1 [ a ldh:Object ; rdf:value [ a ldh:View ; spin:query ldh:SelectChildren ; ac:mode <https://w3id.org/atomgraph/client#GridMode> ] ] .
+                dct:title "Some" .
             """),
-            Documents.container(TARGET, "Some", null, null, URI.create("https://w3id.org/atomgraph/client#GridMode"), null));
-    }
-
-    @Test
-    public void createContainerWithBlock()
-    {
-        assertIsomorphic(parse("""
-            <> a dh:Container ;
-                dct:title "Some" ;
-                rdf:_1 <https://localhost:4443/some/#block> .
-            """),
-            Documents.container(TARGET, "Some", null, URI.create("https://localhost:4443/some/#block"), null, null));
+            Documents.container(TARGET, "Some", null, false, null));
     }
 
     @Test
@@ -153,7 +141,7 @@ public class ModelBuildersTest
                 rdf:_1 [ a ldh:Object ; rdf:value ldh:ChildrenView ] ;
                 foaf:primaryTopic <#this> .
             """),
-            Documents.container(TARGET, "Some", null, null, null, "#this"));
+            Documents.container(TARGET, "Some", null, true, "#this"));
     }
 
     @Test

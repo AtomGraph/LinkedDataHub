@@ -45,11 +45,8 @@ public class CreateContainer extends BaseCommand
     @Option(names = "--parent", required = true, paramLabel = "PARENT_URI", description = "URI of the parent container")
     private URI parent;
 
-    @Option(names = "--block", paramLabel = "BLOCK_URI", description = "URI of the content block (optional)")
-    private URI block;
-
-    @Option(names = "--mode", paramLabel = "MODE_URI", description = "URI of the layout mode of the children view (optional)")
-    private URI mode;
+    @Option(names = "--children-view", negatable = true, defaultValue = "true", fallbackValue = "true", description = "Whether the first content block shows the container's children (default: ${DEFAULT-VALUE})")
+    private boolean childrenView;
 
     @Option(names = "--primary-topic", paramLabel = "URI", description = "URI of what the document is about, resolved against the document URI (optional)")
     private String primaryTopic;
@@ -58,7 +55,7 @@ public class CreateContainer extends BaseCommand
     public Integer call() throws Exception
     {
         URI doc = URIs.childURI(parent, slug != null ? slug : Slugs.defaultSlug());
-        put(getClient(), doc, Documents.container(doc, title, description, block, mode, primaryTopic));
+        put(getClient(), doc, Documents.container(doc, title, description, childrenView, primaryTopic));
         print(doc);
 
         return 0;

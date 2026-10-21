@@ -16,10 +16,8 @@
 
 package com.atomgraph.linkeddatahub.rdf;
 
-import com.atomgraph.linkeddatahub.rdf.vocabulary.AC;
 import com.atomgraph.linkeddatahub.rdf.vocabulary.DH;
 import com.atomgraph.linkeddatahub.rdf.vocabulary.LDH;
-import com.atomgraph.linkeddatahub.rdf.vocabulary.SPIN;
 import java.net.URI;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -39,18 +37,18 @@ public final class Documents
     private Documents() { }
 
     /**
-     * Builds the container document model with its first content block: the given block URI,
-     * a children view with an explicit mode, or the default children view.
+     * Builds the container document model, by default with the children view as its first content
+     * block, as the <code>dh:Container</code> constructor makes it. Any other content is appended
+     * to the document afterwards, as to any other document.
      *
      * @param doc document URI
      * @param title document title
      * @param description document description (optional)
-     * @param block content block URI (optional)
-     * @param mode children view mode URI (optional, ignored when block is given)
+     * @param childrenView whether the first content block shows the container's children
      * @param primaryTopic URI of the document's primary topic, relative or absolute (optional)
      * @return document model
      */
-    public static Model container(URI doc, String title, String description, URI block, URI mode, String primaryTopic)
+    public static Model container(URI doc, String title, String description, boolean childrenView, String primaryTopic)
     {
         Model model = ModelFactory.createDefaultModel();
 
@@ -58,14 +56,7 @@ public final class Documents
             addProperty(RDF.type, DH.Container).
             addProperty(DCTerms.title, title);
 
-        if (block != null) container.addProperty(RDF.li(1), model.createResource(block.toString()));
-        else if (mode != null) container.addProperty(RDF.li(1), model.createResource().
-                addProperty(RDF.type, LDH.Object).
-                addProperty(RDF.value, model.createResource().
-                    addProperty(RDF.type, LDH.View).
-                    addProperty(SPIN.query, LDH.SelectChildren).
-                    addProperty(AC.mode, model.createResource(mode.toString()))));
-        else container.addProperty(RDF.li(1), model.createResource().
+        if (childrenView) container.addProperty(RDF.li(1), model.createResource().
                 addProperty(RDF.type, LDH.Object).
                 addProperty(RDF.value, LDH.ChildrenView));
 
