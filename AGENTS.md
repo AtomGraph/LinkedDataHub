@@ -79,6 +79,8 @@ Write portable, standard SPARQL: use explicit `GRAPH` patterns, no engine-specif
 
 **A property is used on instances of its domain.** The ontology (`Link rel=lds:ontology`) declares each property's `rdfs:domain` and `rdfs:range`, and the data follows it: a property declared on `schema:Person` is not on the `schema:Corporation` that employs the person. To reach it, follow the ontology's path - the corporation's `schema:employee`, then the person's `schema:address`.
 
+**A stored query can run against another endpoint.** A query resource (`sp:Select`, `sp:Construct`, …) runs against the dataspace's own endpoint unless it names an `sd:Service` with `ldh:service`: `<#q> ldh:service <#dbpedia>` with `<#dbpedia> a sd:Service ; sd:endpoint <https://dbpedia.org/sparql> ; sd:supportedLanguage sd:SPARQL11Query`. Views and charts run the query they reference, so a view or a chart over such a query shows the remote endpoint's data on the page. Write the query against that store's own graph layout - the empty default graph above is this dataspace's, not every endpoint's - and time it first: remote endpoints are slow and rate-limited.
+
 Outbound `SERVICE` and `LOAD` — from the triplestore and from the platform alike — are routed through the `egress` forward proxy, which refuses loopback, private and link-local destinations. A federated query reaches public endpoints and cannot reach the deployment's own services. With no proxy configured and `ALLOW_INTERNAL_URLS` unset, in-JVM `SERVICE` (in a `PATCH` update or an import mapping) is disabled outright.
 
 ## Content & document model
