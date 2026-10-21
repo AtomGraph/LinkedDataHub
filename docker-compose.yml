@@ -323,6 +323,23 @@ configs:
               ssl_prefer_server_ciphers on;
               ssl_verify_client ${NGINX_SSL_VERIFY_CLIENT:-optional_no_ca};
 
+              # Identity and routing headers are set here, once for the whole server, so that no location can forget them:
+              # a client's own Client-Cert, Host or X-Forwarded-* never reaches the platform. proxy_set_header is inherited
+              # only by a location that sets none of its own - a location that needs one more header repeats this whole set.
+              # On-Behalf-Of is passed: the platform honours it only from an agent the named WebID delegates to
+              proxy_set_header Host $$host;
+              proxy_set_header X-Forwarded-Host $$host;
+              proxy_set_header X-Forwarded-Proto $$scheme;
+              proxy_set_header X-Forwarded-Port ${HTTPS_PORT};
+              proxy_set_header X-Forwarded-For $$remote_addr;
+              proxy_set_header Client-Cert $$ssl_client_escaped_cert; # empty, and so not sent, without a client certificate
+
+              # path parameters (;) are not used by the platform, and the servlet container would strip them before routing,
+              # so a path could match one location here and reach a different resource there
+              if ($$request_uri ~ "^[^?]*;") {
+                  return 400;
+              }
+
               # the assistant's plan service. A reserved path, like /static/ and /uploads/: prefix-matched ahead of the
               # generic location and never rewritten, so /webalgebra, /webalgebra/plans and /webalgebra/{id}/result reach the
               # sidecar as they are. Reachable only with a WebID certificate on the connection: the sidecar acts for the
@@ -341,12 +358,13 @@ configs:
                   limit_req zone=web_algebra burst=10 nodelay;
                   proxy_read_timeout 120s; # writing a plan is a 10-30 s model call
 
+                  # proxy_set_header is inherited from the server level only by a location that sets none of its own, so this one,
+                  # which clears On-Behalf-Of, has to repeat the whole server-level set
                   proxy_set_header Host $$host;
                   proxy_set_header X-Forwarded-Host $$host;
                   proxy_set_header X-Forwarded-Proto $$scheme;
                   proxy_set_header X-Forwarded-Port ${HTTPS_PORT};
-
-                  proxy_set_header Client-Cert '';
+                  proxy_set_header X-Forwarded-For $$remote_addr;
                   proxy_set_header Client-Cert $$ssl_client_escaped_cert;
                   proxy_set_header On-Behalf-Of '';
               }
@@ -375,14 +393,6 @@ configs:
                   limit_req zone=sparql burst=10 nodelay;
                   limit_conn sparql_per_client ${NGINX_SPARQL_CONN_PER_CLIENT:-2};
                   limit_conn sparql_total ${NGINX_SPARQL_CONN_TOTAL:-8};
-
-                  proxy_set_header Host $$host;
-                  proxy_set_header X-Forwarded-Host $$host;
-                  proxy_set_header X-Forwarded-Proto $$scheme;
-                  proxy_set_header X-Forwarded-Port ${HTTPS_PORT};
-
-                  proxy_set_header Client-Cert '';
-                  proxy_set_header Client-Cert $$ssl_client_escaped_cert;
               }
 
               location ^~ /uploads/ {
@@ -394,15 +404,7 @@ configs:
                   proxy_pass http://linkeddatahub;
                   limit_req zone=static_files burst=20 nodelay;
 
-                  proxy_set_header Host $$host;
-                  proxy_set_header X-Forwarded-Host $$host;
-                  proxy_set_header X-Forwarded-Proto $$scheme;
-                  proxy_set_header X-Forwarded-Port ${HTTPS_PORT};
-
-                  proxy_set_header Client-Cert '';
-                  proxy_set_header Client-Cert $$ssl_client_escaped_cert;
-
-                  add_header Cache-Control "public, max-age=604800, immutable";
+                  add_header Cache-Control "private, max-age=604800, immutable"; # access-controlled: no shared cache may store it
               }
 
               location ^~ /static/ {
@@ -429,6 +431,23 @@ configs:
               ssl_prefer_server_ciphers on;
               ssl_verify_client optional_no_ca;
 
+              # Identity and routing headers are set here, once for the whole server, so that no location can forget them:
+              # a client's own Client-Cert, Host or X-Forwarded-* never reaches the platform. proxy_set_header is inherited
+              # only by a location that sets none of its own - a location that needs one more header repeats this whole set.
+              # On-Behalf-Of is passed: the platform honours it only from an agent the named WebID delegates to
+              proxy_set_header Host $$host;
+              proxy_set_header X-Forwarded-Host $$host;
+              proxy_set_header X-Forwarded-Proto $$scheme;
+              proxy_set_header X-Forwarded-Port ${HTTPS_PORT};
+              proxy_set_header X-Forwarded-For $$remote_addr;
+              proxy_set_header Client-Cert $$ssl_client_escaped_cert; # empty, and so not sent, without a client certificate
+
+              # path parameters (;) are not used by the platform, and the servlet container would strip them before routing,
+              # so a path could match one location here and reach a different resource there
+              if ($$request_uri ~ "^[^?]*;") {
+                  return 400;
+              }
+
               location / {
                   add_header Access-Control-Allow-Origin "*" always;
                   add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS" always;
@@ -453,14 +472,6 @@ configs:
                   limit_req zone=sparql burst=10 nodelay;
                   limit_conn sparql_per_client ${NGINX_SPARQL_CONN_PER_CLIENT:-2};
                   limit_conn sparql_total ${NGINX_SPARQL_CONN_TOTAL:-8};
-
-                  proxy_set_header Host $$host;
-                  proxy_set_header X-Forwarded-Host $$host;
-                  proxy_set_header X-Forwarded-Proto $$scheme;
-                  proxy_set_header X-Forwarded-Port ${HTTPS_PORT};
-
-                  proxy_set_header Client-Cert '';
-                  proxy_set_header Client-Cert $$ssl_client_escaped_cert;
               }
 
               location ^~ /static/ {
@@ -492,6 +503,7 @@ configs:
 
       import std;
       import bodyaccess;
+      import xkey;
 
       backend default {
           .host = "${VARNISH_FRONTEND_BACKEND_HOST:-linkeddatahub}";
@@ -515,16 +527,17 @@ configs:
               return (purge);
           }
 
-          if (req.method == "BAN") { # supports only 2 URIs!
+          # the platform tags each response it renders with xkey (XkeyTaggingFilter) - its document, the document's parent
+          # container and its dataspace's access-control scope - and purges by those tags after a write (CacheInvalidationFilter,
+          # ClearOntology). A URL BAN cannot do this: req.url is a path, and the platform knows documents by absolute URI
+          if (req.method == "XKEY-PURGE") {
               if (!client.ip ~ local && !client.ip ~ remote) {
                   return (synth(403, "Unknown IP address '" + client.ip + "'. Access denied."));
               }
-
-              set req.http.X-Escaped-Request-URI-1 = regsub(req.http.X-Escaped-Request-URI, ",.*$", ""); # remove header value after comma
-              set req.http.X-Escaped-Request-URI-2 = regsub(req.http.X-Escaped-Request-URI, "^.*,", ""); # remove header value before comma
-              ban("req.url ~ " + req.http.X-Escaped-Request-URI-1);
-              ban("req.url ~ " + req.http.X-Escaped-Request-URI-2);
-              return (synth(200, "Banned"));
+              # hard purge, not softpurge: a reader right after a write or an access-control change must not get the copy
+              # the purge was meant to remove, which softpurge would keep serving during grace
+              set req.http.n-purged = xkey.purge(req.http.xkey-purge);
+              return (synth(200, "Purged " + req.http.n-purged + " objects for key " + req.http.xkey-purge));
           }
 
           if (req.method != "GET" &&
@@ -594,6 +607,12 @@ configs:
           # it's served by Tomcat's default servlet (web.xml:365-371), bypasses
           # Jersey, and carries no identity-bearing headers.
           if (req.http.Client-Cert && req.url !~ "^/static/") {
+              return (pass);
+          }
+
+          # The same holds for an OAuth session: the ID token cookie authenticates the request as its agent, so the
+          # response is that agent's and must not be stored under a key every other reader shares
+          if (req.http.Cookie ~ "LinkedDataHub\.id_token=" && req.url !~ "^/static/") {
               return (pass);
           }
 
@@ -670,6 +689,7 @@ configs:
 
       sub vcl_deliver {
           unset resp.http.X-SPARQL-Query;
+          unset resp.http.xkey; # the cache's index, not part of the representation
       }
   varnish-admin_vcl:
     content: |

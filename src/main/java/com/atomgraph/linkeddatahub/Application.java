@@ -110,6 +110,7 @@ import com.atomgraph.linkeddatahub.server.filter.request.ContentLengthLimitFilte
 import com.atomgraph.linkeddatahub.server.filter.request.auth.ProxiedWebIDFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.ResponseHeadersFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.CacheInvalidationFilter;
+import com.atomgraph.linkeddatahub.server.filter.response.XkeyTaggingFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.VersioningFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.XsltExecutableFilter;
 import com.atomgraph.client.interceptor.RDFPostMediaTypeInterceptor;
@@ -1266,7 +1267,11 @@ public class Application extends ResourceConfig
     {
         register(new ResponseHeadersFilter());
         register(new XsltExecutableFilter());
-        if (isInvalidateCache()) register(new CacheInvalidationFilter());
+        if (isInvalidateCache())
+        {
+            register(new XkeyTaggingFilter()); // tags what CacheInvalidationFilter purges from the frontend cache
+            register(new CacheInvalidationFilter());
+        }
         register(new VersioningFilter());
     }
     
