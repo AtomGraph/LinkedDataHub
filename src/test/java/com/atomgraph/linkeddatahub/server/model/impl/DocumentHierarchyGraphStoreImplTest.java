@@ -20,6 +20,7 @@ import com.atomgraph.linkeddatahub.model.CSVImport;
 import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.linkeddatahub.model.impl.CSVImportImpl;
 import com.atomgraph.linkeddatahub.model.impl.RDFImportImpl;
+import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.linkeddatahub.vocabulary.PROV;
 import com.atomgraph.linkeddatahub.vocabulary.SIOC;
@@ -128,6 +129,109 @@ public class DocumentHierarchyGraphStoreImplTest
         Model after = ModelFactory.createDefaultModel().add(before);
 
         assertTrue(gs.getChangedResources(before, after).isEmpty());
+    }
+
+    // removeOwnership()
+
+    private static final String OWNER = "http://localhost/owner#this";
+    private static final String WRITER = "http://localhost/writer#this";
+
+    @Test
+    public void testRemoveOwnershipStripsDocumentOwnerAndCreator()
+    {
+        Model model = ModelFactory.createDefaultModel();
+        Resource doc = model.createResource(DOC.toString()).
+            addProperty(ACL.owner, model.createResource(WRITER)).
+            addProperty(DCTerms.creator, model.createResource(WRITER)).
+            addProperty(DCTerms.title, "Doc");
+
+        Resource result = DocumentHierarchyGraphStoreImpl.removeOwnership(model, DOC.toString());
+
+        assertEquals(doc, result);
+        assertFalse(model.contains(doc, ACL.owner));
+        assertFalse(model.contains(doc, DCTerms.creator));
+        assertTrue(model.contains(doc, DCTerms.title, "Doc"));
+    }
+
+    @Test
+    public void testRemoveOwnershipKeepsOtherResources()
+    {
+        Model model = ModelFactory.createDefaultModel();
+        Resource other = model.createResource(DOC.toString() + "#thing").
+            addProperty(DCTerms.creator, model.createResource(WRITER));
+
+        DocumentHierarchyGraphStoreImpl.removeOwnership(model, DOC.toString());
+
+        assertTrue(model.contains(other, DCTerms.creator));
+    }
+
+    @Test
+    public void testRemoveOwnershipNullModel()
+    {
+        assertThrows(IllegalArgumentException.class, () -> DocumentHierarchyGraphStoreImpl.removeOwnership(null, DOC.toString()));
+    }
+
+    // isOwnershipChanged()
+
+    private static Model ownedDocument()
+    {
+        Model model = ModelFactory.createDefaultModel();
+        model.createResource(DOC.toString()).
+            addProperty(ACL.owner, model.createResource(OWNER)).
+            addProperty(DCTerms.creator, model.createResource(OWNER)).
+            addProperty(DCTerms.title, "Doc");
+        return model;
+    }
+
+    @Test
+    public void testOwnershipUnchangedByOtherEdits()
+    {
+        Model before = ownedDocument();
+        Model after = ModelFactory.createDefaultModel().add(before);
+        after.createResource(DOC.toString()).removeAll(DCTerms.title).addProperty(DCTerms.title, "Renamed");
+        after.createResource(DOC.toString() + "#thing").addProperty(ACL.owner, after.createResource(WRITER));
+
+        assertFalse(DocumentHierarchyGraphStoreImpl.isOwnershipChanged(before, after, DOC.toString()));
+    }
+
+    @Test
+    public void testOwnershipChangedByAddedOwner()
+    {
+        Model before = ownedDocument();
+        Model after = ModelFactory.createDefaultModel().add(before);
+        after.createResource(DOC.toString()).addProperty(ACL.owner, after.createResource(WRITER));
+
+        assertTrue(DocumentHierarchyGraphStoreImpl.isOwnershipChanged(before, after, DOC.toString()));
+    }
+
+    @Test
+    public void testOwnershipChangedByRemovedOwner()
+    {
+        Model before = ownedDocument();
+        Model after = ModelFactory.createDefaultModel().add(before);
+        after.createResource(DOC.toString()).removeAll(ACL.owner);
+
+        assertTrue(DocumentHierarchyGraphStoreImpl.isOwnershipChanged(before, after, DOC.toString()));
+    }
+
+    @Test
+    public void testOwnershipChangedByReplacedCreator()
+    {
+        Model before = ownedDocument();
+        Model after = ModelFactory.createDefaultModel().add(before);
+        after.createResource(DOC.toString()).removeAll(DCTerms.creator).addProperty(DCTerms.creator, after.createResource(WRITER));
+
+        assertTrue(DocumentHierarchyGraphStoreImpl.isOwnershipChanged(before, after, DOC.toString()));
+    }
+
+    @Test
+    public void testOwnershipUnchangedByDeleteAndReinsert()
+    {
+        Model before = ownedDocument();
+        Model after = ModelFactory.createDefaultModel().add(before);
+        after.createResource(DOC.toString()).removeAll(ACL.owner).addProperty(ACL.owner, after.createResource(OWNER));
+
+        assertFalse(DocumentHierarchyGraphStoreImpl.isOwnershipChanged(before, after, DOC.toString()));
     }
 
     // getLastModified(Resource)

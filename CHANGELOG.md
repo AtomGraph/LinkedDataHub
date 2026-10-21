@@ -58,6 +58,7 @@
 - The Linked Data proxy, WebID loading, package description and stylesheet fetches, and imports checked only the first URI they requested against the internal-address rules, while their HTTP clients followed redirects on their own; redirects are now followed by the platform, at most 5 hops, each target checked before it is requested, and a refused hop answers `502 Bad Gateway`
 - A package stylesheet whose URL is refused, or that cannot be copied into the package root, is left out of the stylesheet composition with a logged error, instead of being imported from its declared URL
 - `/sparql` answers queries only: SPARQL Update, as an `application/sparql-update` body or a form `update` parameter, is refused with `405` for every agent. Writes go through the Graph Store Protocol, where they are authorized per document
+- A document's `acl:owner` and `dct:creator` are server-managed: `PUT` and `POST` ignore them in the payload (a new document gets the requesting agent, an existing one keeps the stored values), and a `PATCH` that would change them is refused with `422`. Ownership changes go through the admin ACL documents
 
 ## [6.2.3] - 2026-10-21
 ### Migration

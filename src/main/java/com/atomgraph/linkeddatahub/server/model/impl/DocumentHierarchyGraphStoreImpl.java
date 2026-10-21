@@ -440,8 +440,9 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             if (rb != null) return rb.build(); // preconditions not met
         
             // dct:created and dct:modified are the server's to assign: the document keeps the creation date it has, and
-            // the append is its modification
-            model.createResource(getURI().toString()).
+            // the append is its modification. Ownership is not the payload's to assert either: the stored acl:owner and
+            // dct:creator are kept as they are
+            removeOwnership(model, getURI().toString()).
                 removeAll(DCTerms.created).
                 removeAll(DCTerms.modified).
                 addLiteral(DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
@@ -550,7 +551,8 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             }
 
             Resource parent = model.createResource(getURI().resolve("..").toString());
-            Resource resource = model.createResource(getURI().toString()).
+            // ownership is not the payload's to assert: a new document gets the agent's below, an existing one keeps the stored values
+            Resource resource = removeOwnership(model, getURI().toString()).
                 removeAll(SIOC.HAS_PARENT).
                 removeAll(SIOC.HAS_CONTAINER);
 
@@ -676,6 +678,10 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
 
                 return delete();
             }
+
+            // ownership changes go through the admin ACL documents: a PATCH cannot be rewritten safely, so it is refused
+            if (isOwnershipChanged(beforeUpdateModel, existingModel, getURI().toString()))
+                throw new WebApplicationException("acl:owner and dct:creator of document <" + getURI() + "> cannot be changed", UNPROCESSABLE_ENTITY.getStatusCode());
 
             // SPIN constraints are class-scoped; allowing rdf:type removal would silently bypass them
             for (Resource resource : getChangedResources(beforeUpdateModel, existingModel))
@@ -900,6 +906,50 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             
             return super.delete(false, getURI());
         });
+    }
+    
+    /**
+     * Removes the ownership properties (<code>acl:owner</code> and <code>dct:creator</code>) of the document resource
+     * from a request payload. The server asserts them on creation and keeps the stored ones afterwards.
+     * 
+     * @param model request payload
+     * @param documentURI document URI
+     * @return the document resource in the payload
+     */
+    public static Resource removeOwnership(Model model, String documentURI)
+    {
+        if (model == null) throw new IllegalArgumentException("Model cannot be null");
+        if (documentURI == null) throw new IllegalArgumentException("Document URI cannot be null");
+
+        return model.createResource(documentURI).
+            removeAll(ACL.owner).
+            removeAll(DCTerms.creator);
+    }
+    
+    /**
+     * Returns true if the ownership properties (<code>acl:owner</code> and <code>dct:creator</code>) of the document
+     * resource differ between two states of the document graph.
+     * 
+     * @param beforeUpdateModel graph before the update
+     * @param afterUpdateModel graph after the update
+     * @param documentURI document URI
+     * @return true if ownership changed
+     */
+    public static boolean isOwnershipChanged(Model beforeUpdateModel, Model afterUpdateModel, String documentURI)
+    {
+        if (beforeUpdateModel == null) throw new IllegalArgumentException("Model before update cannot be null");
+        if (afterUpdateModel == null) throw new IllegalArgumentException("Model after update cannot be null");
+        if (documentURI == null) throw new IllegalArgumentException("Document URI cannot be null");
+
+        Resource document = ResourceFactory.createResource(documentURI);
+        for (Property property : List.of(ACL.owner, DCTerms.creator))
+        {
+            Set<RDFNode> before = beforeUpdateModel.listObjectsOfProperty(document, property).toSet();
+            Set<RDFNode> after = afterUpdateModel.listObjectsOfProperty(document, property).toSet();
+            if (!before.equals(after)) return true;
+        }
+        
+        return false;
     }
     
     /**
