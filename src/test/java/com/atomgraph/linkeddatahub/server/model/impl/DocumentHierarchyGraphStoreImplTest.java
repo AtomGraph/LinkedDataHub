@@ -16,7 +16,16 @@
  */
 package com.atomgraph.linkeddatahub.server.model.impl;
 
+import com.atomgraph.linkeddatahub.model.CSVImport;
+import com.atomgraph.linkeddatahub.model.RDFImport;
+import com.atomgraph.linkeddatahub.model.impl.CSVImportImpl;
+import com.atomgraph.linkeddatahub.model.impl.RDFImportImpl;
+import com.atomgraph.linkeddatahub.vocabulary.LDH;
+import com.atomgraph.linkeddatahub.vocabulary.PROV;
 import com.atomgraph.linkeddatahub.vocabulary.SIOC;
+import com.atomgraph.spinrdf.vocabulary.SPIN;
+import org.apache.jena.enhanced.BuiltinPersonalities;
+import org.apache.jena.vocabulary.RDF;
 import java.io.File;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -58,6 +67,13 @@ import static org.mockito.Mockito.mock;
  */
 public class DocumentHierarchyGraphStoreImplTest
 {
+
+    static
+    {
+        org.apache.jena.sys.JenaSystem.init(); // before BuiltinPersonalities, whose static initializer otherwise starts Jena out of order
+        BuiltinPersonalities.model.add(CSVImport.class, CSVImportImpl.factory);
+        BuiltinPersonalities.model.add(RDFImport.class, RDFImportImpl.factory);
+    }
 
     private final DocumentHierarchyGraphStoreImpl gs = mock(DocumentHierarchyGraphStoreImpl.class, CALLS_REAL_METHODS);
 
@@ -237,6 +253,81 @@ public class DocumentHierarchyGraphStoreImplTest
         DocumentHierarchyGraphStoreImpl.stampModified(DOC, before, after);
 
         assertTrue(after.isIsomorphicWith(before), "changing only the server-managed dates changes nothing");
+    }
+
+    // getChangedImports(Model, Model)
+
+    private static final String IMPORT = "http://localhost/imports/csv/#import";
+
+    private static Model csvImport(String title, String file)
+    {
+        Model model = ModelFactory.createDefaultModel();
+        model.createResource(IMPORT).
+            addProperty(RDF.type, LDH.CSVImport).
+            addProperty(DCTerms.title, title).
+            addProperty(SPIN.query, model.createResource("http://localhost/queries/csv/#this")).
+            addProperty(LDH.file, model.createResource(file)).
+            addProperty(LDH.delimiter, ",");
+        return model;
+    }
+
+    @Test
+    public void testChangedImportsOnCreate()
+    {
+        Model model = csvImport("Import", "http://localhost/uploads/a");
+        assertEquals(List.of(model.createResource(IMPORT)), DocumentHierarchyGraphStoreImpl.getChangedImports(model, null), "a new document's imports all run");
+    }
+
+    @Test
+    public void testChangedImportsSkipsARetitle()
+    {
+        Model existing = csvImport("Import", "http://localhost/uploads/a");
+        // what the import appended to its document when it ran
+        existing.createResource(IMPORT).addProperty(PROV.startedAtTime, existing.createTypedLiteral(new GregorianCalendar()));
+        Model model = csvImport("Retitled", "http://localhost/uploads/a");
+
+        assertTrue(DocumentHierarchyGraphStoreImpl.getChangedImports(model, existing).isEmpty(), "a title and the import's own provenance do not define it");
+    }
+
+    @Test
+    public void testChangedImportsSkipsAnUnchangedImport()
+    {
+        assertTrue(DocumentHierarchyGraphStoreImpl.getChangedImports(csvImport("Import", "http://localhost/uploads/a"), csvImport("Import", "http://localhost/uploads/a")).isEmpty());
+    }
+
+    @Test
+    public void testChangedImportsRunsARedefinedImport()
+    {
+        Model model = csvImport("Import", "http://localhost/uploads/b");
+        assertEquals(List.of(model.createResource(IMPORT)), DocumentHierarchyGraphStoreImpl.getChangedImports(model, csvImport("Import", "http://localhost/uploads/a")), "another source is another import");
+    }
+
+    @Test
+    public void testChangedImportsRunsAnImportNewToTheDocument()
+    {
+        Model existing = ModelFactory.createDefaultModel();
+        existing.createResource("http://localhost/imports/csv/").addProperty(DCTerms.title, "Imports");
+        Model model = csvImport("Import", "http://localhost/uploads/a");
+        assertEquals(1, DocumentHierarchyGraphStoreImpl.getChangedImports(model, existing).size());
+    }
+
+    @Test
+    public void testChangedImportsJudgesAnAppendByTheResult()
+    {
+        // a POST that only retitles the import: the payload alone lacks its definition, the document it results in does not
+        Model existing = csvImport("Import", "http://localhost/uploads/a");
+        Model payload = ModelFactory.createDefaultModel();
+        payload.createResource(IMPORT).addProperty(RDF.type, LDH.CSVImport).addProperty(DCTerms.description, "appended");
+
+        assertTrue(DocumentHierarchyGraphStoreImpl.getChangedImports(ModelFactory.createUnion(existing, payload), existing).isEmpty());
+    }
+
+    @Test
+    public void testChangedImportsIgnoresNonImports()
+    {
+        Model model = ModelFactory.createDefaultModel();
+        model.createResource("http://localhost/doc/").addProperty(DCTerms.title, "Doc");
+        assertTrue(DocumentHierarchyGraphStoreImpl.getChangedImports(model, null).isEmpty());
     }
 
     // getLastModified(Model, URI)

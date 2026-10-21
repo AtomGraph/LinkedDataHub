@@ -45,6 +45,8 @@ import com.atomgraph.server.exception.SHACLConstraintViolationException;
 import com.atomgraph.server.exception.SPINConstraintViolationException;
 import static com.atomgraph.server.status.UnprocessableEntityStatus.UNPROCESSABLE_ENTITY;
 import com.atomgraph.spinrdf.constraints.ConstraintViolation;
+import com.atomgraph.spinrdf.vocabulary.SPIN;
+import com.atomgraph.core.vocabulary.SD;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.MessageDigest;
@@ -112,6 +114,7 @@ import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
@@ -404,6 +407,10 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         
             // is this implemented correctly? The specification is not very clear.
             if (log.isDebugEnabled()) log.debug("POST Model to named graph with URI: {}", getURI());
+            // the imports the append adds or redefines, judged by the document as it will be against the document as it
+            // is - read before the merge below changes it in place
+            List<Resource> imports = getChangedImports(ModelFactory.createUnion(existingModel, model), existingModel);
+
             // First remove old dct:modified values from the triplestore, then add new data
             existingModel.createResource(getURI().toString()).removeAll(DCTerms.modified);
             Model updatedModel = existingModel.add(model);
@@ -416,7 +423,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             beforeWrite.run();
             getSystem().getServiceContext(getService()).getGraphStoreClient().putModel(getURI().toString(), updatedModel); // replace entire graph to avoid accumulating dct:modified
 
-            submitImports(model);
+            submitImports(imports.stream().map(_import -> _import.inModel(updatedModel)).toList());
         
             return Response.noContent().
                 tag(getInternalResponse(updatedModel, null).getVariantEntityTag()). // entity tag of the updated graph
@@ -532,7 +539,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
                 beforeWrite.run();
                 getSystem().getServiceContext(getService()).getGraphStoreClient().putModel(getURI().toString(), model); // TO-DO: catch exceptions
 
-                submitImports(model);
+                submitImports(getChangedImports(model, null));
 
                 return Response.created(getURI()).
                     build();
@@ -563,7 +570,9 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
                 beforeWrite.run();
                 getSystem().getServiceContext(getService()).getGraphStoreClient().putModel(getURI().toString(), model); // TO-DO: catch exceptions
 
-                submitImports(model);
+                // a PUT replaces the whole document, so it carries its imports every time; re-running one whose title
+                // changed would fetch and import its source again
+                submitImports(getChangedImports(model, existingModel));
 
                 // no ETag or Last-Modified: what is stored is not the payload - dct:modified, the document's metadata and
                 // skolemized blank nodes are added - and a PUT response may only carry a validator of a representation
@@ -1081,11 +1090,23 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     }
     
     /**
-     * Submits imports for the given model.
-     * 
-     * @param model the RDF model
+     * The properties that define what an import does: its kind, its source, its transformation, its CSV delimiter and
+     * its target graph. Its title, description and the provenance the import appends to it when it runs do not.
      */
-    public void submitImports(Model model)
+    public static final List<Property> IMPORT_DEFINITION = List.of(RDF.type, LDH.file, SPIN.query, LDH.delimiter, SD.name);
+
+    /**
+     * Returns the imports in a model that are new or have been redefined against the stored document.
+     * An import runs when it is defined: a write that carries an import unchanged - every <code>PUT</code> of the
+     * document it is in, or one that only retitles it - must not fetch and import its source again (a <code>PUT</code>
+     * is idempotent, RFC 9110 9.2.2). An import is redefined when one of its {@link #IMPORT_DEFINITION} properties has
+     * other values than it has in the stored document.
+     *
+     * @param model the document as it is written
+     * @param existingModel the document as it is stored, or <code>null</code> if it is being created
+     * @return the imports to submit
+     */
+    public static List<Resource> getChangedImports(Model model, Model existingModel)
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
 
@@ -1094,28 +1115,69 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             filterKeep(_import -> { return _import.canAs(CSVImport.class) || _import.canAs(RDFImport.class); }); // canAs(Import.class) would require InfModel
         try
         {
-            Service adminService = getDataspace().canAs(EndUserDataspace.class) ? getDataspace().as(EndUserDataspace.class).getAdminDataspace().getService() : null;
-            // the graphs this writes are this deployment's own documents, so the content limit does not
-            // apply - registered on the client, not on importClient, which also fetches the import SOURCE
-            // from a URL nobody controls and stays bounded
-            GraphStoreClient gsc = GraphStoreClient.create(getSystem().getImportClient(), getSystem().getMediaTypes()).
-                delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
-            gsc.register(new UnlimitedContentLengthFilter());
-
+            List<Resource> imports = new ArrayList<>();
             while (it.hasNext())
             {
                 Resource _import = it.next();
-
-                // start the import asynchroniously
-                if (_import.canAs(CSVImport.class))
-                    getSystem().submitImport(_import.as(CSVImport.class), getDataspace(), getDataspace().getService(), adminService, getUriInfo().getBaseUri().toString(), gsc);
-                if (_import.canAs(RDFImport.class))
-                    getSystem().submitImport(_import.as(RDFImport.class), getDataspace(), getDataspace().getService(), adminService, getUriInfo().getBaseUri().toString(), gsc);
+                if (!imports.contains(_import) && (existingModel == null || isImportChanged(_import, existingModel))) imports.add(_import);
             }
+            return imports;
         }
         finally
         {
             it.close();
+        }
+    }
+
+    /**
+     * Returns true if an import is not in the stored document, or is defined differently there.
+     *
+     * @param _import import resource
+     * @param existingModel the document as it is stored
+     * @return true if the import is new or redefined
+     * @see #IMPORT_DEFINITION
+     */
+    public static boolean isImportChanged(Resource _import, Model existingModel)
+    {
+        if (_import == null) throw new IllegalArgumentException("Resource cannot be null");
+        if (existingModel == null) throw new IllegalArgumentException("Model cannot be null");
+        if (_import.isAnon()) return true; // a blank node is a new resource in every payload
+
+        Resource existing = existingModel.createResource(_import.getURI());
+        for (Property property : IMPORT_DEFINITION)
+            if (!_import.listProperties(property).mapWith(Statement::getObject).toSet().
+                    equals(existing.listProperties(property).mapWith(Statement::getObject).toSet()))
+                return true;
+
+        return false;
+    }
+
+    /**
+     * Submits imports for asynchronous execution.
+     * 
+     * @param imports import resources
+     * @see #getChangedImports(Model, Model)
+     */
+    public void submitImports(List<Resource> imports)
+    {
+        if (imports == null) throw new IllegalArgumentException("List<Resource> cannot be null");
+        if (imports.isEmpty()) return;
+
+        Service adminService = getDataspace().canAs(EndUserDataspace.class) ? getDataspace().as(EndUserDataspace.class).getAdminDataspace().getService() : null;
+        // the graphs this writes are this deployment's own documents, so the content limit does not
+        // apply - registered on the client, not on importClient, which also fetches the import SOURCE
+        // from a URL nobody controls and stays bounded
+        GraphStoreClient gsc = GraphStoreClient.create(getSystem().getImportClient(), getSystem().getMediaTypes()).
+            delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
+        gsc.register(new UnlimitedContentLengthFilter());
+
+        for (Resource _import : imports)
+        {
+            // start the import asynchroniously
+            if (_import.canAs(CSVImport.class))
+                getSystem().submitImport(_import.as(CSVImport.class), getDataspace(), getDataspace().getService(), adminService, getUriInfo().getBaseUri().toString(), gsc);
+            if (_import.canAs(RDFImport.class))
+                getSystem().submitImport(_import.as(RDFImport.class), getDataspace(), getDataspace().getService(), adminService, getUriInfo().getBaseUri().toString(), gsc);
         }
     }
 
