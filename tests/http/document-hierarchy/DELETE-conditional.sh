@@ -20,7 +20,7 @@ container=$(ldh create container \
   --slug "$slug" \
   --parent "$END_USER_BASE_URL")
 
-# add an explicit read/write authorization for the owner because add-agent-to-group.sh won't work non-existing URI
+# add an explicit read/write authorization for the owner because `ldh admin add agent` won't work non-existing URI
 
 ldh admin create authorization \
   -c "$OWNER_CERT_KEYSTORE" \

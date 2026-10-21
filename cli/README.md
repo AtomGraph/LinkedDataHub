@@ -20,7 +20,8 @@ ldh admin create ontology ...
 ldh packages list
 ```
 
-The `bin/` HTTP API scripts it replaces are deprecated. The [`tests/http`](../tests/http) suite builds
+The `bin/` HTTP API scripts it replaces have been removed (see
+[Script → command migration](#script--command-migration)). The [`tests/http`](../tests/http) suite builds
 all of its fixtures with `ldh`, so the commands are exercised against a live instance on every CI run;
 `run.sh` aborts if `ldh` is not on `PATH`.
 
@@ -298,6 +299,9 @@ computes every upload URI and prints the plan, without sending a request or load
 
 ## Script → command migration
 
+The HTTP API shell scripts that used to live in `bin/` have been removed. For callers still on them,
+each maps to one command:
+
 | Script | Command |
 |---|---|
 | `get.sh` | `ldh get` |
@@ -336,7 +340,7 @@ computes every upload URI and prints the plan, without sending a request or load
 | `update-folder.sh` (LinkedDataHub-Apps, one copy per app) | `ldh push` |
 
 Local certificate tooling (`webid-keygen.sh`, `webid-keygen-pem.sh`, `webid-uri.sh`,
-`webid-modulus.sh`, `server-cert-gen.sh`) remains shell scripts.
+`webid-modulus.sh`, `server-cert-gen.sh`) remains shell scripts in `bin/`.
 
 `bin/admin/packages/` has no counterpart under that name: a package is imported by declaring an
 `ldh:import` triple rather than by installing files, and `ldh packages list`,

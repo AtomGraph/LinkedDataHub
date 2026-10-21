@@ -30,7 +30,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 /**
- * Appends an XHTML content block to a document. Mirrors <code>bin/content/add-xhtml-block.sh</code>.
+ * Appends an XHTML content block to a document.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */

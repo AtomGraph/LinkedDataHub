@@ -311,7 +311,7 @@ ldh create item --container "${LDH_BASE}concepts/" --title "Example" --slug exam
 
 Commands that create or append to a document print its URL as the only line on stdout, so they compose in shell pipelines: `item=$(ldh create item ...)`. Commands group by verb — `ldh create container`, `ldh add xhtml-block`, `ldh import csv`, `ldh admin create group` — with `import` holding the workflows that compose the atomic commands. See [`cli/README.md`](https://github.com/AtomGraph/LinkedDataHub/blob/master/cli/README.md) for the full command table and the differences from the scripts.
 
-_:warning: The `bin/` HTTP API scripts that `ldh` replaces are **deprecated**. The certificate and WebID tooling (`webid-keygen.sh`, `webid-keygen-pem.sh`, `webid-uri.sh`, `webid-modulus.sh`, `server-cert-gen.sh`) talks to no API and stays in `bin/`._
+_:warning: The `bin/` HTTP API scripts that `ldh` replaces have been **removed**; the [migration table](https://github.com/AtomGraph/LinkedDataHub/blob/master/cli/README.md#script--command-migration) maps each to its command. The certificate and WebID tooling (`webid-keygen.sh`, `webid-keygen-pem.sh`, `webid-uri.sh`, `webid-modulus.sh`, `server-cert-gen.sh`) talks to no API and stays in `bin/`._
 
 ## Sample applications
 

@@ -26,7 +26,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
 
 /**
- * Patches an RDF document with a SPARQL update from standard input. Mirrors <code>bin/patch.sh</code>.
+ * Patches an RDF document with a SPARQL update from standard input.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */

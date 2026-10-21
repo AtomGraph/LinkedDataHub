@@ -31,7 +31,7 @@ import picocli.CommandLine.ParameterException;
 import picocli.CommandLine.Parameters;
 
 /**
- * Retrieves an RDF description. Mirrors <code>bin/get.sh</code>, extended with the RFC 7089 Memento
+ * Retrieves an RDF description. Also addresses the RFC 7089 Memento
  * roles the document serves: a historical version, its version history and its TimeGate.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}

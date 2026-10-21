@@ -27,7 +27,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 /**
- * Adds a SPARQL CONSTRUCT constructor query to an ontology. Mirrors <code>bin/admin/ontologies/add-constructor.sh</code>.
+ * Adds a SPARQL CONSTRUCT constructor query to an ontology.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */

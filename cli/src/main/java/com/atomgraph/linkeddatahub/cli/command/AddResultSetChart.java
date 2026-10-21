@@ -25,7 +25,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 /**
- * Appends a chart of SPARQL SELECT results to a document. Mirrors <code>bin/add-result-set-chart.sh</code>.
+ * Appends a chart of SPARQL SELECT results to a document.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */

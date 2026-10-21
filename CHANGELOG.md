@@ -2,6 +2,7 @@
 ### Migration
 - Deployments that keep a copy of `docker-compose.yml` need to re-sync it to get the SPARQL query cache and the Varnish store kept for SPARQL results
 - `/sparql` refuses a result longer than `MAX_QUERY_RESPONSE_LENGTH` (5 MiB unless set): an API client that reads larger results pages through them with `LIMIT`/`OFFSET`, or the setting is raised
+- Scripts that call the `bin/` HTTP API scripts switch to the `ldh` CLI: `cli/README.md` maps each script to its command
 
 ### Added
 - `og:image` falls back to the image of the document's primary topic
@@ -13,6 +14,9 @@
 - Discovering a view's link predicates is faster
 - The `ldh` plugin is named LinkedDataHub, has an icon and documents where it sends data
 - `ldh add result-set-chart` takes `--series-var-name` more than once, for charts with several series
+
+### Removed
+- **BREAKING**: the deprecated `bin/` HTTP API scripts (`get.sh`, `create-item.sh`, `bin/admin/`, `bin/content/`, `bin/imports/` and the rest), which the `ldh` CLI replaces. The certificate and WebID tooling stays in `bin/`
 
 ### Fixed
 - A query whose result is too large no longer freezes the page: `/sparql` refuses it with `502`, the block says the result is too large, and the triplestore stops evaluating the query

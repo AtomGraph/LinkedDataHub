@@ -30,8 +30,7 @@ import picocli.CommandLine.Parameters;
 
 /**
  * Imports RDF data: optionally adds a transformation query, uploads the RDF file and creates
- * the import metadata on the target document. Mirrors <code>bin/imports/import-rdf.sh</code>,
- * calling the same steps in-process instead of via subscripts.
+ * the import metadata on the target document.
  * <p>
  * Prints the URI of the import it creates, a fragment of the target document, as the only stdout line. The
  * import runs in the background on the server; <code>--wait</code> waits for it to end ({@link ImportWait}).

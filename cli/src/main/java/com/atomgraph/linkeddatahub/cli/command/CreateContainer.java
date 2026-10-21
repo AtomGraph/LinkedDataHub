@@ -25,7 +25,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
 /**
- * Creates a container document. Mirrors <code>bin/create-container.sh</code>.
+ * Creates a container document.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */

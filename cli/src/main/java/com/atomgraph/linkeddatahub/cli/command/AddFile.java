@@ -38,7 +38,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 /**
- * Uploads a file using the RDF/POST multipart encoding. Mirrors <code>bin/add-file.sh</code>.
+ * Uploads a file using the RDF/POST multipart encoding.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */

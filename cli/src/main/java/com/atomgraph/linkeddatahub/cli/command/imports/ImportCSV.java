@@ -30,8 +30,7 @@ import picocli.CommandLine.Parameters;
 
 /**
  * Imports CSV data: adds the transformation query, uploads the CSV file and creates the
- * import metadata on the target document. Mirrors <code>bin/imports/import-csv.sh</code>,
- * calling the same steps in-process instead of via subscripts.
+ * import metadata on the target document.
  * <p>
  * Prints the URI of the import it creates, a fragment of the target document, as the only stdout line. The
  * import runs in the background on the server; <code>--wait</code> waits for it to end ({@link ImportWait}).

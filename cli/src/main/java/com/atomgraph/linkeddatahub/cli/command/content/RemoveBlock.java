@@ -25,7 +25,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 /**
- * Removes a content block (or all content blocks) from a document. Mirrors <code>bin/content/remove-block.sh</code>.
+ * Removes a content block (or all content blocks) from a document.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */

@@ -28,7 +28,7 @@ import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 
 /**
- * Creates an agent group. Mirrors <code>bin/admin/acl/create-group.sh</code>.
+ * Creates an agent group.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */

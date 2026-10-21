@@ -26,7 +26,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 /**
- * Adds RDF import metadata to a document. Mirrors <code>bin/imports/add-rdf-import.sh</code>.
+ * Adds RDF import metadata to a document.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */

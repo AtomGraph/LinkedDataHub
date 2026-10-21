@@ -23,7 +23,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
 
 /**
- * Deletes an RDF document. Mirrors <code>bin/delete.sh</code>.
+ * Deletes an RDF document.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */

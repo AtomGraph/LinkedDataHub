@@ -25,7 +25,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 /**
- * Adds CSV import metadata to a document. Mirrors <code>bin/imports/add-csv-import.sh</code>.
+ * Adds CSV import metadata to a document.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
