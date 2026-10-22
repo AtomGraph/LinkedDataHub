@@ -996,7 +996,7 @@ LIMIT   10
                     <json:array key="args">
                         <json:string>?p</json:string>
                         <json:array>
-                            <json:string>&dct;reated</json:string>
+                            <json:string>&dct;created</json:string>
                             <json:string>&dct;modified</json:string>
                             <json:string>&sioc;has_parent</json:string>
                             <json:string>&sioc;has_container</json:string>
