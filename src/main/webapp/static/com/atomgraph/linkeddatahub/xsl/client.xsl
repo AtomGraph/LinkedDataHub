@@ -1187,6 +1187,11 @@ WHERE
 
         <xsl:choose>
             <xsl:when test="$response?status = 204"> <!-- No Content -->
+                <!-- the dialog has served its purpose -->
+                <xsl:for-each select="$context('form')/ancestor::div[contains-token(@class, 'modal')]">
+                    <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
+
                 <!-- parent directory; no fragment relevant here -->
                 <xsl:variable name="parent-doc-uri" select="resolve-uri('..', $doc-uri)" as="xs:anyURI"/>
 
@@ -1194,6 +1199,11 @@ WHERE
                     <xsl:with-param name="doc-uri" select="$parent-doc-uri"/>
                     <xsl:with-param name="fragment" select="()"/>
                 </xsl:call-template>
+            </xsl:when>
+            <!-- Conflict: a container that still has documents. Told in the dialog, which stays open -->
+            <xsl:when test="$response?status = 409">
+                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+                <xsl:sequence select="ldh:render-failure($context('form'), 'document-not-deleted', 'container-not-empty-explanation', ())"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:sequence select="ldh:response-error($response)"/>
@@ -1360,24 +1370,74 @@ WHERE
         </xsl:if>
     </xsl:template>
 
+    <!-- deleting the document is asked in a dialog of its own, which is also where a refusal is reported: a failure is
+         told on the surface of the action that caused it, never in the document's content -->
     <xsl:template match="button[contains-token(@class, 'btn-delete')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
-        <xsl:variable name="request-uri" select="ldh:href(ac:absolute-path(ldh:base-uri(.)), map{})" as="xs:anyURI"/>
-        <xsl:variable name="content-body" select="ancestor::div[contains-token(@class, 'ldh-pane')]/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()?"/>
+        <xsl:variable name="pane" select="ancestor::div[contains-token(@class, 'ldh-pane')]" as="element()"/>
+        <xsl:variable name="content-body" select="$pane/div[contains-token(@class, 'document-body')]/div[contains-token(@class, 'content-body')]" as="element()"/>
+        <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
 
-        <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', ldh:translations())) ])">
-            <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
-            <xsl:variable name="context" as="map(*)" select="
-              map{
-                'request': map{ 'method': 'DELETE', 'href': $request-uri, 'headers': ldh:conditional-headers(map{ 'Accept': 'application/xhtml+xml' }, ldh:document-etag($doc-uri)) },
-                'doc-uri': $doc-uri
-              }"/>
-            <!-- no ixsl:finally here: on success the chain hands over to ldh:DocumentNavigate, which raises the busy
-                 cursor for its own load, and a finally would settle first and clear it. The failure branch resets. -->
-            <ixsl:promise select="ixsl:http-request($context('request')) =>
-                ixsl:then(ldh:rethread-response($context, ?)) =>
-                ixsl:then(ldh:delete-response#1)"
-                on-failure="ldh:promise-failure($content-body, 'document-not-deleted', ?)"/>
-        </xsl:if>
+        <xsl:variable name="modal" as="element()">
+            <div class="ac-backdrop pos-center modal modal-delete" id="{'delete-modal-' || $pane/@id}">
+                <xsl:apply-templates select="." mode="ldh:Modal">
+                    <xsl:with-param name="size" select="'sz-sm'"/>
+                    <xsl:with-param name="title" as="item()*">
+                        <xsl:apply-templates select="key('resources', 'delete-document', ldh:translations())" mode="ac:label"/>
+                    </xsl:with-param>
+                    <xsl:with-param name="sub" select="$doc-uri"/>
+                    <xsl:with-param name="body" as="item()*">
+                        <form class="ldh-delete-form" action="{$doc-uri}">
+                            <fieldset>
+                                <p>
+                                    <xsl:apply-templates select="key('resources', 'delete-document-explanation', ldh:translations())" mode="ac:label"/>
+                                </p>
+                            </fieldset>
+
+                            <div class="ldh-form-bar">
+                                <span class="fb-end">
+                                    <button type="button" class="ac-btn in-neutral ap-outline sz-sm btn-close">
+                                        <span>
+                                            <xsl:apply-templates select="key('resources', 'close', ldh:translations())" mode="ac:label"/>
+                                        </span>
+                                    </button>
+                                    <button type="submit" class="ac-btn in-negative ap-solid sz-sm btn-confirm-delete">
+                                        <span class="msi outline sm" aria-hidden="true">delete</span>
+                                        <span>
+                                            <xsl:apply-templates select="key('resources', 'delete', ldh:translations())" mode="ac:label"/>
+                                        </span>
+                                    </button>
+                                </span>
+                            </div>
+                        </form>
+                    </xsl:with-param>
+                </xsl:apply-templates>
+            </div>
+        </xsl:variable>
+
+        <xsl:call-template name="ldh:ShowModalForm">
+            <xsl:with-param name="form" select="$modal"/>
+            <xsl:with-param name="target" select="$content-body"/>
+        </xsl:call-template>
+    </xsl:template>
+
+    <xsl:template match="form[contains-token(@class, 'ldh-delete-form')]" mode="ixsl:onsubmit">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:variable name="doc-uri" select="xs:anyURI(@action)" as="xs:anyURI"/>
+        <xsl:variable name="context" as="map(*)" select="
+          map{
+            (: the RDF/XML variant's tag is the one the client holds, and If-Match is evaluated against the negotiated variant :)
+            'request': map{ 'method': 'DELETE', 'href': ldh:href($doc-uri, map{}), 'headers': ldh:conditional-headers(map{ 'Accept': 'application/rdf+xml' }, ldh:document-etag($doc-uri)) },
+            'doc-uri': $doc-uri,
+            'form': .
+          }"/>
+
+        <xsl:sequence select="ldh:busy-cursor()"/>
+        <!-- no ixsl:finally here: on success the chain hands over to ldh:DocumentNavigate, which raises the busy
+             cursor for its own load, and a finally would settle first and clear it. The failure branch resets. -->
+        <ixsl:promise select="ixsl:http-request($context('request')) =>
+            ixsl:then(ldh:rethread-response($context, ?)) =>
+            ixsl:then(ldh:delete-response#1)"
+            on-failure="ldh:promise-failure(., 'document-not-deleted', ?)"/>
     </xsl:template>
 
     <!-- content tabs (markup from Bootstrap) -->
