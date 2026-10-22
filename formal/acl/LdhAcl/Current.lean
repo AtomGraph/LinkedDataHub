@@ -1,10 +1,9 @@
 /-
 Where the deployed definitions differ from the ones the theorems are proven under.
 
-`Theorems.lean` and `Hierarchy.lean` prove locality, creation and the hierarchy for `ownTypes` and
-`DeletePolicy.refuseNonEmpty`. The code runs `types` and `DeletePolicy.current`; this file states, for each,
-the property of the deployed definition that the proofs rely on not holding. The admin query has no
-corrected definition yet; its properties are stated as they are.
+`Theorems.lean` and `Hierarchy.lean` prove locality, creation and the hierarchy for `ownTypes`. The code
+runs `types`; this file states the properties of it that the proofs rely on not holding. The admin query has
+no corrected definition yet; its properties are stated as they are.
 -/
 import LdhAcl.Hierarchy
 
@@ -44,26 +43,6 @@ theorem types_without_graph : ∃ (st : Store) (y t : Node), types st y t ∧ ¬
 theorem put_typed_skips_parent {T ctx acl st agent m x} (typed : ∃ t, T st x t)
     (hg : acl agent m x (T st x)) : allow T ctx acl st agent True m x :=
   Or.inl ⟨Or.inl typed, Or.inr hg⟩
-
-/-! ## `delete()` -/
-
-/-- Under the current `delete()`, a step can break the hierarchy: deleting a container with a child. -/
-theorem hier_not_preserved_current : ∃ (ctx : Ctx) (acl : AclGrant) (agent : Option Node)
-    (st st' : Store) (req : Req),
-    Hier ctx st ∧ Step ownTypes ctx acl false .current agent st req st' ∧ ¬ Hier ctx st' := by
-  let ctx : Ctx := ⟨.iri 0, fun n => if n = .iri 2 then .iri 1 else .iri 0, fun _ => False⟩
-  let st : Store := fun n => if n = .iri 0 ∨ n = .iri 1 ∨ n = .iri 2 then some (fun _ => False) else none
-  refine ⟨ctx, fun _ _ _ _ => True, none, st, st.set (.iri 1) none, .delete (.iri 1), ?_, ?_, ?_⟩
-  · intro d _ _
-    by_cases h : d = .iri 2
-    · subst h; exact ⟨fun _ => False, by simp [st, ctx]⟩
-    · exact ⟨fun _ => False, by simp [st, ctx, h]⟩
-  · refine Step.delete ?_ (by decide) (by intro h; cases h)
-    exact Or.inl ⟨Or.inr (by simp), Or.inr trivial⟩
-  · intro h
-    have hk : present (st.set (.iri 1) none) (.iri 2) := ⟨fun _ => False, by simp [Store.set, st]⟩
-    obtain ⟨_, hp⟩ := h (.iri 2) hk (by decide)
-    simp [Store.set, ctx] at hp
 
 /-! ## `ownerAclQuery` -/
 

@@ -39,11 +39,13 @@ Lean `v4.15.0` (pinned in `lean-toolchain`), core library only, with no Mathlib.
 | `adminMatch`, `adminGrant` | `ownerAclQuery` (`web.xml:96`) |
 | `allow` | `AuthorizationFilter.authorize` (`:160`), including the `PUT` fallback to the parent (`:202`) |
 | `allowRequest` | `AuthorizationFilter.filter` (`:105`), `getAccessMode` (`:254`) |
-| `Step.post` | `DocumentHierarchyGraphStoreImpl.post` (`:411`) |
-| `Step.putExisting`, `Step.putNew` | `put` (`:505`), containment at `:553` |
-| `Step.patch` | `patch` (`:644`), `isOwnershipChanged` (`:938`) |
-| `Step.delete` | `delete` (`:885`) |
-| `ownership` | `removeOwnership` (`:919`), `isOwnershipChanged` (`:938`) |
+| `Step.post` | `DocumentHierarchyGraphStoreImpl.post` |
+| `Step.putExisting`, `Step.putNew` | `put` |
+| `Step.patch` | `patch`, `isOwnershipChanged`, `isContainmentChanged` |
+| `Step.delete` | `delete` |
+| `hasChild` | `childQuery` (`web.xml`), `hasChild` |
+| `ownership` | `removeOwnership`, `isOwnershipChanged` |
+| `containment` | `removeContainment`, `isContainmentChanged` |
 
 `AuthorizationFilter` lives in `server/filter/request/` and `DocumentHierarchyGraphStoreImpl` in
 `server/model/impl/`, both under `src/main/java/com/atomgraph/linkeddatahub/`.
@@ -67,8 +69,9 @@ Lean `v4.15.0` (pinned in `lean-toolchain`), core library only, with no Mathlib.
 ## What is not modelled
 
 - **Authentication:** WebID, OAuth and `On-Behalf-Of` delegation. The agent is an input.
-- **Concurrency:** steps are sequential. `writeLocked` takes a lock per graph URI, and the filter runs
-  outside it, so the theorems describe serialised requests only.
+- **Concurrency:** steps are sequential. The filter runs outside any lock. Under the locks, a `PUT` holds
+  its parent's lock as well as its own and re-checks that the parent exists, and a `DELETE` checks for
+  children. That serialisation is what the sequential steps assume; the model does not prove it.
 - **Writes to the admin dataset:** the admin dataset is a fixed input to end-user steps.
 - **Other server work:** validation, skolemization, dates, imports, uploads, content negotiation and
   caching. None of them reads or writes ownership, containment or authorizations.
@@ -85,18 +88,18 @@ Proven, using only the axioms `propext` and `Quot.sound`:
 | `owner_confined` | After a write, a document's owner either owned it before, or created it in that write | deployed code, any type view |
 | `allow_local`, `step_preserves_other_decisions` | A write to `x` changes no decision about any other typed document | `ownTypes` |
 | `create_needs_parent` | A `PUT` that creates `x` needs an existing `def:Root`/`dh:Container` parent and a grant on it | `ownTypes` |
-| `hier_preserved` | Every non-root document's parent exists, after any write | `ownTypes` and `DeletePolicy.refuseNonEmpty` |
+| `contained_preserved` | Every non-root document's own graph points its containment at its URI parent, after any write | deployed code |
+| `hier_preserved` | Every non-root document's parent exists, after any write | `ownTypes` |
 | `covers_control`, `write_covers_append` | Mode coverage | deployed code |
 
-The deployed definitions are `types` and `DeletePolicy.current`. `Current.lean` states what about them
-keeps the theorems above from covering the deployed code:
+The deployed type view is `types`. `Current.lean` states what about it keeps the theorems above from
+covering the deployed code, along with the admin query's properties:
 
 | Theorem | Statement |
 |---------|-----------|
 | `types_reads_other_graphs`, `types_not_local` | The `nfo:FileDataObject` branch of `documentTypeQuery` reads every graph, so a write to one graph changes another node's types |
 | `types_without_graph` | That branch can type a node that has no graph, so the filter's "exists" (typed) and the store's (graph present) differ |
 | `put_typed_skips_parent` | A `PUT` to a typed node is decided on the node and never consults the parent |
-| `hier_not_preserved_current` | `delete()` can remove a container that has children |
 | `adminMatch_control_untargeted` | In `ownerAclQuery`, an authorization carrying `acl:Control` matches every admin document regardless of its targets |
 | `adminMatch_anonymous_public`, `adminMatch_authenticated_unlimited` | Anonymous access to admin documents is limited to the public set; `acl:AuthenticatedAgent` access is not |
 
