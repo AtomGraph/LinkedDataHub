@@ -301,7 +301,8 @@ public class SignUp extends DocumentHierarchyGraphStoreImpl
 
                     if (download)
                     {
-                        return Response.ok(keyStoreBytes).
+                        return Response.created(agentGraphUri).
+                            entity(keyStoreBytes).
                             type(PKCS12_MEDIA_TYPE).
                             header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=cert.p12").
                             build();

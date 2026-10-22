@@ -1926,8 +1926,8 @@ LIMIT   10
         <xsl:message>ldh:request-access-form-response</xsl:message>
 
         <xsl:choose>
-            <!-- Success: close the modal -->
-            <xsl:when test="$status = 200">
+            <!-- Success (201 Created): close the modal -->
+            <xsl:when test="$status = 201">
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                 <!-- close the modal -->
                 <xsl:if test="$form">

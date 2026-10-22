@@ -34,6 +34,7 @@ import com.atomgraph.linkeddatahub.server.util.OntologyRepository;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
@@ -41,7 +42,8 @@ import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.NotAllowedException;
 import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
@@ -62,6 +64,9 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
 {
 
     private static final Logger log = LoggerFactory.getLogger(Namespace.class);
+
+    /** The methods this read-only endpoint allows: queries by GET and form POST, but no updates */
+    public static final Set<String> ALLOWED_METHODS = Set.of(HttpMethod.GET, HttpMethod.HEAD, HttpMethod.OPTIONS, HttpMethod.POST);
 
     private final URI uri;
     private final Dataspace application;
@@ -140,7 +145,7 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
             @FormParam(DEFAULT_GRAPH_URI) List<URI> defaultGraphUris, @FormParam(NAMED_GRAPH_URI) List<URI> namedGraphUris,
             @FormParam(USING_GRAPH_URI) List<URI> usingGraphUris, @FormParam(USING_NAMED_GRAPH_URI) List<URI> usingNamedGraphUris)
     {
-        if (updateString != null) throw new WebApplicationException("SPARQL updates are not allowed on the <ns> endpoint", Status.METHOD_NOT_ALLOWED);
+        if (updateString != null) throw updateNotAllowed();
 
         // re-parse query to set explicit fallback base URI
         queryString = QueryFactory.create(queryString, getUriInfo().getAbsolutePath().toString()).toString();
@@ -152,7 +157,18 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     @Consumes(com.atomgraph.core.MediaType.APPLICATION_SPARQL_UPDATE)
     public Response post(UpdateRequest update, @QueryParam(USING_GRAPH_URI) List<URI> usingGraphUris, @QueryParam(USING_NAMED_GRAPH_URI) List<URI> usingNamedGraphUris)
     {
-        throw new WebApplicationException("SPARQL updates are not allowed on the <ns> endpoint", Status.METHOD_NOT_ALLOWED);
+        throw updateNotAllowed();
+    }
+    
+    /**
+     * Returns the exception rejecting a SPARQL update, which names the methods this endpoint allows.
+     * 
+     * @return method not allowed exception
+     */
+    public NotAllowedException updateNotAllowed()
+    {
+        return new NotAllowedException("SPARQL updates are not allowed on the <ns> endpoint",
+            Response.status(Status.METHOD_NOT_ALLOWED).allow(ALLOWED_METHODS).build());
     }
     
     /**

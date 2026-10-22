@@ -238,22 +238,37 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             throw new InternalServerErrorException(ex);
         }
         
-        URI uri = uriInfo.getAbsolutePath();
-        allowedMethods = new HashSet<>();
-        allowedMethods.add(HttpMethod.GET);
-        allowedMethods.add(HttpMethod.POST);
+        allowedMethods = allowedMethods(uriInfo.getAbsolutePath(), application.getBaseURI(), ownerDocURI, secretaryDocURI, isSnapshotRequest(uriInfo));
+    }
+
+    /**
+     * Returns the methods allowed on a document.
+     * The owner's and the secretary's WebID documents cannot be replaced or deleted, the root document cannot be
+     * deleted, and historical versions, TimeMaps and TimeGates are read-only.
+     *
+     * @param uri document URI
+     * @param baseURI application's base URI (the root document)
+     * @param ownerDocURI owner's WebID document URI
+     * @param secretaryDocURI secretary's WebID document URI
+     * @param snapshot true if the request addresses a historical version, a TimeMap or a TimeGate
+     * @return set of HTTP method names
+     */
+    public static Set<String> allowedMethods(URI uri, URI baseURI, URI ownerDocURI, URI secretaryDocURI, boolean snapshot)
+    {
+        if (snapshot) return Set.of(HttpMethod.GET, HttpMethod.HEAD, HttpMethod.OPTIONS);
+
+        Set<String> methods = new HashSet<>(Set.of(HttpMethod.GET, HttpMethod.HEAD, HttpMethod.OPTIONS, HttpMethod.POST, HttpMethod.PATCH));
 
         if (!ownerDocURI.equals(uri) &&
             !secretaryDocURI.equals(uri))
-            allowedMethods.add(HttpMethod.PUT);
+            methods.add(HttpMethod.PUT);
 
-        if (!application.getBaseURI().equals(uri) &&
+        if (!baseURI.equals(uri) &&
             !ownerDocURI.equals(uri) &&
             !secretaryDocURI.equals(uri))
-            allowedMethods.add(HttpMethod.DELETE);
+            methods.add(HttpMethod.DELETE);
 
-        // historical version, TimeMap and TimeGate views are read-only
-        if (isSnapshotRequest(uriInfo)) allowedMethods.retainAll(Set.of(HttpMethod.GET));
+        return methods;
     }
 
     /**
@@ -275,7 +290,9 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
      */
     private void checkSnapshotReadOnly()
     {
-        if (isSnapshotRequest(getUriInfo())) throw new NotAllowedException(HttpMethod.GET, new String[]{ HttpMethod.OPTIONS });
+        if (isSnapshotRequest(getUriInfo()))
+            throw new NotAllowedException("Historical versions, TimeMaps and TimeGates are read-only",
+                Response.status(Response.Status.METHOD_NOT_ALLOWED).allow(getAllowedMethods()).build());
     }
 
     /**
