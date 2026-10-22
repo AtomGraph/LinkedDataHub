@@ -67,4 +67,20 @@ public class GraphLocks
         return locks.get(graphURI);
     }
 
+    /**
+     * Returns the locks a write spanning several graphs has to hold, in the order they have to be taken.
+     * The order is the stripes' own, the same for every caller whatever order the graphs are given in, so two
+     * writes that each hold some of the locks while waiting for the rest cannot wait on each other. A graph
+     * given twice, or two graphs sharing a stripe, yield the same lock twice, which reentrancy allows.
+     *
+     * @param graphURIs named graph URIs
+     * @return reentrant locks, in acquisition order
+     */
+    public Iterable<Lock> getAll(Iterable<URI> graphURIs)
+    {
+        if (graphURIs == null) throw new IllegalArgumentException("Graph URIs cannot be null");
+
+        return locks.bulkGet(graphURIs);
+    }
+
 }

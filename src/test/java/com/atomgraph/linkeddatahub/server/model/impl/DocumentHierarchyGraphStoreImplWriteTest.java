@@ -223,9 +223,22 @@ public class DocumentHierarchyGraphStoreImplWriteTest
     {
         DocumentHierarchyGraphStoreImpl gs = unnegotiable(null);
         when(store.containsModel(DOC.toString())).thenReturn(true);
+        doReturn(false).when(gs).hasChild(DOC);
 
         assertEquals(Response.Status.NO_CONTENT.getStatusCode(), gs.delete().getStatus());
         verify(store).deleteModel(DOC.toString());
+    }
+
+    @Test
+    public void deleteOfDocumentWithChildIsConflict() // like rmdir: the children go first
+    {
+        DocumentHierarchyGraphStoreImpl gs = unnegotiable(null);
+        when(store.containsModel(DOC.toString())).thenReturn(true);
+        doReturn(true).when(gs).hasChild(DOC);
+
+        WebApplicationException ex = assertThrows(WebApplicationException.class, gs::delete);
+        assertEquals(Response.Status.CONFLICT.getStatusCode(), ex.getResponse().getStatus());
+        verify(store, never()).deleteModel(anyString());
     }
 
     @Test

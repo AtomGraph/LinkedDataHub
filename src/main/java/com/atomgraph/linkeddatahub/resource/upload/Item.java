@@ -44,7 +44,8 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.core.UriInfo;
 import jakarta.ws.rs.core.Variant.VariantListBuilder;
-import org.apache.jena.query.QueryFactory;
+import com.atomgraph.spinrdf.vocabulary.SPIN;
+import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
@@ -264,8 +265,10 @@ public class Item
      */
     public Model describe()
     {
-        // TO-DO: can we avoid hardcoding the query string here?
-        return getSystem().getServiceContext(getService()).getSPARQLClient().loadModel(QueryFactory.create("DESCRIBE <" + getURI() + ">"));
+        ParameterizedSparqlString pss = new ParameterizedSparqlString(getSystem().getFileQuery().toString());
+        pss.setIri(SPIN.THIS_VAR_NAME, getURI().toString());
+
+        return getSystem().getServiceContext(getService()).getSPARQLClient().loadModel(pss.asQuery());
     }
     
     /**

@@ -91,6 +91,12 @@ public class LDHC
     /** Ontology query property */
     public static final Property ontologyQuery = m_model.createDataProperty( NS + "ontologyQuery" );
 
+    /** Child query property */
+    public static final Property childQuery = m_model.createDataProperty( NS + "childQuery" );
+
+    /** File description query property */
+    public static final Property fileQuery = m_model.createDataProperty( NS + "fileQuery" );
+
     /** Upload root property */
     public static final Property uploadRoot = m_model.createObjectProperty( NS + "uploadRoot" );
 
