@@ -154,6 +154,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject MediaTypes mediaTypes;
     @Context Request request;
+    @Context HttpHeaders httpHeaders;
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException
@@ -510,7 +511,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         writableTypes.removeIf(mt -> mt.isCompatible(MediaType.TEXT_HTML_TYPE) ||
             mt.isCompatible(MediaType.APPLICATION_XHTML_XML_TYPE));
 
-        return new com.atomgraph.core.model.impl.Response(getRequest(),
+        return new com.atomgraph.core.model.impl.Response(getRequest(), getHttpHeaders(),
                 model,
                 null,
                 new EntityTag(Long.toHexString(ModelUtils.hashModel(model))),
@@ -550,7 +551,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
     {
         if (!result.isBoolean()) throw new IllegalArgumentException("SPARQLResult is not a boolean");
 
-        return new com.atomgraph.core.model.impl.Response(getRequest(),
+        return new com.atomgraph.core.model.impl.Response(getRequest(), getHttpHeaders(),
                 result,
                 null,
                 new EntityTag(Long.toHexString(ResultSetUtils.hashBoolean(result.getBooleanResult()))),
@@ -576,7 +577,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         long hash = ResultSetUtils.hashResultSet(resultSet);
         resultSet.reset();
 
-        return new com.atomgraph.core.model.impl.Response(getRequest(),
+        return new com.atomgraph.core.model.impl.Response(getRequest(), getHttpHeaders(),
                 resultSet,
                 null,
                 new EntityTag(Long.toHexString(hash)),
@@ -617,6 +618,16 @@ public class ProxyRequestFilter implements ContainerRequestFilter
     public Request getRequest()
     {
         return request;
+    }
+
+    /**
+     * Returns the request headers.
+     *
+     * @return HTTP headers
+     */
+    public HttpHeaders getHttpHeaders()
+    {
+        return httpHeaders;
     }
 
 }

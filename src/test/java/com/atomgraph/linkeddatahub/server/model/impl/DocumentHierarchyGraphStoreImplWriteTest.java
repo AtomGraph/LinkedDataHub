@@ -35,7 +35,6 @@ import jakarta.ws.rs.core.UriInfo;
 import jakarta.ws.rs.core.Variant;
 import jakarta.ws.rs.ext.Providers;
 import java.net.URI;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -157,9 +156,9 @@ public class DocumentHierarchyGraphStoreImplWriteTest
     public void patchEmptyingTheRootIsUnprocessable()
     {
         DocumentHierarchyGraphStoreImpl gs = graphStore(BASE);
-        when(headers.getHeaderString(HttpHeaders.IF_MATCH)).thenReturn("\"current\"");
-        when(request.evaluatePreconditions(any(Date.class), any(EntityTag.class))).thenReturn(null);
-        when(request.evaluatePreconditions(any(EntityTag.class))).thenReturn(null);
+        String current = gs.getInternalResponse(graph.get(), BASE).getVariantEntityTag().getValue(); // the current tag, so the update is what fails
+        when(request.getMethod()).thenReturn("PATCH");
+        when(headers.getHeaderString(HttpHeaders.IF_MATCH)).thenReturn("\"" + current + "\"");
 
         WebApplicationException ex = assertThrows(WebApplicationException.class, () -> gs.patch(UpdateFactory.create("DELETE WHERE { ?s ?p ?o }")));
 
@@ -196,9 +195,7 @@ public class DocumentHierarchyGraphStoreImplWriteTest
 
         doReturn(null).when(request).selectVariant(anyList()); // e.g. Accept: application/sparql-results+json
         String quoted = ifMatch != null ? ifMatch : ntriples.getValue();
-        // the document has no dates, so the tag is all the preconditions are evaluated against
-        when(request.evaluatePreconditions(any(EntityTag.class))).thenAnswer(inv ->
-            ((EntityTag)inv.getArgument(0)).getValue().equals(quoted) ? null : Response.status(Response.Status.PRECONDITION_FAILED));
+        when(request.getMethod()).thenReturn("POST");
         when(headers.getHeaderString(HttpHeaders.IF_MATCH)).thenReturn("\"" + quoted + "\"");
         return gs;
     }
@@ -223,6 +220,7 @@ public class DocumentHierarchyGraphStoreImplWriteTest
     {
         DocumentHierarchyGraphStoreImpl gs = unnegotiable(null);
         when(store.containsModel(DOC.toString())).thenReturn(true);
+        when(request.getMethod()).thenReturn("DELETE");
 
         assertEquals(Response.Status.NO_CONTENT.getStatusCode(), gs.delete().getStatus());
         verify(store).deleteModel(DOC.toString());

@@ -194,7 +194,6 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     private final SecurityContext securityContext;
     private final Optional<AgentContext> agentContext;
     private final Set<String> allowedMethods;
-    private final HttpHeaders httpHeaders;
 
     /**
      * Constructs Graph Store.
@@ -218,7 +217,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context HttpHeaders httpHeaders)
     {
         // orElseThrow: the super() call dereferences the service before any statement can check emptiness
-        super(request, system.getServiceContext(service.orElseThrow(() -> new InternalServerErrorException("Service is not specified"))).getGraphStoreClient(), mediaTypes, uriInfo);
+        super(request, httpHeaders, system.getServiceContext(service.orElseThrow(() -> new InternalServerErrorException("Service is not specified"))).getGraphStoreClient(), mediaTypes, uriInfo);
         if (ontology.isEmpty()) throw new InternalServerErrorException("Ontology is not specified");
         this.application = application;
         this.ontology = ontology.get();
@@ -227,7 +226,6 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         this.agentContext = agentContext;
         this.providers = providers;
         this.system = system;
-        this.httpHeaders = httpHeaders;
         uploadsUriBuilder = uriInfo.getBaseUriBuilder().path(UPLOADS_PATH);
         URI ownerURI = URI.create(application.getMaker().getURI());
         try
@@ -365,7 +363,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             timeMapMediaTypes.add(TimeMapWriter.APPLICATION_LINK_FORMAT_TYPE);
             timeMapMediaTypes.addAll(getWritableMediaTypes(Model.class));
 
-            return new com.atomgraph.core.model.impl.Response(getRequest(),
+            return new com.atomgraph.core.model.impl.Response(getRequest(), getHttpHeaders(),
                     timeMap,
                     null,
                     getEntityTag(timeMap),
@@ -379,20 +377,18 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         String version = getUriInfo().getQueryParameters().getFirst(VERSION_PARAM_NAME);
         if (version == null) return super.get();
         // commit SHAs only: movable refs (branches, tags) must not be served with immutable caching,
-        // and the hex-only value doubles as the ETag (the HTML writer per-agent-perturbs ETags as hex numbers)
+        // and the hex-only value seeds the ETag (the variant folding and the HTML writer add to it as a hex number)
         if (!version.matches("[0-9a-f]{4,64}")) throw new NotFoundException("Version '" + version + "' of graph <" + getURI() + "> not found");
 
         com.atomgraph.linkeddatahub.server.util.GraphVersioningService.Version graphVersion = getSystem().getGraphVersioningService().
             getVersion(getDataspace().getURI(), getDataspace().getBaseURI(), getURI(), version).
             orElseThrow(() -> new NotFoundException("Version '" + version + "' of graph <" + getURI() + "> not found"));
 
-        CacheControl cacheControl = new CacheControl();
-        cacheControl.setMaxAge(31536000);
-        cacheControl.getCacheExtension().put("immutable", "");
-
-        Response.ResponseBuilder rb = getResponseBuilder(graphVersion.model(), getURI()).
-            tag(new EntityTag(version)).
-            cacheControl(cacheControl);
+        // the tag is derived per variant from the commit SHA, and the same tag is evaluated and sent: tagging every
+        // variant with the bare SHA after evaluating against the content digest meant If-None-Match never matched
+        Response.ResponseBuilder rb = getInternalResponse(graphVersion.model(), getLastModified(graphVersion.model(), getURI()), new EntityTag(version)).
+            getResponseBuilder().
+            cacheControl(graphVersion.getCacheControl());
         if (graphVersion.datetime() != null)
             rb.header("Memento-Datetime", TimeMapWriter.RFC_1123_GMT.format(graphVersion.datetime().atZone(ZoneId.of("GMT"))));
 
@@ -987,17 +983,60 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
      */
     public com.atomgraph.core.model.impl.Response getInternalResponse(Model model, URI graphUri)
     {
-        return new com.atomgraph.core.model.impl.Response(getRequest(),
+        return getInternalResponse(model, getLastModified(model, graphUri), getEntityTag(model));
+    }
+
+    /**
+     * Get internal response object with the given validators.
+     * The variant entity tags are derived from the given one, so the tag a response carries is the tag its
+     * preconditions are evaluated against.
+     *
+     * @param model RDF model
+     * @param lastModified last modified date
+     * @param entityTag entity tag of the graph
+     * @return response
+     */
+    public com.atomgraph.core.model.impl.Response getInternalResponse(Model model, Date lastModified, EntityTag entityTag)
+    {
+        return new RenderedResponse(getRequest(), getHttpHeaders(),
                 model,
-                getLastModified(model, graphUri),
-                getEntityTag(model),
+                lastModified,
+                entityTag,
                 getWritableMediaTypes(Model.class),
                 getLanguages(),
                 getEncodings(),
                 new HTMLMediaTypePredicate(),
                 // the HTML rendering negotiates over the whole accepted-language list, so two requests selecting the same
                 // variant can still differ; passing it makes the entity tag tell those representations apart
-                getHttpHeaders().getAcceptableLanguages());
+                getHttpHeaders().getAcceptableLanguages(),
+                new HTMLMediaTypePredicate(),
+                this::getRenderingKey);
+    }
+
+    /**
+     * Returns the key of the stylesheet the HTML representation is rendered with: the dataspace's stylesheet, the
+     * packages it imports and, when the client stylesheet service runs, the platform build it fingerprints (the key
+     * of the composed client stylesheet). Any of them changing changes the HTML, so the key goes into its entity tag.
+     *
+     * @return rendering key
+     * @see RenderedResponse
+     */
+    public String getRenderingKey()
+    {
+        StringBuilder key = new StringBuilder();
+
+        com.atomgraph.linkeddatahub.dataspaces.model.Dataspace dataspace = getDataspace();
+        // packages are composed into the dataspace's stylesheet only, as XsltExecutableFilter does
+        List<URI> packages = dataspace != null && dataspace.getStylesheet() != null ?
+            getSystem().getPackageService().getPackageURIs(dataspace) : List.of();
+
+        com.atomgraph.linkeddatahub.server.util.ClientStylesheetService stylesheetService = getSystem().getClientStylesheetService();
+        if (stylesheetService != null) key.append(stylesheetService.getKey(packages));
+        key.append('\n');
+        if (dataspace != null && dataspace.getStylesheet() != null) key.append(dataspace.getStylesheet().getURI());
+        for (URI pkg : packages) key.append('\n').append(pkg);
+
+        return key.toString();
     }
     
     /**
@@ -1607,13 +1646,13 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         Response.ResponseBuilder failed = null;
         for (Variant variant : variants)
         {
-            com.atomgraph.core.model.impl.Response response = new com.atomgraph.core.model.impl.Response(getRequest(),
+            com.atomgraph.core.model.impl.Response response = new com.atomgraph.core.model.impl.Response(getRequest(), httpHeaders,
                 model,
                 getLastModified(model, getURI()),
                 getEntityTag(model),
                 variant,
                 new HTMLMediaTypePredicate(),
-                getHttpHeaders().getAcceptableLanguages());
+                httpHeaders.getAcceptableLanguages());
 
             Response.ResponseBuilder rb = response.evaluatePreconditions();
             if (rb == null)
@@ -1875,16 +1914,6 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;
-    }
-
-    /**
-     * Returns the request headers.
-     *
-     * @return HTTP headers
-     */
-    public HttpHeaders getHttpHeaders()
-    {
-        return httpHeaders;
     }
 
     /**

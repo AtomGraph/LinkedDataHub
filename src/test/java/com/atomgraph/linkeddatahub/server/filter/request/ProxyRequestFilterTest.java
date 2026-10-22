@@ -71,6 +71,7 @@ public class ProxyRequestFilterTest
 
     @Mock private ContainerRequestContext requestContext;
     @Mock private Request request;
+    @Mock private HttpHeaders httpHeaders;
     @Mock private com.atomgraph.linkeddatahub.Application system;
 
     private ProxyRequestFilter filter;
@@ -81,6 +82,7 @@ public class ProxyRequestFilterTest
         filter = new ProxyRequestFilter();
         filter.mediaTypes = new MediaTypes();
         filter.request = request;
+        filter.httpHeaders = httpHeaders;
         filter.system = system;
     }
 
@@ -129,6 +131,7 @@ public class ProxyRequestFilterTest
             URI.create("https://localhost:4443/?uri=https%3A%2F%2Fremote.example%2Fsparql"), "GET", null, new MapPropertiesDelegate(), null);
         containerRequest.header(HttpHeaders.ACCEPT, accept);
         filter.request = containerRequest;
+        filter.httpHeaders = containerRequest; // Jersey's container request is also the request's HttpHeaders
         return filter;
     }
 

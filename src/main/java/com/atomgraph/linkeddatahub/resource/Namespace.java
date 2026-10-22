@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.resource;
 
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
@@ -71,6 +72,7 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
      * Constructs endpoint from the in-memory ontology model.
      *
      * @param request current request
+     * @param httpHeaders request headers
      * @param uriInfo current request's URI info
      * @param application current end-user application
      * @param ontology application's ontology
@@ -79,11 +81,11 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
      * @param system system application
      */
     @Inject
-    public Namespace(@Context Request request, @Context UriInfo uriInfo,
+    public Namespace(@Context Request request, @Context HttpHeaders httpHeaders, @Context UriInfo uriInfo,
             Dataspace application, Optional<OntModel> ontology, MediaTypes mediaTypes,
             @Context SecurityContext securityContext, com.atomgraph.linkeddatahub.Application system)
     {
-        super(request, uriInfo, new ServiceImpl(DatasetFactory.create(ontology.get()), mediaTypes), mediaTypes);
+        super(request, httpHeaders, uriInfo, new ServiceImpl(DatasetFactory.create(ontology.get()), mediaTypes), mediaTypes);
         this.uri = uriInfo.getAbsolutePath();
         this.application = application;
         this.ontology = ontology.get();
