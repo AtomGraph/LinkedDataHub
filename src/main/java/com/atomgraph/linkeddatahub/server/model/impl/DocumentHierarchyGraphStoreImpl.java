@@ -172,6 +172,16 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
      * Name of the request header conveying the datetime a TimeGate negotiates on.
      */
     public static final String ACCEPT_DATETIME_HEADER = "Accept-Datetime";
+
+    /**
+     * Name of the Graph Store Protocol query parameter that identifies a named graph indirectly.
+     */
+    public static final String GRAPH_PARAM_NAME = "graph";
+
+    /**
+     * Name of the Graph Store Protocol query parameter that identifies the default graph indirectly.
+     */
+    public static final String DEFAULT_PARAM_NAME = "default";
     
     private final com.atomgraph.linkeddatahub.dataspaces.model.Dataspace application;
     private final OntModel ontology;
@@ -271,6 +281,35 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     }
 
     /**
+     * Returns true if the request uses the Graph Store Protocol's indirect graph identification, i.e. carries a
+     * <code>graph</code> or <code>default</code> query parameter.
+     *
+     * @param uriInfo URI info of the request
+     * @return true if the request identifies its graph indirectly
+     */
+    public static boolean isIndirectIdentification(UriInfo uriInfo)
+    {
+        return uriInfo.getQueryParameters().containsKey(GRAPH_PARAM_NAME) ||
+            uriInfo.getQueryParameters().containsKey(DEFAULT_PARAM_NAME);
+    }
+
+    /**
+     * Rejects a request that identifies its graph indirectly.
+     * Documents form a directly identified graph store (GSP &sect;4.1): the request URI names the graph, so a
+     * <code>graph</code> or <code>default</code> parameter would otherwise be ignored and the operation would apply
+     * to this document instead of the graph the client named.
+     *
+     * @param uriInfo URI info of the request
+     * @throws BadRequestException if the request carries a <code>graph</code> or <code>default</code> parameter
+     */
+    public static void checkDirectIdentification(UriInfo uriInfo)
+    {
+        if (isIndirectIdentification(uriInfo))
+            throw new BadRequestException("Indirect graph identification (the '" + GRAPH_PARAM_NAME + "' and '" + DEFAULT_PARAM_NAME +
+                "' query parameters) is not supported: the request URI identifies the graph");
+    }
+
+    /**
      * Implements <code>GET</code> method of SPARQL Graph Store Protocol.
      * With a <code>version</code> query parameter, returns the graph's state at that commit from the
      * versioning repository instead of the triplestore. Version responses are immutable.
@@ -281,6 +320,8 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     @GET
     public Response get()
     {
+        checkDirectIdentification(getUriInfo());
+
         if (getUriInfo().getQueryParameters().containsKey(TIMEGATE_PARAM_NAME))
         {
             String acceptDatetime = getHttpHeaders().getHeaderString(ACCEPT_DATETIME_HEADER);
@@ -369,6 +410,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     @POST
     public Response post(Model model)
     {
+        checkDirectIdentification(getUriInfo());
         return post(model, () -> {});
     }
 
@@ -447,6 +489,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     // the AuthorizationFilter only allows creating new child URIs for existing containers (i.e. there has to be a .. container already)
     public Response put(Model model)
     {
+        checkDirectIdentification(getUriInfo());
         return put(model, () -> {});
     }
 
@@ -598,6 +641,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     @Override
     public Response patch(UpdateRequest updateRequest)
     {
+        checkDirectIdentification(getUriInfo());
         checkSnapshotReadOnly();
 
         if (updateRequest == null) throw new BadRequestException("SPARQL update not specified");
@@ -737,6 +781,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response postMultipart(FormDataMultiPart multiPart)
     {
+        checkDirectIdentification(getUriInfo());
         checkSnapshotReadOnly();
 
         if (log.isDebugEnabled()) log.debug("MultiPart fields: {} body parts: {}", multiPart.getFields(), multiPart.getBodyParts());
@@ -784,6 +829,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response putMultipart(FormDataMultiPart multiPart)
     {
+        checkDirectIdentification(getUriInfo());
         checkSnapshotReadOnly();
 
         if (log.isDebugEnabled()) log.debug("MultiPart fields: {} body parts: {}", multiPart.getFields(), multiPart.getBodyParts());
@@ -832,6 +878,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     @Override
     public Response delete()
     {
+        checkDirectIdentification(getUriInfo());
         checkSnapshotReadOnly();
 
         if (!getAllowedMethods().contains(HttpMethod.DELETE))

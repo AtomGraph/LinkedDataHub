@@ -50,8 +50,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.core.UriInfo;
+import org.glassfish.jersey.uri.UriComponent;
 
 /**
  * Unit tests for the stateless logic of {@link DocumentHierarchyGraphStoreImpl}.
@@ -470,6 +475,51 @@ public class DocumentHierarchyGraphStoreImplTest
         Model after = ModelFactory.createDefaultModel().add(before);
 
         assertFalse(gs.getChangedResources(before, after).contains(subject));
+    }
+
+    // checkDirectIdentification()
+
+    private static UriInfo uriInfo(String query)
+    {
+        UriInfo uriInfo = mock(UriInfo.class);
+        when(uriInfo.getQueryParameters()).thenReturn(UriComponent.decodeQuery(query, true));
+        return uriInfo;
+    }
+
+    @Test
+    public void testDirectIdentificationAccepted()
+    {
+        assertDoesNotThrow(() -> DocumentHierarchyGraphStoreImpl.checkDirectIdentification(uriInfo("")));
+    }
+
+    @Test
+    public void testOtherParamsAccepted()
+    {
+        assertDoesNotThrow(() -> DocumentHierarchyGraphStoreImpl.checkDirectIdentification(uriInfo("mode=https%3A%2F%2Fw3id.org%2Fatomgraph%2Fclient%23ReadMode&accept=text%2Fturtle")));
+    }
+
+    @Test
+    public void testGraphParamRejected()
+    {
+        assertThrows(BadRequestException.class, () -> DocumentHierarchyGraphStoreImpl.checkDirectIdentification(uriInfo("graph=https%3A%2F%2Flocalhost%3A4443%2Ffoo%2F")));
+    }
+
+    @Test
+    public void testEmptyGraphParamRejected()
+    {
+        assertThrows(BadRequestException.class, () -> DocumentHierarchyGraphStoreImpl.checkDirectIdentification(uriInfo("graph=")));
+    }
+
+    @Test
+    public void testDefaultParamRejected()
+    {
+        assertThrows(BadRequestException.class, () -> DocumentHierarchyGraphStoreImpl.checkDirectIdentification(uriInfo("default")));
+    }
+
+    @Test
+    public void testDefaultParamAmongOthersRejected()
+    {
+        assertThrows(BadRequestException.class, () -> DocumentHierarchyGraphStoreImpl.checkDirectIdentification(uriInfo("accept=text%2Fturtle&default")));
     }
 
 }
