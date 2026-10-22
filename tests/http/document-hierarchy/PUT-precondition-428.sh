@@ -75,9 +75,9 @@ response=$(printf '%s' "$changed" | curl -k -s -i \
   "$document" | tr -d '\r')
 echo "DEBUG: 428 response: $response"
 echo "$response" | grep -qi '^content-type: text/plain' || { echo "DEBUG: Expected a text/plain body"; exit 1; }
-body=$(echo "$response" | sed '1,/^$/d')
-echo "$body" | grep -q 'If-Match' || { echo "DEBUG: Expected the body to name If-Match"; exit 1; }
-echo "$body" | grep -q 'HEAD' || { echo "DEBUG: Expected the body to name HEAD"; exit 1; }
+explanation=$(echo "$response" | sed '1,/^$/d')
+echo "$explanation" | grep -q 'If-Match' || { echo "DEBUG: Expected the body to name If-Match"; exit 1; }
+echo "$explanation" | grep -q 'HEAD' || { echo "DEBUG: Expected the body to name HEAD"; exit 1; }
 
 status=$(write POST application/n-triples 'If-None-Match: "bogus"' "<${document}> <http://purl.org/dc/terms/description> \"appended\" .")
 echo "DEBUG: POST with a made-up If-None-Match. Expected: $STATUS_PRECONDITION_REQUIRED Got: $status"
