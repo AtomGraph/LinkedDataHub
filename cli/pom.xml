@@ -19,7 +19,7 @@
         declares Core itself. This project has no Web-Client, so it pins Core directly, and the pin is
         a copy: `make cli-version` reads the resolved version from the platform build and writes it
         here, and `make cli-version-check` (run by the test workflows) fails when the copy differs -->
-        <core.version>5.0.7</core.version>
+        <core.version>5.1.0-SNAPSHOT</core.version>
     </properties>
 
     <dependencies>
