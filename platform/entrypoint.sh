@@ -92,13 +92,16 @@ transform="xsltproc \
 
 eval "$transform"
 
-# the proxied HTTP connector's thread count: letsencrypt-tomcat.xsl sizes only the HTTPS connector, so
+# every connector refuses suspicious URIs (path parameters on dot segments and the like) with 400, always.
+# The proxied HTTP connector's thread count: letsencrypt-tomcat.xsl sizes only the HTTPS connector, so
 # this one keeps Tomcat's default of 200 unless set. Beyond capacity, the count bounds how many renders
 # can wait on each other, since every server-side render calls back into this connector through the
 # proxy; tests/load runs with a small value to reproduce that.
 if [ -n "$HTTP_MAX_THREADS" ]; then
-    xsltproc --output conf/server.xml --stringparam Connector.maxThreads.http "$HTTP_MAX_THREADS" /var/linkeddatahub/xsl/server.xsl conf/server.xml
+    HTTP_MAX_THREADS_PARAM="--stringparam Connector.maxThreads.http $HTTP_MAX_THREADS"
 fi
+
+xsltproc --output conf/server.xml $HTTP_MAX_THREADS_PARAM /var/linkeddatahub/xsl/server.xsl conf/server.xml
 
 ### PLATFORM ###
 
@@ -1072,6 +1075,20 @@ fi
 if [ -n "$ALLOW_INTERNAL_URLS" ]; then
     export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.allowInternalUrls=$ALLOW_INTERNAL_URLS"
 fi
+
+# the secret nginx sends in the Proxy-Secret header; the Client-Cert header is accepted only with it.
+# Written to a file only this user can read, and removed from the environment, so the value stays out of
+# the JVM's environment, its command line and the startup log
+if [ -z "$PROXY_SECRET" ]; then
+    echo '$PROXY_SECRET not set'
+    exit 1
+fi
+
+PROXY_SECRET_FILE=/var/linkeddatahub/proxy_secret
+(umask 077 && printf '%s' "$PROXY_SECRET" > "$PROXY_SECRET_FILE")
+unset PROXY_SECRET
+
+export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.proxySecretFile=$PROXY_SECRET_FILE"
 
 # host:port of the egress forward proxy that the platform's in-JVM SPARQL SERVICE requests (PATCH, imports) go through;
 # without it SERVICE is disabled in those paths (unless ALLOW_INTERNAL_URLS)

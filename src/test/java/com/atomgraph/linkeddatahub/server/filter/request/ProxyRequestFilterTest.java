@@ -18,7 +18,21 @@ package com.atomgraph.linkeddatahub.server.filter.request;
 
 import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.vocabulary.AC;
+import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
+import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
+import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
+import com.atomgraph.linkeddatahub.server.security.WebIDSecurityContext;
+import com.atomgraph.client.util.jena.PrefixGraphRepository;
+import com.atomgraph.core.exception.BadGatewayException;
+import com.atomgraph.linkeddatahub.server.security.AgentContext;
+import com.atomgraph.linkeddatahub.server.util.URLValidator;
 import jakarta.ws.rs.NotAcceptableException;
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.Invocation;
+import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.UriInfo;
+import org.apache.jena.rdf.model.ResourceFactory;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
@@ -194,6 +208,98 @@ public class ProxyRequestFilterTest
         assertEquals("Accept, Origin", ProxyRequestFilter.mergeVary("accept", "Origin"), "field names are case-insensitive");
         assertEquals("Accept, Accept-Language, Accept-Encoding", ProxyRequestFilter.mergeVary("Accept,Accept-Language", " Accept-Encoding , accept-language"));
         assertEquals("*", ProxyRequestFilter.mergeVary("Accept", "*"));
+    }
+
+    /** An authenticated caller proxying another origin: no certificate, no delegation */
+    @Test
+    public void testExternalOriginNotDelegated() throws IOException
+    {
+        for (AgentContext agentContext : List.of(idTokenContext(), mock(WebIDSecurityContext.class)))
+        {
+            Client certClient = mock(Client.class), noCertClient = mock(Client.class);
+            WebTarget target = proxy(URI.create("https://remote.example/doc"), agentContext, false, certClient, noCertClient);
+
+            verify(noCertClient).target(any(URI.class));
+            verifyNoInteractions(certClient);
+            verify(target, never()).register(any(Object.class));
+        }
+    }
+
+    /** An ID token caller proxying a dataspace: the certificate, and the token delegated */
+    @Test
+    public void testDataspaceOriginDelegatesIDToken() throws IOException
+    {
+        Client certClient = mock(Client.class), noCertClient = mock(Client.class);
+        WebTarget target = proxy(URI.create("https://admin.localhost:4443/doc"), idTokenContext(), true, certClient, noCertClient);
+
+        verify(certClient).target(any(URI.class));
+        verifyNoInteractions(noCertClient);
+        verify(target).register(isA(IDTokenDelegationFilter.class));
+        verify(target, never()).register(isA(WebIDDelegationFilter.class));
+    }
+
+    /** A WebID caller proxying a dataspace: the certificate, and the agent named in On-Behalf-Of */
+    @Test
+    public void testDataspaceOriginDelegatesWebID() throws IOException
+    {
+        Client certClient = mock(Client.class), noCertClient = mock(Client.class);
+        WebTarget target = proxy(URI.create("https://admin.localhost:4443/doc"), mock(WebIDSecurityContext.class), true, certClient, noCertClient);
+
+        verify(certClient).target(any(URI.class));
+        verify(target).register(isA(WebIDDelegationFilter.class));
+        verify(target, never()).register(isA(IDTokenDelegationFilter.class));
+    }
+
+    @Test
+    public void testAnonymousNotDelegated() throws IOException
+    {
+        Client certClient = mock(Client.class), noCertClient = mock(Client.class);
+        WebTarget target = proxy(URI.create("https://admin.localhost:4443/doc"), null, true, certClient, noCertClient);
+
+        verifyNoInteractions(certClient);
+        verify(target, never()).register(any(Object.class));
+    }
+
+    /**
+     * Runs the filter over a proxied GET whose upstream request fails, and returns the target it went to.
+     */
+    private WebTarget proxy(URI targetURI, AgentContext agentContext, boolean isDataspace, Client certClient, Client noCertClient) throws IOException
+    {
+        reset(requestContext, system);
+        lenient().when(requestContext.getProperty(AC.uri.getURI())).thenReturn(targetURI);
+        lenient().when(requestContext.getProperty(AgentContext.class.getCanonicalName())).thenReturn(agentContext);
+        lenient().when(requestContext.getAcceptableMediaTypes()).thenReturn(List.of(MediaType.valueOf("application/n-triples")));
+        lenient().when(requestContext.getMethod()).thenReturn("GET");
+        UriInfo uriInfo = mock(UriInfo.class);
+        lenient().when(uriInfo.getBaseUri()).thenReturn(URI.create("https://localhost:4443/"));
+        lenient().when(requestContext.getUriInfo()).thenReturn(uriInfo);
+
+        lenient().when(system.getRepository()).thenReturn(mock(PrefixGraphRepository.class));
+        lenient().when(system.matchApp(targetURI)).thenReturn(isDataspace ? ResourceFactory.createResource("https://admin.localhost:4443/") : null);
+        lenient().when(system.isEnableLinkedDataProxy()).thenReturn(true);
+        lenient().when(system.getURLValidator()).thenReturn(mock(URLValidator.class));
+        lenient().when(system.getExternalClient()).thenReturn(certClient);
+        lenient().when(system.getExternalNoCertClient()).thenReturn(noCertClient);
+
+        WebTarget target = mock(WebTarget.class);
+        Invocation.Builder builder = mock(Invocation.Builder.class);
+        lenient().when(certClient.target(any(URI.class))).thenReturn(target);
+        lenient().when(noCertClient.target(any(URI.class))).thenReturn(target);
+        lenient().when(target.property(anyString(), any())).thenReturn(target);
+        lenient().when(target.request()).thenReturn(builder);
+        lenient().when(builder.accept(any(MediaType[].class))).thenReturn(builder);
+        lenient().when(builder.header(anyString(), any())).thenReturn(builder);
+        lenient().when(builder.method("GET")).thenThrow(new ProcessingException("upstream not reachable in the test"));
+
+        assertThrows(BadGatewayException.class, () -> filter.filter(requestContext));
+        return target;
+    }
+
+    private static IDTokenSecurityContext idTokenContext()
+    {
+        IDTokenSecurityContext context = mock(IDTokenSecurityContext.class);
+        lenient().when(context.getJWTToken()).thenReturn("header.payload.signature");
+        return context;
     }
 
 }

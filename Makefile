@@ -83,7 +83,10 @@ SECRET_FILES := secrets/owner_cert_password.txt \
                 secrets/secretary_cert_password.txt \
                 secrets/client_truststore_password.txt
 
+# PROXY_SECRET in .env is the secret nginx sends to the platform with every request. Generated once, and
+# appended rather than written, so the rest of .env and an existing value are kept.
 secrets: $(SECRET_FILES)
+	@touch .env; grep -q '^PROXY_SECRET=.' .env || { [ -z "$$(tail -c1 .env)" ] || echo >> .env; echo "PROXY_SECRET=$$(openssl rand -hex 32)" >> .env; echo "Wrote PROXY_SECRET to .env"; }
 
 secrets/%.txt:
 	@mkdir -p secrets

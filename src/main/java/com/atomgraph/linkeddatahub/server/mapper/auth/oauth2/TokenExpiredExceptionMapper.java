@@ -75,6 +75,7 @@ public class TokenExpiredExceptionMapper extends ExceptionMapperBase implements 
             value("").
             path(path).
             maxAge(0).
+            secure(true).
             build();
 
         ResponseBuilder builder = getResponseBuilder(toResource(ex, Response.Status.BAD_REQUEST,

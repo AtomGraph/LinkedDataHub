@@ -30,7 +30,6 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
 import com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter;
-import org.glassfish.jersey.uri.UriComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -143,13 +142,13 @@ public class ClearOntology
         if (ontologyURI != null)
         {
             URI ontologyDocURI = UriBuilder.fromUri(ontologyURI).fragment(null).build(); // skip fragment from the ontology URI to get its graph URI
-            // the frontend caches whole documents rather than SPARQL responses and carries no xkey tags, so the
-            // ontology document is evicted there by URL pattern (until Stage 3 brings xkey tagging to varnish-frontend)
+            // the frontend tags every response with the absolute URI of the document requested (XkeyTaggingFilter), the query
+            // string excluded, so this one key evicts the ontology document together with every query sent to it
             URI frontendProxy = getSystem().getFrontendProxy();
             if (frontendProxy != null)
             {
-                if (log.isDebugEnabled()) log.debug("Purge ontology document with URI '{}' from frontend proxy cache", ontologyDocURI);
-                ban(frontendProxy, ontologyDocURI.toString(), false);
+                if (log.isDebugEnabled()) log.debug("XKEY-PURGE ontology document with URI '{}' from frontend proxy cache", ontologyDocURI);
+                xkeyPurge(frontendProxy, ontologyDocURI.toString());
             }
 
             // !!! we need to reload the ontology model before returning a response, to make sure the next request already gets the new version !!!
@@ -165,38 +164,6 @@ public class ClearOntology
         else return Response.ok().build();
     }
     
-    public void ban(URI proxyURI, String url)
-    {
-        ban(proxyURI, url, true);
-    }
-
-    /**
-     * Bans URL from the backend proxy cache.
-     *
-     * @param proxyURI proxy server URI
-     * @param url banned URL
-     * @param urlEncode if true, the banned URL value will be URL-encoded
-     */
-    public void ban(URI proxyURI, String url, boolean urlEncode)
-    {
-        if (url == null) throw new IllegalArgumentException("URL cannot be null");
-
-        // Extract path from URL - Varnish req.url only contains the path, not the full URL
-        URI uri = URI.create(url);
-        String path = uri.getPath();
-        if (uri.getQuery() != null) path += "?" + uri.getQuery();
-
-        final String urlValue = urlEncode ? UriComponent.encode(path, UriComponent.Type.UNRESERVED) : path;
-
-        try (Response cr = getSystem().getClient().target(proxyURI).
-                request().
-                header(CacheInvalidationFilter.HEADER_NAME, urlValue).
-                method("BAN", Response.class))
-        {
-            // Response automatically closed by try-with-resources
-        }
-    }
-
     /**
      * Surrogate-key purge: surgically evicts every cached object the proxy indexed with the given xkey tag.
      * No URL parsing — xkey matches the tag byte-for-byte against {@code beresp.http.xkey} set in VCL.
@@ -211,8 +178,8 @@ public class ClearOntology
 
         try (Response cr = getSystem().getClient().target(proxyURI).
                 request().
-                header("xkey-purge", tag).
-                method("XKEY-PURGE", Response.class))
+                header(CacheInvalidationFilter.XKEY_PURGE_HEADER_NAME, tag).
+                method(CacheInvalidationFilter.XKEY_PURGE_METHOD, Response.class))
         {
             if (log.isDebugEnabled()) log.debug("XKEY-PURGE on {} for tag '{}' returned status {}", proxyURI, tag, cr.getStatus());
         }

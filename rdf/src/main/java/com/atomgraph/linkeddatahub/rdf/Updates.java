@@ -182,7 +182,7 @@ public final class Updates
               ?sparqlPost a acl:Authorization ;
                   acl:accessTo ?sparql ;
                   acl:mode acl:Append ;
-                  acl:agentClass foaf:Agent, acl:AuthenticatedAgent . # hacky way to allow queries over POST
+                  acl:agentClass foaf:Agent, acl:AuthenticatedAgent . # POST maps to Append; /sparql refuses SPARQL Update with 405, so Append there only allows queries over POST
             }
             WHERE
             {}
