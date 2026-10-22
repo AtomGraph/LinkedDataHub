@@ -55,6 +55,8 @@
 - A key ID missing from the cached provider keys re-fetches them, at most once a minute, so sign-in survives a key rotation
 - The page OAuth sign-in returns to must belong to one of this instance's dataspaces, checked both when sign-in starts and when it completes; anything else returns to the dataspace's base
 - The OAuth state cookie is `Secure`, `HttpOnly` and `SameSite=Lax`, and the cookie that clears an expired ID token is `Secure`
+- The Linked Data proxy, WebID loading, package description and stylesheet fetches, and imports checked only the first URI they requested against the internal-address rules, while their HTTP clients followed redirects on their own; redirects are now followed by the platform, at most 5 hops, each target checked before it is requested, and a refused hop answers `502 Bad Gateway`
+- A package stylesheet whose URL is refused, or that cannot be copied into the package root, is left out of the stylesheet composition with a logged error, instead of being imported from its declared URL
 
 ## [6.2.3] - 2026-10-21
 ### Migration
