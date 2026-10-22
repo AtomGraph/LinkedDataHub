@@ -120,14 +120,16 @@ abbrev AclGrant := Option Node → Mode → Node → (Node → Prop) → Prop
 def aclGrant (adm : Admin) : AclGrant := fun agent m x ty =>
   ∃ au ∈ adm.auths, au.principal adm agent ∧ au.targets adm x ty ∧ ∃ g ∈ au.modes, g.covers m
 
-/-- `ownerAclQuery`, run for admin dataspaces. Its three branches:
-  * any authorization carrying `acl:Control` for the agent or one of its groups, *with no target pattern*;
-  * `acl:AuthenticatedAgent` authorizations targeting the document, with no further restriction;
-  * `foaf:Agent` authorizations with `acl:Read` targeting the document, only for `Ctx.adminPublic` documents. -/
+/-- `ownerAclQuery`, run for admin dataspaces. Its branches:
+  * an authorization carrying `acl:Control` over `def:Root`, for the agent or one of its groups: the admin role,
+    matching every admin document and endpoint;
+  * `acl:AuthenticatedAgent` authorizations, and `foaf:Agent` ones with `acl:Read`, targeting the document, only for
+    `Ctx.adminPublic` documents. -/
 def adminMatch (ctx : Ctx) (adm : Admin) (agent : Option Node) (x : Node) (ty : Node → Prop) (au : Auth) : Prop :=
-  (Mode.control ∈ au.modes ∧ ∃ a, agent = some a ∧ (a ∈ au.agents ∨ ∃ g ∈ au.groups, adm.member g a)) ∨
-  (au.authenticated = true ∧ agent ≠ none ∧ au.targets adm x ty) ∨
-  (au.anyone = true ∧ Mode.read ∈ au.modes ∧ au.targets adm x ty ∧ ctx.adminPublic x)
+  (Mode.control ∈ au.modes ∧ Node.defRoot ∈ au.accessToClass ∧
+    ∃ a, agent = some a ∧ (a ∈ au.agents ∨ ∃ g ∈ au.groups, adm.member g a)) ∨
+  ((au.authenticated = true ∧ agent ≠ none ∨ au.anyone = true ∧ Mode.read ∈ au.modes) ∧
+    au.targets adm x ty ∧ ctx.adminPublic x)
 
 def adminGrant (ctx : Ctx) (adm : Admin) : AclGrant := fun agent m x ty =>
   ∃ au ∈ adm.auths, adminMatch ctx adm agent x ty au ∧ ∃ g ∈ au.modes, g.covers m

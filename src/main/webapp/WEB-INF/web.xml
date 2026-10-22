@@ -98,11 +98,17 @@ VALUES ?Type { rdfs:Resource }
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX  def:  <https://w3id.org/atomgraph/linkeddatahub/default#>
 
+# The admin role is acl:Control over def:Root, the class of the dataspace roots: an authorization carrying both, for the
+# agent or one of its groups, opens every admin document and endpoint. acl:Control over anything narrower - a document,
+# or a class of documents - opens nothing here. Agent classes open only the documents public in the admin application,
+# to a signed-in agent no more than to an anonymous one.
 DESCRIBE ?auth
 WHERE
   { GRAPH ?g
-      {   { ?auth  acl:mode           acl:Control .
+      {   { ?auth  acl:mode           acl:Control ;
+                   acl:accessToClass  def:Root .
               { ?auth  acl:agent  $agent }
             UNION
               { ?auth   acl:agentGroup  ?Group
@@ -115,22 +121,11 @@ WHERE
               }
           }
         UNION
-          { ?auth  acl:agentClass  $AuthenticatedAgentClass ;
-                   acl:mode        ?Mode
-              { ?auth  acl:accessTo  $this
-              }
+          {   { ?auth  acl:agentClass  $AuthenticatedAgentClass }
             UNION
-              { ?auth  acl:accessToClass  $Type }
-            UNION
-              { ?auth  acl:accessToClass  ?Class .
-                GRAPH <urn:x-arq:UnionGraph> {
-                  $Type (rdfs:subClassOf)* ?Class
-                }
+              { ?auth  acl:agentClass  foaf:Agent ;
+                       acl:mode        acl:Read
               }
-          }
-        UNION
-          { ?auth  acl:agentClass  foaf:Agent ;
-                   acl:mode        acl:Read
               { ?auth  acl:accessTo  $this
               }
             UNION

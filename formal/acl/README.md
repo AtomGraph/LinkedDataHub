@@ -24,7 +24,7 @@ Lean `v4.15.0` (pinned in `lean-toolchain`), core library only, with no Mathlib.
 | `LdhAcl/Step.lean` | Graph store writes as a step relation |
 | `LdhAcl/Theorems.lean` | Mode facts, ownership confinement, authority locality, creation |
 | `LdhAcl/Hierarchy.lean` | The hierarchy invariant |
-| `LdhAcl/Current.lean` | The admin query's properties, as deployed |
+| `LdhAcl/Admin.lean` | The admin decision |
 
 ## Mapping to the code
 
@@ -36,7 +36,7 @@ Lean `v4.15.0` (pinned in `lean-toolchain`), core library only, with no Mathlib.
 | `ownerGrant` | `AuthorizationFilter.createOwnerAuthorization` (`:379`) |
 | `Auth.principal` | `AuthorizationParams.get` (`server/util/AuthorizationParams.java:58`) |
 | `aclGrant` | `aclQuery` (`web.xml:49`), `getAuthorizationByMode` (`AuthorizationFilter.java:270`) |
-| `adminMatch`, `adminGrant` | `ownerAclQuery` (`web.xml:96`) |
+| `adminMatch`, `adminGrant` | `ownerAclQuery` (`web.xml`) |
 | `allow` | `AuthorizationFilter.authorize`, including the `PUT` fallback to the parent when `containsModel` is false |
 | `allowRequest` | `AuthorizationFilter.filter` (`:105`), `getAccessMode` (`:254`) |
 | `Step.post` | `DocumentHierarchyGraphStoreImpl.post` |
@@ -93,11 +93,12 @@ Proven for the deployed code, using only the axioms `propext` and `Quot.sound`:
 | `hier_preserved` | Every non-root document's parent exists, after any write |
 | `covers_control`, `write_covers_append` | Mode coverage |
 
-The admin query has no corrected definition yet. `Current.lean` states its properties as they are:
+The admin decision, also for the deployed code:
 
 | Theorem | Statement |
 |---------|-----------|
-| `adminMatch_control_untargeted` | In `ownerAclQuery`, an authorization carrying `acl:Control` matches every admin document regardless of its targets |
-| `adminMatch_anonymous_public`, `adminMatch_authenticated_unlimited` | Anonymous access to admin documents is limited to the public set; `acl:AuthenticatedAgent` access is not |
+| `adminMatch_role` | Outside the documents the admin application makes public, only `acl:Control` over `def:Root` opens an admin document |
+| `adminMatch_anonymous_public`, `adminMatch_authenticated_public` | Through agent classes, anonymous and signed-in agents alike reach only the public admin documents |
+| `adminMatch_owners` | A group holding `acl:Control` over `def:Root` keeps every admin document |
 
 `aclGrant_targeted` gives the contrast: on end-user dataspaces, every grant is for a target.
