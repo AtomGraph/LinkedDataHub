@@ -14,20 +14,24 @@ pwd=$(realpath "$PWD")
 # upload test.csv and capture the file URI create-file.sh outputs
 
 file=$(./create-file.sh)
-length=$(wc -c < "$pwd/test.csv" | tr -d ' ')
 
 headers="$(mktemp)" || exit 1
+body="$(mktemp)" || exit 1
 
-# a last position before the first cannot be satisfied: 416 with the complete length (RFC 9110 §15.5.17, §14.4)
+# a last position before the first makes the Range invalid (RFC 9110 §14.1.1), which a server may ignore
+# (§14.2). The platform answers it with 416 on its own, but the front Varnish cannot forward an inverted
+# range and drops it, so through the stack the whole file is served
 
-status=$(curl -k -s -o /dev/null -D "$headers" -w "%{http_code}" \
+status=$(curl -k -s -o "$body" -D "$headers" -w "%{http_code}" \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: text/csv" \
   -H "Range: bytes=5-4" \
   "$file")
 content_range=$(grep -i '^Content-Range:' "$headers" | tr -d '\r' | sed -E 's/^[^:]+: *//' || true)
 
-echo "DEBUG: Expected status: $STATUS_RANGE_NOT_SATISFIABLE  Got: $status"
-echo "DEBUG: Expected Content-Range: bytes */${length}  Got: '$content_range'"
-[ "$status" = "$STATUS_RANGE_NOT_SATISFIABLE" ]
-[ "$content_range" = "bytes */${length}" ]
+echo "DEBUG: Expected status: $STATUS_OK  Got: $status"
+echo "DEBUG: Expected no Content-Range  Got: '$content_range'"
+[ "$status" = "$STATUS_OK" ]
+[ -z "$content_range" ]
+
+cmp "$body" "$pwd/test.csv"
