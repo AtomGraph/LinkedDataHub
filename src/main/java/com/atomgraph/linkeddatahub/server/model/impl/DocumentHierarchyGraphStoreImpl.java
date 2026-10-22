@@ -179,7 +179,6 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     private final SecurityContext securityContext;
     private final Optional<AgentContext> agentContext;
     private final Set<String> allowedMethods;
-    private final HttpHeaders httpHeaders;
 
     /**
      * Constructs Graph Store.
@@ -203,7 +202,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context HttpHeaders httpHeaders)
     {
         // orElseThrow: the super() call dereferences the service before any statement can check emptiness
-        super(request, system.getServiceContext(service.orElseThrow(() -> new InternalServerErrorException("Service is not specified"))).getGraphStoreClient(), mediaTypes, uriInfo);
+        super(request, httpHeaders, system.getServiceContext(service.orElseThrow(() -> new InternalServerErrorException("Service is not specified"))).getGraphStoreClient(), mediaTypes, uriInfo);
         if (ontology.isEmpty()) throw new InternalServerErrorException("Ontology is not specified");
         this.application = application;
         this.ontology = ontology.get();
@@ -212,7 +211,6 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         this.agentContext = agentContext;
         this.providers = providers;
         this.system = system;
-        this.httpHeaders = httpHeaders;
         uploadsUriBuilder = uriInfo.getBaseUriBuilder().path(UPLOADS_PATH);
         URI ownerURI = URI.create(application.getMaker().getURI());
         try
@@ -319,7 +317,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             timeMapMediaTypes.add(TimeMapWriter.APPLICATION_LINK_FORMAT_TYPE);
             timeMapMediaTypes.addAll(getWritableMediaTypes(Model.class));
 
-            return new com.atomgraph.core.model.impl.Response(getRequest(),
+            return new com.atomgraph.core.model.impl.Response(getRequest(), getHttpHeaders(),
                     timeMap,
                     null,
                     getEntityTag(timeMap),
@@ -832,7 +830,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
      */
     public com.atomgraph.core.model.impl.Response getInternalResponse(Model model, Date lastModified, EntityTag entityTag)
     {
-        return new RenderedResponse(getRequest(),
+        return new RenderedResponse(getRequest(), getHttpHeaders(),
                 model,
                 lastModified,
                 entityTag,
@@ -1593,16 +1591,6 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;
-    }
-
-    /**
-     * Returns the request headers.
-     *
-     * @return HTTP headers
-     */
-    public HttpHeaders getHttpHeaders()
-    {
-        return httpHeaders;
     }
 
     /**

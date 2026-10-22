@@ -117,11 +117,11 @@ public class SettingsTest
             throw new IllegalStateException(ex);
         }
 
-        // the precondition is the request's to evaluate: it holds when the tag the settings answer now is the one quoted
         Request request = mock(Request.class);
+        when(request.getMethod()).thenReturn("PATCH");
         when(request.selectVariant(anyList())).thenAnswer(inv -> ((List<Variant>)inv.getArgument(0)).get(0));
-        when(request.evaluatePreconditions(any(EntityTag.class))).thenAnswer(inv -> precondition(inv.getArgument(0)));
 
+        // the precondition is evaluated from the headers: it holds when the tag the settings answer now is the one quoted
         HttpHeaders headers = mock(HttpHeaders.class);
         when(headers.getHeaderString(HttpHeaders.IF_MATCH)).thenAnswer(inv -> ifMatch.get());
 
@@ -129,11 +129,6 @@ public class SettingsTest
         doAnswer(inv -> inv.getArgument(0)).when(resource).validate(any(Model.class));
 
         quoted = resource.getInternalResponse(initial).getVariantEntityTag();
-    }
-
-    private Response.ResponseBuilder precondition(EntityTag current)
-    {
-        return ifMatch.get() != null && ifMatch.get().equals(current.toString()) ? null : Response.status(Response.Status.PRECONDITION_FAILED);
     }
 
     private UpdateRequest retitle(String title)

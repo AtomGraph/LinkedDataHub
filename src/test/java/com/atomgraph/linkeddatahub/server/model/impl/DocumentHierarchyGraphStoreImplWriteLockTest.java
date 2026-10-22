@@ -36,7 +36,6 @@ import jakarta.ws.rs.ext.Providers;
 import java.net.URI;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
@@ -129,12 +128,11 @@ public class DocumentHierarchyGraphStoreImplWriteLockTest
         when(uriInfo.getBaseUriBuilder()).thenAnswer(inv -> UriBuilder.fromUri(BASE));
         when(uriInfo.getQueryParameters()).thenReturn(new MultivaluedHashMap<>());
 
-        // the precondition is the request's to evaluate: it holds when the tag the store answers now is the one quoted
         Request request = mock(Request.class);
+        when(request.getMethod()).thenReturn("PUT");
         when(request.selectVariant(anyList())).thenAnswer(inv -> ((List<Variant>)inv.getArgument(0)).get(0));
-        when(request.evaluatePreconditions(any(EntityTag.class))).thenAnswer(inv -> precondition(inv.getArgument(0)));
-        when(request.evaluatePreconditions(any(Date.class), any(EntityTag.class))).thenAnswer(inv -> precondition(inv.getArgument(1)));
 
+        // the precondition is evaluated from the headers: it holds when the tag the store answers now is the one quoted
         HttpHeaders headers = mock(HttpHeaders.class);
         when(headers.getHeaderString(HttpHeaders.IF_MATCH)).thenAnswer(inv -> quoted.toString());
         when(headers.getAcceptableLanguages()).thenReturn(List.of());
@@ -148,11 +146,6 @@ public class DocumentHierarchyGraphStoreImplWriteLockTest
         doNothing().when(gs).submitImports(any(Model.class));
 
         quoted = gs.getInternalResponse(initial, DOC).getVariantEntityTag();
-    }
-
-    private Response.ResponseBuilder precondition(EntityTag current)
-    {
-        return current.equals(quoted) ? null : Response.status(Response.Status.PRECONDITION_FAILED);
     }
 
     private Model payload(int writer)

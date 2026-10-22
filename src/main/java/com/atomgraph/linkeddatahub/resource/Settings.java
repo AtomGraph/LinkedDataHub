@@ -132,7 +132,7 @@ public class Settings
      */
     public com.atomgraph.core.model.impl.Response getInternalResponse(Model dataspaceModel)
     {
-        return new com.atomgraph.core.model.impl.Response(getRequest(),
+        return new com.atomgraph.core.model.impl.Response(getRequest(), getHttpHeaders(),
                 dataspaceModel,
                 null,
                 getEntityTag(dataspaceModel),

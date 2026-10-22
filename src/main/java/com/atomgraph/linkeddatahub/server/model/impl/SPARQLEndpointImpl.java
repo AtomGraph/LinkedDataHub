@@ -24,6 +24,7 @@ import com.atomgraph.linkeddatahub.model.Service;
 import java.util.List;
 import java.util.Optional;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.Request;
@@ -45,16 +46,17 @@ public class SPARQLEndpointImpl extends com.atomgraph.core.model.impl.SPARQLEndp
      * Constructs endpoint.
      *
      * @param request current request
+     * @param httpHeaders request headers
      * @param uriInfo current request URI information
      * @param service SPARQL service
      * @param mediaTypes registry of readable/writable media types
      * @param system system application
      */
     @Inject
-    public SPARQLEndpointImpl(@Context Request request, @Context UriInfo uriInfo, Optional<Service> service, MediaTypes mediaTypes,
+    public SPARQLEndpointImpl(@Context Request request, @Context HttpHeaders httpHeaders, @Context UriInfo uriInfo, Optional<Service> service, MediaTypes mediaTypes,
             com.atomgraph.linkeddatahub.Application system)
     {
-        super(request, uriInfo, system.getServiceContext(service.get()).getQueryEndpointAccessor(system.getMaxQueryResponseLength()), mediaTypes);
+        super(request, httpHeaders, uriInfo, system.getServiceContext(service.get()).getQueryEndpointAccessor(system.getMaxQueryResponseLength()), mediaTypes);
     }
     
     /**
@@ -78,7 +80,7 @@ public class SPARQLEndpointImpl extends com.atomgraph.core.model.impl.SPARQLEndp
     @Override
     public Response.ResponseBuilder getResponseBuilder(Model model)
     {
-        return new com.atomgraph.core.model.impl.Response(getRequest(),
+        return new com.atomgraph.core.model.impl.Response(getRequest(), getHttpHeaders(),
                 model,
                 null,
                 new EntityTag(Long.toHexString(ModelUtils.hashModel(model))),

@@ -17,6 +17,7 @@
 package com.atomgraph.linkeddatahub.server.model.impl;
 
 import com.atomgraph.client.util.HTMLMediaTypePredicate;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Request;
@@ -47,7 +48,7 @@ public class RenderedResponseTest
         Request request = mock(Request.class);
         when(request.selectVariant(anyList())).thenReturn(new Variant(selected, (Locale)null, null));
 
-        return new RenderedResponse(request, "entity", null, TAG,
+        return new RenderedResponse(request, mock(HttpHeaders.class), "entity", null, TAG,
             List.of(MediaType.TEXT_HTML_TYPE, MediaType.valueOf("text/turtle")), List.of(), List.of(),
             new HTMLMediaTypePredicate(), List.of(), new HTMLMediaTypePredicate(),
             () -> { asked.incrementAndGet(); return key; });
@@ -80,7 +81,7 @@ public class RenderedResponseTest
     public void testNoKeyKeepsTag()
     {
         RenderedResponse response = response(MediaType.TEXT_HTML_TYPE, null, new AtomicInteger());
-        assertEquals(new com.atomgraph.core.model.impl.Response(mock(Request.class), "entity", null, TAG, response.getVariant(), new HTMLMediaTypePredicate()).getVariantEntityTag(),
+        assertEquals(new com.atomgraph.core.model.impl.Response(mock(Request.class), mock(HttpHeaders.class), "entity", null, TAG, response.getVariant(), new HTMLMediaTypePredicate()).getVariantEntityTag(),
             response.getVariantEntityTag());
     }
 

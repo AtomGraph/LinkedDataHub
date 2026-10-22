@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.model.impl;
 
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Request;
@@ -55,6 +56,7 @@ public class RenderedResponse extends com.atomgraph.core.model.impl.Response
      * Builds a response from the request, selecting its variant.
      *
      * @param request request
+     * @param httpHeaders request headers
      * @param entity response entity
      * @param lastModified last modified date
      * @param entityTag entity tag of the entity
@@ -67,12 +69,12 @@ public class RenderedResponse extends com.atomgraph.core.model.impl.Response
      * @param renderingKey supplies the key of the stylesheet and package set, or null when there is none; only asked
      * for when the selected variant is rendered
      */
-    public RenderedResponse(Request request, Object entity, Date lastModified, EntityTag entityTag,
+    public RenderedResponse(Request request, HttpHeaders httpHeaders, Object entity, Date lastModified, EntityTag entityTag,
             List<MediaType> mediaTypes, List<Locale> languages, List<String> encodings,
             Predicate<MediaType> isMediaTypeLangSignificant, List<Locale> acceptableLanguages,
             Predicate<MediaType> isRendered, Supplier<String> renderingKey)
     {
-        super(request, entity, lastModified, entityTag, mediaTypes, languages, encodings, isMediaTypeLangSignificant, acceptableLanguages);
+        super(request, httpHeaders, entity, lastModified, entityTag, mediaTypes, languages, encodings, isMediaTypeLangSignificant, acceptableLanguages);
         if (isRendered == null) throw new IllegalArgumentException("Predicate<MediaType> cannot be null");
         if (renderingKey == null) throw new IllegalArgumentException("Supplier<String> cannot be null");
         this.isRendered = isRendered;

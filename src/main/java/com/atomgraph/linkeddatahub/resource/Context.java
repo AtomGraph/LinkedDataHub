@@ -22,6 +22,7 @@ import com.atomgraph.linkeddatahub.server.util.EntityTags;
 import com.atomgraph.linkeddatahub.server.util.PublicContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.CacheControl;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
@@ -45,6 +46,7 @@ public class Context
     private final com.atomgraph.linkeddatahub.Application system;
     private final MediaTypes mediaTypes;
     private final Request request;
+    private final HttpHeaders httpHeaders;
     private final UriInfo uriInfo;
 
     /**
@@ -53,14 +55,16 @@ public class Context
      * @param system the system application
      * @param mediaTypes registry of the media types models are written in
      * @param request JAX-RS request context
+     * @param httpHeaders request headers
      * @param uriInfo request URI information
      */
     @Inject
-    public Context(com.atomgraph.linkeddatahub.Application system, MediaTypes mediaTypes, @jakarta.ws.rs.core.Context Request request, @jakarta.ws.rs.core.Context UriInfo uriInfo)
+    public Context(com.atomgraph.linkeddatahub.Application system, MediaTypes mediaTypes, @jakarta.ws.rs.core.Context Request request, @jakarta.ws.rs.core.Context HttpHeaders httpHeaders, @jakarta.ws.rs.core.Context UriInfo uriInfo)
     {
         this.system = system;
         this.mediaTypes = mediaTypes;
         this.request = request;
+        this.httpHeaders = httpHeaders;
         this.uriInfo = uriInfo;
     }
 
@@ -78,7 +82,7 @@ public class Context
         cacheControl.setNoCache(true);
 
         // negotiated, conditional and Vary-ing the way the documents' responses are
-        return new com.atomgraph.core.model.impl.Response(getRequest(),
+        return new com.atomgraph.core.model.impl.Response(getRequest(), getHttpHeaders(),
                 context,
                 null,
                 EntityTags.entityTag(getUriInfo().getAbsolutePath(), context),
@@ -119,6 +123,16 @@ public class Context
     public Request getRequest()
     {
         return request;
+    }
+
+    /**
+     * Returns the request headers.
+     *
+     * @return HTTP headers
+     */
+    public HttpHeaders getHttpHeaders()
+    {
+        return httpHeaders;
     }
 
     /**

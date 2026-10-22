@@ -34,6 +34,7 @@ import com.atomgraph.spinrdf.vocabulary.SPIN;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.Request;
@@ -67,6 +68,7 @@ public class Access
     private static final Logger log = LoggerFactory.getLogger(Access.class);
 
     private final Request request;
+    private final HttpHeaders httpHeaders;
     private final UriInfo uriInfo;
     private final MediaTypes mediaTypes;
     private final EndUserDataspace application;
@@ -78,6 +80,7 @@ public class Access
      * Constructs endpoint from the in-memory ontology model.
      * 
      * @param request current request
+     * @param httpHeaders request headers
      * @param uriInfo current request's URI info
      * @param mediaTypes supported media types
      * @param application current end-user application
@@ -85,12 +88,13 @@ public class Access
      * @param system system application
      */
     @Inject
-    public Access(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
+    public Access(@Context Request request, @Context HttpHeaders httpHeaders, @Context UriInfo uriInfo, MediaTypes mediaTypes,
             Dataspace application, Optional<AgentContext> agentContext,
             com.atomgraph.linkeddatahub.Application system)
     {
         if (!application.canAs(EndUserDataspace.class)) throw new IllegalStateException("The " + getClass() + " endpoint is only available on end-user applications");
         this.request = request;
+        this.httpHeaders = httpHeaders;
         this.uriInfo = uriInfo;
         this.mediaTypes = mediaTypes;
         this.application = application.as(EndUserDataspace.class);
@@ -238,7 +242,7 @@ public class Access
      */
     public Response.ResponseBuilder getResponseBuilder(Model model)
     {
-        return new com.atomgraph.core.model.impl.Response(getRequest(),
+        return new com.atomgraph.core.model.impl.Response(getRequest(), getHttpHeaders(),
                 model,
                 null,
                 new EntityTag(Long.toHexString(ModelUtils.hashModel(model))),
@@ -257,6 +261,16 @@ public class Access
     public Request getRequest()
     {
         return request;
+    }
+
+    /**
+     * Returns the request headers.
+     *
+     * @return HTTP headers
+     */
+    public HttpHeaders getHttpHeaders()
+    {
+        return httpHeaders;
     }
     
     /**
