@@ -1,0 +1,123 @@
+/-
+What the end-user decision guarantees, and under which type view.
+-/
+import LdhAcl.Step
+
+namespace LdhAcl
+
+/-! ## Modes -/
+
+theorem write_covers_append : Mode.covers .write .append := Or.inr ⟨rfl, rfl⟩
+
+/-- Only acl:Control covers acl:Control. -/
+theorem covers_control {g : Mode} : g.covers .control ↔ g = .control := by
+  cases g <;> simp [Mode.covers]
+
+/-! ## Locality of the own-graph view -/
+
+/-- Under `ownTypes`, everything the decision reads about `x` lives in graph `x`. -/
+theorem ownTypes_local {st st' : Store} {x : Node} (h : st' x = st x) : ownTypes st' x = ownTypes st x := by
+  funext t; simp [ownTypes, h]
+
+theorem owner_local {st st' : Store} {x a : Node} (h : st' x = st x) : owner st' x a ↔ owner st x a := by
+  simp [owner, h]
+
+theorem ownerGrant_local {st st' : Store} {x : Node} {agent m} (h : st' x = st x) :
+    ownerGrant st' agent m x ↔ ownerGrant st agent m x := by
+  simp [ownerGrant, owner_local h]
+
+/-- **Authority locality.** Under the own-graph view, the decision about a typed document `y` (for any
+agent, mode and method) depends only on graph `y` and the admin dataset. A typed `y` never takes the `PUT`
+fallback, so the parent's graph does not enter. -/
+theorem allow_local {ctx acl} {st st' : Store} {y : Node} (h : st' y = st y) (typed : ∃ t, ownTypes st y t)
+    {agent isPut m} :
+    allow ownTypes ctx acl st' agent isPut m y ↔ allow ownTypes ctx acl st agent isPut m y := by
+  have ht := ownTypes_local (x := y) h
+  have typed' : ∃ t, ownTypes st' y t := by rw [ht]; exact typed
+  simp only [allow, ht, ownerGrant_local h]
+  constructor
+  · rintro (⟨_, hg⟩ | ⟨hn, _⟩)
+    · exact Or.inl ⟨Or.inl typed, hg⟩
+    · exact absurd typed hn
+  · rintro (⟨_, hg⟩ | ⟨hn, _⟩)
+    · exact Or.inl ⟨Or.inl typed, hg⟩
+    · exact absurd typed hn
+
+/-- A step on `x` changes no decision about any other typed document. With `T := types` this fails; see
+`Counterexamples.locality_fails`. -/
+theorem step_preserves_other_decisions {ctx acl ra pol agent st req st'}
+    (hs : Step ownTypes ctx acl ra pol agent st req st') {y : Node} (hy : y ≠ req.target)
+    (typed : ∃ t, ownTypes st y t) {agent' isPut m} :
+    allow ownTypes ctx acl st' agent' isPut m y ↔ allow ownTypes ctx acl st agent' isPut m y :=
+  allow_local (hs.frame hy) typed
+
+/-! ## Ownership -/
+
+/-- **Ownership confinement.** After any step, whoever owns a document owned it before, or the document is
+the one the step created and the owner is the agent that created it. This holds under any type view:
+ownership is read from the document's own graph, and every write to that graph holds it fixed. -/
+theorem owner_confined {T ctx acl ra pol agent st req st'} (hs : Step T ctx acl ra pol agent st req st')
+    {y b : Node} (ho : owner st' y b) :
+    owner st y b ∨ (y = req.target ∧ st y = none ∧ agent = some b) := by
+  by_cases hy : y = req.target
+  · subst hy
+    cases hs with
+    | post _ hg =>
+      obtain ⟨g', hg', hb⟩ := ho
+      simp [Store.set, Req.target] at hg'
+      subst hg'
+      rcases hb with hb | ⟨_, hno⟩
+      · exact Or.inl ⟨_, hg, hb⟩
+      · exact absurd ⟨rfl, Or.inl rfl⟩ hno
+    | putExisting _ hg _ =>
+      obtain ⟨g', hg', hb⟩ := ho
+      simp [Store.set, Req.target] at hg'
+      subst hg'
+      rcases hb with ⟨_, hno, _⟩ | ⟨_, _, hp, _⟩ | ⟨hb, _⟩
+      · exact absurd ⟨rfl, Or.inl rfl⟩ hno
+      · cases hp <;> contradiction
+      · exact Or.inl ⟨_, hg, hb⟩
+    | putNew _ hn =>
+      obtain ⟨g', hg', hb⟩ := ho
+      simp [Store.set, Req.target] at hg'
+      subst hg'
+      rcases hb with ⟨_, hno, _⟩ | ⟨_, _, hp, _⟩ | ⟨a, ha, _, _, hab⟩
+      · exact absurd ⟨rfl, Or.inl rfl⟩ hno
+      · cases hp <;> contradiction
+      · simp at hab; subst hab
+        exact Or.inr ⟨rfl, hn, ha⟩
+    | patch _ hg hkeep =>
+      obtain ⟨g', hg', hb⟩ := ho
+      simp [Store.set, Req.target] at hg'
+      subst hg'
+      exact Or.inl ⟨_, hg, (hkeep _ ⟨rfl, Or.inl rfl⟩).1 hb⟩
+    | delete =>
+      obtain ⟨g', hg', _⟩ := ho
+      simp [Store.set, Req.target] at hg'
+  · exact Or.inl ((owner_local (hs.frame hy)).1 ho)
+
+/-! ## Creation -/
+
+theorem ownTypes_present {st : Store} {x t : Node} (h : ownTypes st x t) : present st x := by
+  obtain ⟨g, hg, _⟩ := h; exact ⟨g, hg⟩
+
+theorem ownerGrant_present {st : Store} {agent m x} (h : ownerGrant st agent m x) : present st x := by
+  obtain ⟨_, _, ⟨g, hg, _⟩, _⟩ := h; exact ⟨g, hg⟩
+
+/-- **Creation needs the parent.** Under the own-graph view, a `PUT` that creates `x` is authorized only if
+the parent exists, is typed `def:Root` or `dh:Container`, and the agent owns it or holds a grant on it. -/
+theorem create_needs_parent {ctx acl st agent m x}
+    (hnew : st x = none) (ha : allow ownTypes ctx acl st agent True m x) :
+    present st (ctx.parent x) ∧
+    (ownTypes st (ctx.parent x) .defRoot ∨ ownTypes st (ctx.parent x) .dhContainer) ∧
+    (ownerGrant st agent m (ctx.parent x) ∨ acl agent m (ctx.parent x) (ownTypes st (ctx.parent x))) := by
+  have notPresent : ¬ present st x := by rintro ⟨g, hg⟩; simp [hnew] at hg
+  rcases ha with ⟨hty | hnp, _⟩ | ⟨_, _, hpt, hg⟩
+  · obtain ⟨t, ht⟩ := hty; exact absurd (ownTypes_present ht) notPresent
+  · exact absurd trivial hnp
+  · rcases hg with hg | hg
+    · exact absurd (ownerGrant_present hg) notPresent
+    · have hp : present st (ctx.parent x) := by rcases hpt with h | h <;> exact ownTypes_present h
+      exact ⟨hp, hpt, hg⟩
+
+end LdhAcl
