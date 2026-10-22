@@ -1336,8 +1336,12 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         Set<Resource> roots = new HashSet<>();
         for (ConstraintViolation cv : ex.getConstraintViolations())
             if (cv.getRoot() != null) roots.add(cv.getRoot());
+        // the SHACL half of the same write, if it has one: its focus nodes are violating resources too
+        if (ex.getValidationReport() != null)
+            for (ReportEntry entry : ex.getValidationReport().getEntries())
+                if (!entry.focusNode().isLiteral()) roots.add(model.asRDFNode(entry.focusNode()).asResource());
 
-        return new SPINConstraintViolationException(ex.getConstraintViolations(), describeResources(roots, model));
+        return new SPINConstraintViolationException(ex.getConstraintViolations(), describeResources(roots, model), null, ex.getValidationReport());
     }
 
     /**
