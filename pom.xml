@@ -166,23 +166,16 @@
             <artifactId>slf4j-reload4j</artifactId>
             <version>2.0.18</version>
         </dependency>
-        <!-- ahead of the Core that Web-Client 6.0.7 carries: RFC 9110 precondition order and the 304's headers; the
-             overlay below leaves Web-Client's copy out of WEB-INF/lib so only this one is deployed -->
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>core</artifactId>
-            <version>5.0.8-SNAPSHOT</version>
-        </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>6.0.7</version>
+            <version>6.0.8-SNAPSHOT</version>
             <classifier>classes</classifier>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>6.0.7</version>
+            <version>6.0.8-SNAPSHOT</version>
             <type>war</type>
         </dependency>
         <dependency>
@@ -421,10 +414,6 @@
                         <overlay>
                             <groupId>${project.groupId}</groupId>
                             <artifactId>client</artifactId>
-                            <excludes>
-                                <exclude>META-INF/MANIFEST.MF</exclude>
-                                <exclude>WEB-INF/lib/core-*.jar</exclude>
-                            </excludes>
                         </overlay>
                     </overlays>
                 </configuration>
