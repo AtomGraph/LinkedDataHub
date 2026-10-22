@@ -1,6 +1,7 @@
 ## [Unreleased]
 ### Fixed
 - A class described by a SHACL node shape and no SPIN constructor can be chosen as the type of a new instance again: the typing-only instance the SPIN side produces for every class is folded into the shape's prototype, instead of surviving beside it as a second resource of the class, which failed the form with "Required cardinality of value in 'xsl:variable name="Q{}resource"' expression is exactly one"
+- A write that violates a SPIN constraint and a SHACL shape is refused with both in one `422` response, so a form missing two required values has both fields marked at once; SHACL validation used to run only once the SPIN constraints passed
 
 ## [6.2.4] - 2026-10-21
 ### Migration
