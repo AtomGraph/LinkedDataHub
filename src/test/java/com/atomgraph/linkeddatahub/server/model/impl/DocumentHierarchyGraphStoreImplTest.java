@@ -626,4 +626,40 @@ public class DocumentHierarchyGraphStoreImplTest
         assertThrows(BadRequestException.class, () -> DocumentHierarchyGraphStoreImpl.checkDirectIdentification(uriInfo("accept=text%2Fturtle&default")));
     }
 
+    // allowedMethods()
+
+    private static final URI BASE = URI.create("https://localhost:4443/");
+    private static final URI OWNER_DOC = URI.create("https://localhost:4443/admin/acl/agents/owner/");
+    private static final URI SECRETARY_DOC = URI.create("https://localhost:4443/admin/acl/agents/secretary/");
+
+    @Test
+    public void testAllowedMethodsOnDocument()
+    {
+        assertEquals(Set.of("GET", "HEAD", "OPTIONS", "POST", "PATCH", "PUT", "DELETE"),
+            DocumentHierarchyGraphStoreImpl.allowedMethods(BASE.resolve("doc/"), BASE, OWNER_DOC, SECRETARY_DOC, false));
+    }
+
+    @Test
+    public void testAllowedMethodsOnRootExcludeDelete()
+    {
+        assertEquals(Set.of("GET", "HEAD", "OPTIONS", "POST", "PATCH", "PUT"),
+            DocumentHierarchyGraphStoreImpl.allowedMethods(BASE, BASE, OWNER_DOC, SECRETARY_DOC, false));
+    }
+
+    @Test
+    public void testAllowedMethodsOnWebIDDocumentsExcludePutAndDelete()
+    {
+        assertEquals(Set.of("GET", "HEAD", "OPTIONS", "POST", "PATCH"),
+            DocumentHierarchyGraphStoreImpl.allowedMethods(OWNER_DOC, BASE, OWNER_DOC, SECRETARY_DOC, false));
+        assertEquals(Set.of("GET", "HEAD", "OPTIONS", "POST", "PATCH"),
+            DocumentHierarchyGraphStoreImpl.allowedMethods(SECRETARY_DOC, BASE, OWNER_DOC, SECRETARY_DOC, false));
+    }
+
+    @Test
+    public void testAllowedMethodsOnSnapshotAreReadOnly()
+    {
+        assertEquals(Set.of("GET", "HEAD", "OPTIONS"),
+            DocumentHierarchyGraphStoreImpl.allowedMethods(BASE.resolve("doc/"), BASE, OWNER_DOC, SECRETARY_DOC, true));
+    }
+
 }

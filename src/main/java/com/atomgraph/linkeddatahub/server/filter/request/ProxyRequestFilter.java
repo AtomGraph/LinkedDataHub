@@ -42,7 +42,7 @@ import java.util.Set;
 import java.util.function.Function;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.NotAllowedException;
+import jakarta.ws.rs.ForbiddenException;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.client.Entity;
@@ -207,7 +207,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
         boolean isRegisteredApp = getSystem().matchApp(targetURI) != null;
         if (!isRegisteredApp && !getSystem().isEnableLinkedDataProxy())
-            throw new NotAllowedException("Linked Data proxy not enabled");
+            throw new ForbiddenException("Linked Data proxy not enabled"); // GET is supported, the proxy is not offered
         // LNK-009: validate that the target URI is not an internal/private address (SSRF protection)
         getSystem().getURLValidator().validate(targetURI);
 

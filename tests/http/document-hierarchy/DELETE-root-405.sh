@@ -19,9 +19,21 @@ ldh admin add agent \
 
 # check that it's not possible to delete the root document
 
-curl -k -w "%{http_code}\n" -o /dev/null -s \
+headers=$(curl -k -o /dev/null -s -D - \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -X DELETE \
   -H "Accept: application/n-triples" \
-  "$END_USER_BASE_URL" \
-| grep -q "$STATUS_METHOD_NOT_ALLOWED"
+  "$END_USER_BASE_URL")
+
+# the 405 names the methods the resource allows
+
+status=$(head -n 1 <<< "$headers" | cut -d ' ' -f 2)
+allow=$(grep -i '^allow:' <<< "$headers" | tr -d '\r' || true)
+echo "DEBUG: Expected status: $STATUS_METHOD_NOT_ALLOWED"
+echo "DEBUG: Got status: $status"
+echo "DEBUG: Got: $allow"
+[ "$status" = "$STATUS_METHOD_NOT_ALLOWED" ]
+grep -qw "GET" <<< "$allow"
+grep -qw "PUT" <<< "$allow"
+grep -qw "PATCH" <<< "$allow"
+if grep -qw "DELETE" <<< "$allow"; then echo "DEBUG: DELETE should not be allowed"; exit 1; fi
