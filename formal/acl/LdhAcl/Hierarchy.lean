@@ -57,11 +57,10 @@ theorem contained_preserved {T ctx acl ra agent st req st'}
   · rw [hs.frame hdx] at hg'
     exact h d g' hg' hroot
 
-/-- **The hierarchy is preserved** under the own-graph type view, given that every non-root document's own
-graph states its containment. `delete()` refuses a document with a child, and `childQuery` finds every
+/-- **The hierarchy is preserved**, given that every non-root document's own graph states its containment. `delete()` refuses a document with a child, and `childQuery` finds every
 child because containment is stated in the child's own graph. -/
 theorem hier_preserved {ctx acl ra agent st req st'}
-    (hs : Step ownTypes ctx acl ra agent st req st') (h : Hier ctx st) (hc : Contained ctx st) :
+    (hs : Step types ctx acl ra agent st req st') (h : Hier ctx st) (hc : Contained ctx st) :
     Hier ctx st' := by
   intro d hd hroot
   cases hs with

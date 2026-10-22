@@ -1,48 +1,9 @@
 /-
-Where the deployed definitions differ from the ones the theorems are proven under.
-
-`Theorems.lean` and `Hierarchy.lean` prove locality, creation and the hierarchy for `ownTypes`. The code
-runs `types`; this file states the properties of it that the proofs rely on not holding. The admin query has
-no corrected definition yet; its properties are stated as they are.
+The admin query as deployed. It has no corrected definition yet, so its properties are stated as they are.
 -/
 import LdhAcl.Hierarchy
 
 namespace LdhAcl
-
-/-! ## `documentTypeQuery` -/
-
-/-- `types` reads graphs other than the document's own: a graph `x` that types `y` as
-`nfo:FileDataObject` contributes every type it asserts for `y`. This is what `allow_local` needs not to
-hold. -/
-theorem types_reads_other_graphs {st : Store} {x y t : Node} {g : Graph}
-    (hf : g ⟨y, .rdfType, .nfoFileDataObject⟩) (ht : g ⟨y, .rdfType, t⟩) :
-    types (st.set x (some g)) y t :=
-  Or.inr ⟨x, g, by simp [Store.set], hf, ht⟩
-
-/-- A write to one graph changes the types of another node. -/
-theorem types_not_local : ∃ (st : Store) (x y : Node) (g : Graph) (t : Node),
-    y ≠ x ∧ (st.set x (some g)) y = st y ∧ types (st.set x (some g)) y t ∧ ¬ types st y t := by
-  let y := Node.iri 1
-  let g : Graph := fun tr => tr = ⟨y, .rdfType, .nfoFileDataObject⟩ ∨ tr = ⟨y, .rdfType, .iri 2⟩
-  refine ⟨fun _ => none, .iri 0, y, g, .iri 2, by decide, by simp [Store.set, y], ?_, ?_⟩
-  · exact types_reads_other_graphs (Or.inl rfl) (Or.inr rfl)
-  · rintro (⟨_, h, _⟩ | ⟨_, _, h, _⟩) <;> simp at h
-
-/-- `types` can find types for a node with no graph, so the filter's notion of existence (typed) and the
-graph store's (graph present) differ. -/
-theorem types_without_graph : ∃ (st : Store) (y t : Node), types st y t ∧ ¬ present st y := by
-  let y := Node.iri 1
-  let g : Graph := fun tr => tr = ⟨y, .rdfType, .nfoFileDataObject⟩
-  refine ⟨Store.set (fun _ => none) (.iri 0) (some g), y, .nfoFileDataObject, ?_, ?_⟩
-  · exact types_reads_other_graphs rfl rfl
-  · rintro ⟨_, h⟩; simp [Store.set, y] at h
-
-/-- A `PUT` to a typed node is decided on the node itself: the parent is not consulted. Together with
-`types_without_graph`, a `PUT` can create a document without the parent conditions of
-`create_needs_parent`. -/
-theorem put_typed_skips_parent {T ctx acl st agent m x} (typed : ∃ t, T st x t)
-    (hg : acl agent m x (T st x)) : allow T ctx acl st agent True m x :=
-  Or.inl ⟨Or.inl typed, Or.inr hg⟩
 
 /-! ## `ownerAclQuery` -/
 

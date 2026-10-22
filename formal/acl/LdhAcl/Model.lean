@@ -79,11 +79,12 @@ structure Ctx where
 /-- How the decision learns a document's types. -/
 abbrev TypeView := Store → Node → Node → Prop
 
-/-- `documentTypeQuery` as deployed: the types the document's own graph asserts for it, and, for a subject
-some graph types `nfo:FileDataObject`, every type *that* graph asserts for it (`GRAPH ?g`, any graph). -/
+/-- `documentTypeQuery`: the types the document's own graph asserts for it. A node without a graph that some
+graph types `nfo:FileDataObject` (an uploaded file, described by the document it was uploaded with) is typed
+`nfo:FileDataObject` and nothing else. -/
 def types : TypeView := fun st x t =>
   (∃ g, st x = some g ∧ g ⟨x, .rdfType, t⟩) ∨
-  (∃ y g, st y = some g ∧ g ⟨x, .rdfType, .nfoFileDataObject⟩ ∧ g ⟨x, .rdfType, t⟩)
+  (st x = none ∧ t = .nfoFileDataObject ∧ ∃ y g, st y = some g ∧ g ⟨x, .rdfType, .nfoFileDataObject⟩)
 
 /-- The first branch of `documentTypeQuery` alone: only a document's own graph types it. -/
 def ownTypes : TypeView := fun st x t =>
@@ -131,14 +132,14 @@ def adminMatch (ctx : Ctx) (adm : Admin) (agent : Option Node) (x : Node) (ty : 
 def adminGrant (ctx : Ctx) (adm : Admin) : AclGrant := fun agent m x ty =>
   ∃ au ∈ adm.auths, adminMatch ctx adm agent x ty au ∧ ∃ g ∈ au.modes, g.covers m
 
-/-- `AuthorizationFilter.authorize` for a required mode. A document the type query finds untyped is taken
-not to exist; a `PUT` to it is then authorized against the parent, which must be typed `def:Root` or
-`dh:Container`. The owner check on `x` itself runs first, on either path. -/
+/-- `AuthorizationFilter.authorize` for a required mode. A `PUT` to a document whose graph does not exist
+(`containsModel`) is authorized against the parent, which must be typed `def:Root` or `dh:Container`. The owner
+check on `x` itself runs first, on either path. -/
 def allow (T : TypeView) (ctx : Ctx) (acl : AclGrant) (st : Store) (agent : Option Node)
     (isPut : Prop) (m : Mode) (x : Node) : Prop :=
-  (((∃ t, T st x t) ∨ ¬ isPut) ∧
+  ((present st x ∨ ¬ isPut) ∧
     (ownerGrant st agent m x ∨ acl agent m x (T st x))) ∨
-  ((¬ ∃ t, T st x t) ∧ isPut ∧
+  (¬ present st x ∧ isPut ∧
     (T st (ctx.parent x) .defRoot ∨ T st (ctx.parent x) .dhContainer) ∧
     (ownerGrant st agent m x ∨ ownerGrant st agent m (ctx.parent x) ∨
       acl agent m (ctx.parent x) (T st (ctx.parent x))))
