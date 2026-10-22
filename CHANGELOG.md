@@ -7,6 +7,7 @@
 - `PATCH /settings` is held to the same terms as a write to an existing document: it quotes the settings' entity tag in `If-Match` or is refused with `428`, a stale tag gets `412`, and it answers `204` with the new tag; `ldh packages add`/`remove` already send it (#453)
 - The seeded admin authorization that granted every authenticated agent `acl:Append` on `acl/authorization-requests/` is gone: `acl:Append` on a container now lets an agent create documents in it. Access requests go through `/access/request` and never used it, so delete `acl/authorizations/append-request/` from existing admin datasets
 
+- The seeded admin authorization that granted every authenticated agent `acl:Append` on `acl/authorization-requests/` is gone: `acl:Append` on a container now lets an agent create documents in it. Access requests go through `/access/request` and never used it, so delete `acl/authorizations/append-request/` from existing admin datasets
 ### Added
 - A `PUT` with `If-None-Match: *` requires `acl:Append` instead of `acl:Write`: it can only create a document, never replace one, so an agent with `acl:Append` on a container may create documents in it and nothing more
 - `MAX_UPLOAD_LENGTH` sets a separate size limit for file uploads (multipart bodies), `MAX_CONTENT_LENGTH` unless set
