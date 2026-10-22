@@ -27,6 +27,12 @@
 - Opening the settings dialog no longer replaces the entity tag the browser holds for the current page with the settings', which got the next write to the page refused with `412`; the dialog's save quotes the settings' own tag
 - `ldh create` with a parent URI that lacks its trailing slash creates the document inside it rather than next to it
 - An import that cannot append to an existing document says so, instead of reporting that its `PUT` failed (#456)
+- `PATCH` stamps the document's `dct:modified`, so `Last-Modified` moves with the change and `If-Modified-Since` no longer gets `304` for changed content; `dct:created` and `dct:modified` are server-managed on every write (a client-supplied value in a `PUT`, `POST` or `PATCH` is dropped), and `Last-Modified` is never later than the response (RFC 9110 8.8.2.1)
+- A `POST` with an empty payload is a no-op that answers `204` without requiring `If-Match`, and leaves the document and its `ETag` unchanged (GSP 5.5)
+- A `PUT` or `POST` runs only the imports it adds or redefines (another source, query, delimiter or target graph), so re-saving a document, or retitling an import, no longer fetches and imports its source again (RFC 9110 9.2.2)
+- A `PATCH` that would empty a document that cannot be deleted (the root, the owner's and the secretary's WebID documents) answers `422` instead of `405`: `PATCH` is supported there, the update is what cannot be applied (RFC 9110 15.5.6)
+- A `428 Precondition Required` (documents and `PATCH /settings`) carries a plain-text body naming `If-Match` and how to get the current entity tag with `HEAD` (RFC 6585 3)
+- A `POST`, `PUT`, `PATCH` or `DELETE` whose `Accept` names no RDF syntax is no longer refused with `406`: the response has no body, `If-Match` holds when it names the current tag of any variant, and the response carries no `ETag` (GSP 5.3, 5.4; RFC 9110 12.5.1)
 
 ## [6.2.3] - 2026-10-21
 ### Migration

@@ -64,6 +64,21 @@ status=$(write PUT application/n-triples 'If-Match: *' "$changed")
 echo "DEBUG: PUT with If-Match: *. Expected: $STATUS_PRECONDITION_REQUIRED Got: $status"
 [ "$status" = "$STATUS_PRECONDITION_REQUIRED" ] || exit 1
 
+# the 428 explains how to resubmit (RFC 6585 3): it names If-Match and HEAD as the way to get the tag
+
+response=$(printf '%s' "$changed" | curl -k -s -i \
+  -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
+  -X PUT \
+  -H "Accept: application/n-triples" \
+  -H "Content-Type: application/n-triples" \
+  --data-binary @- \
+  "$document" | tr -d '\r')
+echo "DEBUG: 428 response: $response"
+echo "$response" | grep -qi '^content-type: text/plain' || { echo "DEBUG: Expected a text/plain body"; exit 1; }
+explanation=$(echo "$response" | sed '1,/^$/d')
+echo "$explanation" | grep -q 'If-Match' || { echo "DEBUG: Expected the body to name If-Match"; exit 1; }
+echo "$explanation" | grep -q 'HEAD' || { echo "DEBUG: Expected the body to name HEAD"; exit 1; }
+
 status=$(write POST application/n-triples 'If-None-Match: "bogus"' "<${document}> <http://purl.org/dc/terms/description> \"appended\" .")
 echo "DEBUG: POST with a made-up If-None-Match. Expected: $STATUS_PRECONDITION_REQUIRED Got: $status"
 [ "$status" = "$STATUS_PRECONDITION_REQUIRED" ] || exit 1

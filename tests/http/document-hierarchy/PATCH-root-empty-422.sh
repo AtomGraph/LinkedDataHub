@@ -17,7 +17,8 @@ ldh admin add agent \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/owners/"
 
-# check that it's not possible to PATCH the root document with an empty result (which would be treated as DELETE)
+# A PATCH that empties a document is the DELETE it amounts to, but the root document cannot be deleted. PATCH is
+# supported on it, so the answer is not 405 (which says the method is not): the update cannot be applied, 422.
 
 update=$(cat <<EOF
 DELETE
@@ -31,12 +32,22 @@ WHERE
 EOF
 )
 
-curl -k -w "%{http_code}\n" -o /dev/null -s \
+status=$(curl -k -w "%{http_code}" -o /dev/null -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -X PATCH \
   -H "Accept: application/n-triples" \
   -H "If-Match: $(etag "$END_USER_BASE_URL" "$AGENT_CERT_FILE" "$AGENT_CERT_PWD" "application/n-triples")" \
   -H "Content-Type: application/sparql-update" \
   "$END_USER_BASE_URL" \
-   --data-binary "$update" \
-| grep -q "$STATUS_METHOD_NOT_ALLOWED"
+  --data-binary "$update")
+
+echo "DEBUG: PATCH emptying the root. Expected: $STATUS_UNPROCESSABLE_ENTITY Got: $status"
+[ "$status" = "$STATUS_UNPROCESSABLE_ENTITY" ] || exit 1
+
+# and the root is untouched
+
+curl -k -f -s -G \
+  -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
+  -H "Accept: application/n-triples" \
+  "$END_USER_BASE_URL" \
+| grep -q "^<${END_USER_BASE_URL}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> "
