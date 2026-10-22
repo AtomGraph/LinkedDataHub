@@ -539,6 +539,20 @@ configs:
               return (pipe);
           }
 
+          # Range is defined for GET only (RFC 9110 §14.2), and Varnish's own range code accepts one
+          # well-formed "bytes" range and nothing else: on a pass it fails the fetch with 503 when the
+          # forwarded Range is in another unit, lists several ranges, ends before it starts or is "-0", and
+          # it answers a HEAD with Range as 206. RFC 9110 lets a server ignore any of those, so they are
+          # dropped here and the whole representation is served.
+          if (req.http.Range && (req.method != "GET" ||
+            req.http.Range !~ "^(?i)bytes=([0-9]+-[0-9]*|-[0-9]+)\s*$" ||
+            req.http.Range ~ "^(?i)bytes=-0+\s*$" ||
+            (req.http.Range ~ "^(?i)bytes=[0-9]+-[0-9]+\s*$" &&
+              std.integer(regsub(req.http.Range, "^(?i)bytes=([0-9]+)-.*$", "\1"), 0) >
+              std.integer(regsub(req.http.Range, "^(?i)bytes=[0-9]+-([0-9]+)\s*$", "\1"), 0)))) {
+              unset req.http.Range;
+          }
+
           # Anonymous SPARQL queries are cached on their body. The platform's client POSTs every query (the
           # SPARQL 1.1 Protocol's "query via POST"), and a URL-keyed cache cannot tell two of those apart, so
           # without this every visitor's views reach the platform. Only reads are cached - a query body, never

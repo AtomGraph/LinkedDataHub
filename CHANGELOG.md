@@ -11,6 +11,7 @@
 - `ldh` exits `1` on a redirect, which it does not follow, naming the `Location` on stderr (#454)
 - `PATCH /settings` is held to the same terms as a write to an existing document: it quotes the settings' entity tag in `If-Match` or is refused with `428`, a stale tag gets `412`, and it answers `204` with the new tag; `ldh packages add`/`remove` already send it (#453)
 - The seeded admin authorization that granted every authenticated agent `acl:Append` on `acl/authorization-requests/` is gone: `acl:Append` on a container now lets an agent create documents in it. Access requests go through `/access/request` and never used it, so delete `acl/authorizations/append-request/` from existing admin datasets
+- Deployments that keep a copy of `docker-compose.yml` need to re-sync the front Varnish VCL, which drops a `Range` header it cannot forward
 
 - The seeded admin authorization that granted every authenticated agent `acl:Append` on `acl/authorization-requests/` is gone: `acl:Append` on a container now lets an agent create documents in it. Access requests go through `/access/request` and never used it, so delete `acl/authorizations/append-request/` from existing admin datasets
 ### Added
@@ -39,6 +40,7 @@
 - A `PATCH` that would empty a document that cannot be deleted (the root, the owner's and the secretary's WebID documents) answers `422` instead of `405`: `PATCH` is supported there, the update is what cannot be applied (RFC 9110 15.5.6)
 - A `428 Precondition Required` (documents and `PATCH /settings`) carries a plain-text body naming `If-Match` and how to get the current entity tag with `HEAD` (RFC 6585 3)
 - A `POST`, `PUT`, `PATCH` or `DELETE` whose `Accept` names no RDF syntax is no longer refused with `406`: the response has no body, `If-Match` holds when it names the current tag of any variant, and the response carries no `ETag` (GSP 5.3, 5.4; RFC 9110 12.5.1)
+- Byte ranges of uploaded files follow RFC 9110: a `Range` in another unit, a malformed one, an inverted one, several ranges, or one on `HEAD` serves the whole file instead of a wrong range, a `500` or a `503` from Varnish; suffix ranges (`bytes=-500`) are served; a range starting past the end answers `416` with `Content-Range: bytes */N`; `If-Range` is honoured; an open range (`bytes=N-`) runs to the end of the file instead of stopping after 1 MB
 
 ## [6.2.3] - 2026-10-21
 ### Migration
