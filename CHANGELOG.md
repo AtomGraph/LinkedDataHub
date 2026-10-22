@@ -11,8 +11,7 @@
 - `ldh` exits `1` on a redirect, which it does not follow, naming the `Location` on stderr (#454)
 - `PATCH /settings` is held to the same terms as a write to an existing document: it quotes the settings' entity tag in `If-Match` or is refused with `428`, a stale tag gets `412`, and it answers `204` with the new tag; `ldh packages add`/`remove` already send it (#453)
 - The seeded admin authorization that granted every authenticated agent `acl:Append` on `acl/authorization-requests/` is gone: `acl:Append` on a container now lets an agent create documents in it. Access requests go through `/access/request` and never used it, so delete `acl/authorizations/append-request/` from existing admin datasets
-- Deployments that keep a copy of `docker-compose.yml` need to re-sync the front Varnish VCL, which drops a `Range` header it cannot forward
-- Deployments that keep a copy of `docker-compose.yml` need to re-sync it: the nginx and front Varnish configurations changed for the security fixes below
+- Deployments that keep a copy of `docker-compose.yml` need to re-sync it: the nginx and front Varnish configurations changed for the security fixes below, and the front Varnish VCL drops a `Range` header it cannot forward
 - `.env` needs a new `PROXY_SECRET` variable, a random value nginx sends to the platform: re-sync `Makefile` and run `make secrets`, which appends one, or add the output of `openssl rand -hex 32`. Docker Compose and the platform refuse to start without it, and the platform accepts a forwarded client certificate only from a proxy that sends it
 
 - The seeded admin authorization that granted every authenticated agent `acl:Append` on `acl/authorization-requests/` is gone: `acl:Append` on a container now lets an agent create documents in it. Access requests go through `/access/request` and never used it, so delete `acl/authorizations/append-request/` from existing admin datasets
