@@ -45,6 +45,8 @@ import com.atomgraph.server.exception.SHACLConstraintViolationException;
 import com.atomgraph.server.exception.SPINConstraintViolationException;
 import static com.atomgraph.server.status.UnprocessableEntityStatus.UNPROCESSABLE_ENTITY;
 import com.atomgraph.spinrdf.constraints.ConstraintViolation;
+import com.atomgraph.spinrdf.vocabulary.SPIN;
+import com.atomgraph.core.vocabulary.SD;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.MessageDigest;
@@ -62,6 +64,7 @@ import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.InternalServerErrorException;
+import jakarta.ws.rs.NotAcceptableException;
 import jakarta.ws.rs.NotAllowedException;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.OPTIONS;
@@ -80,6 +83,7 @@ import static jakarta.ws.rs.core.Response.Status.PERMANENT_REDIRECT;
 import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
+import jakarta.ws.rs.core.Variant;
 import jakarta.ws.rs.ext.MessageBodyReader;
 import jakarta.ws.rs.ext.Providers;
 import java.io.File;
@@ -112,6 +116,7 @@ import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
@@ -167,6 +172,16 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
      * Name of the request header conveying the datetime a TimeGate negotiates on.
      */
     public static final String ACCEPT_DATETIME_HEADER = "Accept-Datetime";
+
+    /**
+     * Name of the Graph Store Protocol query parameter that identifies a named graph indirectly.
+     */
+    public static final String GRAPH_PARAM_NAME = "graph";
+
+    /**
+     * Name of the Graph Store Protocol query parameter that identifies the default graph indirectly.
+     */
+    public static final String DEFAULT_PARAM_NAME = "default";
     
     private final com.atomgraph.linkeddatahub.dataspaces.model.Dataspace application;
     private final OntModel ontology;
@@ -264,6 +279,35 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     }
 
     /**
+     * Returns true if the request uses the Graph Store Protocol's indirect graph identification, i.e. carries a
+     * <code>graph</code> or <code>default</code> query parameter.
+     *
+     * @param uriInfo URI info of the request
+     * @return true if the request identifies its graph indirectly
+     */
+    public static boolean isIndirectIdentification(UriInfo uriInfo)
+    {
+        return uriInfo.getQueryParameters().containsKey(GRAPH_PARAM_NAME) ||
+            uriInfo.getQueryParameters().containsKey(DEFAULT_PARAM_NAME);
+    }
+
+    /**
+     * Rejects a request that identifies its graph indirectly.
+     * Documents form a directly identified graph store (GSP &sect;4.1): the request URI names the graph, so a
+     * <code>graph</code> or <code>default</code> parameter would otherwise be ignored and the operation would apply
+     * to this document instead of the graph the client named.
+     *
+     * @param uriInfo URI info of the request
+     * @throws BadRequestException if the request carries a <code>graph</code> or <code>default</code> parameter
+     */
+    public static void checkDirectIdentification(UriInfo uriInfo)
+    {
+        if (isIndirectIdentification(uriInfo))
+            throw new BadRequestException("Indirect graph identification (the '" + GRAPH_PARAM_NAME + "' and '" + DEFAULT_PARAM_NAME +
+                "' query parameters) is not supported: the request URI identifies the graph");
+    }
+
+    /**
      * Implements <code>GET</code> method of SPARQL Graph Store Protocol.
      * With a <code>version</code> query parameter, returns the graph's state at that commit from the
      * versioning repository instead of the triplestore. Version responses are immutable.
@@ -274,6 +318,8 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     @GET
     public Response get()
     {
+        checkDirectIdentification(getUriInfo());
+
         if (getUriInfo().getQueryParameters().containsKey(TIMEGATE_PARAM_NAME))
         {
             String acceptDatetime = getHttpHeaders().getHeaderString(ACCEPT_DATETIME_HEADER);
@@ -360,6 +406,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     @POST
     public Response post(Model model)
     {
+        checkDirectIdentification(getUriInfo());
         return post(model, () -> {});
     }
 
@@ -377,6 +424,10 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
 
         if (log.isTraceEnabled()) log.trace("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
 
+        // appending nothing is a no-op (GSP 5.5): there is no state to quote, so it needs no If-Match, and nothing is
+        // written - stamping dct:modified would change the graph and its entity tag although no triple was added
+        if (model.isEmpty()) return Response.noContent().build();
+
         return writeLocked(() ->
         {
             final Model existingModel = getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(getURI().toString());
@@ -384,7 +435,11 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             Response.ResponseBuilder rb = evaluatePreconditions(existingModel, getHttpHeaders());
             if (rb != null) return rb.build(); // preconditions not met
         
-            model.createResource(getURI().toString()).
+            // dct:created and dct:modified are the server's to assign: the document keeps the creation date it has, and
+            // the append is its modification. Ownership is not the payload's to assert either: the stored acl:owner and
+            // dct:creator are kept as they are
+            removeOwnership(model, getURI().toString()).
+                removeAll(DCTerms.created).
                 removeAll(DCTerms.modified).
                 addLiteral(DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
         
@@ -393,6 +448,10 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         
             // is this implemented correctly? The specification is not very clear.
             if (log.isDebugEnabled()) log.debug("POST Model to named graph with URI: {}", getURI());
+            // the imports the append adds or redefines, judged by the document as it will be against the document as it
+            // is - read before the merge below changes it in place
+            List<Resource> imports = getChangedImports(ModelFactory.createUnion(existingModel, model), existingModel);
+
             // First remove old dct:modified values from the triplestore, then add new data
             existingModel.createResource(getURI().toString()).removeAll(DCTerms.modified);
             Model updatedModel = existingModel.add(model);
@@ -405,11 +464,12 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             beforeWrite.run();
             getSystem().getServiceContext(getService()).getGraphStoreClient().putModel(getURI().toString(), updatedModel); // replace entire graph to avoid accumulating dct:modified
 
-            submitImports(model);
+            submitImports(imports.stream().map(_import -> _import.inModel(updatedModel)).toList());
         
-            return Response.noContent().
-                tag(getInternalResponse(updatedModel, null).getVariantEntityTag()). // entity tag of the updated graph
-                build();
+            Response.ResponseBuilder noContent = Response.noContent();
+            // entity tag of the updated graph, for the variant the request negotiates - none when it accepts no RDF syntax
+            getWriteResponse(updatedModel, null).ifPresent(response -> noContent.tag(response.getVariantEntityTag()));
+            return noContent.build();
         });
     }
     
@@ -426,6 +486,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     // the AuthorizationFilter only allows creating new child URIs for existing containers (i.e. there has to be a .. container already)
     public Response put(Model model)
     {
+        checkDirectIdentification(getUriInfo());
         return put(model, () -> {});
     }
 
@@ -486,7 +547,8 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             }
 
             Resource parent = model.createResource(getURI().resolve("..").toString());
-            Resource resource = model.createResource(getURI().toString()).
+            // ownership is not the payload's to assert: a new document gets the agent's below, an existing one keeps the stored values
+            Resource resource = removeOwnership(model, getURI().toString()).
                 removeAll(SIOC.HAS_PARENT).
                 removeAll(SIOC.HAS_CONTAINER);
 
@@ -509,7 +571,9 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
 
             if (existingModel == null) // creating new graph and attaching it to the document hierarchy
             {
-                resource.removeAll(DCTerms.created). // remove any client-supplied dct:created values
+                // a new document was created now and has not been modified since: neither date is the client's
+                resource.removeAll(DCTerms.created).
+                    removeAll(DCTerms.modified).
                     addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
             
                 if (getAgentContext().isPresent()) resource.addProperty(DCTerms.creator, getAgentContext().get().getAgent()).
@@ -519,13 +583,17 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
                 beforeWrite.run();
                 getSystem().getServiceContext(getService()).getGraphStoreClient().putModel(getURI().toString(), model); // TO-DO: catch exceptions
 
-                submitImports(model);
+                submitImports(getChangedImports(model, null));
 
                 return Response.created(getURI()).
                     build();
             }
             else // updating existing graph
             {        
+                // the creation date is the stored one, not the client's: a client-supplied dct:created would be kept
+                // alongside it and, being the later of the two, could move Last-Modified anywhere it likes
+                resource.removeAll(DCTerms.created);
+
                 // retain metadata from existing document resource
                 ExtendedIterator<Statement> it = existingModel.createResource(getURI().toString()).listProperties(DCTerms.created).
                     andThen(existingModel.createResource(getURI().toString()).listProperties(DCTerms.creator)).
@@ -546,7 +614,9 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
                 beforeWrite.run();
                 getSystem().getServiceContext(getService()).getGraphStoreClient().putModel(getURI().toString(), model); // TO-DO: catch exceptions
 
-                submitImports(model);
+                // a PUT replaces the whole document, so it carries its imports every time; re-running one whose title
+                // changed would fetch and import its source again
+                submitImports(getChangedImports(model, existingModel));
 
                 // no ETag or Last-Modified: what is stored is not the payload - dct:modified, the document's metadata and
                 // skolemized blank nodes are added - and a PUT response may only carry a validator of a representation
@@ -569,6 +639,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     @Override
     public Response patch(UpdateRequest updateRequest)
     {
+        checkDirectIdentification(getUriInfo());
         checkSnapshotReadOnly();
 
         if (updateRequest == null) throw new BadRequestException("SPARQL update not specified");
@@ -594,7 +665,19 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             new Skolemizer(getURI().toString()).apply(existingModel); // skolemize blank nodes introduced by INSERT
 
             // if PATCH results in an empty graph, treat it as a DELETE request
-            if (existingModel.isEmpty()) return delete();
+            if (existingModel.isEmpty())
+            {
+                // the document cannot be deleted (the root, the owner's and the secretary's), but PATCH is supported on it:
+                // 405 would say otherwise, and the update itself is what cannot be applied
+                if (!getAllowedMethods().contains(HttpMethod.DELETE))
+                    throw new WebApplicationException("The update would empty document <" + getURI() + ">, which cannot be deleted", UNPROCESSABLE_ENTITY.getStatusCode());
+
+                return delete();
+            }
+
+            // ownership changes go through the admin ACL documents: a PATCH cannot be rewritten safely, so it is refused
+            if (isOwnershipChanged(beforeUpdateModel, existingModel, getURI().toString()))
+                throw new WebApplicationException("acl:owner and dct:creator of document <" + getURI() + "> cannot be changed", UNPROCESSABLE_ENTITY.getStatusCode());
 
             // SPIN constraints are class-scoped; allowing rdf:type removal would silently bypass them
             for (Resource resource : getChangedResources(beforeUpdateModel, existingModel))
@@ -604,6 +687,8 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
                 if (before.hasProperty(RDF.type) && !after.hasProperty(RDF.type) && after.listProperties().hasNext())
                     throw new WebApplicationException("rdf:type cannot be removed from resource <" + resource + ">", UNPROCESSABLE_ENTITY.getStatusCode());
             }
+
+            stampModified(getURI(), beforeUpdateModel, existingModel);
 
             try
             {
@@ -621,7 +706,11 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
                 throw describeViolations(ex, dataset.getDefaultModel());
             }
             put(dataset.getDefaultModel(), Boolean.FALSE, getURI());
-        
+
+            // a request that accepts no RDF syntax gets no entity tag, which identifies a negotiated variant, but the write stands
+            if (getWriteResponse(dataset.getDefaultModel(), null).isEmpty())
+                return Response.noContent().header(HttpHeaders.CONTENT_LOCATION, getURI()).build();
+
             return getInternalResponse(dataset.getDefaultModel(), null).getResponseBuilder(). // entity tag of the updated graph
                 status(Response.Status.NO_CONTENT).
                 entity(null). // 'Content-Type' header has to be explicitly unset in ResponseHeadersFilter
@@ -631,6 +720,38 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         });
     }
     
+    /**
+     * Keeps the document's dates server-managed across a <code>PATCH</code>.
+     * The update can change the document's <code>dct:created</code> and <code>dct:modified</code> like any other
+     * triple, and <code>Last-Modified</code> is derived from them: the stored creation date is restored, and an update
+     * that changed the graph is stamped with the current time as its modification, so that a cache revalidating with
+     * <code>If-Modified-Since</code> sees the change. An update that changed nothing leaves the graph, and its
+     * validators, as they were.
+     *
+     * @param documentURI the document's URI
+     * @param beforeUpdateModel the graph before the update
+     * @param afterUpdateModel the graph after the update, which is changed in place
+     */
+    public static void stampModified(URI documentURI, Model beforeUpdateModel, Model afterUpdateModel)
+    {
+        if (documentURI == null) throw new IllegalArgumentException("Document URI cannot be null");
+        if (beforeUpdateModel == null) throw new IllegalArgumentException("Model before update cannot be null");
+        if (afterUpdateModel == null) throw new IllegalArgumentException("Model after update cannot be null");
+
+        Resource before = beforeUpdateModel.createResource(documentURI.toString());
+        Resource after = afterUpdateModel.createResource(documentURI.toString());
+
+        after.removeAll(DCTerms.created);
+        before.listProperties(DCTerms.created).forEach(stmt -> after.addProperty(DCTerms.created, stmt.getObject()));
+
+        after.removeAll(DCTerms.modified);
+        before.listProperties(DCTerms.modified).forEach(stmt -> after.addProperty(DCTerms.modified, stmt.getObject()));
+
+        if (!afterUpdateModel.isIsomorphicWith(beforeUpdateModel))
+            after.removeAll(DCTerms.modified).
+                addLiteral(DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
+    }
+
     /**
      * Overrides <code>OPTIONS</code> HTTP header values.Specifies allowed methods.
      *
@@ -662,6 +783,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response postMultipart(FormDataMultiPart multiPart)
     {
+        checkDirectIdentification(getUriInfo());
         checkSnapshotReadOnly();
 
         if (log.isDebugEnabled()) log.debug("MultiPart fields: {} body parts: {}", multiPart.getFields(), multiPart.getBodyParts());
@@ -709,6 +831,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response putMultipart(FormDataMultiPart multiPart)
     {
+        checkDirectIdentification(getUriInfo());
         checkSnapshotReadOnly();
 
         if (log.isDebugEnabled()) log.debug("MultiPart fields: {} body parts: {}", multiPart.getFields(), multiPart.getBodyParts());
@@ -757,6 +880,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     @Override
     public Response delete()
     {
+        checkDirectIdentification(getUriInfo());
         checkSnapshotReadOnly();
 
         if (!getAllowedMethods().contains(HttpMethod.DELETE))
@@ -778,6 +902,50 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             
             return super.delete(false, getURI());
         });
+    }
+    
+    /**
+     * Removes the ownership properties (<code>acl:owner</code> and <code>dct:creator</code>) of the document resource
+     * from a request payload. The server asserts them on creation and keeps the stored ones afterwards.
+     * 
+     * @param model request payload
+     * @param documentURI document URI
+     * @return the document resource in the payload
+     */
+    public static Resource removeOwnership(Model model, String documentURI)
+    {
+        if (model == null) throw new IllegalArgumentException("Model cannot be null");
+        if (documentURI == null) throw new IllegalArgumentException("Document URI cannot be null");
+
+        return model.createResource(documentURI).
+            removeAll(ACL.owner).
+            removeAll(DCTerms.creator);
+    }
+    
+    /**
+     * Returns true if the ownership properties (<code>acl:owner</code> and <code>dct:creator</code>) of the document
+     * resource differ between two states of the document graph.
+     * 
+     * @param beforeUpdateModel graph before the update
+     * @param afterUpdateModel graph after the update
+     * @param documentURI document URI
+     * @return true if ownership changed
+     */
+    public static boolean isOwnershipChanged(Model beforeUpdateModel, Model afterUpdateModel, String documentURI)
+    {
+        if (beforeUpdateModel == null) throw new IllegalArgumentException("Model before update cannot be null");
+        if (afterUpdateModel == null) throw new IllegalArgumentException("Model after update cannot be null");
+        if (documentURI == null) throw new IllegalArgumentException("Document URI cannot be null");
+
+        Resource document = ResourceFactory.createResource(documentURI);
+        for (Property property : List.of(ACL.owner, DCTerms.creator))
+        {
+            Set<RDFNode> before = beforeUpdateModel.listObjectsOfProperty(document, property).toSet();
+            Set<RDFNode> after = afterUpdateModel.listObjectsOfProperty(document, property).toSet();
+            if (!before.equals(after)) return true;
+        }
+        
+        return false;
     }
     
     /**
@@ -1073,11 +1241,23 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     }
     
     /**
-     * Submits imports for the given model.
-     * 
-     * @param model the RDF model
+     * The properties that define what an import does: its kind, its source, its transformation, its CSV delimiter and
+     * its target graph. Its title, description and the provenance the import appends to it when it runs do not.
      */
-    public void submitImports(Model model)
+    public static final List<Property> IMPORT_DEFINITION = List.of(RDF.type, LDH.file, SPIN.query, LDH.delimiter, SD.name);
+
+    /**
+     * Returns the imports in a model that are new or have been redefined against the stored document.
+     * An import runs when it is defined: a write that carries an import unchanged - every <code>PUT</code> of the
+     * document it is in, or one that only retitles it - must not fetch and import its source again (a <code>PUT</code>
+     * is idempotent, RFC 9110 9.2.2). An import is redefined when one of its {@link #IMPORT_DEFINITION} properties has
+     * other values than it has in the stored document.
+     *
+     * @param model the document as it is written
+     * @param existingModel the document as it is stored, or <code>null</code> if it is being created
+     * @return the imports to submit
+     */
+    public static List<Resource> getChangedImports(Model model, Model existingModel)
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
 
@@ -1086,28 +1266,69 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             filterKeep(_import -> { return _import.canAs(CSVImport.class) || _import.canAs(RDFImport.class); }); // canAs(Import.class) would require InfModel
         try
         {
-            Service adminService = getDataspace().canAs(EndUserDataspace.class) ? getDataspace().as(EndUserDataspace.class).getAdminDataspace().getService() : null;
-            // the graphs this writes are this deployment's own documents, so the content limit does not
-            // apply - registered on the client, not on importClient, which also fetches the import SOURCE
-            // from a URL nobody controls and stays bounded
-            GraphStoreClient gsc = GraphStoreClient.create(getSystem().getImportClient(), getSystem().getMediaTypes()).
-                delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
-            gsc.register(new UnlimitedContentLengthFilter());
-
+            List<Resource> imports = new ArrayList<>();
             while (it.hasNext())
             {
                 Resource _import = it.next();
-
-                // start the import asynchroniously
-                if (_import.canAs(CSVImport.class))
-                    getSystem().submitImport(_import.as(CSVImport.class), getDataspace(), getDataspace().getService(), adminService, getUriInfo().getBaseUri().toString(), gsc);
-                if (_import.canAs(RDFImport.class))
-                    getSystem().submitImport(_import.as(RDFImport.class), getDataspace(), getDataspace().getService(), adminService, getUriInfo().getBaseUri().toString(), gsc);
+                if (!imports.contains(_import) && (existingModel == null || isImportChanged(_import, existingModel))) imports.add(_import);
             }
+            return imports;
         }
         finally
         {
             it.close();
+        }
+    }
+
+    /**
+     * Returns true if an import is not in the stored document, or is defined differently there.
+     *
+     * @param _import import resource
+     * @param existingModel the document as it is stored
+     * @return true if the import is new or redefined
+     * @see #IMPORT_DEFINITION
+     */
+    public static boolean isImportChanged(Resource _import, Model existingModel)
+    {
+        if (_import == null) throw new IllegalArgumentException("Resource cannot be null");
+        if (existingModel == null) throw new IllegalArgumentException("Model cannot be null");
+        if (_import.isAnon()) return true; // a blank node is a new resource in every payload
+
+        Resource existing = existingModel.createResource(_import.getURI());
+        for (Property property : IMPORT_DEFINITION)
+            if (!_import.listProperties(property).mapWith(Statement::getObject).toSet().
+                    equals(existing.listProperties(property).mapWith(Statement::getObject).toSet()))
+                return true;
+
+        return false;
+    }
+
+    /**
+     * Submits imports for asynchronous execution.
+     * 
+     * @param imports import resources
+     * @see #getChangedImports(Model, Model)
+     */
+    public void submitImports(List<Resource> imports)
+    {
+        if (imports == null) throw new IllegalArgumentException("List<Resource> cannot be null");
+        if (imports.isEmpty()) return;
+
+        Service adminService = getDataspace().canAs(EndUserDataspace.class) ? getDataspace().as(EndUserDataspace.class).getAdminDataspace().getService() : null;
+        // the graphs this writes are this deployment's own documents, so the content limit does not
+        // apply - registered on the client, not on importClient, which also fetches the import SOURCE
+        // from a URL nobody controls and stays bounded
+        GraphStoreClient gsc = GraphStoreClient.create(getSystem().getImportClient(), getSystem().getMediaTypes()).
+            delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null), uri -> getSystem().matchApp(uri) != null);
+        gsc.register(new UnlimitedContentLengthFilter());
+
+        for (Resource _import : imports)
+        {
+            // start the import asynchroniously
+            if (_import.canAs(CSVImport.class))
+                getSystem().submitImport(_import.as(CSVImport.class), getDataspace(), getDataspace().getService(), adminService, getUriInfo().getBaseUri().toString(), gsc);
+            if (_import.canAs(RDFImport.class))
+                getSystem().submitImport(_import.as(RDFImport.class), getDataspace(), getDataspace().getService(), adminService, getUriInfo().getBaseUri().toString(), gsc);
         }
     }
 
@@ -1168,9 +1389,13 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             modifiedIt.close();
         }
         
-        if (!dates.isEmpty()) return Collections.max(dates);
-        
-        return null;
+        if (dates.isEmpty()) return null;
+
+        // an origin must not send a Last-Modified later than the time of the response (RFC 9110 8.8.2.1); the dates are
+        // data, and a document can still hold one in the future - written before they were server-managed, or imported
+        Date lastModified = Collections.max(dates);
+        Date now = new Date();
+        return lastModified.after(now) ? now : lastModified;
     }
     
     /**
@@ -1247,8 +1472,12 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         Set<Resource> roots = new HashSet<>();
         for (ConstraintViolation cv : ex.getConstraintViolations())
             if (cv.getRoot() != null) roots.add(cv.getRoot());
+        // the SHACL half of the same write, if it has one: its focus nodes are violating resources too
+        if (ex.getValidationReport() != null)
+            for (ReportEntry entry : ex.getValidationReport().getEntries())
+                if (!entry.focusNode().isLiteral()) roots.add(model.asRDFNode(entry.focusNode()).asResource());
 
-        return new SPINConstraintViolationException(ex.getConstraintViolations(), describeResources(roots, model));
+        return new SPINConstraintViolationException(ex.getConstraintViolations(), describeResources(roots, model), null, ex.getValidationReport());
     }
 
     /**
@@ -1357,9 +1586,12 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         String ifNoneMatch = httpHeaders.getHeaderString(HttpHeaders.IF_NONE_MATCH);
         if (model != null && !model.isEmpty() && !quotesEntityTag(ifMatch) && !(ifNoneMatch != null && ifNoneMatch.strip().equals("*")))
             throw new WebApplicationException("Writing an existing document requires If-Match with its current entity tag",
-                Response.status(Response.Status.PRECONDITION_REQUIRED).build());
+                getPreconditionRequiredResponse()); // RFC 6585 3: the response SHOULD explain how to resubmit the request
 
-        com.atomgraph.core.model.impl.Response internalResponse = getInternalResponse(model, getURI());
+        Optional<com.atomgraph.core.model.impl.Response> negotiated = getWriteResponse(model, getURI());
+        if (negotiated.isEmpty()) return evaluatePreconditionsUnnegotiated(model, httpHeaders);
+
+        com.atomgraph.core.model.impl.Response internalResponse = negotiated.get();
         Response.ResponseBuilder rb = internalResponse.evaluatePreconditions();
 
         // a precondition that failed says what the current validator IS, so the client can retry against it
@@ -1368,6 +1600,97 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         if (rb != null) rb.tag(internalResponse.getVariantEntityTag());
 
         return rb;
+    }
+
+    /**
+     * Returns the response a write evaluates its preconditions against and takes its entity tag from: the one for the
+     * variant the request negotiates, or none when its <code>Accept</code> names no RDF syntax.
+     * A write answers with no body - <code>204</code>, or <code>201</code> - so there is nothing for the client to
+     * accept, and refusing it with <code>406</code> would refuse the write for the sake of a representation it is not
+     * sent (GSP 5.3, 5.4; RFC 9110 12.5.1).
+     *
+     * @param model RDF model
+     * @param graphUri graph URI, or <code>null</code> to leave out <code>Last-Modified</code>
+     * @return the negotiated response, or empty if no variant is acceptable
+     */
+    public Optional<com.atomgraph.core.model.impl.Response> getWriteResponse(Model model, URI graphUri)
+    {
+        try
+        {
+            return Optional.of(getInternalResponse(model, graphUri));
+        }
+        catch (NotAcceptableException ex)
+        {
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Evaluates a write's preconditions when its <code>Accept</code> selects no variant.
+     * An entity tag identifies a representation of the document, and with none selected the one the client quotes can
+     * be any of them: <code>If-Match</code> holds when it names the current tag of any variant, and
+     * <code>If-None-Match</code> fails when it names the current tag of any variant (or is <code>*</code>).
+     *
+     * @param model RDF model
+     * @param httpHeaders the request headers the preconditions are read from
+     * @return <code>null</code> if the preconditions are met; otherwise a response builder for the failed precondition
+     */
+    protected Response.ResponseBuilder evaluatePreconditionsUnnegotiated(Model model, HttpHeaders httpHeaders)
+    {
+        List<Variant> variants = new ArrayList<>(com.atomgraph.core.model.impl.Response.getVariants(getWritableMediaTypes(Model.class), getLanguages(), getEncodings(), new HTMLMediaTypePredicate()));
+        // the language-neutral variants as well, as Core offers them in negotiation
+        for (Variant languageNeutral : com.atomgraph.core.model.impl.Response.removeLanguages(variants))
+            if (!variants.contains(languageNeutral)) variants.add(languageNeutral);
+
+        boolean ifMatch = quotesEntityTag(httpHeaders.getHeaderString(HttpHeaders.IF_MATCH));
+        Response.ResponseBuilder failed = null;
+        for (Variant variant : variants)
+        {
+            com.atomgraph.core.model.impl.Response response = new com.atomgraph.core.model.impl.Response(getRequest(), httpHeaders,
+                model,
+                getLastModified(model, getURI()),
+                getEntityTag(model),
+                variant,
+                new HTMLMediaTypePredicate(),
+                httpHeaders.getAcceptableLanguages());
+
+            Response.ResponseBuilder rb = response.evaluatePreconditions();
+            if (rb == null)
+            {
+                if (ifMatch) return null; // the quoted tag is the current tag of this variant
+            }
+            else
+            {
+                if (failed == null) failed = rb.tag(response.getVariantEntityTag());
+                if (!ifMatch) return failed; // If-None-Match named a current tag
+            }
+        }
+
+        return failed;
+    }
+
+    /**
+     * The body of a <code>428 Precondition Required</code> response to a write: which precondition the write needs
+     * and where to get the entity tag it quotes (RFC 6585 3).
+     */
+    public static final String PRECONDITION_REQUIRED_MESSAGE =
+        "Writing an existing resource requires the If-Match header with its current entity tag, " +
+        "or If-None-Match: * to create one that does not exist yet.\n" +
+        "Read the entity tag from the ETag header of a HEAD (or GET) request to the same URI, sent with the same " +
+        "Accept header as the write: the tag identifies the negotiated representation.\n";
+
+    /**
+     * Returns the <code>428 Precondition Required</code> response to a write that quotes no state.
+     *
+     * @return response with a plain-text explanation
+     * @see #PRECONDITION_REQUIRED_MESSAGE
+     */
+    public static Response getPreconditionRequiredResponse()
+    {
+        return Response.status(Response.Status.PRECONDITION_REQUIRED).
+            entity(PRECONDITION_REQUIRED_MESSAGE).
+            type(MediaType.TEXT_PLAIN_TYPE.withCharset(StandardCharsets.UTF_8.name())).
+            build();
     }
 
     /**

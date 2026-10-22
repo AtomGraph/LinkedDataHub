@@ -16,7 +16,17 @@
  */
 package com.atomgraph.linkeddatahub.server.model.impl;
 
+import com.atomgraph.linkeddatahub.model.CSVImport;
+import com.atomgraph.linkeddatahub.model.RDFImport;
+import com.atomgraph.linkeddatahub.model.impl.CSVImportImpl;
+import com.atomgraph.linkeddatahub.model.impl.RDFImportImpl;
+import com.atomgraph.linkeddatahub.vocabulary.ACL;
+import com.atomgraph.linkeddatahub.vocabulary.LDH;
+import com.atomgraph.linkeddatahub.vocabulary.PROV;
 import com.atomgraph.linkeddatahub.vocabulary.SIOC;
+import com.atomgraph.spinrdf.vocabulary.SPIN;
+import org.apache.jena.enhanced.BuiltinPersonalities;
+import org.apache.jena.vocabulary.RDF;
 import java.io.File;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -41,8 +51,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.core.UriInfo;
+import org.glassfish.jersey.uri.UriComponent;
 
 /**
  * Unit tests for the stateless logic of {@link DocumentHierarchyGraphStoreImpl}.
@@ -58,6 +73,13 @@ import static org.mockito.Mockito.mock;
  */
 public class DocumentHierarchyGraphStoreImplTest
 {
+
+    static
+    {
+        org.apache.jena.sys.JenaSystem.init(); // before BuiltinPersonalities, whose static initializer otherwise starts Jena out of order
+        BuiltinPersonalities.model.add(CSVImport.class, CSVImportImpl.factory);
+        BuiltinPersonalities.model.add(RDFImport.class, RDFImportImpl.factory);
+    }
 
     private final DocumentHierarchyGraphStoreImpl gs = mock(DocumentHierarchyGraphStoreImpl.class, CALLS_REAL_METHODS);
 
@@ -109,6 +131,109 @@ public class DocumentHierarchyGraphStoreImplTest
         assertTrue(gs.getChangedResources(before, after).isEmpty());
     }
 
+    // removeOwnership()
+
+    private static final String OWNER = "http://localhost/owner#this";
+    private static final String WRITER = "http://localhost/writer#this";
+
+    @Test
+    public void testRemoveOwnershipStripsDocumentOwnerAndCreator()
+    {
+        Model model = ModelFactory.createDefaultModel();
+        Resource doc = model.createResource(DOC.toString()).
+            addProperty(ACL.owner, model.createResource(WRITER)).
+            addProperty(DCTerms.creator, model.createResource(WRITER)).
+            addProperty(DCTerms.title, "Doc");
+
+        Resource result = DocumentHierarchyGraphStoreImpl.removeOwnership(model, DOC.toString());
+
+        assertEquals(doc, result);
+        assertFalse(model.contains(doc, ACL.owner));
+        assertFalse(model.contains(doc, DCTerms.creator));
+        assertTrue(model.contains(doc, DCTerms.title, "Doc"));
+    }
+
+    @Test
+    public void testRemoveOwnershipKeepsOtherResources()
+    {
+        Model model = ModelFactory.createDefaultModel();
+        Resource other = model.createResource(DOC.toString() + "#thing").
+            addProperty(DCTerms.creator, model.createResource(WRITER));
+
+        DocumentHierarchyGraphStoreImpl.removeOwnership(model, DOC.toString());
+
+        assertTrue(model.contains(other, DCTerms.creator));
+    }
+
+    @Test
+    public void testRemoveOwnershipNullModel()
+    {
+        assertThrows(IllegalArgumentException.class, () -> DocumentHierarchyGraphStoreImpl.removeOwnership(null, DOC.toString()));
+    }
+
+    // isOwnershipChanged()
+
+    private static Model ownedDocument()
+    {
+        Model model = ModelFactory.createDefaultModel();
+        model.createResource(DOC.toString()).
+            addProperty(ACL.owner, model.createResource(OWNER)).
+            addProperty(DCTerms.creator, model.createResource(OWNER)).
+            addProperty(DCTerms.title, "Doc");
+        return model;
+    }
+
+    @Test
+    public void testOwnershipUnchangedByOtherEdits()
+    {
+        Model before = ownedDocument();
+        Model after = ModelFactory.createDefaultModel().add(before);
+        after.createResource(DOC.toString()).removeAll(DCTerms.title).addProperty(DCTerms.title, "Renamed");
+        after.createResource(DOC.toString() + "#thing").addProperty(ACL.owner, after.createResource(WRITER));
+
+        assertFalse(DocumentHierarchyGraphStoreImpl.isOwnershipChanged(before, after, DOC.toString()));
+    }
+
+    @Test
+    public void testOwnershipChangedByAddedOwner()
+    {
+        Model before = ownedDocument();
+        Model after = ModelFactory.createDefaultModel().add(before);
+        after.createResource(DOC.toString()).addProperty(ACL.owner, after.createResource(WRITER));
+
+        assertTrue(DocumentHierarchyGraphStoreImpl.isOwnershipChanged(before, after, DOC.toString()));
+    }
+
+    @Test
+    public void testOwnershipChangedByRemovedOwner()
+    {
+        Model before = ownedDocument();
+        Model after = ModelFactory.createDefaultModel().add(before);
+        after.createResource(DOC.toString()).removeAll(ACL.owner);
+
+        assertTrue(DocumentHierarchyGraphStoreImpl.isOwnershipChanged(before, after, DOC.toString()));
+    }
+
+    @Test
+    public void testOwnershipChangedByReplacedCreator()
+    {
+        Model before = ownedDocument();
+        Model after = ModelFactory.createDefaultModel().add(before);
+        after.createResource(DOC.toString()).removeAll(DCTerms.creator).addProperty(DCTerms.creator, after.createResource(WRITER));
+
+        assertTrue(DocumentHierarchyGraphStoreImpl.isOwnershipChanged(before, after, DOC.toString()));
+    }
+
+    @Test
+    public void testOwnershipUnchangedByDeleteAndReinsert()
+    {
+        Model before = ownedDocument();
+        Model after = ModelFactory.createDefaultModel().add(before);
+        after.createResource(DOC.toString()).removeAll(ACL.owner).addProperty(ACL.owner, after.createResource(OWNER));
+
+        assertFalse(DocumentHierarchyGraphStoreImpl.isOwnershipChanged(before, after, DOC.toString()));
+    }
+
     // getLastModified(Resource)
 
     @Test
@@ -147,6 +272,171 @@ public class DocumentHierarchyGraphStoreImplTest
         Resource resource = model.createResource("http://localhost/doc").
             addProperty(DCTerms.modified, "not a date"); // plain string literal, not xsd:dateTime
         assertNull(gs.getLastModified(resource));
+    }
+
+    @Test
+    public void testLastModifiedNeverLaterThanNow()
+    {
+        Model model = ModelFactory.createDefaultModel();
+        Calendar future = new GregorianCalendar(2099, Calendar.JANUARY, 1, 0, 0, 0);
+        Resource resource = model.createResource("http://localhost/doc").
+            addProperty(DCTerms.modified, model.createTypedLiteral(future));
+
+        Date before = new Date();
+        Date lastModified = gs.getLastModified(resource);
+        Date after = new Date();
+
+        assertFalse(lastModified.before(before), "a future date is clamped to the time of the response");
+        assertFalse(lastModified.after(after), "Last-Modified must not be later than now (RFC 9110 8.8.2.1)");
+    }
+
+    // stampModified(URI, Model, Model)
+
+    private static final URI DOC = URI.create("http://localhost/doc/");
+
+    private static Model dated(Calendar created, Calendar modified)
+    {
+        Model model = ModelFactory.createDefaultModel();
+        Resource doc = model.createResource(DOC.toString()).addProperty(DCTerms.title, "Doc");
+        if (created != null) doc.addProperty(DCTerms.created, model.createTypedLiteral(created));
+        if (modified != null) doc.addProperty(DCTerms.modified, model.createTypedLiteral(modified));
+        return model;
+    }
+
+    @Test
+    public void testStampModifiedStampsAChange()
+    {
+        Calendar created = new GregorianCalendar(2020, Calendar.JANUARY, 1, 0, 0, 0);
+        Model before = dated(created, null);
+        Model after = ModelFactory.createDefaultModel().add(before);
+        after.createResource(DOC.toString()).addProperty(DCTerms.description, "changed");
+
+        Date start = new Date(System.currentTimeMillis() - 1000);
+        DocumentHierarchyGraphStoreImpl.stampModified(DOC, before, after);
+
+        Resource doc = after.createResource(DOC.toString());
+        assertEquals(1, doc.listProperties(DCTerms.modified).toList().size());
+        Date modified = ((XSDDateTime)doc.getProperty(DCTerms.modified).getLiteral().getValue()).asCalendar().getTime();
+        assertFalse(modified.before(start), "the change is stamped with the current time");
+        assertTrue(doc.hasProperty(DCTerms.created, after.createTypedLiteral(created)), "the creation date is kept");
+    }
+
+    @Test
+    public void testStampModifiedRestoresServerManagedDates()
+    {
+        Calendar created = new GregorianCalendar(2020, Calendar.JANUARY, 1, 0, 0, 0);
+        Calendar future = new GregorianCalendar(2099, Calendar.JANUARY, 1, 0, 0, 0);
+        Model before = dated(created, null);
+        // what INSERT { <doc> dct:created ?future ; dct:modified ?future } leaves behind
+        Model after = dated(future, future);
+
+        DocumentHierarchyGraphStoreImpl.stampModified(DOC, before, after);
+
+        Resource doc = after.createResource(DOC.toString());
+        assertEquals(1, doc.listProperties(DCTerms.created).toList().size());
+        assertTrue(doc.hasProperty(DCTerms.created, after.createTypedLiteral(created)), "the inserted creation date is replaced by the stored one");
+        assertFalse(doc.hasProperty(DCTerms.modified, after.createTypedLiteral(future)), "the inserted modification date is not kept");
+    }
+
+    @Test
+    public void testStampModifiedLeavesANoOpUnchanged()
+    {
+        Calendar created = new GregorianCalendar(2020, Calendar.JANUARY, 1, 0, 0, 0);
+        Calendar modified = new GregorianCalendar(2021, Calendar.JANUARY, 1, 0, 0, 0);
+        Model before = dated(created, modified);
+        Model after = ModelFactory.createDefaultModel().add(before);
+
+        DocumentHierarchyGraphStoreImpl.stampModified(DOC, before, after);
+
+        assertTrue(after.isIsomorphicWith(before), "an update that changed nothing is not a modification");
+    }
+
+    @Test
+    public void testStampModifiedIgnoresADateOnlyChange()
+    {
+        Calendar created = new GregorianCalendar(2020, Calendar.JANUARY, 1, 0, 0, 0);
+        Calendar modified = new GregorianCalendar(2021, Calendar.JANUARY, 1, 0, 0, 0);
+        Model before = dated(created, modified);
+        Model after = dated(created, new GregorianCalendar(2099, Calendar.JANUARY, 1, 0, 0, 0));
+
+        DocumentHierarchyGraphStoreImpl.stampModified(DOC, before, after);
+
+        assertTrue(after.isIsomorphicWith(before), "changing only the server-managed dates changes nothing");
+    }
+
+    // getChangedImports(Model, Model)
+
+    private static final String IMPORT = "http://localhost/imports/csv/#import";
+
+    private static Model csvImport(String title, String file)
+    {
+        Model model = ModelFactory.createDefaultModel();
+        model.createResource(IMPORT).
+            addProperty(RDF.type, LDH.CSVImport).
+            addProperty(DCTerms.title, title).
+            addProperty(SPIN.query, model.createResource("http://localhost/queries/csv/#this")).
+            addProperty(LDH.file, model.createResource(file)).
+            addProperty(LDH.delimiter, ",");
+        return model;
+    }
+
+    @Test
+    public void testChangedImportsOnCreate()
+    {
+        Model model = csvImport("Import", "http://localhost/uploads/a");
+        assertEquals(List.of(model.createResource(IMPORT)), DocumentHierarchyGraphStoreImpl.getChangedImports(model, null), "a new document's imports all run");
+    }
+
+    @Test
+    public void testChangedImportsSkipsARetitle()
+    {
+        Model existing = csvImport("Import", "http://localhost/uploads/a");
+        // what the import appended to its document when it ran
+        existing.createResource(IMPORT).addProperty(PROV.startedAtTime, existing.createTypedLiteral(new GregorianCalendar()));
+        Model model = csvImport("Retitled", "http://localhost/uploads/a");
+
+        assertTrue(DocumentHierarchyGraphStoreImpl.getChangedImports(model, existing).isEmpty(), "a title and the import's own provenance do not define it");
+    }
+
+    @Test
+    public void testChangedImportsSkipsAnUnchangedImport()
+    {
+        assertTrue(DocumentHierarchyGraphStoreImpl.getChangedImports(csvImport("Import", "http://localhost/uploads/a"), csvImport("Import", "http://localhost/uploads/a")).isEmpty());
+    }
+
+    @Test
+    public void testChangedImportsRunsARedefinedImport()
+    {
+        Model model = csvImport("Import", "http://localhost/uploads/b");
+        assertEquals(List.of(model.createResource(IMPORT)), DocumentHierarchyGraphStoreImpl.getChangedImports(model, csvImport("Import", "http://localhost/uploads/a")), "another source is another import");
+    }
+
+    @Test
+    public void testChangedImportsRunsAnImportNewToTheDocument()
+    {
+        Model existing = ModelFactory.createDefaultModel();
+        existing.createResource("http://localhost/imports/csv/").addProperty(DCTerms.title, "Imports");
+        Model model = csvImport("Import", "http://localhost/uploads/a");
+        assertEquals(1, DocumentHierarchyGraphStoreImpl.getChangedImports(model, existing).size());
+    }
+
+    @Test
+    public void testChangedImportsJudgesAnAppendByTheResult()
+    {
+        // a POST that only retitles the import: the payload alone lacks its definition, the document it results in does not
+        Model existing = csvImport("Import", "http://localhost/uploads/a");
+        Model payload = ModelFactory.createDefaultModel();
+        payload.createResource(IMPORT).addProperty(RDF.type, LDH.CSVImport).addProperty(DCTerms.description, "appended");
+
+        assertTrue(DocumentHierarchyGraphStoreImpl.getChangedImports(ModelFactory.createUnion(existing, payload), existing).isEmpty());
+    }
+
+    @Test
+    public void testChangedImportsIgnoresNonImports()
+    {
+        Model model = ModelFactory.createDefaultModel();
+        model.createResource("http://localhost/doc/").addProperty(DCTerms.title, "Doc");
+        assertTrue(DocumentHierarchyGraphStoreImpl.getChangedImports(model, null).isEmpty());
     }
 
     // getLastModified(Model, URI)
@@ -289,6 +579,51 @@ public class DocumentHierarchyGraphStoreImplTest
         Model after = ModelFactory.createDefaultModel().add(before);
 
         assertFalse(gs.getChangedResources(before, after).contains(subject));
+    }
+
+    // checkDirectIdentification()
+
+    private static UriInfo uriInfo(String query)
+    {
+        UriInfo uriInfo = mock(UriInfo.class);
+        when(uriInfo.getQueryParameters()).thenReturn(UriComponent.decodeQuery(query, true));
+        return uriInfo;
+    }
+
+    @Test
+    public void testDirectIdentificationAccepted()
+    {
+        assertDoesNotThrow(() -> DocumentHierarchyGraphStoreImpl.checkDirectIdentification(uriInfo("")));
+    }
+
+    @Test
+    public void testOtherParamsAccepted()
+    {
+        assertDoesNotThrow(() -> DocumentHierarchyGraphStoreImpl.checkDirectIdentification(uriInfo("mode=https%3A%2F%2Fw3id.org%2Fatomgraph%2Fclient%23ReadMode&accept=text%2Fturtle")));
+    }
+
+    @Test
+    public void testGraphParamRejected()
+    {
+        assertThrows(BadRequestException.class, () -> DocumentHierarchyGraphStoreImpl.checkDirectIdentification(uriInfo("graph=https%3A%2F%2Flocalhost%3A4443%2Ffoo%2F")));
+    }
+
+    @Test
+    public void testEmptyGraphParamRejected()
+    {
+        assertThrows(BadRequestException.class, () -> DocumentHierarchyGraphStoreImpl.checkDirectIdentification(uriInfo("graph=")));
+    }
+
+    @Test
+    public void testDefaultParamRejected()
+    {
+        assertThrows(BadRequestException.class, () -> DocumentHierarchyGraphStoreImpl.checkDirectIdentification(uriInfo("default")));
+    }
+
+    @Test
+    public void testDefaultParamAmongOthersRejected()
+    {
+        assertThrows(BadRequestException.class, () -> DocumentHierarchyGraphStoreImpl.checkDirectIdentification(uriInfo("accept=text%2Fturtle&default")));
     }
 
 }

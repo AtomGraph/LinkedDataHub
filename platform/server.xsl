@@ -12,10 +12,15 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
          waiting on each other (tests/load/render-burst-no-deadlock.sh). -->
     <xsl:param name="Connector.maxThreads.http"/>
 
-    <xsl:template match="Server/Service/Connector[not(@SSLEnabled = 'true')]">
+    <!-- Every connector refuses the URIs the Servlet 6 specification calls suspicious - a path parameter on a dot
+         segment, an encoded dot segment and the like - with 400. The container strips path parameters and resolves
+         dot segments before it routes a request, so such a URI can match one location at the proxy and reach a
+         different resource here. The proxy refuses path parameters too; this holds should a request ever bypass it -->
+    <xsl:template match="Server/Service/Connector">
         <xsl:copy>
             <xsl:apply-templates select="@*"/>
-            <xsl:if test="$Connector.maxThreads.http">
+            <xsl:attribute name="rejectSuspiciousURIs">true</xsl:attribute>
+            <xsl:if test="not(@SSLEnabled = 'true') and $Connector.maxThreads.http">
                 <xsl:attribute name="maxThreads">
                     <xsl:value-of select="$Connector.maxThreads.http"/>
                 </xsl:attribute>

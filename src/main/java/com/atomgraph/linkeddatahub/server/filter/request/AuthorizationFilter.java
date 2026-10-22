@@ -21,6 +21,7 @@ import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
 import com.atomgraph.linkeddatahub.server.exception.auth.AuthorizationException;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.model.Service;
+import com.atomgraph.linkeddatahub.server.security.AccessModes;
 import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.server.util.AuthorizationParams;
 import com.atomgraph.linkeddatahub.server.util.SetResultSetValues;
@@ -31,7 +32,6 @@ import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import jakarta.annotation.PostConstruct;
@@ -42,6 +42,7 @@ import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.container.PreMatching;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import org.apache.jena.irix.IRIx;
 import java.util.HashSet;
@@ -106,7 +107,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
         if (request == null) throw new IllegalArgumentException("ContainerRequestContext cannot be null");
         if (log.isDebugEnabled()) log.debug("Authorizing request URI: {}", request.getUriInfo().getRequestUri());
 
-        Resource accessMode = ACCESS_MODES.get(request.getMethod());
+        Resource accessMode = getAccessMode(request.getMethod(), request.getHeaderString(HttpHeaders.IF_NONE_MATCH));
         if (log.isDebugEnabled()) log.debug("Request method: {} ACL access mode: {}", request.getMethod(), accessMode);
         if (accessMode == null)
         {
@@ -134,13 +135,10 @@ public class AuthorizationFilter implements ContainerRequestFilter
         // the graph store demands of every write to a document that already exists - quietly turning acl:Write
         // into acl:Write AND acl:Read, a coupling no authorization document states. So a HEAD is granted to any
         // agent with a mode on the document: it carries no body, and a non-reader's is trimmed to the validator
-        // and the modes by ResponseHeadersFilter. GET is untouched - content still needs acl:Read.
+        // and the modes by ResponseHeadersFilter. GET is untouched - content still needs acl:Read. acl:Append is
+        // the least of the write modes, so a grant of either one covers it.
         if (authorizations == null && HttpMethod.HEAD.equals(request.getMethod()))
-            for (Resource writeMode : List.of(ACL.Append, ACL.Write))
-            {
-                authorizations = authorize(request, agent, writeMode);
-                if (authorizations != null) break;
-            }
+            authorizations = authorize(request, agent, ACL.Append);
 
         if (authorizations == null)
         {
@@ -180,8 +178,9 @@ public class AuthorizationFilter implements ContainerRequestFilter
         ResultSetRewindable aclTypesResult = docTypesResult;
         try
         {
-            // special case for PUT requests: if the document does not exist, check acl:Write access on the *parent* URI instead
-            if (!docTypesResult.hasNext() && request.getMethod().equals(HttpMethod.PUT) && accessMode.equals(ACL.Write))
+            // special case for PUT requests: if the document does not exist, check access on the *parent* URI instead -
+            // acl:Write for a plain PUT, acl:Append for a create-only one (see getAccessMode())
+            if (!docTypesResult.hasNext() && request.getMethod().equals(HttpMethod.PUT))
             {
                 // Use Jena's IRIx for RFC 3986-compliant resolution - java.net.URI.resolve("..") is non-compliant
                 // (RFC 3986 section 5.2.4 step 2D requires ".." to be removed, but java.net.URI leaves it literal)
@@ -240,18 +239,40 @@ public class AuthorizationFilter implements ContainerRequestFilter
     }
     
     /**
-     * Returns an authorization from the given model that has the given access mode..
+     * Returns the access mode a request requires.
+     * The mode follows what the operation does, which the method alone does not always tell. A PUT with
+     * <code>If-None-Match: *</code> can only create a document: the graph store refuses it with
+     * <code>412 Precondition Failed</code> when the document exists, evaluating the precondition under the
+     * document's write lock. Creating a document removes nothing - containment is stored in the child's own
+     * graph, so the container's graph is untouched - and an access that only adds information is what
+     * <code>acl:Append</code> is. A grant of <code>acl:Write</code> still covers it (see {@link AccessModes}).
+     *
+     * @param method HTTP method
+     * @param ifNoneMatch <code>If-None-Match</code> header value, or <code>null</code>
+     * @return ACL access mode, or <code>null</code> if the method is not recognized
+     */
+    public static Resource getAccessMode(String method, String ifNoneMatch)
+    {
+        if (HttpMethod.PUT.equals(method) && ifNoneMatch != null && ifNoneMatch.strip().equals("*")) return ACL.Append;
+
+        return ACCESS_MODES.get(method);
+    }
+
+    /**
+     * Returns an authorization from the given model whose mode covers the given access mode: the mode itself, or
+     * a mode it is a subclass of in the ACL ontology - a grant of <code>acl:Write</code> covers <code>acl:Append</code>.
      * 
      * @param authModel model with authorizations
      * @param accessMode ACL access mode
      * @return authorization resource or null
+     * @see AccessModes#covering(Resource)
      */
     public Resource getAuthorizationByMode(Model authModel, Resource accessMode)
     {
-        return authModel.listResourcesWithProperty(ACL.mode, accessMode).
-            toList().stream().
+        return AccessModes.covering(accessMode).stream().
+            flatMap(mode -> authModel.listResourcesWithProperty(ACL.mode, mode).toList().stream()).
             findFirst().
-            orElse(null);      
+            orElse(null);
     }
     
     /**

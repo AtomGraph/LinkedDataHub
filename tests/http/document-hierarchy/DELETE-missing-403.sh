@@ -18,7 +18,7 @@ ldh admin add agent \
   "${ADMIN_BASE_URL}acl/groups/writers/"
 
 # a DELETE of a non-existing document is forbidden (403), not 404: a typeless URL matches no authorization,
-# so the gate denies before the request reaches the handler
+# so the gate denies before the request reaches the handler (deliberate non-disclosure, see GET-missing-403.sh)
 
 curl -k -w "%{http_code}\n" -o /dev/null -s -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \

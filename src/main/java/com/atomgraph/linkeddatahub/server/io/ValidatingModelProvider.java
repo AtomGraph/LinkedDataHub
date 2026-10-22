@@ -231,7 +231,7 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
         if (getDataspace().isPresent() && resource.hasProperty(RDF.type, ACL.Authorization))
         {
             GraphStoreClient gsc = GraphStoreClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
-                delegation(getUriInfo().getBaseUri(), getAgentContextProvider().get().orElse(null));
+                delegation(getUriInfo().getBaseUri(), getAgentContextProvider().get().orElse(null), uri -> getSystem().matchApp(uri) != null);
             getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.AuthorizationCreated(getEndUserDataspace(),
                 gsc, resource));
         }

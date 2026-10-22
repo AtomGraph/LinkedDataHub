@@ -56,6 +56,9 @@ public class ACL
     /** <code>acl:Authorization</code> class */
     public static final Resource Authorization = m_model.createOntClass( NS + "Authorization" );
 
+    /** <code>acl:Access</code> class, the root of the access mode hierarchy */
+    public static final Resource Access = m_model.createOntClass( NS + "Access" );
+
     /** <code>acl:Read</code> access mode */
     public static final Resource Read = m_model.createOntClass( NS + "Read" );
 

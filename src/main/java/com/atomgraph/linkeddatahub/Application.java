@@ -110,6 +110,7 @@ import com.atomgraph.linkeddatahub.server.filter.request.ContentLengthLimitFilte
 import com.atomgraph.linkeddatahub.server.filter.request.auth.ProxiedWebIDFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.ResponseHeadersFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.CacheInvalidationFilter;
+import com.atomgraph.linkeddatahub.server.filter.response.XkeyTaggingFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.VersioningFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.XsltExecutableFilter;
 import com.atomgraph.client.interceptor.RDFPostMediaTypeInterceptor;
@@ -773,6 +774,8 @@ public class Application extends ResourceConfig
             
             client = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null, false, connectionRequestTimeout, socketTimeout, connectTimeout, connectionTimeToLive, validateAfterInactivity);
             externalClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null, false, connectionRequestTimeout, socketTimeout, connectTimeout, connectionTimeToLive, validateAfterInactivity);
+            // redirects are followed by RedirectingClient, which validates every hop
+            externalClient.property(ClientProperties.FOLLOW_REDIRECTS, false);
             // the external client's twin without the secretary's certificate: the Linked Data proxy's
             // upstream request for a caller who holds no identity, so the origin answers nobody rather
             // than the platform. Same pool sizing and timeouts, and like its twin no retries - a proxied
@@ -1266,7 +1269,11 @@ public class Application extends ResourceConfig
     {
         register(new ResponseHeadersFilter());
         register(new XsltExecutableFilter());
-        if (isInvalidateCache()) register(new CacheInvalidationFilter());
+        if (isInvalidateCache())
+        {
+            register(new XkeyTaggingFilter()); // tags what CacheInvalidationFilter purges from the frontend cache
+            register(new CacheInvalidationFilter());
+        }
         register(new VersioningFilter());
     }
     
@@ -1776,6 +1783,7 @@ public class Application extends ResourceConfig
     
     /**
      * Builds HTTP client instance without TLS client certificates.
+     * It does not follow redirects; {@link com.atomgraph.linkeddatahub.client.RedirectingClient} does.
      * 
      * @param trustStore client truststore
      * @param maxConnPerRoute max connections per route
@@ -1831,7 +1839,8 @@ public class Application extends ResourceConfig
             config.register(new SPARQLResultProvider());
             config.register(new QueryProvider());
             config.register(new UpdateRequestProvider()); // TO-DO: UpdateRequestProvider
-            config.property(ClientProperties.FOLLOW_REDIRECTS, true);
+            // redirects are followed by RedirectingClient, which validates every hop
+            config.property(ClientProperties.FOLLOW_REDIRECTS, false);
             config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED); // https://stackoverflow.com/questions/42139436/jersey-client-throws-cannot-retry-request-with-a-non-repeatable-request-entity
             config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
             config.property(ApacheClientProperties.CONNECTION_MANAGER_SHARED, true); // the pool is not the connector's to shut down: a target with its own filters runs on a connector of its own, which Jersey closes once it is collected - https://github.com/eclipse-ee4j/jersey/issues/4449

@@ -73,13 +73,15 @@ test('saves quoting the tag the settings were read with', { tag: '@owner' }, asy
     }
 });
 
-// The tags the browser holds for conditional writes, keyed by document URI (LinkedDataHub.etags).
-const storedTag = (page, uri) => page.evaluate(key => window.LinkedDataHub.etags[key], '`' + uri + '`');
+// The tags the browser holds for conditional writes, keyed by document URI (LinkedDataHub.etags). The backticks
+// ldh:set-document-etag wraps the key in only quote the dotted name for ixsl:set-property; the JS key is the bare URI.
+const storedTag = (page, uri) => page.evaluate(key => window.LinkedDataHub.etags[key], uri);
 
 test('keeps the settings\' tag under the settings, and the page\'s under the page', { tag: '@owner' }, async ({ page }) => {
     await goto(page, itemUri(ITEM));
     await settled(page);
     const pageTag = await storedTag(page, itemUri(ITEM));
+    expect(pageTag, 'the page\'s tag is stored when it loads').toBeTruthy();
 
     const { response } = await openSettings(page);
     const settingsUri = new URL('/settings', itemUri(ITEM)).href;

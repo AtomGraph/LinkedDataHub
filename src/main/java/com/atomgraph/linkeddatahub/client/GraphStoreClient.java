@@ -17,6 +17,7 @@
 package com.atomgraph.linkeddatahub.client;
 
 import com.atomgraph.core.MediaTypes;
+import com.atomgraph.core.io.ModelProvider;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
 import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.client.util.RetryAfterHelper;
@@ -25,6 +26,7 @@ import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
 import com.atomgraph.linkeddatahub.server.security.WebIDSecurityContext;
 import static jakarta.ws.rs.HttpMethod.PATCH;
 import java.net.URI;
+import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.Invocation;
@@ -34,6 +36,8 @@ import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
+import org.apache.jena.rdf.model.Model;
 import org.apache.jena.update.UpdateRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +61,7 @@ public class GraphStoreClient extends com.atomgraph.core.client.GraphStoreClient
 
     private URI baseURI;
     private AgentContext agentContext;
+    private Predicate<URI> isDataspace;
     private long defaultDelayMillis;
     private final int maxRetryCount;
 
@@ -145,18 +150,20 @@ public class GraphStoreClient extends com.atomgraph.core.client.GraphStoreClient
      * 
      * @param baseURI application's base URI
      * @param agentContext agent's auth context
+     * @param isDataspace tells whether a URI is on the origin of one of this instance's dataspaces
      * @return client instance
      */
-    public GraphStoreClient delegation(URI baseURI, AgentContext agentContext)
+    public GraphStoreClient delegation(URI baseURI, AgentContext agentContext, Predicate<URI> isDataspace)
     {
         this.baseURI = baseURI;
         this.agentContext = agentContext;
+        this.isDataspace = isDataspace;
         return this;
     }
-    
+
     /**
-     * Creates web target for URI.WebID can be delegated depending on the parameter.
-     * 
+     * Creates web target for URI. The agent is delegated when the request goes to a dataspace origin.
+     *
      * @param uri target URI
      * @return web target
      */
@@ -164,25 +171,34 @@ public class GraphStoreClient extends com.atomgraph.core.client.GraphStoreClient
     protected WebTarget getWebTarget(URI uri)
     {
         WebTarget webTarget = super.getWebTarget(uri);
-        
-        if (getAgentContext() != null)
-        {
-            if (getAgentContext() instanceof WebIDSecurityContext webIDSecurityContext)
-            {
-                // TO-DO: unify with other usages of WebIDDelegationFilter/IDTokenDelegationFilter
-                if (log.isDebugEnabled()) log.debug("Delegating Agent's <{}> access to secretary", webIDSecurityContext.getAgent());
-                webTarget.register(new WebIDDelegationFilter(webIDSecurityContext.getAgent()));
-            }
-            
-            if (getAgentContext() instanceof IDTokenSecurityContext iDTokenSecurityContext)
-            {
-                IDTokenSecurityContext idTokenContext = iDTokenSecurityContext;
-                webTarget.register(new IDTokenDelegationFilter(idTokenContext.getAgent(), idTokenContext.getJWTToken(),
-                    getBaseURI().getPath(), null));
-            }
-        }
-        
+
+        if (getAgentContext() != null && isDataspace != null)
+            delegate(webTarget, getAgentContext(), isDataspace.test(webTarget.getUri()), getBaseURI().getPath());
+
         return webTarget;
+    }
+
+    /**
+     * Registers the delegation of the agent on a request to one of this instance's dataspaces: the
+     * <code>On-Behalf-Of</code> header, and for an ID token agent also the token cookie.
+     * Requests to other origins carry neither.
+     *
+     * @param target outbound web target
+     * @param agentContext agent's auth context, or null if anonymous
+     * @param isDataspace true if the target is on the origin of one of this instance's dataspaces
+     * @param cookiePath path of the delegated ID token cookie
+     * @return the web target
+     */
+    public static WebTarget delegate(WebTarget target, AgentContext agentContext, boolean isDataspace, String cookiePath)
+    {
+        if (agentContext == null || !isDataspace) return target;
+
+        if (agentContext instanceof IDTokenSecurityContext idTokenContext)
+            target.register(new IDTokenDelegationFilter(idTokenContext.getAgent(), idTokenContext.getJWTToken(), cookiePath, null));
+        else if (agentContext instanceof WebIDSecurityContext webIDContext)
+            target.register(new WebIDDelegationFilter(webIDContext.getAgent()));
+
+        return target;
     }
     
     @Override
@@ -203,6 +219,45 @@ public class GraphStoreClient extends com.atomgraph.core.client.GraphStoreClient
             applyHeaders(getWebTarget(uri).request(acceptedTypes), headers).get());
     }
    
+    /**
+     * Sends a GET request to the given URI, following redirects with the given client.
+     * Each hop is retried on <code>Retry-After</code> like {@link #get(URI, jakarta.ws.rs.core.MediaType[], MultivaluedMap)}.
+     *
+     * @param redirectingClient follows and validates redirects
+     * @param uri the first URI, validated by the caller
+     * @param acceptedTypes accepted media types
+     * @return the final response and its URI; the caller closes it
+     * @throws IllegalStateException if this client addresses graphs through an endpoint
+     */
+    public RedirectingClient.Result get(RedirectingClient redirectingClient, URI uri, jakarta.ws.rs.core.MediaType[] acceptedTypes)
+    {
+        if (getEndpoint() != null) throw new IllegalStateException("Redirects are only followed by a client without an endpoint");
+
+        return redirectingClient.get(this::getWebTarget, uri, target ->
+            new RetryAfterHelper(getDefaultDelayMillis(), getMaxRetryCount()).invokeWithRetry(() ->
+                applyHeaders(target.request(acceptedTypes), null).get()));
+    }
+
+    /**
+     * Reads the RDF document at the given URI, following redirects with the given client.
+     * Relative URIs resolve against the requested URI, as without redirects.
+     *
+     * @param redirectingClient follows and validates redirects
+     * @param uri the first URI, validated by the caller
+     * @return the document's model
+     * @throws NotFoundException if the document is not found
+     */
+    public Model getModel(RedirectingClient redirectingClient, String uri)
+    {
+        try (RedirectingClient.Result result = get(redirectingClient, URI.create(uri), getReadableMediaTypes(Model.class)))
+        {
+            if (result.response().getStatus() == Response.Status.NOT_FOUND.getStatusCode()) throw new NotFoundException();
+
+            result.response().getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, uri);
+            return result.response().readEntity(Model.class);
+        }
+    }
+
     @Override
     public Response post(URI uri, Entity entity, jakarta.ws.rs.core.MediaType[] acceptedTypes, MultivaluedMap<String, Object> headers)
     {

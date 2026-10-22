@@ -52,6 +52,9 @@ public class SPINConstraintViolationExceptionMapper extends ExceptionMapperBase 
         ex.getModel().add(exception.getModel());
         
         SPINConstraints.addConstraintViolationsRDF(ex.getConstraintViolations(), ex.getModel(), true);
+        // the SHACL results of the same write, when it failed the shapes as well as the constraints: one
+        // response names every violated field, whichever vocabulary declared the rule
+        if (ex.getValidationReport() != null) ex.getModel().add(ex.getValidationReport().getModel());
 
         // describe each violation's spin:violationSource within the response, so that clients can tell the
         // constraint kind (e.g. ldh:MissingPropertyValue) and read its authored label without the ontology

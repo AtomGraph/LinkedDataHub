@@ -143,7 +143,7 @@ public class DocumentHierarchyGraphStoreImplWriteLockTest
         doReturn(List.of(com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE)).when(gs).getWritableMediaTypes(any());
         doReturn(List.of()).when(gs).getLanguages();
         doNothing().when(gs).validateConstraints(any(Model.class));
-        doNothing().when(gs).submitImports(any(Model.class));
+        doNothing().when(gs).submitImports(anyList());
 
         quoted = gs.getInternalResponse(initial, DOC).getVariantEntityTag();
     }

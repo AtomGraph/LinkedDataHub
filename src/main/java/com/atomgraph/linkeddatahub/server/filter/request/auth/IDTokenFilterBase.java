@@ -26,6 +26,7 @@ import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.linkeddatahub.vocabulary.SIOC;
 import com.auth0.jwt.JWT;
+import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import java.io.IOException;
@@ -133,6 +134,26 @@ public abstract class IDTokenFilterBase extends AuthenticationFilter
     }
 
     /**
+     * Verifies the algorithm, signature, issuer and audience of the specified JWT ID token, but not its expiry.
+     * An expired token that passes may be refreshed.
+     *
+     * @param idToken ID token
+     * @return true if the signature verifies
+     * @see com.atomgraph.linkeddatahub.server.util.JWTVerifier#verifySignature
+     */
+    protected boolean verifySignature(DecodedJWT idToken)
+    {
+        return com.atomgraph.linkeddatahub.server.util.JWTVerifier.verifySignature(
+            idToken,
+            getJWKSEndpoint(),
+            getIssuers(),
+            getClientID(),
+            getSystem().getClient(),
+            getSystem().getJWKSCache()
+        );
+    }
+
+    /**
      * Returns the OAuth token endpoint URI for token refresh.
      *
      * @return token endpoint URI
@@ -176,13 +197,23 @@ public abstract class IDTokenFilterBase extends AuthenticationFilter
     @Override
     public SecurityContext authenticate(ContainerRequestContext request)
     {
-        ParameterizedSparqlString pss = getUserAccountQuery();
-
         String jwtString = getJWTToken(request);
         if (jwtString == null) return null;
 
-        DecodedJWT jwt = JWT.decode(jwtString);
-        if (!jwt.getAudience().contains(getClientID()) || !getIssuers().contains(jwt.getIssuer())) return null;
+        DecodedJWT jwt;
+        try
+        {
+            jwt = JWT.decode(jwtString);
+        }
+        catch (JWTDecodeException ex)
+        {
+            if (log.isDebugEnabled()) log.debug("ID token cookie is not a JWT: {}", ex.getMessage());
+            return null;
+        }
+
+        // claims are read only from a token whose signature verifies
+        if (!verifySignature(jwt)) return null;
+        if (jwt.getExpiresAt() == null) return null; // an ID token always carries exp (OpenID Connect Core 1.0, 2)
 
         if (jwt.getExpiresAt().before(new Date()))
         {
@@ -198,7 +229,7 @@ public abstract class IDTokenFilterBase extends AuthenticationFilter
                 throw new TokenExpiredException("ID token for subject '%s' has expired at %s".formatted(jwt.getSubject(), jwt.getExpiresAt()), jwt.getExpiresAt().toInstant());
             }
         }
-        if (!verify(jwt)) return null;
+        if (!verify(jwt)) return null; // full verification, expiry included, of the token in use
 
         String cacheKey = jwt.getIssuer() + jwt.getSubject();
         final Model agentModel;
@@ -212,7 +243,7 @@ public abstract class IDTokenFilterBase extends AuthenticationFilter
             qsm.add(SIOC.ID.getLocalName(), userId);
             qsm.add(LACL.issuer.getLocalName(), ResourceFactory.createStringLiteral(jwt.getIssuer()));
 
-            agentModel = loadModel(pss, qsm, getAgentService());
+            agentModel = loadModel(getUserAccountQuery(), qsm, getAgentService());
         }
 
         Resource account = getResourceByPropertyValue(agentModel, SIOC.ID, userId);
@@ -227,7 +258,7 @@ public abstract class IDTokenFilterBase extends AuthenticationFilter
         getSystem().getOIDCModelCache().put(cacheKey, agentModel, expiration, TimeUnit.SECONDS);
 
         // imitate type inference, otherwise we'll get Jena's polymorphism exception
-        return new IDTokenSecurityContext(getScheme(), agent.addProperty(RDF.type, FOAF.Agent).as(Agent.class), jwtString);
+        return new IDTokenSecurityContext(getScheme(), agent.addProperty(RDF.type, FOAF.Agent).as(Agent.class), jwt.getToken()); // the refreshed token if there was a refresh
     }
 
     /**

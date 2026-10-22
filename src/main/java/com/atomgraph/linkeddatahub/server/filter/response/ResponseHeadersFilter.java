@@ -35,7 +35,11 @@ import com.atomgraph.linkeddatahub.vocabulary.LDS;
 import com.atomgraph.linkeddatahub.writer.TimeMapWriter;
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Priorities;
@@ -170,12 +174,47 @@ public class ResponseHeadersFilter implements ContainerResponseFilter
                 response.getHeaders().add(HttpHeaders.LINK, Link.fromUri(application.getBaseURI().resolve(clientStylesheet.toString())).rel(LDH.clientStylesheet.getURI()).build());
         }
 
+        // A document changes under its URL - a write, or an access-control change that decides who may read it at all - so
+        // a cache may store it but has to revalidate it, which the entity tag makes cheap. A response that already states
+        // its freshness (a Memento, a TimeGate redirect) keeps it
+        if ((HttpMethod.GET.equals(request.getMethod()) || HttpMethod.HEAD.equals(request.getMethod())) &&
+                response.getHeaderString(HttpHeaders.CACHE_CONTROL) == null &&
+                request.getUriInfo().getMatchedResources().stream().anyMatch(DocumentHierarchyGraphStoreImpl.class::isInstance))
+            response.getHeaders().putSingle(HttpHeaders.CACHE_CONTROL, "no-cache");
+
+        // A response to an authenticated agent is that agent's: it reflects their access, and its Link header names them.
+        // Whatever authenticated the request - a certificate, an OAuth session, a delegation - no shared cache may store it
+        if (request.getSecurityContext().getUserPrincipal() != null)
+            response.getHeaders().putSingle(HttpHeaders.CACHE_CONTROL, privateCacheControl(response.getHeaderString(HttpHeaders.CACHE_CONTROL)));
+
         if (response.getHeaders().get(HttpHeaders.LINK) != null)
         {
             // combine Link header values into a single value because Saxon-JS 2.x is not able to deal with duplicate header names: https://saxonica.plan.io/issues/5199
             String linkValue = response.getHeaders().get(HttpHeaders.LINK).toString();
             response.getHeaders().putSingle(HttpHeaders.LINK, linkValue.substring(1, linkValue.length() - 1)); // trim leading and trailing bracket added by toString()
         }
+    }
+
+    /**
+     * Makes a <code>Cache-Control</code> value private: <code>public</code> is dropped, and <code>private</code> is added
+     * unless the value already forbids storing the response altogether. The other directives are kept.
+     *
+     * @param cacheControl the response's current value, or null when it has none
+     * @return the private value
+     */
+    public static String privateCacheControl(String cacheControl)
+    {
+        if (cacheControl == null || cacheControl.isBlank()) return "private";
+
+        List<String> directives = Arrays.stream(cacheControl.split(",")).
+            map(String::trim).
+            filter(directive -> !directive.isEmpty() && !directive.equalsIgnoreCase("public")).
+            collect(Collectors.toCollection(ArrayList::new));
+
+        if (directives.stream().noneMatch(directive -> directive.equalsIgnoreCase("private") || directive.equalsIgnoreCase("no-store")))
+            directives.add(0, "private");
+
+        return String.join(", ", directives);
     }
 
     /**
