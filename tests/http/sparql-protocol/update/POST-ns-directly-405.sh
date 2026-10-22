@@ -11,8 +11,8 @@ clear_ontology
 
 # SPARQL update on the <ns> endpoint should not be allowed
 
-(
-curl -k -w "%{http_code}\n" -s \
+headers=$(
+curl -k -o /dev/null -s -D - \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
   -H "Content-Type: application/sparql-update" \
   -H "Accept: application/n-triples" \
@@ -23,5 +23,15 @@ DELETE WHERE
   ?s ?p ?o .
 }
 EOF
-) \
-| grep -q "$STATUS_METHOD_NOT_ALLOWED"
+)
+
+# the 405 names the methods the resource allows
+
+status=$(head -n 1 <<< "$headers" | cut -d ' ' -f 2)
+allow=$(grep -i '^allow:' <<< "$headers" | tr -d '\r' || true)
+echo "DEBUG: Expected status: $STATUS_METHOD_NOT_ALLOWED"
+echo "DEBUG: Got status: $status"
+echo "DEBUG: Got: $allow"
+[ "$status" = "$STATUS_METHOD_NOT_ALLOWED" ]
+grep -qw "GET" <<< "$allow"
+grep -qw "POST" <<< "$allow"

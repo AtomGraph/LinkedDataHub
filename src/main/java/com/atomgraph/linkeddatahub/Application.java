@@ -133,6 +133,7 @@ import com.atomgraph.linkeddatahub.writer.XSLTWriterBase;
 import com.atomgraph.linkeddatahub.writer.factory.ModeFactory;
 import com.atomgraph.linkeddatahub.writer.function.DecodeURI;
 import com.atomgraph.server.mapper.NotAcceptableExceptionMapper;
+import com.atomgraph.server.mapper.NotSupportedExceptionMapper;
 import com.atomgraph.server.mapper.OntologyExceptionMapper;
 import com.atomgraph.server.mapper.jena.DatatypeFormatExceptionMapper;
 import com.atomgraph.server.mapper.jena.QueryParseExceptionMapper;
@@ -1312,6 +1313,7 @@ public class Application extends ResourceConfig
         register(RiotExceptionMapper.class);
         register(RiotParseExceptionMapper.class); // move to Processor?
         register(NotAcceptableExceptionMapper.class);
+        register(NotSupportedExceptionMapper.class);
         register(ClientErrorExceptionMapper.class);
         register(HttpHostConnectExceptionMapper.class);
         register(ResponseContentTooLargeExceptionMapper.class);
