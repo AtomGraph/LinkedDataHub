@@ -18,7 +18,10 @@ ldh admin add agent \
   "${ADMIN_BASE_URL}acl/groups/writers/"
 
 # a non-existing document is forbidden (403), not 404: a typeless URL matches no authorization, so the gate
-# denies before the request reaches the handler that would report not-found
+# denies before the request reaches the handler that would report not-found. This is deliberate non-disclosure:
+# an agent that may not read a URL cannot tell a missing document from one it is not allowed to see, so 403 does
+# not let it probe which documents exist. (A dataspace whose agents are allowed to read everything answers 404.)
+# The {POST,PATCH,DELETE}-missing-403.sh tests assert the same for writes
 
 curl -k -w "%{http_code}\n" -o /dev/null -s -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \

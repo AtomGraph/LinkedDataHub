@@ -17,17 +17,27 @@ ldh admin add agent \
   --agent "$AGENT_URI" \
   "${ADMIN_BASE_URL}acl/groups/writers/"
 
-# a POST to a non-existing document is forbidden (403), not 404: a typeless URL matches no authorization,
-# so the gate denies before the request reaches the handler
+# a PATCH of a non-existing document is forbidden (403), not 404: a typeless URL matches no authorization,
+# so the gate denies before the request reaches the handler (deliberate non-disclosure, see GET-missing-403.sh)
+
+update=$(cat <<EOF
+PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+INSERT
+{
+  <${END_USER_BASE_URL}> rdf:_2 <${END_USER_BASE_URL}#whateverest>
+}
+WHERE
+{}
+EOF
+)
 
 (
 curl -k -w "%{http_code}\n" -o /dev/null -s \
-  -X POST \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
-  -H "Content-Type: application/n-triples" \
-   --data-binary @- \
-  "${END_USER_BASE_URL}non-existing/" <<EOF
-<http://s> <http://p> <http://o> .
-EOF
+  -X PATCH \
+  -H "Content-Type: application/sparql-update" \
+  "${END_USER_BASE_URL}non-existing/" \
+   --data-binary "$update"
 ) \
 | grep -q "$STATUS_FORBIDDEN"
