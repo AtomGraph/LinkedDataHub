@@ -41,6 +41,11 @@ jobs:
       - name: Build the linkeddatahub-rdf library
         run: mvn -B install
         working-directory: rdf
+      # cli/pom.xml pins Core by a copy of the version the platform resolves through Web-Client, and
+      # carries the platform's own version, as rdf/ does; `make cli-version` refreshes the copies and
+      # this fails the build when one has fallen behind
+      - name: Check that rdf/ and the CLI are at the platform's versions
+        run: make cli-version-check
       - name: Build the ldh CLI
         run: mvn -B package # the suite builds its fixtures with ldh, the way tests/http does
         working-directory: cli

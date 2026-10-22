@@ -69,7 +69,9 @@ most of its life waiting on HTTP. `LDH_JAVA_OPTS` replaces those flags outright.
 The CLI carries the same version as the platform: it ships with a LinkedDataHub release and is
 exercised by the same `tests/http` suite, so `cli/pom.xml` tracks the root `pom.xml`. `release.sh` keeps
 the two in step across the release bumps, and `make cli-version` sets `cli/pom.xml` from the
-platform version if they ever drift.
+platform version if they ever drift. The same target copies the Core version the platform resolves
+through Web-Client into `cli/pom.xml` as `core.version`, so the CLI is built against the Core the
+platform runs on; `make cli-version-check` fails when the copy differs, and the test workflows run it.
 
 `ldh --version` reports the version the jar was built at, read back from its `Implementation-Version`
 manifest entry.
