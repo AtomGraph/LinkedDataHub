@@ -16,65 +16,68 @@
  */
 package com.atomgraph.linkeddatahub.imports.stream.csv;
 
-import com.atomgraph.core.client.GraphStoreClient;
+import com.atomgraph.linkeddatahub.client.GraphStoreClient;
+import com.atomgraph.linkeddatahub.client.RedirectingClient;
 import java.net.URI;
 import java.util.function.Supplier;
 import jakarta.ws.rs.core.Response;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.jena.rdf.model.Model;
 
 /**
  * Client response supplier.
  * Used when composing asynchronous data import.
- * 
+ * Follows redirects, validating every hop.
+ *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  * @see com.atomgraph.linkeddatahub.listener.ImportListener
  */
 public class ClientResponseSupplier implements Supplier<Response>
 {
 
-    private static final Logger log = LoggerFactory.getLogger(ClientResponseSupplier.class);
-   
     private final GraphStoreClient gsc;
+    private final RedirectingClient redirectingClient;
     private final jakarta.ws.rs.core.MediaType[] mediaTypes;
     private final URI uri;
 
     /**
      * Constructs supplier from request URI and media types.
-     * 
-     * @param uri request URI
-     * @param mediaTypes registry of media types
+     *
      * @param gsc Graph Store client
+     * @param redirectingClient follows and validates redirects
+     * @param mediaTypes accepted media types
+     * @param uri request URI, validated by the caller
      */
-    public ClientResponseSupplier(GraphStoreClient gsc, jakarta.ws.rs.core.MediaType[] mediaTypes, URI uri)
+    public ClientResponseSupplier(GraphStoreClient gsc, RedirectingClient redirectingClient, jakarta.ws.rs.core.MediaType[] mediaTypes, URI uri)
     {
         this.gsc = gsc;
+        this.redirectingClient = redirectingClient;
         this.mediaTypes = mediaTypes;
         this.uri = uri;
     }
 
     /**
      * Constructs supplier from request URI.
-     * 
-     * @param uri request URI
+     *
      * @param gsc Graph Store client
+     * @param redirectingClient follows and validates redirects
+     * @param uri request URI, validated by the caller
      */
-    public ClientResponseSupplier(GraphStoreClient gsc, URI uri)
+    public ClientResponseSupplier(GraphStoreClient gsc, RedirectingClient redirectingClient, URI uri)
     {
-        this(gsc, null, uri);
+        this(gsc, redirectingClient, null, uri);
     }
-    
+
     @Override
     public Response get()
     {
-        if (getMediaTypes() != null) return getGraphStoreClient().get(getURI(), getMediaTypes());
-        
-        return getGraphStoreClient().get(getURI());
+        jakarta.ws.rs.core.MediaType[] acceptedTypes = getMediaTypes() != null ? getMediaTypes() : getGraphStoreClient().getReadableMediaTypes(Model.class);
+
+        return getGraphStoreClient().get(getRedirectingClient(), getURI(), acceptedTypes).response();
     }
 
     /**
      * Returns request URI.
-     * 
+     *
      * @return URI
      */
     public URI getURI()
@@ -84,7 +87,7 @@ public class ClientResponseSupplier implements Supplier<Response>
 
     /**
      * Returns readable/writable media types or null.
-     * 
+     *
      * @return media type array or null
      */
     public jakarta.ws.rs.core.MediaType[] getMediaTypes()
@@ -94,12 +97,22 @@ public class ClientResponseSupplier implements Supplier<Response>
 
     /**
      * Returns Graph Store client.
-     * 
+     *
      * @return manager instance
      */
     public GraphStoreClient getGraphStoreClient()
     {
         return gsc;
     }
-    
+
+    /**
+     * Returns the client that follows redirects.
+     *
+     * @return redirecting client
+     */
+    public RedirectingClient getRedirectingClient()
+    {
+        return redirectingClient;
+    }
+
 }

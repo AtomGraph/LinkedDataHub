@@ -16,11 +16,11 @@
  */
 package com.atomgraph.linkeddatahub.imports;
 
-import com.atomgraph.core.client.GraphStoreClient;
+import com.atomgraph.linkeddatahub.client.GraphStoreClient;
+import com.atomgraph.linkeddatahub.client.RedirectingClient;
 import com.atomgraph.spinrdf.vocabulary.SP;
 import java.net.URI;
 import java.util.function.Supplier;
-import jakarta.ws.rs.core.Response;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.Syntax;
@@ -30,7 +30,8 @@ import org.apache.jena.rdf.model.Resource;
 /**
  * SPIN query loader.
  * Loads a query resource from URI and uses it's <code>sp:text</code> property value to construct a query object.
- * 
+ * Follows redirects, validating every hop.
+ *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public class QueryLoader implements Supplier<Query>
@@ -40,41 +41,45 @@ public class QueryLoader implements Supplier<Query>
     private final String baseURI;
     private final Syntax syntax;
     private final GraphStoreClient gsc;
-    
+    private final RedirectingClient redirectingClient;
+
     /**
      * Constructs loader from query URI.
-     * 
-     * @param uri query URI
+     *
+     * @param uri query URI, validated by the caller
      * @param baseURI base URI
      * @param gsc Graph Store client
+     * @param redirectingClient follows and validates redirects
      */
-    public QueryLoader(URI uri, String baseURI, GraphStoreClient gsc)
+    public QueryLoader(URI uri, String baseURI, GraphStoreClient gsc, RedirectingClient redirectingClient)
     {
-        this(uri, baseURI, Syntax.syntaxSPARQL_11, gsc);
+        this(uri, baseURI, Syntax.syntaxSPARQL_11, gsc, redirectingClient);
     }
     
     /**
      * Constructs loader from query URI.
      * 
-     * @param uri query URI
+     * @param uri query URI, validated by the caller
      * @param baseURI base URI
      * @param syntax query syntax
      * @param gsc Graph Store client
+     * @param redirectingClient follows and validates redirects
      */
-    public QueryLoader(URI uri, String baseURI, Syntax syntax, GraphStoreClient gsc)
+    public QueryLoader(URI uri, String baseURI, Syntax syntax, GraphStoreClient gsc, RedirectingClient redirectingClient)
     {
         this.uri = uri;
         this.baseURI = baseURI;
         this.syntax = syntax;
         this.gsc = gsc;
+        this.redirectingClient = redirectingClient;
     }
-    
+
     @Override
     public Query get()
     {
-        try (Response cr = getGraphStoreClient().get(getURI()))
+        try (RedirectingClient.Result result = getGraphStoreClient().get(getRedirectingClient(), getURI(), getGraphStoreClient().getReadableMediaTypes(Model.class)))
         {
-            Resource queryRes = cr.readEntity(Model.class).getResource(getURI().toString());
+            Resource queryRes = result.response().readEntity(Model.class).getResource(getURI().toString());
             return QueryFactory.create(queryRes.getRequiredProperty(SP.text).getString(), getBaseURI(), getSyntax());
         }
     }
@@ -118,5 +123,15 @@ public class QueryLoader implements Supplier<Query>
     {
         return gsc;
     }
-    
+
+    /**
+     * Returns the client that follows redirects.
+     *
+     * @return redirecting client
+     */
+    public RedirectingClient getRedirectingClient()
+    {
+        return redirectingClient;
+    }
+
 }

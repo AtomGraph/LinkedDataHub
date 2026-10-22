@@ -94,7 +94,7 @@ public class WebIDFilterRedirectTest
 
         Model model = filter.loadWebIDFromURI(webID);
 
-        // the base stays the WebID document's own URI, as it was when the connector followed the redirect
+        // relative URIs resolve against the requested WebID document
         assertTrue(model.contains(ResourceFactory.createResource(webID.toString()), RDF.type), model.toString());
         assertEquals(2, stub.publicRequests.size(), stub.publicRequests.toString());
     }

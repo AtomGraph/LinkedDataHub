@@ -63,7 +63,7 @@ public class RedirectingClientTest
         client.close();
     }
 
-    private Response get(URI uri)
+    private RedirectingClient.Result get(URI uri)
     {
         return redirectingClient.get(client::target, uri, target -> target.request().get());
     }
@@ -91,22 +91,50 @@ public class RedirectingClientTest
         assertEquals(List.of(), stub.internalRequests);
     }
 
-    /** A chain of allowed redirects - absolute and relative, every status - is followed to the end */
+    /** A chain of allowed redirects, absolute and relative, is followed, and the result carries the final URI */
     @Test
     public void allowedChainIsFollowed()
     {
         String to = "/document";
         for (int status : List.of(308, 307, 303, 302, 301)) to = stub.redirect(status, to).toString();
 
-        try (Response response = get(URI.create(to)))
+        try (RedirectingClient.Result result = get(URI.create(to)))
         {
-            assertEquals(200, response.getStatus());
-            assertEquals(RedirectStub.DOCUMENT, response.readEntity(String.class));
+            assertEquals(200, result.response().getStatus());
+            assertEquals(RedirectStub.DOCUMENT, result.response().readEntity(String.class));
+            assertEquals(stub.publicURI("/document"), result.uri());
         }
         assertEquals(6, stub.publicRequests.size(), stub.publicRequests.toString());
     }
 
-    /** {@link RedirectingClient#MAX_REDIRECTS} redirects are followed (see above), one more is refused before it is requested */
+    /** A response that does not redirect carries the requested URI */
+    @Test
+    public void unredirectedResultCarriesRequestedURI()
+    {
+        try (RedirectingClient.Result result = get(stub.publicURI("/document")))
+        {
+            assertEquals(stub.publicURI("/document"), result.uri());
+        }
+    }
+
+    /** A client configured to follow redirects does not follow them inside RedirectingClient */
+    @Test
+    public void followingClientIsValidatedToo() throws Exception
+    {
+        Client following = Application.getClient(load("agent.p12"), PASSWORD, load("agent-trust.p12"), 20, 100, null, false, null, null, null, null, null);
+        try
+        {
+            URI internal = stub.internalURI("/internal");
+            assertThrows(BadGatewayException.class, () -> redirectingClient.get(following::target, stub.redirect(302, internal.toString()), target -> target.request().get()).close());
+        }
+        finally
+        {
+            following.close();
+        }
+        assertEquals(List.of(), stub.internalRequests);
+    }
+
+    /** {@link RedirectingClient#MAX_REDIRECTS} redirects are followed, one more is refused before it is requested */
     @Test
     public void moreThanFiveHopsAreRefused()
     {
@@ -115,23 +143,23 @@ public class RedirectingClientTest
         assertEquals(RedirectingClient.MAX_REDIRECTS + 1, stub.publicRequests.size(), stub.publicRequests.toString()); // /loop/0 to /loop/5
     }
 
-    /** An unsafe request is not repeated at the redirect target: the caller gets the redirect, except after a 303 */
+    /** An unsafe request gets the redirect back, except a 303, which continues as GET */
     @Test
     public void unsafeMethodFollowsOnlySeeOther()
     {
         for (int status : List.of(301, 302, 307, 308))
-            try (Response response = redirectingClient.invoke(client::target, stub.redirect(status, "/document"), "POST",
+            try (RedirectingClient.Result result = redirectingClient.invoke(client::target, stub.redirect(status, "/document"), "POST",
                     (target, method) -> target.request().method(method, Entity.text("body"))))
             {
-                assertEquals(status, response.getStatus());
+                assertEquals(status, result.response().getStatus());
             }
         assertEquals(4, stub.publicRequests.size(), stub.publicRequests.toString());
 
         stub.publicRequests.clear();
-        try (Response response = redirectingClient.invoke(client::target, stub.redirect(303, "/document"), "POST",
+        try (RedirectingClient.Result result = redirectingClient.invoke(client::target, stub.redirect(303, "/document"), "POST",
                 (target, method) -> "POST".equals(method) ? target.request().method(method, Entity.text("body")) : target.request().method(method)))
         {
-            assertEquals(200, response.getStatus());
+            assertEquals(200, result.response().getStatus());
         }
         assertTrue(stub.publicRequests.get(1).startsWith("GET /document"), stub.publicRequests.toString());
     }

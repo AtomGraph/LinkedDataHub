@@ -27,24 +27,18 @@ import java.net.URI;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import org.glassfish.jersey.client.ClientProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Follows HTTP redirects on behalf of a client that does not follow them itself, running the SSRF check on every hop.
+ * Follows HTTP redirects, validating every {@code Location} with {@link URLValidator} before requesting it.
  * <p>
- * The clients that dereference URIs supplied from outside - the Linked Data proxy's and the WebID loader's - have
- * automatic redirects turned off, because the HTTP connector follows a redirect where neither Jersey's filters nor
- * {@link URLValidator} see it: a public origin could send the platform on to an internal address. This class follows
- * {@code 301}, {@code 302}, {@code 303}, {@code 307} and {@code 308} itself, at most {@link #MAX_REDIRECTS} hops,
- * validating each {@code Location} (resolved against the URI that answered it) before requesting it. A refused hop,
- * a {@code Location} that is not an HTTP(S) URI, or one hop too many answers {@code 502 Bad Gateway} naming the hop.
- * <p>
- * Which redirects are followed is what the connector followed before: {@code 303} for any method, the request going
- * on as {@code GET} ({@code HEAD} stays {@code HEAD}); the others for {@code GET} and {@code HEAD} only, a redirected
- * unsafe request being returned to the caller as it came. So a request entity is never sent twice.
- * <p>
- * The first URI is the caller's to validate, as it does before choosing a client.
+ * Follows {@code 301}, {@code 302}, {@code 303}, {@code 307} and {@code 308}, at most {@link #MAX_REDIRECTS} hops.
+ * {@code 303} is followed for any method and continues as {@code GET} ({@code HEAD} stays {@code HEAD}); the others
+ * are followed for {@code GET} and {@code HEAD} only, and otherwise returned to the caller. A refused hop, a
+ * non-HTTP(S) {@code Location} or one hop too many throws {@link BadGatewayException} naming the hop. Automatic
+ * redirects are turned off on every target, whatever the client's configuration. The caller validates the first URI.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -59,13 +53,30 @@ public class RedirectingClient
     /** Statuses that redirect */
     public static final Set<Integer> REDIRECT_STATUSES = Set.of(301, 302, 303, 307, 308);
 
+    /**
+     * The response that ended a redirect chain, and the URI that answered it.
+     *
+     * @param uri the URI the response came from: the first URI, or the last redirect's target
+     * @param response the response, open
+     */
+    public record Result(URI uri, Response response) implements AutoCloseable
+    {
+
+        @Override
+        public void close()
+        {
+            response.close();
+        }
+
+    }
+
     private final URLValidator urlValidator;
     private final int maxRedirects;
 
     /**
      * Constructs a client following at most {@link #MAX_REDIRECTS} redirects.
      *
-     * @param urlValidator the validator every redirect target passes before it is requested
+     * @param urlValidator validator for redirect targets
      */
     public RedirectingClient(URLValidator urlValidator)
     {
@@ -75,7 +86,7 @@ public class RedirectingClient
     /**
      * Constructs a client.
      *
-     * @param urlValidator the validator every redirect target passes before it is requested
+     * @param urlValidator validator for redirect targets
      * @param maxRedirects the most redirects followed for one request
      */
     public RedirectingClient(URLValidator urlValidator, int maxRedirects)
@@ -88,43 +99,43 @@ public class RedirectingClient
     /**
      * Sends a {@code GET} request, following redirects.
      *
-     * @param targets maps each URI requested to its target, with any per-target filters registered on it
-     * @param uri the first URI, already validated by the caller
+     * @param targets maps each URI requested to its target
+     * @param uri the first URI, validated by the caller
      * @param invoker sends the request on the given target
-     * @return the response that did not redirect, open; the caller closes it
+     * @return the final response and its URI; the caller closes it
      */
-    public Response get(Function<URI, WebTarget> targets, URI uri, Function<WebTarget, Response> invoker)
+    public Result get(Function<URI, WebTarget> targets, URI uri, Function<WebTarget, Response> invoker)
     {
         return invoke(targets, uri, HttpMethod.GET, (target, method) -> invoker.apply(target));
     }
 
     /**
      * Sends a request, following redirects.
-     * The invoker is passed the method each hop goes out with: the request's own, or {@code GET} after a {@code 303}.
-     * It sends the request entity only with the request's own method.
+     * The invoker receives the method each hop uses: the request's own, or {@code GET} after a {@code 303}.
      *
-     * @param targets maps each URI requested to its target, with any per-target filters registered on it
-     * @param uri the first URI, already validated by the caller
+     * @param targets maps each URI requested to its target
+     * @param uri the first URI, validated by the caller
      * @param method the request method
      * @param invoker sends the request on the given target with the given method
-     * @return the response that did not redirect (or whose redirect is not followed), open; the caller closes it
-     * @throws BadGatewayException when a hop is refused or there are more than the allowed hops
+     * @return the final response and its URI; the caller closes it
+     * @throws BadGatewayException when a hop is refused or there are too many
      */
-    public Response invoke(Function<URI, WebTarget> targets, URI uri, String method, BiFunction<WebTarget, String, Response> invoker)
+    public Result invoke(Function<URI, WebTarget> targets, URI uri, String method, BiFunction<WebTarget, String, Response> invoker)
     {
         URI current = uri;
         String currentMethod = method;
 
         for (int hop = 0; ; hop++)
         {
-            Response response = invoker.apply(targets.apply(current), currentMethod);
+            WebTarget target = targets.apply(current).property(ClientProperties.FOLLOW_REDIRECTS, false);
+            Response response = invoker.apply(target, currentMethod);
 
             int status = response.getStatus();
             String location = response.getHeaderString(HttpHeaders.LOCATION);
-            if (!REDIRECT_STATUSES.contains(status) || location == null) return response;
+            if (!REDIRECT_STATUSES.contains(status) || location == null) return new Result(current, response);
 
             boolean safe = HttpMethod.GET.equalsIgnoreCase(currentMethod) || HttpMethod.HEAD.equalsIgnoreCase(currentMethod);
-            if (status != 303 && !safe) return response; // an unsafe request is not repeated elsewhere: the caller gets the redirect
+            if (status != 303 && !safe) return new Result(current, response);
             response.close();
 
             if (hop >= getMaxRedirects())
@@ -159,7 +170,7 @@ public class RedirectingClient
     }
 
     /**
-     * Returns the validator every redirect target passes.
+     * Returns the validator for redirect targets.
      *
      * @return URL validator
      */

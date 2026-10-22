@@ -282,9 +282,9 @@ public class WebIDFilter extends AuthenticationFilter
             // remove fragment identifier to get document URI
             URI webIDDoc = new URI(webID.getScheme(), webID.getSchemeSpecificPart(), null).normalize();
             
-            // the client follows no redirect itself: one is followed here, with the SSRF check on every hop
+            // redirects are followed with every hop validated
             RedirectingClient redirectingClient = new RedirectingClient(getSystem().getURLValidator());
-            try (Response cr1 = redirectingClient.get(getClient()::target, webIDDoc, target -> target.request(getAcceptableMediaTypes()).get()))
+            try (Response cr1 = redirectingClient.get(getClient()::target, webIDDoc, target -> target.request(getAcceptableMediaTypes()).get()).response())
             {
                 if (!cr1.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                 {
@@ -303,7 +303,7 @@ public class WebIDFilter extends AuthenticationFilter
                     // remove fragment identifier to get document URI
                     URI certKeyDoc = new URI(certKey.getScheme(), certKey.getSchemeSpecificPart(), null).normalize();
 
-                    try (Response cr2 = redirectingClient.get(getClient()::target, certKeyDoc, target -> target.request(getAcceptableMediaTypes()).get()))
+                    try (Response cr2 = redirectingClient.get(getClient()::target, certKeyDoc, target -> target.request(getAcceptableMediaTypes()).get()).response())
                     {
                         if (!cr2.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                         {

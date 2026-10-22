@@ -17,7 +17,8 @@
 package com.atomgraph.linkeddatahub.server.util;
 
 import com.atomgraph.client.util.jena.PrefixGraphRepository;
-import com.atomgraph.core.client.GraphStoreClient;
+import com.atomgraph.linkeddatahub.client.GraphStoreClient;
+import com.atomgraph.linkeddatahub.client.RedirectingClient;
 import com.atomgraph.linkeddatahub.dataspaces.model.AdminDataspace;
 import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import com.atomgraph.linkeddatahub.vocabulary.DH;
@@ -177,7 +178,9 @@ public class PackageService
             {
                 Files.createDirectories(copy.getParent());
 
-                try (Response cr = getSystem().getClient().target(declared).request(com.atomgraph.linkeddatahub.MediaType.TEXT_XSL_TYPE).get())
+                try (Response cr = new RedirectingClient(getSystem().getURLValidator()).
+                        get(getSystem().getClient()::target, declared, target -> target.request(com.atomgraph.linkeddatahub.MediaType.TEXT_XSL_TYPE).get()).
+                        response())
                 {
                     if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                         throw new IOException("Status " + cr.getStatus());
@@ -405,7 +408,8 @@ public class PackageService
                     // validate package URI to prevent SSRF attacks
                     getSystem().getURLValidator().validate(URI.create(packageURI));
 
-                    model = GraphStoreClient.create(getSystem().getClient(), getSystem().getMediaTypes()).getModel(packageURI);
+                    model = GraphStoreClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
+                        getModel(new RedirectingClient(getSystem().getURLValidator()), packageURI);
                 }
             }
             catch (RuntimeException ex) // invalid URI, 404 from the package server, connection refused, timeout...

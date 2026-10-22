@@ -774,8 +774,7 @@ public class Application extends ResourceConfig
             
             client = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null, false, connectionRequestTimeout, socketTimeout, connectTimeout, connectionTimeToLive, validateAfterInactivity);
             externalClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null, false, connectionRequestTimeout, socketTimeout, connectTimeout, connectionTimeToLive, validateAfterInactivity);
-            // the Linked Data proxy dereferences URIs from outside: a redirect the connector followed would reach
-            // its target unvalidated, so the proxy follows them itself (RedirectingClient), checking every hop
+            // redirects are followed by RedirectingClient, which validates every hop
             externalClient.property(ClientProperties.FOLLOW_REDIRECTS, false);
             // the external client's twin without the secretary's certificate: the Linked Data proxy's
             // upstream request for a caller who holds no identity, so the origin answers nobody rather
@@ -1784,7 +1783,7 @@ public class Application extends ResourceConfig
     
     /**
      * Builds HTTP client instance without TLS client certificates.
-     * It does not follow redirects: see {@link com.atomgraph.linkeddatahub.client.RedirectingClient}.
+     * It does not follow redirects; {@link com.atomgraph.linkeddatahub.client.RedirectingClient} does.
      * 
      * @param trustStore client truststore
      * @param maxConnPerRoute max connections per route
@@ -1840,9 +1839,7 @@ public class Application extends ResourceConfig
             config.register(new SPARQLResultProvider());
             config.register(new QueryProvider());
             config.register(new UpdateRequestProvider()); // TO-DO: UpdateRequestProvider
-            // no automatic redirects: the no-cert clients dereference URIs from outside (the proxy's anonymous
-            // requests, WebID documents), whose redirects RedirectingClient follows with the SSRF check on every hop.
-            // The backend store, the other use, does not redirect
+            // redirects are followed by RedirectingClient, which validates every hop
             config.property(ClientProperties.FOLLOW_REDIRECTS, false);
             config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED); // https://stackoverflow.com/questions/42139436/jersey-client-throws-cannot-retry-request-with-a-non-repeatable-request-entity
             config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);

@@ -228,7 +228,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
         try
         {
-            // redirects are followed here rather than by the client, so that every hop passes the SSRF check above
+            // every redirect hop is validated like targetURI
             Response clientResponse = new RedirectingClient(getSystem().getURLValidator()).invoke(targets, targetURI, requestContext.getMethod(), (target, method) ->
             {
                 Invocation.Builder builder = target.request().
@@ -244,11 +244,11 @@ public class ProxyRequestFilter implements ContainerRequestFilter
                     if (value != null) builder.header(name, value);
                 }
 
-                // the entity goes with the request's own method only: a 303 continues as an entity-less GET
+                // the entity goes with the request's own method only (a 303 continues as GET)
                 return requestContext.hasEntity() && method.equalsIgnoreCase(requestContext.getMethod())
                     ? builder.method(method, Entity.entity(requestContext.getEntityStream(), requestContext.getMediaType()))
                     : builder.method(method);
-            });
+            }).response();
 
             try (clientResponse)
             {
