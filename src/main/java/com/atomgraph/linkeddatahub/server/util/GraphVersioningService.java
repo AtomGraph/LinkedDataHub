@@ -24,6 +24,7 @@ import com.atomgraph.linkeddatahub.vocabulary.LDS;
 import com.atomgraph.linkeddatahub.vocabulary.PROV;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.core.CacheControl;
 import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -109,6 +110,16 @@ public class GraphVersioningService
         {
             it.close();
         }
+    }
+
+    /**
+     * Builds the service over a given per-application repository map.
+     *
+     * @param repositories repositories keyed by application URI
+     */
+    protected GraphVersioningService(Map<String, Repository> repositories)
+    {
+        this.repositories = new HashMap<>(repositories);
     }
 
     private Repository repository(Resource app, Resource repo, Client client)
@@ -224,8 +235,43 @@ public class GraphVersioningService
         });
     }
 
-    /** A historical graph version: the model and the commit datetime */
-    public record Version(Model model, Instant datetime) { }
+    /** Max age of a version whose commit date is known: a commit SHA names one state forever */
+    public static final int IMMUTABLE_MAX_AGE = 31536000;
+    /** Max age of a version whose commit date could not be fetched: short, so the dated response replaces it soon */
+    public static final int UNDATED_MAX_AGE = 60;
+
+    /**
+     * A historical graph version: the model and the commit datetime.
+     *
+     * @param model graph state at the commit
+     * @param datetime commit datetime, or null if it could not be fetched
+     */
+    public record Version(Model model, Instant datetime)
+    {
+
+        /**
+         * Returns how long the version can be cached.
+         * A version whose commit date is known is immutable. One whose date could not be fetched is a Memento without
+         * its <code>Memento-Datetime</code> (RFC 7089 section 2.1.1), so it is cached briefly rather than for a year:
+         * the fetch may succeed on the next request.
+         *
+         * @return cache control
+         */
+        public CacheControl getCacheControl()
+        {
+            CacheControl cacheControl = new CacheControl();
+
+            if (datetime() != null)
+            {
+                cacheControl.setMaxAge(IMMUTABLE_MAX_AGE);
+                cacheControl.getCacheExtension().put("immutable", "");
+            }
+            else cacheControl.setMaxAge(UNDATED_MAX_AGE);
+
+            return cacheControl;
+        }
+
+    }
 
     /**
      * Selects the graph's Memento for a requested datetime, as a TimeGate does.

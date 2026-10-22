@@ -31,7 +31,14 @@ import org.apache.jena.riot.RDFParser;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
+import jakarta.ws.rs.core.CacheControl;
+import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -190,6 +197,41 @@ public class GraphVersioningServiceTest
         RDFParser.source(new java.io.ByteArrayInputStream(GraphVersioningService.toSortedNTriples(model))).lang(Lang.NTRIPLES).parse(parsed);
 
         assertTrue(model.isIsomorphicWith(parsed));
+    }
+
+    /**
+     * A version whose commit date could not be fetched is served without Memento-Datetime, so it must not be cached
+     * as immutable for a year.
+     */
+    @Test
+    public void testVersionWithoutCommitDateIsNotImmutable()
+    {
+        GitHubClient client = mock(GitHubClient.class);
+        when(client.getFileAtCommit("graphs/doc.nt", "abc123")).thenReturn(Optional.of("<https://localhost:4443/doc/> <http://purl.org/dc/terms/title> \"Doc\" .\n".getBytes(StandardCharsets.UTF_8)));
+        when(client.getCommitDate("abc123")).thenReturn(Optional.empty());
+
+        GraphVersioningService service = new GraphVersioningService(Map.of("https://localhost:4443/", new GraphVersioningService.Repository(client, "graphs")));
+        GraphVersioningService.Version version = service.getVersion("https://localhost:4443/", BASE, URI.create("https://localhost:4443/doc/"), "abc123").orElseThrow();
+
+        assertNull(version.datetime());
+        CacheControl cacheControl = version.getCacheControl();
+        assertFalse(cacheControl.getCacheExtension().containsKey("immutable"));
+        assertEquals(GraphVersioningService.UNDATED_MAX_AGE, cacheControl.getMaxAge());
+    }
+
+    @Test
+    public void testVersionWithCommitDateIsImmutable()
+    {
+        GitHubClient client = mock(GitHubClient.class);
+        when(client.getFileAtCommit("graphs/doc.nt", "abc123")).thenReturn(Optional.of(new byte[0]));
+        when(client.getCommitDate("abc123")).thenReturn(Optional.of(Instant.parse("2026-08-17T12:00:00Z")));
+
+        GraphVersioningService service = new GraphVersioningService(Map.of("https://localhost:4443/", new GraphVersioningService.Repository(client, "graphs")));
+        GraphVersioningService.Version version = service.getVersion("https://localhost:4443/", BASE, URI.create("https://localhost:4443/doc/"), "abc123").orElseThrow();
+
+        CacheControl cacheControl = version.getCacheControl();
+        assertTrue(cacheControl.getCacheExtension().containsKey("immutable"));
+        assertEquals(GraphVersioningService.IMMUTABLE_MAX_AGE, cacheControl.getMaxAge());
     }
 
 }
