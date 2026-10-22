@@ -12,6 +12,8 @@
 - `PATCH /settings` is held to the same terms as a write to an existing document: it quotes the settings' entity tag in `If-Match` or is refused with `428`, a stale tag gets `412`, and it answers `204` with the new tag; `ldh packages add`/`remove` already send it (#453)
 - The seeded admin authorization that granted every authenticated agent `acl:Append` on `acl/authorization-requests/` is gone: `acl:Append` on a container now lets an agent create documents in it. Access requests go through `/access/request` and never used it, so delete `acl/authorizations/append-request/` from existing admin datasets
 - Deployments that keep a copy of `docker-compose.yml` need to re-sync the front Varnish VCL, which drops a `Range` header it cannot forward
+- Deployments that keep a copy of `docker-compose.yml` need to re-sync it: the nginx and front Varnish configurations changed for the security fixes below
+- `.env` needs a new `PROXY_SECRET` variable, a random value nginx sends to the platform: re-sync `Makefile` and run `make secrets`, which appends one, or add the output of `openssl rand -hex 32`. Docker Compose and the platform refuse to start without it, and the platform accepts a forwarded client certificate only from a proxy that sends it
 
 - The seeded admin authorization that granted every authenticated agent `acl:Append` on `acl/authorization-requests/` is gone: `acl:Append` on a container now lets an agent create documents in it. Access requests go through `/access/request` and never used it, so delete `acl/authorizations/append-request/` from existing admin datasets
 ### Added
@@ -41,6 +43,12 @@
 - A `428 Precondition Required` (documents and `PATCH /settings`) carries a plain-text body naming `If-Match` and how to get the current entity tag with `HEAD` (RFC 6585 3)
 - A `POST`, `PUT`, `PATCH` or `DELETE` whose `Accept` names no RDF syntax is no longer refused with `406`: the response has no body, `If-Match` holds when it names the current tag of any variant, and the response carries no `ETag` (GSP 5.3, 5.4; RFC 9110 12.5.1)
 - Byte ranges of uploaded files follow RFC 9110: a `Range` in another unit, a malformed one, an inverted one, several ranges, or one on `HEAD` serves the whole file instead of a wrong range, a `500` or a `503` from Varnish; suffix ranges (`bytes=-500`) are served; a range starting past the end answers `416` with `Content-Range: bytes */N`; `If-Range` is honoured; an open range (`bytes=N-`) runs to the end of the file instead of stopping after 1 MB
+
+### Security
+- nginx sets the identity and forwarding headers once per server instead of per location, and refuses unusual request paths with `400`; Tomcat's connectors reject suspicious URIs as well, and the platform accepts a forwarded client certificate only together with a secret shared with nginx
+- The front Varnish no longer caches responses to requests authenticated by an OAuth session, and the platform marks every response to an authenticated agent `Cache-Control: private`
+- Uploaded files are marked `Cache-Control: private`, as they are access-controlled
+- Writes and access-control changes evict the affected responses from the front Varnish (surrogate keys via `xkey` in place of URL bans), and documents are served `Cache-Control: no-cache` so caches revalidate them
 
 ## [6.2.3] - 2026-10-21
 ### Migration
