@@ -34,6 +34,7 @@ import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import org.apache.jena.update.UpdateRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +58,7 @@ public class GraphStoreClient extends com.atomgraph.core.client.GraphStoreClient
 
     private URI baseURI;
     private AgentContext agentContext;
+    private Predicate<URI> isDataspace;
     private long defaultDelayMillis;
     private final int maxRetryCount;
 
@@ -145,18 +147,20 @@ public class GraphStoreClient extends com.atomgraph.core.client.GraphStoreClient
      * 
      * @param baseURI application's base URI
      * @param agentContext agent's auth context
+     * @param isDataspace tells whether a URI is on the origin of one of this instance's dataspaces
      * @return client instance
      */
-    public GraphStoreClient delegation(URI baseURI, AgentContext agentContext)
+    public GraphStoreClient delegation(URI baseURI, AgentContext agentContext, Predicate<URI> isDataspace)
     {
         this.baseURI = baseURI;
         this.agentContext = agentContext;
+        this.isDataspace = isDataspace;
         return this;
     }
-    
+
     /**
-     * Creates web target for URI.WebID can be delegated depending on the parameter.
-     * 
+     * Creates web target for URI. The agent is delegated when the request goes to a dataspace origin.
+     *
      * @param uri target URI
      * @return web target
      */
@@ -164,25 +168,34 @@ public class GraphStoreClient extends com.atomgraph.core.client.GraphStoreClient
     protected WebTarget getWebTarget(URI uri)
     {
         WebTarget webTarget = super.getWebTarget(uri);
-        
-        if (getAgentContext() != null)
-        {
-            if (getAgentContext() instanceof WebIDSecurityContext webIDSecurityContext)
-            {
-                // TO-DO: unify with other usages of WebIDDelegationFilter/IDTokenDelegationFilter
-                if (log.isDebugEnabled()) log.debug("Delegating Agent's <{}> access to secretary", webIDSecurityContext.getAgent());
-                webTarget.register(new WebIDDelegationFilter(webIDSecurityContext.getAgent()));
-            }
-            
-            if (getAgentContext() instanceof IDTokenSecurityContext iDTokenSecurityContext)
-            {
-                IDTokenSecurityContext idTokenContext = iDTokenSecurityContext;
-                webTarget.register(new IDTokenDelegationFilter(idTokenContext.getAgent(), idTokenContext.getJWTToken(),
-                    getBaseURI().getPath(), null));
-            }
-        }
-        
+
+        if (getAgentContext() != null && isDataspace != null)
+            delegate(webTarget, getAgentContext(), isDataspace.test(webTarget.getUri()), getBaseURI().getPath());
+
         return webTarget;
+    }
+
+    /**
+     * Registers the delegation of the agent on a request to one of this instance's dataspaces: the
+     * <code>On-Behalf-Of</code> header, and for an ID token agent also the token cookie.
+     * Requests to other origins carry neither.
+     *
+     * @param target outbound web target
+     * @param agentContext agent's auth context, or null if anonymous
+     * @param isDataspace true if the target is on the origin of one of this instance's dataspaces
+     * @param cookiePath path of the delegated ID token cookie
+     * @return the web target
+     */
+    public static WebTarget delegate(WebTarget target, AgentContext agentContext, boolean isDataspace, String cookiePath)
+    {
+        if (agentContext == null || !isDataspace) return target;
+
+        if (agentContext instanceof IDTokenSecurityContext idTokenContext)
+            target.register(new IDTokenDelegationFilter(idTokenContext.getAgent(), idTokenContext.getJWTToken(), cookiePath, null));
+        else if (agentContext instanceof WebIDSecurityContext webIDContext)
+            target.register(new WebIDDelegationFilter(webIDContext.getAgent()));
+
+        return target;
     }
     
     @Override

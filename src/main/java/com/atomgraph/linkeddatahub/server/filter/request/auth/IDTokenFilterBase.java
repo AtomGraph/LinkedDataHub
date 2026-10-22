@@ -135,7 +135,7 @@ public abstract class IDTokenFilterBase extends AuthenticationFilter
 
     /**
      * Verifies the algorithm, signature, issuer and audience of the specified JWT ID token, but not its expiry.
-     * An expired token that passes is genuine and may be refreshed.
+     * An expired token that passes may be refreshed.
      *
      * @param idToken ID token
      * @return true if the signature verifies
@@ -211,8 +211,7 @@ public abstract class IDTokenFilterBase extends AuthenticationFilter
             return null;
         }
 
-        // the signature is verified before any claim is read: until then the subject, audience, issuer and expiry
-        // are whatever the sender wrote, and the expiry decides whether a stored refresh token is used for the subject
+        // claims are read only from a token whose signature verifies
         if (!verifySignature(jwt)) return null;
         if (jwt.getExpiresAt() == null) return null; // an ID token always carries exp (OpenID Connect Core 1.0, 2)
 
@@ -230,9 +229,8 @@ public abstract class IDTokenFilterBase extends AuthenticationFilter
                 throw new TokenExpiredException("ID token for subject '%s' has expired at %s".formatted(jwt.getSubject(), jwt.getExpiresAt()), jwt.getExpiresAt().toInstant());
             }
         }
-        if (!verify(jwt)) return null; // the refreshed token, or the presented one again now with its expiry checked
+        if (!verify(jwt)) return null; // full verification, expiry included, of the token in use
 
-        ParameterizedSparqlString pss = getUserAccountQuery();
         String cacheKey = jwt.getIssuer() + jwt.getSubject();
         final Model agentModel;
         Literal userId = ResourceFactory.createStringLiteral(jwt.getSubject());
@@ -245,7 +243,7 @@ public abstract class IDTokenFilterBase extends AuthenticationFilter
             qsm.add(SIOC.ID.getLocalName(), userId);
             qsm.add(LACL.issuer.getLocalName(), ResourceFactory.createStringLiteral(jwt.getIssuer()));
 
-            agentModel = loadModel(pss, qsm, getAgentService());
+            agentModel = loadModel(getUserAccountQuery(), qsm, getAgentService());
         }
 
         Resource account = getResourceByPropertyValue(agentModel, SIOC.ID, userId);
@@ -260,7 +258,7 @@ public abstract class IDTokenFilterBase extends AuthenticationFilter
         getSystem().getOIDCModelCache().put(cacheKey, agentModel, expiration, TimeUnit.SECONDS);
 
         // imitate type inference, otherwise we'll get Jena's polymorphism exception
-        return new IDTokenSecurityContext(getScheme(), agent.addProperty(RDF.type, FOAF.Agent).as(Agent.class), jwtString);
+        return new IDTokenSecurityContext(getScheme(), agent.addProperty(RDF.type, FOAF.Agent).as(Agent.class), jwt.getToken()); // the refreshed token if there was a refresh
     }
 
     /**

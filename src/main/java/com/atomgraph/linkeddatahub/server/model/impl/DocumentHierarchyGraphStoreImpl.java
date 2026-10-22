@@ -1230,7 +1230,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         // apply - registered on the client, not on importClient, which also fetches the import SOURCE
         // from a URL nobody controls and stays bounded
         GraphStoreClient gsc = GraphStoreClient.create(getSystem().getImportClient(), getSystem().getMediaTypes()).
-            delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
+            delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null), uri -> getSystem().matchApp(uri) != null);
         gsc.register(new UnlimitedContentLengthFilter());
 
         for (Resource _import : imports)

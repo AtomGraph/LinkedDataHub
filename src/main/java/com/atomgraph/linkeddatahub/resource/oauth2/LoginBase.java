@@ -298,7 +298,7 @@ public abstract class LoginBase
                 if (agentSvcProxy != null) ban(agentSvcProxy, jwt.getSubject());
             }
 
-            // the state cookie is client-controlled, so its referer is checked again: Authorize checked only what it wrote
+            // the referer from the state cookie is checked again before redirecting
             URI originalReferer = AuthorizeBase.checkReferer(getSystem(), getEndUserDataspace().getBaseURI(), getReferer(stateCookie.getValue()));
 
             // Pass ID token in URL fragment for client-side cookie setting (works uniformly across all domains)

@@ -88,13 +88,12 @@ public abstract class AuthorizeBase
             path(getLoginClass()).
             build();
 
-        // the login redirects to the referer with the ID token in the fragment, so it may only be one of this instance's dataspaces
+        // the referer must be on one of this instance's dataspaces
         URI referer = checkReferer(getSystem(), getEndUserDataspace().getBaseURI(), originUri);
 
         String state = new BigInteger(130, new SecureRandom()).toString(32);
         String stateValue = Base64.getEncoder().encodeToString((state + ";" + referer).getBytes(StandardCharsets.UTF_8));
-        // Cookie path is "/" to make it accessible across all dataspaces. Lax, not Strict: the provider's redirect back to
-        // the login endpoint is a cross-site top-level navigation, which has to carry it
+        // path "/" makes the cookie visible to all dataspaces; SameSite=Lax lets the provider's redirect back carry it
         NewCookie stateCookie = new NewCookie.Builder(COOKIE_NAME).
             value(stateValue).
             path("/").
@@ -111,10 +110,8 @@ public abstract class AuthorizeBase
     }
 
     /**
-     * Returns the URI to redirect to after login, if the referer is safe to send an ID token to.
-     * That is the referer resolved against the base, when it is an HTTP(S) URI on the origin of one of this instance's
-     * dataspaces; its fragment is dropped, since the login appends its own. Anything else (another origin, another
-     * scheme, a malformed URI, none at all) gives the base.
+     * Returns the URI to redirect to after login: the referer resolved against the base, without its fragment, if it is
+     * an HTTP(S) URI on the origin of one of this instance's dataspaces; otherwise the base.
      *
      * @param system JAX-RS application, which knows the registered dataspaces
      * @param base base URI of the current dataspace, and the fallback

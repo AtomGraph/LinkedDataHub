@@ -27,8 +27,6 @@ import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
 import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.io.HtmlJsonLDReaderFactory;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
-import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
-import com.atomgraph.linkeddatahub.server.security.WebIDSecurityContext;
 import com.atomgraph.linkeddatahub.vocabulary.LDS;
 import java.io.IOException;
 import java.io.InputStream;
@@ -210,19 +208,13 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         // LNK-009: validate that the target URI is not an internal/private address (SSRF protection)
         getSystem().getURLValidator().validate(targetURI);
 
-        // the caller's identity decides which client dereferences. An authenticated caller is delegated:
-        // the request goes out with the platform's certificate and an On-Behalf-Of the origin verifies
-        // against acl:delegates, so the origin answers the caller. A caller with no identity has nobody
-        // to delegate, and must not go out with the platform's certificate either - the origin would
-        // authenticate the secretary itself, a writer of every dataspace, and answer with its access:
-        // private documents readable, writes applied, and acl:Write in the Link headers the client reads
-        // its edit affordances off. So an anonymous caller dereferences with no certificate at all, and
-        // the origin sees what the caller is
+        // an authenticated caller proxying one of this instance's dataspaces is delegated: the platform's certificate
+        // plus On-Behalf-Of, which the origin verifies against acl:delegates. Every other request goes out with no
+        // certificate and no delegation
         AgentContext agentContext = (AgentContext) requestContext.getProperty(AgentContext.class.getCanonicalName());
-        WebTarget target = (agentContext != null ? getSystem().getExternalClient() : getSystem().getExternalNoCertClient()).target(targetURI);
-
-        // forward agent identity to the target endpoint
-        delegate(target, agentContext, isRegisteredApp, requestContext.getUriInfo().getBaseUri().getPath());
+        boolean isDelegated = agentContext != null && isRegisteredApp;
+        WebTarget target = (isDelegated ? getSystem().getExternalClient() : getSystem().getExternalNoCertClient()).target(targetURI);
+        GraphStoreClient.delegate(target, agentContext, isRegisteredApp, requestContext.getUriInfo().getBaseUri().getPath());
 
         MediaType[] clientAcceptTypes = requestContext.getAcceptableMediaTypes().toArray(MediaType[]::new);
         if (log.isDebugEnabled()) log.debug("Proxying {} {} → {}", requestContext.getMethod(), requestContext.getUriInfo().getRequestUri(), targetURI);
@@ -267,29 +259,6 @@ public class ProxyRequestFilter implements ContainerRequestFilter
             if (log.isWarnEnabled()) log.warn("Could not dereference proxied URI: {}", targetURI);
             throw new BadGatewayException(ex);
         }
-    }
-
-    /**
-     * Registers the delegation of the caller's identity on the outbound request.
-     * A WebID caller is named in <code>On-Behalf-Of</code>, which the origin verifies against
-     * <code>acl:delegates</code>. An ID token caller's token is a bearer credential: it goes only to this
-     * instance's dataspaces, which verify it themselves. Any other origin could replay it here as the caller, so
-     * there the caller is only named in <code>On-Behalf-Of</code>, like a WebID caller.
-     *
-     * @param target outbound web target
-     * @param agentContext caller's agent context, or null if the caller is anonymous
-     * @param isRegisteredApp true if the target's origin is one of this instance's dataspaces
-     * @param cookiePath path of the delegated ID token cookie
-     */
-    protected void delegate(WebTarget target, AgentContext agentContext, boolean isRegisteredApp, String cookiePath)
-    {
-        if (agentContext == null) return;
-
-        if (agentContext instanceof IDTokenSecurityContext idTokenSecurityContext && isRegisteredApp)
-            target.register(new IDTokenDelegationFilter(agentContext.getAgent(),
-                idTokenSecurityContext.getJWTToken(), cookiePath, null));
-        else if (agentContext instanceof WebIDSecurityContext || agentContext instanceof IDTokenSecurityContext)
-            target.register(new WebIDDelegationFilter(agentContext.getAgent()));
     }
 
     /**

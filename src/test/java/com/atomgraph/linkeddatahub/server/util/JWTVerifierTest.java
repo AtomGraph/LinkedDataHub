@@ -21,6 +21,10 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.Invocation;
+import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.Response;
 import java.math.BigInteger;
 import java.net.URI;
 import java.security.KeyPair;
@@ -35,8 +39,14 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for JWKS-based JWT verification.
@@ -54,7 +64,7 @@ public class JWTVerifierTest
     private static final URI JWKS_ENDPOINT = URI.create("https://accounts.example.com/jwks");
 
     private static KeyPair keyPair; // published in the JWKS
-    private static KeyPair otherKeyPair; // used to forge a bad signature
+    private static KeyPair otherKeyPair; // not published
     private static List<String> allowedIssuers;
     private static Map<String, JsonObject> jwksCache;
 
@@ -125,7 +135,7 @@ public class JWTVerifierTest
         assertFalse(JWTVerifier.verify(jwt, JWKS_ENDPOINT, allowedIssuers, CLIENT_ID, null, jwksCache));
     }
 
-    /** A genuine token that has expired still verifies its signature: its holder may have it refreshed */
+    /** An expired token with a valid signature passes the signature check */
     @Test
     public void testSignatureOfExpiredTokenVerifies()
     {
@@ -148,7 +158,7 @@ public class JWTVerifierTest
         assertFalse(JWTVerifier.verify(jwt, JWKS_ENDPOINT, allowedIssuers, CLIENT_ID, null, jwksCache));
     }
 
-    /** An HMAC token keyed with something public (here the published modulus) must not pass as the provider's */
+    /** An HS256 token is rejected */
     @Test
     public void testHmacTokenRejected()
     {
@@ -175,8 +185,71 @@ public class JWTVerifierTest
     @Test
     public void testSignatureWithUnknownKeyIdRejected()
     {
+        // the re-fetched JWKS does not have the key either
+        URI endpoint = URI.create("https://accounts.example.com/jwks-unknown");
+        Map<String, JsonObject> cache = new HashMap<>(Map.of(endpoint.toString(), jwks(KID, keyPair)));
+        Client client = mockClient(jwks(KID, keyPair));
+
         DecodedJWT jwt = JWT.decode(createToken(ISSUER, CLIENT_ID, "unknown-key", Instant.now().plusSeconds(300), keyPair));
-        assertFalse(JWTVerifier.verifySignature(jwt, JWKS_ENDPOINT, allowedIssuers, CLIENT_ID, null, jwksCache));
+        assertFalse(JWTVerifier.verifySignature(jwt, endpoint, allowedIssuers, CLIENT_ID, client, cache));
+    }
+
+    /** A key ID missing from the cached JWKS re-fetches it, and the new key verifies */
+    @Test
+    public void testRotatedKeyRefetchesJWKS()
+    {
+        URI endpoint = URI.create("https://accounts.example.com/jwks-rotated");
+        Map<String, JsonObject> cache = new HashMap<>(Map.of(endpoint.toString(), jwks(KID, keyPair)));
+        JsonObject rotated = jwks("rotated-key", otherKeyPair);
+        Client client = mockClient(rotated);
+
+        DecodedJWT jwt = JWT.decode(createToken(ISSUER, CLIENT_ID, "rotated-key", Instant.now().plusSeconds(300), otherKeyPair));
+        assertTrue(JWTVerifier.verifySignature(jwt, endpoint, allowedIssuers, CLIENT_ID, client, cache));
+        assertTrue(JWTVerifier.verify(jwt, endpoint, allowedIssuers, CLIENT_ID, client, cache)); // now from the cache
+        assertEquals(rotated, cache.get(endpoint.toString()));
+        verify(client, times(1)).target(endpoint);
+    }
+
+    /** Unknown key IDs re-fetch the JWKS at most once per interval */
+    @Test
+    public void testJWKSRefetchRateLimited()
+    {
+        URI endpoint = URI.create("https://accounts.example.com/jwks-rate-limited");
+        Map<String, JsonObject> cache = new HashMap<>(Map.of(endpoint.toString(), jwks(KID, keyPair)));
+        Client client = mockClient(jwks(KID, keyPair));
+
+        for (int i = 0; i < 3; i++)
+        {
+            DecodedJWT jwt = JWT.decode(createToken(ISSUER, CLIENT_ID, "unknown-key-" + i, Instant.now().plusSeconds(300), keyPair));
+            assertFalse(JWTVerifier.verifySignature(jwt, endpoint, allowedIssuers, CLIENT_ID, client, cache));
+        }
+        verify(client, times(1)).target(endpoint);
+    }
+
+    private static JsonObject jwks(String kid, KeyPair publishedKeyPair)
+    {
+        JsonObject jwk = Json.createObjectBuilder().
+            add("kty", "RSA").
+            add("alg", "RS256").
+            add("kid", kid).
+            add("n", base64Url(((RSAPublicKey) publishedKeyPair.getPublic()).getModulus())).
+            add("e", base64Url(((RSAPublicKey) publishedKeyPair.getPublic()).getPublicExponent())).
+            build();
+        return Json.createObjectBuilder().add("keys", Json.createArrayBuilder().add(jwk)).build();
+    }
+
+    private static Client mockClient(JsonObject jwks)
+    {
+        Client client = mock(Client.class);
+        WebTarget target = mock(WebTarget.class);
+        Invocation.Builder builder = mock(Invocation.Builder.class);
+        Response response = mock(Response.class);
+        when(client.target(any(URI.class))).thenReturn(target);
+        when(target.request()).thenReturn(builder);
+        when(builder.get()).thenReturn(response);
+        when(response.getStatusInfo()).thenReturn(Response.Status.OK);
+        when(response.readEntity(JsonObject.class)).thenReturn(jwks);
+        return client;
     }
 
     private static String createToken(String issuer, String audience, String kid, Instant expiresAt, KeyPair signingKeyPair)

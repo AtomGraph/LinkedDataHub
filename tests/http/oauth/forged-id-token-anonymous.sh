@@ -9,10 +9,8 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 reset_packages
 clear_ontology
 
-# An ID token cookie is only evidence of an identity once its signature verifies against the provider's keys, and
-# nothing it claims - subject, audience, issuer, expiry - is acted upon before that. An unsigned token carrying a
-# past expiry must leave the caller anonymous: no authentication, and no refresh on the subject's behalf.
-# Needs no OAuth provider: without one the cookie is not read at all, and the outcome is the same.
+# An ID token cookie whose signature does not verify leaves the caller anonymous, whatever its claims.
+# Needs no OAuth provider.
 
 base64url()
 {

@@ -32,6 +32,9 @@ import java.security.spec.RSAPublicKeySpec;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import jakarta.ws.rs.ProcessingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +50,10 @@ public class JWTVerifier
 
     /** The only signature algorithm accepted: the one Google and ORCID sign their ID tokens with */
     public static final String ALGORITHM = "RS256";
+    /** Minimum interval between fetches of the same JWKS endpoint triggered by an unknown key ID */
+    public static final long JWKS_REFETCH_INTERVAL_MILLIS = 60_000L;
+    /** Time of the last fetch per JWKS endpoint */
+    private static final ConcurrentMap<String, Long> JWKS_FETCHED_AT = new ConcurrentHashMap<>();
 
     /**
      * Verifies a JWT ID token using JWKS-based signature verification.
@@ -107,13 +114,8 @@ public class JWTVerifier
 
     /**
      * Verifies that a JWT ID token was issued to this client by a trusted provider, without checking its expiry.
-     * The header must name {@value #ALGORITHM}, which refuses <code>alg: none</code> and the HMAC algorithms; the
-     * signature must verify against the provider's published key; the issuer must be allowed and the audience must
-     * contain the client ID.
-     * <p>
-     * Until this returns <code>true</code>, a token's subject, issuer, audience and expiry are whatever its sender
-     * wrote. An expired token that passes is a genuine one, which its holder may have refreshed; a token that fails
-     * is evidence of nobody.
+     * The header must name {@value #ALGORITHM}; the signature must verify against the provider's published key; the
+     * issuer must be allowed and the audience must contain the client ID. An expired token that passes may be refreshed.
      *
      * @param jwt decoded JWT ID token to verify
      * @param jwksEndpoint JWKS endpoint URI
@@ -137,10 +139,9 @@ public class JWTVerifier
             RSAPublicKey publicKey = getPublicKey(jwt, jwksEndpoint, client, jwksCache);
             if (publicKey == null) return false;
 
-            // throws SignatureVerificationException if the signature was not made with the provider's key
+            // throws SignatureVerificationException if the signature does not verify
             com.auth0.jwt.algorithms.Algorithm.RSA256(publicKey, null).verify(jwt);
 
-            // the claims can be trusted from here on
             if (!allowedIssuers.contains(jwt.getIssuer()))
             {
                 if (log.isErrorEnabled()) log.error("JWT issuer '{}' not in allowed list: {}", jwt.getIssuer(), allowedIssuers);
@@ -167,7 +168,89 @@ public class JWTVerifier
     }
 
     /**
+     * Fetches the JWKS from the provider and caches it.
+     *
+     * @param jwksEndpoint JWKS endpoint URI
+     * @param client JAX-RS client for HTTP requests
+     * @param jwksCache optional cache for JWKS responses
+     * @return the JWKS, or null if it could not be fetched
+     */
+    private static JsonObject fetchJWKS(URI jwksEndpoint, Client client, Map<String, JsonObject> jwksCache)
+    {
+        JWKS_FETCHED_AT.put(jwksEndpoint.toString(), System.currentTimeMillis());
+
+        try (Response jwksResponse = client.target(jwksEndpoint).request().get())
+        {
+            if (!jwksResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+            {
+                if (log.isErrorEnabled()) log.error("Failed to fetch JWKS from {}", jwksEndpoint);
+                return null;
+            }
+
+            JsonObject jwks = jwksResponse.readEntity(JsonObject.class);
+            if (jwksCache != null)
+            {
+                jwksCache.put(jwksEndpoint.toString(), jwks);
+                if (log.isDebugEnabled()) log.debug("Cached JWKS for endpoint: {}", jwksEndpoint);
+            }
+            return jwks;
+        }
+        catch (ProcessingException ex)
+        {
+            if (log.isErrorEnabled()) log.error("Failed to fetch JWKS from {}", jwksEndpoint, ex);
+            return null;
+        }
+    }
+
+    /**
+     * Returns true, and records the time, if the JWKS endpoint was last fetched at least
+     * {@value #JWKS_REFETCH_INTERVAL_MILLIS} ms ago or never.
+     *
+     * @param jwksEndpoint JWKS endpoint URI
+     * @return true if a re-fetch may go ahead
+     */
+    private static boolean isRefetchAllowed(URI jwksEndpoint)
+    {
+        long now = System.currentTimeMillis();
+        boolean[] allowed = { false };
+        JWKS_FETCHED_AT.compute(jwksEndpoint.toString(), (endpoint, fetchedAt) ->
+        {
+            if (fetchedAt != null && now - fetchedAt < JWKS_REFETCH_INTERVAL_MILLIS) return fetchedAt;
+            allowed[0] = true;
+            return now;
+        });
+        return allowed[0];
+    }
+
+    /**
+     * Returns the key with the given ID from a JWKS.
+     *
+     * @param jwks JWKS
+     * @param kid key ID
+     * @return the key, or null if there is none
+     */
+    private static JsonObject findKey(JsonObject jwks, String kid)
+    {
+        JsonArray keys = jwks.getJsonArray("keys");
+        if (keys == null)
+        {
+            if (log.isErrorEnabled()) log.error("JWKS does not contain 'keys' array");
+            return null;
+        }
+
+        for (int i = 0; i < keys.size(); i++)
+        {
+            JsonObject key = keys.getJsonObject(i);
+            if (kid.equals(key.getString("kid", null))) return key;
+        }
+
+        return null;
+    }
+
+    /**
      * Returns the provider's public key named by the JWT's <code>kid</code> header.
+     * A <code>kid</code> missing from the cached JWKS re-fetches it, at most once per
+     * {@value #JWKS_REFETCH_INTERVAL_MILLIS} ms per endpoint.
      *
      * @param jwt decoded JWT
      * @param jwksEndpoint JWKS endpoint URI
@@ -189,53 +272,19 @@ public class JWTVerifier
         }
 
         // Get JWKS (from cache or fetch)
-        JsonObject jwks;
-        String cacheKey = jwksEndpoint.toString();
+        JsonObject jwks = jwksCache != null ? jwksCache.get(jwksEndpoint.toString()) : null;
+        boolean cached = jwks != null;
+        if (!cached) jwks = fetchJWKS(jwksEndpoint, client, jwksCache);
+        if (jwks == null) return null;
 
-        if (jwksCache != null && jwksCache.containsKey(cacheKey))
+        JsonObject matchingKey = findKey(jwks, kid);
+
+        // the provider may have rotated its keys since the JWKS was cached
+        if (matchingKey == null && cached && isRefetchAllowed(jwksEndpoint))
         {
-            jwks = jwksCache.get(cacheKey);
-            if (log.isDebugEnabled()) log.debug("Using cached JWKS for endpoint: {}", jwksEndpoint);
-        }
-        else
-        {
-            // Fetch JWKS from the provider
-            try (Response jwksResponse = client.target(jwksEndpoint).request().get())
-            {
-                if (!jwksResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
-                {
-                    if (log.isErrorEnabled()) log.error("Failed to fetch JWKS from {}", jwksEndpoint);
-                    return null;
-                }
-
-                jwks = jwksResponse.readEntity(JsonObject.class);
-
-                // Cache the JWKS if cache is provided
-                if (jwksCache != null)
-                {
-                    jwksCache.put(cacheKey, jwks);
-                    if (log.isDebugEnabled()) log.debug("Cached JWKS for endpoint: {}", jwksEndpoint);
-                }
-            }
-        }
-
-        JsonArray keys = jwks.getJsonArray("keys");
-        if (keys == null)
-        {
-            if (log.isErrorEnabled()) log.error("JWKS does not contain 'keys' array");
-            return null;
-        }
-
-        // Find matching key
-        JsonObject matchingKey = null;
-        for (int i = 0; i < keys.size(); i++)
-        {
-            JsonObject key = keys.getJsonObject(i);
-            if (kid.equals(key.getString("kid", null)))
-            {
-                matchingKey = key;
-                break;
-            }
+            if (log.isDebugEnabled()) log.debug("No key in cached JWKS for kid: {}, re-fetching {}", kid, jwksEndpoint);
+            jwks = fetchJWKS(jwksEndpoint, client, jwksCache);
+            if (jwks != null) matchingKey = findKey(jwks, kid);
         }
 
         if (matchingKey == null)

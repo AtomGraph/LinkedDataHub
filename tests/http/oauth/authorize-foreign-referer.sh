@@ -4,9 +4,8 @@ set -euo pipefail
 purge_cache "$END_USER_VARNISH_SERVICE"
 purge_cache "$FRONTEND_VARNISH_SERVICE"
 
-# The login redirects to the referer the authorization started from, with the ID token in the fragment, so only one
-# of this instance's dataspaces may be that referer: another origin is replaced by the dataspace base before it is
-# stored in the state cookie. The state cookie is also Secure, HttpOnly and SameSite=Lax.
+# The state cookie stores the referer only if it is on one of this instance's dataspaces, and the dataspace base
+# otherwise. The cookie is Secure, HttpOnly and SameSite=Lax.
 # Needs a configured Google OAuth client; skipped otherwise.
 
 authorize="${END_USER_BASE_URL}oauth2/authorize/google"

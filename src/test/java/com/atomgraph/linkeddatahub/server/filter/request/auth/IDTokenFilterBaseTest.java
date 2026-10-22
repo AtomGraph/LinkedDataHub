@@ -17,7 +17,17 @@ package com.atomgraph.linkeddatahub.server.filter.request.auth;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.atomgraph.linkeddatahub.model.auth.Agent;
+import com.atomgraph.linkeddatahub.model.auth.impl.AgentImpl;
+import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
+import org.apache.jena.enhanced.BuiltinPersonalities;
+import org.apache.jena.sys.JenaSystem;
+import com.atomgraph.linkeddatahub.vocabulary.SIOC;
 import com.auth0.jwt.exceptions.TokenExpiredException;
+import com.auth0.jwt.interfaces.DecodedJWT;
+import jakarta.ws.rs.core.SecurityContext;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.container.ContainerRequestContext;
@@ -40,6 +50,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -80,6 +91,9 @@ public class IDTokenFilterBaseTest
         generator.initialize(2048);
         keyPair = generator.generateKeyPair();
         otherKeyPair = generator.generateKeyPair();
+
+        JenaSystem.init(); // before BuiltinPersonalities, which otherwise initializes Jena out of order
+        BuiltinPersonalities.model.add(Agent.class, AgentImpl.factory); // as Application does
     }
 
     @BeforeEach
@@ -95,13 +109,13 @@ public class IDTokenFilterBaseTest
         ExpiringMap<String, JsonObject> jwksCache = ExpiringMap.builder().build();
         jwksCache.put(JWKS_ENDPOINT.toString(), Json.createObjectBuilder().add("keys", Json.createArrayBuilder().add(jwk)).build());
         lenient().when(system.getJWKSCache()).thenReturn(jwksCache);
-        // a refresh token is stored for the subject, so reading it would let a forged token be "refreshed"
+        // a refresh token is stored for every subject
         lenient().when(system.getRefreshToken(anyString())).thenReturn("stored-refresh-token");
 
         filter = new TestIDTokenFilter(system);
     }
 
-    /** A forged unsigned token with a past expiry, naming a registered subject: not authenticated, refresh token untouched */
+    /** An unsigned expired token is not authenticated and no refresh token is read */
     @Test
     public void testUnsignedExpiredTokenNotAuthenticated()
     {
@@ -111,7 +125,7 @@ public class IDTokenFilterBaseTest
         verify(system, never()).getRefreshToken(anyString());
     }
 
-    /** A token signed with a key the provider does not publish: not authenticated, refresh token untouched */
+    /** A token signed with an unpublished key is not authenticated and no refresh token is read */
     @Test
     public void testWrongKeyExpiredTokenNotAuthenticated()
     {
@@ -129,7 +143,7 @@ public class IDTokenFilterBaseTest
         assertNull(filter.authenticate(request));
     }
 
-    /** An HMAC token keyed with the published modulus: not authenticated, refresh token untouched */
+    /** An HS256 token is not authenticated and no refresh token is read */
     @Test
     public void testHmacExpiredTokenNotAuthenticated()
     {
@@ -149,7 +163,7 @@ public class IDTokenFilterBaseTest
         verify(system, never()).getRefreshToken(anyString());
     }
 
-    /** A genuine but expired token reaches the refresh: with no refresh token stored, the expiry is reported */
+    /** An expired token with a valid signature reaches the refresh; with no refresh token stored, the expiry is reported */
     @Test
     public void testGenuineExpiredTokenIsRefreshable()
     {
@@ -158,6 +172,27 @@ public class IDTokenFilterBaseTest
 
         assertThrows(TokenExpiredException.class, () -> filter.authenticate(request));
         verify(system).getRefreshToken(SUBJECT);
+    }
+
+    /** After a refresh, the security context carries the refreshed token */
+    @Test
+    public void testRefreshedTokenInSecurityContext()
+    {
+        String refreshed = createToken(Instant.now().plusSeconds(3600), rsa(keyPair));
+        ((TestIDTokenFilter) filter).refreshedToken = refreshed;
+
+        Model agentModel = ModelFactory.createDefaultModel();
+        agentModel.createResource("https://admin.localhost:4443/acl/users/account/#this").
+            addLiteral(SIOC.ID, SUBJECT).
+            addProperty(SIOC.ACCOUNT_OF, agentModel.createResource("https://admin.localhost:4443/acl/agents/agent/#this"));
+        ExpiringMap<String, Model> oidcModelCache = ExpiringMap.builder().variableExpiration().build();
+        oidcModelCache.put(ISSUER + SUBJECT, agentModel);
+        when(system.getOIDCModelCache()).thenReturn(oidcModelCache);
+
+        sendCookie(createToken(Instant.now().minusSeconds(3600), rsa(keyPair)));
+
+        SecurityContext context = filter.authenticate(request);
+        assertEquals(refreshed, ((IDTokenSecurityContext) context).getJWTToken());
     }
 
     private void sendCookie(String token)
@@ -198,6 +233,7 @@ public class IDTokenFilterBaseTest
     {
 
         private final com.atomgraph.linkeddatahub.Application system;
+        private String refreshedToken;
 
         TestIDTokenFilter(com.atomgraph.linkeddatahub.Application system)
         {
@@ -215,6 +251,13 @@ public class IDTokenFilterBaseTest
         @Override
         protected void initClientCredentials()
         {
+        }
+
+        @Override
+        public DecodedJWT refreshIDToken(String refreshToken)
+        {
+            if (refreshedToken == null) throw new IllegalStateException("No refresh expected");
+            return JWT.decode(refreshedToken);
         }
 
         @Override
