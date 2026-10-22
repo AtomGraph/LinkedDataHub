@@ -1,3 +1,7 @@
+## [Unreleased]
+### Fixed
+- A class described by a SHACL node shape and no SPIN constructor can be chosen as the type of a new instance again: the typing-only instance the SPIN side produces for every class is folded into the shape's prototype, instead of surviving beside it as a second resource of the class, which failed the form with "Required cardinality of value in 'xsl:variable name="Q{}resource"' expression is exactly one"
+
 ## [6.2.4] - 2026-10-21
 ### Migration
 - A write to an existing document has to quote its entity tag in `If-Match`, or send `If-None-Match: *` to create: `If-Match: *` and any other `If-None-Match` are refused with `428`, and a `PUT` with `If-Match` to a document that does not exist with `412` (#452)

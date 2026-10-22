@@ -103,6 +103,16 @@ tree reads the scheme off the topic's `skos:inScheme` — without it the page ha
 the tree renders nothing. Each concept also needs `skos:inScheme` in the *same* write: the
 package constrains it (`:MissingInScheme`), so a concept seeded without one is refused 422.
 
+### The model
+
+`lib/model.mjs` teaches the dataspace's namespace ontology three classes for `forms/instance-form`,
+one per way a class can describe its instances: a SPIN constructor with a SPIN constraint, a SHACL
+node shape alone, and both on one class - the matrix the form code folds over. Seeded by the spec
+itself (`beforeAll`), not by the preflight, because it changes the ontology, and the cache is cleared
+after seeding and after teardown. The shapes are appended with `ldh post`, since the CLI has no
+`admin add shape` and `PATCH` admits only the `DELETE`/`INSERT` `WHERE` form; everything seeded
+carries the `ns#Ui` prefix, which is what the teardown's `DELETE WHERE` removes.
+
 ## The spec tree
 
 `specs/` mirrors the anatomy of the rendered page, which is already named three emitters deep:
