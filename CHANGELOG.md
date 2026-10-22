@@ -49,6 +49,12 @@
 - The front Varnish no longer caches responses to requests authenticated by an OAuth session, and the platform marks every response to an authenticated agent `Cache-Control: private`
 - Uploaded files are marked `Cache-Control: private`, as they are access-controlled
 - Writes and access-control changes evict the affected responses from the front Varnish (surrogate keys via `xkey` in place of URL bans), and documents are served `Cache-Control: no-cache` so caches revalidate them
+- OAuth sign-in verifies an ID token's signature against the provider's published keys before acting on any of its claims, including its expiry; only `RS256` tokens are accepted, and an expired token is refreshed only once its signature has verified
+- Requests the platform makes on an agent's behalf (the Linked Data proxy, stylesheet and import fetches) carry the agent's delegation, `On-Behalf-Of` and the ID token cookie, only to this instance's dataspaces; the proxy reaches other origins without the platform's certificate
+- After an ID token is refreshed, the refreshed token is the one delegated
+- A key ID missing from the cached provider keys re-fetches them, at most once a minute, so sign-in survives a key rotation
+- The page OAuth sign-in returns to must belong to one of this instance's dataspaces, checked both when sign-in starts and when it completes; anything else returns to the dataspace's base
+- The OAuth state cookie is `Secure`, `HttpOnly` and `SameSite=Lax`, and the cookie that clears an expired ID token is `Secure`
 
 ## [6.2.3] - 2026-10-21
 ### Migration
