@@ -9,9 +9,7 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 reset_packages
 clear_ontology
 
-# A path parameter is refused before routing: the proxy matches locations on the raw path, while the servlet container
-# strips parameters and resolves dot segments, so the two would otherwise disagree on which resource a path names.
-# --path-as-is keeps curl from resolving the dot segment itself
+# A path carrying a parameter (;) is refused with 400. --path-as-is keeps curl from normalising the path
 
 body=$(mktemp)
 

@@ -331,6 +331,13 @@ export -f reset_packages
 export -f clear_ontology
 
 export HTTP_TEST_ROOT="$PWD"
+
+# purge_cache runs docker compose with this directory's .env, and compose requires PROXY_SECRET. Locally it lives in the
+# repository's .env (make secrets); CI puts it in the environment
+if [ -z "$PROXY_SECRET" ] && [ -f "$HTTP_TEST_ROOT/../../.env" ]; then
+    PROXY_SECRET=$(grep -m1 '^PROXY_SECRET=' "$HTTP_TEST_ROOT/../../.env" | cut -d= -f2-)
+    [ -z "$PROXY_SECRET" ] || export PROXY_SECRET
+fi
 export TEST_RESULTS_DIR="${TEST_RESULTS_DIR:-$HTTP_TEST_ROOT/out}"
 mkdir -p "$TEST_RESULTS_DIR"
 export END_USER_ENDPOINT_URL="http://localhost:3030/end-user/"

@@ -60,6 +60,7 @@ The [`ldh` command line interface](#command-line-interface) is attached to every
      OWNER_STATE_OR_PROVINCE=Denmark
      OWNER_COUNTRY_NAME=DK
      ```
+     `.env` also needs `PROXY_SECRET`, a random value nginx sends to the platform with every request: `make secrets` appends one, or add `PROXY_SECRET=` followed by the output of `openssl rand -hex 32`. Docker Compose refuses to start without it.
   3. Setup server's SSL certificates by running this from command line:
      ```shell
      ./bin/server-cert-gen.sh .env nginx ssl

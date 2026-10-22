@@ -9,9 +9,7 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 reset_packages
 clear_ontology
 
-# Identity comes from the TLS connection, never from a request header. The client sends the owner's certificate - public
-# data, without its private key - in the header the proxy uses to forward a verified client certificate, and presents no
-# certificate on the connection. The proxy must replace the header on every path, so the request stays anonymous
+# A Client-Cert header sent by the client is ignored on every path: identity comes from the TLS connection only
 
 client_cert=$(openssl x509 -in "$OWNER_CERT_FILE" | python3 -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.stdin.read(), safe=""))')
 
@@ -26,7 +24,7 @@ if [ "$status" != "$STATUS_FORBIDDEN" ]; then
   exit 1
 fi
 
-# through a static path with a path parameter: refused, and never the document
+# a static path with a path parameter: never the document
 
 status=$(curl -k -s --path-as-is -o /dev/null -w "%{http_code}" \
   -H "Accept: application/n-triples" \
@@ -48,5 +46,31 @@ status=$(curl -k -s -o /dev/null -w "%{http_code}" \
 
 echo "DEBUG: GET root with a header-only certificate Expected: $STATUS_FORBIDDEN  Got: $status"
 if [ "$status" != "$STATUS_FORBIDDEN" ]; then
+  exit 1
+fi
+
+# with a Proxy-Secret header of the client's own: still anonymous, the proxy sets that header itself
+
+status=$(curl -k -s -o /dev/null -w "%{http_code}" \
+  -H "Accept: application/n-triples" \
+  -H "Client-Cert: $client_cert" \
+  -H "Proxy-Secret: not-the-secret" \
+  "$END_USER_BASE_URL")
+
+echo "DEBUG: GET root with a header-only certificate and a client Proxy-Secret Expected: $STATUS_FORBIDDEN  Got: $status"
+if [ "$status" != "$STATUS_FORBIDDEN" ]; then
+  exit 1
+fi
+
+# the secret is never echoed back
+
+headers=$(curl -k -s -D - -o /dev/null \
+  -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+  -H "Accept: application/n-triples" \
+  "$END_USER_BASE_URL")
+
+echo "DEBUG: owner GET root Expected: no Proxy-Secret response header"
+if grep -qi '^proxy-secret:' <<< "$headers"; then
+  echo "DEBUG: Got: $(grep -i '^proxy-secret:' <<< "$headers")"
   exit 1
 fi

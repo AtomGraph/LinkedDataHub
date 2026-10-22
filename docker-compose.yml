@@ -78,6 +78,7 @@ services:
       - MAIL_SMTP_HOST=email-server
       - MAIL_SMTP_PORT=25
       - MAIL_USER=linkeddatahub@localhost
+      - PROXY_SECRET=${PROXY_SECRET:?set PROXY_SECRET in .env - make secrets generates it} # nginx sends it; Client-Cert is accepted only with it
       - REMOTE_IP_VALVE=true
       - REMOTE_IP_VALVE_PROTOCOL_HEADER=X-Forwarded-Proto
       - REMOTE_IP_VALVE_PORT_HEADER=X-Forwarded-Port
@@ -323,19 +324,19 @@ configs:
               ssl_prefer_server_ciphers on;
               ssl_verify_client ${NGINX_SSL_VERIFY_CLIENT:-optional_no_ca};
 
-              # Identity and routing headers are set here, once for the whole server, so that no location can forget them:
-              # a client's own Client-Cert, Host or X-Forwarded-* never reaches the platform. proxy_set_header is inherited
-              # only by a location that sets none of its own - a location that needs one more header repeats this whole set.
-              # On-Behalf-Of is passed: the platform honours it only from an agent the named WebID delegates to
+              # Identity and forwarding headers, set once for the whole server. proxy_set_header is inherited only by a location
+              # that sets none of its own, so a location that sets any repeats this set. On-Behalf-Of is passed through: the
+              # platform honours it only from an agent the named WebID delegates to. The platform accepts Client-Cert only on a
+              # request carrying Proxy-Secret
               proxy_set_header Host $$host;
               proxy_set_header X-Forwarded-Host $$host;
               proxy_set_header X-Forwarded-Proto $$scheme;
               proxy_set_header X-Forwarded-Port ${HTTPS_PORT};
               proxy_set_header X-Forwarded-For $$remote_addr;
               proxy_set_header Client-Cert $$ssl_client_escaped_cert; # empty, and so not sent, without a client certificate
+              proxy_set_header Proxy-Secret "${PROXY_SECRET:?set PROXY_SECRET in .env - make secrets generates it}";
 
-              # path parameters (;) are not used by the platform, and the servlet container would strip them before routing,
-              # so a path could match one location here and reach a different resource there
+              # the platform uses no path parameters (;)
               if ($$request_uri ~ "^[^?]*;") {
                   return 400;
               }
@@ -358,8 +359,8 @@ configs:
                   limit_req zone=web_algebra burst=10 nodelay;
                   proxy_read_timeout 120s; # writing a plan is a 10-30 s model call
 
-                  # proxy_set_header is inherited from the server level only by a location that sets none of its own, so this one,
-                  # which clears On-Behalf-Of, has to repeat the whole server-level set
+                  # repeats the server-level set, since it also clears On-Behalf-Of. Proxy-Secret is for the platform only and
+                  # is not sent to the sidecar
                   proxy_set_header Host $$host;
                   proxy_set_header X-Forwarded-Host $$host;
                   proxy_set_header X-Forwarded-Proto $$scheme;
@@ -431,19 +432,19 @@ configs:
               ssl_prefer_server_ciphers on;
               ssl_verify_client optional_no_ca;
 
-              # Identity and routing headers are set here, once for the whole server, so that no location can forget them:
-              # a client's own Client-Cert, Host or X-Forwarded-* never reaches the platform. proxy_set_header is inherited
-              # only by a location that sets none of its own - a location that needs one more header repeats this whole set.
-              # On-Behalf-Of is passed: the platform honours it only from an agent the named WebID delegates to
+              # Identity and forwarding headers, set once for the whole server. proxy_set_header is inherited only by a location
+              # that sets none of its own, so a location that sets any repeats this set. On-Behalf-Of is passed through: the
+              # platform honours it only from an agent the named WebID delegates to. The platform accepts Client-Cert only on a
+              # request carrying Proxy-Secret
               proxy_set_header Host $$host;
               proxy_set_header X-Forwarded-Host $$host;
               proxy_set_header X-Forwarded-Proto $$scheme;
               proxy_set_header X-Forwarded-Port ${HTTPS_PORT};
               proxy_set_header X-Forwarded-For $$remote_addr;
               proxy_set_header Client-Cert $$ssl_client_escaped_cert; # empty, and so not sent, without a client certificate
+              proxy_set_header Proxy-Secret "${PROXY_SECRET:?set PROXY_SECRET in .env - make secrets generates it}";
 
-              # path parameters (;) are not used by the platform, and the servlet container would strip them before routing,
-              # so a path could match one location here and reach a different resource there
+              # the platform uses no path parameters (;)
               if ($$request_uri ~ "^[^?]*;") {
                   return 400;
               }
@@ -527,15 +528,13 @@ configs:
               return (purge);
           }
 
-          # the platform tags each response it renders with xkey (XkeyTaggingFilter) - its document, the document's parent
-          # container and its dataspace's access-control scope - and purges by those tags after a write (CacheInvalidationFilter,
-          # ClearOntology). A URL BAN cannot do this: req.url is a path, and the platform knows documents by absolute URI
+          # the platform tags responses with xkey (XkeyTaggingFilter: document, parent container, access-control scope) and
+          # purges by those tags after a write (CacheInvalidationFilter, ClearOntology)
           if (req.method == "XKEY-PURGE") {
               if (!client.ip ~ local && !client.ip ~ remote) {
                   return (synth(403, "Unknown IP address '" + client.ip + "'. Access denied."));
               }
-              # hard purge, not softpurge: a reader right after a write or an access-control change must not get the copy
-              # the purge was meant to remove, which softpurge would keep serving during grace
+              # hard purge: softpurge would keep serving the purged copy during grace
               set req.http.n-purged = xkey.purge(req.http.xkey-purge);
               return (synth(200, "Purged " + req.http.n-purged + " objects for key " + req.http.xkey-purge));
           }
@@ -610,8 +609,7 @@ configs:
               return (pass);
           }
 
-          # The same holds for an OAuth session: the ID token cookie authenticates the request as its agent, so the
-          # response is that agent's and must not be stored under a key every other reader shares
+          # the ID token cookie authenticates the request too
           if (req.http.Cookie ~ "LinkedDataHub\.id_token=" && req.url !~ "^/static/") {
               return (pass);
           }

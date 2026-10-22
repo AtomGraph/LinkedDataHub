@@ -1076,6 +1076,20 @@ if [ -n "$ALLOW_INTERNAL_URLS" ]; then
     export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.allowInternalUrls=$ALLOW_INTERNAL_URLS"
 fi
 
+# the secret nginx sends in the Proxy-Secret header; the Client-Cert header is accepted only with it.
+# Written to a file only this user can read, and removed from the environment, so the value stays out of
+# the JVM's environment, its command line and the startup log
+if [ -z "$PROXY_SECRET" ]; then
+    echo '$PROXY_SECRET not set'
+    exit 1
+fi
+
+PROXY_SECRET_FILE=/var/linkeddatahub/proxy_secret
+(umask 077 && printf '%s' "$PROXY_SECRET" > "$PROXY_SECRET_FILE")
+unset PROXY_SECRET
+
+export CATALINA_OPTS="$CATALINA_OPTS -Dcom.atomgraph.linkeddatahub.proxySecretFile=$PROXY_SECRET_FILE"
+
 # host:port of the egress forward proxy that the platform's in-JVM SPARQL SERVICE requests (PATCH, imports) go through;
 # without it SERVICE is disabled in those paths (unless ALLOW_INTERNAL_URLS)
 if [ -n "$EGRESS_PROXY" ]; then
