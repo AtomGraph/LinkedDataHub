@@ -57,6 +57,7 @@ public class PackageServiceRedirectTest
 
     private RedirectStub stub;
     private Client client;
+    private Application system;
     private PackageService service;
     private Dataspace app;
 
@@ -66,7 +67,7 @@ public class PackageServiceRedirectTest
         stub = new RedirectStub();
         client = Application.getClient(load("agent.p12"), PASSWORD, load("agent-trust.p12"), 20, 100, null, false, null, null, null, null, null);
 
-        Application system = mock(Application.class);
+        system = mock(Application.class);
         when(system.getRepository()).thenReturn(mock(PrefixGraphRepository.class));
         when(system.getURLValidator()).thenReturn(stub.validator());
         when(system.getClient()).thenReturn(client);
@@ -104,18 +105,66 @@ public class PackageServiceRedirectTest
         assertEquals(List.of(), stub.internalRequests);
     }
 
-    /** A stylesheet redirecting to a denied address is not copied, and the address is never requested */
-    @Test
-    public void stylesheetRedirectToDeniedAddressIsRefused() throws Exception
+    private void assertNothingCopied() throws Exception
     {
-        URI declared = stub.redirect(302, stub.internalURI("/internal.xsl").toString());
-
-        assertEquals(declared, service.materializeStylesheet(declaring(declared), app));
         try (var files = Files.walk(packageRoot))
         {
             assertFalse(files.anyMatch(Files::isRegularFile), "nothing is copied");
         }
+    }
+
+    /** A stylesheet redirecting to a denied address is left out, and the address is never requested */
+    @Test
+    public void stylesheetRedirectToDeniedAddressIsLeftOut() throws Exception
+    {
+        URI declared = stub.redirect(302, stub.internalURI("/internal.xsl").toString());
+
+        assertNull(service.materializeStylesheet(declaring(declared), app));
+        assertNothingCopied();
         assertEquals(List.of(), stub.internalRequests);
+    }
+
+    /** A stylesheet declared at a denied address is left out without a request */
+    @Test
+    public void stylesheetAtDeniedAddressIsLeftOut() throws Exception
+    {
+        assertNull(service.materializeStylesheet(declaring(stub.internalURI("/internal.xsl")), app));
+        assertNothingCopied();
+        assertEquals(List.of(), stub.internalRequests);
+    }
+
+    /** A stylesheet that cannot be copied is left out: its declared URL is not handed on */
+    @Test
+    public void uncopiableStylesheetIsLeftOut() throws Exception
+    {
+        assertNull(service.materializeStylesheet(declaring(stub.redirect(404, "/missing.xsl")), app));
+        assertNothingCopied();
+    }
+
+    /** With no package root, the declared URL is used if it is allowed, and left out if it is not */
+    @Test
+    public void noPackageRootValidatesDeclaredURL()
+    {
+        when(system.getPackageRoot()).thenReturn(null);
+        URI allowed = stub.publicURI("/style.xsl");
+
+        assertEquals(allowed, service.materializeStylesheet(declaring(allowed), app));
+        assertNull(service.materializeStylesheet(declaring(stub.internalURI("/internal.xsl")), app));
+        assertEquals(List.of(), stub.publicRequests);
+        assertEquals(List.of(), stub.internalRequests);
+    }
+
+    /** Stylesheets left out are dropped from the import list */
+    @Test
+    public void leftOutStylesheetsAreDropped()
+    {
+        Package denied = declaring(stub.internalURI("/internal.xsl"));
+        Package allowed = declaring(stub.publicURI("/style.xsl"));
+        when(allowed.getURI()).thenReturn("https://packages.example.org/q/#this");
+
+        List<URI> stylesheets = service.getStylesheets(List.of(denied, allowed), app);
+
+        assertEquals(List.of(APP_BASE.resolve(PackageService.PUBLIC_PATH + service.getStylesheetPath(allowed, stub.publicURI("/style.xsl")))), stylesheets);
     }
 
     /** A stylesheet behind allowed redirects is copied */
