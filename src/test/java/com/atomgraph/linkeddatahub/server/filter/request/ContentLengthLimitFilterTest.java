@@ -23,7 +23,9 @@ import com.atomgraph.linkeddatahub.server.util.RejectTooLargeRequestInputStream;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.client.ClientRequestContext;
 import jakarta.ws.rs.client.ClientResponseContext;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
@@ -207,6 +209,66 @@ public class ContentLengthLimitFilterTest
         filter.filter(containerRequestContext);
 
         verify(containerRequestContext, never()).setEntityStream(any());
+    }
+
+    /**
+     * A multipart body carries file uploads, and is held to the upload limit rather than the content limit: an
+     * upload larger than any other body is let through, and no larger one.
+     */
+    @Test
+    public void testMultipartRequestIsHeldToTheUploadLimit() throws IOException
+    {
+        ContentLengthLimitFilter uploadFilter = new ContentLengthLimitFilter(MAX_CONTENT_LENGTH, MAX_CONTENT_LENGTH * 4L);
+        MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
+        headers.putSingle(HttpHeaders.CONTENT_LENGTH, String.valueOf(MAX_CONTENT_LENGTH * 2));
+        when(containerRequestContext.hasEntity()).thenReturn(true);
+        when(containerRequestContext.getHeaders()).thenReturn(headers);
+        when(containerRequestContext.getMediaType()).thenReturn(MediaType.valueOf("multipart/form-data; boundary=x"));
+        when(containerRequestContext.getEntityStream()).thenReturn(new ByteArrayInputStream(new byte[0]));
+
+        uploadFilter.filter(containerRequestContext);
+        verify(containerRequestContext).setEntityStream(isA(RejectTooLargeRequestInputStream.class));
+
+        headers.putSingle(HttpHeaders.CONTENT_LENGTH, String.valueOf(MAX_CONTENT_LENGTH * 4 + 1));
+        assertThrows(RequestContentTooLargeException.class, () -> uploadFilter.filter(containerRequestContext));
+    }
+
+    /** Any other body is still held to the content limit when an upload limit is configured. */
+    @Test
+    public void testNonMultipartRequestIsHeldToTheContentLimit()
+    {
+        ContentLengthLimitFilter uploadFilter = new ContentLengthLimitFilter(MAX_CONTENT_LENGTH, MAX_CONTENT_LENGTH * 4L);
+        MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
+        headers.putSingle(HttpHeaders.CONTENT_LENGTH, String.valueOf(MAX_CONTENT_LENGTH * 2));
+        when(containerRequestContext.hasEntity()).thenReturn(true);
+        when(containerRequestContext.getHeaders()).thenReturn(headers);
+        when(containerRequestContext.getMediaType()).thenReturn(MediaType.valueOf("text/turtle"));
+
+        assertThrows(RequestContentTooLargeException.class, () -> uploadFilter.filter(containerRequestContext));
+    }
+
+    /** A declared size past 2 GiB is too large, not malformed: it was parsed as an int and answered 500. */
+    @Test
+    public void testRequestOver2GiBIsTooLarge()
+    {
+        MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
+        headers.putSingle(HttpHeaders.CONTENT_LENGTH, "3000000000");
+        when(containerRequestContext.hasEntity()).thenReturn(true);
+        when(containerRequestContext.getHeaders()).thenReturn(headers);
+
+        assertThrows(RequestContentTooLargeException.class, () -> filter.filter(containerRequestContext));
+    }
+
+    /** A Content-Length that is not a number is the caller's error. */
+    @Test
+    public void testMalformedContentLengthIsABadRequest()
+    {
+        MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
+        headers.putSingle(HttpHeaders.CONTENT_LENGTH, "lots");
+        when(containerRequestContext.hasEntity()).thenReturn(true);
+        when(containerRequestContext.getHeaders()).thenReturn(headers);
+
+        assertThrows(BadRequestException.class, () -> filter.filter(containerRequestContext));
     }
 
 }

@@ -66,6 +66,7 @@ services:
       - SELF_SIGNED_CERT=true # only on localhost
       - SIGN_UP_CERT_VALIDITY=180
       - MAX_CONTENT_LENGTH=${MAX_CONTENT_LENGTH:-2097152}
+      - MAX_UPLOAD_LENGTH=${MAX_UPLOAD_LENGTH:-} # file uploads (multipart bodies); MAX_CONTENT_LENGTH unless set
       - MAX_QUERY_RESPONSE_LENGTH=${MAX_QUERY_RESPONSE_LENGTH:-} # 5 MiB unless set (Application.DEFAULT_MAX_QUERY_RESPONSE_LENGTH)
       - ALLOW_INTERNAL_URLS=${ALLOW_INTERNAL_URLS:-}
       - ENABLE_SITEMAP=${ENABLE_SITEMAP:-} # opt-in: /sitemap.xml queries every public document of the dataspace
@@ -309,7 +310,8 @@ configs:
           limit_req_zone $$sparql_api_key zone=sparql:10m rate=${NGINX_SPARQL_RATE:-2r/s};
           limit_conn_status 429;
 
-          client_max_body_size ${MAX_CONTENT_LENGTH:-2097152};
+          # the upload limit when one is set: the platform holds every other body to MAX_CONTENT_LENGTH itself
+          client_max_body_size ${MAX_UPLOAD_LENGTH:-${MAX_CONTENT_LENGTH:-2097152}};
 
           # server with optional client cert authentication
           server {

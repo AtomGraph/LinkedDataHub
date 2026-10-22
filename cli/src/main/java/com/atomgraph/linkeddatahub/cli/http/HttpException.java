@@ -20,7 +20,8 @@ import jakarta.ws.rs.core.Response;
 import java.net.URI;
 
 /**
- * Thrown when the server responds with an error status, mirroring <code>curl -f</code>.
+ * Thrown when the server responds with a status other than success, including a redirect, which the client
+ * does not follow.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -38,7 +39,7 @@ public class HttpException extends RuntimeException
      * @param status HTTP status code
      * @param reasonPhrase HTTP reason phrase
      * @param uri request URI
-     * @param body response body excerpt (can be empty)
+     * @param body response body excerpt or redirect location (can be empty)
      */
     public HttpException(int status, String reasonPhrase, URI uri, String body)
     {
@@ -48,7 +49,10 @@ public class HttpException extends RuntimeException
     }
 
     /**
-     * Throws if the response has an error status (&ge; 400), otherwise returns it.
+     * Throws unless the response has a success (2xx) status, otherwise returns it.
+     * A redirect is a failure too: the client does not follow redirects, so a 3xx means the request was not
+     * carried out where it was sent - a <code>PUT</code> to a URI without a trailing slash is answered
+     * <code>308</code> and writes nothing. Its <code>Location</code> goes into the message.
      *
      * @param uri request URI (for the error message)
      * @param response response to check
@@ -56,27 +60,73 @@ public class HttpException extends RuntimeException
      */
     public static Response check(URI uri, Response response)
     {
-        if (response.getStatus() >= 400)
-        {
-            String body = "";
-            try
-            {
-                body = response.readEntity(String.class);
-                if (body.length() > BODY_EXCERPT_LENGTH) body = body.substring(0, BODY_EXCERPT_LENGTH) + "…";
-            }
-            catch (Exception ex)
-            {
-                // body is unreadable - leave the excerpt empty
-            }
-            finally
-            {
-                response.close();
-            }
+        if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) return response;
 
-            throw new HttpException(response.getStatus(), response.getStatusInfo().getReasonPhrase(), uri, body);
+        throw failure(uri, response);
+    }
+
+    /**
+     * Throws unless the response has a success (2xx) or <code>303 See Other</code> status, otherwise returns it.
+     * For writes: a <code>303</code> to a write says that it was carried out and where its result can be read.
+     *
+     * @param uri request URI (for the error message)
+     * @param response response to check
+     * @return the same response
+     */
+    public static Response checkWrite(URI uri, Response response)
+    {
+        if (response.getStatus() == Response.Status.SEE_OTHER.getStatusCode()) return response;
+
+        return check(uri, response);
+    }
+
+    /**
+     * Throws unless the response has a success (2xx) status, or a redirect (3xx) status carrying a
+     * <code>Location</code>, otherwise returns it. For requests that ask for the redirect itself, such as a
+     * Memento TimeGate's, or that only report the status.
+     *
+     * @param uri request URI (for the error message)
+     * @param response response to check
+     * @return the same response
+     */
+    public static Response checkRedirect(URI uri, Response response)
+    {
+        if (response.getStatusInfo().getFamily() == Response.Status.Family.REDIRECTION && response.getLocation() != null) return response;
+
+        return check(uri, response);
+    }
+
+    /**
+     * Closes an unsuccessful response and returns the exception describing it: the <code>Location</code> of a
+     * redirect, or an excerpt of the body of an error.
+     *
+     * @param uri request URI
+     * @param response unsuccessful response
+     * @return exception
+     */
+    private static HttpException failure(URI uri, Response response)
+    {
+        String detail = "";
+        try
+        {
+            if (response.getStatusInfo().getFamily() == Response.Status.Family.REDIRECTION)
+                detail = response.getLocation() != null ? "Location: " + response.getLocation() : "";
+            else
+            {
+                detail = response.readEntity(String.class);
+                if (detail.length() > BODY_EXCERPT_LENGTH) detail = detail.substring(0, BODY_EXCERPT_LENGTH) + "…";
+            }
+        }
+        catch (Exception ex)
+        {
+            // body is unreadable - leave the excerpt empty
+        }
+        finally
+        {
+            response.close();
         }
 
-        return response;
+        return new HttpException(response.getStatus(), response.getStatusInfo().getReasonPhrase(), uri, detail);
     }
 
     /**

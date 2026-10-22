@@ -261,6 +261,8 @@ function reset_packages()
       -X PATCH \
       -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
       -H "Content-Type: application/sparql-update" \
+      -H "Accept: application/n-triples" \
+      -H "If-Match: $(etag "${END_USER_BASE_URL}settings" "$OWNER_CERT_FILE" "$OWNER_CERT_PWD")" \
       -d "DELETE { ?app <https://w3id.org/atomgraph/linkeddatahub#import> ?package } WHERE { ?app <https://w3id.org/atomgraph/linkeddatahub#import> ?package }" \
       "${END_USER_BASE_URL}settings")
 

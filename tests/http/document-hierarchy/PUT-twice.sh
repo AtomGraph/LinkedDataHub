@@ -33,7 +33,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
 <${END_USER_BASE_URL}> <http://example.com/old-predicate> "old object" .
 EOF
 ) \
-| grep -q "$STATUS_OK"
+| grep -q "$STATUS_NO_CONTENT"
 
 # replace the graph again
 
@@ -52,7 +52,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
 <${END_USER_BASE_URL}named-subject-put> <http://example.com/another-predicate> "another named object PUT" .
 EOF
 ) \
-| grep -q "$STATUS_OK"
+| grep -q "$STATUS_NO_CONTENT"
 
 # check that the old document metadata is gone
 

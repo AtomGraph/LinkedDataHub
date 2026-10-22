@@ -166,6 +166,9 @@ public class LDHC
     /** Max content length property */
     public static final Property maxContentLength = m_model.createDataProperty( NS + "maxContentLength" );
 
+    /** Max content length of a multipart (file upload) request; defaults to the max content length */
+    public static final Property maxUploadLength = m_model.createDataProperty( NS + "maxUploadLength" );
+
     /** Max length of a SPARQL endpoint query result, in bytes */
     public static final Property maxQueryResponseLength = m_model.createDataProperty( NS + "maxQueryResponseLength" );
 

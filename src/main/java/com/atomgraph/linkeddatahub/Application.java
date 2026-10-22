@@ -190,7 +190,6 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.security.MessageDigest;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -305,6 +304,7 @@ public class Application extends ResourceConfig
     private final boolean allowInternalUrls;
     private final URLValidator urlValidator;
     private final Integer maxContentLength;
+    private final Long maxUploadLength;
     private final int maxQueryResponseLength;
     private final Address notificationAddress;
     private final Authenticator authenticator;
@@ -317,7 +317,6 @@ public class Application extends ResourceConfig
     private final ExpiringMap<String, Model> oidcModelCache = ExpiringMap.builder().variableExpiration().build();
     private final ExpiringMap<String, jakarta.json.JsonObject> jwksCache = ExpiringMap.builder().expiration(Long.parseLong(System.getProperty("com.atomgraph.linkeddatahub.jwksCacheExpiration", "86400")), TimeUnit.SECONDS).build(); // Cache JWKS responses; TTL (seconds) configurable via JWKS_CACHE_EXPIRATION
     private final Map<URI, XsltExecutable> xsltExecutableCache = new ConcurrentHashMap<>();
-    private final MessageDigest messageDigest;
     private final boolean enableWebIDSignUp;
     private final String oidcRefreshTokensPropertiesPath;
     private final Properties oidcRefreshTokens;
@@ -382,6 +381,7 @@ public class Application extends ResourceConfig
             System.getProperty("com.atomgraph.linkeddatahub.allowInternalUrls") != null ? Boolean.parseBoolean(System.getProperty("com.atomgraph.linkeddatahub.allowInternalUrls")) :
             servletConfig.getServletContext().getInitParameter(LDHC.allowInternalUrls.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.allowInternalUrls.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(LDHC.maxContentLength.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxContentLength.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.maxUploadLength.getURI()) != null ? Long.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxUploadLength.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.maxQueryResponseLength.getURI()) != null ? Integer.parseInt(servletConfig.getServletContext().getInitParameter(LDHC.maxQueryResponseLength.getURI())) :
             DEFAULT_MAX_QUERY_RESPONSE_LENGTH, // unset means the endpoint buffers, and a page renders, a result of any length
             System.getProperty("com.atomgraph.linkeddatahub.maxConnPerRoute") != null ? Integer.valueOf(System.getProperty("com.atomgraph.linkeddatahub.maxConnPerRoute")) :
@@ -455,6 +455,7 @@ public class Application extends ResourceConfig
      * @param enableAssistant true if the assistant's plan service is deployed beside this instance
      * @param allowInternalUrls true if internal/private network URLs are allowed (disables SSRF protection)
      * @param maxContentLength maximum size of request entity
+     * @param maxUploadLength maximum size of a multipart (file upload) request entity, the maximum size of request entity if <code>null</code>
      * @param maxQueryResponseLength maximum length of a SPARQL endpoint query result in bytes
      * @param maxConnPerRoute maximum client connections per rout
      * @param maxTotalConn maximum total client connections
@@ -487,7 +488,7 @@ public class Application extends ResourceConfig
             final String webIDQueryString, final String agentQueryString, final String userAccountQueryString, final String ontologyQueryString,
             final String baseURIString, final String proxyScheme, final String proxyHostname, final Integer proxyPort,
             final String uploadRootString, final String sefRootString, final String sefCompilerString, final String clientStylesheetString, final boolean invalidateCache,
-            final Integer cookieMaxAge, final boolean enableLinkedDataProxy, final boolean enableAssistant, final boolean allowInternalUrls, final Integer maxContentLength, final int maxQueryResponseLength,
+            final Integer cookieMaxAge, final boolean enableLinkedDataProxy, final boolean enableAssistant, final boolean allowInternalUrls, final Integer maxContentLength, final Long maxUploadLength, final int maxQueryResponseLength,
             final Integer maxConnPerRoute, final Integer maxTotalConn, final Integer maxRequestRetries, final Integer connectionRequestTimeout,
             final Integer socketTimeout, final Integer connectTimeout, final Integer selfRequestTimeout, final Long connectionTimeToLive, final Integer validateAfterInactivity, final Integer maxImportThreads,
             final String notificationAddressString, final boolean enableWebIDSignUp, final String oidcRefreshTokensPropertiesPath,
@@ -629,6 +630,7 @@ public class Application extends ResourceConfig
         this.urlValidator = new URLValidator(allowInternalUrls);
         configureServiceExecution(allowInternalUrls);
         this.maxContentLength = maxContentLength;
+        this.maxUploadLength = maxUploadLength;
         this.maxQueryResponseLength = maxQueryResponseLength;
         this.invalidateCache = invalidateCache;
         this.enableWebIDSignUp = enableWebIDSignUp;
@@ -945,16 +947,6 @@ public class Application extends ResourceConfig
             emailProperties.put("mail.smtp.host", smtpHost);
             emailProperties.put("mail.smtp.port", Integer.valueOf(smtpPort));
             
-            try
-            {
-                this.messageDigest = MessageDigest.getInstance("SHA1");
-            }
-            catch (NoSuchAlgorithmException ex)
-            {
-                if (log.isErrorEnabled()) log.error("SHA1 algorithm not found", ex);
-                throw new InternalServerErrorException(ex);
-            }
-
             xsltProc.registerExtensionFunction(new UUID());
             xsltProc.registerExtensionFunction(new DecodeURI());
             xsltProc.registerExtensionFunction(new com.atomgraph.linkeddatahub.writer.function.URLDecode());
@@ -1086,14 +1078,14 @@ public class Application extends ResourceConfig
         
         eventBus.register(this); // this system application will be receiving events about context changes
         
-        register(new ValidatingModelProvider(getMessageDigest()));
+        register(new ValidatingModelProvider());
         register(new ResultSetProvider());
         register(new SPARQLResultProvider()); // the boolean of an ASK, which ResultSetProvider cannot write
         register(new QueryProvider());
         register(new QueryParamProvider());
         register(new UpdateRequestProvider());
-        register(new ModelXSLTWriter(getXsltExecutable(), getResolver(), getMessageDigest())); // writes (X)HTML responses
-        register(new ResultSetXSLTWriter(getXsltExecutable(), getResolver(), getMessageDigest())); // writes (X)HTML responses
+        register(new ModelXSLTWriter(getXsltExecutable(), getResolver())); // writes (X)HTML responses
+        register(new ResultSetXSLTWriter(getXsltExecutable(), getResolver())); // writes (X)HTML responses
         register(new TimeMapWriter()); // writes link-format TimeMap responses
 
         final com.atomgraph.linkeddatahub.Application system = this;
@@ -1247,7 +1239,7 @@ public class Application extends ResourceConfig
         register(ProxiedWebIDFilter.class);
         register(ProxyRequestFilter.class);
         register(AuthorizationFilter.class);
-        if (getMaxContentLength() != null) register(new ContentLengthLimitFilter(getMaxContentLength()));
+        if (getMaxContentLength() != null) register(new ContentLengthLimitFilter(getMaxContentLength(), getMaxUploadLength() != null ? getMaxUploadLength() : getMaxContentLength()));
         register(new RDFPostMediaTypeInterceptor()); // for application/x-www-form-urlencoded
         
         // Conditionally register Google OAuth filter if configured
@@ -2524,6 +2516,16 @@ public class Application extends ResourceConfig
     }
 
     /**
+     * Maximum allowed size of a multipart (file upload) request body.
+     * 
+     * @return size in bytes, or <code>null</code> if it is the maximum allowed request body size
+     */
+    public Long getMaxUploadLength()
+    {
+        return maxUploadLength;
+    }
+
+    /**
      * Maximum length of the result the SPARQL endpoint answers a query with.
      * 
      * @return length in bytes
@@ -2678,17 +2680,7 @@ public class Application extends ResourceConfig
     {
         return xsltExecutableCache;
     }
-    
-    /**
-     * Message digest used in SHA1 hashing.
-     * 
-     * @return digest object
-     */
-    public MessageDigest getMessageDigest()
-    {
-        return messageDigest;
-    }
-    
+        
     /**
      * Returns list of locales for languages supported by the UI.
      *

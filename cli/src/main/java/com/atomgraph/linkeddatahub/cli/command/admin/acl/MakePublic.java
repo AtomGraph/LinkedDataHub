@@ -43,7 +43,7 @@ public class MakePublic extends BaseCommand
         URI adminBase = getAdminBase(base);
         URI target = URI.create(adminBase + "acl/authorizations/public/");
 
-        HttpException.check(target, getClient().patch(target, Updates.makePublic(base, adminBase))).close();
+        HttpException.checkWrite(target, getClient().patch(target, Updates.makePublic(base, adminBase))).close();
 
         return 0;
     }

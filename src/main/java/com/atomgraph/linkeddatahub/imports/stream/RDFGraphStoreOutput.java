@@ -127,8 +127,8 @@ public class RDFGraphStoreOutput
                                     {
                                         if (!postResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                                         {
-                                            if (log.isErrorEnabled()) log.error("RDF document with URI <{}> could not be successfully created using PUT. Status code: {}", graphUri, postResponse.getStatus());
-                                            throw new ImportException(new IOException("RDF document with URI <" + graphUri + "> could not be successfully created using PUT. Status code: " + postResponse.getStatus()));
+                                            if (log.isErrorEnabled()) log.error("RDF document with URI <{}> already exists and could not be appended to using POST. Status code: {}", graphUri, postResponse.getStatus());
+                                            throw new ImportException(new IOException("RDF document with URI <" + graphUri + "> already exists and could not be appended to using POST. Status code: " + postResponse.getStatus()));
                                         }
                                     }
                                 }
@@ -187,8 +187,8 @@ public class RDFGraphStoreOutput
                     {
                         if (!postResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                         {
-                            if (log.isErrorEnabled()) log.error("RDF document with URI <{}> could not be successfully created using PUT. Status code: {}", getGraphURI(), postResponse.getStatus());
-                            throw new ImportException(new IOException("RDF document with URI <" + getGraphURI() + "> could not be successfully created using PUT. Status code: " + postResponse.getStatus()));
+                            if (log.isErrorEnabled()) log.error("RDF document with URI <{}> already exists and could not be appended to using POST. Status code: {}", getGraphURI(), postResponse.getStatus());
+                            throw new ImportException(new IOException("RDF document with URI <" + getGraphURI() + "> already exists and could not be appended to using POST. Status code: " + postResponse.getStatus()));
                         }
                     }
                 }

@@ -37,7 +37,7 @@ public class Delete extends BaseCommand
     @Override
     public Integer call() throws Exception
     {
-        HttpException.check(target, getClient().delete(target)).close();
+        HttpException.checkWrite(target, getClient().delete(target)).close();
 
         return 0;
     }

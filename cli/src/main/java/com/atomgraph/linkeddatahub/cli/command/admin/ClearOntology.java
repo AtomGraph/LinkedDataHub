@@ -54,7 +54,7 @@ public class ClearOntology extends BaseCommand
         URI target = URI.create(base + "clear");
         Form form = ontology != null ? new Form("uri", ontology.toString()) : new Form();
 
-        printBody(HttpException.check(target, getClient().postForm(target, form, ACCEPT_TURTLE)));
+        printBody(HttpException.checkWrite(target, getClient().postForm(target, form, ACCEPT_TURTLE)));
 
         return 0;
     }

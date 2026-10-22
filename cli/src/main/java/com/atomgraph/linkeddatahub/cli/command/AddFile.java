@@ -58,13 +58,16 @@ public class AddFile extends BaseCommand
     @Option(names = "--content-type", paramLabel = "MEDIA_TYPE", description = "Media type of the file (optional, auto-detected if not set)")
     private String contentType;
 
+    @Option(names = "--replace", description = "Replace the document with the file's description (multipart PUT) instead of appending it (multipart POST)")
+    private boolean replace;
+
     @Parameters(paramLabel = "TARGET_URI", description = "URI of the document")
     private URI target;
 
     @Override
     public Integer call() throws Exception
     {
-        URI fileURI = core(getClient(), target, file, contentType, title, description);
+        URI fileURI = core(getClient(), target, file, contentType, title, description, replace);
         print(fileURI);
 
         return 0;
@@ -86,11 +89,31 @@ public class AddFile extends BaseCommand
      */
     public static URI core(LDHClient client, URI target, Path file, String contentType, String title, String description) throws IOException
     {
+        return core(client, target, file, contentType, title, description, false);
+    }
+
+    /**
+     * Uploads the file to the target document, appending its description or replacing the document with it,
+     * and returns its content-addressed upload URI.
+     *
+     * @param client client instance
+     * @param target target document URI
+     * @param file file path
+     * @param contentType file media type (optional, auto-detected if null)
+     * @param title file title
+     * @param description file description (optional)
+     * @param replace true to replace the document (<code>PUT</code>), false to append to it (<code>POST</code>)
+     * @return upload URI derived from the SHA1 hash of the file content
+     * @throws IOException file read error
+     */
+    public static URI core(LDHClient client, URI target, Path file, String contentType, String title, String description, boolean replace) throws IOException
+    {
         String fileContentType = contentType != null ? contentType : detectContentType(file);
 
         try (FormDataMultiPart multiPart = buildMultiPart(file, fileContentType, title, description))
         {
-            HttpException.check(target, client.post(target, Entity.entity(multiPart, multiPart.getMediaType()), ACCEPT_TURTLE)).close();
+            Entity<FormDataMultiPart> entity = Entity.entity(multiPart, multiPart.getMediaType());
+            HttpException.checkWrite(target, replace ? client.put(target, entity, ACCEPT_TURTLE) : client.post(target, entity, ACCEPT_TURTLE)).close();
         }
 
         return uploadURI(target, file);

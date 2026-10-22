@@ -45,4 +45,11 @@ public class URIsTest
             URIs.childURI(URI.create("https://localhost:4443/some/"), "my item"));
     }
 
+    @Test
+    public void childURIOfParentWithoutSlashIsInsideIt()
+    {
+        assertEquals(URI.create("https://localhost:4443/some/item/"),
+            URIs.childURI(URI.create("https://localhost:4443/some"), "item"));
+    }
+
 }
