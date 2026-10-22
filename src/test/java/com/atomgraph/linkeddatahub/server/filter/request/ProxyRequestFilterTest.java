@@ -285,6 +285,7 @@ public class ProxyRequestFilterTest
         Invocation.Builder builder = mock(Invocation.Builder.class);
         lenient().when(certClient.target(any(URI.class))).thenReturn(target);
         lenient().when(noCertClient.target(any(URI.class))).thenReturn(target);
+        lenient().when(target.property(anyString(), any())).thenReturn(target);
         lenient().when(target.request()).thenReturn(builder);
         lenient().when(builder.accept(any(MediaType[].class))).thenReturn(builder);
         lenient().when(builder.header(anyString(), any())).thenReturn(builder);

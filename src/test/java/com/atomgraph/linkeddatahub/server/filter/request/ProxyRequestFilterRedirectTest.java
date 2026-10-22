@@ -95,7 +95,9 @@ public class ProxyRequestFilterRedirectTest
         when(requestContext.getProperty(AC.uri.getURI())).thenReturn(target);
         when(requestContext.getAcceptableMediaTypes()).thenReturn(List.of(MediaType.valueOf("text/turtle")));
         when(requestContext.getMethod()).thenReturn("GET");
-        when(requestContext.getUriInfo()).thenReturn(mock(UriInfo.class));
+        UriInfo uriInfo = mock(UriInfo.class);
+        when(uriInfo.getBaseUri()).thenReturn(URI.create("https://localhost:4443/"));
+        when(requestContext.getUriInfo()).thenReturn(uriInfo);
         return requestContext;
     }
 
