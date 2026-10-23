@@ -1,163 +1,167 @@
 /-
-The authorization decision of `AuthorizationFilter` and the state it reads.
+The authorization decision of `AuthorizationFilter`: plain WAC over LinkedDataHub's document hierarchy.
 
-Everything the decision consults is a function of two things: the end-user (or admin) store, one named
-graph per document, and the admin dataset's authorizations, group memberships and class hierarchy. The
-SPARQL queries in `web.xml` (`documentTypeQuery`, `documentOwnerQuery`, `aclQuery`, `ownerAclQuery`) are
-transcribed as predicates over that state, one definition per query.
+* Modes are acl:Read, acl:Append and acl:Write; `acl:Control` means nothing: no request requires it, and no granted mode
+  covers anything through it.
+* `acl:default` covers every descendant of a container, with union semantics: no grant overrides another.
+* The owner of a document is an agent class, `lacl:OwnerAgent`, granted by an ordinary authorization.
+* One decision serves both dataspaces.
+* Every triple the decision reads comes from a graph whose writers are trusted with it: types, ancestry and the owner
+  from the document's own graph (`documentContextQuery`), authorizations and memberships from the admin document they
+  are the primary topic of (`aclQuery`).
 -/
+import LdhAcl.Base
+
 namespace LdhAcl
 
-/-- RDF nodes. The vocabulary terms the decision reads are constructors of their own; every other IRI is
-`iri n`. Literals play no part in the decision and are not modelled. -/
-inductive Node where
-  | rdfType | aclOwner | dctCreator | siocHasParent | siocHasContainer
-  | nfoFileDataObject | dhContainer | dhItem | defRoot
-  | iri (n : Nat)
-  deriving DecidableEq, Repr
+/-! ## The two dataspaces -/
 
-/-- `acl:Read`, `acl:Append`, `acl:Write`, `acl:Control`. -/
-inductive Mode where
-  | read | append | write | control
-  deriving DecidableEq, Repr
+/-- Deployment constants. The end-user and the admin dataspace are two URI trees: `parent` (the URI parent
+`put()` resolves) never leaves a tree, and a tree's root is its only document with no parent. -/
+structure Site where
+  euRoot : Node
+  adRoot : Node
+  parent : Node → Node
+  /-- The node belongs to the admin dataspace. -/
+  admin : Node → Prop
+  euRoot_not_admin : ¬ admin euRoot
+  adRoot_admin : admin adRoot
+  parent_admin : ∀ d, d ≠ euRoot → d ≠ adRoot → (admin (parent d) ↔ admin d)
 
-/-- `AccessModes.covering`: a granted mode covers the required one if it is that mode or one of its
-superclasses in `acl.rdf`, where the only edge between modes is `acl:Append rdfs:subClassOf acl:Write`. -/
-def Mode.covers (granted required : Mode) : Prop :=
-  granted = required ∨ (granted = .write ∧ required = .append)
+def Site.isRoot (site : Site) (d : Node) : Prop := d = site.euRoot ∨ d = site.adRoot
 
-structure Triple where
-  s : Node
-  p : Node
-  o : Node
-  deriving DecidableEq, Repr
+/-- The classes of the document hierarchy, which both dataspaces type their documents with. -/
+def hierClass (c : Node) : Prop := c = .defRoot ∨ c = .dhContainer ∨ c = .dhItem
 
-/-- A named graph, as the set of its triples. -/
-abbrev Graph := Triple → Prop
+/-! ## Containment and ancestry -/
 
-/-- A quad store with one named graph per document; `none` is a graph that does not exist. The default
-graph is always empty and is not modelled. -/
-abbrev Store := Node → Option Graph
+def isContainment (t : Triple) : Prop := t.p = .siocHasParent ∨ t.p = .siocHasContainer
 
-/-- The graph store's notion of existence: the document's graph is there. -/
-def present (st : Store) (x : Node) : Prop := ∃ g, st x = some g
+/-- `g` states that `d` is contained in `p`. -/
+def contains (g : Graph) (d p : Node) : Prop :=
+  g ⟨d, .siocHasParent, p⟩ ∨ g ⟨d, .siocHasContainer, p⟩
 
-/-- The store with graph `x` replaced by `v`. -/
-def Store.set (st : Store) (x : Node) (v : Option Graph) : Store :=
-  fun y => if y = x then v else st y
+/-- A containment triple in *any* graph: what a path over `urn:x-arq:UnionGraph` sees. -/
+def parentU (st : Store) (d p : Node) : Prop := ∃ y g, st y = some g ∧ contains g d p
+
+/-- A containment triple in the document's own graph. -/
+def parentO (st : Store) (d p : Node) : Prop := ∃ g, st d = some g ∧ contains g d p
+
+/-- The transitive closure of `R`, built from the near end so that induction walks up the hierarchy. -/
+inductive Anc (R : Node → Node → Prop) : Node → Node → Prop where
+  | step {a b} : R a b → Anc R a b
+  | trans {a b c} : R a b → Anc R b c → Anc R a c
+
+/-- The ancestors the lookup finds: `$this (sioc:has_parent|sioc:has_container)+ ?ancestor` over the union
+graph. -/
+def ancestor (st : Store) : Node → Node → Prop := Anc (parentU st)
+
+/-- The URI-parent chain from `d` up to its tree's root. -/
+def Site.chain (site : Site) : Node → Node → Prop :=
+  Anc (fun d p => ¬ site.isRoot d ∧ p = site.parent d)
 
 /-! ## The admin dataset -/
 
-/-- An `acl:Authorization`, as the ACL queries match it. -/
+/-- The agent classes the decision computes membership of. -/
+inductive AgentClass where
+  /-- `foaf:Agent`: everyone. -/
+  | anyone
+  /-- `acl:AuthenticatedAgent`: every agent with a WebID. -/
+  | authenticated
+  /-- `lacl:OwnerAgent`: the `acl:owner` of the document being accessed. -/
+  | owner
+  deriving DecidableEq, Repr
+
+/-- An `acl:Authorization`. -/
 structure Auth where
-  agents : List Node          -- acl:agent
-  groups : List Node          -- acl:agentGroup
-  anyone : Bool               -- acl:agentClass foaf:Agent
-  authenticated : Bool        -- acl:agentClass acl:AuthenticatedAgent
-  modes : List Mode           -- acl:mode
-  accessTo : List Node        -- acl:accessTo
-  accessToClass : List Node   -- acl:accessToClass
+  agents : List Node              -- acl:agent
+  groups : List Node              -- acl:agentGroup
+  classes : List AgentClass       -- acl:agentClass
+  modes : List Mode               -- acl:mode
+  accessTo : List Node            -- acl:accessTo
+  default : List Node             -- acl:default
+  accessToClass : List Node       -- acl:accessToClass
 
-/-- What the ACL queries read from the admin dataset. Graphs outside the admin base are already dropped
-(the queries' `FILTER(strstarts(str(?g), str($base)))`): `auths` and `member` hold only what survives it. -/
-structure Admin where
-  auths : List Auth
-  /-- `?Group foaf:member ?agent` in a graph under the admin base. -/
-  member : Node → Node → Prop
-  /-- `$Type (rdfs:subClassOf)* ?Class` over the admin union graph. Reflexive, as `*` is. -/
-  subClassOf : Node → Node → Prop
+/-- How the admin dataset is read. Authorizations and memberships are read per admin document, from that
+document's own graph and only as its primary topic (`GRAPH ?g { ?g foaf:primaryTopic ?auth … }`): `auths d g`
+is what graph `g` of document `d` contributes. `sub` is `rdfs:subClassOf*` over the admin ontology. -/
+structure Reader where
+  auths : Node → Graph → Auth → Prop
+  member : Node → Graph → Node → Node → Prop
+  sub : Node → Node → Prop
+  sub_refl : ∀ c, sub c c
 
-/-- Deployment constants: the root document, URI parent resolution (`IRIx.resolve("..")`, used by both the
-filter and `put()`), and the admin documents the admin query lets `foaf:Agent` read (its last `FILTER`). -/
-structure Ctx where
-  root : Node
-  parent : Node → Node
-  adminPublic : Node → Prop
+/-- The authorizations in force: those some admin document describes. -/
+def authIn (site : Site) (rd : Reader) (st : Store) (au : Auth) : Prop :=
+  ∃ d g, site.admin d ∧ st d = some g ∧ rd.auths d g au
 
-/-! ## Reading the store -/
+/-- `?group foaf:member ?agent`, as some admin document states it. -/
+def memberIn (site : Site) (rd : Reader) (st : Store) (grp a : Node) : Prop :=
+  ∃ d g, site.admin d ∧ st d = some g ∧ rd.member d g grp a
 
-/-- How the decision learns a document's types. -/
-abbrev TypeView := Store → Node → Node → Prop
+/-! ## The document lookup -/
 
-/-- `documentTypeQuery` as deployed: the types the document's own graph asserts for it, and, for a subject
-some graph types `nfo:FileDataObject`, every type *that* graph asserts for it (`GRAPH ?g`, any graph). -/
-def types : TypeView := fun st x t =>
-  (∃ g, st x = some g ∧ g ⟨x, .rdfType, t⟩) ∨
-  (∃ y g, st y = some g ∧ g ⟨x, .rdfType, .nfoFileDataObject⟩ ∧ g ⟨x, .rdfType, t⟩)
+/-- The tag of a row the lookup returns: the `acl:` property an authorization must carry with the row's
+node as object to match, or `acl:owner` for the row naming the document's owner. -/
+inductive Rel where
+  | accessTo | default | accessToClass | owner
+  deriving DecidableEq, Repr
 
-/-- The first branch of `documentTypeQuery` alone: only a document's own graph types it. -/
-def ownTypes : TypeView := fun st x t =>
-  ∃ g, st x = some g ∧ g ⟨x, .rdfType, t⟩
-
-/-- `documentOwnerQuery`: `GRAPH $this { $this acl:owner ?owner }`. The filter compares the agent against
-the first solution only; with the single owner `put()` assigns, that is the same as any solution. -/
-def owner (st : Store) (x a : Node) : Prop :=
-  ∃ g, st x = some g ∧ g ⟨x, .aclOwner, a⟩
+/-- `documentContextQuery`, run on the dataspace's store: `(?Rel ?Target)` rows for `x`, each bound in both
+columns. The document itself, its ancestors (union graph), its own-graph types and its own-graph owner. -/
+def context (st : Store) (x : Node) : Rel → Node → Prop
+  | .accessTo, t => t = x
+  | .default, c => ancestor st x c
+  | .accessToClass, t => ownTypes st x t
+  | .owner, a => owner st x a
 
 /-! ## The decision -/
 
-/-- `createOwnerAuthorization`: the owner of `x` gets acl:Read, acl:Append and acl:Write on it. -/
-def ownerGrant (st : Store) (agent : Option Node) (m : Mode) (x : Node) : Prop :=
-  ∃ a, agent = some a ∧ owner st x a ∧ m ≠ .control
+/-- The agent part of the ACL query. `owners` is the `acl:owner` rows of the lookup; Java turns them into the
+`$OwnerAgentClass` switch, as it does `$AuthenticatedAgentClass`. -/
+def Auth.principal (au : Auth) (member : Node → Node → Prop) (owners : Node → Prop) : Option Node → Prop
+  | none => .anyone ∈ au.classes
+  | some a => a ∈ au.agents ∨ (∃ grp ∈ au.groups, member grp a) ∨ .anyone ∈ au.classes ∨
+      .authenticated ∈ au.classes ∨ (.owner ∈ au.classes ∧ owners a)
 
-/-- `AuthorizationParams`: the agent branch and the `acl:AuthenticatedAgent` branch are enabled only for an
-authenticated agent; `foaf:Agent` matches everyone. -/
-def Auth.principal (adm : Admin) (au : Auth) : Option Node → Prop
-  | none => au.anyone = true
-  | some a => a ∈ au.agents ∨ (∃ g ∈ au.groups, adm.member g a) ∨ au.anyone = true ∨ au.authenticated = true
+/-- `?auth ?Rel ?Target`: the authorization carries the row's property with the row's node, or, for a class,
+a superclass of it. -/
+def Auth.matchRow (au : Auth) (sub : Node → Node → Prop) : Rel → Node → Prop
+  | .accessTo, t => t ∈ au.accessTo
+  | .default, c => c ∈ au.default
+  | .accessToClass, t => ∃ c ∈ au.accessToClass, sub t c
+  | .owner, _ => False
 
-/-- The target part of both ACL queries: `acl:accessTo $this`, or `acl:accessToClass` of one of the
-injected types or a superclass of one. -/
-def Auth.targets (adm : Admin) (au : Auth) (x : Node) (ty : Node → Prop) : Prop :=
-  x ∈ au.accessTo ∨ ∃ c ∈ au.accessToClass, ∃ t, ty t ∧ adm.subClassOf t c
+/-- The target part of the ACL query: some row of the lookup matches. -/
+def Auth.covers (au : Auth) (sub : Node → Node → Prop) (look : Rel → Node → Prop) : Prop :=
+  ∃ r t, look r t ∧ au.matchRow sub r t
 
-/-- What an ACL query contributes: some matched authorization carries a mode covering the required one
-(`getAuthorizationByMode` over the `DESCRIBE`d authorizations). -/
-abbrev AclGrant := Option Node → Mode → Node → (Node → Prop) → Prop
+/-- The ACL query and `getAuthorizationByMode`, over an authorization set `A`, a membership relation `M` and
+a lookup. -/
+def grantWith (A : Auth → Prop) (M : Node → Node → Prop) (sub : Node → Node → Prop)
+    (look : Rel → Node → Prop) (agent : Option Node) (m : Mode) : Prop :=
+  ∃ au, A au ∧ au.principal M (look .owner) agent ∧ au.covers sub look ∧ ∃ g ∈ au.modes, g.covers m
 
-/-- `aclQuery`, run for end-user dataspaces. -/
-def aclGrant (adm : Admin) : AclGrant := fun agent m x ty =>
-  ∃ au ∈ adm.auths, au.principal adm agent ∧ au.targets adm x ty ∧ ∃ g ∈ au.modes, g.covers m
+def grant (site : Site) (rd : Reader) (st : Store) (agent : Option Node) (m : Mode) (x : Node) : Prop :=
+  grantWith (authIn site rd st) (memberIn site rd st) rd.sub (context st x) agent m
 
-/-- `ownerAclQuery`, run for admin dataspaces. Its three branches:
-  * any authorization carrying `acl:Control` for the agent or one of its groups, *with no target pattern*;
-  * `acl:AuthenticatedAgent` authorizations targeting the document, with no further restriction;
-  * `foaf:Agent` authorizations with `acl:Read` targeting the document, only for `Ctx.adminPublic` documents. -/
-def adminMatch (ctx : Ctx) (adm : Admin) (agent : Option Node) (x : Node) (ty : Node → Prop) (au : Auth) : Prop :=
-  (Mode.control ∈ au.modes ∧ ∃ a, agent = some a ∧ (a ∈ au.agents ∨ ∃ g ∈ au.groups, adm.member g a)) ∨
-  (au.authenticated = true ∧ agent ≠ none ∧ au.targets adm x ty) ∨
-  (au.anyone = true ∧ Mode.read ∈ au.modes ∧ au.targets adm x ty ∧ ctx.adminPublic x)
+/-- `AuthorizationFilter.authorize`. A `PUT` to a document the graph store does not have is a create,
+decided on the parent, which must be typed `def:Root` or `dh:Container`. -/
+def allow (site : Site) (rd : Reader) (st : Store) (agent : Option Node) (isPut : Prop) (m : Mode)
+    (x : Node) : Prop :=
+  ((present st x ∨ ¬ isPut) ∧ grant site rd st agent m x) ∨
+  (¬ present st x ∧ isPut ∧
+    (ownTypes st (site.parent x) .defRoot ∨ ownTypes st (site.parent x) .dhContainer) ∧
+    grant site rd st agent m (site.parent x))
 
-def adminGrant (ctx : Ctx) (adm : Admin) : AclGrant := fun agent m x ty =>
-  ∃ au ∈ adm.auths, adminMatch ctx adm agent x ty au ∧ ∃ g ∈ au.modes, g.covers m
-
-/-- `AuthorizationFilter.authorize` for a required mode. A document the type query finds untyped is taken
-not to exist; a `PUT` to it is then authorized against the parent, which must be typed `def:Root` or
-`dh:Container`. The owner check on `x` itself runs first, on either path. -/
-def allow (T : TypeView) (ctx : Ctx) (acl : AclGrant) (st : Store) (agent : Option Node)
-    (isPut : Prop) (m : Mode) (x : Node) : Prop :=
-  (((∃ t, T st x t) ∨ ¬ isPut) ∧
-    (ownerGrant st agent m x ∨ acl agent m x (T st x))) ∨
-  ((¬ ∃ t, T st x t) ∧ isPut ∧
-    (T st (ctx.parent x) .defRoot ∨ T st (ctx.parent x) .dhContainer) ∧
-    (ownerGrant st agent m x ∨ ownerGrant st agent m (ctx.parent x) ∨
-      acl agent m (ctx.parent x) (T st (ctx.parent x))))
-
-inductive Method where
-  | get | head | post | put | putCreate | patch | delete
-  deriving DecidableEq, Repr
-
-/-- `AuthorizationFilter.filter`: the mode a method requires (`getAccessMode`; a `PUT` with
-`If-None-Match: *` needs only acl:Append), the read-allowed dataspace shortcut, and the `HEAD` fallback to
-acl:Append for an agent that may write but not read. -/
-def allowRequest (T : TypeView) (ctx : Ctx) (acl : AclGrant) (readAllowed : Bool) (st : Store)
-    (agent : Option Node) : Method → Node → Prop
-  | .get, x => readAllowed = true ∨ allow T ctx acl st agent False .read x
-  | .head, x => readAllowed = true ∨ allow T ctx acl st agent False .read x ∨ allow T ctx acl st agent False .append x
-  | .post, x => allow T ctx acl st agent False .append x
-  | .put, x => allow T ctx acl st agent True .write x
-  | .putCreate, x => allow T ctx acl st agent True .append x
-  | .patch, x => allow T ctx acl st agent False .write x
-  | .delete, x => allow T ctx acl st agent False .write x
+/-- `AuthorizationFilter.filter`: the mode each method requires (`getAccessMode`). -/
+def allowRequest (site : Site) (rd : Reader) (st : Store) (agent : Option Node) : Method → Node → Prop
+  | .get, x => allow site rd st agent False .read x
+  | .head, x => allow site rd st agent False .read x ∨ allow site rd st agent False .append x
+  | .post, x => allow site rd st agent False .append x
+  | .put, x => allow site rd st agent True .write x
+  | .putCreate, x => allow site rd st agent True .append x
+  | .patch, x => allow site rd st agent False .write x
+  | .delete, x => allow site rd st agent False .write x
 
 end LdhAcl

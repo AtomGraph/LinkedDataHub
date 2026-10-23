@@ -1,14 +1,14 @@
 /-
-The seeded authorizations, and what migrating the deployed ones to the redesign changes.
+The seeded authorizations, and what migrating the ones of a release before 6.0 changes.
 
-The deployed seeds grant the whole of a dataspace through the hierarchy classes
+Before 6.0 the seeds granted the whole of a dataspace through the hierarchy classes
 (`acl:accessToClass def:Root, dh:Container, dh:Item`). The admin and end-user documents share those
-classes, so such a grant is scoped by nothing but the query that reads it. The migration rewrites each into
-`acl:accessTo` and `acl:default` on its dataspace's root.
+classes, so such a grant was scoped by nothing but the query that read it. The migration
+(`migrations/6.0-acl.ru.template`) rewrites each into `acl:accessTo` and `acl:default` on its dataspace's root.
 -/
-import LdhAcl.Wac.Theorems
+import LdhAcl.Theorems
 
-namespace LdhAcl.Wac
+namespace LdhAcl
 
 /-- URI paths are finite: every non-root document's parent chain ends at a root. -/
 def Site.Finite (site : Site) : Prop :=
@@ -47,7 +47,7 @@ theorem root_grant_covers {site : Site} {st : Store} (h : Inv site st) {au : Aut
 /-! ## The admin role -/
 
 /-- **The admin role in plain WAC.** `accessTo` and `acl:default` on the admin root cover every admin
-document, which the deployed `ownerAclQuery` gave `acl:Control` over `def:Root` without looking at the
+document, which `ownerAclQuery` gave `acl:Control` over `def:Root` before 6.0 without looking at the
 target. -/
 theorem admin_role_covers {site : Site} {st : Store} (h : Inv site st) (hf : site.Finite) {au : Auth}
     {sub} {x : Node} (hx : site.admin x) (hp : present st x) :
@@ -108,9 +108,9 @@ theorem ownerAccess_endUserOnly (site : Site) (sub : Node → Node → Prop) :
   · intro c hc; simp [ownerAccess] at hc; subst hc; exact site.euRoot_not_admin
   · intro c hc; simp [ownerAccess] at hc
 
-/-- **Owner access is the deployed owner grant on the end-user dataspace.** The owner-access
+/-- **Owner access is the owner grant of releases before 6.0 on the end-user dataspace.** The owner-access
 authorization matches an agent on an end-user document exactly when the agent owns it, which is when
-`createOwnerAuthorization` fires. -/
+`createOwnerAuthorization` fired. -/
 theorem ownerAccess_endUser {site : Site} {sub : Node → Node → Prop} {st : Store} (h : Inv site st)
     (hf : site.Finite) {M : Node → Node → Prop} {x a : Node} (hx : ¬ site.admin x) (hp : present st x) :
     ((ownerAccess site).principal M (owner st x) (some a) ∧
@@ -129,11 +129,11 @@ theorem ownerAccess_endUser {site : Site} {sub : Node → Node → Prop} {st : S
   · intro ho
     exact ⟨by simp; exact ho, hc⟩
 
-/-- **Owner access opens nothing in the admin dataspace.** The deployed owner grant applies there too, so
-an admin keeps acl:Write on every authorization it created after it leaves the owners group. -/
+/-- **Owner access opens nothing in the admin dataspace.** The owner grant of releases before 6.0 applied
+there too, so an admin kept acl:Write on every authorization it created after leaving the owners group. -/
 theorem ownerAccess_admin {site : Site} {rd : Reader} {st : Store} (h : Inv site st)
     (hat : AdminTyped site st) {x : Node} (hx : site.admin x) :
     ¬ (ownerAccess site).covers rd.sub (context st x) :=
   endUserOnly_confined h hat (ownerAccess_endUserOnly site rd.sub) hx
 
-end LdhAcl.Wac
+end LdhAcl
