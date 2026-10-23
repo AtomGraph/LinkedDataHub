@@ -16,6 +16,15 @@ lake build
 
 Lean `v4.15.0` (pinned in `lean-toolchain`), core library only, with no Mathlib.
 
+The `Formal` workflow builds the model on every push, fails on a `sorry`, and on a pull request runs
+`tracks-code.sh`, which fails when a source listed under "Mapping to the code" changes without a change
+in this directory. `web.xml` counts only through the three queries the mapping names; the rest of the
+file is free to change. Run it locally against the branch point:
+
+```bash
+formal/acl/tracks-code.sh origin/develop
+```
+
 ## Files
 
 | File | Contents |
