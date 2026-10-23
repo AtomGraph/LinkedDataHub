@@ -58,8 +58,8 @@ public class DocumentContext
     {
         if (resultSet == null) throw new IllegalArgumentException("ResultSet cannot be null");
 
-        List<Binding> targets = new ArrayList<>();
-        Set<Resource> types = new HashSet<>(), owners = new HashSet<>();
+        List<Binding> targetRows = new ArrayList<>();
+        Set<Resource> typeSet = new HashSet<>(), ownerSet = new HashSet<>();
         while (resultSet.hasNext())
         {
             QuerySolution row = resultSet.next();
@@ -67,20 +67,20 @@ public class DocumentContext
             RDFNode target = row.get(TARGET_VAR_NAME);
             if (rel == null || target == null || !target.isResource()) continue;
 
-            if (rel.equals(ACL.owner)) owners.add(target.asResource());
+            if (rel.equals(ACL.owner)) ownerSet.add(target.asResource());
             else
             {
-                if (rel.equals(ACL.accessToClass)) types.add(target.asResource());
-                targets.add(Binding.builder().
+                if (rel.equals(ACL.accessToClass)) typeSet.add(target.asResource());
+                targetRows.add(Binding.builder().
                     add(Var.alloc(REL_VAR_NAME), rel.asNode()).
                     add(Var.alloc(TARGET_VAR_NAME), target.asNode()).
                     build());
             }
         }
 
-        this.targets = Collections.unmodifiableList(targets);
-        this.types = Collections.unmodifiableSet(types);
-        this.owners = Collections.unmodifiableSet(owners);
+        this.targets = Collections.unmodifiableList(targetRows);
+        this.types = Collections.unmodifiableSet(typeSet);
+        this.owners = Collections.unmodifiableSet(ownerSet);
     }
 
     /**
