@@ -43,6 +43,11 @@ PROJECT             ?= $(or $(COMPOSE_PROJECT_NAME),$(notdir $(CURDIR)))
 ORIGIN    = $(if $(and $(PROTOCOL),$(HOST)),$(PROTOCOL)://$(HOST)$(if $(filter-out 443,$(HTTPS_PORT)),:$(HTTPS_PORT)),$(error .env is missing or incomplete: PROTOCOL and HOST are required))
 BASE_URI   = $(ORIGIN)/
 PROXY_URI  = $(PROTOCOL)://$(HOST):$(HTTPS_CLIENT_CERT_PORT)/
+# A variable that arrived from the environment is exported to every recipe shell, and exporting
+# means expanding - so a BASE_URI in the environment (the test workflows set one) would fire the
+# error above for every target, .env or not. Not exported: the recipes that need these pass them
+# explicitly
+unexport ORIGIN BASE_URI PROXY_URI
 
 TARGETS         := up down stop restart ps logs cert secrets sef public load validate drop
 COMPOSE_TARGETS := up down stop restart ps logs

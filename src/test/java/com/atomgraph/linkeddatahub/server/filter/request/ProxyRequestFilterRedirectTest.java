@@ -78,6 +78,7 @@ public class ProxyRequestFilterRedirectTest
         filter = new ProxyRequestFilter();
         filter.mediaTypes = new MediaTypes();
         filter.request = request;
+        filter.httpHeaders = request; // Jersey's container request is also the request's HttpHeaders
         filter.system = system;
     }
 

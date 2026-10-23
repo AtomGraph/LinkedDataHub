@@ -42,7 +42,7 @@ import java.util.Set;
 import java.util.function.Function;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.NotAllowedException;
+import jakarta.ws.rs.ForbiddenException;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.client.Entity;
@@ -154,6 +154,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject MediaTypes mediaTypes;
     @Context Request request;
+    @Context HttpHeaders httpHeaders;
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException
@@ -206,7 +207,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
         boolean isRegisteredApp = getSystem().matchApp(targetURI) != null;
         if (!isRegisteredApp && !getSystem().isEnableLinkedDataProxy())
-            throw new NotAllowedException("Linked Data proxy not enabled");
+            throw new ForbiddenException("Linked Data proxy not enabled"); // GET is supported, the proxy is not offered
         // LNK-009: validate that the target URI is not an internal/private address (SSRF protection)
         getSystem().getURLValidator().validate(targetURI);
 
@@ -510,7 +511,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         writableTypes.removeIf(mt -> mt.isCompatible(MediaType.TEXT_HTML_TYPE) ||
             mt.isCompatible(MediaType.APPLICATION_XHTML_XML_TYPE));
 
-        return new com.atomgraph.core.model.impl.Response(getRequest(),
+        return new com.atomgraph.core.model.impl.Response(getRequest(), getHttpHeaders(),
                 model,
                 null,
                 new EntityTag(Long.toHexString(ModelUtils.hashModel(model))),
@@ -550,7 +551,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
     {
         if (!result.isBoolean()) throw new IllegalArgumentException("SPARQLResult is not a boolean");
 
-        return new com.atomgraph.core.model.impl.Response(getRequest(),
+        return new com.atomgraph.core.model.impl.Response(getRequest(), getHttpHeaders(),
                 result,
                 null,
                 new EntityTag(Long.toHexString(ResultSetUtils.hashBoolean(result.getBooleanResult()))),
@@ -576,7 +577,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         long hash = ResultSetUtils.hashResultSet(resultSet);
         resultSet.reset();
 
-        return new com.atomgraph.core.model.impl.Response(getRequest(),
+        return new com.atomgraph.core.model.impl.Response(getRequest(), getHttpHeaders(),
                 resultSet,
                 null,
                 new EntityTag(Long.toHexString(hash)),
@@ -617,6 +618,16 @@ public class ProxyRequestFilter implements ContainerRequestFilter
     public Request getRequest()
     {
         return request;
+    }
+
+    /**
+     * Returns the request headers.
+     *
+     * @return HTTP headers
+     */
+    public HttpHeaders getHttpHeaders()
+    {
+        return httpHeaders;
     }
 
 }

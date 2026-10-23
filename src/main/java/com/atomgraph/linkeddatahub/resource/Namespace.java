@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.resource;
 
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
@@ -33,6 +34,7 @@ import com.atomgraph.linkeddatahub.server.util.OntologyRepository;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
@@ -40,7 +42,8 @@ import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.NotAllowedException;
 import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
@@ -62,6 +65,9 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
 
     private static final Logger log = LoggerFactory.getLogger(Namespace.class);
 
+    /** The methods this read-only endpoint allows: queries by GET and form POST, but no updates */
+    public static final Set<String> ALLOWED_METHODS = Set.of(HttpMethod.GET, HttpMethod.HEAD, HttpMethod.OPTIONS, HttpMethod.POST);
+
     private final URI uri;
     private final Dataspace application;
     private final OntModel ontology;
@@ -71,6 +77,7 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
      * Constructs endpoint from the in-memory ontology model.
      *
      * @param request current request
+     * @param httpHeaders request headers
      * @param uriInfo current request's URI info
      * @param application current end-user application
      * @param ontology application's ontology
@@ -79,11 +86,11 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
      * @param system system application
      */
     @Inject
-    public Namespace(@Context Request request, @Context UriInfo uriInfo,
+    public Namespace(@Context Request request, @Context HttpHeaders httpHeaders, @Context UriInfo uriInfo,
             Dataspace application, Optional<OntModel> ontology, MediaTypes mediaTypes,
             @Context SecurityContext securityContext, com.atomgraph.linkeddatahub.Application system)
     {
-        super(request, uriInfo, new ServiceImpl(DatasetFactory.create(ontology.get()), mediaTypes), mediaTypes);
+        super(request, httpHeaders, uriInfo, new ServiceImpl(DatasetFactory.create(ontology.get()), mediaTypes), mediaTypes);
         this.uri = uriInfo.getAbsolutePath();
         this.application = application;
         this.ontology = ontology.get();
@@ -138,7 +145,7 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
             @FormParam(DEFAULT_GRAPH_URI) List<URI> defaultGraphUris, @FormParam(NAMED_GRAPH_URI) List<URI> namedGraphUris,
             @FormParam(USING_GRAPH_URI) List<URI> usingGraphUris, @FormParam(USING_NAMED_GRAPH_URI) List<URI> usingNamedGraphUris)
     {
-        if (updateString != null) throw new WebApplicationException("SPARQL updates are not allowed on the <ns> endpoint", Status.METHOD_NOT_ALLOWED);
+        if (updateString != null) throw updateNotAllowed();
 
         // re-parse query to set explicit fallback base URI
         queryString = QueryFactory.create(queryString, getUriInfo().getAbsolutePath().toString()).toString();
@@ -150,7 +157,18 @@ public class Namespace extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
     @Consumes(com.atomgraph.core.MediaType.APPLICATION_SPARQL_UPDATE)
     public Response post(UpdateRequest update, @QueryParam(USING_GRAPH_URI) List<URI> usingGraphUris, @QueryParam(USING_NAMED_GRAPH_URI) List<URI> usingNamedGraphUris)
     {
-        throw new WebApplicationException("SPARQL updates are not allowed on the <ns> endpoint", Status.METHOD_NOT_ALLOWED);
+        throw updateNotAllowed();
+    }
+    
+    /**
+     * Returns the exception rejecting a SPARQL update, which names the methods this endpoint allows.
+     * 
+     * @return method not allowed exception
+     */
+    public NotAllowedException updateNotAllowed()
+    {
+        return new NotAllowedException("SPARQL updates are not allowed on the <ns> endpoint",
+            Response.status(Status.METHOD_NOT_ALLOWED).allow(ALLOWED_METHODS).build());
     }
     
     /**

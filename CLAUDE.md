@@ -41,7 +41,8 @@ make drop                                    # Complete reset (down -v, then wip
 
 make rdf                                     # Install the linkeddatahub-rdf library
 make cli                                     # Build the ldh CLI (installs rdf first), print the PATH export
-make cli-version                             # Set the rdf/ and cli/ poms and the ldh plugin to the platform version in pom.xml
+make cli-version                             # Set the rdf/ and cli/ poms and the ldh plugin to the platform version in pom.xml, and cli/'s core.version to the Core the platform resolves
+make cli-version-check                       # Fail if any of those has fallen behind; the test workflows run it before building the CLI
 ```
 
 ### Testing
@@ -199,7 +200,12 @@ platform, not at it.
 Neither `rdf/` nor `cli/` is a module of the platform reactor (the root pom is the webapp artifact,
 so it cannot carry `<modules>`), but both share the platform's version: `release.sh` runs
 `versions:set` on them around both release bumps, and `make cli-version` re-aligns them if they
-drift. `cli/pom.xml` resolves the library by `${project.version}`, so the two move together.
+drift. `cli/pom.xml` resolves the library by `${project.version}`, so the two move together. The
+Core version travels the same way: the platform never declares Core, it arrives through Web-Client,
+so `make cli-version` reads the version Maven resolves for it and copies it into `cli/pom.xml` as
+`core.version`, where the CLI, which has no Web-Client, pins Core directly. `make cli-version-check`
+fails when any of these copies differs from the platform, and the http-tests and ui-tests workflows
+run it before building the CLI.
 `make cli` installs `rdf/` first; building `cli/` on its own needs `make rdf` to have run at least
 once since the last version bump.
 

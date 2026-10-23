@@ -197,7 +197,6 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     private final SecurityContext securityContext;
     private final Optional<AgentContext> agentContext;
     private final Set<String> allowedMethods;
-    private final HttpHeaders httpHeaders;
 
     /**
      * Constructs Graph Store.
@@ -221,7 +220,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context HttpHeaders httpHeaders)
     {
         // orElseThrow: the super() call dereferences the service before any statement can check emptiness
-        super(request, system.getServiceContext(service.orElseThrow(() -> new InternalServerErrorException("Service is not specified"))).getGraphStoreClient(), mediaTypes, uriInfo);
+        super(request, httpHeaders, system.getServiceContext(service.orElseThrow(() -> new InternalServerErrorException("Service is not specified"))).getGraphStoreClient(), mediaTypes, uriInfo);
         if (ontology.isEmpty()) throw new InternalServerErrorException("Ontology is not specified");
         this.application = application;
         this.ontology = ontology.get();
@@ -230,7 +229,6 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         this.agentContext = agentContext;
         this.providers = providers;
         this.system = system;
-        this.httpHeaders = httpHeaders;
         uploadsUriBuilder = uriInfo.getBaseUriBuilder().path(UPLOADS_PATH);
         URI ownerURI = URI.create(application.getMaker().getURI());
         try
@@ -243,22 +241,37 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             throw new InternalServerErrorException(ex);
         }
         
-        URI uri = uriInfo.getAbsolutePath();
-        allowedMethods = new HashSet<>();
-        allowedMethods.add(HttpMethod.GET);
-        allowedMethods.add(HttpMethod.POST);
+        allowedMethods = allowedMethods(uriInfo.getAbsolutePath(), application.getBaseURI(), ownerDocURI, secretaryDocURI, isSnapshotRequest(uriInfo));
+    }
+
+    /**
+     * Returns the methods allowed on a document.
+     * The owner's and the secretary's WebID documents cannot be replaced or deleted, the root document cannot be
+     * deleted, and historical versions, TimeMaps and TimeGates are read-only.
+     *
+     * @param uri document URI
+     * @param baseURI application's base URI (the root document)
+     * @param ownerDocURI owner's WebID document URI
+     * @param secretaryDocURI secretary's WebID document URI
+     * @param snapshot true if the request addresses a historical version, a TimeMap or a TimeGate
+     * @return set of HTTP method names
+     */
+    public static Set<String> allowedMethods(URI uri, URI baseURI, URI ownerDocURI, URI secretaryDocURI, boolean snapshot)
+    {
+        if (snapshot) return Set.of(HttpMethod.GET, HttpMethod.HEAD, HttpMethod.OPTIONS);
+
+        Set<String> methods = new HashSet<>(Set.of(HttpMethod.GET, HttpMethod.HEAD, HttpMethod.OPTIONS, HttpMethod.POST, HttpMethod.PATCH));
 
         if (!ownerDocURI.equals(uri) &&
             !secretaryDocURI.equals(uri))
-            allowedMethods.add(HttpMethod.PUT);
+            methods.add(HttpMethod.PUT);
 
-        if (!application.getBaseURI().equals(uri) &&
+        if (!baseURI.equals(uri) &&
             !ownerDocURI.equals(uri) &&
             !secretaryDocURI.equals(uri))
-            allowedMethods.add(HttpMethod.DELETE);
+            methods.add(HttpMethod.DELETE);
 
-        // historical version, TimeMap and TimeGate views are read-only
-        if (isSnapshotRequest(uriInfo)) allowedMethods.retainAll(Set.of(HttpMethod.GET));
+        return methods;
     }
 
     /**
@@ -280,7 +293,9 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
      */
     private void checkSnapshotReadOnly()
     {
-        if (isSnapshotRequest(getUriInfo())) throw new NotAllowedException(HttpMethod.GET, new String[]{ HttpMethod.OPTIONS });
+        if (isSnapshotRequest(getUriInfo()))
+            throw new NotAllowedException("Historical versions, TimeMaps and TimeGates are read-only",
+                Response.status(Response.Status.METHOD_NOT_ALLOWED).allow(getAllowedMethods()).build());
     }
 
     /**
@@ -368,7 +383,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             timeMapMediaTypes.add(TimeMapWriter.APPLICATION_LINK_FORMAT_TYPE);
             timeMapMediaTypes.addAll(getWritableMediaTypes(Model.class));
 
-            return new com.atomgraph.core.model.impl.Response(getRequest(),
+            return new com.atomgraph.core.model.impl.Response(getRequest(), getHttpHeaders(),
                     timeMap,
                     null,
                     getEntityTag(timeMap),
@@ -382,20 +397,18 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         String version = getUriInfo().getQueryParameters().getFirst(VERSION_PARAM_NAME);
         if (version == null) return super.get();
         // commit SHAs only: movable refs (branches, tags) must not be served with immutable caching,
-        // and the hex-only value doubles as the ETag (the HTML writer per-agent-perturbs ETags as hex numbers)
+        // and the hex-only value seeds the ETag (the variant folding and the HTML writer add to it as a hex number)
         if (!version.matches("[0-9a-f]{4,64}")) throw new NotFoundException("Version '" + version + "' of graph <" + getURI() + "> not found");
 
         com.atomgraph.linkeddatahub.server.util.GraphVersioningService.Version graphVersion = getSystem().getGraphVersioningService().
             getVersion(getDataspace().getURI(), getDataspace().getBaseURI(), getURI(), version).
             orElseThrow(() -> new NotFoundException("Version '" + version + "' of graph <" + getURI() + "> not found"));
 
-        CacheControl cacheControl = new CacheControl();
-        cacheControl.setMaxAge(31536000);
-        cacheControl.getCacheExtension().put("immutable", "");
-
-        Response.ResponseBuilder rb = getResponseBuilder(graphVersion.model(), getURI()).
-            tag(new EntityTag(version)).
-            cacheControl(cacheControl);
+        // the tag is derived per variant from the commit SHA, and the same tag is evaluated and sent: tagging every
+        // variant with the bare SHA after evaluating against the content digest meant If-None-Match never matched
+        Response.ResponseBuilder rb = getInternalResponse(graphVersion.model(), getLastModified(graphVersion.model(), getURI()), new EntityTag(version)).
+            getResponseBuilder().
+            cacheControl(graphVersion.getCacheControl());
         if (graphVersion.datetime() != null)
             rb.header("Memento-Datetime", TimeMapWriter.RFC_1123_GMT.format(graphVersion.datetime().atZone(ZoneId.of("GMT"))));
 
@@ -435,13 +448,15 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         // written - stamping dct:modified would change the graph and its entity tag although no triple was added
         if (model.isEmpty()) return Response.noContent().build();
 
+        checkForeignContainment(model);
+
         return writeLocked(() ->
         {
             final Model existingModel = getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(getURI().toString());
-        
+
             Response.ResponseBuilder rb = evaluatePreconditions(existingModel, getHttpHeaders());
             if (rb != null) return rb.build(); // preconditions not met
-        
+
             // dct:created and dct:modified are the server's to assign: the document keeps the creation date it has, and
             // the append is its modification. Ownership and containment are not the payload's to assert either: the stored
             // acl:owner, dct:creator, sioc:has_parent and sioc:has_container are kept as they are
@@ -534,6 +549,8 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             if (log.isDebugEnabled()) log.debug("Rejected document URI <{}> - double slashes are not allowed", getURI());
             throw new BadRequestException("Double slashes not allowed in document URIs");
         }
+
+        checkForeignContainment(model);
 
         URI parentURI = getURI().resolve("..");
         boolean root = getDataspace().getBaseURI().equals(getURI());
@@ -701,6 +718,10 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             // and the URIs disagreeing about where it is
             if (isContainmentChanged(beforeUpdateModel, existingModel, getURI().toString()))
                 throw new WebApplicationException("sioc:has_parent and sioc:has_container of document <" + getURI() + "> cannot be changed", UNPROCESSABLE_ENTITY.getStatusCode());
+
+            // only the containment the update adds is held to the rule: a graph written before it may still carry some
+            if (getForeignContainment(existingModel, getURI().toString()).stream().anyMatch(stmt -> !beforeUpdateModel.contains(stmt)))
+                throw new WebApplicationException("sioc:has_parent and sioc:has_container in document <" + getURI() + "> can only be stated of the document itself", UNPROCESSABLE_ENTITY.getStatusCode());
 
             // SPIN constraints are class-scoped; allowing rdf:type removal would silently bypass them
             for (Resource resource : getChangedResources(beforeUpdateModel, existingModel))
@@ -998,6 +1019,43 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         return isChanged(beforeUpdateModel, afterUpdateModel, documentURI, List.of(SIOC.HAS_PARENT, SIOC.HAS_CONTAINER));
     }
 
+    /**
+     * Returns the containment statements (<code>sioc:has_parent</code> and <code>sioc:has_container</code>) of a
+     * document graph whose subject is not the document. A document's graph states where that document is in the
+     * hierarchy and nothing else's place in it: containment read across graphs takes any such statement for the
+     * position of its subject.
+     *
+     * @param model document graph or request payload
+     * @param documentURI document URI
+     * @return containment statements of other subjects
+     */
+    public static Set<Statement> getForeignContainment(Model model, String documentURI)
+    {
+        if (model == null) throw new IllegalArgumentException("Model cannot be null");
+        if (documentURI == null) throw new IllegalArgumentException("Document URI cannot be null");
+
+        Resource document = ResourceFactory.createResource(documentURI);
+        Set<Statement> statements = new HashSet<>();
+        for (Property property : List.of(SIOC.HAS_PARENT, SIOC.HAS_CONTAINER))
+            model.listStatements(null, property, (RDFNode)null).
+                filterDrop(stmt -> stmt.getSubject().equals(document)).
+                forEach(statements::add);
+
+        return statements;
+    }
+
+    /**
+     * Refuses a payload that states the containment of any resource but the requested document.
+     *
+     * @param model request payload
+     * @throws WebApplicationException with <code>422 Unprocessable Entity</code> if it does
+     */
+    public void checkForeignContainment(Model model)
+    {
+        if (!getForeignContainment(model, getURI().toString()).isEmpty())
+            throw new WebApplicationException("sioc:has_parent and sioc:has_container in document <" + getURI() + "> can only be stated of the document itself", UNPROCESSABLE_ENTITY.getStatusCode());
+    }
+
     private static boolean isChanged(Model beforeUpdateModel, Model afterUpdateModel, String documentURI, List<Property> properties)
     {
         if (beforeUpdateModel == null) throw new IllegalArgumentException("Model before update cannot be null");
@@ -1094,17 +1152,60 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
      */
     public com.atomgraph.core.model.impl.Response getInternalResponse(Model model, URI graphUri)
     {
-        return new com.atomgraph.core.model.impl.Response(getRequest(),
+        return getInternalResponse(model, getLastModified(model, graphUri), getEntityTag(model));
+    }
+
+    /**
+     * Get internal response object with the given validators.
+     * The variant entity tags are derived from the given one, so the tag a response carries is the tag its
+     * preconditions are evaluated against.
+     *
+     * @param model RDF model
+     * @param lastModified last modified date
+     * @param entityTag entity tag of the graph
+     * @return response
+     */
+    public com.atomgraph.core.model.impl.Response getInternalResponse(Model model, Date lastModified, EntityTag entityTag)
+    {
+        return new RenderedResponse(getRequest(), getHttpHeaders(),
                 model,
-                getLastModified(model, graphUri),
-                getEntityTag(model),
+                lastModified,
+                entityTag,
                 getWritableMediaTypes(Model.class),
                 getLanguages(),
                 getEncodings(),
                 new HTMLMediaTypePredicate(),
                 // the HTML rendering negotiates over the whole accepted-language list, so two requests selecting the same
                 // variant can still differ; passing it makes the entity tag tell those representations apart
-                getHttpHeaders().getAcceptableLanguages());
+                getHttpHeaders().getAcceptableLanguages(),
+                new HTMLMediaTypePredicate(),
+                this::getRenderingKey);
+    }
+
+    /**
+     * Returns the key of the stylesheet the HTML representation is rendered with: the dataspace's stylesheet, the
+     * packages it imports and, when the client stylesheet service runs, the platform build it fingerprints (the key
+     * of the composed client stylesheet). Any of them changing changes the HTML, so the key goes into its entity tag.
+     *
+     * @return rendering key
+     * @see RenderedResponse
+     */
+    public String getRenderingKey()
+    {
+        StringBuilder key = new StringBuilder();
+
+        com.atomgraph.linkeddatahub.dataspaces.model.Dataspace dataspace = getDataspace();
+        // packages are composed into the dataspace's stylesheet only, as XsltExecutableFilter does
+        List<URI> packages = dataspace != null && dataspace.getStylesheet() != null ?
+            getSystem().getPackageService().getPackageURIs(dataspace) : List.of();
+
+        com.atomgraph.linkeddatahub.server.util.ClientStylesheetService stylesheetService = getSystem().getClientStylesheetService();
+        if (stylesheetService != null) key.append(stylesheetService.getKey(packages));
+        key.append('\n');
+        if (dataspace != null && dataspace.getStylesheet() != null) key.append(dataspace.getStylesheet().getURI());
+        for (URI pkg : packages) key.append('\n').append(pkg);
+
+        return key.toString();
     }
     
     /**
@@ -1714,13 +1815,13 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         Response.ResponseBuilder failed = null;
         for (Variant variant : variants)
         {
-            com.atomgraph.core.model.impl.Response response = new com.atomgraph.core.model.impl.Response(getRequest(),
+            com.atomgraph.core.model.impl.Response response = new com.atomgraph.core.model.impl.Response(getRequest(), httpHeaders,
                 model,
                 getLastModified(model, getURI()),
                 getEntityTag(model),
                 variant,
                 new HTMLMediaTypePredicate(),
-                getHttpHeaders().getAcceptableLanguages());
+                httpHeaders.getAcceptableLanguages());
 
             Response.ResponseBuilder rb = response.evaluatePreconditions();
             if (rb == null)
@@ -2004,16 +2105,6 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;
-    }
-
-    /**
-     * Returns the request headers.
-     *
-     * @return HTTP headers
-     */
-    public HttpHeaders getHttpHeaders()
-    {
-        return httpHeaders;
     }
 
     /**
