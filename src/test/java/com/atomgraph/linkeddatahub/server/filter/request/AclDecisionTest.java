@@ -158,11 +158,17 @@ public class AclDecisionTest
         }
     }
 
+    /** What <code>ldh admin make-public</code> writes. */
     private void makePublic()
     {
         parse(admin, String.format("""
+            @prefix acl:  <http://www.w3.org/ns/auth/acl#> .
+            @prefix foaf: <http://xmlns.com/foaf/0.1/> .
             <%1$sacl/authorizations/public/> { <%1$sacl/authorizations/public/#this>
-                <http://www.w3.org/ns/auth/acl#accessTo> <%2$s> ; <http://www.w3.org/ns/auth/acl#default> <%2$s> . }
+                acl:accessTo <%2$s>, <%2$ssparql> ; acl:default <%2$s> . }
+            <%1$sacl/authorizations/public-sparql/> { <%1$sacl/authorizations/public-sparql/> foaf:primaryTopic <%1$sacl/authorizations/public-sparql/#this> .
+                <%1$sacl/authorizations/public-sparql/#this> a acl:Authorization ; acl:agentClass foaf:Agent, acl:AuthenticatedAgent ;
+                    acl:accessTo <%2$ssparql> ; acl:mode acl:Append . }
             """, ADMIN, END_USER), ADMIN);
     }
 
@@ -221,6 +227,9 @@ public class AclDecisionTest
         assertTrue(allowed(null, ACL.Read, ITEM));
         assertTrue(allowed(STRANGER, ACL.Read, ITEM));
         assertFalse(allowed(STRANGER, ACL.Write, ITEM));
+        assertTrue(allowed(null, ACL.Read, SPARQL), "queries over GET");
+        assertTrue(allowed(null, ACL.Append, SPARQL), "queries over POST");
+        assertFalse(allowed(null, ACL.Append, ITEM));
         for (String document : new String[] { ADMIN, FULL_CONTROL, OWNERS, USERS })
         {
             assertFalse(allowed(null, ACL.Read, document), document);

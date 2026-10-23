@@ -110,6 +110,22 @@ public final class Acl
     }
 
     /**
+     * Builds the authorization that lets anyone send queries to the end-user SPARQL endpoint over POST, which maps to
+     * <code>acl:Append</code>: the endpoint refuses SPARQL Update with 405, so Append there allows queries only. It is
+     * a document of its own, because an authorization counts only in the document whose primary topic it is.
+     *
+     * @param doc document URI
+     * @param base end-user application base URI
+     * @return authorization model
+     */
+    public static Model publicSparqlPost(URI doc, URI base)
+    {
+        return authorization(doc, "#this", "Public SPARQL queries over POST", "Allows anyone to send SPARQL queries with POST",
+            List.of(), List.of(URI.create("http://xmlns.com/foaf/0.1/Agent"), URI.create(ACL.NS + "AuthenticatedAgent")), List.of(),
+            List.of(URI.create(base + "sparql")), List.of(), List.of(), List.of(ACL.Append));
+    }
+
+    /**
      * Builds an agent group document.
      *
      * @param doc document URI

@@ -9,6 +9,8 @@
 #   - a grant on dh:Container or dh:Item alone cannot be expressed without the other and is dropped, failing closed
 #   - acl:Control is removed from every authorization
 #   - the owner access authorization (lacl:OwnerAgent, end-user documents) is added if it is missing
+#   - the public SPARQL authorization `ldh admin make-public` wrote into the public authorization's document moves to a
+#     document of its own: an authorization counts only in the document whose primary topic it is
 #
 # Run it once per admin dataspace, against the admin store's SPARQL update endpoint, with both roots substituted:
 #
@@ -43,6 +45,24 @@ WHERE  { GRAPH ?g { VALUES ?class { dh:Container dh:Item } ?auth acl:accessToCla
 
 DELETE { GRAPH ?g { ?auth acl:mode acl:Control } }
 WHERE  { GRAPH ?g { ?auth acl:mode acl:Control } FILTER(strstarts(str(?g), "${admin_root}")) } ;
+
+DELETE { GRAPH <${admin_root}acl/authorizations/public/> { <${admin_root}acl/authorizations/public/#sparql-post> ?p ?o } }
+INSERT
+{
+    GRAPH <${admin_root}acl/authorizations/public-sparql/>
+    {
+        <${admin_root}acl/authorizations/public-sparql/> a dh:Item ;
+            sioc:has_container <${admin_root}acl/authorizations/> ;
+            dct:title "Public SPARQL queries over POST" ;
+            foaf:primaryTopic <${admin_root}acl/authorizations/public-sparql/#this> .
+        <${admin_root}acl/authorizations/public-sparql/#this> a acl:Authorization ;
+            rdfs:label "Public SPARQL queries over POST" ;
+            acl:accessTo ?sparql ;
+            acl:mode acl:Append ;
+            acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
+    }
+}
+WHERE  { GRAPH <${admin_root}acl/authorizations/public/> { <${admin_root}acl/authorizations/public/#sparql-post> ?p ?o ; acl:accessTo ?sparql } } ;
 
 INSERT
 {
