@@ -51,6 +51,15 @@ jobs:
         working-directory: cli
       - name: Add the ldh launcher to PATH
         run: echo "$GITHUB_WORKSPACE/cli/bin" >> "$GITHUB_PATH"
+      # the formal suite replays the Lean model's decision (formal/acl) against the server through ldh-acl;
+      # elan picks the toolchain pinned in formal/acl/lean-toolchain
+      - name: Install elan
+        run: |
+          curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Build ldh-acl
+        run: lake build ldh-acl
+        working-directory: formal/acl
       - name: Generating server certificate
         run: |
           server-cert-gen.sh .env nginx ssl

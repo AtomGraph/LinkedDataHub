@@ -34,6 +34,8 @@ formal/acl/tracks-code.sh origin/develop
 | `LdhAcl/Step.lean` | Graph store writes as a step relation, and the invariants they keep |
 | `LdhAcl/Theorems.lean` | What the decision guarantees |
 | `LdhAcl/Migration.lean` | The seeded authorizations, and what migrating those of a release before 6.0 changes |
+| `LdhAcl/Decide.lean` | The decision as a program over finite data, and the proof that it agrees with `allowRequest` |
+| `Main.lean` | `ldh-acl`: that program over a live instance's datasets, for `tests/http/formal/` to replay against the server |
 
 ## The model
 
@@ -73,6 +75,8 @@ formal/acl/tracks-code.sh origin/develop
 | `EndUserOnly` (class part) | the `adm:HierarchyClassAccess` constraint on `acl:Authorization` (`app/admin/adm.ttl`) |
 | `ownerAccess` | `acl/authorizations/owner-access/` (`platform/namespace-ontology.trig.template`) |
 | `Auth.withTargets` rewrites | `migrations/6.0-acl.ru.template` |
+| `readAdmin` (`Main.lean`) | `aclQuery`'s `?g foaf:primaryTopic ?auth`, `?groupG foaf:primaryTopic ?Group . ?Group foaf:member $agent` and `rdfs:subClassOf*` branches, with its `strstarts($base)` filters |
+| `parentIri` (`Main.lean`) | `IRIx.resolve("..")` in `AuthorizationFilter.authorize` |
 
 `AuthorizationFilter` lives in `server/filter/request/` and `DocumentHierarchyGraphStoreImpl` in
 `server/model/impl/`, both under `src/main/java/com/atomgraph/linkeddatahub/`.
@@ -101,6 +105,31 @@ Proven with no `sorry`, using only the axioms `propext`, `Quot.sound` and, throu
 | `migrate_admin` | On the admin dataspace, the class grant covers every document and the default grant on the end-user root none |
 | `ownerAccess_endUser` | Owner access matches an end-user document exactly when the agent owns it, as the owner grant before 6.0 did |
 | `ownerAccess_admin` | Owner access opens nothing in the admin dataspace, where the owner grant before 6.0 applied too |
+| `Anc_iff_reachB` | Reachability over an edge list with each edge used once is the transitive closure, with fuel the number of edges |
+| `allowRequest_iff` | `allowRequestB`, a `Bool` over a finite store and admin dataset, is `allowRequest` on the store and reader they denote |
+
+## Replaying the decision against the server
+
+`allowRequest` is a proposition; `Decide.lean` gives the same decision as a program over finite data (`FinStore`,
+`FinAdmin`, `FinSite`) and proves them equal (`allowRequest_iff`), for every `Site` whose `parent` and `admin` the
+program's agree with. `Main.lean` runs that program on N-Quads dumps of the two stores:
+
+```bash
+lake build
+.lake/build/bin/ldh-acl --end-user end-user.nq --admin admin.nq --admin-base https://admin.localhost:4443/ --probes probes.tsv
+```
+
+Each probe line is `AGENT<TAB>METHOD<TAB>DOCUMENT` (`-` for no agent; `PUT*` is a `PUT` with `If-None-Match: *`), and
+each answer `allow` or `deny`. The part outside the proof is small and transcribed from `aclQuery`: the N-Quads
+reader, the interning of IRIs as nodes, the reading of authorizations (every `foaf:primaryTopic` of an admin graph
+under the admin base, with its `acl:` properties from that graph), memberships (`foaf:member` of such a topic) and
+`rdfs:subClassOf` from the admin dataset, and the URI parent a `PUT` of a new document is decided on.
+
+`tests/http/formal/acl-conformance.sh` drives it: a seeded random scenario of documents, groups and authorizations
+is built through the API, and before every request the stores are dumped and the server's status compared with
+the verdict, 401 or 403 on `deny` and anything else on `allow`. The scenario's own writes are requests the model
+decides, so the agents' rights shape what gets built. `ACL_CONFORMANCE_SEED` replays a scenario, and a mismatch
+leaves its dumps and probe under the results directory.
 
 ## What the proofs need of the data
 
