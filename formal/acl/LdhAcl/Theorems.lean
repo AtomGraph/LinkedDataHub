@@ -45,8 +45,8 @@ theorem allow_local {ctx acl} {st st' : Store} {y : Node} (h : st' y = st y) (ty
 
 /-- A step on `x` changes no decision about any other typed document. With `T := types` this fails; see
 `Counterexamples.locality_fails`. -/
-theorem step_preserves_other_decisions {ctx acl ra pol agent st req st'}
-    (hs : Step ownTypes ctx acl ra pol agent st req st') {y : Node} (hy : y ≠ req.target)
+theorem step_preserves_other_decisions {ctx acl ra agent st req st'}
+    (hs : Step ownTypes ctx acl ra agent st req st') {y : Node} (hy : y ≠ req.target)
     (typed : ∃ t, ownTypes st y t) {agent' isPut m} :
     allow ownTypes ctx acl st' agent' isPut m y ↔ allow ownTypes ctx acl st agent' isPut m y :=
   allow_local (hs.frame hy) typed
@@ -56,7 +56,7 @@ theorem step_preserves_other_decisions {ctx acl ra pol agent st req st'}
 /-- **Ownership confinement.** After any step, whoever owns a document owned it before, or the document is
 the one the step created and the owner is the agent that created it. This holds under any type view:
 ownership is read from the document's own graph, and every write to that graph holds it fixed. -/
-theorem owner_confined {T ctx acl ra pol agent st req st'} (hs : Step T ctx acl ra pol agent st req st')
+theorem owner_confined {T ctx acl ra agent st req st'} (hs : Step T ctx acl ra agent st req st')
     {y b : Node} (ho : owner st' y b) :
     owner st y b ∨ (y = req.target ∧ st y = none ∧ agent = some b) := by
   by_cases hy : y = req.target
@@ -66,7 +66,7 @@ theorem owner_confined {T ctx acl ra pol agent st req st'} (hs : Step T ctx acl 
       obtain ⟨g', hg', hb⟩ := ho
       simp [Store.set, Req.target] at hg'
       subst hg'
-      rcases hb with hb | ⟨_, hno⟩
+      rcases hb with hb | ⟨_, hno, _⟩
       · exact Or.inl ⟨_, hg, hb⟩
       · exact absurd ⟨rfl, Or.inl rfl⟩ hno
     | putExisting _ hg _ =>
@@ -90,7 +90,7 @@ theorem owner_confined {T ctx acl ra pol agent st req st'} (hs : Step T ctx acl 
       obtain ⟨g', hg', hb⟩ := ho
       simp [Store.set, Req.target] at hg'
       subst hg'
-      exact Or.inl ⟨_, hg, (hkeep _ ⟨rfl, Or.inl rfl⟩).1 hb⟩
+      exact Or.inl ⟨_, hg, (hkeep _ (Or.inl ⟨rfl, Or.inl rfl⟩)).1 hb⟩
     | delete =>
       obtain ⟨g', hg', _⟩ := ho
       simp [Store.set, Req.target] at hg'

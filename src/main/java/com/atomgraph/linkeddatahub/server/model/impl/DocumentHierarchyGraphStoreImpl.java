@@ -114,6 +114,9 @@ import org.apache.jena.datatypes.xsd.XSDDateTime;
 import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
+import org.apache.jena.query.ParameterizedSparqlString;
+import org.apache.jena.query.ResultSet;
+import org.apache.jena.query.ResultSetRewindable;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
@@ -453,8 +456,9 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             if (rb != null) return rb.build(); // preconditions not met
         
             // dct:created and dct:modified are the server's to assign: the document keeps the creation date it has, and
-            // the append is its modification. Ownership is not the payload's to assert either: the stored acl:owner and
-            // dct:creator are kept as they are
+            // the append is its modification. Ownership and containment are not the payload's to assert either: the stored
+            // acl:owner, dct:creator, sioc:has_parent and sioc:has_container are kept as they are
+            removeContainment(model, getURI().toString());
             removeOwnership(model, getURI().toString()).
                 removeAll(DCTerms.created).
                 removeAll(DCTerms.modified).
@@ -543,8 +547,12 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             if (log.isDebugEnabled()) log.debug("Rejected document URI <{}> - double slashes are not allowed", getURI());
             throw new BadRequestException("Double slashes not allowed in document URIs");
         }
-        
-        return writeLocked(() ->
+
+        URI parentURI = getURI().resolve("..");
+        boolean root = getDataspace().getBaseURI().equals(getURI());
+        // the parent's lock as well as the document's: a DELETE of the parent holds it while it checks for children, so
+        // the two cannot interleave
+        return writeLocked(root ? List.of(getURI()) : List.of(parentURI, getURI()), () ->
         {
             new Skolemizer(getURI().toString()).apply(model);
             Model existingModel = null;
@@ -563,14 +571,20 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
                 if (ifMatch != null && !ifMatch.isBlank()) return Response.status(Response.Status.PRECONDITION_FAILED).build();
             }
 
-            Resource parent = model.createResource(getURI().resolve("..").toString());
+            // the parent was there when the request was authorized, before any lock was held, and a DELETE of it may have
+            // gone through since. Under its lock it can no longer go before this write: a document is created only where
+            // its container still exists
+            if (existingModel == null && !root && !exists(parentURI))
+                throw new WebApplicationException("Parent document <" + parentURI + "> of <" + getURI() + "> does not exist", Response.Status.CONFLICT.getStatusCode());
+
+            Resource parent = model.createResource(parentURI.toString());
             // ownership is not the payload's to assert: a new document gets the agent's below, an existing one keeps the stored values
             Resource resource = removeOwnership(model, getURI().toString()).
                 removeAll(SIOC.HAS_PARENT).
                 removeAll(SIOC.HAS_CONTAINER);
 
             boolean typed = false; // whether the document's class is assigned here rather than by the payload
-            if (!getDataspace().getBaseURI().equals(getURI())) // don't update Root document's metadata
+            if (!root) // don't update Root document's metadata
             {
                 if (resource.hasProperty(RDF.type, DH.Container))
                     resource.addProperty(SIOC.HAS_PARENT, parent);
@@ -695,6 +709,11 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             // ownership changes go through the admin ACL documents: a PATCH cannot be rewritten safely, so it is refused
             if (isOwnershipChanged(beforeUpdateModel, existingModel, getURI().toString()))
                 throw new WebApplicationException("acl:owner and dct:creator of document <" + getURI() + "> cannot be changed", UNPROCESSABLE_ENTITY.getStatusCode());
+
+            // a document's place in the hierarchy is the URI parent PUT points it at; moving it would leave the hierarchy
+            // and the URIs disagreeing about where it is
+            if (isContainmentChanged(beforeUpdateModel, existingModel, getURI().toString()))
+                throw new WebApplicationException("sioc:has_parent and sioc:has_container of document <" + getURI() + "> cannot be changed", UNPROCESSABLE_ENTITY.getStatusCode());
 
             // SPIN constraints are class-scoped; allowing rdf:type removal would silently bypass them
             for (Resource resource : getChangedResources(beforeUpdateModel, existingModel))
@@ -916,7 +935,13 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             {
                 //if (existingModel == null) existingModel = null;
             }
-            
+
+            // like rmdir, only an empty container can be deleted: its children would be left pointing at a document that
+            // no longer exists. They go first, each under its own authorization. Creating a child holds this document's
+            // lock too, so none can be added between this check and the delete
+            if (hasChild(getURI()))
+                throw new WebApplicationException("Document <" + getURI() + "> has children and cannot be deleted", Response.Status.CONFLICT.getStatusCode());
+
             return super.delete(false, getURI());
         });
     }
@@ -950,19 +975,101 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
      */
     public static boolean isOwnershipChanged(Model beforeUpdateModel, Model afterUpdateModel, String documentURI)
     {
+        return isChanged(beforeUpdateModel, afterUpdateModel, documentURI, List.of(ACL.owner, DCTerms.creator));
+    }
+
+    /**
+     * Removes the containment properties (<code>sioc:has_parent</code> and <code>sioc:has_container</code>) of the
+     * document resource from a request payload. The server asserts them when the document is written with
+     * <code>PUT</code>, always pointing at the URI parent.
+     *
+     * @param model request payload
+     * @param documentURI document URI
+     * @return the document resource in the payload
+     */
+    public static Resource removeContainment(Model model, String documentURI)
+    {
+        if (model == null) throw new IllegalArgumentException("Model cannot be null");
+        if (documentURI == null) throw new IllegalArgumentException("Document URI cannot be null");
+
+        return model.createResource(documentURI).
+            removeAll(SIOC.HAS_PARENT).
+            removeAll(SIOC.HAS_CONTAINER);
+    }
+
+    /**
+     * Returns true if the containment properties (<code>sioc:has_parent</code> and <code>sioc:has_container</code>)
+     * of the document resource differ between two states of the document graph.
+     *
+     * @param beforeUpdateModel graph before the update
+     * @param afterUpdateModel graph after the update
+     * @param documentURI document URI
+     * @return true if containment changed
+     */
+    public static boolean isContainmentChanged(Model beforeUpdateModel, Model afterUpdateModel, String documentURI)
+    {
+        return isChanged(beforeUpdateModel, afterUpdateModel, documentURI, List.of(SIOC.HAS_PARENT, SIOC.HAS_CONTAINER));
+    }
+
+    private static boolean isChanged(Model beforeUpdateModel, Model afterUpdateModel, String documentURI, List<Property> properties)
+    {
         if (beforeUpdateModel == null) throw new IllegalArgumentException("Model before update cannot be null");
         if (afterUpdateModel == null) throw new IllegalArgumentException("Model after update cannot be null");
         if (documentURI == null) throw new IllegalArgumentException("Document URI cannot be null");
 
         Resource document = ResourceFactory.createResource(documentURI);
-        for (Property property : List.of(ACL.owner, DCTerms.creator))
+        for (Property property : properties)
         {
             Set<RDFNode> before = beforeUpdateModel.listObjectsOfProperty(document, property).toSet();
             Set<RDFNode> after = afterUpdateModel.listObjectsOfProperty(document, property).toSet();
             if (!before.equals(after)) return true;
         }
-        
+
         return false;
+    }
+
+    /**
+     * Returns true if the store has the document's graph.
+     *
+     * @param documentURI document URI
+     * @return true if the graph exists
+     */
+    public boolean exists(URI documentURI)
+    {
+        if (documentURI == null) throw new IllegalArgumentException("Document URI cannot be null");
+
+        try
+        {
+            return getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(documentURI.toString()) != null;
+        }
+        catch (NotFoundException ex)
+        {
+            return false;
+        }
+    }
+
+    /**
+     * Returns true if the document has a child in the store.
+     * Every write passes the backend proxy, which drops its cached query results on a write, so the answer is as
+     * current as the last write that completed.
+     *
+     * @param documentURI document URI
+     * @return true if some document is contained in it
+     * @see com.atomgraph.linkeddatahub.vocabulary.LDHC#childQuery
+     */
+    public boolean hasChild(URI documentURI)
+    {
+        if (documentURI == null) throw new IllegalArgumentException("Document URI cannot be null");
+
+        ParameterizedSparqlString pss = new ParameterizedSparqlString(getSystem().getChildQuery().toString());
+        pss.setIri(SPIN.THIS_VAR_NAME, documentURI.toString());
+
+        try (Response cr = getSystem().getServiceContext(getService()).getSPARQLClient().query(pss.asQuery(), ResultSet.class))
+        {
+            if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                throw new InternalServerErrorException("SPARQL endpoint of <" + getService() + "> answered " + cr.getStatus());
+            return cr.readEntity(ResultSetRewindable.class).hasNext();
+        }
     }
     
     /**
@@ -1740,15 +1847,37 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
      */
     protected Response writeLocked(Supplier<Response> write)
     {
-        Lock lock = getSystem().getGraphLocks().get(getURI());
-        lock.lock();
+        return writeLocked(List.of(getURI()), write);
+    }
+
+    /**
+     * Runs a write while holding the locks of several graphs, taken in the order {@link GraphLocks#get(Iterable)}
+     * gives and released in reverse.
+     * A <code>PUT</code> holds its parent's lock besides its own: creating a child and deleting the container both
+     * hold the container's lock, so one of them goes first and the other sees what it left.
+     *
+     * @param graphURIs graphs whose locks are held
+     * @param write the read-check-write sequence
+     * @return the write's response
+     * @see GraphLocks
+     */
+    protected Response writeLocked(List<URI> graphURIs, Supplier<Response> write)
+    {
+        List<Lock> held = new ArrayList<>();
         try
         {
+            for (Lock lock : getSystem().getGraphLocks().getAll(graphURIs))
+            {
+                lock.lock();
+                held.add(lock);
+            }
+
             return write.get();
         }
         finally
         {
-            lock.unlock();
+            Collections.reverse(held);
+            held.forEach(Lock::unlock);
         }
     }
     

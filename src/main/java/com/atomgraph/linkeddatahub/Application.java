@@ -289,7 +289,7 @@ public class Application extends ResourceConfig
     private final GraphLocks graphLocks = new GraphLocks();
     private final MediaTypes mediaTypes;
     private final Client client, externalClient, externalNoCertClient, importClient, noCertClient, verifiedClient;
-    private final Query documentTypeQuery, documentOwnerQuery, aclQuery, ownerAclQuery, webIDQuery, agentQuery, userAccountQuery, ontologyQuery; // no relative URIs
+    private final Query documentTypeQuery, documentOwnerQuery, aclQuery, ownerAclQuery, webIDQuery, agentQuery, userAccountQuery, ontologyQuery, childQuery, fileQuery; // no relative URIs
     private final Integer maxGetRequestSize;
     private final Processor xsltProc = new Processor(false);
     private final XsltCompiler xsltComp;
@@ -365,6 +365,8 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(LDHC.agentQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.agentQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.userAccountQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.userAccountQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.ontologyQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.ontologyQuery.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.childQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.childQuery.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.fileQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.fileQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.baseUri.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.baseUri.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.proxyScheme.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.proxyScheme.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.proxyHost.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.proxyHost.getURI()) : null,
@@ -443,6 +445,8 @@ public class Application extends ResourceConfig
      * @param agentQueryString SPARQL string of the <code>Agent</code> lookup query
      * @param userAccountQueryString SPARQL string of the <code>UserAccount</code> lookup query
      * @param ontologyQueryString SPARQL string of the ontology load query
+     * @param childQueryString SPARQL string of the query that finds a child of a document
+     * @param fileQueryString SPARQL string of the query that describes an uploaded file
      * @param baseURIString system base URI
      * @param proxyScheme client's URI rewrite scheme
      * @param proxyHostname client's URI rewrite hostname
@@ -488,6 +492,7 @@ public class Application extends ResourceConfig
             final String clientTrustStoreURIString, final String clientTrustStorePassword,
             final String documentTypeQueryString, final String documentOwnerQueryString, final String aclQueryString, final String ownerAclQueryString,
             final String webIDQueryString, final String agentQueryString, final String userAccountQueryString, final String ontologyQueryString,
+            final String childQueryString, final String fileQueryString,
             final String baseURIString, final String proxyScheme, final String proxyHostname, final Integer proxyPort,
             final String uploadRootString, final String sefRootString, final String sefCompilerString, final String clientStylesheetString, final boolean invalidateCache,
             final Integer cookieMaxAge, final boolean enableLinkedDataProxy, final boolean enableAssistant, final boolean allowInternalUrls, final Integer maxContentLength, final Long maxUploadLength, final int maxQueryResponseLength,
@@ -582,6 +587,20 @@ public class Application extends ResourceConfig
             throw new ConfigurationException(LDHC.ontologyQuery);
         }
         this.ontologyQuery = QueryFactory.create(ontologyQueryString);
+
+        if (childQueryString == null)
+        {
+            if (log.isErrorEnabled()) log.error("Child SPARQL query is not configured properly");
+            throw new ConfigurationException(LDHC.childQuery);
+        }
+        this.childQuery = QueryFactory.create(childQueryString);
+
+        if (fileQueryString == null)
+        {
+            if (log.isErrorEnabled()) log.error("File SPARQL query is not configured properly");
+            throw new ConfigurationException(LDHC.fileQuery);
+        }
+        this.fileQuery = QueryFactory.create(fileQueryString);
         
         if (baseURIString == null)
         {
@@ -2310,6 +2329,26 @@ public class Application extends ResourceConfig
     public Query getOntologyQuery()
     {
         return ontologyQuery.cloneQuery();
+    }
+
+    /**
+     * Returns the query that finds a child of a document.
+     * 
+     * @return query object
+     */
+    public Query getChildQuery()
+    {
+        return childQuery.cloneQuery();
+    }
+
+    /**
+     * Returns the query that describes an uploaded file.
+     * 
+     * @return query object
+     */
+    public Query getFileQuery()
+    {
+        return fileQuery.cloneQuery();
     }
     
     /**
