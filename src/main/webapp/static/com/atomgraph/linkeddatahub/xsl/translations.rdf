@@ -761,6 +761,14 @@
         <rdfs:label xml:lang="en-US">The document could not be deleted</rdfs:label>
         <rdfs:label xml:lang="es-ES">No se pudo eliminar el documento</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="delete-document">
+        <rdfs:label xml:lang="en-US">Delete this document?</rdfs:label>
+        <rdfs:label xml:lang="es-ES">¿Eliminar este documento?</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="delete-document-explanation">
+        <rdfs:label xml:lang="en-US">It will be removed for everyone, and this cannot be undone.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Se eliminará para todos, y no se puede deshacer.</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="file-not-imported">
         <rdfs:label xml:lang="en-US">The file could not be imported</rdfs:label>
         <rdfs:label xml:lang="es-ES">No se pudo importar el archivo</rdfs:label>
@@ -834,6 +842,10 @@
     <rdf:Description rdf:nodeID="view-no-resources-explanation">
         <rdfs:label xml:lang="en-US">Its first variable binds values rather than resources, and a view lists resources. A query or chart block shows values.</rdfs:label>
         <rdfs:label xml:lang="es-ES">Su primera variable enlaza valores en lugar de recursos, y una vista enumera recursos. Un bloque de consulta o de gráfico muestra valores.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="container-not-empty-explanation">
+        <rdfs:label xml:lang="en-US">This container still has documents. Delete them first.</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Este contenedor todavía tiene documentos. Elimínalos primero.</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="block-resource-not-described-explanation">
         <rdfs:label xml:lang="en-US">The document was retrieved, but it contains no description of this resource.</rdfs:label>

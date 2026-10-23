@@ -28,7 +28,8 @@ container=$(ldh create container \
   --slug "$slug" \
   --parent "$END_USER_BASE_URL")
 
-# check that the access metadata for the container URI inclused owner authorization for the agent
+# check that the access metadata for the container URI includes the owner access authorization, granted to
+# lacl:OwnerAgent, which the agent is a member of on the container it created
 
 ntriples=$(curl -k -s -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
@@ -37,10 +38,9 @@ ntriples=$(curl -k -s -G \
   "${END_USER_BASE_URL}access"
 )
 
-auth1=$(echo "$ntriples" | grep -F "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/admin/acl#OwnerAuthorization>" | cut -d' ' -f1)
-auth2=$(echo "$ntriples" | grep -F "<http://www.w3.org/ns/auth/acl#agent> <${AGENT_URI}>" | cut -d' ' -f1)
+owner_auth=$(echo "$ntriples" | grep -F "<http://www.w3.org/ns/auth/acl#agentClass> <https://w3id.org/atomgraph/linkeddatahub/admin/acl#OwnerAgent>" | cut -d' ' -f1 || true)
+echo "DEBUG: owner access authorization: $owner_auth"
+[ -n "$owner_auth" ] || exit 1
 
-# if the subjects of the two triples are different, the agent is not the owner of the container
-if [ "$auth1" != "$auth2" ]; then
-  exit 1
-fi
+# it carries acl:Write
+echo "$ntriples" | grep -qF "${owner_auth} <http://www.w3.org/ns/auth/acl#mode> <http://www.w3.org/ns/auth/acl#Write>" 

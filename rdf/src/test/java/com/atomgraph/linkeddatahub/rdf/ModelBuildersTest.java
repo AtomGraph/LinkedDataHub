@@ -228,6 +228,49 @@ public class ModelBuildersTest
     }
 
     @Test
+    public void createDefaultAuthorization()
+    {
+        URI doc = URI.create("https://admin.localhost:4443/acl/authorizations/auth/");
+
+        assertIsomorphic(parse("""
+            @base <https://admin.localhost:4443/acl/authorizations/auth/> .
+            _:auth a acl:Authorization ;
+                rdfs:label "Auth" ;
+                acl:agentGroup <https://admin.localhost:4443/acl/groups/writers/#this> ;
+                acl:accessTo <https://localhost:4443/> ;
+                acl:default <https://localhost:4443/> ;
+                acl:mode acl:Write .
+            <> a dh:Item ;
+                foaf:primaryTopic _:auth ;
+                dct:title "Auth" .
+            """),
+            Acl.authorization(doc, null, "Auth", null,
+                List.of(), List.of(), List.of(URI.create("https://admin.localhost:4443/acl/groups/writers/#this")),
+                List.of(URI.create("https://localhost:4443/")), List.of(URI.create("https://localhost:4443/")), List.of(),
+                List.of(ACL.Write)));
+    }
+
+    @Test
+    public void createPublicSparqlPost()
+    {
+        URI doc = URI.create("https://admin.localhost:4443/acl/authorizations/public-sparql/");
+
+        assertIsomorphic(parse("""
+            @base <https://admin.localhost:4443/acl/authorizations/public-sparql/> .
+            <#this> a acl:Authorization ;
+                rdfs:label "Public SPARQL queries over POST" ;
+                rdfs:comment "Allows anyone to send SPARQL queries with POST" ;
+                acl:agentClass foaf:Agent, acl:AuthenticatedAgent ;
+                acl:accessTo <https://localhost:4443/sparql> ;
+                acl:mode acl:Append .
+            <> a dh:Item ;
+                foaf:primaryTopic <#this> ;
+                dct:title "Public SPARQL queries over POST" .
+            """),
+            Acl.publicSparqlPost(doc, URI.create("https://localhost:4443/")));
+    }
+
+    @Test
     public void addCSVImport()
     {
         assertIsomorphic(parse("""

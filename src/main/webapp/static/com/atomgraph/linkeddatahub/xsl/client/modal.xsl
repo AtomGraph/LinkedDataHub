@@ -483,10 +483,17 @@ LIMIT   10
                         </rdf:Description>
                     </xsl:variable>
 
-                    <!-- append an authorization for the current URL unless such already exists (e.g. lacl:OwnerAuthorization) -->
-                    <xsl:variable name="has-access-to-this-auth" select="exists(rdf:Description[acl:accessTo/@rdf:resource = $this])" as="xs:boolean"/>
-                    <xsl:for-each-group select="if ($has-access-to-this-auth) then rdf:Description[acl:accessTo/@rdf:resource] else ($this-auth, rdf:Description[acl:accessTo/@rdf:resource])"
-                                        group-by="acl:accessTo/@rdf:resource[starts-with(., $base)]">
+                    <!-- the authorizations covering the current URL: naming it, or with acl:default on a container above it -
+                         the access endpoint returns only those that cover it. The owner's goes first, so the row says so -->
+                    <xsl:variable name="this-auths" select="rdf:Description[acl:accessTo/@rdf:resource = $this or acl:default/@rdf:resource]" as="element()*"/>
+                    <xsl:apply-templates select="($this-auths[acl:agentClass/@rdf:resource = '&lacl;OwnerAgent'], $this-auths, $this-auth)[1]" mode="ldh:AccessToRow">
+                        <xsl:with-param name="agent" select="$agent"/>
+                        <xsl:with-param name="access-modes" select="$access-modes"/>
+                        <xsl:with-param name="access-to" select="$this"/>
+                        <xsl:with-param name="granted-access-modes" select="distinct-values($this-auths/acl:mode/@rdf:resource)"/>
+                    </xsl:apply-templates>
+
+                    <xsl:for-each-group select="rdf:Description[acl:accessTo/@rdf:resource]" group-by="acl:accessTo/@rdf:resource[starts-with(., $base)][. != $this]">
                         <xsl:variable name="granted-access-modes" select="distinct-values(current-group()/acl:mode/@rdf:resource)" as="xs:anyURI*"/>
 
                         <!-- applying on the first authorization in the group -->
@@ -527,7 +534,8 @@ LIMIT   10
                         </xsl:for-each>
                 </xsl:with-param>
                 <xsl:with-param name="body" as="item()*">
-                    <xsl:variable name="default-classes" select="(xs:anyURI('&def;Root'), xs:anyURI('&dh;Container'), xs:anyURI('&dh;Item'), xs:anyURI('&nfo;FileDataObject'))" as="xs:anyURI*"/>
+                    <!-- documents are reached through the hierarchy (acl:default), not their document classes, which an authorization cannot name -->
+                    <xsl:variable name="default-classes" select="xs:anyURI('&nfo;FileDataObject')" as="xs:anyURI*"/>
                     <!-- the current document's class is always shown -->
                     <xsl:variable name="this-auth" as="element()*">
                         <xsl:for-each select="$default-classes">
@@ -626,7 +634,7 @@ LIMIT   10
     <xsl:template match="rdf:Description" mode="ldh:AccessModeCells">
         <xsl:param name="access-modes" as="xs:anyURI*"/>
         <xsl:param name="granted-access-modes" as="xs:anyURI*"/>
-        <xsl:param name="is-owner" select="rdf:type/@rdf:resource = '&lacl;OwnerAuthorization'" as="xs:boolean"/>
+        <xsl:param name="is-owner" select="acl:agentClass/@rdf:resource = '&lacl;OwnerAgent'" as="xs:boolean"/>
 
         <xsl:for-each select="$access-modes">
             <xsl:variable name="current-mode" select="."/>

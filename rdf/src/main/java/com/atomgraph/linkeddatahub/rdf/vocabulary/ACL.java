@@ -52,6 +52,8 @@ public final class ACL
     public static final Property agentGroup = ResourceFactory.createProperty(NS + "agentGroup");
     /** acl:accessTo property */
     public static final Property accessTo = ResourceFactory.createProperty(NS + "accessTo");
+    /** acl:default property: a container whose descendants are accessed */
+    public static final Property default_ = ResourceFactory.createProperty(NS + "default");
     /** acl:accessToClass property */
     public static final Property accessToClass = ResourceFactory.createProperty(NS + "accessToClass");
     /** acl:mode property */

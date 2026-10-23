@@ -105,8 +105,8 @@
     <acl/authorizations/write-append/#this> a acl:Authorization ;
         rdfs:label "Write/append access" ;
         rdfs:comment "Allows write access to all documents and containers" ;
-        acl:accessToClass dh:Item, dh:Container, def:Root ;
-        acl:accessTo <${end_user_origin}/sparql>, <${end_user_origin}/importer>, <${end_user_origin}/ns> ;
+        acl:accessTo <${end_user_origin}/>, <${end_user_origin}/sparql>, <${end_user_origin}/importer>, <${end_user_origin}/ns> ;
+        acl:default <${end_user_origin}/> ;
         acl:mode acl:Write, acl:Append ;
         acl:agentGroup <acl/groups/owners/#this>, <acl/groups/writers/#this> .
 
@@ -125,10 +125,30 @@
     <acl/authorizations/full-control/#this> a acl:Authorization ;
         rdfs:label "Full control" ;
         rdfs:comment "Allows full read/write access to all application resources" ;
-        acl:accessToClass dh:Item, dh:Container, def:Root ;
-        acl:accessTo <${end_user_origin}/sparql>, <${end_user_origin}/importer>, <${end_user_origin}/ns>, <${end_user_origin}/settings> ;
-        acl:mode acl:Read, acl:Append, acl:Write, acl:Control ;
+        acl:accessTo <${end_user_origin}/>, <${end_user_origin}/sparql>, <${end_user_origin}/importer>, <${end_user_origin}/ns>, <${end_user_origin}/settings> ;
+        acl:default <${end_user_origin}/> ;
+        acl:mode acl:Read, acl:Append, acl:Write ;
         acl:agentGroup <acl/groups/owners/#this> .
+
+}
+
+# owner access
+
+<acl/authorizations/owner-access/>
+{
+
+    <acl/authorizations/owner-access/> a dh:Item ;
+        sioc:has_container <acl/authorizations/> ;
+        dct:title "Owner access" ;
+        foaf:primaryTopic <acl/authorizations/owner-access/#this> .
+
+    <acl/authorizations/owner-access/#this> a acl:Authorization ;
+        rdfs:label "Owner access" ;
+        rdfs:comment "Allows the owner of a document to read and write it" ;
+        acl:accessTo <${end_user_origin}/> ;
+        acl:default <${end_user_origin}/> ;
+        acl:mode acl:Read, acl:Append, acl:Write ;
+        acl:agentClass lacl:OwnerAgent .
 
 }
 
@@ -145,8 +165,9 @@
     <acl/authorizations/read/#this> a acl:Authorization ;
         rdfs:label "Read access" ;
         rdfs:comment "Allows read access to all resources" ;
-        acl:accessToClass dh:Item, dh:Container, def:Root, <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject> ;
-        acl:accessTo <${end_user_origin}/sparql> ;
+        acl:accessTo <${end_user_origin}/>, <${end_user_origin}/sparql> ;
+        acl:default <${end_user_origin}/> ;
+        acl:accessToClass <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject> ;
         acl:mode acl:Read ;
         acl:agentGroup <acl/groups/owners/#this>, <acl/groups/writers/#this>, <acl/groups/readers/#this> .
 

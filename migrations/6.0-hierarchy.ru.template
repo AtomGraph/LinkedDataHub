@@ -1,0 +1,65 @@
+# Completes the document hierarchy of a store loaded from the seeds of a release before 6.0, in which a few documents
+# named a container that does not exist. Access is granted through the hierarchy since 6.0 (acl:default on a container
+# covers the documents below it), so a document whose containment does not lead to the root is reached by no such grant.
+# It is idempotent.
+#
+#   - the end-user services, under services/, named queries/ as their container: they are moved to services/, created
+#   - the admin queries, under queries/, named a queries/ that does not exist: it is created
+#
+# Run it once per store of each dataspace, end-user and admin, with the store's root substituted:
+#
+#   root=https://localhost:4443/ envsubst < 6.0-hierarchy.ru.template \
+#   | curl -X POST -H "Content-Type: application/sparql-update" --data-binary @- http://localhost:3030/end-user
+
+PREFIX dh:   <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#>
+PREFIX ldh:  <https://w3id.org/atomgraph/linkeddatahub#>
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX sioc: <http://rdfs.org/sioc/ns#>
+PREFIX dct:  <http://purl.org/dc/terms/>
+
+DELETE { GRAPH ?doc { ?doc sioc:has_container <${root}queries/> } }
+INSERT { GRAPH ?doc { ?doc sioc:has_container <${root}services/> } }
+WHERE  { VALUES ?doc { <${root}services/dbpedia/> <${root}services/wikidata/> }
+         GRAPH ?doc { ?doc sioc:has_container <${root}queries/> } } ;
+
+INSERT
+{
+    GRAPH <${root}services/>
+    {
+        <${root}services/> a dh:Container ;
+            sioc:has_parent <${root}> ;
+            dct:title "Services" ;
+            dct:description "SPARQL services" ;
+            dct:created ?now ;
+            rdf:_1 <${root}services/#select-children> .
+        <${root}services/#select-children> a ldh:Object ;
+            rdf:value ldh:ChildrenView .
+    }
+}
+WHERE
+{
+    GRAPH ?doc { ?doc sioc:has_container <${root}services/> }
+    FILTER NOT EXISTS { GRAPH <${root}services/> { ?s ?p ?o } }
+    BIND(NOW() AS ?now)
+} ;
+
+INSERT
+{
+    GRAPH <${root}queries/>
+    {
+        <${root}queries/> a dh:Container ;
+            sioc:has_parent <${root}> ;
+            dct:title "Queries" ;
+            dct:description "SPARQL queries" ;
+            dct:created ?now ;
+            rdf:_1 <${root}queries/#select-children> .
+        <${root}queries/#select-children> a ldh:Object ;
+            rdf:value ldh:ChildrenView .
+    }
+}
+WHERE
+{
+    GRAPH ?doc { ?doc sioc:has_container <${root}queries/> }
+    FILTER NOT EXISTS { GRAPH <${root}queries/> { ?s ?p ?o } }
+    BIND(NOW() AS ?now)
+}

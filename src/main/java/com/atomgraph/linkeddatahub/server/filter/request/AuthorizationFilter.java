@@ -24,11 +24,10 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.security.AccessModes;
 import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.server.util.AuthorizationParams;
-import com.atomgraph.linkeddatahub.server.util.SetResultSetValues;
+import com.atomgraph.linkeddatahub.server.util.DocumentContext;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.DH;
 import com.atomgraph.linkeddatahub.vocabulary.Default;
-import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
 import java.io.IOException;
 import java.util.Collections;
@@ -45,18 +44,14 @@ import jakarta.ws.rs.container.PreMatching;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import org.apache.jena.irix.IRIx;
-import java.util.HashSet;
 import java.util.Set;
 import org.apache.jena.query.ParameterizedSparqlString;
-import org.apache.jena.query.Query;
 import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.query.ResultSetRewindable;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
-import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,7 +82,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
     @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace>> app;
     @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataset>> dataset;
     
-    private ParameterizedSparqlString documentTypeQuery, documentOwnerQuery, aclQuery, ownerAclQuery;
+    private ParameterizedSparqlString documentContextQuery, aclQuery;
 
     /**
      * Post-construct initialization.
@@ -95,10 +90,8 @@ public class AuthorizationFilter implements ContainerRequestFilter
     @PostConstruct
     public void init()
     {
-        documentTypeQuery = new ParameterizedSparqlString(system.getDocumentTypeQuery().toString());
-        documentOwnerQuery = new ParameterizedSparqlString(system.getDocumentOwnerQuery().toString());
+        documentContextQuery = new ParameterizedSparqlString(system.getDocumentContextQuery().toString());
         aclQuery = new ParameterizedSparqlString(getSystem().getACLQuery().toString());
-        ownerAclQuery = new ParameterizedSparqlString(getSystem().getOwnerACLQuery().toString());
     }
     
     @Override
@@ -151,6 +144,9 @@ public class AuthorizationFilter implements ContainerRequestFilter
     
     /**
      * Returns authorization for the current request.
+     * One decision serves both dataspaces: the document context query reads what the dataspace's store says of the
+     * document - itself, its ancestors, its types and its owner, each from the document's own graph - and the ACL query
+     * matches the authorizations in the admin dataset against it.
      * 
      * @param request current request
      * @param agent agent resource or null
@@ -160,81 +156,69 @@ public class AuthorizationFilter implements ContainerRequestFilter
     public Model authorize(ContainerRequestContext request, Resource agent, Resource accessMode)
     {
         Resource accessTo = ResourceFactory.createResource(request.getUriInfo().getAbsolutePath().toString());
-        Model authorizations = ModelFactory.createDefaultModel();
 
-        // the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access.
-        // Note: the document does not even need to have a type at this point.
-        if (agent != null && isOwner(accessTo, agent))
+        // special case for PUT requests: if the document does not exist, check access on the *parent* URI instead -
+        // acl:Write for a plain PUT, acl:Append for a create-only one (see getAccessMode()). Whether it exists is the
+        // graph store's to say, the same answer put() acts on: having types is not the same thing, since the context query
+        // also types an uploaded file, which has no graph of its own
+        if (request.getMethod().equals(HttpMethod.PUT) && !getSystem().getServiceContext(getDataspace().get().getService()).getGraphStoreClient().containsModel(accessTo.getURI()))
         {
-            log.debug("Agent <{}> is the owner of <{}>, granting acl:Read/acl:Append/acl:Write access", agent, accessTo);
-            createOwnerAuthorization(authorizations, accessTo, agent);
+            // Use Jena's IRIx for RFC 3986-compliant resolution - java.net.URI.resolve("..") is non-compliant
+            // (RFC 3986 section 5.2.4 step 2D requires ".." to be removed, but java.net.URI leaves it literal)
+            Resource parent = ResourceFactory.createResource(IRIx.create(accessTo.getURI()).resolve("..").toString());
+            log.debug("Requested document <{}> not found, falling back to parent URI <{}>", accessTo, parent);
+
+            DocumentContext parentContext = getDocumentContext(parent);
+            // only root and containers allow child documents
+            if (Collections.disjoint(parentContext.getTypes(), Set.of(Default.Root, DH.Container))) return null;
+
+            return authorize(parent, parentContext, agent, accessMode); // the document does not exist yet: its container decides
         }
 
-        QuerySolutionMap thisQsm = new QuerySolutionMap();
-        thisQsm.add(SPIN.THIS_VAR_NAME, accessTo);
-        ResultSetRewindable docTypesResult = loadResultSet(getDataspace().get().getService(), getDocumentTypeQuery(), thisQsm);
-        // types that constrain the ACL query's acl:accessToClass matching: the document's own by default, or the parent
-        // container's when a PUT creates a new (still typeless) document and authorization falls back to the parent
-        ResultSetRewindable aclTypesResult = docTypesResult;
+        return authorize(accessTo, getDocumentContext(accessTo), agent, accessMode);
+    }
+
+    /**
+     * Returns the agent's authorizations on a document, or null if none of them carries the access mode.
+     * The authorizations returned are all of the agent's on the document, whatever their modes, so that the
+     * <code>AuthorizationContext</code> knows every mode the agent has.
+     *
+     * @param accessTo document URI
+     * @param context what the dataspace's store says of the document
+     * @param agent agent resource or null
+     * @param accessMode ACL access mode
+     * @return authorizations model or null if access denied
+     */
+    public Model authorize(Resource accessTo, DocumentContext context, Resource agent, Resource accessMode)
+    {
+        ParameterizedSparqlString pss = new ParameterizedSparqlString(context.applyTo(getACLQuery().asQuery()).toString());
+        Model authorizations = loadModel(getAdminService(), pss, new AuthorizationParams(getAdminBase(), accessTo, agent, context.isOwner(agent)).get());
+
+        // access denied if the agent has no authorization to the requested document with the requested ACL mode
+        if (getAuthorizationByMode(authorizations, accessMode) == null) return null;
+
+        return authorizations;
+    }
+
+    /**
+     * Returns what the dataspace's store says of a document, for the ACL query to match authorizations against.
+     *
+     * @param document document URI
+     * @return document context
+     */
+    public DocumentContext getDocumentContext(Resource document)
+    {
+        QuerySolutionMap qsm = new QuerySolutionMap();
+        qsm.add(SPIN.THIS_VAR_NAME, document);
+
+        ResultSetRewindable result = loadResultSet(getDataspace().get().getService(), getDocumentContextQuery(), qsm);
         try
         {
-            // special case for PUT requests: if the document does not exist, check access on the *parent* URI instead -
-            // acl:Write for a plain PUT, acl:Append for a create-only one (see getAccessMode())
-            if (!docTypesResult.hasNext() && request.getMethod().equals(HttpMethod.PUT))
-            {
-                // Use Jena's IRIx for RFC 3986-compliant resolution - java.net.URI.resolve("..") is non-compliant
-                // (RFC 3986 section 5.2.4 step 2D requires ".." to be removed, but java.net.URI leaves it literal)
-                IRIx parentURI = IRIx.create(accessTo.getURI()).resolve("..");
-                Resource parent = ResourceFactory.createResource(parentURI.toString());
-                log.debug("Requested document <{}> not found, falling back to parent URI <{}>", parent, parentURI);
-
-                QuerySolutionMap parentQsm = new QuerySolutionMap();
-                parentQsm.add(SPIN.THIS_VAR_NAME, parent);
-                ResultSetRewindable parentTypesResult = loadResultSet(getDataspace().get().getService(), getDocumentTypeQuery(), parentQsm);
-                // the parent's types (not the typeless child's) must drive acl:accessToClass matching so the parent's
-                // write authorizations still apply; assigned now so the outer finally closes it on any exit path
-                aclTypesResult = parentTypesResult;
-
-                Set<Resource> parentTypes = new HashSet<>();
-                parentTypesResult.forEachRemaining(qs -> parentTypes.add(qs.getResource("Type")));
-
-                // only root and containers allow child documents. This needs to be checked before checking ownership
-                if (Collections.disjoint(parentTypes, Set.of(Default.Root, DH.Container))) return null;
-
-                // the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access
-                if (agent != null && isOwner(parent, agent))
-                {
-                    log.debug("Agent <{}> is the owner of <{}>, granting acl:Read/acl:Append/acl:Write access", agent, parent);
-                    createOwnerAuthorization(authorizations, parent, agent);
-                }
-
-                accessTo = parent; // redirect ACL query to parent URI since the document does not exist yet
-                parentTypesResult.reset(); // rewind so the parent's types can be injected into the ACL query below
-            }
-         
-            ParameterizedSparqlString pss = getDataspace().get().canAs(EndUserDataspace.class) ? getACLQuery() : getOwnerACLQuery();
-            // the ACL query carries a fail-closed default VALUES ?Type { rdfs:Resource } (see web.xml); when the resource
-            // (or its parent, on a PUT-create) has a type, override that block with the real types so acl:accessToClass
-            // grants match. A typeless resource keeps the default, whose class no authorization uses, so it matches nothing.
-            if (aclTypesResult.hasNext())
-            {
-                Query query = new SetResultSetValues().apply(pss.asQuery(), aclTypesResult);
-                pss = new ParameterizedSparqlString(query.toString()); // make sure type VALUES are now part of the query string
-                assert pss.toString().contains("VALUES");
-            }
-
-            // note we're not setting the $mode value on the ACL queries as we want to provide the AuthorizationContext with all of the agent's authorizations
-            authorizations.add(loadModel(getAdminService(), pss, new AuthorizationParams(getAdminBase(), accessTo, agent).get()));
-            
-            // access denied if the agent has no authorization to the requested document with the requested ACL mode
-            if (getAuthorizationByMode(authorizations, accessMode) == null) return null;
-                
-            return authorizations;
+            return new DocumentContext(result);
         }
         finally
         {
-            docTypesResult.close();
-            if (aclTypesResult != docTypesResult) aclTypesResult.close(); // the parent's result set, when a PUT fell back to it
+            result.close();
         }
     }
     
@@ -275,34 +259,6 @@ public class AuthorizationFilter implements ContainerRequestFilter
             orElse(null);
     }
     
-    /**
-     * Checks if the given agent is the <code>acl:owner</code> of the document.
-     * 
-     * @param accessTo the document URI
-     * @param agent the agent whose ownership is checked.
-     * @return true if the agent is the owner, false otherwise.
-     */
-    protected boolean isOwner(Resource accessTo, Resource agent)
-    {
-        if (agent == null) return false;
-
-        QuerySolutionMap qsm = new QuerySolutionMap();
-        qsm.add(SPIN.THIS_VAR_NAME, accessTo);
-
-        ParameterizedSparqlString pss = getDocumentOwnerQuery();
-        pss.setParams(qsm);
-
-        ResultSetRewindable ownerResult = loadResultSet(getDataspace().get().getService(), getDocumentOwnerQuery(), qsm); // could use ASK query in principle
-        try
-        {
-            return ownerResult.hasNext() && agent.equals(ownerResult.next().getResource("owner"));
-        }
-        finally
-        {
-            ownerResult.close();
-        }
-    }
-
     /**
      * Loads RDF graph from a service.
      * 
@@ -370,29 +326,6 @@ public class AuthorizationFilter implements ContainerRequestFilter
     }
     
     /**
-     * Creates a special <code>acl:Authorization</code> resource for an owner.
-     * @param model RDF model
-     * @param accessTo requested URI
-     * @param agent authenticated agent
-     * @return authorization resource
-     */
-    public Resource createOwnerAuthorization(Model model, Resource accessTo, Resource agent)
-    {
-        if (model == null) throw new IllegalArgumentException("Model cannot be null");
-        if (accessTo == null) throw new IllegalArgumentException("Document resource cannot be null");
-        if (agent == null) throw new IllegalArgumentException("Agent resource cannot be null");
-
-        return model.createResource().
-                addProperty(RDF.type, ACL.Authorization).
-                addProperty(RDF.type, LACL.OwnerAuthorization).
-                addProperty(ACL.accessTo, accessTo).
-                addProperty(ACL.agent, agent).
-                addProperty(ACL.mode, ACL.Read).
-                addProperty(ACL.mode, ACL.Write).
-                addProperty(ACL.mode, ACL.Append);
-    }
-    
-    /**
      * Returns the SPARQL service for agent data.
      *
      * @return service resource
@@ -448,45 +381,24 @@ public class AuthorizationFilter implements ContainerRequestFilter
     }
 
     /**
-     * Returns a query that loads document type metadata.
+     * Returns a query that loads what the dataspace's store says of a document.
      * 
      * @return SPARQL string
      */
-    public ParameterizedSparqlString getDocumentTypeQuery()
+    public ParameterizedSparqlString getDocumentContextQuery()
     {
-        return documentTypeQuery.copy();
-    }
-    
-    /**
-     * Returns a query that loads document owner metadata.
-     * 
-     * @return SPARQL string
-     */  
-    public ParameterizedSparqlString getDocumentOwnerQuery()
-    {
-        return documentOwnerQuery.copy();
+        return documentContextQuery.copy();
     }
     
     /**
      * Returns authorization query.
-     * Used on end-user applications.
+     * Used on the documents of either dataspace.
      * 
      * @return SPARQL string
      */
     public ParameterizedSparqlString getACLQuery()
     {
         return aclQuery.copy();
-    }
-
-    /**
-     * Returns owner authorization query.
-     * Used on admin applications.
-     * 
-     * @return SPARQL string
-     */
-    public ParameterizedSparqlString getOwnerACLQuery()
-    {
-        return ownerAclQuery.copy();
     }
     
 }

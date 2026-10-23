@@ -101,7 +101,8 @@ public class UpdatesTest
         assertDoesNotThrow(() -> UpdateFactory.create(update, Syntax.syntaxSPARQL_11));
         assertTrue(update.contains("<https://localhost:4443/sparql>"));
         assertTrue(update.contains("<https://admin.localhost:4443/acl/authorizations/public/#this>"));
-        assertTrue(update.contains("<https://admin.localhost:4443/acl/authorizations/public/#sparql-post>"));
+        assertTrue(update.contains("acl:default <https://localhost:4443/>"));
+        assertFalse(update.contains("#sparql-post"), "the POST grant is a document of its own: Acl.publicSparqlPost");
     }
 
 }

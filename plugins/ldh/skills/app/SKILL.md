@@ -202,7 +202,10 @@ never derives an `admin.` URI. Keep `admin/`, `*.sh`, `*.rq` and `*.csv` in `.ld
 does not upload them.
 
 Finer access control: `ldh admin create group`, `ldh admin add agent`, `ldh admin create authorization`
-(https://docs.linkeddatahub.com/reference/administration/acl/).
+(https://docs.linkeddatahub.com/reference/administration/acl/). An authorization names documents with
+`--to`, and a subtree with `--default <container>`, which covers every document below the container.
+`--to-all-in` takes a class, but not a document class (`dh:Item`, `dh:Container`, `def:Root` or one
+above them), which the admin refuses: those classes are shared with the admin documents.
 
 ## Building incrementally instead
 

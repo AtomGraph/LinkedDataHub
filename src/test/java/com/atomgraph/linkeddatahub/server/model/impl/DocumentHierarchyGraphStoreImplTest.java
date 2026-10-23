@@ -42,6 +42,7 @@ import org.apache.jena.datatypes.xsd.XSDDateTime;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.vocabulary.DCTerms;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -232,6 +233,58 @@ public class DocumentHierarchyGraphStoreImplTest
         after.createResource(DOC.toString()).removeAll(ACL.owner).addProperty(ACL.owner, after.createResource(OWNER));
 
         assertFalse(DocumentHierarchyGraphStoreImpl.isOwnershipChanged(before, after, DOC.toString()));
+    }
+
+    // getForeignContainment()
+
+    private static final String CONTAINER = "http://localhost/container/";
+
+    @Test
+    public void testForeignContainmentIgnoresDocumentsOwn()
+    {
+        Model model = ModelFactory.createDefaultModel();
+        model.createResource(DOC.toString()).
+            addProperty(SIOC.HAS_CONTAINER, model.createResource(CONTAINER)).
+            addProperty(SIOC.HAS_PARENT, model.createResource(CONTAINER));
+
+        assertTrue(DocumentHierarchyGraphStoreImpl.getForeignContainment(model, DOC.toString()).isEmpty());
+    }
+
+    @Test
+    public void testForeignContainmentFindsOtherDocument()
+    {
+        Model model = ModelFactory.createDefaultModel();
+        model.createResource(DOC.toString()).addProperty(SIOC.HAS_CONTAINER, model.createResource(CONTAINER));
+        Resource other = model.createResource("http://localhost/other/").addProperty(SIOC.HAS_PARENT, model.createResource(CONTAINER));
+
+        Set<Statement> foreign = DocumentHierarchyGraphStoreImpl.getForeignContainment(model, DOC.toString());
+
+        assertEquals(Set.of(model.createStatement(other, SIOC.HAS_PARENT, model.createResource(CONTAINER))), foreign);
+    }
+
+    @Test
+    public void testForeignContainmentFindsFragmentAndBlankNode()
+    {
+        Model model = ModelFactory.createDefaultModel();
+        model.createResource(DOC.toString() + "#thing").addProperty(SIOC.HAS_CONTAINER, model.createResource(CONTAINER));
+        model.createResource().addProperty(SIOC.HAS_PARENT, model.createResource(CONTAINER));
+
+        assertEquals(2, DocumentHierarchyGraphStoreImpl.getForeignContainment(model, DOC.toString()).size());
+    }
+
+    @Test
+    public void testForeignContainmentIgnoresOtherProperties()
+    {
+        Model model = ModelFactory.createDefaultModel();
+        model.createResource("http://localhost/other/").addProperty(DCTerms.isPartOf, model.createResource(CONTAINER));
+
+        assertTrue(DocumentHierarchyGraphStoreImpl.getForeignContainment(model, DOC.toString()).isEmpty());
+    }
+
+    @Test
+    public void testForeignContainmentNullModel()
+    {
+        assertThrows(IllegalArgumentException.class, () -> DocumentHierarchyGraphStoreImpl.getForeignContainment(null, DOC.toString()));
     }
 
     // getLastModified(Resource)

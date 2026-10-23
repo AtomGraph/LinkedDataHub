@@ -12,39 +12,51 @@
         <param-value>max-age=69</param-value>
     </context-param>
     <context-param>
-        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#documentTypeQuery</param-name>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#documentContextQuery</param-name>
         <param-value><![CDATA[
-PREFIX acl: <http://www.w3.org/ns/auth/acl#>
-            
-SELECT  ?Type
+PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
+PREFIX  nfo:  <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
+PREFIX  sioc: <http://rdfs.org/sioc/ns#>
+
+# what the authorization decision knows of a document, run on its dataspace's store: one (?Rel ?Target) row per thing an
+# authorization can name it by. Every row binds both columns, so a row can only join the branch of the ACL query its tag
+# selects - with an unbound column, a types-only row would join any acl:default grant.
+#   acl:accessTo       the document itself
+#   acl:default        each of its ancestors. A graph states the containment of its own document only, which the graph
+#                      store enforces, so a path over the union graph reads exactly what each document's graph says
+#   acl:accessToClass  each type the document's own graph asserts; no other graph can add to them. An uploaded file has
+#                      no graph of its own, and is typed nfo:FileDataObject and nothing else
+#   acl:owner          its owner, as its own graph states it, which decides lacl:OwnerAgent
+SELECT DISTINCT ?Rel ?Target
 WHERE
-  {   { GRAPH $this
-          { $this
-                      a  ?Type
-          }
+  {   { BIND(acl:accessTo AS ?Rel)
+        BIND($this AS ?Target)
+      }
+    UNION
+      { GRAPH <urn:x-arq:UnionGraph>
+          { $this (sioc:has_parent|sioc:has_container)+ ?Target }
+        BIND(acl:default AS ?Rel)
+      }
+    UNION
+      { GRAPH $this
+          { $this  a  ?Target }
+        BIND(acl:accessToClass AS ?Rel)
       }
     UNION
       { GRAPH ?g
-            { $this
-                        a  <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject> ;
-                        a  ?Type
-            }
+          { $this  a  nfo:FileDataObject }
+        FILTER NOT EXISTS { GRAPH $this { ?s  ?p  ?o } }
+        BIND(acl:accessToClass AS ?Rel)
+        BIND(nfo:FileDataObject AS ?Target)
+      }
+    UNION
+      { GRAPH $this
+          { $this  acl:owner  ?Target }
+        BIND(acl:owner AS ?Rel)
       }
   }
 ]]></param-value>
     </context-param>
-    <context-param>
-        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#documentOwnerQuery</param-name>
-        <param-value><![CDATA[
-PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
-
-SELECT  ?owner
-WHERE
-  { GRAPH $this
-      { $this  acl:owner  ?owner }
-  }
-]]></param-value>
-    </context-param> 
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#aclQuery</param-name>
         <param-value><![CDATA[
@@ -52,105 +64,45 @@ PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 
-DESCRIBE ?auth
-WHERE
-  {
-    GRAPH ?g {
-      { ?auth  acl:agent  $agent }
-     UNION
-       { ?auth   acl:agentGroup  ?Group
-
-         GRAPH ?groupG {
-           ?Group  foaf:member  $agent
-         }
-         FILTER(strstarts(str(?groupG), str($base)))
-
-       }
-     UNION
-       { ?auth  acl:agentClass  foaf:Agent }
-     UNION
-       { ?auth  acl:agentClass  $AuthenticatedAgentClass }
-
-       ?auth  acl:mode  ?Mode .
-
-       { ?auth  acl:accessTo  $this }
-     UNION
-       {   { ?auth  acl:accessToClass  $Type }
-         UNION
-           { ?auth  acl:accessToClass  ?Class .
-             GRAPH <urn:x-arq:UnionGraph> {
-               $Type (rdfs:subClassOf)* ?Class
-             }
-           }
-       }
-    }
-
-    FILTER(strstarts(str(?g), str($base)))
-  }
-# fail-closed default: with no resource type injected, $Type is rdfs:Resource, which no acl:accessToClass uses,
-# so the class branches match nothing. SetResultSetValues replaces this block with the resource's real types.
-VALUES ?Type { rdfs:Resource }
-]]></param-value>
-    </context-param>
-    <context-param>
-        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#ownerAclQuery</param-name>
-        <param-value><![CDATA[
-PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
-PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
-
+# the authorizations of the agent for a document, in either dataspace. An authorization counts only in the admin document
+# whose primary topic it is, and a group's members only in the group's own document: a statement anywhere else in the
+# admin dataset is not one an administrator made. The document is matched through the rows of the document context query
+# (see documentContextQuery): an authorization names it, a container above it (acl:default), or a class of it
 DESCRIBE ?auth
 WHERE
   { GRAPH ?g
-      {   { ?auth  acl:mode           acl:Control .
-              { ?auth  acl:agent  $agent }
-            UNION
-              { ?auth   acl:agentGroup  ?Group
-
-                GRAPH ?groupG {
-                  ?Group  foaf:member  $agent
-                }
-                FILTER(strstarts(str(?groupG), str($base)))
-
+      { ?g     foaf:primaryTopic  ?auth .
+        ?auth  acl:mode           ?Mode .
+          { ?auth  acl:agent  $agent }
+        UNION
+          { ?auth  acl:agentGroup  ?Group
+            GRAPH ?groupG
+              { ?groupG  foaf:primaryTopic  ?Group .
+                ?Group   foaf:member        $agent
               }
+            FILTER(strstarts(str(?groupG), str($base)))
           }
         UNION
-          { ?auth  acl:agentClass  $AuthenticatedAgentClass ;
-                   acl:mode        ?Mode
-              { ?auth  acl:accessTo  $this
-              }
-            UNION
-              { ?auth  acl:accessToClass  $Type }
-            UNION
-              { ?auth  acl:accessToClass  ?Class .
-                GRAPH <urn:x-arq:UnionGraph> {
-                  $Type (rdfs:subClassOf)* ?Class
-                }
-              }
+          { ?auth  acl:agentClass  foaf:Agent }
+        UNION
+          { ?auth  acl:agentClass  $AuthenticatedAgentClass }
+        UNION
+          { ?auth  acl:agentClass  $OwnerAgentClass }
+          { VALUES ?Rel { acl:accessTo acl:default }
+            ?auth  ?Rel  ?Target
           }
         UNION
-          { ?auth  acl:agentClass  foaf:Agent ;
-                   acl:mode        acl:Read
-              { ?auth  acl:accessTo  $this
-              }
-            UNION
-              { ?auth  acl:accessToClass  $Type }
-            UNION
-              { ?auth  acl:accessToClass  ?Class .
-                GRAPH <urn:x-arq:UnionGraph> {
-                  $Type (rdfs:subClassOf)* ?Class
-                }
-              }
-            # only namespace, signup, the public dataspace context and WebID profiles can be public in admin app, nothing else (OAuth2 login is an end-user app flow)
-            FILTER ( $this IN (uri(concat(str($base), "ns")), uri(concat(str($base), "sign%20up")), uri(concat(str($base), "context"))) || strstarts(str($this), concat(str($base), "acl/agents/")) || strstarts(str($this), concat(str($base), "acl/public-keys/")))
+          { BIND(acl:accessToClass AS ?Rel)
+            ?auth  acl:accessToClass  ?Class
+            GRAPH <urn:x-arq:UnionGraph>
+              { ?Target (rdfs:subClassOf)* ?Class }
           }
       }
-
     FILTER(strstarts(str(?g), str($base)))
   }
-# fail-closed default: with no resource type injected, $Type is rdfs:Resource, which no acl:accessToClass uses,
-# so the class branches match nothing. SetResultSetValues replaces this block with the resource's real types.
-VALUES ?Type { rdfs:Resource }
+# fail-closed default: with no document context injected, the only row is a tag no branch selects, so nothing matches.
+# SetResultSetValues replaces this block with the document's rows
+VALUES (?Rel ?Target) { (rdfs:Resource rdfs:Resource) }
 ]]></param-value>
     </context-param>
     <context-param>

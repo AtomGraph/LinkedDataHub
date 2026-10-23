@@ -37,6 +37,7 @@ curl -f -s \
   -H "Content-Type: application/sparql-update" \
   --data-binary "INSERT DATA { GRAPH <${doc_url}> {
     <${doc_url}> a <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Item> ;
+        <http://rdfs.org/sioc/ns#has_container> <${END_USER_BASE_URL}> ;
         <http://purl.org/dc/terms/title> \"Unversioned document\" .
   } }" \
   "$END_USER_ENDPOINT_URL" > /dev/null

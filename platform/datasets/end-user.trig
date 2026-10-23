@@ -23,11 +23,25 @@
 @prefix dh:	    <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#> .
 @prefix sd:     <http://www.w3.org/ns/sparql-service-description#> .
 
+<services/>
+{
+
+    <services/> a dh:Container ;
+        sioc:has_parent <> ;
+        dct:title "Services" ;
+        dct:description "SPARQL services" ;
+        rdf:_1 <services/#select-children> .
+
+    <services/#select-children> a ldh:Object ;
+        rdf:value ldh:ChildrenView .
+
+}
+
 <services/dbpedia/>
 {
 
     <services/dbpedia/> a dh:Item ;
-        sioc:has_container <queries/> ;
+        sioc:has_container <services/> ;
         dct:title "DBPedia" ;
         foaf:primaryTopic <services/dbpedia/#this> .
 
@@ -44,7 +58,7 @@
 {
 
     <services/wikidata/> a dh:Item ;
-        sioc:has_container <queries/> ;
+        sioc:has_container <services/> ;
         dct:title "Wikidata" ;
         foaf:primaryTopic <services/wikidata/#this> .
 
