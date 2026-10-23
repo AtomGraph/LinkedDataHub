@@ -3,3 +3,7 @@ import LdhAcl.Step
 import LdhAcl.Theorems
 import LdhAcl.Hierarchy
 import LdhAcl.Current
+import LdhAcl.Wac.Model
+import LdhAcl.Wac.Step
+import LdhAcl.Wac.Theorems
+import LdhAcl.Wac.Migration
