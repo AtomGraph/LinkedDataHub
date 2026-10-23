@@ -174,13 +174,15 @@ public class AuthorizationFilter implements ContainerRequestFilter
         thisQsm.add(SPIN.THIS_VAR_NAME, accessTo);
         ResultSetRewindable docTypesResult = loadResultSet(getDataspace().get().getService(), getDocumentTypeQuery(), thisQsm);
         // types that constrain the ACL query's acl:accessToClass matching: the document's own by default, or the parent
-        // container's when a PUT creates a new (still typeless) document and authorization falls back to the parent
+        // container's when a PUT creates a new document and authorization falls back to the parent
         ResultSetRewindable aclTypesResult = docTypesResult;
         try
         {
             // special case for PUT requests: if the document does not exist, check access on the *parent* URI instead -
-            // acl:Write for a plain PUT, acl:Append for a create-only one (see getAccessMode())
-            if (!docTypesResult.hasNext() && request.getMethod().equals(HttpMethod.PUT))
+            // acl:Write for a plain PUT, acl:Append for a create-only one (see getAccessMode()). Whether it exists is the
+            // graph store's to say, the same answer put() acts on: having types is not the same thing, since the type query
+            // also types an uploaded file, which has no graph of its own
+            if (request.getMethod().equals(HttpMethod.PUT) && !getSystem().getServiceContext(getDataspace().get().getService()).getGraphStoreClient().containsModel(accessTo.getURI()))
             {
                 // Use Jena's IRIx for RFC 3986-compliant resolution - java.net.URI.resolve("..") is non-compliant
                 // (RFC 3986 section 5.2.4 step 2D requires ".." to be removed, but java.net.URI leaves it literal)
