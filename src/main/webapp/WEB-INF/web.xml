@@ -67,11 +67,22 @@ PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 # the authorizations of the agent for a document, in either dataspace. An authorization counts only in the admin document
 # whose primary topic it is, and a group's members only in the group's own document: a statement anywhere else in the
 # admin dataset is not one an administrator made. The document is matched through the rows of the document context query
-# (see documentContextQuery): an authorization names it, a container above it (acl:default), or a class of it
+# (see documentContextQuery): an authorization names it, a container above it (acl:default), or a class of it.
+# The pattern is evaluated once per row with ?Rel and ?Target bound, so the target match comes first: it looks up the few
+# authorizations naming the row, and every later part checks them instead of scanning the admin dataset again per row
 DESCRIBE ?auth
 WHERE
   { GRAPH ?g
-      { ?g     foaf:primaryTopic  ?auth .
+      {   { VALUES ?Rel { acl:accessTo acl:default }
+            ?auth  ?Rel  ?Target
+          }
+        UNION
+          { BIND(acl:accessToClass AS ?Rel)
+            ?auth  acl:accessToClass  ?Class
+            GRAPH <urn:x-arq:UnionGraph>
+              { ?Target (rdfs:subClassOf)* ?Class }
+          }
+        ?g     foaf:primaryTopic  ?auth .
         ?auth  acl:mode           ?Mode .
           { ?auth  acl:agent  $agent }
         UNION
@@ -88,20 +99,11 @@ WHERE
           { ?auth  acl:agentClass  $AuthenticatedAgentClass }
         UNION
           { ?auth  acl:agentClass  $OwnerAgentClass }
-          { VALUES ?Rel { acl:accessTo acl:default }
-            ?auth  ?Rel  ?Target
-          }
-        UNION
-          { BIND(acl:accessToClass AS ?Rel)
-            ?auth  acl:accessToClass  ?Class
-            GRAPH <urn:x-arq:UnionGraph>
-              { ?Target (rdfs:subClassOf)* ?Class }
-          }
       }
     FILTER(strstarts(str(?g), str($base)))
   }
 # fail-closed default: with no document context injected, the only row is a tag no branch selects, so nothing matches.
-# SetResultSetValues replaces this block with the document's rows
+# DocumentContext.applyTo replaces this block with the document's rows
 VALUES (?Rel ?Target) { (rdfs:Resource rdfs:Resource) }
 ]]></param-value>
     </context-param>
