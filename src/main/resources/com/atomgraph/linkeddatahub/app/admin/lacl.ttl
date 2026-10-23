@@ -107,8 +107,8 @@
         WHERE {}""" ;
     rdfs:isDefinedBy : .
 
-:OwnerAuthorization a rdfs:Class, owl:Class ;
-    rdfs:subClassOf acl:Authorization ;
-    rdfs:label "Owner access" ;
-    rdfs:comment "Granted in-memory to the owner of a document, carrying acl:Read, acl:Append and acl:Write. Never stored: AuthorizationFilter mints it per request once the agent is found to be the owner, before the ACL query runs" ;
+:OwnerAgent a rdfs:Class, owl:Class ;
+    rdfs:subClassOf foaf:Agent ;
+    rdfs:label "Owner" ;
+    rdfs:comment "The acl:owner of the document being accessed, as its own graph states it. An authorization grants owners access with acl:agentClass lacl:OwnerAgent, like acl:AuthenticatedAgent: membership is computed for each request" ;
     rdfs:isDefinedBy : .

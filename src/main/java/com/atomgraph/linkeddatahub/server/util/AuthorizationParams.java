@@ -17,6 +17,7 @@
 package com.atomgraph.linkeddatahub.server.util;
 
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
+import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.linkeddatahub.vocabulary.LDS;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
 import java.util.function.Supplier;
@@ -33,6 +34,7 @@ public class AuthorizationParams implements Supplier<QuerySolutionMap>
 {
 
     private final Resource base, absolutePath, agent;
+    private final boolean owner;
     
     /**
      * Constructs authorization query solution supplier.
@@ -41,12 +43,14 @@ public class AuthorizationParams implements Supplier<QuerySolutionMap>
      * @param base application's base URI
      * @param absolutePath request URL without query string
      * @param agent agent resource or null
+     * @param owner whether the agent owns the document the decision is about, which makes it a <code>lacl:OwnerAgent</code>
      */
-    public AuthorizationParams(Resource base, Resource absolutePath, Resource agent)
+    public AuthorizationParams(Resource base, Resource absolutePath, Resource agent, boolean owner)
     {
         this.base = base;
         this.absolutePath = absolutePath;
         this.agent = agent;
+        this.owner = agent != null && owner;
     }
 
      /**
@@ -71,6 +75,7 @@ public class AuthorizationParams implements Supplier<QuerySolutionMap>
             qsm.add("AuthenticatedAgentClass", RDFS.Resource); // disable AuthenticatedAgent UNION branch
             qsm.add("agent", RDFS.Resource); // disables UNION branch with $agent
         }
+        qsm.add("OwnerAgentClass", isOwner() ? LACL.OwnerAgent : RDFS.Resource); // enable lacl:OwnerAgent UNION branch for the owner only
         
         return qsm;
     }
@@ -103,6 +108,16 @@ public class AuthorizationParams implements Supplier<QuerySolutionMap>
     public Resource getAgent()
     {
         return agent;
+    }
+
+    /**
+     * Returns true if the agent owns the document the decision is about.
+     * 
+     * @return true for the owner
+     */
+    public boolean isOwner()
+    {
+        return owner;
     }
     
     

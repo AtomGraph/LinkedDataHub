@@ -67,14 +67,14 @@ public class CreateAuthorization extends BaseCommand
     @Option(names = "--to", paramLabel = "TO_URI", description = "URI of an accessed document (repeatable)")
     private List<URI> to = new ArrayList<>();
 
-    @Option(names = "--to-all-in", paramLabel = "CLASS_URI", description = "URI of an accessed document class (repeatable)")
+    @Option(names = "--default", paramLabel = "CONTAINER_URI", description = "URI of a container whose descendants are accessed: acl:default (repeatable)")
+    private List<URI> below = new ArrayList<>();
+
+    @Option(names = "--to-all-in", paramLabel = "CLASS_URI", description = "URI of an accessed class, other than a document class (repeatable)")
     private List<URI> toAllIn = new ArrayList<>();
 
     @Option(names = "--append", description = "Grant acl:Append mode")
     private boolean append;
-
-    @Option(names = "--control", description = "Grant acl:Control mode")
-    private boolean control;
 
     @Option(names = "--read", description = "Grant acl:Read mode")
     private boolean read;
@@ -88,20 +88,19 @@ public class CreateAuthorization extends BaseCommand
         URI base = baseMixin.require(getSpec());
         if (agents.isEmpty() && agentClasses.isEmpty() && agentGroups.isEmpty())
             throw new ParameterException(getSpec().commandLine(), "At least one of '--agent', '--agent-class', '--agent-group' is required");
-        if (to.isEmpty() && toAllIn.isEmpty())
-            throw new ParameterException(getSpec().commandLine(), "At least one of '--to', '--to-all-in' is required");
-        if (!append && !control && !read && !write)
-            throw new ParameterException(getSpec().commandLine(), "At least one of '--append', '--control', '--read', '--write' is required");
+        if (to.isEmpty() && below.isEmpty() && toAllIn.isEmpty())
+            throw new ParameterException(getSpec().commandLine(), "At least one of '--to', '--default', '--to-all-in' is required");
+        if (!append && !read && !write)
+            throw new ParameterException(getSpec().commandLine(), "At least one of '--append', '--read', '--write' is required");
 
         URI doc = URIs.childURI(URI.create(getAdminBase(base) + "acl/authorizations/"), slug != null ? slug : Slugs.defaultSlug());
 
         List<Resource> modes = new ArrayList<>();
         if (append) modes.add(ACL.Append);
-        if (control) modes.add(ACL.Control);
         if (read) modes.add(ACL.Read);
         if (write) modes.add(ACL.Write);
 
-        put(getClient(), doc, Acl.authorization(doc, uri, label, comment, agents, agentClasses, agentGroups, to, toAllIn, modes));
+        put(getClient(), doc, Acl.authorization(doc, uri, label, comment, agents, agentClasses, agentGroups, to, below, toAllIn, modes));
         print(doc);
 
         return 0;

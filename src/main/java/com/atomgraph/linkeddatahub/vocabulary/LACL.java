@@ -58,8 +58,9 @@ public class LACL
     /** Authorization request class */
     public static final Resource AuthorizationRequest = m_model.createOntClass( NS + "AuthorizationRequest" );
     
-    /** Authorization request class */
-    public static final Resource OwnerAuthorization = m_model.createOntClass( NS + "OwnerAuthorization" );
+    /** The owner of the document being accessed, as an agent class: <code>lacl:OwnerAgent</code> */
+    public static final Resource OwnerAgent = m_model.createOntClass( NS + "OwnerAgent" );
+
 
     /** Password property */
     public static final Property password = m_model.createDataProperty( NS + "password" );
