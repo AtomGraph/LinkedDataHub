@@ -42,10 +42,11 @@ assert_in_doc() {
   fi
 }
 
-# nothing is materialized before the package is imported
+# nothing is materialized before the package is imported. A document that does not exist has no ancestors, so no
+# acl:default grant covers it, the owners' included: reading it is 403, as for any missing document
 status=$(curl -k -s -o /dev/null -w "%{http_code}" -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" -H "Accept: text/turtle" "$doc")
-echo "DEBUG: [pre-import] document status. Expected: 404  Got: $status"
-if [ "$status" != "404" ]; then
+echo "DEBUG: [pre-import] document status. Expected: 403  Got: $status"
+if [ "$status" != "403" ]; then
   echo "DEBUG: [pre-import] <${doc}> exists before the package was imported" >&2
   exit 1
 fi
