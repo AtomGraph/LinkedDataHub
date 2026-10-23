@@ -1,5 +1,0 @@
-name = "LdhAcl"
-defaultTargets = ["LdhAcl"]
-
-[[lean_lib]]
-name = "LdhAcl"

@@ -9,7 +9,8 @@ model lives in its own directory with its own toolchain, README and mapping to t
 
 The `Formal` workflow (`.github/workflows/formal.yml`) builds every model on each push, fails on an
 unproven theorem, and on a pull request fails when a transcribed source changes without the model
-(`acl/tracks-code.sh`).
+(`acl/tracks-code.sh`). The HTTP test suite replays the ACL model's decision against the server
+(`tests/http/formal/`).
 
 ## Why
 
@@ -32,10 +33,12 @@ credibility; the fourth is the one that answers the agent-era question and chang
 1. **The model is a build artifact.** Done in this directory's `Formal` workflow: `lake build`, a
    `sorry` check and the drift check. The README mapping stops being a promise kept by hand.
 
-2. **The decision is executable, and the server is tested against it.** Give `allow` a computable
-   twin in Lean with a proof that the two agree, generate random stores and requests, and replay them
-   against a live instance through `tests/http`. Verifying the Java directly is not worth the cost;
-   model-based conformance testing is how the proofs start constraining the code.
+2. **The decision is executable, and the server is tested against it.** Done: `acl/LdhAcl/Decide.lean`
+   gives `allowRequest` a `Bool` twin over finite data with a proof that the two agree, `acl/Main.lean`
+   runs it on N-Quads dumps of a live instance's stores, and `tests/http/formal/acl-conformance.sh`
+   builds a seeded random scenario through the API and checks the server's status against the verdict
+   before every request. Verifying the Java directly is not worth the cost; this is how the proofs
+   constrain the code.
 
 3. **Every hypothesis of a theorem is an enforced constraint.** `AdminTyped`, `Typed`, `Site.Finite`
    and `Reader.Expressive` (see `acl/README.md`, "What the proofs need of the data") are premises an
