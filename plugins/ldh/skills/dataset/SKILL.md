@@ -326,8 +326,8 @@ Load it with `tdb2.tdbloader` straight into the dataspace's end-user TDB2 datase
 The canonical Makefile's `make load` does all of this when `make/config.mk` sets `LOAD_STAGING`
 and `docker-compose.override.yml` defines a `tdb-loader` service. LTLOD's override has one to copy.
 The load is append-only: for a clean rebuild, delete the dataset directory and restart before
-loading. Then run `ldh admin make-public` if the data is public. Its class-based authorizations
-match the `dh:Item` documents.
+loading. Then run `ldh admin make-public` if the data is public. It grants read on the end-user root
+and, through `acl:default`, on every document below it.
 
 ## 5. Connect to external data
 

@@ -16,18 +16,14 @@
 package com.atomgraph.linkeddatahub.server.filter.request;
 
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
-import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import jakarta.ws.rs.HttpMethod;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.RDF;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Unit tests for the pure authorization logic in {@link AuthorizationFilter}:
@@ -39,8 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class AuthorizationFilterTest
 {
 
-    private static final Resource ACCESS_TO = ResourceFactory.createResource("https://localhost/doc/");
-    private static final Resource AGENT = ResourceFactory.createResource("https://localhost/acl/agents/me/#this");
 
     // HTTP method -> ACL access mode: a security-critical contract (a regression here silently changes what each verb requires)
 
@@ -170,41 +164,6 @@ public class AuthorizationFilterTest
         assertNull(new AuthorizationFilter().getAuthorizationByMode(model, ACL.Append));
         assertNull(new AuthorizationFilter().getAuthorizationByMode(model, ACL.Write));
         assertNull(new AuthorizationFilter().getAuthorizationByMode(model, ACL.Control));
-    }
-
-    // createOwnerAuthorization: owner is granted Read/Write/Append on the document
-
-    @Test
-    public void testOwnerAuthorizationGrantsReadWriteAppend()
-    {
-        Model model = ModelFactory.createDefaultModel();
-        Resource auth = new AuthorizationFilter().createOwnerAuthorization(model, ACCESS_TO, AGENT);
-
-        assertTrue(auth.hasProperty(RDF.type, ACL.Authorization));
-        assertTrue(auth.hasProperty(RDF.type, LACL.OwnerAuthorization));
-        assertTrue(auth.hasProperty(ACL.accessTo, ACCESS_TO));
-        assertTrue(auth.hasProperty(ACL.agent, AGENT));
-        assertTrue(auth.hasProperty(ACL.mode, ACL.Read));
-        assertTrue(auth.hasProperty(ACL.mode, ACL.Write));
-        assertTrue(auth.hasProperty(ACL.mode, ACL.Append));
-    }
-
-    @Test
-    public void testOwnerAuthorizationIsDiscoverableByMode()
-    {
-        Model model = ModelFactory.createDefaultModel();
-        Resource auth = new AuthorizationFilter().createOwnerAuthorization(model, ACCESS_TO, AGENT);
-
-        assertEquals(auth, new AuthorizationFilter().getAuthorizationByMode(model, ACL.Write));
-    }
-
-    @Test
-    public void testCreateOwnerAuthorizationRejectsNullArguments()
-    {
-        Model model = ModelFactory.createDefaultModel();
-        assertThrows(IllegalArgumentException.class, () -> new AuthorizationFilter().createOwnerAuthorization(null, ACCESS_TO, AGENT));
-        assertThrows(IllegalArgumentException.class, () -> new AuthorizationFilter().createOwnerAuthorization(model, null, AGENT));
-        assertThrows(IllegalArgumentException.class, () -> new AuthorizationFilter().createOwnerAuthorization(model, ACCESS_TO, null));
     }
 
 }

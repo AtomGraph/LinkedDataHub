@@ -1,0 +1,69 @@
+# Brings an admin dataspace's authorizations to the access model of 6.0, in which acl:Control grants nothing and documents
+# are granted through the hierarchy (acl:default on a container) rather than through the document classes, which the
+# admin documents share with the end-user ones. It is idempotent: it rewrites only what still has the old shape.
+#
+#   - acl:Control over def:Root, the admin role, becomes Read/Append/Write on the admin root, everything below it and the
+#     admin endpoints
+#   - a grant on both dh:Container and dh:Item becomes one on the end-user root and everything below it
+#   - a grant on def:Root alone becomes one on the end-user root
+#   - a grant on dh:Container or dh:Item alone cannot be expressed without the other and is dropped, failing closed
+#   - acl:Control is removed from every authorization
+#   - the owner access authorization (lacl:OwnerAgent, end-user documents) is added if it is missing
+#
+# Run it once per admin dataspace, against the admin store's SPARQL update endpoint, with both roots substituted:
+#
+#   admin_root=https://admin.localhost:4443/ end_user_root=https://localhost:4443/ envsubst < 6.0-acl.ru.template \
+#   | curl -X POST -H "Content-Type: application/sparql-update" --data-binary @- http://localhost:3030/admin
+
+PREFIX acl:  <http://www.w3.org/ns/auth/acl#>
+PREFIX def:  <https://w3id.org/atomgraph/linkeddatahub/default#>
+PREFIX dh:   <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX sioc: <http://rdfs.org/sioc/ns#>
+PREFIX dct:  <http://purl.org/dc/terms/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX lacl: <https://w3id.org/atomgraph/linkeddatahub/admin/acl#>
+
+INSERT { GRAPH ?g { ?auth acl:accessTo <${admin_root}>, <${admin_root}sparql>, <${admin_root}ns>, <${admin_root}clear> ; acl:default <${admin_root}> ; acl:mode acl:Read, acl:Append, acl:Write } }
+WHERE  { GRAPH ?g { ?auth acl:mode acl:Control ; acl:accessToClass def:Root } FILTER(strstarts(str(?g), "${admin_root}")) } ;
+
+DELETE { GRAPH ?g { ?auth acl:accessToClass ?class } }
+INSERT { GRAPH ?g { ?auth acl:accessTo <${end_user_root}> ; acl:default <${end_user_root}> } }
+WHERE  { GRAPH ?g { ?auth acl:accessToClass dh:Container, dh:Item .
+                    VALUES ?class { def:Root dh:Container dh:Item }
+                    ?auth acl:accessToClass ?class }
+         FILTER(strstarts(str(?g), "${admin_root}")) } ;
+
+DELETE { GRAPH ?g { ?auth acl:accessToClass def:Root } }
+INSERT { GRAPH ?g { ?auth acl:accessTo <${end_user_root}> } }
+WHERE  { GRAPH ?g { ?auth acl:accessToClass def:Root } FILTER(strstarts(str(?g), "${admin_root}")) } ;
+
+DELETE { GRAPH ?g { ?auth acl:accessToClass ?class } }
+WHERE  { GRAPH ?g { VALUES ?class { dh:Container dh:Item } ?auth acl:accessToClass ?class } FILTER(strstarts(str(?g), "${admin_root}")) } ;
+
+DELETE { GRAPH ?g { ?auth acl:mode acl:Control } }
+WHERE  { GRAPH ?g { ?auth acl:mode acl:Control } FILTER(strstarts(str(?g), "${admin_root}")) } ;
+
+INSERT
+{
+    GRAPH <${admin_root}acl/authorizations/owner-access/>
+    {
+        <${admin_root}acl/authorizations/owner-access/> a dh:Item ;
+            sioc:has_container <${admin_root}acl/authorizations/> ;
+            dct:title "Owner access" ;
+            dct:created ?now ;
+            foaf:primaryTopic <${admin_root}acl/authorizations/owner-access/#this> .
+        <${admin_root}acl/authorizations/owner-access/#this> a acl:Authorization ;
+            rdfs:label "Owner access" ;
+            rdfs:comment "Allows the owner of a document to read and write it" ;
+            acl:accessTo <${end_user_root}> ;
+            acl:default <${end_user_root}> ;
+            acl:mode acl:Read, acl:Append, acl:Write ;
+            acl:agentClass lacl:OwnerAgent .
+    }
+}
+WHERE
+{
+    FILTER NOT EXISTS { GRAPH <${admin_root}acl/authorizations/owner-access/> { ?s ?p ?o } }
+    BIND(NOW() AS ?now)
+}

@@ -16,7 +16,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Content-Type: application/n-triples" \
   -H "Accept: application/n-triples" \
-  -X POST \
+  -X PUT \
    --data-binary @- \
   "$END_USER_BASE_URL" <<EOF
 <http://s> <http://p> <http://o> .
@@ -29,10 +29,10 @@ EOF
 ldh admin create authorization \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  --label "Fake POST class authorization from test.localhost" \
+  --label "Fake PUT root authorization from test.localhost" \
   --agent "$AGENT_URI" \
-  --to-all-in "https://w3id.org/atomgraph/linkeddatahub/default#Root" \
-  --append \
+  --to "$END_USER_BASE_URL" \
+  --write \
   "https://admin.test.localhost:4443/"
 
 # access is still denied (fake authorization filtered out)
@@ -42,7 +42,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Content-Type: application/n-triples" \
   -H "Accept: application/n-triples" \
-  -X POST \
+  -X PUT \
    --data-binary @- \
   "$END_USER_BASE_URL" <<EOF
 <http://s> <http://p> <http://o> .
@@ -55,24 +55,30 @@ EOF
 ldh admin create authorization \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  --label "POST authorization" \
+  --label "PUT authorization" \
   --agent "$AGENT_URI" \
-  --to-all-in "https://w3id.org/atomgraph/linkeddatahub/default#Root" \
-  --append \
+  --to "$END_USER_BASE_URL" \
+  --write \
   "$ADMIN_BASE_URL"
 
-# access is allowed after real authorization is created
+# get the graph content
 
-(
-curl -k -w "%{http_code}\n" -o /dev/null -s \
+root_ntriples=$(ldh get \
+  -c "$OWNER_CERT_KEYSTORE" \
+  -p "$OWNER_CERT_PWD" \
+  --accept 'application/n-triples' \
+  "$END_USER_BASE_URL")
+
+# access is allowed after real authorization is created
+# request body with document instance is required
+
+echo "$root_ntriples" \
+| curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Content-Type: application/n-triples" \
   -H "Accept: application/n-triples" \
-  -X POST \
+  -X PUT \
   -H "If-Match: $(etag "$END_USER_BASE_URL" "$AGENT_CERT_FILE" "$AGENT_CERT_PWD" "application/n-triples")" \
-   --data-binary @- \
-  "$END_USER_BASE_URL" <<EOF
-<http://s> <http://p> <http://o> .
-EOF
-) \
+  -d @- \
+  "$END_USER_BASE_URL" \
 | grep -q "$STATUS_NO_CONTENT"

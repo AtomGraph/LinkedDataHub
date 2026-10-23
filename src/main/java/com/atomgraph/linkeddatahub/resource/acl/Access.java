@@ -26,10 +26,9 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.AuthorizationParams;
-import com.atomgraph.linkeddatahub.server.util.SetResultSetValues;
+import com.atomgraph.linkeddatahub.server.util.DocumentContext;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
-import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
@@ -45,15 +44,12 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Optional;
 import org.apache.jena.query.ParameterizedSparqlString;
-import org.apache.jena.query.Query;
 import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.query.ResultSetRewindable;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
-import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,7 +69,7 @@ public class Access
     private final MediaTypes mediaTypes;
     private final EndUserDataspace application;
     private final Optional<AgentContext> agentContext;
-    private final ParameterizedSparqlString documentTypeQuery, documentOwnerQuery, aclQuery, ownerAclQuery;
+    private final ParameterizedSparqlString documentContextQuery, aclQuery;
     private final com.atomgraph.linkeddatahub.Application system;
     
     /**
@@ -100,10 +96,8 @@ public class Access
         this.application = application.as(EndUserDataspace.class);
         this.agentContext = agentContext;
         this.system = system;
-        documentTypeQuery = new ParameterizedSparqlString(system.getDocumentTypeQuery().toString());
-        documentOwnerQuery = new ParameterizedSparqlString(system.getDocumentOwnerQuery().toString());
+        documentContextQuery = new ParameterizedSparqlString(system.getDocumentContextQuery().toString());
         aclQuery = new ParameterizedSparqlString(system.getACLQuery().toString());
-        ownerAclQuery = new ParameterizedSparqlString(system.getOwnerACLQuery().toString());
     }
 
     /**
@@ -125,101 +119,42 @@ public class Access
             
             QuerySolutionMap thisQsm = new QuerySolutionMap();
             thisQsm.add(SPIN.THIS_VAR_NAME, accessTo);
-            ParameterizedSparqlString typePss = getDocumentTypeQuery();
-            typePss.setParams(thisQsm);
-            
-            ResultSetRewindable docTypesResult = getSystem().getServiceContext(getEndUserService()).getEndpointAccessor().select(typePss.asQuery(), List.of(), List.of());
+            ParameterizedSparqlString contextPss = getDocumentContextQuery();
+            contextPss.setParams(thisQsm);
+
+            // the same decision as AuthorizationFilter's: the document's context from the end-user store, matched by the ACL query
+            final DocumentContext context;
+            ResultSetRewindable contextResult = getSystem().getServiceContext(getEndUserService()).getEndpointAccessor().select(contextPss.asQuery(), List.of(), List.of());
             try
             {
-                final ParameterizedSparqlString authPss = getACLQuery();
-                authPss.setParams(new AuthorizationParams(getDataspace().getAdminDataspace().getBase(), accessTo, agent).get());
-
-                // inject the resource's rdf:types so acl:accessToClass authorizations are reported; without this the ACL
-                // query keeps its fail-closed default (VALUES ?Type { rdfs:Resource }) and hides every class-based authorization
-                Query authQuery = authPss.asQuery();
-                if (docTypesResult.hasNext()) authQuery = new SetResultSetValues().apply(authQuery, docTypesResult);
-
-                Model authModel = getSystem().getServiceContext(getDataspace().getAdminDataspace().getService()).getSPARQLClient().loadModel(authQuery);
-
-                // filter out authorizations with acl:accessToClass foaf:Agent - all agents already have that access
-                ResIterator agentClassIter = authModel.listSubjectsWithProperty(ACL.agentClass, FOAF.Agent);
-                try
-                {
-                    agentClassIter.toList().forEach((auth) -> authModel.removeAll(auth, null, null));
-                }
-                finally
-                {
-                    agentClassIter.close();
-                }
-
-                // special case where the agent is the owner of the requested document - automatically grant acl:Read/acl:Append/acl:Write access
-                if (isOwner(accessTo, agent))
-                {
-                    log.debug("Agent <{}> is the owner of <{}>, granting acl:Read/acl:Append/acl:Write access", agent, accessTo);
-                    authModel.add(createOwnerAuthorization(accessTo, agent).getModel());
-                }
-
-                return getResponseBuilder(authModel).build();
+                context = new DocumentContext(contextResult);
             }
             finally
             {
-                docTypesResult.close();
+                contextResult.close();
             }
+
+            final ParameterizedSparqlString authPss = new ParameterizedSparqlString(context.applyTo(getACLQuery().asQuery()).toString());
+            authPss.setParams(new AuthorizationParams(getDataspace().getAdminDataspace().getBase(), accessTo, agent, context.isOwner(agent)).get());
+            Model authModel = getSystem().getServiceContext(getDataspace().getAdminDataspace().getService()).getSPARQLClient().loadModel(authPss.asQuery());
+
+            // filter out authorizations with acl:accessToClass foaf:Agent - all agents already have that access
+            ResIterator agentClassIter = authModel.listSubjectsWithProperty(ACL.agentClass, FOAF.Agent);
+            try
+            {
+                agentClassIter.toList().forEach((auth) -> authModel.removeAll(auth, null, null));
+            }
+            finally
+            {
+                agentClassIter.close();
+            }
+
+            return getResponseBuilder(authModel).build();
         }
         catch (URISyntaxException ex)
         {
             throw new BadRequestException(ex);
         }
-    }
-    
-    /**
-     * Checks if the given agent is the <code>acl:owner</code> of the document.
-     * 
-     * @param accessTo the document URI
-     * @param agent the agent whose ownership is checked.
-     * @return true if the agent is the owner, false otherwise.
-     */
-    protected boolean isOwner(Resource accessTo, Resource agent)
-    {
-        if (agent == null) return false;
-
-        QuerySolutionMap qsm = new QuerySolutionMap();
-        qsm.add(SPIN.THIS_VAR_NAME, accessTo);
-
-        ParameterizedSparqlString pss = getDocumentOwnerQuery();
-        pss.setParams(qsm);
-
-        ResultSetRewindable ownerResult = getSystem().getServiceContext(getEndUserService()).getEndpointAccessor().select(pss.asQuery(), List.of(), List.of());
-        try
-        {
-            return ownerResult.hasNext() && agent.equals(ownerResult.next().getResource("owner"));
-        }
-        finally
-        {
-            ownerResult.close();
-        }
-    }
-    
-    /**
-     * Creates a special <code>acl:Authorization</code> resource for an owner.
-     * @param accessTo requested URI
-     * @param agent authenticated agent
-     * @return authorization resource
-     */
-    public Resource createOwnerAuthorization(Resource accessTo, Resource agent)
-    {
-        if (accessTo == null) throw new IllegalArgumentException("Document resource cannot be null");
-        if (agent == null) throw new IllegalArgumentException("Agent resource cannot be null");
-
-        return ModelFactory.createDefaultModel().
-                createResource().
-                addProperty(RDF.type, ACL.Authorization).
-                addProperty(RDF.type, LACL.OwnerAuthorization).
-                addProperty(ACL.accessTo, accessTo).
-                addProperty(ACL.agent, agent).
-                addProperty(ACL.mode, ACL.Read).
-                addProperty(ACL.mode, ACL.Write).
-                addProperty(ACL.mode, ACL.Append);
     }
     
     /**
@@ -324,45 +259,23 @@ public class Access
     }
     
     /**
-     * Returns a query that loads document type metadata.
+     * Returns a query that loads what the dataspace's store says of a document.
      * 
      * @return SPARQL string
      */
-    public ParameterizedSparqlString getDocumentTypeQuery()
+    public ParameterizedSparqlString getDocumentContextQuery()
     {
-        return documentTypeQuery.copy();
+        return documentContextQuery.copy();
     }
 
     /**
-     * Returns a query that loads document owner metadata.
-     * 
-     * @return SPARQL string
-     */  
-    public ParameterizedSparqlString getDocumentOwnerQuery()
-    {
-        return documentOwnerQuery.copy();
-    }
-    
-    /**
      * Returns authorization query.
-     * Used on end-user applications.
      * 
      * @return SPARQL string
      */
     public ParameterizedSparqlString getACLQuery()
     {
         return aclQuery.copy();
-    }
-
-    /**
-     * Returns owner authorization query.
-     * Used on admin applications.
-     * 
-     * @return SPARQL string
-     */
-    public ParameterizedSparqlString getOwnerACLQuery()
-    {
-        return ownerAclQuery.copy();
     }
     
 }

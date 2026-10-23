@@ -169,15 +169,14 @@ public final class Updates
     {
         ParameterizedSparqlString pss = new ParameterizedSparqlString("""
             PREFIX  acl: <http://www.w3.org/ns/auth/acl#>
-            PREFIX  def: <https://w3id.org/atomgraph/linkeddatahub/default#>
-            PREFIX  dh:  <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#>
             PREFIX  nfo: <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
             PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 
             INSERT
             {
-              ?public acl:accessToClass def:Root, dh:Container, dh:Item, nfo:FileDataObject ;
-                  acl:accessTo ?sparql .
+              ?public acl:accessTo ?root, ?sparql ;
+                  acl:default ?root ;
+                  acl:accessToClass nfo:FileDataObject .
 
               ?sparqlPost a acl:Authorization ;
                   acl:accessTo ?sparql ;
@@ -189,6 +188,7 @@ public final class Updates
             """);
         pss.setIri("public", adminBase + "acl/authorizations/public/#this");
         pss.setIri("sparqlPost", adminBase + "acl/authorizations/public/#sparql-post");
+        pss.setIri("root", base.toString());
         pss.setIri("sparql", base + "sparql");
         return pss.toString();
     }

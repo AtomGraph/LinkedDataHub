@@ -77,12 +77,12 @@
 
     <https://admin.test.localhost:4443/acl/authorizations/test-owner-control/> a dh:Item ;
         foaf:primaryTopic <https://admin.test.localhost:4443/acl/authorizations/test-owner-control/#auth> ;
-        dct:title "Test owner Control authorization" .
+        dct:title "Test owner admin authorization" .
 
     <https://admin.test.localhost:4443/acl/authorizations/test-owner-control/#auth> a acl:Authorization ;
         acl:accessTo <https://admin.test.localhost:4443/> ;
-        acl:accessToClass <https://w3id.org/atomgraph/linkeddatahub/default#Root> ;
-        acl:mode acl:Control ;
+        acl:default <https://admin.test.localhost:4443/> ;
+        acl:mode acl:Read, acl:Append, acl:Write ;
         acl:agent <${OWNER_URI}> .
 
 }

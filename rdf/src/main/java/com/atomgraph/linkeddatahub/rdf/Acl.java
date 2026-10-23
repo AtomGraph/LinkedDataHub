@@ -62,6 +62,30 @@ public final class Acl
             List<URI> agents, List<URI> agentClasses, List<URI> agentGroups,
             List<URI> to, List<URI> toAllIn, List<Resource> modes)
     {
+        return authorization(doc, uri, label, comment, agents, agentClasses, agentGroups, to, List.of(), toAllIn, modes);
+    }
+
+    /**
+     * Builds an authorization document. Agents, agent classes and agent groups say who; the
+     * accessTo, default and accessToClass lists say what; the modes say how.
+     *
+     * @param doc document URI
+     * @param uri authorization URI, relative or absolute (optional, blank node when absent)
+     * @param label authorization label, also the document title
+     * @param comment authorization comment (optional)
+     * @param agents WebIDs the authorization is granted to
+     * @param agentClasses agent classes the authorization is granted to
+     * @param agentGroups agent groups the authorization is granted to
+     * @param to URIs of the documents access is granted on
+     * @param below URIs of the containers whose descendants access is granted on (<code>acl:default</code>)
+     * @param toAllIn URIs of the classes whose instances access is granted on
+     * @param modes access modes granted
+     * @return authorization model
+     */
+    public static Model authorization(URI doc, String uri, String label, String comment,
+            List<URI> agents, List<URI> agentClasses, List<URI> agentGroups,
+            List<URI> to, List<URI> below, List<URI> toAllIn, List<Resource> modes)
+    {
         Model model = ModelFactory.createDefaultModel();
 
         Resource auth = Subjects.of(model, doc, uri).
@@ -78,6 +102,7 @@ public final class Acl
         addResourceValues(auth, ACL.agentClass, agentClasses);
         addResourceValues(auth, ACL.agentGroup, agentGroups);
         addResourceValues(auth, ACL.accessTo, to);
+        addResourceValues(auth, ACL.default_, below);
         addResourceValues(auth, ACL.accessToClass, toAllIn);
         modes.forEach(mode -> auth.addProperty(ACL.mode, mode));
 

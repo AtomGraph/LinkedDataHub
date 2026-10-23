@@ -14,30 +14,18 @@ clear_ontology
 curl -k -w "%{http_code}\n" -o /dev/null -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: application/n-triples" \
-  -X DELETE \
   "$END_USER_BASE_URL" \
 | grep -q "$STATUS_FORBIDDEN"
-
-# create container
-
-slug="test"
-
-container=$(ldh create container \
-  -c "$OWNER_CERT_KEYSTORE" \
-  -p "$OWNER_CERT_PWD" \
-  --title "Test" \
-  --slug "$slug" \
-  --parent "$END_USER_BASE_URL")
 
 # create fake test.localhost authorization (should be filtered out)
 
 ldh admin create authorization \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  --label "Fake DELETE class authorization from test.localhost" \
+  --label "Fake GET root authorization from test.localhost" \
   --agent "$AGENT_URI" \
-  --to-all-in "https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Container" \
-  --write \
+  --to "$END_USER_BASE_URL" \
+  --read \
   "https://admin.test.localhost:4443/"
 
 # access is still denied (fake authorization filtered out)
@@ -45,8 +33,7 @@ ldh admin create authorization \
 curl -k -w "%{http_code}\n" -o /dev/null -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: application/n-triples" \
-  -X DELETE \
-  "$container" \
+  "$END_USER_BASE_URL" \
 | grep -q "$STATUS_FORBIDDEN"
 
 # create real localhost authorization
@@ -54,10 +41,10 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
 ldh admin create authorization \
   -c "$OWNER_CERT_KEYSTORE" \
   -p "$OWNER_CERT_PWD" \
-  --label "DELETE authorization" \
+  --label "GET Container authorization" \
   --agent "$AGENT_URI" \
-  --to-all-in "https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Container" \
-  --write \
+  --to "$END_USER_BASE_URL" \
+  --read \
   "$ADMIN_BASE_URL"
 
 # access is allowed after real authorization is created
@@ -65,7 +52,5 @@ ldh admin create authorization \
 curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: application/n-triples" \
-  -X DELETE \
-  -H "If-Match: $(etag "$container" "$AGENT_CERT_FILE" "$AGENT_CERT_PWD" "application/n-triples")" \
-  "$container" \
-| grep -q "$STATUS_NO_CONTENT"
+  "$END_USER_BASE_URL" \
+| grep -q "$STATUS_OK"

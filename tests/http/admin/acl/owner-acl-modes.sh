@@ -32,10 +32,11 @@ curl -k -f -v \
 
 cat "$response_headers"
 
-# check that each ACL mode is present in Link header (order independent)
+# check that each ACL mode is present in Link header (order independent). acl:Control is not one of them: it grants
+# nothing, and no seeded authorization carries it
 grep -q "Link:.*<http://www.w3.org/ns/auth/acl#Read>; rel=\"http://www.w3.org/ns/auth/acl#mode\"" "$response_headers"
 grep -q "Link:.*<http://www.w3.org/ns/auth/acl#Write>; rel=\"http://www.w3.org/ns/auth/acl#mode\"" "$response_headers"
 grep -q "Link:.*<http://www.w3.org/ns/auth/acl#Append>; rel=\"http://www.w3.org/ns/auth/acl#mode\"" "$response_headers"
-grep -q "Link:.*<http://www.w3.org/ns/auth/acl#Control>; rel=\"http://www.w3.org/ns/auth/acl#mode\"" "$response_headers"
+! grep -q "Link:.*<http://www.w3.org/ns/auth/acl#Control>; rel=\"http://www.w3.org/ns/auth/acl#mode\"" "$response_headers"
 
 rm "$response_headers"

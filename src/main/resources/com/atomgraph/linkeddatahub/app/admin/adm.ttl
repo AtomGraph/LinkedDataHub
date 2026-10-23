@@ -215,7 +215,33 @@ acl:Authorization spin:constructor [
     [
         a ldh:MissingPropertyValue ;
         sp:arg1 acl:mode
-    ] .
+    ], :HierarchyClassAccess .
+
+# the documents of both dataspaces share the hierarchy classes, so a class grant on one of them, or on a class above them,
+# would reach the admin documents too. Documents are granted through the hierarchy instead: acl:default on a container
+:HierarchyClassAccess a sp:Construct ;
+    sp:text """PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl:  <http://www.w3.org/2002/07/owl#>
+PREFIX spin: <http://spinrdf.org/spin#>
+PREFIX acl:  <http://www.w3.org/ns/auth/acl#>
+PREFIX def:  <https://w3id.org/atomgraph/linkeddatahub/default#>
+PREFIX dh:   <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX sioc: <http://rdfs.org/sioc/ns#>
+
+CONSTRUCT {
+    _:cv a spin:ConstraintViolation .
+    _:cv spin:violationRoot ?this .
+    _:cv spin:violationPath acl:accessToClass .
+    _:cv spin:violationValue ?class .
+    _:cv rdfs:label "acl:accessToClass cannot name a document class: use acl:default on a container instead" .
+}
+WHERE {
+    ?this acl:accessToClass ?class .
+    VALUES ?class { def:Root dh:Container dh:Item dh:Document foaf:Document sioc:Space sioc:Container sioc:Item rdfs:Resource owl:Thing }
+}""" ;
+    rdfs:label "Hierarchy class access" ;
+    rdfs:isDefinedBy : .
 
 acl:agent ldh:view :AuthorizationAgentView .
 

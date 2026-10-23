@@ -289,7 +289,7 @@ public class Application extends ResourceConfig
     private final GraphLocks graphLocks = new GraphLocks();
     private final MediaTypes mediaTypes;
     private final Client client, externalClient, externalNoCertClient, importClient, noCertClient, verifiedClient;
-    private final Query documentTypeQuery, documentOwnerQuery, aclQuery, ownerAclQuery, webIDQuery, agentQuery, userAccountQuery, ontologyQuery, childQuery, fileQuery; // no relative URIs
+    private final Query documentContextQuery, aclQuery, webIDQuery, agentQuery, userAccountQuery, ontologyQuery, childQuery, fileQuery; // no relative URIs
     private final Integer maxGetRequestSize;
     private final Processor xsltProc = new Processor(false);
     private final XsltCompiler xsltComp;
@@ -357,10 +357,8 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(LDHC.secretaryCertAlias.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.secretaryCertAlias.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.clientTrustStore.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.clientTrustStore.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.clientTrustStorePassword.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.clientTrustStorePassword.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(LDHC.documentTypeQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.documentTypeQuery.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(LDHC.documentOwnerQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.documentOwnerQuery.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.documentContextQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.documentContextQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.aclQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.aclQuery.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(LDHC.ownerAclQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.ownerAclQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.webIDQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.webIDQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.agentQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.agentQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.userAccountQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.userAccountQuery.getURI()) : null,
@@ -437,10 +435,8 @@ public class Application extends ResourceConfig
      * @param secretaryCertAlias alias of the secretary's certificate
      * @param clientTrustStoreURIString location of the client's truststore
      * @param clientTrustStorePassword client truststore's password
-     * @param documentTypeQueryString SPARQL string of the document type query
-     * @param documentOwnerQueryString SPARQL string of the document owner query
+     * @param documentContextQueryString SPARQL string of the document context query
      * @param aclQueryString SPARQL string of the ACL query
-     * @param ownerAclQueryString SPARQL string of the owner's ACL query
      * @param webIDQueryString SPARQL string of the WebID validation query
      * @param agentQueryString SPARQL string of the <code>Agent</code> lookup query
      * @param userAccountQueryString SPARQL string of the <code>UserAccount</code> lookup query
@@ -490,7 +486,7 @@ public class Application extends ResourceConfig
             final String clientKeyStoreURIString, final String clientKeyStorePassword,
             final String secretaryCertAlias,
             final String clientTrustStoreURIString, final String clientTrustStorePassword,
-            final String documentTypeQueryString, final String documentOwnerQueryString, final String aclQueryString, final String ownerAclQueryString,
+            final String documentContextQueryString, final String aclQueryString,
             final String webIDQueryString, final String agentQueryString, final String userAccountQueryString, final String ontologyQueryString,
             final String childQueryString, final String fileQueryString,
             final String baseURIString, final String proxyScheme, final String proxyHostname, final Integer proxyPort,
@@ -532,19 +528,12 @@ public class Application extends ResourceConfig
             throw new ConfigurationException(LDHC.clientTrustStore);
         }
         
-        if (documentTypeQueryString == null)
+        if (documentContextQueryString == null)
         {
-            if (log.isErrorEnabled()) log.error("Document type SPARQL query is not configured properly");
-            throw new ConfigurationException(LDHC.documentTypeQuery);
+            if (log.isErrorEnabled()) log.error("Document context SPARQL query is not configured properly");
+            throw new ConfigurationException(LDHC.documentContextQuery);
         }
-        this.documentTypeQuery = QueryFactory.create(documentTypeQueryString);
-
-        if (documentOwnerQueryString == null)
-        {
-            if (log.isErrorEnabled()) log.error("Document owner SPARQL query is not configured properly");
-            throw new ConfigurationException(LDHC.documentOwnerQuery);
-        }
-        this.documentOwnerQuery = QueryFactory.create(documentOwnerQueryString);
+        this.documentContextQuery = QueryFactory.create(documentContextQueryString);
         
         if (aclQueryString == null)
         {
@@ -552,13 +541,6 @@ public class Application extends ResourceConfig
             throw new ConfigurationException(LDHC.aclQuery);
         }
         this.aclQuery = QueryFactory.create(aclQueryString);
-        
-        if (ownerAclQueryString == null)
-        {
-            if (log.isErrorEnabled()) log.error("Owner's ACL SPARQL query is not configured properly");
-            throw new ConfigurationException(LDHC.ownerAclQuery);
-        }
-        this.ownerAclQuery = QueryFactory.create(ownerAclQueryString);
         
         if (webIDQueryString == null)
         {
@@ -2248,47 +2230,25 @@ public class Application extends ResourceConfig
     }
     
     /**
-     * Returns the document type query.
-     * Used to retrieve the document type metadata.
+     * Returns the document context query.
+     * Used to retrieve what the authorization decision knows of a document: itself, its ancestors, its types and its owner.
      * 
      * @return query object
      */
-    public Query getDocumentTypeQuery()
+    public Query getDocumentContextQuery()
     {
-        return documentTypeQuery.cloneQuery();
+        return documentContextQuery.cloneQuery();
     }
 
     /**
-     * Returns the document owner query.
-     * Used to retrieve the document owner metadata.
-     * 
-     * @return query object
-     */
-    public Query getDocumentOwnerQuery()
-    {
-        return documentOwnerQuery.cloneQuery();
-    }
-    
-    /**
      * Returns the authorization query.
-     * Used to check access to end-user apps.
+     * Used to check access to the documents of either dataspace.
      * 
      * @return query object
      */
     public Query getACLQuery()
     {
         return aclQuery.cloneQuery();
-    }
-    
-    /**
-     * Returns the owner authorization query.
-     * Used to check access to admin apps.
-     * 
-     * @return query object
-     */
-    public Query getOwnerACLQuery()
-    {
-        return ownerAclQuery.cloneQuery();
     }
     
     /**
