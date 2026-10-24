@@ -152,3 +152,5 @@ These are hypotheses of the theorems, which the implementation has to enforce:
   re-checks that the parent exists, and a `DELETE` checks for children; the model does not prove that
   serialisation.
 - **Other server work:** validation, skolemization, dates, imports, uploads, content negotiation and caching.
+  A write refused for its body, such as one with a malformed IRI answered with `422`, changes nothing, and the
+  model has no step for it.
