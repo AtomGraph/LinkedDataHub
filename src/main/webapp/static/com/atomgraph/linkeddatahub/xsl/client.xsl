@@ -1164,8 +1164,9 @@ WHERE
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="uri-string" select=".//input[@name = 'uri']/ixsl:get(., 'value')" as="xs:string?"/>
 
-        <!-- ignore form submission if the input value is not a valid http(s):// URI -->
-        <xsl:if test="$uri-string castable as xs:anyURI and (starts-with($uri-string, 'http://') or starts-with($uri-string, 'https://'))">
+        <!-- ignore form submission unless the input value is an http(s):// URI. Its syntax is not checked here: casting to
+             xs:anyURI accepts any string -->
+        <xsl:if test="starts-with($uri-string, 'http://') or starts-with($uri-string, 'https://')">
             <xsl:variable name="href" select="xs:anyURI($uri-string)" as="xs:anyURI"/>
             <xsl:variable name="parsed" select="ldh:parse-href($href)" as="map(xs:string, item()?)"/>
             <xsl:variable name="doc-uri" select="map:get($parsed, 'doc-uri')" as="xs:anyURI"/>
