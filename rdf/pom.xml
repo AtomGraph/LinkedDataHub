@@ -4,7 +4,7 @@
 
     <groupId>com.atomgraph</groupId>
     <artifactId>linkeddatahub-rdf</artifactId>
-    <version>6.2.4-SNAPSHOT</version>
+    <version>6.3.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>LinkedDataHub RDF</name>

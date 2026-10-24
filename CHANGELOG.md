@@ -1,64 +1,63 @@
-## [Unreleased]
-### Fixed
-- A write with a malformed IRI is refused with `422` naming each value as an `ldh:URISyntaxViolation` with `ldh:violationValue`, and a form marks the field it was typed into and keeps everything else; a `PATCH` used to answer a bare `400`, or to store an IRI the SPARQL lexer let through, such as `<http://[::1>`. A URI typed into a form without a scheme is refused before it is sent, as the server would store it relative to the document. A form also refuses before sending a URI with a `>` or `\` in it, or a language tag outside the SPARQL `LANGTAG` production, since its update writes both as typed and either could add statements to it. Turtle and N-Triples bodies with a space or `<` in an IRI are still refused with `400`, as their tokenizer does not report the value
-- A class described by a SHACL node shape and no SPIN constructor can be chosen as the type of a new instance again: the typing-only instance the SPIN side produces for every class is folded into the shape's prototype, instead of surviving beside it as a second resource of the class, which failed the form with "Required cardinality of value in 'xsl:variable name="Q{}resource"' expression is exactly one"
-- A write that violates a SPIN constraint and a SHACL shape is refused with both in one `422` response, so a form missing two required values has both fields marked at once; SHACL validation used to run only once the SPIN constraints passed
-
-## [6.2.4] - 2026-10-21
+## [6.3.0] - 2026-10-24
 ### Migration
-- A write to an existing document has to quote its entity tag in `If-Match`, or send `If-None-Match: *` to create: `If-Match: *` and any other `If-None-Match` are refused with `428`, and a `PUT` with `If-Match` to a document that does not exist with `412` (#452)
-- `PUT` answers `204 No Content` when it replaces a document and `201 Created` when it creates one, neither with an `ETag` or `Last-Modified`: what is stored is not the payload (RFC 9110 9.3.4), so a client that wants the new tag reads it (#456)
-- A file upload (multipart `POST`) is the same append as any `POST`: it needs `If-Match`, updates `dct:modified`, submits imports and answers `204` with the new `ETag` (#456)
-- `ldh` exits `1` on a redirect, which it does not follow, naming the `Location` on stderr (#454)
-- `PATCH /settings` is held to the same terms as a write to an existing document: it quotes the settings' entity tag in `If-Match` or is refused with `428`, a stale tag gets `412`, and it answers `204` with the new tag; `ldh packages add`/`remove` already send it (#453)
-- The seeded admin authorization that granted every authenticated agent `acl:Append` on `acl/authorization-requests/` is gone: `acl:Append` on a container now lets an agent create documents in it. Access requests go through `/access/request` and never used it, so delete `acl/authorizations/append-request/` from existing admin datasets
-- Deployments that keep a copy of `docker-compose.yml` need to re-sync it: the nginx and front Varnish configurations changed for the security fixes below, and the front Varnish VCL drops a `Range` header it cannot forward
-- `.env` needs a new `PROXY_SECRET` variable, a random value nginx sends to the platform: re-sync `Makefile` and run `make secrets`, which appends one, or add the output of `openssl rand -hex 32`. Docker Compose and the platform refuse to start without it, and the platform accepts a forwarded client certificate only from a proxy that sends it
+- Access is plain WAC over the document hierarchy: `acl:default` on a container covers everything below it, `acl:Control` grants nothing, and owners are granted through `lacl:OwnerAgent`; run `migrations/6.0-acl.ru.template` on each admin store and `migrations/6.0-hierarchy.ru.template` on every store
+- `ldh create authorization` takes `--default` instead of `--control`
+- Delete `acl/authorizations/append-request/` from existing admin datasets: `acl:Append` on a container now lets an agent create documents in it
+- A write to an existing document must quote its entity tag in `If-Match` (`428` without one, `412` when stale), and a create sends `If-None-Match: *` (#452)
+- `PATCH /settings` needs `If-Match` too; `ldh packages add`/`remove` already send it (#453)
+- `PUT` answers `204` on replace and `201` on create, without an `ETag`; read the new tag with `HEAD` (#456)
+- A file upload is an ordinary `POST`: it needs `If-Match` and answers `204` with the new `ETag` (#456)
+- `ldh` exits `1` on a redirect instead of following it (#454)
+- Re-sync copies of `docker-compose.yml` and `Makefile`, and add `PROXY_SECRET` to `.env` with `make secrets`; the platform does not start without it
 
-- The seeded admin authorization that granted every authenticated agent `acl:Append` on `acl/authorization-requests/` is gone: `acl:Append` on a container now lets an agent create documents in it. Access requests go through `/access/request` and never used it, so delete `acl/authorizations/append-request/` from existing admin datasets
 ### Added
-- A `PUT` with `If-None-Match: *` requires `acl:Append` instead of `acl:Write`: it can only create a document, never replace one, so an agent with `acl:Append` on a container may create documents in it and nothing more
-- `MAX_UPLOAD_LENGTH` sets a separate size limit for file uploads (multipart bodies), `MAX_CONTENT_LENGTH` unless set
-- `ldh add file --replace` replaces the document with the file's description (multipart `PUT`)
+- A `PUT` with `If-None-Match: *` needs only `acl:Append`, so an agent can be allowed to create documents without replacing them
+- `MAX_UPLOAD_LENGTH` sets a separate size limit for file uploads
+- `ldh add file --replace` replaces a document with the file's description
+- Deleting a document asks in a dialog, which also explains a refusal
+- The access-control model is formalised in Lean (`formal/acl/`), with proofs of its properties, kept in step with the code in CI and replayed against the server by the HTTP tests
 
 ### Changed
-- Access modes follow the ACL ontology's hierarchy: `acl:Append` is a subclass of `acl:Write`, so a grant of `acl:Write` covers an operation that requires `acl:Append`, and responses report the covered mode in their `acl:mode` `Link` headers
+- `acl:Write` covers `acl:Append`, following the ACL ontology
+- A document's graph states only its own place in the hierarchy: `sioc:has_parent`/`sioc:has_container` are server-managed, and other subjects' containment is refused with `422`
+- `DELETE` of a container that still has documents answers `409`
+- `dct:created` and `dct:modified` are server-managed, and `PATCH` updates `Last-Modified`
+- Sign-up stores only the agent's own description
+- Access checks are several times faster on large stores
 
 ### Fixed
-- A `PATCH` with `GRAPH` in a `DELETE WHERE` or anywhere in its `WHERE` pattern, or with `WITH`/`USING`, is refused with `422` instead of answering `204` having changed nothing; `PATCH /settings` is held to the same forms (#453)
-- An upload refused by a precondition, a redirect or a constraint leaves no file behind, and a stored file is moved into place whole (#455)
-- Concurrent uploads no longer get each other's SHA1: every upload is hashed on its own (#455)
-- `foaf:mbox_sha1sum` is the SHA1 of the agent's address, not of the empty string (#455)
-- An upload larger than 100 MiB is stored whole, or refused with `413` past the size limit, instead of being truncated; a `Content-Length` over 2 GiB is answered `413` rather than `500` (#455)
-- Every upload no longer leaves a copy in the temporary folder (#455)
-- Documents created from the UI say so with `If-None-Match: *` instead of quoting the current page's entity tag
-- Concurrent settings updates (two `ldh packages add` at once) no longer lose one of them: the read-modify-write holds a lock (#453)
-- Opening the settings dialog no longer replaces the entity tag the browser holds for the current page with the settings', which got the next write to the page refused with `412`; the dialog's save quotes the settings' own tag
-- `ldh create` with a parent URI that lacks its trailing slash creates the document inside it rather than next to it
-- An import that cannot append to an existing document says so, instead of reporting that its `PUT` failed (#456)
-- `PATCH` stamps the document's `dct:modified`, so `Last-Modified` moves with the change and `If-Modified-Since` no longer gets `304` for changed content; `dct:created` and `dct:modified` are server-managed on every write (a client-supplied value in a `PUT`, `POST` or `PATCH` is dropped), and `Last-Modified` is never later than the response (RFC 9110 8.8.2.1)
-- A `POST` with an empty payload is a no-op that answers `204` without requiring `If-Match`, and leaves the document and its `ETag` unchanged (GSP 5.5)
-- A `PUT` or `POST` runs only the imports it adds or redefines (another source, query, delimiter or target graph), so re-saving a document, or retitling an import, no longer fetches and imports its source again (RFC 9110 9.2.2)
-- A `PATCH` that would empty a document that cannot be deleted (the root, the owner's and the secretary's WebID documents) answers `422` instead of `405`: `PATCH` is supported there, the update is what cannot be applied (RFC 9110 15.5.6)
-- A `428 Precondition Required` (documents and `PATCH /settings`) carries a plain-text body naming `If-Match` and how to get the current entity tag with `HEAD` (RFC 6585 3)
-- A `POST`, `PUT`, `PATCH` or `DELETE` whose `Accept` names no RDF syntax is no longer refused with `406`: the response has no body, `If-Match` holds when it names the current tag of any variant, and the response carries no `ETag` (GSP 5.3, 5.4; RFC 9110 12.5.1)
-- Byte ranges of uploaded files follow RFC 9110: a `Range` in another unit, a malformed one, an inverted one, several ranges, or one on `HEAD` serves the whole file instead of a wrong range, a `500` or a `503` from Varnish; suffix ranges (`bytes=-500`) are served; a range starting past the end answers `416` with `Content-Range: bytes */N`; `If-Range` is honoured; an open range (`bytes=N-`) runs to the end of the file instead of stopping after 1 MB
+- A malformed IRI is refused with `422` naming each value, and the form marks the field; a `PATCH` used to store some, such as `<http://[::1>`
+- A form no longer lets a typed URI or language tag add statements to its update
+- A write that violates SPIN constraints and SHACL shapes reports both in one `422`
+- A class with a SHACL shape and no SPIN constructor can be chosen as the type of a new instance again
+- A `PATCH` with `GRAPH`, `WITH` or `USING` is refused with `422` instead of changing nothing (#453)
+- `?graph=` or `?default` on a document answers `400` instead of being ignored
+- Uploads are stored whole, hashed one by one, left behind neither on refusal nor in the temporary folder (#455)
+- `foaf:mbox_sha1sum` is the SHA1 of the agent's address (#455)
+- Byte ranges of uploaded files follow RFC 9110
+- HTML entity tags change with the stylesheets and packages, so a deploy no longer serves stale pages
+- Concurrent settings updates no longer lose one of them (#453)
+- Opening the settings dialog no longer makes the next save of the page fail with `412`
+- `ldh create` with a parent URI lacking its trailing slash creates the document inside it
+- Re-saving a document no longer runs its imports again
+- An empty `POST` is a no-op answering `204`
+- A `PATCH` that would empty the root or a WebID document answers `422` instead of `405`
+- A `428` response explains how to get the current entity tag
+- A write whose `Accept` names no RDF syntax is no longer refused with `406`
+- `405` responses list the allowed methods, a `415` to `PATCH` names the accepted type, and access requests answer `201`
 
 ### Security
-- nginx sets the identity and forwarding headers once per server instead of per location, and refuses unusual request paths with `400`; Tomcat's connectors reject suspicious URIs as well, and the platform accepts a forwarded client certificate only together with a secret shared with nginx
-- The front Varnish no longer caches responses to requests authenticated by an OAuth session, and the platform marks every response to an authenticated agent `Cache-Control: private`
-- Uploaded files are marked `Cache-Control: private`, as they are access-controlled
-- Writes and access-control changes evict the affected responses from the front Varnish (surrogate keys via `xkey` in place of URL bans), and documents are served `Cache-Control: no-cache` so caches revalidate them
-- OAuth sign-in verifies an ID token's signature against the provider's published keys before acting on any of its claims, including its expiry; only `RS256` tokens are accepted, and an expired token is refreshed only once its signature has verified
-- Requests the platform makes on an agent's behalf (the Linked Data proxy, stylesheet and import fetches) carry the agent's delegation, `On-Behalf-Of` and the ID token cookie, only to this instance's dataspaces; the proxy reaches other origins without the platform's certificate
-- After an ID token is refreshed, the refreshed token is the one delegated
-- A key ID missing from the cached provider keys re-fetches them, at most once a minute, so sign-in survives a key rotation
-- The page OAuth sign-in returns to must belong to one of this instance's dataspaces, checked both when sign-in starts and when it completes; anything else returns to the dataspace's base
-- The OAuth state cookie is `Secure`, `HttpOnly` and `SameSite=Lax`, and the cookie that clears an expired ID token is `Secure`
-- The Linked Data proxy, WebID loading, package description and stylesheet fetches, and imports checked only the first URI they requested against the internal-address rules, while their HTTP clients followed redirects on their own; redirects are now followed by the platform, at most 5 hops, each target checked before it is requested, and a refused hop answers `502 Bad Gateway`
-- A package stylesheet whose URL is refused, or that cannot be copied into the package root, is left out of the stylesheet composition with a logged error, instead of being imported from its declared URL
-- `/sparql` answers queries only: SPARQL Update, as an `application/sparql-update` body or a form `update` parameter, is refused with `405` for every agent. Writes go through the Graph Store Protocol, where they are authorized per document
-- A document's `acl:owner` and `dct:creator` are server-managed: `PUT` and `POST` ignore them in the payload (a new document gets the requesting agent, an existing one keeps the stored values), and a `PATCH` that would change them is refused with `422`. Ownership changes go through the admin ACL documents
+- A document's types, which authorizations match on, come from its own graph only, so a write to one document cannot change another's access
+- `/sparql` refuses SPARQL Update with `405`
+- `acl:owner` and `dct:creator` are server-managed, and a `PATCH` that changes them is refused with `422`
+- nginx and Tomcat refuse unusual request paths, and the platform accepts a forwarded client certificate only with the secret shared with nginx
+- Responses to authenticated agents and uploaded files are `Cache-Control: private`, and the front Varnish no longer caches OAuth sessions
+- Writes and access changes evict the affected cached responses, and documents are revalidated
+- OAuth sign-in verifies the ID token's signature first, accepts only `RS256`, and survives a provider key rotation
+- An agent's delegation and ID token are sent only to this instance's dataspaces, and a refreshed token replaces the old one
+- The page OAuth sign-in returns to must belong to this instance, and the OAuth cookies are hardened
+- Outbound fetches check every redirect hop against the internal-address rules
+- A package stylesheet whose URL is refused is left out instead of fetched
 
 ## [6.2.3] - 2026-10-21
 ### Migration
