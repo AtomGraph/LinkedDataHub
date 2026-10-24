@@ -1720,6 +1720,9 @@ WHERE
     <xsl:function name="ldh:clear-violations" ixsl:updating="yes">
         <xsl:param name="form" as="element()"/>
 
+        <xsl:for-each select="$form//input[@aria-invalid]">
+            <ixsl:remove-attribute name="aria-invalid"/>
+        </xsl:for-each>
         <xsl:for-each select="$form//div[contains-token(@class, 'ldh-vmsgs')][@data-input-violation]">
             <xsl:for-each select="ancestor::div[contains-token(@class, 'ldh-prop-row')][1] | ancestor::div[contains-token(@class, 'ldh-prop-group')][1]">
                 <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-violation', false())"/>
@@ -1728,13 +1731,15 @@ WHERE
         </xsl:for-each>
     </xsl:function>
 
-    <!-- marks the rows of the given inputs as violated, with the message the property row renders for a violation -->
+    <!-- marks the rows of the given inputs as violated, with the message the property row renders for a violation.
+         The input itself is marked invalid too, which is what tells the row which of its fields is at fault -->
     <xsl:function name="ldh:mark-violations" ixsl:updating="yes">
         <xsl:param name="inputs" as="element()*"/>
         <xsl:param name="message-key" as="xs:string"/>
         <xsl:variable name="message" select="ac:label(key('resources', $message-key, ldh:translations()))" as="xs:string"/>
 
         <xsl:for-each select="$inputs">
+            <ixsl:set-attribute name="aria-invalid" select="'true'"/>
             <xsl:for-each select="ancestor::div[contains-token(@class, 'ldh-prop-row')][1] | ancestor::div[contains-token(@class, 'ldh-prop-group')][1]">
                 <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-violation', true())"/>
             </xsl:for-each>

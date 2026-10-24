@@ -60,6 +60,7 @@ async function expectMarked(group, typed, message) {
     await expect(group.first()).toHaveClass(/\bis-violation\b/, { timeout: 30_000 });
     await expect(group.first().locator('[role="alert"] span:not(.msi)')).toHaveText(message);
     await expect(group.first().locator('input.resource-combobox')).toHaveValue(typed);
+    await expect(group.first().locator('input.resource-combobox')).toHaveAttribute('aria-invalid', 'true');
 }
 
 // The document's edit dialog, whose update the SPARQL lexer stops at the space.
@@ -188,6 +189,9 @@ test('refuses a language tag that is not one before sending the save', { tag: '@
         await expect(group.first()).toHaveClass(/\bis-violation\b/, { timeout: 30_000 });
         await expect(group.first().locator('[role="alert"] span:not(.msi)')).toHaveText(INVALID_LANGUAGE);
         await expect(group.first().locator('input[name="ll"]')).toHaveValue(typed);
+        // The language field is the one at fault, not the literal beside it.
+        await expect(group.first().locator('input[name="ll"]')).toHaveAttribute('aria-invalid', 'true');
+        await expect(group.first().locator('input[name="ol"]')).not.toHaveAttribute('aria-invalid', 'true');
         expect(writes, 'nothing was sent').toEqual([]);
         expect(await storedObjects(doc, `${doc}#this`, SEE_ALSO), 'nothing was written').toEqual([`<${itemUri(1)}>`]);
     } finally {
