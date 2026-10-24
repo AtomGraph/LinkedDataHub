@@ -1402,21 +1402,26 @@ WHERE
         <xsl:variable name="request-body" select="($request-body, $resources)[1]" as="document-node()"/>
         <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:base-uri(.))" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ldh:href($action, map{})" as="xs:anyURI"/>
+        <!-- the tag held is the page document's, so it is quoted only to the page document. A PUT anywhere else is a
+             creation (the Container/Item modals) and says so with If-None-Match: *; quoting the page's tag to a URI
+             that does not exist yet is refused 412, as If-Match is false where there is no current state -->
+        <xsl:variable name="preconditions" select="if (ac:absolute-path($action) = $doc-uri) then ldh:conditional-headers(map{ 'Accept': $accept }, $etag) else if ($method = 'PUT') then map{ 'Accept': $accept, 'If-None-Match': '*' } else map{ 'Accept': $accept }" as="map(*)"/>
 
         <xsl:choose>
             <!-- we need to handle multipart requests specially because of Saxon-JS 2 limitations: https://saxonica.plan.io/issues/4732 -->
             <xsl:when test="$enctype = 'multipart/form-data'">
                 <xsl:variable name="form-data" select="ixsl:new('FormData', [ $form ])"/> <!-- only for file uploads! XMLLiterals will not be canonicalized -->
                 <xsl:variable name="headers" select="ldh:new-object()"/>
-                <ixsl:set-property name="Accept" select="$accept" object="$headers"/>
-                <ixsl:set-property name="If-Match" select="$etag" object="$headers"/>
+                <xsl:for-each select="map:keys($preconditions)">
+                    <ixsl:set-property name="{.}" select="$preconditions(.)" object="$headers"/>
+                </xsl:for-each>
                 
                 <!-- TO-DO: refactor fetchDispatchXML using IXSL -->
                 <xsl:sequence select="js:fetchDispatchXML($request-uri, $method, $headers, $form-data, ., $doc-uri, $resources, $block, 'MultipartResourceUpdated')[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <xsl:otherwise>
                 <!-- If-Match header checks preconditions, i.e. that the graph has not been modified in the meanwhile -->
-                <xsl:variable name="request" select="map{ 'method': $method, 'href': $request-uri, 'media-type': 'application/rdf+xml', 'body': $request-body, 'headers': map{ 'If-Match': $etag, 'Accept': $accept } }" as="map(*)"/>
+                <xsl:variable name="request" select="map{ 'method': $method, 'href': $request-uri, 'media-type': 'application/rdf+xml', 'body': $request-body, 'headers': $preconditions }" as="map(*)"/>
                 <!-- 'about' = the resource URL being submitted to; the wrapping block carries it on @about uniformly (btn-edit / btn-app-settings / Container-Item creation modals all set it). $doc-uri is the page URL and can't be used for this -->
                 <xsl:variable name="context" as="map(*)" select="
                   map{
@@ -1642,6 +1647,115 @@ WHERE
         </xsl:if>
     </xsl:function>
 
+    <!-- URI SYNTAX -->
+
+    <!-- the URIs typed into a form's resource fields that have no scheme. A bare word is a valid relative reference,
+         which the server resolves against the document, so only here is it known to be a URI somebody meant to type
+         in full -->
+    <xsl:function name="ldh:relative-uri-inputs" as="element()*">
+        <xsl:param name="form" as="element()"/>
+
+        <xsl:sequence select="$form//input[@name = 'ou'][@type = 'text'][normalize-space(ixsl:get(., 'value')) ne ''][not(matches(normalize-space(ixsl:get(., 'value')), '^[A-Za-z][A-Za-z0-9+.\-]*:'))]"/>
+    </xsl:function>
+
+    <!-- the URIs typed into a form's resource fields that a SPARQL update cannot carry. The generator writes an IRI
+         between angle brackets as it is, so a ">" would end it early and what follows would be read as more of the
+         update; a "\" may start a codepoint escape, which the grammar processes before parsing. Neither is ever part
+         of a URI, so the value is refused as one that is not -->
+    <xsl:function name="ldh:unwritable-uri-inputs" as="element()*">
+        <xsl:param name="form" as="element()"/>
+
+        <xsl:sequence select="$form//input[@name = 'ou'][@type = 'text'][matches(normalize-space(ixsl:get(., 'value')), '^[A-Za-z][A-Za-z0-9+.\-]*:')][matches(ixsl:get(., 'value'), '[&gt;\\]')]"/>
+    </xsl:function>
+
+    <!-- the language tags typed into a form that are not tags. The generator writes the tag after the literal as it
+         is, so anything outside the LANGTAG production would be read as more of the update -->
+    <xsl:function name="ldh:invalid-language-inputs" as="element()*">
+        <xsl:param name="form" as="element()"/>
+
+        <xsl:sequence select="$form//input[@name = 'll'][@type = 'text'][ixsl:get(., 'value') ne ''][not(matches(ixsl:get(., 'value'), '^[a-zA-Z]+(-[a-zA-Z0-9]+)*$'))]"/>
+    </xsl:function>
+
+    <!-- a form with a value it cannot send as typed is not sent: the fields are marked instead, as a refused save marks them -->
+    <xsl:template match="form[tokenize(@class, ' ') = ('ldh-prop-form', 'ldh-edit-form')][exists(ldh:relative-uri-inputs(.) | ldh:unwritable-uri-inputs(.) | ldh:invalid-language-inputs(.))]" mode="ixsl:onsubmit" priority="10">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:sequence select="ldh:clear-violations(.)"/>
+        <xsl:sequence select="ldh:mark-violations(ldh:relative-uri-inputs(.), 'violation-relative-uri')"/>
+        <xsl:sequence select="ldh:mark-violations(ldh:unwritable-uri-inputs(.), 'violation-invalid-uri')"/>
+        <xsl:sequence select="ldh:mark-violations(ldh:invalid-language-inputs(.), 'violation-language-tag')"/>
+        <xsl:sequence select="ixsl:call((ldh:relative-uri-inputs(.) | ldh:unwritable-uri-inputs(.) | ldh:invalid-language-inputs(.))[1], 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+
+    <!-- the save was refused for URIs that are not URIs. The response names each value as typed, and carries nothing
+         else to render a form from, so the form stays as the reader left it and the fields holding the values are
+         marked. A value no field holds is reported as any other failure -->
+    <xsl:function name="ldh:is-uri-syntax-violation" as="xs:boolean">
+        <xsl:param name="response" as="map(*)"/>
+
+        <xsl:sequence select="$response?status = 422 and starts-with($response?media-type, 'application/rdf+xml') and exists($response?body/rdf:RDF/*[rdf:type/@rdf:resource = '&ldh;URISyntaxViolation'])"/>
+    </xsl:function>
+
+    <xsl:function name="ldh:form-uri-syntax-violation" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('response')" as="map(*)"/>
+        <xsl:variable name="form" select="$context('form')" as="element()"/>
+        <xsl:variable name="values" select="$response?body/rdf:RDF/*[rdf:type/@rdf:resource = '&ldh;URISyntaxViolation']/ldh:violationValue" as="xs:string*"/>
+        <xsl:variable name="inputs" select="$form//input[@name = 'ou'][normalize-space(ixsl:get(., 'value')) = $values]" as="element()*"/>
+
+        <xsl:message>ldh:form-uri-syntax-violation</xsl:message>
+
+        <xsl:choose>
+            <xsl:when test="exists($inputs)">
+                <xsl:sequence select="ldh:clear-violations($form)"/>
+                <xsl:sequence select="ldh:mark-violations($inputs, 'violation-invalid-uri')"/>
+                <xsl:sequence select="ixsl:call($inputs[1], 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ldh:response-error($response)"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <!-- removes the marks of the previous attempt, so a corrected field is no longer marked -->
+    <xsl:function name="ldh:clear-violations" ixsl:updating="yes">
+        <xsl:param name="form" as="element()"/>
+
+        <xsl:for-each select="$form//input[@aria-invalid]">
+            <ixsl:remove-attribute name="aria-invalid"/>
+        </xsl:for-each>
+        <xsl:for-each select="$form//div[contains-token(@class, 'ldh-vmsgs')][@data-input-violation]">
+            <xsl:for-each select="ancestor::div[contains-token(@class, 'ldh-prop-row')][1] | ancestor::div[contains-token(@class, 'ldh-prop-group')][1]">
+                <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-violation', false())"/>
+            </xsl:for-each>
+            <xsl:sequence select="ixsl:call(., 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+    </xsl:function>
+
+    <!-- marks the rows of the given inputs as violated, with the message the property row renders for a violation.
+         The input itself is marked invalid too, which is what tells the row which of its fields is at fault -->
+    <xsl:function name="ldh:mark-violations" ixsl:updating="yes">
+        <xsl:param name="inputs" as="element()*"/>
+        <xsl:param name="message-key" as="xs:string"/>
+        <xsl:variable name="message" select="ac:label(key('resources', $message-key, ldh:translations()))" as="xs:string"/>
+
+        <xsl:for-each select="$inputs">
+            <ixsl:set-attribute name="aria-invalid" select="'true'"/>
+            <xsl:for-each select="ancestor::div[contains-token(@class, 'ldh-prop-row')][1] | ancestor::div[contains-token(@class, 'ldh-prop-group')][1]">
+                <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-violation', true())"/>
+            </xsl:for-each>
+            <xsl:for-each select="ancestor::div[contains-token(@class, 'val-stack')][1]">
+                <xsl:result-document href="?." method="ixsl:append-content">
+                    <div class="ldh-vmsgs" data-input-violation="true">
+                        <span class="ac-help va-negative sz-sm" role="alert">
+                            <span class="msi outline sm" aria-hidden="true">error</span>
+                            <span><xsl:value-of select="$message"/></span>
+                        </span>
+                    </div>
+                </xsl:result-document>
+            </xsl:for-each>
+        </xsl:for-each>
+    </xsl:function>
+
     <xsl:function name="ldh:row-form-response" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>
@@ -1656,6 +1770,9 @@ WHERE
             </xsl:when>
             <xsl:when test="$status = 201 and map:contains($response?headers, 'location')">
                 <xsl:sequence select="ldh:form-submit-created($context)"/>
+            </xsl:when>
+            <xsl:when test="ldh:is-uri-syntax-violation($response)">
+                <xsl:sequence select="ldh:form-uri-syntax-violation($context)"/>
             </xsl:when>
             <xsl:when test="$status = (400, 422) and starts-with($media-type, 'application/rdf+xml')">
               <xsl:sequence select="ldh:row-form-submit-violation($context)"/>

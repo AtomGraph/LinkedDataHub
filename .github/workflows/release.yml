@@ -185,8 +185,16 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # the release notes are this version's CHANGELOG section, so every release has a page
+          awk -v v="$FULL_VERSION" '
+            /^## \[/ { p = ($0 ~ ("^## \\[" v "\\]")); next }
+            p' CHANGELOG.md > notes.md
           # the tag may be pushed before the release exists (maven-release-plugin tags, the release
-          # is drafted afterwards), so create it if it is not there yet
-          gh release view "${{ github.ref_name }}" > /dev/null 2>&1 || \
-            gh release create "${{ github.ref_name }}" --title "${{ github.ref_name }}" --notes ""
+          # is drafted afterwards), so create it if it is not there yet, and fill it if it is empty
+          if gh release view "${{ github.ref_name }}" > /dev/null 2>&1; then
+            [ -n "$(gh release view "${{ github.ref_name }}" --json body --jq .body)" ] || \
+              gh release edit "${{ github.ref_name }}" --notes-file notes.md
+          else
+            gh release create "${{ github.ref_name }}" --title "${{ github.ref_name }}" --notes-file notes.md
+          fi
           gh release upload "${{ github.ref_name }}" "ldh-${FULL_VERSION}.tar.gz" --clobber

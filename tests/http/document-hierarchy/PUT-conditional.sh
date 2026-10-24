@@ -45,4 +45,4 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
 <${END_USER_BASE_URL}named-subject-put> <http://example.com/another-predicate> "another named object PUT" .
 EOF
 ) \
-| grep -q "$STATUS_OK"
+| grep -q "$STATUS_NO_CONTENT"

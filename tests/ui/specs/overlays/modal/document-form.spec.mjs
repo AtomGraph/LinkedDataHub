@@ -11,11 +11,12 @@
 // leaves its document renamed has changed what every other spec sees.
 import { test, expect } from '../../../lib/console.mjs';
 import { goto, settled } from '../../../lib/settle.mjs';
-import { itemTitle, itemUri } from '../../../lib/fixtures.mjs';
+import { itemTitle, itemUri, ldh } from '../../../lib/fixtures.mjs';
 import { fillText, save, textValue } from '../../../lib/form.mjs';
 import { openDocumentForm } from '../../../lib/modal.mjs';
 
 const TITLE = 'http://purl.org/dc/terms/title';
+const CREATED = 'http://purl.org/dc/terms/created';
 // Its own document, for the same reason form-bar has one: this spec writes.
 const ITEM = 4;
 const EDITED = 'Renamed by the document-form spec';
@@ -23,6 +24,10 @@ const EDITED = 'Renamed by the document-form spec';
 test.beforeEach(({}, testInfo) => {
     test.skip(testInfo.project.name !== 'owner', 'a dialog that writes is offered to an agent who may');
 });
+
+// The document's dct:created triples, as N-Triples lines, straight from the API.
+const created = async doc => (await ldh(['get', '--accept', 'application/n-triples', doc])).stdout
+    .split('\n').filter(line => line.startsWith(`<${doc}> <${CREATED}> `));
 
 async function editForm(page) {
     await goto(page, itemUri(ITEM));
@@ -39,12 +44,18 @@ test('edits the document\'s own resource, in a dialog', { tag: '@owner' }, async
 });
 
 test('writes what was typed into it', { tag: '@owner' }, async ({ page }) => {
+    // The save replaces the document's description but keeps what the server owns, dct:created
+    // first: a mistyped predicate in the dialog's DELETE pattern once dropped it on every save.
+    const createdBefore = await created(itemUri(ITEM));
+    expect(createdBefore).toHaveLength(1);
+
     const modal = await editForm(page);
 
     try {
         await fillText(modal, TITLE, EDITED);
         await save(modal);
         await expect(modal).toBeHidden({ timeout: 30_000 });
+        expect(await created(itemUri(ITEM))).toEqual(createdBefore);
 
         // Read back from the server rather than from the page the save left behind.
         const reopened = await editForm(page);

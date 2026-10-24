@@ -59,12 +59,13 @@ send_query() {
 # the runner with compose-CLI launches and starved the stack being measured. DUR, Q, HOST, C and BACKOFF
 # come in as env so this stays a fixed single-quoted string on the host side (no query text to quote through).
 #
-# A line is "<status> <seconds> <end> <client>": <end> is the epoch time (microseconds) the response
-# finished, from curl's %time{} - busybox date has no %N - so <end> minus <seconds> is when it started, and
-# max_inflight() can rebuild how many requests overlapped. <client> is the loadgen index, i.e. which address
-# nginx counted it against. After a 429 the worker waits BACKOFF seconds, as a client honouring the
-# rejection would; 0 turns it into a flood.
-_LOAD_LOOP='end=$(( $(date +%s) + DUR )); while [ "$(date +%s)" -lt "$end" ]; do r=$(curl -k -s -o /dev/null -w "%{http_code} %{time_total} %time{%s}.%time{%f}" --max-time 120 --connect-to "$HOST:nginx:8443" -H "Accept: application/sparql-results+json" --data-urlencode "query=$Q" "https://$HOST/sparql"); [ -n "$r" ] || r="000 0 $(date +%s)"; echo "$r $C"; case "$r" in 429*) [ "$BACKOFF" = 0 ] || sleep "$BACKOFF" ;; esac; done'
+# A line is "<status> <seconds> <end> <client> <pretransfer>": <end> is the epoch time (microseconds) the
+# response finished, from curl's %time{} - busybox date has no %N - so <end> minus <seconds> is when it
+# started, and max_inflight() can rebuild how many requests overlapped. <client> is the loadgen index, i.e.
+# which address nginx counted it against. <pretransfer> is how far into <seconds> the request was sent,
+# after the connect and TLS handshake that nginx does not count. After a 429 the worker waits BACKOFF
+# seconds, as a client honouring the rejection would; 0 turns it into a flood.
+_LOAD_LOOP='end=$(( $(date +%s) + DUR )); while [ "$(date +%s)" -lt "$end" ]; do r=$(curl -k -s -o /dev/null -w "%{http_code} %{time_total} %time{%s}.%time{%f} $C %{time_pretransfer}" --max-time 120 --connect-to "$HOST:nginx:8443" -H "Accept: application/sparql-results+json" --data-urlencode "query=$Q" "https://$HOST/sparql"); [ -n "$r" ] || r="000 0 $(date +%s) $C 0"; echo "$r"; case "$r" in 429*) [ "$BACKOFF" = 0 ] || sleep "$BACKOFF" ;; esac; done'
 
 # run_load <concurrency> <duration_s> <query_file> <out_file> [<backoff_s>]: hold <concurrency> anonymous
 # queries in flight for <duration_s>, one in-container worker per slot looping back-to-back, spread across
@@ -132,13 +133,16 @@ count_status() { awk -v re="$2" '$1 ~ re {n++} END {print n+0}' "$1"; }
 
 # max_inflight <load_out> [<client>]: the most requests nginx let through (any status but 429, and not
 # curl's 000) that were in flight at the same moment - across all clients, or for loadgen <client> only.
-# Each interval is shrunk by 50 ms at both ends: the client sees a request start before nginx counts it
-# and end after nginx releases it, so a slot handed straight from one worker to the next would otherwise
-# show as both holding it. The slow queries this measures last seconds to a minute; 50 ms loses nothing.
+# A request starts when it was sent (<pretransfer>), not when curl began connecting: nginx counts it only
+# once the TLS handshake is done, and on a busy runner a handshake can outlast the margin below, showing
+# a worker's next request as overlapping its last. Each interval is then shrunk by 50 ms at both ends: the
+# client still sees a request start before nginx counts it and end after nginx releases it, so a slot
+# handed straight from one worker to the next would otherwise show as both holding it. The slow queries
+# this measures last seconds to a minute; 50 ms loses nothing.
 max_inflight() {
     awk -v c="${2:-}" -v eps=0.05 '
-        NF >= 3 && $1 != "429" && $1 != "000" && (c == "" || $4 == c) {
-            s = $3 - $2 + eps; e = $3 - eps
+        NF >= 5 && $1 != "429" && $1 != "000" && (c == "" || $4 == c) {
+            s = $3 - $2 + $5 + eps; e = $3 - eps
             if (e > s) { printf "%.6f 1\n%.6f -1\n", s, e }
         }' "$1" \
         | sort -k1,1n -k2,2n \

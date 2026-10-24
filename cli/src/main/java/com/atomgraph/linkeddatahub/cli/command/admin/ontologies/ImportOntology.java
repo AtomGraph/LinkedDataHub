@@ -191,7 +191,7 @@ public class ImportOntology extends BaseCommand
     {
         URI target = URI.create(adminBase + "clear");
 
-        HttpException.check(target, getClient().postForm(target, new Form("uri", ontology.toString()), ACCEPT_TURTLE)).close();
+        HttpException.checkWrite(target, getClient().postForm(target, new Form("uri", ontology.toString()), ACCEPT_TURTLE)).close();
     }
 
     /**

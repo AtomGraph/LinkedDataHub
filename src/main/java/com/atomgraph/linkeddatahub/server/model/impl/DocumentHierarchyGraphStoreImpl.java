@@ -44,10 +44,17 @@ import com.atomgraph.linkeddatahub.writer.TimeMapWriter;
 import com.atomgraph.server.exception.SHACLConstraintViolationException;
 import com.atomgraph.server.exception.SPINConstraintViolationException;
 import static com.atomgraph.server.status.UnprocessableEntityStatus.UNPROCESSABLE_ENTITY;
+import com.atomgraph.linkeddatahub.server.exception.URISyntaxViolationException;
 import com.atomgraph.spinrdf.constraints.ConstraintViolation;
+import com.atomgraph.spinrdf.vocabulary.SPIN;
+import com.atomgraph.core.vocabulary.SD;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -58,6 +65,7 @@ import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.InternalServerErrorException;
+import jakarta.ws.rs.NotAcceptableException;
 import jakarta.ws.rs.NotAllowedException;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.OPTIONS;
@@ -76,15 +84,12 @@ import static jakarta.ws.rs.core.Response.Status.PERMANENT_REDIRECT;
 import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
+import jakarta.ws.rs.core.Variant;
 import jakarta.ws.rs.ext.MessageBodyReader;
 import jakarta.ws.rs.ext.Providers;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.time.DateTimeException;
 import java.time.Instant;
@@ -110,19 +115,19 @@ import org.apache.jena.datatypes.xsd.XSDDateTime;
 import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
+import org.apache.jena.query.ParameterizedSparqlString;
+import org.apache.jena.query.ResultSet;
+import org.apache.jena.query.ResultSetRewindable;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.shacl.validation.ReportEntry;
-import org.apache.jena.sparql.modify.request.UpdateDeleteWhere;
-import org.apache.jena.sparql.modify.request.UpdateModify;
 import org.apache.jena.sparql.vocabulary.FOAF;
-import org.apache.jena.update.Update;
 import org.apache.jena.update.UpdateAction;
 import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.util.ResourceUtils;
@@ -171,6 +176,16 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
      * Name of the request header conveying the datetime a TimeGate negotiates on.
      */
     public static final String ACCEPT_DATETIME_HEADER = "Accept-Datetime";
+
+    /**
+     * Name of the Graph Store Protocol query parameter that identifies a named graph indirectly.
+     */
+    public static final String GRAPH_PARAM_NAME = "graph";
+
+    /**
+     * Name of the Graph Store Protocol query parameter that identifies the default graph indirectly.
+     */
+    public static final String DEFAULT_PARAM_NAME = "default";
     
     private final com.atomgraph.linkeddatahub.dataspaces.model.Dataspace application;
     private final OntModel ontology;
@@ -178,13 +193,11 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     private final Providers providers;
     private final com.atomgraph.linkeddatahub.Application system;
     private final UriBuilder uploadsUriBuilder;
-    private final MessageDigest messageDigest;
     /** The URIs for owner and secretary documents. */
     protected final URI ownerDocURI, secretaryDocURI;
     private final SecurityContext securityContext;
     private final Optional<AgentContext> agentContext;
     private final Set<String> allowedMethods;
-    private final HttpHeaders httpHeaders;
 
     /**
      * Constructs Graph Store.
@@ -208,7 +221,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context HttpHeaders httpHeaders)
     {
         // orElseThrow: the super() call dereferences the service before any statement can check emptiness
-        super(request, system.getServiceContext(service.orElseThrow(() -> new InternalServerErrorException("Service is not specified"))).getGraphStoreClient(), mediaTypes, uriInfo);
+        super(request, httpHeaders, system.getServiceContext(service.orElseThrow(() -> new InternalServerErrorException("Service is not specified"))).getGraphStoreClient(), mediaTypes, uriInfo);
         if (ontology.isEmpty()) throw new InternalServerErrorException("Ontology is not specified");
         this.application = application;
         this.ontology = ontology.get();
@@ -217,8 +230,6 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         this.agentContext = agentContext;
         this.providers = providers;
         this.system = system;
-        this.httpHeaders = httpHeaders;
-        this.messageDigest = system.getMessageDigest();
         uploadsUriBuilder = uriInfo.getBaseUriBuilder().path(UPLOADS_PATH);
         URI ownerURI = URI.create(application.getMaker().getURI());
         try
@@ -231,22 +242,37 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             throw new InternalServerErrorException(ex);
         }
         
-        URI uri = uriInfo.getAbsolutePath();
-        allowedMethods = new HashSet<>();
-        allowedMethods.add(HttpMethod.GET);
-        allowedMethods.add(HttpMethod.POST);
+        allowedMethods = allowedMethods(uriInfo.getAbsolutePath(), application.getBaseURI(), ownerDocURI, secretaryDocURI, isSnapshotRequest(uriInfo));
+    }
+
+    /**
+     * Returns the methods allowed on a document.
+     * The owner's and the secretary's WebID documents cannot be replaced or deleted, the root document cannot be
+     * deleted, and historical versions, TimeMaps and TimeGates are read-only.
+     *
+     * @param uri document URI
+     * @param baseURI application's base URI (the root document)
+     * @param ownerDocURI owner's WebID document URI
+     * @param secretaryDocURI secretary's WebID document URI
+     * @param snapshot true if the request addresses a historical version, a TimeMap or a TimeGate
+     * @return set of HTTP method names
+     */
+    public static Set<String> allowedMethods(URI uri, URI baseURI, URI ownerDocURI, URI secretaryDocURI, boolean snapshot)
+    {
+        if (snapshot) return Set.of(HttpMethod.GET, HttpMethod.HEAD, HttpMethod.OPTIONS);
+
+        Set<String> methods = new HashSet<>(Set.of(HttpMethod.GET, HttpMethod.HEAD, HttpMethod.OPTIONS, HttpMethod.POST, HttpMethod.PATCH));
 
         if (!ownerDocURI.equals(uri) &&
             !secretaryDocURI.equals(uri))
-            allowedMethods.add(HttpMethod.PUT);
+            methods.add(HttpMethod.PUT);
 
-        if (!application.getBaseURI().equals(uri) &&
+        if (!baseURI.equals(uri) &&
             !ownerDocURI.equals(uri) &&
             !secretaryDocURI.equals(uri))
-            allowedMethods.add(HttpMethod.DELETE);
+            methods.add(HttpMethod.DELETE);
 
-        // historical version, TimeMap and TimeGate views are read-only
-        if (isSnapshotRequest(uriInfo)) allowedMethods.retainAll(Set.of(HttpMethod.GET));
+        return methods;
     }
 
     /**
@@ -268,7 +294,38 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
      */
     private void checkSnapshotReadOnly()
     {
-        if (isSnapshotRequest(getUriInfo())) throw new NotAllowedException(HttpMethod.GET, new String[]{ HttpMethod.OPTIONS });
+        if (isSnapshotRequest(getUriInfo()))
+            throw new NotAllowedException("Historical versions, TimeMaps and TimeGates are read-only",
+                Response.status(Response.Status.METHOD_NOT_ALLOWED).allow(getAllowedMethods()).build());
+    }
+
+    /**
+     * Returns true if the request uses the Graph Store Protocol's indirect graph identification, i.e. carries a
+     * <code>graph</code> or <code>default</code> query parameter.
+     *
+     * @param uriInfo URI info of the request
+     * @return true if the request identifies its graph indirectly
+     */
+    public static boolean isIndirectIdentification(UriInfo uriInfo)
+    {
+        return uriInfo.getQueryParameters().containsKey(GRAPH_PARAM_NAME) ||
+            uriInfo.getQueryParameters().containsKey(DEFAULT_PARAM_NAME);
+    }
+
+    /**
+     * Rejects a request that identifies its graph indirectly.
+     * Documents form a directly identified graph store (GSP &sect;4.1): the request URI names the graph, so a
+     * <code>graph</code> or <code>default</code> parameter would otherwise be ignored and the operation would apply
+     * to this document instead of the graph the client named.
+     *
+     * @param uriInfo URI info of the request
+     * @throws BadRequestException if the request carries a <code>graph</code> or <code>default</code> parameter
+     */
+    public static void checkDirectIdentification(UriInfo uriInfo)
+    {
+        if (isIndirectIdentification(uriInfo))
+            throw new BadRequestException("Indirect graph identification (the '" + GRAPH_PARAM_NAME + "' and '" + DEFAULT_PARAM_NAME +
+                "' query parameters) is not supported: the request URI identifies the graph");
     }
 
     /**
@@ -282,6 +339,8 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     @GET
     public Response get()
     {
+        checkDirectIdentification(getUriInfo());
+
         if (getUriInfo().getQueryParameters().containsKey(TIMEGATE_PARAM_NAME))
         {
             String acceptDatetime = getHttpHeaders().getHeaderString(ACCEPT_DATETIME_HEADER);
@@ -325,7 +384,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             timeMapMediaTypes.add(TimeMapWriter.APPLICATION_LINK_FORMAT_TYPE);
             timeMapMediaTypes.addAll(getWritableMediaTypes(Model.class));
 
-            return new com.atomgraph.core.model.impl.Response(getRequest(),
+            return new com.atomgraph.core.model.impl.Response(getRequest(), getHttpHeaders(),
                     timeMap,
                     null,
                     getEntityTag(timeMap),
@@ -339,20 +398,18 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         String version = getUriInfo().getQueryParameters().getFirst(VERSION_PARAM_NAME);
         if (version == null) return super.get();
         // commit SHAs only: movable refs (branches, tags) must not be served with immutable caching,
-        // and the hex-only value doubles as the ETag (the HTML writer per-agent-perturbs ETags as hex numbers)
+        // and the hex-only value seeds the ETag (the variant folding and the HTML writer add to it as a hex number)
         if (!version.matches("[0-9a-f]{4,64}")) throw new NotFoundException("Version '" + version + "' of graph <" + getURI() + "> not found");
 
         com.atomgraph.linkeddatahub.server.util.GraphVersioningService.Version graphVersion = getSystem().getGraphVersioningService().
             getVersion(getDataspace().getURI(), getDataspace().getBaseURI(), getURI(), version).
             orElseThrow(() -> new NotFoundException("Version '" + version + "' of graph <" + getURI() + "> not found"));
 
-        CacheControl cacheControl = new CacheControl();
-        cacheControl.setMaxAge(31536000);
-        cacheControl.getCacheExtension().put("immutable", "");
-
-        Response.ResponseBuilder rb = getResponseBuilder(graphVersion.model(), getURI()).
-            tag(new EntityTag(version)).
-            cacheControl(cacheControl);
+        // the tag is derived per variant from the commit SHA, and the same tag is evaluated and sent: tagging every
+        // variant with the bare SHA after evaluating against the content digest meant If-None-Match never matched
+        Response.ResponseBuilder rb = getInternalResponse(graphVersion.model(), getLastModified(graphVersion.model(), getURI()), new EntityTag(version)).
+            getResponseBuilder().
+            cacheControl(graphVersion.getCacheControl());
         if (graphVersion.datetime() != null)
             rb.header("Memento-Datetime", TimeMapWriter.RFC_1123_GMT.format(graphVersion.datetime().atZone(ZoneId.of("GMT"))));
 
@@ -370,18 +427,43 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     @POST
     public Response post(Model model)
     {
+        checkDirectIdentification(getUriInfo());
+        return post(model, () -> {});
+    }
+
+    /**
+     * Appends triples to the existing graph, running a step right before the graph is written: once the
+     * preconditions have been met and the resulting document has been validated, inside the document's lock.
+     *
+     * @param model RDF model to add to the graph
+     * @param beforeWrite step to run before the graph is written, such as moving uploaded files into place
+     * @return HTTP response with updated entity tag
+     */
+    protected Response post(Model model, Runnable beforeWrite)
+    {
         checkSnapshotReadOnly();
 
         if (log.isTraceEnabled()) log.trace("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
 
+        // appending nothing is a no-op (GSP 5.5): there is no state to quote, so it needs no If-Match, and nothing is
+        // written - stamping dct:modified would change the graph and its entity tag although no triple was added
+        if (model.isEmpty()) return Response.noContent().build();
+
+        checkForeignContainment(model);
+
         return writeLocked(() ->
         {
             final Model existingModel = getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(getURI().toString());
-        
+
             Response.ResponseBuilder rb = evaluatePreconditions(existingModel, getHttpHeaders());
             if (rb != null) return rb.build(); // preconditions not met
-        
-            model.createResource(getURI().toString()).
+
+            // dct:created and dct:modified are the server's to assign: the document keeps the creation date it has, and
+            // the append is its modification. Ownership and containment are not the payload's to assert either: the stored
+            // acl:owner, dct:creator, sioc:has_parent and sioc:has_container are kept as they are
+            removeContainment(model, getURI().toString());
+            removeOwnership(model, getURI().toString()).
+                removeAll(DCTerms.created).
                 removeAll(DCTerms.modified).
                 addLiteral(DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
         
@@ -390,6 +472,10 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         
             // is this implemented correctly? The specification is not very clear.
             if (log.isDebugEnabled()) log.debug("POST Model to named graph with URI: {}", getURI());
+            // the imports the append adds or redefines, judged by the document as it will be against the document as it
+            // is - read before the merge below changes it in place
+            List<Resource> imports = getChangedImports(ModelFactory.createUnion(existingModel, model), existingModel);
+
             // First remove old dct:modified values from the triplestore, then add new data
             existingModel.createResource(getURI().toString()).removeAll(DCTerms.modified);
             Model updatedModel = existingModel.add(model);
@@ -399,13 +485,15 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             // is the whole document, so that is what is held to the constraints
             validateConstraints(updatedModel);
 
+            beforeWrite.run();
             getSystem().getServiceContext(getService()).getGraphStoreClient().putModel(getURI().toString(), updatedModel); // replace entire graph to avoid accumulating dct:modified
 
-            submitImports(model);
+            submitImports(imports.stream().map(_import -> _import.inModel(updatedModel)).toList());
         
-            return Response.noContent().
-                tag(getInternalResponse(updatedModel, null).getVariantEntityTag()). // entity tag of the updated graph
-                build();
+            Response.ResponseBuilder noContent = Response.noContent();
+            // entity tag of the updated graph, for the variant the request negotiates - none when it accepts no RDF syntax
+            getWriteResponse(updatedModel, null).ifPresent(response -> noContent.tag(response.getVariantEntityTag()));
+            return noContent.build();
         });
     }
     
@@ -415,12 +503,26 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
      * establishes parent/container relationships, and manages metadata (created, modified, creator, owner timestamps).
      *
      * @param model RDF model to create or update
-     * @return HTTP response with 201 Created for new graphs or 200 OK for updates
+     * @return HTTP response with 201 Created for new graphs or 204 No Content for updates, neither with a validator
      */
     @Override
     @PUT
     // the AuthorizationFilter only allows creating new child URIs for existing containers (i.e. there has to be a .. container already)
     public Response put(Model model)
+    {
+        checkDirectIdentification(getUriInfo());
+        return put(model, () -> {});
+    }
+
+    /**
+     * Creates or replaces the graph, running a step right before the graph is written: once the preconditions
+     * have been met and the document has been validated, inside the document's lock.
+     *
+     * @param model RDF model to create or update
+     * @param beforeWrite step to run before the graph is written, such as moving uploaded files into place
+     * @return HTTP response with 201 Created for new graphs or 204 No Content for updates, neither with a validator
+     */
+    protected Response put(Model model, Runnable beforeWrite)
     {
         checkSnapshotReadOnly();
 
@@ -448,8 +550,14 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             if (log.isDebugEnabled()) log.debug("Rejected document URI <{}> - double slashes are not allowed", getURI());
             throw new BadRequestException("Double slashes not allowed in document URIs");
         }
-        
-        return writeLocked(() ->
+
+        checkForeignContainment(model);
+
+        URI parentURI = getURI().resolve("..");
+        boolean root = getDataspace().getBaseURI().equals(getURI());
+        // the parent's lock as well as the document's: a DELETE of the parent holds it while it checks for children, so
+        // the two cannot interleave
+        return writeLocked(root ? List.of(getURI()) : List.of(parentURI, getURI()), () ->
         {
             new Skolemizer(getURI().toString()).apply(model);
             Model existingModel = null;
@@ -462,16 +570,26 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             }
             catch (NotFoundException ex)
             {
-                //if (existingModel == null) existingModel = null;
+                // If-Match is false when there is no current representation (RFC 9110 13.1.1): a write quoting the
+                // state of a document deleted in the meantime must not recreate it
+                String ifMatch = getHttpHeaders().getHeaderString(HttpHeaders.IF_MATCH);
+                if (ifMatch != null && !ifMatch.isBlank()) return Response.status(Response.Status.PRECONDITION_FAILED).build();
             }
 
-            Resource parent = model.createResource(getURI().resolve("..").toString());
-            Resource resource = model.createResource(getURI().toString()).
+            // the parent was there when the request was authorized, before any lock was held, and a DELETE of it may have
+            // gone through since. Under its lock it can no longer go before this write: a document is created only where
+            // its container still exists
+            if (existingModel == null && !root && !exists(parentURI))
+                throw new WebApplicationException("Parent document <" + parentURI + "> of <" + getURI() + "> does not exist", Response.Status.CONFLICT.getStatusCode());
+
+            Resource parent = model.createResource(parentURI.toString());
+            // ownership is not the payload's to assert: a new document gets the agent's below, an existing one keeps the stored values
+            Resource resource = removeOwnership(model, getURI().toString()).
                 removeAll(SIOC.HAS_PARENT).
                 removeAll(SIOC.HAS_CONTAINER);
 
             boolean typed = false; // whether the document's class is assigned here rather than by the payload
-            if (!getDataspace().getBaseURI().equals(getURI())) // don't update Root document's metadata
+            if (!root) // don't update Root document's metadata
             {
                 if (resource.hasProperty(RDF.type, DH.Container))
                     resource.addProperty(SIOC.HAS_PARENT, parent);
@@ -489,22 +607,29 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
 
             if (existingModel == null) // creating new graph and attaching it to the document hierarchy
             {
-                resource.removeAll(DCTerms.created). // remove any client-supplied dct:created values
+                // a new document was created now and has not been modified since: neither date is the client's
+                resource.removeAll(DCTerms.created).
+                    removeAll(DCTerms.modified).
                     addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
             
                 if (getAgentContext().isPresent()) resource.addProperty(DCTerms.creator, getAgentContext().get().getAgent()).
                         addProperty(ACL.owner, getAgentContext().get().getAgent());
 
                 if (log.isDebugEnabled()) log.debug("PUT Model into new named graph with URI: {}", getURI());
+                beforeWrite.run();
                 getSystem().getServiceContext(getService()).getGraphStoreClient().putModel(getURI().toString(), model); // TO-DO: catch exceptions
 
-                submitImports(model);
+                submitImports(getChangedImports(model, null));
 
                 return Response.created(getURI()).
                     build();
             }
             else // updating existing graph
             {        
+                // the creation date is the stored one, not the client's: a client-supplied dct:created would be kept
+                // alongside it and, being the later of the two, could move Last-Modified anywhere it likes
+                resource.removeAll(DCTerms.created);
+
                 // retain metadata from existing document resource
                 ExtendedIterator<Statement> it = existingModel.createResource(getURI().toString()).listProperties(DCTerms.created).
                     andThen(existingModel.createResource(getURI().toString()).listProperties(DCTerms.creator)).
@@ -522,12 +647,17 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
                     addLiteral(DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
 
                 if (log.isDebugEnabled()) log.debug("PUT Model into existing named graph with URI: {}", getURI());
+                beforeWrite.run();
                 getSystem().getServiceContext(getService()).getGraphStoreClient().putModel(getURI().toString(), model); // TO-DO: catch exceptions
 
-                submitImports(model);
+                // a PUT replaces the whole document, so it carries its imports every time; re-running one whose title
+                // changed would fetch and import its source again
+                submitImports(getChangedImports(model, existingModel));
 
-                return getInternalResponse(existingModel, null).getResponseBuilder().
-                    build();
+                // no ETag or Last-Modified: what is stored is not the payload - dct:modified, the document's metadata and
+                // skolemized blank nodes are added - and a PUT response may only carry a validator of a representation
+                // saved without any transformation (RFC 9110 9.3.4). The client reads the new one when it needs it
+                return Response.noContent().build();
             }
         });
     }
@@ -535,7 +665,8 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     /**
      * Implements <code>PATCH</code> method of SPARQL Graph Store Protocol.
      * Accepts SPARQL update as the request body which is executed in the context of the specified graph.
-     * The <code>GRAPH</code> keyword is therefore not allowed in the update string.
+     * The <code>GRAPH</code> keyword and the <code>WITH</code>, <code>USING</code> and <code>USING NAMED</code> clauses are
+     * therefore not allowed in the update string, and are refused with <code>422 Unprocessable Entity</code>.
      * 
      * @param updateRequest SPARQL update
      * @return response response object
@@ -544,28 +675,16 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     @Override
     public Response patch(UpdateRequest updateRequest)
     {
+        checkDirectIdentification(getUriInfo());
         checkSnapshotReadOnly();
 
         if (updateRequest == null) throw new BadRequestException("SPARQL update not specified");
         if (log.isDebugEnabled()) log.debug("PATCH request on named graph with URI: {}", getURI());
         if (log.isDebugEnabled()) log.debug("PATCH update string: {}", updateRequest.toString());
         
-        if (updateRequest.getOperations().size() != 1)
-            throw new WebApplicationException("Only a single SPARQL Update is supported by PATCH", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
-
-        Update update = updateRequest.getOperations().get(0);
-        if (!(update instanceof UpdateModify || update instanceof UpdateDeleteWhere))
-            throw new WebApplicationException("Only INSERT/WHERE and DELETE WHERE forms of SPARQL Update are supported by PATCH", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
-
-        // check for GRAPH keyword which is disallowed
-        PatchUpdateVisitor visitor = new PatchUpdateVisitor();
-        update.visit(visitor);
-        if (visitor.containsNamedGraph())
-        {
-            if (log.isWarnEnabled()) log.debug("SPARQL update used with PATCH method cannot contain the GRAPH keyword");
-            throw new WebApplicationException("SPARQL update used with PATCH method cannot contain the GRAPH keyword", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
-        }
-        // no need to set WITH <graphUri> since we'll be updating model in memory before persisting it
+        // one operation of the INSERT/DELETE forms, with no GRAPH and no WITH/USING - the update runs against this
+        // graph alone, so any of those would match nothing and the PATCH would answer 204 having changed nothing
+        PatchUpdateVisitor.validate(updateRequest);
 
         return writeLocked(() ->
         {
@@ -582,7 +701,28 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             new Skolemizer(getURI().toString()).apply(existingModel); // skolemize blank nodes introduced by INSERT
 
             // if PATCH results in an empty graph, treat it as a DELETE request
-            if (existingModel.isEmpty()) return delete();
+            if (existingModel.isEmpty())
+            {
+                // the document cannot be deleted (the root, the owner's and the secretary's), but PATCH is supported on it:
+                // 405 would say otherwise, and the update itself is what cannot be applied
+                if (!getAllowedMethods().contains(HttpMethod.DELETE))
+                    throw new WebApplicationException("The update would empty document <" + getURI() + ">, which cannot be deleted", UNPROCESSABLE_ENTITY.getStatusCode());
+
+                return delete();
+            }
+
+            // ownership changes go through the admin ACL documents: a PATCH cannot be rewritten safely, so it is refused
+            if (isOwnershipChanged(beforeUpdateModel, existingModel, getURI().toString()))
+                throw new WebApplicationException("acl:owner and dct:creator of document <" + getURI() + "> cannot be changed", UNPROCESSABLE_ENTITY.getStatusCode());
+
+            // a document's place in the hierarchy is the URI parent PUT points it at; moving it would leave the hierarchy
+            // and the URIs disagreeing about where it is
+            if (isContainmentChanged(beforeUpdateModel, existingModel, getURI().toString()))
+                throw new WebApplicationException("sioc:has_parent and sioc:has_container of document <" + getURI() + "> cannot be changed", UNPROCESSABLE_ENTITY.getStatusCode());
+
+            // only the containment the update adds is held to the rule: a graph written before it may still carry some
+            if (getForeignContainment(existingModel, getURI().toString()).stream().anyMatch(stmt -> !beforeUpdateModel.contains(stmt)))
+                throw new WebApplicationException("sioc:has_parent and sioc:has_container in document <" + getURI() + "> can only be stated of the document itself", UNPROCESSABLE_ENTITY.getStatusCode());
 
             // SPIN constraints are class-scoped; allowing rdf:type removal would silently bypass them
             for (Resource resource : getChangedResources(beforeUpdateModel, existingModel))
@@ -592,6 +732,8 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
                 if (before.hasProperty(RDF.type) && !after.hasProperty(RDF.type) && after.listProperties().hasNext())
                     throw new WebApplicationException("rdf:type cannot be removed from resource <" + resource + ">", UNPROCESSABLE_ENTITY.getStatusCode());
             }
+
+            stampModified(getURI(), beforeUpdateModel, existingModel);
 
             try
             {
@@ -609,7 +751,11 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
                 throw describeViolations(ex, dataset.getDefaultModel());
             }
             put(dataset.getDefaultModel(), Boolean.FALSE, getURI());
-        
+
+            // a request that accepts no RDF syntax gets no entity tag, which identifies a negotiated variant, but the write stands
+            if (getWriteResponse(dataset.getDefaultModel(), null).isEmpty())
+                return Response.noContent().header(HttpHeaders.CONTENT_LOCATION, getURI()).build();
+
             return getInternalResponse(dataset.getDefaultModel(), null).getResponseBuilder(). // entity tag of the updated graph
                 status(Response.Status.NO_CONTENT).
                 entity(null). // 'Content-Type' header has to be explicitly unset in ResponseHeadersFilter
@@ -619,6 +765,38 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         });
     }
     
+    /**
+     * Keeps the document's dates server-managed across a <code>PATCH</code>.
+     * The update can change the document's <code>dct:created</code> and <code>dct:modified</code> like any other
+     * triple, and <code>Last-Modified</code> is derived from them: the stored creation date is restored, and an update
+     * that changed the graph is stamped with the current time as its modification, so that a cache revalidating with
+     * <code>If-Modified-Since</code> sees the change. An update that changed nothing leaves the graph, and its
+     * validators, as they were.
+     *
+     * @param documentURI the document's URI
+     * @param beforeUpdateModel the graph before the update
+     * @param afterUpdateModel the graph after the update, which is changed in place
+     */
+    public static void stampModified(URI documentURI, Model beforeUpdateModel, Model afterUpdateModel)
+    {
+        if (documentURI == null) throw new IllegalArgumentException("Document URI cannot be null");
+        if (beforeUpdateModel == null) throw new IllegalArgumentException("Model before update cannot be null");
+        if (afterUpdateModel == null) throw new IllegalArgumentException("Model after update cannot be null");
+
+        Resource before = beforeUpdateModel.createResource(documentURI.toString());
+        Resource after = afterUpdateModel.createResource(documentURI.toString());
+
+        after.removeAll(DCTerms.created);
+        before.listProperties(DCTerms.created).forEach(stmt -> after.addProperty(DCTerms.created, stmt.getObject()));
+
+        after.removeAll(DCTerms.modified);
+        before.listProperties(DCTerms.modified).forEach(stmt -> after.addProperty(DCTerms.modified, stmt.getObject()));
+
+        if (!afterUpdateModel.isIsomorphicWith(beforeUpdateModel))
+            after.removeAll(DCTerms.modified).
+                addLiteral(DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
+    }
+
     /**
      * Overrides <code>OPTIONS</code> HTTP header values.Specifies allowed methods.
      *
@@ -638,8 +816,10 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     }
     
     /**
-     * Handles multipart <code>POST</code>
-     * Files are written to storage before the RDF data is passed to the default <code>POST</code> handler method.
+     * Handles multipart <code>POST</code> (RDF/POST with file parts).
+     * The same append as {@link #post(Model)}, whatever encodes it: the same preconditions, <code>dct:modified</code>,
+     * constraints over the whole document, imports and response. The files are staged before the write and moved
+     * into place only once it goes ahead, so a refused upload leaves nothing in the upload folder.
      * 
      * @param multiPart multipart form data
      * @return HTTP response
@@ -648,6 +828,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response postMultipart(FormDataMultiPart multiPart)
     {
+        checkDirectIdentification(getUriInfo());
         checkSnapshotReadOnly();
 
         if (log.isDebugEnabled()) log.debug("MultiPart fields: {} body parts: {}", multiPart.getFields(), multiPart.getBodyParts());
@@ -658,28 +839,23 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             validate(model);
             if (log.isTraceEnabled()) log.trace("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
 
-            return writeLocked(() ->
+            new Skolemizer(getURI().toString()).apply(model); // skolemize before staging files (they require absolute URIs)
+
+            List<StagedFile> stagedFiles = stageFiles(model, getFileNameBodyPartMap(multiPart));
+            if (log.isDebugEnabled()) log.debug("# of files uploaded: {} ", stagedFiles.size());
+            try
             {
-                final Model existingModel = getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(getURI().toString());
-                if (existingModel == null) throw new NotFoundException("Named graph with URI <" + getURI() + "> not found");
-
-                new Skolemizer(getURI().toString()).apply(model); // skolemize before writing files (they require absolute URIs)
-
-                // appended to the store rather than written back whole, so no If-Match is asked of an upload; the
-                // document it is appended to is still held to the constraints as a whole, before a file is written
-                validateConstraints(ModelFactory.createDefaultModel().add(existingModel).add(model));
-
-                int fileCount = writeFiles(model, getFileNameBodyPartMap(multiPart));
-                if (log.isDebugEnabled()) log.debug("# of files uploaded: {} ", fileCount);
-
-                if (log.isDebugEnabled()) log.debug("POSTed Model size: {}", model.size());
-                return post(model, false, getURI()); // ignore the @QueryParam("graph") value
-            });
+                return post(model, () -> commitFiles(stagedFiles));
+            }
+            finally
+            {
+                discardFiles(stagedFiles); // a write that was refused, or failed, leaves its files behind otherwise
+            }
         }
         catch (URISyntaxException ex)
         {
             if (log.isErrorEnabled()) log.error("URI '{}' has syntax error in request with media type: {}", ex.getInput(), multiPart.getMediaType());
-            throw new BadRequestException(ex);
+            throw new URISyntaxViolationException(Map.of(ex.getInput(), ex.getMessage()));
         }
         catch (RuntimeIOException ex)
         {
@@ -689,8 +865,9 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     }
 
     /**
-     * Handles multipart <code>PUT</code>
-     * Files are written to storage before the RDF data is passed to {@link #put(Model)}.
+     * Handles multipart <code>PUT</code> (RDF/POST with file parts).
+     * The same write as {@link #put(Model)}. The files are staged before the write and moved into place only once it
+     * goes ahead, so a refused upload leaves nothing in the upload folder.
      * 
      * @param multiPart multipart form data
      * @return HTTP response
@@ -699,6 +876,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response putMultipart(FormDataMultiPart multiPart)
     {
+        checkDirectIdentification(getUriInfo());
         checkSnapshotReadOnly();
 
         if (log.isDebugEnabled()) log.debug("MultiPart fields: {} body parts: {}", multiPart.getFields(), multiPart.getBodyParts());
@@ -710,20 +888,26 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             if (reader instanceof ValidatingModelProvider validatingModelProvider) model = validatingModelProvider.processRead(model);
             if (log.isDebugEnabled()) log.debug("POSTed Model size: {}", model.size());
 
-            new Skolemizer(getURI().toString()).apply(model); // skolemize before writing files (they require absolute URIs)
+            new Skolemizer(getURI().toString()).apply(model); // skolemize before staging files (they require absolute URIs)
 
-            int fileCount = writeFiles(model, getFileNameBodyPartMap(multiPart));
-            if (log.isDebugEnabled()) log.debug("# of files uploaded: {} ", fileCount);
-
-            // the same PUT as an RDF body gets - the document's type and container, its created/creator/owner
-            // metadata, the If-Match precondition and the constraints of a class assigned here - rather than the
-            // raw graph write, which skipped all of it for the document form
-            return put(model);
+            List<StagedFile> stagedFiles = stageFiles(model, getFileNameBodyPartMap(multiPart));
+            if (log.isDebugEnabled()) log.debug("# of files uploaded: {} ", stagedFiles.size());
+            try
+            {
+                // the same PUT as an RDF body gets - the document's type and container, its created/creator/owner
+                // metadata, the If-Match precondition and the constraints of a class assigned here - rather than the
+                // raw graph write, which skipped all of it for the document form
+                return put(model, () -> commitFiles(stagedFiles));
+            }
+            finally
+            {
+                discardFiles(stagedFiles); // a write that was refused, or failed, leaves its files behind otherwise
+            }
         }
         catch (URISyntaxException ex)
         {
             if (log.isErrorEnabled()) log.error("URI '{}' has syntax error in request with media type: {}", ex.getInput(), multiPart.getMediaType());
-            throw new BadRequestException(ex);
+            throw new URISyntaxViolationException(Map.of(ex.getInput(), ex.getMessage()));
         }
         catch (RuntimeIOException ex)
         {
@@ -741,6 +925,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     @Override
     public Response delete()
     {
+        checkDirectIdentification(getUriInfo());
         checkSnapshotReadOnly();
 
         if (!getAllowedMethods().contains(HttpMethod.DELETE))
@@ -759,9 +944,178 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             {
                 //if (existingModel == null) existingModel = null;
             }
-            
+
+            // like rmdir, only an empty container can be deleted: its children would be left pointing at a document that
+            // no longer exists. They go first, each under its own authorization. Creating a child holds this document's
+            // lock too, so none can be added between this check and the delete
+            if (hasChild(getURI()))
+                throw new WebApplicationException("Document <" + getURI() + "> has children and cannot be deleted", Response.Status.CONFLICT.getStatusCode());
+
             return super.delete(false, getURI());
         });
+    }
+    
+    /**
+     * Removes the ownership properties (<code>acl:owner</code> and <code>dct:creator</code>) of the document resource
+     * from a request payload. The server asserts them on creation and keeps the stored ones afterwards.
+     * 
+     * @param model request payload
+     * @param documentURI document URI
+     * @return the document resource in the payload
+     */
+    public static Resource removeOwnership(Model model, String documentURI)
+    {
+        if (model == null) throw new IllegalArgumentException("Model cannot be null");
+        if (documentURI == null) throw new IllegalArgumentException("Document URI cannot be null");
+
+        return model.createResource(documentURI).
+            removeAll(ACL.owner).
+            removeAll(DCTerms.creator);
+    }
+    
+    /**
+     * Returns true if the ownership properties (<code>acl:owner</code> and <code>dct:creator</code>) of the document
+     * resource differ between two states of the document graph.
+     * 
+     * @param beforeUpdateModel graph before the update
+     * @param afterUpdateModel graph after the update
+     * @param documentURI document URI
+     * @return true if ownership changed
+     */
+    public static boolean isOwnershipChanged(Model beforeUpdateModel, Model afterUpdateModel, String documentURI)
+    {
+        return isChanged(beforeUpdateModel, afterUpdateModel, documentURI, List.of(ACL.owner, DCTerms.creator));
+    }
+
+    /**
+     * Removes the containment properties (<code>sioc:has_parent</code> and <code>sioc:has_container</code>) of the
+     * document resource from a request payload. The server asserts them when the document is written with
+     * <code>PUT</code>, always pointing at the URI parent.
+     *
+     * @param model request payload
+     * @param documentURI document URI
+     * @return the document resource in the payload
+     */
+    public static Resource removeContainment(Model model, String documentURI)
+    {
+        if (model == null) throw new IllegalArgumentException("Model cannot be null");
+        if (documentURI == null) throw new IllegalArgumentException("Document URI cannot be null");
+
+        return model.createResource(documentURI).
+            removeAll(SIOC.HAS_PARENT).
+            removeAll(SIOC.HAS_CONTAINER);
+    }
+
+    /**
+     * Returns true if the containment properties (<code>sioc:has_parent</code> and <code>sioc:has_container</code>)
+     * of the document resource differ between two states of the document graph.
+     *
+     * @param beforeUpdateModel graph before the update
+     * @param afterUpdateModel graph after the update
+     * @param documentURI document URI
+     * @return true if containment changed
+     */
+    public static boolean isContainmentChanged(Model beforeUpdateModel, Model afterUpdateModel, String documentURI)
+    {
+        return isChanged(beforeUpdateModel, afterUpdateModel, documentURI, List.of(SIOC.HAS_PARENT, SIOC.HAS_CONTAINER));
+    }
+
+    /**
+     * Returns the containment statements (<code>sioc:has_parent</code> and <code>sioc:has_container</code>) of a
+     * document graph whose subject is not the document. A document's graph states where that document is in the
+     * hierarchy and nothing else's place in it: containment read across graphs takes any such statement for the
+     * position of its subject.
+     *
+     * @param model document graph or request payload
+     * @param documentURI document URI
+     * @return containment statements of other subjects
+     */
+    public static Set<Statement> getForeignContainment(Model model, String documentURI)
+    {
+        if (model == null) throw new IllegalArgumentException("Model cannot be null");
+        if (documentURI == null) throw new IllegalArgumentException("Document URI cannot be null");
+
+        Resource document = ResourceFactory.createResource(documentURI);
+        Set<Statement> statements = new HashSet<>();
+        for (Property property : List.of(SIOC.HAS_PARENT, SIOC.HAS_CONTAINER))
+            model.listStatements(null, property, (RDFNode)null).
+                filterDrop(stmt -> stmt.getSubject().equals(document)).
+                forEach(statements::add);
+
+        return statements;
+    }
+
+    /**
+     * Refuses a payload that states the containment of any resource but the requested document.
+     *
+     * @param model request payload
+     * @throws WebApplicationException with <code>422 Unprocessable Entity</code> if it does
+     */
+    public void checkForeignContainment(Model model)
+    {
+        if (!getForeignContainment(model, getURI().toString()).isEmpty())
+            throw new WebApplicationException("sioc:has_parent and sioc:has_container in document <" + getURI() + "> can only be stated of the document itself", UNPROCESSABLE_ENTITY.getStatusCode());
+    }
+
+    private static boolean isChanged(Model beforeUpdateModel, Model afterUpdateModel, String documentURI, List<Property> properties)
+    {
+        if (beforeUpdateModel == null) throw new IllegalArgumentException("Model before update cannot be null");
+        if (afterUpdateModel == null) throw new IllegalArgumentException("Model after update cannot be null");
+        if (documentURI == null) throw new IllegalArgumentException("Document URI cannot be null");
+
+        Resource document = ResourceFactory.createResource(documentURI);
+        for (Property property : properties)
+        {
+            Set<RDFNode> before = beforeUpdateModel.listObjectsOfProperty(document, property).toSet();
+            Set<RDFNode> after = afterUpdateModel.listObjectsOfProperty(document, property).toSet();
+            if (!before.equals(after)) return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Returns true if the store has the document's graph.
+     *
+     * @param documentURI document URI
+     * @return true if the graph exists
+     */
+    public boolean exists(URI documentURI)
+    {
+        if (documentURI == null) throw new IllegalArgumentException("Document URI cannot be null");
+
+        try
+        {
+            return getSystem().getServiceContext(getService()).getGraphStoreClient().getModel(documentURI.toString()) != null;
+        }
+        catch (NotFoundException ex)
+        {
+            return false;
+        }
+    }
+
+    /**
+     * Returns true if the document has a child in the store.
+     * Every write passes the backend proxy, which drops its cached query results on a write, so the answer is as
+     * current as the last write that completed.
+     *
+     * @param documentURI document URI
+     * @return true if some document is contained in it
+     * @see com.atomgraph.linkeddatahub.vocabulary.LDHC#childQuery
+     */
+    public boolean hasChild(URI documentURI)
+    {
+        if (documentURI == null) throw new IllegalArgumentException("Document URI cannot be null");
+
+        ParameterizedSparqlString pss = new ParameterizedSparqlString(getSystem().getChildQuery().toString());
+        pss.setIri(SPIN.THIS_VAR_NAME, documentURI.toString());
+
+        try (Response cr = getSystem().getServiceContext(getService()).getSPARQLClient().query(pss.asQuery(), ResultSet.class))
+        {
+            if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                throw new InternalServerErrorException("SPARQL endpoint of <" + getService() + "> answered " + cr.getStatus());
+            return cr.readEntity(ResultSetRewindable.class).hasNext();
+        }
     }
     
     /**
@@ -799,17 +1153,60 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
      */
     public com.atomgraph.core.model.impl.Response getInternalResponse(Model model, URI graphUri)
     {
-        return new com.atomgraph.core.model.impl.Response(getRequest(),
+        return getInternalResponse(model, getLastModified(model, graphUri), getEntityTag(model));
+    }
+
+    /**
+     * Get internal response object with the given validators.
+     * The variant entity tags are derived from the given one, so the tag a response carries is the tag its
+     * preconditions are evaluated against.
+     *
+     * @param model RDF model
+     * @param lastModified last modified date
+     * @param entityTag entity tag of the graph
+     * @return response
+     */
+    public com.atomgraph.core.model.impl.Response getInternalResponse(Model model, Date lastModified, EntityTag entityTag)
+    {
+        return new RenderedResponse(getRequest(), getHttpHeaders(),
                 model,
-                getLastModified(model, graphUri),
-                getEntityTag(model),
+                lastModified,
+                entityTag,
                 getWritableMediaTypes(Model.class),
                 getLanguages(),
                 getEncodings(),
                 new HTMLMediaTypePredicate(),
                 // the HTML rendering negotiates over the whole accepted-language list, so two requests selecting the same
                 // variant can still differ; passing it makes the entity tag tell those representations apart
-                getHttpHeaders().getAcceptableLanguages());
+                getHttpHeaders().getAcceptableLanguages(),
+                new HTMLMediaTypePredicate(),
+                this::getRenderingKey);
+    }
+
+    /**
+     * Returns the key of the stylesheet the HTML representation is rendered with: the dataspace's stylesheet, the
+     * packages it imports and, when the client stylesheet service runs, the platform build it fingerprints (the key
+     * of the composed client stylesheet). Any of them changing changes the HTML, so the key goes into its entity tag.
+     *
+     * @return rendering key
+     * @see RenderedResponse
+     */
+    public String getRenderingKey()
+    {
+        StringBuilder key = new StringBuilder();
+
+        com.atomgraph.linkeddatahub.dataspaces.model.Dataspace dataspace = getDataspace();
+        // packages are composed into the dataspace's stylesheet only, as XsltExecutableFilter does
+        List<URI> packages = dataspace != null && dataspace.getStylesheet() != null ?
+            getSystem().getPackageService().getPackageURIs(dataspace) : List.of();
+
+        com.atomgraph.linkeddatahub.server.util.ClientStylesheetService stylesheetService = getSystem().getClientStylesheetService();
+        if (stylesheetService != null) key.append(stylesheetService.getKey(packages));
+        key.append('\n');
+        if (dataspace != null && dataspace.getStylesheet() != null) key.append(dataspace.getStylesheet().getURI());
+        for (URI pkg : packages) key.append('\n').append(pkg);
+
+        return key.toString();
     }
     
     /**
@@ -826,68 +1223,61 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     }
     
     /**
-     * Writes all files from the multipart RDF/POST request body.
+     * An uploaded file written under a temporary name in the upload folder, and the content-addressed file it is
+     * moved to once the write it belongs to goes ahead.
+     *
+     * @param temp temporary file
+     * @param target content-addressed file
+     */
+    public record StagedFile(Path temp, Path target) { }
+
+    /**
+     * Stages all files from the multipart RDF/POST request body. Each file resource is renamed to its
+     * content-addressed URI and given its SHA1 and format, so this has to run before the model is written.
      * 
      * @param model model with RDF resources
      * @param fileNameBodyPartMap a mapping of request part names and objects
-     * @return number of written files
+     * @return staged files, to be committed with {@link #commitFiles(List)} and discarded with {@link #discardFiles(List)}
      */
-    public int writeFiles(Model model, Map<String, FormDataBodyPart> fileNameBodyPartMap)
+    public List<StagedFile> stageFiles(Model model, Map<String, FormDataBodyPart> fileNameBodyPartMap)
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
         if (fileNameBodyPartMap == null) throw new IllegalArgumentException("Map<String, FormDataBodyPart> cannot be null");
         
-        int count = 0;
-        ResIterator resIt = model.listResourcesWithProperty(NFO.fileName);
+        List<StagedFile> stagedFiles = new ArrayList<>();
         try
         {
-            while (resIt.hasNext())
+            // listed up front: staging renames the resource, which changes the model the iterator walks
+            for (Resource file : model.listResourcesWithProperty(NFO.fileName).toList())
             {
-                Resource file = resIt.next();
                 String fileName = file.getProperty(NFO.fileName).getString();
                 FormDataBodyPart bodyPart = fileNameBodyPartMap.get(fileName);
                 
                 if (bodyPart != null) // bodyPart is null if nfo:fileName is a simple input and not a file input
                 {
-                    // writing files has to go before post() as it can change model (e.g. add body part media type as dct:format)
-                    if (log.isDebugEnabled()) log.debug("Writing FormDataBodyPart with fileName {} to file with URI {}", fileName, file.getURI());
-                    writeFile(file, bodyPart);
-
-                    count++;
+                    if (log.isDebugEnabled()) log.debug("Staging FormDataBodyPart with fileName {} for file with URI {}", fileName, file.getURI());
+                    stagedFiles.add(stageFile(file, bodyPart));
                 }
             }
         }
-        finally
+        catch (RuntimeException ex)
         {
-            resIt.close();
+            discardFiles(stagedFiles);
+            throw ex;
         }
 
-        return count;
+        return stagedFiles;
     }
 
     /**
-     * Writes a data stream to the upload folder.
-     * 
-     * @param uri file URI
-     * @param base application's base URI
-     * @param is file input stream
-     * @return file
-     */
-    public File writeFile(URI uri, URI base, InputStream is)
-    {
-        return writeFile(uri, base, getSystem().getUploadRoot(), is);
-    }
-    
-    /**
-     * Writes a data stream to a folder.
+     * Returns the file in a folder that a URI relative to the base addresses.
      * 
      * @param uri file URI
      * @param base application's base URI
      * @param uploadRoot destination folder URI
-     * @param is file input stream
      * @return file
      */
-    public File writeFile(URI uri, URI base, URI uploadRoot, InputStream is)
+    public File getFile(URI uri, URI base, URI uploadRoot)
     {
         if (uri == null) throw new IllegalArgumentException("File URI cannot be null");
         if (!uri.isAbsolute()) throw new IllegalArgumentException("File URI must be absolute");
@@ -896,63 +1286,49 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         
         URI relative = base.relativize(uri);
         if (log.isDebugEnabled()) log.debug("Upload folder root URI: {}", uploadRoot);
-        File file = new File(uploadRoot.resolve(relative));
-        
-        return writeFile(file, is);
+        return new File(uploadRoot.resolve(relative));
     }
     
     /**
-     * Writes data stream to a file destination.
-     * 
-     * @param file destination
-     * @param is input stream
-     * @return file
-     */
-    public File writeFile(File file, InputStream is)
-    {
-        if (file == null) throw new IllegalArgumentException("File cannot be null");
-        if (is == null) throw new IllegalArgumentException("File InputStream cannot be null");
-        
-        try (FileOutputStream fos = new FileOutputStream(file))
-        {
-            if (log.isDebugEnabled()) log.debug("Writing input stream: {} to file: {}", is, file);
-            FileChannel destination = fos.getChannel();
-            destination.transferFrom(Channels.newChannel(is), 0, 104857600);
-            return file;
-        }
-        catch (IOException ex)
-        {
-            if (log.isErrorEnabled()) log.error("Error writing file: {}", file);
-            throw new InternalServerErrorException(ex);
-        }
-    }
-    
-    /**
-     * Writes the specified part of the multipart request body as file and returns the file.
-     * File's RDF resource is used to attached metadata about the file, such as format and SHA1 hash sum.
+     * Writes the specified part of the multipart request body to a temporary file in the upload folder.
+     * File's RDF resource is used to attach metadata about the file, such as format and SHA1 hash sum, and is
+     * renamed to the file's content-addressed URI.
+     * The part is read to its end: a body over the request size limit is refused with <code>413</code> by the
+     * stream {@link com.atomgraph.linkeddatahub.server.filter.request.ContentLengthLimitFilter} wraps the request in.
      * 
      * @param resource file's RDF resource
      * @param bodyPart file's body part
-     * @return written file
+     * @return staged file
      */
-    public File writeFile(Resource resource, FormDataBodyPart bodyPart)
+    public StagedFile stageFile(Resource resource, FormDataBodyPart bodyPart)
     {
         if (resource == null) throw new IllegalArgumentException("File Resource cannot be null");
         if (!resource.isURIResource()) throw new IllegalArgumentException("File Resource must have a URI");
         if (bodyPart == null) throw new IllegalArgumentException("FormDataBodyPart cannot be null");
 
-        try (InputStream is = bodyPart.getEntityAs(InputStream.class);
-            DigestInputStream dis = new DigestInputStream(is, getMessageDigest()))
+        final MessageDigest messageDigest;
+        try
         {
-            dis.getMessageDigest().reset();
-            File tempFile = File.createTempFile("tmp", null);
-            try (FileOutputStream fos = new FileOutputStream(tempFile);
-                 FileChannel destination = fos.getChannel())
+            messageDigest = MessageDigest.getInstance("SHA-1"); // per upload: MessageDigest is not thread-safe
+        }
+        catch (NoSuchAlgorithmException ex)
+        {
+            throw new InternalServerErrorException(ex);
+        }
+
+        // in the upload folder itself, so that committing the file is a rename on the same file system
+        Path uploadFolder = getFile(getUploadsUriBuilder().build(), getUriInfo().getBaseUri(), getSystem().getUploadRoot()).toPath();
+        Path temp = null;
+        try
+        {
+            temp = Files.createTempFile(uploadFolder, ".upload-", ".tmp");
+            try (InputStream is = bodyPart.getEntityAs(InputStream.class);
+                DigestInputStream dis = new DigestInputStream(is, messageDigest))
             {
-                destination.transferFrom(Channels.newChannel(dis), 0, 104857600);
+                Files.copy(dis, temp, StandardCopyOption.REPLACE_EXISTING);
             }
-            String sha1Hash = Hex.encodeHexString(dis.getMessageDigest().digest()); // BigInteger seems to have an issue when the leading hex digit is 0
-            if (log.isDebugEnabled()) log.debug("Wrote file: {} with SHA1 hash: {}", tempFile, sha1Hash);
+            String sha1Hash = Hex.encodeHexString(messageDigest.digest()); // BigInteger seems to have an issue when the leading hex digit is 0
+            if (log.isDebugEnabled()) log.debug("Staged file: {} with SHA1 hash: {}", temp, sha1Hash);
 
             resource.addLiteral(FOAF.sha1, sha1Hash);
             // user could have specified an explicit media type; otherwise - use the media type that the browser has sent
@@ -962,24 +1338,96 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             if (log.isDebugEnabled()) log.debug("Renaming resource: {} to SHA1 based URI: {}", resource, sha1Uri);
             ResourceUtils.renameResource(resource, sha1Uri.toString());
 
-            try (FileInputStream fis = new FileInputStream(tempFile))
-            {
-                return writeFile(sha1Uri, getUriInfo().getBaseUri(), fis);
-            }
+            return new StagedFile(temp, getFile(sha1Uri, getUriInfo().getBaseUri(), getSystem().getUploadRoot()).toPath());
         }
         catch (IOException ex)
         {
+            deleteQuietly(temp);
             if (log.isErrorEnabled()) log.error("File I/O error", ex);
             throw new InternalServerErrorException(ex);
+        }
+        catch (RuntimeException ex)
+        {
+            deleteQuietly(temp);
+            throw ex;
+        }
+    }
+
+    /**
+     * Moves staged files to their content-addressed names. A name that is already taken holds the same bytes,
+     * possibly another document's, so it is left as it is.
+     * 
+     * @param stagedFiles staged files
+     */
+    public void commitFiles(List<StagedFile> stagedFiles)
+    {
+        if (stagedFiles == null) throw new IllegalArgumentException("List<StagedFile> cannot be null");
+
+        for (StagedFile stagedFile : stagedFiles)
+        {
+            try
+            {
+                if (Files.exists(stagedFile.target())) Files.delete(stagedFile.temp());
+                // a rename: a reader of the content-addressed file sees all of it or none of it
+                else Files.move(stagedFile.temp(), stagedFile.target(), StandardCopyOption.ATOMIC_MOVE);
+            }
+            catch (IOException ex)
+            {
+                if (log.isErrorEnabled()) log.error("Could not move staged file {} to {}", stagedFile.temp(), stagedFile.target(), ex);
+                throw new InternalServerErrorException(ex);
+            }
+        }
+    }
+
+    /**
+     * Deletes the staged files that were not committed.
+     * 
+     * @param stagedFiles staged files
+     */
+    public void discardFiles(List<StagedFile> stagedFiles)
+    {
+        if (stagedFiles == null) throw new IllegalArgumentException("List<StagedFile> cannot be null");
+
+        stagedFiles.forEach(stagedFile -> deleteQuietly(stagedFile.temp()));
+    }
+
+    /**
+     * Deletes a file if it exists, logging rather than throwing on failure.
+     *
+     * @param path file path, or <code>null</code>
+     */
+    private void deleteQuietly(Path path)
+    {
+        if (path == null) return;
+
+        try
+        {
+            Files.deleteIfExists(path);
+        }
+        catch (IOException ex)
+        {
+            if (log.isWarnEnabled()) log.warn("Could not delete staged file {}", path, ex);
         }
     }
     
     /**
-     * Submits imports for the given model.
-     * 
-     * @param model the RDF model
+     * The properties that define what an import does: its kind, its source, its transformation, its CSV delimiter and
+     * its target graph. Its title, description and the provenance the import appends to it when it runs do not.
      */
-    public void submitImports(Model model)
+    public static final List<Property> IMPORT_DEFINITION = List.of(RDF.type, LDH.file, SPIN.query, LDH.delimiter, SD.name);
+
+    /**
+     * Returns the imports in a model that are new or have been redefined against the stored document.
+     * An import runs when it is defined: a write that carries an import unchanged - every <code>PUT</code> of the
+     * document it is in, or one that only retitles it - must not fetch and import its source again (a <code>PUT</code>
+     * is idempotent, RFC 9110 9.2.2). An import is redefined when one of its {@link #IMPORT_DEFINITION} properties has
+     * other values than it has in the stored document.
+     *
+     * @param model the document as it is written
+     * @param existingModel the document as it is stored, or <code>null</code> if it is being created
+     * @return the imports to submit
+     */
+    public static List<Resource> getChangedImports(Model model, Model existingModel)
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
 
@@ -988,28 +1436,69 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             filterKeep(_import -> { return _import.canAs(CSVImport.class) || _import.canAs(RDFImport.class); }); // canAs(Import.class) would require InfModel
         try
         {
-            Service adminService = getDataspace().canAs(EndUserDataspace.class) ? getDataspace().as(EndUserDataspace.class).getAdminDataspace().getService() : null;
-            // the graphs this writes are this deployment's own documents, so the content limit does not
-            // apply - registered on the client, not on importClient, which also fetches the import SOURCE
-            // from a URL nobody controls and stays bounded
-            GraphStoreClient gsc = GraphStoreClient.create(getSystem().getImportClient(), getSystem().getMediaTypes()).
-                delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null));
-            gsc.register(new UnlimitedContentLengthFilter());
-
+            List<Resource> imports = new ArrayList<>();
             while (it.hasNext())
             {
                 Resource _import = it.next();
-
-                // start the import asynchroniously
-                if (_import.canAs(CSVImport.class))
-                    getSystem().submitImport(_import.as(CSVImport.class), getDataspace(), getDataspace().getService(), adminService, getUriInfo().getBaseUri().toString(), gsc);
-                if (_import.canAs(RDFImport.class))
-                    getSystem().submitImport(_import.as(RDFImport.class), getDataspace(), getDataspace().getService(), adminService, getUriInfo().getBaseUri().toString(), gsc);
+                if (!imports.contains(_import) && (existingModel == null || isImportChanged(_import, existingModel))) imports.add(_import);
             }
+            return imports;
         }
         finally
         {
             it.close();
+        }
+    }
+
+    /**
+     * Returns true if an import is not in the stored document, or is defined differently there.
+     *
+     * @param _import import resource
+     * @param existingModel the document as it is stored
+     * @return true if the import is new or redefined
+     * @see #IMPORT_DEFINITION
+     */
+    public static boolean isImportChanged(Resource _import, Model existingModel)
+    {
+        if (_import == null) throw new IllegalArgumentException("Resource cannot be null");
+        if (existingModel == null) throw new IllegalArgumentException("Model cannot be null");
+        if (_import.isAnon()) return true; // a blank node is a new resource in every payload
+
+        Resource existing = existingModel.createResource(_import.getURI());
+        for (Property property : IMPORT_DEFINITION)
+            if (!_import.listProperties(property).mapWith(Statement::getObject).toSet().
+                    equals(existing.listProperties(property).mapWith(Statement::getObject).toSet()))
+                return true;
+
+        return false;
+    }
+
+    /**
+     * Submits imports for asynchronous execution.
+     * 
+     * @param imports import resources
+     * @see #getChangedImports(Model, Model)
+     */
+    public void submitImports(List<Resource> imports)
+    {
+        if (imports == null) throw new IllegalArgumentException("List<Resource> cannot be null");
+        if (imports.isEmpty()) return;
+
+        Service adminService = getDataspace().canAs(EndUserDataspace.class) ? getDataspace().as(EndUserDataspace.class).getAdminDataspace().getService() : null;
+        // the graphs this writes are this deployment's own documents, so the content limit does not
+        // apply - registered on the client, not on importClient, which also fetches the import SOURCE
+        // from a URL nobody controls and stays bounded
+        GraphStoreClient gsc = GraphStoreClient.create(getSystem().getImportClient(), getSystem().getMediaTypes()).
+            delegation(getUriInfo().getBaseUri(), getAgentContext().orElse(null), uri -> getSystem().matchApp(uri) != null);
+        gsc.register(new UnlimitedContentLengthFilter());
+
+        for (Resource _import : imports)
+        {
+            // start the import asynchroniously
+            if (_import.canAs(CSVImport.class))
+                getSystem().submitImport(_import.as(CSVImport.class), getDataspace(), getDataspace().getService(), adminService, getUriInfo().getBaseUri().toString(), gsc);
+            if (_import.canAs(RDFImport.class))
+                getSystem().submitImport(_import.as(RDFImport.class), getDataspace(), getDataspace().getService(), adminService, getUriInfo().getBaseUri().toString(), gsc);
         }
     }
 
@@ -1070,9 +1559,13 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             modifiedIt.close();
         }
         
-        if (!dates.isEmpty()) return Collections.max(dates);
-        
-        return null;
+        if (dates.isEmpty()) return null;
+
+        // an origin must not send a Last-Modified later than the time of the response (RFC 9110 8.8.2.1); the dates are
+        // data, and a document can still hold one in the future - written before they were server-managed, or imported
+        Date lastModified = Collections.max(dates);
+        Date now = new Date();
+        return lastModified.after(now) ? now : lastModified;
     }
     
     /**
@@ -1149,8 +1642,12 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         Set<Resource> roots = new HashSet<>();
         for (ConstraintViolation cv : ex.getConstraintViolations())
             if (cv.getRoot() != null) roots.add(cv.getRoot());
+        // the SHACL half of the same write, if it has one: its focus nodes are violating resources too
+        if (ex.getValidationReport() != null)
+            for (ReportEntry entry : ex.getValidationReport().getEntries())
+                if (!entry.focusNode().isLiteral()) roots.add(model.asRDFNode(entry.focusNode()).asResource());
 
-        return new SPINConstraintViolationException(ex.getConstraintViolations(), describeResources(roots, model));
+        return new SPINConstraintViolationException(ex.getConstraintViolations(), describeResources(roots, model), null, ex.getValidationReport());
     }
 
     /**
@@ -1229,14 +1726,16 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     }
 
     /**
-     * Evaluates the state of the given graph against the request preconditions.
-     * Checks the last modified data (if any) and calculates an <code>ETag</code> value.
-     * A write to a graph that already exists must carry <code>If-Match</code>; one that does not is answered
-     * <code>428 Precondition Required</code>.
-     * 
+     * Evaluates the request preconditions against the given graph's <code>Last-Modified</code> date and variant
+     * <code>ETag</code>.
+     * A write to a graph that already exists must carry either <code>If-Match</code> with an entity tag, or
+     * <code>If-None-Match: *</code>; one that carries neither is refused with <code>428 Precondition Required</code>.
+     *
      * @param model RDF model
      * @param httpHeaders the request headers the preconditions are read from
-     * @return {@code jakarta.ws.rs.core.Response.ResponseBuilder} instance. <code>null</code> if preconditions are not met.
+     * @return <code>null</code> if the preconditions are met; otherwise a response builder for the failed precondition
+     * (<code>412</code> or <code>304</code>), tagged with the graph's current variant entity tag
+     * @throws WebApplicationException with status <code>428</code> if the graph exists and the request quotes no state
      */
     public Response.ResponseBuilder evaluatePreconditions(Model model, HttpHeaders httpHeaders)
     {
@@ -1246,20 +1745,23 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         // in the constructor editor: one save's DELETE was correct in every detail, answered 204, and was
         // reinstated by a second write that had read the graph before it landed. A document that does not exist
         // yet has no validator to match, so creating one is exempt.
-        // blank counts as absent: an empty If-Match is not a validator, and reading it as one let a client opt
-        // out of the precondition entirely by sending the header with nothing in it - measured, 204 not 428
-        // If-None-Match satisfies the requirement in its own right: "only if this does not exist" is a
-        // precondition, and a write carrying it is asking to CREATE - it cannot also quote an entity tag it is
-        // asserting there is none of. The import writer uses exactly that idiom, PUT with If-None-Match: * and
-        // then POST on the 412 that says the document is already there; demanding If-Match of it answered 428,
-        // which is not 412, so the fallback never ran and every RDF import failed.
+        // Only two headers say that. If-Match with an entity tag quotes the state the write was made against;
+        // If-Match: * asserts only that some state exists (RFC 9110 13.1.1), which makes the write unconditional,
+        // and a blank If-Match is not a validator at all - measured, sending one opted out with 204, not 428.
+        // If-None-Match: * asks to CREATE - "only if this does not exist" - and cannot also quote an entity tag it
+        // is asserting there is none of; on an existing document it fails 412 below. The import writer uses exactly
+        // that idiom, PUT with If-None-Match: * and then POST on the 412 that says the document is already there.
+        // Any other If-None-Match only fails when it names the current tag, so a made-up one let the write through.
         String ifMatch = httpHeaders.getHeaderString(HttpHeaders.IF_MATCH);
         String ifNoneMatch = httpHeaders.getHeaderString(HttpHeaders.IF_NONE_MATCH);
-        if (model != null && !model.isEmpty() && (ifMatch == null || ifMatch.isBlank()) && (ifNoneMatch == null || ifNoneMatch.isBlank()))
-            throw new WebApplicationException("Writing an existing document requires the If-Match header",
-                Response.status(Response.Status.PRECONDITION_REQUIRED).build());
+        if (model != null && !model.isEmpty() && !quotesEntityTag(ifMatch) && !(ifNoneMatch != null && ifNoneMatch.strip().equals("*")))
+            throw new WebApplicationException("Writing an existing document requires If-Match with its current entity tag",
+                getPreconditionRequiredResponse()); // RFC 6585 3: the response SHOULD explain how to resubmit the request
 
-        com.atomgraph.core.model.impl.Response internalResponse = getInternalResponse(model, getURI());
+        Optional<com.atomgraph.core.model.impl.Response> negotiated = getWriteResponse(model, getURI());
+        if (negotiated.isEmpty()) return evaluatePreconditionsUnnegotiated(model, httpHeaders);
+
+        com.atomgraph.core.model.impl.Response internalResponse = negotiated.get();
         Response.ResponseBuilder rb = internalResponse.evaluatePreconditions();
 
         // a precondition that failed says what the current validator IS, so the client can retry against it
@@ -1268,6 +1770,111 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         if (rb != null) rb.tag(internalResponse.getVariantEntityTag());
 
         return rb;
+    }
+
+    /**
+     * Returns the response a write evaluates its preconditions against and takes its entity tag from: the one for the
+     * variant the request negotiates, or none when its <code>Accept</code> names no RDF syntax.
+     * A write answers with no body - <code>204</code>, or <code>201</code> - so there is nothing for the client to
+     * accept, and refusing it with <code>406</code> would refuse the write for the sake of a representation it is not
+     * sent (GSP 5.3, 5.4; RFC 9110 12.5.1).
+     *
+     * @param model RDF model
+     * @param graphUri graph URI, or <code>null</code> to leave out <code>Last-Modified</code>
+     * @return the negotiated response, or empty if no variant is acceptable
+     */
+    public Optional<com.atomgraph.core.model.impl.Response> getWriteResponse(Model model, URI graphUri)
+    {
+        try
+        {
+            return Optional.of(getInternalResponse(model, graphUri));
+        }
+        catch (NotAcceptableException ex)
+        {
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Evaluates a write's preconditions when its <code>Accept</code> selects no variant.
+     * An entity tag identifies a representation of the document, and with none selected the one the client quotes can
+     * be any of them: <code>If-Match</code> holds when it names the current tag of any variant, and
+     * <code>If-None-Match</code> fails when it names the current tag of any variant (or is <code>*</code>).
+     *
+     * @param model RDF model
+     * @param httpHeaders the request headers the preconditions are read from
+     * @return <code>null</code> if the preconditions are met; otherwise a response builder for the failed precondition
+     */
+    protected Response.ResponseBuilder evaluatePreconditionsUnnegotiated(Model model, HttpHeaders httpHeaders)
+    {
+        List<Variant> variants = new ArrayList<>(com.atomgraph.core.model.impl.Response.getVariants(getWritableMediaTypes(Model.class), getLanguages(), getEncodings(), new HTMLMediaTypePredicate()));
+        // the language-neutral variants as well, as Core offers them in negotiation
+        for (Variant languageNeutral : com.atomgraph.core.model.impl.Response.removeLanguages(variants))
+            if (!variants.contains(languageNeutral)) variants.add(languageNeutral);
+
+        boolean ifMatch = quotesEntityTag(httpHeaders.getHeaderString(HttpHeaders.IF_MATCH));
+        Response.ResponseBuilder failed = null;
+        for (Variant variant : variants)
+        {
+            com.atomgraph.core.model.impl.Response response = new com.atomgraph.core.model.impl.Response(getRequest(), httpHeaders,
+                model,
+                getLastModified(model, getURI()),
+                getEntityTag(model),
+                variant,
+                new HTMLMediaTypePredicate(),
+                httpHeaders.getAcceptableLanguages());
+
+            Response.ResponseBuilder rb = response.evaluatePreconditions();
+            if (rb == null)
+            {
+                if (ifMatch) return null; // the quoted tag is the current tag of this variant
+            }
+            else
+            {
+                if (failed == null) failed = rb.tag(response.getVariantEntityTag());
+                if (!ifMatch) return failed; // If-None-Match named a current tag
+            }
+        }
+
+        return failed;
+    }
+
+    /**
+     * The body of a <code>428 Precondition Required</code> response to a write: which precondition the write needs
+     * and where to get the entity tag it quotes (RFC 6585 3).
+     */
+    public static final String PRECONDITION_REQUIRED_MESSAGE =
+        "Writing an existing resource requires the If-Match header with its current entity tag, " +
+        "or If-None-Match: * to create one that does not exist yet.\n" +
+        "Read the entity tag from the ETag header of a HEAD (or GET) request to the same URI, sent with the same " +
+        "Accept header as the write: the tag identifies the negotiated representation.\n";
+
+    /**
+     * Returns the <code>428 Precondition Required</code> response to a write that quotes no state.
+     *
+     * @return response with a plain-text explanation
+     * @see #PRECONDITION_REQUIRED_MESSAGE
+     */
+    public static Response getPreconditionRequiredResponse()
+    {
+        return Response.status(Response.Status.PRECONDITION_REQUIRED).
+            entity(PRECONDITION_REQUIRED_MESSAGE).
+            type(MediaType.TEXT_PLAIN_TYPE.withCharset(StandardCharsets.UTF_8.name())).
+            build();
+    }
+
+    /**
+     * Returns true if an <code>If-Match</code> header value lists at least one entity tag, as opposed to being
+     * absent, blank or the <code>*</code> wildcard. Repeated headers arrive joined with commas.
+     *
+     * @param ifMatch <code>If-Match</code> header value, or <code>null</code>
+     * @return true if the value quotes an entity tag
+     */
+    public static boolean quotesEntityTag(String ifMatch)
+    {
+        if (ifMatch == null) return false;
+
+        return Arrays.stream(ifMatch.split(",")).map(String::strip).anyMatch(tag -> !tag.isEmpty() && !tag.equals("*"));
     }
 
     /**
@@ -1286,15 +1893,37 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
      */
     protected Response writeLocked(Supplier<Response> write)
     {
-        Lock lock = getSystem().getGraphLocks().get(getURI());
-        lock.lock();
+        return writeLocked(List.of(getURI()), write);
+    }
+
+    /**
+     * Runs a write while holding the locks of several graphs, taken in the order {@link GraphLocks#get(Iterable)}
+     * gives and released in reverse.
+     * A <code>PUT</code> holds its parent's lock besides its own: creating a child and deleting the container both
+     * hold the container's lock, so one of them goes first and the other sees what it left.
+     *
+     * @param graphURIs graphs whose locks are held
+     * @param write the read-check-write sequence
+     * @return the write's response
+     * @see GraphLocks
+     */
+    protected Response writeLocked(List<URI> graphURIs, Supplier<Response> write)
+    {
+        List<Lock> held = new ArrayList<>();
         try
         {
+            for (Lock lock : getSystem().getGraphLocks().getAll(graphURIs))
+            {
+                lock.lock();
+                held.add(lock);
+            }
+
             return write.get();
         }
         finally
         {
-            lock.unlock();
+            Collections.reverse(held);
+            held.forEach(Lock::unlock);
         }
     }
     
@@ -1407,16 +2036,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     {
         return uploadsUriBuilder.clone();
     }
-    
-    /**
-     * Returns message digest used in SHA1 hashing.
-     * 
-     * @return message digest
-     */
-    public MessageDigest getMessageDigest()
-    {
-        return messageDigest;
-    }
+
 
     /**
      * Returns the current application.
@@ -1486,16 +2106,6 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;
-    }
-
-    /**
-     * Returns the request headers.
-     *
-     * @return HTTP headers
-     */
-    public HttpHeaders getHttpHeaders()
-    {
-        return httpHeaders;
     }
 
     /**

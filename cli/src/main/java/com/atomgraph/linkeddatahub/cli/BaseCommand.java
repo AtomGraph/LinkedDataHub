@@ -134,7 +134,7 @@ public abstract class BaseCommand implements Callable<Integer>
      */
     protected static void post(LDHClient client, URI target, Model model)
     {
-        HttpException.check(target, client.post(target, Entity.entity(model, TEXT_TURTLE_TYPE), ACCEPT_TURTLE)).close();
+        HttpException.checkWrite(target, client.post(target, Entity.entity(model, TEXT_TURTLE_TYPE), ACCEPT_TURTLE)).close();
     }
 
     /**
@@ -146,7 +146,7 @@ public abstract class BaseCommand implements Callable<Integer>
      */
     protected static void put(LDHClient client, URI target, Model model)
     {
-        HttpException.check(target, client.put(target, Entity.entity(model, TEXT_TURTLE_TYPE), ACCEPT_TURTLE)).close();
+        HttpException.checkWrite(target, client.put(target, Entity.entity(model, TEXT_TURTLE_TYPE), ACCEPT_TURTLE)).close();
     }
 
     /**

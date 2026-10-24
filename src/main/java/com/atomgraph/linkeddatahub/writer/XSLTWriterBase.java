@@ -32,7 +32,6 @@ import com.atomgraph.linkeddatahub.vocabulary.LDHC;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -92,19 +91,15 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
     @Inject jakarta.inject.Provider<ContainerRequestContext> crc;
     @Inject jakarta.inject.Provider<Optional<AuthorizationContext>> authorizationContext;
 
-    private final MessageDigest messageDigest;
-    
     /**
      * Constructs XSLT writer.
      *
      * @param xsltExec compiled XSLT stylesheet
      * @param resolver XSLT source resolver
-     * @param messageDigest message digest
      */
-    public XSLTWriterBase(XsltExecutable xsltExec, RDFSourceResolver resolver, MessageDigest messageDigest)
+    public XSLTWriterBase(XsltExecutable xsltExec, RDFSourceResolver resolver)
     {
         super(xsltExec, resolver); // this resolver is unused as we override getResolver() with the injected (request-scoped) one
-        this.messageDigest = messageDigest;
     }
 
     @Override
@@ -312,16 +307,6 @@ public abstract class XSLTWriterBase extends com.atomgraph.client.writer.XSLTWri
     public jakarta.inject.Provider<Optional<AuthorizationContext>> getAuthorizationContext()
     {
         return authorizationContext;
-    }
-    
-    /**
-     * Returns message digest.
-     * 
-     * @return digest
-     */
-    public MessageDigest getMessageDigest()
-    {
-        return messageDigest;
     }
     
     /**

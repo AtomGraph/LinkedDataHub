@@ -9,7 +9,7 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 reset_packages
 clear_ontology
 
-# POST /access/request with a signed-up agent (no group) should succeed
+# POST /access/request with a signed-up agent (no group) should create the request
 # foaf:Agent and acl:AuthenticatedAgent both have acl:Append access to /access/request
 
 actual=$(curl -k -w "%{http_code}" -o /dev/null -s \
@@ -30,7 +30,7 @@ actual=$(curl -k -w "%{http_code}" -o /dev/null -s \
   --data-urlencode "pu=http://www.w3.org/ns/auth/acl#agent" \
   --data-urlencode "ou=${AGENT_URI}" \
   "${END_USER_BASE_URL}access/request")
-expected="$STATUS_OK"
+expected="$STATUS_CREATED"
 echo "DEBUG: Expected: $expected"
 echo "DEBUG: Got: $actual"
 echo "$actual" | grep -qE "^(${expected})$"

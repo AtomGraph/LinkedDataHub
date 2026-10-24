@@ -42,7 +42,7 @@ public class RemoveBlock extends BaseCommand
     @Override
     public Integer call() throws Exception
     {
-        HttpException.check(target, getClient().patch(target, Updates.removeBlock(target, block))).close();
+        HttpException.checkWrite(target, getClient().patch(target, Updates.removeBlock(target, block))).close();
 
         return 0;
     }

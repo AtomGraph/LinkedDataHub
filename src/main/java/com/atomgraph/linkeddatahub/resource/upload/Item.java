@@ -30,20 +30,22 @@ import jakarta.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.FileRangeOutput;
+import com.atomgraph.linkeddatahub.server.util.ByteRange;
 import java.util.Date;
 import java.util.Optional;
 import jakarta.annotation.PostConstruct;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.NotAcceptableException;
 import jakarta.ws.rs.NotFoundException;
-import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.core.UriInfo;
 import jakarta.ws.rs.core.Variant.VariantListBuilder;
-import org.apache.jena.query.QueryFactory;
+import com.atomgraph.spinrdf.vocabulary.SPIN;
+import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
@@ -66,7 +68,7 @@ public class Item
     private static final String BYTES_RANGE = "bytes";
     private static final String RANGE = "Range";
     private static final String CONTENT_RANGE = "Content-Range";
-    private static final int CHUNK_SIZE = 1024 * 1024; // 1MB chunks
+    private static final String IF_RANGE = "If-Range";
 
     private final Request request;
     private final UriInfo uriInfo;
@@ -153,39 +155,38 @@ public class Item
 
         if (!file.exists()) throw new NotFoundException(new FileNotFoundException("File '" + getUriInfo().getPath() + "' not found"));
 
-        if (getHttpHeaders().getRequestHeaders().containsKey(RANGE))
+        // Range is defined for GET only (RFC 9110 §14.2); HEAD answers as the 200 a GET without Range would.
+        // If-Range is evaluated first (§13.2.2): a validator that does not match makes the Range header ignored.
+        String range = getHttpHeaders().getHeaderString(RANGE);
+        if (range != null && HttpMethod.GET.equals(getRequest().getMethod()) &&
+            ByteRange.ifRangeMatches(getHttpHeaders().getHeaderString(IF_RANGE), entityTag.getValue(), getLastModified(file)))
         {
-            String range = getHttpHeaders().getHeaderString(RANGE);
-
-//                if (getHttpHeaders().getRequestHeaders().containsKey(IF_RANGE)) {
-//                    String ifRangeHeader = getHttpHeaders().getHeaderString(IF_RANGE);
-//
-//                    EntityTag tag = getEntityTag(model);
-//                    if (tag != null && tag.equals(EntityTag.valueOf(ifRangeHeader))) {
-//                        //this.applyFilter(requestContext, responseContext);
-//    //                    return;
-//                    }
-////                    Date lastModified = getLastModified(file);
-////                    if (lastModified != null && lastModified.equals(ifRangeHeader)) {
-////    //                    this.applyFilter(requestContext, responseContext);
-////    //                    return;
-////                    }
-//                }
-//                else
+            try
             {
-                FileRangeOutput rangeOutput = getFileRangeOutput(file, range);
-                final long to = rangeOutput.getLength() + rangeOutput.getFrom();
-                String contentRangeValue = String.format("bytes %d-%d/%d", rangeOutput.getFrom(), to - 1, rangeOutput.getFile().length());
+                Optional<ByteRange> byteRange = ByteRange.parse(range, file.length());
+                if (byteRange.isPresent())
+                {
+                    FileRangeOutput rangeOutput = new FileRangeOutput(file, byteRange.get().getFirst(), byteRange.get().getLength());
 
-                return Response.status(Status.PARTIAL_CONTENT).
-                    entity(rangeOutput).
-                    type(variant.getMediaType()).
+                    return Response.status(Status.PARTIAL_CONTENT).
+                        entity(rangeOutput).
+                        type(variant.getMediaType()).
+                        tag(entityTag).
+                        lastModified(getLastModified(file)).
+                        header(HttpHeaders.CONTENT_LENGTH, rangeOutput.getLength()). // should override Transfer-Encoding: chunked
+                        header(ACCEPT_RANGES, BYTES_RANGE).
+                        header(CONTENT_RANGE, byteRange.get().contentRange(file.length())).
+                        header("Content-Security-Policy", "default-src 'none'; sandbox"); // LNK-011 fix: prevent XSS in uploaded HTML files
+                }
+            }
+            catch (ByteRange.NotSatisfiableException ex)
+            {
+                if (log.isTraceEnabled()) log.trace("Range '{}' not satisfiable for file of {} bytes", range, file.length());
+                return Response.status(Status.REQUESTED_RANGE_NOT_SATISFIABLE).
                     tag(entityTag).
                     lastModified(getLastModified(file)).
-                    header(HttpHeaders.CONTENT_LENGTH, rangeOutput.getLength()). // should override Transfer-Encoding: chunked
                     header(ACCEPT_RANGES, BYTES_RANGE).
-                    header(CONTENT_RANGE, contentRangeValue).
-                    header("Content-Security-Policy", "default-src 'none'; sandbox"); // LNK-011 fix: prevent XSS in uploaded HTML files
+                    header(CONTENT_RANGE, ByteRange.unsatisfiedContentRange(ex.getCompleteLength()));
             }
         }
 
@@ -198,57 +199,6 @@ public class Item
             header(ACCEPT_RANGES, BYTES_RANGE).
             header("Content-Security-Policy", "default-src 'none'; sandbox"); // LNK-011 fix: prevent XSS in uploaded HTML files
         //header("Content-Disposition", "attachment; filename=\"" + getRequiredProperty(NFO.fileName).getString() + "\"").
-    }
-
-    /**
-     * Returns streaming output of a byte range from the given file.
-     * 
-     * @param file input file
-     * @param range range string (integers separated with a dash)
-     * @return file's RDF model
-     */
-    public FileRangeOutput getFileRangeOutput(File file, String range)
-    {
-        final String[] ranges = range.split("=")[1].split("-");
-
-        final long from = Long.parseLong(ranges[0]);
-        if (from >= file.length())
-        {
-            if (log.isTraceEnabled()) log.trace("Content range '{}': start was after end of file, nothing to return", range);
-            throw new WebApplicationException(Response.status(Response.Status.REQUESTED_RANGE_NOT_SATISFIABLE).
-                    header(CONTENT_RANGE, "bytes */" + file.length()).
-                    build());
-        }
-
-        long to;
-
-        if (ranges.length == 2)
-        {
-            // the header specifies that last included byte so we increase by one for easier handling
-            to = Long.parseLong(ranges[1]) + 1;
-
-            if (to < from)
-            {
-                if (log.isTraceEnabled()) log.trace("Content range '{}': to was smaller than from", range);
-                throw new WebApplicationException(Response.status(Response.Status.REQUESTED_RANGE_NOT_SATISFIABLE).
-                        header(CONTENT_RANGE, "bytes */" + file.length()).
-                        build());
-            }
-        } 
-        else
-        {
-            // use default range if the range upper bound is unspecified. Chrome sends "bytes=0-"
-            to = CHUNK_SIZE + from;
-        }
-
-        if (to > file.length())
-        {
-            if (log.isTraceEnabled()) log.trace("Content range '{}': to was greater than possible, limit to max length", range);
-            to = file.length();
-        }
-
-        final long length = to - from;
-        return new FileRangeOutput(file, from, length);
     }
 
     /**
@@ -315,8 +265,10 @@ public class Item
      */
     public Model describe()
     {
-        // TO-DO: can we avoid hardcoding the query string here?
-        return getSystem().getServiceContext(getService()).getSPARQLClient().loadModel(QueryFactory.create("DESCRIBE <" + getURI() + ">"));
+        ParameterizedSparqlString pss = new ParameterizedSparqlString(getSystem().getFileQuery().toString());
+        pss.setIri(SPIN.THIS_VAR_NAME, getURI().toString());
+
+        return getSystem().getServiceContext(getService()).getSPARQLClient().loadModel(pss.asQuery());
     }
     
     /**

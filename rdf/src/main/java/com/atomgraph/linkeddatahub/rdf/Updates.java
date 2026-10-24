@@ -158,8 +158,8 @@ public final class Updates
     }
 
     /**
-     * Makes all end-user application documents publicly readable and allows queries over POST,
-     * by extending the built-in public authorization.
+     * Makes all end-user application documents publicly readable, by extending the built-in public authorization.
+     * Queries over POST need their own authorization, in a document of its own: see {@link Acl#publicSparqlPost}.
      *
      * @param base end-user application base URI
      * @param adminBase admin application base URI
@@ -169,26 +169,19 @@ public final class Updates
     {
         ParameterizedSparqlString pss = new ParameterizedSparqlString("""
             PREFIX  acl: <http://www.w3.org/ns/auth/acl#>
-            PREFIX  def: <https://w3id.org/atomgraph/linkeddatahub/default#>
-            PREFIX  dh:  <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#>
             PREFIX  nfo: <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
-            PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 
             INSERT
             {
-              ?public acl:accessToClass def:Root, dh:Container, dh:Item, nfo:FileDataObject ;
-                  acl:accessTo ?sparql .
-
-              ?sparqlPost a acl:Authorization ;
-                  acl:accessTo ?sparql ;
-                  acl:mode acl:Append ;
-                  acl:agentClass foaf:Agent, acl:AuthenticatedAgent . # hacky way to allow queries over POST
+              ?public acl:accessTo ?root, ?sparql ;
+                  acl:default ?root ;
+                  acl:accessToClass nfo:FileDataObject .
             }
             WHERE
             {}
             """);
         pss.setIri("public", adminBase + "acl/authorizations/public/#this");
-        pss.setIri("sparqlPost", adminBase + "acl/authorizations/public/#sparql-post");
+        pss.setIri("root", base.toString());
         pss.setIri("sparql", base + "sparql");
         return pss.toString();
     }

@@ -1,3 +1,64 @@
+## [6.3.0] - 2026-10-24
+### Migration
+- Access is plain WAC over the document hierarchy: `acl:default` on a container covers everything below it, `acl:Control` grants nothing, and owners are granted through `lacl:OwnerAgent`; run `migrations/6.0-acl.ru.template` on each admin store and `migrations/6.0-hierarchy.ru.template` on every store
+- `ldh create authorization` takes `--default` instead of `--control`
+- Delete `acl/authorizations/append-request/` from existing admin datasets: `acl:Append` on a container now lets an agent create documents in it
+- A write to an existing document must quote its entity tag in `If-Match` (`428` without one, `412` when stale), and a create sends `If-None-Match: *` (#452)
+- `PATCH /settings` needs `If-Match` too; `ldh packages add`/`remove` already send it (#453)
+- `PUT` answers `204` on replace and `201` on create, without an `ETag`; read the new tag with `HEAD` (#456)
+- A file upload is an ordinary `POST`: it needs `If-Match` and answers `204` with the new `ETag` (#456)
+- `ldh` exits `1` on a redirect instead of following it (#454)
+- Re-sync copies of `docker-compose.yml` and `Makefile`, and add `PROXY_SECRET` to `.env` with `make secrets`; the platform does not start without it
+
+### Added
+- A `PUT` with `If-None-Match: *` needs only `acl:Append`, so an agent can be allowed to create documents without replacing them
+- `MAX_UPLOAD_LENGTH` sets a separate size limit for file uploads
+- `ldh add file --replace` replaces a document with the file's description
+- Deleting a document asks in a dialog, which also explains a refusal
+- The access-control model is formalised in Lean (`formal/acl/`), with proofs of its properties, kept in step with the code in CI and replayed against the server by the HTTP tests
+
+### Changed
+- `acl:Write` covers `acl:Append`, following the ACL ontology
+- A document's graph states only its own place in the hierarchy: `sioc:has_parent`/`sioc:has_container` are server-managed, and other subjects' containment is refused with `422`
+- `DELETE` of a container that still has documents answers `409`
+- `dct:created` and `dct:modified` are server-managed, and `PATCH` updates `Last-Modified`
+- Sign-up stores only the agent's own description
+- Access checks are several times faster on large stores
+
+### Fixed
+- A malformed IRI is refused with `422` naming each value, and the form marks the field; a `PATCH` used to store some, such as `<http://[::1>`
+- A form no longer lets a typed URI or language tag add statements to its update
+- A write that violates SPIN constraints and SHACL shapes reports both in one `422`
+- A class with a SHACL shape and no SPIN constructor can be chosen as the type of a new instance again
+- A `PATCH` with `GRAPH`, `WITH` or `USING` is refused with `422` instead of changing nothing (#453)
+- `?graph=` or `?default` on a document answers `400` instead of being ignored
+- Uploads are stored whole, hashed one by one, left behind neither on refusal nor in the temporary folder (#455)
+- `foaf:mbox_sha1sum` is the SHA1 of the agent's address (#455)
+- Byte ranges of uploaded files follow RFC 9110
+- HTML entity tags change with the stylesheets and packages, so a deploy no longer serves stale pages
+- Concurrent settings updates no longer lose one of them (#453)
+- Opening the settings dialog no longer makes the next save of the page fail with `412`
+- `ldh create` with a parent URI lacking its trailing slash creates the document inside it
+- Re-saving a document no longer runs its imports again
+- An empty `POST` is a no-op answering `204`
+- A `PATCH` that would empty the root or a WebID document answers `422` instead of `405`
+- A `428` response explains how to get the current entity tag
+- A write whose `Accept` names no RDF syntax is no longer refused with `406`
+- `405` responses list the allowed methods, a `415` to `PATCH` names the accepted type, and access requests answer `201`
+
+### Security
+- A document's types, which authorizations match on, come from its own graph only, so a write to one document cannot change another's access
+- `/sparql` refuses SPARQL Update with `405`
+- `acl:owner` and `dct:creator` are server-managed, and a `PATCH` that changes them is refused with `422`
+- nginx and Tomcat refuse unusual request paths, and the platform accepts a forwarded client certificate only with the secret shared with nginx
+- Responses to authenticated agents and uploaded files are `Cache-Control: private`, and the front Varnish no longer caches OAuth sessions
+- Writes and access changes evict the affected cached responses, and documents are revalidated
+- OAuth sign-in verifies the ID token's signature first, accepts only `RS256`, and survives a provider key rotation
+- An agent's delegation and ID token are sent only to this instance's dataspaces, and a refreshed token replaces the old one
+- The page OAuth sign-in returns to must belong to this instance, and the OAuth cookies are hardened
+- Outbound fetches check every redirect hop against the internal-address rules
+- A package stylesheet whose URL is refused is left out instead of fetched
+
 ## [6.2.3] - 2026-10-21
 ### Migration
 - Deployments that keep a copy of `docker-compose.yml` need to re-sync it to get the SPARQL query cache and the Varnish store kept for SPARQL results

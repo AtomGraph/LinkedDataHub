@@ -21,8 +21,8 @@ ldh admin add agent \
 
 owner_doc=$(echo "$OWNER_URI" | cut -d '#' -f 1)
 
-(
-curl -k -w "%{http_code}\n" -o /dev/null -s \
+headers=$(
+curl -k -o /dev/null -s -D - \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -X PUT \
   -H "Accept: application/n-triples" \
@@ -31,5 +31,17 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
   "$owner_doc" <<EOF
 <http://a> <http://b> <http://c> .
 EOF
-) \
-| grep -q "$STATUS_METHOD_NOT_ALLOWED"
+)
+
+# the 405 names the methods the resource allows
+
+status=$(head -n 1 <<< "$headers" | cut -d ' ' -f 2)
+allow=$(grep -i '^allow:' <<< "$headers" | tr -d '\r' || true)
+echo "DEBUG: Expected status: $STATUS_METHOD_NOT_ALLOWED"
+echo "DEBUG: Got status: $status"
+echo "DEBUG: Got: $allow"
+[ "$status" = "$STATUS_METHOD_NOT_ALLOWED" ]
+grep -qw "GET" <<< "$allow"
+grep -qw "PATCH" <<< "$allow"
+if grep -qw "PUT" <<< "$allow"; then echo "DEBUG: PUT should not be allowed"; exit 1; fi
+if grep -qw "DELETE" <<< "$allow"; then echo "DEBUG: DELETE should not be allowed"; exit 1; fi

@@ -32,6 +32,7 @@ export STATUS_POST_SUCCESS='200|201|204'
 export STATUS_PUT_SUCCESS='200|201|204'
 export STATUS_CREATED=201
 export STATUS_NO_CONTENT=204
+export STATUS_PARTIAL_CONTENT=206
 export STATUS_UPDATED='201|204'
 export STATUS_SEE_OTHER=303
 export STATUS_NOT_MODIFIED=304
@@ -42,9 +43,11 @@ export STATUS_FORBIDDEN=403
 export STATUS_NOT_FOUND=404
 export STATUS_METHOD_NOT_ALLOWED=405
 export STATUS_NOT_ACCEPTABLE=406
+export STATUS_CONFLICT=409
 export STATUS_PRECONDITION_FAILED=412
 export STATUS_REQUEST_ENTITY_TOO_LARGE=413
 export STATUS_UNSUPPORTED_MEDIA=415
+export STATUS_RANGE_NOT_SATISFIABLE=416
 export STATUS_UNPROCESSABLE_ENTITY=422
 export STATUS_PRECONDITION_REQUIRED=428
 export STATUS_INTERNAL_SERVER_ERROR=500
@@ -261,6 +264,8 @@ function reset_packages()
       -X PATCH \
       -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
       -H "Content-Type: application/sparql-update" \
+      -H "Accept: application/n-triples" \
+      -H "If-Match: $(etag "${END_USER_BASE_URL}settings" "$OWNER_CERT_FILE" "$OWNER_CERT_PWD")" \
       -d "DELETE { ?app <https://w3id.org/atomgraph/linkeddatahub#import> ?package } WHERE { ?app <https://w3id.org/atomgraph/linkeddatahub#import> ?package }" \
       "${END_USER_BASE_URL}settings")
 
@@ -327,6 +332,13 @@ export -f reset_packages
 export -f clear_ontology
 
 export HTTP_TEST_ROOT="$PWD"
+
+# purge_cache runs docker compose with this directory's .env, and compose requires PROXY_SECRET. Locally it lives in the
+# repository's .env (make secrets); CI puts it in the environment
+if [ -z "$PROXY_SECRET" ] && [ -f "$HTTP_TEST_ROOT/../../.env" ]; then
+    PROXY_SECRET=$(grep -m1 '^PROXY_SECRET=' "$HTTP_TEST_ROOT/../../.env" | cut -d= -f2-)
+    [ -z "$PROXY_SECRET" ] || export PROXY_SECRET
+fi
 export TEST_RESULTS_DIR="${TEST_RESULTS_DIR:-$HTTP_TEST_ROOT/out}"
 mkdir -p "$TEST_RESULTS_DIR"
 export END_USER_ENDPOINT_URL="http://localhost:3030/end-user/"
@@ -368,6 +380,8 @@ run_tests "add" $(find ./add/ -type f -name '*.sh')
 run_tests "admin" $(find ./admin/ -type f -name '*.sh')
 run_tests "dataspaces" $(find ./dataspaces/ -type f -name '*.sh')
 run_tests "access" $(find ./access/ -type f -name '*.sh')
+run_tests "formal" $(find ./formal/ -type f -name '*.sh')
+run_tests "oauth" $(find ./oauth/ -type f -name '*.sh')
 run_tests "imports" $(find ./imports/ -type f -name '*.sh')
 run_tests "push" $(find ./push/ -type f -name '*.sh')
 run_tests "document-hierarchy" $(find ./document-hierarchy/ -type f -name '*.sh')

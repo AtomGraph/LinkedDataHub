@@ -4,17 +4,37 @@
 
     <groupId>com.atomgraph</groupId>
     <artifactId>linkeddatahub-cli</artifactId>
-    <version>6.2.3</version>
+    <version>6.3.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>LinkedDataHub CLI</name>
     <description>Command line interface for the LinkedDataHub HTTP API</description>
     <url>https://github.com/AtomGraph/LinkedDataHub</url>
 
+    <!-- core.version follows the Core the platform resolves through Web-Client (make cli-version), and
+    between releases that is a snapshot, so this project reads the snapshot repository the platform does -->
+    <repositories>
+        <repository>
+            <id>central-portal-snapshots</id>
+            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>21</maven.compiler.release>
         <jersey.version>3.1.11</jersey.version>
+        <!-- the Core version the platform resolves - through Web-Client, since the root pom.xml never
+        declares Core itself. This project has no Web-Client, so it pins Core directly, and the pin is
+        a copy: `make cli-version` reads the resolved version from the platform build and writes it
+        here, and `make cli-version-check` (run by the test workflows) fails when the copy differs -->
+        <core.version>5.1.0-SNAPSHOT</core.version>
     </properties>
 
     <dependencies>
@@ -36,7 +56,7 @@
         <dependency>
             <groupId>com.atomgraph</groupId>
             <artifactId>core</artifactId>
-            <version>5.0.2</version>
+            <version>${core.version}</version>
             <exclusions>
                 <!-- server-side container is not needed by the client -->
                 <exclusion>

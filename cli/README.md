@@ -69,7 +69,9 @@ most of its life waiting on HTTP. `LDH_JAVA_OPTS` replaces those flags outright.
 The CLI carries the same version as the platform: it ships with a LinkedDataHub release and is
 exercised by the same `tests/http` suite, so `cli/pom.xml` tracks the root `pom.xml`. `release.sh` keeps
 the two in step across the release bumps, and `make cli-version` sets `cli/pom.xml` from the
-platform version if they ever drift.
+platform version if they ever drift. The same target copies the Core version the platform resolves
+through Web-Client into `cli/pom.xml` as `core.version`, so the CLI is built against the Core the
+platform runs on; `make cli-version-check` fails when the copy differs, and the test workflows run it.
 
 `ldh --version` reports the version the jar was built at, read back from its `Implementation-Version`
 manifest entry.
@@ -179,7 +181,9 @@ ldh add object-block --value "${container}#children" "$container"
 
 - Commands that create or append to a document print its URL as the only line on stdout, so shell
   pipelines keep working: `item=$(ldh create item ...)`. `add file` prints the content-addressed
-  upload URI (`uploads/{sha1}` under the root of the document's origin). `import csv` and
+  upload URI (`uploads/{sha1}` under the root of the document's origin); it appends the file's
+  description to the document (multipart `POST`), or with `--replace` replaces the document with it
+  (multipart `PUT`). `import csv` and
   `import rdf` print the URI of the import they create, a fragment of the target document
   (`${import%%#*}` is the document). All diagnostics go to stderr.
 - An import runs in the background on the server. `import csv|rdf --wait` waits until it has ended
@@ -189,8 +193,11 @@ ldh add object-block --value "${container}#children" "$container"
   URI, in write order, so the listing greps and cuts like `packages list` does. Progress
   (`PUT <url> <- <path>`, `POST <url> <- <path>`) and `Skipping <path>` lines go to stderr. On the
   first failed request the run stops with exit code `1`; stdout holds what was written before it.
-- Exit codes: `0` success, `1` HTTP error status or runtime failure (message on stderr, stack trace
-  with `--verbose`), `2` usage error.
+- Exit codes: `0` success, `1` a status other than success or runtime failure (message on stderr,
+  stack trace with `--verbose`), `2` usage error. Redirects are not followed and count as failures,
+  with their `Location` on stderr: a `PUT` to a URI without a trailing slash is answered `308` and
+  writes nothing. A write answered `303 See Other` succeeds; `get --head` reports any status, and
+  `get --timegate` takes its `302`.
 - `--proxy` sends every request to the proxy's scheme, host and port but keeps the logical URI's
   path and `Host` header, so the platform still routes the dataspace (an admin request through the
   end-user proxy reaches the admin application) and answers with logical URIs, which are the ones

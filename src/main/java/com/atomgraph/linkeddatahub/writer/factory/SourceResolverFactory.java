@@ -84,7 +84,7 @@ public class SourceResolverFactory implements Factory<RDFSourceResolver>
             repository = getSystem().getRepository();
 
         GraphStoreClient gsc = GraphStoreClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
-            delegation(getUriInfo().getBaseUri(), getAgentContext());
+            delegation(getUriInfo().getBaseUri(), getAgentContext(), uri -> getSystem().matchApp(uri) != null);
 
         return new SameSiteSourceResolver(repository, gsc, getSystem().isResolvingUncached(), getSystem().getBaseURI());
     }

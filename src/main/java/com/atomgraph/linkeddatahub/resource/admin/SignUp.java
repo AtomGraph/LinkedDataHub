@@ -83,6 +83,7 @@ import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.vocabulary.DCTerms;
@@ -181,9 +182,12 @@ public class SignUp extends DocumentHierarchyGraphStoreImpl
     
     @POST
     @Override
-    public Response post(Model agentModel)
+    public Response post(Model payload)
     {
         URI agentGraphUri = getUriInfo().getBaseUriBuilder().path(AGENT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
+        // the agent's document holds the agent's description and what is added to it below. It is an admin graph, which the
+        // authorization queries read, so what the payload says about any other resource is not stored
+        Model agentModel = getAgentDescription(payload);
         new Skolemizer(agentGraphUri.toString()).apply(agentModel);
         
         ResIterator it = agentModel.listResourcesWithProperty(RDF.type, FOAF.Person);
@@ -301,7 +305,8 @@ public class SignUp extends DocumentHierarchyGraphStoreImpl
 
                     if (download)
                     {
-                        return Response.ok(keyStoreBytes).
+                        return Response.created(agentGraphUri).
+                            entity(keyStoreBytes).
                             type(PKCS12_MEDIA_TYPE).
                             header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=cert.p12").
                             build();
@@ -332,6 +337,49 @@ public class SignUp extends DocumentHierarchyGraphStoreImpl
         catch (Exception ex)
         {
             throw new MappableException(ex);
+        }
+        finally
+        {
+            it.close();
+        }
+    }
+
+    /**
+     * Returns the description of the agent signing up: the statements about the payload's <code>foaf:Person</code> and,
+     * recursively, about the blank nodes they lead to. Statements about any other resource are left out.
+     *
+     * @param payload sign-up payload
+     * @return agent's description, empty if the payload has no <code>foaf:Person</code>
+     */
+    public static Model getAgentDescription(Model payload)
+    {
+        Model description = ModelFactory.createDefaultModel();
+        ResIterator it = payload.listResourcesWithProperty(RDF.type, FOAF.Person);
+        try
+        {
+            if (it.hasNext()) addDescription(description, it.next());
+        }
+        finally
+        {
+            it.close();
+        }
+
+        return description;
+    }
+
+    private static void addDescription(Model description, Resource resource)
+    {
+        StmtIterator it = resource.listProperties();
+        try
+        {
+            while (it.hasNext())
+            {
+                Statement stmt = it.next();
+                if (description.contains(stmt)) continue; // a blank node already described
+
+                description.add(stmt);
+                if (stmt.getObject().isAnon()) addDescription(description, stmt.getResource());
+            }
         }
         finally
         {

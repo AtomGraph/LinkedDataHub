@@ -9,9 +9,9 @@ purge_cache "$FRONTEND_VARNISH_SERVICE"
 reset_packages
 clear_ontology
 
-# submit requested authorization for the agent
+# submit requested authorization for the agent: the request document is created and Location points at it
 
-curl -w "%{http_code}\n" -o /dev/null -k -s \
+headers=$(curl -o /dev/null -k -s -D - \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: text/turtle" \
   -H "Content-Type: application/x-www-form-urlencoded" \
@@ -33,5 +33,22 @@ curl -w "%{http_code}\n" -o /dev/null -k -s \
   --data-urlencode "ol=Access request by Test Agent" \
   --data-urlencode "pu=http://www.w3.org/ns/auth/acl#agent" \
   --data-urlencode "ou=${AGENT_URI}" \
-  "${END_USER_BASE_URL}access/request" \
-| grep -q "$STATUS_OK"
+  "${END_USER_BASE_URL}access/request")
+
+status=$(head -n 1 <<< "$headers" | cut -d ' ' -f 2)
+location=$(grep -i '^location:' <<< "$headers" | cut -d ' ' -f 2 | tr -d '\r' || true)
+echo "DEBUG: Expected status: $STATUS_CREATED"
+echo "DEBUG: Got status: $status"
+echo "DEBUG: Got location: $location"
+[ "$status" = "$STATUS_CREATED" ]
+[[ "$location" == "${ADMIN_BASE_URL}"* ]]
+
+# the access request document exists at that location
+
+request=$(ldh get \
+  -c "$OWNER_CERT_KEYSTORE" \
+  -p "$OWNER_CERT_PWD" \
+  --accept "application/n-triples" \
+  "$location")
+
+grep -q "<https://w3id.org/atomgraph/linkeddatahub/admin/acl#AuthorizationRequest>" <<< "$request"

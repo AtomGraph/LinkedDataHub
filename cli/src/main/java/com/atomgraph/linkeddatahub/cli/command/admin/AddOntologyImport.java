@@ -42,7 +42,7 @@ public class AddOntologyImport extends BaseCommand
     @Override
     public Integer call() throws Exception
     {
-        HttpException.check(target, getClient().patch(target, Updates.insertOntologyImport(target, importURI))).close();
+        HttpException.checkWrite(target, getClient().patch(target, Updates.insertOntologyImport(target, importURI))).close();
 
         return 0;
     }

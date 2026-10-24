@@ -239,6 +239,154 @@ public class CommandOutputTest
     }
 
     @Test
+    public void putAnsweredWithARedirectExitsOneNamingTheLocation() throws Exception
+    {
+        try (StubServer server = new StubServer())
+        {
+            URI target = server.baseURI().resolve("some");
+            server.responds(308, "").respondsWithHeader("Location", target + "/");
+            StringWriter out = new StringWriter(), err = new StringWriter();
+
+            Path file = Files.createTempFile("redirected", ".ttl");
+            Files.writeString(file, "<> <http://purl.org/dc/terms/title> \"Redirected\" .");
+            try
+            {
+                int code = commandLine(out, err).execute("put",
+                    "-c", keyStorePath().toString(), "-p", "changeit", target.toString(), file.toString());
+
+                assertEquals(CommandLine.ExitCode.SOFTWARE, code);
+                assertEquals("", out.toString(), "a PUT that wrote nothing must not print the URI as if it had");
+                assertTrue(err.toString().contains("HTTP 308"), err.toString());
+                assertTrue(err.toString().contains("Location: " + target + "/"), err.toString());
+            }
+            finally
+            {
+                Files.deleteIfExists(file);
+            }
+        }
+    }
+
+    @Test
+    public void createAnsweredWithARedirectExitsOneWithEmptyStdout() throws Exception
+    {
+        try (StubServer server = new StubServer())
+        {
+            URI base = server.baseURI();
+            server.responds(308, "").respondsWithHeader("Location", base + "test/");
+            StringWriter out = new StringWriter(), err = new StringWriter();
+
+            int code = commandLine(out, err).execute("create", "item",
+                "-c", keyStorePath().toString(), "-p", "changeit", "--title", "Test", "--slug", "test", "--container", base.toString());
+
+            assertEquals(CommandLine.ExitCode.SOFTWARE, code);
+            assertEquals("", out.toString(), "a failed command must print nothing on stdout");
+        }
+    }
+
+    @Test
+    public void getAnsweredWithARedirectExitsOne() throws Exception
+    {
+        try (StubServer server = new StubServer())
+        {
+            URI target = server.baseURI().resolve("some");
+            server.responds(301, "").respondsWithHeader("Location", target + "/");
+            StringWriter out = new StringWriter(), err = new StringWriter();
+
+            int code = commandLine(out, err).execute("get",
+                "-c", keyStorePath().toString(), "-p", "changeit", "--accept", "text/turtle", target.toString());
+
+            assertEquals(CommandLine.ExitCode.SOFTWARE, code);
+            assertEquals("", out.toString(), "a redirect has no body to print");
+        }
+    }
+
+    @Test
+    public void headReportsARedirectAndExitsZero() throws Exception
+    {
+        try (StubServer server = new StubServer())
+        {
+            URI target = server.baseURI().resolve("some");
+            server.responds(308, "").respondsWithHeader("Location", target + "/");
+            StringWriter out = new StringWriter(), err = new StringWriter();
+
+            int code = commandLine(out, err).execute("get",
+                "-c", keyStorePath().toString(), "-p", "changeit", "--head", "--accept", "text/turtle", target.toString());
+
+            assertEquals(0, code);
+            assertTrue(out.toString().startsWith("HTTP 308"), out.toString());
+        }
+    }
+
+    @Test
+    public void postAnsweredWithSeeOtherSucceeds() throws Exception
+    {
+        try (StubServer server = new StubServer())
+        {
+            URI target = server.baseURI().resolve("some/");
+            server.responds(303, "").respondsWithHeader("Location", target + "result/");
+            StringWriter out = new StringWriter(), err = new StringWriter();
+
+            Path file = Files.createTempFile("appended", ".ttl");
+            Files.writeString(file, "<> <http://purl.org/dc/terms/title> \"Appended\" .");
+            try
+            {
+                int code = commandLine(out, err).execute("post",
+                    "-c", keyStorePath().toString(), "-p", "changeit", target.toString(), file.toString());
+
+                assertEquals(0, code, err.toString());
+                assertEquals("POST", server.getLastMethod());
+            }
+            finally
+            {
+                Files.deleteIfExists(file);
+            }
+        }
+    }
+
+    @Test
+    public void addFileAppendsWithAMultipartPost() throws Exception
+    {
+        assertAddFileSends(false, "POST");
+    }
+
+    @Test
+    public void addFileReplaceSendsAMultipartPut() throws Exception
+    {
+        assertAddFileSends(true, "PUT");
+    }
+
+    private void assertAddFileSends(boolean replace, String method) throws Exception
+    {
+        try (StubServer server = new StubServer())
+        {
+            server.responds(204, "");
+            URI target = server.baseURI().resolve("some/");
+            StringWriter out = new StringWriter(), err = new StringWriter();
+
+            Path file = Files.createTempFile("upload", ".txt");
+            Files.writeString(file, "uploaded");
+            try
+            {
+                List<String> args = new java.util.ArrayList<>(List.of("add", "file",
+                    "-c", keyStorePath().toString(), "-p", "changeit", "--title", "Upload", "--file", file.toString(), "--content-type", "text/plain"));
+                if (replace) args.add("--replace");
+                args.add(target.toString());
+
+                int code = commandLine(out, err).execute(args.toArray(String[]::new));
+
+                assertEquals(0, code, err.toString());
+                assertEquals(method, server.getLastMethod());
+                assertTrue(server.getLastHeader("Content-Type").startsWith("multipart/form-data"), server.getLastHeader("Content-Type"));
+                assertTrue(out.toString().strip().startsWith(target.resolve("/uploads/").toString()), out.toString());
+            }
+            finally
+            {
+                Files.deleteIfExists(file);
+            }
+        }
+    }
+
+    @Test
     public void connectionFailureExitsOneWithEmptyStdout() throws Exception
     {
         URI base;

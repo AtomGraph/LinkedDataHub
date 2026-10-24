@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.server.filter.request.auth;
 import com.atomgraph.linkeddatahub.server.filter.request.AuthenticationFilter;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.io.ModelProvider;
+import com.atomgraph.linkeddatahub.client.RedirectingClient;
 import com.atomgraph.linkeddatahub.dataspaces.model.Dataspace;
 import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.server.exception.auth.webid.InvalidWebIDPublicKeyException;
@@ -281,9 +282,9 @@ public class WebIDFilter extends AuthenticationFilter
             // remove fragment identifier to get document URI
             URI webIDDoc = new URI(webID.getScheme(), webID.getSchemeSpecificPart(), null).normalize();
             
-            try (Response cr1 = getClient().target(webIDDoc).
-                    request(getAcceptableMediaTypes()).
-                    get())
+            // redirects are followed with every hop validated
+            RedirectingClient redirectingClient = new RedirectingClient(getSystem().getURLValidator());
+            try (Response cr1 = redirectingClient.get(getClient()::target, webIDDoc, target -> target.request(getAcceptableMediaTypes()).get()).response())
             {
                 if (!cr1.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                 {
@@ -302,9 +303,7 @@ public class WebIDFilter extends AuthenticationFilter
                     // remove fragment identifier to get document URI
                     URI certKeyDoc = new URI(certKey.getScheme(), certKey.getSchemeSpecificPart(), null).normalize();
 
-                    try (Response cr2 = getClient().target(certKeyDoc).
-                            request(getAcceptableMediaTypes()).
-                            get())
+                    try (Response cr2 = redirectingClient.get(getClient()::target, certKeyDoc, target -> target.request(getAcceptableMediaTypes()).get()).response())
                     {
                         if (!cr2.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                         {

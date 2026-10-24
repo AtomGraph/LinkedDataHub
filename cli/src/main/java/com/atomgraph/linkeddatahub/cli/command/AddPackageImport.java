@@ -48,7 +48,7 @@ public class AddPackageImport extends BaseCommand
     {
         URI target = URI.create(baseMixin.require(getSpec()) + "settings");
 
-        HttpException.check(target, getClient().patch(target, Updates.insertPackageImport(packageURI))).close();
+        HttpException.checkWrite(target, getClient().patch(target, Updates.insertPackageImport(packageURI))).close();
 
         return 0;
     }
