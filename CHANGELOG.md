@@ -25,6 +25,9 @@
 - Sign-up stores only the agent's own description
 - Access checks are several times faster on large stores
 
+### Removed
+- The end-user dataset no longer seeds the `services/` container with the DBpedia and Wikidata services; existing stores keep theirs
+
 ### Fixed
 - A malformed IRI is refused with `422` naming each value, and the form marks the field; a `PATCH` used to store some, such as `<http://[::1>`
 - A form no longer lets a typed URI or language tag add statements to its update
