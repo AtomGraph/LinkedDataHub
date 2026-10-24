@@ -44,6 +44,7 @@ import com.atomgraph.linkeddatahub.writer.TimeMapWriter;
 import com.atomgraph.server.exception.SHACLConstraintViolationException;
 import com.atomgraph.server.exception.SPINConstraintViolationException;
 import static com.atomgraph.server.status.UnprocessableEntityStatus.UNPROCESSABLE_ENTITY;
+import com.atomgraph.linkeddatahub.server.exception.URISyntaxViolationException;
 import com.atomgraph.spinrdf.constraints.ConstraintViolation;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
 import com.atomgraph.core.vocabulary.SD;
@@ -854,7 +855,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         catch (URISyntaxException ex)
         {
             if (log.isErrorEnabled()) log.error("URI '{}' has syntax error in request with media type: {}", ex.getInput(), multiPart.getMediaType());
-            throw new BadRequestException(ex);
+            throw new URISyntaxViolationException(Map.of(ex.getInput(), ex.getMessage()));
         }
         catch (RuntimeIOException ex)
         {
@@ -906,7 +907,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         catch (URISyntaxException ex)
         {
             if (log.isErrorEnabled()) log.error("URI '{}' has syntax error in request with media type: {}", ex.getInput(), multiPart.getMediaType());
-            throw new BadRequestException(ex);
+            throw new URISyntaxViolationException(Map.of(ex.getInput(), ex.getMessage()));
         }
         catch (RuntimeIOException ex)
         {

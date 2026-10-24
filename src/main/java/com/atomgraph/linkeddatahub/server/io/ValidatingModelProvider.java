@@ -31,6 +31,14 @@ import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.update.UpdateFactory;
+import org.apache.jena.riot.RiotException;
+import com.atomgraph.linkeddatahub.server.exception.URISyntaxViolationException;
+import com.atomgraph.linkeddatahub.server.util.InvalidIRIs;
+import jakarta.ws.rs.core.MultivaluedMap;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 import org.apache.jena.vocabulary.RDF;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -85,7 +93,25 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject jakarta.inject.Provider<Optional<AgentContext>> agentContextProvider;
 
-    
+    /**
+     * Reads the request body. A malformed IRI stops the parser, whose error names it only in the message; it is
+     * refused as a URI syntax violation that names the value, so a form can mark the field it was typed into.
+     */
+    @Override
+    public Model readFrom(Class<Model> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, String> httpHeaders, InputStream entityStream) throws IOException
+    {
+        try
+        {
+            return super.readFrom(type, genericType, annotations, mediaType, httpHeaders, entityStream);
+        }
+        catch (RiotException ex)
+        {
+            Optional<String> iri = InvalidIRIs.fromMessage(ex.getMessage());
+            if (iri.isPresent()) throw new URISyntaxViolationException(Map.of(iri.get(), InvalidIRIs.check(iri.get()).get()));
+            throw ex;
+        }
+    }
+
     @Override
     public Model write(Model model, OutputStream os, Lang lang, String baseURI)
     {

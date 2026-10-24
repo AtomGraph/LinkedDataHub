@@ -25,6 +25,7 @@ import com.atomgraph.linkeddatahub.server.util.OntologyRepository;
 import org.apache.jena.riot.RDFParser;
 import com.atomgraph.linkeddatahub.server.mapper.HttpHostConnectExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.ResponseContentTooLargeExceptionMapper;
+import com.atomgraph.linkeddatahub.server.mapper.URISyntaxViolationExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.InternalURLExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.MessagingExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.auth.webid.WebIDLoadingExceptionMapper;
@@ -100,6 +101,7 @@ import com.atomgraph.linkeddatahub.server.filter.request.AcceptHeadersFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.ApplicationFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.WebIDFilter;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
+import com.atomgraph.linkeddatahub.server.io.ValidatingUpdateRequestProvider;
 import com.atomgraph.server.mapper.ConfigurationExceptionMapper;
 import com.atomgraph.linkeddatahub.server.factory.OntologyFactory;
 import com.atomgraph.linkeddatahub.server.factory.ServiceFactory;
@@ -1088,7 +1090,7 @@ public class Application extends ResourceConfig
         register(new SPARQLResultProvider()); // the boolean of an ASK, which ResultSetProvider cannot write
         register(new QueryProvider());
         register(new QueryParamProvider());
-        register(new UpdateRequestProvider());
+        register(new ValidatingUpdateRequestProvider()); // refuses malformed IRIs as URISyntaxViolations, as ValidatingModelProvider does
         register(new ModelXSLTWriter(getXsltExecutable(), getResolver())); // writes (X)HTML responses
         register(new ResultSetXSLTWriter(getXsltExecutable(), getResolver())); // writes (X)HTML responses
         register(new TimeMapWriter()); // writes link-format TimeMap responses
@@ -1299,6 +1301,7 @@ public class Application extends ResourceConfig
         register(ClientErrorExceptionMapper.class);
         register(HttpHostConnectExceptionMapper.class);
         register(ResponseContentTooLargeExceptionMapper.class);
+        register(URISyntaxViolationExceptionMapper.class);
         register(InternalURLExceptionMapper.class);
         register(BadGatewayExceptionMapper.class);
         register(OntClassNotFoundExceptionMapper.class);

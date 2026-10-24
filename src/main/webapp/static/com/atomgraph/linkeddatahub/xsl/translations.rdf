@@ -896,6 +896,18 @@
         <rdfs:label xml:lang="en-US">Invalid value</rdfs:label>
         <rdfs:label xml:lang="es-ES">Valor no válido</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="violation-invalid-uri">
+        <rdfs:label xml:lang="en-US">Not a valid URI</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No es un URI válido</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="violation-relative-uri">
+        <rdfs:label xml:lang="en-US">Enter a full URI, starting with a scheme such as https:</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Introduzca un URI completo, que empiece por un esquema como https:</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="violation-language-tag">
+        <rdfs:label xml:lang="en-US">Not a valid language tag, such as en or en-GB</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No es una etiqueta de idioma válida, como es o es-ES</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="violation-constraint">
         <rdfs:label xml:lang="en-US">Constraint violated</rdfs:label>
         <rdfs:label xml:lang="es-ES">Restricción violada</rdfs:label>

@@ -1673,6 +1673,9 @@ LIMIT   10
             <xsl:when test="$status = 201 and map:contains($response?headers, 'location')">
                 <xsl:sequence select="ldh:form-submit-created($context)"/>
             </xsl:when>
+            <xsl:when test="ldh:is-uri-syntax-violation($response)">
+                <xsl:sequence select="ldh:form-uri-syntax-violation($context)"/>
+            </xsl:when>
             <xsl:when test="$status = (400, 422) and starts-with($media-type, 'application/rdf+xml')">
               <xsl:sequence select="ldh:modal-form-submit-violation($context)"/>
             </xsl:when>
@@ -1913,6 +1916,9 @@ LIMIT   10
             <!-- 200/204: settings saved successfully, reload so the page re-renders with the updated settings and stylesheet composition -->
             <xsl:when test="$status = (200, 204)">
                 <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'location'), 'reload', [])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:when>
+            <xsl:when test="ldh:is-uri-syntax-violation($response)">
+                <xsl:sequence select="ldh:form-uri-syntax-violation($context)"/>
             </xsl:when>
             <!-- validation errors: inject render-fn so the violation re-render uses ldh:AppSettingsForm mode (the modal-form-submit-violation chain is shared with the Container/Item flow which renders via ldh:DocumentForm); 'required' mirrors the always-true function of the initial app-settings chain; the package-catalog load pair rides as 'load-pairs' so the re-rendered form keeps the package checkboxes - without them Save would submit no ldh:import triples and uninstall every package -->
             <xsl:when test="$status = (400, 422) and starts-with($media-type, 'application/rdf+xml')">
