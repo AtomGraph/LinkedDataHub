@@ -15,6 +15,7 @@
 - `MAX_UPLOAD_LENGTH` sets a separate size limit for file uploads
 - `ldh add file --replace` replaces a document with the file's description
 - Deleting a document asks in a dialog, which also explains a refusal
+- Printing a document prints its content alone: no app chrome or block controls, tables and charts in full, and a page number in place of the browser's header and footer
 - The access-control model is formalised in Lean (`formal/acl/`), with proofs of its properties, kept in step with the code in CI and replayed against the server by the HTTP tests
 
 ### Changed
