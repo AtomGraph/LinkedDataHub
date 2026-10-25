@@ -584,8 +584,12 @@ configs:
           }
           unset req.http.X-SPARQL-Query;
 
-          if (req.method != "GET" && req.method != "HEAD") {
-              /* We only deal with GET and HEAD by default */
+          # Only GET is cached. A HEAD passes as well: on a miss Varnish fetches a HEAD as a GET so it can
+          # store the body, and the platform decides the two differently - a HEAD is granted to any agent
+          # with a mode on the document (acl:Read or acl:Append, AuthorizationFilter), so a writer who may
+          # not read can learn the entity tag its conditional write needs; a GET needs acl:Read. Fetched as
+          # a GET, such a HEAD was refused with 403. A HEAD carries no body, so nothing worth caching is lost.
+          if (req.method != "GET") {
               return (pass);
           }
 
