@@ -15,6 +15,7 @@
 - `MAX_UPLOAD_LENGTH` sets a separate size limit for file uploads
 - `ldh add file --replace` replaces a document with the file's description
 - Deleting a document asks in a dialog, which also explains a refusal
+- Printing a document prints its content alone: no app chrome or block controls, tables and charts in full, and a page number in place of the browser's header and footer
 - The access-control model is formalised in Lean (`formal/acl/`), with proofs of its properties, kept in step with the code in CI and replayed against the server by the HTTP tests
 
 ### Changed
@@ -24,6 +25,9 @@
 - `dct:created` and `dct:modified` are server-managed, and `PATCH` updates `Last-Modified`
 - Sign-up stores only the agent's own description
 - Access checks are several times faster on large stores
+
+### Removed
+- The end-user dataset no longer seeds the `services/` container with the DBpedia and Wikidata services; existing stores keep theirs
 
 ### Fixed
 - A malformed IRI is refused with `422` naming each value, and the form marks the field; a `PATCH` used to store some, such as `<http://[::1>`
