@@ -21,7 +21,6 @@ import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-import java.security.MessageDigest;
 import jakarta.inject.Singleton;
 import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.Produces;
@@ -66,11 +65,10 @@ public class ModelXSLTWriter extends XSLTWriterBase implements MessageBodyWriter
      * 
      * @param xsltExec compiled XSLT stylesheet
      * @param resolver RDF source resolver
-     * @param messageDigest message digest
      */
-    public ModelXSLTWriter(XsltExecutable xsltExec, RDFSourceResolver resolver, MessageDigest messageDigest)
+    public ModelXSLTWriter(XsltExecutable xsltExec, RDFSourceResolver resolver)
     {
-        super(xsltExec, resolver, messageDigest);
+        super(xsltExec, resolver);
     }
 
     @Override
@@ -134,7 +132,7 @@ public class ModelXSLTWriter extends XSLTWriterBase implements MessageBodyWriter
         if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent) return model;
 
         // show foaf:mbox_sha1sum for all other agents (in admin apps)
-        return ValidatingModelProvider.hashMboxes(getMessageDigest()).apply(model); // apply processing from superclasses
+        return ValidatingModelProvider.hashMboxes().apply(model); // apply processing from superclasses
     }
     
 }

@@ -543,4 +543,116 @@ public class ResponseHeadersFilterTest
         assertTrue(link().contains(", <"));
     }
 
+    // CACHE-CONTROL
+
+    /** Makes the mocked response read Cache-Control back from the header map, as the real one does. */
+    private void headersReadable()
+    {
+        when(response.getHeaderString(anyString())).thenAnswer(invocation ->
+        {
+            Object value = headers.getFirst(invocation.getArgument(0));
+            return value != null ? value.toString() : null;
+        });
+    }
+
+    private String cacheControl()
+    {
+        Object value = headers.getFirst(HttpHeaders.CACHE_CONTROL);
+
+        return value != null ? value.toString() : null;
+    }
+
+    private Agent agent()
+    {
+        Agent agent = mock(Agent.class);
+        when(agent.getURI()).thenReturn("https://admin.localhost:4443/acl/agents/1/#this");
+
+        return agent;
+    }
+
+    private void documentGet()
+    {
+        when(request.getMethod()).thenReturn("GET");
+        when(uriInfo.getMatchedResources()).thenReturn(List.of(mock(DocumentHierarchyGraphStoreImpl.class)));
+    }
+
+    /** A response to an authenticated agent is never stored by a shared cache, whatever authenticated the request. */
+    @Test
+    public void testAuthenticatedResponseIsPrivate() throws IOException
+    {
+        headersReadable();
+        Agent agent = agent();
+        when(securityContext.getUserPrincipal()).thenReturn(agent);
+
+        filter.filter(request, response);
+
+        assertEquals("private", cacheControl());
+    }
+
+    @Test
+    public void testAnonymousResponseIsNotPrivate() throws IOException
+    {
+        headersReadable();
+
+        filter.filter(request, response);
+
+        assertEquals(null, cacheControl());
+    }
+
+    /** A document may be stored but has to be revalidated, so a write or an access-control change shows at once. */
+    @Test
+    public void testAnonymousDocumentIsRevalidated() throws IOException
+    {
+        headersReadable();
+        documentGet();
+
+        filter.filter(request, response);
+
+        assertEquals("no-cache", cacheControl());
+    }
+
+    @Test
+    public void testAuthenticatedDocumentIsPrivateAndRevalidated() throws IOException
+    {
+        headersReadable();
+        documentGet();
+        Agent agent = agent();
+        when(securityContext.getUserPrincipal()).thenReturn(agent);
+
+        filter.filter(request, response);
+
+        assertEquals("private, no-cache", cacheControl());
+    }
+
+    /** A Memento keeps its own freshness; an authenticated one is made private on top of it. */
+    @Test
+    public void testExistingCacheControlKeptAndMadePrivate() throws IOException
+    {
+        headersReadable();
+        documentGet();
+        headers.putSingle(HttpHeaders.CACHE_CONTROL, "max-age=31536000, immutable");
+
+        filter.filter(request, response);
+
+        assertEquals("max-age=31536000, immutable", cacheControl());
+
+        Agent agent = agent();
+        when(securityContext.getUserPrincipal()).thenReturn(agent);
+
+        filter.filter(request, response);
+
+        assertEquals("private, max-age=31536000, immutable", cacheControl());
+    }
+
+    @Test
+    public void testPrivateCacheControlDropsPublic()
+    {
+        assertEquals("private, max-age=60", ResponseHeadersFilter.privateCacheControl("public, max-age=60"));
+        assertEquals("private", ResponseHeadersFilter.privateCacheControl(null));
+        assertEquals("private", ResponseHeadersFilter.privateCacheControl("Public"));
+        // already private, or not to be stored at all: nothing to add
+        assertEquals("private, max-age=60", ResponseHeadersFilter.privateCacheControl("private, max-age=60"));
+        assertEquals("no-store", ResponseHeadersFilter.privateCacheControl("no-store"));
+    }
+
 }

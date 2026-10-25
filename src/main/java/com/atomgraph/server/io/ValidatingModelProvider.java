@@ -66,27 +66,37 @@ public class ValidatingModelProvider extends BasedModelProvider
     
     public Model validate(Model model)
     {
-        if (getOntology().isPresent())
-        {
-            // SPIN validation
-            List<ConstraintViolation> cvs = new Validator(getOntology().get()).validate(model);
-            if (!cvs.isEmpty())
-            {
-                if (log.isDebugEnabled()) log.debug("SPIN constraint violations: {}", cvs);
-                throw new SPINConstraintViolationException(cvs, model);
-            }
-
-            // SHACL validation
-            Shapes shapes = Shapes.parse(getOntology().get().getGraph());
-            ValidationReport report = ShaclValidator.get().validate(shapes, model.getGraph());
-            if (!report.conforms())
-            {
-                if (log.isDebugEnabled()) log.debug("SHACL constraint violations: {}", report);
-                throw new SHACLConstraintViolationException(report, model);
-            }
-        }
+        if (getOntology().isPresent()) checkConstraints(getOntology().get(), model, null);
     
         return model;
+    }
+
+    /**
+     * Checks a model against an ontology's SPIN constraints and SHACL shapes, both of them, and throws
+     * if either is violated. Both run even when the first has already failed: a write that breaks a
+     * constraint and a shape is reported with both, so a form that is missing two required values is
+     * told about both at once instead of learning about the second only after correcting the first.
+     * 
+     * @param ontology ontology with the constraints and shapes
+     * @param model validated model
+     * @param graphURI URI of the graph the model is, or null for the default graph
+     * @throws SPINConstraintViolationException if SPIN constraints are violated (carrying the SHACL report as well, if the shapes are violated too)
+     * @throws SHACLConstraintViolationException if only SHACL shapes are violated
+     */
+    public static void checkConstraints(OntModel ontology, Model model, String graphURI)
+    {
+        if (ontology == null) throw new IllegalArgumentException("OntModel cannot be null");
+        if (model == null) throw new IllegalArgumentException("Model cannot be null");
+
+        List<ConstraintViolation> cvs = new Validator(ontology).validate(model);
+        if (!cvs.isEmpty() && log.isDebugEnabled()) log.debug("SPIN constraint violations: {}", cvs);
+
+        Shapes shapes = Shapes.parse(ontology.getGraph());
+        ValidationReport report = ShaclValidator.get().validate(shapes, model.getGraph());
+        if (!report.conforms() && log.isDebugEnabled()) log.debug("SHACL constraint violations: {}", report);
+
+        if (!cvs.isEmpty()) throw new SPINConstraintViolationException(cvs, model, graphURI, report.conforms() ? null : report);
+        if (!report.conforms()) throw new SHACLConstraintViolationException(report, model);
     }
         
     @Override

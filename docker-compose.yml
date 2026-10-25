@@ -66,6 +66,7 @@ services:
       - SELF_SIGNED_CERT=true # only on localhost
       - SIGN_UP_CERT_VALIDITY=180
       - MAX_CONTENT_LENGTH=${MAX_CONTENT_LENGTH:-2097152}
+      - MAX_UPLOAD_LENGTH=${MAX_UPLOAD_LENGTH:-} # file uploads (multipart bodies); MAX_CONTENT_LENGTH unless set
       - MAX_QUERY_RESPONSE_LENGTH=${MAX_QUERY_RESPONSE_LENGTH:-} # 5 MiB unless set (Application.DEFAULT_MAX_QUERY_RESPONSE_LENGTH)
       - ALLOW_INTERNAL_URLS=${ALLOW_INTERNAL_URLS:-}
       - ENABLE_SITEMAP=${ENABLE_SITEMAP:-} # opt-in: /sitemap.xml queries every public document of the dataspace
@@ -77,6 +78,7 @@ services:
       - MAIL_SMTP_HOST=email-server
       - MAIL_SMTP_PORT=25
       - MAIL_USER=linkeddatahub@localhost
+      - PROXY_SECRET=${PROXY_SECRET:?set PROXY_SECRET in .env - make secrets generates it} # nginx sends it; Client-Cert is accepted only with it
       - REMOTE_IP_VALVE=true
       - REMOTE_IP_VALVE_PROTOCOL_HEADER=X-Forwarded-Proto
       - REMOTE_IP_VALVE_PORT_HEADER=X-Forwarded-Port
@@ -309,7 +311,8 @@ configs:
           limit_req_zone $$sparql_api_key zone=sparql:10m rate=${NGINX_SPARQL_RATE:-2r/s};
           limit_conn_status 429;
 
-          client_max_body_size ${MAX_CONTENT_LENGTH:-2097152};
+          # the upload limit when one is set: the platform holds every other body to MAX_CONTENT_LENGTH itself
+          client_max_body_size ${MAX_UPLOAD_LENGTH:-${MAX_CONTENT_LENGTH:-2097152}};
 
           # server with optional client cert authentication
           server {
@@ -320,6 +323,23 @@ configs:
               ssl_session_cache shared:SSL:1m;
               ssl_prefer_server_ciphers on;
               ssl_verify_client ${NGINX_SSL_VERIFY_CLIENT:-optional_no_ca};
+
+              # Identity and forwarding headers, set once for the whole server. proxy_set_header is inherited only by a location
+              # that sets none of its own, so a location that sets any repeats this set. On-Behalf-Of is passed through: the
+              # platform honours it only from an agent the named WebID delegates to. The platform accepts Client-Cert only on a
+              # request carrying Proxy-Secret
+              proxy_set_header Host $$host;
+              proxy_set_header X-Forwarded-Host $$host;
+              proxy_set_header X-Forwarded-Proto $$scheme;
+              proxy_set_header X-Forwarded-Port ${HTTPS_PORT};
+              proxy_set_header X-Forwarded-For $$remote_addr;
+              proxy_set_header Client-Cert $$ssl_client_escaped_cert; # empty, and so not sent, without a client certificate
+              proxy_set_header Proxy-Secret "${PROXY_SECRET:?set PROXY_SECRET in .env - make secrets generates it}";
+
+              # the platform uses no path parameters (;)
+              if ($$request_uri ~ "^[^?]*;") {
+                  return 400;
+              }
 
               # the assistant's plan service. A reserved path, like /static/ and /uploads/: prefix-matched ahead of the
               # generic location and never rewritten, so /webalgebra, /webalgebra/plans and /webalgebra/{id}/result reach the
@@ -339,12 +359,13 @@ configs:
                   limit_req zone=web_algebra burst=10 nodelay;
                   proxy_read_timeout 120s; # writing a plan is a 10-30 s model call
 
+                  # repeats the server-level set, since it also clears On-Behalf-Of. Proxy-Secret is for the platform only and
+                  # is not sent to the sidecar
                   proxy_set_header Host $$host;
                   proxy_set_header X-Forwarded-Host $$host;
                   proxy_set_header X-Forwarded-Proto $$scheme;
                   proxy_set_header X-Forwarded-Port ${HTTPS_PORT};
-
-                  proxy_set_header Client-Cert '';
+                  proxy_set_header X-Forwarded-For $$remote_addr;
                   proxy_set_header Client-Cert $$ssl_client_escaped_cert;
                   proxy_set_header On-Behalf-Of '';
               }
@@ -373,14 +394,6 @@ configs:
                   limit_req zone=sparql burst=10 nodelay;
                   limit_conn sparql_per_client ${NGINX_SPARQL_CONN_PER_CLIENT:-2};
                   limit_conn sparql_total ${NGINX_SPARQL_CONN_TOTAL:-8};
-
-                  proxy_set_header Host $$host;
-                  proxy_set_header X-Forwarded-Host $$host;
-                  proxy_set_header X-Forwarded-Proto $$scheme;
-                  proxy_set_header X-Forwarded-Port ${HTTPS_PORT};
-
-                  proxy_set_header Client-Cert '';
-                  proxy_set_header Client-Cert $$ssl_client_escaped_cert;
               }
 
               location ^~ /uploads/ {
@@ -392,15 +405,7 @@ configs:
                   proxy_pass http://linkeddatahub;
                   limit_req zone=static_files burst=20 nodelay;
 
-                  proxy_set_header Host $$host;
-                  proxy_set_header X-Forwarded-Host $$host;
-                  proxy_set_header X-Forwarded-Proto $$scheme;
-                  proxy_set_header X-Forwarded-Port ${HTTPS_PORT};
-
-                  proxy_set_header Client-Cert '';
-                  proxy_set_header Client-Cert $$ssl_client_escaped_cert;
-
-                  add_header Cache-Control "public, max-age=604800, immutable";
+                  add_header Cache-Control "private, max-age=604800, immutable"; # access-controlled: no shared cache may store it
               }
 
               location ^~ /static/ {
@@ -427,6 +432,23 @@ configs:
               ssl_prefer_server_ciphers on;
               ssl_verify_client optional_no_ca;
 
+              # Identity and forwarding headers, set once for the whole server. proxy_set_header is inherited only by a location
+              # that sets none of its own, so a location that sets any repeats this set. On-Behalf-Of is passed through: the
+              # platform honours it only from an agent the named WebID delegates to. The platform accepts Client-Cert only on a
+              # request carrying Proxy-Secret
+              proxy_set_header Host $$host;
+              proxy_set_header X-Forwarded-Host $$host;
+              proxy_set_header X-Forwarded-Proto $$scheme;
+              proxy_set_header X-Forwarded-Port ${HTTPS_PORT};
+              proxy_set_header X-Forwarded-For $$remote_addr;
+              proxy_set_header Client-Cert $$ssl_client_escaped_cert; # empty, and so not sent, without a client certificate
+              proxy_set_header Proxy-Secret "${PROXY_SECRET:?set PROXY_SECRET in .env - make secrets generates it}";
+
+              # the platform uses no path parameters (;)
+              if ($$request_uri ~ "^[^?]*;") {
+                  return 400;
+              }
+
               location / {
                   add_header Access-Control-Allow-Origin "*" always;
                   add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS" always;
@@ -451,14 +473,6 @@ configs:
                   limit_req zone=sparql burst=10 nodelay;
                   limit_conn sparql_per_client ${NGINX_SPARQL_CONN_PER_CLIENT:-2};
                   limit_conn sparql_total ${NGINX_SPARQL_CONN_TOTAL:-8};
-
-                  proxy_set_header Host $$host;
-                  proxy_set_header X-Forwarded-Host $$host;
-                  proxy_set_header X-Forwarded-Proto $$scheme;
-                  proxy_set_header X-Forwarded-Port ${HTTPS_PORT};
-
-                  proxy_set_header Client-Cert '';
-                  proxy_set_header Client-Cert $$ssl_client_escaped_cert;
               }
 
               location ^~ /static/ {
@@ -490,6 +504,7 @@ configs:
 
       import std;
       import bodyaccess;
+      import xkey;
 
       backend default {
           .host = "${VARNISH_FRONTEND_BACKEND_HOST:-linkeddatahub}";
@@ -513,16 +528,15 @@ configs:
               return (purge);
           }
 
-          if (req.method == "BAN") { # supports only 2 URIs!
+          # the platform tags responses with xkey (XkeyTaggingFilter: document, parent container, access-control scope) and
+          # purges by those tags after a write (CacheInvalidationFilter, ClearOntology)
+          if (req.method == "XKEY-PURGE") {
               if (!client.ip ~ local && !client.ip ~ remote) {
                   return (synth(403, "Unknown IP address '" + client.ip + "'. Access denied."));
               }
-
-              set req.http.X-Escaped-Request-URI-1 = regsub(req.http.X-Escaped-Request-URI, ",.*$", ""); # remove header value after comma
-              set req.http.X-Escaped-Request-URI-2 = regsub(req.http.X-Escaped-Request-URI, "^.*,", ""); # remove header value before comma
-              ban("req.url ~ " + req.http.X-Escaped-Request-URI-1);
-              ban("req.url ~ " + req.http.X-Escaped-Request-URI-2);
-              return (synth(200, "Banned"));
+              # hard purge: softpurge would keep serving the purged copy during grace
+              set req.http.n-purged = xkey.purge(req.http.xkey-purge);
+              return (synth(200, "Purged " + req.http.n-purged + " objects for key " + req.http.xkey-purge));
           }
 
           if (req.method != "GET" &&
@@ -535,6 +549,20 @@ configs:
             req.method != "PATCH") {
               /* Non-RFC2616 or CONNECT which is weird. */
               return (pipe);
+          }
+
+          # Range is defined for GET only (RFC 9110 §14.2), and Varnish's own range code accepts one
+          # well-formed "bytes" range and nothing else: on a pass it fails the fetch with 503 when the
+          # forwarded Range is in another unit, lists several ranges, ends before it starts or is "-0", and
+          # it answers a HEAD with Range as 206. RFC 9110 lets a server ignore any of those, so they are
+          # dropped here and the whole representation is served.
+          if (req.http.Range && (req.method != "GET" ||
+            req.http.Range !~ "^(?i)bytes=([0-9]+-[0-9]*|-[0-9]+)\s*$" ||
+            req.http.Range ~ "^(?i)bytes=-0+\s*$" ||
+            (req.http.Range ~ "^(?i)bytes=[0-9]+-[0-9]+\s*$" &&
+              std.integer(regsub(req.http.Range, "^(?i)bytes=([0-9]+)-.*$", "\1"), 0) >
+              std.integer(regsub(req.http.Range, "^(?i)bytes=[0-9]+-([0-9]+)\s*$", "\1"), 0)))) {
+              unset req.http.Range;
           }
 
           # Anonymous SPARQL queries are cached on their body. The platform's client POSTs every query (the
@@ -556,8 +584,12 @@ configs:
           }
           unset req.http.X-SPARQL-Query;
 
-          if (req.method != "GET" && req.method != "HEAD") {
-              /* We only deal with GET and HEAD by default */
+          # Only GET is cached. A HEAD passes as well: on a miss Varnish fetches a HEAD as a GET so it can
+          # store the body, and the platform decides the two differently - a HEAD is granted to any agent
+          # with a mode on the document (acl:Read or acl:Append, AuthorizationFilter), so a writer who may
+          # not read can learn the entity tag its conditional write needs; a GET needs acl:Read. Fetched as
+          # a GET, such a HEAD was refused with 403. A HEAD carries no body, so nothing worth caching is lost.
+          if (req.method != "GET") {
               return (pass);
           }
 
@@ -578,6 +610,11 @@ configs:
           # it's served by Tomcat's default servlet (web.xml:365-371), bypasses
           # Jersey, and carries no identity-bearing headers.
           if (req.http.Client-Cert && req.url !~ "^/static/") {
+              return (pass);
+          }
+
+          # the ID token cookie authenticates the request too
+          if (req.http.Cookie ~ "LinkedDataHub\.id_token=" && req.url !~ "^/static/") {
               return (pass);
           }
 
@@ -654,6 +691,7 @@ configs:
 
       sub vcl_deliver {
           unset resp.http.X-SPARQL-Query;
+          unset resp.http.xkey; # the cache's index, not part of the representation
       }
   varnish-admin_vcl:
     content: |

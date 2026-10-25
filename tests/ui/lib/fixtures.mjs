@@ -80,7 +80,24 @@ export const fixtures = {
     seriesQuery: `${endUserBase}${slug}-series/#measures-query`,
     seriesChart: `${endUserBase}${slug}-series/#measures-chart`,
     seriesBlock: `${endUserBase}${slug}-series/#measures-block`,
+    // Queries that name a SPARQL service of their own (ldh:service) instead of the dataspace's, and
+    // the query, view and chart blocks over them. The service's endpoint is serviceEndpoint below,
+    // which nothing serves: lib/service.mjs answers it in the browser. A document of its own, like
+    // queryDocument, so the container's block and child counts hold.
+    serviceDocument: `${endUserBase}${slug}-service/`,
+    service: `${endUserBase}${slug}-service/#service`,
+    serviceQuery: `${endUserBase}${slug}-service/#things-query`,
+    serviceQueryBlock: `${endUserBase}${slug}-service/#query-block`,
+    serviceView: `${endUserBase}${slug}-service/#things-view`,
+    serviceViewBlock: `${endUserBase}${slug}-service/#view-block`,
+    serviceChartQuery: `${endUserBase}${slug}-service/#kinds-query`,
+    serviceChart: `${endUserBase}${slug}-service/#kinds-chart`,
+    serviceChartBlock: `${endUserBase}${slug}-service/#chart-block`,
 };
+
+// The endpoint the service fixture names. `.example` is reserved and never resolves, so a request
+// the browser-side mock does not answer fails instead of reaching a real endpoint.
+export const serviceEndpoint = 'https://sparql.example/sparql';
 
 // The embedded resource itself, in the second end-user dataspace the preflight resolved. Functions
 // rather than entries above because that dataspace is known only once globalSetup has run.
@@ -216,6 +233,30 @@ WHERE
 GROUP BY ?kind
 ORDER BY ?kind`;
 
+// The service fixture's queries. Whatever they match is decided by lib/service.mjs, which answers
+// them; they are written as queries a real store of such things would answer, so the page has the
+// variables to render: resources for the view, a category and a number for the chart.
+const serviceQuery = `PREFIX  dct:  <http://purl.org/dc/terms/>
+
+SELECT  ?thing ?title ?kind
+WHERE
+  { GRAPH ?g
+      { ?thing  dct:title        ?title ;
+                dct:description  ?kind
+      }
+  }
+ORDER BY ?title`;
+
+const serviceChartQuery = `PREFIX  dct:  <http://purl.org/dc/terms/>
+
+SELECT  ?kind (COUNT(?thing) AS ?things)
+WHERE
+  { GRAPH ?g
+      { ?thing  dct:description  ?kind }
+  }
+GROUP BY ?kind
+ORDER BY ?kind`;
+
 export async function seed() {
     const container = await ldh(['create', 'container',
         '--parent', endUserBase, '--title', containerTitle, '--slug', slug]);
@@ -286,6 +327,38 @@ export async function seed() {
     await ldh(['add', 'object-block', '--title', 'Fixture measures block', '--uri', fixtures.seriesBlock,
         '--value', fixtures.seriesChart, fixtures.seriesDocument]);
 
+    // The service, the two queries that name it, and a block for each thing that runs one: the
+    // query itself, a view over the first query and a chart over the second. A Table, because its
+    // cells are text a spec can read, where a bar chart draws the same values as SVG geometry.
+    await ldh(['create', 'item',
+        '--container', endUserBase,
+        '--title', 'Fixture service',
+        '--slug', `${slug}-service`]);
+    await ldh(['add', 'generic-service', '--title', 'Fixture SPARQL service',
+        '--uri', fixtures.service, '--endpoint', serviceEndpoint, fixtures.serviceDocument]);
+    const serviceQueryFile = join(mkdtempSync(join(tmpdir(), 'ui-tests-')), 'things.rq');
+    writeFileSync(serviceQueryFile, serviceQuery);
+    await ldh(['add', 'select', '--title', 'Fixture remote things',
+        '--uri', fixtures.serviceQuery, '--query-file', serviceQueryFile,
+        '--service', fixtures.service, fixtures.serviceDocument]);
+    const serviceChartQueryFile = join(mkdtempSync(join(tmpdir(), 'ui-tests-')), 'remote-kinds.rq');
+    writeFileSync(serviceChartQueryFile, serviceChartQuery);
+    await ldh(['add', 'select', '--title', 'Fixture remote kinds',
+        '--uri', fixtures.serviceChartQuery, '--query-file', serviceChartQueryFile,
+        '--service', fixtures.service, fixtures.serviceDocument]);
+    await ldh(['add', 'view', '--title', 'Fixture remote things view',
+        '--uri', fixtures.serviceView, '--query', fixtures.serviceQuery, fixtures.serviceDocument]);
+    await ldh(['add', 'result-set-chart', '--title', 'Fixture remote kinds chart',
+        '--uri', fixtures.serviceChart, '--query', fixtures.serviceChartQuery,
+        '--chart-type', 'https://w3id.org/atomgraph/client#Table',
+        '--category-var-name', 'kind', '--series-var-name', 'things', fixtures.serviceDocument]);
+    await ldh(['add', 'object-block', '--title', 'Fixture remote query block', '--uri', fixtures.serviceQueryBlock,
+        '--value', fixtures.serviceQuery, fixtures.serviceDocument]);
+    await ldh(['add', 'object-block', '--title', 'Fixture remote view block', '--uri', fixtures.serviceViewBlock,
+        '--value', fixtures.serviceView, fixtures.serviceDocument]);
+    await ldh(['add', 'object-block', '--title', 'Fixture remote chart block', '--uri', fixtures.serviceChartBlock,
+        '--value', fixtures.serviceChart, fixtures.serviceDocument]);
+
     // The cross-origin pair: a document in the other dataspace, created by the same owner (the root
     // owner owns every dataspace of the stack, the entrypoint sees to that), and the host here that
     // embeds it. The remote grant is what makes the embedded rendering an anonymous reader's to
@@ -351,6 +424,7 @@ export async function teardown() {
     await ldh(['delete', fixtures.private], { allowFailure: true });
     await ldh(['delete', fixtures.queryDocument], { allowFailure: true });
     await ldh(['delete', fixtures.seriesDocument], { allowFailure: true });
+    await ldh(['delete', fixtures.serviceDocument], { allowFailure: true });
     await ldh(['delete', fixtures.remoteHost], { allowFailure: true });
     // Only once the preflight has resolved the remote dataspace: a teardown that runs before it
     // (UI_TESTS_SKIP_SEED, or a run that failed earlier in the preflight) has nothing to remove there.

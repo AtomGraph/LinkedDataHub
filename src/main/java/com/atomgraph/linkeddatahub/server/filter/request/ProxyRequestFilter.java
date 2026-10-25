@@ -23,12 +23,11 @@ import com.atomgraph.core.exception.BadGatewayException;
 import com.atomgraph.core.util.ModelUtils;
 import com.atomgraph.linkeddatahub.dataspaces.model.Dataset;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
+import com.atomgraph.linkeddatahub.client.RedirectingClient;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
 import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.io.HtmlJsonLDReaderFactory;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
-import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
-import com.atomgraph.linkeddatahub.server.security.WebIDSecurityContext;
 import com.atomgraph.linkeddatahub.vocabulary.LDS;
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,9 +39,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.NotAllowedException;
+import jakarta.ws.rs.ForbiddenException;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.client.Entity;
@@ -154,6 +154,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject MediaTypes mediaTypes;
     @Context Request request;
+    @Context HttpHeaders httpHeaders;
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException
@@ -206,53 +207,49 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
         boolean isRegisteredApp = getSystem().matchApp(targetURI) != null;
         if (!isRegisteredApp && !getSystem().isEnableLinkedDataProxy())
-            throw new NotAllowedException("Linked Data proxy not enabled");
+            throw new ForbiddenException("Linked Data proxy not enabled"); // GET is supported, the proxy is not offered
         // LNK-009: validate that the target URI is not an internal/private address (SSRF protection)
         getSystem().getURLValidator().validate(targetURI);
 
-        // the caller's identity decides which client dereferences. An authenticated caller is delegated:
-        // the request goes out with the platform's certificate and an On-Behalf-Of the origin verifies
-        // against acl:delegates, so the origin answers the caller. A caller with no identity has nobody
-        // to delegate, and must not go out with the platform's certificate either - the origin would
-        // authenticate the secretary itself, a writer of every dataspace, and answer with its access:
-        // private documents readable, writes applied, and acl:Write in the Link headers the client reads
-        // its edit affordances off. So an anonymous caller dereferences with no certificate at all, and
-        // the origin sees what the caller is
+        // an authenticated caller proxying one of this instance's dataspaces is delegated: the platform's certificate
+        // plus On-Behalf-Of, which the origin verifies against acl:delegates. Every other request goes out with no
+        // certificate and no delegation
         AgentContext agentContext = (AgentContext) requestContext.getProperty(AgentContext.class.getCanonicalName());
-        WebTarget target = (agentContext != null ? getSystem().getExternalClient() : getSystem().getExternalNoCertClient()).target(targetURI);
-
-        // forward agent identity to the target endpoint
-        if (agentContext != null)
+        // a target per redirect hop, delegated only when that hop is one of this instance's dataspaces
+        Function<URI, WebTarget> targets = uri ->
         {
-            if (agentContext instanceof WebIDSecurityContext)
-                target.register(new WebIDDelegationFilter(agentContext.getAgent()));
-            else if (agentContext instanceof IDTokenSecurityContext idTokenSecurityContext)
-                target.register(new IDTokenDelegationFilter(agentContext.getAgent(),
-                    idTokenSecurityContext.getJWTToken(), requestContext.getUriInfo().getBaseUri().getPath(), null));
-        }
+            boolean isDataspace = getSystem().matchApp(uri) != null;
+            boolean isDelegated = agentContext != null && isDataspace;
+            WebTarget target = (isDelegated ? getSystem().getExternalClient() : getSystem().getExternalNoCertClient()).target(uri);
+            return GraphStoreClient.delegate(target, agentContext, isDataspace, requestContext.getUriInfo().getBaseUri().getPath());
+        };
 
         MediaType[] clientAcceptTypes = requestContext.getAcceptableMediaTypes().toArray(MediaType[]::new);
         if (log.isDebugEnabled()) log.debug("Proxying {} {} → {}", requestContext.getMethod(), requestContext.getUriInfo().getRequestUri(), targetURI);
 
         try
         {
-            Invocation.Builder builder = target.request().
-                accept(clientAcceptTypes).
-                header(HttpHeaders.USER_AGENT, GraphStoreClient.USER_AGENT);
-
-            // forward conditional request headers so preconditions reach the origin, which owns the
-            // validators - without this the origin sees an unconditional request and a proxied If-Match
-            // write silently loses its optimistic-concurrency guard
-            for (String name : FORWARDED_REQUEST_HEADERS)
+            // every redirect hop is validated like targetURI
+            Response clientResponse = new RedirectingClient(getSystem().getURLValidator()).invoke(targets, targetURI, requestContext.getMethod(), (target, method) ->
             {
-                String value = requestContext.getHeaderString(name);
-                if (value != null) builder.header(name, value);
-            }
+                Invocation.Builder builder = target.request().
+                    accept(clientAcceptTypes).
+                    header(HttpHeaders.USER_AGENT, GraphStoreClient.USER_AGENT);
 
-            Response clientResponse = requestContext.hasEntity()
-                ? builder.method(requestContext.getMethod(),
-                    Entity.entity(requestContext.getEntityStream(), requestContext.getMediaType()))
-                : builder.method(requestContext.getMethod());
+                // forward conditional request headers so preconditions reach the origin, which owns the
+                // validators - without this the origin sees an unconditional request and a proxied If-Match
+                // write silently loses its optimistic-concurrency guard
+                for (String name : FORWARDED_REQUEST_HEADERS)
+                {
+                    String value = requestContext.getHeaderString(name);
+                    if (value != null) builder.header(name, value);
+                }
+
+                // the entity goes with the request's own method only (a 303 continues as GET)
+                return requestContext.hasEntity() && method.equalsIgnoreCase(requestContext.getMethod())
+                    ? builder.method(method, Entity.entity(requestContext.getEntityStream(), requestContext.getMediaType()))
+                    : builder.method(method);
+            }).response();
 
             try (clientResponse)
             {
@@ -514,7 +511,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         writableTypes.removeIf(mt -> mt.isCompatible(MediaType.TEXT_HTML_TYPE) ||
             mt.isCompatible(MediaType.APPLICATION_XHTML_XML_TYPE));
 
-        return new com.atomgraph.core.model.impl.Response(getRequest(),
+        return new com.atomgraph.core.model.impl.Response(getRequest(), getHttpHeaders(),
                 model,
                 null,
                 new EntityTag(Long.toHexString(ModelUtils.hashModel(model))),
@@ -554,7 +551,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
     {
         if (!result.isBoolean()) throw new IllegalArgumentException("SPARQLResult is not a boolean");
 
-        return new com.atomgraph.core.model.impl.Response(getRequest(),
+        return new com.atomgraph.core.model.impl.Response(getRequest(), getHttpHeaders(),
                 result,
                 null,
                 new EntityTag(Long.toHexString(ResultSetUtils.hashBoolean(result.getBooleanResult()))),
@@ -580,7 +577,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         long hash = ResultSetUtils.hashResultSet(resultSet);
         resultSet.reset();
 
-        return new com.atomgraph.core.model.impl.Response(getRequest(),
+        return new com.atomgraph.core.model.impl.Response(getRequest(), getHttpHeaders(),
                 resultSet,
                 null,
                 new EntityTag(Long.toHexString(hash)),
@@ -621,6 +618,16 @@ public class ProxyRequestFilter implements ContainerRequestFilter
     public Request getRequest()
     {
         return request;
+    }
+
+    /**
+     * Returns the request headers.
+     *
+     * @return HTTP headers
+     */
+    public HttpHeaders getHttpHeaders()
+    {
+        return httpHeaders;
     }
 
 }

@@ -25,6 +25,7 @@ import com.atomgraph.linkeddatahub.server.util.OntologyRepository;
 import org.apache.jena.riot.RDFParser;
 import com.atomgraph.linkeddatahub.server.mapper.HttpHostConnectExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.ResponseContentTooLargeExceptionMapper;
+import com.atomgraph.linkeddatahub.server.mapper.URISyntaxViolationExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.InternalURLExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.MessagingExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.auth.webid.WebIDLoadingExceptionMapper;
@@ -100,6 +101,7 @@ import com.atomgraph.linkeddatahub.server.filter.request.AcceptHeadersFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.ApplicationFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.WebIDFilter;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
+import com.atomgraph.linkeddatahub.server.io.ValidatingUpdateRequestProvider;
 import com.atomgraph.server.mapper.ConfigurationExceptionMapper;
 import com.atomgraph.linkeddatahub.server.factory.OntologyFactory;
 import com.atomgraph.linkeddatahub.server.factory.ServiceFactory;
@@ -110,6 +112,7 @@ import com.atomgraph.linkeddatahub.server.filter.request.ContentLengthLimitFilte
 import com.atomgraph.linkeddatahub.server.filter.request.auth.ProxiedWebIDFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.ResponseHeadersFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.CacheInvalidationFilter;
+import com.atomgraph.linkeddatahub.server.filter.response.XkeyTaggingFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.VersioningFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.XsltExecutableFilter;
 import com.atomgraph.client.interceptor.RDFPostMediaTypeInterceptor;
@@ -132,6 +135,7 @@ import com.atomgraph.linkeddatahub.writer.XSLTWriterBase;
 import com.atomgraph.linkeddatahub.writer.factory.ModeFactory;
 import com.atomgraph.linkeddatahub.writer.function.DecodeURI;
 import com.atomgraph.server.mapper.NotAcceptableExceptionMapper;
+import com.atomgraph.server.mapper.NotSupportedExceptionMapper;
 import com.atomgraph.server.mapper.OntologyExceptionMapper;
 import com.atomgraph.server.mapper.jena.DatatypeFormatExceptionMapper;
 import com.atomgraph.server.mapper.jena.QueryParseExceptionMapper;
@@ -190,7 +194,6 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.security.MessageDigest;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -288,7 +291,7 @@ public class Application extends ResourceConfig
     private final GraphLocks graphLocks = new GraphLocks();
     private final MediaTypes mediaTypes;
     private final Client client, externalClient, externalNoCertClient, importClient, noCertClient, verifiedClient;
-    private final Query documentTypeQuery, documentOwnerQuery, aclQuery, ownerAclQuery, webIDQuery, agentQuery, userAccountQuery, ontologyQuery; // no relative URIs
+    private final Query documentContextQuery, aclQuery, webIDQuery, agentQuery, userAccountQuery, ontologyQuery, childQuery, fileQuery; // no relative URIs
     private final Integer maxGetRequestSize;
     private final Processor xsltProc = new Processor(false);
     private final XsltCompiler xsltComp;
@@ -305,6 +308,7 @@ public class Application extends ResourceConfig
     private final boolean allowInternalUrls;
     private final URLValidator urlValidator;
     private final Integer maxContentLength;
+    private final Long maxUploadLength;
     private final int maxQueryResponseLength;
     private final Address notificationAddress;
     private final Authenticator authenticator;
@@ -317,7 +321,6 @@ public class Application extends ResourceConfig
     private final ExpiringMap<String, Model> oidcModelCache = ExpiringMap.builder().variableExpiration().build();
     private final ExpiringMap<String, jakarta.json.JsonObject> jwksCache = ExpiringMap.builder().expiration(Long.parseLong(System.getProperty("com.atomgraph.linkeddatahub.jwksCacheExpiration", "86400")), TimeUnit.SECONDS).build(); // Cache JWKS responses; TTL (seconds) configurable via JWKS_CACHE_EXPIRATION
     private final Map<URI, XsltExecutable> xsltExecutableCache = new ConcurrentHashMap<>();
-    private final MessageDigest messageDigest;
     private final boolean enableWebIDSignUp;
     private final String oidcRefreshTokensPropertiesPath;
     private final Properties oidcRefreshTokens;
@@ -356,14 +359,14 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(LDHC.secretaryCertAlias.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.secretaryCertAlias.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.clientTrustStore.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.clientTrustStore.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.clientTrustStorePassword.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.clientTrustStorePassword.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(LDHC.documentTypeQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.documentTypeQuery.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(LDHC.documentOwnerQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.documentOwnerQuery.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.documentContextQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.documentContextQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.aclQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.aclQuery.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(LDHC.ownerAclQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.ownerAclQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.webIDQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.webIDQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.agentQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.agentQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.userAccountQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.userAccountQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.ontologyQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.ontologyQuery.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.childQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.childQuery.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.fileQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.fileQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.baseUri.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.baseUri.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.proxyScheme.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.proxyScheme.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.proxyHost.getURI()) != null ? servletConfig.getServletContext().getInitParameter(LDHC.proxyHost.getURI()) : null,
@@ -382,6 +385,7 @@ public class Application extends ResourceConfig
             System.getProperty("com.atomgraph.linkeddatahub.allowInternalUrls") != null ? Boolean.parseBoolean(System.getProperty("com.atomgraph.linkeddatahub.allowInternalUrls")) :
             servletConfig.getServletContext().getInitParameter(LDHC.allowInternalUrls.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(LDHC.allowInternalUrls.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(LDHC.maxContentLength.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxContentLength.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(LDHC.maxUploadLength.getURI()) != null ? Long.valueOf(servletConfig.getServletContext().getInitParameter(LDHC.maxUploadLength.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(LDHC.maxQueryResponseLength.getURI()) != null ? Integer.parseInt(servletConfig.getServletContext().getInitParameter(LDHC.maxQueryResponseLength.getURI())) :
             DEFAULT_MAX_QUERY_RESPONSE_LENGTH, // unset means the endpoint buffers, and a page renders, a result of any length
             System.getProperty("com.atomgraph.linkeddatahub.maxConnPerRoute") != null ? Integer.valueOf(System.getProperty("com.atomgraph.linkeddatahub.maxConnPerRoute")) :
@@ -433,14 +437,14 @@ public class Application extends ResourceConfig
      * @param secretaryCertAlias alias of the secretary's certificate
      * @param clientTrustStoreURIString location of the client's truststore
      * @param clientTrustStorePassword client truststore's password
-     * @param documentTypeQueryString SPARQL string of the document type query
-     * @param documentOwnerQueryString SPARQL string of the document owner query
+     * @param documentContextQueryString SPARQL string of the document context query
      * @param aclQueryString SPARQL string of the ACL query
-     * @param ownerAclQueryString SPARQL string of the owner's ACL query
      * @param webIDQueryString SPARQL string of the WebID validation query
      * @param agentQueryString SPARQL string of the <code>Agent</code> lookup query
      * @param userAccountQueryString SPARQL string of the <code>UserAccount</code> lookup query
      * @param ontologyQueryString SPARQL string of the ontology load query
+     * @param childQueryString SPARQL string of the query that finds a child of a document
+     * @param fileQueryString SPARQL string of the query that describes an uploaded file
      * @param baseURIString system base URI
      * @param proxyScheme client's URI rewrite scheme
      * @param proxyHostname client's URI rewrite hostname
@@ -455,6 +459,7 @@ public class Application extends ResourceConfig
      * @param enableAssistant true if the assistant's plan service is deployed beside this instance
      * @param allowInternalUrls true if internal/private network URLs are allowed (disables SSRF protection)
      * @param maxContentLength maximum size of request entity
+     * @param maxUploadLength maximum size of a multipart (file upload) request entity, the maximum size of request entity if <code>null</code>
      * @param maxQueryResponseLength maximum length of a SPARQL endpoint query result in bytes
      * @param maxConnPerRoute maximum client connections per rout
      * @param maxTotalConn maximum total client connections
@@ -483,11 +488,12 @@ public class Application extends ResourceConfig
             final String clientKeyStoreURIString, final String clientKeyStorePassword,
             final String secretaryCertAlias,
             final String clientTrustStoreURIString, final String clientTrustStorePassword,
-            final String documentTypeQueryString, final String documentOwnerQueryString, final String aclQueryString, final String ownerAclQueryString,
+            final String documentContextQueryString, final String aclQueryString,
             final String webIDQueryString, final String agentQueryString, final String userAccountQueryString, final String ontologyQueryString,
+            final String childQueryString, final String fileQueryString,
             final String baseURIString, final String proxyScheme, final String proxyHostname, final Integer proxyPort,
             final String uploadRootString, final String sefRootString, final String sefCompilerString, final String clientStylesheetString, final boolean invalidateCache,
-            final Integer cookieMaxAge, final boolean enableLinkedDataProxy, final boolean enableAssistant, final boolean allowInternalUrls, final Integer maxContentLength, final int maxQueryResponseLength,
+            final Integer cookieMaxAge, final boolean enableLinkedDataProxy, final boolean enableAssistant, final boolean allowInternalUrls, final Integer maxContentLength, final Long maxUploadLength, final int maxQueryResponseLength,
             final Integer maxConnPerRoute, final Integer maxTotalConn, final Integer maxRequestRetries, final Integer connectionRequestTimeout,
             final Integer socketTimeout, final Integer connectTimeout, final Integer selfRequestTimeout, final Long connectionTimeToLive, final Integer validateAfterInactivity, final Integer maxImportThreads,
             final String notificationAddressString, final boolean enableWebIDSignUp, final String oidcRefreshTokensPropertiesPath,
@@ -524,19 +530,12 @@ public class Application extends ResourceConfig
             throw new ConfigurationException(LDHC.clientTrustStore);
         }
         
-        if (documentTypeQueryString == null)
+        if (documentContextQueryString == null)
         {
-            if (log.isErrorEnabled()) log.error("Document type SPARQL query is not configured properly");
-            throw new ConfigurationException(LDHC.documentTypeQuery);
+            if (log.isErrorEnabled()) log.error("Document context SPARQL query is not configured properly");
+            throw new ConfigurationException(LDHC.documentContextQuery);
         }
-        this.documentTypeQuery = QueryFactory.create(documentTypeQueryString);
-
-        if (documentOwnerQueryString == null)
-        {
-            if (log.isErrorEnabled()) log.error("Document owner SPARQL query is not configured properly");
-            throw new ConfigurationException(LDHC.documentOwnerQuery);
-        }
-        this.documentOwnerQuery = QueryFactory.create(documentOwnerQueryString);
+        this.documentContextQuery = QueryFactory.create(documentContextQueryString);
         
         if (aclQueryString == null)
         {
@@ -544,13 +543,6 @@ public class Application extends ResourceConfig
             throw new ConfigurationException(LDHC.aclQuery);
         }
         this.aclQuery = QueryFactory.create(aclQueryString);
-        
-        if (ownerAclQueryString == null)
-        {
-            if (log.isErrorEnabled()) log.error("Owner's ACL SPARQL query is not configured properly");
-            throw new ConfigurationException(LDHC.ownerAclQuery);
-        }
-        this.ownerAclQuery = QueryFactory.create(ownerAclQueryString);
         
         if (webIDQueryString == null)
         {
@@ -579,6 +571,20 @@ public class Application extends ResourceConfig
             throw new ConfigurationException(LDHC.ontologyQuery);
         }
         this.ontologyQuery = QueryFactory.create(ontologyQueryString);
+
+        if (childQueryString == null)
+        {
+            if (log.isErrorEnabled()) log.error("Child SPARQL query is not configured properly");
+            throw new ConfigurationException(LDHC.childQuery);
+        }
+        this.childQuery = QueryFactory.create(childQueryString);
+
+        if (fileQueryString == null)
+        {
+            if (log.isErrorEnabled()) log.error("File SPARQL query is not configured properly");
+            throw new ConfigurationException(LDHC.fileQuery);
+        }
+        this.fileQuery = QueryFactory.create(fileQueryString);
         
         if (baseURIString == null)
         {
@@ -629,6 +635,7 @@ public class Application extends ResourceConfig
         this.urlValidator = new URLValidator(allowInternalUrls);
         configureServiceExecution(allowInternalUrls);
         this.maxContentLength = maxContentLength;
+        this.maxUploadLength = maxUploadLength;
         this.maxQueryResponseLength = maxQueryResponseLength;
         this.invalidateCache = invalidateCache;
         this.enableWebIDSignUp = enableWebIDSignUp;
@@ -771,6 +778,8 @@ public class Application extends ResourceConfig
             
             client = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null, false, connectionRequestTimeout, socketTimeout, connectTimeout, connectionTimeToLive, validateAfterInactivity);
             externalClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null, false, connectionRequestTimeout, socketTimeout, connectTimeout, connectionTimeToLive, validateAfterInactivity);
+            // redirects are followed by RedirectingClient, which validates every hop
+            externalClient.property(ClientProperties.FOLLOW_REDIRECTS, false);
             // the external client's twin without the secretary's certificate: the Linked Data proxy's
             // upstream request for a caller who holds no identity, so the origin answers nobody rather
             // than the platform. Same pool sizing and timeouts, and like its twin no retries - a proxied
@@ -945,16 +954,6 @@ public class Application extends ResourceConfig
             emailProperties.put("mail.smtp.host", smtpHost);
             emailProperties.put("mail.smtp.port", Integer.valueOf(smtpPort));
             
-            try
-            {
-                this.messageDigest = MessageDigest.getInstance("SHA1");
-            }
-            catch (NoSuchAlgorithmException ex)
-            {
-                if (log.isErrorEnabled()) log.error("SHA1 algorithm not found", ex);
-                throw new InternalServerErrorException(ex);
-            }
-
             xsltProc.registerExtensionFunction(new UUID());
             xsltProc.registerExtensionFunction(new DecodeURI());
             xsltProc.registerExtensionFunction(new com.atomgraph.linkeddatahub.writer.function.URLDecode());
@@ -1086,14 +1085,14 @@ public class Application extends ResourceConfig
         
         eventBus.register(this); // this system application will be receiving events about context changes
         
-        register(new ValidatingModelProvider(getMessageDigest()));
+        register(new ValidatingModelProvider());
         register(new ResultSetProvider());
         register(new SPARQLResultProvider()); // the boolean of an ASK, which ResultSetProvider cannot write
         register(new QueryProvider());
         register(new QueryParamProvider());
-        register(new UpdateRequestProvider());
-        register(new ModelXSLTWriter(getXsltExecutable(), getResolver(), getMessageDigest())); // writes (X)HTML responses
-        register(new ResultSetXSLTWriter(getXsltExecutable(), getResolver(), getMessageDigest())); // writes (X)HTML responses
+        register(new ValidatingUpdateRequestProvider()); // refuses malformed IRIs as URISyntaxViolations, as ValidatingModelProvider does
+        register(new ModelXSLTWriter(getXsltExecutable(), getResolver())); // writes (X)HTML responses
+        register(new ResultSetXSLTWriter(getXsltExecutable(), getResolver())); // writes (X)HTML responses
         register(new TimeMapWriter()); // writes link-format TimeMap responses
 
         final com.atomgraph.linkeddatahub.Application system = this;
@@ -1247,7 +1246,7 @@ public class Application extends ResourceConfig
         register(ProxiedWebIDFilter.class);
         register(ProxyRequestFilter.class);
         register(AuthorizationFilter.class);
-        if (getMaxContentLength() != null) register(new ContentLengthLimitFilter(getMaxContentLength()));
+        if (getMaxContentLength() != null) register(new ContentLengthLimitFilter(getMaxContentLength(), getMaxUploadLength() != null ? getMaxUploadLength() : getMaxContentLength()));
         register(new RDFPostMediaTypeInterceptor()); // for application/x-www-form-urlencoded
         
         // Conditionally register Google OAuth filter if configured
@@ -1274,7 +1273,11 @@ public class Application extends ResourceConfig
     {
         register(new ResponseHeadersFilter());
         register(new XsltExecutableFilter());
-        if (isInvalidateCache()) register(new CacheInvalidationFilter());
+        if (isInvalidateCache())
+        {
+            register(new XkeyTaggingFilter()); // tags what CacheInvalidationFilter purges from the frontend cache
+            register(new CacheInvalidationFilter());
+        }
         register(new VersioningFilter());
     }
     
@@ -1294,9 +1297,11 @@ public class Application extends ResourceConfig
         register(RiotExceptionMapper.class);
         register(RiotParseExceptionMapper.class); // move to Processor?
         register(NotAcceptableExceptionMapper.class);
+        register(NotSupportedExceptionMapper.class);
         register(ClientErrorExceptionMapper.class);
         register(HttpHostConnectExceptionMapper.class);
         register(ResponseContentTooLargeExceptionMapper.class);
+        register(URISyntaxViolationExceptionMapper.class);
         register(InternalURLExceptionMapper.class);
         register(BadGatewayExceptionMapper.class);
         register(OntClassNotFoundExceptionMapper.class);
@@ -1784,6 +1789,7 @@ public class Application extends ResourceConfig
     
     /**
      * Builds HTTP client instance without TLS client certificates.
+     * It does not follow redirects; {@link com.atomgraph.linkeddatahub.client.RedirectingClient} does.
      * 
      * @param trustStore client truststore
      * @param maxConnPerRoute max connections per route
@@ -1839,7 +1845,8 @@ public class Application extends ResourceConfig
             config.register(new SPARQLResultProvider());
             config.register(new QueryProvider());
             config.register(new UpdateRequestProvider()); // TO-DO: UpdateRequestProvider
-            config.property(ClientProperties.FOLLOW_REDIRECTS, true);
+            // redirects are followed by RedirectingClient, which validates every hop
+            config.property(ClientProperties.FOLLOW_REDIRECTS, false);
             config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED); // https://stackoverflow.com/questions/42139436/jersey-client-throws-cannot-retry-request-with-a-non-repeatable-request-entity
             config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
             config.property(ApacheClientProperties.CONNECTION_MANAGER_SHARED, true); // the pool is not the connector's to shut down: a target with its own filters runs on a connector of its own, which Jersey closes once it is collected - https://github.com/eclipse-ee4j/jersey/issues/4449
@@ -2226,47 +2233,25 @@ public class Application extends ResourceConfig
     }
     
     /**
-     * Returns the document type query.
-     * Used to retrieve the document type metadata.
+     * Returns the document context query.
+     * Used to retrieve what the authorization decision knows of a document: itself, its ancestors, its types and its owner.
      * 
      * @return query object
      */
-    public Query getDocumentTypeQuery()
+    public Query getDocumentContextQuery()
     {
-        return documentTypeQuery.cloneQuery();
+        return documentContextQuery.cloneQuery();
     }
 
     /**
-     * Returns the document owner query.
-     * Used to retrieve the document owner metadata.
-     * 
-     * @return query object
-     */
-    public Query getDocumentOwnerQuery()
-    {
-        return documentOwnerQuery.cloneQuery();
-    }
-    
-    /**
      * Returns the authorization query.
-     * Used to check access to end-user apps.
+     * Used to check access to the documents of either dataspace.
      * 
      * @return query object
      */
     public Query getACLQuery()
     {
         return aclQuery.cloneQuery();
-    }
-    
-    /**
-     * Returns the owner authorization query.
-     * Used to check access to admin apps.
-     * 
-     * @return query object
-     */
-    public Query getOwnerACLQuery()
-    {
-        return ownerAclQuery.cloneQuery();
     }
     
     /**
@@ -2307,6 +2292,26 @@ public class Application extends ResourceConfig
     public Query getOntologyQuery()
     {
         return ontologyQuery.cloneQuery();
+    }
+
+    /**
+     * Returns the query that finds a child of a document.
+     * 
+     * @return query object
+     */
+    public Query getChildQuery()
+    {
+        return childQuery.cloneQuery();
+    }
+
+    /**
+     * Returns the query that describes an uploaded file.
+     * 
+     * @return query object
+     */
+    public Query getFileQuery()
+    {
+        return fileQuery.cloneQuery();
     }
     
     /**
@@ -2524,6 +2529,16 @@ public class Application extends ResourceConfig
     }
 
     /**
+     * Maximum allowed size of a multipart (file upload) request body.
+     * 
+     * @return size in bytes, or <code>null</code> if it is the maximum allowed request body size
+     */
+    public Long getMaxUploadLength()
+    {
+        return maxUploadLength;
+    }
+
+    /**
      * Maximum length of the result the SPARQL endpoint answers a query with.
      * 
      * @return length in bytes
@@ -2678,17 +2693,7 @@ public class Application extends ResourceConfig
     {
         return xsltExecutableCache;
     }
-    
-    /**
-     * Message digest used in SHA1 hashing.
-     * 
-     * @return digest object
-     */
-    public MessageDigest getMessageDigest()
-    {
-        return messageDigest;
-    }
-    
+        
     /**
      * Returns list of locales for languages supported by the UI.
      *

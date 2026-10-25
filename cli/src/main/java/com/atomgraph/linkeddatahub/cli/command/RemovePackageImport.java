@@ -47,7 +47,7 @@ public class RemovePackageImport extends BaseCommand
     {
         URI target = URI.create(baseMixin.require(getSpec()) + "settings");
 
-        HttpException.check(target, getClient().patch(target, Updates.deletePackageImport(packageURI))).close();
+        HttpException.checkWrite(target, getClient().patch(target, Updates.deletePackageImport(packageURI))).close();
 
         return 0;
     }

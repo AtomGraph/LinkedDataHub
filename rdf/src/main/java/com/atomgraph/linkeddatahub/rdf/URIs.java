@@ -38,15 +38,19 @@ public final class URIs
      * Builds the URI of a child document from the parent container URI and a path segment slug.
      * <p>
      * The trailing slash is what makes it a container-addressable document rather than a fragment
-     * of its parent, so it is added here rather than left to the caller.
+     * of its parent, so it is added here rather than left to the caller. A parent given without one is
+     * read as the container the platform redirects it to, the same URI with a trailing slash - otherwise
+     * the slug would be glued onto the parent's last segment.
      *
-     * @param parent parent container URI (with trailing slash)
+     * @param parent parent container URI
      * @param slug path segment
      * @return child document URI (with trailing slash)
      */
     public static URI childURI(URI parent, String slug)
     {
-        return URI.create(parent.toString() + encodeSlug(slug) + "/");
+        String container = parent.toString().endsWith("/") ? parent.toString() : parent + "/";
+
+        return URI.create(container + encodeSlug(slug) + "/");
     }
 
     /**

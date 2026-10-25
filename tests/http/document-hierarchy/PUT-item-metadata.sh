@@ -77,7 +77,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -s \
 <${item}> <http://purl.org/dc/terms/title> "Title" .
 EOF
 ) \
-| grep -q "$STATUS_OK"
+| grep -q "$STATUS_NO_CONTENT"
 
 item_ntriples=$(ldh get \
   -c "$AGENT_CERT_KEYSTORE" \

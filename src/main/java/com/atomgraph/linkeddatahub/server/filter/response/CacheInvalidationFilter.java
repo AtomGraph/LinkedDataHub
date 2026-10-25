@@ -38,7 +38,10 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Attempts to make backend (triplestore) proxy cache layer transparent by invalidating cache entries that potentially become stale after a write/update request.
- * Currently implemented as a crude URL pattern-based heuristic. This filter works correctly if HTTP tests pass with both enabled and disabled proxy cache.
+ * The backend (triplestore) proxies are invalidated with a crude URL pattern-based heuristic. The frontend proxy is invalidated by
+ * surrogate key (<code>XKEY-PURGE</code>), using the tags {@link XkeyTaggingFilter} puts on its responses: the document written, its
+ * parent container, and - on a write to the admin dataspace - the access-control scope of the whole dataspace pair.
+ * This filter works correctly if HTTP tests pass with both enabled and disabled proxy cache.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -52,6 +55,16 @@ public class CacheInvalidationFilter implements ContainerResponseFilter
      * Name of the HTTP request header that is used to pass values of URLs for invalidation.
      */
     public static final String HEADER_NAME = "X-Escaped-Request-URI";
+
+    /**
+     * HTTP method of a surrogate-key purge (Varnish <code>vmod_xkey</code>).
+     */
+    public static final String XKEY_PURGE_METHOD = "XKEY-PURGE";
+
+    /**
+     * Name of the HTTP request header that carries the surrogate key to purge.
+     */
+    public static final String XKEY_PURGE_HEADER_NAME = "xkey-purge";
 
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject jakarta.inject.Provider<Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace>> app;
@@ -69,20 +82,17 @@ public class CacheInvalidationFilter implements ContainerResponseFilter
             URI parentURI = location.resolve("..").normalize();
             URI relativeParentURI = getDataspace().get().getBaseURI().relativize(parentURI);
 
-            banIfNotNull(getSystem().getFrontendProxy(), location.toString());
+            xkeyPurgeIfNotNull(getSystem().getFrontendProxy(), location.toString());
             banIfNotNull(getSystem().getServiceContext(getDataspace().get().getService()).getBackendProxy(), location.toString());
             // ban URI from authorization query results
             banIfNotNull(getSystem().getServiceContext(getAdminDataspace().getService()).getBackendProxy(), location.toString());
 
             // ban parent resource URI in order to avoid stale children data in containers
-            banIfNotNull(getSystem().getFrontendProxy(), parentURI.toString());
+            xkeyPurgeIfNotNull(getSystem().getFrontendProxy(), parentURI.toString());
             banIfNotNull(getSystem().getServiceContext(getDataspace().get().getService()).getBackendProxy(), parentURI.toString());
 
             if (!relativeParentURI.toString().isEmpty()) // URIs can be relative in queries
-            {
-                banIfNotNull(getSystem().getFrontendProxy(), relativeParentURI.toString());
                 banIfNotNull(getSystem().getServiceContext(getDataspace().get().getService()).getBackendProxy(), relativeParentURI.toString());
-            }
         }
 
         if (Set.of(HttpMethod.POST, HttpMethod.PUT, HttpMethod.DELETE, HttpMethod.PATCH).contains(req.getMethod()))
@@ -93,11 +103,18 @@ public class CacheInvalidationFilter implements ContainerResponseFilter
                 banIfNotNull(getSystem().getServiceContext(getAdminDataspace().getService()).getBackendProxy(), getAdminDataspace().getBaseURI().toString());
                 banIfNotNull(getSystem().getServiceContext(getAdminDataspace().getService()).getBackendProxy(), "foaf:Agent"); // queries use prefixed names instead of absolute URIs
                 banIfNotNull(getSystem().getServiceContext(getAdminDataspace().getService()).getBackendProxy(), "acl:AuthenticatedAgent");
+
+                // authorizations, agents and groups decide who may read any document of the dataspace pair, and the frontend
+                // stores what anonymous readers were given: evict every response of the pair. A query sent by POST changes
+                // nothing, and a failed write neither
+                if (resp.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL) &&
+                        req.getUriInfo().getMatchedResources().stream().noneMatch(com.atomgraph.core.model.SPARQLEndpoint.class::isInstance))
+                    xkeyPurgeIfNotNull(getSystem().getFrontendProxy(), XkeyTaggingFilter.getAccessControlScope(getAdminDataspace()));
             }
 
             if (req.getUriInfo().getAbsolutePath().toString().endsWith("/"))
             {
-                banIfNotNull(getSystem().getFrontendProxy(), req.getUriInfo().getAbsolutePath().toString());
+                xkeyPurgeIfNotNull(getSystem().getFrontendProxy(), req.getUriInfo().getAbsolutePath().toString());
                 banIfNotNull(getSystem().getServiceContext(getDataspace().get().getService()).getBackendProxy(), req.getUriInfo().getAbsolutePath().toString());
                 // ban URI from authorization query results
                 banIfNotNull(getSystem().getServiceContext(getAdminDataspace().getService()).getBackendProxy(), req.getUriInfo().getAbsolutePath().toString());
@@ -109,14 +126,11 @@ public class CacheInvalidationFilter implements ContainerResponseFilter
                     URI relativeParentURI = getDataspace().get().getBaseURI().relativize(parentURI);
 
                     // ban parent resource URI in order to avoid stale children data in containers
-                    banIfNotNull(getSystem().getFrontendProxy(), parentURI.toString());
+                    xkeyPurgeIfNotNull(getSystem().getFrontendProxy(), parentURI.toString());
                     banIfNotNull(getSystem().getServiceContext(getDataspace().get().getService()).getBackendProxy(), parentURI.toString());
 
                     if (!relativeParentURI.toString().isEmpty()) // URIs can be relative in queries
-                    {
-                        banIfNotNull(getSystem().getFrontendProxy(), relativeParentURI.toString());
                         banIfNotNull(getSystem().getServiceContext(getDataspace().get().getService()).getBackendProxy(), relativeParentURI.toString());
-                    }
                 }
             }
         }
@@ -160,6 +174,45 @@ public class CacheInvalidationFilter implements ContainerResponseFilter
         return getClient().target(proxyURI).request().
             header(HEADER_NAME, UriComponent.encode(url, UriComponent.Type.UNRESERVED)). // the value has to be URL-encoded in order to match request URLs in Varnish
             method("BAN", Response.class);
+    }
+
+    /**
+     * Purges responses tagged with a surrogate key from a proxy cache, if the proxy is not null.
+     * Failures are logged and swallowed, so that cache invalidation never fails the request.
+     *
+     * @param proxyURI proxy URI (can be null)
+     * @param tag xkey tag (can be null)
+     */
+    public void xkeyPurgeIfNotNull(URI proxyURI, String tag)
+    {
+        if (proxyURI != null && tag != null)
+        {
+            try (Response response = xkeyPurge(proxyURI, tag))
+            {
+                if (log.isDebugEnabled()) log.debug("XKEY-PURGE on {} for tag '{}' returned status {}", proxyURI, tag, response.getStatus());
+            }
+            catch (Exception ex)
+            {
+                if (log.isErrorEnabled()) log.error("XKEY-PURGE failed for tag: " + tag, ex);
+            }
+        }
+    }
+
+    /**
+     * Purges responses tagged with a surrogate key from a proxy cache. The tags are set by {@link XkeyTaggingFilter}.
+     *
+     * @param proxyURI proxy URI
+     * @param tag xkey tag
+     * @return response from proxy
+     */
+    public Response xkeyPurge(URI proxyURI, String tag)
+    {
+        if (proxyURI == null) throw new IllegalArgumentException("Proxy URI cannot be null");
+        if (tag == null) throw new IllegalArgumentException("Tag cannot be null");
+
+        return getClient().target(proxyURI).request().
+            header(XKEY_PURGE_HEADER_NAME, tag).
+            method(XKEY_PURGE_METHOD, Response.class);
     }
 
     /**

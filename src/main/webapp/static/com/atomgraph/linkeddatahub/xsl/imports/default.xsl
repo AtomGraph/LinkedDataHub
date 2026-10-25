@@ -656,7 +656,15 @@ exclude-result-prefixes="#all"
 
         <!-- Prototype = the Description that (a) carries $forClass as a type and (b) has property assertions beyond rdf:type. The [* except rdf:type] guard excludes pure-typing Descriptions (e.g. <rdf:Description rdf:nodeID="A1"><rdf:type rdf:resource="…/Class"/></rdf:Description> emitted as a range marker on a property). The [1] tiebreaker handles constructors that legitimately ship multiple instances of $forClass (content-block co-shipping, nested templates); the merge keys off whichever prototype we name here, others stay as distinct siblings. -->
         <xsl:variable name="shape-proto-id" select="($shape-constructor/rdf:RDF/*[rdf:type/@rdf:resource = $forClass][* except rdf:type]/@rdf:nodeID/string())[1]" as="xs:string?"/>
-        <xsl:variable name="spin-proto-id" select="($spin-constructor/rdf:RDF/*[rdf:type/@rdf:resource = $forClass][* except rdf:type]/@rdf:nodeID/string())[1]" as="xs:string?"/>
+        <!-- A class with a shape but no constructor still has a SPIN side: ldh:construct-instance types the
+             _:instance bnode with $forClass even when no constructor text came back, so the SPIN doc holds a
+             pure-typing instance and nothing else. The guard above cannot tell it from a range marker, so
+             it was never aligned to the shape's prototype and survived beside it - and every flow that then
+             looked for THE $forClass resource found two (the type combobox: "Required cardinality ... is
+             exactly one; supplied value contains 2 items"). What tells the instance from a marker is that
+             nothing points at it: a marker is the object of a property template, the instance of nothing.
+             Fall back to that unreferenced typing-only Description so it collapses into the shape prototype. -->
+        <xsl:variable name="spin-proto-id" select="($spin-constructor/rdf:RDF/*[rdf:type/@rdf:resource = $forClass][* except rdf:type]/@rdf:nodeID/string(), $spin-constructor/rdf:RDF/*[@rdf:nodeID][rdf:type/@rdf:resource = $forClass][not(* except rdf:type)][not(key('predicates-by-object', @rdf:nodeID, $spin-constructor))]/@rdf:nodeID/string())[1]" as="xs:string?"/>
 
         <xsl:choose>
             <xsl:when test="empty($shape-proto-id)">

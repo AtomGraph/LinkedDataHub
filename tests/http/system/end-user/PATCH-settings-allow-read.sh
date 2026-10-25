@@ -21,6 +21,8 @@ reset_allow_read()
       -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
       -X PATCH \
       -H "Content-Type: application/sparql-update" \
+      -H "Accept: application/n-triples" \
+      -H "If-Match: $(etag "${END_USER_BASE_URL}settings" "$OWNER_CERT_FILE" "$OWNER_CERT_PWD")" \
       -d "PREFIX lds: <https://w3id.org/atomgraph/linkeddatahub/dataspaces#>
 DELETE { ?app lds:allowRead ?value } WHERE { ?app lds:allowRead ?value }" \
       "${END_USER_BASE_URL}settings"
@@ -39,6 +41,8 @@ curl -k -s -f -o /dev/null \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
   -X PATCH \
   -H "Content-Type: application/sparql-update" \
+  -H "Accept: application/n-triples" \
+  -H "If-Match: $(etag "${END_USER_BASE_URL}settings" "$OWNER_CERT_FILE" "$OWNER_CERT_PWD")" \
   -d "PREFIX lds: <https://w3id.org/atomgraph/linkeddatahub/dataspaces#>
 INSERT { ?app lds:allowRead true } WHERE { ?app a lds:EndUserDataspace }" \
   "${END_USER_BASE_URL}settings"

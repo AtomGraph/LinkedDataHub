@@ -41,7 +41,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -H "Content-Type: application/n-triples" \
   --data-binary @- \
   "$container" <<EOF \
-| grep -q "$STATUS_OK"
+| grep -q "$STATUS_NO_CONTENT"
 <${container}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Container> .
 <${container}> <http://purl.org/dc/terms/title> "Test container" .
 <${container}> <http://rdfs.org/sioc/ns#has_parent> <${END_USER_BASE_URL}> .

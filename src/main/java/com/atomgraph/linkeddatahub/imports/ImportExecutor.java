@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.imports;
 import com.atomgraph.client.MediaTypes;
 import com.atomgraph.core.model.DatasetAccessor;
 import com.atomgraph.linkeddatahub.client.GraphStoreClient;
+import com.atomgraph.linkeddatahub.client.RedirectingClient;
 import com.atomgraph.linkeddatahub.imports.stream.RDFGraphStoreOutput;
 import com.atomgraph.linkeddatahub.imports.stream.csv.CSVGraphStoreOutput;
 import com.atomgraph.linkeddatahub.imports.stream.csv.CSVGraphStoreOutputWriter;
@@ -112,17 +113,18 @@ public class ImportExecutor
         // LNK-002: validate the attacker-controlled import URIs to prevent SSRF before dereferencing them
         system.getURLValidator().validate(URI.create(csvImport.getFile().getURI()));
         system.getURLValidator().validate(URI.create(csvImport.getQuery().getURI())); // query is required on CSVImport
+        RedirectingClient redirectingClient = new RedirectingClient(system.getURLValidator()); // validates redirect hops
 
         Resource provImport = ModelFactory.createDefaultModel().createResource(csvImport.getURI()).
                 addProperty(PROV.startedAtTime, csvImport.getModel().createTypedLiteral(Calendar.getInstance()));
 
         String queryBaseURI = csvImport.getFile().getURI(); // file URI becomes the query base URI
-        QueryLoader queryLoader = new QueryLoader(URI.create(csvImport.getQuery().getURI()), queryBaseURI, Syntax.syntaxARQ, gsc);
+        QueryLoader queryLoader = new QueryLoader(URI.create(csvImport.getQuery().getURI()), queryBaseURI, Syntax.syntaxARQ, gsc, redirectingClient);
         ParameterizedSparqlString pss = new ParameterizedSparqlString(queryLoader.get().toString(), queryBaseURI);
         pss.setIri(LDS.base.getLocalName(), appBaseURI); // app's base URI becomes $base
         final Query query = pss.asQuery();
 
-        Supplier<Response> fileSupplier = new ClientResponseSupplier(gsc, CSV_MEDIA_TYPES, URI.create(csvImport.getFile().getURI()));
+        Supplier<Response> fileSupplier = new ClientResponseSupplier(gsc, redirectingClient, CSV_MEDIA_TYPES, URI.create(csvImport.getFile().getURI()));
         CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(service, adminService, system,
                 gsc, queryBaseURI, query, csvImport), getExecutorService()).
             thenAcceptAsync(success(service, system, csvImport, provImport), getExecutorService()).
@@ -147,6 +149,7 @@ public class ImportExecutor
         // LNK-002: validate the attacker-controlled import URIs to prevent SSRF before dereferencing them
         system.getURLValidator().validate(URI.create(rdfImport.getFile().getURI()));
         if (rdfImport.getQuery() != null) system.getURLValidator().validate(URI.create(rdfImport.getQuery().getURI())); // query is optional on RDFImport
+        RedirectingClient redirectingClient = new RedirectingClient(system.getURLValidator()); // validates redirect hops
 
         Resource provImport = ModelFactory.createDefaultModel().createResource(rdfImport.getURI()).
                 addProperty(PROV.startedAtTime, rdfImport.getModel().createTypedLiteral(Calendar.getInstance()));
@@ -155,7 +158,7 @@ public class ImportExecutor
         final Query query;
         if (rdfImport.getQuery() != null) // query is optional on RDFImport
         {
-            QueryLoader queryLoader = new QueryLoader(URI.create(rdfImport.getQuery().getURI()), queryBaseURI, Syntax.syntaxARQ, gsc);
+            QueryLoader queryLoader = new QueryLoader(URI.create(rdfImport.getQuery().getURI()), queryBaseURI, Syntax.syntaxARQ, gsc, redirectingClient);
             ParameterizedSparqlString pss = new ParameterizedSparqlString(queryLoader.get().toString(), queryBaseURI);
             pss.setIri(LDS.base.getLocalName(), appBaseURI); // app's base URI becomes $base
             query = pss.asQuery();
@@ -163,7 +166,7 @@ public class ImportExecutor
         else
             query = null;
 
-        Supplier<Response> fileSupplier = new ClientResponseSupplier(gsc, RDF_MEDIA_TYPES, URI.create(rdfImport.getFile().getURI()));
+        Supplier<Response> fileSupplier = new ClientResponseSupplier(gsc, redirectingClient, RDF_MEDIA_TYPES, URI.create(rdfImport.getFile().getURI()));
         CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(service, adminService, system,
                 gsc, queryBaseURI, query, rdfImport), getExecutorService()).
             thenAcceptAsync(success(service, system, rdfImport, provImport), getExecutorService()).

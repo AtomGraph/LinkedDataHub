@@ -1,0 +1,33 @@
+name: Formal
+
+on: [push, pull_request]
+
+jobs:
+  acl-model:
+    name: Build the Lean ACL model and check it tracks the code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Linux packages
+        run: sudo apt-get update && sudo apt-get install -qq libxml2-utils
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      # elan picks the toolchain pinned in formal/acl/lean-toolchain on first use
+      - name: Install elan
+        run: |
+          curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Build the model
+        working-directory: formal/acl
+        run: lake build
+      # lake build only warns on sorry; the README's "no sorry" claim is checked here
+      - name: Every theorem is proven
+        run: |
+          if grep -rnw --include='*.lean' sorry formal/acl; then
+            echo "::error::formal/acl has unproven theorems"
+            exit 1
+          fi
+      - name: The model tracks the code
+        if: github.event_name == 'pull_request'
+        run: formal/acl/tracks-code.sh "${{ github.event.pull_request.base.sha }}"

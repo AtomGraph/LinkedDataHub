@@ -151,8 +151,8 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
                 {
                     if (!postResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                     {
-                        if (log.isErrorEnabled()) log.error("RDF document with URI <{}> could not be successfully created using PUT. Status code: {}", graphURI, postResponse.getStatus());
-                        throw new ImportException(new IOException("RDF document with URI <" + graphURI + "> could not be successfully created using PUT. Status code: " + postResponse.getStatus()));
+                        if (log.isErrorEnabled()) log.error("RDF document with URI <{}> already exists and could not be appended to using POST. Status code: {}", graphURI, postResponse.getStatus());
+                        throw new ImportException(new IOException("RDF document with URI <" + graphURI + "> already exists and could not be appended to using POST. Status code: " + postResponse.getStatus()));
                     }
                 }
             }

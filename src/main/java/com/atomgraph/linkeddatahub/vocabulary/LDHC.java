@@ -67,17 +67,11 @@ public class LDHC
     /** Proxy port property */
     public static final Property proxyPort = m_model.createDataProperty( NS + "proxyPort" );
 
-    /** Document type query property */
-    public static final Property documentTypeQuery = m_model.createDataProperty( NS + "documentTypeQuery" );
-
-    /** Document owner query property */
-    public static final Property documentOwnerQuery = m_model.createDataProperty( NS + "documentOwnerQuery" );
+    /** Document context query property */
+    public static final Property documentContextQuery = m_model.createDataProperty( NS + "documentContextQuery" );
 
     /** ACL query property */
     public static final Property aclQuery = m_model.createDataProperty( NS + "aclQuery" );
-
-    /** Owner's ACL property */
-    public static final Property ownerAclQuery = m_model.createDataProperty( NS + "ownerAclQuery" );
 
     /** WebID query property */
     public static final Property webIDQuery = m_model.createDataProperty( NS + "webIDQuery" );
@@ -90,6 +84,12 @@ public class LDHC
     
     /** Ontology query property */
     public static final Property ontologyQuery = m_model.createDataProperty( NS + "ontologyQuery" );
+
+    /** Child query property */
+    public static final Property childQuery = m_model.createDataProperty( NS + "childQuery" );
+
+    /** File description query property */
+    public static final Property fileQuery = m_model.createDataProperty( NS + "fileQuery" );
 
     /** Upload root property */
     public static final Property uploadRoot = m_model.createObjectProperty( NS + "uploadRoot" );
@@ -165,6 +165,9 @@ public class LDHC
 
     /** Max content length property */
     public static final Property maxContentLength = m_model.createDataProperty( NS + "maxContentLength" );
+
+    /** Max content length of a multipart (file upload) request; defaults to the max content length */
+    public static final Property maxUploadLength = m_model.createDataProperty( NS + "maxUploadLength" );
 
     /** Max length of a SPARQL endpoint query result, in bytes */
     public static final Property maxQueryResponseLength = m_model.createDataProperty( NS + "maxQueryResponseLength" );

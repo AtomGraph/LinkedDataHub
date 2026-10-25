@@ -52,12 +52,12 @@ import jakarta.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.GregorianCalendar;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.regex.Pattern;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QuerySolution;
@@ -298,11 +298,32 @@ public abstract class LoginBase
                 if (agentSvcProxy != null) ban(agentSvcProxy, jwt.getSubject());
             }
 
-            URI originalReferer = URI.create(new String(Base64.getDecoder().decode(stateCookie.getValue())).split(Pattern.quote(";"))[1]); // fails if referer param was not specified
+            // the referer from the state cookie is checked again before redirecting
+            URI originalReferer = AuthorizeBase.checkReferer(getSystem(), getEndUserDataspace().getBaseURI(), getReferer(stateCookie.getValue()));
 
             // Pass ID token in URL fragment for client-side cookie setting (works uniformly across all domains)
             URI redirectUri = URI.create(originalReferer + "#id_token=" + idToken);
             return Response.seeOther(redirectUri).build();
+        }
+    }
+
+    /**
+     * Returns the referer stored in the OAuth state value: the part after the first <code>;</code> of its Base64 decoding.
+     *
+     * @param stateValue state value
+     * @return referer string, or null if the value does not carry one
+     */
+    public static String getReferer(String stateValue)
+    {
+        try
+        {
+            String decoded = new String(Base64.getDecoder().decode(stateValue), StandardCharsets.UTF_8);
+            int separator = decoded.indexOf(';');
+            return separator < 0 ? null : decoded.substring(separator + 1);
+        }
+        catch (IllegalArgumentException ex)
+        {
+            return null;
         }
     }
 

@@ -64,8 +64,8 @@ fi
 # with If-Match: the write lands
 
 status=$(put_multipart -H "If-Match: $(etag "$item" "$AGENT_CERT_FILE" "$AGENT_CERT_PWD" "application/n-triples")")
-echo "DEBUG: [If-Match] Expected status: $STATUS_OK  Got: $status"
-if [ "$status" != "$STATUS_OK" ]; then
+echo "DEBUG: [If-Match] Expected status: $STATUS_NO_CONTENT  Got: $status"
+if [ "$status" != "$STATUS_NO_CONTENT" ]; then
     exit 1
 fi
 

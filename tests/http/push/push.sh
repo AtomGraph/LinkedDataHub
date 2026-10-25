@@ -51,7 +51,7 @@ if [ "$planned" != "$expected" ]; then
 fi
 
 # a non-existing document is forbidden (403), not 404: a typeless URL matches no authorization, so the gate
-# denies before the request reaches the handler that would report not-found (see document-hierarchy/GET-404.sh)
+# denies before the request reaches the handler that would report not-found (see document-hierarchy/GET-missing-403.sh)
 
 curl -k -w "%{http_code}\n" -o /dev/null -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \

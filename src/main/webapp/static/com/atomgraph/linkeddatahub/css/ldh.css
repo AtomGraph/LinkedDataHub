@@ -253,8 +253,13 @@ circle { cursor: move; }
    it is what the :has() tests above read to recognise a grouped row. */
 .row-main:has(> .ldh-block:not(.is-embedded)):has(> .ldh-block.is-embedded) > .ldh-block, .row-main:has(> .ldh-block:not(.is-embedded)):has(> .ldh-block.is-embedded) > .ldh-block:hover { box-shadow: none; }
 /* Members are divided by a rule, not a gap - a gap would show the page through the card. It is also
-   what lets the shape survive multiplicity: a class can attach any number of views to a resource. */
-.row-main:has(> .ldh-block:not(.is-embedded)):has(> .ldh-block.is-embedded) > .ldh-block + .ldh-block { border-top: 1px solid var(--border-default); }
+   what lets the shape survive multiplicity: a class can attach any number of views to a resource.
+   Membership is tested on its own, without the surface test above: under an ldh:Object carrier the host
+   card is is-embedded as well, so the row holds embedded cards only and the carrier stays the surface.
+   There each member keeps its hairline, which then runs as one left edge, and the inner curve each takes
+   from app.css is left only where it meets a carrier corner - the first member's top, the last one's bottom. */
+.row-main:has(> .ldh-block + .ldh-block.is-embedded) > .ldh-block + .ldh-block { border-top: 1px solid var(--border-default); border-top-left-radius: 0; border-top-right-radius: 0; }
+.row-main:has(> .ldh-block + .ldh-block.is-embedded) > .ldh-block:has(~ .ldh-block) { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
 /* ---------- cards: the m3 skin's resting M3-elevation shadow reads as a doubled bottom border;
      the design's card preview shows the bordered treatment, so keep the m3 palette but rest flat ---------- */
 :root[data-retro^="m3"] .ldh-block {
@@ -980,3 +985,41 @@ div.ldh-failure > .ac-alert { margin: 0; }
 .rdfa-editor-content .rdfa-editor-island { border-color: var(--border-default); background: var(--bg-recess); }
 
 
+
+/* ---------- print: the document's content and nothing else. Defining @page margin boxes also
+   turns off the browser's own header and footer (date, title, URL) - but only on the edge that
+   declares one, so the top edge carries an empty box too and the page number is the only thing
+   printed in the margin. The sticky chrome is hidden, not unstuck, because a sticky
+   element prints wherever the viewport left it, over the text. Every scroll box is released,
+   since print has no scrolling: a capped table is cut off at the box's height. A Google table
+   chart gets its 400px height inline, which is why those rules need !important, and the same
+   height stretches the rows of a short table ---------- */
+@media print {
+  @page {
+    size: A4;
+    margin: 18mm 16mm;
+    @top-right { content: ""; }
+    @bottom-right { content: counter(page) " / " counter(pages); font-family: var(--font-mono); font-size: 9px; color: var(--fg-muted); }
+  }
+
+  .ldh-header, #tab-bar, .action-bar, .editor-bar, .ldh-footer, .ldh-create-dock, .ldh-sidebar, .ldh-chat, .ldh-drawer, .ldh-edge-sensor { display: none !important; }
+  .ldh-block-head .actions, .ldh-block-corner, .ldh-block-rail, .ldh-view-toolbar, .ldh-pager, .chart-controls, .ldh-types { display: none !important; }
+
+  :root { --ldh-pane-w: 100%; }
+  html, body { background: none; }
+  #visible-body { min-height: 0; }
+
+  .container-results, .ldh-block-body, .ldh-block-body > .ldh-grid-block, .ldh-block-body > .ldh-list-block, .ac-table td > .values { max-height: none !important; overflow: visible !important; }
+  .container-results > .ac-table thead th { position: static; }
+  .chart-canvas:has(.google-visualization-table) { height: auto !important; padding: 0; }
+  .chart-canvas .google-visualization-table, .chart-canvas .google-visualization-table > div { height: auto !important; max-height: none !important; overflow: visible !important; }
+  .chart-canvas .google-visualization-table-table { width: 100% !important; height: auto !important; border-collapse: collapse !important; }
+  .chart-canvas .google-visualization-table-table thead { display: table-header-group; }
+  /* the screen hairlines drop out at print scale, unevenly from row to row */
+  .chart-canvas .google-visualization-table-table th, .chart-canvas .google-visualization-table-table td { border: 1px solid var(--border-default) !important; }
+
+  .ldh-block, .ldh-block-row { box-shadow: none !important; }
+  h1, h2, h3, h4, h5, h6 { break-after: avoid; }
+  .ldh-block-row:has(.chart-canvas, .map-canvas), tr, img, figure { break-inside: avoid; }
+  p { orphans: 3; widows: 3; }
+}

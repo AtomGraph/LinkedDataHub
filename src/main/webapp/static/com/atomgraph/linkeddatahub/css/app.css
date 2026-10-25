@@ -3883,13 +3883,19 @@ html[data-tweak-block-edges="flow"] .ldh-block:has(.ldh-edit-form) {
 .ldh-vmsgs { display: flex; flex-direction: column; gap: 3px; }
 .ldh-prop-group.is-violation > .label .pred { color: var(--danger-500); }
 .ldh-prop-group.is-violation > .label { box-shadow: inset 2px 0 0 var(--danger-500); }
-.ldh-prop-row.is-violation .val-main > .ac-field .ac-field-box,
-.ldh-prop-row.is-violation .val-main > .ac-select > select,
-.ldh-prop-row.is-violation .val-main > .ac-combobox .ac-cb-box,
-.ldh-prop-row.is-violation .val-main > .ac-codefield,
-.ldh-prop-row.is-violation .val-main > .ldh-dt-pair .ac-field-box { border-color: var(--danger-500); }
-.ldh-prop-row.is-violation .val-main > .ac-fileinput .ac-file-drop { border-color: var(--danger-500); background: var(--danger-50); }
-.ldh-prop-row.is-violation .val-main > .ac-cb-committed .ac-cb-chip { border-color: var(--danger-500); color: var(--danger-500); background: var(--danger-50); }
+/* A violation that names a field in the annotation strip - an invalid language tag - marks that
+   field instead of the control: aria-invalid on the input says which field is at fault, and the
+   value beside it is not. The field is revealed with the mark, as at-rest chrome would hide it. */
+.ldh-prop-row.is-violation:not(:has(.ldh-annot [aria-invalid="true"])) .val-main > .ac-field .ac-field-box,
+.ldh-prop-row.is-violation:not(:has(.ldh-annot [aria-invalid="true"])) .val-main > .ac-select > select,
+.ldh-prop-row.is-violation:not(:has(.ldh-annot [aria-invalid="true"])) .val-main > .ac-combobox .ac-cb-box,
+.ldh-prop-row.is-violation:not(:has(.ldh-annot [aria-invalid="true"])) .val-main > .ac-codefield,
+.ldh-prop-row.is-violation:not(:has(.ldh-annot [aria-invalid="true"])) .val-main > .ldh-dt-pair .ac-field-box { border-color: var(--danger-500); }
+.ldh-prop-row.is-violation:not(:has(.ldh-annot [aria-invalid="true"])) .val-main > .ac-fileinput .ac-file-drop { border-color: var(--danger-500); background: var(--danger-50); }
+.ldh-prop-row.is-violation:not(:has(.ldh-annot [aria-invalid="true"])) .val-main > .ac-cb-committed .ac-cb-chip { border-color: var(--danger-500); color: var(--danger-500); background: var(--danger-50); }
+.ldh-prop-form .ldh-prop-row.is-violation .ldh-annot > .ldh-lang:has([aria-invalid="true"]) { opacity: 1; }
+.ldh-prop-row.is-violation .ldh-lang > .ac-field .ac-field-box:has([aria-invalid="true"]),
+.ldh-prop-form.is-form-mode .ldh-prop-row.is-violation .ldh-lang > .ac-field .ac-field-box:has([aria-invalid="true"]) { border-color: var(--danger-500); }
 
 /* ---- Label slots: required marker + predicate description (C8) ----
    DECISION (rdfs:comment): a TOGGLETIP on the label, not a hint line under it.

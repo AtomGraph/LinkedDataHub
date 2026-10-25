@@ -45,22 +45,22 @@ Writes go through the **document URLs**, never through the SPARQL endpoint (whic
 | Intent | Method | Body | Answer |
 |--------|--------|------|--------|
 | Create a document at a URL you choose | `PUT` document URL | RDF (e.g. `Content-Type: text/turtle`) | `201` with `Location` = that URL. The parent container must already exist |
-| Replace an existing document | `PUT` document URL | RDF | `200`; replaces the whole named graph |
+| Replace an existing document | `PUT` document URL | RDF | `204`, with no `ETag`; replaces the whole named graph |
 | Append to a document | `POST` document URL | RDF | `204` with the updated `ETag`; merges into the named graph |
 | Update a document in place | `PATCH` document URL | `Content-Type: application/sparql-update` | `204` with the updated `ETag`; one SPARQL Update, `INSERT`/`DELETE … WHERE` or `DELETE WHERE`, applied to that named graph |
 | Delete a document | `DELETE` document URL | — | Removes the named graph |
-| Upload a file | `POST`/`PUT` document URL | `multipart/form-data` | The file is content-addressed at `{base}uploads/{sha1}` |
+| Upload a file | `POST`/`PUT` document URL | `multipart/form-data` | As `POST`/`PUT` with an RDF body; the file is content-addressed at `{base}uploads/{sha1}`, and stored only if the write goes ahead |
 
 There is no LDP-style `POST` to a container that mints a child URL: the client picks the URL (a slug, or a UUID), and `PUT` creates it. Relative URIs in a request body resolve against the target URL. Blank nodes are skolemized against it.
 
-The `PATCH` body is a single SPARQL Update operation in a pattern-matching form: `INSERT { … } WHERE { … }`, `DELETE { … } INSERT { … } WHERE { … }`, `DELETE { … } WHERE { … }` or `DELETE WHERE { … }`. `INSERT DATA`, `DELETE DATA` and a request of several operations answer `422`; write a ground triple as `INSERT { <s> <p> <o> } WHERE { }`. The update is executed in the context of the one named graph, so the `GRAPH` keyword is not allowed in it (`422`). An update that empties the graph is treated as a `DELETE`. An update that strips `rdf:type` off a resource that keeps other properties answers `422` — SPIN constraints are class-scoped, and removing the type would bypass them silently. So does a result that violates the ontology's SHACL shapes, carrying bounded descriptions of the violating resources.
+The `PATCH` body is a single SPARQL Update operation in a pattern-matching form: `INSERT { … } WHERE { … }`, `DELETE { … } INSERT { … } WHERE { … }`, `DELETE { … } WHERE { … }` or `DELETE WHERE { … }`. `INSERT DATA`, `DELETE DATA` and a request of several operations answer `422`; write a ground triple as `INSERT { <s> <p> <o> } WHERE { }`. The update is executed in the context of the one named graph, so the `GRAPH` keyword is not allowed anywhere in it, nor are `WITH`, `USING` and `USING NAMED` (`422`). An update that empties the graph is treated as a `DELETE`. An update that strips `rdf:type` off a resource that keeps other properties answers `422` — SPIN constraints are class-scoped, and removing the type would bypass them silently. So does a result that violates the ontology's SHACL shapes, carrying bounded descriptions of the violating resources.
 
 ### Conditional writes are mandatory
 
 Since 6.0.0 every write is conditional:
 
-- A write to a document that **already exists** must carry `If-Match: <ETag>`. Without it the server answers `428 Precondition Required`. An empty `If-Match` counts as absent.
-- A write meant to **create** carries `If-None-Match: *` instead, and cannot also carry `If-Match`.
+- A write to a document that **already exists** must carry `If-Match: <ETag>`. Without it the server answers `428 Precondition Required`. An empty `If-Match`, `If-Match: *` and any `If-None-Match` other than `*` count as absent.
+- A write meant to **create** carries `If-None-Match: *` instead, and cannot also carry `If-Match`: an `If-Match` to a document that does not exist answers `412`.
 - A failed precondition answers `412` **with the document's current entity tag**, so the retry needs no second read.
 - An entity tag identifies a **negotiated variant** (a SHA-256 digest of the graph URI and its statements, folded with the variant, languages included). The read that supplies the validator must therefore send the same `Accept` and `Accept-Language` as the write that quotes it. A tag read as `application/rdf+xml` and quoted by a write that negotiates to HTML can never agree — `412`.
 - A write invalidates the tag it quoted, so the next one cannot reuse it. `POST` and `PATCH` answer `204` with the updated tag — record it. After a `PUT`, re-read the validator with `HEAD` under the same `Accept` and `Accept-Language`.
@@ -78,6 +78,8 @@ Write portable, standard SPARQL: use explicit `GRAPH` patterns, no engine-specif
 **One document per resource, so a join crosses graphs.** A resource is described in the document about it (`foaf:primaryTopic`), and the resources it links to - an order's customer, a product's category, an employee's manager - are each described in their own document, in another graph. A pattern that follows such a link therefore needs a `GRAPH` of its own for each resource: `GRAPH ?o { ?order schema:customer ?customer } GRAPH ?c { ?customer schema:legalName ?name }`, never both triples in one `GRAPH ?g`, which asks for them in the same document and matches nothing. Only a resource's own companions - its address, its contact point, an order's line items - share its document. When in doubt, give every subject variable its own graph variable: it costs nothing when two resources do share a document, and it is the only pattern that works when they do not.
 
 **A property is used on instances of its domain.** The ontology (`Link rel=lds:ontology`) declares each property's `rdfs:domain` and `rdfs:range`, and the data follows it: a property declared on `schema:Person` is not on the `schema:Corporation` that employs the person. To reach it, follow the ontology's path - the corporation's `schema:employee`, then the person's `schema:address`.
+
+**A stored query can run against another endpoint.** A query resource (`sp:Select`, `sp:Construct`, …) runs against the dataspace's own endpoint unless it names an `sd:Service` with `ldh:service`: `<#q> ldh:service <#dbpedia>` with `<#dbpedia> a sd:Service ; sd:endpoint <https://dbpedia.org/sparql> ; sd:supportedLanguage sd:SPARQL11Query`. Views and charts run the query they reference, so a view or a chart over such a query shows the remote endpoint's data on the page. Write the query against that store's own graph layout - the empty default graph above is this dataspace's, not every endpoint's - and time it first: remote endpoints are slow and rate-limited.
 
 Outbound `SERVICE` and `LOAD` — from the triplestore and from the platform alike — are routed through the `egress` forward proxy, which refuses loopback, private and link-local destinations. A federated query reaches public endpoints and cannot reach the deployment's own services. With no proxy configured and `ALLOW_INTERNAL_URLS` unset, in-JVM `SERVICE` (in a `PATCH` update or an import mapping) is disabled outright.
 

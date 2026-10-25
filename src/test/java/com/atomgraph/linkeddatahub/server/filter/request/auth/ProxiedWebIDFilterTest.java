@@ -17,7 +17,15 @@
 package com.atomgraph.linkeddatahub.server.filter.request.auth;
 
 import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.UriInfo;
+import java.net.URI;
 import java.net.URLEncoder;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.security.Principal;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -31,7 +39,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Unit tests for {@link ProxiedWebIDFilter}, which extracts the client certificate from the
@@ -110,6 +122,122 @@ public class ProxiedWebIDFilterTest
     {
         when(requestContext.getHeaderString(CLIENT_CERT_HEADER_NAME)).thenReturn("garbage-not-a-cert");
         assertThrows(CertificateException.class, () -> filter.getWebIDCertificate(requestContext));
+    }
+
+    // PROXY SECRET
+
+    private static final String SECRET = "c2VjcmV0LWZvci10ZXN0cy1vbmx5LTEyMzQ1Ng==";
+
+    @TempDir Path tempDir;
+
+    /** Constructs the filter with a proxy secret file holding the given content, or with none. */
+    private ProxiedWebIDFilter filterWithSecret(String content) throws Exception
+    {
+        if (content == null) return new ProxiedWebIDFilter();
+
+        Path file = tempDir.resolve("proxy_secret");
+        Files.writeString(file, content);
+        System.setProperty(ProxiedWebIDFilter.PROXY_SECRET_FILE_PROPERTY, file.toString());
+        try
+        {
+            return new ProxiedWebIDFilter();
+        }
+        finally
+        {
+            System.clearProperty(ProxiedWebIDFilter.PROXY_SECRET_FILE_PROPERTY);
+        }
+    }
+
+    /** A request context backed by a real header map; already authenticated, so the authentication itself is skipped. */
+    private MultivaluedMap<String, String> headers(String proxySecret)
+    {
+        MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
+        headers.putSingle(CLIENT_CERT_HEADER_NAME, URLEncoder.encode(CERT_PEM, StandardCharsets.UTF_8));
+        if (proxySecret != null) headers.putSingle(ProxiedWebIDFilter.PROXY_SECRET_HEADER_NAME, proxySecret);
+
+        SecurityContext securityContext = mock(SecurityContext.class);
+        lenient().when(securityContext.getUserPrincipal()).thenReturn(mock(Principal.class));
+        UriInfo uriInfo = mock(UriInfo.class);
+        lenient().when(uriInfo.getRequestUri()).thenReturn(URI.create("https://localhost:4443/"));
+
+        lenient().when(requestContext.getHeaders()).thenReturn(headers);
+        lenient().when(requestContext.getHeaderString(anyString())).thenAnswer(invocation -> headers.getFirst(invocation.getArgument(0)));
+        lenient().when(requestContext.getSecurityContext()).thenReturn(securityContext);
+        lenient().when(requestContext.getUriInfo()).thenReturn(uriInfo);
+
+        return headers;
+    }
+
+    /** The matching secret: the forwarded certificate is used, and the secret goes no further than this filter. */
+    @Test
+    public void testMatchingSecretHonoursHeader() throws Exception
+    {
+        ProxiedWebIDFilter filter = filterWithSecret(SECRET + "\n");
+        MultivaluedMap<String, String> headers = headers(SECRET);
+
+        filter.filter(requestContext);
+
+        assertNotNull(filter.getWebIDCertificate(requestContext));
+        assertNull(headers.getFirst(ProxiedWebIDFilter.PROXY_SECRET_HEADER_NAME));
+    }
+
+    @Test
+    public void testWrongSecretIgnoresHeader() throws Exception
+    {
+        ProxiedWebIDFilter filter = filterWithSecret(SECRET);
+        MultivaluedMap<String, String> headers = headers(SECRET.substring(1));
+
+        filter.filter(requestContext);
+
+        assertNull(filter.getWebIDCertificate(requestContext));
+        assertNull(headers.getFirst(CLIENT_CERT_HEADER_NAME));
+        assertNull(headers.getFirst(ProxiedWebIDFilter.PROXY_SECRET_HEADER_NAME));
+    }
+
+    @Test
+    public void testMissingSecretIgnoresHeader() throws Exception
+    {
+        ProxiedWebIDFilter filter = filterWithSecret(SECRET);
+        headers(null);
+
+        filter.filter(requestContext);
+
+        assertNull(filter.getWebIDCertificate(requestContext));
+    }
+
+    /** Without a configured secret no value matches, an empty one included. */
+    @Test
+    public void testNoConfiguredSecretIgnoresHeader() throws Exception
+    {
+        ProxiedWebIDFilter filter = filterWithSecret(null);
+        MultivaluedMap<String, String> headers = headers("");
+
+        filter.filter(requestContext);
+
+        assertNull(filter.getWebIDCertificate(requestContext));
+        assertNull(headers.getFirst(ProxiedWebIDFilter.PROXY_SECRET_HEADER_NAME));
+        assertTrue(!filter.isProxySecret("") && !filter.isProxySecret(null));
+    }
+
+    @Test
+    public void testReadProxySecret() throws Exception
+    {
+        assertNull(ProxiedWebIDFilter.readProxySecret(null));
+
+        Path file = tempDir.resolve("secret");
+        Files.writeString(file, "  " + SECRET + "\n");
+        assertEquals(SECRET, new String(ProxiedWebIDFilter.readProxySecret(file.toString()), StandardCharsets.UTF_8));
+    }
+
+    /** A configured but unusable secret file fails construction, so the application does not start. */
+    @Test
+    public void testEmptyOrMissingSecretFileFails() throws Exception
+    {
+        Path empty = tempDir.resolve("empty");
+        Files.writeString(empty, "\n");
+
+        assertThrows(IllegalStateException.class, () -> ProxiedWebIDFilter.readProxySecret(empty.toString()));
+        assertThrows(IllegalStateException.class, () -> ProxiedWebIDFilter.readProxySecret(tempDir.resolve("missing").toString()));
     }
 
 }

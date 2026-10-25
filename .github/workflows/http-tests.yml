@@ -41,11 +41,25 @@ jobs:
       - name: Build the linkeddatahub-rdf library
         run: mvn -B install
         working-directory: rdf
+      # cli/pom.xml pins Core by a copy of the version the platform resolves through Web-Client, and
+      # carries the platform's own version, as rdf/ does; `make cli-version` refreshes the copies and
+      # this fails the build when one has fallen behind
+      - name: Check that rdf/ and the CLI are at the platform's versions
+        run: make cli-version-check
       - name: Build the ldh CLI
         run: mvn -B package # the CLI unit tests run here; the suite drives ldh for its fixtures
         working-directory: cli
       - name: Add the ldh launcher to PATH
         run: echo "$GITHUB_WORKSPACE/cli/bin" >> "$GITHUB_PATH"
+      # the formal suite replays the Lean model's decision (formal/acl) against the server through ldh-acl;
+      # elan picks the toolchain pinned in formal/acl/lean-toolchain
+      - name: Install elan
+        run: |
+          curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Build ldh-acl
+        run: lake build ldh-acl
+        working-directory: formal/acl
       - name: Generating server certificate
         run: |
           server-cert-gen.sh .env nginx ssl
@@ -56,6 +70,10 @@ jobs:
           printf "%s" "${{ secrets.HTTP_TEST_OWNER_CERT_PASSWORD }}" > ./secrets/owner_cert_password.txt
           printf "%s" "${{ secrets.HTTP_TEST_SECRETARY_CERT_PASSWORD }}" > ./secrets/secretary_cert_password.txt
           printf "%s" "${{ secrets.HTTP_TEST_SECRETARY_CERT_PASSWORD }}" > ./secrets/client_truststore_password.txt
+          proxy_secret=$(openssl rand -hex 32)
+          echo "::add-mask::$proxy_secret"
+          printf '\nPROXY_SECRET=%s\n' "$proxy_secret" >> ./tests/http/.env
+          echo "PROXY_SECRET=$proxy_secret" >> "$GITHUB_ENV" # for later compose commands without --env-file
         shell: bash
       - name: Enable graph versioning
         if: env.VERSIONING_TEST_TOKEN != ''

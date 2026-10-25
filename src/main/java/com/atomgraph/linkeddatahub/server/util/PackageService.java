@@ -17,7 +17,9 @@
 package com.atomgraph.linkeddatahub.server.util;
 
 import com.atomgraph.client.util.jena.PrefixGraphRepository;
-import com.atomgraph.core.client.GraphStoreClient;
+import com.atomgraph.linkeddatahub.client.GraphStoreClient;
+import com.atomgraph.linkeddatahub.client.RedirectingClient;
+import com.atomgraph.linkeddatahub.server.exception.InternalURLException;
 import com.atomgraph.linkeddatahub.dataspaces.model.AdminDataspace;
 import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import com.atomgraph.linkeddatahub.vocabulary.DH;
@@ -139,8 +141,8 @@ public class PackageService
      * Each is the URL of this application's own copy, taken the first time the stylesheet is asked for
      * and served from the application's origin, so it resolves the way every other stylesheet the
      * platform compiles does: the XSLT resolver reads it out of the webapp rather than going over HTTP.
-     * A deployment with no package root, and a package whose stylesheet cannot be copied, fall back to
-     * the URL the description declares.
+     * A deployment with no package root falls back to the URL the description declares, if it passes
+     * {@link URLValidator}. A stylesheet that is refused or cannot be copied is left out.
      *
      * @param packages package resources
      * @param app application resource whose origin serves the copies
@@ -151,22 +153,26 @@ public class PackageService
         return packages.stream().
             filter(pkg -> pkg.getStylesheet() != null && pkg.getStylesheet().isURIResource()).
             map(pkg -> materializeStylesheet(pkg, app)).
+            filter(Objects::nonNull).
             collect(Collectors.toList());
     }
 
     /**
      * Copies a package's stylesheet into this deployment's package root, unless it is already there, and
-     * returns the URL it is served at. Returns the declared URL when there is nowhere to put a copy or
-     * the copy fails, which is how the stylesheet resolved before any of this existed.
+     * returns the URL it is served at.
+     * The declared URL is validated before it is requested, and redirects are validated hop by hop.
+     * With no package root, returns the declared URL once validated. Returns null, logging an error, when the
+     * URL is refused or the copy fails: the XSLT import would otherwise fetch the declared URL itself, unvalidated.
      *
      * @param pkg package resource
      * @param app application resource whose origin serves the copy
-     * @return URL to import the stylesheet from
+     * @return URL to import the stylesheet from, or null if the stylesheet is left out
      */
     public URI materializeStylesheet(com.atomgraph.linkeddatahub.dataspaces.model.Package pkg, com.atomgraph.linkeddatahub.dataspaces.model.Dataspace app)
     {
         URI declared = URI.create(pkg.getStylesheet().getURI());
-        if (getSystem() == null || getSystem().getPackageRoot() == null || app == null) return declared;
+        if (getSystem() == null) return declared;
+        if (getSystem().getPackageRoot() == null || app == null) return validate(declared) ? declared : null;
 
         String path = getStylesheetPath(pkg, declared);
 
@@ -175,9 +181,12 @@ public class PackageService
             Path copy = Path.of(getSystem().getPackageRoot()).resolve(path);
             if (!Files.exists(copy))
             {
+                if (!validate(declared)) return null;
                 Files.createDirectories(copy.getParent());
 
-                try (Response cr = getSystem().getClient().target(declared).request(com.atomgraph.linkeddatahub.MediaType.TEXT_XSL_TYPE).get())
+                try (Response cr = new RedirectingClient(getSystem().getURLValidator()).
+                        get(getSystem().getClient()::target, declared, target -> target.request(com.atomgraph.linkeddatahub.MediaType.TEXT_XSL_TYPE).get()).
+                        response())
                 {
                     if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                         throw new IOException("Status " + cr.getStatus());
@@ -198,9 +207,29 @@ public class PackageService
         }
         catch (IOException | RuntimeException ex)
         {
-            if (log.isErrorEnabled()) log.error("Could not copy package stylesheet <{}>, importing it where it is", declared, ex);
+            if (log.isErrorEnabled()) log.error("Could not copy package stylesheet <{}>, leaving it out", declared, ex);
 
-            return declared;
+            return null;
+        }
+    }
+
+    /**
+     * Validates a declared stylesheet URL, logging an error if it is refused.
+     *
+     * @param stylesheet stylesheet URL
+     * @return true if the URL may be requested
+     */
+    protected boolean validate(URI stylesheet)
+    {
+        try
+        {
+            getSystem().getURLValidator().validate(stylesheet);
+            return true;
+        }
+        catch (InternalURLException | IllegalArgumentException ex)
+        {
+            if (log.isErrorEnabled()) log.error("Package stylesheet <{}> refused, leaving it out: {}", stylesheet, ex.getMessage());
+            return false;
         }
     }
 
@@ -405,7 +434,8 @@ public class PackageService
                     // validate package URI to prevent SSRF attacks
                     getSystem().getURLValidator().validate(URI.create(packageURI));
 
-                    model = GraphStoreClient.create(getSystem().getClient(), getSystem().getMediaTypes()).getModel(packageURI);
+                    model = GraphStoreClient.create(getSystem().getClient(), getSystem().getMediaTypes()).
+                        getModel(new RedirectingClient(getSystem().getURLValidator()), packageURI);
                 }
             }
             catch (RuntimeException ex) // invalid URI, 404 from the package server, connection refused, timeout...

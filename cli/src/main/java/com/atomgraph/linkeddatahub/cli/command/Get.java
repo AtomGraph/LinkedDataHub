@@ -86,13 +86,13 @@ public class Get extends BaseCommand
         if (datetime != null) headers.putSingle(Mementos.ACCEPT_DATETIME_HEADER, Mementos.acceptDatetime(datetime));
 
         if (head)
-            try (Response response = HttpException.check(uri, getClient().head(uri, acceptedTypes, headers)))
+            try (Response response = HttpException.checkRedirect(uri, getClient().head(uri, acceptedTypes, headers)))
             {
                 print("HTTP " + response.getStatus() + " " + response.getStatusInfo().getReasonPhrase());
                 response.getStringHeaders().forEach((name, values) -> values.forEach(value -> print(name + ": " + value)));
             }
         else if (timeGate)
-            try (Response response = HttpException.check(uri, getClient().get(uri, acceptedTypes, headers)))
+            try (Response response = HttpException.checkRedirect(uri, getClient().get(uri, acceptedTypes, headers)))
             {
                 print(mementoURI(response));
             }

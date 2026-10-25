@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.cli.command.admin.acl;
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
 import com.atomgraph.linkeddatahub.cli.http.HttpException;
 import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
+import com.atomgraph.linkeddatahub.rdf.Acl;
 import com.atomgraph.linkeddatahub.rdf.Updates;
 import java.net.URI;
 import picocli.CommandLine.Command;
@@ -43,7 +44,8 @@ public class MakePublic extends BaseCommand
         URI adminBase = getAdminBase(base);
         URI target = URI.create(adminBase + "acl/authorizations/public/");
 
-        HttpException.check(target, getClient().patch(target, Updates.makePublic(base, adminBase))).close();
+        HttpException.checkWrite(target, getClient().patch(target, Updates.makePublic(base, adminBase))).close();
+        put(getClient(), URI.create(adminBase + "acl/authorizations/public-sparql/"), Acl.publicSparqlPost(URI.create(adminBase + "acl/authorizations/public-sparql/"), base));
 
         return 0;
     }

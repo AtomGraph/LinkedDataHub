@@ -28,7 +28,7 @@ References:
 - Writes go to document URLs (`PUT`/`POST`/`PATCH`); `/sparql` is read-only. Use standard SPARQL 1.1.
 - Setup: `export LDH_BASE=https://<dataspace>/ LDH_CERT_FILE=<owner keystore.p12> LDH_CERT_PASSWORD=…`.
   The password is the deployment's, never a guess.
-  Commands that create a document print its URL as the only stdout line; exit `1` is an HTTP failure.
+  Commands that create a document print its URL as the only stdout line; exit `1` is an HTTP failure, including a redirect (its `Location` is on stderr).
 - **Use an `ldh` that matches the instance.** Build it from the same LinkedDataHub checkout or release
   as the running image (`ldh --version`). An instance whose end-user responses carry no
   `https://w3id.org/atomgraph/linkeddatahub/dataspaces#admin` `Link` (check with `ldh get --head --accept text/turtle "$LDH_BASE"`)
@@ -326,8 +326,8 @@ Load it with `tdb2.tdbloader` straight into the dataspace's end-user TDB2 datase
 The canonical Makefile's `make load` does all of this when `make/config.mk` sets `LOAD_STAGING`
 and `docker-compose.override.yml` defines a `tdb-loader` service. LTLOD's override has one to copy.
 The load is append-only: for a clean rebuild, delete the dataset directory and restart before
-loading. Then run `ldh admin make-public` if the data is public. Its class-based authorizations
-match the `dh:Item` documents.
+loading. Then run `ldh admin make-public` if the data is public. It grants read on the end-user root
+and, through `acl:default`, on every document below it.
 
 ## 5. Connect to external data
 

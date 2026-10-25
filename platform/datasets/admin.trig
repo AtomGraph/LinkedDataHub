@@ -62,6 +62,20 @@
 
 }
 
+<queries/>
+{
+
+    <queries/> a dh:Container ;
+        sioc:has_parent <> ;
+        dct:title "Queries" ;
+        dct:description "SPARQL queries" ;
+        rdf:_1 <queries/#select-children> .
+
+    <queries/#select-children> a ldh:Object ;
+        rdf:value ldh:ChildrenView .
+
+}
+
 <queries/construct-constructors/>
 {
 
@@ -283,25 +297,6 @@ WHERE
 
 }
 
-# append authorization request
-
-<acl/authorizations/append-request/>
-{
-
-    <acl/authorizations/append-request/> a dh:Item ;
-        sioc:has_container <acl/authorizations/> ;
-        dct:title "Append authorization request" ;
-        foaf:primaryTopic <acl/authorizations/append-request/#this> .
-
-    <acl/authorizations/append-request/#this> a acl:Authorization ;
-        rdfs:label "Append authorization request" ;
-        rdfs:comment "Required to enable authorization requests" ;
-        acl:accessTo <acl/authorization-requests/> ;
-        acl:mode acl:Append ;
-        acl:agentClass acl:AuthenticatedAgent . # not public, Agent must be authenticated
-
-}
-
 # full access
 
 <acl/authorizations/full-control/>
@@ -315,9 +310,9 @@ WHERE
     <acl/authorizations/full-control/#this> a acl:Authorization ;
         rdfs:label "Full control" ;
         rdfs:comment "Allows full read/write access to all application resources" ;
-        acl:accessToClass dh:Item, dh:Container, def:Root ;
-        acl:accessTo <clear> ;
-        acl:mode acl:Read, acl:Append, acl:Write, acl:Control ;
+        acl:accessTo <>, <sparql>, <ns>, <clear> ;
+        acl:default <> ;
+        acl:mode acl:Read, acl:Append, acl:Write ;
         acl:agentGroup <acl/groups/owners/#this> .
 
 }

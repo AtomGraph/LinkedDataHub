@@ -39,7 +39,7 @@ curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -H "Content-Type: application/n-triples" \
   --data-binary @- \
   "$item" <<EOF \
-| grep -q "$STATUS_OK"
+| grep -q "$STATUS_NO_CONTENT"
 <${item}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Item> .
 <${item}> <http://purl.org/dc/terms/title> "Test item" .
 <${item}> <http://rdfs.org/sioc/ns#has_container> <${END_USER_BASE_URL}> .

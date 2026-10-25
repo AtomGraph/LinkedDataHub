@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+initialize_dataset "$END_USER_BASE_URL" "$TMP_END_USER_DATASET" "$END_USER_ENDPOINT_URL"
+initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
+purge_cache "$END_USER_VARNISH_SERVICE"
+purge_cache "$ADMIN_VARNISH_SERVICE"
+purge_cache "$FRONTEND_VARNISH_SERVICE"
+reset_packages
+clear_ontology
+
+# add agent to the writers
+
+ldh admin add agent \
+  -c "$OWNER_CERT_KEYSTORE" \
+  -p "$OWNER_CERT_PWD" \
+  --agent "$AGENT_URI" \
+  "${ADMIN_BASE_URL}acl/groups/writers/"
+
+# a non-existing document is forbidden (403), not 404: a typeless URL matches no authorization, so the gate
+# denies before the request reaches the handler that would report not-found. This is deliberate non-disclosure:
+# an agent that may not read a URL cannot tell a missing document from one it is not allowed to see, so 403 does
+# not let it probe which documents exist. (A dataspace whose agents are allowed to read everything answers 404.)
+# The {POST,PATCH,DELETE}-missing-403.sh tests assert the same for writes
+
+curl -k -w "%{http_code}\n" -o /dev/null -s -G \
+  -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
+  -H "Accept: application/n-triples" \
+  "${END_USER_BASE_URL}non-existing/" \
+| grep -q "$STATUS_FORBIDDEN"

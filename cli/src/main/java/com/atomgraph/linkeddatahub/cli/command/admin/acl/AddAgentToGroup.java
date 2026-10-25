@@ -42,7 +42,7 @@ public class AddAgentToGroup extends BaseCommand
     @Override
     public Integer call() throws Exception
     {
-        HttpException.check(target, getClient().patch(target, Updates.insertGroupMember(target, agent))).close();
+        HttpException.checkWrite(target, getClient().patch(target, Updates.insertGroupMember(target, agent))).close();
 
         return 0;
     }
