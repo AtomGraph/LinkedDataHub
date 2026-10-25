@@ -1897,7 +1897,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     }
 
     /**
-     * Runs a write while holding the locks of several graphs, taken in the order {@link GraphLocks#get(Iterable)}
+     * Runs a write while holding the locks of several graphs, taken in the order {@link GraphLocks#getAll(Iterable)}
      * gives and released in reverse.
      * A <code>PUT</code> holds its parent's lock besides its own: creating a child and deleting the container both
      * hold the container's lock, so one of them goes first and the other sees what it left.
