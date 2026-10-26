@@ -118,7 +118,7 @@ graph_of() { quads_of "$1" | sed 's/ <[^>]*> \.$/ ./' | without_dates "$1"; }
 
 without_dates()
 {
-    grep -vF -e "<$1> <http://purl.org/dc/terms/created> " -e "<$1> <http://purl.org/dc/terms/modified> " | sort || true
+    grep -vF -e "<$1> <http://purl.org/dc/terms/created> " -e "<$1> <http://purl.org/dc/terms/modified> " | sort -u || true
 }
 
 T="<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"

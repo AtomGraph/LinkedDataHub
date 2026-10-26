@@ -277,11 +277,11 @@ def loadRequest (i : Interner) (files : RequestFiles) : IO (Except String Loaded
     fixed := fun d => fixedNodes.contains d }
   return .ok ⟨hs, agent, pc, req, i⟩
 
-/-- The status, then the document's graph, as N-Triples. -/
+/-- The status, then the document's graph, as N-Triples: a set of triples, each printed once. -/
 def printAnswer (i : Interner) (status : Nat) (fs : FinStore) (x : Node) : IO Unit := do
   IO.println s!"{status}"
   let names : HashMap Node String := i.nodes.fold (fun m k n => m.insert n k) {}
-  for t in graphOf fs x do
+  for t in (graphOf fs x).eraseDups do
     IO.println s!"{render names t.s} {render names t.p} {render names t.o} ."
 
 /-- The arguments that name a request and its body. -/
