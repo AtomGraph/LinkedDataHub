@@ -14,9 +14,6 @@ namespace LdhAcl
 def Site.Finite (site : Site) : Prop :=
   ∀ d, ¬ site.isRoot d → site.chain d site.euRoot ∨ site.chain d site.adRoot
 
-/-- Every document the store has is typed with a hierarchy class. -/
-def Typed (st : Store) : Prop := ∀ x, present st x → ∃ t, ownTypes st x t ∧ hierClass t
-
 /-- An authorization with its targets replaced. -/
 def Auth.withTargets (au : Auth) (accessTo default accessToClass : List Node) : Auth :=
   { au with accessTo, default, accessToClass }

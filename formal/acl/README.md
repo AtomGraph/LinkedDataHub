@@ -56,6 +56,10 @@ formal/acl/tracks-code.sh origin/develop
   - authorizations and memberships come from the admin document they are the primary topic of.
 - **The write rule:** a graph written for `x` may state `sioc:has_parent` or `sioc:has_container` of `x` only.
   Under it, a containment path over `urn:x-arq:UnionGraph` finds exactly the own-graph ancestry.
+- **The type rule:** a graph written for `x` may type `x` with the hierarchy classes (`def:Root`, `dh:Container`,
+  `dh:Item`) only, and leaves it typed with one: `PUT` adds `dh:Item` to a non-root document that is not a container,
+  a `PUT` of the root must carry the type itself, and a `PATCH` may keep the types it finds, add hierarchy classes and
+  not drop the last of them. Under it, a class grant reaches a document only through a hierarchy class.
 
 ## Mapping to the code
 
@@ -70,6 +74,8 @@ formal/acl/tracks-code.sh origin/develop
 | `allowRequest` | `AuthorizationFilter.filter`, `getAccessMode` |
 | `Step.post`, `Step.putExisting`, `Step.putNew`, `Step.patch`, `Step.delete` | `DocumentHierarchyGraphStoreImpl.post`, `put`, `patch`, `delete` |
 | `NoForeign` | `getForeignContainment`, `checkForeignContainment` |
+| `hierClass`, `HierTypes`, `TypedBy` | `HIERARCHY_CLASSES`, `getForeignTypes`, `isHierarchyTyped`, `checkDocumentTypes`, and their checks in `put` (the root) and `patch` |
+| `itemTyped` | the `dh:Item` that `put` adds to a document the payload does not type `dh:Container` |
 | `ownership`, `containment` | `removeOwnership`, `isOwnershipChanged`, `removeContainment`, `isContainmentChanged` |
 | `hasChild` | `childQuery` (`web.xml`), `hasChild` |
 | `EndUserOnly` (class part) | the `adm:HierarchyClassAccess` constraint on `acl:Authorization` (`app/admin/adm.ttl`) |
@@ -93,6 +99,8 @@ Proven with no `sorry`, using only the axioms `propext`, `Quot.sound` and, throu
 | `covers_context` | Matching the lookup's rows is WAC: named, below a default container, or of a granted class |
 | `untagged_fails_open` | An untagged `VALUES (?Type ?Ancestor)` table would match a default grant on a document not below its container |
 | `Step.inv` | The containment rule, exact containment, the hierarchy and the roots hold after every write |
+| `Step.adminTyped` | After every write, admin documents are still typed with hierarchy classes only |
+| `Step.typed` | After every write, every document is still typed with a hierarchy class |
 | `parentU_iff`, `ancestor_iff` | Under the rule, union-graph ancestry is own-graph ancestry: the URI-parent chain of a present document |
 | `ancestor_stable` | A write never changes the ancestors of a document present before and after it |
 | `context_local` | The lookup for `x` reads only `x`'s own graph |
@@ -133,12 +141,25 @@ leaves its dumps and probe under the results directory.
 
 ## What the proofs need of the data
 
-These are hypotheses of the theorems, which the implementation has to enforce:
+Two hypotheses of the theorems are about the stored data, which a write could falsify. The type rule enforces both,
+the model proves that every write keeps them, and an HTTP test tries each write that would break them:
 
-- **`AdminTyped`:** admin documents carry hierarchy classes only. Together with `EndUserOnly`, it
-  requires the store to refuse `acl:accessToClass` of any class a hierarchy class is a subclass of, which
-  includes the hierarchy classes themselves and any superclass the ontology declares for them.
-- **`Typed`:** every document is typed with a hierarchy class. It is needed only for `migrate_endUser`.
+- **`AdminTyped`:** admin documents carry hierarchy classes only (`Step.adminTyped`). Together with
+  `EndUserOnly`, it requires the store to refuse `acl:accessToClass` of any class a hierarchy class is a
+  subclass of. `adm:HierarchyClassAccess` refuses the hierarchy classes and the superclasses the platform's
+  vocabularies declare for them; a superclass a namespace ontology declares is admin data, written by the
+  admin role (see `rdfs:subClassOf*` below). Tested by `tests/http/admin/acl/class-authorization-admin-typed.sh`.
+- **`Typed`:** every document is typed with a hierarchy class (`Step.typed`). It is needed only for
+  `migrate_endUser`. Tested by `tests/http/document-hierarchy/{PUT,POST,PATCH}-foreign-type-422.sh`.
+
+Every seeded document satisfies both. The admin dataset also seeds graphs for two endpoints, `clear` and `sign up`,
+typed `foaf:Document`, with no containment. They are not documents: `Dispatcher` routes them to their own resources,
+so no graph store write reaches them, and `adm:HierarchyClassAccess` refuses a grant of `foaf:Document`. A store
+written before the type rule may hold documents typed otherwise: a `PATCH` leaves the types it finds, and the first
+`PUT` drops them.
+
+The other two are facts about the platform rather than its data, and nothing a request sends can falsify them:
+
 - **`Site.Finite`:** every parent chain ends at a root, as URI paths do.
 - **`Reader.Expressive`:** an authorization can be described in an admin document's graph. It is needed
   only to show that write access to the admin dataspace is the admin role.
