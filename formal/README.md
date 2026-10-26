@@ -57,9 +57,11 @@ credibility; the fifth is the one that answers the agent-era question and change
    every invariant a `Write` does. `acl/LdhAcl/Gate.lean` puts the decision in front of it and proves that
    `403` is the decision's alone (a denied agent learns nothing else, not even whether the document
    exists) and that what goes through is an authorized `Write`. The replay checks the server's status and
-   the document's graph after each request against it. Next on the graph store model: entity tags, to
-   prove that a write guarded by `If-Match` changes only the version it quoted, and Memento's TimeGate and
-   TimeMap.
+   the document's graph after each request against it. `ETag.lean` proves that a write guarded by
+   `If-Match` loses no update, on the assumption that the tag's digest is collision-free. `Memento.lean`
+   models the TimeGate (the closest commit, the more recent of two as close), the TimeMap and the commit
+   queue, and the TimeGate is replayed against the Java on generated histories and against the server on a
+   versioned dataspace.
 
 5. **Delegation as non-interference.** Model `On-Behalf-Of` and `acl:delegates`, and prove that for
    any plan an LLM emits, the requests the secretary can execute on behalf of a caller are exactly those

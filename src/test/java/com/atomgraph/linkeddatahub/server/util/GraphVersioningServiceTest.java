@@ -176,6 +176,38 @@ public class GraphVersioningServiceTest
         assertEquals("sha-2", GraphVersioningService.selectMemento(commits, Instant.parse("2026-08-17T11:00:00Z")).get().sha());
     }
 
+    /**
+     * The TimeGate's choice agrees with the Lean model's (<code>formal/http</code>, <code>selectMemento</code>) on the
+     * cases <code>ldh-http --select-cases</code> generates: <code>memento-cases.tsv</code>, one line per case, the commit
+     * times in seconds most recent first, the datetime or <code>-</code>, and the index of the commit selected or
+     * <code>-</code>. The <code>Formal</code> workflow regenerates the file from the model and fails on a difference.
+     */
+    @Test
+    public void testSelectMementoAgreesWithTheModel() throws java.io.IOException
+    {
+        try (java.io.InputStream is = getClass().getResourceAsStream("memento-cases.tsv"))
+        {
+            List<String> lines = new String(is.readAllBytes(), StandardCharsets.UTF_8).lines().filter(line -> !line.isBlank()).toList();
+            assertEquals(500, lines.size());
+
+            for (String line : lines)
+            {
+                String[] fields = line.split("\t", -1);
+                List<GitHubClient.CommitInfo> commits = new java.util.ArrayList<>();
+                if (!fields[0].isEmpty())
+                {
+                    String[] times = fields[0].split(",");
+                    for (int i = 0; i < times.length; i++)
+                        commits.add(new GitHubClient.CommitInfo(String.valueOf(i), Instant.ofEpochSecond(Long.parseLong(times[i])), "https://localhost/agent#this"));
+                }
+                Instant datetime = fields[1].equals("-") ? null : Instant.ofEpochSecond(Long.parseLong(fields[1]));
+
+                Optional<GitHubClient.CommitInfo> selected = GraphVersioningService.selectMemento(commits, datetime);
+                assertEquals(fields[2], selected.map(GitHubClient.CommitInfo::sha).orElse("-"), line);
+            }
+        }
+    }
+
     @Test
     public void testSelectMementoWithoutDatetimeIsMostRecent()
     {

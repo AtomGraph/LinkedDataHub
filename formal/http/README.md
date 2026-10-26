@@ -1,7 +1,8 @@
 # LinkedDataHub graph store model in Lean
 
-A Lean 4 model of LinkedDataHub's graph store: the documents it keeps, the writes it makes of a request, and its
-answer to every request, with proofs of the invariants those writes keep. Who is asking is no part of it: the
+A Lean 4 model of LinkedDataHub's graph store: the documents it keeps, the writes it makes of a request, its answer
+to every request, the entity tags that guard its writes and the versions it serves (Memento), with proofs of the
+invariants those writes keep. Who is asking is no part of it: the
 authorization decision comes before all of it, and is the ACL model's ([`../acl/`](../acl/)), which builds on this
 one.
 
@@ -33,8 +34,10 @@ formal/http/tracks-code.sh origin/develop
 | `LdhHttp/Write.lean` | The graph store's writes as a relation, and the invariants they keep |
 | `LdhHttp/Fin.lean` | A store as data, and the abstract store it denotes |
 | `LdhHttp/Answer.lean` | The graph store's answer as a program: every status and the store after it, and the proof that what goes through is a `Write` |
+| `LdhHttp/ETag.lean` | Entity tags, the precondition they resolve to, and the proof that a write guarded by one loses no update |
+| `LdhHttp/Memento.lean` | The TimeGate's choice, the TimeMap, the commit queue and the version file |
 | `LdhHttp/IO.lean` | Reading dumps and a request into the model's terms, and printing an answer |
-| `Main.lean` | `ldh-http`: the answer over a live instance's datasets |
+| `Main.lean` | `ldh-http`: the answer over a live instance's datasets, and the TimeGate's choice over a history |
 
 ## The model
 
@@ -54,6 +57,17 @@ formal/http/tracks-code.sh origin/develop
   document allows (`405`), the URI (`308`, `400`), the write and type rules (`422`), the preconditions (`428` without
   one on an existing document, `412` on a stale one or on `If-None-Match: *`), existence (`404`), the parent and the
   children (`409`), and the rest of `PATCH`'s guards (`422`).
+- **Entity tags (`ETag.lean`):** a function of the document and its graph, the same for the same set of triples
+  (`toSortedNTriples` sorts them) and, the one assumption, different for different graphs: the 128 bits of
+  SHA-256 `EntityTags.entityTag` keeps being collision-free on the graphs that occur. `If-Match` holds when it quotes
+  the tag of the graph the store has. The negotiated variant the server folds into a tag is left out: the model takes
+  one, as the replay negotiates N-Triples throughout.
+- **Memento (`Memento.lean`):** a document's history is the commits that touched its file, most recent first, as
+  `GitHubClient.listCommits` lists them. The TimeGate selects the commit closest in time to `Accept-Datetime`, the
+  more recent of two as close, and the most recent with none. The TimeMap lists the history, each Memento a
+  `prov:wasRevisionOf` the next one down. Every write that succeeds queues a reconcile (`VersioningFilter`), a
+  branch's reconciles run one at a time, and each commits the graph the store has when it runs: a version is a
+  snapshot then, not one per write.
 
 ## Mapping to the code
 
@@ -72,9 +86,17 @@ formal/http/tracks-code.sh origin/develop
 | `HSite.fixed`, `HSite.isRoot` | `allowedMethods`: no `PUT` or `DELETE` of the owner's or the secretary's WebID document, no `DELETE` of the root |
 | `untypesB` | `patch`'s `rdf:type cannot be removed` |
 | `parentIri`, `doubleSlash`, `slashed` (`IO.lean`) | `IRIx.resolve("..")`; `put`'s redirect to a trailing slash and refusal of a double slash |
+| `ETags` | `EntityTags.entityTag`, over `toSortedNTriples` (`server/util/`) |
+| `Cond.resolve` | `evaluatePreconditions`' reading of `If-Match` and `If-None-Match: *` |
+| `Commit`, the history | `GitHubClient.CommitInfo` and `listCommits` (`client/`): the file's commits, most recent first |
+| `selectMemento`, `closer` | `GraphVersioningService.selectMemento`: `stream().min()` over the absolute distance |
+| `members`, `revisions` | `GraphVersioningService.toTimeMap`'s `prov:hadMember` and `prov:wasRevisionOf` |
+| `Versioning.step` | `VersioningFilter` (`server/filter/response/`), which queues a reconcile after a write that succeeds, and `commitAsync` and `reconcile`, which run a branch's one at a time |
+| `versionFile` | `GraphVersioningService.path` |
 
-`DocumentHierarchyGraphStoreImpl` lives in `src/main/java/com/atomgraph/linkeddatahub/server/model/impl/`. Core's
-`GraphStoreBase` is a dependency, outside what `tracks-code.sh` can watch.
+`DocumentHierarchyGraphStoreImpl` lives in `server/model/impl/`, all of them under
+`src/main/java/com/atomgraph/linkeddatahub/`. Core's `GraphStoreBase` is a dependency, outside what `tracks-code.sh`
+can watch.
 
 ## Results
 
@@ -91,10 +113,18 @@ Proven with no `sorry`, using only the axioms `propext`, `Quot.sound` and, throu
 | `answer_not_forbidden` | No check of the graph store answers `403`: that status is the authorization decision's |
 | `answer_write` | A request that goes through is a `Write` of it from the store before to the store after, or changes nothing |
 | `answer_inv` | So the graph store keeps `Inv` and `Typed`, as every `Write` does |
+| `no_lost_update` | A write guarded by `If-Match` with the tag of the graph a client read changes the store only if the document still holds that graph |
+| `concurrent_write_changes_nothing` | Once another write has changed the graph a client read, the client's write quoting its tag changes nothing |
+| `select_mem`, `select_none_iff` | The TimeGate's Memento is one of the document's; there is one exactly when the history is not empty |
+| `select_latest` | With no datetime, the most recent |
+| `select_closest` | No commit is closer to the datetime, and every more recent one is further from it |
+| `mem_revisions` | Each Memento is a revision of the one before it in the history, and of nothing else |
+| `drained_is_current` | Whatever writes and reconciles follow, whenever none is queued the newest version is the document's graph |
+| `versionFile_root_collides`, `versionFile_inj` | The root document and a top-level document named `root` share a version file; no two other documents do |
 
 The invariants are hypotheses the ACL model's theorems take; it proves them of its authorized writes through these.
 
-## Replaying the answer
+## Replaying the model
 
 `ldh-http` runs the answer on N-Quads dumps of the stores:
 
@@ -108,7 +138,24 @@ A request is `AGENT<TAB>METHOD<TAB>DOCUMENT<TAB>PRECONDITION`, with the precondi
 is `--payload`, and a `PATCH` is `DELETE { --delete } INSERT { --insert } WHERE {}`. The answer is the status, then
 the document's graph after the request. It is what the graph store does with a request it is asked to answer; the
 server's own answer puts the authorization decision first, which is `ldh-acl --request` in the ACL model, and what
-`tests/http/formal/acl-conformance.sh` replays.
+`tests/http/formal/acl-conformance.sh` replays. That replay sends the current entity tag, a stale one, none and
+`If-None-Match: *`, and states which it sent: the model's tags are abstract, so the replay resolves them, which it
+can, having read the tag it quotes.
+
+The TimeGate is replayed twice:
+
+```bash
+.lake/build/bin/ldh-http --select history.tsv --datetime 1761523200   # SHA<TAB>SECONDS per commit, most recent first
+.lake/build/bin/ldh-http --select-cases
+```
+
+- `--select-cases` prints 500 generated histories and datetimes, many with two commits as close, and the model's
+  choice for each. They are `GraphVersioningServiceTest`'s `memento-cases.tsv`: the test checks the Java's choice
+  on every case, and the `Formal` workflow regenerates the file and fails when it is not the model's.
+- `tests/http/versioning/memento-conformance.sh` writes a document four times on a versioned dataspace, reads its
+  history from GitHub, and checks the server's TimeMap against it and its TimeGate against `--select`: with no
+  datetime, at each commit, midway between two, and outside the history. It runs where the versioning suite does, on
+  a dataspace with a test repository.
 
 ## Not modelled
 
@@ -120,4 +167,8 @@ server's own answer puts the authorization decision first, which is `ldh-acl --r
   missing title answered with `422`, changes nothing, and the model has no write for it. The answer takes the
   payload as ground triples free of `dct:created` and `dct:modified`, and the replay sends only such payloads, valid
   against the ontology's constraints, with a single-operation `PATCH`.
-- **Entity tags:** a precondition is `current` or `stale` as the request states it, not computed from the graph.
+- **The entity tag's value:** the replay cannot compute the server's tags (Jena's N-Triples, SHA-256, the variant
+  folding), so it states whether the tag it quotes is current.
+- **Versioning's failures and limits:** a reconcile that fails, a write whose response fails after the store has
+  changed (no reconcile is queued for it), and a history longer than `listCommits` pages through. The history's order
+  is GitHub's.
