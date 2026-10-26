@@ -3,8 +3,8 @@ name: Formal
 on: [push, pull_request]
 
 jobs:
-  acl-model:
-    name: Build the Lean ACL model and check it tracks the code
+  models:
+    name: Build the Lean models and check they track the code
     runs-on: ubuntu-latest
     steps:
       - name: Install Linux packages
@@ -13,21 +13,27 @@ jobs:
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      # elan picks the toolchain pinned in formal/acl/lean-toolchain on first use
+      # elan picks the toolchain pinned in each model's lean-toolchain on first use
       - name: Install elan
         run: |
           curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-      - name: Build the model
+      - name: Build the graph store model
+        working-directory: formal/http
+        run: lake build
+      # the ACL model requires the graph store's, by path
+      - name: Build the ACL model
         working-directory: formal/acl
         run: lake build
-      # lake build only warns on sorry; the README's "no sorry" claim is checked here
+      # lake build only warns on sorry; the READMEs' "no sorry" claim is checked here
       - name: Every theorem is proven
         run: |
-          if grep -rnw --include='*.lean' sorry formal/acl; then
-            echo "::error::formal/acl has unproven theorems"
+          if grep -rnw --include='*.lean' --exclude-dir=.lake sorry formal; then
+            echo "::error::formal/ has unproven theorems"
             exit 1
           fi
-      - name: The model tracks the code
+      - name: The models track the code
         if: github.event_name == 'pull_request'
-        run: formal/acl/tracks-code.sh "${{ github.event.pull_request.base.sha }}"
+        run: |
+          formal/http/tracks-code.sh "${{ github.event.pull_request.base.sha }}"
+          formal/acl/tracks-code.sh "${{ github.event.pull_request.base.sha }}"

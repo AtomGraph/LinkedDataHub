@@ -10,6 +10,8 @@ import LdhAcl.Theorems
 
 namespace LdhAcl
 
+open LdhHttp
+
 /-- URI paths are finite: every non-root document's parent chain ends at a root. -/
 def Site.Finite (site : Site) : Prop :=
   ∀ d, ¬ site.isRoot d → site.chain d site.euRoot ∨ site.chain d site.adRoot
@@ -33,7 +35,7 @@ theorem below_adRoot {site : Site} (hf : site.Finite) {d : Node} (hd : site.admi
   · exact hc
 
 /-- A grant on a root and its descendants covers every document the store has in that root's tree. -/
-theorem root_grant_covers {site : Site} {st : Store} (h : Inv site st) {au : Auth} {sub}
+theorem root_grant_covers {site : Site} {st : Store} (h : Inv site.toTree st) {au : Auth} {sub}
     {root x : Node} (hc : site.chain x root ∨ x = root) (hx : present st x) :
     (au.withTargets [root] [root] []).covers sub (context st x) := by
   rw [covers_context]
@@ -46,7 +48,7 @@ theorem root_grant_covers {site : Site} {st : Store} (h : Inv site st) {au : Aut
 /-- **The admin role in plain WAC.** `accessTo` and `acl:default` on the admin root cover every admin
 document, which `ownerAclQuery` gave `acl:Control` over `def:Root` before 6.0 without looking at the
 target. -/
-theorem admin_role_covers {site : Site} {st : Store} (h : Inv site st) (hf : site.Finite) {au : Auth}
+theorem admin_role_covers {site : Site} {st : Store} (h : Inv site.toTree st) (hf : site.Finite) {au : Auth}
     {sub} {x : Node} (hx : site.admin x) (hp : present st x) :
     (au.withTargets [site.adRoot] [site.adRoot] []).covers sub (context st x) := by
   by_cases hr : x = site.adRoot
@@ -70,7 +72,7 @@ theorem class_grant_covers {st : Store} (ht : Typed st) {au : Auth} {sub : Node 
 
 /-- **On the end-user dataspace the migration changes nothing.** A class grant on the hierarchy classes and
 a default grant on the end-user root cover the same documents. -/
-theorem migrate_endUser {site : Site} {rd : Reader} {st : Store} (h : Inv site st) (hf : site.Finite)
+theorem migrate_endUser {site : Site} {rd : Reader} {st : Store} (h : Inv site.toTree st) (hf : site.Finite)
     (ht : Typed st) {au : Auth} {x : Node} (hx : ¬ site.admin x) (hp : present st x) :
     (au.withTargets [] [] hierClasses).covers rd.sub (context st x) ↔
       (au.withTargets [site.euRoot] [site.euRoot] []).covers rd.sub (context st x) := by
@@ -81,7 +83,7 @@ theorem migrate_endUser {site : Site} {rd : Reader} {st : Store} (h : Inv site s
 
 /-- **On the admin dataspace the migration takes access away.** The class grant covers every admin
 document; the default grant on the end-user root covers none. -/
-theorem migrate_admin {site : Site} {rd : Reader} {st : Store} (h : Inv site st) (ht : Typed st)
+theorem migrate_admin {site : Site} {rd : Reader} {st : Store} (h : Inv site.toTree st) (ht : Typed st)
     (hat : AdminTyped site st) {au : Auth} {x : Node} (hx : site.admin x) (hp : present st x) :
     (au.withTargets [] [] hierClasses).covers rd.sub (context st x) ∧
       ¬ (au.withTargets [site.euRoot] [site.euRoot] []).covers rd.sub (context st x) := by
@@ -108,7 +110,7 @@ theorem ownerAccess_endUserOnly (site : Site) (sub : Node → Node → Prop) :
 /-- **Owner access is the owner grant of releases before 6.0 on the end-user dataspace.** The owner-access
 authorization matches an agent on an end-user document exactly when the agent owns it, which is when
 `createOwnerAuthorization` fired. -/
-theorem ownerAccess_endUser {site : Site} {sub : Node → Node → Prop} {st : Store} (h : Inv site st)
+theorem ownerAccess_endUser {site : Site} {sub : Node → Node → Prop} {st : Store} (h : Inv site.toTree st)
     (hf : site.Finite) {M : Node → Node → Prop} {x a : Node} (hx : ¬ site.admin x) (hp : present st x) :
     ((ownerAccess site).principal M (owner st x) (some a) ∧
       (ownerAccess site).covers sub (context st x)) ↔ owner st x a := by
@@ -128,7 +130,7 @@ theorem ownerAccess_endUser {site : Site} {sub : Node → Node → Prop} {st : S
 
 /-- **Owner access opens nothing in the admin dataspace.** The owner grant of releases before 6.0 applied
 there too, so an admin kept acl:Write on every authorization it created after leaving the owners group. -/
-theorem ownerAccess_admin {site : Site} {rd : Reader} {st : Store} (h : Inv site st)
+theorem ownerAccess_admin {site : Site} {rd : Reader} {st : Store} (h : Inv site.toTree st)
     (hat : AdminTyped site st) {x : Node} (hx : site.admin x) :
     ¬ (ownerAccess site).covers rd.sub (context st x) :=
   endUserOnly_confined h hat (ownerAccess_endUserOnly site rd.sub) hx

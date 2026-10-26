@@ -51,7 +51,7 @@ jobs:
         working-directory: cli
       - name: Add the ldh launcher to PATH
         run: echo "$GITHUB_WORKSPACE/cli/bin" >> "$GITHUB_PATH"
-      # the formal suite replays the Lean model's decision (formal/acl) against the server through ldh-acl;
+      # the formal suite replays the Lean models (formal/acl over formal/http) against the server through ldh-acl;
       # elan picks the toolchain pinned in formal/acl/lean-toolchain
       - name: Install elan
         run: |

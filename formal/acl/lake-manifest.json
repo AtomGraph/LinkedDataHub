@@ -1,5 +1,12 @@
 {"version": "1.1.0",
  "packagesDir": ".lake/packages",
- "packages": [],
+ "packages":
+ [{"type": "path",
+   "scope": "",
+   "name": "LdhHttp",
+   "manifestFile": "lake-manifest.json",
+   "inherited": false,
+   "dir": "./../http",
+   "configFile": "lakefile.lean"}],
  "name": "LdhAcl",
  "lakeDir": ".lake"}

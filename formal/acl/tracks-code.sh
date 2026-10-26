@@ -21,13 +21,13 @@ sources=(
   src/main/java/com/atomgraph/linkeddatahub/server/util/DocumentContext.java
   src/main/java/com/atomgraph/linkeddatahub/server/util/AuthorizationParams.java
   src/main/java/com/atomgraph/linkeddatahub/server/filter/request/AuthorizationFilter.java
-  src/main/java/com/atomgraph/linkeddatahub/server/model/impl/DocumentHierarchyGraphStoreImpl.java
+  src/main/java/com/atomgraph/linkeddatahub/server/mapper/auth/AuthorizationExceptionMapper.java
   src/main/resources/com/atomgraph/linkeddatahub/app/admin/adm.ttl
   platform/namespace-ontology.trig.template
   migrations/6.0-acl.ru.template
 )
 # web.xml is transcribed query by query: only these context params count
-queries=(documentContextQuery aclQuery childQuery)
+queries=(documentContextQuery aclQuery)
 
 changed=()
 while IFS= read -r file; do
