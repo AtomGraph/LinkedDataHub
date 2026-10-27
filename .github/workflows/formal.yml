@@ -25,6 +25,11 @@ jobs:
       - name: Build the ACL model
         working-directory: formal/acl
         run: lake build
+      # GraphVersioningServiceTest replays these cases against the Java TimeGate; here they are checked against the model
+      - name: The TimeGate cases are the model's
+        run: |
+          formal/http/.lake/build/bin/ldh-http --select-cases > /tmp/memento-cases.tsv
+          diff -u src/test/resources/com/atomgraph/linkeddatahub/server/util/memento-cases.tsv /tmp/memento-cases.tsv
       # lake build only warns on sorry; the READMEs' "no sorry" claim is checked here
       - name: Every theorem is proven
         run: |

@@ -18,6 +18,10 @@ config=https://w3id.org/atomgraph/linkeddatahub/config#
 # Sources transcribed whole: any change counts
 sources=(
   src/main/java/com/atomgraph/linkeddatahub/server/model/impl/DocumentHierarchyGraphStoreImpl.java
+  src/main/java/com/atomgraph/linkeddatahub/server/util/EntityTags.java
+  src/main/java/com/atomgraph/linkeddatahub/server/util/GraphVersioningService.java
+  src/main/java/com/atomgraph/linkeddatahub/server/filter/response/VersioningFilter.java
+  src/main/java/com/atomgraph/linkeddatahub/client/GitHubClient.java
 )
 # web.xml is transcribed query by query: only these context params count
 queries=(childQuery)
