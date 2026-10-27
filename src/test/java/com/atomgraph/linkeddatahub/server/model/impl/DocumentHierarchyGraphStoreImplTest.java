@@ -21,6 +21,8 @@ import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.linkeddatahub.model.impl.CSVImportImpl;
 import com.atomgraph.linkeddatahub.model.impl.RDFImportImpl;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
+import com.atomgraph.linkeddatahub.vocabulary.DH;
+import com.atomgraph.linkeddatahub.vocabulary.Default;
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.linkeddatahub.vocabulary.PROV;
 import com.atomgraph.linkeddatahub.vocabulary.SIOC;
@@ -285,6 +287,67 @@ public class DocumentHierarchyGraphStoreImplTest
     public void testForeignContainmentNullModel()
     {
         assertThrows(IllegalArgumentException.class, () -> DocumentHierarchyGraphStoreImpl.getForeignContainment(null, DOC.toString()));
+    }
+
+    // getForeignTypes(), isHierarchyTyped()
+
+    @Test
+    public void testForeignTypesIgnoresHierarchyClasses()
+    {
+        Model model = ModelFactory.createDefaultModel();
+        model.createResource(DOC.toString()).
+            addProperty(RDF.type, Default.Root).
+            addProperty(RDF.type, DH.Container).
+            addProperty(RDF.type, DH.Item);
+
+        assertTrue(DocumentHierarchyGraphStoreImpl.getForeignTypes(model, DOC.toString()).isEmpty());
+    }
+
+    @Test
+    public void testForeignTypesFindsOtherClass()
+    {
+        Model model = ModelFactory.createDefaultModel();
+        Resource foo = model.createResource("http://localhost/ns#Foo");
+        model.createResource(DOC.toString()).
+            addProperty(RDF.type, DH.Item).
+            addProperty(RDF.type, foo);
+
+        assertEquals(Set.of(foo), DocumentHierarchyGraphStoreImpl.getForeignTypes(model, DOC.toString()));
+    }
+
+    @Test
+    public void testForeignTypesIgnoresOtherSubjects()
+    {
+        Model model = ModelFactory.createDefaultModel();
+        model.createResource(DOC.toString() + "#thing").addProperty(RDF.type, model.createResource("http://localhost/ns#Foo"));
+        model.createResource().addProperty(RDF.type, model.createResource("http://localhost/ns#Foo"));
+
+        assertTrue(DocumentHierarchyGraphStoreImpl.getForeignTypes(model, DOC.toString()).isEmpty());
+    }
+
+    @Test
+    public void testForeignTypesNullModel()
+    {
+        assertThrows(IllegalArgumentException.class, () -> DocumentHierarchyGraphStoreImpl.getForeignTypes(null, DOC.toString()));
+    }
+
+    @Test
+    public void testHierarchyTyped()
+    {
+        Model model = ModelFactory.createDefaultModel();
+        model.createResource(DOC.toString()).addProperty(RDF.type, DH.Item);
+
+        assertTrue(DocumentHierarchyGraphStoreImpl.isHierarchyTyped(model, DOC.toString()));
+    }
+
+    @Test
+    public void testHierarchyTypedOtherClassOnly()
+    {
+        Model model = ModelFactory.createDefaultModel();
+        model.createResource(DOC.toString()).addProperty(RDF.type, model.createResource("http://localhost/ns#Foo"));
+        model.createResource(DOC.toString() + "#thing").addProperty(RDF.type, DH.Item);
+
+        assertFalse(DocumentHierarchyGraphStoreImpl.isHierarchyTyped(model, DOC.toString()));
     }
 
     // getLastModified(Resource)

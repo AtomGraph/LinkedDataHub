@@ -197,9 +197,10 @@ theorem endUser_step_preserves_other_grants {site rd agent st req st'}
 /-! ## The admin role is derived -/
 
 /-- The reader can find any authorization in a graph that contains its description, and the description
-states no ownership or containment, which the store would strip or refuse. -/
+states no ownership or containment, which the store would strip or refuse, and types the document with a
+hierarchy class and nothing else, as the store requires. -/
 def Reader.Expressive (rd : Reader) : Prop :=
-  ∀ d au, ∃ p : Graph, (∀ t, p t → ¬ ownership d t ∧ ¬ isContainment t) ∧
+  ∀ d au, ∃ p : Graph, (∀ t, p t → ¬ ownership d t ∧ ¬ isContainment t) ∧ HierTypes d p ∧ TypedBy d p ∧
     ∀ g : Graph, (∀ t, p t → g t) → rd.auths d g au
 
 /-- **acl:Write on any admin document is the admin role.** An agent the decision lets `PUT` an existing
@@ -208,11 +209,12 @@ marks an admin: whoever may write the admin dataspace is one. -/
 theorem admin_write_grants_anything {site rd agent st d g} (hex : rd.Expressive) (hd : site.admin d)
     (hg : st d = some g) (ha : allowRequest site rd st agent .put d) (au : Auth) :
     ∃ p st', Step site rd agent st (.put d p false) st' ∧ authIn site rd st' au := by
-  obtain ⟨p, hp, hread⟩ := hex d au
+  obtain ⟨p, hp, hty, htb, hread⟩ := hex d au
   let g' : Graph := fun t =>
-    (p t ∧ ¬ ownership d t ∧ ¬ containment d t) ∨ containedIn site d t ∨ (g t ∧ ownership d t)
+    (p t ∧ ¬ ownership d t ∧ ¬ containment d t) ∨ containedIn site d t ∨ (g t ∧ ownership d t) ∨
+      itemTyped site d p t
   have hstep : Step site rd agent st (.put d p false) (st.set d (some g')) :=
-    Step.putExisting ha hg rfl fun t ht hc => absurd hc (hp t ht).2
+    Step.putExisting ha hg rfl (fun t ht hc => absurd hc (hp t ht).2) hty fun _ => htb
   refine ⟨p, _, hstep, d, g', hd, by simp [Store.set], hread _ fun t ht => Or.inl ⟨ht, (hp t ht).1, ?_⟩⟩
   rintro ⟨_, hc⟩; exact (hp t ht).2 hc
 
@@ -223,10 +225,6 @@ container, and grants no class that a hierarchy class is a subclass of. -/
 def EndUserOnly (site : Site) (sub : Node → Node → Prop) (au : Auth) : Prop :=
   (∀ t ∈ au.accessTo, ¬ site.admin t) ∧ (∀ c ∈ au.default, ¬ site.admin c) ∧
   ∀ c ∈ au.accessToClass, ∀ t, hierClass t → sub t c → False
-
-/-- Admin documents carry hierarchy classes only. -/
-def AdminTyped (site : Site) (st : Store) : Prop :=
-  ∀ x t, site.admin x → ownTypes st x t → hierClass t
 
 theorem chain_admin {site : Site} {d c : Node} (h : site.chain d c) : (site.admin c ↔ site.admin d) := by
   induction h with
@@ -288,19 +286,21 @@ theorem owner_confined {site rd agent st req st'} (hs : Step site rd agent st re
       obtain ⟨g', hg', hb⟩ := ho
       simp [Store.set, Req.target] at hg'
       subst hg'
-      rcases hb with ⟨_, hno, _⟩ | ⟨_, _, hp, _⟩ | ⟨hb, _⟩
+      rcases hb with ⟨_, hno, _⟩ | ⟨_, _, hp, _⟩ | ⟨hb, _⟩ | ⟨_, _, he⟩
       · exact absurd ⟨rfl, Or.inl rfl⟩ hno
       · rcases hp with hp | hp <;> cases hp
       · exact Or.inl ⟨_, hg, hb⟩
+      · cases he
     | putNew _ hn =>
       obtain ⟨g', hg', hb⟩ := ho
       simp [Store.set, Req.target] at hg'
       subst hg'
-      rcases hb with ⟨_, hno, _⟩ | ⟨_, _, hp, _⟩ | ⟨a, ha, _, _, hab⟩
+      rcases hb with ⟨_, hno, _⟩ | ⟨_, _, hp, _⟩ | ⟨a, ha, _, _, hab⟩ | ⟨_, _, he⟩
       · exact absurd ⟨rfl, Or.inl rfl⟩ hno
       · rcases hp with hp | hp <;> cases hp
       · simp at hab; subst hab
         exact Or.inr ⟨rfl, hn, ha⟩
+      · cases he
     | patch _ hg _ hkeep =>
       obtain ⟨g', hg', hb⟩ := ho
       simp [Store.set, Req.target] at hg'

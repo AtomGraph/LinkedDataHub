@@ -40,9 +40,11 @@ credibility; the fourth is the one that answers the agent-era question and chang
    before every request. Verifying the Java directly is not worth the cost; this is how the proofs
    constrain the code.
 
-3. **Every hypothesis of a theorem is an enforced constraint.** `AdminTyped`, `Typed`, `Site.Finite`
-   and `Reader.Expressive` (see `acl/README.md`, "What the proofs need of the data") are premises an
-   attacker can try to falsify. Each gets a server-side check and a negative HTTP test.
+3. **Every hypothesis of a theorem is an enforced constraint.** Done: of the premises in `acl/README.md`,
+   "What the proofs need of the data", the two a request can falsify, `AdminTyped` and `Typed`, are kept by
+   a type rule on every write (`checkDocumentTypes`), proven preserved by `Step.adminTyped` and `Step.typed`,
+   and tried by negative HTTP tests. `Site.Finite` and `Reader.Expressive` are facts about URIs and the
+   query, with nothing to falsify.
 
 4. **Delegation as non-interference.** Model `On-Behalf-Of` and `acl:delegates`, and prove that for
    any plan an LLM emits, the requests the secretary can execute on behalf of a caller are exactly those
