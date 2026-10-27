@@ -140,8 +140,9 @@ test.describe('an object block in a canvas mode', { tag: '@owner' }, () => {
 });
 
 // An object block whose value is not RDF - an image - is answered 406 to the block's RDF request,
-// and the block embeds the URI as it is instead (ldh:block-object-value-response). The browser then
-// fetches the bytes itself, so the image is asserted as fetched, not just referenced.
+// asks for the value's type with a HEAD instead, and embeds an image as an <img>
+// (ldh:block-object-embed-response). Not as an <object>: that is a nested browsing context, which an
+// image host's frame-ancestors refuses in Firefox. Asserted is the image decoded, not just referenced.
 test.describe('an object block naming an image', { tag: '@owner' }, () => {
     const PNG = Buffer.from(
         'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
@@ -157,29 +158,21 @@ test.describe('an object block naming an image', { tag: '@owner' }, () => {
         if (scratch.container) await ldh(['delete', scratch.container], { allowFailure: true });
     });
 
-    // the block, the embed, and the browser's own fetch of the bytes the embed points at
     const embeds = async (page, image) => {
         await ldh(['add', 'object-block', '--title', 'Image block', '--uri', '#image-block', '--value', image, scratch.container]);
-        // the request the embed made, followed through any redirects the origin answers with
-        const origin = request => request.redirectedFrom() ? origin(request.redirectedFrom()) : request;
-        const bytes = page.waitForResponse(response => origin(response.request()).url() === image && response.status() === 200
-            && response.headers()['content-type'] === 'image/png');
         await goto(page, inMode(scratch.container, CONTENT_MODE));
 
-        await expect(page.locator(`div.block[about="${scratch.container}#image-block"] object[data="${image}"]`)).toBeVisible();
-        // an element left standing with a broken source would pass the line above; the browser fetching the image would not
-        await bytes;
+        const img = page.locator(`div.block[about="${scratch.container}#image-block"] .ldh-block-body > img[src="${image}"]`);
+        await expect(img).toBeVisible();
+        // a broken image is an element too; a decoded one has a width
+        await expect.poll(() => img.evaluate(img => img.complete ? img.naturalWidth : 0)).toBeGreaterThan(0);
     };
 
     test('embeds an uploaded image', async ({ page, allowNoise }, testInfo) => {
         allowNoise.push(
             // the block's RDF request for the upload: the 406 is how it learns to embed the URI instead
             { pattern: /^HTTP 406: .*\/uploads\//, reason: 'an upload has no RDF representation' },
-            { pattern: /Failed to load resource: the server responded with a status of 406/, reason: 'the same 406, as the console reports it' },
-            // Chrome renders an embedded image in a viewer document of its own, whose inline style and scripts the upload's
-            // Content-Security-Policy (default-src 'none'; sandbox - LNK-011) blocks. The image itself renders
-            { pattern: /Content Security Policy directive 'default-src 'none''/, reason: 'the image viewer under the upload CSP' },
-            { pattern: /frame is sandboxed and the 'allow-scripts' permission is not set/, reason: 'the image viewer under the upload CSP' });
+            { pattern: /Failed to load resource: the server responded with a status of 406/, reason: 'the same 406, as the console reports it' });
         // unique bytes per run: uploads are content-addressed, and a file left by an earlier run would answer for this one
         const bytes = Buffer.concat([PNG, Buffer.from(randomUUID())]);
         const path = testInfo.outputPath('image.png');
