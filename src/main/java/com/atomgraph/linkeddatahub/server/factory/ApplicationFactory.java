@@ -58,7 +58,10 @@ public class ApplicationFactory implements Factory<Optional<com.atomgraph.linked
      */
     public Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace> getDataspace()
     {
-        return (Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace>)getContainerRequestContext().getProperty(LDS.Dataspace.getURI());
+        Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace> appOpt = (Optional<com.atomgraph.linkeddatahub.dataspaces.model.Dataspace>)getContainerRequestContext().getProperty(LDS.Dataspace.getURI());
+
+        // the property is absent when a filter before the one setting it refused the request; never provide null, which the request scope caches and then refuses to seed again on the next lookup
+        return appOpt != null ? appOpt : Optional.empty();
     }
     
     /**
