@@ -134,6 +134,37 @@ public class CommandOutputTest
     }
 
     @Test
+    public void putQuotesTheDocumentsStateButCreateDoesNot() throws Exception
+    {
+        InputStream in = System.in;
+        try (StubServer server = new StubServer())
+        {
+            // a document that exists: the server tags it
+            server.responds(200, "").respondsWithHeader("ETag", "\"v1\"");
+            URI base = server.baseURI();
+            StringWriter out = new StringWriter(), err = new StringWriter();
+
+            System.setIn(new ByteArrayInputStream("<> <http://purl.org/dc/terms/title> \"Replaced\" ."
+                .getBytes(StandardCharsets.UTF_8)));
+            assertEquals(0, commandLine(out, err).execute("put",
+                "-c", keyStorePath().toString(), "-p", "changeit", "-t", "text/turtle", base + "test/"));
+            assertEquals("\"v1\"", server.getLastHeader("If-Match"), "a replace says which state it replaces");
+            assertNull(server.getLastHeader("If-None-Match"));
+
+            int requestsBefore = server.getRequests().size();
+            assertEquals(0, commandLine(out, err).execute("create", "container",
+                "-c", keyStorePath().toString(), "-p", "changeit", "--title", "Test", "--slug", "test", "--parent", base.toString()));
+            assertEquals(requestsBefore + 1, server.getRequests().size(), "a create reads no entity tag first");
+            assertNull(server.getLastHeader("If-Match"), "quoting the tag would let the create replace the document");
+            assertEquals("*", server.getLastHeader("If-None-Match"));
+        }
+        finally
+        {
+            System.setIn(in);
+        }
+    }
+
+    @Test
     public void createOverAnExistingDocumentFails() throws Exception
     {
         try (StubServer server = new StubServer())
