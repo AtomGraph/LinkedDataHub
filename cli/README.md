@@ -186,6 +186,10 @@ ldh add object-block --value "${container}#children" "$container"
   (multipart `PUT`). `import csv` and
   `import rdf` print the URI of the import they create, a fragment of the target document
   (`${import%%#*}` is the document). All diagnostics go to stderr.
+- `create container` and `create item` only create: the `PUT` carries `If-None-Match: *`, so a
+  document already at the URI is refused `412` and left as it is, and the command exits `1` with
+  nothing on stdout. `--if-absent` accepts that document instead, as `mkdir -p` does a directory:
+  the command exits `0` and prints its URL. To replace a document, `put` it.
 - An import runs in the background on the server. `import csv|rdf --wait` waits until it has ended
   (`prov:endedAtTime`), prints its triple count to stderr, and exits `1` with the error message if it
   failed, or after `--timeout` seconds (default 1200).

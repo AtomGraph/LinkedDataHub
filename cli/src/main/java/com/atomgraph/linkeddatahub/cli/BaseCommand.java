@@ -25,7 +25,10 @@ import com.atomgraph.linkeddatahub.cli.mixin.CertAuthMixin;
 import com.atomgraph.linkeddatahub.cli.mixin.ProxyMixin;
 import com.atomgraph.linkeddatahub.rdf.vocabulary.LDS;
 import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
@@ -147,6 +150,39 @@ public abstract class BaseCommand implements Callable<Integer>
     protected static void put(LDHClient client, URI target, Model model)
     {
         HttpException.checkWrite(target, client.put(target, Entity.entity(model, TEXT_TURTLE_TYPE), ACCEPT_TURTLE)).close();
+    }
+
+    /**
+     * PUTs a model as a new document, with <code>If-None-Match: *</code>, so that it never replaces one: on a URI
+     * that already holds a document the server refuses the write with <code>412</code>, under the document's write
+     * lock, and leaves the document as it was. A create that quoted the existing document's entity tag instead, as
+     * {@link #put(LDHClient, URI, Model)} does, would replace it whole - its content blocks with it.
+     *
+     * @param client client instance
+     * @param target document URI
+     * @param model document model
+     * @param ifAbsent whether a document already at the URI counts as success rather than failure
+     * @return true if the document was created, false if one already existed and <code>ifAbsent</code> was set
+     * @throws HttpException if the write fails, or a document already exists and <code>ifAbsent</code> is not set
+     */
+    protected static boolean create(LDHClient client, URI target, Model model, boolean ifAbsent)
+    {
+        MultivaluedMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.putSingle(HttpHeaders.IF_NONE_MATCH, "*");
+
+        try (Response response = client.put(target, Entity.entity(model, TEXT_TURTLE_TYPE), ACCEPT_TURTLE, headers))
+        {
+            if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode())
+            {
+                if (ifAbsent) return false;
+
+                throw new HttpException(response.getStatus(), response.getStatusInfo().getReasonPhrase(), target,
+                    "A document already exists at this URI; it was left as it is. Pass --if-absent to accept one that does.");
+            }
+
+            HttpException.checkWrite(target, response);
+            return true;
+        }
     }
 
     /**

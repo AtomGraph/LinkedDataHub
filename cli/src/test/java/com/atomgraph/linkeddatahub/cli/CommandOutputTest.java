@@ -114,6 +114,64 @@ public class CommandOutputTest
     }
 
     @Test
+    public void createNeverQuotesAnExistingDocumentsState() throws Exception
+    {
+        try (StubServer server = new StubServer())
+        {
+            server.responds(201, "");
+            URI base = server.baseURI();
+            StringWriter out = new StringWriter(), err = new StringWriter();
+
+            int code = commandLine(out, err).execute("create", "item",
+                "-c", keyStorePath().toString(), "-p", "changeit", "--title", "Test", "--slug", "test", "--container", base.toString());
+
+            assertEquals(0, code);
+            assertEquals(List.of("PUT"), server.getRequests().stream().map(StubServer.Request::method).toList(),
+                "a create reads no entity tag first: quoting one would let it replace the document");
+            assertEquals("*", server.getLastHeader("If-None-Match"));
+            assertNull(server.getLastHeader("If-Match"));
+        }
+    }
+
+    @Test
+    public void createOverAnExistingDocumentFails() throws Exception
+    {
+        try (StubServer server = new StubServer())
+        {
+            server.responds(412, "");
+            URI base = server.baseURI();
+            StringWriter out = new StringWriter(), err = new StringWriter();
+
+            int code = commandLine(out, err).execute("create", "container",
+                "-c", keyStorePath().toString(), "-p", "changeit", "--title", "Test", "--slug", "test", "--parent", base.toString());
+
+            assertEquals(1, code);
+            assertEquals("", out.toString(), "a create that wrote nothing prints no URL");
+            assertTrue(err.toString().contains("already exists"), err.toString());
+        }
+    }
+
+    @Test
+    public void createIfAbsentAcceptsAnExistingDocument() throws Exception
+    {
+        try (StubServer server = new StubServer())
+        {
+            server.responds(412, "");
+            URI base = server.baseURI();
+            StringWriter out = new StringWriter(), err = new StringWriter();
+
+            int code = commandLine(out, err).execute("create", "container",
+                "-c", keyStorePath().toString(), "-p", "changeit", "--title", "Test", "--slug", "test", "--parent", base.toString(),
+                "--if-absent");
+
+            assertEquals(0, code);
+            assertEquals(base + "test/", out.toString().strip(), "the existing document's URL is the result, as a created one's would be");
+            assertEquals("", err.toString());
+            assertEquals(1, server.getRequests().size(), "the existing document is not written to");
+        }
+    }
+
+    @Test
     public void putReadsRDFFromStdinResolvingAgainstTheTarget() throws Exception
     {
         InputStream in = System.in;
