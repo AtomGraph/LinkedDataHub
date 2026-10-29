@@ -373,33 +373,23 @@ exclude-result-prefixes="#all"
         <json:string key="v"><xsl:value-of select="replace(replace(., '&lt;', '&amp;lt;'), '&gt;', '&amp;gt;')"/></json:string>
     </xsl:template>
     
+    <!-- the data table of a graph, with the columns the caller chose: $properties in that order, every property when
+         there are none, and the resource URI/ID first when $resource-ids -->
     <xsl:function name="ac:rdf-data-table">
         <xsl:param name="results" as="document-node()"/>
-        <xsl:param name="category" as="xs:string?"/>
-        <xsl:param name="series" as="xs:string*"/>
+        <xsl:param name="properties" as="xs:anyURI*"/>
+        <xsl:param name="resource-ids" as="xs:boolean"/>
         <xsl:param name="chart-type" as="xs:anyURI"/>
         <xsl:param name="object-metadata" as="document-node()?"/> <!-- labels of the resources the results link to, where the caller has them -->
         
         <xsl:variable name="json" as="xs:string">
             <xsl:value-of>
-                <xsl:choose>
-                    <xsl:when test="$category">
-                        <xsl:apply-templates select="$results" mode="ac:DataTable">
-                            <xsl:with-param name="properties" select="xs:anyURI($category), for $i in $series return xs:anyURI($i)" tunnel="yes"/>
-                            <xsl:with-param name="chart-type" select="$chart-type" tunnel="yes"/>
-                            <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
-                        </xsl:apply-templates>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <!-- if no $category specified, show resource URI/ID as category -->
-                        <xsl:apply-templates select="$results" mode="ac:DataTable">
-                            <xsl:with-param name="resource-ids" select="true()" tunnel="yes"/>
-                            <xsl:with-param name="properties" select="xs:anyURI($category), for $i in $series return xs:anyURI($i)" tunnel="yes"/>
-                            <xsl:with-param name="chart-type" select="$chart-type" tunnel="yes"/>
-                            <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
-                        </xsl:apply-templates>
-                    </xsl:otherwise>
-                </xsl:choose>
+                <xsl:apply-templates select="$results" mode="ac:DataTable">
+                    <xsl:with-param name="resource-ids" select="$resource-ids" tunnel="yes"/>
+                    <xsl:with-param name="properties" select="$properties" tunnel="yes"/>
+                    <xsl:with-param name="chart-type" select="$chart-type" tunnel="yes"/>
+                    <xsl:with-param name="object-metadata" select="$object-metadata" tunnel="yes"/>
+                </xsl:apply-templates>
             </xsl:value-of>
         </xsl:variable>
         
@@ -407,16 +397,17 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ixsl:new('google.visualization.DataTable', [ $json-obj ])"/>
     </xsl:function>
 
+    <!-- the data table of a result set, with the columns the caller chose: $var-names in that order, every projected
+         variable when there are none -->
     <xsl:function name="ac:sparql-results-data-table">
         <xsl:param name="results" as="document-node()"/>
-        <xsl:param name="category" as="xs:string?"/>
-        <xsl:param name="series" as="xs:string*"/>
+        <xsl:param name="var-names" as="xs:string*"/>
         <xsl:param name="chart-type" as="xs:anyURI"/>
         
         <xsl:variable name="json" as="xs:string">
             <xsl:value-of>
                 <xsl:apply-templates select="$results" mode="ac:DataTable">
-                    <xsl:with-param name="var-names" select="$category, $series" tunnel="yes"/>
+                    <xsl:with-param name="var-names" select="$var-names" tunnel="yes"/>
                     <xsl:with-param name="chart-type" select="$chart-type" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:value-of>

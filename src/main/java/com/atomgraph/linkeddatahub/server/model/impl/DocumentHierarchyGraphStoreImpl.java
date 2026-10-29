@@ -37,6 +37,7 @@ import com.atomgraph.linkeddatahub.server.util.GraphLocks;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.DH;
+import com.atomgraph.linkeddatahub.vocabulary.Default;
 import com.atomgraph.linkeddatahub.vocabulary.LDH;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import com.atomgraph.linkeddatahub.vocabulary.SIOC;
@@ -186,6 +187,13 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
      * Name of the Graph Store Protocol query parameter that identifies the default graph indirectly.
      */
     public static final String DEFAULT_PARAM_NAME = "default";
+
+    /**
+     * The classes of the document hierarchy, the only ones a document may be typed with: a class grant matches a
+     * document's types, and the documents of both dataspaces share these, so a document typed with any other class
+     * could be reached by a grant scoped to the other dataspace.
+     */
+    public static final Set<Resource> HIERARCHY_CLASSES = Set.of(Default.Root, DH.Container, DH.Item);
     
     private final com.atomgraph.linkeddatahub.dataspaces.model.Dataspace application;
     private final OntModel ontology;
@@ -450,6 +458,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         if (model.isEmpty()) return Response.noContent().build();
 
         checkForeignContainment(model);
+        checkDocumentTypes(model);
 
         return writeLocked(() ->
         {
@@ -552,9 +561,13 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         }
 
         checkForeignContainment(model);
+        checkDocumentTypes(model);
 
         URI parentURI = getURI().resolve("..");
         boolean root = getDataspace().getBaseURI().equals(getURI());
+        // the root is stored as sent, without the dh:Item every other document is given below
+        if (root && !isHierarchyTyped(model, getURI().toString()))
+            throw new WebApplicationException("Root document <" + getURI() + "> must be typed with a document hierarchy class", UNPROCESSABLE_ENTITY.getStatusCode());
         // the parent's lock as well as the document's: a DELETE of the parent holds it while it checks for children, so
         // the two cannot interleave
         return writeLocked(root ? List.of(getURI()) : List.of(parentURI, getURI()), () ->
@@ -723,6 +736,12 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             // only the containment the update adds is held to the rule: a graph written before it may still carry some
             if (getForeignContainment(existingModel, getURI().toString()).stream().anyMatch(stmt -> !beforeUpdateModel.contains(stmt)))
                 throw new WebApplicationException("sioc:has_parent and sioc:has_container in document <" + getURI() + "> can only be stated of the document itself", UNPROCESSABLE_ENTITY.getStatusCode());
+
+            // only the types the update adds are held to the rule: a graph written before it may still carry others
+            if (getForeignTypes(existingModel, getURI().toString()).stream().anyMatch(type -> !beforeUpdateModel.contains(beforeUpdateModel.createResource(getURI().toString()), RDF.type, type)))
+                throw new WebApplicationException("Document <" + getURI() + "> can only be typed with document hierarchy classes", UNPROCESSABLE_ENTITY.getStatusCode());
+            if (!isHierarchyTyped(existingModel, getURI().toString()))
+                throw new WebApplicationException("Document <" + getURI() + "> must stay typed with a document hierarchy class", UNPROCESSABLE_ENTITY.getStatusCode());
 
             // SPIN constraints are class-scoped; allowing rdf:type removal would silently bypass them
             for (Resource resource : getChangedResources(beforeUpdateModel, existingModel))
@@ -1055,6 +1074,54 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     {
         if (!getForeignContainment(model, getURI().toString()).isEmpty())
             throw new WebApplicationException("sioc:has_parent and sioc:has_container in document <" + getURI() + "> can only be stated of the document itself", UNPROCESSABLE_ENTITY.getStatusCode());
+    }
+
+    /**
+     * Returns the classes the model types the document with that are not document hierarchy classes.
+     *
+     * @param model RDF model
+     * @param documentURI document URI
+     * @return non-hierarchy types of the document
+     */
+    public static Set<RDFNode> getForeignTypes(Model model, String documentURI)
+    {
+        if (model == null) throw new IllegalArgumentException("Model cannot be null");
+        if (documentURI == null) throw new IllegalArgumentException("Document URI cannot be null");
+
+        Set<RDFNode> types = new HashSet<>();
+        model.listObjectsOfProperty(ResourceFactory.createResource(documentURI), RDF.type).
+            filterDrop(HIERARCHY_CLASSES::contains).
+            forEach(types::add);
+
+        return types;
+    }
+
+    /**
+     * Returns true if the model types the document with a document hierarchy class.
+     *
+     * @param model RDF model
+     * @param documentURI document URI
+     * @return true if typed with a hierarchy class
+     */
+    public static boolean isHierarchyTyped(Model model, String documentURI)
+    {
+        if (model == null) throw new IllegalArgumentException("Model cannot be null");
+        if (documentURI == null) throw new IllegalArgumentException("Document URI cannot be null");
+
+        Resource document = ResourceFactory.createResource(documentURI);
+        return HIERARCHY_CLASSES.stream().anyMatch(type -> model.contains(document, RDF.type, type));
+    }
+
+    /**
+     * Refuses a payload that types the requested document with any class but the document hierarchy classes.
+     *
+     * @param model request payload
+     * @throws WebApplicationException with <code>422 Unprocessable Entity</code> if it does
+     */
+    public void checkDocumentTypes(Model model)
+    {
+        if (!getForeignTypes(model, getURI().toString()).isEmpty())
+            throw new WebApplicationException("Document <" + getURI() + "> can only be typed with document hierarchy classes", UNPROCESSABLE_ENTITY.getStatusCode());
     }
 
     private static boolean isChanged(Model beforeUpdateModel, Model afterUpdateModel, String documentURI, List<Property> properties)
