@@ -25,11 +25,11 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
 /**
- * Creates a container document.
+ * Creates a container document, never replacing one: the write carries <code>If-None-Match: *</code>.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "container", description = "Creates a container document.")
+@Command(name = "container", description = "Creates a container document. Fails if a document already exists at its URI, which is left as it is, unless --if-absent is given.")
 public class CreateContainer extends BaseCommand
 {
 
@@ -51,11 +51,14 @@ public class CreateContainer extends BaseCommand
     @Option(names = "--primary-topic", paramLabel = "URI", description = "URI of what the document is about, resolved against the document URI (optional)")
     private String primaryTopic;
 
+    @Option(names = "--if-absent", description = "Succeed without writing when a document already exists at the URI, leaving it as it is (like mkdir -p); without it, an existing document fails the command")
+    private boolean ifAbsent;
+
     @Override
     public Integer call() throws Exception
     {
         URI doc = URIs.childURI(parent, slug != null ? slug : Slugs.defaultSlug());
-        put(getClient(), doc, Documents.container(doc, title, description, childrenView, primaryTopic));
+        create(getClient(), doc, Documents.container(doc, title, description, childrenView, primaryTopic), ifAbsent);
         print(doc);
 
         return 0;
