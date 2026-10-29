@@ -206,7 +206,9 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="chart-type" select="$chart-type"/>
                     <xsl:with-param name="category" select="$category"/>
                     <xsl:with-param name="series" select="$series"/>
-                    <xsl:with-param name="height" select="400"/>
+                    <!-- a table is as tall as its rows. A bar chart draws its categories down the side and skips every other
+                         label once they no longer fit, so it grows by a bar's height for each row past what 400px holds -->
+                    <xsl:with-param name="height" select="if ($chart-type = '&ac;Table') then () else if ($chart-type = '&ac;BarChart') then max((400, 120 + 30 * xs:integer(ixsl:call($data-table, 'getNumberOfRows', [])))) else 400"/>
                 </xsl:call-template>
             </xsl:otherwise>
         </xsl:choose>
