@@ -61,7 +61,7 @@ public class ServiceFactory implements Factory<Optional<Service>>
     {
         Optional<Dataspace> appOpt = (Optional<Dataspace>)getContainerRequestContext().getProperty(LDS.Dataspace.getURI());
 
-        if (!appOpt.isPresent()) return Optional.empty();
+        if (appOpt == null || !appOpt.isPresent()) return Optional.empty(); // absent when a filter before ApplicationFilter refused the request
 
         Service service = appOpt.get().getService();
 
