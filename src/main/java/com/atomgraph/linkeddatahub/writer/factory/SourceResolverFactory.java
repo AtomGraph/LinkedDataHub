@@ -157,7 +157,10 @@ public class SourceResolverFactory implements Factory<RDFSourceResolver>
      */
     public Optional<Dataspace> getDataspace()
     {
-        return (Optional<Dataspace>)getContainerRequestContext().getProperty(LDS.Dataspace.getURI());
+        Optional<Dataspace> appOpt = (Optional<Dataspace>)getContainerRequestContext().getProperty(LDS.Dataspace.getURI());
+
+        // the property is absent when the request was refused before it was set; the error response is still written through XSLT, which needs a resolver
+        return appOpt != null ? appOpt : Optional.empty();
     }
     
 }
