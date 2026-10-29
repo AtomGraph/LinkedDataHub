@@ -433,7 +433,11 @@ exclude-result-prefixes="#all"
         <xsl:param name="chart-type" as="xs:anyURI"/>
         <xsl:param name="object-metadata" as="document-node()?"/>
 
-        <xsl:sequence select="ac:rdf-data-table(root(.), $category, $series, $chart-type, $object-metadata)"/>
+        <!-- a table shows every property; the other charts plot their category and series, against the resource when
+             there is no category -->
+        <xsl:variable name="properties" select="if ($chart-type = '&ac;Table') then () else (for $property in ($category, $series) return xs:anyURI($property))" as="xs:anyURI*"/>
+
+        <xsl:sequence select="ac:rdf-data-table(root(.), $properties, empty($category), $chart-type, $object-metadata)"/>
     </xsl:template>
 
     <!-- the data table of a result set: its rows -->
@@ -449,7 +453,10 @@ exclude-result-prefixes="#all"
         <xsl:variable name="projection" select="srx:head/srx:variable/@name/string()" as="xs:string*"/>
         <xsl:variable name="ordered-series" select="$projection[. = $series], $series[not(. = $projection)]" as="xs:string*"/>
 
-        <xsl:sequence select="ac:sparql-results-data-table(root(.), $category, $ordered-series, $chart-type)"/>
+        <!-- a table shows the whole projection; the other charts plot their category and series -->
+        <xsl:variable name="var-names" select="if ($chart-type = '&ac;Table') then () else ($category, $ordered-series)" as="xs:string*"/>
+
+        <xsl:sequence select="ac:sparql-results-data-table(root(.), $var-names, $chart-type)"/>
     </xsl:template>
 
     <!-- what is plotted when the caller does not say: every property a graph's resources carry -->
