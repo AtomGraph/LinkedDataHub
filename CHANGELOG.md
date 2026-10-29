@@ -51,6 +51,7 @@
 - `405` responses list the allowed methods, a `415` to `PATCH` names the accepted type, and access requests answer `201`
 - An anonymous `HEAD` on a document the requester may only append to is answered `200` with its entity tag instead of `403`: the front Varnish fetched a HEAD as a GET on a cache miss, so the platform decided it as a read. `HEAD` now bypasses the cache and is decided as a HEAD, the way a conditional write by an agent without `acl:Read` needs
 - A chart drawn as a Table shows every variable its query selects, or every property its graph's resources carry, instead of only its category and series
+- A chart drawn as a Table is as tall as its rows instead of 400px, and a bar chart grows with its bars so that every bar keeps its label
 
 ### Security
 - A document's types, which authorizations match on, come from its own graph only, so a write to one document cannot change another's access
