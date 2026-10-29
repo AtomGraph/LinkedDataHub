@@ -22,3 +22,10 @@ export const canvas = block => block.locator('.chart-canvas');
 export const drawing = block => canvas(block).locator('svg, canvas, table').first();
 
 export const chartType = block => block.locator('select.chart-type');
+
+// The columns of the data table a chart was drawn from, as the chart keeps it on its block's cache: the order a chart
+// that reads its columns by position takes them in, which bars and a legend do not show. Null until it has drawn.
+export const columnLabels = (page, uri = fixtures.chart) => page.evaluate(key => {
+    const table = window.LinkedDataHub?.contents?.[key]?.['data-table'];
+    return table ? Array.from({ length: table.getNumberOfColumns() }, (_, i) => table.getColumnLabel(i)) : null;
+}, uri);

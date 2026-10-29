@@ -8,21 +8,20 @@
 // notice, because every fixture chart had a single series.
 //
 // The fixture declares four series in the reverse of the order its query projects them, and draws
-// them as a Table, whose header row is the DataTable's column order read straight off the page.
+// them as bars; the order is read off the DataTable the chart was drawn from, which bars and a
+// legend do not show. Not as a Table, which shows the whole projection whatever the series are.
 // Four, because a chart ordering by anything but the projection still matches it by chance one
 // time in 24; with two it would pass half the time without the fix.
 import { test, expect } from '../../../../lib/console.mjs';
 import { goto } from '../../../../lib/settle.mjs';
 import { fixtures, seriesProjection } from '../../../../lib/fixtures.mjs';
-import { canvas, chartBlock } from '../../../../lib/chart.mjs';
+import { chartBlock, columnLabels, drawing } from '../../../../lib/chart.mjs';
 
 test('takes its series in the order the query projects them, not the order they are declared in', async ({ page }) => {
     await goto(page, fixtures.seriesDocument);
 
-    const block = chartBlock(page, fixtures.seriesChart);
-    const table = canvas(block).locator('.google-visualization-table');
-    await expect(table).toBeVisible({ timeout: 30_000 });
+    await expect(drawing(chartBlock(page, fixtures.seriesChart))).toBeVisible({ timeout: 30_000 });
 
     // The category first, then the series as SELECT lists them.
-    await expect(table.locator('tr').first().locator('th')).toHaveText(['kind', ...seriesProjection]);
+    await expect.poll(() => columnLabels(page, fixtures.seriesChart)).toEqual(['kind', ...seriesProjection]);
 });
