@@ -116,6 +116,7 @@ exclude-result-prefixes="#all"
                 <xsl:sequence select="
                     ixsl:resolve($context) =>
                         ixsl:then(ldh:object-value-thunk#1) =>
+                        ixsl:then(ldh:object-embed-thunk#1) =>
                         ixsl:then(ldh:object-metadata-thunk#1)
                 "/>
             </xsl:otherwise>
@@ -157,6 +158,60 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:function>
     
+    <!-- absence of 'embed-request' means the value was RDF (or failed) and ldh:block-object-value-response already decided the block; resolve through -->
+    <xsl:function name="ldh:object-embed-thunk" as="item()*" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:message>ldh:object-embed-thunk</xsl:message>
+        <xsl:choose>
+            <xsl:when test="map:contains($context, 'embed-request')">
+                <xsl:sequence select="
+                    ixsl:http-request($context('embed-request')) =>
+                        ixsl:then(ldh:rethread-response($context, ?, 'embed-response')) =>
+                        ixsl:then(ldh:handle-response(?, 'embed-response')) =>
+                        ixsl:then(ldh:block-object-embed-response#1)
+                "/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ixsl:resolve($context)"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <!-- embeds a value with no RDF representation by its media type: an image as <img>, which the browser loads as a
+         subresource, where an <object> is a nested browsing context that an origin's frame-ancestors or X-Frame-Options
+         refuses (Firefox honours them for an image in an <object>). Anything else stays an <object>, typed when known -->
+    <xsl:function name="ldh:block-object-embed-response" as="map(*)" ixsl:updating="yes">
+        <xsl:param name="context" as="map(*)"/>
+        <xsl:variable name="response" select="$context('embed-response')" as="map(*)"/>
+        <xsl:variable name="container" select="$context('container')" as="element()"/>
+        <xsl:variable name="resource-uri" select="$context('resource-uri')" as="xs:anyURI"/>
+        <!-- fetch() lower-cases header names; a failed HEAD leaves the type unknown, and the <object> to the browser -->
+        <xsl:variable name="media-type" select="if ($response?status = 200) then $response?headers?('content-type') ! normalize-space(substring-before(. || ';', ';'))[.] else ()" as="xs:string?"/>
+        <xsl:message>ldh:block-object-embed-response</xsl:message>
+
+        <xsl:for-each select="$container">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <div class="main ldh-block-body">
+                    <xsl:choose>
+                        <xsl:when test="starts-with($media-type, 'image/')">
+                            <img src="{$resource-uri}" alt="{$resource-uri}"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <object data="{$resource-uri}">
+                                <xsl:if test="$media-type">
+                                    <xsl:attribute name="type" select="$media-type"/>
+                                </xsl:if>
+                            </object>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </div>
+            </xsl:result-document>
+        </xsl:for-each>
+
+        <xsl:sequence select="ldh:end-block-loading($context, ())[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="map:remove($context, 'embed-request')"/>
+    </xsl:function>
+
     <xsl:function name="ldh:invoke-factory" as="item()*" ixsl:updating="yes">
         <xsl:param name="factory" as="function(item()?) as item()*?"/>
         <xsl:message>ldh:invoke-factory</xsl:message>
@@ -220,16 +275,8 @@ exclude-result-prefixes="#all"
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:when test="?status = 406">
-                    <xsl:for-each select="$container">
-                        <xsl:result-document href="?." method="ixsl:replace-content">
-                            <div class="main ldh-block-body">
-                                <object data="{$resource-uri}"/>
-                            </div>
-                        </xsl:result-document>
-                    </xsl:for-each>
-
-                    <xsl:sequence select="ldh:end-block-loading($context, ())[current-date() lt xs:date('2000-01-01')]"/>
-                    <xsl:sequence select="$context"/>
+                    <!-- no RDF representation: ask what the value is instead (the proxy forwards the upstream Content-Type to a HEAD that accepts anything), so ldh:block-object-embed-response can embed an image as one -->
+                    <xsl:sequence select="map:put($context, 'embed-request', map{ 'method': 'HEAD', 'href': $context('request')?href, 'headers': map{ 'Accept': '*/*' } })"/>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:sequence select="ldh:render-block-error($container, 'block-resource-not-loaded', ldh:http-error-key($response), $resource-uri, $response)"/>
