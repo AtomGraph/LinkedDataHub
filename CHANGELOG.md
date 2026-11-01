@@ -1,6 +1,8 @@
 ## [Unreleased]
 ### Added
 - `PATCH` accepts a SPARQL Update request of several operations, executed in order and applied to the document together or not at all, and the `INSERT DATA` and `DELETE DATA` forms
+### Fixed
+- The assistant recognises a write reported with `?url` alone, as an executor that applies a plan's writes after evaluating it reports one, and lists the document instead of drawing the report as a result, and an upload reported with `?url` and `?sha1` likewise
 
 ## [6.3.0] - 2026-10-24
 ### Migration
