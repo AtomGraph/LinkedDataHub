@@ -560,6 +560,34 @@ test('a plan that adds a block to the page being read reloads the page with the 
     await expect(card.locator('.ldh-chat-answer')).toHaveText('Added a block to this document.');
 });
 
+test('a write reported with ?url alone, as an executor that applies the writes after the plan reports it, is listed, not drawn as a result', { tag: '@owner' }, async ({ page }) => {
+    await requireAssistant();
+    // an executor with strict effects applies a plan's writes after evaluating it, so a write's value is the one row with
+    // ?url, the status known only when the write is made (Web-Algebra's D1); the plan service and the executor are the spec's
+    const written = `${scratch.container}stubbed-write/`;
+    const plan = `<wa:plan xmlns:wa="${WA}"><wa:summary>Writes one document.</wa:summary><wa:operations><wa:operation name="PUT"/></wa:operations><PUT xmlns="${WA}"><url>${written}</url><graph/></PUT></wa:plan>`;
+    const report = `<sparql xmlns="http://www.w3.org/2005/sparql-results#"><head><variable name="url"/></head><results><result><binding name="url"><uri>${written}</uri></binding></result></results></sparql>`;
+    const execution = `<wa:execution xmlns:wa="${WA}"><wa:id>urlonly</wa:id><wa:status>complete</wa:status><wa:steps><wa:step operation="PUT" depth="0" outcome="complete" elapsed="50"/></wa:steps><wa:result>${report}</wa:result><wa:written><wa:document uri="${written}"/></wa:written></wa:execution>`;
+    await page.route(/\/webalgebra\/plans$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: plan }));
+    await page.route(/\/webalgebra$/, route => route.fulfill({ status: 202, contentType: 'application/xml', body: `<wa:execution xmlns:wa="${WA}"><wa:id>urlonly</wa:id></wa:execution>` }));
+    await page.route(/\/webalgebra\/urlonly\/result$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: execution }));
+    await page.route(/\/webalgebra\/answers$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: `<wa:answer xmlns:wa="${WA}"><div xmlns="${XHTML}"><p>Wrote one document.</p></div></wa:answer>` }));
+
+    await goto(page, inMode(scratch.container, CONTENT_MODE));
+    await button(page).click();
+    const chatUri = await ephemeral(page).locator('.ldh-chat').getAttribute('data-chat');
+    await composer(chatOf(page, chatUri)).fill('Write one document');
+    await composer(chatOf(page, chatUri)).press('Enter');
+    const execute = cards(chatOf(page, chatUri)).last().locator('.ldh-chat-execute');
+    await expect(execute).toBeVisible();
+    await execute.click();
+
+    const card = cards(chatOf(page, chatUri)).last();
+    await expect(card.locator('.ldh-chat-docs a.iri')).toHaveAttribute('href', written, { timeout: 30_000 });
+    await expect(card.locator('.ldh-chat-answer')).toHaveText('Wrote one document.');
+    await expect(card.locator('.ldh-chat-result-block'), 'the write report is not a result to show').toHaveCount(0);
+});
+
 test('a question is answered in words, with its result as a block in the card, also after a reload', { tag: '@owner' }, async ({ page, allowNoise }) => {
     await requireAssistant();
     test.setTimeout(300_000);

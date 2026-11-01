@@ -1,3 +1,7 @@
+## [Unreleased]
+### Fixed
+- The assistant recognises a write reported with `?url` alone, as an executor that applies a plan's writes after evaluating it reports one, and lists the document instead of drawing the report as a result
+
 ## [6.3.0] - 2026-10-24
 ### Migration
 - Access is plain WAC over the document hierarchy: `acl:default` on a container covers everything below it, `acl:Control` grants nothing, and owners are granted through `lacl:OwnerAgent`; run `migrations/6.0-acl.ru.template` on each admin store and `migrations/6.0-hierarchy.ru.template` on every store
