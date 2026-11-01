@@ -1,3 +1,7 @@
+## [Unreleased]
+### Added
+- `PATCH` accepts a SPARQL Update request of several operations, executed in order and applied to the document together or not at all, and the `INSERT DATA` and `DELETE DATA` forms
+
 ## [6.3.0] - 2026-10-24
 ### Migration
 - Access is plain WAC over the document hierarchy: `acl:default` on a container covers everything below it, `acl:Control` grants nothing, and owners are granted through `lacl:OwnerAgent`; run `migrations/6.0-acl.ru.template` on each admin store and `migrations/6.0-hierarchy.ru.template` on every store

@@ -16,6 +16,8 @@ import org.apache.jena.sparql.algebra.op.OpQuadPattern;
 import org.apache.jena.sparql.algebra.walker.Walker;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.expr.ExprVisitorBase;
+import org.apache.jena.sparql.modify.request.UpdateDataDelete;
+import org.apache.jena.sparql.modify.request.UpdateDataInsert;
 import org.apache.jena.sparql.modify.request.UpdateDeleteWhere;
 import org.apache.jena.sparql.modify.request.UpdateModify;
 import org.apache.jena.sparql.modify.request.UpdateVisitorBase;
@@ -39,6 +41,18 @@ public class PatchUpdateVisitor extends UpdateVisitorBase
 
     @Override
     public void visit(UpdateDeleteWhere update)
+    {
+        update.getQuads().forEach(this::visit);
+    }
+
+    @Override
+    public void visit(UpdateDataInsert update)
+    {
+        update.getQuads().forEach(this::visit);
+    }
+
+    @Override
+    public void visit(UpdateDataDelete update)
     {
         update.getQuads().forEach(this::visit);
     }
@@ -102,7 +116,8 @@ public class PatchUpdateVisitor extends UpdateVisitorBase
 
     /**
      * Returns true if the SPARQL update contains the <code>GRAPH</code> keyword, in the <code>INSERT</code>/<code>DELETE</code>
-     * templates, in the <code>DELETE WHERE</code> pattern or anywhere in the <code>WHERE</code> pattern.
+     * templates, in the <code>INSERT DATA</code>/<code>DELETE DATA</code> blocks, in the <code>DELETE WHERE</code> pattern or
+     * anywhere in the <code>WHERE</code> pattern, of any of the request's operations.
      * @return true if there is a named graph pattern
      */
     public boolean containsNamedGraph()
@@ -121,23 +136,31 @@ public class PatchUpdateVisitor extends UpdateVisitorBase
 
     /**
      * Refuses an update that a PATCH cannot apply to a single graph, with <code>422 Unprocessable Entity</code>:
-     * more than one operation, a form other than <code>DELETE/INSERT ... WHERE</code> and <code>DELETE WHERE</code>,
-     * a <code>GRAPH</code> pattern, or a dataset clause.
+     * no operation, an operation other than <code>DELETE/INSERT ... WHERE</code>, <code>DELETE WHERE</code>,
+     * <code>INSERT DATA</code> and <code>DELETE DATA</code> (the graph management operations - <code>LOAD</code>,
+     * <code>CLEAR</code>, <code>CREATE</code>, <code>DROP</code>, <code>ADD</code>, <code>MOVE</code>, <code>COPY</code> -
+     * address graphs, not the document's triples), a <code>GRAPH</code> pattern or quad, or a dataset clause.
+     * <p>
+     * A request of several operations is accepted: SPARQL 1.1 Update executes them in order, and the PATCH applies
+     * the whole request to the document under its lock and validates the result once, so the operations change the
+     * document together or not at all.
      *
      * @param updateRequest SPARQL update
      * @throws WebApplicationException if the update cannot be applied
      */
     public static void validate(UpdateRequest updateRequest)
     {
-        if (updateRequest.getOperations().size() != 1)
-            throw new WebApplicationException("Only a single SPARQL Update is supported by PATCH", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
-
-        Update update = updateRequest.getOperations().get(0);
-        if (!(update instanceof UpdateModify || update instanceof UpdateDeleteWhere))
-            throw new WebApplicationException("Only INSERT/WHERE and DELETE WHERE forms of SPARQL Update are supported by PATCH", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
+        if (updateRequest.getOperations().isEmpty())
+            throw new WebApplicationException("The SPARQL update used with PATCH has no operation", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
 
         PatchUpdateVisitor visitor = new PatchUpdateVisitor();
-        update.visit(visitor);
+        for (Update update : updateRequest.getOperations())
+        {
+            if (!(update instanceof UpdateModify || update instanceof UpdateDeleteWhere || update instanceof UpdateDataInsert || update instanceof UpdateDataDelete))
+                throw new WebApplicationException("Only INSERT/WHERE, DELETE WHERE, INSERT DATA and DELETE DATA forms of SPARQL Update are supported by PATCH", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
+
+            update.visit(visitor);
+        }
         if (visitor.containsNamedGraph())
             throw new WebApplicationException("SPARQL update used with PATCH method cannot contain the GRAPH keyword", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
         if (visitor.containsDataset())
