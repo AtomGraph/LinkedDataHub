@@ -54,7 +54,10 @@ public class OntologyFactory implements Factory<Optional<OntModel>>
      */
     public Optional<OntModel> getOntology()
     {
-        return (Optional<OntModel>)getContainerRequestContext().getProperty(OWL.Ontology.getURI());
+        Optional<OntModel> ontologyOpt = (Optional<OntModel>)getContainerRequestContext().getProperty(OWL.Ontology.getURI());
+
+        // the property is absent when a filter before the one setting it refused the request; never provide null, which the request scope caches and then refuses to seed again on the next lookup
+        return ontologyOpt != null ? ontologyOpt : Optional.empty();
     }
     
     /**
