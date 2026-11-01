@@ -680,6 +680,8 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
      * Accepts SPARQL update as the request body which is executed in the context of the specified graph.
      * The <code>GRAPH</code> keyword and the <code>WITH</code>, <code>USING</code> and <code>USING NAMED</code> clauses are
      * therefore not allowed in the update string, and are refused with <code>422 Unprocessable Entity</code>.
+     * The update may be a request of several operations, executed in order: the document changes by all of them or,
+     * when the result is refused, by none.
      * 
      * @param updateRequest SPARQL update
      * @return response response object
@@ -695,8 +697,9 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         if (log.isDebugEnabled()) log.debug("PATCH request on named graph with URI: {}", getURI());
         if (log.isDebugEnabled()) log.debug("PATCH update string: {}", updateRequest.toString());
         
-        // one operation of the INSERT/DELETE forms, with no GRAPH and no WITH/USING - the update runs against this
-        // graph alone, so any of those would match nothing and the PATCH would answer 204 having changed nothing
+        // operations of the INSERT/DELETE and DATA forms, with no GRAPH and no WITH/USING - the update runs against this
+        // graph alone, so any of those would match nothing and the PATCH would answer 204 having changed nothing; several
+        // operations run in order, in the one execution below, and the result is checked and validated once
         PatchUpdateVisitor.validate(updateRequest);
 
         return writeLocked(() ->

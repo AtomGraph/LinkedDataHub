@@ -167,6 +167,12 @@ The TimeGate is replayed twice:
   missing title answered with `422`, changes nothing, and the model has no write for it. The answer takes the
   payload as ground triples free of `dct:created` and `dct:modified`, and the replay sends only such payloads, valid
   against the ontology's constraints, with a single-operation `PATCH`.
+- **A `PATCH` of several operations:** `patch()` runs the request's operations in order, in one execution, and
+  makes its checks once, on the graph before and the graph after, as for one operation. The model's `PATCH` is that
+  pair (`Write.patch` takes the graph after; `HReq.patch` its ground `DELETE`/`INSERT`), and any graph after is one
+  ground `DELETE`/`INSERT` of the graph before (delete what it lost, insert what it gained), so the theorems hold for
+  a request of several operations as they stand. The replay sends single-operation requests; the chained requests
+  are covered by `tests/http/document-hierarchy/PATCH-chained*.sh`.
 - **The entity tag's value:** the replay cannot compute the server's tags (Jena's N-Triples, SHA-256, the variant
   folding), so it states whether the tag it quotes is current.
 - **Versioning's failures and limits:** a reconcile that fails, a write whose response fails after the store has
