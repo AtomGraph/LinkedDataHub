@@ -588,6 +588,32 @@ test('a write reported with ?url alone, as an executor that applies the writes a
     await expect(card.locator('.ldh-chat-result-block'), 'the write report is not a result to show').toHaveCount(0);
 });
 
+test('an upload reported with ?url and ?sha1 is listed, not drawn as a result', { tag: '@owner' }, async ({ page }) => {
+    await requireAssistant();
+    // waldh:AddFile with deferred writes: ?url is the uploaded file, known before the upload is made, ?sha1 its bytes' digest
+    const file = `${scratch.container}uploads/0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33`;
+    const plan = `<wa:plan xmlns:wa="${WA}"><wa:summary>Uploads one file.</wa:summary><wa:operations><wa:operation name="waldh:AddFile"/></wa:operations><PUT xmlns="${WA}"><url>${file}</url><graph/></PUT></wa:plan>`;
+    const report = `<sparql xmlns="http://www.w3.org/2005/sparql-results#"><head><variable name="url"/><variable name="sha1"/></head><results><result><binding name="url"><uri>${file}</uri></binding><binding name="sha1"><literal>0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33</literal></binding></result></results></sparql>`;
+    const execution = `<wa:execution xmlns:wa="${WA}"><wa:id>upload</wa:id><wa:status>complete</wa:status><wa:steps><wa:step operation="waldh:AddFile" depth="0" outcome="complete" elapsed="50"/></wa:steps><wa:result>${report}</wa:result><wa:written><wa:document uri="${scratch.container}"/></wa:written></wa:execution>`;
+    await page.route(/\/webalgebra\/plans$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: plan }));
+    await page.route(/\/webalgebra$/, route => route.fulfill({ status: 202, contentType: 'application/xml', body: `<wa:execution xmlns:wa="${WA}"><wa:id>upload</wa:id></wa:execution>` }));
+    await page.route(/\/webalgebra\/upload\/result$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: execution }));
+    await page.route(/\/webalgebra\/answers$/, route => route.fulfill({ status: 200, contentType: 'application/xml', body: `<wa:answer xmlns:wa="${WA}"><div xmlns="${XHTML}"><p>Uploaded one file.</p></div></wa:answer>` }));
+
+    await goto(page, inMode(scratch.container, CONTENT_MODE));
+    await button(page).click();
+    const chatUri = await ephemeral(page).locator('.ldh-chat').getAttribute('data-chat');
+    await composer(chatOf(page, chatUri)).fill('Upload one file');
+    await composer(chatOf(page, chatUri)).press('Enter');
+    const execute = cards(chatOf(page, chatUri)).last().locator('.ldh-chat-execute');
+    await expect(execute).toBeVisible();
+    await execute.click();
+
+    const card = cards(chatOf(page, chatUri)).last();
+    await expect(card.locator('.ldh-chat-answer')).toHaveText('Uploaded one file.', { timeout: 30_000 });
+    await expect(card.locator('.ldh-chat-result-block'), 'the upload report is not a result to show').toHaveCount(0);
+});
+
 test('a question is answered in words, with its result as a block in the card, also after a reload', { tag: '@owner' }, async ({ page, allowNoise }) => {
     await requireAssistant();
     test.setTimeout(300_000);

@@ -1650,12 +1650,13 @@ exclude-result-prefixes="#all"
 
     <!-- a write's report: the one-row result set every write answers (formal-semantics §4.4): ?url, the document written,
          and ?status from an executor that sends each write as it makes it; one that applies a plan's writes after it is
-         evaluated reports ?url alone, the status being known only then -->
+         evaluated reports ?url alone, the status being known only then; an upload (waldh:AddFile) reports ?url, the file, beside
+         ?sha1, its bytes' digest -->
     <xsl:function name="ldh:write-report" as="xs:boolean">
         <xsl:param name="item" as="element()"/>
         <xsl:variable name="variables" select="string-join(sort($item/srx:head/srx:variable/string(@name)), ' ')" as="xs:string"/>
 
-        <xsl:sequence select="exists($item/self::srx:sparql) and $variables = ('url', 'status url') and count($item/srx:results/srx:result) le 1"/>
+        <xsl:sequence select="exists($item/self::srx:sparql) and $variables = ('url', 'status url', 'sha1 url') and count($item/srx:results/srx:result) le 1"/>
     </xsl:function>
 
     <!-- THE ANSWER -->
