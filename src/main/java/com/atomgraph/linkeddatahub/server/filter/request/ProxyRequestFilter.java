@@ -109,7 +109,8 @@ import com.atomgraph.core.util.ResultSetUtils;
  * RDF/POST), SPARQL results langs route to {@link ResultSet}, and both branches are re-served
  * through the same content-negotiating builders used by local responses so the client gets the
  * format it asked for via {@code Accept}. Bodies in non-RDF types (binary, octet-stream, etc.)
- * are piped through as raw {@link InputStream}.
+ * are piped through as raw {@link InputStream} when the client accepts their type, and answered
+ * {@code 406 Not Acceptable} when it does not.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -253,7 +254,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
             try (clientResponse)
             {
-                requestContext.abortWith(getResponse(clientResponse, targetURI, requestContext.getMethod()));
+                requestContext.abortWith(getResponse(clientResponse, targetURI, requestContext.getMethod(), List.of(clientAcceptTypes)));
             }
         }
         catch (MessageBodyProviderNotFoundException ex)
@@ -307,7 +308,8 @@ public class ProxyRequestFilter implements ContainerRequestFilter
      *   <li>{@link RDFLanguages#contentTypeToLang} only → parse as {@code Model}, re-serialize
      *       through {@link #getResponse(Model, Response.StatusType)} so the client gets the
      *       format it asked for via {@code Accept};</li>
-     *   <li>anything else → pipe raw bytes with upstream {@code Content-Type} verbatim.</li>
+     *   <li>anything else → pipe raw bytes with upstream {@code Content-Type} verbatim, if the
+     *       client accepts that type, otherwise {@code 406 Not Acceptable}.</li>
      * </ul>
      * Why the live RIOT registry and not {@code MediaTypes.getReadable(...)}: the latter is a
      * static-initializer snapshot built the first time {@code client.MediaTypes} loads, which
@@ -332,9 +334,10 @@ public class ProxyRequestFilter implements ContainerRequestFilter
      * @param clientResponse response from the proxy target
      * @param targetURI upstream URI (used as the parse base URI hint for {@code ModelProvider})
      * @param method HTTP method
+     * @param acceptable media types the original caller accepts, in preference order
      * @return JAX-RS response to return to the original caller
      */
-    protected Response getResponse(Response clientResponse, URI targetURI, String method)
+    protected Response getResponse(Response clientResponse, URI targetURI, String method, List<MediaType> acceptable)
     {
         // HEAD responses have no body by HTTP semantics. Routing them through
         // the typed branches below would parse an empty entity into an empty
@@ -343,6 +346,10 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         // Forward the upstream headers (including ETag) verbatim instead.
         if (HttpMethod.HEAD.equalsIgnoreCase(method))
         {
+            // the same 406 a GET gets for a non-RDF body the caller does not accept
+            if (clientResponse.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL && !isAcceptable(clientResponse.getMediaType(), acceptable))
+                throw new NotAcceptableException();
+
             Response.ResponseBuilder rb = Response.status(clientResponse.getStatus());
             if (clientResponse.getMediaType() != null) rb.type(clientResponse.getMediaType());
             return overlayHeaders(rb.build(), clientResponse, true);
@@ -420,8 +427,12 @@ public class ProxyRequestFilter implements ContainerRequestFilter
             return overlayHeaders(getResponse(model, clientResponse.getStatusInfo()), clientResponse, true);
         }
 
-        // upstream is neither RDF nor SPARQL results — pipe raw bytes
-        // buffer so the stream remains readable after try-with-resources closes the client response
+        // upstream is neither RDF nor SPARQL results - a type the caller did not ask for is 406, as for HTML without
+        // JSON-LD above: a client asking for RDF (the object block) then embeds the URI itself instead of receiving bytes
+        // it cannot read
+        if (!isAcceptable(upstreamCT, acceptable)) throw new NotAcceptableException();
+
+        // pipe raw bytes; buffer so the stream remains readable after try-with-resources closes the client response
         clientResponse.bufferEntity();
         InputStream entity = clientResponse.readEntity(InputStream.class);
 
@@ -430,6 +441,24 @@ public class ProxyRequestFilter implements ContainerRequestFilter
             entity(entity);
 
         return overlayHeaders(rb.build(), clientResponse, true);
+    }
+
+    /**
+     * Returns whether an upstream body of the given type can answer the caller. An RDF or SPARQL results type always
+     * can, since it is re-serialized into the format the caller asked for; any other type only if the caller accepts it.
+     *
+     * @param upstreamType upstream {@code Content-Type}, if any
+     * @param acceptable media types the original caller accepts
+     * @return true if the body can be served
+     */
+    protected boolean isAcceptable(MediaType upstreamType, List<MediaType> acceptable)
+    {
+        if (upstreamType == null) return true;
+
+        MediaType formatType = new MediaType(upstreamType.getType(), upstreamType.getSubtype()); // strip charset
+        if (RDFLanguages.contentTypeToLang(formatType.toString()) != null) return true;
+
+        return acceptable.stream().anyMatch(formatType::isCompatible);
     }
 
     /**

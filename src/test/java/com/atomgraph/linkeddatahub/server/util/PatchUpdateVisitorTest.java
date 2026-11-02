@@ -46,7 +46,10 @@ public class PatchUpdateVisitorTest
         "INSERT { <http://s> dct:title \"new\" } WHERE { BIND(EXISTS { GRAPH ?g { ?s ?p ?o } } AS ?b) }",
         "DELETE { <http://s> dct:title ?o } WHERE { { SELECT ?o { GRAPH ?g { <http://s> dct:title ?o } } } }",
         "DELETE { <http://s> dct:title ?o } WHERE { { <http://s> dct:title ?o } UNION { GRAPH ?g { <http://s> dct:title ?o } } }",
-        "DELETE { <http://s> dct:title ?o } WHERE { <http://s> dct:title ?o MINUS { GRAPH ?g { <http://s> dct:title ?o } } }"
+        "DELETE { <http://s> dct:title ?o } WHERE { <http://s> dct:title ?o MINUS { GRAPH ?g { <http://s> dct:title ?o } } }",
+        "INSERT DATA { GRAPH <http://g> { <http://s> dct:title \"x\" } }",
+        "DELETE DATA { GRAPH <http://g> { <http://s> dct:title \"x\" } }",
+        "INSERT DATA { <http://s> dct:title \"x\" } ; DELETE WHERE { GRAPH ?g { <http://s> dct:title ?o } }"
     })
     public void testGraphIsRefused(String update)
     {
@@ -60,7 +63,8 @@ public class PatchUpdateVisitorTest
     {
         "WITH <http://g> DELETE { <http://s> dct:title ?o } WHERE { <http://s> dct:title ?o }",
         "DELETE { <http://s> dct:title ?o } USING <http://g> WHERE { <http://s> dct:title ?o }",
-        "DELETE { <http://s> dct:title ?o } USING NAMED <http://g> WHERE { <http://s> dct:title ?o }"
+        "DELETE { <http://s> dct:title ?o } USING NAMED <http://g> WHERE { <http://s> dct:title ?o }",
+        "INSERT DATA { <http://s> dct:title \"x\" } ; WITH <http://g> DELETE { <http://s> dct:title ?o } WHERE { <http://s> dct:title ?o }"
     })
     public void testDatasetClauseIsRefused(String update)
     {
@@ -72,10 +76,13 @@ public class PatchUpdateVisitorTest
     @ParameterizedTest
     @ValueSource(strings =
     {
-        "INSERT DATA { <http://s> dct:title \"x\" }",
         "LOAD <http://example.org/data>",
         "CLEAR DEFAULT",
-        "INSERT { <http://s> dct:title \"x\" } WHERE {} ; DELETE WHERE { <http://s> dct:title ?o }"
+        "DROP ALL",
+        "CREATE GRAPH <http://g>",
+        "ADD DEFAULT TO <http://g>",
+        "INSERT DATA { <http://s> dct:title \"x\" } ; CLEAR DEFAULT",
+        ""
     })
     public void testOtherFormsAreRefused(String update)
     {
@@ -90,7 +97,11 @@ public class PatchUpdateVisitorTest
         "DELETE { <http://s> dct:title ?o } INSERT { <http://s> dct:title \"new\" } WHERE { OPTIONAL { <http://s> dct:title ?o } }",
         "INSERT { <http://s> dct:title \"new\" } WHERE { FILTER NOT EXISTS { <http://s> dct:title ?o } }",
         "INSERT { <http://s> dct:title ?label } WHERE { SERVICE <http://example.org/sparql> { GRAPH ?g { <http://s> dct:title ?label } } }",
-        "INSERT { <http://s> dct:title \"x\" } WHERE {}"
+        "INSERT { <http://s> dct:title \"x\" } WHERE {}",
+        "INSERT DATA { <http://s> dct:title \"x\" }",
+        "DELETE DATA { <http://s> dct:title \"x\" }",
+        "INSERT { <http://s> dct:title \"x\" } WHERE {} ; DELETE WHERE { <http://s> dct:title ?o }",
+        "DELETE { <http://s> dct:title ?o } INSERT { <http://s> dct:title \"new\" } WHERE { OPTIONAL { <http://s> dct:title ?o } } ; INSERT DATA { <http://s> <http://www.w3.org/1999/02/22-rdf-syntax-ns#_2> <http://s#block> }"
     })
     public void testSingleGraphUpdateIsAccepted(String update)
     {

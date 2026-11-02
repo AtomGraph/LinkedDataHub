@@ -1,26 +1,16 @@
 /-
-What the authorization decision reads and the requests that change it: the quad store of a dataspace, one named graph
-per document, the access modes, and the graph store's requests.
+The graph store's data and requests: the quad store of a dataspace, one named graph per document, the document
+hierarchy over it, and the requests that change it.
 -/
-namespace LdhAcl
+namespace LdhHttp
 
-/-- RDF nodes. The vocabulary terms the decision reads are constructors of their own; every other IRI is
-`iri n`. Literals play no part in the decision and are not modelled. -/
+/-- RDF nodes. The vocabulary terms the graph store and the authorization decision read are constructors of their
+own; every other term, literals included, is `iri n`. -/
 inductive Node where
   | rdfType | aclOwner | dctCreator | siocHasParent | siocHasContainer
   | nfoFileDataObject | dhContainer | dhItem | defRoot
   | iri (n : Nat)
   deriving DecidableEq, Repr
-
-/-- `acl:Read`, `acl:Append`, `acl:Write`, `acl:Control`. -/
-inductive Mode where
-  | read | append | write | control
-  deriving DecidableEq, Repr
-
-/-- `AccessModes.covering`: a granted mode covers the required one if it is that mode or one of its
-superclasses in `acl.rdf`, where the only edge between modes is `acl:Append rdfs:subClassOf acl:Write`. -/
-def Mode.covers (granted required : Mode) : Prop :=
-  granted = required ∨ (granted = .write ∧ required = .append)
 
 structure Triple where
   s : Node
@@ -41,6 +31,22 @@ def present (st : Store) (x : Node) : Prop := ∃ g, st x = some g
 /-- The store with graph `x` replaced by `v`. -/
 def Store.set (st : Store) (x : Node) (v : Option Graph) : Store :=
   fun y => if y = x then v else st y
+
+/-! ## The document hierarchy -/
+
+/-- Deployment constants: the URI parent `put()` resolves, and the documents with none, the roots. -/
+structure Tree where
+  parent : Node → Node
+  isRoot : Node → Prop
+
+/-- The classes of the document hierarchy, which both dataspaces type their documents with. -/
+def hierClass (c : Node) : Prop := c = .defRoot ∨ c = .dhContainer ∨ c = .dhItem
+
+def isContainment (t : Triple) : Prop := t.p = .siocHasParent ∨ t.p = .siocHasContainer
+
+/-- `g` states that `d` is contained in `p`. -/
+def contains (g : Graph) (d p : Node) : Prop :=
+  g ⟨d, .siocHasParent, p⟩ ∨ g ⟨d, .siocHasContainer, p⟩
 
 /-! ## Reading a document's own graph -/
 
@@ -93,4 +99,4 @@ asserted in any other graph does not count. -/
 def hasChild (st : Store) (x : Node) : Prop :=
   ∃ k g, k ≠ x ∧ st k = some g ∧ (g ⟨k, .siocHasParent, x⟩ ∨ g ⟨k, .siocHasContainer, x⟩)
 
-end LdhAcl
+end LdhHttp

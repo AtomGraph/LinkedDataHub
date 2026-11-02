@@ -205,7 +205,9 @@ Finer access control: `ldh admin create group`, `ldh admin add agent`, `ldh admi
 (https://docs.linkeddatahub.com/reference/administration/acl/). An authorization names documents with
 `--to`, and a subtree with `--default <container>`, which covers every document below the container.
 `--to-all-in` takes a class, but not a document class (`dh:Item`, `dh:Container`, `def:Root` or one
-above them), which the admin refuses: those classes are shared with the admin documents.
+above them), which the admin refuses: those classes are shared with the admin documents. A document is
+typed with those classes and no other (a write that types it otherwise gets `422`), so a class grant
+reaches uploaded files (`nfo:FileDataObject`) only; grant documents with `--to` and `--default`.
 
 ## Building incrementally instead
 

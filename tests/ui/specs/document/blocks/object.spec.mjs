@@ -9,7 +9,8 @@
 // `.ldh-obj-value` precisely so that block-level tools address the HOST block rather than the
 // resource it happens to be showing - one card, one header, one set of controls, however deep the
 // thing inside it goes.
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
+import { writeFile } from 'node:fs/promises';
 import { test, expect } from '../../../lib/console.mjs';
 import { goto, settled } from '../../../lib/settle.mjs';
 import { fixtures, itemUri, ldh, remoteDocumentTitle } from '../../../lib/fixtures.mjs';
@@ -136,6 +137,62 @@ test.describe('an object block in a canvas mode', { tag: '@owner' }, () => {
                 .toBeVisible({ timeout: 30_000 });
         });
     }
+});
+
+// An object block whose value is not RDF - an image - is answered 406 to the block's RDF request,
+// asks for the value's type with a HEAD instead, and embeds an image as an <img>
+// (ldh:block-object-embed-response). Not as an <object>: that is a nested browsing context, which an
+// image host's frame-ancestors refuses in Firefox. Asserted is the image decoded, not just referenced.
+test.describe('an object block naming an image', { tag: '@owner' }, () => {
+    const PNG = Buffer.from(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+        'base64');
+    const scratch = {};
+
+    test.beforeEach(async () => {
+        scratch.container = (await ldh(['create', 'container', '--parent', endUserBase, '--title', 'Object image',
+            '--slug', `object-image-${randomUUID().slice(0, 8)}`])).stdout;
+    });
+
+    test.afterEach(async () => {
+        if (scratch.container) await ldh(['delete', scratch.container], { allowFailure: true });
+    });
+
+    const embeds = async (page, image) => {
+        await ldh(['add', 'object-block', '--title', 'Image block', '--uri', '#image-block', '--value', image, scratch.container]);
+        await goto(page, inMode(scratch.container, CONTENT_MODE));
+
+        const img = page.locator(`div.block[about="${scratch.container}#image-block"] .ldh-block-body > img[src="${image}"]`);
+        await expect(img).toBeVisible();
+        // a broken image is an element too; a decoded one has a width
+        await expect.poll(() => img.evaluate(img => img.complete ? img.naturalWidth : 0)).toBeGreaterThan(0);
+    };
+
+    test('embeds an uploaded image', async ({ page, allowNoise }, testInfo) => {
+        allowNoise.push(
+            // the block's RDF request for the upload: the 406 is how it learns to embed the URI instead
+            { pattern: /^HTTP 406: .*\/uploads\//, reason: 'an upload has no RDF representation' },
+            { pattern: /Failed to load resource: the server responded with a status of 406/, reason: 'the same 406, as the console reports it' });
+        // unique bytes per run: uploads are content-addressed, and a file left by an earlier run would answer for this one
+        const bytes = Buffer.concat([PNG, Buffer.from(randomUUID())]);
+        const path = testInfo.outputPath('image.png');
+        await writeFile(path, bytes);
+        await ldh(['add', 'file', '--title', 'Image', '--file', path, '--content-type', 'image/png', scratch.container]);
+
+        await embeds(page, `${endUserBase}uploads/${createHash('sha1').update(bytes).digest('hex')}`);
+    });
+
+    // An external image is requested through the Linked Data proxy, from an origin that ignores Accept and answers
+    // with the bytes. The proxy used to pass them on as they were, and the block, decoding a PNG as RDF/XML, failed
+    // with "The request did not complete" instead of embedding it.
+    test('embeds an external image', async ({ page, allowNoise }) => {
+        const image = 'https://www.w3.org/Icons/w3c_home.png';
+        allowNoise.push(
+            { pattern: /^HTTP 406: .*\?uri=https:\/\/www\.w3\.org\/Icons\/w3c_home\.png/, reason: 'the proxy has no RDF representation of an image' },
+            { pattern: /Failed to load resource: the server responded with a status of 406/, reason: 'the same 406, as the console reports it' });
+
+        await embeds(page, image);
+    });
 });
 
 // An object block with ldh:graph reads its value's description from that document instead of

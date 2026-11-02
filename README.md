@@ -368,6 +368,17 @@ LinkedDataHub includes an HTTP [test suite](https://github.com/AtomGraph/LinkedD
 
 ![HTTP-tests](https://github.com/AtomGraph/LinkedDataHub/actions/workflows/http-tests.yml/badge.svg)
 
+## Formal verification
+
+The parts of LinkedDataHub whose failure is a security incident are specified in [Lean 4](https://lean-lang.org/), with machine-checked proofs of what the server guarantees:
+
+* [graph store](formal/http/): its answer to every request, and the invariants every write keeps, covering the document hierarchy, types limited to the hierarchy classes, and ownership. A write guarded by `If-Match` loses no update, and the Memento TimeGate selects the version closest to the requested datetime
+* [access control](formal/acl/): the authorization decision in front of the graph store. A denied request answers `403` and reveals nothing else, not even whether the document exists. A write to an end-user document changes no authorization over any other document, and an authorization scoped to end-user documents opens no admin document
+
+The models are transcribed from the code, not extracted from it. The `Formal` workflow builds them on every push, fails on an unproven theorem, and fails a pull request that changes a transcribed source without changing the model. The HTTP test suite replays the models' answers against a running server, comparing the status and the document's graph after each request. See [`formal/README.md`](formal/README.md) for the roadmap.
+
+![Formal](https://github.com/AtomGraph/LinkedDataHub/actions/workflows/formal.yml/badge.svg)
+
 ## Dependencies
 
 ### Browser

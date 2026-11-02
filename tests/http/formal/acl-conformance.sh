@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# The Lean model of the authorization decision (formal/acl), replayed against the server. A random scenario of
-# documents, groups and authorizations is built through the API, and before every request the two datasets are
-# dumped and handed to ldh-acl, the executable decision proven equal to the model's allowRequest. The server has
-# to agree with its verdict: 401 or 403 where it says deny, anything else where it says allow. The scenario's
-# writes are themselves requests the model decides, so what the agents may do shapes what gets built.
+# The Lean models of the graph store and the authorization decision (formal/http, formal/acl), replayed against the
+# server. A random scenario of documents, groups and authorizations is built through the API, and before every
+# request the two datasets are dumped and handed to ldh-acl, which runs the server's answer to the request
+# (LdhAcl.Gate): the decision proven equal to the model's allowRequest, then the graph store's answer
+# (LdhHttp.Answer), proven to write only what an authorized Write writes. The server has to
+# agree with it twice: on the status, and on the document's graph after the request, but for the dates the server
+# stamps. The requests carry random preconditions and payloads, some of which the write and type rules refuse. The
+# scenario's writes are themselves requests the model decides, so what the agents may do shapes what gets built.
 #
 # ACL_CONFORMANCE_SEED replays a scenario; ACL_CONFORMANCE_STEPS sets how many random steps follow the setup.
 
@@ -82,7 +85,8 @@ items=(
 docs=("${containers[@]}" "${items[@]}" "${END_USER_BASE_URL}${tag}/a/x")
 targets=("${docs[@]}" "$END_USER_BASE_URL" "$ADMIN_BASE_URL")
 agents=(anon agent agent2 owner)
-methods=(GET HEAD POST PUT 'PUT*' PATCH DELETE)
+methods=(GET HEAD POST PUT PATCH DELETE)
+preconditions=(current current current none stale absent)
 groups=()
 group_docs=()
 
@@ -96,58 +100,95 @@ dump()
     riot --syntax=trig --output=nquads "$work/admin.trig" > "$work/admin.nq"
 }
 
-# the model's verdict on a request, over the last dump
+# the model's answer to the request in $work/request.tsv, over the last dump: the status, then the document's graph
 predict()
 {
-    printf '%s\t%s\t%s\n' "${1:--}" "$2" "$3" > "$work/probe.tsv"
-    "$decider" --end-user "$work/end-user.nq" --admin "$work/admin.nq" --admin-base "$ADMIN_BASE_URL" --probes "$work/probe.tsv" \
-    | cut -f1
+    "$decider" --end-user "$work/end-user.nq" --admin "$work/admin.nq" --admin-base "$ADMIN_BASE_URL" \
+        --request "$work/request.tsv" --payload "$work/payload.nt" --delete "$work/delete.nt" --insert "$work/insert.nt"
 }
 
+# the quads of the document's graph in the last dump: its name is the term before the closing dot
+quads_of() { awk -v g="<$1>" '$(NF-1) == g' "$work/end-user.nq" "$work/admin.nq"; }
+
 # whether the last dump has a graph named by the document
-exists_doc() { grep -qF -- "> <$1> ." "$work/end-user.nq" "$work/admin.nq"; }
+exists_doc() { [ -n "$(quads_of "$1")" ]; }
+
+# the document's graph in the last dump, as N-Triples, without the dates the server stamps on every write
+graph_of() { quads_of "$1" | sed 's/ <[^>]*> \.$/ ./' | without_dates "$1"; }
+
+without_dates()
+{
+    grep -vF -e "<$1> <http://purl.org/dc/terms/created> " -e "<$1> <http://purl.org/dc/terms/modified> " | sort -u || true
+}
+
+T="<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"
+DH="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#"
 
 document_body()
 {
-    local type="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Item" c
+    local type="${DH}Item" c
     for c in "${containers[@]}"; do
-        [ "$c" = "$1" ] && type="https://w3id.org/atomgraph/linkeddatahub/document-hierarchy#Container"
+        [ "$c" = "$1" ] && type="${DH}Container"
     done
-    printf '<%s> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <%s> .\n<%s> <http://purl.org/dc/terms/title> "Conformance %s" .\n' "$1" "$type" "$1" "$RANDOM"
+    printf '<%s> %s <%s> .\n<%s> <http://purl.org/dc/terms/title> "Conformance %s" .\n' "$1" "$T" "$type" "$1" "$RANDOM"
 }
 
-# the request, as the agent; prints the status. A write to an existing document quotes the owner's validator, so
-# that only the decision stands between the request and its effect
+# a payload for the method, mostly one the rules let through, sometimes one they refuse or strip; `plain` asks for
+# the one they let through
+payloads()
+{
+    local method="$1" target="$2" variant other="${docs[$(pick ${#docs[@]})]}"
+    : > "$work/payload.nt"; : > "$work/delete.nt"; : > "$work/insert.nt"
+    if [ "${3:-}" = plain ]; then variant=plain; else variant=$(pick 8); fi
+    case "$method:$variant" in
+        POST:0) ;; # appending nothing
+        POST:1) printf '<%s> %s <http://xmlns.com/foaf/0.1/Person> .\n' "$target" "$T" > "$work/payload.nt" ;;
+        POST:2) printf '<%s> <http://rdfs.org/sioc/ns#has_parent> <%s> .\n' "$other" "$target" > "$work/payload.nt" ;;
+        POST:3) printf '<%s> <http://www.w3.org/ns/auth/acl#owner> <%s> .\n' "$target" "$AGENT2_URI" > "$work/payload.nt" ;;
+        POST:*) printf '<%s#p%s> <http://example.org/p> "v" .\n' "$target" "$RANDOM" > "$work/payload.nt" ;;
+        PUT:0) { document_body "$target"; printf '<%s> %s <http://xmlns.com/foaf/0.1/Person> .\n' "$target" "$T"; } > "$work/payload.nt" ;;
+        PUT:1) { document_body "$target"; printf '<%s> <http://rdfs.org/sioc/ns#has_container> <%s> .\n' "$other" "$target"; } > "$work/payload.nt" ;;
+        PUT:2) { document_body "$target"; printf '<%s> <http://www.w3.org/ns/auth/acl#owner> <%s> .\n' "$target" "$AGENT2_URI"; } > "$work/payload.nt" ;;
+        PUT:*) document_body "$target" > "$work/payload.nt" ;;
+        PATCH:0) printf '<%s> %s <http://xmlns.com/foaf/0.1/Person> .\n' "$target" "$T" > "$work/insert.nt" ;;
+        PATCH:1) printf '<%s> <http://rdfs.org/sioc/ns#has_parent> <%s> .\n' "$target" "$END_USER_BASE_URL" > "$work/insert.nt" ;;
+        PATCH:2) printf '<%s> %s <%sItem> .\n' "$target" "$T" "$DH" > "$work/delete.nt"
+                 printf '<%s> %s <%sContainer> .\n' "$target" "$T" "$DH" > "$work/insert.nt" ;;
+        PATCH:*) printf '<%s> <http://example.org/patched> "%s" .\n' "$target" "$RANDOM" > "$work/insert.nt" ;;
+        *) ;;
+    esac
+}
+
+# the request, as the agent, with the precondition and the payloads in $work; prints the status
 request()
 {
-    local agent="$1" method="$2" target="$3" pair ifmatch=""
+    local agent="$1" method="$2" target="$3" precondition="$4" pair header=(-H "X-Conformance-Step: $step")
     pair=$(cert_pair "$agent")
-    if exists_doc "$target" && [ "$method" != GET ] && [ "$method" != HEAD ] && [ "$method" != POST ] && [ "$method" != 'PUT*' ]; then
-        ifmatch=$(etag "$target" "$OWNER_CERT_FILE" "$OWNER_CERT_PWD" "application/n-triples" 2>/dev/null || true)
-    fi
+    case "$precondition" in
+        current)
+            # the owner's validator for the variant the request negotiates; a document with none has no current tag
+            if exists_doc "$target"; then
+                header=(-H "If-Match: $(etag "$target" "$OWNER_CERT_FILE" "$OWNER_CERT_PWD" "application/n-triples" 2>/dev/null || echo '"none"')")
+            else
+                header=(-H 'If-Match: "none"')
+            fi ;;
+        stale) header=(-H 'If-Match: "stale"') ;;
+        absent) header=(-H 'If-None-Match: *') ;;
+    esac
     case "$method" in
         GET)
             curl -k -s -o /dev/null -w '%{http_code}' ${pair:+-E "$pair"} -H "Accept: application/n-triples" "$target" ;;
         HEAD)
             curl -k -s -o /dev/null -w '%{http_code}' -I ${pair:+-E "$pair"} -H "Accept: application/n-triples" "$target" ;;
-        POST)
-            printf '<%s#p%s> <http://example.org/p> "v" .\n' "$target" "$RANDOM" \
-            | curl -k -s -o /dev/null -w '%{http_code}' ${pair:+-E "$pair"} -X POST \
-                -H "Content-Type: application/n-triples" -H "Accept: application/n-triples" --data-binary @- "$target" ;;
-        PUT)
-            document_body "$target" \
-            | curl -k -s -o /dev/null -w '%{http_code}' ${pair:+-E "$pair"} -X PUT ${ifmatch:+-H "If-Match: $ifmatch"} \
-                -H "Content-Type: application/n-triples" -H "Accept: application/n-triples" --data-binary @- "$target" ;;
-        'PUT*')
-            document_body "$target" \
-            | curl -k -s -o /dev/null -w '%{http_code}' ${pair:+-E "$pair"} -X PUT -H "If-None-Match: *" \
-                -H "Content-Type: application/n-triples" -H "Accept: application/n-triples" --data-binary @- "$target" ;;
+        POST|PUT)
+            curl -k -s -o /dev/null -w '%{http_code}' ${pair:+-E "$pair"} -X "$method" "${header[@]}" \
+                -H "Content-Type: application/n-triples" -H "Accept: application/n-triples" --data-binary @"$work/payload.nt" "$target" ;;
         PATCH)
-            curl -k -s -o /dev/null -w '%{http_code}' ${pair:+-E "$pair"} -X PATCH ${ifmatch:+-H "If-Match: $ifmatch"} \
+            curl -k -s -o /dev/null -w '%{http_code}' ${pair:+-E "$pair"} -X PATCH "${header[@]}" \
                 -H "Content-Type: application/sparql-update" -H "Accept: application/n-triples" \
-                --data-binary "INSERT DATA { <$target> <http://example.org/patched> \"$RANDOM\" }" "$target" ;;
+                --data-binary "DELETE { $(cat "$work/delete.nt") } INSERT { $(cat "$work/insert.nt") } WHERE {}" "$target" ;;
         DELETE)
-            curl -k -s -o /dev/null -w '%{http_code}' ${pair:+-E "$pair"} -X DELETE ${ifmatch:+-H "If-Match: $ifmatch"} \
+            curl -k -s -o /dev/null -w '%{http_code}' ${pair:+-E "$pair"} -X DELETE "${header[@]}" \
                 -H "Accept: application/n-triples" "$target" ;;
     esac
 }
@@ -165,30 +206,39 @@ step=0
 # one request: predicted, sent, compared
 probe()
 {
-    local agent="$1" method="$2" target="$3" verdict status outcome
+    local agent="$1" method="$2" target="$3" precondition="$4" expected status outcome=ok
     step=$((step + 1))
     dump
-    verdict=$(predict "$(agent_uri "$agent")" "$method" "$target")
-    status=$(request "$agent" "$method" "$target")
-    case "$verdict:$status" in
-        deny:401|deny:403) outcome=ok ;;
-        deny:*) outcome=MISMATCH ;;
-        allow:401|allow:403) outcome=MISMATCH ;;
-        allow:*) outcome=ok ;;
-    esac
-    echo "DEBUG: step $step: $agent $method $target: model says $verdict, server returned $status: $outcome"
+    payloads "$method" "$target" "${5:-}"
+    printf '%s\t%s\t%s\t%s\n' "$(agent_uri "$agent" | sed 's/^$/-/')" "$method" "$target" "$precondition" > "$work/request.tsv"
+    predict > "$work/predicted"
+    expected=$(head -n 1 "$work/predicted")
+    tail -n +2 "$work/predicted" | without_dates "$target" > "$work/predicted.nt"
+    status=$(request "$agent" "$method" "$target" "$precondition")
+    cp "$work/end-user.nq" "$work/before.end-user.nq"
+    cp "$work/admin.nq" "$work/before.admin.nq"
+    dump
+    graph_of "$target" > "$work/actual.nt"
+    [ "$status" = "$expected" ] || outcome=MISMATCH
+    if ! diff -q "$work/predicted.nt" "$work/actual.nt" > /dev/null; then
+        outcome=MISMATCH
+        echo "DEBUG: the graph of <$target>, predicted (<) and stored (>):"
+        diff "$work/predicted.nt" "$work/actual.nt" | sed 's/^/DEBUG:   /' || true
+    fi
+    echo "DEBUG: step $step: $agent $method $target ($precondition): model says $expected, server returned $status: $outcome"
     if [ "$outcome" = MISMATCH ]; then
         mismatches=$((mismatches + 1))
         local keep="$TEST_RESULTS_DIR/acl-conformance-$seed-step-$step"
-        cp "$work/end-user.nq" "$keep.end-user.nq"
-        cp "$work/admin.nq" "$keep.admin.nq"
-        cp "$work/probe.tsv" "$keep.probe.tsv"
-        echo "DEBUG: datasets and probe kept as $keep.*"
+        cp "$work/before.end-user.nq" "$keep.end-user.nq"
+        cp "$work/before.admin.nq" "$keep.admin.nq"
+        cp "$work/request.tsv" "$keep.request.tsv"
+        cp "$work/payload.nt" "$keep.payload.nt"
+        cp "$work/delete.nt" "$keep.delete.nt"
+        cp "$work/insert.nt" "$keep.insert.nt"
+        echo "DEBUG: datasets, request and payloads kept as $keep.*"
     fi
-    # anything but a refused request may have changed the stores, and with them what the caches hold
-    if [ "$method" != GET ] && [ "$method" != HEAD ] && [ "$status" != 401 ] && [ "$status" != 403 ]; then
-        purge_all
-    fi
+    # a request that went through may have changed the stores, and with them what the caches hold
+    case "$status" in 2*) purge_all ;; esac
 }
 
 # the owner's administration between requests: what the ACL query will read next
@@ -256,7 +306,7 @@ auth_count=0
 
 # setup: the owner creates the tree, containers first; the model decides each of these too
 for d in "${containers[@]}" "${items[@]}"; do
-    probe owner 'PUT*' "$d"
+    probe owner PUT "$d" absent plain
 done
 new_group
 new_authorization
@@ -267,7 +317,11 @@ for ((i = 1; i <= steps; i++)); do
     case "$(pick 12)" in
         0) new_authorization ;;
         1) if [ "$(pick 2)" = 0 ]; then new_group; else add_member; fi ;;
-        *) probe "${agents[$(pick ${#agents[@]})]}" "${methods[$(pick ${#methods[@]})]}" "${docs[$(pick ${#docs[@]})]}" ;;
+        *)
+            method="${methods[$(pick ${#methods[@]})]}"
+            precondition=none
+            case "$method" in GET|HEAD) ;; *) precondition="${preconditions[$(pick ${#preconditions[@]})]}" ;; esac
+            probe "${agents[$(pick ${#agents[@]})]}" "$method" "${docs[$(pick ${#docs[@]})]}" "$precondition" ;;
     esac
 done
 

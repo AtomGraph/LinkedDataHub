@@ -6,10 +6,13 @@ package LdhAcl where
   -- ("missing SG_READ_ONLY flag"); not creating the segment sidesteps it. GNU ld knows no such flag
   moreLinkArgs := if System.Platform.isOSX then #["-Wl,-no_data_const"] else #[]
 
+/-- The graph store: the authorization decision is modelled over its data and its writes. -/
+require LdhHttp from "../http"
+
 @[default_target]
 lean_lib LdhAcl
 
-/-- The decision over a live instance's datasets: see `Main.lean`. -/
+/-- The decision, and the server's answer behind it, over a live instance's datasets: see `Main.lean`. -/
 @[default_target]
 lean_exe «ldh-acl» where
   root := `Main

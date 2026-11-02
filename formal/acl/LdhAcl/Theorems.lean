@@ -5,6 +5,8 @@ import LdhAcl.Step
 
 namespace LdhAcl
 
+open LdhHttp
+
 /-! ## Modes -/
 
 /-- **`acl:Control` is inert.** It covers no mode a request requires: `allowRequest` asks only for
@@ -97,7 +99,7 @@ theorem parentU_iff {st : Store} (h : OwnGraphContainment st) {d p : Node} :
   · rintro ⟨g, hg, hc⟩; exact ⟨d, g, hg, hc⟩
 
 /-- Ancestors found through the union graph are on the URI-parent chain. -/
-theorem ancestor_chain {site st} (h : Inv site st) {x a : Node} (ha : ancestor st x a) :
+theorem ancestor_chain {site : Site} {st} (h : Inv site.toTree st) {x a : Node} (ha : ancestor st x a) :
     site.chain x a := by
   induction ha with
   | step hr =>
@@ -110,7 +112,7 @@ theorem ancestor_chain {site st} (h : Inv site st) {x a : Node} (ha : ancestor s
     exact .trans ⟨hn, hp⟩ ih
 
 /-- A node the store does not have has no ancestors: nothing outside its own graph can give it any. -/
-theorem ancestor_absent {site st} (h : Inv site st) {x a : Node} (hx : ¬ present st x) :
+theorem ancestor_absent {site : Site} {st} (h : Inv site.toTree st) {x a : Node} (hx : ¬ present st x) :
     ¬ ancestor st x a := by
   intro ha
   cases ha with
@@ -119,7 +121,7 @@ theorem ancestor_absent {site st} (h : Inv site st) {x a : Node} (hx : ¬ presen
     exact hx ⟨g, hg⟩
 
 /-- A present document's ancestors are exactly its URI-parent chain. -/
-theorem ancestor_iff_chain {site st} (h : Inv site st) {x a : Node} (hx : present st x) :
+theorem ancestor_iff_chain {site : Site} {st} (h : Inv site.toTree st) {x a : Node} (hx : present st x) :
     ancestor st x a ↔ site.chain x a := by
   refine ⟨ancestor_chain h, fun hc => ?_⟩
   induction hc with
@@ -134,7 +136,7 @@ theorem ancestor_iff_chain {site st} (h : Inv site st) {x a : Node} (hx : presen
 
 /-- **Ancestry is a function of presence.** Under the invariants, what the union-graph path finds for `x`
 depends on nothing but whether `x` is in the store. -/
-theorem ancestor_iff {site st} (h : Inv site st) {x a : Node} :
+theorem ancestor_iff {site : Site} {st} (h : Inv site.toTree st) {x a : Node} :
     ancestor st x a ↔ present st x ∧ site.chain x a := by
   by_cases hx : present st x
   · rw [ancestor_iff_chain h hx]; exact ⟨fun hc => ⟨hx, hc⟩, fun ⟨_, hc⟩ => hc⟩
@@ -142,7 +144,7 @@ theorem ancestor_iff {site st} (h : Inv site st) {x a : Node} :
 
 /-- **Ancestry is stable.** A write leaves the ancestors of every document that is present before and
 after it as they were. -/
-theorem ancestor_stable {site rd agent st req st'} (hs : Step site rd agent st req st') (h : Inv site st)
+theorem ancestor_stable {site rd agent st req st'} (hs : Step site rd agent st req st') (h : Inv site.toTree st)
     {x a : Node} (hx : present st x) (hx' : present st' x) :
     ancestor st' x a ↔ ancestor st x a := by
   rw [ancestor_iff_chain (hs.inv h) hx', ancestor_iff_chain h hx]
@@ -151,7 +153,7 @@ theorem ancestor_stable {site rd agent st req st'} (hs : Step site rd agent st r
 
 /-- **The lookup is local.** Under the invariants, everything the lookup returns for `x` is read from
 `x`'s own graph. -/
-theorem context_local {site st st'} (h : Inv site st) (h' : Inv site st') {x : Node}
+theorem context_local {site : Site} {st st'} (h : Inv site.toTree st) (h' : Inv site.toTree st') {x : Node}
     (hx : st' x = st x) : context st' x = context st x := by
   have hp : present st' x ↔ present st x := by simp [present, hx]
   funext r n
@@ -188,7 +190,7 @@ theorem endUser_step_preserves_acl {site rd agent st req st'} (hs : Step site rd
 `endUser_step_preserves_acl`, every change of access to a document other than the one written goes through
 a write to the admin dataspace. -/
 theorem endUser_step_preserves_other_grants {site rd agent st req st'}
-    (hs : Step site rd agent st req st') (h : Inv site st) (hx : ¬ site.admin req.target)
+    (hs : Step site rd agent st req st') (h : Inv site.toTree st) (hx : ¬ site.admin req.target)
     {y : Node} (hy : y ≠ req.target) {agent' m} :
     grant site rd st' agent' m y ↔ grant site rd st agent' m y := by
   obtain ⟨hA, hM⟩ := endUser_step_preserves_acl hs hx
@@ -197,9 +199,10 @@ theorem endUser_step_preserves_other_grants {site rd agent st req st'}
 /-! ## The admin role is derived -/
 
 /-- The reader can find any authorization in a graph that contains its description, and the description
-states no ownership or containment, which the store would strip or refuse. -/
+states no ownership or containment, which the store would strip or refuse, and types the document with a
+hierarchy class and nothing else, as the store requires. -/
 def Reader.Expressive (rd : Reader) : Prop :=
-  ∀ d au, ∃ p : Graph, (∀ t, p t → ¬ ownership d t ∧ ¬ isContainment t) ∧
+  ∀ d au, ∃ p : Graph, (∀ t, p t → ¬ ownership d t ∧ ¬ isContainment t) ∧ HierTypes d p ∧ TypedBy d p ∧
     ∀ g : Graph, (∀ t, p t → g t) → rd.auths d g au
 
 /-- **acl:Write on any admin document is the admin role.** An agent the decision lets `PUT` an existing
@@ -208,11 +211,12 @@ marks an admin: whoever may write the admin dataspace is one. -/
 theorem admin_write_grants_anything {site rd agent st d g} (hex : rd.Expressive) (hd : site.admin d)
     (hg : st d = some g) (ha : allowRequest site rd st agent .put d) (au : Auth) :
     ∃ p st', Step site rd agent st (.put d p false) st' ∧ authIn site rd st' au := by
-  obtain ⟨p, hp, hread⟩ := hex d au
+  obtain ⟨p, hp, hty, htb, hread⟩ := hex d au
   let g' : Graph := fun t =>
-    (p t ∧ ¬ ownership d t ∧ ¬ containment d t) ∨ containedIn site d t ∨ (g t ∧ ownership d t)
+    (p t ∧ ¬ ownership d t ∧ ¬ containment d t) ∨ containedIn site.toTree d p t ∨ (g t ∧ ownership d t) ∨
+      itemTyped site.toTree d p t
   have hstep : Step site rd agent st (.put d p false) (st.set d (some g')) :=
-    Step.putExisting ha hg rfl fun t ht hc => absurd hc (hp t ht).2
+    ⟨ha, Write.putExisting hg rfl (fun t ht hc => absurd hc (hp t ht).2) hty fun _ => htb⟩
   refine ⟨p, _, hstep, d, g', hd, by simp [Store.set], hread _ fun t ht => Or.inl ⟨ht, (hp t ht).1, ?_⟩⟩
   rintro ⟨_, hc⟩; exact (hp t ht).2 hc
 
@@ -223,10 +227,6 @@ container, and grants no class that a hierarchy class is a subclass of. -/
 def EndUserOnly (site : Site) (sub : Node → Node → Prop) (au : Auth) : Prop :=
   (∀ t ∈ au.accessTo, ¬ site.admin t) ∧ (∀ c ∈ au.default, ¬ site.admin c) ∧
   ∀ c ∈ au.accessToClass, ∀ t, hierClass t → sub t c → False
-
-/-- Admin documents carry hierarchy classes only. -/
-def AdminTyped (site : Site) (st : Store) : Prop :=
-  ∀ x t, site.admin x → ownTypes st x t → hierClass t
 
 theorem chain_admin {site : Site} {d c : Node} (h : site.chain d c) : (site.admin c ↔ site.admin d) := by
   induction h with
@@ -239,7 +239,7 @@ theorem chain_admin {site : Site} {d c : Node} (h : site.chain d c) : (site.admi
 
 /-- **Dataspace confinement.** An authorization scoped to the end-user dataspace covers no admin document.
 `make-public` and the owner-access authorization are of that kind. -/
-theorem endUserOnly_confined {site : Site} {rd : Reader} {st : Store} (h : Inv site st) (ht : AdminTyped site st) {au : Auth}
+theorem endUserOnly_confined {site : Site} {rd : Reader} {st : Store} (h : Inv site.toTree st) (ht : AdminTyped site st) {au : Auth}
     (hau : EndUserOnly site rd.sub au) {x : Node} (hx : site.admin x) :
     ¬ au.covers rd.sub (context st x) := by
   rw [covers_context]
@@ -251,7 +251,7 @@ theorem endUserOnly_confined {site : Site} {rd : Reader} {st : Store} (h : Inv s
 /-- **Access to the admin dataspace comes only from authorizations scoped into it.** Any request the
 decision allows on an admin node, including a create below an admin container, is allowed by an
 authorization in force that is not scoped to the end-user dataspace. -/
-theorem admin_allow_needs_admin_scope {site rd st agent isPut m x} (h : Inv site st)
+theorem admin_allow_needs_admin_scope {site rd st agent isPut m x} (h : Inv site.toTree st)
     (ht : AdminTyped site st) (hx : site.admin x) (ha : allow site rd st agent isPut m x) :
     ∃ au, authIn site rd st au ∧ ¬ EndUserOnly site rd.sub au := by
   have viaAdmin : ∀ y, site.admin y → grant site rd st agent m y →
@@ -262,8 +262,8 @@ theorem admin_allow_needs_admin_scope {site rd st agent isPut m x} (h : Inv site
   · exact viaAdmin x hx hg
   · have hnr : ¬ site.isRoot x := by
       rintro (rfl | rfl)
-      · exact hn h.roots.1
-      · exact hn h.roots.2
+      · exact hn (h.roots _ (Or.inl rfl))
+      · exact hn (h.roots _ (Or.inr rfl))
     refine viaAdmin _ ?_ hg
     exact (site.parent_admin x (fun e => hnr (Or.inl e)) (fun e => hnr (Or.inr e))).2 hx
 
@@ -273,43 +273,7 @@ theorem admin_allow_needs_admin_scope {site rd st agent isPut m x} (h : Inv site
 that write. `lacl:OwnerAgent` membership is therefore fixed for the life of a document. -/
 theorem owner_confined {site rd agent st req st'} (hs : Step site rd agent st req st')
     {y b : Node} (ho : owner st' y b) :
-    owner st y b ∨ (y = req.target ∧ st y = none ∧ agent = some b) := by
-  by_cases hy : y = req.target
-  · subst hy
-    cases hs with
-    | post _ hg =>
-      obtain ⟨g', hg', hb⟩ := ho
-      simp [Store.set, Req.target] at hg'
-      subst hg'
-      rcases hb with hb | ⟨_, hno, _⟩
-      · exact Or.inl ⟨_, hg, hb⟩
-      · exact absurd ⟨rfl, Or.inl rfl⟩ hno
-    | putExisting _ hg _ =>
-      obtain ⟨g', hg', hb⟩ := ho
-      simp [Store.set, Req.target] at hg'
-      subst hg'
-      rcases hb with ⟨_, hno, _⟩ | ⟨_, _, hp, _⟩ | ⟨hb, _⟩
-      · exact absurd ⟨rfl, Or.inl rfl⟩ hno
-      · rcases hp with hp | hp <;> cases hp
-      · exact Or.inl ⟨_, hg, hb⟩
-    | putNew _ hn =>
-      obtain ⟨g', hg', hb⟩ := ho
-      simp [Store.set, Req.target] at hg'
-      subst hg'
-      rcases hb with ⟨_, hno, _⟩ | ⟨_, _, hp, _⟩ | ⟨a, ha, _, _, hab⟩
-      · exact absurd ⟨rfl, Or.inl rfl⟩ hno
-      · rcases hp with hp | hp <;> cases hp
-      · simp at hab; subst hab
-        exact Or.inr ⟨rfl, hn, ha⟩
-    | patch _ hg _ hkeep =>
-      obtain ⟨g', hg', hb⟩ := ho
-      simp [Store.set, Req.target] at hg'
-      subst hg'
-      exact Or.inl ⟨_, hg, (hkeep _ (Or.inl ⟨rfl, Or.inl rfl⟩)).1 hb⟩
-    | delete =>
-      obtain ⟨g', hg', _⟩ := ho
-      simp [Store.set, Req.target] at hg'
-  · obtain ⟨g, hg, hb⟩ := ho
-    exact Or.inl ⟨g, by rw [← hs.frame hy]; exact hg, hb⟩
+    owner st y b ∨ (y = req.target ∧ st y = none ∧ agent = some b) :=
+  hs.write.owner_confined ho
 
 end LdhAcl

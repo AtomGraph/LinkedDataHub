@@ -1,3 +1,25 @@
+## [6.4.0] - 2026-11-02
+### Migration
+- `ldh create container` and `ldh create item` only create: they send `If-None-Match: *` and fail on an existing document instead of replacing it; scripts that re-run them pass `--if-absent` to accept the existing document (#505)
+- A write may type a document only as `def:Root`, `dh:Container` or `dh:Item`, and must leave it with one of them; a write stating any other type on the document is refused with `422` (#498)
+
+### Added
+- `PATCH` accepts a SPARQL Update request of several operations, executed in order and applied to the document together or not at all, and the `INSERT DATA` and `DELETE DATA` forms
+- An object block shows an image value as an image, including external ones and those whose host refuses framing (#503)
+- The graph store's answer to every request, its entity tags and Memento are formalised in Lean (`formal/http/`), with the ACL model built on it and conformance replayed by the HTTP tests (#499, #500)
+
+### Changed
+- The proxy answers `406` for an external non-RDF body whose type the request does not accept, instead of passing it through as `200` (#503)
+
+### Fixed
+- The assistant recognises a write reported with `?url` alone, as an executor that applies a plan's writes after evaluating it reports one, and lists the document instead of drawing the report as a result, and an upload reported with `?url` and `?sha1` likewise
+- A chart drawn as a Table shows every variable its query selects, or every property its graph's resources carry, instead of only its category and series
+- A chart drawn as a Table is as tall as its rows instead of 400px, and a bar chart grows with its bars so that every bar keeps its label
+- A malformed `?accept=`, such as an unencoded `application/rdf+xml`, is answered `400` instead of `500` (#504)
+
+### Security
+- An authorization granted on a class other than the hierarchy classes can no longer reach a document, since a write cannot give the document that type (#498)
+
 ## [6.3.0] - 2026-10-24
 ### Migration
 - Access is plain WAC over the document hierarchy: `acl:default` on a container covers everything below it, `acl:Control` grants nothing, and owners are granted through `lacl:OwnerAgent`; run `migrations/6.0-acl.ru.template` on each admin store and `migrations/6.0-hierarchy.ru.template` on every store

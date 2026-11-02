@@ -7,131 +7,7 @@ import LdhAcl.Theorems
 
 namespace LdhAcl
 
-/-! ## Finite data -/
-
-/-- A store as data: a document's graph as the list of its triples. A document listed more than once has the
-union of its lists. -/
-abbrev FinStore := List (Node × List Triple)
-
-/-- The graph store's notion of existence, computed. -/
-def hasDoc (fs : FinStore) (d : Node) : Bool := fs.any (·.1 == d)
-
-/-- The triples of a document's own graph. -/
-def graphOf (fs : FinStore) (d : Node) : List Triple :=
-  fs.foldr (fun p acc => if p.1 = d then p.2 ++ acc else acc) []
-
-/-- The abstract store the data denotes. -/
-def FinStore.toStore (fs : FinStore) : Store :=
-  fun d => if hasDoc fs d then some (fun t => t ∈ graphOf fs d) else none
-
-theorem hasDoc_iff {fs : FinStore} {d : Node} : hasDoc fs d = true ↔ ∃ ts, (d, ts) ∈ fs := by
-  simp only [hasDoc, List.any_eq_true, beq_iff_eq]
-  constructor
-  · rintro ⟨⟨d', ts⟩, h, rfl⟩
-    exact ⟨ts, h⟩
-  · rintro ⟨ts, h⟩
-    exact ⟨(d, ts), h, rfl⟩
-
-theorem graphOf_cons {p : Node × List Triple} {fs : FinStore} {d : Node} :
-    graphOf (p :: fs) d = if p.1 = d then p.2 ++ graphOf fs d else graphOf fs d := rfl
-
-theorem mem_graphOf {fs : FinStore} {d : Node} {t : Triple} :
-    t ∈ graphOf fs d ↔ ∃ ts, (d, ts) ∈ fs ∧ t ∈ ts := by
-  induction fs with
-  | nil => simp [graphOf]
-  | cons p fs ih =>
-    obtain ⟨p1, p2⟩ := p
-    rw [graphOf_cons]
-    by_cases h : p1 = d
-    · subst h
-      simp only [if_true, List.mem_append, ih, List.mem_cons]
-      constructor
-      · rintro (ht | ⟨ts, hts, ht⟩)
-        · exact ⟨p2, Or.inl rfl, ht⟩
-        · exact ⟨ts, Or.inr hts, ht⟩
-      · rintro ⟨ts, hts | hts, ht⟩
-        · cases hts; exact Or.inl ht
-        · exact Or.inr ⟨ts, hts, ht⟩
-    · simp only [h, if_false, ih, List.mem_cons]
-      constructor
-      · rintro ⟨ts, hts, ht⟩
-        exact ⟨ts, Or.inr hts, ht⟩
-      · rintro ⟨ts, hts | hts, ht⟩
-        · cases hts; exact absurd rfl h
-        · exact ⟨ts, hts, ht⟩
-
-theorem hasDoc_of_mem_graphOf {fs : FinStore} {d : Node} {t : Triple} (h : t ∈ graphOf fs d) :
-    hasDoc fs d = true := by
-  obtain ⟨ts, hm, _⟩ := mem_graphOf.1 h
-  exact hasDoc_iff.2 ⟨ts, hm⟩
-
-theorem toStore_of_hasDoc {fs : FinStore} {d : Node} (h : hasDoc fs d = true) :
-    fs.toStore d = some (fun t => t ∈ graphOf fs d) := by
-  simp [FinStore.toStore, h]
-
-theorem toStore_of_not_hasDoc {fs : FinStore} {d : Node} (h : ¬ hasDoc fs d = true) :
-    fs.toStore d = none := by
-  simp [FinStore.toStore, h]
-
-theorem present_iff {fs : FinStore} {d : Node} : present fs.toStore d ↔ hasDoc fs d = true := by
-  constructor
-  · rintro ⟨g, hg⟩
-    unfold FinStore.toStore at hg
-    split at hg
-    · assumption
-    · cases hg
-  · intro h
-    exact ⟨_, toStore_of_hasDoc h⟩
-
-/-- A triple of a document's own graph. -/
-theorem own_iff {fs : FinStore} {d : Node} {t : Triple} :
-    (∃ g, fs.toStore d = some g ∧ g t) ↔ t ∈ graphOf fs d := by
-  constructor
-  · rintro ⟨g, hg, ht⟩
-    by_cases h : hasDoc fs d = true
-    · rw [toStore_of_hasDoc h] at hg
-      cases hg
-      exact ht
-    · rw [toStore_of_not_hasDoc h] at hg
-      cases hg
-  · intro ht
-    exact ⟨_, toStore_of_hasDoc (hasDoc_of_mem_graphOf ht), ht⟩
-
-theorem ownTypes_iff {fs : FinStore} {x t : Node} :
-    ownTypes fs.toStore x t ↔ ⟨x, .rdfType, t⟩ ∈ graphOf fs x := own_iff
-
-theorem owner_iff {fs : FinStore} {x a : Node} :
-    owner fs.toStore x a ↔ ⟨x, .aclOwner, a⟩ ∈ graphOf fs x := own_iff
-
-/-- The objects of a document's own `rdf:type` triples. -/
-def typesOf (fs : FinStore) (x : Node) : List Node :=
-  (graphOf fs x).filterMap fun t => if t.s = x ∧ t.p = .rdfType then some t.o else none
-
-/-- The objects of a document's own `acl:owner` triples. -/
-def ownersOf (fs : FinStore) (x : Node) : List Node :=
-  (graphOf fs x).filterMap fun t => if t.s = x ∧ t.p = .aclOwner then some t.o else none
-
-theorem mem_filterMap_prop {fs : FinStore} {x p o : Node} :
-    o ∈ ((graphOf fs x).filterMap fun t => if t.s = x ∧ t.p = p then some t.o else none) ↔
-      ⟨x, p, o⟩ ∈ graphOf fs x := by
-  simp only [List.mem_filterMap]
-  constructor
-  · rintro ⟨⟨s, p', o'⟩, ht, h⟩
-    simp only at h
-    split at h
-    · rename_i hsp
-      cases h
-      obtain ⟨rfl, rfl⟩ := hsp
-      exact ht
-    · cases h
-  · intro h
-    exact ⟨_, h, by simp⟩
-
-theorem mem_typesOf {fs : FinStore} {x t : Node} : t ∈ typesOf fs x ↔ ownTypes fs.toStore x t :=
-  mem_filterMap_prop.trans ownTypes_iff.symm
-
-theorem mem_ownersOf {fs : FinStore} {x a : Node} : a ∈ ownersOf fs x ↔ owner fs.toStore x a :=
-  mem_filterMap_prop.trans owner_iff.symm
+open LdhHttp
 
 /-! ## Containment, as edges -/
 
@@ -277,8 +153,7 @@ def FinAdmin.reader (fa : FinAdmin) : Reader where
   sub_refl := fun _ => Or.inl rfl
 
 /-- The deployment constants, computed. -/
-structure FinSite where
-  parent : Node → Node
+structure FinSite extends HSite where
   admin : Node → Bool
 
 def FinSite.agrees (fsite : FinSite) (site : Site) : Prop :=

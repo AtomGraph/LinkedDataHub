@@ -59,7 +59,10 @@ public class DatasetFactory implements Factory<Optional<Dataset>>
      */
     public Optional<Dataset> getDataset()
     {
-        return (Optional<Dataset>)getContainerRequestContext().getProperty(LDS.Dataset.getURI());
+        Optional<Dataset> datasetOpt = (Optional<Dataset>)getContainerRequestContext().getProperty(LDS.Dataset.getURI());
+
+        // the property is absent when a filter before the one setting it refused the request; never provide null, which the request scope caches and then refuses to seed again on the next lookup
+        return datasetOpt != null ? datasetOpt : Optional.empty();
     }
     
     /**

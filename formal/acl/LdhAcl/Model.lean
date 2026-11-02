@@ -10,9 +10,21 @@ The authorization decision of `AuthorizationFilter`: plain WAC over LinkedDataHu
   from the document's own graph (`documentContextQuery`), authorizations and memberships from the admin document they
   are the primary topic of (`aclQuery`).
 -/
-import LdhAcl.Base
+import LdhHttp
 
 namespace LdhAcl
+
+open LdhHttp
+
+/-- `acl:Read`, `acl:Append`, `acl:Write`, `acl:Control`. -/
+inductive Mode where
+  | read | append | write | control
+  deriving DecidableEq, Repr
+
+/-- `AccessModes.covering`: a granted mode covers the required one if it is that mode or one of its
+superclasses in `acl.rdf`, where the only edge between modes is `acl:Append rdfs:subClassOf acl:Write`. -/
+def Mode.covers (granted required : Mode) : Prop :=
+  granted = required ∨ (granted = .write ∧ required = .append)
 
 /-! ## The two dataspaces -/
 
@@ -30,16 +42,10 @@ structure Site where
 
 def Site.isRoot (site : Site) (d : Node) : Prop := d = site.euRoot ∨ d = site.adRoot
 
-/-- The classes of the document hierarchy, which both dataspaces type their documents with. -/
-def hierClass (c : Node) : Prop := c = .defRoot ∨ c = .dhContainer ∨ c = .dhItem
+/-- The document hierarchy the graph store keeps: the URI parent, and the two roots. -/
+@[reducible] def Site.toTree (site : Site) : Tree := ⟨site.parent, site.isRoot⟩
 
 /-! ## Containment and ancestry -/
-
-def isContainment (t : Triple) : Prop := t.p = .siocHasParent ∨ t.p = .siocHasContainer
-
-/-- `g` states that `d` is contained in `p`. -/
-def contains (g : Graph) (d p : Node) : Prop :=
-  g ⟨d, .siocHasParent, p⟩ ∨ g ⟨d, .siocHasContainer, p⟩
 
 /-- A containment triple in *any* graph: what a path over `urn:x-arq:UnionGraph` sees. -/
 def parentU (st : Store) (d p : Node) : Prop := ∃ y g, st y = some g ∧ contains g d p

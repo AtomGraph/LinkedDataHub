@@ -316,11 +316,11 @@ export async function seed() {
     writeFileSync(seriesQueryFile, seriesQuery);
     await ldh(['add', 'select', '--title', 'Fixture item measures',
         '--uri', fixtures.seriesQuery, '--query-file', seriesQueryFile, fixtures.seriesDocument]);
-    // A Table, because its header row IS the column order: a chart type draws the same columns as
-    // bars and legend entries, which say nothing about position.
+    // A bar chart, not a Table: a Table shows the whole projection in its own order whatever the
+    // series are, so only a chart that plots its series can show what order they are taken in.
     await ldh(['add', 'result-set-chart', '--title', 'Fixture measures chart',
         '--uri', fixtures.seriesChart, '--query', fixtures.seriesQuery,
-        '--chart-type', 'https://w3id.org/atomgraph/client#Table',
+        '--chart-type', 'https://w3id.org/atomgraph/client#BarChart',
         '--category-var-name', 'kind',
         ...seriesProjection.toReversed().flatMap(name => ['--series-var-name', name]),
         fixtures.seriesDocument]);
