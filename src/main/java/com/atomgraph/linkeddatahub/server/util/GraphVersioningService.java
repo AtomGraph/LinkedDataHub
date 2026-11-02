@@ -36,6 +36,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -63,7 +64,10 @@ import org.slf4j.LoggerFactory;
  * the file when the graph is gone. Tasks for the same repository branch are chained sequentially:
  * the GitHub Contents API takes its optimistic lock on the branch head rather than on the file, so
  * commits to one branch conflict with each other no matter which files they touch.
- * Versioning is best-effort: task failures are logged, never propagated.
+ * Versioning is best-effort: task failures are logged, never propagated to the write. What the service knows of a
+ * graph's commits is kept for the TimeGate: whether one is still queued ({@link #isCommitPending}) and whether the last
+ * one failed ({@link #isCommitFailed}), so that a client asking for the most recent version is not given an older
+ * one while the newest is on its way, or after it was lost.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -81,6 +85,8 @@ public class GraphVersioningService
     private final Map<String, Repository> repositories;
     private final Map<String, CompletableFuture<Void>> commitChains = new ConcurrentHashMap<>(); // keyed by repository branch
     private final ExecutorService executor = Executors.newFixedThreadPool(4);
+    private final Map<URI, Integer> pending = new ConcurrentHashMap<>(); // queued and running commits, keyed by graph
+    private final Set<URI> failed = ConcurrentHashMap.newKeySet(); // graphs whose last commit failed
 
     /**
      * Builds the per-application repository map from the context model.
@@ -175,6 +181,7 @@ public class GraphVersioningService
 
         String path = path(repository.pathPrefix(), appBase, graphURI);
         String message = method + " " + graphURI;
+        pending.merge(graphURI, 1, Integer::sum); // before the commit is queued: the write's response is not sent until this returns
         // all commits to a branch share one chain: two files committed concurrently would race the branch head
         String repositoryBranch = repository.client().getOwner() + "/" + repository.client().getRepo() + "/" + repository.client().getBranch();
 
@@ -182,9 +189,17 @@ public class GraphVersioningService
         {
             CompletableFuture<Void> previous = chain != null ? chain : CompletableFuture.completedFuture(null);
             return previous.thenRunAsync(() -> reconcile(serviceContext, repository, path, graphURI, message, agentWebID), executor).
-                exceptionally(ex ->
+                handle((result, ex) ->
                 {
-                    if (log.isErrorEnabled()) log.error("Failed to version graph <{}> as '{}': {}", graphURI, path, ex.getMessage());
+                    // the outcome is recorded before the commit stops being pending, so the TimeGate never sees a
+                    // failed commit as neither pending nor failed
+                    if (ex != null)
+                    {
+                        if (log.isErrorEnabled()) log.error("Failed to version graph <{}> as '{}': {}", graphURI, path, ex.getMessage());
+                        failed.add(graphURI);
+                    }
+                    else failed.remove(graphURI);
+                    pending.computeIfPresent(graphURI, (graph, count) -> count == 1 ? null : count - 1);
                     return null;
                 });
         });
@@ -192,6 +207,29 @@ public class GraphVersioningService
         // future is already done, and ConcurrentHashMap forbids re-entrant updates from inside compute -
         // registered inside, a fast completion removes the entry before compute installs it, leaking it forever
         next.whenComplete((result, ex) -> commitChains.remove(repositoryBranch, next));
+    }
+
+    /**
+     * Whether a commit of a graph is queued or running: its most recent version is not yet in the repository.
+     *
+     * @param graphURI graph (document) URI
+     * @return true while a commit scheduled by {@link #commitAsync} has not ended
+     */
+    public boolean isCommitPending(URI graphURI)
+    {
+        return pending.containsKey(graphURI);
+    }
+
+    /**
+     * Whether the last commit of a graph failed: the repository does not hold its current state, and will not until a
+     * later write commits it.
+     *
+     * @param graphURI graph (document) URI
+     * @return true when the last commit scheduled by {@link #commitAsync} failed
+     */
+    public boolean isCommitFailed(URI graphURI)
+    {
+        return failed.contains(graphURI);
     }
 
     private void reconcile(ServiceContext serviceContext, Repository repository, String path, URI graphURI, String message, String agentWebID)

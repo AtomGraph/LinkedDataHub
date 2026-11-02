@@ -179,6 +179,12 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     public static final String ACCEPT_DATETIME_HEADER = "Accept-Datetime";
 
     /**
+     * Seconds a client is asked to wait (<code>Retry-After</code>) before it asks the TimeGate again while a commit of the
+     * document is on its way: a commit is one request to the repository host, so a second covers the usual case.
+     */
+    public static final int COMMIT_RETRY_AFTER = 1;
+
+    /**
      * Name of the Graph Store Protocol query parameter that identifies a named graph indirectly.
      */
     public static final String GRAPH_PARAM_NAME = "graph";
@@ -363,14 +369,25 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
                 throw new BadRequestException("Value '" + acceptDatetime + "' of the '" + ACCEPT_DATETIME_HEADER + "' header is not an RFC 1123 datetime");
             }
 
-            GitHubClient.CommitInfo commit = getSystem().getGraphVersioningService().
-                getMemento(getDataspace().getURI(), getDataspace().getBaseURI(), getURI(), datetime).
-                orElseThrow(() -> new NotFoundException("Document <" + getURI() + "> has no version history"));
-
             // negotiation has to see the current history, and Accept-Datetime takes unbounded values, so the
             // redirect is not stored: a cached one would outlive the commit that made it the most recent
             CacheControl noStore = new CacheControl();
             noStore.setNoStore(true);
+
+            // commits are made after the write's response: while one of this document is on its way the history does
+            // not hold its current state, and the most recent Memento would be an older one. The client is asked to
+            // come back instead; a failed commit is said, as the history will not catch up until the next write
+            if (getSystem().getGraphVersioningService().isCommitPending(getURI()))
+                return Response.status(Response.Status.SERVICE_UNAVAILABLE).
+                    header(HttpHeaders.RETRY_AFTER, COMMIT_RETRY_AFTER).
+                    cacheControl(noStore).
+                    build();
+            if (getSystem().getGraphVersioningService().isCommitFailed(getURI()))
+                throw new InternalServerErrorException("The latest change of document <" + getURI() + "> could not be recorded in its version history");
+
+            GitHubClient.CommitInfo commit = getSystem().getGraphVersioningService().
+                getMemento(getDataspace().getURI(), getDataspace().getBaseURI(), getURI(), datetime).
+                orElseThrow(() -> new NotFoundException("Document <" + getURI() + "> has no version history"));
 
             // a 302 TimeGate response carries no Memento-Datetime; the Memento it points at does
             return Response.status(Response.Status.FOUND).

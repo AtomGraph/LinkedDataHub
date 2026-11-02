@@ -1,3 +1,10 @@
+## [Unreleased]
+### Added
+- `ldh get --timemap` and `--timegate` follow the `Link` the document advertises, and `--timegate` waits as a `503` with `Retry-After` asks
+
+### Changed
+- A TimeGate asked for a document whose latest change is still being committed answers `503` with `Retry-After` instead of redirecting to the version before it, and `500` when that commit failed; dataspaces without versioning answer as before
+
 ## [6.4.0] - 2026-11-02
 ### Migration
 - `ldh create container` and `ldh create item` only create: they send `If-None-Match: *` and fail on an existing document instead of replacing it; scripts that re-run them pass `--if-absent` to accept the existing document (#505)

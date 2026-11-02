@@ -101,6 +101,15 @@ echo "DEBUG: TimeMap revisions. Expected:"; echo "$expected_revisions" | sed 's/
 echo "DEBUG: Got:"; echo "$actual_revisions" | sed 's/^/DEBUG:   /'
 [ "$expected_revisions" = "$actual_revisions" ] || exit 1
 
+# the commit is in the repository; until the platform has recorded its end, the TimeGate asks the client to come back
+# (503) rather than redirect to an older version
+
+for i in $(seq 1 30); do
+    status=$(curl -k -s -I -o /dev/null -w "%{http_code}" -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" "${doc_url}?timegate")
+    if [ "$status" != "503" ]; then break; fi
+    sleep 1
+done
+
 # the TimeGate selects what the model selects
 
 times=$(cut -f2 "$work/history.tsv")
