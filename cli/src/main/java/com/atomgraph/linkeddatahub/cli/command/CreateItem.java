@@ -25,11 +25,11 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
 /**
- * Creates an item document.
+ * Creates an item document, never replacing one: the write carries <code>If-None-Match: *</code>.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Command(name = "item", description = "Creates an item document.")
+@Command(name = "item", description = "Creates an item document. Fails if a document already exists at its URI, which is left as it is, unless --if-absent is given.")
 public class CreateItem extends BaseCommand
 {
 
@@ -48,11 +48,14 @@ public class CreateItem extends BaseCommand
     @Option(names = "--primary-topic", paramLabel = "URI", description = "URI of what the document is about, resolved against the document URI (optional)")
     private String primaryTopic;
 
+    @Option(names = "--if-absent", description = "Succeed without writing when a document already exists at the URI, leaving it as it is (like mkdir -p); without it, an existing document fails the command")
+    private boolean ifAbsent;
+
     @Override
     public Integer call() throws Exception
     {
         URI doc = URIs.childURI(container, slug != null ? slug : Slugs.defaultSlug());
-        put(getClient(), doc, Documents.item(doc, title, description, primaryTopic));
+        create(getClient(), doc, Documents.item(doc, title, description, primaryTopic), ifAbsent);
         print(doc);
 
         return 0;

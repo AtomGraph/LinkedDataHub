@@ -112,6 +112,10 @@ public class LDHClient extends GraphStoreClient
      * overwrite each other with nothing to show for it. A document that does not exist yet has no validator and
      * is left unconditional, which is what creating one is.
      *
+     * A write that already says <code>If-None-Match</code> is left as it is: <code>If-None-Match: *</code> is a
+     * creation that must fail where a document exists, and quoting that document's tag as well would turn it back
+     * into a replace.
+     *
      * The entity tag is read with the same accepted types the write will send, because it identifies a
      * negotiated variant rather than the graph alone: the same document answers a different tag as RDF/XML
      * than as Turtle, and a write quoting the wrong one is refused with 412.
@@ -123,7 +127,7 @@ public class LDHClient extends GraphStoreClient
      */
     protected MultivaluedMap<String, Object> ifMatch(URI uri, MediaType[] acceptedTypes, MultivaluedMap<String, Object> headers)
     {
-        if (headers.containsKey(HttpHeaders.IF_MATCH)) return headers;
+        if (headers.containsKey(HttpHeaders.IF_MATCH) || headers.containsKey(HttpHeaders.IF_NONE_MATCH)) return headers;
 
         final EntityTag entityTag;
         try (Response response = head(uri, acceptedTypes))

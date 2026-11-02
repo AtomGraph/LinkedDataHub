@@ -114,6 +114,95 @@ public class CommandOutputTest
     }
 
     @Test
+    public void createNeverQuotesAnExistingDocumentsState() throws Exception
+    {
+        try (StubServer server = new StubServer())
+        {
+            server.responds(201, "");
+            URI base = server.baseURI();
+            StringWriter out = new StringWriter(), err = new StringWriter();
+
+            int code = commandLine(out, err).execute("create", "item",
+                "-c", keyStorePath().toString(), "-p", "changeit", "--title", "Test", "--slug", "test", "--container", base.toString());
+
+            assertEquals(0, code);
+            assertEquals(List.of("PUT"), server.getRequests().stream().map(StubServer.Request::method).toList(),
+                "a create reads no entity tag first: quoting one would let it replace the document");
+            assertEquals("*", server.getLastHeader("If-None-Match"));
+            assertNull(server.getLastHeader("If-Match"));
+        }
+    }
+
+    @Test
+    public void putQuotesTheDocumentsStateButCreateDoesNot() throws Exception
+    {
+        InputStream in = System.in;
+        try (StubServer server = new StubServer())
+        {
+            // a document that exists: the server tags it
+            server.responds(200, "").respondsWithHeader("ETag", "\"v1\"");
+            URI base = server.baseURI();
+            StringWriter out = new StringWriter(), err = new StringWriter();
+
+            System.setIn(new ByteArrayInputStream("<> <http://purl.org/dc/terms/title> \"Replaced\" ."
+                .getBytes(StandardCharsets.UTF_8)));
+            assertEquals(0, commandLine(out, err).execute("put",
+                "-c", keyStorePath().toString(), "-p", "changeit", "-t", "text/turtle", base + "test/"));
+            assertEquals("\"v1\"", server.getLastHeader("If-Match"), "a replace says which state it replaces");
+            assertNull(server.getLastHeader("If-None-Match"));
+
+            int requestsBefore = server.getRequests().size();
+            assertEquals(0, commandLine(out, err).execute("create", "container",
+                "-c", keyStorePath().toString(), "-p", "changeit", "--title", "Test", "--slug", "test", "--parent", base.toString()));
+            assertEquals(requestsBefore + 1, server.getRequests().size(), "a create reads no entity tag first");
+            assertNull(server.getLastHeader("If-Match"), "quoting the tag would let the create replace the document");
+            assertEquals("*", server.getLastHeader("If-None-Match"));
+        }
+        finally
+        {
+            System.setIn(in);
+        }
+    }
+
+    @Test
+    public void createOverAnExistingDocumentFails() throws Exception
+    {
+        try (StubServer server = new StubServer())
+        {
+            server.responds(412, "");
+            URI base = server.baseURI();
+            StringWriter out = new StringWriter(), err = new StringWriter();
+
+            int code = commandLine(out, err).execute("create", "container",
+                "-c", keyStorePath().toString(), "-p", "changeit", "--title", "Test", "--slug", "test", "--parent", base.toString());
+
+            assertEquals(1, code);
+            assertEquals("", out.toString(), "a create that wrote nothing prints no URL");
+            assertTrue(err.toString().contains("already exists"), err.toString());
+        }
+    }
+
+    @Test
+    public void createIfAbsentAcceptsAnExistingDocument() throws Exception
+    {
+        try (StubServer server = new StubServer())
+        {
+            server.responds(412, "");
+            URI base = server.baseURI();
+            StringWriter out = new StringWriter(), err = new StringWriter();
+
+            int code = commandLine(out, err).execute("create", "container",
+                "-c", keyStorePath().toString(), "-p", "changeit", "--title", "Test", "--slug", "test", "--parent", base.toString(),
+                "--if-absent");
+
+            assertEquals(0, code);
+            assertEquals(base + "test/", out.toString().strip(), "the existing document's URL is the result, as a created one's would be");
+            assertEquals("", err.toString());
+            assertEquals(1, server.getRequests().size(), "the existing document is not written to");
+        }
+    }
+
+    @Test
     public void putReadsRDFFromStdinResolvingAgainstTheTarget() throws Exception
     {
         InputStream in = System.in;
