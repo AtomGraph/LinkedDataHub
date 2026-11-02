@@ -3,7 +3,7 @@
 - `ldh get --timemap` and `--timegate` follow the `Link` the document advertises, and `--timegate` waits as a `503` with `Retry-After` asks
 
 ### Changed
-- A TimeGate asked for a document whose latest change is still being committed answers `503` with `Retry-After` instead of redirecting to the version before it, and `500` when that commit failed; dataspaces without versioning answer as before
+- A TimeGate asked for a document whose latest change is still being committed answers `503` with `Retry-After` (a second per commit queued on its branch, up to a minute) instead of redirecting to the version before it, and `500` when that commit failed; dataspaces without versioning answer as before
 
 ## [6.4.0] - 2026-11-02
 ### Migration

@@ -60,7 +60,7 @@ public class Get extends BaseCommand
     private URI target;
 
     /** How many times a TimeGate that asks to come back (503 with Retry-After) is asked again */
-    static final int TIMEGATE_ATTEMPTS = 30;
+    static final int TIMEGATE_ATTEMPTS = 120;
 
     /** The Memento role addressed instead of the document itself. The three are mutually exclusive. */
     static class Memento

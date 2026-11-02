@@ -296,9 +296,17 @@ public class GraphVersioningServiceTest
         assertTrue(service.isCommitPending(doc), "pending while it runs");
         assertFalse(service.isCommitPending(URI.create("https://localhost:4443/other/")), "only the graph written");
 
+        assertEquals(1, service.getCommitBacklog("https://localhost:4443/"), "one commit on the branch");
+        URI other = URI.create("https://localhost:4443/other/");
+        service.commitAsync(serviceContext(other), "https://localhost:4443/", BASE, other, "https://localhost:4443/agent#this", "PUT");
+        assertEquals(2, service.getCommitBacklog("https://localhost:4443/"), "the second waits behind the first on the same branch");
+        assertEquals(0, service.getCommitBacklog("https://localhost:4443/unversioned/"));
+
         release.countDown();
         awaitSettled(service, doc);
+        awaitSettled(service, other);
         assertFalse(service.isCommitFailed(doc));
+        assertEquals(0, service.getCommitBacklog("https://localhost:4443/"), "none once both have ended");
     }
 
     /**

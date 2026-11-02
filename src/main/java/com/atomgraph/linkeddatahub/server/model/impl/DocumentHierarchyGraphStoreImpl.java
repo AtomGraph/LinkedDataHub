@@ -179,10 +179,11 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     public static final String ACCEPT_DATETIME_HEADER = "Accept-Datetime";
 
     /**
-     * Seconds a client is asked to wait (<code>Retry-After</code>) before it asks the TimeGate again while a commit of the
-     * document is on its way: a commit is one request to the repository host, so a second covers the usual case.
+     * The longest a client is asked to wait (<code>Retry-After</code>, seconds) before it asks the TimeGate again while a
+     * commit of the document is on its way. It is asked to wait a second per commit queued on the repository branch -
+     * commits are made one at a time, about a second each - up to this.
      */
-    public static final int COMMIT_RETRY_AFTER = 1;
+    public static final int COMMIT_RETRY_AFTER_MAX = 60;
 
     /**
      * Name of the Graph Store Protocol query parameter that identifies a named graph indirectly.
@@ -379,7 +380,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             // come back instead; a failed commit is said, as the history will not catch up until the next write
             if (getSystem().getGraphVersioningService().isCommitPending(getURI()))
                 return Response.status(Response.Status.SERVICE_UNAVAILABLE).
-                    header(HttpHeaders.RETRY_AFTER, COMMIT_RETRY_AFTER).
+                    header(HttpHeaders.RETRY_AFTER, Math.max(1, Math.min(COMMIT_RETRY_AFTER_MAX, getSystem().getGraphVersioningService().getCommitBacklog(getDataspace().getURI())))).
                     cacheControl(noStore).
                     build();
             if (getSystem().getGraphVersioningService().isCommitFailed(getURI()))

@@ -87,6 +87,7 @@ public class GraphVersioningService
     private final ExecutorService executor = Executors.newFixedThreadPool(4);
     private final Map<URI, Integer> pending = new ConcurrentHashMap<>(); // queued and running commits, keyed by graph
     private final Set<URI> failed = ConcurrentHashMap.newKeySet(); // graphs whose last commit failed
+    private final Map<String, Integer> backlog = new ConcurrentHashMap<>(); // queued and running commits, keyed by repository branch
 
     /**
      * Builds the per-application repository map from the context model.
@@ -183,7 +184,8 @@ public class GraphVersioningService
         String message = method + " " + graphURI;
         pending.merge(graphURI, 1, Integer::sum); // before the commit is queued: the write's response is not sent until this returns
         // all commits to a branch share one chain: two files committed concurrently would race the branch head
-        String repositoryBranch = repository.client().getOwner() + "/" + repository.client().getRepo() + "/" + repository.client().getBranch();
+        String repositoryBranch = branchKey(repository);
+        backlog.merge(repositoryBranch, 1, Integer::sum);
 
         CompletableFuture<Void> next = commitChains.compute(repositoryBranch, (key, chain) ->
         {
@@ -200,6 +202,7 @@ public class GraphVersioningService
                     }
                     else failed.remove(graphURI);
                     pending.computeIfPresent(graphURI, (graph, count) -> count == 1 ? null : count - 1);
+                    backlog.computeIfPresent(repositoryBranch, (branch, count) -> count == 1 ? null : count - 1);
                     return null;
                 });
         });
@@ -218,6 +221,26 @@ public class GraphVersioningService
     public boolean isCommitPending(URI graphURI)
     {
         return pending.containsKey(graphURI);
+    }
+
+    /**
+     * How many commits are queued or running on an application's repository branch: they are made one at a time, so a
+     * commit waits for the ones before it, and this is how long a client asking for the most recent version of a
+     * graph waits at most, in commits.
+     *
+     * @param appURI application URI
+     * @return the commits not yet ended on its branch, 0 for an application that is not versioned
+     */
+    public int getCommitBacklog(String appURI)
+    {
+        Repository repository = repositories.get(appURI);
+        if (repository == null) return 0;
+        return backlog.getOrDefault(branchKey(repository), 0);
+    }
+
+    private static String branchKey(Repository repository)
+    {
+        return repository.client().getOwner() + "/" + repository.client().getRepo() + "/" + repository.client().getBranch();
     }
 
     /**
