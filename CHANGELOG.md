@@ -1,5 +1,6 @@
-## [6.3.1] - 2026-11-02
+## [6.4.0] - 2026-11-02
 ### Migration
+- `ldh create container` and `ldh create item` only create: they send `If-None-Match: *` and fail on an existing document instead of replacing it; scripts that re-run them pass `--if-absent` to accept the existing document (#505)
 - A write may type a document only as `def:Root`, `dh:Container` or `dh:Item`, and must leave it with one of them; a write stating any other type on the document is refused with `422` (#498)
 
 ### Added
