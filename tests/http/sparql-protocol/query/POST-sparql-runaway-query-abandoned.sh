@@ -19,12 +19,25 @@ sparql_store_failures()
     "${compose[@]}" exec -T "$END_USER_VARNISH_SERVICE" varnishstat -1 -f SMA.sparql.c_fail | awk '{ print $2 }'
 }
 
+# the SPARQL store's counters, and the platform's log since the request, show what cut the fetch when the endpoint answers
+# anything but 502: a store left full by an earlier fetch, or a body the platform read to its end
+
+sparql_store_stats()
+{
+    "${compose[@]}" exec -T "$END_USER_VARNISH_SERVICE" varnishstat -1 -f 'SMA.sparql.*' -f MAIN.n_object -f MAIN.n_lru_nuked -f MAIN.bans || true
+}
+
+echo "DEBUG: SPARQL store before the request:"
+sparql_store_stats
+
 failures_before=$(sparql_store_failures)
 
 query="SELECT * { GRAPH ?g1 { ?a ?b ?c } GRAPH ?g2 { ?d ?e ?f } GRAPH ?g3 { ?h ?i ?j } }"
 
 start=$(date +%s)
-actual=$(curl -k -w "%{http_code}" -o /dev/null -s \
+since=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+response=$(mktemp)
+actual=$(curl -k -w "%{http_code}" -o "$response" -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -X POST \
   -H "Content-Type: application/x-www-form-urlencoded" \
@@ -34,6 +47,15 @@ actual=$(curl -k -w "%{http_code}" -o /dev/null -s \
 expected="$STATUS_BAD_GATEWAY"
 echo "DEBUG: Expected: $expected"
 echo "DEBUG: Got: $actual"
+if [ "$actual" != "$expected" ]; then
+    echo "DEBUG: Mismatch! $(wc -c < "$response") bytes in $(( $(date +%s) - start )) s, $(grep -c '<result>' "$response" || true) rows; the body ends:"
+    tail -c 300 "$response"; echo
+    echo "DEBUG: SPARQL store after the request:"
+    sparql_store_stats
+    echo "DEBUG: platform log since the request:"
+    "${compose[@]}" logs --no-log-prefix --since "$since" linkeddatahub 2>&1 | grep -i -E "exception|error|eof|too ?large|truncat" | head -40 || true
+fi
+rm -f "$response"
 echo "$actual" | grep -qE "^(${expected})$"
 
 # the fetch outlives the response, so wait for it to end - well inside the triplestore's 60 s query timeout, which would
