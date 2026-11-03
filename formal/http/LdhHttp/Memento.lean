@@ -11,8 +11,10 @@ records it. Four things are modelled:
 * **the TimeMap** (`toTimeMap`): its members are the history, and each is `prov:wasRevisionOf` the one before it;
 * **the commit queue** (`commitAsync`, `reconcile`): every write that succeeds queues a reconcile, the reconciles of a
   branch run one at a time, and each records the graph the store has when it runs. Versions are snapshots taken when a
-  reconcile runs, not one per write: two writes close together can leave one version. Once the queue is drained, the
-  newest version is the document's graph (`drained_is_current`);
+  reconcile runs, not one per write: two writes close together can leave one version. A reconcile can fail, leaving
+  the file as it was. Once the queue is drained and the last reconcile succeeded, the newest version is the document's
+  graph (`drained_is_current`), so the TimeGate, which asks the client to come back while a reconcile is queued and
+  says so when the last one failed, never redirects to an older version (`timeGate_current`);
 * **the file a document is versioned in** (`path`): the root document's is `root`, which a document named `root` at
   the top of the tree shares (`versionFile_root_collides`).
 -/
@@ -176,22 +178,32 @@ structure Versioning (G : Type) where
   newest : Option G
   /-- A write has been made since versioning began: the file of a document that predates it is not yet its own. -/
   written : Bool
+  /-- The last reconcile that ran failed (`isCommitFailed`): the file still holds what it held before. -/
+  failed : Bool
 
 inductive VEvent (G : Type) where
   /-- A write that succeeds, leaving the graph `g` (`none` after a `DELETE`); `VersioningFilter` queues a reconcile. -/
   | write (g : Option G)
   /-- The next reconcile of the branch's chain runs: it commits the graph the store has, or deletes the file. -/
   | reconcile
+  /-- The next reconcile runs and fails (the repository refuses it or cannot be reached): the file keeps what it had,
+  and the failure is logged, not propagated. -/
+  | reconcileFails
 
+/-- `pending` counts a document's queued and running reconciles: `commitAsync` adds one before it queues, the end of
+the reconcile takes it away after recording whether it failed. -/
 def Versioning.step {G : Type} (v : Versioning G) : VEvent G → Option (Versioning G)
   | .write g => some { v with store := g, queued := v.queued + 1, written := true }
-  | .reconcile => if v.queued = 0 then none else some { v with queued := v.queued - 1, newest := v.store }
+  | .reconcile => if v.queued = 0 then none else some { v with queued := v.queued - 1, newest := v.store, failed := false }
+  | .reconcileFails => if v.queued = 0 then none else some { v with queued := v.queued - 1, failed := true }
 
-/-- Once nothing is queued, the newest version of a document written since versioning began is its graph. -/
-def Versioning.Drained {G : Type} (v : Versioning G) : Prop := v.written = true → v.queued = 0 → v.newest = v.store
+/-- Once nothing is queued and the last reconcile succeeded, the newest version of a document written since
+versioning began is its graph. -/
+def Versioning.Drained {G : Type} (v : Versioning G) : Prop :=
+  v.written = true → v.queued = 0 → v.failed = false → v.newest = v.store
 
-/-- Every event leaves the versioning drained-current: a write queues a reconcile, and a reconcile records the
-store's graph. -/
+/-- Every event leaves the versioning drained-current: a write queues a reconcile, a reconcile records the store's
+graph, and a failed one is said to have failed. -/
 theorem Versioning.step_drained {G : Type} {v v' : Versioning G} {e : VEvent G}
     (hs : v.step e = some v') : v'.Drained := by
   cases e with
@@ -203,7 +215,13 @@ theorem Versioning.step_drained {G : Type} {v v' : Versioning G} {e : VEvent G}
     split at hs
     · cases hs
     · simp only [Option.some.injEq] at hs; subst hs
-      intro _ _; rfl
+      intro _ _ _; rfl
+  | reconcileFails =>
+    simp only [Versioning.step] at hs
+    split at hs
+    · cases hs
+    · simp only [Option.some.injEq] at hs; subst hs
+      intro _ _ hf; simp at hf
 
 /-- The events a document's versioning goes through. -/
 inductive Versioning.Reach {G : Type} : Versioning G → Versioning G → Prop where
@@ -213,13 +231,44 @@ inductive Versioning.Reach {G : Type} : Versioning G → Versioning G → Prop w
 /-- **A drained queue is current.** From the state versioning begins in, whatever writes and reconciles follow,
 whenever no reconcile is queued the newest version is the document's graph. -/
 theorem drained_is_current {G : Type} {store newest : Option G} {v : Versioning G}
-    (h : Versioning.Reach ⟨store, 0, newest, false⟩ v) : v.Drained := by
+    (h : Versioning.Reach ⟨store, 0, newest, false, false⟩ v) : v.Drained := by
   have : ∀ {a b : Versioning G}, Versioning.Reach a b → a.Drained → b.Drained := by
     intro a b hr
     induction hr with
     | refl => exact id
     | step e hs _ ih => exact fun _ => ih (Versioning.step_drained hs)
   exact this h (by intro hw; simp at hw)
+
+/-! ## The TimeGate's answer -/
+
+/-- What the TimeGate answers a request without a datetime, as `DocumentHierarchyGraphStoreImpl.get` does. -/
+inductive TimeGateAnswer (G : Type) where
+  /-- `503` with `Retry-After`: a reconcile of the document is queued or running (`isCommitPending`). -/
+  | retry
+  /-- `500`: the last reconcile failed (`isCommitFailed`), and the history will not catch up until the next write. -/
+  | failed
+  /-- `302` to the newest version, whose graph is the one given. -/
+  | memento (g : Option G)
+
+def Versioning.timeGate {G : Type} (v : Versioning G) : TimeGateAnswer G :=
+  if v.queued ≠ 0 then .retry else if v.failed then .failed else .memento v.newest
+
+/-- **The TimeGate never redirects to an older version.** From the state versioning begins in, whatever writes and
+reconciles follow, a TimeGate that redirects a document written since then redirects to its graph: the version a
+client asking for the most recent one is given is the document as the store has it. -/
+theorem timeGate_current {G : Type} {store newest : Option G} {v : Versioning G} {g : Option G}
+    (h : Versioning.Reach ⟨store, 0, newest, false, false⟩ v) (hw : v.written = true)
+    (ha : v.timeGate = .memento g) : g = v.store := by
+  unfold Versioning.timeGate at ha
+  by_cases hq : v.queued ≠ 0
+  · simp [hq] at ha
+  · by_cases hf : v.failed = true
+    · simp [hq, hf] at ha
+    · simp only [hq, hf, if_false] at ha
+      simp only [ne_eq, Decidable.not_not] at hq
+      have hf' : v.failed = false := by simpa using hf
+      cases ha
+      exact drained_is_current h hw hq hf'
 
 /-! ## The version file -/
 

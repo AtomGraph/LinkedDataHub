@@ -19,11 +19,15 @@ package com.atomgraph.linkeddatahub.cli.command;
 import com.atomgraph.linkeddatahub.cli.BaseCommand;
 import com.atomgraph.linkeddatahub.cli.http.HttpException;
 import com.atomgraph.linkeddatahub.cli.util.Mementos;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Link;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
+import java.util.Optional;
+import java.util.function.Supplier;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -54,6 +58,9 @@ public class Get extends BaseCommand
 
     @Parameters(paramLabel = "TARGET_URI", description = "URI of the document")
     private URI target;
+
+    /** How many times a TimeGate that asks to come back (503 with Retry-After) is asked again */
+    static final int TIMEGATE_ATTEMPTS = 120;
 
     /** The Memento role addressed instead of the document itself. The three are mutually exclusive. */
     static class Memento
@@ -86,13 +93,13 @@ public class Get extends BaseCommand
         if (datetime != null) headers.putSingle(Mementos.ACCEPT_DATETIME_HEADER, Mementos.acceptDatetime(datetime));
 
         if (head)
-            try (Response response = HttpException.checkRedirect(uri, getClient().head(uri, acceptedTypes, headers)))
+            try (Response response = HttpException.checkRedirect(uri, timeGate ? waited(() -> getClient().head(uri, acceptedTypes, headers)) : getClient().head(uri, acceptedTypes, headers)))
             {
                 print("HTTP " + response.getStatus() + " " + response.getStatusInfo().getReasonPhrase());
                 response.getStringHeaders().forEach((name, values) -> values.forEach(value -> print(name + ": " + value)));
             }
         else if (timeGate)
-            try (Response response = HttpException.checkRedirect(uri, getClient().get(uri, acceptedTypes, headers)))
+            try (Response response = HttpException.checkRedirect(uri, waited(() -> getClient().get(uri, acceptedTypes, headers))))
             {
                 print(mementoURI(response));
             }
@@ -117,7 +124,9 @@ public class Get extends BaseCommand
     }
 
     /**
-     * Returns the URI requested: the target document, or one of the Memento roles it serves.
+     * Returns the URI requested: the target document, or one of the Memento roles it serves. The TimeMap and the TimeGate
+     * are the ones the document advertises in its <code>Link</code> header (RFC 7089), and the platform's query
+     * parameters only when it advertises none.
      *
      * @return request URI
      */
@@ -125,9 +134,48 @@ public class Get extends BaseCommand
     {
         if (memento == null) return target;
         if (memento.version != null) return Mementos.version(target, memento.version);
-        if (memento.timeMap) return Mementos.timeMap(target);
+        if (memento.timeMap) return advertised("timemap").orElseGet(() -> Mementos.timeMap(target));
 
-        return Mementos.timeGate(target);
+        return advertised("timegate").orElseGet(() -> Mementos.timeGate(target));
+    }
+
+    /**
+     * Returns the URI the target document links to with a relation, read from the headers of a <code>HEAD</code> of it.
+     *
+     * @param rel link relation
+     * @return linked URI, resolved against the document's
+     */
+    private Optional<URI> advertised(String rel)
+    {
+        try (Response response = getClient().head(target, new MediaType[0]))
+        {
+            Link link = response.getLink(rel);
+            return link == null ? Optional.empty() : Optional.of(target.resolve(link.getUri()));
+        }
+    }
+
+    /**
+     * Sends a TimeGate request, and again while the TimeGate asks to come back: it answers 503 with
+     * <code>Retry-After</code> while the most recent change of the document is not yet in its version history.
+     *
+     * @param request the request, sent once per attempt
+     * @return the first response that is not such a 503, or the last one
+     * @throws InterruptedException if interrupted while waiting
+     */
+    private Response waited(Supplier<Response> request) throws InterruptedException
+    {
+        Response response = request.get();
+        for (int attempt = 1; attempt < TIMEGATE_ATTEMPTS && response.getStatus() == Response.Status.SERVICE_UNAVAILABLE.getStatusCode(); attempt++)
+        {
+            String retryAfter = response.getHeaderString(HttpHeaders.RETRY_AFTER);
+            if (retryAfter == null || !retryAfter.strip().matches("[0-9]+")) break;
+
+            response.close();
+            Thread.sleep(Math.max(1, Long.parseLong(retryAfter.strip())) * 1000);
+            response = request.get();
+        }
+
+        return response;
     }
 
 }

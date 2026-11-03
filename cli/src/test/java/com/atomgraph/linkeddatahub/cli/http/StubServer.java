@@ -25,6 +25,9 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.List;
 import java.util.Map;
+import java.util.Deque;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -42,6 +45,7 @@ public class StubServer implements AutoCloseable
     private volatile String contentType = "text/turtle";
     private final Map<String, String> responseHeaders = new LinkedHashMap<>();
     private final Map<String, Route> routes = new LinkedHashMap<>();
+    private final Map<String, Deque<Once>> once = new ConcurrentHashMap<>();
 
     private final List<Request> requests = new CopyOnWriteArrayList<>();
 
@@ -85,6 +89,16 @@ public class StubServer implements AutoCloseable
             requests.add(new Request(exchange.getRequestMethod(), exchange.getRequestURI().toString(),
                 headers, new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8)));
 
+            Deque<Once> queued = once.get(exchange.getRequestURI().toString());
+            Once first = queued != null ? queued.poll() : null;
+            if (first != null)
+            {
+                first.headers().forEach((name, value) -> exchange.getResponseHeaders().add(name, value));
+                exchange.sendResponseHeaders(first.status(), -1);
+                exchange.close();
+                return;
+            }
+
             Route route = routes.get(exchange.getRequestURI().getPath());
             byte[] out = (route != null ? route.body() : body).getBytes(StandardCharsets.UTF_8);
             exchange.getResponseHeaders().add("Content-Type", route != null ? route.contentType() : contentType);
@@ -105,6 +119,24 @@ public class StubServer implements AutoCloseable
     public URI baseURI()
     {
         return URI.create("http://127.0.0.1:" + server.getAddress().getPort() + "/");
+    }
+
+    /** A response given once to one request target, before the canned ones, for a server that answers differently on a later try. */
+    private record Once(int status, Map<String, String> headers) { }
+
+    /**
+     * Queues a response, without a body, given once to a request target (path and query), before any canned response.
+     * Several queued for one target are given in order.
+     *
+     * @param target request target, e.g. <code>/some/?timegate</code>
+     * @param status HTTP status code
+     * @param headers response headers
+     * @return this server
+     */
+    public StubServer respondsOnceTo(String target, int status, Map<String, String> headers)
+    {
+        once.computeIfAbsent(target, key -> new ConcurrentLinkedDeque<>()).add(new Once(status, headers));
+        return this;
     }
 
     /** A canned response bound to one request path, for the commands that read more than one document. */
