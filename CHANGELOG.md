@@ -8,6 +8,11 @@
 ### Removed
 - The Northwind Traders demo dataspace from the default config
 
+### Fixed
+- `ldh admin import ontology --source` imports from a LinkedDataHub document, such as a vocabulary vendored into the dataspace: it leaves the source document's `sioc:has_parent` and `sioc:has_container` out of the import, which the admin application refused with `422`
+- A write refused with `422` for the document hierarchy, the `PATCH` update form or an access request answers with the RDF description of the error, its message as `dct:title`, instead of the servlet container's empty error page
+- `ldh admin create ontology` without `--uri`, which writes a blank node ontology, succeeds instead of failing with `500`
+
 ## [6.4.0] - 2026-11-02
 ### Migration
 - `ldh create container` and `ldh create item` only create: they send `If-None-Match: *` and fail on an existing document instead of replacing it; scripts that re-run them pass `--if-absent` to accept the existing document (#505)
