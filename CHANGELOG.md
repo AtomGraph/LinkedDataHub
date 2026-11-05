@@ -8,6 +8,10 @@
 ### Removed
 - The Northwind Traders demo dataspace from the default config
 
+### Fixed
+- A SPARQL result under the `/sparql` endpoint's limit is no longer cut short when the Varnish store of SPARQL results is full: the store may evict up to 1000 cached results to make room for it (`nuke_limit`), not 50
+- The `/sparql` endpoint answers `502` for a result the store's response cut short, instead of `200` with the rows that had arrived
+
 ### Security
 - A first OAuth login links its account to an existing agent by email only when the provider verified the address (`email_verified`), and an unverified address is not stored as the new agent's `foaf:mbox`: an address the provider had not verified took over the agent whose mailbox it was. Google's boolean claims reach the login, `email_verified` among them. Found by the authentication model, `formal/auth/`
 - The ID token cache is kept per dataspace: a token used on one dataspace authenticated on another whose admin dataset has no account for it, until the token expired
