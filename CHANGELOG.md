@@ -7,6 +7,7 @@
 - A TimeGate asked for a document whose latest change is still being committed answers `503` with `Retry-After` (a second per commit queued on its branch, up to a minute) instead of redirecting to the version before it, and `500` when that commit failed; dataspaces without versioning answer as before
 - With `ENABLE_LINKED_DATA_PROXY=false`, `?uri=` naming anything other than one of the instance's dataspaces or a mapped document answers `403` for browsers too, instead of rendering the app shell; each distinct `?uri=` had been an uncached server-side render
 - The platform's JVM exits on an `OutOfMemoryError`, and the `linkeddatahub` service restarts `on-failure`; before, the JVM could lose Tomcat's acceptor and poller threads and stay up answering nothing
+- A dataspace counts as seeded only once all its seed uploads have succeeded (the `based-datasets/<app>/.seeded` marker, written last); before, the marker was the folder created before the first upload, so a seed that failed partway was never retried
 
 ### Removed
 - The Northwind Traders demo dataspace from the default config

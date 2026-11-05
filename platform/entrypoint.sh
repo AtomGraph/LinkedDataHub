@@ -813,10 +813,13 @@ for app in "${apps[@]}"; do
     # Create app-specific subfolder based on origin
     app_folder=$(echo "$app_origin" | sed 's|https://||' | sed 's|http://||' | sed 's|[:/]|-|g')
 
-    # Determine whether to load datasets for this app
+    # Determine whether to load datasets for this app. The marker is written once every upload below has succeeded, so a
+    # seed cut short by a failed upload (set -e) leaves none, and the next start - restart: on-failure brings one - seeds
+    # the app again instead of skipping it half-loaded
+    seeded_marker="/var/linkeddatahub/based-datasets/${app_folder}/.seeded"
     load_datasets_for_app="$LOAD_DATASETS"
     if [ -z "$load_datasets_for_app" ]; then
-        if [ ! -d "/var/linkeddatahub/based-datasets/${app_folder}" ]; then
+        if [ ! -f "$seeded_marker" ]; then
             load_datasets_for_app=true
         else
             load_datasets_for_app=false
@@ -932,6 +935,8 @@ for app in "${apps[@]}"; do
 
         # after the uploads, so it covers every document this app just loaded, whichever branch loaded it
         insert_document_metadata "$app_endpoint_url" "$app_service_auth_user" "$app_service_auth_pwd" "$app_service_auth_token" "$OWNER_URI"
+
+        touch "$seeded_marker"
     fi
 done
 

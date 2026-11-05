@@ -138,9 +138,10 @@ drops package imports that were added live with `ldh packages add` rather than d
 `dataspaces.trig`.
 
 On first start the entrypoint seeds the new datasets: the root document, the namespace ontology, the
-owner's and secretary's agent metadata and their authorizations. It does so only for an app whose
-`/var/linkeddatahub/based-datasets/<origin-folder>` does not exist yet, so an existing dataspace is
-never reseeded.
+owner's and secretary's agent metadata and their authorizations. It does so only for an app without
+the marker `/var/linkeddatahub/based-datasets/<origin-folder>/.seeded`, which it writes once every
+upload has succeeded: an existing dataspace is never reseeded, and one whose seed failed partway is
+seeded again on the next start.
 
 ### 5. Verify
 
