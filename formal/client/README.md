@@ -59,8 +59,8 @@ formal/client/tracks-code.sh origin/develop
   - `shell`: a path on the page's origin.
   - `base`: a path on `lds:base()`, with no `ldh:href`.
   - `given`: a URI the page or a response carried.
-- **The window:** an external document answered with a status from 400 on, other than 401, 403 and 429, is opened
-  as the document's URI says. On a page loaded with `?uri=`, that URI is the parameter.
+- **The window:** an external `http(s)` document answered with a status from 400 on, other than 401, 403 and 429,
+  is opened as the document's URI says. On a page loaded with `?uri=`, that URI is the parameter.
 
 ## Mapping to the code
 
@@ -94,20 +94,24 @@ Proven with no `sorry`, using only the axioms `propext` and `Quot.sound`:
 | `newPane_local` | A pane created for a document on the page's origin has its base there |
 | `shell_confined` | A site on the page's origin stays there |
 | `unbounded_sites` | Eight sites are bounded by neither: the assistant's four, the ontology import's query, the namespace `clear`, and the version history's two |
-| `fallback_is_uri_param` | The window goes to the document `?uri=` names, with no check of its scheme |
+| `fallback_web` | The window is sent only to a URL starting with `http://` or `https://`, whatever the document and the status |
+| `fallback_is_uri_param` | The window goes to the `http(s)` document `?uri=` names |
+| `uri_param_script_refused` | `https://localhost:4443/?uri=javascript:alert(document.domain)` leaves the window where it is, whatever the server answers |
 
 Counterexamples, which hold of the code as it is:
 
 | Theorem | Statement |
 |---------|-----------|
 | `proxied_link_moves_base` | A proxied document whose response names any `lds:dataspace` moves `lds:base()` to its origin, and the assistant then posts the question, the document, the endpoint and the last turns there |
-| `uri_param_navigates_any_scheme` | `https://localhost:4443/?uri=javascript:alert(document.domain)`, whose document the proxy refuses, sends the window to `javascript:alert(document.domain)` |
 | `restore_targets_page_path` | A version restore on a proxied page writes the version into the page's path, the dataspace's root, and not into the document the pane shows |
 
+`uri_param_script_refused` was a counterexample, `uri_param_navigates_any_scheme`, until the branch checked the
+scheme: the proxy answered the `javascript:` URI 502, the client called
+`window.open('javascript:alert(document.domain)', '_blank')`, and when the browser blocked that popup, as it does
+without a user gesture, `alert` ran on the dataspace's origin. `ApplicationFilter` now also refuses a `?uri=` that is
+not `http(s)` with 400, and `tests/ui/specs/axes/uri-scheme.spec.mjs` replays the exploit.
+
 Reproduced on a local instance, anonymously:
-- `uri_param_navigates_any_scheme`: the proxy answers the `javascript:` URI 502, the client calls
-  `window.open('javascript:alert(document.domain)', '_blank')`, and when the browser blocks that popup, as it does
-  without a user gesture, `alert` runs on the dataspace's origin.
 - `proxied_link_moves_base`: proxying another LinkedDataHub instance, whose responses name their `lds:dataspace`,
   leaves the active pane with that instance's origin as its `data-base`.
 - `restore_targets_page_path` is not reproduced: it takes an origin that serves a TimeMap and write modes, and an
@@ -149,9 +153,8 @@ Two checks hold the model to the stylesheets, and the workflow runs both:
   relative to the page. That the browser then requests the page's origin is the parser's: for an `http(s)` URL the
   slash ends the authority. Likewise, that `window.open` and `location.assign` run a `javascript:` URL is the
   browser's.
-- **The server's answer.** `fallback` takes any status. Which one the proxy gives a `javascript:` URI depends on the
-  instance: `URLValidator` refuses a URI with no host, and a proxy that is disabled answers `403`, which the branch
-  does not take.
+- **The server's answer.** `fallback` takes any status, so `fallback_web` holds whatever the server answers: the
+  `400` `ApplicationFilter` gives a `?uri=` that is not `http(s)` is defence in depth, not a premise.
 - **`resolve-uri`.** The base sites append their relative path to a base that ends in a slash, which is what
   `resolve-uri` does for those paths.
 - **`document()` and `ixsl:schedule-action`'s `document` attribute.** Only request maps are sites. The client's

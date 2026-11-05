@@ -8,6 +8,9 @@
 ### Removed
 - The Northwind Traders demo dataspace from the default config
 
+### Security
+- A `?uri=` that is not `http(s)` is refused with `400`, and the client opens only an `http(s)` document the proxy could not fetch: a link with `?uri=javascript:…` ran its script on the dataspace's origin. Found by the client model, `formal/client/`, which proves the window is sent to `http(s)` URLs only
+
 ## [6.4.0] - 2026-11-02
 ### Migration
 - `ldh create container` and `ldh create item` only create: they send `If-None-Match: *` and fail on an existing document instead of replacing it; scripts that re-run them pass `--if-absent` to accept the existing document (#505)

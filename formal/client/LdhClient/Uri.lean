@@ -10,6 +10,9 @@ abbrev Str := List Char
 def http : Str := ['h', 't', 't', 'p', ':', '/', '/']
 def https : Str := ['h', 't', 't', 'p', 's', ':', '/', '/']
 
+/-- `matches($u, '^https?://')`. -/
+def isWeb (u : Str) : Bool := http.isPrefixOf u || https.isPrefixOf u
+
 /-- One scheme's alternative of `lds:origin`'s regex: the scheme, then `[^/]+`, then `.*$`, where `.` is any
 character but a newline. -/
 def originWith (sch u : Str) : Option Str :=
