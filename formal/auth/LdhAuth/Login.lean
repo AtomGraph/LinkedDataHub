@@ -14,11 +14,12 @@ def agentByMbox (V : Vocab) (fs : FinStore) (mbox : Node) : Option Node :=
   (fs.flatMap fun p => p.2.filterMap fun t => if t.p = V.foafMbox ∧ t.o = mbox then some t.s else none).head?
 
 /-- The admin dataset after a callback for a verified token of `iss` and `sub`, with the `mailto:` of the email
-the provider's claims carry, if any. A subject with an account changes nothing; otherwise the new account, in a
-graph of its own, is the account of the agent with that mailbox if there is one, else of a new agent. Nothing reads
-`email_verified`. -/
-def login (V : Vocab) (fs : FinStore) (iss sub : Node) (mbox : Option Node) (accountDoc account newAgent : Node) :
-    FinStore :=
+the provider's claims carry, if any, and whether they say the provider verified it (`email_verified`). An address
+the provider has not verified counts as none. A subject with an account changes nothing; otherwise the new account,
+in a graph of its own, is the account of the agent with that mailbox if there is one, else of a new agent. -/
+def login (V : Vocab) (fs : FinStore) (iss sub : Node) (email : Option Node) (verified : Bool)
+    (accountDoc account newAgent : Node) : FinStore :=
+  let mbox := if verified then email else none
   if (accountRows V fs iss sub).isEmpty then
     let agent := match mbox.bind (agentByMbox V fs) with
       | some a => a
@@ -26,13 +27,21 @@ def login (V : Vocab) (fs : FinStore) (iss sub : Node) (mbox : Option Node) (acc
     (accountDoc, [⟨account, V.siocId, sub⟩, ⟨account, V.laclIssuer, iss⟩, ⟨account, V.siocAccountOf, agent⟩]) :: fs
   else fs
 
-/-- **An email claim takes over the agent with that mailbox.** The first login of a subject the dataset has no
-account for, whose provider claims an email that is the `foaf:mbox` of an existing agent, links the new account to
-that agent, whether or not the provider verified the address; a token of that subject then authenticates as the
-agent. -/
-theorem email_link_takeover {V : Vocab} {fs : FinStore} {iss sub m a accountDoc account newAgent : Node}
+/-- **An unverified email claims nothing.** A first login whose provider has not verified the address it claims
+writes what a login with no address writes: the account is a new agent's, whoever's `foaf:mbox` the address is.
+Until the callback read `email_verified`, the account was linked to that agent, and a token of the subject
+authenticated as it (`email_link_takeover`). -/
+theorem unverified_email_ignored (V : Vocab) (fs : FinStore) (iss sub : Node) (email : Option Node)
+    (accountDoc account newAgent : Node) :
+    login V fs iss sub email false accountDoc account newAgent = login V fs iss sub none true accountDoc account newAgent := by
+  simp [login]
+
+/-- **A verified email links the agent with that mailbox.** The first login of a subject the dataset has no account
+for, whose provider verified an email that is the `foaf:mbox` of an existing agent, links the new account to that
+agent: the provider vouches the subject holds the mailbox. -/
+theorem verified_email_links {V : Vocab} {fs : FinStore} {iss sub m a accountDoc account newAgent : Node}
     (hnew : accountRows V fs iss sub = []) (ha : agentByMbox V fs m = some a) :
-    (account, a) ∈ accountRows V (login V fs iss sub (some m) accountDoc account newAgent) iss sub := by
+    (account, a) ∈ accountRows V (login V fs iss sub (some m) true accountDoc account newAgent) iss sub := by
   simp only [login, hnew, List.isEmpty_nil, if_true, Option.bind_some, ha]
   simp only [accountRows, List.flatMap_cons, List.mem_append]
   left

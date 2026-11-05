@@ -22,6 +22,8 @@ sources=(
   src/main/java/com/atomgraph/linkeddatahub/server/filter/request/auth/IDTokenFilterBase.java
   src/main/java/com/atomgraph/linkeddatahub/server/util/JWTVerifier.java
   src/main/java/com/atomgraph/linkeddatahub/resource/oauth2/LoginBase.java
+  src/main/java/com/atomgraph/linkeddatahub/resource/oauth2/google/Login.java
+  src/main/java/com/atomgraph/linkeddatahub/resource/oauth2/orcid/Login.java
   src/main/java/com/atomgraph/linkeddatahub/server/mapper/auth/webid/InvalidWebIDPublicKeyExceptionMapper.java
   src/main/java/com/atomgraph/linkeddatahub/server/mapper/auth/webid/WebIDDelegationExceptionMapper.java
   src/main/java/com/atomgraph/linkeddatahub/server/mapper/auth/webid/WebIDLoadingExceptionMapper.java

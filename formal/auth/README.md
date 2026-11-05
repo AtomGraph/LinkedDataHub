@@ -62,13 +62,13 @@ formal/auth/tracks-code.sh origin/develop
   - **Expiry:** a signed token with `exp` is used as it is or, once expired, refreshed. A refresh needs a refresh
     token stored for the subject; without one, the filter answers `303`.
   - **The token in use must be verified.**
-  - **The cache:** the account's model comes from the token cache, keyed by the issuer's and subject's names
-    concatenated, or else from `userAccountQuery`.
+  - **The cache:** the account's model comes from the token cache, keyed by the admin dataspace, the issuer and the
+    subject, or else from `userAccountQuery` over that dataspace's admin dataset.
   - **The agent** is the `sioc:account_of` of the resource with the subject as `sioc:id`.
 - **The first login (`login`):**
   - A subject with no account gets an account of its own.
-  - That account is linked to the agent whose `foaf:mbox` is the token's email, if there is one, and to a new agent
-    if not.
+  - That account is linked to the agent whose `foaf:mbox` is the token's email, if there is one and the provider
+    verified the address (`email_verified`), and to a new agent if not. An unverified address counts as none.
 - **The server's answer (`Gate.lean`):** a request that fails authentication is answered with the failure's status
   and changes nothing. Otherwise it gets `LdhAcl.serveB` for the agent.
 
@@ -87,11 +87,11 @@ formal/auth/tracks-code.sh origin/develop
 | `current` | `IDTokenFilterBase.authenticate`'s expiry branch, `refreshIDToken` |
 | `token`, `accountRows`, `describe`, `accountModel`, `accountAgent`, `TokenCache` | `IDTokenFilterBase.authenticate`, `userAccountQuery` (`web.xml`), `oidcModelCache` |
 | `tokens` | `IDTokenFilterBase.filter`: the login and authorize URLs it skips |
-| `login`, `agentByMbox` | `LoginBase.get`, `userAccountExists`, `findAgentByEmail`, `agentQuery` (`web.xml`) |
+| `login`, `agentByMbox` | `LoginBase.get`, `userAccountExists`, `findAgentByEmail`, `agentQuery` (`web.xml`); the claims `getUserInfo` gives it (`google/Login`, `orcid/Login`) |
 | `AuthError.code` | `InvalidWebIDPublicKeyExceptionMapper`, `WebIDDelegationExceptionMapper`, `WebIDLoadingExceptionMapper`, `InternalURLExceptionMapper`, `TokenExpiredExceptionMapper` |
 
 The filters live in `server/filter/request/` and `server/filter/request/auth/`, the mappers in `server/mapper/auth/`,
-`JWTVerifier` in `server/util/` and `LoginBase` in `resource/oauth2/`, all under
+`JWTVerifier` in `server/util/` and `LoginBase` and the providers' `Login` in `resource/oauth2/`, all under
 `src/main/java/com/atomgraph/linkeddatahub/`.
 
 ## Results
@@ -110,17 +110,27 @@ Proven with no `sorry`, using only the axioms `propext` and `Quot.sound`:
 | `auth_never_403` | Authentication answers `400`, `303` or `500`, never `403`: that status stays the decision's (`LdhAcl.decide_forbidden_iff`) |
 | `token_sound` | A token identity needs a signed token and, after any refresh, a verified one: the agent comes from the cached model for its issuer and subject, or from `userAccountQuery` |
 | `accountAgent_sound` | On a cache miss, the agent is the `sioc:account_of` of a bound account, as any admin graph states it |
-| `cacheKey_inj` | The token cache key is unambiguous for issuers none of which is a proper prefix of another |
+| `token_cache_per_dataspace` | A token is authenticated by its own dataspace's accounts: one used on another dataspace first leaves it anonymous where no account was made for it |
+| `unverified_email_ignored` | A first login whose provider has not verified the address it claims writes what a login with no address writes |
+| `verified_email_links` | A first login whose provider verified the address links the account to the agent with that `foaf:mbox` |
 | `serve_unauthenticated` | A request that fails authentication changes nothing |
 | `delegation_noninterference` | Two requests authenticated as the same agent get the same answer to every request, however the agent was established |
 | `delegation_needs_write` | A delegation is put in force by an authorized write of the principal's document |
 
-Counterexamples, which hold of the code as it is:
+Two of these were counterexamples, proven of the code as it was, until the fix that turned each into the theorem it
+names:
 
-| Theorem | Statement |
-|---------|-----------|
-| `token_cache_crosses_dataspaces` | The token cache has no part for the dataspace: a token used on one dataspace authenticates on another whose admin dataset has no account for it, until the entry expires |
-| `email_link_takeover` | A first login whose provider claims the email of an existing agent's `foaf:mbox` links the new account to that agent, whether or not the provider verified the address |
+- `token_cache_crosses_dataspaces`, now `token_cache_per_dataspace`: the cache was keyed by the issuer and subject
+  alone, so the account model one dataspace's admin dataset gave a token authenticated it on every other dataspace
+  until the entry expired, and `acl:AuthenticatedAgent` grants there applied to an account they never made. The key
+  is now the admin dataspace's base URI, the issuer and the subject, a tuple: `cacheKey_inj`, which said when the
+  concatenated key was unambiguous, has nothing left to state.
+- `email_link_takeover`, now `unverified_email_ignored`: a first login linked the new account to the agent whose
+  `foaf:mbox` the provider's email claim named, whether or not the provider had verified it, and Google's claims did
+  not even carry `email_verified`, a boolean that `getUserInfo` dropped. An unverified address is now no address: it
+  links nothing, and it becomes no new agent's `foaf:mbox`, which a later verified login would link to.
+
+Neither is replayed by the HTTP tests: both take ID tokens a provider signed, and the suite has no provider.
 
 ## Delegation (roadmap step 5)
 

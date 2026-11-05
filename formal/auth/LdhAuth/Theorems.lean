@@ -139,11 +139,11 @@ theorem auth_never_403 (e : AuthError) : e.code ≠ 403 := by
 /-- **A token identity needs a verified token.** The agent comes from a token the provider signed, and from the
 token in use, its refresh if it had expired, fully verified, dates included: the account model the cache holds for
 its issuer and subject, or else the one `userAccountQuery` returns. -/
-theorem token_sound {V : Vocab} {name : Node → String} {fs : FinStore} {pv : Provider} {tc : TokenCache}
-    {t : Token} {a : Node} {tc' : TokenCache} (h : token V name fs pv tc t = .ok (a, tc')) :
+theorem token_sound {V : Vocab} {name : Node → String} {admin : String} {fs : FinStore} {pv : Provider}
+    {tc : TokenCache} {t : Token} {a : Node} {tc' : TokenCache} (h : token V name admin fs pv tc t = .ok (a, tc')) :
     pv.signed t = true ∧ t.hasExp = true ∧ ∃ t', current pv t = .ok t' ∧ pv.verified t' = true ∧
-      ∃ m, (tc (name t'.iss ++ name t'.sub) = some m ∨
-              (tc (name t'.iss ++ name t'.sub) = none ∧ m = accountModel V fs t'.iss t'.sub)) ∧
+      ∃ m, (tc (admin, name t'.iss, name t'.sub) = some m ∨
+              (tc (admin, name t'.iss, name t'.sub) = none ∧ m = accountModel V fs t'.iss t'.sub)) ∧
         accountAgent V m t'.sub = .ok a := by
   unfold token at h
   by_cases hs : (!pv.signed t || !t.hasExp) = true
@@ -157,7 +157,7 @@ theorem token_sound {V : Vocab} {name : Node → String} {fs : FinStore} {pv : P
     · simp [hv] at h
     simp only [hv, Bool.not_true, Bool.false_eq_true, if_false] at h
     refine ⟨t', rfl, hv, ?_⟩
-    rcases hk : tc (name t'.iss ++ name t'.sub) with _ | m
+    rcases hk : tc (admin, name t'.iss, name t'.sub) with _ | m
     · simp only [hk] at h
       refine ⟨_, Or.inr ⟨rfl, rfl⟩, ?_⟩
       split at h
@@ -206,19 +206,7 @@ theorem accountAgent_sound {V : Vocab} {fs : FinStore} {iss sub a : Node}
     exact ⟨x, hx, p, hp, ht⟩
   · cases h
 
-/-- **The token cache key is unambiguous** for issuers none of which is a proper prefix of another, as Google's
-two (`https://accounts.google.com`, `accounts.google.com`) and ORCID's are of each other. -/
-theorem cacheKey_inj {i₁ i₂ s₁ s₂ : String} (hi : i₁ = i₂ ∨ (¬ i₁.data <+: i₂.data ∧ ¬ i₂.data <+: i₁.data))
-    (h : i₁ ++ s₁ = i₂ ++ s₂) : i₁ = i₂ ∧ s₁ = s₂ := by
-  have hd : i₁.data ++ s₁.data = i₂.data ++ s₂.data := congrArg String.data h
-  rcases hi with rfl | ⟨h₁, h₂⟩
-  · exact ⟨rfl, String.ext (List.append_cancel_left hd)⟩
-  · exfalso
-    rcases List.append_eq_append_iff.1 hd with ⟨a', h', _⟩ | ⟨c', h', _⟩
-    · exact h₁ ⟨a', h'.symm⟩
-    · exact h₂ ⟨c', h'.symm⟩
-
-/-! ## A cache shared by every dataspace -/
+/-! ## A cache entry per dataspace -/
 
 section CrossDataspace
 
@@ -235,20 +223,22 @@ private def web : Web := ⟨id, fun _ => .unreachable, fun _ => false, fun _ => 
 private def adminA : FinStore :=
   [(.iri 50, [⟨.iri 41, .iri 4, .iri 21⟩, ⟨.iri 41, .iri 5, .iri 20⟩, ⟨.iri 41, .iri 6, .iri 40⟩])]
 
-private def envOf (agents : FinStore) : Env :=
-  ⟨vocab, web, [pv], fun n => match n with | .iri k => toString k | _ => "", agents⟩
+private def envOf (admin : String) (agents : FinStore) : Env :=
+  ⟨vocab, web, [pv], fun n => match n with | .iri k => toString k | _ => "", admin, agents⟩
 
 private def req : Request := ⟨true, none, .none, some tok, false, .iri 60⟩
 
 private def fresh : State := ⟨fun _ => none, fun _ => none⟩
 
-/-- **The token cache crosses dataspaces.** Dataspace B's admin dataset has no account for the token, and a fresh
-server leaves the request anonymous there; once the same token has been used on dataspace A, B authenticates it as
-A's agent until the entry expires. `acl:AuthenticatedAgent` grants on B then apply to an account B never made. -/
-theorem token_cache_crosses_dataspaces :
-    (authenticate (envOf adminA) fresh req).1 = .ok (some (.iri 40)) ∧
-    (authenticate (envOf []) fresh req).1 = .ok none ∧
-    (authenticate (envOf []) (authenticate (envOf adminA) fresh req).2 req).1 = .ok (some (.iri 40)) := by
+/-- **A token is authenticated by its own dataspace's accounts.** Dataspace B's admin dataset has no account for the
+token, and the request is anonymous there, also once the same token has been used on dataspace A, whose account
+model the cache now holds. Until the cache was keyed by the admin dataspace too, B authenticated it as A's agent
+until the entry expired (`token_cache_crosses_dataspaces`), and `acl:AuthenticatedAgent` grants on B applied to an
+account B never made. -/
+theorem token_cache_per_dataspace :
+    (authenticate (envOf "a" adminA) fresh req).1 = .ok (some (.iri 40)) ∧
+    (authenticate (envOf "b" []) fresh req).1 = .ok none ∧
+    (authenticate (envOf "b" []) (authenticate (envOf "a" adminA) fresh req).2 req).1 = .ok none := by
   refine ⟨rfl, rfl, rfl⟩
 
 end CrossDataspace

@@ -275,11 +275,11 @@ def accountAgent (V : Vocab) (m : Doc) (sub : Node) : Out Node :=
     | some ag => .ok ag
     | none => .err .unlinked
 
-/-- `oidcModelCache`: an account's model by the issuer's and the subject's names, concatenated. It has no part
-for the dataspace. -/
-abbrev TokenCache := String → Option Doc
+/-- `oidcModelCache`: an account's model by the admin dataspace it was read from, the issuer and the subject. -/
+abbrev TokenCache := String × String × String → Option Doc
 
-def TokenCache.put (c : TokenCache) (k : String) (m : Doc) : TokenCache := fun y => if y = k then some m else c y
+def TokenCache.put (c : TokenCache) (k : String × String × String) (m : Doc) : TokenCache :=
+  fun y => if y = k then some m else c y
 
 /-- The token in use: the cookie's, or its refresh if it has expired. -/
 def current (pv : Provider) (t : Token) : Out Token :=
@@ -292,7 +292,7 @@ def current (pv : Provider) (t : Token) : Out Token :=
   else .ok t
 
 /-- `IDTokenFilterBase.authenticate`, in its order of checks. -/
-def token (V : Vocab) (name : Node → String) (fs : FinStore) (pv : Provider) (tc : TokenCache) (t : Token) :
+def token (V : Vocab) (name : Node → String) (admin : String) (fs : FinStore) (pv : Provider) (tc : TokenCache) (t : Token) :
     Out (Node × TokenCache) :=
   if !pv.signed t || !t.hasExp then .anon
   else match current pv t with
@@ -301,7 +301,7 @@ def token (V : Vocab) (name : Node → String) (fs : FinStore) (pv : Provider) (
   | .ok t =>
     if !pv.verified t then .anon
     else
-      let k := name t.iss ++ name t.sub
+      let k := (admin, name t.iss, name t.sub)
       let m := match tc k with
         | some m => m
         | none => accountModel V fs t.iss t.sub
@@ -335,6 +335,8 @@ structure Env where
   providers : List Provider
   /-- The string a node's term is written as: the token cache's key is built from them. -/
   name : Node → String
+  /-- The base URI of the request's admin dataspace, which the token cache is keyed by. -/
+  admin : String
   /-- The admin dataset of the request's dataspace, which `getAgentService` queries. -/
   agents : FinStore
 
@@ -352,7 +354,7 @@ def tokens (env : Env) (tc : TokenCache) (path : Node) (idToken : Option Token) 
     else match idToken with
     | none => .anon
     | some t =>
-      match token env.V env.name env.agents pv tc t with
+      match token env.V env.name env.admin env.agents pv tc t with
       | .anon => tokens env tc path idToken pvs
       | .err e => .err e
       | .ok a => .ok a

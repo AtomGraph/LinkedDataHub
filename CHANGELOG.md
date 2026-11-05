@@ -8,6 +8,10 @@
 ### Removed
 - The Northwind Traders demo dataspace from the default config
 
+### Security
+- A first OAuth login links its account to an existing agent by email only when the provider verified the address (`email_verified`), and an unverified address is not stored as the new agent's `foaf:mbox`: an address the provider had not verified took over the agent whose mailbox it was. Google's boolean claims reach the login, `email_verified` among them. Found by the authentication model, `formal/auth/`
+- The ID token cache is kept per dataspace: a token used on one dataspace authenticated on another whose admin dataset has no account for it, until the token expired
+
 ## [6.4.0] - 2026-11-02
 ### Migration
 - `ldh create container` and `ldh create item` only create: they send `If-None-Match: *` and fail on an existing document instead of replacing it; scripts that re-run them pass `--if-absent` to accept the existing document (#505)
