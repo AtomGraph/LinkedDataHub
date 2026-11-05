@@ -102,6 +102,8 @@ import com.atomgraph.core.util.ResultSetUtils;
  * serves the LDH application shell; the client-side Saxon-JS layer then issues a second, RDF-typed
  * request that hits this filter and is proxied cheaply. Pure API clients that send only
  * {@code *}{@code /*} (e.g. curl) reach the proxy because they do not list an explicit HTML type.
+ * When the proxy is disabled the app shell is not served either: a target that is neither one of this
+ * instance's dataspaces nor a mapped document is refused with {@code 403} whatever the {@code Accept}.
  * <p>
  * External HTTP responses are dispatched on upstream {@code Content-Type} via Jena's live
  * RIOT registry (the same predicate {@code ModelProvider.isReadable} consults): RDF langs route
@@ -165,6 +167,27 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
         URI targetURI = targetOpt.get();
 
+        // strip #fragment (servers do not receive fragment identifiers)
+        if (targetURI.getFragment() != null)
+        {
+            try
+            {
+                targetURI = new URI(targetURI.getScheme(), targetURI.getAuthority(), targetURI.getPath(), targetURI.getQuery(), null);
+            }
+            catch (URISyntaxException ex)
+            {
+                // should not happen when only removing the fragment
+            }
+        }
+
+        // with the proxy disabled, refuse a target that is neither one of this instance's dataspaces nor a mapped document
+        // before the (X)HTML bypass below: that bypass renders the app shell for whatever ?uri= names, so every distinct
+        // value is an uncached server-side render with its own requests to /ns and /sparql, and the shell is useless anyway
+        // when the RDF request it then issues is refused. A burst of 2,500 such renders exhausted the platform's heap
+        boolean isRegisteredApp = getSystem().matchApp(targetURI) != null;
+        if (!getSystem().isEnableLinkedDataProxy() && !isRegisteredApp && !getSystem().getRepository().isMapped(targetURI.toString()))
+            throw new ForbiddenException("Linked Data proxy not enabled");
+
         // do not proxy requests from clients whose top-ranked acceptable type is (X)HTML — they
         // expect the app shell, which the downstream handler serves. Browsers list text/html (or
         // application/xhtml+xml) at q=1.0; API clients that happen to also accept (X)HTML at a
@@ -181,19 +204,6 @@ public class ProxyRequestFilter implements ContainerRequestFilter
             break; // first non-wildcard wasn't (X)HTML — proceed with proxy
         }
 
-        // strip #fragment (servers do not receive fragment identifiers)
-        if (targetURI.getFragment() != null)
-        {
-            try
-            {
-                targetURI = new URI(targetURI.getScheme(), targetURI.getAuthority(), targetURI.getPath(), targetURI.getQuery(), null);
-            }
-            catch (URISyntaxException ex)
-            {
-                // should not happen when only removing the fragment
-            }
-        }
-
         boolean isSafeMethod = "GET".equalsIgnoreCase(requestContext.getMethod())
             || "HEAD".equalsIgnoreCase(requestContext.getMethod());
 
@@ -206,7 +216,6 @@ public class ProxyRequestFilter implements ContainerRequestFilter
             return;
         }
 
-        boolean isRegisteredApp = getSystem().matchApp(targetURI) != null;
         if (!isRegisteredApp && !getSystem().isEnableLinkedDataProxy())
             throw new ForbiddenException("Linked Data proxy not enabled"); // GET is supported, the proxy is not offered
         // LNK-009: validate that the target URI is not an internal/private address (SSRF protection)
