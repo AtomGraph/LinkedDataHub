@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -e
 
+# a JVM past an OutOfMemoryError keeps running broken: one that killed Tomcat's acceptor and poller threads left the
+# platform up but answering nothing. Exiting instead lets the container's restart policy bring it back. Set here
+# rather than in the image's CATALINA_OPTS, which a compose override replaces
+export CATALINA_OPTS="$CATALINA_OPTS -XX:+ExitOnOutOfMemoryError"
+
 # set timezone
 
 if [ -n "$TZ" ]; then
