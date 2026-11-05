@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.client.filter;
 
+import com.atomgraph.linkeddatahub.client.util.RejectTruncatedResponseInputStream;
 import com.atomgraph.linkeddatahub.server.filter.request.ContentLengthLimitFilter;
 import java.io.IOException;
 import jakarta.ws.rs.client.ClientRequestContext;
@@ -33,6 +34,9 @@ import jakarta.ws.rs.client.ClientResponseFilter;
  * That bound is not the configured one, which is a limit on input. So the request carries its own,
  * which the configured filter on the same client honours, and this filter applies it itself for a
  * client without one.
+ * <p>
+ * The result is also rejected when it is cut short ({@link RejectTruncatedResponseInputStream}), so the endpoint
+ * answers 502 rather than the rows that arrived.
  *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  * @see ContentLengthLimitFilter#MAX_CONTENT_LENGTH
@@ -62,6 +66,8 @@ public class ResponseLengthLimitFilter implements ClientRequestFilter, ClientRes
     public void filter(ClientRequestContext requestContext, ClientResponseContext responseContext) throws IOException
     {
         getLimitFilter().filter(requestContext, responseContext);
+        // a result the store's cache cut short would otherwise be read as a complete, shorter one
+        if (responseContext.hasEntity()) responseContext.setEntityStream(new RejectTruncatedResponseInputStream(responseContext.getEntityStream()));
     }
 
     /**

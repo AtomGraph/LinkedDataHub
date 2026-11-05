@@ -8,6 +8,10 @@
 ### Removed
 - The Northwind Traders demo dataspace from the default config
 
+### Fixed
+- A SPARQL result under the `/sparql` endpoint's limit is no longer cut short when the Varnish store of SPARQL results is full: the store may evict up to 1000 cached results to make room for it (`nuke_limit`), not 50
+- The `/sparql` endpoint answers `502` for a result the store's response cut short, instead of `200` with the rows that had arrived
+
 ## [6.4.0] - 2026-11-02
 ### Migration
 - `ldh create container` and `ldh create item` only create: they send `If-None-Match: *` and fail on an existing document instead of replacing it; scripts that re-run them pass `--if-absent` to accept the existing document (#505)
