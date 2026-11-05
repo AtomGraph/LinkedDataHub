@@ -19,6 +19,8 @@ inductive Target where
   | base (path : Str)
   /-- a URI the page or a response carried, used as it is -/
   | given
+  /-- a URI a response carried: as it is when `ldh:is-local`, else `ldh:href`'s, which `localOrHref` is -/
+  | localOrHref
   deriving DecidableEq
 
 /-- What a target is on the page `page` with the active pane `active`, for a relative `path` with no scheme, no
@@ -36,17 +38,14 @@ structure Site where
 
 def sites : List Site := [
   ⟨"client/block/object.xsl", "$context('request')?href", .again⟩,
-  ⟨"client/chat.xsl", "ldh:chat-href('webalgebra')", .base "webalgebra".toList⟩,
-  ⟨"client/chat.xsl", "ldh:chat-href('webalgebra/' || $id || '/result')", .base "webalgebra/{id}/result".toList⟩,
-  ⟨"client/chat.xsl", "ldh:chat-href('webalgebra/answers')", .base "webalgebra/answers".toList⟩,
-  ⟨"client/chat.xsl", "ldh:chat-href('webalgebra/plans')", .base "webalgebra/plans".toList⟩,
+  ⟨"client/chat.xsl", "ldh:chat-href('webalgebra')", .shell "webalgebra".toList⟩,
+  ⟨"client/chat.xsl", "ldh:chat-href('webalgebra/' || $id || '/result')", .shell "webalgebra/{id}/result".toList⟩,
+  ⟨"client/chat.xsl", "ldh:chat-href('webalgebra/answers')", .shell "webalgebra/answers".toList⟩,
+  ⟨"client/chat.xsl", "ldh:chat-href('webalgebra/plans')", .shell "webalgebra/plans".toList⟩,
   ⟨"client/combobox.xsl", "$uri", .again⟩,
   ⟨"client/constructor.xsl", "$update?href", .again⟩,
-  ⟨"client/memento.xsl", "$memento-uri", .given⟩,
-  ⟨"client/memento.xsl", "$timemap-uri", .given⟩,
-  ⟨"client/modal.xsl", "$endpoint", .base "sparql".toList⟩,
-  ⟨"client/modal.xsl", "$settings-uri", .shell "settings".toList⟩,
-  ⟨"client/modal.xsl", "resolve-uri('clear', lds:base())", .base "clear".toList⟩
+  ⟨"client/memento.xsl", "if (ldh:is-local($timemap-uri)) then $timemap-uri else ldh:href($timemap-uri)", .localOrHref⟩,
+  ⟨"client/modal.xsl", "$settings-uri", .shell "settings".toList⟩
 ]
 
 /-- A site whose target the page's origin does not bound: `lds:base()` without `ldh:href`, or a given URI. -/
@@ -55,9 +54,8 @@ def Site.unbounded (s : Site) : Bool :=
   | .base _ | .given => true
   | _ => false
 
-/-- Eight sites leave the page's origin whenever their base or their URI does: the assistant's four, the ontology
-import's query, the namespace `clear`, and the version history's two. -/
-theorem unbounded_sites : (sites.filter Site.unbounded).length = 8 := by decide
+/-- No site is unbounded: every one is on the page's origin or is `ldh:href`'s. -/
+theorem unbounded_sites : (sites.filter Site.unbounded).length = 0 := by decide
 
 /-- **A shell site stays on the page's origin.** -/
 theorem shell_confined (page path : Str) (active : Option Pane) :
@@ -69,23 +67,42 @@ theorem base_confined {page path : Str} {active : Option Pane} (h : ∀ p, activ
     ∀ r, (Target.base path).uri page active = some r → SameOrigin page r := by
   intro r hr; cases hr; left; exact (base_local h).trans (List.prefix_append _ _)
 
+/-- `if (ldh:is-local($u)) then $u else ldh:href($u)`. -/
+def localOrHref (Q : Query) (page u : Str) : Option Str :=
+  if isLocal page u then some u else href Q page (some u) Q.empty none
+
+/-- **A local URI as it is, or `ldh:href`'s, stays on the page's origin.** -/
+theorem localOrHref_same_origin (Q : Query) {page : Str} (hp : Page page) (u : Str) {r : Str}
+    (h : localOrHref Q page u = some r) : SameOrigin page r := by
+  unfold localOrHref at h
+  split at h
+  · rename_i hl
+    cases h
+    exact Or.inl (List.isPrefixOf_iff_prefix.1 hl)
+  · exact href_same_origin Q hp _ _ _ h
+
+/-- **Every request site stays on the page's origin**, whatever pane is active: a shell site by `shell_confined`,
+an `again` site is a target `ldh:href` built, which `href_same_origin` covers, and the TimeMap's is
+`localOrHref_same_origin`'s. -/
+theorem sites_confined (page : Str) (active : Option Pane) :
+    ∀ s ∈ sites, ∀ r, s.target.uri page active = some r → SameOrigin page r := by
+  intro s hs r hr
+  simp only [sites, List.mem_cons, List.mem_nil_iff, or_false] at hs
+  rcases hs with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
+    first | exact shell_confined page _ active r hr | cases hr
+
 private def page : Str := "https://localhost:4443/?uri=https%3A%2F%2Fevil.example%2F".toList
 private def doc : Str := "https://evil.example/".toList
 
-/-- **The assistant follows a proxied document's `lds:dataspace` off the page's origin.** On the page that shows
-`https://evil.example/` through the proxy, a response for it naming any `lds:dataspace` makes the assistant post the
-question, the document, the endpoint and the last turns to `https://evil.example/webalgebra/plans`. -/
-theorem proxied_link_moves_base :
-    (Target.base "webalgebra/plans".toList).uri page (some (newPane doc true)) =
-      some "https://evil.example/webalgebra/plans".toList ∧
-    ¬ SameOrigin page "https://evil.example/webalgebra/plans".toList := by
-  refine ⟨by decide, ?_⟩
-  intro h
-  rcases h with h | h | h | h
-  · have : (origin page ++ ['/']).isPrefixOf "https://evil.example/webalgebra/plans".toList = false := by decide
-    rw [List.isPrefixOf_iff_prefix.symm] at h
-    rw [this] at h
-    cases h
-  all_goals (revert h; decide)
+/-- **The assistant stays on the page's origin on a proxied pane.** On the page that shows `https://evil.example/`
+through the proxy, a response naming an `lds:dataspace` still moves `lds:base()` there (`newPane_base`), and the
+assistant's requests stay on `https://localhost:4443/`. Until `ldh:chat-href` resolved against the page's origin they
+followed `lds:base()`: the question, the document, the endpoint and the last turns went to
+`https://evil.example/webalgebra/plans` (`proxied_link_moves_base`). -/
+theorem proxied_link_keeps_chat :
+    (Target.shell "webalgebra/plans".toList).uri page (some (newPane doc true)) =
+      some "https://localhost:4443/webalgebra/plans".toList ∧
+    LdhClient.base page (some (newPane doc true)) = "https://evil.example/".toList := by
+  decide
 
 end LdhClient

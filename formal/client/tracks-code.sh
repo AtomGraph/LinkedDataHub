@@ -24,6 +24,7 @@ declarations=(
   "$xsl/client/chat.xsl	//*[local-name()='function'][@name='ldh:chat-href']"
   "$xsl/client.xsl	//*[local-name()='variable'][@name='application' or @name='tab-base' or @name='reuse-pane']"
   "$xsl/client.xsl	//*[local-name()='when'][starts-with(@test, '?status ge 400')]"
+  "$xsl/client/memento.xsl	//*[local-name()='function'][@name='ldh:history-document']"
 )
 
 declaration_text() { # <revision> <file> <xpath>

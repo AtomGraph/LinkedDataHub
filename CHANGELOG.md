@@ -10,6 +10,8 @@
 
 ### Security
 - A `?uri=` that is not `http(s)` is refused with `400`, and the client opens only an `http(s)` document the proxy could not fetch: a link with `?uri=javascript:…` ran its script on the dataspace's origin. Found by the client model, `formal/client/`, which proves the window is sent to `http(s)` URLs only
+- On a proxied document, the assistant's requests stay on the page's origin, and the ontology import's query and the namespace `clear` go through the proxy: a proxied document naming an `lds:dataspace` sent them to its own origin
+- A version restore on a proxied document writes that document, through the proxy, and reads its access modes, TimeMap and version the same way: it wrote the remote's version over the dataspace's root
 
 ## [6.4.0] - 2026-11-02
 ### Migration

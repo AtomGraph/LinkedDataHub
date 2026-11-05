@@ -57,15 +57,21 @@ theorem uri_param_script_refused (status : Nat) (frag : Option Str) :
   have hw : isWeb (docUri script) = false := by decide
   simp [fallback, pageDoc, hw]
 
-/-- The document a version restore writes (`client/memento.xsl`): `ac:absolute-path(ldh:request-uri())`, the
-page's path, whichever pane the version history was opened from. -/
-def restoreTarget (page : Str) : Str := absPath page
+/-- The document a version restore writes (`ldh:history-document`, `client/memento.xsl`): the one the active pane
+shows. The restore reads its modes, its TimeMap and the version through `ldh:href`, and writes it through `ldh:href`,
+so `href_same_origin` covers every request it makes. -/
+def restoreTarget (active : Pane) : Str := active.doc
 
 private def proxied : Str := "https://localhost:4443/?uri=https%3A%2F%2Fevil.example%2Fdoc".toList
+private def remote : Str := "https://evil.example/doc".toList
 
-/-- **A version restore writes the page's path, not the pane's document.** On the page that shows
-`https://evil.example/doc` through the proxy, the restore puts the version it read, from a TimeMap the document's
-response linked to, into `https://localhost:4443/`: the dataspace's root. -/
-theorem restore_targets_page_path : restoreTarget proxied = "https://localhost:4443/".toList := by decide
+/-- **A version restore writes the document the pane shows.** On the page that shows `https://evil.example/doc`
+through the proxy, the restore writes `https://evil.example/doc`, through the proxy: not the page's path, the
+dataspace's root. Until the handler took the document from the pane it wrote `ac:absolute-path(ldh:request-uri())`,
+and the version it read from the TimeMap the document's response linked to went over the root
+(`restore_targets_page_path`). -/
+theorem restore_targets_pane_document :
+    restoreTarget (newPane remote true) = remote ∧ restoreTarget (newPane remote true) ≠ absPath proxied := by
+  decide
 
 end LdhClient
