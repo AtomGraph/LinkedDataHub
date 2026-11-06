@@ -20,7 +20,11 @@ import com.atomgraph.client.util.RDFSourceResolver;
 import com.atomgraph.core.client.GraphStoreClient;
 import com.atomgraph.client.util.jena.PrefixGraphRepository;
 import com.google.common.net.InternetDomainName;
+import java.io.IOException;
 import java.net.URI;
+import javax.xml.transform.Source;
+import javax.xml.transform.TransformerException;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +33,11 @@ import org.slf4j.LoggerFactory;
  * application. Mapped (bundled) and same-site URIs resolve; arbitrary external URIs do not.
  * Backed by a {@link PrefixGraphRepository}; authenticated delegation is handled by the supplied
  * {@link GraphStoreClient}.
+ * <p>
+ * A URI that is neither mapped nor {@code http(s)} resolves to an empty document. The parent returns {@code null}
+ * for it, which hands the URI back to Saxon, and Saxon opens any scheme the JVM knows by itself: {@code file:} reads
+ * the server's files, and {@code jar:http:} fetches past the egress proxy. Rendering asks for such URIs whenever a
+ * stored resource names one, since a label is looked up in the document of the resource it labels.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -50,6 +59,24 @@ public class SameSiteSourceResolver extends RDFSourceResolver
     {
         super(repository, gsc, resolvingUncached);
         this.rootContextURI = rootContextURI;
+    }
+
+    @Override
+    public Source resolve(String href, String base) throws TransformerException
+    {
+        Source source = super.resolve(href, base);
+        if (source != null) return source;
+
+        String uri = href.isEmpty() ? base : URI.create(base).resolve(href).toString();
+        if (log.isDebugEnabled()) log.debug("Not resolving the non-HTTP URI: {} - returning empty document", uri);
+        try
+        {
+            return getSource(ModelFactory.createDefaultModel(), uri);
+        }
+        catch (IOException ex)
+        {
+            throw new TransformerException(ex);
+        }
     }
 
     @Override
