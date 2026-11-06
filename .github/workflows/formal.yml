@@ -25,6 +25,10 @@ jobs:
       - name: Build the ACL model
         working-directory: formal/acl
         run: lake build
+      # the authentication model requires the ACL model's, by path
+      - name: Build the authentication model
+        working-directory: formal/auth
+        run: lake build
       # GraphVersioningServiceTest replays these cases against the Java TimeGate; here they are checked against the model
       - name: The TimeGate cases are the model's
         run: |
@@ -65,4 +69,5 @@ jobs:
         run: |
           formal/http/tracks-code.sh "${{ github.event.pull_request.base.sha }}"
           formal/acl/tracks-code.sh "${{ github.event.pull_request.base.sha }}"
+          formal/auth/tracks-code.sh "${{ github.event.pull_request.base.sha }}"
           formal/client/tracks-code.sh "${{ github.event.pull_request.base.sha }}"

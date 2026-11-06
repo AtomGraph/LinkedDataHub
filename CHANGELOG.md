@@ -24,6 +24,9 @@
 - On a proxied document, the assistant's requests stay on the page's origin, and the ontology import's query and the namespace `clear` go through the proxy: a proxied document naming an `lds:dataspace` sent them to its own origin
 - A version restore on a proxied document writes that document, through the proxy, and reads its access modes, TimeMap and version the same way: it wrote the remote's version over the dataspace's root
 
+- A first OAuth login links its account to an existing agent by email only when the provider verified the address (`email_verified`), and an unverified address is not stored as the new agent's `foaf:mbox`: an address the provider had not verified took over the agent whose mailbox it was. Google's boolean claims reach the login, `email_verified` among them. Found by the authentication model, `formal/auth/`
+- The ID token cache is kept per dataspace: a token used on one dataspace authenticated on another whose admin dataset has no account for it, until the token expired
+
 ## [6.4.0] - 2026-11-02
 ### Migration
 - `ldh create container` and `ldh create item` only create: they send `If-None-Match: *` and fail on an existing document instead of replacing it; scripts that re-run them pass `--if-absent` to accept the existing document (#505)

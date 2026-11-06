@@ -51,7 +51,7 @@ jobs:
         working-directory: cli
       - name: Add the ldh launcher to PATH
         run: echo "$GITHUB_WORKSPACE/cli/bin" >> "$GITHUB_PATH"
-      # the formal suite replays the Lean models (formal/acl over formal/http) against the server through ldh-acl,
+      # the formal suite replays the Lean models (formal/acl over formal/http, formal/auth over formal/acl) against the server,
       # and the versioning suite the Memento model through ldh-http;
       # elan picks the toolchain pinned in formal/acl/lean-toolchain
       - name: Install elan
@@ -65,6 +65,10 @@ jobs:
       - name: Build ldh-http
         run: lake build ldh-http
         working-directory: formal/http
+      # formal/auth-conformance.sh replays the authentication model through ldh-auth
+      - name: Build ldh-auth
+        run: lake build ldh-auth
+        working-directory: formal/auth
       - name: Generating server certificate
         run: |
           server-cert-gen.sh .env nginx ssl

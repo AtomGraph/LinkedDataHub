@@ -198,7 +198,7 @@ public abstract class LoginBase
             if (!userAccountExists(jwt.getSubject(), jwt.getIssuer())) // UserAccount with this ID does not exist yet
             {
                 Map<String, String> userInfo = getUserInfo(jwt, accessToken);
-                Optional<String> email = Optional.ofNullable(userInfo.get("email"));
+                Optional<String> email = verifiedEmail(userInfo);
                 Optional<Resource> mbox = email.map(e -> "mailto:" + e).map(ResourceFactory::createResource);
 
                 Model accountModel = ModelFactory.createDefaultModel();
@@ -341,6 +341,19 @@ public abstract class LoginBase
         pss.setLiteral(LACL.issuer.getLocalName(), issuer);
 
         return !getSystem().getServiceContext(getAgentService()).getSPARQLClient().loadModel(pss.asQuery()).isEmpty();
+    }
+
+    /**
+     * Returns the email address the provider's claims carry, if the provider verified it.
+     * An address the provider has not verified is anyone's to claim: it would link the new account to the agent whose
+     * <code>foaf:mbox</code> it is, or plant a mailbox a later verified login links to, so it counts as no address.
+     *
+     * @param userInfo the provider's claims
+     * @return the verified email address, or empty
+     */
+    public static Optional<String> verifiedEmail(Map<String, String> userInfo)
+    {
+        return Optional.ofNullable(userInfo.get("email")).filter(e -> Boolean.parseBoolean(userInfo.get("email_verified")));
     }
 
     /**

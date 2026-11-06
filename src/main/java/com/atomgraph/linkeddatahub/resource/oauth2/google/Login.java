@@ -116,11 +116,22 @@ public class Login extends LoginBase
     protected Map<String, String> getUserInfo(DecodedJWT jwt, String accessToken)
     {
         // Google includes all user information in the ID token JWT claims
+        return claims(jwt);
+    }
+
+    /**
+     * Returns the ID token's string and boolean claims as strings. <code>email_verified</code> is a boolean.
+     *
+     * @param jwt the ID token
+     * @return claim names to values
+     */
+    public static Map<String, String> claims(DecodedJWT jwt)
+    {
         return jwt.getClaims().entrySet().stream().
-            filter(e -> e.getValue().asString() != null).
+            filter(e -> e.getValue().asString() != null || e.getValue().asBoolean() != null).
             collect(java.util.stream.Collectors.toMap(
                 java.util.Map.Entry::getKey,
-                e -> e.getValue().asString()
+                e -> e.getValue().asString() != null ? e.getValue().asString() : e.getValue().asBoolean().toString()
             ));
     }
 

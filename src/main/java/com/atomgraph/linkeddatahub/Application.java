@@ -318,7 +318,7 @@ public class Application extends ResourceConfig
     private final List<Locale> supportedLanguages;
     private final ExpiringMap<String, UnionGraph> ontologyGraphs = ExpiringMap.builder().maxSize(1000).expirationPolicy(ExpirationPolicy.ACCESSED).expiration(1, TimeUnit.HOURS).build(); // assembled ontology imports-closure union graphs, keyed by ontology URI; evicted entries are transparently rebuilt by OntologyFilter on the next cache miss
     private final ExpiringMap<URI, Model> webIDmodelCache = ExpiringMap.builder().expiration(Long.parseLong(System.getProperty("com.atomgraph.linkeddatahub.webIDCacheExpiration", "86400")), TimeUnit.SECONDS).build(); // TTL (seconds) configurable via WEBID_CACHE_EXPIRATION; a lower value bounds how long a revoked WebID stays cached
-    private final ExpiringMap<String, Model> oidcModelCache = ExpiringMap.builder().variableExpiration().build();
+    private final ExpiringMap<List<String>, Model> oidcModelCache = ExpiringMap.builder().variableExpiration().build();
     private final ExpiringMap<String, jakarta.json.JsonObject> jwksCache = ExpiringMap.builder().expiration(Long.parseLong(System.getProperty("com.atomgraph.linkeddatahub.jwksCacheExpiration", "86400")), TimeUnit.SECONDS).build(); // Cache JWKS responses; TTL (seconds) configurable via JWKS_CACHE_EXPIRATION
     private final Map<URI, XsltExecutable> xsltExecutableCache = new ConcurrentHashMap<>();
     private final boolean enableWebIDSignUp;
@@ -2663,11 +2663,11 @@ public class Application extends ResourceConfig
 
     /**
      * A map of cached OpenID connect agent graphs.
-     * User ID (ID token subject) is the cache key. Entries expire after the configured period of time.
+     * The key is the admin dataspace's base URI, the ID token issuer and its subject. Entries expire with the token.
      *
-     * @return URI to model map
+     * @return key to model map
      */
-    public ExpiringMap<String, Model> getOIDCModelCache()
+    public ExpiringMap<List<String>, Model> getOIDCModelCache()
     {
         return oidcModelCache;
     }
