@@ -16,13 +16,25 @@ In Claude Code:
 You need a LinkedDataHub instance (or a checkout to run one from), the owner's WebID certificate, and the `ldh`
 CLI (`make cli` in this repository).
 
+## Configure
+
+`/plugin` → ldh → configure asks for three settings, which a hook hands to `ldh` at the start of each session:
+
+| Setting | `ldh` reads it as |
+|---|---|
+| LinkedDataHub base URL: the end-user base of the dataspace, e.g. `https://inventory.localhost:4443/` | `LDH_BASE` |
+| WebID certificate: the owner's PKCS12 keystore or PEM file | `LDH_CERT_FILE` |
+| Certificate password, kept in the system credential store | `LDH_CERT_PASSWORD` |
+
+Provisioning a dataspace needs none of them.
+
 ## Data handling
 
 The plugin runs no service of its own and sends nothing to AtomGraph. Its skills have the agent run the `ldh`
 CLI, which sends requests only to:
 
-- the LinkedDataHub instance named in `LDH_BASE`, authenticated with the user's WebID client certificate
-  (`LDH_CERT_FILE`, `LDH_CERT_PASSWORD`);
+- the LinkedDataHub instance at the configured base URL, authenticated with the configured WebID client
+  certificate. Its password stays in the system credential store and is handed only to `ldh`;
 - a package registry the user names, when publishing or importing a package (`ldh:package`).
 
 What is sent is the data the user asks the agent to load: documents, ontologies, imported CSV and RDF. It stays on
