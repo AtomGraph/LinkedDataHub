@@ -906,7 +906,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
 
         <div class="rdfa-editor-content">
-            <xsl:copy-of select="node()" copy-namespaces="no"/>
+            <xsl:apply-templates select="node()" mode="ldh:SafeXHTML"/>
         </div>
         <xsl:call-template name="xhtml:Input">
             <xsl:with-param name="type" select="'hidden'"/>
