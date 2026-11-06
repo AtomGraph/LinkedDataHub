@@ -231,7 +231,7 @@ public abstract class IDTokenFilterBase extends AuthenticationFilter
         }
         if (!verify(jwt)) return null; // full verification, expiry included, of the token in use
 
-        String cacheKey = jwt.getIssuer() + jwt.getSubject();
+        List<String> cacheKey = cacheKey(getAdminDataspace().getBaseURI(), jwt);
         final Model agentModel;
         Literal userId = ResourceFactory.createStringLiteral(jwt.getSubject());
         // single get(): with containsKey()-then-get() the entry can expire between the calls and get() returns null
@@ -334,6 +334,20 @@ public abstract class IDTokenFilterBase extends AuthenticationFilter
             String idToken = response.getString("id_token");
             return JWT.decode(idToken);
         }
+    }
+
+    /**
+     * Returns the token cache key of an ID token on a dataspace.
+     * The account model comes from the dataspace's admin dataset, so the entry is that dataspace's: keyed by the issuer
+     * and subject alone, a token used on one dataspace authenticated on every other until it expired.
+     *
+     * @param adminBase base URI of the dataspace's admin application
+     * @param jwt the ID token
+     * @return the admin base, the issuer and the subject
+     */
+    public static List<String> cacheKey(URI adminBase, DecodedJWT jwt)
+    {
+        return List.of(adminBase.toString(), jwt.getIssuer(), jwt.getSubject());
     }
 
     /**

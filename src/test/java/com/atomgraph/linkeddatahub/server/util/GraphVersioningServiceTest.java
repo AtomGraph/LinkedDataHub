@@ -35,6 +35,12 @@ import jakarta.ws.rs.core.CacheControl;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import com.atomgraph.core.client.GraphStoreClient;
+import com.atomgraph.linkeddatahub.model.ServiceContext;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
@@ -264,6 +270,98 @@ public class GraphVersioningServiceTest
         CacheControl cacheControl = version.getCacheControl();
         assertTrue(cacheControl.getCacheExtension().containsKey("immutable"));
         assertEquals(GraphVersioningService.IMMUTABLE_MAX_AGE, cacheControl.getMaxAge());
+    }
+
+    /**
+     * A commit runs after the write's response, so the history lags the store: the service says so while a commit of
+     * the graph is queued or running, and stops saying so when it has ended.
+     */
+    @Test
+    public void testACommitIsPendingUntilItEnds() throws Exception
+    {
+        URI doc = URI.create("https://localhost:4443/doc/");
+        CountDownLatch started = new CountDownLatch(1), release = new CountDownLatch(1);
+        GitHubClient client = mock(GitHubClient.class);
+        when(client.putFile(anyString(), any(byte[].class), anyString(), anyString())).thenAnswer(invocation ->
+        {
+            started.countDown();
+            release.await();
+            return new GitHubClient.Commit("abc123", "def456");
+        });
+        GraphVersioningService service = new GraphVersioningService(Map.of("https://localhost:4443/", new GraphVersioningService.Repository(client, "graphs")));
+
+        service.commitAsync(serviceContext(doc), "https://localhost:4443/", BASE, doc, "https://localhost:4443/agent#this", "PUT");
+        assertTrue(service.isCommitPending(doc), "pending as soon as the write has scheduled it");
+        assertTrue(started.await(5, TimeUnit.SECONDS));
+        assertTrue(service.isCommitPending(doc), "pending while it runs");
+        assertFalse(service.isCommitPending(URI.create("https://localhost:4443/other/")), "only the graph written");
+
+        assertEquals(1, service.getCommitBacklog("https://localhost:4443/"), "one commit on the branch");
+        URI other = URI.create("https://localhost:4443/other/");
+        service.commitAsync(serviceContext(other), "https://localhost:4443/", BASE, other, "https://localhost:4443/agent#this", "PUT");
+        assertEquals(2, service.getCommitBacklog("https://localhost:4443/"), "the second waits behind the first on the same branch");
+        assertEquals(0, service.getCommitBacklog("https://localhost:4443/unversioned/"));
+
+        release.countDown();
+        awaitSettled(service, doc);
+        awaitSettled(service, other);
+        assertFalse(service.isCommitFailed(doc));
+        assertEquals(0, service.getCommitBacklog("https://localhost:4443/"), "none once both have ended");
+    }
+
+    /**
+     * A failed commit leaves the history behind the store until a later write commits the graph: the service says so,
+     * and stops once a later commit of the graph succeeds.
+     */
+    @Test
+    public void testAFailedCommitIsReportedUntilALaterOneSucceeds() throws Exception
+    {
+        URI doc = URI.create("https://localhost:4443/doc/");
+        GitHubClient client = mock(GitHubClient.class);
+        when(client.putFile(anyString(), any(byte[].class), anyString(), anyString())).
+            thenThrow(new IllegalStateException("repository unreachable")).
+            thenReturn(new GitHubClient.Commit("abc123", "def456"));
+        GraphVersioningService service = new GraphVersioningService(Map.of("https://localhost:4443/", new GraphVersioningService.Repository(client, "graphs")));
+
+        service.commitAsync(serviceContext(doc), "https://localhost:4443/", BASE, doc, "https://localhost:4443/agent#this", "PUT");
+        awaitSettled(service, doc);
+        assertTrue(service.isCommitFailed(doc), "the failure is kept once the commit has ended");
+
+        service.commitAsync(serviceContext(doc), "https://localhost:4443/", BASE, doc, "https://localhost:4443/agent#this", "PATCH");
+        awaitSettled(service, doc);
+        assertFalse(service.isCommitFailed(doc), "a later commit that succeeds clears it");
+    }
+
+    /**
+     * An application without a versioning repository schedules nothing, so nothing about its graphs is ever pending or
+     * failed: its TimeGate keeps answering as before.
+     */
+    @Test
+    public void testAnUnversionedApplicationHasNoCommitState()
+    {
+        URI doc = URI.create("https://localhost:4443/doc/");
+        GraphVersioningService service = new GraphVersioningService(Map.of());
+
+        service.commitAsync(serviceContext(doc), "https://localhost:4443/", BASE, doc, "https://localhost:4443/agent#this", "PUT");
+        assertFalse(service.isCommitPending(doc));
+        assertFalse(service.isCommitFailed(doc));
+    }
+
+    private static ServiceContext serviceContext(URI doc)
+    {
+        Model model = ModelFactory.createDefaultModel();
+        model.add(model.createResource(doc.toString()), DCTerms.title, "Doc");
+        GraphStoreClient graphStore = mock(GraphStoreClient.class);
+        when(graphStore.getModel(doc.toString())).thenReturn(model);
+        ServiceContext context = mock(ServiceContext.class);
+        when(context.getGraphStoreClient()).thenReturn(graphStore);
+        return context;
+    }
+
+    private static void awaitSettled(GraphVersioningService service, URI doc) throws InterruptedException
+    {
+        for (int i = 0; i < 500 && service.isCommitPending(doc); i++) Thread.sleep(10);
+        assertFalse(service.isCommitPending(doc), "the commit ended");
     }
 
 }

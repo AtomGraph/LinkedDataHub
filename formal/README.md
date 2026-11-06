@@ -7,14 +7,19 @@ model lives in its own directory with its own toolchain, README and mapping to t
 |-----------|------|--------|
 | [`http/`](http/) | Lean 4 | The graph store: its documents, its writes and the invariants they keep, and its answer to every request |
 | [`acl/`](acl/) | Lean 4 | The authorization decision over the graph store's data, the server's answer with the decision in front of the graph store, and the 6.0 migration of seeded authorizations |
+| [`auth/`](auth/) | Lean 4 | How the agent is established: the WebID filter, its cache and `On-Behalf-Of` delegation, the ID token filters and the first OAuth login, in front of the ACL model's answer |
+| [`client/`](client/) | Lean 4 | Where the browser client sends its requests and the window: `ldh:href`, the pane's base, and every request site not built by `ldh:href` |
 
 The graph store model stands alone; the ACL model requires it, by path, since the decision reads the graph store's
-data and its theorems about writes are about the graph store's writes.
+data and its theorems about writes are about the graph store's writes. The authentication model requires the ACL
+model, since the agent it establishes is the decision's input. The client model stands alone.
 
 The `Formal` workflow (`.github/workflows/formal.yml`) builds every model on each push, fails on an
 unproven theorem, and on a pull request fails when a transcribed source changes without the model
-(`http/tracks-code.sh`, `acl/tracks-code.sh`). The HTTP test suite replays the models' answers against the server:
-the status and the document's graph after each request (`tests/http/formal/`).
+(`http/tracks-code.sh`, `acl/tracks-code.sh`, `auth/tracks-code.sh`, `client/tracks-code.sh`). The HTTP test suite
+replays the models' answers against the server: the status and the document's graph after each request
+(`tests/http/formal/`). The client model is replayed against the stylesheets themselves: `ldh:href` under Saxon-HE on
+the model's cases, and the request sites as `client/sites.py` reads them.
 
 ## Why
 
@@ -63,11 +68,14 @@ credibility; the fifth is the one that answers the agent-era question and change
    queue, and the TimeGate is replayed against the Java on generated histories and against the server on a
    versioned dataspace.
 
-5. **Delegation as non-interference.** Model `On-Behalf-Of` and `acl:delegates`, and prove that for
-   any plan an LLM emits, the requests the secretary can execute on behalf of a caller are exactly those
-   the caller could execute alone, independently of prompt content. That reduces prompt injection to
-   misuse within existing rights, and motivates scoping `acl:delegates`, which today delegates
-   everything. Scoped delegation is the one design change this roadmap expects to force.
+5. **Delegation as non-interference.** Done: `auth/` models `On-Behalf-Of` and `acl:delegates`, and proves
+   that a request on behalf of a caller is authenticated as the caller (`authenticate_obo`) and that two
+   requests authenticated as the same agent get the same answer to every request
+   (`delegation_noninterference`). So for any plan an LLM emits, the requests the secretary can execute on
+   behalf of a caller are exactly those the caller could execute alone, independently of prompt content.
+   That reduces prompt injection to misuse within existing rights. The model also proves that the
+   secretary can act for every agent (`obo_complete`), which is what motivates scoping `acl:delegates`.
+   Scoped delegation is the one design change this roadmap expects to force.
 
 6. **Concurrency in its own model.** The lock protocol (a `PUT` holds its parent's lock and re-checks
    the parent exists, a `DELETE` checks for children) is a TLA+ problem: a small model and TLC, in a
@@ -76,12 +84,14 @@ credibility; the fifth is the one that answers the agent-era question and change
 7. **Chokepoints checked by structure.** The input-handling class is closed by `SecureXML` and
    `URLValidator` being the only paths to a parser or an outbound connection. Architecture tests that
    forbid raw XML parser factories, URL opening and SPARQL string concatenation outside those classes
-   turn that from a convention into a build failure.
+   turn that from a convention into a build failure. The client's request sites are checked this way already:
+   `client/sites.py` fails the workflow on a request target not built by `ldh:href` that the model has not
+   classified.
 
 8. **The claims are published.** A threat model page in the wiki, a `SECURITY.md` stating what is
    proven and under which hypotheses, and the model handed to the next penetration retest as its oracle.
 
 ## Not in scope
 
-Authentication (WebID, OAuth, delegation until step 5), content negotiation, caching, imports, uploads,
-XSLT and the client. Each is a candidate for its own model once the ones above hold.
+Content negotiation, caching, imports, uploads and XSLT. Each is a candidate for its own model once the ones above
+hold.

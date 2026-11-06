@@ -67,7 +67,9 @@ formal/http/tracks-code.sh origin/develop
   more recent of two as close, and the most recent with none. The TimeMap lists the history, each Memento a
   `prov:wasRevisionOf` the next one down. Every write that succeeds queues a reconcile (`VersioningFilter`), a
   branch's reconciles run one at a time, and each commits the graph the store has when it runs: a version is a
-  snapshot then, not one per write.
+  snapshot then, not one per write. A reconcile can fail and leave the file as it was. The TimeGate answers `503`
+  with `Retry-After` while a reconcile of the document is queued or running and `500` when the last one failed, so a
+  redirect without a datetime is always to the document's graph.
 
 ## Mapping to the code
 
@@ -91,7 +93,8 @@ formal/http/tracks-code.sh origin/develop
 | `Commit`, the history | `GitHubClient.CommitInfo` and `listCommits` (`client/`): the file's commits, most recent first |
 | `selectMemento`, `closer` | `GraphVersioningService.selectMemento`: `stream().min()` over the absolute distance |
 | `members`, `revisions` | `GraphVersioningService.toTimeMap`'s `prov:hadMember` and `prov:wasRevisionOf` |
-| `Versioning.step` | `VersioningFilter` (`server/filter/response/`), which queues a reconcile after a write that succeeds, and `commitAsync` and `reconcile`, which run a branch's one at a time |
+| `Versioning.step` | `VersioningFilter` (`server/filter/response/`), which queues a reconcile after a write that succeeds, and `commitAsync` and `reconcile`, which run a branch's one at a time; `queued` and `failed` are `GraphVersioningService`'s `pending` and `failed` |
+| `Versioning.timeGate` | `DocumentHierarchyGraphStoreImpl.get` with `?timegate` and no `Accept-Datetime`: `503` while `isCommitPending`, `500` when `isCommitFailed`, else the `302` |
 | `versionFile` | `GraphVersioningService.path` |
 
 `DocumentHierarchyGraphStoreImpl` lives in `server/model/impl/`, all of them under
@@ -119,7 +122,8 @@ Proven with no `sorry`, using only the axioms `propext`, `Quot.sound` and, throu
 | `select_latest` | With no datetime, the most recent |
 | `select_closest` | No commit is closer to the datetime, and every more recent one is further from it |
 | `mem_revisions` | Each Memento is a revision of the one before it in the history, and of nothing else |
-| `drained_is_current` | Whatever writes and reconciles follow, whenever none is queued the newest version is the document's graph |
+| `drained_is_current` | Whatever writes and reconciles follow, whenever none is queued and the last one succeeded the newest version is the document's graph |
+| `timeGate_current` | A TimeGate that redirects a document written since versioning began redirects to its graph, never to an older version |
 | `versionFile_root_collides`, `versionFile_inj` | The root document and a top-level document named `root` share a version file; no two other documents do |
 
 The invariants are hypotheses the ACL model's theorems take; it proves them of its authorized writes through these.
@@ -164,7 +168,9 @@ The TimeGate is replayed twice:
   serialisation.
 - **Other server work:** constraint validation, parsing, skolemization, dates, imports, uploads, content
   negotiation, conditional `GET` and caching. A write refused for its body, such as one with a malformed IRI or a
-  missing title answered with `422`, changes nothing, and the model has no write for it. The answer takes the
+  missing title answered with `422`, changes nothing, and the model has no write for it. Nor are the bodies of
+  refusals: the model answers a refusal by its status, and a check that throws `ClientErrorException` rather than
+  `WebApplicationException`, so that its message is described in the body, answers the same status. The answer takes the
   payload as ground triples free of `dct:created` and `dct:modified`, and the replay sends only such payloads, valid
   against the ontology's constraints, with a single-operation `PATCH`.
 - **A `PATCH` of several operations:** `patch()` runs the request's operations in order, in one execution, and
@@ -175,6 +181,6 @@ The TimeGate is replayed twice:
   are covered by `tests/http/document-hierarchy/PATCH-chained*.sh`.
 - **The entity tag's value:** the replay cannot compute the server's tags (Jena's N-Triples, SHA-256, the variant
   folding), so it states whether the tag it quotes is current.
-- **Versioning's failures and limits:** a reconcile that fails, a write whose response fails after the store has
-  changed (no reconcile is queued for it), and a history longer than `listCommits` pages through. The history's order
+- **Versioning's failures and limits:** why a reconcile fails (the model has that it can, and what the TimeGate then
+  answers), a write whose response fails after the store has changed (no reconcile is queued for it), and a history longer than `listCommits` pages through. The history's order
   is GitHub's.

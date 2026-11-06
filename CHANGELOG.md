@@ -1,3 +1,32 @@
+## [Unreleased]
+### Added
+- `ldh get --timemap` and `--timegate` follow the `Link` the document advertises, and `--timegate` waits as a `503` with `Retry-After` asks
+- `VARNISH_FRONTEND_STORAGE`, `VARNISH_ADMIN_STORAGE` and `VARNISH_END_USER_STORAGE` size each Varnish's main store, so a deployment can fit it under the service's `mem_limit`
+
+### Changed
+- A TimeGate asked for a document whose latest change is still being committed answers `503` with `Retry-After` (a second per commit queued on its branch, up to a minute) instead of redirecting to the version before it, and `500` when that commit failed; dataspaces without versioning answer as before
+- With `ENABLE_LINKED_DATA_PROXY=false`, `?uri=` naming anything other than one of the instance's dataspaces or a mapped document answers `403` for browsers too, instead of rendering the app shell; each distinct `?uri=` had been an uncached server-side render
+- The platform's JVM exits on an `OutOfMemoryError`, and the `linkeddatahub` service restarts `on-failure`; before, the JVM could lose Tomcat's acceptor and poller threads and stay up answering nothing
+- A dataspace counts as seeded only once all its seed uploads have succeeded (the `based-datasets/<app>/.seeded` marker, written last); before, the marker was the folder created before the first upload, so a seed that failed partway was never retried
+
+### Removed
+- The Northwind Traders demo dataspace from the default config
+
+### Fixed
+- A SPARQL result under the `/sparql` endpoint's limit is no longer cut short when the Varnish store of SPARQL results is full: the store may evict up to 1000 cached results to make room for it (`nuke_limit`), not 50
+- The `/sparql` endpoint answers `502` for a result the store's response cut short, instead of `200` with the rows that had arrived
+- `ldh admin import ontology --source` imports from a LinkedDataHub document, such as a vocabulary vendored into the dataspace: it leaves the source document's `sioc:has_parent` and `sioc:has_container` out of the import, which the admin application refused with `422`
+- A write refused with `422` for the document hierarchy, the `PATCH` update form or an access request answers with the RDF description of the error, its message as `dct:title`, instead of the servlet container's empty error page
+- `ldh admin create ontology` without `--uri`, which writes a blank node ontology, succeeds instead of failing with `500`
+
+### Security
+- A `?uri=` that is not `http(s)` is refused with `400`, and the client opens only an `http(s)` document the proxy could not fetch: a link with `?uri=javascript:…` ran its script on the dataspace's origin. Found by the client model, `formal/client/`, which proves the window is sent to `http(s)` URLs only
+- On a proxied document, the assistant's requests stay on the page's origin, and the ontology import's query and the namespace `clear` go through the proxy: a proxied document naming an `lds:dataspace` sent them to its own origin
+- A version restore on a proxied document writes that document, through the proxy, and reads its access modes, TimeMap and version the same way: it wrote the remote's version over the dataspace's root
+
+- A first OAuth login links its account to an existing agent by email only when the provider verified the address (`email_verified`), and an unverified address is not stored as the new agent's `foaf:mbox`: an address the provider had not verified took over the agent whose mailbox it was. Google's boolean claims reach the login, `email_verified` among them. Found by the authentication model, `formal/auth/`
+- The ID token cache is kept per dataspace: a token used on one dataspace authenticated on another whose admin dataset has no account for it, until the token expired
+
 ## [6.4.0] - 2026-11-02
 ### Migration
 - `ldh create container` and `ldh create item` only create: they send `If-None-Match: *` and fail on an existing document instead of replacing it; scripts that re-run them pass `--if-absent` to accept the existing document (#505)

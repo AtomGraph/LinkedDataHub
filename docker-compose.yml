@@ -40,6 +40,7 @@ services:
     user: root # otherwise the ldh user does not have permissions to the mounted folder which is owner by root
     build: .
     mem_limit: 2048m
+    restart: on-failure # entrypoint.sh exits the JVM on an OutOfMemoryError
     depends_on:
       - fuseki
       - sef-compiler
@@ -207,7 +208,7 @@ services:
     volumes:
       - varnish_frontend_cache:/var/lib/varnish
     entrypoint: varnishd
-    command: [ "-F", "-f", "/etc/varnish/default.vcl", "-a", "http=:6060,HTTP", "-a", "proxy=:8443,PROXY", "-p", "feature=+http2", "-s", "file,/var/lib/varnish/storage.bin,3G", "-t", "86400" ] # -F: foreground, -f: config, -a: listeners, -p: http2, -s: storage, -t: TTL
+    command: [ "-F", "-f", "/etc/varnish/default.vcl", "-a", "http=:6060,HTTP", "-a", "proxy=:8443,PROXY", "-p", "feature=+http2", "-s", "file,/var/lib/varnish/storage.bin,${VARNISH_FRONTEND_STORAGE:-3G}", "-t", "86400" ] # -F: foreground, -f: config, -a: listeners, -p: http2, -s: storage (keep it below the container's mem_limit, which the mapped file counts against), -t: TTL
   varnish-admin:
     image: varnish:7.7.3
     user: root # otherwise the varnish user does not have permissions to the mounted folder which is owner by root
@@ -218,7 +219,7 @@ services:
       - linkeddatahub
     tmpfs: /var/lib/varnish/varnishd:exec
     entrypoint: varnishd
-    command: [ "-F", "-f", "/etc/varnish/default.vcl", "-a", "http=:80,HTTP", "-a", "proxy=:8443,PROXY", "-p", "feature=+http2", "-s", "main=malloc,1G", "-s", "sparql=malloc,${VARNISH_SPARQL_STORAGE:-64M}", "-t", "86400", "-p", "timeout_idle=60s" ] # -F: foreground, -f: config, -a: listeners, -p: http2 + idle timeout, -s: storage (main, and one for SPARQL results), -t: TTL
+    command: [ "-F", "-f", "/etc/varnish/default.vcl", "-a", "http=:80,HTTP", "-a", "proxy=:8443,PROXY", "-p", "feature=+http2", "-s", "main=malloc,${VARNISH_ADMIN_STORAGE:-1G}", "-s", "sparql=malloc,${VARNISH_SPARQL_STORAGE:-64M}", "-t", "86400", "-p", "timeout_idle=60s", "-p", "nuke_limit=1000" ] # -F: foreground, -f: config, -a: listeners, -p: http2 + idle timeout, -s: storage (main, and one for SPARQL results), -t: TTL, -p: nuke_limit - the cached results a fetch may evict to make room; at the default 50, a full SPARQL store of small results cut a result well under the platform's limit short
   varnish-end-user:
     image: varnish:7.7.3
     user: root # otherwise varnish user does not have permissions to the mounted folder which is owner by root
@@ -231,7 +232,7 @@ services:
     volumes:
       - varnish_end_user_cache:/var/lib/varnish
     entrypoint: varnishd
-    command: [ "-F", "-f", "/etc/varnish/default.vcl", "-a", "http=:80,HTTP", "-a", "proxy=:8443,PROXY", "-p", "feature=+http2", "-s", "main=file,/var/lib/varnish/storage.bin,3G", "-s", "sparql=malloc,${VARNISH_SPARQL_STORAGE:-64M}", "-t", "86400", "-p", "timeout_idle=60s" ] # -F: foreground, -f: config, -a: listeners, -p: http2 + idle timeout, -s: storage (main, and one for SPARQL results), -t: TTL
+    command: [ "-F", "-f", "/etc/varnish/default.vcl", "-a", "http=:80,HTTP", "-a", "proxy=:8443,PROXY", "-p", "feature=+http2", "-s", "main=file,/var/lib/varnish/storage.bin,${VARNISH_END_USER_STORAGE:-3G}", "-s", "sparql=malloc,${VARNISH_SPARQL_STORAGE:-64M}", "-t", "86400", "-p", "timeout_idle=60s", "-p", "nuke_limit=1000" ] # -F: foreground, -f: config, -a: listeners, -p: http2 + idle timeout, -s: storage (main, and one for SPARQL results), -t: TTL, -p: nuke_limit - the cached results a fetch may evict to make room; at the default 50, a full SPARQL store of small results cut a result well under the platform's limit short
   email-server:
     image: namshi/smtp
     environment:

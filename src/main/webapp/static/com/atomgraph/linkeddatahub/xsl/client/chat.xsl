@@ -1879,11 +1879,12 @@ exclude-result-prefixes="#all"
 
     <!-- HELPERS -->
 
-    <!-- the plan service is on this dataspace's origin, behind nginx at /webalgebra -->
+    <!-- the plan service is on this dataspace's origin, behind nginx at /webalgebra: the page's origin, never lds:base(),
+         which a proxied document's lds:dataspace link moves to the origin it names -->
     <xsl:function name="ldh:chat-href" as="xs:anyURI">
         <xsl:param name="path" as="xs:string"/>
 
-        <xsl:sequence select="xs:anyURI(resolve-uri($path, lds:base()))"/>
+        <xsl:sequence select="resolve-uri($path, xs:anyURI(lds:origin(ldh:request-uri()) || '/'))"/>
     </xsl:function>
 
     <!-- the design's ProgressBar at its thinnest: a label, a value when there is one to count, and a bar that is
