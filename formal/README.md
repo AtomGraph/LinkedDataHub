@@ -24,7 +24,7 @@ unproven theorem, and on a pull request fails when a transcribed source changes 
 document's graph after each request (`tests/http/formal/`). The client model is replayed against the stylesheets
 themselves: `ldh:href` under Saxon-HE on the model's cases, and the request sites as `client/sites.py` reads them. So
 is the XSLT model: its rendering rules under Saxon-HE on the model's sanitize cases, and the editor's canonical form on
-its counterexamples. The uploads model's serving is replayed through the stack
+its former counterexamples. The uploads model's serving is replayed through the stack
 (`tests/http/formal/uploads-conformance.sh`), and its range selection against `ByteRange.parse`
 (`ByteRangeModelTest`).
 

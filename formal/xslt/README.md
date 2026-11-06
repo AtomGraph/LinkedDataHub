@@ -30,13 +30,13 @@ formal/xslt/tracks-code.sh origin/develop
 |------|----------|
 | `LdhXslt/Url.lean` | The scheme of a URL as the browser reads it and as `ldh:url-scheme` does, and why the two agree |
 | `LdhXslt/Sanitize.lean` | XML trees, what a browser runs in one, the rendering rules, and why nothing they render runs |
-| `LdhXslt/Canonical.lean` | The editor's canonical form, rules S1-S3, and what gets past them |
+| `LdhXslt/Canonical.lean` | The editor's canonical form, rules S1-S3, and why nothing they leave runs |
 | `LdhXslt/Chat.lean` | The assistant's answer allowlist, and why nothing it keeps runs |
 | `LdhXslt/Bootstrap.lean` | The JavaScript string literal the agent's URI is written into, and why a URI cannot leave it |
 | `LdhXslt/Resolver.lean` | What a server-side `document()` reaches |
-| `Main.lean` | `ldh-xslt`: the sanitize cases and the canonical counterexamples, for the workflow |
+| `Main.lean` | `ldh-xslt`: the sanitize cases and the canonical form's former counterexamples, for the workflow |
 | `sanitize-cases.tsv` | The sanitize cases, as the model renders them |
-| `canonical-cases.tsv` | The canonical counterexamples, as the model has the canonical form keep them |
+| `canonical-cases.tsv` | The canonical form's former counterexamples, as the model has it take them out |
 | `sanitize-cases.xsl` | Both, as the stylesheets render them |
 
 ## The model
@@ -70,7 +70,9 @@ live region (`imports/values.xsl`), where before the stored literal was copied i
 the editor opened.
 
 **The canonical form** (`canonical`) is the editor's `cm:canonical` pass, rules S1-S3: the ones that take content out.
-`rdfa-editor/` is a copy kept byte-identical with its upstream, so it is modelled as it is, not fixed here.
+`rdfa-editor/` is a copy kept byte-identical with its upstream, AtomGraph/RDFa-Editor, where its three gaps were
+closed. Its S1 now takes elements out by local name in any namespace, and its S2 and S3 take attributes out by the
+renderer's rule (`dropAttr`), so the model proves the same of it as of rendering.
 
 **The chat allowlist** (`chat`) is `ldh:ChatAnswer` in `client/chat.xsl`.
 
@@ -92,7 +94,7 @@ Paths are relative to `src/main/webapp/static/com/atomgraph/linkeddatahub/xsl/`,
 | `sanitize`, `activeNames`, `dropAttr`, `dataImage` | `imports/default.xsl`: the templates in mode `ldh:SafeXHTML`, which mode `ldh:XHTMLContent` shares |
 | `xsltScheme` | `imports/default.xsl`: `ldh:url-scheme` |
 | the editor's region | `imports/values.xsl`: `*[@rdf:parseType = 'Literal']/xhtml:*` in mode `ac:FormControl` |
-| `canonical`, `s1Names`, `s3` | `rdfa-editor/canonical-xhtml.xsl`: S1, S2 and S3 in mode `cm:canonical` |
+| `canonical`, `s1Names` | `rdfa-editor/canonical-xhtml.xsl`: S1, S2 and S3 in mode `cm:canonical`, and `cm:url-scheme` |
 | `chat`, `chatKept`, `chatDropped`, `httpHref` | `client/chat.xsl`: the templates in mode `ldh:ChatAnswer` |
 | `afterString`, `uriChar` | `layout.xsl`: the `contextUri` and `agentUri` values written with `disable-output-escaping` |
 | `resolve`, `parentResolve`, `resolvingUncached` | `writer/impl/SameSiteSourceResolver.java`, and Web-Client's `RDFSourceResolver.resolve` |
@@ -111,20 +113,20 @@ Proven with no `sorry`, using only the axioms `propext` and `Quot.sound`:
 | `sanitize_inert` | Nothing an XML literal renders to runs, whatever was stored |
 | `sanitize_faithful` | A literal holding none of what the rules name renders as it was stored |
 | `text_inert` | A text node renders as itself, which the serializer escapes |
-| `canonical_keeps_svg_script`, `canonical_keeps_split_scheme`, `canonical_keeps_xlink_href` | The editor's canonical form keeps a script in the SVG namespace, `java&#9;script:`, and an SVG link's `xlink:href` |
-| `sanitize_takes_them_out` | Rendering takes out all three |
+| `canonical_inert` | Nothing the editor's canonical form leaves runs, whatever was pasted or typed |
+| `canonical_takes_them_out`, `sanitize_takes_them_out` | The canonical form and rendering both take out a script in the SVG namespace, `java&#9;script:`, and an SVG link's `xlink:href` |
 | `chat_inert` | Nothing an assistant's answer renders to runs, whatever the model wrote |
 | `bootstrap_closed` | A value of URI characters ends the bootstrap's string literal at its closing quote, and holds neither `<` nor `>` |
 | `parent_hands_back` | Web-Client's resolver hands a URI that is not cached, mapped or `http(s)` back to Saxon |
 | `resolve_confined` | The platform's resolver hands nothing back to Saxon, and fetches only a same-site `http(s)` URI |
 
-Two findings were reproduced against the code as it was, and are fixed with the model:
+Three findings were reproduced against the code as it was, and are fixed with the model:
 
 - Behind `sanitize_inert`: `ldh:XHTMLContent` was an identity copy, so a literal rendered
   as it was stored, and the editor's canonical form was all that kept the active parts out, for literals saved
   through the editor only. A writer of a document who PUT or PATCHed a literal, or imported one, put a script on a
   page the owner reads; and a proxied document's literal ran on the proxying dataspace's origin with nothing
-  written at all. The canonical form, besides, keeps the three counterexamples above. Rendering now takes the active
+  written at all. The canonical form, besides, kept the three counterexamples below. Rendering now takes the active
   parts out itself, and the editor's region renders through the same rules: it had copied the literal in, so a
   handler ran when the editor opened. Reproduced by replaying the sanitize cases against the stylesheet as it was:
   `script`, `svg:script`, `onerror`, `javascript:` and `srcdoc` all came out as they went in.
@@ -136,8 +138,13 @@ Two findings were reproduced against the code as it was, and are fixed with the 
 
 `tests/http/document-hierarchy/GET-html-xhtml-inert.sh` writes a literal with each active part straight to a
 document and checks the server-rendered page has none of them and keeps the rest;
-`writer/impl/SameSiteSourceResolverTest` checks the resolver. The canonical form's counterexamples stay: rendering
-does not depend on it any more, and the fix belongs upstream.
+`writer/impl/SameSiteSourceResolverTest` checks the resolver.
+
+- Behind `canonical_inert`: the canonical form's S1 matched script in the XHTML namespace only, and S3 read the scheme
+  after `normalize-space` and matched `@href` in no namespace only, so it kept a script in the SVG namespace,
+  `java&#9;script:` and an SVG link's `xlink:href` (`canonical_keeps_svg_script`, `canonical_keeps_split_scheme`,
+  `canonical_keeps_xlink_href`, proven of the stylesheet as it was, and replayed against it). Closed upstream
+  (AtomGraph/RDFa-Editor `fix/sanitize-any-namespace`, with a fixture of the three) and copied in unchanged.
 
 ## Replaying
 
@@ -156,9 +163,11 @@ The cases cover each rule and the spellings that get past a weaker one: a script
 `action` and a button's `formaction`; and what has to stay: `javascript:` in a query string or a path, a fragment,
 an embedded video, a form posting to the instance, inline style, and markup quoted in a `pre`.
 
-The canonical counterexamples are replayed the same way, with `which=canonical`, which runs the whole canonical form
-(`cm:canonical-xhtml`, both passes, with the content model) on each literal as the editor's region content. Its other
-rules leave all three as S1-S3 do, so the model's partial transcription and the stylesheet print the same.
+The canonical form's former counterexamples are replayed the same way, with `which=canonical`, which runs the whole
+canonical form (`cm:canonical-xhtml`, both passes, with the content model) on each literal as the editor's region
+content. Its other rules leave what S1-S3 leave of them, so the model's partial transcription and the stylesheet
+print the same. That the other rules add nothing that runs - they rename, unwrap and wrap elements, and strip
+attributes - is assumed, not proven.
 
 ## Not modelled
 

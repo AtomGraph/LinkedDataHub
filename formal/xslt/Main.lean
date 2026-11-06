@@ -2,7 +2,7 @@
 `ldh-xslt`: the model's answers, for the workflow to check the stylesheets against.
 
     ldh-xslt sanitize-cases    the sanitize cases: LITERAL<TAB>RENDERED, one per line
-    ldh-xslt canonical-cases   the canonical form's counterexamples, in the same shape
+    ldh-xslt canonical-cases   the canonical form's former counterexamples, in the same shape
 
 LITERAL is an element serialized as XML, and RENDERED what the model renders it to, as a projection both sides can
 print: an element is `(NS NAME @ANS ANAME="VALUE"... CHILD...)` with its attributes ordered by namespace and name, a
@@ -90,7 +90,7 @@ def sanitizeCases : List Node := [
   x "div" [] [x "h2" [a "id" "s", a "onmouseover" "alert(1)"] [t "Heading"]]
 ]
 
-/-- The counterexamples, each with something in it that runs. -/
+/-- The canonical form's former counterexamples, each with something in it that runs. -/
 def canonicalCases : List Node := [svgScript, splitScheme, xlinkHref]
 
 def main : List String → IO UInt32

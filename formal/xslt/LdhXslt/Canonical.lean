@@ -1,53 +1,68 @@
 /-
 The editor's canonical form, `cm:canonical` (rdfa-editor/canonical-xhtml.xsl), rules S1-S3: the ones that take
-content out. The editor stores what they leave, so before rendering took the active parts out itself
-(`LdhXslt.Sanitize`), they were all that stood between a literal and the page, and only for literals saved through
-the editor. They do not stop everything that runs, and the counterexamples below are what `canonical-cases.xsl`
-replays against the stylesheet, which is copied into this repository unchanged and is fixed upstream if at all:
+content out. The editor stores what they leave.
 
-* `canonical_keeps_svg_script`: S1 matches script in the XHTML namespace only.
-* `canonical_keeps_split_scheme`: S3 reads the scheme after `normalize-space`, which turns a tab into a space; the
-  browser removes it, so `java&#9;script:` is `javascript:`.
-* `canonical_keeps_xlink_href`: S3 matches `@href` in no namespace, and an SVG link's target is `xlink:href`.
+They had three gaps, each proven of the stylesheet as it was and replayed against it, and closed upstream
+(AtomGraph/RDFa-Editor, `fix/sanitize-any-namespace`), from where the stylesheet is copied unchanged:
+
+* S1 matched script in the XHTML namespace only, so an `svg:script` survived.
+* S3 read the scheme after `normalize-space`, which turns a tab into a space; the browser removes it, so
+  `java&#9;script:` survived as `javascript:`.
+* S3 matched `@href` in no namespace only, so an SVG link's `xlink:href` survived.
+
+S1 now matches by local name in any namespace, S2 takes `srcdoc` too, and S3 reads the scheme as the browser does
+(`cm:url-scheme`, `xsltScheme`) on the URL attributes in any namespace: its attribute rule is `dropAttr`, the
+renderer's own. So:
+
+* `canonical_inert`: nothing S1-S3 leave runs, whatever was pasted or typed.
+* `canonical_takes_them_out`: the three former counterexamples are taken out.
 -/
 import LdhXslt.Sanitize
 
 namespace LdhXslt
 
-/-- S1: `script | style | iframe | object | embed | applet | form | input | select | textarea | link | meta | base`,
-under `xpath-default-namespace="http://www.w3.org/1999/xhtml"`. -/
+/-- S1: by local name in any namespace. -/
 def s1Names : List String :=
-  ["script", "style", "iframe", "object", "embed", "applet", "form", "input", "select", "textarea", "link", "meta", "base"]
-
-def isXmlSpace (c : Char) : Bool := c == ' ' || isTabNl c
-
-/-- `normalize-space`: runs of spaces, tabs and line breaks to one space, none at either end. -/
-def normalizeSpace (s : Str) : Str :=
-  let words := (s.splitBy (fun a b => isXmlSpace a == isXmlSpace b)).filter (fun w => !w.all isXmlSpace)
-  List.intercalate [' '] words
-
-def lowerPrefix (p s : Str) : Bool := (s.take p.length).map Char.toLower == p
-
-/-- S3: `@href[matches(normalize-space(.), '^(javascript|vbscript|data):', 'i')]`, `@src[matches(normalize-space(.),
-'^(javascript|vbscript):', 'i')]`, and `@src` with `^data:` but not `^data:image/`. -/
-def s3 (a : Attr) : Bool :=
-  let v := normalizeSpace a.value
-  a.ns == "" &&
-    ((a.name == "href" && (lowerPrefix "javascript:".toList v || lowerPrefix "vbscript:".toList v || lowerPrefix "data:".toList v)) ||
-     (a.name == "src" && (lowerPrefix "javascript:".toList v || lowerPrefix "vbscript:".toList v ||
-       (lowerPrefix "data:".toList v && !lowerPrefix "data:image/".toList v))))
+  ["script", "style", "iframe", "frame", "frameset", "object", "embed", "applet", "form", "input", "select",
+   "textarea", "link", "meta", "base", "set", "animate", "animateMotion", "animateTransform"]
 
 mutual
-/-- S1 drops the element, S2 (`@*[matches(local-name(), '^on', 'i')]`) and S3 the attribute. -/
+/-- S1 drops the element; S2 (`@*[matches(local-name(), '^on', 'i')] | @*[local-name() = 'srcdoc']`) and S3 the
+attribute, which together are `dropAttr`. -/
 def canonical : Node → List Node
   | .text s => [.text s]
   | .elem ns name attrs kids =>
-    if ns == xhtmlNs && s1Names.contains name then []
-    else [.elem ns name (attrs.filter (fun a => !(startsOn a.name || s3 a))) (canonicalList kids)]
+    if s1Names.contains name then [] else [.elem ns name (attrs.filter (!dropAttr ·)) (canonicalList kids)]
 def canonicalList : List Node → List Node
   | [] => []
   | k :: ks => canonical k ++ canonicalList ks
 end
+
+mutual
+theorem canonical_inert' : ∀ (n : Node), Legal n → runsList (canonical n) = false
+  | .text s, _ => by simp [canonical, runsList, runs]
+  | .elem ns name attrs kids, ⟨ha, hk⟩ => by
+    unfold canonical
+    by_cases hn : s1Names.contains name = true
+    · rw [if_pos hn]; rfl
+    · have hn' : s1Names.contains name = false := by simpa using hn
+      have hs : runsElem ns name = false := by
+        cases hr : name == "script" with
+        | false => simp [runsElem, hr]
+        | true =>
+          have : name = "script" := by simpa using hr
+          subst this
+          simp [s1Names] at hn'
+      simp only [hn', Bool.false_eq_true, if_false, runsList, runs, hs, filter_inert attrs ha,
+        canonicalList_inert kids hk, Bool.or_false]
+theorem canonicalList_inert : ∀ (ks : List Node), LegalList ks → runsList (canonicalList ks) = false
+  | [], _ => by simp [canonicalList, runsList]
+  | k :: ks, ⟨hk, hks⟩ => by
+    simp only [canonicalList, runsList_append, canonical_inert' k hk, canonicalList_inert ks hks, Bool.or_false]
+end
+
+/-- Nothing S1-S3 leave runs. -/
+theorem canonical_inert (n : Node) (h : Legal n) : runsList (canonical n) = false := canonical_inert' n h
 
 def svgScript : Node :=
   .elem svgNs "svg" [] [.elem svgNs "script" [] [.text "alert(document.domain)".toList]]
@@ -58,11 +73,9 @@ def splitScheme : Node :=
 def xlinkHref : Node :=
   .elem svgNs "svg" [] [.elem svgNs "a" [⟨xlinkNs, "href", "javascript:alert(document.domain)".toList⟩] [.elem svgNs "text" [] [.text "link".toList]]]
 
-theorem canonical_keeps_svg_script : runsList (canonical svgScript) = true := by decide
-
-theorem canonical_keeps_split_scheme : runsList (canonical splitScheme) = true := by decide
-
-theorem canonical_keeps_xlink_href : runsList (canonical xlinkHref) = true := by decide
+/-- The canonical form takes out the three it used to keep. -/
+theorem canonical_takes_them_out : runsList (canonical svgScript) = false ∧ runsList (canonical splitScheme) = false ∧
+    runsList (canonical xlinkHref) = false := by decide
 
 /-- Rendering takes out all three. -/
 theorem sanitize_takes_them_out : runsList (sanitize svgScript) = false ∧ runsList (sanitize splitScheme) = false ∧

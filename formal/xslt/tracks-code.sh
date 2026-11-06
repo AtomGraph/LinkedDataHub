@@ -23,7 +23,7 @@ declarations=(
   "$xsl/imports/values.xsl	//*[local-name()='template'][@mode='ac:FormControl'][contains(@match, 'Literal')]"
   "$xsl/client/chat.xsl	//*[local-name()='template'][@mode='ldh:ChatAnswer']"
   "$xsl/layout.xsl	//*[local-name()='value-of'][@disable-output-escaping][contains(@select, 'acl:agent') or contains(@select, 'lds:origin()')]"
-  "$xsl/rdfa-editor/canonical-xhtml.xsl	//*[local-name()='template'][@mode='cm:canonical'][@priority='3' or contains(@match, '^on') or contains(@match, 'javascript')]"
+  "$xsl/rdfa-editor/canonical-xhtml.xsl	//*[local-name()='template'][@mode='cm:canonical'][@priority='3' or contains(@match, '^on') or contains(@match, 'javascript')] | //*[local-name()='function'][@name='cm:url-scheme']"
 )
 
 # files transcribed whole
