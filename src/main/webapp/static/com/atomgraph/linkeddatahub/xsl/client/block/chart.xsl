@@ -219,6 +219,10 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[@typeof = ('&ldh;ResultSetChart', '&ldh;GraphChart')][descendant::*[@property = '&spin;query'][@resource]][descendant::*[@property = '&ldh;chartType'][@resource]]" mode="ldh:RowHook" as="function(item()?) as map(*)">
         <xsl:param name="block" select="ancestor-or-self::div[contains-token(@class, 'block')][1]" as="element()"/>
         <xsl:param name="about" select="$block/@about" as="xs:anyURI"/>
+        <!-- the resource the chart is shown about - the @about of the block it sits in, as a view's $about (block/view.xsl): for
+             a chart an ontology attaches with ldh:view or ldh:inverseView, the resource whose page it is on, which its own
+             @about (a fragment derived for the injected block, client/block.xsl) is not. None for a top-level block -->
+        <xsl:param name="parent-about" select="$block/ancestor::*[@about][1]/@about" as="xs:anyURI?"/>
         <xsl:param name="container" select="." as="element()"/>
         <xsl:param name="mode" select="descendant::*[@property = '&ac;mode']/@resource" as="xs:anyURI?"/>
         <xsl:param name="container-id" select="string($container/@id)" as="xs:string"/>
@@ -250,6 +254,7 @@ exclude-result-prefixes="#all"
           map{
             'request': $request,
             'this': $about,
+            'about': $parent-about,
             'block': $block,
             'container': $container,
             'container-id': $container-id,
@@ -605,6 +610,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="block" select="$context('block')" as="element()"/>
         <xsl:variable name="container" select="$context('container')" as="element()"/>
         <xsl:variable name="this" select="$context('this')" as="xs:anyURI"/>
+        <xsl:variable name="about" select="$context('about')" as="xs:anyURI?"/>
         <xsl:variable name="container-id" select="$context('container-id')" as="xs:string"/>
         <xsl:variable name="query-uri" select="$context('query-uri')" as="xs:anyURI"/>
         <xsl:variable name="chart-type" select="$context('chart-type')" as="xs:anyURI"/>
@@ -621,6 +627,8 @@ exclude-result-prefixes="#all"
                     <xsl:for-each select="?body">
                         <xsl:variable name="query-string" select="key('resources', $query-uri)/sp:text" as="xs:string"/>
                         <xsl:variable name="query-string" select="replace($query-string, '$this', '&lt;' || $this || '&gt;', 'q')" as="xs:string"/>
+                        <!-- as a view binds it (block/view.xsl): the resource the chart is shown about -->
+                        <xsl:variable name="query-string" select="if (exists($about)) then replace($query-string, '$about', '&lt;' || $about || '&gt;', 'q') else $query-string" as="xs:string"/>
                         <!-- the query's ldh:service, loaded by ldh:load-query-service -->
                         <xsl:variable name="service" select="$context('service')" as="element()?"/>
                         <xsl:variable name="endpoint" select="ldh:query-endpoint($service, $block)" as="xs:anyURI"/>
