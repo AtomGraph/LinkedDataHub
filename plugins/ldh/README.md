@@ -23,8 +23,8 @@ CLI (`make cli` in this repository).
 | Setting | `ldh` reads it as |
 |---|---|
 | LinkedDataHub base URL: the end-user base of the dataspace, e.g. `https://inventory.localhost:4443/` | `LDH_BASE` |
-| WebID certificate: the owner's PKCS12 keystore or PEM file | `LDH_CERT_FILE` |
-| Certificate password, kept in the system credential store | `LDH_CERT_PASSWORD` |
+| WebID certificate: the owner's keystore, which the `linkeddatahub` container generates at `ssl/owner/keystore.p12` in the checkout (`ssl/owner/cert.pem` works too) | `LDH_CERT_FILE` |
+| Certificate password: the one in `secrets/owner_cert_password.txt`, kept in the system credential store | `LDH_CERT_PASSWORD` |
 
 Provisioning a dataspace needs none of them.
 
