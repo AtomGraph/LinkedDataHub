@@ -26,6 +26,7 @@ import com.atomgraph.client.util.jena.PrefixGraphRepository;
 import com.atomgraph.core.exception.BadGatewayException;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.URLValidator;
+import jakarta.ws.rs.ForbiddenException;
 import jakarta.ws.rs.NotAcceptableException;
 import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.client.Client;
@@ -103,6 +104,7 @@ public class ProxyRequestFilterTest
             .thenReturn(URI.create("http://example.org/resource"));
         when(requestContext.getAcceptableMediaTypes())
             .thenReturn(List.of(MediaType.TEXT_HTML_TYPE));
+        when(system.isEnableLinkedDataProxy()).thenReturn(true);
         filter.filter(requestContext);
         verify(request, never()).selectVariant(anyList());
         verify(requestContext, never()).abortWith(any());
@@ -116,8 +118,51 @@ public class ProxyRequestFilterTest
             .thenReturn(URI.create("http://example.org/resource"));
         when(requestContext.getAcceptableMediaTypes())
             .thenReturn(List.of(MediaType.APPLICATION_XHTML_XML_TYPE));
+        when(system.isEnableLinkedDataProxy()).thenReturn(true);
         filter.filter(requestContext);
         verify(request, never()).selectVariant(anyList());
+        verify(requestContext, never()).abortWith(any());
+    }
+
+    /** Proxy disabled: an external target is refused even when the client prefers text/html, rather than rendering the app shell. */
+    @Test
+    public void testHtmlAcceptForbiddenWhenProxyDisabled()
+    {
+        PrefixGraphRepository repository = mock(PrefixGraphRepository.class);
+        when(requestContext.getProperty(AC.uri.getURI()))
+            .thenReturn(URI.create("http://dbpedia.org/resource/Banjoist"));
+        lenient().when(requestContext.getAcceptableMediaTypes())
+            .thenReturn(List.of(MediaType.TEXT_HTML_TYPE));
+        when(system.getRepository()).thenReturn(repository);
+        assertThrows(ForbiddenException.class, () -> filter.filter(requestContext));
+        verify(requestContext, never()).abortWith(any());
+    }
+
+    /** Proxy disabled: one of this instance's dataspaces still gets the app shell. */
+    @Test
+    public void testHtmlAcceptReturnsEarlyForDataspaceWhenProxyDisabled() throws IOException
+    {
+        URI targetURI = URI.create("https://admin.localhost:4443/doc");
+        when(requestContext.getProperty(AC.uri.getURI())).thenReturn(targetURI);
+        when(requestContext.getAcceptableMediaTypes())
+            .thenReturn(List.of(MediaType.TEXT_HTML_TYPE));
+        when(system.matchApp(targetURI)).thenReturn(ResourceFactory.createResource("https://admin.localhost:4443/"));
+        filter.filter(requestContext);
+        verify(requestContext, never()).abortWith(any());
+    }
+
+    /** Proxy disabled: a mapped document still gets the app shell, matched without its fragment. */
+    @Test
+    public void testHtmlAcceptReturnsEarlyForMappedWhenProxyDisabled() throws IOException
+    {
+        PrefixGraphRepository repository = mock(PrefixGraphRepository.class);
+        when(requestContext.getProperty(AC.uri.getURI()))
+            .thenReturn(URI.create("https://w3id.org/atomgraph/linkeddatahub#SelectChildren"));
+        when(requestContext.getAcceptableMediaTypes())
+            .thenReturn(List.of(MediaType.TEXT_HTML_TYPE));
+        when(system.getRepository()).thenReturn(repository);
+        when(repository.isMapped("https://w3id.org/atomgraph/linkeddatahub")).thenReturn(true);
+        filter.filter(requestContext);
         verify(requestContext, never()).abortWith(any());
     }
 
