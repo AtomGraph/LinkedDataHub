@@ -73,6 +73,7 @@ import jakarta.ws.rs.OPTIONS;
 import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.ClientErrorException;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.CacheControl;
 import jakarta.ws.rs.core.Context;
@@ -585,7 +586,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         boolean root = getDataspace().getBaseURI().equals(getURI());
         // the root is stored as sent, without the dh:Item every other document is given below
         if (root && !isHierarchyTyped(model, getURI().toString()))
-            throw new WebApplicationException("Root document <" + getURI() + "> must be typed with a document hierarchy class", UNPROCESSABLE_ENTITY.getStatusCode());
+            throw new ClientErrorException("Root document <" + getURI() + "> must be typed with a document hierarchy class", UNPROCESSABLE_ENTITY.getStatusCode());
         // the parent's lock as well as the document's: a DELETE of the parent holds it while it checks for children, so
         // the two cannot interleave
         return writeLocked(root ? List.of(getURI()) : List.of(parentURI, getURI()), () ->
@@ -740,29 +741,29 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
                 // the document cannot be deleted (the root, the owner's and the secretary's), but PATCH is supported on it:
                 // 405 would say otherwise, and the update itself is what cannot be applied
                 if (!getAllowedMethods().contains(HttpMethod.DELETE))
-                    throw new WebApplicationException("The update would empty document <" + getURI() + ">, which cannot be deleted", UNPROCESSABLE_ENTITY.getStatusCode());
+                    throw new ClientErrorException("The update would empty document <" + getURI() + ">, which cannot be deleted", UNPROCESSABLE_ENTITY.getStatusCode());
 
                 return delete();
             }
 
             // ownership changes go through the admin ACL documents: a PATCH cannot be rewritten safely, so it is refused
             if (isOwnershipChanged(beforeUpdateModel, existingModel, getURI().toString()))
-                throw new WebApplicationException("acl:owner and dct:creator of document <" + getURI() + "> cannot be changed", UNPROCESSABLE_ENTITY.getStatusCode());
+                throw new ClientErrorException("acl:owner and dct:creator of document <" + getURI() + "> cannot be changed", UNPROCESSABLE_ENTITY.getStatusCode());
 
             // a document's place in the hierarchy is the URI parent PUT points it at; moving it would leave the hierarchy
             // and the URIs disagreeing about where it is
             if (isContainmentChanged(beforeUpdateModel, existingModel, getURI().toString()))
-                throw new WebApplicationException("sioc:has_parent and sioc:has_container of document <" + getURI() + "> cannot be changed", UNPROCESSABLE_ENTITY.getStatusCode());
+                throw new ClientErrorException("sioc:has_parent and sioc:has_container of document <" + getURI() + "> cannot be changed", UNPROCESSABLE_ENTITY.getStatusCode());
 
             // only the containment the update adds is held to the rule: a graph written before it may still carry some
             if (getForeignContainment(existingModel, getURI().toString()).stream().anyMatch(stmt -> !beforeUpdateModel.contains(stmt)))
-                throw new WebApplicationException("sioc:has_parent and sioc:has_container in document <" + getURI() + "> can only be stated of the document itself", UNPROCESSABLE_ENTITY.getStatusCode());
+                throw new ClientErrorException("sioc:has_parent and sioc:has_container in document <" + getURI() + "> can only be stated of the document itself", UNPROCESSABLE_ENTITY.getStatusCode());
 
             // only the types the update adds are held to the rule: a graph written before it may still carry others
             if (getForeignTypes(existingModel, getURI().toString()).stream().anyMatch(type -> !beforeUpdateModel.contains(beforeUpdateModel.createResource(getURI().toString()), RDF.type, type)))
-                throw new WebApplicationException("Document <" + getURI() + "> can only be typed with document hierarchy classes", UNPROCESSABLE_ENTITY.getStatusCode());
+                throw new ClientErrorException("Document <" + getURI() + "> can only be typed with document hierarchy classes", UNPROCESSABLE_ENTITY.getStatusCode());
             if (!isHierarchyTyped(existingModel, getURI().toString()))
-                throw new WebApplicationException("Document <" + getURI() + "> must stay typed with a document hierarchy class", UNPROCESSABLE_ENTITY.getStatusCode());
+                throw new ClientErrorException("Document <" + getURI() + "> must stay typed with a document hierarchy class", UNPROCESSABLE_ENTITY.getStatusCode());
 
             // SPIN constraints are class-scoped; allowing rdf:type removal would silently bypass them
             for (Resource resource : getChangedResources(beforeUpdateModel, existingModel))
@@ -770,7 +771,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
                 Resource before = resource.inModel(beforeUpdateModel);
                 Resource after = resource.inModel(existingModel);
                 if (before.hasProperty(RDF.type) && !after.hasProperty(RDF.type) && after.listProperties().hasNext())
-                    throw new WebApplicationException("rdf:type cannot be removed from resource <" + resource + ">", UNPROCESSABLE_ENTITY.getStatusCode());
+                    throw new ClientErrorException("rdf:type cannot be removed from resource <" + resource + ">", UNPROCESSABLE_ENTITY.getStatusCode());
             }
 
             stampModified(getURI(), beforeUpdateModel, existingModel);
@@ -1094,7 +1095,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     public void checkForeignContainment(Model model)
     {
         if (!getForeignContainment(model, getURI().toString()).isEmpty())
-            throw new WebApplicationException("sioc:has_parent and sioc:has_container in document <" + getURI() + "> can only be stated of the document itself", UNPROCESSABLE_ENTITY.getStatusCode());
+            throw new ClientErrorException("sioc:has_parent and sioc:has_container in document <" + getURI() + "> can only be stated of the document itself", UNPROCESSABLE_ENTITY.getStatusCode());
     }
 
     /**
@@ -1142,7 +1143,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     public void checkDocumentTypes(Model model)
     {
         if (!getForeignTypes(model, getURI().toString()).isEmpty())
-            throw new WebApplicationException("Document <" + getURI() + "> can only be typed with document hierarchy classes", UNPROCESSABLE_ENTITY.getStatusCode());
+            throw new ClientErrorException("Document <" + getURI() + "> can only be typed with document hierarchy classes", UNPROCESSABLE_ENTITY.getStatusCode());
     }
 
     private static boolean isChanged(Model beforeUpdateModel, Model afterUpdateModel, String documentURI, List<Property> properties)

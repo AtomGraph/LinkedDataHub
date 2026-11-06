@@ -168,7 +168,9 @@ The TimeGate is replayed twice:
   serialisation.
 - **Other server work:** constraint validation, parsing, skolemization, dates, imports, uploads, content
   negotiation, conditional `GET` and caching. A write refused for its body, such as one with a malformed IRI or a
-  missing title answered with `422`, changes nothing, and the model has no write for it. The answer takes the
+  missing title answered with `422`, changes nothing, and the model has no write for it. Nor are the bodies of
+  refusals: the model answers a refusal by its status, and a check that throws `ClientErrorException` rather than
+  `WebApplicationException`, so that its message is described in the body, answers the same status. The answer takes the
   payload as ground triples free of `dct:created` and `dct:modified`, and the replay sends only such payloads, valid
   against the ontology's constraints, with a single-operation `PATCH`.
 - **A `PATCH` of several operations:** `patch()` runs the request's operations in order, in one execution, and
