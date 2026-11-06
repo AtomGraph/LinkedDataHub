@@ -1429,11 +1429,39 @@ exclude-result-prefixes="#all"
 
     <!-- XHTML CONTENT IDENTITY TRANSFORM -->
 
-    <xsl:template match="@* | node()" mode="ldh:XHTMLContent">
+    <xsl:template match="@* | node()" mode="ldh:XHTMLContent ldh:SafeXHTML">
         <xsl:copy copy-namespaces="no">
             <xsl:apply-templates select="@* | node()" mode="#current"/>
         </xsl:copy>
     </xsl:template>
+
+    <!-- AUTHORED CONTENT IS INERT. An XML literal is markup anyone with write access to its document stored - through
+         the editor, whose canonical form strips the active parts, but just as well through a Graph Store write or an
+         import that never ran it - or markup an external document holds, rendered through the proxy. Rendered, it is
+         inserted into this origin's pages, so the rules below take out what would run there: what a browser executes,
+         whatever namespace it is in (an svg:script runs as well as an xhtml:script, and one in no namespace becomes an
+         HTML script when the page is served as HTML), and what loads a plugin, retargets the page's URLs or refreshes
+         it. Everything else is kept, embedded frames and forms included. Both renderings of an XML literal apply them:
+         ldh:XHTMLContent for reading, ldh:SafeXHTML for the editor's live region (formal/xslt) -->
+    <xsl:template match="*[local-name() = ('script', 'style', 'object', 'embed', 'applet', 'base', 'link', 'meta', 'frame', 'frameset', 'set', 'animate', 'animateMotion', 'animateTransform', 'handler', 'listener')]" mode="ldh:XHTMLContent ldh:SafeXHTML" priority="3"/>
+
+    <!-- event handlers, and a frame's inline document, which runs with this origin -->
+    <xsl:template match="@*[matches(local-name(), '^on', 'i')] | @*[local-name() = 'srcdoc']" mode="ldh:XHTMLContent ldh:SafeXHTML" priority="3"/>
+
+    <!-- a URL whose scheme runs script, or a data: URL other than an image's source, read the way the browser reads it:
+         tabs and line breaks anywhere are dropped and leading spaces trimmed, so neither "java&#9;script:" nor
+         " javascript:" hides the scheme. The other control characters a browser trims cannot occur in XML -->
+    <xsl:template match="@*[local-name() = ('href', 'src', 'action', 'formaction', 'poster', 'background')][ldh:url-scheme(.) = ('javascript', 'vbscript')]" mode="ldh:XHTMLContent ldh:SafeXHTML" priority="3"/>
+
+    <xsl:template match="@*[local-name() = ('href', 'src', 'action', 'formaction', 'poster', 'background')][ldh:url-scheme(.) = 'data'][not(local-name() = 'src' and matches(replace(., '[&#9;&#10;&#13;]', ''), '^ *data:image/', 'i'))]" mode="ldh:XHTMLContent ldh:SafeXHTML" priority="3"/>
+
+    <!-- the scheme of a URL attribute's value as the browser parses it, lower-cased; empty for a relative reference -->
+    <xsl:function name="ldh:url-scheme" as="xs:string?">
+        <xsl:param name="value" as="xs:string"/>
+        <xsl:variable name="url" select="replace(replace($value, '[&#9;&#10;&#13;]', ''), '^ +', '')" as="xs:string"/>
+
+        <xsl:sequence select="substring-before($url, ':')[matches(., '^[A-Za-z][A-Za-z0-9+.\-]*$')] ! lower-case(.)"/>
+    </xsl:function>
 
     <!-- a pre in authored content is a code sample like any other (the documentation's XHTML literals are
          nothing but), so it gets the same copy control -->

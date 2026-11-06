@@ -167,7 +167,9 @@ The TimeGate is replayed twice:
   re-checks that the parent exists, and a `DELETE` checks for children; the model does not prove that
   serialisation.
 - **Other server work:** constraint validation, parsing, skolemization, dates, imports, uploads, content
-  negotiation, conditional `GET` and caching. A write refused for its body, such as one with a malformed IRI or a
+  negotiation, conditional `GET` and caching. Uploads have a model of their own, `formal/uploads`, built on this one:
+  staging, committing and recording a write's files (`stageFiles`, `commitFiles`) run beside its graph write, and
+  change nothing this model's answer says. A write refused for its body, such as one with a malformed IRI or a
   missing title answered with `422`, changes nothing, and the model has no write for it. Nor are the bodies of
   refusals: the model answers a refusal by its status, and a check that throws `ClientErrorException` rather than
   `WebApplicationException`, so that its message is described in the body, answers the same status. The answer takes the
