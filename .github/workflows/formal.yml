@@ -67,7 +67,7 @@ jobs:
           java -cp /tmp/saxon.jar:/tmp/xmlresolver.jar net.sf.saxon.Transform -xsl:formal/xslt/sanitize-cases.xsl -it \
             cases=formal/xslt/sanitize-cases.tsv which=sanitize > /tmp/sanitize-cases-xslt.tsv
           diff -u formal/xslt/sanitize-cases.tsv /tmp/sanitize-cases-xslt.tsv
-      - name: The canonical form keeps the counterexamples
+      - name: The canonical form takes out its former counterexamples
         run: |
           formal/xslt/.lake/build/bin/ldh-xslt canonical-cases > /tmp/canonical-cases-model.tsv
           diff -u formal/xslt/canonical-cases.tsv /tmp/canonical-cases-model.tsv

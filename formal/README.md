@@ -21,7 +21,7 @@ unproven theorem, and on a pull request fails when a transcribed source changes 
 replays the models' answers against the server: the status and the document's graph after each request
 (`tests/http/formal/`). The client model is replayed against the stylesheets themselves: `ldh:href` under Saxon-HE on
 the model's cases, and the request sites as `client/sites.py` reads them. So is the XSLT model: its rendering rules
-under Saxon-HE on the model's sanitize cases, and the editor's canonical form on its counterexamples.
+under Saxon-HE on the model's sanitize cases, and the editor's canonical form on its former counterexamples.
 
 ## Why
 
