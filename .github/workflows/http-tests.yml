@@ -130,6 +130,7 @@ jobs:
       - name: Fix certificate permissions on the host
         run: |
           sudo chmod 644 ./ssl/owner/cert.pem ./ssl/secretary/cert.pem ./ssl/owner/keystore.p12 ./ssl/secretary/keystore.p12
+          sudo chmod 644 ./remote/ssl/owner/cert.pem ./remote/ssl/owner/keystore.p12 # the second instance's owner (linkeddatahub-remote)
         working-directory: tests/http
       - name: Run HTTP test scripts
         run: ./run.sh "$PWD/ssl/owner/cert.pem" "${{ secrets.HTTP_TEST_OWNER_CERT_PASSWORD }}" "$PWD/ssl/secretary/cert.pem" "${{ secrets.HTTP_TEST_SECRETARY_CERT_PASSWORD }}"
@@ -151,8 +152,9 @@ jobs:
         if: failure()
         run: |
           mkdir -p tests/http/out/containers
-          timeout 300 docker compose --env-file ./tests/http/.env logs --no-color > tests/http/out/containers/compose.log 2>&1 || true
+          timeout 300 docker compose -f docker-compose.yml -f ./tests/http/docker-compose.http-tests.yml --env-file ./tests/http/.env logs --no-color > tests/http/out/containers/compose.log 2>&1 || true
           timeout 300 docker compose --env-file ./tests/http/.env exec -T linkeddatahub sh -c 'for f in /usr/local/tomcat/logs/*; do echo "=== $f ==="; cat "$f"; done' > tests/http/out/containers/tomcat.log 2>&1 || true
+          timeout 300 docker compose -f docker-compose.yml -f ./tests/http/docker-compose.http-tests.yml --env-file ./tests/http/.env exec -T linkeddatahub-remote sh -c 'for f in /usr/local/tomcat/logs/*; do echo "=== $f ==="; cat "$f"; done' > tests/http/out/containers/tomcat-remote.log 2>&1 || true
       - name: Upload test results and container logs
         if: always() && hashFiles('tests/http/out/**') != ''
         uses: actions/upload-artifact@v4

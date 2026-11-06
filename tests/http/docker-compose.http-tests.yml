@@ -4,6 +4,12 @@ services:
       - ./tests/http/ssl/server:/etc/nginx/ssl
     environment:
       - SSL_VERIFY_CLIENT=optional_no_ca
+    configs:
+      - source: nginx_remote_conf
+        target: /etc/nginx/extra.d/remote.conf
+    depends_on:
+      linkeddatahub-remote:
+        condition: service_healthy
   linkeddatahub:
     user: root
     ports:
@@ -21,6 +27,70 @@ services:
       - ./tests/http/ssl/server:/var/linkeddatahub/ssl/server
       - ./tests/http/ssl/owner:/var/linkeddatahub/ssl/owner
       - ./tests/http/ssl/secretary:/var/linkeddatahub/ssl/secretary
+  # A second LinkedDataHub instance, for the federation tests that cross instances. Every dataspace of the instance above
+  # is one of its own, so a test between them never leaves it; this one has its own secretary, owner and stores, and
+  # https://remote.localhost:4443/ is not a dataspace of the first. nginx routes remote.localhost and its subdomains here
+  # (nginx_remote_conf), straight to the platform with no Varnish in between
+  linkeddatahub-remote:
+    user: root
+    build: .
+    mem_limit: 1536m
+    depends_on:
+      - fuseki
+    # The first instance's WebIDs live at https://admin.localhost:4443/, which this container would resolve to its own
+    # loopback. Mapped to the Docker host instead, where nginx publishes 4443, so that this instance can dereference the
+    # first one's secretary and agents to verify a delegation. That address is private, hence ALLOW_INTERNAL_URLS
+    extra_hosts:
+      - admin.localhost:host-gateway
+    environment:
+      - CATALINA_OPTS=-XX:+UseContainerSupport -XX:MaxRAMPercentage=75 --add-exports java.base/sun.security.tools.keytool=ALL-UNNAMED
+      - PROXY_HOST=nginx
+      - PROXY_PORT=9443
+      - PROTOCOL=${PROTOCOL}
+      - HOST=remote.${HOST}
+      - HTTP_SCHEME=https
+      - HTTP_PORT=7070
+      - HTTP_PROXY_NAME=remote.${HOST}
+      - HTTP_PROXY_PORT=${HTTPS_PORT}
+      - HTTP_REDIRECT_PORT=${HTTPS_PORT}
+      - HTTPS_PROXY_PORT=${HTTPS_PORT}
+      - HTTPS=false
+      - SELF_SIGNED_CERT=true
+      - SIGN_UP_CERT_VALIDITY=180
+      - ALLOW_INTERNAL_URLS=true
+      - EGRESS_PROXY=${EGRESS_PROXY:-egress:3128}
+      - NOTIFICATION_ADDRESS=LinkedDataHub <notifications@localhost>
+      - MAIL_SMTP_HOST=email-server
+      - MAIL_SMTP_PORT=25
+      - MAIL_USER=linkeddatahub@localhost
+      - PROXY_SECRET=${PROXY_SECRET:?set PROXY_SECRET in .env - make secrets generates it}
+      - REMOTE_IP_VALVE=true
+      - REMOTE_IP_VALVE_PROTOCOL_HEADER=X-Forwarded-Proto
+      - REMOTE_IP_VALVE_PORT_HEADER=X-Forwarded-Port
+      - REMOTE_IP_VALVE_REMOTE_IP_HEADER=X-Forwarded-For
+      - REMOTE_IP_VALVE_HOST_HEADER=X-Forwarded-Host
+      - OWNER_MBOX=remote-${OWNER_MBOX}
+      - OWNER_GIVEN_NAME=${OWNER_GIVEN_NAME}
+      - OWNER_FAMILY_NAME=${OWNER_FAMILY_NAME}
+      - OWNER_ORG_UNIT=${OWNER_ORG_UNIT} (remote)
+      - OWNER_ORGANIZATION=${OWNER_ORGANIZATION}
+      - OWNER_LOCALITY=${OWNER_LOCALITY}
+      - OWNER_STATE_OR_PROVINCE=${OWNER_STATE_OR_PROVINCE}
+      - OWNER_COUNTRY_NAME=${OWNER_COUNTRY_NAME}
+    secrets:
+      - owner_cert_password
+      - secretary_cert_password
+      - client_truststore_password
+    volumes:
+      - /var/linkeddatahub/oidc
+      - ./tests/http/config/remote/dataspaces.trig:/var/linkeddatahub/datasets/dataspaces.trig:ro
+      - ./tests/http/config/remote/system.trig:/var/linkeddatahub/datasets/system.trig:ro
+      - ./tests/http/ssl/server:/var/linkeddatahub/ssl/server:ro
+      - ./tests/http/remote/ssl/owner:/var/linkeddatahub/ssl/owner
+      - ./tests/http/remote/ssl/secretary:/var/linkeddatahub/ssl/secretary
+      - ./tests/http/remote/datasets/owner:/var/linkeddatahub/datasets/owner
+      - ./tests/http/remote/datasets/secretary:/var/linkeddatahub/datasets/secretary
+      - ./tests/http/remote/uploads:/var/www/linkeddatahub/uploads
   web-algebra:
     # the secretary keystore linkeddatahub generates above, and the server certificate nginx presents
     volumes:
@@ -29,5 +99,52 @@ services:
   fuseki:
     ports:
       - 3030:3030
+    volumes:
+      - ./tests/http/config/fuseki/config.ttl:/fuseki/config.ttl:ro # adds the second instance's datasets
     #volumes:
     #  - ./tests/http/data:/fuseki/databases
+configs:
+  # the second instance's server blocks, included by the main nginx config. The exact and the longer wildcard name win
+  # over *.localhost, so remote.localhost and its subdomains reach linkeddatahub-remote and nothing else changes. The
+  # header set is the main config's, on both ports: 9443 is where each platform's own requests to these origins arrive
+  nginx_remote_conf:
+    content: |
+      server {
+          listen 8443 ssl;
+          server_name remote.${HOST} *.remote.${HOST};
+          ssl_certificate /etc/nginx/ssl/server.crt;
+          ssl_certificate_key /etc/nginx/ssl/server.key;
+          ssl_verify_client optional_no_ca;
+
+          proxy_set_header Host $$host;
+          proxy_set_header X-Forwarded-Host $$host;
+          proxy_set_header X-Forwarded-Proto $$scheme;
+          proxy_set_header X-Forwarded-Port ${HTTPS_PORT};
+          proxy_set_header X-Forwarded-For $$remote_addr;
+          proxy_set_header Client-Cert $$ssl_client_escaped_cert;
+          proxy_set_header Proxy-Secret "${PROXY_SECRET:?set PROXY_SECRET in .env - make secrets generates it}";
+
+          location / {
+              proxy_pass http://linkeddatahub-remote:7070;
+          }
+      }
+
+      server {
+          listen 9443 ssl;
+          server_name remote.${HOST} *.remote.${HOST};
+          ssl_certificate /etc/nginx/ssl/server.crt;
+          ssl_certificate_key /etc/nginx/ssl/server.key;
+          ssl_verify_client optional_no_ca;
+
+          proxy_set_header Host $$host;
+          proxy_set_header X-Forwarded-Host $$host;
+          proxy_set_header X-Forwarded-Proto $$scheme;
+          proxy_set_header X-Forwarded-Port ${HTTPS_PORT};
+          proxy_set_header X-Forwarded-For $$remote_addr;
+          proxy_set_header Client-Cert $$ssl_client_escaped_cert;
+          proxy_set_header Proxy-Secret "${PROXY_SECRET:?set PROXY_SECRET in .env - make secrets generates it}";
+
+          location / {
+              proxy_pass http://linkeddatahub-remote:7070;
+          }
+      }
