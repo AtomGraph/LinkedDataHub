@@ -18,8 +18,10 @@ package com.atomgraph.linkeddatahub.resource.upload;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.List;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Request;
@@ -31,12 +33,14 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.FileRangeOutput;
 import com.atomgraph.linkeddatahub.server.util.ByteRange;
+import com.atomgraph.linkeddatahub.server.util.UploadRecords;
 import java.util.Date;
 import java.util.Optional;
 import jakarta.annotation.PostConstruct;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.NotAcceptableException;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.core.EntityTag;
@@ -210,7 +214,27 @@ public class Item
      */
     public EntityTag getEntityTag()
     {
-        return new EntityTag(getUriInfo().getPathParameters().getFirst("sha1sum"));
+        return new EntityTag(getSHA1());
+    }
+
+    /**
+     * Returns the digest this file's URI is named by.
+     *
+     * @return SHA1 hash string
+     */
+    public String getSHA1()
+    {
+        return getUriInfo().getPathParameters().getFirst("sha1sum");
+    }
+
+    /**
+     * Returns the upload folder this file is in.
+     *
+     * @return folder path
+     */
+    public Path getUploadFolder()
+    {
+        return Path.of(getSystem().getUploadRoot().resolve(getUriInfo().getPath())).getParent();
     }
     
     /**
@@ -225,12 +249,25 @@ public class Item
     }
     
     /**
-     * Returns the media type of this file.
+     * Returns the media type of this file: the one it was first uploaded with, as the platform recorded it beside the
+     * bytes. The description's <code>dct:format</code> is the fallback for a file uploaded before the type was
+     * recorded: any document may state one of the file, and the description is merged from all of them.
      * 
      * @return media type
      */
     public jakarta.ws.rs.core.MediaType getMediaType()
     {
+        final Optional<String> recorded;
+        try
+        {
+            recorded = UploadRecords.getMediaType(getUploadFolder(), getSHA1());
+        }
+        catch (IOException ex)
+        {
+            throw new InternalServerErrorException(ex);
+        }
+        if (recorded.isPresent()) return withCharset(jakarta.ws.rs.core.MediaType.valueOf(recorded.get()));
+
         Resource format = getResource().getPropertyResourceValue(DCTerms.format);
         if (format == null)
         {
@@ -238,8 +275,17 @@ public class Item
             throw new IllegalStateException("File does not have a media type (dct:format)");
         }
 
-        jakarta.ws.rs.core.MediaType mediaType = com.atomgraph.linkeddatahub.MediaType.valueOf(format);
+        return withCharset(com.atomgraph.linkeddatahub.MediaType.valueOf(format));
+    }
 
+    /**
+     * Adds <code>charset=UTF-8</code> to a text media type.
+     *
+     * @param mediaType media type
+     * @return media type with the charset, if it is text
+     */
+    protected jakarta.ws.rs.core.MediaType withCharset(jakarta.ws.rs.core.MediaType mediaType)
+    {
         // Add charset=UTF-8 for text-based media types
         if (mediaType.getType().equals("text"))
         {

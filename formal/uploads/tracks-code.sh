@@ -19,6 +19,8 @@ config=https://w3id.org/atomgraph/linkeddatahub/config#
 sources=(
   src/main/java/com/atomgraph/linkeddatahub/resource/upload/Item.java
   src/main/java/com/atomgraph/linkeddatahub/server/util/ByteRange.java
+  src/main/java/com/atomgraph/linkeddatahub/server/util/UploadRecords.java
+  src/main/java/com/atomgraph/linkeddatahub/server/filter/request/AuthorizationFilter.java
   src/main/java/com/atomgraph/linkeddatahub/server/model/impl/DocumentHierarchyGraphStoreImpl.java
 )
 # web.xml is transcribed query by query: only these context params count

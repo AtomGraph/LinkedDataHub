@@ -9,9 +9,13 @@ document has no graph of its own: its URI is under `uploads/`, where no document
   an upload but its containment, and the upload's description then holds it. The served media type is one of the
   `dct:format` values the description holds and the file's tag was one of its `foaf:sha1` values, so either was a
   pick among what any writer had stated (`LdhUploads.Serve`).
-* `upload_context`: the authorization decision knows an upload by its own URI and the class `nfo:FileDataObject`,
-  which any graph's statement gives it, and by nothing else - no document that describes it, so no document's
-  authorizations decide who reads it.
+* `upload_context`: the document context the authorization decision has of an upload names it by its own URI and the
+  class `nfo:FileDataObject`, which any graph's statement gives it, and by nothing else - no document that describes
+  it. So a grant on a document did not reach the files uploaded into it.
+* `upload_readable`: an upload is read with a grant on its own context, or with the grant to read a document of this
+  dataspace it was uploaded into (`AuthorizationFilter.authorizeUpload`). Those documents are the platform's record,
+  not what some graph says of the file: only an accepted write that uploads the bytes into a document records it
+  (`LdhUploads.recorded_by_uploaders`).
 -/
 import LdhHttp.Answer
 
@@ -85,5 +89,15 @@ theorem upload_context (fs : FinStore) (u : Node) :
   · split at h
     · simp at h; right; subst h; exact ⟨rfl, rfl⟩
     · simp at h
+
+/-- `AuthorizationFilter.authorize` for a read of an upload: its own context's grant, or else `authorizeUpload`, a
+grant to read a document of this dataspace recorded for it. -/
+def uploadReadable (ownGrant : Bool) (inDataspace readDoc : Node → Bool) (recorded : List Node) : Bool :=
+  ownGrant || recorded.any fun d => inDataspace d && readDoc d
+
+theorem upload_readable {ownGrant : Bool} {inDataspace readDoc : Node → Bool} {recorded : List Node} :
+    uploadReadable ownGrant inDataspace readDoc recorded = true ↔
+      ownGrant = true ∨ ∃ d ∈ recorded, inDataspace d = true ∧ readDoc d = true := by
+  simp [uploadReadable]
 
 end LdhUploads

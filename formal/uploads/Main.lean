@@ -66,7 +66,7 @@ def main : List String → IO UInt32
         for ifRange in [true, false] do
           for accept in ["*/*", "text/turtle"] do
             let r : Req := ⟨true, fun m => accept == "*/*" || accept == m, inm, ifRange, s⟩
-            let resp := serve List.head? addressTag d sha (some len) r
+            let resp := serve (recordedFormat (some format) List.head?) addressTag d sha (some len) r
             let contentRange := match resp.contentRange with
               | some (f, l, n) => s!"bytes {f}-{l}/{n}"
               | none => if resp.status == 416 then s!"bytes */{len}" else "-"

@@ -7,17 +7,16 @@ with it against the file's length.
 
 `serve` is the response: 404 for a URI nothing describes, 406 when `Accept` does not take the media type, 304 when
 `If-None-Match` names the tag, 404 for a description without a file, and otherwise the file - whole, a range of it,
-or 416 - where `Range` applies, which is a GET whose `If-Range` holds. The media type is a pick among the
-description's `dct:format` values (Jena's `getPropertyResourceValue` returns one of several), and the entity tag is
-`tag` of the description and the URI's digest.
+or 416 - where `Range` applies, which is a GET whose `If-Range` holds. The media type is `format` of the description,
+and the entity tag is `tag` of the description and the URI's digest.
 
 * `served_sandboxed`: every 200 and 206 carries `Content-Security-Policy: default-src 'none'; sandbox`.
 * `range_sound`: a 206's `Content-Range` lies within the file; `unsatisfiable_iff`: 416 exactly when the RFC 9110
   conditions say so.
 * `etag_content_addressed`: the tag is the URI's digest, whatever the description says. Before, the tag was a pick
   among the description's `foaf:sha1` values, which any writer can add to (`etag_was_any_writers`).
-* `format_is_any_writers`: the served media type is a pick among what any writer stated, which is why the body is
-  sandboxed.
+* `format_first_uploaders`: the served media type is the one the file was first uploaded with, as recorded beside
+  the bytes. Before, it was a pick among the `dct:format` values any writer stated (`format_was_any_writers`).
 -/
 namespace LdhUploads
 
@@ -99,32 +98,41 @@ structure Req where
 
 structure Resp where
   status : Nat
+  type : Option String
   csp : Bool
   tag : Option String
   contentRange : Option (Nat × Nat × Nat)
 
-/-- `Item.getResponseBuilder`, after `init()`'s 404 for an undescribed URI. `pick` is Jena's choice among the values
-of a property; `tag` is how the entity tag is read; `file` is the file's length, if it is on disk. -/
-def serve (pick : List String → Option String) (tag : Desc → String → Option String) (d : Desc) (sha : String)
+/-- `Item.getResponseBuilder`, after `init()`'s 404 for an undescribed URI. `format` is how the media type is read,
+`tag` how the entity tag is; `file` is the file's length, if it is on disk. -/
+def serve (format : Desc → Option String) (tag : Desc → String → Option String) (d : Desc) (sha : String)
     (file : Option Nat) (r : Req) : Resp :=
-  if !d.described then ⟨404, false, none, none⟩ else
-  match pick d.formats with
-  | none => ⟨500, false, none, none⟩
+  if !d.described then ⟨404, none, false, none, none⟩ else
+  match format d with
+  | none => ⟨500, none, false, none, none⟩
   | some fmt =>
-    if !r.accepts fmt then ⟨406, false, none, none⟩ else
+    if !r.accepts fmt then ⟨406, none, false, none, none⟩ else
     match tag d sha with
-    | none => ⟨500, false, none, none⟩
+    | none => ⟨500, none, false, none, none⟩
     | some t =>
-      if r.ifNoneMatch = some t then ⟨304, false, some t, none⟩ else
+      if r.ifNoneMatch = some t then ⟨304, none, false, some t, none⟩ else
       match file with
-      | none => ⟨404, false, none, none⟩
+      | none => ⟨404, none, false, none, none⟩
       | some len =>
         if r.get && r.ifRange then
           match select len r.range with
-          | .range f l => ⟨206, true, some t, some (f, l, len)⟩
-          | .unsatisfiable => ⟨416, false, some t, none⟩
-          | .whole => ⟨200, true, some t, none⟩
-        else ⟨200, true, some t, none⟩
+          | .range f l => ⟨206, some fmt, true, some t, some (f, l, len)⟩
+          | .unsatisfiable => ⟨416, none, false, some t, none⟩
+          | .whole => ⟨200, some fmt, true, some t, none⟩
+        else ⟨200, some fmt, true, some t, none⟩
+
+/-- The media type before: `getPropertyResourceValue(DCTerms.format)`, a pick among the description's values. -/
+def describedFormat (pick : List String → Option String) (d : Desc) : Option String := pick d.formats
+
+/-- The media type now: the one recorded beside the bytes, and the description's for a file uploaded before it was
+recorded. -/
+def recordedFormat (recorded : Option String) (pick : List String → Option String) (d : Desc) : Option String :=
+  recorded.orElse fun _ => pick d.formats
 
 /-- The tag before: `getRequiredProperty(FOAF.sha1)`, a pick among the description's values. -/
 def describedTag (pick : List String → Option String) (d : Desc) (_ : String) : Option String := pick d.sha1s
@@ -183,15 +191,33 @@ the file is not named by, and a request conditional on it was answered 304. -/
 theorem etag_was_any_writers :
     let d : Desc := ⟨true, ["image/png"], ["0000", "abcd"]⟩
     let r : Req := ⟨true, fun _ => true, some "0000", true, none⟩
-    serve List.head? (describedTag List.head?) d "abcd" (some 4) r = ⟨304, false, some "0000", none⟩ := rfl
+    serve (describedFormat List.head?) (describedTag List.head?) d "abcd" (some 4) r = ⟨304, none, false, some "0000", none⟩ := rfl
 
-/-- The media type is whichever of the stated formats is picked: one any writer stated is served. -/
-theorem format_is_any_writers (pick : List String → Option String) (hpick : ∀ l, l ≠ [] → ∃ v, pick l = some v ∧ v ∈ l)
+/-- Before: the media type was whichever of the stated formats was picked, one any writer stated included. -/
+theorem format_was_any_writers (pick : List String → Option String) (hpick : ∀ l, l ≠ [] → ∃ v, pick l = some v ∧ v ∈ l)
     (d : Desc) (sha : String) (len : Nat) (r : Req) (hd : d.described = true) (hf : d.formats ≠ [])
     (ha : ∀ m, r.accepts m = true) (hn : r.ifNoneMatch ≠ some sha) (hr : r.get = false) :
-    ∃ fmt ∈ d.formats, pick d.formats = some fmt ∧ (serve pick addressTag d sha (some len) r).status = 200 := by
+    ∃ fmt ∈ d.formats, (serve (describedFormat pick) addressTag d sha (some len) r).type = some fmt := by
   obtain ⟨v, hv, hm⟩ := hpick d.formats hf
-  refine ⟨v, hm, hv, ?_⟩
-  simp [serve, hd, hv, ha, addressTag, hn, hr]
+  refine ⟨v, hm, ?_⟩
+  simp [serve, describedFormat, hd, hv, ha, addressTag, hn, hr]
+
+/-- The served media type is the recorded one, whatever the description states. -/
+theorem format_first_uploaders {recorded : String} {pick d sha file r} {t : String}
+    (h : (serve (recordedFormat (some recorded) pick) addressTag d sha file r).type = some t) : t = recorded := by
+  unfold serve at h
+  split at h; · cases h
+  simp only [recordedFormat, Option.orElse] at h
+  split at h; · cases h
+  split at h; · cases h
+  split at h
+  · cases h
+  · split at h; · cases h
+    split at h
+    · split at h
+      · injection h with h; exact h.symm
+      · cases h
+      · injection h with h; exact h.symm
+    · injection h with h; exact h.symm
 
 end LdhUploads
