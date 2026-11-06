@@ -1424,12 +1424,13 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             resource.addLiteral(FOAF.sha1, sha1Hash);
             // user could have specified an explicit media type; otherwise - use the media type that the browser has sent
             if (!resource.hasProperty(DCTerms.format)) resource.addProperty(DCTerms.format, com.atomgraph.linkeddatahub.MediaType.toResource(bodyPart.getMediaType()));
+            // read before the rename below, which moves the properties to a new resource and leaves this one bare
+            String mediaType = com.atomgraph.linkeddatahub.MediaType.valueOf(resource.getPropertyResourceValue(DCTerms.format)).toString();
 
             URI sha1Uri = getUploadsUriBuilder().path("{sha1}").build(sha1Hash);
             if (log.isDebugEnabled()) log.debug("Renaming resource: {} to SHA1 based URI: {}", resource, sha1Uri);
             ResourceUtils.renameResource(resource, sha1Uri.toString());
 
-            String mediaType = com.atomgraph.linkeddatahub.MediaType.valueOf(resource.getPropertyResourceValue(DCTerms.format)).toString();
             return new StagedFile(temp, getFile(sha1Uri, getUriInfo().getBaseUri(), getSystem().getUploadRoot()).toPath(), mediaType);
         }
         catch (IOException ex)

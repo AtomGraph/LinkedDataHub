@@ -32,6 +32,12 @@ import org.apache.jena.vocabulary.RDF;
 import java.io.File;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
+import jakarta.ws.rs.core.UriBuilder;
+import java.io.InputStream;
+import java.io.ByteArrayInputStream;
 import java.util.Optional;
 import com.atomgraph.linkeddatahub.server.util.UploadRecords;
 import java.nio.file.Files;
@@ -632,6 +638,34 @@ public class DocumentHierarchyGraphStoreImplTest
         model.createResource("http://localhost/doc").addProperty(DCTerms.creator, model.createResource("http://localhost/agent"));
 
         assertTrue(gs.stageFiles(model, new HashMap<>()).isEmpty());
+    }
+
+    @Test
+    public void testStageFileKeepsTheMediaType(@TempDir Path tempDir) throws Exception
+    {
+        URI base = URI.create("http://localhost/");
+        Files.createDirectories(tempDir.resolve("uploads"));
+        UriInfo info = mock(UriInfo.class);
+        when(info.getBaseUri()).thenReturn(base);
+        com.atomgraph.linkeddatahub.Application system = mock(com.atomgraph.linkeddatahub.Application.class);
+        when(system.getUploadRoot()).thenReturn(tempDir.toUri());
+        // getUriInfo() is final in Core's DirectGraphStoreImpl, which a subclass mock cannot stub: set what it returns
+        java.lang.reflect.Field uriInfoField = com.atomgraph.core.model.impl.DirectGraphStoreImpl.class.getDeclaredField("uriInfo");
+        uriInfoField.setAccessible(true);
+        uriInfoField.set(gs, info);
+        doReturn(system).when(gs).getSystem();
+        doAnswer(invocation -> UriBuilder.fromUri(base).path("uploads")).when(gs).getUploadsUriBuilder();
+
+        FormDataBodyPart part = mock(FormDataBodyPart.class);
+        when(part.getEntityAs(InputStream.class)).thenReturn(new ByteArrayInputStream("bytes".getBytes(StandardCharsets.UTF_8)));
+        when(part.getMediaType()).thenReturn(jakarta.ws.rs.core.MediaType.valueOf("image/png"));
+        Resource file = ModelFactory.createDefaultModel().createResource("http://localhost/doc#file");
+
+        // the type is read before the resource is renamed to its content-addressed URI, which leaves it without properties
+        DocumentHierarchyGraphStoreImpl.StagedFile staged = gs.stageFile(file, part);
+
+        assertEquals("image/png", staged.mediaType());
+        Files.deleteIfExists(staged.temp());
     }
 
     // commitFiles(List, URI), discardFiles(List)
