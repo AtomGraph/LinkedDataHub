@@ -524,8 +524,10 @@ WHERE
                      when the Linked Data proxy is disabled and 406 for an HTML page carrying no JSON-LD, and relays the
                      origin's own error, e.g. a 500 from a site that fails on an RDF Accept but serves the page to a browser.
                      Opened without the user activation of a click (it expired during the request, or the page loaded with
-                     ?uri= in the address bar) the popup is blocked, and the window navigates there itself -->
-                <xsl:when test="?status ge 400 and not(?status = (401, 403, 429)) and not(starts-with($doc-uri, lds:origin(ldh:request-uri())))">
+                     ?uri= in the address bar) the popup is blocked, and the window navigates there itself.
+                     Only an http(s) document is opened: ?uri= is anyone's to set, and a javascript: URL opened here would run
+                     in this origin. Any other scheme renders its error in the pane -->
+                <xsl:when test="?status ge 400 and not(?status = (401, 403, 429)) and matches($doc-uri, '^https?://') and not(starts-with($doc-uri, lds:origin(ldh:request-uri())))">
                     <xsl:variable name="href" select="$doc-uri || (if ($fragment) then '#' || $fragment else '')" as="xs:string"/>
                     <!-- ldh:DocumentNavigate pushed an entry for this document before requesting it, and pointed the address bar
                          and the active pane at it: the entry that stands for it is the one to step back from, not to leave behind -->
