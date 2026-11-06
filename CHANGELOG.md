@@ -1,6 +1,7 @@
 ## [Unreleased]
 ### Added
 - `ldh get --timemap` and `--timegate` follow the `Link` the document advertises, and `--timegate` waits as a `503` with `Retry-After` asks
+- Uploads are formalised in Lean (`formal/uploads/`): the upload folder under the graph store's writes, what an upload is described and authorized by, and how it is served, replayed against the server and against `ByteRange.parse`
 - `VARNISH_FRONTEND_STORAGE`, `VARNISH_ADMIN_STORAGE` and `VARNISH_END_USER_STORAGE` size each Varnish's main store, so a deployment can fit it under the service's `mem_limit`
 
 ### Changed
@@ -23,9 +24,9 @@
 - A `?uri=` that is not `http(s)` is refused with `400`, and the client opens only an `http(s)` document the proxy could not fetch: a link with `?uri=javascript:…` ran its script on the dataspace's origin. Found by the client model, `formal/client/`, which proves the window is sent to `http(s)` URLs only
 - On a proxied document, the assistant's requests stay on the page's origin, and the ontology import's query and the namespace `clear` go through the proxy: a proxied document naming an `lds:dataspace` sent them to its own origin
 - A version restore on a proxied document writes that document, through the proxy, and reads its access modes, TimeMap and version the same way: it wrote the remote's version over the dataspace's root
-
 - A first OAuth login links its account to an existing agent by email only when the provider verified the address (`email_verified`), and an unverified address is not stored as the new agent's `foaf:mbox`: an address the provider had not verified took over the agent whose mailbox it was. Google's boolean claims reach the login, `email_verified` among them. Found by the authentication model, `formal/auth/`
 - The ID token cache is kept per dataspace: a token used on one dataspace authenticated on another whose admin dataset has no account for it, until the token expired
+- An upload's entity tag is the digest its URI is named by: it was read from the upload's description, which every document's graph adds to, so a writer of any document could state another `foaf:sha1` of someone's upload and make its tag a pick between the two
 
 ## [6.4.0] - 2026-11-02
 ### Migration

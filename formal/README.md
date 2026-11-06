@@ -9,17 +9,22 @@ model lives in its own directory with its own toolchain, README and mapping to t
 | [`acl/`](acl/) | Lean 4 | The authorization decision over the graph store's data, the server's answer with the decision in front of the graph store, and the 6.0 migration of seeded authorizations |
 | [`auth/`](auth/) | Lean 4 | How the agent is established: the WebID filter, its cache and `On-Behalf-Of` delegation, the ID token filters and the first OAuth login, in front of the ACL model's answer |
 | [`client/`](client/) | Lean 4 | Where the browser client sends its requests and the window: `ldh:href`, the pane's base, and every request site not built by `ldh:href` |
+| [`uploads/`](uploads/) | Lean 4 | The upload folder under the graph store's writes, what an upload is described and authorized by, and how it is served: ranges, preconditions and the sandbox |
 
 The graph store model stands alone; the ACL model requires it, by path, since the decision reads the graph store's
 data and its theorems about writes are about the graph store's writes. The authentication model requires the ACL
-model, since the agent it establishes is the decision's input. The client model stands alone.
+model, since the agent it establishes is the decision's input. The client model stands alone. The uploads model
+requires the graph store model, whose writes commit an upload's files and whose graphs describe it.
 
 The `Formal` workflow (`.github/workflows/formal.yml`) builds every model on each push, fails on an
 unproven theorem, and on a pull request fails when a transcribed source changes without the model
-(`http/tracks-code.sh`, `acl/tracks-code.sh`, `auth/tracks-code.sh`, `client/tracks-code.sh`). The HTTP test suite
+(`http/tracks-code.sh`, `acl/tracks-code.sh`, `auth/tracks-code.sh`, `client/tracks-code.sh`,
+`uploads/tracks-code.sh`). The HTTP test suite
 replays the models' answers against the server: the status and the document's graph after each request
 (`tests/http/formal/`). The client model is replayed against the stylesheets themselves: `ldh:href` under Saxon-HE on
-the model's cases, and the request sites as `client/sites.py` reads them.
+the model's cases, and the request sites as `client/sites.py` reads them. The uploads model's serving is replayed through the
+stack (`tests/http/formal/uploads-conformance.sh`), and its range selection against `ByteRange.parse`
+(`ByteRangeModelTest`).
 
 ## Why
 
@@ -93,5 +98,4 @@ credibility; the fifth is the one that answers the agent-era question and change
 
 ## Not in scope
 
-Content negotiation, caching, imports, uploads and XSLT. Each is a candidate for its own model once the ones above
-hold.
+Content negotiation, caching, imports and XSLT. Each is a candidate for its own model once the ones above hold.

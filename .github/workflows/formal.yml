@@ -57,6 +57,14 @@ jobs:
           formal/client/.lake/build/bin/ldh-client sites > /tmp/sites-model.tsv
           python3 formal/client/sites.py src/main/webapp/static/com/atomgraph/linkeddatahub/xsl > /tmp/sites-code.tsv
           diff -u /tmp/sites-model.tsv /tmp/sites-code.tsv
+      - name: Build the uploads model
+        working-directory: formal/uploads
+        run: lake build
+      # ByteRangeModelTest checks ByteRange.parse against the copy under src/test/resources, which the Docker build has
+      - name: The range cases are the model's
+        run: |
+          formal/uploads/.lake/build/bin/ldh-uploads range-cases > /tmp/range-cases-model.tsv
+          diff -u src/test/resources/com/atomgraph/linkeddatahub/server/util/range-cases.tsv /tmp/range-cases-model.tsv
       # lake build only warns on sorry; the READMEs' "no sorry" claim is checked here
       - name: Every theorem is proven
         run: |
@@ -71,3 +79,4 @@ jobs:
           formal/acl/tracks-code.sh "${{ github.event.pull_request.base.sha }}"
           formal/auth/tracks-code.sh "${{ github.event.pull_request.base.sha }}"
           formal/client/tracks-code.sh "${{ github.event.pull_request.base.sha }}"
+          formal/uploads/tracks-code.sh "${{ github.event.pull_request.base.sha }}"

@@ -69,6 +69,10 @@ jobs:
       - name: Build ldh-auth
         run: lake build ldh-auth
         working-directory: formal/auth
+      # formal/uploads-conformance.sh replays the uploads model's serving through ldh-uploads
+      - name: Build ldh-uploads
+        run: lake build ldh-uploads
+        working-directory: formal/uploads
       - name: Generating server certificate
         run: |
           server-cert-gen.sh .env nginx ssl

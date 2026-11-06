@@ -202,13 +202,15 @@ public class Item
     }
 
     /**
-     * Returns the ETag for HTTP caching based on the file's SHA1 hash.
+     * Returns the ETag for HTTP caching: the file's SHA1 hash, which names its URI.
+     * The description's <code>foaf:sha1</code> is not read: any document may state one of the file, and the
+     * description is merged from all of them, so a second one made the tag a pick between the two.
      *
      * @return entity tag for cache validation
      */
     public EntityTag getEntityTag()
     {
-        return new EntityTag(getSHA1Hash(getResource()));
+        return new EntityTag(getUriInfo().getPathParameters().getFirst("sha1sum"));
     }
     
     /**
