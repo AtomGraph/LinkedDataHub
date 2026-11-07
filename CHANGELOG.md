@@ -2,6 +2,7 @@
 ### Added
 - `ldh get --timemap` and `--timegate` follow the `Link` the document advertises, and `--timegate` waits as a `503` with `Retry-After` asks
 - What the stylesheets put into a page from data someone else controls is formalised in Lean (`formal/xslt/`): XML literals, the assistant's answer, the bootstrap script and a server-side `document()`, with the rendering rules and the editor's canonical form replayed against the stylesheets
+- Uploads are formalised in Lean (`formal/uploads/`): the upload folder under the graph store's writes, what an upload is described and authorized by, and how it is served, replayed against the server and against `ByteRange.parse`
 - `VARNISH_FRONTEND_STORAGE`, `VARNISH_ADMIN_STORAGE` and `VARNISH_END_USER_STORAGE` size each Varnish's main store, so a deployment can fit it under the service's `mem_limit`
 
 ### Changed
@@ -29,6 +30,9 @@
 - An XML literal renders without what would run on the page: scripts in any namespace, event handlers, a frame's `srcdoc`, and `javascript:`, `vbscript:` and non-image `data:` URLs, read as the browser reads them. A literal written straight to the graph store or imported never passed through the editor's canonical form, and one in a proxied document ran on the proxying dataspace's origin; the editor's live region copied the literal in as it was too, so a handler ran when the editor opened
 - The editor's canonical form takes out a script in any namespace and reads a URL's scheme as the browser does, on an SVG link's `xlink:href` too: it kept `svg:script`, `java&#9;script:` and `xlink:href="javascript:…"` (RDFa-Editor)
 - A server-side `document()` or `doc-available()` of a URI that is not `http(s)` reads an empty document: Saxon opened it itself, so a stored `file:` URI read the server's file when the page looked up its label, and `jar:http:` fetched directly, past the egress proxy
+- An upload is served with the media type it was first uploaded with, which the platform records beside the bytes (`uploads/.types/`): it was a pick among the `dct:format` values any document stated of the file
+- An upload is readable by whoever may read a document it was uploaded into, which the platform records beside the bytes (`uploads/.documents/`): a grant on a document did not reach the files uploaded into it, and only the `nfo:FileDataObject` class grant did
+- An upload's entity tag is the digest its URI is named by: it was read from the upload's description, which every document's graph adds to, so a writer of any document could state another `foaf:sha1` of someone's upload and make its tag a pick between the two
 
 ## [6.4.0] - 2026-11-02
 ### Migration
