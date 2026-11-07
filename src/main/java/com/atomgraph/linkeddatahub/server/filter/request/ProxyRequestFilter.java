@@ -221,17 +221,22 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         // LNK-009: validate that the target URI is not an internal/private address (SSRF protection)
         getSystem().getURLValidator().validate(targetURI);
 
-        // an authenticated caller proxying one of this instance's dataspaces is delegated: the platform's certificate
-        // plus On-Behalf-Of, which the origin verifies against acl:delegates. Every other request goes out with no
+        // an authenticated caller is delegated with the platform's certificate plus On-Behalf-Of, which the origin verifies
+        // against acl:delegates by dereferencing the caller's WebID - any instance can, not only this one. Reads are
+        // delegated only to this instance's dataspaces, so browsing a foreign origin does not announce the caller to it;
+        // writes are delegated to any origin, as a write to another instance needs the caller's access there. The ID token
+        // is a bearer credential and goes to this instance's dataspaces only. Every other request goes out with no
         // certificate and no delegation
         AgentContext agentContext = (AgentContext) requestContext.getProperty(AgentContext.class.getCanonicalName());
-        // a target per redirect hop, delegated only when that hop is one of this instance's dataspaces
+        // a target per redirect hop, delegated by that hop's origin
         Function<URI, WebTarget> targets = uri ->
         {
             boolean isDataspace = getSystem().matchApp(uri) != null;
-            boolean isDelegated = agentContext != null && isDataspace;
+            boolean isDelegated = agentContext != null && (isDataspace || !isSafeMethod);
             WebTarget target = (isDelegated ? getSystem().getExternalClient() : getSystem().getExternalNoCertClient()).target(uri);
-            return GraphStoreClient.delegate(target, agentContext, isDataspace, requestContext.getUriInfo().getBaseUri().getPath());
+            if (isDataspace) return GraphStoreClient.delegate(target, agentContext, true, requestContext.getUriInfo().getBaseUri().getPath());
+            if (isDelegated) target.register(new WebIDDelegationFilter(agentContext.getAgent()));
+            return target;
         };
 
         MediaType[] clientAcceptTypes = requestContext.getAcceptableMediaTypes().toArray(MediaType[]::new);
