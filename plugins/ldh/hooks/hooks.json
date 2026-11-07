@@ -1,0 +1,15 @@
+{
+  "description": "Exports the plugin's configured LinkedDataHub base, certificate and certificate password as LDH_BASE, LDH_CERT_FILE and LDH_CERT_PASSWORD for the session, where the ldh CLI reads them",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/ldh-env.sh\""
+          }
+        ]
+      }
+    ]
+  }
+}

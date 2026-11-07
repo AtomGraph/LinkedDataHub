@@ -24,8 +24,9 @@ https://docs.linkeddatahub.com/reference/configuration/
 - Every document is a named graph whose name is the document URL; the default graph is empty.
 - A document is not the thing it describes: the described resource is `<doc#this>`, linked with
   `foaf:primaryTopic`.
-- `ldh` reads `LDH_BASE`, `LDH_CERT_FILE`, `LDH_CERT_PASSWORD` and `LDH_PROXY` from the
-  environment. Commands that create a document print its URL as the only stdout line.
+- The plugin's settings supply the base, certificate and password that `ldh` reads as `LDH_BASE`,
+  `LDH_CERT_FILE` and `LDH_CERT_PASSWORD`; `LDH_PROXY` comes from the environment.
+  Commands that create a document print its URL as the only stdout line.
 - **Use an `ldh` that matches the instance.** Build it from the same LinkedDataHub checkout or release
   as the running image (`ldh --version`). An instance whose end-user responses carry no
   `https://w3id.org/atomgraph/linkeddatahub/dataspaces#admin` `Link` (check with `ldh get --head --accept text/turtle "$LDH_BASE"`)
