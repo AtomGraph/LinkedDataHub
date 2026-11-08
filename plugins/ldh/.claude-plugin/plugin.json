@@ -20,5 +20,23 @@
     "sparql",
     "knowledge-graph",
     "linkeddatahub"
-  ]
+  ],
+  "userConfig": {
+    "ldh_base": {
+      "type": "string",
+      "title": "LinkedDataHub base URL",
+      "description": "The end-user base of the dataspace to work on, e.g. https://inventory.localhost:4443/"
+    },
+    "cert_file": {
+      "type": "file",
+      "title": "WebID certificate",
+      "description": "The owner's WebID keystore, which the linkeddatahub container generates at ssl/owner/keystore.p12 in the LinkedDataHub checkout (ssl/owner/cert.pem works too)"
+    },
+    "cert_password": {
+      "type": "string",
+      "title": "Certificate password",
+      "description": "The owner certificate's password, the one in secrets/owner_cert_password.txt",
+      "sensitive": true
+    }
+  }
 }

@@ -25,11 +25,16 @@ import com.atomgraph.linkeddatahub.server.security.AccessModes;
 import com.atomgraph.linkeddatahub.server.security.AuthorizationContext;
 import com.atomgraph.linkeddatahub.server.util.AuthorizationParams;
 import com.atomgraph.linkeddatahub.server.util.DocumentContext;
+import com.atomgraph.linkeddatahub.server.util.UploadRecords;
+import com.atomgraph.linkeddatahub.server.model.impl.DocumentHierarchyGraphStoreImpl;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.DH;
 import com.atomgraph.linkeddatahub.vocabulary.Default;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
 import java.io.IOException;
+import java.net.URI;
+import java.nio.file.Path;
+import java.util.List;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -37,11 +42,13 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.container.PreMatching;
 import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.PathSegment;
 import jakarta.ws.rs.core.Response;
 import org.apache.jena.irix.IRIx;
 import java.util.Set;
@@ -175,7 +182,52 @@ public class AuthorizationFilter implements ContainerRequestFilter
             return authorize(parent, parentContext, agent, accessMode); // the document does not exist yet: its container decides
         }
 
-        return authorize(accessTo, getDocumentContext(accessTo), agent, accessMode);
+        Model authorizations = authorize(accessTo, getDocumentContext(accessTo), agent, accessMode);
+        if (authorizations == null && ACL.Read.equals(accessMode)) return authorizeUpload(request, agent);
+
+        return authorizations;
+    }
+
+    /**
+     * Returns the agent's authorizations to read an upload through a document it was uploaded into, or null if the
+     * request is not for an upload or the agent may read none of them.
+     * An upload has no graph of its own, so its own context names it only by its URI and <code>nfo:FileDataObject</code>,
+     * and a grant on one document did not reach the files uploaded into it. The documents are the platform's record
+     * ({@link UploadRecords}), written when a write that uploads the bytes goes ahead: which documents describe the file
+     * is any writer's to say, which document it was uploaded into is not (formal/uploads, <code>upload_readable</code>).
+     * A document of another dataspace sharing the upload folder is that dataspace's to decide, so only this one's count.
+     *
+     * @param request current request
+     * @param agent agent resource or null
+     * @return authorizations model or null if access denied
+     */
+    public Model authorizeUpload(ContainerRequestContext request, Resource agent)
+    {
+        List<PathSegment> segments = request.getUriInfo().getPathSegments();
+        if (segments.size() != 2 || !DocumentHierarchyGraphStoreImpl.UPLOADS_PATH.equals(segments.get(0).getPath()) ||
+            !UploadRecords.SHA1.matcher(segments.get(1).getPath()).matches()) return null;
+
+        final List<URI> documents;
+        try
+        {
+            documents = UploadRecords.getDocuments(Path.of(getSystem().getUploadRoot().resolve(request.getUriInfo().getPath())).getParent(), segments.get(1).getPath());
+        }
+        catch (IOException ex)
+        {
+            throw new InternalServerErrorException(ex);
+        }
+
+        String base = getDataspace().get().getBase().getURI();
+        for (URI document : documents)
+        {
+            if (!document.toString().startsWith(base)) continue;
+
+            Resource uploadedInto = ResourceFactory.createResource(document.toString());
+            Model authorizations = authorize(uploadedInto, getDocumentContext(uploadedInto), agent, ACL.Read);
+            if (authorizations != null) return authorizations;
+        }
+
+        return null;
     }
 
     /**

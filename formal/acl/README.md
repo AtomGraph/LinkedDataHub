@@ -181,5 +181,9 @@ The other two are facts about the platform rather than its data, and nothing a r
 - **`rdfs:subClassOf*`:** fixed. Class axioms are admin data, and a write to them is an admin write.
 - **The read-allowed dataspace shortcut:** a dataspace marked readable skips the decision for `GET` and `HEAD`.
 - **Authentication:** WebID, OAuth and `On-Behalf-Of` delegation. The agent is an input.
+- **Uploads:** a file under `uploads/` has no graph of its own. Its context names it by its URI and
+  `nfo:FileDataObject` only, and a read the decision does not grant there goes to `authorizeUpload`, which asks this
+  decision of each document the file was uploaded into. `formal/uploads` models both (`upload_context`,
+  `upload_readable`); the decision over a document is this model's.
 - **What the graph store model leaves out:** concurrency, validation and the rest of the server's work; see its
   README.

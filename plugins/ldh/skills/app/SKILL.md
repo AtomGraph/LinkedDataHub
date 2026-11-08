@@ -24,8 +24,10 @@ References:
   linked resource its own graph variable, because each resource lives in its own document.
 - A document is not the thing it describes. The topic is `<doc#this>`, linked with
   `foaf:primaryTopic`, and its properties go there.
-- Setup: `export LDH_BASE=https://<dataspace>/ LDH_CERT_FILE=<owner keystore.p12> LDH_CERT_PASSWORD=…`.
-  The password is the deployment's, never a guess.
+- Setup: the plugin's settings (`/plugin` → ldh → configure) supply the dataspace base, the owner's
+  WebID certificate and its password, which `ldh` reads as `LDH_BASE`, `LDH_CERT_FILE` and
+  `LDH_CERT_PASSWORD`. The configured base is ${user_config.ldh_base}. If one is missing, ask the user
+  to configure the plugin: never search the disk for a certificate or a password, and never guess one.
 - **Use an `ldh` that matches the instance.** Build it from the same LinkedDataHub checkout or release
   as the running image (`ldh --version`). An instance whose end-user responses carry no
   `https://w3id.org/atomgraph/linkeddatahub/dataspaces#admin` `Link` (check with `ldh get --head --accept text/turtle "$LDH_BASE"`)
@@ -182,9 +184,9 @@ by path.
 
 ```bash
 #!/usr/bin/env bash
-# Installs the app with the ldh CLI. Reads LDH_BASE, LDH_CERT_FILE, LDH_CERT_PASSWORD (and LDH_PROXY).
+# Installs the app with the ldh CLI, which authenticates with the certificate it is configured with.
 set -euo pipefail
-: "${LDH_BASE:?}" "${LDH_CERT_FILE:?}" "${LDH_CERT_PASSWORD:?}"
+: "${LDH_BASE:?}"
 
 app_dir="$(cd "$(dirname "$0")" && pwd)"
 
