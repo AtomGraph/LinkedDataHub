@@ -5,6 +5,13 @@ set -euo pipefail
 # uploaded, and ldh-uploads predicts the status and Content-Range of a GET for every combination of a Range, an
 # If-None-Match, an If-Range and an Accept it lists; the server has to answer the same, and every 200 and 206 has to
 # carry the sandbox policy (served_sandboxed).
+#
+# UPLOADS_CONFORMANCE_PROXIED sends every request through the Linked Data proxy instead, as ?uri= on the admin base
+# (one on the end-user base is not proxied but served as the file), with the same prediction
+# (uploads-conformance-proxied.sh). The proxy forwards Accept and If-None-Match but neither Range nor If-Range; the
+# front cache serves the range from the whole file the proxy relays, evaluating If-Range against the origin's ETag the
+# proxy forwards, so the client gets the same answer. The sandbox policy is required all the same: the bytes are then
+# served from the proxy's origin.
 
 initialize_dataset "$END_USER_BASE_URL" "$TMP_END_USER_DATASET" "$END_USER_ENDPOINT_URL"
 initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
@@ -49,6 +56,10 @@ ldh add file \
   --content-type "application/octet-stream" \
   "$doc"
 
+proxied="${UPLOADS_CONFORMANCE_PROXIED:-}"
+url=("$file")
+[ -n "$proxied" ] && url=(--url-query "uri=$file" "$ADMIN_BASE_URL")
+
 failures=0
 cases=0
 while IFS=$'\t' read -r range inm if_range accept status content_range
@@ -58,7 +69,7 @@ do
     [ "$range" != "-" ] && args+=(-H "Range: $range")
     [ "$inm" != "-" ] && args+=(-H "If-None-Match: $inm")
 
-    got_status=$(curl "${args[@]}" "$file")
+    got_status=$(curl "${args[@]}" "${url[@]}")
     got_range=$(tr -d '\r' < "$work/headers" | sed -n 's/^[Cc]ontent-[Rr]ange: *//p')
     got_csp=$(tr -d '\r' < "$work/headers" | sed -n 's/^[Cc]ontent-[Ss]ecurity-[Pp]olicy: *//p')
     [ -n "$got_range" ] || got_range="-"
@@ -74,6 +85,6 @@ do
     fi
 done < <("$model" cases "$length" "$sha1sum")
 
-echo "DEBUG: $cases cases, $failures disagreeing with the model"
+echo "DEBUG: $cases cases, $failures disagreeing with the model${proxied:+, through the proxy}"
 [ "$cases" -gt 0 ]
 [ "$failures" -eq 0 ]
