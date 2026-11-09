@@ -22,8 +22,8 @@ item=$(ldh create item \
   --title "Proxied cross-origin write target" \
   --container "$remote_base")
 
-# Submits an RDF/POST form appending the description to the target through the proxy as the owner, with the Origin and
-# Accept given; prints the status
+# Submits an RDF/POST form appending the description to the target through the proxy as the owner, against its current
+# state and with the Origin and Accept given; prints the status
 submit()
 {
     local origin="$1" accept="$2" description="$3"
@@ -32,6 +32,7 @@ submit()
       -X POST \
       -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
       -H "Accept: $accept" \
+      -H "If-Match: $(etag "$item" "$OWNER_CERT_FILE" "$OWNER_CERT_PWD" 'application/n-triples')" \
       -H 'Content-Type: application/x-www-form-urlencoded' \
       -H "Origin: $origin" \
       --url-query "uri=${item}" \

@@ -20,8 +20,8 @@ item=$(ldh create item \
   --title "Cross-origin write target" \
   --container "$END_USER_BASE_URL")
 
-# Submits an RDF/POST form appending the description to the document as the owner, with the Origin given (none if it is
-# empty); prints the status
+# Submits an RDF/POST form appending the description to the document as the owner, against its current state and with the
+# Origin given (none if it is empty); prints the status
 submit()
 {
     local origin="$1" description="$2"
@@ -30,6 +30,7 @@ submit()
       -X POST \
       -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
       -H 'Accept: application/n-triples' \
+      -H "If-Match: $(etag "$item" "$OWNER_CERT_FILE" "$OWNER_CERT_PWD" 'application/n-triples')" \
       -H 'Content-Type: application/x-www-form-urlencoded' \
       ${origin:+-H "Origin: $origin"} \
       --data-urlencode "rdf=" \
@@ -82,6 +83,7 @@ made "" "From no origin"
 code=$(curl -k -s -o /dev/null -w '%{http_code}' \
   -X DELETE \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+  -H "If-Match: $(etag "$item" "$OWNER_CERT_FILE" "$OWNER_CERT_PWD" 'application/n-triples')" \
   -H 'Origin: https://evil.example' \
   "$item")
 
