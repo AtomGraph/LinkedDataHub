@@ -759,11 +759,7 @@ public class Application extends ResourceConfig
         try
         {
             String settingsOverlay = servletConfig.getServletContext().getInitParameter(LDHC.settingsOverlay.getURI());
-            FileContextPersistence persistence = new FileContextPersistence(
-                getDataset(servletConfig.getServletContext(), contextDatasetURI),
-                settingsOverlay != null ? new java.io.File(URI.create(settingsOverlay)) : null,
-                resolve(servletConfig.getServletContext(), contextDatasetURI));
-            this.contextAccessor = new ContextEndpointAccessor(persistence.load(), persistence);
+            this.contextAccessor = loadContext(servletConfig.getServletContext(), contextDatasetURI, settingsOverlay);
 
             keyStore = KeyStore.getInstance("PKCS12");
             try (FileInputStream keyStoreInputStream = new FileInputStream(new java.io.File(new URI(clientKeyStoreURIString))))
@@ -845,8 +841,9 @@ public class Application extends ResourceConfig
             BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.model.File.class, FileImpl.factory);
 
             // Build ServiceContext map: keyed by service URI, proxy derived from the app type that references each service.
-            // Iterating lds:service statements (app → service) naturally excludes orphan services.
-            serviceContextMap = new HashMap<>();
+            // Iterating lds:service statements (app → service) naturally excludes orphan services. A service added to the
+            // descriptions later gets its context on first use (getServiceContext), so the map is concurrent.
+            serviceContextMap = new ConcurrentHashMap<>();
             org.apache.jena.rdf.model.Model ctxUnion = getContextDataset().getUnionModel();
             org.apache.jena.rdf.model.StmtIterator serviceIt = ctxUnion.listStatements(null, LDS.service, (org.apache.jena.rdf.model.RDFNode) null);
             try
@@ -2165,15 +2162,104 @@ public class Application extends ResourceConfig
 
     /**
      * Returns the service context for the given service (client + proxy configuration).
-     * The context is keyed by the service's URI string.
+     * The context is keyed by the service's URI string. A service the map does not hold yet - one of a dataspace
+     * added to the descriptions after the platform started - gets its context built now, by
+     * {@link #createServiceContext}, and kept.
      *
      * @param service SPARQL service
-     * @return service context, or {@code null} if the service is not registered
+     * @return service context, or {@code null} if no dataspace names the service
      */
     public com.atomgraph.linkeddatahub.model.ServiceContext getServiceContext(com.atomgraph.linkeddatahub.model.Service service)
     {
         if (service == null) throw new IllegalArgumentException("Service cannot be null");
-        return serviceContextMap.get(service.getURI());
+
+        com.atomgraph.linkeddatahub.model.ServiceContext context = serviceContextMap.get(service.getURI());
+        if (context != null) return context;
+
+        context = createServiceContext(service);
+        if (context == null) return null;
+
+        com.atomgraph.linkeddatahub.model.ServiceContext kept = serviceContextMap.putIfAbsent(service.getURI(), context);
+        return kept != null ? kept : context;
+    }
+
+    /**
+     * Builds the context of a service from the dataspace descriptions as they are now: the proxy is the one of the
+     * dataspace kind that names the service, as for the services known at startup. A service that no admin or
+     * end-user dataspace names has no context. An extension that keeps the descriptions elsewhere, or sets up its
+     * services differently, overrides this.
+     *
+     * @param service SPARQL service
+     * @return the context, or {@code null} when no dataspace names the service
+     */
+    protected com.atomgraph.linkeddatahub.model.ServiceContext createServiceContext(com.atomgraph.linkeddatahub.model.Service service)
+    {
+        Model context = getContextModel();
+        Resource dataspace = dataspaceOf(context, context.createResource(service.getURI()));
+        if (dataspace == null) return null;
+
+        URI proxy = dataspace.hasProperty(RDF.type, LDS.AdminDataspace) ? getBackendProxyAdmin() : getBackendProxyEndUser();
+        // read from the current descriptions, not from the caller's possibly stale resource
+        com.atomgraph.linkeddatahub.model.Service current = context.createResource(service.getURI()).as(com.atomgraph.linkeddatahub.model.Service.class);
+        return new com.atomgraph.linkeddatahub.model.ServiceContext(current, getNoCertClient(), getMediaTypes(), getMaxGetRequestSize(), proxy);
+    }
+
+    /**
+     * The admin or end-user dataspace that names a service as its own ({@code lds:service}).
+     *
+     * @param context the dataspace descriptions
+     * @param service the service
+     * @return the dataspace, or {@code null} when no admin or end-user dataspace names the service
+     */
+    static Resource dataspaceOf(Model context, Resource service)
+    {
+        ResIterator it = context.listResourcesWithProperty(LDS.service, service);
+        try
+        {
+            while (it.hasNext())
+            {
+                Resource dataspace = it.next();
+                if (dataspace.hasProperty(RDF.type, LDS.AdminDataspace) || dataspace.hasProperty(RDF.type, LDS.EndUserDataspace)) return dataspace;
+            }
+        }
+        finally
+        {
+            it.close();
+        }
+
+        return null;
+    }
+
+    /**
+     * Forgets the context of a service, so that the next use builds it from the descriptions as they are then: what
+     * a change of the service's description calls for.
+     *
+     * @param serviceURI the service's URI
+     */
+    protected void forgetServiceContext(String serviceURI)
+    {
+        if (serviceURI == null) throw new IllegalArgumentException("Service URI cannot be null");
+        serviceContextMap.remove(serviceURI);
+    }
+
+    /**
+     * Returns the proxy in front of the admin dataspaces' services, if any.
+     *
+     * @return proxy URI or null
+     */
+    public URI getBackendProxyAdmin()
+    {
+        return backendProxyAdmin;
+    }
+
+    /**
+     * Returns the proxy in front of the end-user dataspaces' services, if any.
+     *
+     * @return proxy URI or null
+     */
+    public URI getBackendProxyEndUser()
+    {
+        return backendProxyEndUser;
     }
 
     /**
@@ -2414,6 +2500,28 @@ public class Application extends ResourceConfig
     }
 
     /**
+     * Loads the dataspace descriptions the platform runs with, and sets up where a change to them is kept. The
+     * platform reads them from the context dataset file and keeps changes in the settings overlay file beside it.
+     * An extension that keeps them elsewhere - a store every replica of the platform reads, say - overrides this. It
+     * runs while the application is being constructed, so it may rely on the servlet context and its arguments only,
+     * not on the application's own state.
+     *
+     * @param servletContext the servlet context, for its resources and init parameters
+     * @param contextDatasetURI the context dataset file (<code>ldhc:contextDataset</code>)
+     * @param settingsOverlay the settings overlay file (<code>ldhc:settingsOverlay</code>), or null for none
+     * @return the accessor over the descriptions
+     * @throws IOException if the descriptions cannot be read
+     */
+    protected ContextEndpointAccessor loadContext(ServletContext servletContext, URI contextDatasetURI, String settingsOverlay) throws IOException
+    {
+        FileContextPersistence persistence = new FileContextPersistence(
+            getDataset(servletContext, contextDatasetURI),
+            settingsOverlay != null ? new java.io.File(URI.create(settingsOverlay)) : null,
+            resolve(servletContext, contextDatasetURI));
+        return new ContextEndpointAccessor(persistence.load(), persistence);
+    }
+
+    /**
      * Returns SPARQL access to the dataspace descriptions.
      *
      * @return the accessor
@@ -2472,7 +2580,15 @@ public class Application extends ResourceConfig
         if (application == null) throw new IllegalArgumentException("Application cannot be null");
         if (newModel == null) throw new IllegalArgumentException("Model cannot be null");
 
+        // the services the description named before and names now: their contexts were built from the old description
+        java.util.Set<String> services = new java.util.HashSet<>();
+        Model before = getDataspaceModel(application);
+        if (before != null) before.listObjectsOfProperty(LDS.service).forEachRemaining(node -> { if (node.isURIResource()) services.add(node.asResource().getURI()); });
+        newModel.listObjectsOfProperty(LDS.service).forEachRemaining(node -> { if (node.isURIResource()) services.add(node.asResource().getURI()); });
+
         getContextAccessor().putDataspace(application.getURI(), newModel);
+
+        services.forEach(this::forgetServiceContext);
     }
 
     /**
