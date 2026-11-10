@@ -124,6 +124,11 @@ configs:
           proxy_set_header Client-Cert $$ssl_client_escaped_cert;
           proxy_set_header Proxy-Secret "${PROXY_SECRET:?set PROXY_SECRET in .env - make secrets generates it}";
 
+          # a redirector for the federation tests: any method on /see-other/<path> answers 303 See Other to /<path>
+          location ~ ^/see-other(/.*)$$ {
+              return 303 https://$$host:${HTTPS_PORT}$$1;
+          }
+
           location / {
               proxy_pass http://linkeddatahub-remote:7070;
           }
@@ -143,6 +148,11 @@ configs:
           proxy_set_header X-Forwarded-For $$remote_addr;
           proxy_set_header Client-Cert $$ssl_client_escaped_cert;
           proxy_set_header Proxy-Secret "${PROXY_SECRET:?set PROXY_SECRET in .env - make secrets generates it}";
+
+          # a redirector for the federation tests: any method on /see-other/<path> answers 303 See Other to /<path>
+          location ~ ^/see-other(/.*)$$ {
+              return 303 https://$$host:${HTTPS_PORT}$$1;
+          }
 
           location / {
               proxy_pass http://linkeddatahub-remote:7070;
