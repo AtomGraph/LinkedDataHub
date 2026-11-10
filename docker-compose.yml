@@ -149,7 +149,16 @@ services:
     volumes:
       - ./config/fuseki/config.ttl:/fuseki/config.ttl:ro
       - ./fuseki:/fuseki/databases
-    command: [ "--config", "/fuseki/config.ttl" ]
+      - ./fuseki/run:/fuseki/run # datasets created at runtime: their configuration and data
+    configs:
+      - source: fuseki_shiro
+        target: /fuseki/shiro.ini
+    # The admin API (`POST /$/datasets` creates a dataset, `DELETE /$/datasets/<name>` removes one) is on, for a
+    # dataset per dataspace to be made without editing config.ttl and restarting. It needs the administrator's
+    # credentials (FUSEKI_ADMIN_PASSWORD in .env, written by `make secrets`): the default Shiro configuration lets
+    # only the server's own host in, which no container is. A created dataset lives under the run area, so it is
+    # there again after a restart; the datasets config.ttl declares are served beside it
+    command: [ "--config", "/fuseki/config.ttl", "--adminArea", "/fuseki/run", "--shiro", "/fuseki/shiro.ini" ]
   egress: # forward proxy for the triplestores' outbound requests: refuses loopback, private and link-local destinations
     image: ubuntu/squid:6.6-24.04_beta
     mem_limit: 256m
@@ -238,6 +247,24 @@ services:
     environment:
       - DISABLE_IPV6=true
 configs:
+  # Fuseki's access rules: the admin API to the administrator only, by HTTP Basic; everything else as before, open on
+  # the stack network. Fuseki writes a default of this into its run area (localhost only, a sample user), which this
+  # replaces through --shiro
+  fuseki_shiro:
+    content: |
+      [main]
+      ssl.enabled = false
+      plainMatcher=org.apache.shiro.authc.credential.SimpleCredentialsMatcher
+      iniRealm.credentialsMatcher = $$plainMatcher
+      [users]
+      admin=${FUSEKI_ADMIN_PASSWORD:?run make secrets}
+      [roles]
+      [urls]
+      /$$/server  = anon
+      /$$/ping    = anon
+      /$$/metrics = anon
+      /$$/** = authcBasic,user[admin]
+      /**=anon
   nginx_conf:
     content: |
       pid /tmp/nginx.pid;

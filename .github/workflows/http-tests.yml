@@ -87,6 +87,10 @@ jobs:
           echo "::add-mask::$proxy_secret"
           printf '\nPROXY_SECRET=%s\n' "$proxy_secret" >> ./tests/http/.env
           echo "PROXY_SECRET=$proxy_secret" >> "$GITHUB_ENV" # for later compose commands without --env-file
+          fuseki_admin_password=$(openssl rand -hex 32)
+          echo "::add-mask::$fuseki_admin_password"
+          printf 'FUSEKI_ADMIN_PASSWORD=%s\n' "$fuseki_admin_password" >> ./tests/http/.env
+          echo "FUSEKI_ADMIN_PASSWORD=$fuseki_admin_password" >> "$GITHUB_ENV"
         shell: bash
       - name: Enable graph versioning
         if: env.VERSIONING_TEST_TOKEN != ''
