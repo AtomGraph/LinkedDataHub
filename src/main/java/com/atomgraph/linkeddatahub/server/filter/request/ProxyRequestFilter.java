@@ -285,7 +285,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         }
         catch (ProcessingException ex)
         {
-            if (log.isWarnEnabled()) log.warn("Could not dereference proxied URI: {}", targetURI);
+            if (log.isWarnEnabled()) log.warn("Could not dereference proxied URI: {}", targetURI, ex);
             throw new BadGatewayException(ex);
         }
     }
