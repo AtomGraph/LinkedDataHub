@@ -2,7 +2,8 @@
 
 A Lean 4 model of how LinkedDataHub establishes the agent a request is made by: the WebID filter with its cache and
 `On-Behalf-Of` delegation, the ID token filters, and the OAuth callback's first login. It proves what each
-guarantees and where each does not. The agent is the authorization decision's input, so this model builds on the
+guarantees and where each does not. It also models the other end of delegation: the credentials the Linked Data proxy
+sends for a caller, hop by hop. The agent is the authorization decision's input, so this model builds on the
 ACL model in [`../acl/`](../acl/), which it requires by path, and puts authentication in front of that model's answer.
 
 The model is a specification. It is not extracted from the Java: each definition is transcribed from the code listed
@@ -34,6 +35,7 @@ formal/auth/tracks-code.sh origin/develop
 | `LdhAuth/Theorems.lean` | What the WebID filter and the ID token filters guarantee, and two counterexamples |
 | `LdhAuth/Login.lean` | The OAuth callback's first login, and what it links an account to |
 | `LdhAuth/Gate.lean` | The server's answer with authentication in front of `LdhAcl.serveB`, and delegation as non-interference |
+| `LdhAuth/Proxy.lean` | The Linked Data proxy's outbound side: the credentials each hop carries, redirects, and the headers it forwards |
 | `Main.lean` | `ldh-auth`: the WebID filter over a request and WebID documents, for `tests/http/formal/` to replay against the server |
 
 ## The model
@@ -69,6 +71,16 @@ formal/auth/tracks-code.sh origin/develop
   - A subject with no account gets an account of its own.
   - That account is linked to the agent whose `foaf:mbox` is the token's email, if there is one and the provider
     verified the address (`email_verified`), and to a new agent if not. An unverified address counts as none.
+- **The proxy (`Proxy.lean`):** the caller is anonymous, a WebID, or an ID token with its account's agent.
+  - **Each hop's credentials (`target`):** they depend on whether the hop's origin is one of this instance's dataspaces
+    and on the method the hop uses.
+    - This instance's dataspaces: the platform's certificate and `On-Behalf-Of` naming the caller, plus the ID token
+      for an ID token caller.
+    - Another origin, a write: the certificate and `On-Behalf-Of`, and never the token.
+    - Another origin, a read: nothing.
+  - **Redirects (`follow`, `methods`):** a `303` is followed for any method and continues as `GET` (`HEAD` stays
+    `HEAD`). `301`, `302`, `307` and `308` are followed for reads only.
+  - **Forwarded headers (`forwarded`):** only the four conditional request headers.
 - **The server's answer (`Gate.lean`):** a request that fails authentication is answered with the failure's status
   and changes nothing. Otherwise it gets `LdhAcl.serveB` for the agent.
 
@@ -88,6 +100,9 @@ formal/auth/tracks-code.sh origin/develop
 | `token`, `accountRows`, `describe`, `accountModel`, `accountAgent`, `TokenCache` | `IDTokenFilterBase.authenticate`, `userAccountQuery` (`web.xml`), `oidcModelCache` |
 | `tokens` | `IDTokenFilterBase.filter`: the login and authorize URLs it skips |
 | `login`, `agentByMbox` | `LoginBase.get`, `userAccountExists`, `findAgentByEmail`, `agentQuery` (`web.xml`); the claims `getUserInfo` gives it (`google/Login`, `orcid/Login`) |
+| `Proxy.target`, `Proxy.delegate` | the `targets` function of `ProxyRequestFilter.filter`; `GraphStoreClient.delegate`, `WebIDDelegationFilter`, `IDTokenDelegationFilter` |
+| `Proxy.follow`, `Proxy.methods` | `RedirectingClient.invoke` |
+| `Proxy.forwarded` | `ProxyRequestFilter.FORWARDED_REQUEST_HEADERS` |
 | `AuthError.code` | `InvalidWebIDPublicKeyExceptionMapper`, `WebIDDelegationExceptionMapper`, `WebIDLoadingExceptionMapper`, `InternalURLExceptionMapper`, `TokenExpiredExceptionMapper` |
 
 The filters live in `server/filter/request/` and `server/filter/request/auth/`, the mappers in `server/mapper/auth/`,
@@ -116,6 +131,18 @@ Proven with no `sorry`, using only the axioms `propext` and `Quot.sound`:
 | `serve_unauthenticated` | A request that fails authentication changes nothing |
 | `delegation_noninterference` | Two requests authenticated as the same agent get the same answer to every request, however the agent was established |
 | `delegation_needs_write` | A delegation is put in force by an authorized write of the principal's document |
+| `anon_anonymous` | An anonymous caller is proxied anonymous, to every origin |
+| `foreign_read_anonymous` | A read of another origin carries nothing, whoever the caller: browsing does not announce the caller |
+| `foreign_write_delegated` | A write to another origin carries the platform's certificate and `On-Behalf-Of` naming the caller, and no token |
+| `token_stays_home` | The ID token goes to this instance's dataspaces only |
+| `obo_is_caller`, `obo_has_cert` | `On-Behalf-Of` names the caller and no one else, and goes with the certificate the receiver verifies it against |
+| `follow_write`, `follow_read` | A write is followed only through a `303`, as `GET`; every hop followed to is a read |
+| `redirects_read`, `redirect_foreign_anonymous` | Every hop after the first is a read, so a redirect to another origin carries nothing |
+| `origin_not_forwarded`, `credentials_not_forwarded` | The caller's `Origin`, `Cookie`, `Authorization`, `On-Behalf-Of` and `Client-Cert` are not forwarded |
+
+`request_method_delegates_redirect` is the case that shows why each hop's own method decides. Delegation decided by the
+request's method would send a write's credentials on to the read a `303` turns it into, which is how the proxy behaved
+until each hop was given its own method.
 
 Two of these were counterexamples, proven of the code as it was, until the fix that turned each into the theorem it
 names:
@@ -199,5 +226,6 @@ The ID token path is not replayed. It needs a provider's signed tokens.
   them as terms, and the replay sends the key as `WebIDFilter` writes it.
 - **Writes other than the account:** the agent document, the authorization and the `acl:delegates` the first login
   writes. `login` models only the triples the token path reads.
-- **The read-allowed dataspace shortcut and the Linked Data proxy:** both are past authentication, and the ACL
-  model's.
+- **The read-allowed dataspace shortcut, and what the proxy is allowed to do:** both are past authentication, and the
+  ACL model's. `Proxy.lean` covers only what the proxy sends.
+- **The proxy's responses:** which body is re-serialized and which relayed, and the headers it returns.
