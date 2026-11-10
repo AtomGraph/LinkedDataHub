@@ -39,7 +39,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.ForbiddenException;
@@ -228,11 +228,13 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         // is a bearer credential and goes to this instance's dataspaces only. Every other request goes out with no
         // certificate and no delegation
         AgentContext agentContext = (AgentContext) requestContext.getProperty(AgentContext.class.getCanonicalName());
-        // a target per redirect hop, delegated by that hop's origin
-        Function<URI, WebTarget> targets = uri ->
+        // a target per redirect hop, delegated by that hop's origin and method: a write a 303 turns into a GET reaches its
+        // next hop as a read, so it is not delegated to a foreign origin there either
+        BiFunction<URI, String, WebTarget> targets = (uri, method) ->
         {
             boolean isDataspace = getSystem().matchApp(uri) != null;
-            boolean isDelegated = agentContext != null && (isDataspace || !isSafeMethod);
+            boolean isRead = HttpMethod.GET.equalsIgnoreCase(method) || HttpMethod.HEAD.equalsIgnoreCase(method);
+            boolean isDelegated = agentContext != null && (isDataspace || !isRead);
             WebTarget target = (isDelegated ? getSystem().getExternalClient() : getSystem().getExternalNoCertClient()).target(uri);
             if (isDataspace) return GraphStoreClient.delegate(target, agentContext, true, requestContext.getUriInfo().getBaseUri().getPath());
             if (isDelegated) target.register(new WebIDDelegationFilter(agentContext.getAgent()));
