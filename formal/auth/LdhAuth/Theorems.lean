@@ -138,12 +138,12 @@ theorem auth_never_403 (e : AuthError) : e.code ≠ 403 := by
 
 /-- **A token identity needs a verified token.** The agent comes from a token the provider signed, and from the
 token in use, its refresh if it had expired, fully verified, dates included: the account model the cache holds for
-its issuer and subject, or else the one `userAccountQuery` returns. -/
-theorem token_sound {V : Vocab} {name : Node → String} {admin : String} {fs : FinStore} {pv : Provider}
-    {tc : TokenCache} {t : Token} {a : Node} {tc' : TokenCache} (h : token V name admin fs pv tc t = .ok (a, tc')) :
+its issuer and subject, or else the one `userAccountQuery` returns over the dataspace's admin dataset or the root's. -/
+theorem token_sound {V : Vocab} {name : Node → String} {admin : String} {fs root : FinStore} {pv : Provider}
+    {tc : TokenCache} {t : Token} {a : Node} {tc' : TokenCache} (h : token V name admin fs root pv tc t = .ok (a, tc')) :
     pv.signed t = true ∧ t.hasExp = true ∧ ∃ t', current pv t = .ok t' ∧ pv.verified t' = true ∧
       ∃ m, (tc (admin, name t'.iss, name t'.sub) = some m ∨
-              (tc (admin, name t'.iss, name t'.sub) = none ∧ m = accountModel V fs t'.iss t'.sub)) ∧
+              (tc (admin, name t'.iss, name t'.sub) = none ∧ m = accountModelOf V fs root t'.iss t'.sub)) ∧
         accountAgent V m t'.sub = .ok a := by
   unfold token at h
   by_cases hs : (!pv.signed t || !t.hasExp) = true
@@ -206,6 +206,27 @@ theorem accountAgent_sound {V : Vocab} {fs : FinStore} {iss sub a : Node}
     exact ⟨x, hx, p, hp, ht⟩
   · cases h
 
+/-- **An account the dataspace made stands.** When the dataspace's admin dataset has an account for the subject, a
+cache miss reads it and not the root's: an agent made before accounts moved to root keeps its grants. -/
+theorem legacy_account_first {V : Vocab} {fs root : FinStore} {iss sub : Node}
+    (h : hasAccount V (accountModel V fs iss sub) sub = true) :
+    accountModelOf V fs root iss sub = accountModel V fs iss sub := by
+  simp [accountModelOf, h]
+
+/-- **The agent is the dataspace's or the root's.** On a cache miss, the agent is a `sioc:account_of` stated in the
+dataspace's admin dataset or in the root's, and in no other dataspace's: an owner of another dataspace cannot point a
+subject's account at an agent of theirs. -/
+theorem account_from_own_or_root {V : Vocab} {fs root : FinStore} {iss sub a : Node}
+    (h : accountAgent V (accountModelOf V fs root iss sub) sub = .ok a) :
+    (∃ p ∈ fs, ∃ x, ⟨x, V.siocAccountOf, a⟩ ∈ p.2) ∨ (∃ p ∈ root, ∃ x, ⟨x, V.siocAccountOf, a⟩ ∈ p.2) := by
+  by_cases hl : hasAccount V (accountModel V fs iss sub) sub = true
+  · rw [legacy_account_first hl] at h
+    obtain ⟨x, _, p, hp, ht⟩ := accountAgent_sound h
+    exact Or.inl ⟨p, hp, x, ht⟩
+  · simp only [accountModelOf, hl, Bool.false_eq_true, if_false] at h
+    obtain ⟨x, _, p, hp, ht⟩ := accountAgent_sound h
+    exact Or.inr ⟨p, hp, x, ht⟩
+
 /-! ## A cache entry per dataspace -/
 
 section CrossDataspace
@@ -223,8 +244,12 @@ private def web : Web := ⟨id, fun _ => .unreachable, fun _ => false, fun _ => 
 private def adminA : FinStore :=
   [(.iri 50, [⟨.iri 41, .iri 4, .iri 21⟩, ⟨.iri 41, .iri 5, .iri 20⟩, ⟨.iri 41, .iri 6, .iri 40⟩])]
 
-private def envOf (admin : String) (agents : FinStore) : Env :=
-  ⟨vocab, web, [pv], fun n => match n with | .iri k => toString k | _ => "", admin, agents⟩
+/-- Dataspace B's admin dataset: an account it made for the subject before accounts moved to root, of agent `iri 42`. -/
+private def legacyB : FinStore :=
+  [(.iri 51, [⟨.iri 43, .iri 4, .iri 21⟩, ⟨.iri 43, .iri 5, .iri 20⟩, ⟨.iri 43, .iri 6, .iri 42⟩])]
+
+private def envOf (admin : String) (agents root : FinStore) : Env :=
+  ⟨vocab, web, [pv], fun n => match n with | .iri k => toString k | _ => "", admin, agents, root⟩
 
 private def req : Request := ⟨true, none, .none, some tok, false, .iri 60⟩
 
@@ -236,10 +261,18 @@ model the cache now holds. Until the cache was keyed by the admin dataspace too,
 until the entry expired (`token_cache_crosses_dataspaces`), and `acl:AuthenticatedAgent` grants on B applied to an
 account B never made. -/
 theorem token_cache_per_dataspace :
-    (authenticate (envOf "a" adminA) fresh req).1 = .ok (some (.iri 40)) ∧
-    (authenticate (envOf "b" []) fresh req).1 = .ok none ∧
-    (authenticate (envOf "b" []) (authenticate (envOf "a" adminA) fresh req).2 req).1 = .ok none := by
+    (authenticate (envOf "a" adminA []) fresh req).1 = .ok (some (.iri 40)) ∧
+    (authenticate (envOf "b" [] []) fresh req).1 = .ok none ∧
+    (authenticate (envOf "b" [] []) (authenticate (envOf "a" adminA []) fresh req).2 req).1 = .ok none := by
   refine ⟨rfl, rfl, rfl⟩
+
+/-- **A root account is recognised on every dataspace.** With the subject's account in the root admin dataset, a
+dataspace whose own admin dataset has none authenticates the token as the root's agent; one that made an account for
+the subject before accounts moved to root authenticates it as that account's agent. -/
+theorem root_account_everywhere :
+    (authenticate (envOf "b" [] adminA) fresh req).1 = .ok (some (.iri 40)) ∧
+    (authenticate (envOf "b" legacyB adminA) fresh req).1 = .ok (some (.iri 42)) := by
+  refine ⟨rfl, rfl⟩
 
 end CrossDataspace
 

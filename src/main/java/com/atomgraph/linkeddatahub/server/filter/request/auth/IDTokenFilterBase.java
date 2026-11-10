@@ -243,7 +243,11 @@ public abstract class IDTokenFilterBase extends AuthenticationFilter
             qsm.add(SIOC.ID.getLocalName(), userId);
             qsm.add(LACL.issuer.getLocalName(), ResourceFactory.createStringLiteral(jwt.getIssuer()));
 
-            agentModel = loadModel(getUserAccountQuery(), qsm, getAgentService());
+            // an account this dataspace made before accounts moved to the root admin dataspace stands; otherwise the root's,
+            // which every dataspace of the instance shares. No other dataspace's accounts are read
+            Model localModel = loadModel(getUserAccountQuery(), qsm, getAgentService());
+            if (getResourceByPropertyValue(localModel, SIOC.ID, userId) != null || getAgentService().equals(getRootAgentService())) agentModel = localModel;
+            else agentModel = loadModel(getUserAccountQuery(), qsm, getRootAgentService());
         }
 
         Resource account = getResourceByPropertyValue(agentModel, SIOC.ID, userId);
@@ -361,6 +365,17 @@ public abstract class IDTokenFilterBase extends AuthenticationFilter
             return getDataspace().get().as(EndUserDataspace.class).getAdminDataspace();
         else
             return getDataspace().get().as(AdminDataspace.class);
+    }
+
+    /**
+     * Returns the SPARQL service of the root admin dataspace, which holds the accounts of every dataspace of the instance.
+     *
+     * @return service resource
+     * @see com.atomgraph.linkeddatahub.Application#getRootAdminDataspace()
+     */
+    protected com.atomgraph.linkeddatahub.model.Service getRootAgentService()
+    {
+        return getSystem().getRootAdminDataspace().getService();
     }
 
     /**

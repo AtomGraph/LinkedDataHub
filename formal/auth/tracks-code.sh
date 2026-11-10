@@ -28,6 +28,11 @@ sources=(
   src/main/java/com/atomgraph/linkeddatahub/server/mapper/auth/webid/WebIDDelegationExceptionMapper.java
   src/main/java/com/atomgraph/linkeddatahub/server/mapper/auth/webid/WebIDLoadingExceptionMapper.java
   src/main/java/com/atomgraph/linkeddatahub/server/mapper/auth/oauth2/TokenExpiredExceptionMapper.java
+  src/main/java/com/atomgraph/linkeddatahub/server/filter/request/ProxyRequestFilter.java
+  src/main/java/com/atomgraph/linkeddatahub/client/RedirectingClient.java
+  src/main/java/com/atomgraph/linkeddatahub/client/GraphStoreClient.java
+  src/main/java/com/atomgraph/linkeddatahub/client/filter/auth/WebIDDelegationFilter.java
+  src/main/java/com/atomgraph/linkeddatahub/client/filter/auth/IDTokenDelegationFilter.java
 )
 # web.xml is transcribed query by query: only these context params count
 queries=(webIDQuery userAccountQuery agentQuery)
