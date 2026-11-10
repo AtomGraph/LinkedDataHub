@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.server.filter.request;
 import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
+import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
 import com.atomgraph.linkeddatahub.server.security.WebIDSecurityContext;
@@ -30,6 +31,7 @@ import jakarta.ws.rs.ForbiddenException;
 import jakarta.ws.rs.NotAcceptableException;
 import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.Invocation;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.UriInfo;
@@ -39,6 +41,7 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
@@ -306,6 +309,62 @@ public class ProxyRequestFilterTest
 
         verifyNoInteractions(certClient);
         verify(target, never()).register(any(Object.class));
+    }
+
+    /**
+     * A write to another origin is delegated, and the GET a 303 continues it as is a read of that origin: it goes out
+     * with no certificate and no delegation. It goes out at all although the first hop consumed the request's entity,
+     * whose closed stream throws when asked again whether there is one.
+     */
+    @Test
+    public void testSeeOtherAfterForeignWriteGoesOutAnonymous() throws IOException
+    {
+        URI first = URI.create("https://remote.example/see-other"), second = URI.create("https://remote.example/doc");
+        WebIDSecurityContext agentContext = mock(WebIDSecurityContext.class);
+        Agent agent = mock(Agent.class);
+        when(agentContext.getAgent()).thenReturn(agent);
+
+        when(requestContext.getProperty(AC.uri.getURI())).thenReturn(first);
+        when(requestContext.getProperty(AgentContext.class.getCanonicalName())).thenReturn(agentContext);
+        when(requestContext.getAcceptableMediaTypes()).thenReturn(List.of(MediaType.valueOf("application/n-triples")));
+        when(requestContext.getMethod()).thenReturn("POST");
+        when(requestContext.hasEntity()).thenReturn(true).thenThrow(new ProcessingException(new IOException("Stream closed")));
+        when(requestContext.getEntityStream()).thenReturn(new ByteArrayInputStream(new byte[0]));
+        when(requestContext.getMediaType()).thenReturn(MediaType.valueOf("application/n-triples"));
+        UriInfo uriInfo = mock(UriInfo.class);
+        when(uriInfo.getRequestUri()).thenReturn(URI.create("https://localhost:4443/"));
+        when(requestContext.getUriInfo()).thenReturn(uriInfo);
+
+        when(system.isEnableLinkedDataProxy()).thenReturn(true);
+        when(system.getURLValidator()).thenReturn(mock(URLValidator.class));
+        Client certClient = mock(Client.class), noCertClient = mock(Client.class);
+        when(system.getExternalClient()).thenReturn(certClient);
+        when(system.getExternalNoCertClient()).thenReturn(noCertClient);
+
+        WebTarget writeTarget = mock(WebTarget.class), readTarget = mock(WebTarget.class);
+        Invocation.Builder writeBuilder = mock(Invocation.Builder.class), readBuilder = mock(Invocation.Builder.class);
+        when(certClient.target(first)).thenReturn(writeTarget);
+        when(noCertClient.target(second)).thenReturn(readTarget);
+        for (WebTarget target : List.of(writeTarget, readTarget)) when(target.property(anyString(), any())).thenReturn(target);
+        when(writeTarget.request()).thenReturn(writeBuilder);
+        when(readTarget.request()).thenReturn(readBuilder);
+        for (Invocation.Builder builder : List.of(writeBuilder, readBuilder))
+        {
+            when(builder.accept(any(MediaType[].class))).thenReturn(builder);
+            when(builder.header(anyString(), any())).thenReturn(builder);
+        }
+        Response seeOther = mock(Response.class);
+        when(seeOther.getStatus()).thenReturn(303);
+        when(seeOther.getHeaderString(HttpHeaders.LOCATION)).thenReturn(second.toString());
+        when(writeBuilder.method(eq("POST"), any(Entity.class))).thenReturn(seeOther);
+        when(readBuilder.method("GET")).thenThrow(new ProcessingException("upstream not reachable in the test"));
+
+        assertThrows(BadGatewayException.class, () -> filter.filter(requestContext));
+
+        verify(writeTarget).register(isA(WebIDDelegationFilter.class));
+        verify(readBuilder).method("GET");
+        verify(certClient, never()).target(second);
+        verify(readTarget, never()).register(any(Object.class));
     }
 
     /**

@@ -242,6 +242,9 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         };
 
         MediaType[] clientAcceptTypes = requestContext.getAcceptableMediaTypes().toArray(MediaType[]::new);
+        // asked once, before the first hop: that hop consumes and closes the entity stream, and asking again on a hop a
+        // 303 led to throws on the closed stream
+        boolean hasEntity = requestContext.hasEntity();
         if (log.isDebugEnabled()) log.debug("Proxying {} {} → {}", requestContext.getMethod(), requestContext.getUriInfo().getRequestUri(), targetURI);
 
         try
@@ -263,7 +266,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
                 }
 
                 // the entity goes with the request's own method only (a 303 continues as GET)
-                return requestContext.hasEntity() && method.equalsIgnoreCase(requestContext.getMethod())
+                return hasEntity && method.equalsIgnoreCase(requestContext.getMethod())
                     ? builder.method(method, Entity.entity(requestContext.getEntityStream(), requestContext.getMediaType()))
                     : builder.method(method);
             }).response();
