@@ -122,6 +122,11 @@ ORDER BY DESC(?created)
 
             <!-- one scroll box for all sections, so the search row stays pinned -->
             <div class="sb-scroll">
+                <!-- a package's own sections, first (client/hooks.xsl); the context is the pane the drawer is built in -->
+                <xsl:apply-templates select="." mode="ldh:DrawerSections">
+                    <xsl:with-param name="base" select="$base"/>
+                </xsl:apply-templates>
+
                 <!-- document tree container: the containment axis -->
                 <div class="document-tree sb-section">
                     <h3 class="sb-heading">
@@ -241,6 +246,11 @@ ORDER BY DESC(?created)
                     <xsl:with-param name="endpoint" select="sd:endpoint()"/>
                 </xsl:call-template>
             </xsl:for-each>
+
+            <!-- a package's sections follow the navigation too (client/hooks.xsl) -->
+            <xsl:apply-templates select=".//div[contains-token(@class, 'sb-section')]" mode="ldh:DrawerSectionUpdate">
+                <xsl:with-param name="href" select="$href"/>
+            </xsl:apply-templates>
         </xsl:for-each>
     </xsl:template>
 
