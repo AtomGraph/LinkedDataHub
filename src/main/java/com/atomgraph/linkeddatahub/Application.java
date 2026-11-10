@@ -99,6 +99,7 @@ import com.atomgraph.linkeddatahub.server.factory.ApplicationFactory;
 import com.atomgraph.linkeddatahub.server.factory.AuthorizationContextFactory;
 import com.atomgraph.linkeddatahub.server.filter.request.AcceptHeadersFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.ApplicationFilter;
+import com.atomgraph.linkeddatahub.server.filter.request.OriginFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.WebIDFilter;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
 import com.atomgraph.linkeddatahub.server.io.ValidatingUpdateRequestProvider;
@@ -1242,6 +1243,7 @@ public class Application extends ResourceConfig
         register(new HttpMethodOverrideFilter());
         register(AcceptHeadersFilter.class);
         register(ApplicationFilter.class);
+        register(OriginFilter.class);
         register(OntologyFilter.class);
         register(ProxiedWebIDFilter.class);
         register(ProxyRequestFilter.class);
