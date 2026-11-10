@@ -26,6 +26,7 @@ import com.atomgraph.linkeddatahub.dataspaces.model.EndUserDataspace;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.server.filter.response.CacheInvalidationFilter;
+import com.atomgraph.linkeddatahub.server.model.impl.Dispatcher;
 import com.atomgraph.linkeddatahub.server.model.impl.DocumentHierarchyGraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
@@ -64,11 +65,13 @@ import java.util.UUID;
 import jakarta.inject.Inject;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.ServletConfig;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
 import jakarta.ws.rs.ext.Providers;
 import static org.apache.jena.datatypes.xsd.XSDDatatype.XSDhexBinary;
@@ -180,10 +183,21 @@ public class SignUp extends DocumentHierarchyGraphStoreImpl
         download = uriInfo.getQueryParameters().containsKey("download"); // debug param that allows downloading the certificate
     }
     
+    @GET
+    @Override
+    public Response get()
+    {
+        if (!isRootAdminDataspace()) return seeOtherRootSignUp();
+
+        return super.get();
+    }
+
     @POST
     @Override
     public Response post(Model payload)
     {
+        if (!isRootAdminDataspace()) return seeOtherRootSignUp();
+
         URI agentGraphUri = getUriInfo().getBaseUriBuilder().path(AGENT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
         // the agent's document holds the agent's description and what is added to it below. It is an admin graph, which the
         // authorization queries read, so what the payload says about any other resource is not stored
@@ -572,6 +586,33 @@ public class SignUp extends DocumentHierarchyGraphStoreImpl
     public Service getAgentService()
     {
         return getDataspace().getService();
+    }
+
+    /**
+     * Returns true if this is the root admin dataspace, the only one that signs agents up.
+     *
+     * @return true if root
+     * @see com.atomgraph.linkeddatahub.Application#getRootAdminDataspace()
+     */
+    public boolean isRootAdminDataspace()
+    {
+        return getDataspace().equals(getSystem().getRootAdminDataspace());
+    }
+
+    /**
+     * Redirects to the root admin dataspace's sign-up, with this request's query (the <code>referer</code>).
+     * Agents are created only there, so their WebIDs outlive this dataspace and its owner cannot rewrite them.
+     *
+     * @return <code>303 See Other</code> response
+     */
+    public Response seeOtherRootSignUp()
+    {
+        URI rootSignUp = UriBuilder.fromUri(getSystem().getRootAdminDataspace().getBaseURI()).
+            path(Dispatcher.class, "getSignUp").
+            replaceQuery(getUriInfo().getRequestUri().getRawQuery()).
+            build();
+
+        return Response.seeOther(rootSignUp).build();
     }
 
     /**

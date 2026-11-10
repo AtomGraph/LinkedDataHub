@@ -1,9 +1,12 @@
 ## [Unreleased]
 ### Added
 - `ldh get --timemap` and `--timegate` follow the `Link` the document advertises, and `--timegate` waits as a `503` with `Retry-After` asks
+- What the stylesheets put into a page from data someone else controls is formalised in Lean (`formal/xslt/`): XML literals, the assistant's answer, the bootstrap script and a server-side `document()`, with the rendering rules and the editor's canonical form replayed against the stylesheets
+- Uploads are formalised in Lean (`formal/uploads/`): the upload folder under the graph store's writes, what an upload is described and authorized by, and how it is served, replayed against the server and against `ByteRange.parse`
 - `VARNISH_FRONTEND_STORAGE`, `VARNISH_ADMIN_STORAGE` and `VARNISH_END_USER_STORAGE` size each Varnish's main store, so a deployment can fit it under the service's `mem_limit`
 
 ### Changed
+- Agents are created only in the root dataspace's admin, the one holding the secretary's WebID, so an agent URI outlives any other dataspace and no other dataspace's owner can rewrite it: sign-up on another dataspace's admin redirects there (`303`), and a first OAuth login on any dataspace creates the account and agent there. An OAuth login is then recognised on every dataspace of the instance as the same agent, as a WebID certificate already is. Agents and accounts made in other dataspaces before stay where they are and keep working there; nothing is migrated
 - A TimeGate asked for a document whose latest change is still being committed answers `503` with `Retry-After` (a second per commit queued on its branch, up to a minute) instead of redirecting to the version before it, and `500` when that commit failed; dataspaces without versioning answer as before
 - With `ENABLE_LINKED_DATA_PROXY=false`, `?uri=` naming anything other than one of the instance's dataspaces or a mapped document answers `403` for browsers too, instead of rendering the app shell; each distinct `?uri=` had been an uncached server-side render
 - The platform's JVM exits on an `OutOfMemoryError`, and the `linkeddatahub` service restarts `on-failure`; before, the JVM could lose Tomcat's acceptor and poller threads and stay up answering nothing
@@ -18,15 +21,21 @@
 - `ldh admin import ontology --source` imports from a LinkedDataHub document, such as a vocabulary vendored into the dataspace: it leaves the source document's `sioc:has_parent` and `sioc:has_container` out of the import, which the admin application refused with `422`
 - A write refused with `422` for the document hierarchy, the `PATCH` update form or an access request answers with the RDF description of the error, its message as `dct:title`, instead of the servlet container's empty error page
 - `ldh admin create ontology` without `--uri`, which writes a blank node ontology, succeeds instead of failing with `500`
+- A write whose `Origin` is not the dataspace's `lds:origin` answers `403`: a page on another site could submit a form that wrote as the agent, since the browser presents the client certificate to any site's request. Requests without `Origin` (the CLI, Web-Algebra) are unaffected
 - A write through the Linked Data proxy to another LinkedDataHub instance is delegated again, with the platform's certificate and `On-Behalf-Of` naming the caller, so the target's access control decides on the caller: since 6.2.4 it went out anonymous and was refused with `403`, which broke "Add data" to a foreign document. Reads of other origins stay anonymous, including the `GET` a write continues as after a `303 See Other`, and the ID token still goes to this instance's dataspaces only. That `GET` is now sent at all: a proxied write answered with `303` failed with `502`, the redirect hop asking the request again for the body the first hop had consumed
 
 ### Security
 - A `?uri=` that is not `http(s)` is refused with `400`, and the client opens only an `http(s)` document the proxy could not fetch: a link with `?uri=javascript:…` ran its script on the dataspace's origin. Found by the client model, `formal/client/`, which proves the window is sent to `http(s)` URLs only
 - On a proxied document, the assistant's requests stay on the page's origin, and the ontology import's query and the namespace `clear` go through the proxy: a proxied document naming an `lds:dataspace` sent them to its own origin
 - A version restore on a proxied document writes that document, through the proxy, and reads its access modes, TimeMap and version the same way: it wrote the remote's version over the dataspace's root
-
 - A first OAuth login links its account to an existing agent by email only when the provider verified the address (`email_verified`), and an unverified address is not stored as the new agent's `foaf:mbox`: an address the provider had not verified took over the agent whose mailbox it was. Google's boolean claims reach the login, `email_verified` among them. Found by the authentication model, `formal/auth/`
 - The ID token cache is kept per dataspace: a token used on one dataspace authenticated on another whose admin dataset has no account for it, until the token expired
+- An XML literal renders without what would run on the page: scripts in any namespace, event handlers, a frame's `srcdoc`, and `javascript:`, `vbscript:` and non-image `data:` URLs, read as the browser reads them. A literal written straight to the graph store or imported never passed through the editor's canonical form, and one in a proxied document ran on the proxying dataspace's origin; the editor's live region copied the literal in as it was too, so a handler ran when the editor opened
+- The editor's canonical form takes out a script in any namespace and reads a URL's scheme as the browser does, on an SVG link's `xlink:href` too: it kept `svg:script`, `java&#9;script:` and `xlink:href="javascript:…"` (RDFa-Editor)
+- A server-side `document()` or `doc-available()` of a URI that is not `http(s)` reads an empty document: Saxon opened it itself, so a stored `file:` URI read the server's file when the page looked up its label, and `jar:http:` fetched directly, past the egress proxy
+- An upload is served with the media type it was first uploaded with, which the platform records beside the bytes (`uploads/.types/`): it was a pick among the `dct:format` values any document stated of the file
+- An upload is readable by whoever may read a document it was uploaded into, which the platform records beside the bytes (`uploads/.documents/`): a grant on a document did not reach the files uploaded into it, and only the `nfo:FileDataObject` class grant did
+- An upload's entity tag is the digest its URI is named by: it was read from the upload's description, which every document's graph adds to, so a writer of any document could state another `foaf:sha1` of someone's upload and make its tag a pick between the two
 
 ## [6.4.0] - 2026-11-02
 ### Migration

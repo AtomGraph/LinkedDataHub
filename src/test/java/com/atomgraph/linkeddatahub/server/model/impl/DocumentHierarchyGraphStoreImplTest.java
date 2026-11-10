@@ -32,6 +32,14 @@ import org.apache.jena.vocabulary.RDF;
 import java.io.File;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
+import jakarta.ws.rs.core.UriBuilder;
+import java.io.InputStream;
+import java.io.ByteArrayInputStream;
+import java.util.Optional;
+import com.atomgraph.linkeddatahub.server.util.UploadRecords;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Calendar;
@@ -632,7 +640,35 @@ public class DocumentHierarchyGraphStoreImplTest
         assertTrue(gs.stageFiles(model, new HashMap<>()).isEmpty());
     }
 
-    // commitFiles(List), discardFiles(List)
+    @Test
+    public void testStageFileKeepsTheMediaType(@TempDir Path tempDir) throws Exception
+    {
+        URI base = URI.create("http://localhost/");
+        Files.createDirectories(tempDir.resolve("uploads"));
+        UriInfo info = mock(UriInfo.class);
+        when(info.getBaseUri()).thenReturn(base);
+        com.atomgraph.linkeddatahub.Application system = mock(com.atomgraph.linkeddatahub.Application.class);
+        when(system.getUploadRoot()).thenReturn(tempDir.toUri());
+        // getUriInfo() is final in Core's DirectGraphStoreImpl, which a subclass mock cannot stub: set what it returns
+        java.lang.reflect.Field uriInfoField = com.atomgraph.core.model.impl.DirectGraphStoreImpl.class.getDeclaredField("uriInfo");
+        uriInfoField.setAccessible(true);
+        uriInfoField.set(gs, info);
+        doReturn(system).when(gs).getSystem();
+        doAnswer(invocation -> UriBuilder.fromUri(base).path("uploads")).when(gs).getUploadsUriBuilder();
+
+        FormDataBodyPart part = mock(FormDataBodyPart.class);
+        when(part.getEntityAs(InputStream.class)).thenReturn(new ByteArrayInputStream("bytes".getBytes(StandardCharsets.UTF_8)));
+        when(part.getMediaType()).thenReturn(jakarta.ws.rs.core.MediaType.valueOf("image/png"));
+        Resource file = ModelFactory.createDefaultModel().createResource("http://localhost/doc#file");
+
+        // the type is read before the resource is renamed to its content-addressed URI, which leaves it without properties
+        DocumentHierarchyGraphStoreImpl.StagedFile staged = gs.stageFile(file, part);
+
+        assertEquals("image/png", staged.mediaType());
+        Files.deleteIfExists(staged.temp());
+    }
+
+    // commitFiles(List, URI), discardFiles(List)
 
     @Test
     public void testCommitFilesMovesTheStagedFile(@TempDir Path tempDir) throws Exception
@@ -641,7 +677,7 @@ public class DocumentHierarchyGraphStoreImplTest
         Path temp = Files.write(tempDir.resolve(".upload-1.tmp"), data);
         Path target = tempDir.resolve("sha1");
 
-        gs.commitFiles(List.of(new DocumentHierarchyGraphStoreImpl.StagedFile(temp, target)));
+        gs.commitFiles(List.of(new DocumentHierarchyGraphStoreImpl.StagedFile(temp, target, "text/plain")), URI.create("http://localhost/doc"));
 
         assertFalse(Files.exists(temp));
         assertArrayEquals(data, Files.readAllBytes(target));
@@ -655,10 +691,35 @@ public class DocumentHierarchyGraphStoreImplTest
         Path target = Files.write(tempDir.resolve("sha1"), data);
         long modified = Files.getLastModifiedTime(target).toMillis();
 
-        gs.commitFiles(List.of(new DocumentHierarchyGraphStoreImpl.StagedFile(temp, target)));
+        gs.commitFiles(List.of(new DocumentHierarchyGraphStoreImpl.StagedFile(temp, target, "text/plain")), URI.create("http://localhost/doc"));
 
         assertFalse(Files.exists(temp));
         assertEquals(modified, Files.getLastModifiedTime(target).toMillis(), "an existing content-addressed file is not rewritten");
+    }
+
+    @Test
+    public void testCommitFilesRecordsTheFirstMediaType(@TempDir Path tempDir) throws Exception
+    {
+        byte[] data = "content-addressed".getBytes(StandardCharsets.UTF_8);
+        Path target = tempDir.resolve("0123456789abcdef0123456789abcdef01234567");
+
+        gs.commitFiles(List.of(new DocumentHierarchyGraphStoreImpl.StagedFile(Files.write(tempDir.resolve(".upload-1.tmp"), data), target, "image/png")), URI.create("http://localhost/a"));
+        gs.commitFiles(List.of(new DocumentHierarchyGraphStoreImpl.StagedFile(Files.write(tempDir.resolve(".upload-2.tmp"), data), target, "text/html")), URI.create("http://localhost/b"));
+
+        assertEquals(Optional.of("image/png"), UploadRecords.getMediaType(tempDir, target.getFileName().toString()), "a later upload of the same bytes does not change the type");
+    }
+
+    @Test
+    public void testCommitFilesRecordsEveryDocument(@TempDir Path tempDir) throws Exception
+    {
+        byte[] data = "content-addressed".getBytes(StandardCharsets.UTF_8);
+        Path target = tempDir.resolve("0123456789abcdef0123456789abcdef01234567");
+
+        gs.commitFiles(List.of(new DocumentHierarchyGraphStoreImpl.StagedFile(Files.write(tempDir.resolve(".upload-1.tmp"), data), target, "image/png")), URI.create("http://localhost/a"));
+        gs.commitFiles(List.of(new DocumentHierarchyGraphStoreImpl.StagedFile(Files.write(tempDir.resolve(".upload-2.tmp"), data), target, "image/png")), URI.create("http://localhost/b"));
+        gs.commitFiles(List.of(new DocumentHierarchyGraphStoreImpl.StagedFile(Files.write(tempDir.resolve(".upload-3.tmp"), data), target, "image/png")), URI.create("http://localhost/a"));
+
+        assertEquals(List.of(URI.create("http://localhost/a"), URI.create("http://localhost/b")), UploadRecords.getDocuments(tempDir, target.getFileName().toString()));
     }
 
     @Test
@@ -667,7 +728,7 @@ public class DocumentHierarchyGraphStoreImplTest
         Path temp = Files.write(tempDir.resolve(".upload-1.tmp"), new byte[] { 1 });
         Path target = tempDir.resolve("sha1");
 
-        gs.discardFiles(List.of(new DocumentHierarchyGraphStoreImpl.StagedFile(temp, target)));
+        gs.discardFiles(List.of(new DocumentHierarchyGraphStoreImpl.StagedFile(temp, target, "text/plain")));
 
         assertFalse(Files.exists(temp));
         assertFalse(Files.exists(target));
@@ -678,9 +739,9 @@ public class DocumentHierarchyGraphStoreImplTest
     {
         Path temp = Files.write(tempDir.resolve(".upload-1.tmp"), new byte[] { 1 });
         Path target = tempDir.resolve("sha1");
-        List<DocumentHierarchyGraphStoreImpl.StagedFile> staged = List.of(new DocumentHierarchyGraphStoreImpl.StagedFile(temp, target));
+        List<DocumentHierarchyGraphStoreImpl.StagedFile> staged = List.of(new DocumentHierarchyGraphStoreImpl.StagedFile(temp, target, "text/plain"));
 
-        gs.commitFiles(staged);
+        gs.commitFiles(staged, URI.create("http://localhost/doc"));
         gs.discardFiles(staged);
 
         assertTrue(Files.exists(target), "discarding after a commit must not delete the committed file");

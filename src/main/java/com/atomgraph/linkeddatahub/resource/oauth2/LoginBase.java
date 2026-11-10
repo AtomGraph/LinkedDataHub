@@ -195,18 +195,18 @@ public abstract class LoginBase
                 }
             }
 
-            if (!userAccountExists(jwt.getSubject(), jwt.getIssuer())) // UserAccount with this ID does not exist yet
+            if (!isKnownSubject(jwt.getSubject(), jwt.getIssuer())) // UserAccount with this ID does not exist yet
             {
                 Map<String, String> userInfo = getUserInfo(jwt, accessToken);
                 Optional<String> email = verifiedEmail(userInfo);
                 Optional<Resource> mbox = email.map(e -> "mailto:" + e).map(ResourceFactory::createResource);
 
                 Model accountModel = ModelFactory.createDefaultModel();
-                URI userAccountGraphUri = getAdminDataspace().getUriBuilder().path(ACCOUNT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
+                URI userAccountGraphUri = getRootAdminDataspace().getUriBuilder().path(ACCOUNT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
 
                 createUserAccount(accountModel,
                     userAccountGraphUri,
-                    accountModel.createResource(getAdminDataspace().getBaseURI().resolve(ACCOUNT_PATH).toString()),
+                    accountModel.createResource(getRootAdminDataspace().getBaseURI().resolve(ACCOUNT_PATH).toString()),
                     jwt.getSubject(),
                     jwt.getIssuer(),
                     Optional.ofNullable(userInfo.get("name")),
@@ -223,11 +223,11 @@ public abstract class LoginBase
                 if (existingAgent.isEmpty())
                 {
                     Model agentModel = ModelFactory.createDefaultModel();
-                    URI agentGraphUri = getAdminDataspace().getUriBuilder().path(AGENT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
+                    URI agentGraphUri = getRootAdminDataspace().getUriBuilder().path(AGENT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
 
                     agent = createAgent(agentModel,
                         agentGraphUri,
-                        agentModel.createResource(getAdminDataspace().getBaseURI().resolve(AGENT_PATH).toString()),
+                        agentModel.createResource(getRootAdminDataspace().getBaseURI().resolve(AGENT_PATH).toString()),
                         Optional.ofNullable(userInfo.get("name")),
                         Optional.ofNullable(userInfo.get("given_name")),
                         Optional.ofNullable(userInfo.get("family_name")),
@@ -249,12 +249,12 @@ public abstract class LoginBase
                         ban(agentSvcProxy, mbox.get().getURI());
 
                     Model authModel = ModelFactory.createDefaultModel();
-                    URI authGraphUri = getAdminDataspace().getUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
+                    URI authGraphUri = getRootAdminDataspace().getUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
 
                     // creating authorization for the Agent document
                     createAuthorization(authModel,
                         authGraphUri,
-                        accountModel.createResource(getAdminDataspace().getBaseURI().resolve(AUTHORIZATION_PATH).toString()),
+                        accountModel.createResource(getRootAdminDataspace().getBaseURI().resolve(AUTHORIZATION_PATH).toString()),
                         agentGraphUri,
                         userAccountGraphUri);
                     new Skolemizer(authGraphUri.toString()).apply(authModel);
@@ -264,8 +264,7 @@ public abstract class LoginBase
                     try
                     {
                         // purge agent lookup from proxy cache
-                        URI adminSvcProxy = getSystem().getServiceContext(getAdminDataspace().getService()).getBackendProxy();
-                        if (adminSvcProxy != null) ban(adminSvcProxy, jwt.getSubject());
+                        if (agentSvcProxy != null) ban(agentSvcProxy, jwt.getSubject());
 
                         // remove secretary WebID from cache
                         getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
@@ -328,19 +327,35 @@ public abstract class LoginBase
     }
 
     /**
-     * Checks if a UserAccount with the given subject ID and issuer already exists.
+     * Checks if the subject has an account: in the root admin dataspace, or one this dataspace made before accounts moved
+     * there. Every new account and agent goes to root, so the agent is the same on every dataspace of the instance, and no
+     * other dataspace's accounts are read.
+     *
+     * @param subjectId the OAuth subject ID
+     * @param issuer the OAuth issuer URI
+     * @return true if the subject has an account
+     */
+    protected boolean isKnownSubject(String subjectId, String issuer)
+    {
+        return userAccountExists(subjectId, issuer, getAdminDataspace().getService()) ||
+            userAccountExists(subjectId, issuer, getAgentService());
+    }
+
+    /**
+     * Checks if a UserAccount with the given subject ID and issuer already exists in the given admin service.
      *
      * @param subjectId the OAuth subject ID (e.g., ORCID iD or Google user ID)
      * @param issuer the OAuth issuer URI
+     * @param service admin SPARQL service
      * @return true if UserAccount exists, false otherwise
      */
-    protected boolean userAccountExists(String subjectId, String issuer)
+    protected boolean userAccountExists(String subjectId, String issuer, Service service)
     {
         ParameterizedSparqlString pss = new ParameterizedSparqlString(getUserAccountQuery().toString());
         pss.setLiteral(SIOC.ID.getLocalName(), subjectId);
         pss.setLiteral(LACL.issuer.getLocalName(), issuer);
 
-        return !getSystem().getServiceContext(getAgentService()).getSPARQLClient().loadModel(pss.asQuery()).isEmpty();
+        return !getSystem().getServiceContext(service).getSPARQLClient().loadModel(pss.asQuery()).isEmpty();
     }
 
     /**
@@ -611,6 +626,17 @@ public abstract class LoginBase
     }
 
     /**
+     * Returns the root admin dataspace, where every new account and agent is created.
+     *
+     * @return root admin dataspace
+     * @see com.atomgraph.linkeddatahub.Application#getRootAdminDataspace()
+     */
+    public AdminDataspace getRootAdminDataspace()
+    {
+        return getSystem().getRootAdminDataspace();
+    }
+
+    /**
      * Returns URI information for the current request.
      *
      * @return URI info
@@ -651,13 +677,13 @@ public abstract class LoginBase
     }
     
     /**
-     * Returns the SPARQL service from which agent data is retrieved.
-     * 
+     * Returns the SPARQL service new accounts and agents are written to: the root admin dataspace's.
+     *
      * @return SPARQL service
      */
     public Service getAgentService()
     {
-        return getDataspace().as(EndUserDataspace.class).getAdminDataspace().getService();
+        return getRootAdminDataspace().getService();
     }
     
     /**

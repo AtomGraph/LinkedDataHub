@@ -35,6 +35,7 @@ import com.atomgraph.linkeddatahub.server.util.PatchUpdateVisitor;
 import com.atomgraph.linkeddatahub.server.util.EntityTags;
 import com.atomgraph.linkeddatahub.server.util.GraphLocks;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
+import com.atomgraph.linkeddatahub.server.util.UploadRecords;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.DH;
 import com.atomgraph.linkeddatahub.vocabulary.Default;
@@ -886,7 +887,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             if (log.isDebugEnabled()) log.debug("# of files uploaded: {} ", stagedFiles.size());
             try
             {
-                return post(model, () -> commitFiles(stagedFiles));
+                return post(model, () -> commitFiles(stagedFiles, getURI()));
             }
             finally
             {
@@ -938,7 +939,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
                 // the same PUT as an RDF body gets - the document's type and container, its created/creator/owner
                 // metadata, the If-Match precondition and the constraints of a class assigned here - rather than the
                 // raw graph write, which skipped all of it for the document form
-                return put(model, () -> commitFiles(stagedFiles));
+                return put(model, () -> commitFiles(stagedFiles, getURI()));
             }
             finally
             {
@@ -1317,8 +1318,9 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
      *
      * @param temp temporary file
      * @param target content-addressed file
+     * @param mediaType media type the file is uploaded with
      */
-    public record StagedFile(Path temp, Path target) { }
+    public record StagedFile(Path temp, Path target, String mediaType) { }
 
     /**
      * Stages all files from the multipart RDF/POST request body. Each file resource is renamed to its
@@ -1326,7 +1328,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
      * 
      * @param model model with RDF resources
      * @param fileNameBodyPartMap a mapping of request part names and objects
-     * @return staged files, to be committed with {@link #commitFiles(List)} and discarded with {@link #discardFiles(List)}
+     * @return staged files, to be committed with {@link #commitFiles(List, URI)} and discarded with {@link #discardFiles(List)}
      */
     public List<StagedFile> stageFiles(Model model, Map<String, FormDataBodyPart> fileNameBodyPartMap)
     {
@@ -1422,12 +1424,14 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             resource.addLiteral(FOAF.sha1, sha1Hash);
             // user could have specified an explicit media type; otherwise - use the media type that the browser has sent
             if (!resource.hasProperty(DCTerms.format)) resource.addProperty(DCTerms.format, com.atomgraph.linkeddatahub.MediaType.toResource(bodyPart.getMediaType()));
+            // read before the rename below, which moves the properties to a new resource and leaves this one bare
+            String mediaType = com.atomgraph.linkeddatahub.MediaType.valueOf(resource.getPropertyResourceValue(DCTerms.format)).toString();
 
             URI sha1Uri = getUploadsUriBuilder().path("{sha1}").build(sha1Hash);
             if (log.isDebugEnabled()) log.debug("Renaming resource: {} to SHA1 based URI: {}", resource, sha1Uri);
             ResourceUtils.renameResource(resource, sha1Uri.toString());
 
-            return new StagedFile(temp, getFile(sha1Uri, getUriInfo().getBaseUri(), getSystem().getUploadRoot()).toPath());
+            return new StagedFile(temp, getFile(sha1Uri, getUriInfo().getBaseUri(), getSystem().getUploadRoot()).toPath(), mediaType);
         }
         catch (IOException ex)
         {
@@ -1444,13 +1448,17 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
 
     /**
      * Moves staged files to their content-addressed names. A name that is already taken holds the same bytes,
-     * possibly another document's, so it is left as it is.
+     * possibly another document's, so it is left as it is. Each file is then recorded beside its bytes: the media type
+     * it was uploaded with, unless an earlier upload of the same bytes recorded one, and the document it was uploaded
+     * into, which is who may read it ({@link UploadRecords}).
      * 
      * @param stagedFiles staged files
+     * @param document document the files are uploaded into
      */
-    public void commitFiles(List<StagedFile> stagedFiles)
+    public void commitFiles(List<StagedFile> stagedFiles, URI document)
     {
         if (stagedFiles == null) throw new IllegalArgumentException("List<StagedFile> cannot be null");
+        if (document == null) throw new IllegalArgumentException("Document URI cannot be null");
 
         for (StagedFile stagedFile : stagedFiles)
         {
@@ -1459,6 +1467,8 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
                 if (Files.exists(stagedFile.target())) Files.delete(stagedFile.temp());
                 // a rename: a reader of the content-addressed file sees all of it or none of it
                 else Files.move(stagedFile.temp(), stagedFile.target(), StandardCopyOption.ATOMIC_MOVE);
+
+                UploadRecords.record(stagedFile.target().getParent(), stagedFile.target().getFileName().toString(), stagedFile.mediaType(), document);
             }
             catch (IOException ex)
             {

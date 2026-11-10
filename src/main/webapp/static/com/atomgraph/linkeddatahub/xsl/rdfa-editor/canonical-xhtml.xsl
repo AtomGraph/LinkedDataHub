@@ -122,23 +122,42 @@ version="3.0">
 
     <!-- S1: active/embedding elements never survive into stored content (the
          canonical form is the sanitization boundary for multi-user content).
-         button is exempt: inert markup once S2 strips its handlers, and content
-         components (e.g. tab strips) legitimately store it -->
-    <xsl:template match="script | style | iframe | object | embed | applet
-        | form | input | select | textarea | link | meta | base" mode="cm:canonical" priority="3"/>
+         Matched by local name in any namespace: an svg:script runs as well as an
+         xhtml:script, and one in no namespace becomes an HTML script once the
+         content is served as HTML; set/animate* set an attribute (an SVG link's
+         target) to whatever they say. button is exempt: inert markup once S2
+         strips its handlers, and content components (e.g. tab strips)
+         legitimately store it -->
+    <xsl:template match="*[local-name() = ('script', 'style', 'iframe', 'frame', 'frameset', 'object', 'embed', 'applet',
+        'form', 'input', 'select', 'textarea', 'link', 'meta', 'base', 'set', 'animate', 'animateMotion', 'animateTransform')]"
+        mode="cm:canonical" priority="3"/>
 
     <!-- S1b: comments and processing instructions are noise (Word/HTML paste junk) -->
     <xsl:template match="comment() | processing-instruction()" mode="cm:canonical"/>
 
-    <!-- S2: event-handler attributes are always stripped -->
-    <xsl:template match="@*[matches(local-name(), '^on', 'i')]" mode="cm:canonical"/>
+    <!-- S2: event-handler attributes are always stripped, and so is a frame's
+         inline document, which runs with the page's origin -->
+    <xsl:template match="@*[matches(local-name(), '^on', 'i')] | @*[local-name() = 'srcdoc']" mode="cm:canonical"/>
 
     <!-- S3: scripting/data URL schemes are dropped from link and media targets
-         (the attribute, not the element); data:image/* remains valid in @src -->
-    <xsl:template match="@href[matches(normalize-space(.), '^(javascript|vbscript|data):', 'i')]
-        | @src[matches(normalize-space(.), '^(javascript|vbscript):', 'i')]
-        | @src[matches(normalize-space(.), '^data:', 'i')][not(matches(normalize-space(.), '^data:image/', 'i'))]"
+         (the attribute, not the element); data:image/* remains valid in @src.
+         Any namespace, so an SVG link's xlink:href too. The scheme is read the
+         way the browser reads it: tabs and line breaks anywhere are removed and
+         leading spaces trimmed, so "java&#9;script:" is "javascript:" (which
+         normalize-space would have made "java script:"); the other control
+         characters a browser trims cannot occur in XML -->
+    <xsl:template match="@*[local-name() = ('href', 'src', 'action', 'formaction', 'poster', 'background')][cm:url-scheme(.) = ('javascript', 'vbscript')]
+        | @*[local-name() = ('href', 'action', 'formaction', 'poster', 'background')][cm:url-scheme(.) = 'data']
+        | @*[local-name() = 'src'][cm:url-scheme(.) = 'data'][not(matches(replace(., '[&#9;&#10;&#13;]', ''), '^ *data:image/', 'i'))]"
         mode="cm:canonical"/>
+
+    <!-- the scheme of a URL as the browser parses it, lower-cased; empty for a relative reference -->
+    <xsl:function name="cm:url-scheme" as="xs:string?">
+        <xsl:param name="value" as="xs:string"/>
+        <xsl:variable name="url" select="replace(replace($value, '[&#9;&#10;&#13;]', ''), '^ +', '')" as="xs:string"/>
+
+        <xsl:sequence select="substring-before($url, ':')[matches(., '^[A-Za-z][A-Za-z0-9+.\-]*$')] ! lower-case(.)"/>
+    </xsl:function>
 
     <!-- the class tokens the editor itself puts on content elements: the region and
          run/island markers plus transient gesture and lint state. Everything else in

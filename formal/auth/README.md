@@ -65,12 +65,15 @@ formal/auth/tracks-code.sh origin/develop
     token stored for the subject; without one, the filter answers `303`.
   - **The token in use must be verified.**
   - **The cache:** the account's model comes from the token cache, keyed by the admin dataspace, the issuer and the
-    subject, or else from `userAccountQuery` over that dataspace's admin dataset.
+    subject, or else from `userAccountQuery` over that dataspace's admin dataset when it has an account for the
+    subject (one made before accounts moved to root), and over the root admin dataset otherwise. The root is the
+    admin dataspace holding the secretary's WebID; no other dataspace's admin dataset is read.
   - **The agent** is the `sioc:account_of` of the resource with the subject as `sioc:id`.
 - **The first login (`login`):**
-  - A subject with no account gets an account of its own.
-  - That account is linked to the agent whose `foaf:mbox` is the token's email, if there is one and the provider
-    verified the address (`email_verified`), and to a new agent if not. An unverified address counts as none.
+  - A subject with no account, in the dataspace's admin dataset or the root's, gets an account of its own, in the
+    root's. The dataspace's own admin dataset is only read.
+  - That account is linked to the root's agent whose `foaf:mbox` is the token's email, if there is one and the
+    provider verified the address (`email_verified`), and to a new agent if not. An unverified address counts as none.
 - **The proxy (`Proxy.lean`):** the caller is anonymous, a WebID, or an ID token with its account's agent.
   - **Each hop's credentials (`target`):** they depend on whether the hop's origin is one of this instance's dataspaces
     and on the method the hop uses.
@@ -98,8 +101,9 @@ formal/auth/tracks-code.sh origin/develop
 | `Provider.signed`, `Provider.verified` | `JWTVerifier.verifySignature`, `verify` |
 | `current` | `IDTokenFilterBase.authenticate`'s expiry branch, `refreshIDToken` |
 | `token`, `accountRows`, `describe`, `accountModel`, `accountAgent`, `TokenCache` | `IDTokenFilterBase.authenticate`, `userAccountQuery` (`web.xml`), `oidcModelCache` |
+| `accountModelOf`, `hasAccount`, `Env.root` | `IDTokenFilterBase.authenticate`'s cache miss, `getRootAgentService`, `Application.getRootAdminDataspace` |
 | `tokens` | `IDTokenFilterBase.filter`: the login and authorize URLs it skips |
-| `login`, `agentByMbox` | `LoginBase.get`, `userAccountExists`, `findAgentByEmail`, `agentQuery` (`web.xml`); the claims `getUserInfo` gives it (`google/Login`, `orcid/Login`) |
+| `login`, `agentByMbox` | `LoginBase.get`, `isKnownSubject`, `userAccountExists`, `findAgentByEmail`, `getAgentService`, `agentQuery` (`web.xml`); the claims `getUserInfo` gives it (`google/Login`, `orcid/Login`) |
 | `Proxy.target`, `Proxy.delegate` | the `targets` function of `ProxyRequestFilter.filter`; `GraphStoreClient.delegate`, `WebIDDelegationFilter`, `IDTokenDelegationFilter` |
 | `Proxy.follow`, `Proxy.methods` | `RedirectingClient.invoke` |
 | `Proxy.forwarded` | `ProxyRequestFilter.FORWARDED_REQUEST_HEADERS` |
@@ -123,11 +127,15 @@ Proven with no `sorry`, using only the axioms `propext` and `Quot.sound`:
 | `obo_complete` | A certificate that authenticates can act for every principal whose document delegates to it, which signing up arranges for the secretary and every agent |
 | `revocation_waits_for_cache` | A cached principal's document is the one read, whatever the document now says |
 | `auth_never_403` | Authentication answers `400`, `303` or `500`, never `403`: that status stays the decision's (`LdhAcl.decide_forbidden_iff`) |
-| `token_sound` | A token identity needs a signed token and, after any refresh, a verified one: the agent comes from the cached model for its issuer and subject, or from `userAccountQuery` |
+| `token_sound` | A token identity needs a signed token and, after any refresh, a verified one: the agent comes from the cached model for its issuer and subject, or from `userAccountQuery` over the dataspace's admin dataset or the root's |
 | `accountAgent_sound` | On a cache miss, the agent is the `sioc:account_of` of a bound account, as any admin graph states it |
-| `token_cache_per_dataspace` | A token is authenticated by its own dataspace's accounts: one used on another dataspace first leaves it anonymous where no account was made for it |
+| `legacy_account_first` | An account the dataspace made before accounts moved to root stands: the root's is not read |
+| `account_from_own_or_root` | On a cache miss, the agent is a `sioc:account_of` stated in the dataspace's admin dataset or the root's, never another dataspace's: no other dataspace's owner can point a subject's account at an agent of theirs |
+| `token_cache_per_dataspace` | A token is authenticated by its own dataspace's accounts and the root's: one used on another dataspace first leaves it anonymous where neither has an account for it |
+| `root_account_everywhere` | A root account authenticates the token on a dataspace with none of its own, as the root's agent; a dataspace's own account still wins there |
 | `unverified_email_ignored` | A first login whose provider has not verified the address it claims writes what a login with no address writes |
-| `verified_email_links` | A first login whose provider verified the address links the account to the agent with that `foaf:mbox` |
+| `verified_email_links` | A first login whose provider verified the address links the account to the root's agent with that `foaf:mbox` |
+| `legacy_subject_unchanged` | A first login of a subject the dataspace already has an account for writes nothing to root, so no second agent is made |
 | `serve_unauthenticated` | A request that fails authentication changes nothing |
 | `delegation_noninterference` | Two requests authenticated as the same agent get the same answer to every request, however the agent was established |
 | `delegation_needs_write` | A delegation is put in force by an authorized write of the principal's document |

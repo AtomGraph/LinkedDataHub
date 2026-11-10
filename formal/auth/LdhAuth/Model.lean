@@ -275,6 +275,18 @@ def accountAgent (V : Vocab) (m : Doc) (sub : Node) : Out Node :=
     | some ag => .ok ag
     | none => .err .unlinked
 
+/-- The model states an account for the subject: `getResourceByPropertyValue(model, sioc:id, sub)` is not null. -/
+def hasAccount (V : Vocab) (m : Doc) (sub : Node) : Bool :=
+  (m.filterMap fun t => if t.p = V.siocId ∧ t.o = sub then some t.s else none).head?.isSome
+
+/-- What a cache miss reads: `userAccountQuery` over the dataspace's admin dataset, where an account made before
+accounts moved to the root admin dataspace stands, and else over the root's, which every dataspace shares. No other
+dataspace's admin dataset is read. The code skips the second query when the dataspace is the root; the result is the
+same. -/
+def accountModelOf (V : Vocab) (fs root : FinStore) (iss sub : Node) : Doc :=
+  let m := accountModel V fs iss sub
+  if hasAccount V m sub then m else accountModel V root iss sub
+
 /-- `oidcModelCache`: an account's model by the admin dataspace it was read from, the issuer and the subject. -/
 abbrev TokenCache := String × String × String → Option Doc
 
@@ -292,7 +304,7 @@ def current (pv : Provider) (t : Token) : Out Token :=
   else .ok t
 
 /-- `IDTokenFilterBase.authenticate`, in its order of checks. -/
-def token (V : Vocab) (name : Node → String) (admin : String) (fs : FinStore) (pv : Provider) (tc : TokenCache) (t : Token) :
+def token (V : Vocab) (name : Node → String) (admin : String) (fs root : FinStore) (pv : Provider) (tc : TokenCache) (t : Token) :
     Out (Node × TokenCache) :=
   if !pv.signed t || !t.hasExp then .anon
   else match current pv t with
@@ -304,7 +316,7 @@ def token (V : Vocab) (name : Node → String) (admin : String) (fs : FinStore) 
       let k := (admin, name t.iss, name t.sub)
       let m := match tc k with
         | some m => m
-        | none => accountModel V fs t.iss t.sub
+        | none => accountModelOf V fs root t.iss t.sub
       match accountAgent V m t.sub with
       | .anon => .anon
       | .err e => .err e
@@ -339,6 +351,9 @@ structure Env where
   admin : String
   /-- The admin dataset of the request's dataspace, which `getAgentService` queries. -/
   agents : FinStore
+  /-- The root admin dataset, the one holding the secretary's WebID, which `getRootAgentService` queries: every account
+  made since accounts moved there. -/
+  root : FinStore
 
 /-- The caches, shared by every request and every dataspace. -/
 structure State where
@@ -354,7 +369,7 @@ def tokens (env : Env) (tc : TokenCache) (path : Node) (idToken : Option Token) 
     else match idToken with
     | none => .anon
     | some t =>
-      match token env.V env.name env.admin env.agents pv tc t with
+      match token env.V env.name env.admin env.agents env.root pv tc t with
       | .anon => tokens env tc path idToken pvs
       | .err e => .err e
       | .ok a => .ok a
