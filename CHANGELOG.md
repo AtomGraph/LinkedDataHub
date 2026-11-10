@@ -1,5 +1,6 @@
 ## [Unreleased]
 ### Added
+- A package can add its own sections to the dataspace drawer, above the document tree, with the client's open mode `ldh:DrawerSections`, and update them after each in-page navigation with `ldh:DrawerSectionUpdate`, which `ldh:NavigationUpdate` applies to every drawer section
 - `ldh get --timemap` and `--timegate` follow the `Link` the document advertises, and `--timegate` waits as a `503` with `Retry-After` asks
 - What the stylesheets put into a page from data someone else controls is formalised in Lean (`formal/xslt/`): XML literals, the assistant's answer, the bootstrap script and a server-side `document()`, with the rendering rules and the editor's canonical form replayed against the stylesheets
 - Uploads are formalised in Lean (`formal/uploads/`): the upload folder under the graph store's writes, what an upload is described and authorized by, and how it is served, replayed against the server and against `ByteRange.parse`

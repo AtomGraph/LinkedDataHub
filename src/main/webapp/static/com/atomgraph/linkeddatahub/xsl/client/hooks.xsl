@@ -56,6 +56,20 @@ exclude-result-prefixes="#all"
          contributes nothing. -->
     <xsl:mode name="ldh:RowHook" on-no-match="deep-skip"/>
 
+    <!-- a package's own sections of the dataspace drawer, rendered for the pane the drawer is built in, with the
+         pane's dataspace as $base: ldh:DataspaceDrawer in client/navigation.xsl applies this mode once, above the
+         document tree, so what a package adds comes first. A package that makes the dataspace into something
+         names its areas before the generic axes. Each section is a div.sb-section with an h3.sb-heading, so
+         it takes the drawer's dividers and headings; a package that only belongs in its own dataspace tests
+         $base. deep-skip: without a package the drawer is the platform's three sections. -->
+    <xsl:mode name="ldh:DrawerSections" on-no-match="deep-skip"/>
+
+    <!-- what a drawer section does after an in-page navigation to $href: ldh:NavigationUpdate applies this mode
+         to every div.sb-section of the active pane's drawer, the way it reveals the document in the tree and
+         reloads the class list, so a package's section can mark its current entry or refresh what it shows.
+         A rule matches its own section by class. deep-skip: a section nobody claims stays as it is. -->
+    <xsl:mode name="ldh:DrawerSectionUpdate" on-no-match="deep-skip"/>
+
     <!-- the platform's own contribution: ontology-driven view blocks for any row wrapper produced by
          resource.xsl - outer div.ldh-block-row[@about] whose div.row-main child contains the inner
          typed resource block (class='block ldh-block').
