@@ -39,7 +39,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.ForbiddenException;
@@ -221,20 +221,30 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         // LNK-009: validate that the target URI is not an internal/private address (SSRF protection)
         getSystem().getURLValidator().validate(targetURI);
 
-        // an authenticated caller proxying one of this instance's dataspaces is delegated: the platform's certificate
-        // plus On-Behalf-Of, which the origin verifies against acl:delegates. Every other request goes out with no
+        // an authenticated caller is delegated with the platform's certificate plus On-Behalf-Of, which the origin verifies
+        // against acl:delegates by dereferencing the caller's WebID - any instance can, not only this one. Reads are
+        // delegated only to this instance's dataspaces, so browsing a foreign origin does not announce the caller to it;
+        // writes are delegated to any origin, as a write to another instance needs the caller's access there. The ID token
+        // is a bearer credential and goes to this instance's dataspaces only. Every other request goes out with no
         // certificate and no delegation
         AgentContext agentContext = (AgentContext) requestContext.getProperty(AgentContext.class.getCanonicalName());
-        // a target per redirect hop, delegated only when that hop is one of this instance's dataspaces
-        Function<URI, WebTarget> targets = uri ->
+        // a target per redirect hop, delegated by that hop's origin and method: a write a 303 turns into a GET reaches its
+        // next hop as a read, so it is not delegated to a foreign origin there either
+        BiFunction<URI, String, WebTarget> targets = (uri, method) ->
         {
             boolean isDataspace = getSystem().matchApp(uri) != null;
-            boolean isDelegated = agentContext != null && isDataspace;
+            boolean isRead = HttpMethod.GET.equalsIgnoreCase(method) || HttpMethod.HEAD.equalsIgnoreCase(method);
+            boolean isDelegated = agentContext != null && (isDataspace || !isRead);
             WebTarget target = (isDelegated ? getSystem().getExternalClient() : getSystem().getExternalNoCertClient()).target(uri);
-            return GraphStoreClient.delegate(target, agentContext, isDataspace, requestContext.getUriInfo().getBaseUri().getPath());
+            if (isDataspace) return GraphStoreClient.delegate(target, agentContext, true, requestContext.getUriInfo().getBaseUri().getPath());
+            if (isDelegated) target.register(new WebIDDelegationFilter(agentContext.getAgent()));
+            return target;
         };
 
         MediaType[] clientAcceptTypes = requestContext.getAcceptableMediaTypes().toArray(MediaType[]::new);
+        // asked once, before the first hop: that hop consumes and closes the entity stream, and asking again on a hop a
+        // 303 led to throws on the closed stream
+        boolean hasEntity = requestContext.hasEntity();
         if (log.isDebugEnabled()) log.debug("Proxying {} {} → {}", requestContext.getMethod(), requestContext.getUriInfo().getRequestUri(), targetURI);
 
         try
@@ -256,7 +266,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
                 }
 
                 // the entity goes with the request's own method only (a 303 continues as GET)
-                return requestContext.hasEntity() && method.equalsIgnoreCase(requestContext.getMethod())
+                return hasEntity && method.equalsIgnoreCase(requestContext.getMethod())
                     ? builder.method(method, Entity.entity(requestContext.getEntityStream(), requestContext.getMediaType()))
                     : builder.method(method);
             }).response();
@@ -278,7 +288,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         }
         catch (ProcessingException ex)
         {
-            if (log.isWarnEnabled()) log.warn("Could not dereference proxied URI: {}", targetURI);
+            if (log.isWarnEnabled()) log.warn("Could not dereference proxied URI: {}", targetURI, ex);
             throw new BadGatewayException(ex);
         }
     }

@@ -1,0 +1,59 @@
+PREFIX :        <#>
+PREFIX fuseki:  <http://jena.apache.org/fuseki#>
+PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX ja:      <http://jena.hpl.hp.com/2005/11/Assembler#>
+PREFIX tdb2:    <http://jena.apache.org/2016/tdb#>
+
+[] a fuseki:Server .
+
+# One dataset per dataspace role, named after the dataspace's origin with the deployment host dropped and the role
+# appended: https://northwind-traders.demo.localhost -> northwind-traders.demo.end-user, and its admin origin ->
+# northwind-traders.demo.admin. The root dataspace's prefix is empty, hence plain end-user and admin. Each dataset
+# is stored in its own folder under ./fuseki/<name>/DB2.
+
+# Queries are cancelled after 60 s, the Varnish backends' first_byte_timeout, past which no proxied client is still
+# waiting for the answer. The timeout sits on the query endpoint: Fuseki honours ja:context there and on the
+# dataset, but silently ignores it on the fuseki:Service.
+
+<#end-user> a fuseki:Service ;
+    fuseki:name "end-user" ;
+    fuseki:endpoint [ fuseki:operation fuseki:query ; ja:context [ ja:cxtName "arq:queryTimeout" ; ja:cxtValue "60000" ] ] ;
+    fuseki:endpoint [ fuseki:operation fuseki:update ] ;
+    fuseki:endpoint [ fuseki:operation fuseki:gsp-rw ] ;
+    fuseki:dataset <#end-user-dataset> .
+
+<#end-user-dataset> a tdb2:DatasetTDB2 ;
+    tdb2:location "/fuseki/databases/end-user/DB2" .
+
+<#admin> a fuseki:Service ;
+    fuseki:name "admin" ;
+    fuseki:endpoint [ fuseki:operation fuseki:query ; ja:context [ ja:cxtName "arq:queryTimeout" ; ja:cxtValue "60000" ] ] ;
+    fuseki:endpoint [ fuseki:operation fuseki:update ] ;
+    fuseki:endpoint [ fuseki:operation fuseki:gsp-rw ] ;
+    fuseki:dataset <#admin-dataset> .
+
+<#admin-dataset> a tdb2:DatasetTDB2 ;
+    tdb2:location "/fuseki/databases/admin/DB2" .
+
+# The HTTP tests' second instance (tests/http/config/remote/system.trig): origin remote.localhost, so remote.end-user
+# and remote.admin by the naming rule above
+
+<#remote.end-user> a fuseki:Service ;
+    fuseki:name "remote.end-user" ;
+    fuseki:endpoint [ fuseki:operation fuseki:query ; ja:context [ ja:cxtName "arq:queryTimeout" ; ja:cxtValue "60000" ] ] ;
+    fuseki:endpoint [ fuseki:operation fuseki:update ] ;
+    fuseki:endpoint [ fuseki:operation fuseki:gsp-rw ] ;
+    fuseki:dataset <#remote.end-user-dataset> .
+
+<#remote.end-user-dataset> a tdb2:DatasetTDB2 ;
+    tdb2:location "/fuseki/databases/remote.end-user/DB2" .
+
+<#remote.admin> a fuseki:Service ;
+    fuseki:name "remote.admin" ;
+    fuseki:endpoint [ fuseki:operation fuseki:query ; ja:context [ ja:cxtName "arq:queryTimeout" ; ja:cxtValue "60000" ] ] ;
+    fuseki:endpoint [ fuseki:operation fuseki:update ] ;
+    fuseki:endpoint [ fuseki:operation fuseki:gsp-rw ] ;
+    fuseki:dataset <#remote.admin-dataset> .
+
+<#remote.admin-dataset> a tdb2:DatasetTDB2 ;
+    tdb2:location "/fuseki/databases/remote.admin/DB2" .

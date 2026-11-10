@@ -7,7 +7,7 @@ model lives in its own directory with its own toolchain, README and mapping to t
 |-----------|------|--------|
 | [`http/`](http/) | Lean 4 | The graph store: its documents, its writes and the invariants they keep, and its answer to every request |
 | [`acl/`](acl/) | Lean 4 | The authorization decision over the graph store's data, the server's answer with the decision in front of the graph store, and the 6.0 migration of seeded authorizations |
-| [`auth/`](auth/) | Lean 4 | How the agent is established: the WebID filter, its cache and `On-Behalf-Of` delegation, the ID token filters and the first OAuth login, in front of the ACL model's answer |
+| [`auth/`](auth/) | Lean 4 | How the agent is established: the WebID filter, its cache and `On-Behalf-Of` delegation, the ID token filters and the first OAuth login, in front of the ACL model's answer; and the credentials the Linked Data proxy sends for a caller, hop by hop |
 | [`client/`](client/) | Lean 4 | Where the browser client sends its requests and the window: `ldh:href`, the pane's base, and every request site not built by `ldh:href` |
 | [`xslt/`](xslt/) | Lean 4 | What the stylesheets put into a page from data someone else controls: XML literals, the assistant's answer and the bootstrap script, and what a server-side `document()` reaches |
 | [`uploads/`](uploads/) | Lean 4 | The upload folder under the graph store's writes, what an upload is described and authorized by, and how it is served: ranges, preconditions and the sandbox |
@@ -83,6 +83,9 @@ credibility; the fifth is the one that answers the agent-era question and change
    That reduces prompt injection to misuse within existing rights. The model also proves that the
    secretary can act for every agent (`obo_complete`), which is what motivates scoping `acl:delegates`.
    Scoped delegation is the one design change this roadmap expects to force.
+   The sending end is modelled too: through the Linked Data proxy, a caller is delegated to another origin
+   only for a write, never for a read or a redirect (`foreign_read_anonymous`, `redirect_foreign_anonymous`),
+   and the ID token never leaves the instance (`token_stays_home`).
 
 6. **Concurrency in its own model.** The lock protocol (a `PUT` holds its parent's lock and re-checks
    the parent exists, a `DELETE` checks for children) is a TLA+ problem: a small model and TLC, in a

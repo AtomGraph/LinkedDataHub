@@ -15,6 +15,7 @@
 /tests/http/ssl
 /tests/http/datasets
 /tests/http/uploads
+/tests/http/remote
 /tests/http/out
 /tests/load/out
 /tests/load/settings/*

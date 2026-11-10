@@ -315,6 +315,9 @@ configs:
           # the upload limit when one is set: the platform holds every other body to MAX_CONTENT_LENGTH itself
           client_max_body_size ${MAX_UPLOAD_LENGTH:-${MAX_CONTENT_LENGTH:-2097152}};
 
+          # server blocks an overlay adds for other hosts, e.g. the HTTP tests' second instance; none by default
+          include /etc/nginx/extra.d/*.conf;
+
           # server with optional client cert authentication
           server {
               listen 8443 ssl;
