@@ -2233,6 +2233,22 @@ public class Application extends ResourceConfig
     {
         return secretaryWebIDURI;
     }
+
+    /**
+     * Returns the root admin dataspace: the one holding the secretary's WebID, whose store only the instance's operator
+     * controls. Every new agent is created there, so its URI outlives any other dataspace and no other dataspace's owner
+     * can rewrite it.
+     *
+     * @return root admin dataspace
+     */
+    public AdminDataspace getRootAdminDataspace()
+    {
+        Resource app = matchApp(getSecretaryWebIDURI());
+        if (app == null || !app.canAs(AdminDataspace.class))
+            throw new IllegalStateException("The secretary's WebID <" + getSecretaryWebIDURI() + "> is not in an admin dataspace");
+
+        return app.as(AdminDataspace.class);
+    }
     
     /**
      * Returns the document context query.
