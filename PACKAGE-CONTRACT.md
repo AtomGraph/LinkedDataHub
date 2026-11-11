@@ -46,10 +46,11 @@ Two rules, both checked by the platform rather than written in comments.
 
 When a package's stylesheet is taken, the platform reads it as XML and refuses it if any of the following hold:
 
-- **Modes.** A template has a `@mode` outside the open modes, has no `@mode` (the default mode), or names `#all`,
-  `#default` or `#unnamed`. The open modes are one list in Java, generated from the `xsl:mode` declarations in
-  `hooks.xsl` and `client/hooks.xsl` plus the value leaves of `imports/values.xsl`, so the list and the stylesheets
-  cannot drift. A named template (`@name` and no `@match`) is allowed.
+- **Modes.** A template has a `@mode` outside the open modes, or `#all`. The open modes are derived at startup from
+  the modules at and below the composition marker (`hooks.xsl`, `client/hooks.xsl` and what they import): every mode
+  they declare or match in. So the list and the stylesheets cannot drift. That includes the unnamed mode, since
+  `imports/values.xsl` holds the property row and value link as mode-less rules. A named template (`@name` and no
+  `@match`) is allowed.
 - **Names.** A function, a named template, a global variable or param, a key, an accumulator or a mode is declared
   in the `ldh:`, `ac:`, `lds:`, `xhtml:` or `svg:` namespace, or in no namespace. A package declares in its own
   namespace.
@@ -59,21 +60,46 @@ When a package's stylesheet is taken, the platform reads it as XML and refuses i
 - **Imports.** An `xsl:import` or `xsl:include`. A package is one module, as it is today.
 - **Writes, on either path.** `xsl:result-document`, `ixsl:set-attribute`, `ixsl:remove-attribute`,
   `ixsl:set-property`, `ixsl:set-style`, `ixsl:remove-property`, `ixsl:schedule-action`, a template in an `ixsl:on*`
-  mode, and calls to `ixsl:page()`, `ixsl:window()`, `ixsl:call()`, `ixsl:apply()`, `ixsl:eval()` and
-  `ixsl:http-request()`.
+  mode (caught by the modes rule), and calls to `ixsl:page()`, `ixsl:window()`, `ixsl:call()`, `ixsl:apply()` and
+  `ixsl:eval()`.
 - **Reads of other resources.** Calls to `document()`, `doc()`, `doc-available()`, `unparsed-text()`,
-  `unparsed-text-lines()`, `unparsed-text-available()`, `json-doc()`, `collection()`, `uri-collection()` and
-  `transform()`. A package gets its data from the platform: the document being rendered, the metadata the platform
-  passes in, and the requests it asks the platform to make (rule 2).
+  `unparsed-text-lines()`, `unparsed-text-available()`, `json-doc()`, `collection()`, `uri-collection()`,
+  `environment-variable()`, `available-environment-variables()` and `ixsl:http-request()`. A package gets its data
+  from the platform: the document being rendered, the metadata the platform passes in, and the requests it asks the
+  platform to make (rule 2).
+- **Code chosen at run time.** `function-lookup()`, `transform()`, `load-xquery-module()`, `xsl:evaluate`, and shadow
+  attributes (`_select`). Any of them would let a package call what the other checks forbid, by a name the check
+  cannot see.
+- **Calls into the platform that write or read.** A package that may not write could still call a platform function
+  or template that does (`ldh:render-view`, a `*-response` callback), apply a platform mode that does
+  (`ixsl:onclick`, `ldh:CloseDrawer`), or call a platform function that requests the URL it is passed
+  (`ldh:query-result`). The check refuses those calls and names the chain that makes the callee a writer. Which
+  platform code writes is derived the same way as the open modes, by following calls through the platform's
+  modules:
+  - A function, named template or mode **writes** if it contains a write instruction or `ixsl:call` / `apply` /
+    `eval`, or calls one that writes. `ixsl:page()` and `ixsl:window()` do not make platform code a writer: they hand
+    out objects, which the platform reads (`navigator.languages`) as often as it writes them.
+  - `ixsl:call` is undecidable, so the platform marks the functions that use it only to compute, or read only its own
+    catalogs, with `ldh:effect="none"` on the function itself (`ac:uuid`, `ldh:url-decode`, `ldh:parse-query`,
+    `ac:translations`, `ldh:translations`). The mark sits next to the code it vouches for.
+  - A function or named template that **requests a URL it is passed** is forbidden by itself, not through its
+    callers. A caller decides the URL (a label lookup, the dataspace's endpoint), and forbidding callers would forbid
+    every label.
+  - **Open modes may always be applied.** A mode-level analysis cannot tell the unnamed mode's value rendering from
+    the page shell it also holds, so keeping the open modes free of writes when applied to a value is the platform's
+    side of the contract. Other platform modes may be applied if they do not write (`ac:label`).
+  - The region-checked entry points (`ldh:load-block`, `ldh:TreeChildrenFetch`, the tree operations of step 2) are
+    the exceptions.
 - **Ids.** A literal `id` attribute on a literal result element, or an `xsl:attribute name="id"`. The platform
   finds its own elements by id (`id('tab-content', ixsl:page())`), so a package addresses its markup by class.
 - **Collecting modes.** In a mode marked as collecting (`ldh:RowHook` and the drawer's sections), a template whose
   last instruction is not `xsl:next-match`. This makes a collecting mode additive by construction: every package's
   rule for a node runs, in import order, and none can hide another's.
 
-Every check is an XPath over the stylesheet, in a Java class `PackageContract` used by `PackageService`. Function
-calls are found by the names in `@select`, `@test` and text value templates, parsed with Saxon's XPath parser, not
-by string matching.
+Every check is in a Java class `PackageContract`, used by `PackageService`, over the stylesheet read with line
+numbers. Function calls are found in expression attributes, attribute value templates and text value templates by a
+lexer that skips string literals and comments. Saxon's parser cannot be used: the expressions call platform and
+browser functions that no static context here can declare, and its tokenizer cannot be driven without it.
 
 **Where it is checked.**
 - When the platform copies the stylesheet (`PackageService.materializeStylesheet`). That happens on every path that
@@ -157,7 +183,7 @@ The contract covers code a dataspace owner imports from a registry, not code the
 
 Each step is its own PR off `develop`, each with its tests.
 
-1. **The check, reporting only.**
+1. **The check, reporting only.** [#529](https://github.com/AtomGraph/LinkedDataHub/pull/529)
    - `PackageContract` with every rule above.
    - Unit tests with one probe stylesheet per rule (a passing one and a failing one), in the style of
      `StylesheetComposer`'s tests.
