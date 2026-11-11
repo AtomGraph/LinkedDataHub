@@ -11,6 +11,10 @@ set -euo pipefail
 # scenario's writes are themselves requests the model decides, so what the agents may do shapes what gets built.
 #
 # ACL_CONFORMANCE_SEED replays a scenario; ACL_CONFORMANCE_STEPS sets how many random steps follow the setup.
+# ACL_CONFORMANCE_PROXIED sends every request through the Linked Data proxy instead, as ?uri= on the other dataspace's
+# base (one relative to the dataspace's own base is not proxied but served as the document), with the same prediction:
+# the proxy delegates the caller to this instance's dataspaces, so each request is decided for the agent who sent it
+# and answered with the origin's status (acl-conformance-proxied.sh).
 
 initialize_dataset "$END_USER_BASE_URL" "$TMP_END_USER_DATASET" "$END_USER_ENDPOINT_URL"
 initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
@@ -29,7 +33,8 @@ hash riot 2>/dev/null || { echo "DEBUG: riot (Apache Jena) is not on PATH" >&2; 
 
 seed="${ACL_CONFORMANCE_SEED:-$RANDOM}"
 steps="${ACL_CONFORMANCE_STEPS:-40}"
-echo "DEBUG: seed $seed, $steps random steps (replay with ACL_CONFORMANCE_SEED=$seed)"
+proxied="${ACL_CONFORMANCE_PROXIED:-}"
+echo "DEBUG: seed $seed, $steps random steps (replay with ACL_CONFORMANCE_SEED=$seed)${proxied:+, through the proxy}"
 RANDOM=$seed
 
 work=$(mktemp -d)
@@ -162,8 +167,14 @@ payloads()
 # the request, as the agent, with the precondition and the payloads in $work; prints the status
 request()
 {
-    local agent="$1" method="$2" target="$3" precondition="$4" pair header=(-H "X-Conformance-Step: $step")
+    local agent="$1" method="$2" target="$3" precondition="$4" pair header=(-H "X-Conformance-Step: $step") url=("$3")
     pair=$(cert_pair "$agent")
+    if [ -n "$proxied" ]; then
+        case "$target" in
+            "$ADMIN_BASE_URL"*) url=(--url-query "uri=$target" "$END_USER_BASE_URL") ;;
+            *) url=(--url-query "uri=$target" "$ADMIN_BASE_URL") ;;
+        esac
+    fi
     case "$precondition" in
         current)
             # the owner's validator for the variant the request negotiates; a document with none has no current tag
@@ -177,19 +188,19 @@ request()
     esac
     case "$method" in
         GET)
-            curl -k -s -o /dev/null -w '%{http_code}' ${pair:+-E "$pair"} -H "Accept: application/n-triples" "$target" ;;
+            curl -k -s -o /dev/null -w '%{http_code}' ${pair:+-E "$pair"} -H "Accept: application/n-triples" "${url[@]}" ;;
         HEAD)
-            curl -k -s -o /dev/null -w '%{http_code}' -I ${pair:+-E "$pair"} -H "Accept: application/n-triples" "$target" ;;
+            curl -k -s -o /dev/null -w '%{http_code}' -I ${pair:+-E "$pair"} -H "Accept: application/n-triples" "${url[@]}" ;;
         POST|PUT)
             curl -k -s -o /dev/null -w '%{http_code}' ${pair:+-E "$pair"} -X "$method" "${header[@]}" \
-                -H "Content-Type: application/n-triples" -H "Accept: application/n-triples" --data-binary @"$work/payload.nt" "$target" ;;
+                -H "Content-Type: application/n-triples" -H "Accept: application/n-triples" --data-binary @"$work/payload.nt" "${url[@]}" ;;
         PATCH)
             curl -k -s -o /dev/null -w '%{http_code}' ${pair:+-E "$pair"} -X PATCH "${header[@]}" \
                 -H "Content-Type: application/sparql-update" -H "Accept: application/n-triples" \
-                --data-binary "DELETE { $(cat "$work/delete.nt") } INSERT { $(cat "$work/insert.nt") } WHERE {}" "$target" ;;
+                --data-binary "DELETE { $(cat "$work/delete.nt") } INSERT { $(cat "$work/insert.nt") } WHERE {}" "${url[@]}" ;;
         DELETE)
             curl -k -s -o /dev/null -w '%{http_code}' ${pair:+-E "$pair"} -X DELETE "${header[@]}" \
-                -H "Accept: application/n-triples" "$target" ;;
+                -H "Accept: application/n-triples" "${url[@]}" ;;
     esac
 }
 

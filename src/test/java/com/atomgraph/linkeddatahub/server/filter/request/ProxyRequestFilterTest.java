@@ -43,7 +43,9 @@ import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.ResultSetFactory;
@@ -249,6 +251,26 @@ public class ProxyRequestFilterTest
         try (Response response = filter.overlayHeaders(Response.ok().build(), Response.ok().build(), true))
         {
             assertEquals("Accept", response.getHeaderString(HttpHeaders.VARY));
+        }
+    }
+
+    /** A body relayed byte for byte, as served or as an error, is the origin's bytes on this origin: sandboxed */
+    @Test
+    public void testRelayedBytesAreSandboxed()
+    {
+        for (Response.Status status : List.of(Response.Status.OK, Response.Status.NOT_FOUND))
+        {
+            Response upstream = mock(Response.class);
+            when(upstream.getStatus()).thenReturn(status.getStatusCode());
+            when(upstream.getStatusInfo()).thenReturn(status);
+            when(upstream.getMediaType()).thenReturn(MediaType.valueOf("image/svg+xml"));
+            when(upstream.readEntity(InputStream.class)).thenReturn(new ByteArrayInputStream("<svg/>".getBytes(StandardCharsets.UTF_8)));
+
+            try (Response response = filter.getResponse(upstream, URI.create("https://remote.example/file"), "GET", List.of(MediaType.WILDCARD_TYPE)))
+            {
+                assertEquals(status.getStatusCode(), response.getStatus());
+                assertEquals("default-src 'none'; sandbox", response.getHeaderString("Content-Security-Policy"), status + " relayed without the sandbox policy");
+            }
         }
     }
 
