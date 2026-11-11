@@ -131,8 +131,18 @@ asks the platform's functions to write, so those functions decide where a write 
   functions below). When they are called on a package's behalf, they check that the container is inside the region
   (`$container/ancestor-or-self::* intersect $region`) and refuse otherwise.
 
+**Each contribution gets its own slot.** In a collecting mode, every package's rule for a node gets that node as its
+region. Left like that, two packages' factories could both `ldh:load-block` into the same container, and whichever
+response arrives last would overwrite the other. So in a collecting mode the platform appends a fresh child container
+for each contribution and hands that slot, not the shared node, to its factory as the region. A package then writes
+only into its own slot, and two packages contributing to one row or one drawer can never overwrite each other.
+
 A package can still read the whole page through axes, which is harmless. It can write only where it was asked to
 contribute.
+
+**What stays unsolved:** in a replacing mode (`ldh:TreeNode`, the value leaves, `ldh:DrawerSectionUpdate`), only one
+template runs for a node, from the package whose URI sorts last. Its output is written whole, so nothing is
+half-written, but the other package's rule is silently lost (see "Not covered").
 
 **What the platform has to add.** The taxonomy package is the only package, and every write it makes today is
 inside its own concept tree:
