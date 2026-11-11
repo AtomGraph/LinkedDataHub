@@ -1,5 +1,6 @@
 ## [Unreleased]
 ### Added
+- Fuseki's admin API is on: `POST /$/datasets` creates a dataset at runtime and `DELETE /$/datasets/<name>` removes one, for the administrator only (`FUSEKI_ADMIN_PASSWORD` in `.env`, which `make secrets` writes); a dataset per dataspace can be made without editing `config.ttl` and restarting. Created datasets live under `./fuseki/run`
 - `ldh get --timemap` and `--timegate` follow the `Link` the document advertises, and `--timegate` waits as a `503` with `Retry-After` asks
 - What the stylesheets put into a page from data someone else controls is formalised in Lean (`formal/xslt/`): XML literals, the assistant's answer, the bootstrap script and a server-side `document()`, with the rendering rules and the editor's canonical form replayed against the stylesheets
 - Uploads are formalised in Lean (`formal/uploads/`): the upload folder under the graph store's writes, what an upload is described and authorized by, and how it is served, replayed against the server and against `ByteRange.parse`
