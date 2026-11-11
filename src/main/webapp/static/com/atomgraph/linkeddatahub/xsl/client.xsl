@@ -102,8 +102,8 @@ extension-element-prefixes="ixsl"
     <xsl:param name="ac:contextUri" as="xs:anyURI"/>
     <xsl:param name="lds:origin" select="lds:origin(ldh:request-uri())" as="xs:anyURI"/> <!-- emulates the server-side writer-set param: the shell origin serving static assets, as opposed to the pane-scoped lds:origin() -->
     <xsl:param name="ac:query" select="ldh:query-params()?query" as="xs:string?"/>
-    <xsl:param name="ldh:sparql-parser" select="ixsl:call(ixsl:window(), 'Reflect.construct', [ ixsl:get(ixsl:get(ixsl:window(), '`' || 'SPARQL.js' || '`'), 'Parser'), [] ] )"/>
-    <xsl:param name="ldh:sparql-generator" select="ixsl:call(ixsl:window(), 'Reflect.construct', [ ixsl:get(ixsl:get(ixsl:window(), '`' || 'SPARQL.js' || '`'), 'Generator'), [] ] )"/>
+    <xsl:param name="ldh:sparql-parser" select="ixsl:call(ixsl:window(), 'Reflect.construct', [ ixsl:get(ixsl:get(ixsl:window(), 'LDH_SPARQL'), 'Parser'), [] ] )"/>
+    <xsl:param name="ldh:sparql-generator" select="ixsl:call(ixsl:window(), 'Reflect.construct', [ ixsl:get(ixsl:get(ixsl:window(), 'LDH_SPARQL'), 'Generator'), [] ] )"/>
     <xsl:param name="ldh:page-size" select="20" as="xs:integer"/>
     <!-- RDF triple syntaxes a dropped file may carry, keyed by file extension. Top-level because two
          things read it: the drop handler, which infers the request's Content-Type, and the drop

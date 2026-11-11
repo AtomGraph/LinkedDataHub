@@ -304,7 +304,8 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="if (exists($langs)) then $langs else 'en'"/>
     </xsl:function>
 
-    <!-- Parses a SPARQL query string into the parse-tree JSON subset that ldh:construct-instance consumes: a 'template' array of subject/predicate/object term strings in the SPARQL.js 2.x serialization (see ldh:triples-to-descriptions) and a 'where' array whose non-emptiness marks a query that cannot be instantiated as a pure template. Dual-declared so both products parse identically: the SaxonJS declaration wraps the browser's SPARQL.js Parser; under Saxon the registered ParseQuery extension function (Jena QueryFactory) emits the same subset and takes precedence over the standalone-compilation fallback below (override-extension-function="no"). ParseQuery, ldh:triples-to-descriptions and ldh:construct-instance must change in lockstep if SPARQL.js is upgraded to 3.x. -->
+    <!-- Parse through Traqula in the browser and through the Jena extension on the server. Both results use the
+         Traqula term and pattern shape consumed by ldh:construct-instance and ldh:triples-to-descriptions. -->
     <xsl:function name="ldh:parse-query" as="xs:string">
         <xsl:param name="query" as="xs:string"/>
 
@@ -417,7 +418,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ixsl:new('google.visualization.DataTable', [ $json-obj ])"/>
     </xsl:function>
 
-    <!-- parses RDF/POST inputs into a sequence of SPARQL.js triple maps (they need to be wrapped into <array key="triples">) -->
+    <!-- parses RDF/POST inputs into Traqula triple maps (they need to be wrapped into <array key="triples">) -->
     <!-- see https://atomgraph.github.io/RDF-POST/ for the specification -->
     <xsl:function name="ldh:parse-rdf-post" as="element()*">
         <xsl:param name="elements" as="element()*"/>
@@ -439,58 +440,60 @@ exclude-result-prefixes="#all"
                     <!-- output triple when object is reached and inputs are not being skipped -->
                     <xsl:if test="@name = ('ou', 'ob', 'ol') and (not($skip-to-input) or . is $skip-to-input)">
                         <json:map>
+                            <json:string key="type">triple</json:string>
                             <!-- subject -->
                             <xsl:choose>
                                 <!-- blank node -->
                                 <xsl:when test="$subj-input/@name = 'sb'">
-                                    <json:string key="subject">_:<xsl:value-of select="$subj-input/ixsl:get(., 'value')"/></json:string>
+                                    <json:map key="subject"><xsl:copy-of select="ldh:typed-term-node('blankNode', string(ixsl:get($subj-input, 'value')), ())/node()"/></json:map>
                                 </xsl:when>
                                 <!-- URI -->
                                 <xsl:when test="$subj-input/@name = 'su'">
-                                    <json:string key="subject"><xsl:value-of select="$subj-input/ixsl:get(., 'value')"/></json:string>
+                                    <json:map key="subject"><xsl:copy-of select="ldh:typed-term-node('namedNode', string(ixsl:get($subj-input, 'value')), ())/node()"/></json:map>
                                 </xsl:when>
                             </xsl:choose>
                             <!-- predicate -->
-                            <json:string key="predicate"><xsl:value-of select="$pred-input/ixsl:get(., 'value')"/></json:string>
+                            <json:map key="predicate"><xsl:copy-of select="ldh:typed-term-node('namedNode', string(ixsl:get($pred-input, 'value')), ())/node()"/></json:map>
                             <!-- object -->
                             <xsl:choose>
                                 <!-- blank node -->
                                 <xsl:when test="@name = 'ob'">
-                                    <json:string key="object">_:<xsl:value-of select="ixsl:get(., 'value')"/></json:string>
+                                    <json:map key="object"><xsl:copy-of select="ldh:typed-term-node('blankNode', string(ixsl:get(., 'value')), ())/node()"/></json:map>
                                 </xsl:when>
                                 <!-- URI -->
                                 <xsl:when test="@name = 'ou'">
-                                    <json:string key="object"><xsl:value-of select="ixsl:get(., 'value')"/></json:string>
+                                    <json:map key="object"><xsl:copy-of select="ldh:typed-term-node('namedNode', string(ixsl:get(., 'value')), ())/node()"/></json:map>
                                 </xsl:when>
                                 <!-- typed literal -->
                                 <xsl:when test="@name = 'ol' and $next-input/@name = 'lt'">
                                     <!-- an rdf:XMLLiteral arrives rooted: ldh:canonical-content builds the div the stored literal keeps, so the namespace is declared on it once (the wrap here, inherited from the RDFPostCleanupInterceptor, declared it a second time on every child) -->
                                     <xsl:variable name="datatype" select="$next-input/ixsl:get(., 'value')" as="xs:anyURI"/>
                                     <xsl:variable name="value" select="ixsl:get(., 'value')" as="xs:string"/>
-                                    <!-- note: SPARQL.js 2.x does NOT wrap the datatype URI into <> -->
-                                    <json:string key="object">&quot;<xsl:value-of select="$value"/>&quot;^^<xsl:value-of select="$datatype"/></json:string>
+                                    <xsl:variable name="datatype-term" select="map { 'type': 'term', 'subType': 'namedNode', 'value': string($datatype), 'loc': map { 'sourceLocationType': 'autoGenerate' } }" as="map(*)"/>
+                                    <json:map key="object"><xsl:copy-of select="ldh:typed-term-node('literal', $value, $datatype-term)/node()"/></json:map>
                                 </xsl:when>
                                 <!-- typed literal -->
                                 <xsl:when test="@name = 'lt' and $next-input/@name = 'ol'">
                                     <!-- an rdf:XMLLiteral arrives rooted, as above -->
                                     <xsl:variable name="datatype" select="ixsl:get(., 'value')" as="xs:anyURI"/>
                                     <xsl:variable name="value" select="$next-input/ixsl:get(., 'value')" as="xs:string"/>
-                                    <!-- note: SPARQL.js 2.x does NOT wrap the datatype URI into <> -->
-                                    <json:string key="object">&quot;<xsl:value-of select="$value"/>&quot;^^<xsl:value-of select="$datatype"/></json:string>
+                                    <xsl:variable name="datatype-term" select="map { 'type': 'term', 'subType': 'namedNode', 'value': string($datatype), 'loc': map { 'sourceLocationType': 'autoGenerate' } }" as="map(*)"/>
+                                    <json:map key="object"><xsl:copy-of select="ldh:typed-term-node('literal', $value, $datatype-term)/node()"/></json:map>
                                 </xsl:when>
                                 <!-- language-tagged literal -->
                                 <xsl:when test="@name = 'ol' and $next-input/@name = 'll'">
-                                    <json:string key="object">&quot;<xsl:value-of select="ixsl:get(., 'value')"/>&quot;@<xsl:value-of select="$next-input/ixsl:get(., 'value')"/></json:string>
+                                    <json:map key="object"><xsl:copy-of select="ldh:typed-term-node('literal', string(ixsl:get(., 'value')), string(ixsl:get($next-input, 'value')))/node()"/></json:map>
                                 </xsl:when>
                                 <!-- language-tagged literal -->
                                 <xsl:when test="@name = 'll' and $next-input/@name = 'ol'">
-                                    <json:string key="object">&quot;<xsl:value-of select="$next-input/ixsl:get(., 'value')"/>&quot;@<xsl:value-of select="ixsl:get(., 'value')"/></json:string>
+                                    <json:map key="object"><xsl:copy-of select="ldh:typed-term-node('literal', string(ixsl:get($next-input, 'value')), string(ixsl:get(., 'value')))/node()"/></json:map>
                                 </xsl:when>
                                 <!-- plain literal -->
                                 <xsl:when test="@name = 'ol'">
-                                    <json:string key="object">&quot;<xsl:value-of select="ixsl:get(., 'value')"/>&quot;</json:string>
+                                    <json:map key="object"><xsl:copy-of select="ldh:typed-term-node('literal', string(ixsl:get(., 'value')), ())/node()"/></json:map>
                                 </xsl:when>
                             </xsl:choose>
+                            <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
                         </json:map>
                     </xsl:if>
 
@@ -525,50 +528,53 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:function>
     
-    <!-- parses RDF/XML resources into SPARQL.js triples -->
+    <!-- parses RDF/XML resources into Traqula triples -->
     <xsl:function name="ldh:descriptions-to-triples" as="element()*">
         <xsl:param name="descriptions" as="element()*"/> <!-- rdf:Description sequence -->
         
         <xsl:for-each select="$descriptions/*">
             <json:map>
+                <json:string key="type">triple</json:string>
                 <!-- subject -->
                 <xsl:choose>
                     <!-- blank node -->
                     <xsl:when test="../@rdf:nodeID">
-                        <json:string key="subject">_:<xsl:value-of select="../@rdf:nodeID"/></json:string>
+                        <json:map key="subject"><xsl:copy-of select="ldh:typed-term-node('blankNode', string(../@rdf:nodeID), ())/node()"/></json:map>
                     </xsl:when>
                     <!-- URI -->
                     <xsl:when test="../@rdf:about">
-                        <json:string key="subject"><xsl:value-of select="../@rdf:about"/></json:string>
+                        <json:map key="subject"><xsl:copy-of select="ldh:typed-term-node('namedNode', string(../@rdf:about), ())/node()"/></json:map>
                     </xsl:when>
                 </xsl:choose>
 
                 <!-- predicate -->
-                <json:string key="predicate"><xsl:value-of select="concat(namespace-uri(), local-name())"/></json:string>
+                <json:map key="predicate"><xsl:copy-of select="ldh:typed-term-node('namedNode', concat(namespace-uri(), local-name()), ())/node()"/></json:map>
 
                 <!-- object -->
                 <xsl:choose>
                     <!-- blank node -->
                     <xsl:when test="@rdf:nodeID">
-                        <json:string key="object">_:<xsl:value-of select="@rdf:nodeID"/></json:string>
+                        <json:map key="object"><xsl:copy-of select="ldh:typed-term-node('blankNode', string(@rdf:nodeID), ())/node()"/></json:map>
                     </xsl:when>
                     <!-- URI -->
                     <xsl:when test="@rdf:resource">
-                        <json:string key="object"><xsl:value-of select="@rdf:resource"/></json:string>
+                        <json:map key="object"><xsl:copy-of select="ldh:typed-term-node('namedNode', string(@rdf:resource), ())/node()"/></json:map>
                     </xsl:when>
                     <!-- typed literal -->
                     <xsl:when test="text() and @rdf:datatype">
-                        <json:string key="object">&quot;<xsl:value-of select="text()"/>&quot;^^<xsl:value-of select="@rdf:datatype"/></json:string>
+                        <xsl:variable name="datatype-term" select="map { 'type': 'term', 'subType': 'namedNode', 'value': string(@rdf:datatype), 'loc': map { 'sourceLocationType': 'autoGenerate' } }" as="map(*)"/>
+                        <json:map key="object"><xsl:copy-of select="ldh:typed-term-node('literal', string(text()), $datatype-term)/node()"/></json:map>
                     </xsl:when>
                     <!-- language-tagged literal -->
                     <xsl:when test="text() and @xml:lang">
-                        <json:string key="object">&quot;<xsl:value-of select="text()"/>&quot;@<xsl:value-of select="@xml:lang"/></json:string>
+                        <json:map key="object"><xsl:copy-of select="ldh:typed-term-node('literal', string(text()), string(@xml:lang))/node()"/></json:map>
                     </xsl:when>
                     <!-- plain literal -->
                     <xsl:when test="text()">
-                        <json:string key="object">&quot;<xsl:value-of select="text()"/>&quot;</json:string>
+                        <json:map key="object"><xsl:copy-of select="ldh:typed-term-node('literal', string(text()), ())/node()"/></json:map>
                     </xsl:when>
                 </xsl:choose>
+                <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
             </json:map>
         </xsl:for-each>
     </xsl:function>
@@ -579,9 +585,11 @@ exclude-result-prefixes="#all"
         <xsl:param name="about" as="xs:anyURI"/>
 
         <json:map>
-            <json:string key="subject"><xsl:sequence select="$about"/></json:string>
-            <json:string key="predicate">?p</json:string>
-            <json:string key="object">?o</json:string>
+            <json:string key="type">triple</json:string>
+            <json:map key="subject"><xsl:copy-of select="ldh:typed-term-node('namedNode', string($about), ())/node()"/></json:map>
+            <json:map key="predicate"><xsl:copy-of select="ldh:typed-term-node('variable', 'p', ())/node()"/></json:map>
+            <json:map key="object"><xsl:copy-of select="ldh:typed-term-node('variable', 'o', ())/node()"/></json:map>
+            <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
         </json:map>
     </xsl:function>
     
@@ -591,10 +599,12 @@ exclude-result-prefixes="#all"
         <xsl:param name="triples" as="element()*"/>
 
         <json:map>
-            <json:string key="type">bgp</json:string>
+            <json:string key="type">pattern</json:string>
+            <json:string key="subType">bgp</json:string>
             <json:array key="triples">
                 <xsl:sequence select="$triples"/>
             </json:array>
+            <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
         </json:map>
     </xsl:function>
     
@@ -605,7 +615,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="'&quot;' || replace(replace(replace(replace($value, '\\', '\\\\'), '&quot;', '\\&quot;'), codepoints-to-string(10), '\\n'), codepoints-to-string(13), '\\r') || '&quot;'"/>
     </xsl:function>
 
-    <!-- builds SPARQL update by injecting SPARQL.js triples into the INSERT block -->
+    <!-- Build a Traqula SPARQL Update AST from the delete, insert and WHERE pattern groups. -->
 
     <xsl:function name="ldh:insertdelete-update" as="xs:string">
         <xsl:param name="delete-pattern" as="element()*"/>
@@ -617,23 +627,33 @@ exclude-result-prefixes="#all"
                 <json:string key="type">update</json:string>
                 <json:array key="updates">
                     <json:map>
-                        <json:string key="updateType">insertdelete</json:string>
-                        <json:array key="delete">
-                            <xsl:sequence select="$delete-pattern"/>
-                        </json:array>
-                        <json:array key="insert">
-                            <xsl:sequence select="$insert-pattern"/>
-                        </json:array>
-                        <json:array key="where">
-                            <xsl:sequence select="$where-pattern"/>
-                        </json:array>
+                        <json:array key="context"/>
+                        <json:map key="operation">
+                            <json:string key="type">updateOperation</json:string>
+                            <json:string key="subType">modify</json:string>
+                            <json:array key="delete"><xsl:sequence select="$delete-pattern"/></json:array>
+                            <json:array key="insert"><xsl:sequence select="$insert-pattern"/></json:array>
+                            <json:map key="where">
+                                <json:string key="type">pattern</json:string>
+                                <json:string key="subType">group</json:string>
+                                <json:array key="patterns"><xsl:sequence select="$where-pattern"/></json:array>
+                                <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
+                            </json:map>
+                            <json:map key="from">
+                                <json:string key="type">datasetClauses</json:string>
+                                <json:array key="clauses"/>
+                                <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
+                            </json:map>
+                            <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
+                        </json:map>
                     </json:map>
                 </json:array>
+                <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
             </json:map>
         </xsl:variable>
         <xsl:variable name="update-json-string" select="xml-to-json($update-xml)" as="xs:string"/>
         <xsl:variable name="update-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $update-json-string ])"/>
-        <xsl:sequence select="ixsl:call($ldh:sparql-generator, 'stringify', [ $update-json ])"/>
+        <xsl:sequence select="ixsl:call($ldh:sparql-generator, 'generate', [ $update-json ])"/>
     </xsl:function>
     
     <!-- generic HTTP client promises (SaxonJS 3) -->

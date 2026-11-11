@@ -380,7 +380,7 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:variable name="select-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
         <xsl:variable name="select-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $select-json-string ])"/>
-        <xsl:variable name="query-string" select="ixsl:call($ldh:sparql-generator, 'stringify', [ $select-json ])" as="xs:string"/>
+        <xsl:variable name="query-string" select="ixsl:call($ldh:sparql-generator, 'generate', [ $select-json ])" as="xs:string"/>
         <xsl:variable name="request-uri" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
@@ -436,7 +436,7 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:variable name="select-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
         <xsl:variable name="select-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $select-json-string ])"/>
-        <xsl:variable name="query-string" select="ixsl:call($ldh:sparql-generator, 'stringify', [ $select-json ])" as="xs:string"/>
+        <xsl:variable name="query-string" select="ixsl:call($ldh:sparql-generator, 'generate', [ $select-json ])" as="xs:string"/>
         <xsl:variable name="request-uri" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
         <xsl:variable name="context" as="map(*)" select="
@@ -840,7 +840,7 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:variable name="query-json-string" select="xml-to-json($query-xml)" as="xs:string"/>
         <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
-        <xsl:variable name="query-string" select="ixsl:call($ldh:sparql-generator, 'stringify', [ $query-json ])" as="xs:string"/>
+        <xsl:variable name="query-string" select="ixsl:call($ldh:sparql-generator, 'generate', [ $query-json ])" as="xs:string"/>
         <xsl:variable name="request-uri" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
         <xsl:variable name="headers" as="map(xs:string, xs:string)">
             <xsl:map>
@@ -1835,7 +1835,7 @@ exclude-result-prefixes="#all"
                     </xsl:variable>
                     <xsl:variable name="query-json-string" select="xml-to-json($query-xml)" as="xs:string"/>
                     <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
-                    <xsl:variable name="query-string" select="ixsl:call($ldh:sparql-generator, 'stringify', [ $query-json ])" as="xs:string"/>
+                    <xsl:variable name="query-string" select="ixsl:call($ldh:sparql-generator, 'generate', [ $query-json ])" as="xs:string"/>
                     <xsl:variable name="request-uri" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
                     <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
                     <xsl:variable name="context" as="map(*)" select="
@@ -2421,7 +2421,7 @@ exclude-result-prefixes="#all"
                     </xsl:variable>
                     <xsl:variable name="select-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
                     <xsl:variable name="select-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $select-json-string ])"/>
-                    <xsl:variable name="query-string" select="ixsl:call($ldh:sparql-generator, 'stringify', [ $select-json ])" as="xs:string"/>
+                    <xsl:variable name="query-string" select="ixsl:call($ldh:sparql-generator, 'generate', [ $select-json ])" as="xs:string"/>
                     <xsl:variable name="request-uri" select="ldh:href($endpoint, map{})" as="xs:anyURI"/>
                     <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $request-uri, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
                     <xsl:variable name="context" as="map(*)" select="

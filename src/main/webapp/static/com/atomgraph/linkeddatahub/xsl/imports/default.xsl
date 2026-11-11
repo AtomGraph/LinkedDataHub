@@ -469,13 +469,37 @@ exclude-result-prefixes="#all"
     CONSTRUCT templates are expanded onto a single instance — one bnode prototype typed with all
     the classes, value-range markers as sibling Descriptions in the same document. -->
 
-    <!-- rewrites a CONSTRUCT template term: ?this becomes the shared instance label, other blank
-    node labels are prefixed per constructor position so markers from different templates cannot collide -->
-    <xsl:function name="ldh:instance-term" as="xs:string">
-        <xsl:param name="term" as="xs:string"/>
+    <!-- Build typed Traqula terms for common server/client XSLT paths. -->
+    <xsl:function name="ldh:typed-term-node" as="element(json:map)">
+        <xsl:param name="sub-type" as="xs:string"/>
+        <xsl:param name="value" as="xs:string"/>
+        <xsl:param name="lang-or-iri" as="item()?"/>
+        <xsl:variable name="loc" select="map { 'sourceLocationType': 'autoGenerate' }" as="map(*)"/>
+        <xsl:variable name="node" as="map(*)" select="
+            if (exists($lang-or-iri))
+            then map { 'type': 'term', 'subType': $sub-type, 'value': $value, 'langOrIri': $lang-or-iri, 'loc': $loc }
+            else map { 'type': 'term', 'subType': $sub-type, 'value': $value, 'loc': $loc }
+        "/>
+        <xsl:sequence select="json-to-xml(serialize($node, map { 'method': 'json' }))/json:map"/>
+    </xsl:function>
+
+    <!-- In a CONSTRUCT template ?this becomes the shared instance blank node. Other blank node labels
+         are prefixed per constructor so markers from separate templates cannot collide. -->
+    <xsl:function name="ldh:instance-term" as="element(json:map)">
+        <xsl:param name="term" as="element(json:map)"/>
         <xsl:param name="pos" as="xs:integer"/>
 
-        <xsl:sequence select="if ($term = ('?this', '$this')) then '_:instance' else if (starts-with($term, '_:')) then '_:c' || $pos || '_' || substring-after($term, '_:') else $term"/>
+        <xsl:choose>
+            <xsl:when test="$term/json:string[@key = 'subType'] = 'variable' and $term/json:string[@key = 'value'] = 'this'">
+                <xsl:sequence select="ldh:typed-term-node('blankNode', 'instance', ())"/>
+            </xsl:when>
+            <xsl:when test="$term/json:string[@key = 'subType'] = 'blankNode'">
+                <xsl:sequence select="ldh:typed-term-node('blankNode', 'c' || $pos || '_' || $term/json:string[@key = 'value'], ())"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="$term"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
 
     <!-- returns the sorted type set of a pure value-range marker (a blank node carrying only rdf:type),
@@ -484,19 +508,19 @@ exclude-result-prefixes="#all"
         <xsl:param name="label" as="xs:string"/>
         <xsl:param name="triples" as="element()*"/>
 
-        <xsl:variable name="subject-triples" select="$triples[json:string[@key = 'subject'] = $label]" as="element()*"/>
-        <xsl:sequence select="if (starts-with($label, '_:') and exists($subject-triples) and not($subject-triples[not(json:string[@key = 'predicate'] = '&rdf;type')])) then string-join(sort($subject-triples/json:string[@key = 'object']), ' ') else ''"/>
+        <xsl:variable name="subject-triples" select="$triples[json:map[@key = 'subject']/json:string[@key = 'subType'] = 'blankNode'][concat('_:', json:map[@key = 'subject']/json:string[@key = 'value']) = $label]" as="element()*"/>
+        <xsl:sequence select="if (starts-with($label, '_:') and exists($subject-triples) and not($subject-triples[not(json:map[@key = 'predicate']/json:string[@key = 'value'] = '&rdf;type')])) then string-join(sort($subject-triples/json:map[@key = 'object']/json:string[@key = 'value']), ' ') else ''"/>
     </xsl:function>
 
     <!-- parses SPARQL.js 2.x triple maps into RDF/XML. The term serialization is produced by the SPARQL.js Parser in the browser and by the ParseQuery (Jena) extension function server-side — both behind ldh:parse-query — as well as by ldh:parse-rdf-post()/ldh:descriptions-to-triples() in client/functions.xsl; all of them and this function must stay in lockstep -->
     <xsl:function name="ldh:triples-to-descriptions" as="element()*">
         <xsl:param name="triples" as="element()*"/>
 
-        <xsl:for-each-group select="$triples" group-by="json:string[@key = 'subject']">
+        <xsl:for-each-group select="$triples" group-by="if (json:map[@key = 'subject']/json:string[@key = 'subType'] = 'blankNode') then '_:' || json:map[@key = 'subject']/json:string[@key = 'value'] else json:map[@key = 'subject']/json:string[@key = 'value']">
             <rdf:Description>
                 <!-- subject -->
                 <xsl:choose>
-                    <xsl:when test="starts-with(current-grouping-key(), '_:')">
+                    <xsl:when test="current-group()[1]/json:map[@key = 'subject']/json:string[@key = 'subType'] = 'blankNode'">
                         <xsl:attribute name="rdf:nodeID" select="substring-after(current-grouping-key(), '_:')"/>
                     </xsl:when>
                     <xsl:otherwise>
@@ -506,57 +530,41 @@ exclude-result-prefixes="#all"
 
                 <xsl:for-each select="current-group()">
                     <!-- split predicate URI into namespace and local name -->
-                    <xsl:variable name="namespace" select="xs:anyURI(if (contains(json:string[@key = 'predicate'], '#')) then substring-before(json:string[@key = 'predicate'], '#') || '#' else string-join(tokenize(json:string[@key = 'predicate'], '/')[not(position() = last())], '/') || '/')" as="xs:anyURI"/>
-                    <xsl:variable name="local-name" select="substring-after(json:string[@key = 'predicate'], $namespace)" as="xs:string"/>
+                    <xsl:variable name="predicate" select="json:map[@key = 'predicate']/json:string[@key = 'value']" as="xs:string"/>
+                    <xsl:variable name="namespace" select="xs:anyURI(if (contains($predicate, '#')) then substring-before($predicate, '#') || '#' else string-join(tokenize($predicate, '/')[not(position() = last())], '/') || '/')" as="xs:anyURI"/>
+                    <xsl:variable name="local-name" select="substring-after($predicate, $namespace)" as="xs:string"/>
 
                     <!-- predicate -->
                     <xsl:element namespace="{$namespace}" name="ns:{$local-name}">
-                        <xsl:for-each select="json:string[@key = 'object']">
+                        <xsl:for-each select="json:map[@key = 'object']">
                             <!-- object -->
-                            <!-- TO-DO: upgrade SPARQL.js to 3.x. We need regex functions in the following logic because quoting/escaping sucks in SPARQL.js 2.x -->
                             <xsl:choose>
                                 <!-- XML literal -->
-                                <!-- note: SPARQL.js 2.x does NOT wrap the datatype URI into <> -->
-                                <xsl:when test="matches(., '^&quot;(.*)&quot;\^\^&rdf;XMLLiteral$', 's')">
+                                <xsl:when test="json:string[@key = 'subType'] = 'literal' and json:map[@key = 'langOrIri']/json:string[@key = 'value'] = '&rdf;XMLLiteral'">
                                     <xsl:attribute name="rdf:parseType" select="'Literal'"/>
                                     <!-- XML literal has to be fixed previously, otherwise parse-xml() will fail -->
-                                    <xsl:analyze-string select="." regex="^&quot;(.*)&quot;\^\^&rdf;XMLLiteral$" flags="s">
-                                        <xsl:matching-substring>
-                                            <xsl:sequence select="parse-xml(regex-group(1))"/>
-                                        </xsl:matching-substring>
-                                    </xsl:analyze-string>
+                                    <xsl:sequence select="parse-xml(json:string[@key = 'value'])"/>
                                 </xsl:when>
                                 <!-- typed literal -->
-                                <!-- note: SPARQL.js 2.x does NOT wrap the datatype URI into <> -->
-                                <xsl:when test="matches(., '^&quot;(.*)&quot;\^\^(.*)$', 's')">
-                                    <xsl:analyze-string select="." regex="^&quot;(.*)&quot;\^\^(.*)$" flags="s">
-                                        <xsl:matching-substring>
-                                            <xsl:attribute name="rdf:datatype" select="regex-group(2)"/>
-
-                                            <xsl:sequence select="regex-group(1)"/>
-                                        </xsl:matching-substring>
-                                    </xsl:analyze-string>
+                                <xsl:when test="json:string[@key = 'subType'] = 'literal' and json:map[@key = 'langOrIri']">
+                                    <xsl:attribute name="rdf:datatype" select="json:map[@key = 'langOrIri']/json:string[@key = 'value']"/>
+                                    <xsl:value-of select="json:string[@key = 'value']"/>
                                 </xsl:when>
                                 <!-- language-tagged literal -->
-                                <xsl:when test="matches(., '^&quot;(.*?)&quot;@(.*)$', 's')">
-                                    <xsl:analyze-string select="." regex="^&quot;(.*?)&quot;@(.*)$" flags="s">
-                                        <xsl:matching-substring>
-                                            <xsl:attribute name="xml:lang" select="regex-group(2)"/>
-
-                                            <xsl:sequence select="regex-group(1)"/>
-                                        </xsl:matching-substring>
-                                    </xsl:analyze-string>
+                                <xsl:when test="json:string[@key = 'subType'] = 'literal' and json:string[@key = 'langOrIri']">
+                                    <xsl:attribute name="xml:lang" select="json:string[@key = 'langOrIri']"/>
+                                    <xsl:value-of select="json:string[@key = 'value']"/>
                                 </xsl:when>
                                 <!-- plain literal -->
-                                <xsl:when test="starts-with(., '&quot;') and ends-with(., '&quot;')">
-                                    <xsl:sequence select="substring(., 2, string-length(.) - 2)"/> <!-- trim first and last character -->
+                                <xsl:when test="json:string[@key = 'subType'] = 'literal'">
+                                    <xsl:value-of select="json:string[@key = 'value']"/>
                                 </xsl:when>
                                 <!-- blank node -->
-                                <xsl:when test="starts-with(., '_:')">
-                                    <xsl:attribute name="rdf:nodeID" select="substring-after(., '_:')"/>
+                                <xsl:when test="json:string[@key = 'subType'] = 'blankNode'">
+                                    <xsl:attribute name="rdf:nodeID" select="json:string[@key = 'value']"/>
                                 </xsl:when>
                                 <xsl:otherwise>
-                                    <xsl:attribute name="rdf:resource" select="."/>
+                                    <xsl:attribute name="rdf:resource" select="json:string[@key = 'value']"/>
                                 </xsl:otherwise>
                             </xsl:choose>
                         </xsl:for-each>
@@ -579,21 +587,23 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="pos" select="position()" as="xs:integer"/>
                 <xsl:variable name="query-xml" select="json-to-xml(ldh:parse-query(string(.)))" as="document-node()"/>
                 <xsl:choose>
-                    <xsl:when test="exists($query-xml/json:map/json:array[@key = 'where']/*)">
+                    <xsl:when test="exists($query-xml/json:map/json:map[@key = 'where']/json:array[@key = 'patterns']/*)">
                         <xsl:message>Constructor skipped: a non-empty WHERE clause cannot be instantiated: <xsl:value-of select="."/></xsl:message>
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:for-each select="$query-xml/json:map/json:array[@key = 'template']/json:map">
-                            <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:string"/>
+                        <xsl:for-each select="$query-xml/json:map/json:map[@key = 'template']/json:array[@key = 'triples']/json:map">
+                            <xsl:variable name="predicate" select="json:map[@key = 'predicate']" as="element(json:map)"/>
                             <xsl:choose>
-                                <xsl:when test="starts-with($predicate, '?') or starts-with($predicate, '$')">
-                                    <xsl:message>Constructor template triple skipped: variable predicate <xsl:value-of select="$predicate"/></xsl:message>
+                                <xsl:when test="$predicate/json:string[@key = 'subType'] = 'variable'">
+                                    <xsl:message>Constructor template triple skipped: variable predicate <xsl:value-of select="$predicate/json:string[@key = 'value']"/></xsl:message>
                                 </xsl:when>
                                 <xsl:otherwise>
                                     <json:map>
-                                        <json:string key="subject"><xsl:value-of select="ldh:instance-term(json:string[@key = 'subject'], $pos)"/></json:string>
-                                        <json:string key="predicate"><xsl:value-of select="$predicate"/></json:string>
-                                        <json:string key="object"><xsl:value-of select="ldh:instance-term(json:string[@key = 'object'], $pos)"/></json:string>
+                                        <json:string key="type">triple</json:string>
+                                        <json:map key="subject"><xsl:copy-of select="ldh:instance-term(json:map[@key = 'subject'], $pos)/node()"/></json:map>
+                                        <json:map key="predicate"><xsl:copy-of select="$predicate/node()"/></json:map>
+                                        <json:map key="object"><xsl:copy-of select="ldh:instance-term(json:map[@key = 'object'], $pos)/node()"/></json:map>
+                                        <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
                                     </json:map>
                                 </xsl:otherwise>
                             </xsl:choose>
@@ -606,18 +616,20 @@ exclude-result-prefixes="#all"
         <!-- collapse instance properties whose (predicate, marker type set) coincide - the same property
         asserted by several constructors (e.g. dct:title via a superclass and the class's own constructor) -->
         <xsl:variable name="dropped-markers" as="xs:string*">
-            <xsl:for-each-group select="$raw-triples[json:string[@key = 'subject'] = '_:instance'][not(ldh:marker-types(json:string[@key = 'object'], $raw-triples) = '')]" group-by="json:string[@key = 'predicate'] || ' ' || ldh:marker-types(json:string[@key = 'object'], $raw-triples)">
-                <xsl:sequence select="for $duplicate in subsequence(current-group(), 2) return string($duplicate/json:string[@key = 'object'])"/>
+            <xsl:for-each-group select="$raw-triples[json:map[@key = 'subject']/json:string[@key = 'subType'] = 'blankNode'][json:map[@key = 'subject']/json:string[@key = 'value'] = 'instance'][not(ldh:marker-types('_:' || json:map[@key = 'object']/json:string[@key = 'value'], $raw-triples) = '')]" group-by="json:map[@key = 'predicate']/json:string[@key = 'value'] || ' ' || ldh:marker-types('_:' || json:map[@key = 'object']/json:string[@key = 'value'], $raw-triples)">
+                <xsl:sequence select="for $duplicate in subsequence(current-group(), 2) return '_:' || string($duplicate/json:map[@key = 'object']/json:string[@key = 'value'])"/>
             </xsl:for-each-group>
         </xsl:variable>
-        <xsl:variable name="triples" select="$raw-triples[not(json:string[@key = 'subject'] = '_:instance' and json:string[@key = 'object'] = $dropped-markers)][not(json:string[@key = 'subject'] = $dropped-markers)]" as="element()*"/>
+        <xsl:variable name="triples" select="$raw-triples[not(json:map[@key = 'subject']/json:string[@key = 'subType'] = 'blankNode' and json:map[@key = 'subject']/json:string[@key = 'value'] = 'instance' and ('_:' || json:map[@key = 'object']/json:string[@key = 'value']) = $dropped-markers)][not(json:map[@key = 'subject']/json:string[@key = 'subType'] = 'blankNode' and ('_:' || json:map[@key = 'subject']/json:string[@key = 'value']) = $dropped-markers)]" as="element()*"/>
 
         <xsl:variable name="type-triples" as="element()*">
             <xsl:for-each select="$types">
                 <json:map>
-                    <json:string key="subject">_:instance</json:string>
-                    <json:string key="predicate">&rdf;type</json:string>
-                    <json:string key="object"><xsl:value-of select="."/></json:string>
+                    <json:string key="type">triple</json:string>
+                    <json:map key="subject"><xsl:copy-of select="ldh:typed-term-node('blankNode', 'instance', ())/node()"/></json:map>
+                    <json:map key="predicate"><xsl:copy-of select="ldh:typed-term-node('namedNode', '&rdf;type', ())/node()"/></json:map>
+                    <json:map key="object"><xsl:copy-of select="ldh:typed-term-node('namedNode', string(.), ())/node()"/></json:map>
+                    <json:map key="loc"><json:string key="sourceLocationType">autoGenerate</json:string></json:map>
                 </json:map>
             </xsl:for-each>
         </xsl:variable>
