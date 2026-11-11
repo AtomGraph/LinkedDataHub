@@ -19,6 +19,8 @@ package com.atomgraph.linkeddatahub;
 import com.atomgraph.client.util.jena.PrefixGraphRepository;
 import com.atomgraph.linkeddatahub.writer.impl.SameSiteSourceResolver;
 import com.atomgraph.linkeddatahub.server.util.ContextEndpointAccessor;
+import com.atomgraph.linkeddatahub.server.util.ContextPersistence;
+import com.atomgraph.linkeddatahub.server.util.ContextPersistenceProvider;
 import com.atomgraph.linkeddatahub.server.util.FileContextPersistence;
 import com.atomgraph.linkeddatahub.server.util.GraphLocks;
 import com.atomgraph.linkeddatahub.server.util.OntologyRepository;
@@ -758,8 +760,23 @@ public class Application extends ResourceConfig
 
         try
         {
-            String settingsOverlay = servletConfig.getServletContext().getInitParameter(LDHC.settingsOverlay.getURI());
-            this.contextAccessor = loadContext(servletConfig.getServletContext(), contextDatasetURI, settingsOverlay);
+            // the dataspace descriptions: from the files, unless a provider on the classpath keeps them elsewhere
+            ContextPersistenceProvider contextPersistenceProvider = contextPersistenceProvider(ServiceLoader.load(ContextPersistenceProvider.class));
+            ContextPersistence contextPersistence;
+            if (contextPersistenceProvider != null)
+            {
+                contextPersistence = contextPersistenceProvider.getPersistence(servletConfig.getServletContext());
+                if (log.isInfoEnabled()) log.info("Dataspace descriptions are kept by {}", contextPersistence.getClass().getName());
+            }
+            else
+            {
+                String settingsOverlay = servletConfig.getServletContext().getInitParameter(LDHC.settingsOverlay.getURI());
+                contextPersistence = new FileContextPersistence(
+                    getDataset(servletConfig.getServletContext(), contextDatasetURI),
+                    settingsOverlay != null ? new java.io.File(URI.create(settingsOverlay)) : null,
+                    resolve(servletConfig.getServletContext(), contextDatasetURI));
+            }
+            this.contextAccessor = new ContextEndpointAccessor(contextPersistence.load(), contextPersistence);
 
             keyStore = KeyStore.getInstance("PKCS12");
             try (FileInputStream keyStoreInputStream = new FileInputStream(new java.io.File(new URI(clientKeyStoreURIString))))
@@ -2500,25 +2517,20 @@ public class Application extends ResourceConfig
     }
 
     /**
-     * Loads the dataspace descriptions the platform runs with, and sets up where a change to them is kept. The
-     * platform reads them from the context dataset file and keeps changes in the settings overlay file beside it.
-     * An extension that keeps them elsewhere - a store every replica of the platform reads, say - overrides this. It
-     * runs while the application is being constructed, so it may rely on the servlet context and its arguments only,
-     * not on the application's own state.
+     * The provider of the dataspace descriptions' persistence, out of those found on the classpath.
      *
-     * @param servletContext the servlet context, for its resources and init parameters
-     * @param contextDatasetURI the context dataset file (<code>ldhc:contextDataset</code>)
-     * @param settingsOverlay the settings overlay file (<code>ldhc:settingsOverlay</code>), or null for none
-     * @return the accessor over the descriptions
-     * @throws IOException if the descriptions cannot be read
+     * @param providers the providers found
+     * @return the one provider, or null when there is none and the descriptions are kept in files
+     * @throws IllegalStateException if there is more than one, which the platform will not choose between
      */
-    protected ContextEndpointAccessor loadContext(ServletContext servletContext, URI contextDatasetURI, String settingsOverlay) throws IOException
+    static ContextPersistenceProvider contextPersistenceProvider(Iterable<ContextPersistenceProvider> providers)
     {
-        FileContextPersistence persistence = new FileContextPersistence(
-            getDataset(servletContext, contextDatasetURI),
-            settingsOverlay != null ? new java.io.File(URI.create(settingsOverlay)) : null,
-            resolve(servletContext, contextDatasetURI));
-        return new ContextEndpointAccessor(persistence.load(), persistence);
+        List<ContextPersistenceProvider> found = new java.util.ArrayList<>();
+        providers.forEach(found::add);
+        if (found.size() > 1) throw new IllegalStateException("More than one " + ContextPersistenceProvider.class.getSimpleName() + " is on the classpath: " +
+            found.stream().map(provider -> provider.getClass().getName()).collect(Collectors.joining(", ")));
+
+        return found.isEmpty() ? null : found.get(0);
     }
 
     /**

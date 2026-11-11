@@ -79,7 +79,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-public class FileContextPersistence implements ContextEndpointAccessor.Persistence
+public class FileContextPersistence implements ContextPersistence
 {
 
     private static final Logger log = LoggerFactory.getLogger(FileContextPersistence.class);
@@ -110,6 +110,7 @@ public class FileContextPersistence implements ContextEndpointAccessor.Persisten
      *
      * @return the dataspace descriptions
      */
+    @Override
     public Dataset load()
     {
         Dataset live = copy(configured);
