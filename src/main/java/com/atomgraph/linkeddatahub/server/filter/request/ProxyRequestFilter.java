@@ -141,6 +141,13 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         HttpHeaders.RETRY_AFTER,
         "Age");
     /**
+     * The policy a body relayed byte for byte is served with, the one an upload is served with on its own origin: the
+     * bytes are the origin's but served from this origin, so they must run nothing and load nothing here. The origin's
+     * own policy is not forwarded, being bound to the origin; a body re-serialized from a Model or a result set is the
+     * proxy's own and needs none.
+     */
+    private static final String SANDBOX_POLICY = "default-src 'none'; sandbox";
+    /**
      * Conditional request headers forwarded verbatim to the upstream so preconditions are evaluated
      * at the origin: {@code If-Match}/{@code If-Unmodified-Since} carry optimistic-concurrency
      * validators on writes, {@code If-None-Match}/{@code If-Modified-Since} carry cache validation on
@@ -396,7 +403,8 @@ public class ProxyRequestFilter implements ContainerRequestFilter
             clientResponse.bufferEntity();
             Response.ResponseBuilder rb = Response.status(clientResponse.getStatus()).
                 type(clientResponse.getMediaType()).
-                entity(clientResponse.readEntity(InputStream.class));
+                entity(clientResponse.readEntity(InputStream.class)).
+                header("Content-Security-Policy", SANDBOX_POLICY);
             return overlayHeaders(rb.build(), clientResponse, true);
         }
 
@@ -457,7 +465,8 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
         Response.ResponseBuilder rb = Response.status(clientResponse.getStatus()).
             type(upstreamCT).
-            entity(entity);
+            entity(entity).
+            header("Content-Security-Policy", SANDBOX_POLICY);
 
         return overlayHeaders(rb.build(), clientResponse, true);
     }
