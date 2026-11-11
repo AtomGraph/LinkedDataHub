@@ -53,8 +53,12 @@ exclude-result-prefixes="#all"
          The walk itself is sealed and only ever descends; this mode is what it asks at each node. So a
          rule here can add work for a node and can never take the node's subtree out of the walk, which
          is exactly the failure that made this a separate mode. deep-skip: a node nobody claims
-         contributes nothing. -->
-    <xsl:mode name="ldh:RowHook" on-no-match="deep-skip"/>
+         contributes nothing.
+
+         ldh:collecting: every package's rule for a node must end with xsl:next-match, so that two packages
+         contributing work for the same node both run, and the platform's own rule below them too
+         (PackageContract checks it). -->
+    <xsl:mode name="ldh:RowHook" on-no-match="deep-skip" ldh:collecting="true"/>
 
     <!-- the platform's own contribution: ontology-driven view blocks for any row wrapper produced by
          resource.xsl - outer div.ldh-block-row[@about] whose div.row-main child contains the inner

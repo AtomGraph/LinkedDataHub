@@ -36,6 +36,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.apache.jena.enhanced.UnsupportedPolymorphismException;
@@ -74,6 +76,7 @@ public class PackageService
     public static final String PUBLIC_PATH = "static/com/linkeddatahub/packages/";
 
     private final com.atomgraph.linkeddatahub.Application system;
+    private final Set<Path> checked = ConcurrentHashMap.newKeySet();
 
     /**
      * Constructs the service from the system application, whose repository, service contexts and HTTP
@@ -202,6 +205,7 @@ public class PackageService
 
                 if (log.isInfoEnabled()) log.info("Copied package stylesheet <{}> to '{}'", declared, copy);
             }
+            report(pkg, declared, copy);
 
             return app.getBaseURI().resolve(PUBLIC_PATH + path);
         }
@@ -210,6 +214,37 @@ public class PackageService
             if (log.isErrorEnabled()) log.error("Could not copy package stylesheet <{}>, leaving it out", declared, ex);
 
             return null;
+        }
+    }
+
+    /**
+     * Checks a package stylesheet against the package contract once per copy, and logs what breaks it. Reporting only:
+     * the stylesheet is composed whatever the result, until packages are on the contract (PACKAGE-CONTRACT.md).
+     * A copy already on disk is checked too, so a stylesheet copied before the contract existed is reported.
+     *
+     * @param pkg package resource
+     * @param declared the stylesheet URL the package declares
+     * @param copy the application's copy of it
+     */
+    protected void report(com.atomgraph.linkeddatahub.dataspaces.model.Package pkg, URI declared, Path copy)
+    {
+        PackageContract contract = getSystem().getPackageContract();
+        if (contract == null || !checked.add(copy)) return;
+
+        try
+        {
+            List<PackageContract.Violation> violations = contract.check(copy.toUri().toURL());
+            if (violations.isEmpty())
+            {
+                if (log.isDebugEnabled()) log.debug("Package <{}> stylesheet <{}> keeps the package contract", pkg.getURI(), declared);
+            }
+            else if (log.isWarnEnabled())
+                log.warn("Package <{}> stylesheet <{}> breaks the package contract in {} place(s):\n  {}", pkg.getURI(), declared, violations.size(),
+                    violations.stream().map(PackageContract.Violation::toString).collect(Collectors.joining("\n  ")));
+        }
+        catch (IOException | net.sf.saxon.s9api.SaxonApiException ex)
+        {
+            if (log.isWarnEnabled()) log.warn("Could not check package <{}> stylesheet <{}> against the package contract", pkg.getURI(), declared, ex);
         }
     }
 

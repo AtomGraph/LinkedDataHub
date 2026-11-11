@@ -1,3 +1,7 @@
+## [Unreleased]
+### Added
+- A package stylesheet is checked against the package contract when the platform takes its copy, and what breaks the contract is logged with its line: templates outside the open modes, names in the platform's namespaces, global settings, imports, writes to the page, requests, run-time code, literal ids, a rule in a collecting mode that does not end with `xsl:next-match`, and calls into platform code that writes the page or requests a URL it is passed. The platform side is derived from its stylesheets: the open modes from `hooks.xsl` and `client/hooks.xsl`, the collecting modes from `ldh:collecting`, and what writes from following calls, with `ldh:effect="none"` on the functions that only compute through JavaScript or read the platform's own catalogs. Nothing is refused yet (`PACKAGE-CONTRACT.md`)
+
 ## [6.5.2] - 2026-11-12
 ### Fixed
 - The `ldh` plugin's app skill holds no shell interpreter line, which the plugin directory reads as an inline shell snippet
