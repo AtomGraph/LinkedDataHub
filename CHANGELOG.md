@@ -1,4 +1,7 @@
 ## [Unreleased]
+### Added
+- A package stylesheet is checked against the package contract when the platform takes its copy, and what breaks the contract is logged with its line: templates outside the open modes, names in the platform's namespaces, global settings, imports, writes to the page, requests, run-time code, literal ids, a rule in a collecting mode that does not end with `xsl:next-match`, and calls into platform code that writes the page or requests a URL it is passed. The platform side is derived from its stylesheets: the open modes from `hooks.xsl` and `client/hooks.xsl`, the collecting modes from `ldh:collecting`, and what writes from following calls, with `ldh:effect="none"` on the functions that only compute through JavaScript or read the platform's own catalogs. Nothing is refused yet (`PACKAGE-CONTRACT.md`)
+
 ### Security
 - `PATCH /settings` refuses to change a dataspace's wiring (`422`): `lds:origin` and `lds:service` are the deployment's, set when the dataspace is made. An owner of one dataspace could otherwise point it at another's SPARQL service, or take another's origin, through their own settings
 - `PATCH /settings` refuses to change `lds:versioningRepository` too: an owner could otherwise have their dataspace commit, with the deployment's credentials, over another dataspace's versions
