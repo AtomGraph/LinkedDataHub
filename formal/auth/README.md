@@ -236,4 +236,6 @@ The ID token path is not replayed. It needs a provider's signed tokens.
   writes. `login` models only the triples the token path reads.
 - **The read-allowed dataspace shortcut, and what the proxy is allowed to do:** both are past authentication, and the
   ACL model's. `Proxy.lean` covers only what the proxy sends.
-- **The proxy's responses:** which body is re-serialized and which relayed, and the headers it returns.
+- **The proxy's responses:** which body is re-serialized and which relayed, and the headers it returns, among them the
+  `Content-Security-Policy` a relayed body is sandboxed with. They are what the caller gets back, not what is sent
+  for the caller.
