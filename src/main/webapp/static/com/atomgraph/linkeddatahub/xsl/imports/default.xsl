@@ -293,13 +293,14 @@ exclude-result-prefixes="#all"
     </xsl:function>
 
     <!-- Web-Client's label catalog resolves against the shell origin here, like the app's own translations.rdf:
-         the same-origin URL works for the same-site server resolver and in the browser alike -->
-    <xsl:function name="ac:translations" as="document-node()">
+         the same-origin URL works for the same-site server resolver and in the browser alike.
+         ldh:effect="none": it reads the platform's own catalog, at a URL no caller chooses (PackageContract) -->
+    <xsl:function name="ac:translations" as="document-node()" ldh:effect="none">
         <xsl:sequence select="document(resolve-uri('static/com/atomgraph/client/xsl/translations.rdf', $lds:origin))"/>
     </xsl:function>
 
-    <!-- the app's own label catalog, mirroring ac:translations() -->
-    <xsl:function name="ldh:translations" as="document-node()">
+    <!-- the app's own label catalog, mirroring ac:translations(), and with no effect for the same reason -->
+    <xsl:function name="ldh:translations" as="document-node()" ldh:effect="none">
         <xsl:sequence select="document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/translations.rdf', $lds:origin))"/>
     </xsl:function>
 
