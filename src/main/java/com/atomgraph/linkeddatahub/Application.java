@@ -467,6 +467,12 @@ public class Application extends ResourceConfig
      * @param maxConnPerRoute maximum client connections per rout
      * @param maxTotalConn maximum total client connections
      * @param maxRequestRetries maximum number of times that the HTTP client will retry a request
+     * @param connectionRequestTimeout timeout in milliseconds to wait for a connection lease from the pool (null to leave unset)
+     * @param socketTimeout socket (read) timeout in milliseconds (null to leave unset)
+     * @param connectTimeout connection (connect) timeout in milliseconds (null to leave unset)
+     * @param selfRequestTimeout connect and read timeout in milliseconds for requests the platform sends to its own host, or null to leave the client's
+     * @param connectionTimeToLive time-to-live in milliseconds after which pooled connections are discarded (null to leave unset)
+     * @param validateAfterInactivity period of inactivity in milliseconds after which a pooled connection is revalidated before reuse (null to leave unset)
      * @param maxImportThreads maximum number of threads used for asynchronous imports
      * @param notificationAddressString email address used to send notifications
      * @param enableWebIDSignUp true if WebID signup is enabled
@@ -861,7 +867,7 @@ public class Application extends ResourceConfig
             // Iterating lds:service statements (app → service) naturally excludes orphan services. A service added to the
             // descriptions later gets its context on first use (getServiceContext), so the map is concurrent.
             serviceContextMap = new ConcurrentHashMap<>();
-            org.apache.jena.rdf.model.Model ctxUnion = getContextDataset().getUnionModel();
+            org.apache.jena.rdf.model.Model ctxUnion = this.contextAccessor.getDataset().getUnionModel();
             org.apache.jena.rdf.model.StmtIterator serviceIt = ctxUnion.listStatements(null, LDS.service, (org.apache.jena.rdf.model.RDFNode) null);
             try
             {
@@ -1262,7 +1268,12 @@ public class Application extends ResourceConfig
         register(ProxiedWebIDFilter.class);
         register(ProxyRequestFilter.class);
         register(AuthorizationFilter.class);
-        if (getMaxContentLength() != null) register(new ContentLengthLimitFilter(getMaxContentLength(), getMaxUploadLength() != null ? getMaxUploadLength() : getMaxContentLength()));
+        Integer contentLimit = getMaxContentLength();
+        if (contentLimit != null)
+        {
+            Long uploadLimit = getMaxUploadLength();
+            register(new ContentLengthLimitFilter(contentLimit, uploadLimit != null ? uploadLimit : contentLimit));
+        }
         register(new RDFPostMediaTypeInterceptor()); // for application/x-www-form-urlencoded
         
         // Conditionally register Google OAuth filter if configured
