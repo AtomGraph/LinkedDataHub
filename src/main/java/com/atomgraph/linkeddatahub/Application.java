@@ -2615,6 +2615,65 @@ public class Application extends ResourceConfig
     }
 
     /**
+     * Reads the dataspace descriptions from their persistence again and serves them from now on, the contexts of
+     * the services whose description changed - gone, new, or described otherwise - made anew on their next use.
+     * What a replica does to see a change another one made to a persistence they share, on an interval or when a
+     * request names an origin it does not know.
+     *
+     * @return the services whose description changed
+     * @throws IOException if the persistence cannot be read, which leaves the descriptions as they are
+     */
+    public java.util.Set<String> reloadContext() throws IOException
+    {
+        Dataset before = getContextAccessor().reload();
+        java.util.Set<String> changed = changedServices(before, getContextAccessor().getDataset());
+        changed.forEach(this::forgetServiceContext);
+        return changed;
+    }
+
+    /**
+     * The services ({@code lds:service} of any dataspace) whose descriptions differ between two states of the
+     * dataspace descriptions: those gone or new among them, and those whose graph says something else.
+     *
+     * @param before the descriptions served before
+     * @param after the descriptions served now
+     * @return the services' URIs
+     */
+    static java.util.Set<String> changedServices(Dataset before, Dataset after)
+    {
+        java.util.Set<String> services = new java.util.HashSet<>();
+        services.addAll(services(before));
+        services.addAll(services(after));
+
+        java.util.Set<String> changed = new java.util.HashSet<>();
+        for (String service : services)
+        {
+            Model was = graphDescribing(before, service), is = graphDescribing(after, service);
+            if (was == null || is == null || !was.isIsomorphicWith(is)) changed.add(service);
+        }
+        return changed;
+    }
+
+    private static java.util.Set<String> services(Dataset dataset)
+    {
+        java.util.Set<String> services = new java.util.HashSet<>();
+        dataset.getUnionModel().listObjectsOfProperty(LDS.service).forEachRemaining(node -> { if (node.isURIResource()) services.add(node.asResource().getURI()); });
+        return services;
+    }
+
+    /** The named graph that describes the service (holds triples about it), or null. */
+    private static Model graphDescribing(Dataset dataset, String service)
+    {
+        java.util.Iterator<Resource> names = dataset.listModelNames();
+        while (names.hasNext())
+        {
+            Model graph = dataset.getNamedModel(names.next().getURI());
+            if (graph.contains(graph.createResource(service), null)) return graph;
+        }
+        return null;
+    }
+
+    /**
      * Returns true if configured to invalidate HTTP proxy cache of triplestore results.
      *
      * @return true if invalidated
