@@ -40,10 +40,27 @@ exclude-result-prefixes="#all"
         functions freely and needs no product guards.
     -->
 
-    <!-- the children fetch for one tree node, chosen by the domain that owns the tree: the drawer's
-         document tree matches its own buttons in client/navigation.xsl, a package's tree matches its
-         own. No fallback: a tree whose domain supplies no fetch is not expandable. -->
-    <xsl:mode name="ldh:TreeChildrenLoad"/>
+    <!-- Which relation a tree follows, answered by the domain that owns the tree as DATA, never as
+         work: a rule returns a map of predicates and client/tree.xsl builds and runs the queries.
+         Both modes answer with the same shape, the two directions RDF lets a link be asserted in:
+
+             map{ 'parent-properties': xs:anyURI*,    asserted on the child, pointing at its parent
+                  'child-properties':  xs:anyURI* }   asserted on the parent, pointing at its children
+
+         (or map{ 'query': xs:string } with a children CONSTRUCT of a shape this module does not
+         generate, sent as given). deep-skip: a tree whose domain answers nothing is not expandable,
+         or is not climbed.
+
+         ldh:TreeChildrenLoad is applied to a node's disclosure button, so a domain selects the relation
+         by matching the tree the button sits in - and by depth, where the relation changes level by
+         level (a scheme's top concepts, then a concept's narrower concepts). The drawer's document tree
+         matches its own buttons in client/navigation.xsl, a package's tree matches its own.
+
+         ldh:TreeParentsLoad is applied to the ul.ldh-tree itself, once, when the tree asks for a node
+         to be revealed (data-tree-reveal): the relation the climb follows up from that node, one hop per
+         request, to find the ancestors the descent then opens. -->
+    <xsl:mode name="ldh:TreeChildrenLoad" on-no-match="deep-skip"/>
+    <xsl:mode name="ldh:TreeParentsLoad" on-no-match="deep-skip"/>
 
     <!-- ldh:RowHook, the factories of deferred work for a rendered row, is not here and not open: a
          factory runs inside ixsl:promise, which is control flow a package does not get (a package has
