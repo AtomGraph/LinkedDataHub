@@ -247,9 +247,13 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
 
         if (getDataspace().isPresent() && getDataspace().get().canAs(AdminDataspace.class) && resource.hasProperty(RDF.type, OWL.Ontology))
         {
-            // clear cached raw graph and closure union graph if ontology is updated. TO-DO: send event instead
-            getSystem().getRepository().remove(resource.getURI());
-            getSystem().getOntologyGraphs().remove(resource.getURI());
+            // clear cached raw graph and closure union graph if ontology is updated. A blank node ontology, which
+            // `ldh admin create ontology` writes without --uri, has no URI to be cached under. TO-DO: send event instead
+            if (resource.isURIResource())
+            {
+                getSystem().getRepository().remove(resource.getURI());
+                getSystem().getOntologyGraphs().remove(resource.getURI());
+            }
 
             validateImports(resource);
         }

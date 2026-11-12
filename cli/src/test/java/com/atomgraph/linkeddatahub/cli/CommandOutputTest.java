@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URI;
+import java.util.Map;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -548,6 +549,70 @@ public class CommandOutputTest
 
             assertEquals(CommandLine.ExitCode.SOFTWARE, code);
             assertEquals("", out.toString(), "a failed command must print nothing on stdout");
+        }
+    }
+
+    @Test
+    public void theTimeGateAndTheTimeMapAreTheOnesTheDocumentAdvertises() throws Exception
+    {
+        try (StubServer server = new StubServer())
+        {
+            URI base = server.baseURI();
+            server.responds(302, "").respondsWithHeader("Location", base + "some/?version=a1b2c3").
+                respondsWithHeader("Link", "<" + base + "history/some/gate>; rel=\"timegate\", <" + base + "history/some/map>; rel=\"timemap\"");
+            StringWriter out = new StringWriter(), err = new StringWriter();
+
+            assertEquals(0, commandLine(out, err).execute("get",
+                "-c", keyStorePath().toString(), "-p", "changeit",
+                "--timegate", base.resolve("some/").toString()));
+            assertEquals(base + "some/?version=a1b2c3", out.toString().strip());
+            assertEquals("/history/some/gate", server.getLastTarget(), "the TimeGate the document links to, not one built from its URI");
+            assertTrue(server.getRequests().stream().anyMatch(r -> r.method().equals("HEAD") && r.target().equals("/some/")), "the link is read from the document");
+
+            server.responds(200, "");
+            assertEquals(0, commandLine(out, err).execute("get",
+                "-c", keyStorePath().toString(), "-p", "changeit",
+                "--accept", "text/turtle", "--timemap", base.resolve("some/").toString()));
+            assertEquals("/history/some/map", server.getLastTarget());
+        }
+    }
+
+    @Test
+    public void aTimeGateThatAsksToComeBackIsAskedAgain() throws Exception
+    {
+        try (StubServer server = new StubServer())
+        {
+            URI base = server.baseURI();
+            // the most recent change is not in the history yet: the TimeGate answers 503 with Retry-After once
+            server.respondsOnceTo("/some/?timegate", 503, Map.of("Retry-After", "1")).
+                responds(302, "").respondsWithHeader("Location", base + "some/?version=a1b2c3");
+            StringWriter out = new StringWriter(), err = new StringWriter();
+
+            int code = commandLine(out, err).execute("get",
+                "-c", keyStorePath().toString(), "-p", "changeit",
+                "--timegate", base.resolve("some/").toString());
+
+            assertEquals(0, code, err.toString());
+            assertEquals(base + "some/?version=a1b2c3", out.toString().strip());
+            assertEquals(2, server.getRequests().stream().filter(r -> r.target().equals("/some/?timegate")).count(), "asked again after Retry-After");
+        }
+    }
+
+    @Test
+    public void aTimeGateUnavailableWithoutRetryAfterFails() throws Exception
+    {
+        try (StubServer server = new StubServer())
+        {
+            server.responds(503, "");
+            StringWriter out = new StringWriter(), err = new StringWriter();
+
+            int code = commandLine(out, err).execute("get",
+                "-c", keyStorePath().toString(), "-p", "changeit",
+                "--timegate", server.baseURI().resolve("some/").toString());
+
+            assertEquals(CommandLine.ExitCode.SOFTWARE, code);
+            assertEquals("", out.toString());
+            assertEquals(1, server.getRequests().stream().filter(r -> r.target().equals("/some/?timegate")).count(), "a 503 that names no wait is not repeated");
         }
     }
 

@@ -38,9 +38,10 @@ version="3.0"
 
         <xsl:sequence select="ldh:busy-cursor()"/>
 
-        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $timemap-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
-        <!-- ac:absolute-path() drops the ?version= that distinguishes a memento from the document it specializes -->
-        <xsl:variable name="context" select="map{ 'request': $request, 'timemap-uri': $timemap-uri, 'doc-uri': ac:absolute-path(ldh:request-uri()), 'container': $container }" as="map(*)"/>
+        <!-- the TimeMap is the one the document's response linked to, on whichever origin: a local one as it is linked
+             (ldh:href would rebuild ?timemap as ?timemap=), an external one through the proxy -->
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': if (ldh:is-local($timemap-uri)) then $timemap-uri else ldh:href($timemap-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+        <xsl:variable name="context" select="map{ 'request': $request, 'timemap-uri': $timemap-uri, 'doc-uri': ldh:history-document(), 'container': $container }" as="map(*)"/>
         <ixsl:promise select="
           ixsl:http-request($context('request'))
             => ixsl:then(ldh:rethread-response($context, ?))
@@ -51,6 +52,13 @@ version="3.0"
             ixsl:finally(ldh:reset-cursor#0)
         " on-failure="ldh:promise-failure($container, 'version-history-not-loaded', ?)"/>
     </xsl:template>
+
+    <!-- the document whose history is open: the one the active pane shows, whose timestamp links to it. Not the page's
+         path: on a proxied page that is the dataspace's root, and a restore would write the remote's version over it.
+         The pane's @about is the document without the ?version= that distinguishes a memento from it -->
+    <xsl:function name="ldh:history-document" as="xs:anyURI">
+        <xsl:sequence select="xs:anyURI(ldh:active-pane()/div[contains-token(@class, 'document-body')]/@about)"/>
+    </xsl:function>
 
     <!-- reads the live document's access modes, which decide whether a version can be restored.
          Neither the memento nor the TimeMap response can answer this: both are snapshot views and
@@ -236,14 +244,13 @@ version="3.0"
     <xsl:template match="button[contains-token(@class, 'btn-restore')]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="memento-uri" select="xs:anyURI(ixsl:get(., 'value'))" as="xs:anyURI"/>
-        <!-- ac:absolute-path() drops the ?version= that distinguishes a memento from the document it specializes -->
-        <xsl:variable name="doc-uri" select="ac:absolute-path(ldh:request-uri())" as="xs:anyURI"/>
+        <xsl:variable name="doc-uri" select="ldh:history-document()" as="xs:anyURI"/>
         <xsl:variable name="modal" select="ancestor::div[contains-token(@class, 'modal')]" as="element()?"/>
 
         <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ ac:label(key('resources', 'are-you-sure', ldh:translations())) ])">
             <xsl:sequence select="ldh:busy-cursor()"/>
 
-            <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $memento-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+            <xsl:variable name="request" select="map{ 'method': 'GET', 'href': ldh:href($memento-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
             <xsl:variable name="context" select="map{ 'request': $request, 'doc-uri': $doc-uri, 'modal': $modal }" as="map(*)"/>
             <ixsl:promise select="
               ixsl:http-request($context('request'))

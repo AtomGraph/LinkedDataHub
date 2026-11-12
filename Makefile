@@ -88,10 +88,12 @@ SECRET_FILES := secrets/owner_cert_password.txt \
                 secrets/secretary_cert_password.txt \
                 secrets/client_truststore_password.txt
 
-# PROXY_SECRET in .env is the secret nginx sends to the platform with every request. Generated once, and
-# appended rather than written, so the rest of .env and an existing value are kept.
+# PROXY_SECRET in .env is the secret nginx sends to the platform with every request; FUSEKI_ADMIN_PASSWORD is the
+# administrator's password for Fuseki's admin API, which creates datasets. Each generated once, and appended rather
+# than written, so the rest of .env and an existing value are kept.
 secrets: $(SECRET_FILES)
 	@touch .env; grep -q '^PROXY_SECRET=.' .env || { [ -z "$$(tail -c1 .env)" ] || echo >> .env; echo "PROXY_SECRET=$$(openssl rand -hex 32)" >> .env; echo "Wrote PROXY_SECRET to .env"; }
+	@grep -q '^FUSEKI_ADMIN_PASSWORD=.' .env || { [ -z "$$(tail -c1 .env)" ] || echo >> .env; echo "FUSEKI_ADMIN_PASSWORD=$$(openssl rand -hex 32)" >> .env; echo "Wrote FUSEKI_ADMIN_PASSWORD to .env"; }
 
 secrets/%.txt:
 	@mkdir -p secrets
@@ -111,22 +113,26 @@ ifneq ($(wildcard $(SEF_ENTRY)),)
 # Compile this deployment's client.xsl override to a Saxon-JS SEF. Stages the deployed image's
 # ROOT/static tree in a temp dir so the stylesheet's ../com/atomgraph/linkeddatahub/xsl/client.xsl
 # import resolves, canonicalizes every stylesheet there (the platform build inlines XML entities
-# the same way), then compiles. Run it before the first `make up` - the compose mount needs the
+# the same way), stages this deployment's stylesheets under static/files/ with their paths below
+# SEF_ENTRY's directory kept (files/imports/x.xsl at static/files/imports/x.xsl, as the server
+# serves them), then compiles. Run it before the first `make up` - the compose mount needs the
 # file to exist - and after every edit, then recreate the container to reload it.
 #
-# Resolve the EFFECTIVE image from the merged compose config, never from docker-compose.yml
-# alone: an image pin in an override has to win, or the SEF compiles against a different
-# stylesheet tree than the runtime serves and CSR diverges from SSR. The pattern is anchored on
-# the tag (or digest) separator because `--images <service>` ignores the service filter and lists
-# every image, so a bare `linkeddatahub` also matches the sef-compiler's, in an order Compose
-# does not guarantee.
+# SEF_IMAGE names the image to stage the platform's stylesheets from when the deployment's own
+# image does not exist yet (CI compiles before it builds it). Otherwise the EFFECTIVE image is read
+# from the merged compose config, never from docker-compose.yml alone: an image pin in an override
+# has to win, or the SEF compiles against a different stylesheet tree than the runtime serves and
+# CSR diverges from SSR. It is read from the service's own entry in the JSON config, since
+# `--images <service>` ignores the service filter and a deployment may name its image anything; a
+# service that is only built is named after the project, as Compose names it. The lookup is guarded
+# with `|| true` so a miss reaches the error message instead of a bare exit status under set -e.
 sef:
 	@set -e; \
-	LDH_IMAGE=$$($(COMPOSE) config --images linkeddatahub | grep -m1 -E 'linkeddatahub[:@]'); \
+	LDH_IMAGE=$${SEF_IMAGE:-$$($(COMPOSE) config --format json 2>/dev/null | jq -r '.services.linkeddatahub.image // ((.name // empty) + "-linkeddatahub")' || true)}; \
 	[ -n "$$LDH_IMAGE" ] || { echo "ERROR: no linkeddatahub image in the merged compose config" >&2; exit 1; }; \
 	echo "Using LDH image: $$LDH_IMAGE"; \
 	docker image inspect "$$LDH_IMAGE" >/dev/null 2>&1 || docker pull "$$LDH_IMAGE" >/dev/null 2>&1 || \
-		{ echo "ERROR: $$LDH_IMAGE is neither built locally nor pullable - fix the image pin in docker-compose.override.yml" >&2; exit 1; }; \
+		{ echo "ERROR: $$LDH_IMAGE is neither built locally nor pullable - build it (docker compose build linkeddatahub) or fix the image pin in docker-compose.override.yml" >&2; exit 1; }; \
 	TMP_DIR=$$(mktemp -d); \
 	trap 'rm -rf "$$TMP_DIR"; docker rm -f $(PROJECT)-sef-tmp >/dev/null 2>&1 || true' EXIT; \
 	docker create --name $(PROJECT)-sef-tmp "$$LDH_IMAGE" >/dev/null; \
@@ -134,7 +140,8 @@ sef:
 	docker rm $(PROJECT)-sef-tmp >/dev/null; \
 	find "$$TMP_DIR/static" -name '*.xsl' -print0 | while IFS= read -r -d '' f; do xmlstarlet c14n "$$f" > "$$f.tmp" 2>/dev/null && mv "$$f.tmp" "$$f" || rm -f "$$f.tmp"; done; \
 	mkdir -p "$$TMP_DIR/static/files"; \
-	for f in $(SEF_ENTRY) $(SEF_EXTRA); do xmlstarlet c14n "./$$f" > "$$TMP_DIR/static/files/$$(basename "$$f")"; done; \
+	ENTRY_DIR=$$(dirname $(SEF_ENTRY)); \
+	for f in $(SEF_ENTRY) $(SEF_EXTRA); do rel="$${f#$$ENTRY_DIR/}"; mkdir -p "$$TMP_DIR/static/files/$$(dirname "$$rel")"; xmlstarlet c14n "./$$f" > "$$TMP_DIR/static/files/$$rel"; done; \
 	npx xslt3-he -t -xsl:"$$TMP_DIR/static/files/$$(basename $(SEF_ENTRY))" -export:"$$TMP_DIR/out.sef.json" -nogo -ns:##html5 -relocate:on || \
 		{ echo "SEF compile FAILED - $(SEF_OUT) left unchanged" >&2; exit 1; }; \
 	[ -s "$$TMP_DIR/out.sef.json" ] || { echo "SEF compile produced nothing - $(SEF_OUT) left unchanged" >&2; exit 1; }; \
@@ -154,7 +161,7 @@ endif
 ifeq ($(filter public,$(LOCAL_TARGETS)),)
 # Grant anonymous read on every end-user document. Idempotent - the CLI PATCHes one authorization.
 public:
-	@[ -x "$(LDH)" ] || { echo "ERROR: ldh CLI not found at $(LDH) - run 'make cli' in $(LDH_HOME)"; exit 1; }
+	@command -v "$(LDH)" >/dev/null 2>&1 || { echo "ERROR: ldh CLI not found at $(LDH) (a path, or a name on PATH) - run 'make cli' in $(LDH_HOME)"; exit 1; }
 	@[ -f $(OWNER_PASSWORD_FILE) ] || { echo "ERROR: $(OWNER_PASSWORD_FILE) not found - run 'make secrets' and install first"; exit 1; }
 	LDH_BASE="$(BASE_URI)" \
 	LDH_CERT_FILE="$(OWNER_CERT)" \

@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.server.filter.request;
 import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
+import com.atomgraph.linkeddatahub.model.auth.Agent;
 import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
 import com.atomgraph.linkeddatahub.server.security.WebIDSecurityContext;
@@ -26,9 +27,11 @@ import com.atomgraph.client.util.jena.PrefixGraphRepository;
 import com.atomgraph.core.exception.BadGatewayException;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.URLValidator;
+import jakarta.ws.rs.ForbiddenException;
 import jakarta.ws.rs.NotAcceptableException;
 import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.Invocation;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.UriInfo;
@@ -38,8 +41,11 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.ResultSetFactory;
@@ -103,6 +109,7 @@ public class ProxyRequestFilterTest
             .thenReturn(URI.create("http://example.org/resource"));
         when(requestContext.getAcceptableMediaTypes())
             .thenReturn(List.of(MediaType.TEXT_HTML_TYPE));
+        when(system.isEnableLinkedDataProxy()).thenReturn(true);
         filter.filter(requestContext);
         verify(request, never()).selectVariant(anyList());
         verify(requestContext, never()).abortWith(any());
@@ -116,8 +123,51 @@ public class ProxyRequestFilterTest
             .thenReturn(URI.create("http://example.org/resource"));
         when(requestContext.getAcceptableMediaTypes())
             .thenReturn(List.of(MediaType.APPLICATION_XHTML_XML_TYPE));
+        when(system.isEnableLinkedDataProxy()).thenReturn(true);
         filter.filter(requestContext);
         verify(request, never()).selectVariant(anyList());
+        verify(requestContext, never()).abortWith(any());
+    }
+
+    /** Proxy disabled: an external target is refused even when the client prefers text/html, rather than rendering the app shell. */
+    @Test
+    public void testHtmlAcceptForbiddenWhenProxyDisabled()
+    {
+        PrefixGraphRepository repository = mock(PrefixGraphRepository.class);
+        when(requestContext.getProperty(AC.uri.getURI()))
+            .thenReturn(URI.create("http://dbpedia.org/resource/Banjoist"));
+        lenient().when(requestContext.getAcceptableMediaTypes())
+            .thenReturn(List.of(MediaType.TEXT_HTML_TYPE));
+        when(system.getRepository()).thenReturn(repository);
+        assertThrows(ForbiddenException.class, () -> filter.filter(requestContext));
+        verify(requestContext, never()).abortWith(any());
+    }
+
+    /** Proxy disabled: one of this instance's dataspaces still gets the app shell. */
+    @Test
+    public void testHtmlAcceptReturnsEarlyForDataspaceWhenProxyDisabled() throws IOException
+    {
+        URI targetURI = URI.create("https://admin.localhost:4443/doc");
+        when(requestContext.getProperty(AC.uri.getURI())).thenReturn(targetURI);
+        when(requestContext.getAcceptableMediaTypes())
+            .thenReturn(List.of(MediaType.TEXT_HTML_TYPE));
+        when(system.matchApp(targetURI)).thenReturn(ResourceFactory.createResource("https://admin.localhost:4443/"));
+        filter.filter(requestContext);
+        verify(requestContext, never()).abortWith(any());
+    }
+
+    /** Proxy disabled: a mapped document still gets the app shell, matched without its fragment. */
+    @Test
+    public void testHtmlAcceptReturnsEarlyForMappedWhenProxyDisabled() throws IOException
+    {
+        PrefixGraphRepository repository = mock(PrefixGraphRepository.class);
+        when(requestContext.getProperty(AC.uri.getURI()))
+            .thenReturn(URI.create("https://w3id.org/atomgraph/linkeddatahub#SelectChildren"));
+        when(requestContext.getAcceptableMediaTypes())
+            .thenReturn(List.of(MediaType.TEXT_HTML_TYPE));
+        when(system.getRepository()).thenReturn(repository);
+        when(repository.isMapped("https://w3id.org/atomgraph/linkeddatahub")).thenReturn(true);
+        filter.filter(requestContext);
         verify(requestContext, never()).abortWith(any());
     }
 
@@ -204,6 +254,26 @@ public class ProxyRequestFilterTest
         }
     }
 
+    /** A body relayed byte for byte, as served or as an error, is the origin's bytes on this origin: sandboxed */
+    @Test
+    public void testRelayedBytesAreSandboxed()
+    {
+        for (Response.Status status : List.of(Response.Status.OK, Response.Status.NOT_FOUND))
+        {
+            Response upstream = mock(Response.class);
+            when(upstream.getStatus()).thenReturn(status.getStatusCode());
+            when(upstream.getStatusInfo()).thenReturn(status);
+            when(upstream.getMediaType()).thenReturn(MediaType.valueOf("image/svg+xml"));
+            when(upstream.readEntity(InputStream.class)).thenReturn(new ByteArrayInputStream("<svg/>".getBytes(StandardCharsets.UTF_8)));
+
+            try (Response response = filter.getResponse(upstream, URI.create("https://remote.example/file"), "GET", List.of(MediaType.WILDCARD_TYPE)))
+            {
+                assertEquals(status.getStatusCode(), response.getStatus());
+                assertEquals("default-src 'none'; sandbox", response.getHeaderString("Content-Security-Policy"), status + " relayed without the sandbox policy");
+            }
+        }
+    }
+
     @Test
     public void testMergeVary()
     {
@@ -261,6 +331,62 @@ public class ProxyRequestFilterTest
 
         verifyNoInteractions(certClient);
         verify(target, never()).register(any(Object.class));
+    }
+
+    /**
+     * A write to another origin is delegated, and the GET a 303 continues it as is a read of that origin: it goes out
+     * with no certificate and no delegation. It goes out at all although the first hop consumed the request's entity,
+     * whose closed stream throws when asked again whether there is one.
+     */
+    @Test
+    public void testSeeOtherAfterForeignWriteGoesOutAnonymous() throws IOException
+    {
+        URI first = URI.create("https://remote.example/see-other"), second = URI.create("https://remote.example/doc");
+        WebIDSecurityContext agentContext = mock(WebIDSecurityContext.class);
+        Agent agent = mock(Agent.class);
+        when(agentContext.getAgent()).thenReturn(agent);
+
+        when(requestContext.getProperty(AC.uri.getURI())).thenReturn(first);
+        when(requestContext.getProperty(AgentContext.class.getCanonicalName())).thenReturn(agentContext);
+        when(requestContext.getAcceptableMediaTypes()).thenReturn(List.of(MediaType.valueOf("application/n-triples")));
+        when(requestContext.getMethod()).thenReturn("POST");
+        when(requestContext.hasEntity()).thenReturn(true).thenThrow(new ProcessingException(new IOException("Stream closed")));
+        when(requestContext.getEntityStream()).thenReturn(new ByteArrayInputStream(new byte[0]));
+        when(requestContext.getMediaType()).thenReturn(MediaType.valueOf("application/n-triples"));
+        UriInfo uriInfo = mock(UriInfo.class);
+        when(uriInfo.getRequestUri()).thenReturn(URI.create("https://localhost:4443/"));
+        when(requestContext.getUriInfo()).thenReturn(uriInfo);
+
+        when(system.isEnableLinkedDataProxy()).thenReturn(true);
+        when(system.getURLValidator()).thenReturn(mock(URLValidator.class));
+        Client certClient = mock(Client.class), noCertClient = mock(Client.class);
+        when(system.getExternalClient()).thenReturn(certClient);
+        when(system.getExternalNoCertClient()).thenReturn(noCertClient);
+
+        WebTarget writeTarget = mock(WebTarget.class), readTarget = mock(WebTarget.class);
+        Invocation.Builder writeBuilder = mock(Invocation.Builder.class), readBuilder = mock(Invocation.Builder.class);
+        when(certClient.target(first)).thenReturn(writeTarget);
+        when(noCertClient.target(second)).thenReturn(readTarget);
+        for (WebTarget target : List.of(writeTarget, readTarget)) when(target.property(anyString(), any())).thenReturn(target);
+        when(writeTarget.request()).thenReturn(writeBuilder);
+        when(readTarget.request()).thenReturn(readBuilder);
+        for (Invocation.Builder builder : List.of(writeBuilder, readBuilder))
+        {
+            when(builder.accept(any(MediaType[].class))).thenReturn(builder);
+            when(builder.header(anyString(), any())).thenReturn(builder);
+        }
+        Response seeOther = mock(Response.class);
+        when(seeOther.getStatus()).thenReturn(303);
+        when(seeOther.getHeaderString(HttpHeaders.LOCATION)).thenReturn(second.toString());
+        when(writeBuilder.method(eq("POST"), any(Entity.class))).thenReturn(seeOther);
+        when(readBuilder.method("GET")).thenThrow(new ProcessingException("upstream not reachable in the test"));
+
+        assertThrows(BadGatewayException.class, () -> filter.filter(requestContext));
+
+        verify(writeTarget).register(isA(WebIDDelegationFilter.class));
+        verify(readBuilder).method("GET");
+        verify(certClient, never()).target(second);
+        verify(readTarget, never()).register(any(Object.class));
     }
 
     /**

@@ -37,7 +37,7 @@ import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.NotAllowedException;
 import jakarta.ws.rs.POST;
-import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.ClientErrorException;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
@@ -128,12 +128,12 @@ public class AccessRequest
     public Response post(Model model)
     {
         List<Resource> authorizations = getAuthorizations(model);
-        if (authorizations.isEmpty()) throw new WebApplicationException("The access request contains no acl:Authorization", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
+        if (authorizations.isEmpty()) throw new ClientErrorException("The access request contains no acl:Authorization", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
 
         for (Resource authorization : authorizations)
         {
             Resource agent = authorization.getPropertyResourceValue(ACL.agent);
-            if (agent == null) throw new WebApplicationException("The requested acl:Authorization has no acl:agent", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
+            if (agent == null) throw new ClientErrorException("The requested acl:Authorization has no acl:agent", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
             if (getAgentContext().isEmpty() || !agent.equals(getAgentContext().get().getAgent()))
                 throw new ForbiddenException("Access can only be requested for the authenticated agent");
         }

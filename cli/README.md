@@ -241,6 +241,12 @@ ldh get --accept text/turtle "$memento"
 straight back. Without it the TimeGate selects the most recent version. `--accept` is required for
 every other request but not for `--timegate`, whose `302` has no representation of its own.
 
+The version history and the TimeGate are the ones the document advertises in its `Link` header
+(`rel="timemap"`, `rel="timegate"`), read with a `HEAD` of it first. A version is committed after
+the write that made it, so right after a write the TimeGate answers `503` with `Retry-After` until
+the commit is in the history; `--timegate` waits as it says and then prints the new version, never
+the one before it. A TimeGate that answers `500` lost the commit, and the next write records it.
+
 ## Packages
 
 A package bundles an ontology with an optional stylesheet, and an application imports one by

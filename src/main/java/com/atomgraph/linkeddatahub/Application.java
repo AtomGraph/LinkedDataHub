@@ -19,6 +19,8 @@ package com.atomgraph.linkeddatahub;
 import com.atomgraph.client.util.jena.PrefixGraphRepository;
 import com.atomgraph.linkeddatahub.writer.impl.SameSiteSourceResolver;
 import com.atomgraph.linkeddatahub.server.util.ContextEndpointAccessor;
+import com.atomgraph.linkeddatahub.server.util.ContextPersistence;
+import com.atomgraph.linkeddatahub.server.util.ContextPersistenceProvider;
 import com.atomgraph.linkeddatahub.server.util.FileContextPersistence;
 import com.atomgraph.linkeddatahub.server.util.GraphLocks;
 import com.atomgraph.linkeddatahub.server.util.OntologyRepository;
@@ -99,6 +101,7 @@ import com.atomgraph.linkeddatahub.server.factory.ApplicationFactory;
 import com.atomgraph.linkeddatahub.server.factory.AuthorizationContextFactory;
 import com.atomgraph.linkeddatahub.server.filter.request.AcceptHeadersFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.ApplicationFilter;
+import com.atomgraph.linkeddatahub.server.filter.request.OriginFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.WebIDFilter;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
 import com.atomgraph.linkeddatahub.server.io.ValidatingUpdateRequestProvider;
@@ -318,7 +321,7 @@ public class Application extends ResourceConfig
     private final List<Locale> supportedLanguages;
     private final ExpiringMap<String, UnionGraph> ontologyGraphs = ExpiringMap.builder().maxSize(1000).expirationPolicy(ExpirationPolicy.ACCESSED).expiration(1, TimeUnit.HOURS).build(); // assembled ontology imports-closure union graphs, keyed by ontology URI; evicted entries are transparently rebuilt by OntologyFilter on the next cache miss
     private final ExpiringMap<URI, Model> webIDmodelCache = ExpiringMap.builder().expiration(Long.parseLong(System.getProperty("com.atomgraph.linkeddatahub.webIDCacheExpiration", "86400")), TimeUnit.SECONDS).build(); // TTL (seconds) configurable via WEBID_CACHE_EXPIRATION; a lower value bounds how long a revoked WebID stays cached
-    private final ExpiringMap<String, Model> oidcModelCache = ExpiringMap.builder().variableExpiration().build();
+    private final ExpiringMap<List<String>, Model> oidcModelCache = ExpiringMap.builder().variableExpiration().build();
     private final ExpiringMap<String, jakarta.json.JsonObject> jwksCache = ExpiringMap.builder().expiration(Long.parseLong(System.getProperty("com.atomgraph.linkeddatahub.jwksCacheExpiration", "86400")), TimeUnit.SECONDS).build(); // Cache JWKS responses; TTL (seconds) configurable via JWKS_CACHE_EXPIRATION
     private final Map<URI, XsltExecutable> xsltExecutableCache = new ConcurrentHashMap<>();
     private final boolean enableWebIDSignUp;
@@ -464,6 +467,12 @@ public class Application extends ResourceConfig
      * @param maxConnPerRoute maximum client connections per rout
      * @param maxTotalConn maximum total client connections
      * @param maxRequestRetries maximum number of times that the HTTP client will retry a request
+     * @param connectionRequestTimeout timeout in milliseconds to wait for a connection lease from the pool (null to leave unset)
+     * @param socketTimeout socket (read) timeout in milliseconds (null to leave unset)
+     * @param connectTimeout connection (connect) timeout in milliseconds (null to leave unset)
+     * @param selfRequestTimeout connect and read timeout in milliseconds for requests the platform sends to its own host, or null to leave the client's
+     * @param connectionTimeToLive time-to-live in milliseconds after which pooled connections are discarded (null to leave unset)
+     * @param validateAfterInactivity period of inactivity in milliseconds after which a pooled connection is revalidated before reuse (null to leave unset)
      * @param maxImportThreads maximum number of threads used for asynchronous imports
      * @param notificationAddressString email address used to send notifications
      * @param enableWebIDSignUp true if WebID signup is enabled
@@ -757,12 +766,23 @@ public class Application extends ResourceConfig
 
         try
         {
-            String settingsOverlay = servletConfig.getServletContext().getInitParameter(LDHC.settingsOverlay.getURI());
-            FileContextPersistence persistence = new FileContextPersistence(
-                getDataset(servletConfig.getServletContext(), contextDatasetURI),
-                settingsOverlay != null ? new java.io.File(URI.create(settingsOverlay)) : null,
-                resolve(servletConfig.getServletContext(), contextDatasetURI));
-            this.contextAccessor = new ContextEndpointAccessor(persistence.load(), persistence);
+            // the dataspace descriptions: from the files, unless a provider on the classpath keeps them elsewhere
+            ContextPersistenceProvider contextPersistenceProvider = contextPersistenceProvider(ServiceLoader.load(ContextPersistenceProvider.class));
+            ContextPersistence contextPersistence;
+            if (contextPersistenceProvider != null)
+            {
+                contextPersistence = contextPersistenceProvider.getPersistence(servletConfig.getServletContext());
+                if (log.isInfoEnabled()) log.info("Dataspace descriptions are kept by {}", contextPersistence.getClass().getName());
+            }
+            else
+            {
+                String settingsOverlay = servletConfig.getServletContext().getInitParameter(LDHC.settingsOverlay.getURI());
+                contextPersistence = new FileContextPersistence(
+                    getDataset(servletConfig.getServletContext(), contextDatasetURI),
+                    settingsOverlay != null ? new java.io.File(URI.create(settingsOverlay)) : null,
+                    resolve(servletConfig.getServletContext(), contextDatasetURI));
+            }
+            this.contextAccessor = new ContextEndpointAccessor(contextPersistence.load(), contextPersistence);
 
             keyStore = KeyStore.getInstance("PKCS12");
             try (FileInputStream keyStoreInputStream = new FileInputStream(new java.io.File(new URI(clientKeyStoreURIString))))
@@ -844,9 +864,10 @@ public class Application extends ResourceConfig
             BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.model.File.class, FileImpl.factory);
 
             // Build ServiceContext map: keyed by service URI, proxy derived from the app type that references each service.
-            // Iterating lds:service statements (app → service) naturally excludes orphan services.
-            serviceContextMap = new HashMap<>();
-            org.apache.jena.rdf.model.Model ctxUnion = getContextDataset().getUnionModel();
+            // Iterating lds:service statements (app → service) naturally excludes orphan services. A service added to the
+            // descriptions later gets its context on first use (getServiceContext), so the map is concurrent.
+            serviceContextMap = new ConcurrentHashMap<>();
+            org.apache.jena.rdf.model.Model ctxUnion = this.contextAccessor.getDataset().getUnionModel();
             org.apache.jena.rdf.model.StmtIterator serviceIt = ctxUnion.listStatements(null, LDS.service, (org.apache.jena.rdf.model.RDFNode) null);
             try
             {
@@ -1242,11 +1263,17 @@ public class Application extends ResourceConfig
         register(new HttpMethodOverrideFilter());
         register(AcceptHeadersFilter.class);
         register(ApplicationFilter.class);
+        register(OriginFilter.class);
         register(OntologyFilter.class);
         register(ProxiedWebIDFilter.class);
         register(ProxyRequestFilter.class);
         register(AuthorizationFilter.class);
-        if (getMaxContentLength() != null) register(new ContentLengthLimitFilter(getMaxContentLength(), getMaxUploadLength() != null ? getMaxUploadLength() : getMaxContentLength()));
+        Integer contentLimit = getMaxContentLength();
+        if (contentLimit != null)
+        {
+            Long uploadLimit = getMaxUploadLength();
+            register(new ContentLengthLimitFilter(contentLimit, uploadLimit != null ? uploadLimit : contentLimit));
+        }
         register(new RDFPostMediaTypeInterceptor()); // for application/x-www-form-urlencoded
         
         // Conditionally register Google OAuth filter if configured
@@ -2163,15 +2190,104 @@ public class Application extends ResourceConfig
 
     /**
      * Returns the service context for the given service (client + proxy configuration).
-     * The context is keyed by the service's URI string.
+     * The context is keyed by the service's URI string. A service the map does not hold yet - one of a dataspace
+     * added to the descriptions after the platform started - gets its context built now, by
+     * {@link #createServiceContext}, and kept.
      *
      * @param service SPARQL service
-     * @return service context, or {@code null} if the service is not registered
+     * @return service context, or {@code null} if no dataspace names the service
      */
     public com.atomgraph.linkeddatahub.model.ServiceContext getServiceContext(com.atomgraph.linkeddatahub.model.Service service)
     {
         if (service == null) throw new IllegalArgumentException("Service cannot be null");
-        return serviceContextMap.get(service.getURI());
+
+        com.atomgraph.linkeddatahub.model.ServiceContext context = serviceContextMap.get(service.getURI());
+        if (context != null) return context;
+
+        context = createServiceContext(service);
+        if (context == null) return null;
+
+        com.atomgraph.linkeddatahub.model.ServiceContext kept = serviceContextMap.putIfAbsent(service.getURI(), context);
+        return kept != null ? kept : context;
+    }
+
+    /**
+     * Builds the context of a service from the dataspace descriptions as they are now: the proxy is the one of the
+     * dataspace kind that names the service, as for the services known at startup. A service that no admin or
+     * end-user dataspace names has no context. An extension that keeps the descriptions elsewhere, or sets up its
+     * services differently, overrides this.
+     *
+     * @param service SPARQL service
+     * @return the context, or {@code null} when no dataspace names the service
+     */
+    protected com.atomgraph.linkeddatahub.model.ServiceContext createServiceContext(com.atomgraph.linkeddatahub.model.Service service)
+    {
+        Model context = getContextModel();
+        Resource dataspace = dataspaceOf(context, context.createResource(service.getURI()));
+        if (dataspace == null) return null;
+
+        URI proxy = dataspace.hasProperty(RDF.type, LDS.AdminDataspace) ? getBackendProxyAdmin() : getBackendProxyEndUser();
+        // read from the current descriptions, not from the caller's possibly stale resource
+        com.atomgraph.linkeddatahub.model.Service current = context.createResource(service.getURI()).as(com.atomgraph.linkeddatahub.model.Service.class);
+        return new com.atomgraph.linkeddatahub.model.ServiceContext(current, getNoCertClient(), getMediaTypes(), getMaxGetRequestSize(), proxy);
+    }
+
+    /**
+     * The admin or end-user dataspace that names a service as its own ({@code lds:service}).
+     *
+     * @param context the dataspace descriptions
+     * @param service the service
+     * @return the dataspace, or {@code null} when no admin or end-user dataspace names the service
+     */
+    static Resource dataspaceOf(Model context, Resource service)
+    {
+        ResIterator it = context.listResourcesWithProperty(LDS.service, service);
+        try
+        {
+            while (it.hasNext())
+            {
+                Resource dataspace = it.next();
+                if (dataspace.hasProperty(RDF.type, LDS.AdminDataspace) || dataspace.hasProperty(RDF.type, LDS.EndUserDataspace)) return dataspace;
+            }
+        }
+        finally
+        {
+            it.close();
+        }
+
+        return null;
+    }
+
+    /**
+     * Forgets the context of a service, so that the next use builds it from the descriptions as they are then: what
+     * a change of the service's description calls for.
+     *
+     * @param serviceURI the service's URI
+     */
+    protected void forgetServiceContext(String serviceURI)
+    {
+        if (serviceURI == null) throw new IllegalArgumentException("Service URI cannot be null");
+        serviceContextMap.remove(serviceURI);
+    }
+
+    /**
+     * Returns the proxy in front of the admin dataspaces' services, if any.
+     *
+     * @return proxy URI or null
+     */
+    public URI getBackendProxyAdmin()
+    {
+        return backendProxyAdmin;
+    }
+
+    /**
+     * Returns the proxy in front of the end-user dataspaces' services, if any.
+     *
+     * @return proxy URI or null
+     */
+    public URI getBackendProxyEndUser()
+    {
+        return backendProxyEndUser;
     }
 
     /**
@@ -2230,6 +2346,22 @@ public class Application extends ResourceConfig
     public URI getSecretaryWebIDURI()
     {
         return secretaryWebIDURI;
+    }
+
+    /**
+     * Returns the root admin dataspace: the one holding the secretary's WebID, whose store only the instance's operator
+     * controls. Every new agent is created there, so its URI outlives any other dataspace and no other dataspace's owner
+     * can rewrite it.
+     *
+     * @return root admin dataspace
+     */
+    public AdminDataspace getRootAdminDataspace()
+    {
+        Resource app = matchApp(getSecretaryWebIDURI());
+        if (app == null || !app.canAs(AdminDataspace.class))
+            throw new IllegalStateException("The secretary's WebID <" + getSecretaryWebIDURI() + "> is not in an admin dataspace");
+
+        return app.as(AdminDataspace.class);
     }
     
     /**
@@ -2396,6 +2528,23 @@ public class Application extends ResourceConfig
     }
 
     /**
+     * The provider of the dataspace descriptions' persistence, out of those found on the classpath.
+     *
+     * @param providers the providers found
+     * @return the one provider, or null when there is none and the descriptions are kept in files
+     * @throws IllegalStateException if there is more than one, which the platform will not choose between
+     */
+    static ContextPersistenceProvider contextPersistenceProvider(Iterable<ContextPersistenceProvider> providers)
+    {
+        List<ContextPersistenceProvider> found = new java.util.ArrayList<>();
+        providers.forEach(found::add);
+        if (found.size() > 1) throw new IllegalStateException("More than one " + ContextPersistenceProvider.class.getSimpleName() + " is on the classpath: " +
+            found.stream().map(provider -> provider.getClass().getName()).collect(Collectors.joining(", ")));
+
+        return found.isEmpty() ? null : found.get(0);
+    }
+
+    /**
      * Returns SPARQL access to the dataspace descriptions.
      *
      * @return the accessor
@@ -2454,7 +2603,74 @@ public class Application extends ResourceConfig
         if (application == null) throw new IllegalArgumentException("Application cannot be null");
         if (newModel == null) throw new IllegalArgumentException("Model cannot be null");
 
+        // the services the description named before and names now: their contexts were built from the old description
+        java.util.Set<String> services = new java.util.HashSet<>();
+        Model before = getDataspaceModel(application);
+        if (before != null) before.listObjectsOfProperty(LDS.service).forEachRemaining(node -> { if (node.isURIResource()) services.add(node.asResource().getURI()); });
+        newModel.listObjectsOfProperty(LDS.service).forEachRemaining(node -> { if (node.isURIResource()) services.add(node.asResource().getURI()); });
+
         getContextAccessor().putDataspace(application.getURI(), newModel);
+
+        services.forEach(this::forgetServiceContext);
+    }
+
+    /**
+     * Reads the dataspace descriptions from their persistence again and serves them from now on, the contexts of
+     * the services whose description changed - gone, new, or described otherwise - made anew on their next use.
+     * What a replica does to see a change another one made to a persistence they share, on an interval or when a
+     * request names an origin it does not know.
+     *
+     * @return the services whose description changed
+     * @throws IOException if the persistence cannot be read, which leaves the descriptions as they are
+     */
+    public java.util.Set<String> reloadContext() throws IOException
+    {
+        Dataset before = getContextAccessor().reload();
+        java.util.Set<String> changed = changedServices(before, getContextAccessor().getDataset());
+        changed.forEach(this::forgetServiceContext);
+        return changed;
+    }
+
+    /**
+     * The services ({@code lds:service} of any dataspace) whose descriptions differ between two states of the
+     * dataspace descriptions: those gone or new among them, and those whose graph says something else.
+     *
+     * @param before the descriptions served before
+     * @param after the descriptions served now
+     * @return the services' URIs
+     */
+    static java.util.Set<String> changedServices(Dataset before, Dataset after)
+    {
+        java.util.Set<String> services = new java.util.HashSet<>();
+        services.addAll(services(before));
+        services.addAll(services(after));
+
+        java.util.Set<String> changed = new java.util.HashSet<>();
+        for (String service : services)
+        {
+            Model was = graphDescribing(before, service), is = graphDescribing(after, service);
+            if (was == null || is == null || !was.isIsomorphicWith(is)) changed.add(service);
+        }
+        return changed;
+    }
+
+    private static java.util.Set<String> services(Dataset dataset)
+    {
+        java.util.Set<String> services = new java.util.HashSet<>();
+        dataset.getUnionModel().listObjectsOfProperty(LDS.service).forEachRemaining(node -> { if (node.isURIResource()) services.add(node.asResource().getURI()); });
+        return services;
+    }
+
+    /** The named graph that describes the service (holds triples about it), or null. */
+    private static Model graphDescribing(Dataset dataset, String service)
+    {
+        java.util.Iterator<Resource> names = dataset.listModelNames();
+        while (names.hasNext())
+        {
+            Model graph = dataset.getNamedModel(names.next().getURI());
+            if (graph.contains(graph.createResource(service), null)) return graph;
+        }
+        return null;
     }
 
     /**
@@ -2663,11 +2879,11 @@ public class Application extends ResourceConfig
 
     /**
      * A map of cached OpenID connect agent graphs.
-     * User ID (ID token subject) is the cache key. Entries expire after the configured period of time.
+     * The key is the admin dataspace's base URI, the ID token issuer and its subject. Entries expire with the token.
      *
-     * @return URI to model map
+     * @return key to model map
      */
-    public ExpiringMap<String, Model> getOIDCModelCache()
+    public ExpiringMap<List<String>, Model> getOIDCModelCache()
     {
         return oidcModelCache;
     }

@@ -106,28 +106,30 @@ public class RedirectingClient
      */
     public Result get(Function<URI, WebTarget> targets, URI uri, Function<WebTarget, Response> invoker)
     {
-        return invoke(targets, uri, HttpMethod.GET, (target, method) -> invoker.apply(target));
+        return invoke((hop, method) -> targets.apply(hop), uri, HttpMethod.GET, (target, method) -> invoker.apply(target));
     }
 
     /**
      * Sends a request, following redirects.
-     * The invoker receives the method each hop uses: the request's own, or {@code GET} after a {@code 303}.
+     * The targets and the invoker receive the method each hop uses: the request's own, or {@code GET} after a {@code 303}.
+     * A target that depends on the method, such as a credential sent for writes only, is chosen per hop by it, so a write
+     * redirected with a {@code 303} reaches its next hop as the read it has become.
      *
-     * @param targets maps each URI requested to its target
+     * @param targets maps each URI requested, and the method it is requested with, to its target
      * @param uri the first URI, validated by the caller
      * @param method the request method
      * @param invoker sends the request on the given target with the given method
      * @return the final response and its URI; the caller closes it
      * @throws BadGatewayException when a hop is refused or there are too many
      */
-    public Result invoke(Function<URI, WebTarget> targets, URI uri, String method, BiFunction<WebTarget, String, Response> invoker)
+    public Result invoke(BiFunction<URI, String, WebTarget> targets, URI uri, String method, BiFunction<WebTarget, String, Response> invoker)
     {
         URI current = uri;
         String currentMethod = method;
 
         for (int hop = 0; ; hop++)
         {
-            WebTarget target = targets.apply(current).property(ClientProperties.FOLLOW_REDIRECTS, false);
+            WebTarget target = targets.apply(current, currentMethod).property(ClientProperties.FOLLOW_REDIRECTS, false);
             Response response = invoker.apply(target, currentMethod);
 
             int status = response.getStatus();

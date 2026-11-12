@@ -24,6 +24,7 @@ import jakarta.ws.rs.core.Response;
 import java.io.InputStream;
 import java.net.URI;
 import java.security.KeyStore;
+import java.util.ArrayList;
 import java.util.List;
 import org.glassfish.jersey.client.ClientProperties;
 import org.junit.jupiter.api.AfterEach;
@@ -148,7 +149,7 @@ public class RedirectingClientTest
     public void unsafeMethodFollowsOnlySeeOther()
     {
         for (int status : List.of(301, 302, 307, 308))
-            try (RedirectingClient.Result result = redirectingClient.invoke(client::target, stub.redirect(status, "/document"), "POST",
+            try (RedirectingClient.Result result = redirectingClient.invoke((uri, method) -> client.target(uri), stub.redirect(status, "/document"), "POST",
                     (target, method) -> target.request().method(method, Entity.text("body"))))
             {
                 assertEquals(status, result.response().getStatus());
@@ -156,12 +157,26 @@ public class RedirectingClientTest
         assertEquals(4, stub.publicRequests.size(), stub.publicRequests.toString());
 
         stub.publicRequests.clear();
-        try (RedirectingClient.Result result = redirectingClient.invoke(client::target, stub.redirect(303, "/document"), "POST",
+        try (RedirectingClient.Result result = redirectingClient.invoke((uri, method) -> client.target(uri), stub.redirect(303, "/document"), "POST",
                 (target, method) -> "POST".equals(method) ? target.request().method(method, Entity.text("body")) : target.request().method(method)))
         {
             assertEquals(200, result.response().getStatus());
         }
         assertTrue(stub.publicRequests.get(1).startsWith("GET /document"), stub.publicRequests.toString());
+    }
+
+    /** Each hop's target is chosen for the method that hop uses, so a credential sent for writes only is not sent after a 303 */
+    @Test
+    public void targetsSeeEachHopsMethod()
+    {
+        List<String> methods = new ArrayList<>();
+        try (RedirectingClient.Result result = redirectingClient.invoke((uri, method) -> { methods.add(method); return client.target(uri); },
+                stub.redirect(303, "/document"), "POST",
+                (target, method) -> "POST".equals(method) ? target.request().method(method, Entity.text("body")) : target.request().method(method)))
+        {
+            assertEquals(200, result.response().getStatus());
+        }
+        assertEquals(List.of("POST", "GET"), methods);
     }
 
     /** The no-cert client (the anonymous proxy's and the WebID loader's) does not follow a redirect itself */

@@ -25,11 +25,63 @@ jobs:
       - name: Build the ACL model
         working-directory: formal/acl
         run: lake build
+      # the authentication model requires the ACL model's, by path
+      - name: Build the authentication model
+        working-directory: formal/auth
+        run: lake build
       # GraphVersioningServiceTest replays these cases against the Java TimeGate; here they are checked against the model
       - name: The TimeGate cases are the model's
         run: |
           formal/http/.lake/build/bin/ldh-http --select-cases > /tmp/memento-cases.tsv
           diff -u src/test/resources/com/atomgraph/linkeddatahub/server/util/memento-cases.tsv /tmp/memento-cases.tsv
+      - name: Build the client model
+        working-directory: formal/client
+        run: lake build
+      # Web-Client's functions.xsl holds the URI functions ldh:href calls; href-cases.xsl reads it beside this repository
+      - name: Checkout Web-Client
+        uses: actions/checkout@v7
+        with:
+          repository: AtomGraph/Web-Client
+          path: web-client
+      - name: The href cases are the model's and the stylesheets'
+        run: |
+          formal/client/.lake/build/bin/ldh-client href-cases > /tmp/href-cases-model.tsv
+          diff -u formal/client/href-cases.tsv /tmp/href-cases-model.tsv
+          curl -sSfL -o /tmp/saxon.jar https://repo1.maven.org/maven2/net/sf/saxon/Saxon-HE/12.9/Saxon-HE-12.9.jar
+          curl -sSfL -o /tmp/xmlresolver.jar https://repo1.maven.org/maven2/org/xmlresolver/xmlresolver/5.3.3/xmlresolver-5.3.3.jar
+          java -cp /tmp/saxon.jar:/tmp/xmlresolver.jar net.sf.saxon.Transform -xsl:formal/client/href-cases.xsl -it \
+            cases=formal/client/href-cases.tsv web-client=web-client > /tmp/href-cases-xslt.tsv
+          diff -u formal/client/href-cases.tsv /tmp/href-cases-xslt.tsv
+      - name: Every request site is classified
+        run: |
+          formal/client/.lake/build/bin/ldh-client sites > /tmp/sites-model.tsv
+          python3 formal/client/sites.py src/main/webapp/static/com/atomgraph/linkeddatahub/xsl > /tmp/sites-code.tsv
+          diff -u /tmp/sites-model.tsv /tmp/sites-code.tsv
+      - name: Build the XSLT model
+        working-directory: formal/xslt
+        run: lake build
+      - name: The sanitize cases are the model's and the stylesheets'
+        run: |
+          formal/xslt/.lake/build/bin/ldh-xslt sanitize-cases > /tmp/sanitize-cases-model.tsv
+          diff -u formal/xslt/sanitize-cases.tsv /tmp/sanitize-cases-model.tsv
+          java -cp /tmp/saxon.jar:/tmp/xmlresolver.jar net.sf.saxon.Transform -xsl:formal/xslt/sanitize-cases.xsl -it \
+            cases=formal/xslt/sanitize-cases.tsv which=sanitize > /tmp/sanitize-cases-xslt.tsv
+          diff -u formal/xslt/sanitize-cases.tsv /tmp/sanitize-cases-xslt.tsv
+      - name: The canonical form takes out its former counterexamples
+        run: |
+          formal/xslt/.lake/build/bin/ldh-xslt canonical-cases > /tmp/canonical-cases-model.tsv
+          diff -u formal/xslt/canonical-cases.tsv /tmp/canonical-cases-model.tsv
+          java -cp /tmp/saxon.jar:/tmp/xmlresolver.jar net.sf.saxon.Transform -xsl:formal/xslt/sanitize-cases.xsl -it \
+            cases=formal/xslt/canonical-cases.tsv which=canonical > /tmp/canonical-cases-xslt.tsv
+          diff -u formal/xslt/canonical-cases.tsv /tmp/canonical-cases-xslt.tsv
+      - name: Build the uploads model
+        working-directory: formal/uploads
+        run: lake build
+      # ByteRangeModelTest checks ByteRange.parse against the copy under src/test/resources, which the Docker build has
+      - name: The range cases are the model's
+        run: |
+          formal/uploads/.lake/build/bin/ldh-uploads range-cases > /tmp/range-cases-model.tsv
+          diff -u src/test/resources/com/atomgraph/linkeddatahub/server/util/range-cases.tsv /tmp/range-cases-model.tsv
       # lake build only warns on sorry; the READMEs' "no sorry" claim is checked here
       - name: Every theorem is proven
         run: |
@@ -42,3 +94,7 @@ jobs:
         run: |
           formal/http/tracks-code.sh "${{ github.event.pull_request.base.sha }}"
           formal/acl/tracks-code.sh "${{ github.event.pull_request.base.sha }}"
+          formal/auth/tracks-code.sh "${{ github.event.pull_request.base.sha }}"
+          formal/client/tracks-code.sh "${{ github.event.pull_request.base.sha }}"
+          formal/xslt/tracks-code.sh "${{ github.event.pull_request.base.sha }}"
+          formal/uploads/tracks-code.sh "${{ github.event.pull_request.base.sha }}"

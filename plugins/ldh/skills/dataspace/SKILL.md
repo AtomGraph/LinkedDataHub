@@ -24,8 +24,9 @@ https://docs.linkeddatahub.com/reference/configuration/
 - Every document is a named graph whose name is the document URL; the default graph is empty.
 - A document is not the thing it describes: the described resource is `<doc#this>`, linked with
   `foaf:primaryTopic`.
-- `ldh` reads `LDH_BASE`, `LDH_CERT_FILE`, `LDH_CERT_PASSWORD` and `LDH_PROXY` from the
-  environment. Commands that create a document print its URL as the only stdout line.
+- The plugin's settings supply the base, certificate and password that `ldh` reads as `LDH_BASE`,
+  `LDH_CERT_FILE` and `LDH_CERT_PASSWORD`; `LDH_PROXY` comes from the environment.
+  Commands that create a document print its URL as the only stdout line.
 - **Use an `ldh` that matches the instance.** Build it from the same LinkedDataHub checkout or release
   as the running image (`ldh --version`). An instance whose end-user responses carry no
   `https://w3id.org/atomgraph/linkeddatahub/dataspaces#admin` `Link` (check with `ldh get --head --accept text/turtle "$LDH_BASE"`)
@@ -138,9 +139,10 @@ drops package imports that were added live with `ldh packages add` rather than d
 `dataspaces.trig`.
 
 On first start the entrypoint seeds the new datasets: the root document, the namespace ontology, the
-owner's and secretary's agent metadata and their authorizations. It does so only for an app whose
-`/var/linkeddatahub/based-datasets/<origin-folder>` does not exist yet, so an existing dataspace is
-never reseeded.
+owner's and secretary's agent metadata and their authorizations. It does so only for an app without
+the marker `/var/linkeddatahub/based-datasets/<origin-folder>/.seeded`, which it writes once every
+upload has succeeded: an existing dataspace is never reseeded, and one whose seed failed partway is
+seeded again on the next start.
 
 ### 5. Verify
 

@@ -40,6 +40,7 @@ services:
     user: root # otherwise the ldh user does not have permissions to the mounted folder which is owner by root
     build: .
     mem_limit: 2048m
+    restart: on-failure # entrypoint.sh exits the JVM on an OutOfMemoryError
     depends_on:
       - fuseki
       - sef-compiler
@@ -148,7 +149,16 @@ services:
     volumes:
       - ./config/fuseki/config.ttl:/fuseki/config.ttl:ro
       - ./fuseki:/fuseki/databases
-    command: [ "--config", "/fuseki/config.ttl" ]
+      - ./fuseki/run:/fuseki/run # datasets created at runtime: their configuration and data
+    configs:
+      - source: fuseki_shiro
+        target: /fuseki/shiro.ini
+    # The admin API (`POST /$/datasets` creates a dataset, `DELETE /$/datasets/<name>` removes one) is on, for a
+    # dataset per dataspace to be made without editing config.ttl and restarting. It needs the administrator's
+    # credentials (FUSEKI_ADMIN_PASSWORD in .env, written by `make secrets`): the default Shiro configuration lets
+    # only the server's own host in, which no container is. A created dataset lives under the run area, so it is
+    # there again after a restart; the datasets config.ttl declares are served beside it
+    command: [ "--config", "/fuseki/config.ttl", "--adminArea", "/fuseki/run", "--shiro", "/fuseki/shiro.ini" ]
   egress: # forward proxy for the triplestores' outbound requests: refuses loopback, private and link-local destinations
     image: ubuntu/squid:6.6-24.04_beta
     mem_limit: 256m
@@ -207,7 +217,7 @@ services:
     volumes:
       - varnish_frontend_cache:/var/lib/varnish
     entrypoint: varnishd
-    command: [ "-F", "-f", "/etc/varnish/default.vcl", "-a", "http=:6060,HTTP", "-a", "proxy=:8443,PROXY", "-p", "feature=+http2", "-s", "file,/var/lib/varnish/storage.bin,3G", "-t", "86400" ] # -F: foreground, -f: config, -a: listeners, -p: http2, -s: storage, -t: TTL
+    command: [ "-F", "-f", "/etc/varnish/default.vcl", "-a", "http=:6060,HTTP", "-a", "proxy=:8443,PROXY", "-p", "feature=+http2", "-s", "file,/var/lib/varnish/storage.bin,${VARNISH_FRONTEND_STORAGE:-3G}", "-t", "86400" ] # -F: foreground, -f: config, -a: listeners, -p: http2, -s: storage (keep it below the container's mem_limit, which the mapped file counts against), -t: TTL
   varnish-admin:
     image: varnish:7.7.3
     user: root # otherwise the varnish user does not have permissions to the mounted folder which is owner by root
@@ -218,7 +228,7 @@ services:
       - linkeddatahub
     tmpfs: /var/lib/varnish/varnishd:exec
     entrypoint: varnishd
-    command: [ "-F", "-f", "/etc/varnish/default.vcl", "-a", "http=:80,HTTP", "-a", "proxy=:8443,PROXY", "-p", "feature=+http2", "-s", "main=malloc,1G", "-s", "sparql=malloc,${VARNISH_SPARQL_STORAGE:-64M}", "-t", "86400", "-p", "timeout_idle=60s" ] # -F: foreground, -f: config, -a: listeners, -p: http2 + idle timeout, -s: storage (main, and one for SPARQL results), -t: TTL
+    command: [ "-F", "-f", "/etc/varnish/default.vcl", "-a", "http=:80,HTTP", "-a", "proxy=:8443,PROXY", "-p", "feature=+http2", "-s", "main=malloc,${VARNISH_ADMIN_STORAGE:-1G}", "-s", "sparql=malloc,${VARNISH_SPARQL_STORAGE:-64M}", "-t", "86400", "-p", "timeout_idle=60s", "-p", "nuke_limit=1000" ] # -F: foreground, -f: config, -a: listeners, -p: http2 + idle timeout, -s: storage (main, and one for SPARQL results), -t: TTL, -p: nuke_limit - the cached results a fetch may evict to make room; at the default 50, a full SPARQL store of small results cut a result well under the platform's limit short
   varnish-end-user:
     image: varnish:7.7.3
     user: root # otherwise varnish user does not have permissions to the mounted folder which is owner by root
@@ -231,12 +241,30 @@ services:
     volumes:
       - varnish_end_user_cache:/var/lib/varnish
     entrypoint: varnishd
-    command: [ "-F", "-f", "/etc/varnish/default.vcl", "-a", "http=:80,HTTP", "-a", "proxy=:8443,PROXY", "-p", "feature=+http2", "-s", "main=file,/var/lib/varnish/storage.bin,3G", "-s", "sparql=malloc,${VARNISH_SPARQL_STORAGE:-64M}", "-t", "86400", "-p", "timeout_idle=60s" ] # -F: foreground, -f: config, -a: listeners, -p: http2 + idle timeout, -s: storage (main, and one for SPARQL results), -t: TTL
+    command: [ "-F", "-f", "/etc/varnish/default.vcl", "-a", "http=:80,HTTP", "-a", "proxy=:8443,PROXY", "-p", "feature=+http2", "-s", "main=file,/var/lib/varnish/storage.bin,${VARNISH_END_USER_STORAGE:-3G}", "-s", "sparql=malloc,${VARNISH_SPARQL_STORAGE:-64M}", "-t", "86400", "-p", "timeout_idle=60s", "-p", "nuke_limit=1000" ] # -F: foreground, -f: config, -a: listeners, -p: http2 + idle timeout, -s: storage (main, and one for SPARQL results), -t: TTL, -p: nuke_limit - the cached results a fetch may evict to make room; at the default 50, a full SPARQL store of small results cut a result well under the platform's limit short
   email-server:
     image: namshi/smtp
     environment:
       - DISABLE_IPV6=true
 configs:
+  # Fuseki's access rules: the admin API to the administrator only, by HTTP Basic; everything else as before, open on
+  # the stack network. Fuseki writes a default of this into its run area (localhost only, a sample user), which this
+  # replaces through --shiro
+  fuseki_shiro:
+    content: |
+      [main]
+      ssl.enabled = false
+      plainMatcher=org.apache.shiro.authc.credential.SimpleCredentialsMatcher
+      iniRealm.credentialsMatcher = $$plainMatcher
+      [users]
+      admin=${FUSEKI_ADMIN_PASSWORD:?run make secrets}
+      [roles]
+      [urls]
+      /$$/server  = anon
+      /$$/ping    = anon
+      /$$/metrics = anon
+      /$$/** = authcBasic,user[admin]
+      /**=anon
   nginx_conf:
     content: |
       pid /tmp/nginx.pid;
@@ -313,6 +341,9 @@ configs:
 
           # the upload limit when one is set: the platform holds every other body to MAX_CONTENT_LENGTH itself
           client_max_body_size ${MAX_UPLOAD_LENGTH:-${MAX_CONTENT_LENGTH:-2097152}};
+
+          # server blocks an overlay adds for other hosts, e.g. the HTTP tests' second instance; none by default
+          include /etc/nginx/extra.d/*.conf;
 
           # server with optional client cert authentication
           server {
@@ -684,6 +715,13 @@ configs:
           if (bereq.url ~ "^/ns\?" && bereq.http.Client-Cert) {
               set beresp.uncacheable = true;
               set beresp.ttl = 0s;
+          }
+
+          /* honour no-store, as the built-in VCL would: this subroutine returns before it runs. Hit-for-miss for 2 minutes,
+             as the built-in's: with a TTL of 0 concurrent requests for the URL would wait for each other's fetch in turn */
+          if (beresp.http.Cache-Control ~ "no-store") {
+              set beresp.uncacheable = true;
+              set beresp.ttl = 120s;
           }
 
           return (deliver);

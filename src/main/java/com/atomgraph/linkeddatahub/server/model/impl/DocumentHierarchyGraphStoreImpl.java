@@ -35,6 +35,7 @@ import com.atomgraph.linkeddatahub.server.util.PatchUpdateVisitor;
 import com.atomgraph.linkeddatahub.server.util.EntityTags;
 import com.atomgraph.linkeddatahub.server.util.GraphLocks;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
+import com.atomgraph.linkeddatahub.server.util.UploadRecords;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.DH;
 import com.atomgraph.linkeddatahub.vocabulary.Default;
@@ -73,6 +74,7 @@ import jakarta.ws.rs.OPTIONS;
 import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.ClientErrorException;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.CacheControl;
 import jakarta.ws.rs.core.Context;
@@ -177,6 +179,13 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
      * Name of the request header conveying the datetime a TimeGate negotiates on.
      */
     public static final String ACCEPT_DATETIME_HEADER = "Accept-Datetime";
+
+    /**
+     * The longest a client is asked to wait (<code>Retry-After</code>, seconds) before it asks the TimeGate again while a
+     * commit of the document is on its way. It is asked to wait a second per commit queued on the repository branch -
+     * commits are made one at a time, about a second each - up to this.
+     */
+    public static final int COMMIT_RETRY_AFTER_MAX = 60;
 
     /**
      * Name of the Graph Store Protocol query parameter that identifies a named graph indirectly.
@@ -363,14 +372,25 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
                 throw new BadRequestException("Value '" + acceptDatetime + "' of the '" + ACCEPT_DATETIME_HEADER + "' header is not an RFC 1123 datetime");
             }
 
-            GitHubClient.CommitInfo commit = getSystem().getGraphVersioningService().
-                getMemento(getDataspace().getURI(), getDataspace().getBaseURI(), getURI(), datetime).
-                orElseThrow(() -> new NotFoundException("Document <" + getURI() + "> has no version history"));
-
             // negotiation has to see the current history, and Accept-Datetime takes unbounded values, so the
             // redirect is not stored: a cached one would outlive the commit that made it the most recent
             CacheControl noStore = new CacheControl();
             noStore.setNoStore(true);
+
+            // commits are made after the write's response: while one of this document is on its way the history does
+            // not hold its current state, and the most recent Memento would be an older one. The client is asked to
+            // come back instead; a failed commit is said, as the history will not catch up until the next write
+            if (getSystem().getGraphVersioningService().isCommitPending(getURI()))
+                return Response.status(Response.Status.SERVICE_UNAVAILABLE).
+                    header(HttpHeaders.RETRY_AFTER, Math.max(1, Math.min(COMMIT_RETRY_AFTER_MAX, getSystem().getGraphVersioningService().getCommitBacklog(getDataspace().getURI())))).
+                    cacheControl(noStore).
+                    build();
+            if (getSystem().getGraphVersioningService().isCommitFailed(getURI()))
+                throw new InternalServerErrorException("The latest change of document <" + getURI() + "> could not be recorded in its version history");
+
+            GitHubClient.CommitInfo commit = getSystem().getGraphVersioningService().
+                getMemento(getDataspace().getURI(), getDataspace().getBaseURI(), getURI(), datetime).
+                orElseThrow(() -> new NotFoundException("Document <" + getURI() + "> has no version history"));
 
             // a 302 TimeGate response carries no Memento-Datetime; the Memento it points at does
             return Response.status(Response.Status.FOUND).
@@ -567,7 +587,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
         boolean root = getDataspace().getBaseURI().equals(getURI());
         // the root is stored as sent, without the dh:Item every other document is given below
         if (root && !isHierarchyTyped(model, getURI().toString()))
-            throw new WebApplicationException("Root document <" + getURI() + "> must be typed with a document hierarchy class", UNPROCESSABLE_ENTITY.getStatusCode());
+            throw new ClientErrorException("Root document <" + getURI() + "> must be typed with a document hierarchy class", UNPROCESSABLE_ENTITY.getStatusCode());
         // the parent's lock as well as the document's: a DELETE of the parent holds it while it checks for children, so
         // the two cannot interleave
         return writeLocked(root ? List.of(getURI()) : List.of(parentURI, getURI()), () ->
@@ -722,29 +742,29 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
                 // the document cannot be deleted (the root, the owner's and the secretary's), but PATCH is supported on it:
                 // 405 would say otherwise, and the update itself is what cannot be applied
                 if (!getAllowedMethods().contains(HttpMethod.DELETE))
-                    throw new WebApplicationException("The update would empty document <" + getURI() + ">, which cannot be deleted", UNPROCESSABLE_ENTITY.getStatusCode());
+                    throw new ClientErrorException("The update would empty document <" + getURI() + ">, which cannot be deleted", UNPROCESSABLE_ENTITY.getStatusCode());
 
                 return delete();
             }
 
             // ownership changes go through the admin ACL documents: a PATCH cannot be rewritten safely, so it is refused
             if (isOwnershipChanged(beforeUpdateModel, existingModel, getURI().toString()))
-                throw new WebApplicationException("acl:owner and dct:creator of document <" + getURI() + "> cannot be changed", UNPROCESSABLE_ENTITY.getStatusCode());
+                throw new ClientErrorException("acl:owner and dct:creator of document <" + getURI() + "> cannot be changed", UNPROCESSABLE_ENTITY.getStatusCode());
 
             // a document's place in the hierarchy is the URI parent PUT points it at; moving it would leave the hierarchy
             // and the URIs disagreeing about where it is
             if (isContainmentChanged(beforeUpdateModel, existingModel, getURI().toString()))
-                throw new WebApplicationException("sioc:has_parent and sioc:has_container of document <" + getURI() + "> cannot be changed", UNPROCESSABLE_ENTITY.getStatusCode());
+                throw new ClientErrorException("sioc:has_parent and sioc:has_container of document <" + getURI() + "> cannot be changed", UNPROCESSABLE_ENTITY.getStatusCode());
 
             // only the containment the update adds is held to the rule: a graph written before it may still carry some
             if (getForeignContainment(existingModel, getURI().toString()).stream().anyMatch(stmt -> !beforeUpdateModel.contains(stmt)))
-                throw new WebApplicationException("sioc:has_parent and sioc:has_container in document <" + getURI() + "> can only be stated of the document itself", UNPROCESSABLE_ENTITY.getStatusCode());
+                throw new ClientErrorException("sioc:has_parent and sioc:has_container in document <" + getURI() + "> can only be stated of the document itself", UNPROCESSABLE_ENTITY.getStatusCode());
 
             // only the types the update adds are held to the rule: a graph written before it may still carry others
             if (getForeignTypes(existingModel, getURI().toString()).stream().anyMatch(type -> !beforeUpdateModel.contains(beforeUpdateModel.createResource(getURI().toString()), RDF.type, type)))
-                throw new WebApplicationException("Document <" + getURI() + "> can only be typed with document hierarchy classes", UNPROCESSABLE_ENTITY.getStatusCode());
+                throw new ClientErrorException("Document <" + getURI() + "> can only be typed with document hierarchy classes", UNPROCESSABLE_ENTITY.getStatusCode());
             if (!isHierarchyTyped(existingModel, getURI().toString()))
-                throw new WebApplicationException("Document <" + getURI() + "> must stay typed with a document hierarchy class", UNPROCESSABLE_ENTITY.getStatusCode());
+                throw new ClientErrorException("Document <" + getURI() + "> must stay typed with a document hierarchy class", UNPROCESSABLE_ENTITY.getStatusCode());
 
             // SPIN constraints are class-scoped; allowing rdf:type removal would silently bypass them
             for (Resource resource : getChangedResources(beforeUpdateModel, existingModel))
@@ -752,7 +772,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
                 Resource before = resource.inModel(beforeUpdateModel);
                 Resource after = resource.inModel(existingModel);
                 if (before.hasProperty(RDF.type) && !after.hasProperty(RDF.type) && after.listProperties().hasNext())
-                    throw new WebApplicationException("rdf:type cannot be removed from resource <" + resource + ">", UNPROCESSABLE_ENTITY.getStatusCode());
+                    throw new ClientErrorException("rdf:type cannot be removed from resource <" + resource + ">", UNPROCESSABLE_ENTITY.getStatusCode());
             }
 
             stampModified(getURI(), beforeUpdateModel, existingModel);
@@ -867,7 +887,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             if (log.isDebugEnabled()) log.debug("# of files uploaded: {} ", stagedFiles.size());
             try
             {
-                return post(model, () -> commitFiles(stagedFiles));
+                return post(model, () -> commitFiles(stagedFiles, getURI()));
             }
             finally
             {
@@ -919,7 +939,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
                 // the same PUT as an RDF body gets - the document's type and container, its created/creator/owner
                 // metadata, the If-Match precondition and the constraints of a class assigned here - rather than the
                 // raw graph write, which skipped all of it for the document form
-                return put(model, () -> commitFiles(stagedFiles));
+                return put(model, () -> commitFiles(stagedFiles, getURI()));
             }
             finally
             {
@@ -1076,7 +1096,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     public void checkForeignContainment(Model model)
     {
         if (!getForeignContainment(model, getURI().toString()).isEmpty())
-            throw new WebApplicationException("sioc:has_parent and sioc:has_container in document <" + getURI() + "> can only be stated of the document itself", UNPROCESSABLE_ENTITY.getStatusCode());
+            throw new ClientErrorException("sioc:has_parent and sioc:has_container in document <" + getURI() + "> can only be stated of the document itself", UNPROCESSABLE_ENTITY.getStatusCode());
     }
 
     /**
@@ -1124,7 +1144,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
     public void checkDocumentTypes(Model model)
     {
         if (!getForeignTypes(model, getURI().toString()).isEmpty())
-            throw new WebApplicationException("Document <" + getURI() + "> can only be typed with document hierarchy classes", UNPROCESSABLE_ENTITY.getStatusCode());
+            throw new ClientErrorException("Document <" + getURI() + "> can only be typed with document hierarchy classes", UNPROCESSABLE_ENTITY.getStatusCode());
     }
 
     private static boolean isChanged(Model beforeUpdateModel, Model afterUpdateModel, String documentURI, List<Property> properties)
@@ -1298,8 +1318,9 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
      *
      * @param temp temporary file
      * @param target content-addressed file
+     * @param mediaType media type the file is uploaded with
      */
-    public record StagedFile(Path temp, Path target) { }
+    public record StagedFile(Path temp, Path target, String mediaType) { }
 
     /**
      * Stages all files from the multipart RDF/POST request body. Each file resource is renamed to its
@@ -1307,7 +1328,7 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
      * 
      * @param model model with RDF resources
      * @param fileNameBodyPartMap a mapping of request part names and objects
-     * @return staged files, to be committed with {@link #commitFiles(List)} and discarded with {@link #discardFiles(List)}
+     * @return staged files, to be committed with {@link #commitFiles(List, URI)} and discarded with {@link #discardFiles(List)}
      */
     public List<StagedFile> stageFiles(Model model, Map<String, FormDataBodyPart> fileNameBodyPartMap)
     {
@@ -1403,12 +1424,14 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
             resource.addLiteral(FOAF.sha1, sha1Hash);
             // user could have specified an explicit media type; otherwise - use the media type that the browser has sent
             if (!resource.hasProperty(DCTerms.format)) resource.addProperty(DCTerms.format, com.atomgraph.linkeddatahub.MediaType.toResource(bodyPart.getMediaType()));
+            // read before the rename below, which moves the properties to a new resource and leaves this one bare
+            String mediaType = com.atomgraph.linkeddatahub.MediaType.valueOf(resource.getPropertyResourceValue(DCTerms.format)).toString();
 
             URI sha1Uri = getUploadsUriBuilder().path("{sha1}").build(sha1Hash);
             if (log.isDebugEnabled()) log.debug("Renaming resource: {} to SHA1 based URI: {}", resource, sha1Uri);
             ResourceUtils.renameResource(resource, sha1Uri.toString());
 
-            return new StagedFile(temp, getFile(sha1Uri, getUriInfo().getBaseUri(), getSystem().getUploadRoot()).toPath());
+            return new StagedFile(temp, getFile(sha1Uri, getUriInfo().getBaseUri(), getSystem().getUploadRoot()).toPath(), mediaType);
         }
         catch (IOException ex)
         {
@@ -1425,13 +1448,17 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
 
     /**
      * Moves staged files to their content-addressed names. A name that is already taken holds the same bytes,
-     * possibly another document's, so it is left as it is.
+     * possibly another document's, so it is left as it is. Each file is then recorded beside its bytes: the media type
+     * it was uploaded with, unless an earlier upload of the same bytes recorded one, and the document it was uploaded
+     * into, which is who may read it ({@link UploadRecords}).
      * 
      * @param stagedFiles staged files
+     * @param document document the files are uploaded into
      */
-    public void commitFiles(List<StagedFile> stagedFiles)
+    public void commitFiles(List<StagedFile> stagedFiles, URI document)
     {
         if (stagedFiles == null) throw new IllegalArgumentException("List<StagedFile> cannot be null");
+        if (document == null) throw new IllegalArgumentException("Document URI cannot be null");
 
         for (StagedFile stagedFile : stagedFiles)
         {
@@ -1440,6 +1467,8 @@ public class DocumentHierarchyGraphStoreImpl extends com.atomgraph.core.model.im
                 if (Files.exists(stagedFile.target())) Files.delete(stagedFile.temp());
                 // a rename: a reader of the content-addressed file sees all of it or none of it
                 else Files.move(stagedFile.temp(), stagedFile.target(), StandardCopyOption.ATOMIC_MOVE);
+
+                UploadRecords.record(stagedFile.target().getParent(), stagedFile.target().getFileName().toString(), stagedFile.mediaType(), document);
             }
             catch (IOException ex)
             {
