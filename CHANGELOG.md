@@ -13,6 +13,8 @@
 - With `ENABLE_LINKED_DATA_PROXY=false`, `?uri=` naming anything other than one of the instance's dataspaces or a mapped document answers `403` for browsers too, instead of rendering the app shell; each distinct `?uri=` had been an uncached server-side render
 - The platform's JVM exits on an `OutOfMemoryError`, and the `linkeddatahub` service restarts `on-failure`; before, the JVM could lose Tomcat's acceptor and poller threads and stay up answering nothing
 - A dataspace counts as seeded only once all its seed uploads have succeeded (the `based-datasets/<app>/.seeded` marker, written last); before, the marker was the folder created before the first upload, so a seed that failed partway was never retried
+- The `ldh` plugin asks for its base, certificate and password when enabled (`userConfig`)
+- The image downloads Jena from Maven Central instead of `archive.apache.org`, which reset connections under load
 
 ### Removed
 - The Northwind Traders demo dataspace from the default config
@@ -26,6 +28,7 @@
 - `ldh admin create ontology` without `--uri`, which writes a blank node ontology, succeeds instead of failing with `500`
 - A write whose `Origin` is not the dataspace's `lds:origin` answers `403`: a page on another site could submit a form that wrote as the agent, since the browser presents the client certificate to any site's request. Requests without `Origin` (the CLI, Web-Algebra) are unaffected
 - A write through the Linked Data proxy to another LinkedDataHub instance is delegated again, with the platform's certificate and `On-Behalf-Of` naming the caller, so the target's access control decides on the caller: since 6.2.4 it went out anonymous and was refused with `403`, which broke "Add data" to a foreign document. Reads of other origins stay anonymous, including the `GET` a write continues as after a `303 See Other`, and the ID token still goes to this instance's dataspaces only. That `GET` is now sent at all: a proxied write answered with `303` failed with `502`, the redirect hop asking the request again for the body the first hop had consumed
+- A chart attached to a property (`ldh:view`, `ldh:inverseView`) is queried about the page's resource, as a view is, instead of its own block, which matched nothing
 
 ### Security
 - A body the Linked Data proxy relays byte for byte, a non-RDF file or an error page, is served with `Content-Security-Policy: default-src 'none'; sandbox`, as an upload is on its own origin: it carried no policy, so a file proxied from another origin was served as this origin's content, unsandboxed. Found by the uploads replay through the proxy (`tests/http/formal/uploads-conformance-proxied.sh`)
