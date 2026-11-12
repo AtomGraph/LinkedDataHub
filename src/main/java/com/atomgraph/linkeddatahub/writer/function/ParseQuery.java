@@ -37,28 +37,13 @@ import org.apache.jena.sparql.syntax.Element;
 import org.apache.jena.sparql.syntax.ElementGroup;
 
 /**
- * Server-side counterpart of the browser's SPARQL.js 2.x <code>Parser</code>, backing the Saxon
- * declaration of the <code>ldh:parse-query</code> stylesheet function so that
- * <code>ldh:construct-instance</code> runs identically on both products.
+ * Server-side counterpart of the browser's Traqula <code>Parser</code>, backing the Saxon
+ * declaration of the <code>ldh:parse-query</code> stylesheet function for
+ * <code>ldh:construct-instance</code>.
  * <p>
- * This is deliberately NOT a full SPARQL.js replacement: it emits only the subset of the parse
- * tree that the stylesheets consume — a <code>template</code> array of triple maps and a
- * <code>where</code> array whose non-emptiness marks a query that cannot be instantiated as a pure
- * template (SPARQL.js puts the actual parsed patterns there; only the emptiness test is shared).
- * Term strings follow the SPARQL.js 2.x serialization expected by
- * <code>ldh:triples-to-descriptions</code>: bare URIs (no angle brackets), <code>_:label</code>
- * blank nodes, <code>?name</code> variables, and <code>"lex"</code> /
- * <code>"lex"@lang</code> / <code>"lex"^^datatypeURI</code> literals with the datatype URI
- * unwrapped — a 2.x quirk that the stylesheet regexes depend on. Divergences from SPARQL.js:
- * blank node labels are Jena's parser-allocated ones, not the source labels (downstream only needs
- * per-query consistency — <code>ldh:instance-term</code> prefixes them per constructor); variables
- * are normalized to the <code>?</code> sigil (SPARQL.js preserves <code>$</code>, and the
- * stylesheets accept both); plain literals are emitted without <code>^^xsd:string</code> to match
- * SPARQL.js 2.x, although Jena types them as such per RDF 1.1.
- * <p>
- * If SPARQL.js is ever upgraded to 3.x (see the TO-DO in <code>ldh:triples-to-descriptions</code>),
- * this function, <code>ldh:triples-to-descriptions</code> and <code>ldh:construct-instance</code>
- * must change in lockstep.
+ * The stylesheet consumes the Traqula query and pattern keys, including typed RDF terms. The
+ * server only needs the construct template and whether the WHERE group is empty; it does not
+ * manufacture a second parser AST for query patterns.
  *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
@@ -93,27 +78,40 @@ public class ParseQuery implements ExtensionFunction
         {
             Query query = QueryFactory.create(arguments[0].itemAt(0).getStringValue());
             JsonObject json = new JsonObject();
-            JsonArray template = new JsonArray();
-            JsonArray where = new JsonArray();
+            JsonObject template = new JsonObject();
+            JsonArray triples = new JsonArray();
+            JsonObject where = new JsonObject();
+            JsonArray patterns = new JsonArray();
 
             if (query.isConstructType())
                 for (Triple triple : query.getConstructTemplate().getBGP().getList())
                 {
                     JsonObject map = new JsonObject();
+                    map.put("type", "triple");
                     map.put("subject", term(triple.getSubject()));
                     map.put("predicate", term(triple.getPredicate()));
                     map.put("object", term(triple.getObject()));
-                    template.add(map);
+                    map.put("loc", loc());
+                    triples.add(map);
                 }
-            else
-                where.add(new JsonObject()); // not a CONSTRUCT: mark as non-instantiable
 
             Element pattern = query.getQueryPattern();
             if (pattern != null && !(pattern instanceof ElementGroup && ((ElementGroup)pattern).isEmpty()))
-                where.add(new JsonObject());
+                patterns.add(new JsonObject()); // only emptiness is consumed by construct-instance
 
+            template.put("type", "pattern");
+            template.put("subType", "bgp");
+            template.put("triples", triples);
+            template.put("loc", loc());
+            where.put("type", "pattern");
+            where.put("subType", "group");
+            where.put("patterns", patterns);
+            where.put("loc", loc());
+            json.put("type", "query");
+            json.put("subType", query.isConstructType() ? "construct" : query.isDescribeType() ? "describe" : query.isAskType() ? "ask" : "select");
             json.put("template", template);
             json.put("where", where);
+            json.put("loc", loc());
             return new XdmAtomicValue(json.toString());
         }
         catch (QueryParseException ex)
@@ -122,18 +120,49 @@ public class ParseQuery implements ExtensionFunction
         }
     }
 
-    private String term(Node node)
+    private JsonObject term(Node node)
     {
-        if (node.isVariable()) return "?" + node.getName();
-        if (node.isBlank()) return "_:" + node.getBlankNodeLabel();
+        JsonObject term = new JsonObject();
+        term.put("type", "term");
+        if (node.isVariable())
+        {
+            term.put("subType", "variable");
+            term.put("value", node.getName());
+        }
+        else if (node.isBlank())
+        {
+            term.put("subType", "blankNode");
+            term.put("value", node.getBlankNodeLabel());
+        }
         if (node.isLiteral())
         {
-            String lex = "\"" + node.getLiteralLexicalForm() + "\"";
-            if (!node.getLiteralLanguage().isEmpty()) return lex + "@" + node.getLiteralLanguage();
-            if (node.getLiteralDatatypeURI() != null && !node.getLiteralDatatypeURI().equals(XSDDatatype.XSDstring.getURI())) return lex + "^^" + node.getLiteralDatatypeURI();
-            return lex;
+            term.put("subType", "literal");
+            term.put("value", node.getLiteralLexicalForm());
+            if (!node.getLiteralLanguage().isEmpty()) term.put("langOrIri", node.getLiteralLanguage());
+            else if (node.getLiteralDatatypeURI() != null && !node.getLiteralDatatypeURI().equals(XSDDatatype.XSDstring.getURI()))
+            {
+                JsonObject datatype = new JsonObject();
+                datatype.put("type", "term");
+                datatype.put("subType", "namedNode");
+                datatype.put("value", node.getLiteralDatatypeURI());
+                datatype.put("loc", loc());
+                term.put("langOrIri", datatype);
+            }
         }
-        return node.getURI();
+        else if (node.isURI())
+        {
+            term.put("subType", "namedNode");
+            term.put("value", node.getURI());
+        }
+        term.put("loc", loc());
+        return term;
+    }
+
+    private JsonObject loc()
+    {
+        JsonObject loc = new JsonObject();
+        loc.put("sourceLocationType", "autoGenerate");
+        return loc;
     }
 
 }
