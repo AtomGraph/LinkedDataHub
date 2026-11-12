@@ -1,3 +1,7 @@
+## [6.5.1] - 2026-11-12
+### Fixed
+- The `ldh` plugin ships no hook, which the plugin directory refuses: its skills pass the base and certificate settings to `ldh`, and the password comes from `LDH_CERT_PASSWORD` in the user's environment
+
 ## [6.5.0] - 2026-11-12
 ### Migration
 - Run `make secrets` before `make up`: the stack needs `FUSEKI_ADMIN_PASSWORD` in `.env` for Fuseki's admin API (#531)
