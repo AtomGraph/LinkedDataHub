@@ -54,3 +54,10 @@ WHERE { ?app a <https://w3id.org/atomgraph/linkeddatahub/dataspaces#EndUserDatas
 
 curl -k -s -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" -H "Accept: application/n-triples" "$settings_url" \
 | grep -q '"Renamed"'
+
+# the title back, for the scripts after this one: the settings live in the context, which initialize_dataset does not reset
+patch_settings "PREFIX dct: <http://purl.org/dc/terms/>
+DELETE { ?app dct:title ?title }
+INSERT { ?app dct:title \"LinkedDataHub\" }
+WHERE { ?app dct:title ?title }" \
+| grep -qE "^(${STATUS_PATCH_SUCCESS})$"
