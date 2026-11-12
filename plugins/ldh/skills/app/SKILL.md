@@ -184,10 +184,11 @@ directory is copied. The demo apps in LinkedDataHub-Apps source a shared `lib/ld
 internal to that repository. Do not copy that `source` line, and do not reference any other checkout
 by path.
 
+Make the script a Bash script that stops on the first failed command (a `bash` interpreter line, then
+`set -euo pipefail`), followed by:
+
 ```bash
-#!/usr/bin/env bash
 # Installs the app with the ldh CLI, which authenticates with the certificate it is configured with.
-set -euo pipefail
 : "${LDH_BASE:?}"
 
 app_dir="$(cd "$(dirname "$0")" && pwd)"
