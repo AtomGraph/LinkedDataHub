@@ -536,6 +536,42 @@
         <rdfs:label xml:lang="en-US">Actions</rdfs:label>
         <rdfs:label xml:lang="es-ES">Acciones</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="confirm">
+        <rdfs:label xml:lang="en-US">Confirm</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Confirmar</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="action-planned-writes">
+        <rdfs:label xml:lang="en-US">This action will make the following changes</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Esta acción hará los siguientes cambios</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="action-flagged">
+        <rdfs:label xml:lang="en-US">changes access control or settings</rdfs:label>
+        <rdfs:label xml:lang="es-ES">cambia el control de acceso o la configuración</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="action-outside-dataspace">
+        <rdfs:label xml:lang="en-US">outside this dataspace: refused</rdfs:label>
+        <rdfs:label xml:lang="es-ES">fuera de este espacio de datos: rechazado</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="action-no-writes">
+        <rdfs:label xml:lang="en-US">This action would change nothing</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Esta acción no cambiaría nada</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="action-not-started">
+        <rdfs:label xml:lang="en-US">The action could not be prepared</rdfs:label>
+        <rdfs:label xml:lang="es-ES">No se pudo preparar la acción</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="action-not-started-explanation">
+        <rdfs:label xml:lang="en-US">Its plan could not be read or evaluated</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Su plan no se pudo leer ni evaluar</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="action-refused">
+        <rdfs:label xml:lang="en-US">The action was not applied</rdfs:label>
+        <rdfs:label xml:lang="es-ES">La acción no se aplicó</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="action-refused-explanation">
+        <rdfs:label xml:lang="en-US">A change was refused; the changes made before it stand</rdfs:label>
+        <rdfs:label xml:lang="es-ES">Un cambio fue rechazado; los cambios hechos antes se mantienen</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="upload">
         <rdfs:label xml:lang="en-US">Upload</rdfs:label>
         <rdfs:label xml:lang="es-ES">Subir</rdfs:label>

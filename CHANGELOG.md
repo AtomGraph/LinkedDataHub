@@ -1,12 +1,18 @@
 ## [Unreleased]
 ### Added
-- A package stylesheet is checked against the package contract when the platform takes its copy, and what breaks the contract is logged with its line: templates outside the open modes, names in the platform's namespaces, global settings, imports, anything in the `ixsl:` namespace (instructions, functions, `ixsl:updating`, event modes), reads of resources or the environment, run-time code, literal ids, and a rule in a collecting mode that does not end with `xsl:next-match`. A package renders and nothing else, so what it calls in the platform needs no analysis. The platform side is derived from its stylesheets: the open modes from `hooks.xsl` and `client/hooks.xsl`, the collecting modes from `ldh:collecting`. Nothing is refused yet (`PACKAGE-CONTRACT.md`)
-
-- A tree opens the path down to a node for any domain: `ul.ldh-tree` carrying `data-tree-reveal` is climbed one hop per request over the relation its `ldh:TreeParentsLoad` rule names (a new open mode), descended one level per request along every branch of the ancestor set, and the node is marked and scrolled into view, all in `client/tree.xsl`. The drawer's document tree runs on the same descent and activation, handed its ancestors as the lexical prefixes of the document's URI
+- A package stylesheet is checked against the package contract when the platform copies it, and each breach is logged with its line; nothing is refused yet (`PackageContract`, `PACKAGE-CONTRACT.md`)
+- The contract: templates only in the open modes, names in the package's own namespace, no globals or imports, no `ixsl:` at all, no I/O, no run-time code, no literal ids, `xsl:next-match` in collecting modes
+- `ldh:TreeParentsLoad`, an open mode: the relation a tree is climbed over to reveal a node
+- `ul.ldh-tree[data-tree-reveal]` is opened down to the node it names, which is marked and scrolled into view (`client/tree.xsl`)
+- `ldh:action` and `ldh:Action`: a package declares what a resource of a class offers to have done, as a Web-Algebra `ldh:plan`
+- Actions render as a menu in the block header where the reader may write and the dataspace has an executor; a click dry-runs the plan, shows and checks its writes, and applies it once confirmed (`client/action.xsl`)
+- `client/webalgebra.xsl`: the executor client, shared by the assistant and the actions
 
 ### Changed
-- `ldh:TreeChildrenLoad` answers with data: a rule returns the predicates that link a node to its children (`parent-properties`, `child-properties`) and the platform builds and runs the children query; it used to call `ldh:TreeChildrenFetch` itself
-- `ldh:RowHook` is no longer an open mode: a factory of deferred work is control flow, which a package does not get. The mode and the platform's view injection moved from `client/hooks.xsl` to `client/block.xsl`, beside the `ldh:RenderRow` walk
+- `ldh:TreeChildrenLoad` returns the predicates that link a node to its children; the platform builds and runs the query
+- The drawer's document tree descends and activates through the generic tree operations
+- `ldh:RowHook` is sealed; the mode and the view injection live in `client/block.xsl`
+- `ldh:plan` applies to an `ldh:Action` as well as a `ldh:ChatTurn`
 
 ## [6.5.2] - 2026-11-12
 ### Fixed
