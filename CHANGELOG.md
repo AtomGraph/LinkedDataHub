@@ -1,3 +1,7 @@
+## [Unreleased]
+### Fixed
+- An empty write through the Linked Data proxy keeps its `Content-Type`, so an empty append is answered `204` as it is directly instead of `400`
+
 ## [6.5.2] - 2026-11-12
 ### Fixed
 - The `ldh` plugin's app skill holds no shell interpreter line, which the plugin directory reads as an inline shell snippet
