@@ -717,6 +717,13 @@ configs:
               set beresp.ttl = 0s;
           }
 
+          /* honour no-store, as the built-in VCL would: this subroutine returns before it runs. Hit-for-miss for 2 minutes,
+             as the built-in's: with a TTL of 0 concurrent requests for the URL would wait for each other's fetch in turn */
+          if (beresp.http.Cache-Control ~ "no-store") {
+              set beresp.uncacheable = true;
+              set beresp.ttl = 120s;
+          }
+
           return (deliver);
       }
 
