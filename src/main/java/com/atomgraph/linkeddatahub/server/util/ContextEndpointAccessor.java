@@ -193,6 +193,27 @@ public class ContextEndpointAccessor implements EndpointAccessor
     }
 
     /**
+     * Reads the descriptions from their persistence again and serves them from now on: what a replica of the
+     * platform does to see a change another one made to a persistence they share. Nothing is stored. A change
+     * being made here meanwhile waits, as any change does.
+     *
+     * @return the descriptions served before, for the caller to compare with those served now
+     * @throws IOException if the persistence cannot be read, which leaves the descriptions as they are
+     * @throws UnsupportedOperationException when the persistence stores only (none, or one that is not a {@link ContextPersistence})
+     */
+    public Dataset reload() throws IOException
+    {
+        if (!(persistence instanceof ContextPersistence loadable)) throw new UnsupportedOperationException("The dataspace descriptions' persistence cannot be read back");
+
+        synchronized (writeLock)
+        {
+            Dataset before = getDataset();
+            this.dataset = loadable.load();
+            return before;
+        }
+    }
+
+    /**
      * A dataset sharing the graphs of another, so that replacing one leaves the rest untouched and
      * readers of the original see nothing change.
      *
