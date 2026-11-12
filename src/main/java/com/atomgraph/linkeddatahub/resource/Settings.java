@@ -34,6 +34,7 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.PATCH;
+import jakarta.ws.rs.ClientErrorException;
 import jakarta.ws.rs.WebApplicationException;
 import static com.atomgraph.server.status.UnprocessableEntityStatus.UNPROCESSABLE_ENTITY;
 import jakarta.ws.rs.core.Context;
@@ -199,7 +200,7 @@ public class Settings
             if (!mutableModel.contains(appResource, RDF.type, LDS.EndUserDataspace))
             {
                 if (log.isWarnEnabled()) log.warn("PATCH removed application resource or its type for <{}>", getDataspace().getURI());
-                throw new WebApplicationException("PATCH cannot remove the application resource or its type", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
+                throw new ClientErrorException("PATCH cannot remove the application resource or its type", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
             }
 
             // validate the updated model

@@ -24,8 +24,12 @@ References:
   linked resource its own graph variable, because each resource lives in its own document.
 - A document is not the thing it describes. The topic is `<doc#this>`, linked with
   `foaf:primaryTopic`, and its properties go there.
-- Setup: `export LDH_BASE=https://<dataspace>/ LDH_CERT_FILE=<owner keystore.p12> LDH_CERT_PASSWORD=…`.
-  The password is the deployment's, never a guess.
+- Setup: start every Bash command that runs `ldh` with
+  `export LDH_BASE='${user_config.ldh_base}' LDH_CERT_FILE='${user_config.cert_file}';`, the plugin's
+  settings (`/plugin` → ldh → configure); a variable set in one Bash command is gone by the next. `ldh` reads
+  the certificate's password from `LDH_CERT_PASSWORD`, which the user sets in their own environment, such as
+  the `env` block of `~/.claude/settings.json`. If a setting or the password is missing, ask the user for it:
+  never read `secrets/`, search the disk for a certificate or a password, or guess one.
 - **Use an `ldh` that matches the instance.** Build it from the same LinkedDataHub checkout or release
   as the running image (`ldh --version`). An instance whose end-user responses carry no
   `https://w3id.org/atomgraph/linkeddatahub/dataspaces#admin` `Link` (check with `ldh get --head --accept text/turtle "$LDH_BASE"`)
@@ -180,11 +184,12 @@ directory is copied. The demo apps in LinkedDataHub-Apps source a shared `lib/ld
 internal to that repository. Do not copy that `source` line, and do not reference any other checkout
 by path.
 
+Make the script a Bash script that stops on the first failed command (a `bash` interpreter line, then
+`set -euo pipefail`), followed by:
+
 ```bash
-#!/usr/bin/env bash
-# Installs the app with the ldh CLI. Reads LDH_BASE, LDH_CERT_FILE, LDH_CERT_PASSWORD (and LDH_PROXY).
-set -euo pipefail
-: "${LDH_BASE:?}" "${LDH_CERT_FILE:?}" "${LDH_CERT_PASSWORD:?}"
+# Installs the app with the ldh CLI, which authenticates with the certificate it is configured with.
+: "${LDH_BASE:?}"
 
 app_dir="$(cd "$(dirname "$0")" && pwd)"
 

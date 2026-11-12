@@ -67,6 +67,15 @@ for i in $(seq 1 30); do
 done
 [ "$sha2" != "$sha1" ]
 
+# the commit is in the repository; until the platform has recorded its end, the TimeGate asks the client to come back
+# (503) rather than redirect to an older version
+
+for i in $(seq 1 30); do
+    status=$(curl -k -s -I -o /dev/null -w "%{http_code}" -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" "${doc_url}?timegate")
+    if [ "$status" != "503" ]; then break; fi
+    sleep 1
+done
+
 # the document advertises its TimeGate (RFC 7089 4.1.1)
 
 response_headers=$(

@@ -4,7 +4,9 @@ FROM maven:3.9-eclipse-temurin-21 AS maven
 
 ARG JENA_VERSION=6.1.0
 
-ARG JENA_TAR_URL="https://archive.apache.org/dist/jena/binaries/apache-jena-${JENA_VERSION}.tar.gz"
+# Maven Central keeps every release, on a CDN; archive.apache.org resets connections under load, and dlcdn.apache.org
+# carries the current release only
+ARG JENA_TAR_URL="https://repo1.maven.org/maven2/org/apache/jena/apache-jena/${JENA_VERSION}/apache-jena-${JENA_VERSION}.tar.gz"
 
 RUN mkdir /jena && \
     curl -SL "$JENA_TAR_URL" | \

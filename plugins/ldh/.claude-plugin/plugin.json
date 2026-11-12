@@ -1,7 +1,7 @@
 {
   "name": "ldh",
   "displayName": "LinkedDataHub",
-  "version": "6.4.0",
+  "version": "6.5.2",
   "description": "Build Linked Data dataspaces, datasets and applications on LinkedDataHub with the ldh CLI: provision a dataspace, model and import data, declare documents, views and charts, and write reusable packages",
   "author": {
     "name": "AtomGraph",
@@ -20,5 +20,17 @@
     "sparql",
     "knowledge-graph",
     "linkeddatahub"
-  ]
+  ],
+  "userConfig": {
+    "ldh_base": {
+      "type": "string",
+      "title": "LinkedDataHub base URL",
+      "description": "The end-user base of the dataspace to work on, e.g. https://inventory.localhost:4443/"
+    },
+    "cert_file": {
+      "type": "string",
+      "title": "WebID certificate",
+      "description": "Path to the owner's WebID keystore, which the linkeddatahub container generates at ssl/owner/keystore.p12 in the LinkedDataHub checkout (ssl/owner/cert.pem works too). Its password is read from LDH_CERT_PASSWORD in your own environment"
+    }
+  }
 }

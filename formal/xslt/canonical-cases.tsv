@@ -1,0 +1,3 @@
+<e:svg xmlns:e="http://www.w3.org/2000/svg"><e:script xmlns:e="http://www.w3.org/2000/svg">alert(document.domain)</e:script></e:svg>	(http://www.w3.org/2000/svg svg)
+<e:p xmlns:e="http://www.w3.org/1999/xhtml"><e:a xmlns:e="http://www.w3.org/1999/xhtml" href="java&#9;script:alert(document.domain)">link</e:a></e:p>	(http://www.w3.org/1999/xhtml p (http://www.w3.org/1999/xhtml a "link"))
+<e:svg xmlns:e="http://www.w3.org/2000/svg"><e:a xmlns:e="http://www.w3.org/2000/svg" a0:href="javascript:alert(document.domain)" xmlns:a0="http://www.w3.org/1999/xlink"><e:text xmlns:e="http://www.w3.org/2000/svg">link</e:text></e:a></e:svg>	(http://www.w3.org/2000/svg svg (http://www.w3.org/2000/svg a (http://www.w3.org/2000/svg text "link")))

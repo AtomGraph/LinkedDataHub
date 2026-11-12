@@ -5,6 +5,7 @@
 
 package com.atomgraph.linkeddatahub.server.util;
 
+import jakarta.ws.rs.ClientErrorException;
 import jakarta.ws.rs.WebApplicationException;
 import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.OpVisitorBase;
@@ -151,20 +152,20 @@ public class PatchUpdateVisitor extends UpdateVisitorBase
     public static void validate(UpdateRequest updateRequest)
     {
         if (updateRequest.getOperations().isEmpty())
-            throw new WebApplicationException("The SPARQL update used with PATCH has no operation", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
+            throw new ClientErrorException("The SPARQL update used with PATCH has no operation", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
 
         PatchUpdateVisitor visitor = new PatchUpdateVisitor();
         for (Update update : updateRequest.getOperations())
         {
             if (!(update instanceof UpdateModify || update instanceof UpdateDeleteWhere || update instanceof UpdateDataInsert || update instanceof UpdateDataDelete))
-                throw new WebApplicationException("Only INSERT/WHERE, DELETE WHERE, INSERT DATA and DELETE DATA forms of SPARQL Update are supported by PATCH", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
+                throw new ClientErrorException("Only INSERT/WHERE, DELETE WHERE, INSERT DATA and DELETE DATA forms of SPARQL Update are supported by PATCH", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
 
             update.visit(visitor);
         }
         if (visitor.containsNamedGraph())
-            throw new WebApplicationException("SPARQL update used with PATCH method cannot contain the GRAPH keyword", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
+            throw new ClientErrorException("SPARQL update used with PATCH method cannot contain the GRAPH keyword", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
         if (visitor.containsDataset())
-            throw new WebApplicationException("SPARQL update used with PATCH method cannot contain WITH, USING or USING NAMED", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
+            throw new ClientErrorException("SPARQL update used with PATCH method cannot contain WITH, USING or USING NAMED", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
     }
 
 }

@@ -1,0 +1,29 @@
+@prefix lds:	<https://w3id.org/atomgraph/linkeddatahub/dataspaces#> .
+@prefix ac:	<https://w3id.org/atomgraph/client#> .
+@prefix dct:	<http://purl.org/dc/terms/> .
+
+### the second instance the federation tests write to across instances: its own platform container, secretary,
+### owner and stores, so that none of the first instance's dataspaces is one of its own ###
+
+# remote admin
+
+<urn:linkeddatahub:apps/remote/admin>
+{
+    <urn:linkeddatahub:apps/remote/admin> a lds:Dataspace ;
+        dct:title "Remote admin" ;
+        lds:origin <https://admin.remote.localhost:4443> ;
+        lds:ontology <https://w3id.org/atomgraph/linkeddatahub/admin#> ;
+        ac:stylesheet <https://admin.remote.localhost:4443/static/xsl/admin/layout.xsl> .
+}
+
+# remote end-user
+
+<urn:linkeddatahub:apps/remote/end-user>
+{
+    <urn:linkeddatahub:apps/remote/end-user> a lds:Dataspace ;
+        dct:title "Remote" ;
+        lds:origin <https://remote.localhost:4443> ;
+        lds:ontology <https://remote.localhost:4443/ns#> ;
+        ac:stylesheet <https://remote.localhost:4443/static/xsl/layout.xsl> ;
+        lds:public true .
+}

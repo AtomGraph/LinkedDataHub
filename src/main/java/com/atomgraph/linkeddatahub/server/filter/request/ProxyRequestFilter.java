@@ -39,7 +39,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.ForbiddenException;
@@ -102,6 +102,8 @@ import com.atomgraph.core.util.ResultSetUtils;
  * serves the LDH application shell; the client-side Saxon-JS layer then issues a second, RDF-typed
  * request that hits this filter and is proxied cheaply. Pure API clients that send only
  * {@code *}{@code /*} (e.g. curl) reach the proxy because they do not list an explicit HTML type.
+ * When the proxy is disabled the app shell is not served either: a target that is neither one of this
+ * instance's dataspaces nor a mapped document is refused with {@code 403} whatever the {@code Accept}.
  * <p>
  * External HTTP responses are dispatched on upstream {@code Content-Type} via Jena's live
  * RIOT registry (the same predicate {@code ModelProvider.isReadable} consults): RDF langs route
@@ -139,6 +141,13 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         HttpHeaders.RETRY_AFTER,
         "Age");
     /**
+     * The policy a body relayed byte for byte is served with, the one an upload is served with on its own origin: the
+     * bytes are the origin's but served from this origin, so they must run nothing and load nothing here. The origin's
+     * own policy is not forwarded, being bound to the origin; a body re-serialized from a Model or a result set is the
+     * proxy's own and needs none.
+     */
+    private static final String SANDBOX_POLICY = "default-src 'none'; sandbox";
+    /**
      * Conditional request headers forwarded verbatim to the upstream so preconditions are evaluated
      * at the origin: {@code If-Match}/{@code If-Unmodified-Since} carry optimistic-concurrency
      * validators on writes, {@code If-None-Match}/{@code If-Modified-Since} carry cache validation on
@@ -165,6 +174,27 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
         URI targetURI = targetOpt.get();
 
+        // strip #fragment (servers do not receive fragment identifiers)
+        if (targetURI.getFragment() != null)
+        {
+            try
+            {
+                targetURI = new URI(targetURI.getScheme(), targetURI.getAuthority(), targetURI.getPath(), targetURI.getQuery(), null);
+            }
+            catch (URISyntaxException ex)
+            {
+                // should not happen when only removing the fragment
+            }
+        }
+
+        // with the proxy disabled, refuse a target that is neither one of this instance's dataspaces nor a mapped document
+        // before the (X)HTML bypass below: that bypass renders the app shell for whatever ?uri= names, so every distinct
+        // value is an uncached server-side render with its own requests to /ns and /sparql, and the shell is useless anyway
+        // when the RDF request it then issues is refused. A burst of 2,500 such renders exhausted the platform's heap
+        boolean isRegisteredApp = getSystem().matchApp(targetURI) != null;
+        if (!getSystem().isEnableLinkedDataProxy() && !isRegisteredApp && !getSystem().getRepository().isMapped(targetURI.toString()))
+            throw new ForbiddenException("Linked Data proxy not enabled");
+
         // do not proxy requests from clients whose top-ranked acceptable type is (X)HTML — they
         // expect the app shell, which the downstream handler serves. Browsers list text/html (or
         // application/xhtml+xml) at q=1.0; API clients that happen to also accept (X)HTML at a
@@ -181,19 +211,6 @@ public class ProxyRequestFilter implements ContainerRequestFilter
             break; // first non-wildcard wasn't (X)HTML — proceed with proxy
         }
 
-        // strip #fragment (servers do not receive fragment identifiers)
-        if (targetURI.getFragment() != null)
-        {
-            try
-            {
-                targetURI = new URI(targetURI.getScheme(), targetURI.getAuthority(), targetURI.getPath(), targetURI.getQuery(), null);
-            }
-            catch (URISyntaxException ex)
-            {
-                // should not happen when only removing the fragment
-            }
-        }
-
         boolean isSafeMethod = "GET".equalsIgnoreCase(requestContext.getMethod())
             || "HEAD".equalsIgnoreCase(requestContext.getMethod());
 
@@ -206,26 +223,35 @@ public class ProxyRequestFilter implements ContainerRequestFilter
             return;
         }
 
-        boolean isRegisteredApp = getSystem().matchApp(targetURI) != null;
         if (!isRegisteredApp && !getSystem().isEnableLinkedDataProxy())
             throw new ForbiddenException("Linked Data proxy not enabled"); // GET is supported, the proxy is not offered
         // LNK-009: validate that the target URI is not an internal/private address (SSRF protection)
         getSystem().getURLValidator().validate(targetURI);
 
-        // an authenticated caller proxying one of this instance's dataspaces is delegated: the platform's certificate
-        // plus On-Behalf-Of, which the origin verifies against acl:delegates. Every other request goes out with no
+        // an authenticated caller is delegated with the platform's certificate plus On-Behalf-Of, which the origin verifies
+        // against acl:delegates by dereferencing the caller's WebID - any instance can, not only this one. Reads are
+        // delegated only to this instance's dataspaces, so browsing a foreign origin does not announce the caller to it;
+        // writes are delegated to any origin, as a write to another instance needs the caller's access there. The ID token
+        // is a bearer credential and goes to this instance's dataspaces only. Every other request goes out with no
         // certificate and no delegation
         AgentContext agentContext = (AgentContext) requestContext.getProperty(AgentContext.class.getCanonicalName());
-        // a target per redirect hop, delegated only when that hop is one of this instance's dataspaces
-        Function<URI, WebTarget> targets = uri ->
+        // a target per redirect hop, delegated by that hop's origin and method: a write a 303 turns into a GET reaches its
+        // next hop as a read, so it is not delegated to a foreign origin there either
+        BiFunction<URI, String, WebTarget> targets = (uri, method) ->
         {
             boolean isDataspace = getSystem().matchApp(uri) != null;
-            boolean isDelegated = agentContext != null && isDataspace;
+            boolean isRead = HttpMethod.GET.equalsIgnoreCase(method) || HttpMethod.HEAD.equalsIgnoreCase(method);
+            boolean isDelegated = agentContext != null && (isDataspace || !isRead);
             WebTarget target = (isDelegated ? getSystem().getExternalClient() : getSystem().getExternalNoCertClient()).target(uri);
-            return GraphStoreClient.delegate(target, agentContext, isDataspace, requestContext.getUriInfo().getBaseUri().getPath());
+            if (isDataspace) return GraphStoreClient.delegate(target, agentContext, true, requestContext.getUriInfo().getBaseUri().getPath());
+            if (isDelegated) target.register(new WebIDDelegationFilter(agentContext.getAgent()));
+            return target;
         };
 
         MediaType[] clientAcceptTypes = requestContext.getAcceptableMediaTypes().toArray(MediaType[]::new);
+        // asked once, before the first hop: that hop consumes and closes the entity stream, and asking again on a hop a
+        // 303 led to throws on the closed stream
+        boolean hasEntity = requestContext.hasEntity();
         if (log.isDebugEnabled()) log.debug("Proxying {} {} → {}", requestContext.getMethod(), requestContext.getUriInfo().getRequestUri(), targetURI);
 
         try
@@ -247,7 +273,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
                 }
 
                 // the entity goes with the request's own method only (a 303 continues as GET)
-                return requestContext.hasEntity() && method.equalsIgnoreCase(requestContext.getMethod())
+                return hasEntity && method.equalsIgnoreCase(requestContext.getMethod())
                     ? builder.method(method, Entity.entity(requestContext.getEntityStream(), requestContext.getMediaType()))
                     : builder.method(method);
             }).response();
@@ -269,7 +295,7 @@ public class ProxyRequestFilter implements ContainerRequestFilter
         }
         catch (ProcessingException ex)
         {
-            if (log.isWarnEnabled()) log.warn("Could not dereference proxied URI: {}", targetURI);
+            if (log.isWarnEnabled()) log.warn("Could not dereference proxied URI: {}", targetURI, ex);
             throw new BadGatewayException(ex);
         }
     }
@@ -377,7 +403,8 @@ public class ProxyRequestFilter implements ContainerRequestFilter
             clientResponse.bufferEntity();
             Response.ResponseBuilder rb = Response.status(clientResponse.getStatus()).
                 type(clientResponse.getMediaType()).
-                entity(clientResponse.readEntity(InputStream.class));
+                entity(clientResponse.readEntity(InputStream.class)).
+                header("Content-Security-Policy", SANDBOX_POLICY);
             return overlayHeaders(rb.build(), clientResponse, true);
         }
 
@@ -438,7 +465,8 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
         Response.ResponseBuilder rb = Response.status(clientResponse.getStatus()).
             type(upstreamCT).
-            entity(entity);
+            entity(entity).
+            header("Content-Security-Policy", SANDBOX_POLICY);
 
         return overlayHeaders(rb.build(), clientResponse, true);
     }

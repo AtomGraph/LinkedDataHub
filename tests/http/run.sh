@@ -346,6 +346,14 @@ export ADMIN_ENDPOINT_URL="http://localhost:3030/admin/"
 export END_USER_BASE_URL="https://localhost:4443/"
 export ADMIN_BASE_URL="https://admin.localhost:4443/"
 export PACKAGES_BASE_URL="https://packages.localhost:4443/" # the fixture package registry, tests/packages
+# the second instance (docker-compose.http-tests.yml, linkeddatahub-remote): none of its dataspaces is one of the first's.
+# Its entrypoint generates its owner's certificate under remote/ssl/owner, protected by the same password secret
+export REMOTE_END_USER_ENDPOINT_URL="http://localhost:3030/remote.end-user/"
+export REMOTE_ADMIN_ENDPOINT_URL="http://localhost:3030/remote.admin/"
+export REMOTE_END_USER_BASE_URL="https://remote.localhost:4443/"
+export REMOTE_ADMIN_BASE_URL="https://admin.remote.localhost:4443/"
+export REMOTE_OWNER_CERT_FILE="$HTTP_TEST_ROOT/remote/ssl/owner/cert.pem"
+export REMOTE_OWNER_CERT_KEYSTORE="$HTTP_TEST_ROOT/remote/ssl/owner/keystore.p12"
 export END_USER_VARNISH_SERVICE="varnish-end-user"
 export ADMIN_VARNISH_SERVICE="varnish-admin"
 export FRONTEND_VARNISH_SERVICE="varnish-frontend"
@@ -373,6 +381,10 @@ export TMP_END_USER_DATASET=$(mktemp)
 export TMP_ADMIN_DATASET=$(mktemp)
 download_dataset "$END_USER_ENDPOINT_URL" > "$TMP_END_USER_DATASET"
 download_dataset "$ADMIN_ENDPOINT_URL" > "$TMP_ADMIN_DATASET"
+export TMP_REMOTE_END_USER_DATASET=$(mktemp)
+export TMP_REMOTE_ADMIN_DATASET=$(mktemp)
+download_dataset "$REMOTE_END_USER_ENDPOINT_URL" > "$TMP_REMOTE_END_USER_DATASET"
+download_dataset "$REMOTE_ADMIN_ENDPOINT_URL" > "$TMP_REMOTE_ADMIN_DATASET"
 
 ### Other tests ###
 
@@ -405,9 +417,13 @@ echo "### Failed tests: ${error_count} Test duration: ${runtime} s"
 # restore original datasets
 initialize_dataset "$END_USER_BASE_URL" "$TMP_END_USER_DATASET" "$END_USER_ENDPOINT_URL"
 initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
+initialize_dataset "$REMOTE_END_USER_BASE_URL" "$TMP_REMOTE_END_USER_DATASET" "$REMOTE_END_USER_ENDPOINT_URL"
+initialize_dataset "$REMOTE_ADMIN_BASE_URL" "$TMP_REMOTE_ADMIN_DATASET" "$REMOTE_ADMIN_ENDPOINT_URL"
 
 rm "$AGENT_CERT_FILE"
 rm "$TMP_END_USER_DATASET"
 rm "$TMP_ADMIN_DATASET"
+rm "$TMP_REMOTE_END_USER_DATASET"
+rm "$TMP_REMOTE_ADMIN_DATASET"
 
 exit $error_count

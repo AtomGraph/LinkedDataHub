@@ -257,7 +257,7 @@ WHERE
 """ ;
     rdfs:isDefinedBy : .
 
-skos:inScheme ldh:inverseView :ConceptsInScheme , :OrphanConcepts .
+skos:inScheme ldh:inverseView :ConceptsInScheme , :OrphanConcepts , :NarrowerCountsInScheme .
 
 :ConceptsInScheme a ldh:View ;
     dct:title "Concepts in scheme" ;
@@ -308,6 +308,39 @@ WHERE
     FILTER NOT EXISTS { GRAPH ?broaderGraph { ?concept skos:broader ?parent } }
     FILTER NOT EXISTS { GRAPH ?narrowerGraph { ?parent skos:narrower ?concept } }
   }
+""" ;
+    rdfs:isDefinedBy : .
+
+# A chart attached the way the views above are: on a scheme's page, about that scheme ($about), each of its concepts
+# with how many narrower concepts it has (the hierarchy read from both ends, as the tree reads it)
+:NarrowerCountsInScheme a ldh:ResultSetChart ;
+    dct:title "Narrower concepts per concept" ;
+    spin:query :SelectNarrowerCountsInScheme ;
+    ldh:chartType ac:Table ;
+    ldh:categoryVarName "concept" ;
+    ldh:seriesVarName "narrower" ;
+    rdfs:isDefinedBy : .
+
+:SelectNarrowerCountsInScheme a sp:Select ;
+    rdfs:label "Select the narrower concept count of each concept in a scheme" ;
+    dct:title "Select the narrower concept count of each concept in a scheme" ;
+    sp:text """
+PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT  ?concept (COUNT(DISTINCT ?child) AS ?narrower)
+WHERE
+  { GRAPH ?graph
+      { ?node  skos:inScheme   $about ;
+               skos:prefLabel  ?concept
+      }
+    OPTIONAL
+      {   { GRAPH ?narrowerGraph { ?node  skos:narrower  ?child } }
+        UNION
+          { GRAPH ?broaderGraph { ?child  skos:broader  ?node } }
+      }
+  }
+GROUP BY ?concept
+ORDER BY ?concept
 """ ;
     rdfs:isDefinedBy : .
 

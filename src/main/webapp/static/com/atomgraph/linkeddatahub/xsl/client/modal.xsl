@@ -2208,7 +2208,7 @@ LIMIT   10
         <xsl:choose>
             <xsl:when test="$query-string">
                 <xsl:variable name="target-uri" select="$context('target-uri')" as="xs:anyURI"/>
-                <xsl:variable name="endpoint" select="ac:build-uri(resolve-uri('sparql', lds:base()), map{ 'default-graph-uri': string($target-uri) })" as="xs:anyURI"/>
+                <xsl:variable name="endpoint" select="ldh:href(ac:build-uri(resolve-uri('sparql', lds:base()), map{ 'default-graph-uri': string($target-uri) }))" as="xs:anyURI"/>
                 <xsl:variable name="request" select="map{ 'method': 'POST', 'href': $endpoint, 'media-type': 'application/sparql-query', 'body': $query-string, 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                 <xsl:variable name="construct-context" select="map:put($context, 'request', $request)" as="map(*)"/>
                 <xsl:sequence select="
@@ -2278,7 +2278,7 @@ LIMIT   10
             <xsl:when test="$response?status = (200, 204)">
                 <!-- the admin app manages the end-user dataspace that names it as its lds:admin; clear that dataspace's ontology -->
                 <xsl:variable name="ontology-uri" select="(for $context in lds:context() return key('apps-by-admin', lds:base(), $context))/lds:ontology/@rdf:resource/xs:anyURI(.)" as="xs:anyURI"/>
-                <xsl:variable name="request" select="map{ 'method': 'POST', 'href': resolve-uri('clear', lds:base()), 'media-type': 'application/x-www-form-urlencoded', 'body': 'uri=' || encode-for-uri($ontology-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
+                <xsl:variable name="request" select="map{ 'method': 'POST', 'href': ldh:href(resolve-uri('clear', lds:base())), 'media-type': 'application/x-www-form-urlencoded', 'body': 'uri=' || encode-for-uri($ontology-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }" as="map(*)"/>
                 <xsl:variable name="clear-context" select="map:put($context, 'request', $request)" as="map(*)"/>
                 <xsl:sequence select="
                   ixsl:http-request($request)

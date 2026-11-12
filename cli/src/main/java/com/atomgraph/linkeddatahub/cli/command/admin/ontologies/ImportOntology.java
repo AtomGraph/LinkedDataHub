@@ -21,6 +21,7 @@ import com.atomgraph.linkeddatahub.cli.http.HttpException;
 import com.atomgraph.linkeddatahub.cli.mixin.BaseMixin;
 import com.atomgraph.linkeddatahub.rdf.Ontologies;
 import com.atomgraph.linkeddatahub.rdf.vocabulary.LDS;
+import com.atomgraph.linkeddatahub.rdf.vocabulary.SIOC;
 import com.atomgraph.linkeddatahub.rdf.vocabulary.SP;
 import jakarta.ws.rs.core.Form;
 import jakarta.ws.rs.core.MediaType;
@@ -200,7 +201,7 @@ public class ImportOntology extends BaseCommand
      *
      * @param base admin application base URI
      * @param source imported ontology URI
-     * @return vocabulary model
+     * @return vocabulary model, without containment
      */
     protected Model getVocabulary(URI base, URI source)
     {
@@ -208,8 +209,25 @@ public class ImportOntology extends BaseCommand
 
         try (Response response = HttpException.check(target, getClient().get(target, ACCEPT_RDF_XML)))
         {
-            return response.readEntity(Model.class);
+            return removeContainment(response.readEntity(Model.class));
         }
+    }
+
+    /**
+     * Removes the <code>sioc:has_parent</code> and <code>sioc:has_container</code> statements of a fetched vocabulary.
+     * A source served by a LinkedDataHub document describes that document too, and its place in the source's hierarchy
+     * would be stated in the target graph of another application, which the server refuses: containment read across
+     * graphs takes it for the position of its subject. The target's own containment is the server's to assign.
+     *
+     * @param vocabulary fetched vocabulary
+     * @return the same model
+     */
+    static Model removeContainment(Model vocabulary)
+    {
+        vocabulary.removeAll(null, SIOC.has_parent, null);
+        vocabulary.removeAll(null, SIOC.has_container, null);
+
+        return vocabulary;
     }
 
     /**

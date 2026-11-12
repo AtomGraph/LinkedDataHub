@@ -231,7 +231,7 @@ public abstract class IDTokenFilterBase extends AuthenticationFilter
         }
         if (!verify(jwt)) return null; // full verification, expiry included, of the token in use
 
-        String cacheKey = jwt.getIssuer() + jwt.getSubject();
+        List<String> cacheKey = cacheKey(getAdminDataspace().getBaseURI(), jwt);
         final Model agentModel;
         Literal userId = ResourceFactory.createStringLiteral(jwt.getSubject());
         // single get(): with containsKey()-then-get() the entry can expire between the calls and get() returns null
@@ -243,7 +243,11 @@ public abstract class IDTokenFilterBase extends AuthenticationFilter
             qsm.add(SIOC.ID.getLocalName(), userId);
             qsm.add(LACL.issuer.getLocalName(), ResourceFactory.createStringLiteral(jwt.getIssuer()));
 
-            agentModel = loadModel(getUserAccountQuery(), qsm, getAgentService());
+            // an account this dataspace made before accounts moved to the root admin dataspace stands; otherwise the root's,
+            // which every dataspace of the instance shares. No other dataspace's accounts are read
+            Model localModel = loadModel(getUserAccountQuery(), qsm, getAgentService());
+            if (getResourceByPropertyValue(localModel, SIOC.ID, userId) != null || getAgentService().equals(getRootAgentService())) agentModel = localModel;
+            else agentModel = loadModel(getUserAccountQuery(), qsm, getRootAgentService());
         }
 
         Resource account = getResourceByPropertyValue(agentModel, SIOC.ID, userId);
@@ -337,6 +341,20 @@ public abstract class IDTokenFilterBase extends AuthenticationFilter
     }
 
     /**
+     * Returns the token cache key of an ID token on a dataspace.
+     * The account model comes from the dataspace's admin dataset, so the entry is that dataspace's: keyed by the issuer
+     * and subject alone, a token used on one dataspace authenticated on every other until it expired.
+     *
+     * @param adminBase base URI of the dataspace's admin application
+     * @param jwt the ID token
+     * @return the admin base, the issuer and the subject
+     */
+    public static List<String> cacheKey(URI adminBase, DecodedJWT jwt)
+    {
+        return List.of(adminBase.toString(), jwt.getIssuer(), jwt.getSubject());
+    }
+
+    /**
      * Returns the admin application of the current dataspace.
      *
      * @return admin application resource
@@ -347,6 +365,17 @@ public abstract class IDTokenFilterBase extends AuthenticationFilter
             return getDataspace().get().as(EndUserDataspace.class).getAdminDataspace();
         else
             return getDataspace().get().as(AdminDataspace.class);
+    }
+
+    /**
+     * Returns the SPARQL service of the root admin dataspace, which holds the accounts of every dataspace of the instance.
+     *
+     * @return service resource
+     * @see com.atomgraph.linkeddatahub.Application#getRootAdminDataspace()
+     */
+    protected com.atomgraph.linkeddatahub.model.Service getRootAgentService()
+    {
+        return getSystem().getRootAdminDataspace().getService();
     }
 
     /**

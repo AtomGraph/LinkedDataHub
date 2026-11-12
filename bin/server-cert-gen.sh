@@ -72,10 +72,11 @@ if [[ "$(envProp "HOST")" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
         san="subjectAltName=IP:$(envProp "HOST")" # IP address
     fi
 else
+    # the host and every subdomain of it: each dataspace is at one (admin.$HOST, and whatever is created later)
     if [ -n "$proxy_host" ]; then
-        san="subjectAltName=DNS:$(envProp "HOST"),DNS:${proxy_host}" # hostname - special case for localhost
+        san="subjectAltName=DNS:$(envProp "HOST"),DNS:*.$(envProp "HOST"),DNS:${proxy_host}" # hostname - special case for localhost
     else
-        san="subjectAltName=DNS:$(envProp "HOST")" # hostname
+        san="subjectAltName=DNS:$(envProp "HOST"),DNS:*.$(envProp "HOST")" # hostname
     fi
 fi
 

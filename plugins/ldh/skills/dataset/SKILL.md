@@ -26,8 +26,12 @@ References:
 - **One document per resource, so joins cross graphs.** Give each linked resource its own graph
   variable: `GRAPH ?o { ?order schema:customer ?c } GRAPH ?cg { ?c schema:name ?name }`.
 - Writes go to document URLs (`PUT`/`POST`/`PATCH`); `/sparql` is read-only. Use standard SPARQL 1.1.
-- Setup: `export LDH_BASE=https://<dataspace>/ LDH_CERT_FILE=<owner keystore.p12> LDH_CERT_PASSWORD=…`.
-  The password is the deployment's, never a guess.
+- Setup: start every Bash command that runs `ldh` with
+  `export LDH_BASE='${user_config.ldh_base}' LDH_CERT_FILE='${user_config.cert_file}';`, the plugin's
+  settings (`/plugin` → ldh → configure); a variable set in one Bash command is gone by the next. `ldh` reads
+  the certificate's password from `LDH_CERT_PASSWORD`, which the user sets in their own environment, such as
+  the `env` block of `~/.claude/settings.json`. If a setting or the password is missing, ask the user for it:
+  never read `secrets/`, search the disk for a certificate or a password, or guess one.
   Commands that create a document print its URL as the only stdout line; exit `1` is an HTTP failure, including a redirect (its `Location` is on stderr).
 - **Use an `ldh` that matches the instance.** Build it from the same LinkedDataHub checkout or release
   as the running image (`ldh --version`). An instance whose end-user responses carry no

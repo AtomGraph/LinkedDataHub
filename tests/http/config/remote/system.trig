@@ -1,0 +1,47 @@
+@prefix lds:	<https://w3id.org/atomgraph/linkeddatahub/dataspaces#> .
+@prefix a:	<https://w3id.org/atomgraph/core#> .
+@prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .
+@prefix dct:	<http://purl.org/dc/terms/> .
+
+### internal deployment wiring of the second instance: its own datasets in the shared Fuseki
+### (tests/http/config/fuseki/config.ttl), so its owner and authorizations stay out of the first instance's stores ###
+
+# remote admin - type + service binding
+
+<urn:linkeddatahub:apps/remote/admin>
+{
+    <urn:linkeddatahub:apps/remote/admin> a lds:AdminDataspace ;
+        lds:service <urn:linkeddatahub:services/remote/admin> .
+}
+
+# remote admin - service description
+
+<urn:linkeddatahub:services/remote/admin>
+{
+    <urn:linkeddatahub:services/remote/admin> a sd:Service ;
+        dct:title "Remote admin service" ;
+        sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
+        sd:endpoint <http://fuseki:3030/remote.admin/> ;
+        a:graphStore <http://fuseki:3030/remote.admin/> ;
+        a:quadStore <http://fuseki:3030/remote.admin/> .
+}
+
+# remote end-user - type + service binding
+
+<urn:linkeddatahub:apps/remote/end-user>
+{
+    <urn:linkeddatahub:apps/remote/end-user> a lds:EndUserDataspace ;
+        lds:service <urn:linkeddatahub:services/remote/end-user> .
+}
+
+# remote end-user - service description
+
+<urn:linkeddatahub:services/remote/end-user>
+{
+    <urn:linkeddatahub:services/remote/end-user> a sd:Service ;
+        dct:title "Remote service" ;
+        sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
+        sd:endpoint <http://fuseki:3030/remote.end-user/> ;
+        a:graphStore <http://fuseki:3030/remote.end-user/> ;
+        a:quadStore <http://fuseki:3030/remote.end-user/> .
+}

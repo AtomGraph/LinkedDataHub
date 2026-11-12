@@ -114,6 +114,10 @@ public class ApplicationFilter implements ContainerRequestFilter
                 }
                 else
                 {
+                    // only http(s) is proxied: ?uri= is anyone's to set, and the client opens the document it names
+                    if (!"http".equalsIgnoreCase(graphURI.getScheme()) && !"https".equalsIgnoreCase(graphURI.getScheme()))
+                        throw new BadRequestException("Proxied URI <" + graphURI + "> is not an http(s) URI");
+
                     request.setProperty(AC.uri.getURI(), graphURI); // authoritative external proxy marker
 
                     // strip ?uri= from the effective request URI — server-side sees only the path;

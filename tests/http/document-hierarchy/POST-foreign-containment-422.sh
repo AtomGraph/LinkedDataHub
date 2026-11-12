@@ -92,6 +92,20 @@ post "containment of a blank node" "$STATUS_UNPROCESSABLE_ENTITY" \
   "_:thing <http://rdfs.org/sioc/ns#has_parent> <${container}> ."
 assert_nothing_appended
 
+# the refusal says why: its body is the RDF description of the error, titled with the rule the payload broke
+
+body=$(printf '%s\n' "<${other}> <http://rdfs.org/sioc/ns#has_container> <${container}> ." | curl -k -s \
+  -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+  -H "If-Match: $(etag "$item" "$OWNER_CERT_FILE" "$OWNER_CERT_PWD" "application/n-triples")" \
+  -H "Accept: application/n-triples" \
+  -H "Content-Type: application/n-triples" \
+  --data-binary @- \
+  "$item")
+expected="<http://purl.org/dc/terms/title> \"sioc:has_parent and sioc:has_container in document <${item}> can only be stated of the document itself\""
+echo "DEBUG: Expected in body: $expected"
+echo "DEBUG: Got body: $body"
+echo "$body" | grep -qF "$expected" || exit 1
+
 # the other document is where its own graph puts it
 
 other_ntriples=$(ldh get \

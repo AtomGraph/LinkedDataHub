@@ -29,28 +29,3 @@
         lds:public true .
 
 }
-
-# northwind-traders admin
-
-<urn:linkeddatahub:apps/northwind-traders/admin>
-{
-    <urn:linkeddatahub:apps/northwind-traders/admin> a lds:Dataspace ;
-        dct:title "Northwind Traders admin" ;
-        lds:origin <https://admin.northwind-traders.demo.localhost:4443> ;
-        lds:ontology <https://w3id.org/atomgraph/linkeddatahub/admin#> ;
-        ac:stylesheet <https://admin.northwind-traders.demo.localhost:4443/static/xsl/admin/layout.xsl> .
-
-}
-
-# northwind-traders end-user
-
-<urn:linkeddatahub:apps/northwind-traders/end-user>
-{
-    <urn:linkeddatahub:apps/northwind-traders/end-user> a lds:Dataspace ;
-        dct:title "Northwind Traders" ;
-        lds:origin <https://northwind-traders.demo.localhost:4443> ;
-        lds:ontology <https://northwind-traders.demo.localhost:4443/ns#> ;
-        ac:stylesheet <https://northwind-traders.demo.localhost:4443/static/xsl/layout.xsl> ;
-        lds:public true .
-
-}
