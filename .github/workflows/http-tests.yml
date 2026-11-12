@@ -165,7 +165,7 @@ jobs:
           timeout 300 docker compose -f docker-compose.yml -f ./tests/http/docker-compose.http-tests.yml --env-file ./tests/http/.env exec -T linkeddatahub-remote sh -c 'for f in /usr/local/tomcat/logs/*; do echo "=== $f ==="; cat "$f"; done' > tests/http/out/containers/tomcat-remote.log 2>&1 || true
       - name: Upload test results and container logs
         if: always() && hashFiles('tests/http/out/**') != ''
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-results
           path: tests/http/out/
