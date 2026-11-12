@@ -717,6 +717,12 @@ configs:
               set beresp.ttl = 0s;
           }
 
+          /* honour no-store, as the built-in VCL would: this subroutine returns before it runs */
+          if (beresp.http.Cache-Control ~ "no-store") {
+              set beresp.uncacheable = true;
+              set beresp.ttl = 0s;
+          }
+
           return (deliver);
       }
 
