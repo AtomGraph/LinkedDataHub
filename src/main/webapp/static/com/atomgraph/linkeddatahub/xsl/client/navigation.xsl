@@ -194,29 +194,13 @@ ORDER BY DESC(?created)
         </div>
     </xsl:template>
     
+    <!-- marks the document in the tree: the generic activation (client/tree.xsl), given the document's
+         URI without its query params, so a row matches whatever mode the page was opened in -->
     <xsl:template name="ldh:DocTreeActivateHref">
         <xsl:context-item as="element()" use="required"/> <!-- document tree container -->
         <xsl:param name="href" as="xs:anyURI"/>
 
-        <!-- strip query params from href to ensure consistent matching -->
-        <xsl:variable name="target-uri" select="ac:document-uri($href)" as="xs:anyURI"/>
-
-        <!-- make the previously active list items inactive (the state rides the li so the ground spans
-             the disclosure control; aria-current rides the anchor) -->
-        <xsl:for-each select=".//li[contains-token(@class, 'is-active')]">
-            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-active', false())"/>
-            <xsl:for-each select="./div/a">
-                <ixsl:remove-attribute name="aria-current"/>
-            </xsl:for-each>
-        </xsl:for-each>
-        <!-- find li elements whose href (without query params) matches target href (without query params) -->
-        <xsl:for-each select=".//li[./div/a[ac:document-uri(xs:anyURI(@href)) = $target-uri]]">
-            <!-- mark the new list item as active -->
-            <ixsl:set-attribute name="class" select="ldh:set-token(@class, 'is-active', true())"/>
-            <xsl:for-each select="./div/a">
-                <ixsl:set-attribute name="aria-current" select="'page'"/>
-            </xsl:for-each>
-        </xsl:for-each>
+        <xsl:sequence select="ldh:tree-activate(ul, ac:document-uri($href))"/>
     </xsl:template>
 
     <!-- update left-sidebar sections -->
@@ -244,17 +228,21 @@ ORDER BY DESC(?created)
         </xsl:for-each>
     </xsl:template>
 
+    <!-- Opens the path down to the document being read and marks it: the generic descent
+         (client/tree.xsl), handed its ancestor set without a single request, because the document
+         hierarchy is path-nested and a document's ancestors are exactly the lexical prefixes of its
+         URI. The target doubles as the path URI, so the child leading to it is pinned into each page of
+         children whatever the page holds. -->
     <xsl:template name="ldh:DocTreeExpandPathAndActivate">
         <xsl:param name="container" as="element()"/> <!-- document-tree element -->
         <xsl:param name="target" as="xs:anyURI"/> <!-- target document URI (already stripped of query params) -->
 
-        <!-- find the root <li> element (first top-level li in the tree) -->
+        <!-- the root <li> element (first top-level li in the tree) -->
         <xsl:variable name="root-li" select="$container/ul/li[1]" as="element()?"/>
 
         <xsl:choose>
             <xsl:when test="$root-li">
-                <!-- Start recursive descent from root -->
-                <xsl:sequence select="ldh:doctree-descend($root-li, $target, $container)[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ldh:tree-step(map{ 'tree': $container/ul, 'li': $root-li, 'target': $target, 'ancestors': ldh:doc-tree-ancestors($target), 'path-uri': $target })[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:message>ldh:DocTreeExpandPathAndActivate - no root found in tree</xsl:message>
@@ -262,36 +250,22 @@ ORDER BY DESC(?created)
         </xsl:choose>
     </xsl:template>
 
-    <!-- the document hierarchy's relation, named once: a document points at its container with
-         sioc:has_container, a container at its parent with sioc:has_parent, and neither end carries
-         the inverse. Shared by the disclosure and by ldh:doctree-descend, which walks the same
-         relation ahead of the user -->
-    <xsl:function name="ldh:doc-tree-children-query" as="xs:string">
+    <!-- the containers a document sits under, by its URI alone: every prefix of it that ends in a
+         slash, below the origin and above the document itself -->
+    <xsl:function name="ldh:doc-tree-ancestors" as="xs:anyURI*">
         <xsl:param name="uri" as="xs:anyURI"/>
+        <xsl:variable name="string" select="string($uri)" as="xs:string"/>
+        <xsl:variable name="origin-length" select="string-length(replace($string, '^(https?://[^/]+).*$', '$1'))" as="xs:integer"/>
 
-        <xsl:sequence select="ldh:doc-tree-children-query($uri, ())"/>
+        <xsl:sequence select="for $i in ($origin-length + 1) to (string-length($string) - 1) return if (substring($string, $i, 1) = '/') then xs:anyURI(substring($string, 1, $i)) else ()"/>
     </xsl:function>
 
-    <!-- $path-uri: the document being opened to, so the child leading to it is in the page even when
-         the container holds more children than one fetch returns -->
-    <xsl:function name="ldh:doc-tree-children-query" as="xs:string">
-        <xsl:param name="uri" as="xs:anyURI"/>
-        <xsl:param name="path-uri" as="xs:anyURI?"/>
-
-        <xsl:sequence select="ldh:tree-children-query($uri, (xs:anyURI('&sioc;has_parent'), xs:anyURI('&sioc;has_container')), (), $path-uri)"/>
-    </xsl:function>
-
-    <!-- binds the drawer's tree to containment. client/tree.xsl dispatches on the disclosure button, so
-         matching the tree this button sits in is what selects the relation its children are loaded over -->
-    <xsl:template match="button[ancestor::div[contains-token(@class, 'document-tree')]]" mode="ldh:TreeChildrenLoad">
-        <xsl:param name="container" as="element()"/>
-        <xsl:param name="uri" as="xs:anyURI"/>
-
-        <xsl:call-template name="ldh:TreeChildrenFetch">
-            <xsl:with-param name="container" select="$container"/>
-            <xsl:with-param name="uri" select="$uri"/>
-            <xsl:with-param name="query" select="ldh:doc-tree-children-query($uri)"/>
-        </xsl:call-template>
+    <!-- binds the drawer's tree to containment, the document hierarchy's relation named once: a
+         document points at its container with sioc:has_container, a container at its parent with
+         sioc:has_parent, and neither end carries the inverse. client/tree.xsl dispatches on the
+         disclosure button, so matching the tree this button sits in is what selects the relation -->
+    <xsl:template match="button[ancestor::div[contains-token(@class, 'document-tree')]]" mode="ldh:TreeChildrenLoad" as="map(*)">
+        <xsl:sequence select="map{ 'parent-properties': (xs:anyURI('&sioc;has_parent'), xs:anyURI('&sioc;has_container')) }"/>
     </xsl:template>
     
     <!-- only a container can hold child documents, so only a container gets a disclosure. This is the
@@ -477,124 +451,6 @@ ORDER BY DESC(?created)
         <xsl:sequence select="$context"/>
     </xsl:function>
 
-    <!-- Recursive descent function: expands path from current-li down to target-uri -->
-    <xsl:function name="ldh:doctree-descend" as="map(*)" ixsl:updating="yes">
-        <xsl:param name="current-li" as="element()"/> <!-- the <li> element we're currently at -->
-        <xsl:param name="target-uri" as="xs:anyURI"/> <!-- the document URI we want to reach -->
-        <xsl:param name="tree-container" as="element()"/> <!-- the document-tree element -->
-
-        <xsl:variable name="current-href-full" select="xs:anyURI($current-li/div/a/@href)" as="xs:anyURI"/>
-        <!-- Strip query parameters for comparison -->
-        <xsl:variable name="current-href" select="ac:document-uri($current-href-full)" as="xs:anyURI"/>
-
-        <xsl:choose>
-            <!-- Case 1: We've reached the target - activate it -->
-            <xsl:when test="$current-href = $target-uri">
-                <xsl:for-each select="$tree-container">
-                    <xsl:call-template name="ldh:DocTreeActivateHref">
-                        <xsl:with-param name="href" select="$target-uri"/>
-                    </xsl:call-template>
-                </xsl:for-each>
-                <xsl:sequence select="map{}"/>
-            </xsl:when>
-
-            <!-- Case 2: Target URI starts with current href - need to descend further -->
-            <xsl:when test="starts-with(string($target-uri), string($current-href))">
-                <xsl:variable name="expand-button" select="$current-li/div/button[contains-token(@class, 'btn-expand-tree')]" as="element()?"/>
-
-                <xsl:choose>
-                    <!-- Case 2a: Has expand button and not expanded yet - expand and load children.
-
-                         Opened and fetched with the widget's own templates, so pre-expanding a level
-                         ahead of the reader is the same act as clicking it: the loading row shows, the
-                         cursor goes busy and resets, and a failure reaches ldh:promise-failure. This
-                         used to hand-roll all three and got each one wrong - a bare <ul/> with no
-                         loading row, no cursor, and no on-failure, so a failure mid-descent was silent.
-                         The next step down rides ldh:TreeChildrenFetch's continuation. -->
-                    <xsl:when test="$expand-button and not($current-li/ul)">
-                        <xsl:call-template name="ldh:TreeNodeDisclose">
-                            <xsl:with-param name="li" select="$current-li"/>
-                        </xsl:call-template>
-
-                        <xsl:call-template name="ldh:TreeChildrenPlaceholder">
-                            <xsl:with-param name="li" select="$current-li"/>
-                        </xsl:call-template>
-
-                        <xsl:call-template name="ldh:TreeChildrenFetch">
-                            <xsl:with-param name="container" select="$current-li/ul"/>
-                            <xsl:with-param name="uri" select="$current-href"/>
-                            <xsl:with-param name="query" select="ldh:doc-tree-children-query($current-href, $target-uri)"/>
-                            <xsl:with-param name="then" select="ldh:doctree-descend-after-load(?, $current-li, $target-uri, $tree-container)"/>
-                        </xsl:call-template>
-
-                        <xsl:sequence select="map{}"/>
-                    </xsl:when>
-
-                    <!-- Case 2b: Already expanded - find next child to descend into -->
-                    <xsl:when test="$current-li/ul/li[./div/a]">
-                        <!-- Find which child's href (without query params) is a prefix of target-uri -->
-                        <xsl:variable name="next-li" select="$current-li/ul/li[./div/a/@href][starts-with(string($target-uri), string(ac:document-uri(xs:anyURI(./div/a/@href))))][1]" as="element()?"/>
-
-                        <xsl:choose>
-                            <xsl:when test="$next-li">
-                                <xsl:sequence select="ldh:doctree-descend($next-li, $target-uri, $tree-container)"/>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <xsl:for-each select="$tree-container">
-                                    <xsl:call-template name="ldh:DocTreeActivateHref">
-                                        <xsl:with-param name="href" select="$target-uri"/>
-                                    </xsl:call-template>
-                                </xsl:for-each>
-                                <xsl:sequence select="map{}"/>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                    </xsl:when>
-
-                    <!-- Case 2c: Has expand button but <ul> exists and is empty (loading in progress) -->
-                    <xsl:otherwise>
-                        <xsl:sequence select="map{}"/>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </xsl:when>
-
-            <!-- Case 3: Target is not under this branch -->
-            <xsl:otherwise>
-                <xsl:sequence select="map{}"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:function>
-
-    <!-- Helper to continue descent after children are loaded -->
-    <xsl:function name="ldh:doctree-descend-after-load" as="map(*)" ixsl:updating="yes">
-        <xsl:param name="load-context" as="map(*)"/> <!-- context from loading -->
-        <xsl:param name="current-li" as="element()"/>
-        <xsl:param name="target-uri" as="xs:anyURI"/>
-        <xsl:param name="tree-container" as="element()"/>
-
-        <!-- Find which child's href (without query params) is a prefix of target-uri. A row carrying no
-             anchor is not a child to descend into: the loading placeholder is exactly that, and it is
-             still in the list whenever the children never landed - an anonymous reader's children query
-             is refused by the endpoint - where ac:document-uri() of its absent @href ended the walk in a
-             cardinality error that ldh:promise-failure alerted raw. ldh:tree-node-uri is empty-tolerant
-             for the same reason, and says so; the descent never adopted it. -->
-        <xsl:variable name="next-li" select="$current-li/ul/li[./div/a/@href][starts-with(string($target-uri), string(ac:document-uri(xs:anyURI(./div/a/@href))))][1]" as="element()?"/>
-
-        <xsl:choose>
-            <xsl:when test="$next-li">
-                <xsl:sequence select="ldh:doctree-descend($next-li, $target-uri, $tree-container)"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:for-each select="$tree-container">
-                    <xsl:call-template name="ldh:DocTreeActivateHref">
-                        <xsl:with-param name="href" select="$target-uri"/>
-                    </xsl:call-template>
-                </xsl:for-each>
-                <xsl:sequence select="$load-context"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:function>
-
-    
     <xsl:function name="ldh:backlinks-response" as="map(*)" ixsl:updating="yes">
         <xsl:param name="context" as="map(*)"/>
         <xsl:variable name="response" select="$context('response')" as="map(*)"/>

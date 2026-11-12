@@ -2,7 +2,10 @@
 ### Added
 - A package stylesheet is checked against the package contract when the platform takes its copy, and what breaks the contract is logged with its line: templates outside the open modes, names in the platform's namespaces, global settings, imports, anything in the `ixsl:` namespace (instructions, functions, `ixsl:updating`, event modes), reads of resources or the environment, run-time code, literal ids, and a rule in a collecting mode that does not end with `xsl:next-match`. A package renders and nothing else, so what it calls in the platform needs no analysis. The platform side is derived from its stylesheets: the open modes from `hooks.xsl` and `client/hooks.xsl`, the collecting modes from `ldh:collecting`. Nothing is refused yet (`PACKAGE-CONTRACT.md`)
 
+- A tree opens the path down to a node for any domain: `ul.ldh-tree` carrying `data-tree-reveal` is climbed one hop per request over the relation its `ldh:TreeParentsLoad` rule names (a new open mode), descended one level per request along every branch of the ancestor set, and the node is marked and scrolled into view, all in `client/tree.xsl`. The drawer's document tree runs on the same descent and activation, handed its ancestors as the lexical prefixes of the document's URI
+
 ### Changed
+- `ldh:TreeChildrenLoad` answers with data: a rule returns the predicates that link a node to its children (`parent-properties`, `child-properties`) and the platform builds and runs the children query; it used to call `ldh:TreeChildrenFetch` itself
 - `ldh:RowHook` is no longer an open mode: a factory of deferred work is control flow, which a package does not get. The mode and the platform's view injection moved from `client/hooks.xsl` to `client/block.xsl`, beside the `ldh:RenderRow` walk
 
 ## [6.5.2] - 2026-11-12

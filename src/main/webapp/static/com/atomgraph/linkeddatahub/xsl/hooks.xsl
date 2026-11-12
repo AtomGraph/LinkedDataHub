@@ -71,6 +71,9 @@ exclude-result-prefixes="#all"
             ldh:TreeChildrenLoad  (client only, see client/hooks.xsl) which relations link a tree node
                                   to its children: a map of predicates the platform turns into the
                                   fetch. Replace.
+            ldh:TreeParentsLoad   (client only, see client/hooks.xsl) which relations link a node to
+                                  its parents, for a tree that asks (data-tree-reveal) to be opened down
+                                  to a node: the platform climbs, descends, marks and scrolls. Replace.
             the value leaves      (imports/values.xsl, imported below) ac:FormControl, ac:PropertyListValue,
                                   ac:ValueAnnotations, ldh:TypeControl, ac:property-label, ac:object-label,
                                   ac:lang-tag, ac:ResultsTableHeaderCell, xhtml:Anchor/svg:Anchor and the
