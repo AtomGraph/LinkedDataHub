@@ -1,4 +1,7 @@
 ## [Unreleased]
+### Migration
+- Run `make secrets` before `make up`: the stack needs `FUSEKI_ADMIN_PASSWORD` in `.env` for Fuseki's admin API (#531)
+
 ### Added
 - Fuseki's admin API is on: `POST /$/datasets` creates a dataset at runtime and `DELETE /$/datasets/<name>` removes one, for the administrator only (`FUSEKI_ADMIN_PASSWORD` in `.env`, which `make secrets` writes); a dataset per dataspace can be made without editing `config.ttl` and restarting. Created datasets live under `./fuseki/run`
 - `ldh get --timemap` and `--timegate` follow the `Link` the document advertises, and `--timegate` waits as a `503` with `Retry-After` asks
