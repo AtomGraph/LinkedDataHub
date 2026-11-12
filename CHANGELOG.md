@@ -1,4 +1,4 @@
-## [Unreleased]
+## [6.5.1] - 2026-11-12
 ### Fixed
 - The `ldh` plugin ships no hook, which the plugin directory refuses: its skills pass the base and certificate settings to `ldh`, and the password comes from `LDH_CERT_PASSWORD` in the user's environment
 
