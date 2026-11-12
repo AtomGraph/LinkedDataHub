@@ -24,10 +24,12 @@ References:
   linked resource its own graph variable, because each resource lives in its own document.
 - A document is not the thing it describes. The topic is `<doc#this>`, linked with
   `foaf:primaryTopic`, and its properties go there.
-- Setup: the plugin's settings (`/plugin` → ldh → configure) supply the dataspace base, the owner's
-  WebID certificate and its password, which `ldh` reads as `LDH_BASE`, `LDH_CERT_FILE` and
-  `LDH_CERT_PASSWORD`. The configured base is ${user_config.ldh_base}. If one is missing, ask the user
-  to configure the plugin: never search the disk for a certificate or a password, and never guess one.
+- Setup: start every Bash command that runs `ldh` with
+  `export LDH_BASE='${user_config.ldh_base}' LDH_CERT_FILE='${user_config.cert_file}';`, the plugin's
+  settings (`/plugin` → ldh → configure); a variable set in one Bash command is gone by the next. `ldh` reads
+  the certificate's password from `LDH_CERT_PASSWORD`, which the user sets in their own environment, such as
+  the `env` block of `~/.claude/settings.json`. If a setting or the password is missing, ask the user for it:
+  never read `secrets/`, search the disk for a certificate or a password, or guess one.
 - **Use an `ldh` that matches the instance.** Build it from the same LinkedDataHub checkout or release
   as the running image (`ldh --version`). An instance whose end-user responses carry no
   `https://w3id.org/atomgraph/linkeddatahub/dataspaces#admin` `Link` (check with `ldh get --head --accept text/turtle "$LDH_BASE"`)

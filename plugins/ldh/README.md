@@ -18,13 +18,15 @@ CLI (`make cli` in this repository).
 
 ## Configure
 
-`/plugin` → ldh → configure asks for three settings, which a hook hands to `ldh` at the start of each session:
+`/plugin` → ldh → configure asks for two settings, which the skills pass to `ldh`:
 
 | Setting | `ldh` reads it as |
 |---|---|
 | LinkedDataHub base URL: the end-user base of the dataspace, e.g. `https://inventory.localhost:4443/` | `LDH_BASE` |
-| WebID certificate: the owner's keystore, which the `linkeddatahub` container generates at `ssl/owner/keystore.p12` in the checkout (`ssl/owner/cert.pem` works too) | `LDH_CERT_FILE` |
-| Certificate password: the one in `secrets/owner_cert_password.txt`, kept in the system credential store | `LDH_CERT_PASSWORD` |
+| WebID certificate: the path to the owner's keystore, which the `linkeddatahub` container generates at `ssl/owner/keystore.p12` in the checkout (`ssl/owner/cert.pem` works too) | `LDH_CERT_FILE` |
+
+The certificate's password is not a plugin setting: set `LDH_CERT_PASSWORD` in your own environment, for example in
+the `env` block of `~/.claude/settings.json`. It is the one in `secrets/owner_cert_password.txt`.
 
 Provisioning a dataspace needs none of them.
 
@@ -34,7 +36,7 @@ The plugin runs no service of its own and sends nothing to AtomGraph. Its skills
 CLI, which sends requests only to:
 
 - the LinkedDataHub instance at the configured base URL, authenticated with the configured WebID client
-  certificate. Its password stays in the system credential store and is handed only to `ldh`;
+  certificate, whose password `ldh` reads from the user's own environment;
 - a package registry the user names, when publishing or importing a package (`ldh:package`).
 
 What is sent is the data the user asks the agent to load: documents, ontologies, imported CSV and RDF. It stays on
