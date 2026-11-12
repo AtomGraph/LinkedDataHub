@@ -54,6 +54,12 @@ exclude-result-prefixes="#all"
         a rule that wins here cannot interrupt a walk, drop a subtree or unhook another mode, because
         the walks live above the packages and merely apply these modes to what they visit.
 
+        A package RENDERS, and that is all its stylesheet does: a rule returns markup or data, and the
+        platform places it or acts on it. No ixsl: of any kind (instructions, functions, ixsl:updating,
+        event modes), no reading of resources or the environment, no code chosen at run time
+        (PackageContract checks it, see PACKAGE-CONTRACT.md). What a package wants DONE - a request, a
+        change to data - it declares as an action in its ontology, which the platform carries out.
+
         The open modes, and what a package rule in each one owes:
 
             ldh:TreeNode          renders one tree node. The fallback below is a default renderer:
@@ -62,10 +68,9 @@ exclude-result-prefixes="#all"
             ac:PropertyEditor     renders one resource's property list (this module) or one statement
                                   row (Web-Client, below). Replace or decorate; an empty rule hides.
             ldh:ContentColumn     a slot beside the content body. Nothing to inherit: fill it or not.
-            ldh:TreeChildrenLoad  (client only) the children fetch for one node. Replace.
-            ldh:RowHook           (client only, see client/hooks.xsl) factories of deferred work for one
-                                  rendered row. Contribute; there is nothing to inherit unless another
-                                  package claimed the same node.
+            ldh:TreeChildrenLoad  (client only, see client/hooks.xsl) which relations link a tree node
+                                  to its children: a map of predicates the platform turns into the
+                                  fetch. Replace.
             the value leaves      (imports/values.xsl, imported below) ac:FormControl, ac:PropertyListValue,
                                   ac:ValueAnnotations, ldh:TypeControl, ac:property-label, ac:object-label,
                                   ac:lang-tag, ac:ResultsTableHeaderCell, xhtml:Anchor/svg:Anchor and the

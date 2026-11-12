@@ -21,7 +21,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -43,24 +42,24 @@ import org.slf4j.LoggerFactory;
  * What a package stylesheet may declare and call, checked as XML before it is composed with the platform's.
  *
  * Import precedence keeps a package from overriding the platform's own rules (see {@link StylesheetComposer}), but not
- * from overriding another package, from adding rules where the platform has none, or from writing anywhere on the
- * page. The contract closes those: a package declares templates only in the open modes and names only in its own
- * namespace, changes no global setting, imports nothing, never writes the page or reads another resource itself, and
- * calls no platform code that does, except the entry points that confine the write to the region the package was
- * given. See <code>PACKAGE-CONTRACT.md</code>.
+ * from overriding another package, from adding rules where the platform has none, or from acting on the page. The
+ * contract closes those: a package declares templates only in the open modes and names only in its own namespace,
+ * changes no global setting, imports nothing, and has no effect of its own. It renders: no interactive XSLT
+ * (<code>ixsl:</code>) at all, no reading of resources or the environment, no code chosen at run time. What a rule
+ * returns, the platform places; what a package wants done, it declares as an action the platform carries out. See
+ * <code>PACKAGE-CONTRACT.md</code>.
+ *
+ * With no <code>ixsl:</code> and no I/O a package rule can only compute, so it may call any platform function, named
+ * template or open mode without the platform's code being analysed for what it does.
  *
  * The platform side is derived from the platform's stylesheets, never listed by hand, so it cannot drift from them:
- * <ul>
- *   <li>the open modes are the modes declared or matched in the modules below the composition marker
- *   (<code>hooks.xsl</code>, <code>client/hooks.xsl</code> and what they import), the unnamed mode included when they
- *   have mode-less rules;</li>
- *   <li>the collecting modes are those whose <code>xsl:mode</code> carries <code>ldh:collecting="true"</code>;</li>
- *   <li>the platform code a package may not call is every function, named template and mode that writes the page or
- *   reads a resource, directly or through what it calls, found by following calls through the whole import tree.</li>
- * </ul>
+ * the open modes are the modes declared or matched in the modules below the composition marker
+ * (<code>hooks.xsl</code>, <code>client/hooks.xsl</code> and what they import), the unnamed mode included when they
+ * have mode-less rules; the collecting modes are those whose <code>xsl:mode</code> carries
+ * <code>ldh:collecting="true"</code>.
  *
  * Function calls are found by a lexer that skips string literals and comments, not by parsing: the expressions refer
- * to functions of the platform and of the browser that no static context here can declare.
+ * to functions of the platform that no static context here can declare.
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
@@ -89,29 +88,12 @@ public class PackageContract
     /** Namespaces a package may not declare names in; the empty string is no namespace */
     public static final Set<String> PLATFORM_NAMESPACES = Set.of(LDH_NS, AC_NS, LDS_NS, "http://www.w3.org/1999/xhtml", "http://www.w3.org/2000/svg", "");
 
-    /** Instructions that write the page or a result document */
-    public static final Set<String> WRITE_INSTRUCTIONS = Set.of(
-        clark(XSL_NS, "result-document"),
-        clark(IXSL_NS, "set-attribute"), clark(IXSL_NS, "remove-attribute"),
-        clark(IXSL_NS, "set-property"), clark(IXSL_NS, "remove-property"),
-        clark(IXSL_NS, "set-style"), clark(IXSL_NS, "schedule-action"));
-
-    /** Functions that reach the page, the window or JavaScript, which is all of it: a package may call none of them */
-    public static final Set<String> WRITE_FUNCTIONS = Set.of(
-        clark(IXSL_NS, "page"), clark(IXSL_NS, "window"), clark(IXSL_NS, "call"),
-        clark(IXSL_NS, "apply"), clark(IXSL_NS, "eval"));
-
-    /** The ones among them that can change something by themselves; the page and the window only hand out objects,
-     * which the platform reads with <code>ixsl:get</code> (<code>navigator.languages</code>) as often as it writes them */
-    public static final Set<String> CALL_FUNCTIONS = Set.of(clark(IXSL_NS, "call"), clark(IXSL_NS, "apply"), clark(IXSL_NS, "eval"));
-
     /** Functions that read a resource or the environment */
-    public static final Set<String> READ_FUNCTIONS = Set.of(
+    public static final Set<String> IO_FUNCTIONS = Set.of(
         clark(FN_NS, "document"), clark(FN_NS, "doc"), clark(FN_NS, "doc-available"),
         clark(FN_NS, "unparsed-text"), clark(FN_NS, "unparsed-text-lines"), clark(FN_NS, "unparsed-text-available"),
         clark(FN_NS, "json-doc"), clark(FN_NS, "collection"), clark(FN_NS, "uri-collection"),
-        clark(FN_NS, "environment-variable"), clark(FN_NS, "available-environment-variables"),
-        clark(IXSL_NS, "http-request"));
+        clark(FN_NS, "environment-variable"), clark(FN_NS, "available-environment-variables"));
 
     /** Functions and instructions that run code chosen at run time, which no static check can follow */
     public static final Set<String> DYNAMIC_FUNCTIONS = Set.of(
@@ -132,11 +114,6 @@ public class PackageContract
         "select", "test", "use", "match", "group-by", "group-adjacent", "group-starting-with", "group-ending-with",
         "value", "from", "count", "initial-value", "use-when", "with-params", "context-item", "for-each-item", "for-each-source");
 
-    /** Platform entry points that confine their writes to the container they are given: function or named template, by name */
-    public static final Set<String> REGION_CHECKED = Set.of(
-        "f:" + clark(LDH_NS, "load-block"),
-        "t:" + clark(LDH_NS, "TreeChildrenFetch"));
-
     private static final QName MODE = new QName("mode");
     private static final QName NAME = new QName("name");
     private static final QName MATCH = new QName("match");
@@ -146,12 +123,11 @@ public class PackageContract
     private static final QName EXPAND_TEXT = new QName("expand-text");
     private static final QName XSL_EXPAND_TEXT = new QName(XSL_NS, "expand-text");
     private static final QName COLLECTING = new QName(LDH_NS, "collecting");
-    private static final QName EFFECT = new QName(LDH_NS, "effect");
 
     /**
      * A breach of the contract.
      *
-     * @param rule the rule broken: modes, names, globals, imports, writes, reads, dynamic, ids, collecting or platform-call
+     * @param rule the rule broken: modes, names, globals, imports, ixsl, io, dynamic, ids or collecting
      * @param element the element that breaks it, as its qualified name
      * @param line the element's line in the stylesheet, or -1 if unknown
      * @param detail what about it breaks the rule
@@ -168,28 +144,19 @@ public class PackageContract
     private final Processor processor;
     private final Set<String> openModes;
     private final Set<String> collectingModes;
-    private final Set<String> impure;
-    private final Map<String, String> causes;
-    private final Set<String> allowed;
 
     /**
-     * Constructs a contract from what the platform opens, collects and must not have called.
+     * Constructs a contract from what the platform opens and collects.
      *
      * @param processor Saxon processor the stylesheets are read with
      * @param openModes open modes, as Clark names, the unnamed mode as {@value #UNNAMED_MODE}
      * @param collectingModes collecting modes, as Clark names
-     * @param impure platform functions (<code>f:</code>), named templates (<code>t:</code>) and modes (<code>m:</code>) that write or read
-     * @param causes for a unit impure through what it calls, the unit it calls that made it so
-     * @param allowed the ones among them a package may still call
      */
-    public PackageContract(Processor processor, Set<String> openModes, Set<String> collectingModes, Set<String> impure, Map<String, String> causes, Set<String> allowed)
+    public PackageContract(Processor processor, Set<String> openModes, Set<String> collectingModes)
     {
         this.processor = processor;
         this.openModes = Collections.unmodifiableSet(openModes);
         this.collectingModes = Collections.unmodifiableSet(collectingModes);
-        this.impure = Collections.unmodifiableSet(impure);
-        this.causes = Collections.unmodifiableMap(causes);
-        this.allowed = Collections.unmodifiableSet(allowed);
     }
 
     /**
@@ -209,9 +176,6 @@ public class PackageContract
 
         Set<String> openModes = new HashSet<>();
         Set<String> collectingModes = new HashSet<>();
-        Map<String, Set<String>> calls = new HashMap<>();
-        Set<String> direct = new HashSet<>();
-        Set<String> readers = new HashSet<>();
 
         for (Map.Entry<String, XdmNode> module : modules.entrySet())
         {
@@ -230,54 +194,13 @@ public class PackageContract
                     if ("true".equals(decl.getAttributeValue(COLLECTING))) collectingModes.add(mode);
                 }
 
-                List<String> units = units(decl, stylesheet);
-                if (units.isEmpty()) continue;
-                if (open && decl.getAttributeValue(MATCH) != null)
-                    for (String unit : units) if (unit.startsWith("m:")) openModes.add(unit.substring(2));
-
-                // the platform vouches for a function that computes through JavaScript (decodeURIComponent,
-                // crypto.randomUUID) or reads only its own resources (translations.rdf): ldh:effect="none" makes it a
-                // leaf with no effect, its calls not followed
-                if ("none".equals(decl.getAttributeValue(EFFECT))) continue;
-
-                Set<String> targets = new HashSet<>();
-                Effect effect = body(decl, stylesheet, units, targets);
-                for (String unit : units)
-                {
-                    calls.computeIfAbsent(unit, k -> new HashSet<>()).addAll(targets);
-                    if (effect.writes()) direct.add(unit);
-                    // a mode reads with URIs its templates derive from the node, which a package does not choose
-                    if (effect.reads() && !unit.startsWith("m:")) readers.add(unit);
-                }
+                if (open && local(decl).equals("template") && decl.getAttributeValue(MATCH) != null)
+                    for (String mode : modes(decl, stylesheet)) if (!mode.equals("#all")) openModes.add(mode);
             }
         }
 
-        // what calls a writer writes: grow the set until it stops growing
-        Set<String> impure = new HashSet<>(direct);
-        Map<String, String> because = new HashMap<>();
-        boolean grew = true;
-        while (grew)
-        {
-            grew = false;
-            for (Map.Entry<String, Set<String>> unit : calls.entrySet())
-                if (!impure.contains(unit.getKey()))
-                    for (String target : unit.getValue())
-                        if (impure.contains(target))
-                        {
-                            impure.add(unit.getKey());
-                            because.put(unit.getKey(), target);
-                            grew = true;
-                            break;
-                        }
-        }
-
-
-        // a reader is forbidden by itself, not through its callers: what it requests is what its caller passes it,
-        // while a function that calls one decides the URL on its own (a label lookup, the dataspace's endpoint)
-        impure.addAll(readers);
-
-        if (log.isDebugEnabled()) log.debug("Package contract: {} modules, {} open modes, {} collecting modes, {} writing or reading units", modules.size(), openModes.size(), collectingModes.size(), impure.size());
-        return new PackageContract(processor, openModes, collectingModes, impure, because, REGION_CHECKED);
+        if (log.isDebugEnabled()) log.debug("Package contract: {} modules, {} open modes, {} collecting modes", modules.size(), openModes.size(), collectingModes.size());
+        return new PackageContract(processor, openModes, collectingModes);
     }
 
     /**
@@ -352,68 +275,32 @@ public class PackageContract
         for (XdmNode elem : descendants(stylesheet))
         {
             String name = clark(ns(elem), local(elem));
-            if (WRITE_INSTRUCTIONS.contains(name)) violations.add(violation("writes", elem, "writes the page; return the content and let the platform place it"));
-            if (name.equals(clark(XSL_NS, "evaluate"))) violations.add(violation("dynamic", elem, "evaluates an expression built at run time"));
+            if (IXSL_NS.equals(ns(elem))) violations.add(violation("ixsl", elem, "acts on the page; return the content and let the platform place it, or declare an action"));
             for (XdmNode attr : attributes(elem))
+            {
+                if (IXSL_NS.equals(ns(attr))) violations.add(violation("ixsl", elem, attr.getNodeName() + " marks code that acts on the page"));
                 if (XSL_NS.equals(ns(elem)) && local(attr).startsWith("_") && ns(attr).isEmpty())
                     violations.add(violation("dynamic", elem, "shadow attribute " + local(attr) + " builds an expression at compile time"));
+            }
+
+            if (name.equals(clark(XSL_NS, "result-document"))) violations.add(violation("io", elem, "writes a result document; return the content and let the platform place it"));
+            if (name.equals(clark(XSL_NS, "evaluate"))) violations.add(violation("dynamic", elem, "evaluates an expression built at run time"));
 
             if (!XSL_NS.equals(ns(elem)) && !IXSL_NS.equals(ns(elem)) && elem.getAttributeValue(ID) != null)
                 violations.add(violation("ids", elem, "id \"" + elem.getAttributeValue(ID) + "\": the platform finds its own elements by id; address the package's markup by class"));
             if (name.equals(clark(XSL_NS, "attribute")) && "id".equals(elem.getAttributeValue(NAME)))
                 violations.add(violation("ids", elem, "constructs an id attribute"));
 
-            for (String[] call : calls(elem))
+            for (String call : calls(elem))
             {
-                String fn = function(elem, call[0]);
-                if (WRITE_FUNCTIONS.contains(fn)) violations.add(violation("writes", elem, call[0] + " reaches the page outside the package's region"));
-                else if (READ_FUNCTIONS.contains(fn)) violations.add(violation("reads", elem, call[0] + " reads a resource; ask the platform to make the request"));
-                else if (DYNAMIC_FUNCTIONS.contains(fn)) violations.add(violation("dynamic", elem, call[0] + " calls code chosen at run time"));
-                else platformCall(violations, elem, "f:" + fn, call[0]);
+                String fn = function(elem, call);
+                if (IXSL_NS.equals(namespace(fn))) violations.add(violation("ixsl", elem, call + " reaches the page, the window or JavaScript"));
+                else if (IO_FUNCTIONS.contains(fn)) violations.add(violation("io", elem, call + " reads a resource or the environment; the platform makes the requests"));
+                else if (DYNAMIC_FUNCTIONS.contains(fn)) violations.add(violation("dynamic", elem, call + " calls code chosen at run time"));
             }
-
-            if (name.equals(clark(XSL_NS, "call-template")) && elem.getAttributeValue(NAME) != null)
-                platformCall(violations, elem, "t:" + qname(elem, elem.getAttributeValue(NAME)), elem.getAttributeValue(NAME));
-            // an open mode may always be applied: it is the platform's extension surface, and keeping it from writing
-            // when applied to a value is the platform's side of the contract. A mode analysis cannot do that for it:
-            // the unnamed mode renders a property value and, from the document root, the whole page
-            if (name.equals(clark(XSL_NS, "apply-templates")))
-                for (String mode : appliedModes(elem, stylesheet))
-                    if (!openModes.contains(mode)) platformCall(violations, elem, "m:" + mode, label(mode));
         }
 
         return violations;
-    }
-
-    private void platformCall(List<Violation> violations, XdmNode elem, String unit, String label)
-    {
-        if (getImpure().contains(unit) && !getAllowed().contains(unit))
-        {
-            List<String> chain = getChain(unit);
-            violations.add(violation("platform-call", elem, label + " writes the page or requests a URL" +
-                (chain.size() > 1 ? ", through " + String.join(" > ", chain.subList(1, chain.size()).stream().map(PackageContract::unitLabel).toList()) : "")));
-        }
-    }
-
-    /**
-     * Returns why a platform unit is impure: the unit, what it calls that is impure, and so on down to the unit that
-     * writes or reads by itself.
-     *
-     * @param unit <code>f:</code>, <code>t:</code> or <code>m:</code> prefixed Clark name
-     * @return the chain, starting with the unit; empty if the unit is not impure
-     */
-    public List<String> getChain(String unit)
-    {
-        List<String> chain = new ArrayList<>();
-        if (!getImpure().contains(unit)) return chain;
-        Set<String> seen = new HashSet<>();
-        for (String u = unit; u != null && seen.add(u); u = causes.get(u)) chain.add(u);
-        return chain;
-    }
-
-    private static String unitLabel(String unit)
-    {
-        return label(unit.substring(2));
     }
 
     /**
@@ -430,7 +317,7 @@ public class PackageContract
         return last != null && XSL_NS.equals(ns(last)) && local(last).equals("next-match");
     }
 
-    // PLATFORM ANALYSIS
+    // PLATFORM MODULES
 
     private static void load(Processor processor, URL url, boolean open, Map<String, XdmNode> modules, Set<String> openModules)
     {
@@ -491,71 +378,6 @@ public class PackageContract
                 }
     }
 
-    /**
-     * Returns what a top-level declaration can be called as: <code>f:</code> a function, <code>t:</code> a named
-     * template, <code>m:</code> each mode a template rule is in.
-     */
-    private static List<String> units(XdmNode decl, XdmNode stylesheet)
-    {
-        List<String> units = new ArrayList<>();
-        String local = local(decl);
-        if (local.equals("function") && decl.getAttributeValue(NAME) != null)
-            units.add("f:" + qname(decl, decl.getAttributeValue(NAME)));
-        if (local.equals("template"))
-        {
-            if (decl.getAttributeValue(NAME) != null) units.add("t:" + qname(decl, decl.getAttributeValue(NAME)));
-            if (decl.getAttributeValue(MATCH) != null)
-                for (String mode : modes(decl, stylesheet)) if (!mode.equals("#all")) units.add("m:" + mode);
-        }
-        return units;
-    }
-
-    /**
-     * What a function or template does by itself.
-     *
-     * @param writes it writes the page, or runs code chosen at run time
-     * @param reads it requests a URL it does not hold as a constant
-     */
-    private record Effect(boolean writes, boolean reads) { }
-
-    /**
-     * Collects what a function or template calls, and returns what it does by itself.
-     */
-    private static Effect body(XdmNode decl, XdmNode stylesheet, List<String> units, Set<String> targets)
-    {
-        boolean writes = false, reads = false;
-        for (XdmNode elem : descendantsOrSelf(decl))
-        {
-            String name = clark(ns(elem), local(elem));
-            if (WRITE_INSTRUCTIONS.contains(name) || name.equals(clark(XSL_NS, "evaluate"))) writes = true;
-
-            for (String[] call : calls(elem))
-            {
-                String fn = function(elem, call[0]);
-                // a read of a constant URI is the platform reading its own resources (translations.rdf), not a request
-                // a caller can aim; a package gets no such allowance (check)
-                boolean constant = READ_FUNCTIONS.contains(fn) && call.length > 1 && call[1] != null;
-                if (CALL_FUNCTIONS.contains(fn) || DYNAMIC_FUNCTIONS.contains(fn)) writes = true;
-                else if (WRITE_FUNCTIONS.contains(fn)) continue;
-                else if (READ_FUNCTIONS.contains(fn)) reads |= !constant;
-                else targets.add("f:" + fn);
-            }
-
-            if (name.equals(clark(XSL_NS, "call-template")) && elem.getAttributeValue(NAME) != null)
-                targets.add("t:" + qname(elem, elem.getAttributeValue(NAME)));
-            if (name.equals(clark(XSL_NS, "apply-templates")))
-            {
-                String mode = elem.getAttributeValue(MODE);
-                if ("#current".equals(mode))
-                {
-                    for (String unit : units) if (unit.startsWith("m:")) targets.add(unit);
-                }
-                else for (String applied : appliedModes(elem, stylesheet)) targets.add("m:" + applied);
-            }
-        }
-        return new Effect(writes, reads);
-    }
-
     // STYLESHEET STRUCTURE
 
     /**
@@ -576,18 +398,6 @@ public class PackageContract
         return modes;
     }
 
-    /**
-     * Returns the modes an <code>xsl:apply-templates</code> applies, leaving out <code>#current</code>.
-     */
-    private static List<String> appliedModes(XdmNode apply, XdmNode stylesheet)
-    {
-        String mode = apply.getAttributeValue(MODE);
-        if (mode == null || mode.equals("#default")) return List.of(defaultMode(stylesheet));
-        if (mode.equals("#current")) return List.of();
-        if (mode.equals("#unnamed")) return List.of(UNNAMED_MODE);
-        return List.of(qname(apply, mode));
-    }
-
     private static String defaultMode(XdmNode stylesheet)
     {
         String mode = stylesheet.getAttributeValue(DEFAULT_MODE);
@@ -598,9 +408,9 @@ public class PackageContract
      * Returns the function names an element's own expressions call or reference, as lexical QNames: its expression
      * attributes, the expressions in its attribute value templates, and its text value templates.
      */
-    private static List<String[]> calls(XdmNode elem)
+    private static List<String> calls(XdmNode elem)
     {
-        List<String[]> calls = new ArrayList<>();
+        List<String> calls = new ArrayList<>();
         boolean xsl = XSL_NS.equals(ns(elem));
         boolean ixsl = IXSL_NS.equals(ns(elem));
 
@@ -687,11 +497,11 @@ public class PackageContract
      * to no function in a namespace the contract cares about.
      *
      * @param expr expression
-     * @return lexical function names, each with a second element: the argument when it is a single string literal, else null
+     * @return lexical function names
      */
-    public static List<String[]> names(String expr)
+    public static List<String> names(String expr)
     {
-        List<String[]> names = new ArrayList<>();
+        List<String> names = new ArrayList<>();
         int i = 0, n = expr.length();
         while (i < n)
         {
@@ -724,25 +534,13 @@ public class PackageContract
 
                 int j = skipSpace(expr, i);
                 if (j + 1 < n && expr.charAt(j) == ':' && expr.charAt(j + 1) == ':') continue; // an axis
-                if (j < n && expr.charAt(j) == '(' && !(j + 1 < n && expr.charAt(j + 1) == ':')) names.add(new String[] { name, literalArgument(expr, j) });
-                else if (j + 1 < n && expr.charAt(j) == '#' && Character.isDigit(expr.charAt(j + 1))) names.add(new String[] { name, null });
+                if (j < n && expr.charAt(j) == '(' && !(j + 1 < n && expr.charAt(j + 1) == ':')) names.add(name);
+                else if (j + 1 < n && expr.charAt(j) == '#' && Character.isDigit(expr.charAt(j + 1))) names.add(name);
                 continue;
             }
             i++;
         }
         return names;
-    }
-
-    /**
-     * Returns the argument list's only argument if it is a string literal, else null.
-     */
-    private static String literalArgument(String expr, int open)
-    {
-        int i = skipSpace(expr, open + 1);
-        if (i >= expr.length() || (expr.charAt(i) != '\'' && expr.charAt(i) != '"')) return null;
-        int end = skipString(expr, i);
-        int close = skipSpace(expr, end);
-        return close < expr.length() && expr.charAt(close) == ')' ? expr.substring(i + 1, end - 1) : null;
     }
 
     private static boolean precededByDollar(String expr, int start)
@@ -899,14 +697,6 @@ public class PackageContract
         return descendants;
     }
 
-    private static List<XdmNode> descendantsOrSelf(XdmNode parent)
-    {
-        List<XdmNode> nodes = new ArrayList<>();
-        nodes.add(parent);
-        nodes.addAll(descendants(parent));
-        return nodes;
-    }
-
     private static List<XdmNode> attributes(XdmNode elem)
     {
         List<XdmNode> attributes = new ArrayList<>();
@@ -952,26 +742,6 @@ public class PackageContract
     public Set<String> getCollectingModes()
     {
         return collectingModes;
-    }
-
-    /**
-     * Returns the platform units that write or read.
-     *
-     * @return <code>f:</code>, <code>t:</code> and <code>m:</code> prefixed Clark names
-     */
-    public Set<String> getImpure()
-    {
-        return impure;
-    }
-
-    /**
-     * Returns the impure platform units a package may call.
-     *
-     * @return <code>f:</code> and <code>t:</code> prefixed Clark names
-     */
-    public Set<String> getAllowed()
-    {
-        return allowed;
     }
 
 }

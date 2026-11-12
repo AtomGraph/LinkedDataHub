@@ -190,11 +190,25 @@ exclude-result-prefixes="#all"
 
     <!-- render row -->
 
-    <!-- the walk over rendered rows. SEALED and pure: it descends through every element and asks the
-         open mode ldh:RowHook (client/hooks.xsl) what to schedule for each one, contributing nothing
-         itself - the platform's own view injection is a hook rule like any package's. Splitting the
-         two is what makes a hook safe: a rule that wins in ldh:RowHook adds work for its node and
-         cannot take the node's subtree out of the walk, which a rule winning HERE would. -->
+    <!-- work to schedule for one rendered row, as FACTORIES rather than work: the ldh:RenderRow walk
+         below applies this mode to every element it visits, collects what comes back inside a
+         non-updating binding and invokes the factories later inside ixsl:promise, which is also what
+         gives ixsl:http-request the active promise it requires.
+
+         The walk only ever descends; this mode is what it asks at each node. So a rule here can add
+         work for a node and can never take the node's subtree out of the walk, which is exactly the
+         failure that made this a separate mode. deep-skip: a node nobody claims contributes nothing.
+
+         Sealed: a factory is control flow, and a package has none (it has no ixsl: at all, see
+         hooks.xsl). A package's tree asks for its reveal with data instead (data-tree-reveal,
+         client/tree.xsl), and the platform contributes the factory. -->
+    <xsl:mode name="ldh:RowHook" on-no-match="deep-skip"/>
+
+    <!-- the walk over rendered rows: it descends through every element and asks ldh:RowHook what to
+         schedule for each one, contributing nothing itself - the platform's own view injection is a
+         hook rule like the others. Splitting the two is what makes a hook safe: a rule that wins in
+         ldh:RowHook adds work for its node and cannot take the node's subtree out of the walk, which
+         a rule winning HERE would. -->
     <xsl:template match="*" mode="ldh:RenderRow" as="(function(item()?) as map(*))*">
         <xsl:apply-templates select="." mode="ldh:RowHook"/>
 
@@ -202,6 +216,29 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <xsl:template match="text()" mode="ldh:RenderRow" as="(function(item()?) as map(*))*"/>
+
+    <!-- ontology-driven view blocks for any row wrapper produced by resource.xsl - outer
+         div.ldh-block-row[@about] whose div.row-main child contains the inner typed resource block
+         (class='block ldh-block').
+
+         Typed-block rows (Object/View/Query/Chart) are excluded automatically: their card carries no
+         @typeof (the typeof rides the inner .block-row container), so the inner [@typeof] predicate
+         excludes them. -->
+    <xsl:template match="child::div[contains-token(@class, 'ldh-block-row')][@about][child::div[contains-token(@class, 'row-main')]/div[contains-token(@class, 'block')][@typeof]]" mode="ldh:RowHook" as="(function(item()?) as map(*))*">
+        <xsl:variable name="block" select="child::div[contains-token(@class, 'row-main')]/div[contains-token(@class, 'block')][@typeof]" as="element()"/>
+        <xsl:variable name="typeof-uris" select="tokenize($block/@typeof, ' ') ! xs:anyURI(.)" as="xs:anyURI*"/>
+        <xsl:variable name="values-clause" select="' VALUES ?type { ' || string-join(for $t in $typeof-uris return '&lt;' || $t || '&gt;', ' ') || ' }'" as="xs:string"/>
+        <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', lds:base()), map{ 'query': $ldh:ontology-view-query || $values-clause }), map{})" as="xs:anyURI"/>
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
+        <xsl:variable name="context" as="map(*)" select="
+            map{
+                'request': $request,
+                'container': .,
+                'base-uri': ac:absolute-path(ldh:base-uri($block)),
+                'endpoint': sd:endpoint()
+            }"/>
+        <xsl:sequence select="ldh:load-block#3($context, ldh:ontology-view-self-thunk#1, ?)"/>
+    </xsl:template>
     
     <!-- hide type control -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;XHTML']" mode="ldh:TypeControl" priority="1">
