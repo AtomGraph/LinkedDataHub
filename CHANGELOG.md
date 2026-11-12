@@ -18,6 +18,7 @@
 - The Northwind Traders demo dataspace from the default config
 
 ### Fixed
+- The server certificate `bin/server-cert-gen.sh` makes names every subdomain of the host (`*.HOST`) beside the host, so `admin.HOST` and every other dataspace's origin pass name checks; it named the host only
 - A SPARQL result under the `/sparql` endpoint's limit is no longer cut short when the Varnish store of SPARQL results is full: the store may evict up to 1000 cached results to make room for it (`nuke_limit`), not 50
 - The `/sparql` endpoint answers `502` for a result the store's response cut short, instead of `200` with the rows that had arrived
 - `ldh admin import ontology --source` imports from a LinkedDataHub document, such as a vocabulary vendored into the dataspace: it leaves the source document's `sioc:has_parent` and `sioc:has_container` out of the import, which the admin application refused with `422`
