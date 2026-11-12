@@ -58,7 +58,9 @@ exclude-result-prefixes="#all"
         platform places it or acts on it. No ixsl: of any kind (instructions, functions, ixsl:updating,
         event modes), no reading of resources or the environment, no code chosen at run time
         (PackageContract checks it, see PACKAGE-CONTRACT.md). What a package wants DONE - a request, a
-        change to data - it declares as an action in its ontology, which the platform carries out.
+        change to data - it declares as an action in its ontology (<class> ldh:action <ldh:Action> with a
+        Web-Algebra ldh:plan), which the platform evaluates, shows, confirms and carries out
+        (client/action.xsl).
 
         The open modes, and what a package rule in each one owes:
 

@@ -78,6 +78,9 @@ public class LDH
     /** View class */
     public static final Resource View = m_model.createOntClass(NS + "View");
 
+    /** Action class: a plan a package declares for a class, which the platform evaluates, confirms and applies */
+    public static final Resource Action = m_model.createOntClass(NS + "Action");
+
     /** URI syntax violation class */
     public static final Resource URISyntaxViolation = m_model.createOntClass(NS + "URISyntaxViolation");
 
@@ -90,8 +93,11 @@ public class LDH
     /** File property */
     public static final Property file = m_model.createObjectProperty( NS + "file" );
     
-    /** Action property */
+    /** Action property: attaches an action to a class */
     public static final Property action = m_model.createObjectProperty( NS + "action" );
+
+    /** Plan property: a Web-Algebra plan, as an XML literal */
+    public static final Property plan = m_model.createDataProperty( NS + "plan" );
 
     /** Delimiter property */
     public static final Property delimiter = m_model.createDataProperty( NS + "delimiter" );

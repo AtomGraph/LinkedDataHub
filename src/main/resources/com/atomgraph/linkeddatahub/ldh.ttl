@@ -111,6 +111,13 @@
     rdfs:comment "Attaches a view to a property for inverse relationships (?value property $about)" ;
     rdfs:isDefinedBy : .
 
+:action a owl:ObjectProperty ;
+    rdfs:domain rdfs:Class ;
+    rdfs:range :Action ;
+    rdfs:label "Action" ;
+    rdfs:comment "Attaches an action to a class: what a resource of the class offers to have done, found through rdfs:subClassOf as a constructor is" ;
+    rdfs:isDefinedBy : .
+
 :showWhenEmpty a owl:DatatypeProperty ;
     rdfs:domain :View ;
     rdfs:range xsd:boolean ;
@@ -133,10 +140,10 @@
     rdfs:isDefinedBy : .
 
 :plan a owl:DatatypeProperty ;
-    rdfs:domain :ChatTurn ;
+    rdfs:domain [ owl:unionOf ( :ChatTurn :Action ) ] ;
     rdfs:range rdf:XMLLiteral ;
     rdfs:label "Plan" ;
-    rdfs:comment "The Web-Algebra plan the question became: the wa:plan envelope with its summary and operation" ;
+    rdfs:comment "A Web-Algebra plan: on a turn, the wa:plan envelope the question became, with its summary and operation; on an action, the operation itself, taking the resource it is run on as $wa:bindings (?this, ?document, ?base, ?admin)" ;
     rdfs:isDefinedBy : .
 
 :execution a owl:DatatypeProperty ;
@@ -395,6 +402,13 @@
 :ChatTurn a rdfs:Class, owl:Class ;
     rdfs:label "Assistant turn" ;
     rdfs:comment "One question to the assistant and what came of it" ;
+    rdfs:isDefinedBy : .
+
+# action
+
+:Action a rdfs:Class, owl:Class ;
+    rdfs:label "Action" ;
+    rdfs:comment "Something a resource offers to have done, declared by a package for a class: a Web-Algebra plan (ldh:plan) the platform evaluates first, shows the writes of, and applies for the reader once confirmed" ;
     rdfs:isDefinedBy : .
 
 # exception
