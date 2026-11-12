@@ -45,46 +45,9 @@ exclude-result-prefixes="#all"
          own. No fallback: a tree whose domain supplies no fetch is not expandable. -->
     <xsl:mode name="ldh:TreeChildrenLoad"/>
 
-    <!-- work to schedule for one rendered row, as FACTORIES rather than work: the ldh:RenderRow walk
-         in client/block.xsl applies this mode to every element it visits, collects what comes back
-         inside a non-updating binding and invokes the factories later inside ixsl:promise, which is
-         also what gives ixsl:http-request the active promise it requires.
-
-         The walk itself is sealed and only ever descends; this mode is what it asks at each node. So a
-         rule here can add work for a node and can never take the node's subtree out of the walk, which
-         is exactly the failure that made this a separate mode. deep-skip: a node nobody claims
-         contributes nothing.
-
-         ldh:collecting: every package's rule for a node must end with xsl:next-match, so that two packages
-         contributing work for the same node both run, and the platform's own rule below them too
-         (PackageContract checks it). -->
-    <xsl:mode name="ldh:RowHook" on-no-match="deep-skip" ldh:collecting="true"/>
-
-    <!-- the platform's own contribution: ontology-driven view blocks for any row wrapper produced by
-         resource.xsl - outer div.ldh-block-row[@about] whose div.row-main child contains the inner
-         typed resource block (class='block ldh-block').
-
-         Typed-block rows (Object/View/Query/Chart) are excluded automatically: their card carries no
-         @typeof (the typeof rides the inner .block-row container), so the inner [@typeof] predicate
-         excludes them.
-
-         Below the packages on purpose: a package may decorate the injection for rows of its own
-         vocabulary, and must xsl:next-match to keep it. A rule that forgets costs that one row its
-         views and nothing else. -->
-    <xsl:template match="child::div[contains-token(@class, 'ldh-block-row')][@about][child::div[contains-token(@class, 'row-main')]/div[contains-token(@class, 'block')][@typeof]]" mode="ldh:RowHook" as="(function(item()?) as map(*))*">
-        <xsl:variable name="block" select="child::div[contains-token(@class, 'row-main')]/div[contains-token(@class, 'block')][@typeof]" as="element()"/>
-        <xsl:variable name="typeof-uris" select="tokenize($block/@typeof, ' ') ! xs:anyURI(.)" as="xs:anyURI*"/>
-        <xsl:variable name="values-clause" select="' VALUES ?type { ' || string-join(for $t in $typeof-uris return '&lt;' || $t || '&gt;', ' ') || ' }'" as="xs:string"/>
-        <xsl:variable name="request-uri" select="ldh:href(ac:build-uri(resolve-uri('ns', lds:base()), map{ 'query': $ldh:ontology-view-query || $values-clause }), map{})" as="xs:anyURI"/>
-        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }" as="map(*)"/>
-        <xsl:variable name="context" as="map(*)" select="
-            map{
-                'request': $request,
-                'container': .,
-                'base-uri': ac:absolute-path(ldh:base-uri($block)),
-                'endpoint': sd:endpoint()
-            }"/>
-        <xsl:sequence select="ldh:load-block#3($context, ldh:ontology-view-self-thunk#1, ?)"/>
-    </xsl:template>
+    <!-- ldh:RowHook, the factories of deferred work for a rendered row, is not here and not open: a
+         factory runs inside ixsl:promise, which is control flow a package does not get (a package has
+         no ixsl: at all). The mode and the platform's own rules in it live in client/block.xsl, beside
+         the ldh:RenderRow walk that asks it. -->
 
 </xsl:stylesheet>
