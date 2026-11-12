@@ -1,3 +1,7 @@
+## [Unreleased]
+### Added
+- The owners control the context as they control the rest of the admin dataspace: the seeded full-control authorization names `<context>` beside `<>`, `<sparql>`, `<ns>` and `<clear>`. The platform's own `/context` stays read-only (a write answers `405`); an extension that keeps the dataspace descriptions elsewhere may add the write
+
 ## [6.5.2] - 2026-11-12
 ### Fixed
 - The `ldh` plugin's app skill holds no shell interpreter line, which the plugin directory reads as an inline shell snippet
