@@ -1,3 +1,10 @@
+## [Unreleased]
+### Security
+- `PATCH /settings` refuses to change a dataspace's wiring (`422`): `lds:origin` and `lds:service` are the deployment's, set when the dataspace is made. An owner of one dataspace could otherwise point it at another's SPARQL service, or take another's origin, through their own settings
+
+### Fixed
+- An empty write through the Linked Data proxy keeps its `Content-Type`, so an empty append is answered `204` as it is directly instead of `400`
+
 ## [6.5.2] - 2026-11-12
 ### Fixed
 - The `ldh` plugin's app skill holds no shell interpreter line, which the plugin directory reads as an inline shell snippet
