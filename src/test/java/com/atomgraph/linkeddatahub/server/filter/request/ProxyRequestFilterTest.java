@@ -390,6 +390,44 @@ public class ProxyRequestFilterTest
     }
 
     /**
+     * An empty body is forwarded with its media type: Jersey reports no entity for it, and the origin, given no
+     * Content-Type, refuses the write that it would answer directly (an append of nothing).
+     */
+    @Test
+    public void testEmptyBodyForwardedWithItsMediaType() throws IOException
+    {
+        URI targetURI = URI.create("https://remote.example/doc");
+        MediaType nTriples = MediaType.valueOf("application/n-triples");
+        when(requestContext.getProperty(AC.uri.getURI())).thenReturn(targetURI);
+        when(requestContext.getAcceptableMediaTypes()).thenReturn(List.of(nTriples));
+        when(requestContext.getMethod()).thenReturn("POST");
+        when(requestContext.hasEntity()).thenReturn(false);
+        when(requestContext.getEntityStream()).thenReturn(new ByteArrayInputStream(new byte[0]));
+        when(requestContext.getMediaType()).thenReturn(nTriples);
+        UriInfo uriInfo = mock(UriInfo.class);
+        when(uriInfo.getRequestUri()).thenReturn(URI.create("https://localhost:4443/"));
+        when(requestContext.getUriInfo()).thenReturn(uriInfo);
+
+        when(system.isEnableLinkedDataProxy()).thenReturn(true);
+        when(system.getURLValidator()).thenReturn(mock(URLValidator.class));
+        Client noCertClient = mock(Client.class);
+        when(system.getExternalNoCertClient()).thenReturn(noCertClient);
+        WebTarget target = mock(WebTarget.class);
+        Invocation.Builder builder = mock(Invocation.Builder.class);
+        when(noCertClient.target(targetURI)).thenReturn(target);
+        when(target.property(anyString(), any())).thenReturn(target);
+        when(target.request()).thenReturn(builder);
+        when(builder.accept(any(MediaType[].class))).thenReturn(builder);
+        when(builder.header(anyString(), any())).thenReturn(builder);
+        when(builder.method(eq("POST"), any(Entity.class))).thenThrow(new ProcessingException("upstream not reachable in the test"));
+
+        assertThrows(BadGatewayException.class, () -> filter.filter(requestContext));
+
+        verify(builder).method(eq("POST"), argThat((Entity<?> entity) -> nTriples.equals(entity.getMediaType())));
+        verify(builder, never()).method("POST");
+    }
+
+    /**
      * Runs the filter over a proxied GET whose upstream request fails, and returns the target it went to.
      */
     private WebTarget proxy(URI targetURI, AgentContext agentContext, boolean isDataspace, Client certClient, Client noCertClient) throws IOException

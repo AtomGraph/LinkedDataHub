@@ -250,8 +250,11 @@ public class ProxyRequestFilter implements ContainerRequestFilter
 
         MediaType[] clientAcceptTypes = requestContext.getAcceptableMediaTypes().toArray(MediaType[]::new);
         // asked once, before the first hop: that hop consumes and closes the entity stream, and asking again on a hop a
-        // 303 led to throws on the closed stream
-        boolean hasEntity = requestContext.hasEntity();
+        // 303 led to throws on the closed stream. A write that declares a media type carries a body even when it is
+        // empty, which hasEntity() reports as none: the origin needs the Content-Type to read it, and refuses with 400
+        // the empty append it answers 204 directly
+        boolean hasEntity = requestContext.hasEntity() ||
+            (requestContext.getMediaType() != null && Set.of(HttpMethod.POST, HttpMethod.PUT, HttpMethod.PATCH).contains(requestContext.getMethod().toUpperCase(Locale.ROOT)));
         if (log.isDebugEnabled()) log.debug("Proxying {} {} → {}", requestContext.getMethod(), requestContext.getUriInfo().getRequestUri(), targetURI);
 
         try
