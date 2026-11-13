@@ -98,6 +98,13 @@ export const components = [
                 ],
             },
             {
+                // The actions a package declares for a resource's classes (ldh:action), as a menu in the
+                // block header. Rendered only for a reader who may write and where the dataspace has an
+                // executor (lds:assistant), which the CI stack does not run: the probe columns read 0
+                // there, and the spec says so when it skips.
+                id: 'actions', name: 'Actions menu', selector: '.ldh-action-menu',
+            },
+            {
                 id: 'blocks', name: 'Block card', selector: '.block.ldh-block', lib: 'lib/block.mjs',
                 children: [
                     {
