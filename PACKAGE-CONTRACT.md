@@ -91,6 +91,9 @@ skos:Concept ldh:action :DeleteConcept .
   after; its container, when the plan deleted it. A write refused mid-way (`409`) is told in the dialog with
   the executor's message; what was applied before it stands (atomicity is per document).
 - The executor acts as the reader: the platform's own ACL authorizes every write.
+- The executor must take the `wa:request` envelope (`dry-run`, `wa:bindings`): Web-Algebra has it since 2026-11-03,
+  the published `webalgebra-server-ldh:latest` image (2026-10-29) does not and answers "Unknown operation: request".
+  The action spec needs a release of it, or a locally built image (`WEBALGEBRA_VERSION`), to run.
 
 ### What the check does not cover
 
