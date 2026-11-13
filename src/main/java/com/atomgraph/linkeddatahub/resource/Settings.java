@@ -46,10 +46,16 @@ import jakarta.ws.rs.ext.MessageBodyReader;
 import jakarta.ws.rs.ext.Providers;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
@@ -202,6 +208,14 @@ public class Settings
                 if (log.isWarnEnabled()) log.warn("PATCH removed application resource or its type for <{}>", getDataspace().getURI());
                 throw new ClientErrorException("PATCH cannot remove the application resource or its type", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
             }
+            // the wiring is the deployment's, set when the dataspace is made: its settings say what it is, not where
+            // it is served or which store backs it. Without this an owner of one dataspace could point it at another's
+            // service, or take another's origin, through their own settings
+            if (!wiring(dataspaceModel, appResource).equals(wiring(mutableModel, appResource)))
+            {
+                if (log.isWarnEnabled()) log.warn("PATCH would change the wiring of <{}>", getDataspace().getURI());
+                throw new ClientErrorException("The dataspace's wiring (lds:origin, lds:service) is the deployment's, set when the dataspace is made", UNPROCESSABLE_ENTITY.getStatusCode()); // 422 Unprocessable Entity
+            }
 
             // validate the updated model
             validate(mutableModel);
@@ -281,6 +295,22 @@ public class Settings
     public ResourceContext getResourceContext()
     {
         return resourceContext;
+    }
+
+    /**
+     * The statements that wire a dataspace into the deployment: its origin and its SPARQL service. A settings PATCH
+     * leaves them as they are.
+     *
+     * @param model a dataspace description
+     * @param dataspace the dataspace
+     * @return its wiring statements
+     */
+    public static Set<Statement> wiring(Model model, Resource dataspace)
+    {
+        Set<Statement> wiring = new HashSet<>();
+        for (Property property : List.of(LDS.origin, LDS.service))
+            wiring.addAll(model.listStatements(dataspace, property, (RDFNode) null).toList());
+        return wiring;
     }
 
     /**
