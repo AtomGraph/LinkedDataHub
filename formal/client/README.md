@@ -78,14 +78,14 @@ formal/client/tracks-code.sh origin/develop
 | `Page` | `ldh:request-uri` (`client/functions.xsl`) |
 | `tabBase`, `newPane` | `$application`, `$tab-base` and `$reuse-pane` in `ldh:rdf-document-response` (`client.xsl`) |
 | `base` | `lds:base` (`client/functions.xsl`) |
-| `Target.shell` for the assistant | `ldh:chat-href` (`client/chat.xsl`) |
+| `Target.shell` for the assistant and the actions | `ldh:webalgebra-href` (`client/webalgebra.xsl`) |
 | `sites` | the request maps in `client.xsl` and `client/`, as `sites.py` reads them |
 | `pageDoc` | `ac:uri` (`client/functions.xsl`), the `doc-uri` of the first `ldh:DocumentNavigate` (`client.xsl`) |
 | `fallback` | the `?status ge 400` branch of `ldh:rdf-document-response` (`client.xsl`) |
 | `restoreTarget` | `ldh:history-document` (`client/memento.xsl`) |
 
 The stylesheets are under `src/main/webapp/static/com/atomgraph/linkeddatahub/xsl/`. `tracks-code.sh` tracks
-`ldh:href`, `ldh:is-local`, `lds:origin`, `lds:base`, `ldh:request-uri`, `ac:uri`, `ldh:chat-href`,
+`ldh:href`, `ldh:is-local`, `lds:origin`, `lds:base`, `ldh:request-uri`, `ac:uri`, `ldh:webalgebra-href`,
 `ldh:history-document`, the three variables, and the branch, each as `xmllint` serializes it. Web-Client's functions live in another repository; the
 href cases replay them.
 

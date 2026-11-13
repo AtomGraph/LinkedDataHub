@@ -21,7 +21,7 @@ xsl=src/main/webapp/static/com/atomgraph/linkeddatahub/xsl
 declarations=(
   "$xsl/imports/default.xsl	//*[local-name()='function'][@name='ldh:href' or @name='ldh:is-local' or @name='lds:origin']"
   "$xsl/client/functions.xsl	//*[local-name()='function'][@name='lds:base' or @name='ldh:request-uri' or @name='ac:uri']"
-  "$xsl/client/chat.xsl	//*[local-name()='function'][@name='ldh:chat-href']"
+  "$xsl/client/webalgebra.xsl	//*[local-name()='function'][@name='ldh:webalgebra-href']"
   "$xsl/client.xsl	//*[local-name()='variable'][@name='application' or @name='tab-base' or @name='reuse-pane']"
   "$xsl/client.xsl	//*[local-name()='when'][starts-with(@test, '?status ge 400')]"
   "$xsl/client/memento.xsl	//*[local-name()='function'][@name='ldh:history-document']"

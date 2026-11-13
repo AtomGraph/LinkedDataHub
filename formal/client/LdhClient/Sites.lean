@@ -38,14 +38,14 @@ structure Site where
 
 def sites : List Site := [
   ⟨"client/block/object.xsl", "$context('request')?href", .again⟩,
-  ⟨"client/chat.xsl", "ldh:chat-href('webalgebra')", .shell "webalgebra".toList⟩,
-  ⟨"client/chat.xsl", "ldh:chat-href('webalgebra/' || $id || '/result')", .shell "webalgebra/{id}/result".toList⟩,
-  ⟨"client/chat.xsl", "ldh:chat-href('webalgebra/answers')", .shell "webalgebra/answers".toList⟩,
-  ⟨"client/chat.xsl", "ldh:chat-href('webalgebra/plans')", .shell "webalgebra/plans".toList⟩,
+  ⟨"client/chat.xsl", "ldh:webalgebra-href('webalgebra/answers')", .shell "webalgebra/answers".toList⟩,
+  ⟨"client/chat.xsl", "ldh:webalgebra-href('webalgebra/plans')", .shell "webalgebra/plans".toList⟩,
   ⟨"client/combobox.xsl", "$uri", .again⟩,
   ⟨"client/constructor.xsl", "$update?href", .again⟩,
   ⟨"client/memento.xsl", "if (ldh:is-local($timemap-uri)) then $timemap-uri else ldh:href($timemap-uri)", .localOrHref⟩,
-  ⟨"client/modal.xsl", "$settings-uri", .shell "settings".toList⟩
+  ⟨"client/modal.xsl", "$settings-uri", .shell "settings".toList⟩,
+  ⟨"client/webalgebra.xsl", "ldh:webalgebra-href('webalgebra')", .shell "webalgebra".toList⟩,
+  ⟨"client/webalgebra.xsl", "ldh:webalgebra-href('webalgebra/' || $id || '/result')", .shell "webalgebra/{id}/result".toList⟩
 ]
 
 /-- A site whose target the page's origin does not bound: `lds:base()` without `ldh:href`, or a given URI. -/
@@ -96,7 +96,8 @@ private def doc : Str := "https://evil.example/".toList
 
 /-- **The assistant stays on the page's origin on a proxied pane.** On the page that shows `https://evil.example/`
 through the proxy, a response naming an `lds:dataspace` still moves `lds:base()` there (`newPane_base`), and the
-assistant's requests stay on `https://localhost:4443/`. Until `ldh:chat-href` resolved against the page's origin they
+assistant's requests stay on `https://localhost:4443/`. Until `ldh:webalgebra-href` (then `ldh:chat-href`, now shared
+with the actions in `client/webalgebra.xsl`) resolved against the page's origin they
 followed `lds:base()`: the question, the document, the endpoint and the last turns went to
 `https://evil.example/webalgebra/plans` (`proxied_link_moves_base`). -/
 theorem proxied_link_keeps_chat :
