@@ -2,9 +2,6 @@
 ### Security
 - `PATCH /settings` refuses to change a dataspace's wiring (`422`): `lds:origin` and `lds:service` are the deployment's, set when the dataspace is made. An owner of one dataspace could otherwise point it at another's SPARQL service, or take another's origin, through their own settings
 
-### Added
-- The owners control the context as they control the rest of the admin dataspace: the seeded full-control authorization names `<context>` beside `<>`, `<sparql>`, `<ns>` and `<clear>`. The platform's own `/context` stays read-only (a write answers `405`); an extension that keeps the dataspace descriptions elsewhere may add the write
-
 ### Fixed
 - An empty write through the Linked Data proxy keeps its `Content-Type`, so an empty append is answered `204` as it is directly instead of `400`
 

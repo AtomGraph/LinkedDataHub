@@ -310,7 +310,7 @@ WHERE
     <acl/authorizations/full-control/#this> a acl:Authorization ;
         rdfs:label "Full control" ;
         rdfs:comment "Allows full read/write access to all application resources" ;
-        acl:accessTo <>, <sparql>, <ns>, <clear>, <context> ;
+        acl:accessTo <>, <sparql>, <ns>, <clear> ;
         acl:default <> ;
         acl:mode acl:Read, acl:Append, acl:Write ;
         acl:agentGroup <acl/groups/owners/#this> .
