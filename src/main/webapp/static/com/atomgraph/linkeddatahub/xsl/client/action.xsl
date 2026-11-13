@@ -85,8 +85,10 @@ exclude-result-prefixes="#all"
 
     <!-- the actions menu for a typed resource block, contributed to the ldh:RenderRow walk (client/block.xsl)
          beside the ontology views: the same row wrapper, the same /ns query shape. Only for a reader who may
-         write the document - the actions change data - and only where the dataspace has an executor. -->
-    <xsl:template match="child::div[contains-token(@class, 'ldh-block-row')][@about][child::div[contains-token(@class, 'row-main')]/div[contains-token(@class, 'block')][@typeof]]" mode="ldh:RowHook" as="(function(item()?) as map(*))*">
+         write the document - the actions change data - and only where the dataspace has an executor.
+         Priority 1 over the ontology-view rule's default, which matches the same row: this one runs first and
+         passes the row on, so neither depends on include order. -->
+    <xsl:template match="child::div[contains-token(@class, 'ldh-block-row')][@about][child::div[contains-token(@class, 'row-main')]/div[contains-token(@class, 'block')][@typeof]]" mode="ldh:RowHook" priority="1" as="(function(item()?) as map(*))*">
         <xsl:if test="acl:mode() = '&acl;Write' and lds:dataspace-description()/lds:assistant = 'true'">
             <xsl:variable name="block" select="child::div[contains-token(@class, 'row-main')]/div[contains-token(@class, 'block')][@typeof]" as="element()"/>
             <xsl:variable name="typeof-uris" select="tokenize($block/@typeof, ' ') ! xs:anyURI(.)" as="xs:anyURI*"/>

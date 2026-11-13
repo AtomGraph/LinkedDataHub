@@ -238,8 +238,11 @@ exclude-result-prefixes="#all"
                 'endpoint': sd:endpoint()
             }"/>
         <xsl:sequence select="ldh:load-block#3($context, ldh:ontology-view-self-thunk#1, ?)"/>
+
+        <!-- a hook contributes and passes the node on: the actions menu (client/action.xsl) is asked of the same row -->
+        <xsl:next-match/>
     </xsl:template>
-    
+
     <!-- hide type control -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&ldh;XHTML']" mode="ldh:TypeControl" priority="1">
         <xsl:next-match>
